@@ -115,9 +115,20 @@ http_archive(
     ),
 )
 
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-
-protobuf_deps()
+# Originally, we pulled protobuf dependencies as follows:
+#
+#     load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+#     protobuf_deps()
+#
+# The protobuf_deps() macro brings in a bunch of dependencies, but by copying the macro body here
+# and removing dependencies one by one, "rules_proto" was identified as the only dependency that is
+# required to build this repository.
+http_archive(
+    name = "rules_proto",
+    sha256 = "a4382f78723af788f0bc19fd4c8411f44ffe0a72723670a34692ffad56ada3ac",
+    strip_prefix = "rules_proto-f7a30f6f80006b591fa7c437fe5a951eb10bcbcf",
+    urls = ["https://github.com/bazelbuild/rules_proto/archive/f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip"],
+)
 
 http_archive(
     name = "com_google_googleapis",
@@ -161,9 +172,21 @@ http_archive(
     ),
 )
 
-load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
-
-grpc_deps()
+# Originally, we pulled gRPC dependencies as follows:
+#
+#     load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+#     grpc_deps()
+#
+# The grpc_deps() macro brings in a bunch of dependencies, but by copying the macro body here
+# and removing dependencies one by one, "zlib" was identified as the only dependency that is
+# required to build this repository.
+http_archive(
+    name = "zlib",
+    build_file = "@com_github_grpc_grpc//third_party:zlib.BUILD",
+    sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
+    strip_prefix = "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f",
+    url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+)
 
 ###################################################
 # JavaScript / TypeScript rules and dependencies. #
