@@ -56,9 +56,11 @@ const qualityDetails: Record<Quality, Detail> = {
 };
 
 export class SkottieExporterGifSk extends SkottieExporterBaseSk {
-  private _ffmpeg;
+  private _ffmpeg: FFmpeg;
 
   private _frameCollector: FrameCollectorType;
+
+  private _isLoaded: boolean = false;
 
   constructor() {
     super('gif');
@@ -66,10 +68,16 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
       log: false,
       corePath: `${location.origin}/static/ffmpeg-core.js`,
     });
-    this._ffmpeg.load();
     this._frameCollector = frameCollectorFactory(this._ffmpeg, (message) =>
       this.updateProgress({ ratio: 0, message })
     );
+    this.loadFfmpeg();
+  }
+
+  private async loadFfmpeg() {
+    await this._ffmpeg.load();
+    this._isLoaded = true;
+    this._render();
   }
 
   private renderDetails(): TemplateResult | null {
@@ -117,6 +125,9 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
   }
 
   protected renderIdle(): TemplateResult {
+    if (!this._isLoaded) {
+      return html`<span id="export-form-gif">Loading ffmpeg...</span>`;
+    }
     return html`
       <form
         class="export-form"
