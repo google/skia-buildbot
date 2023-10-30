@@ -10,7 +10,6 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/git",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/ctxutil",
         "//go/gitiles",
         "//go/metrics2",
         "//go/skerr",
