@@ -9,6 +9,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//lit-html",
+        "//skottie/modules/helpers:availablefonts_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
