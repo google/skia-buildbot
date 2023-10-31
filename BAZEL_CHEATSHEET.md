@@ -300,6 +300,81 @@ $ bazel test //go/my_pkg:my_pkg_test \
              --test_env=MY_ENV_VAR=foo
 ```
 
+### Go modules
+
+Unlike normal Go projects, Bazel Go projects based on rules_go specify Go module dependencies via
+Gazelle's
+[`go_repository`](https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.md#go_repository)
+rule. In our repository, those rules are located in `//go_repositories.bzl`.
+
+While a Bazel Go project does not need a `go.mod` file, absence of a `go.mod` file breaks common
+tooling such as VSCode's code completion. For this reason, our repository contains a `//go.mod`
+file which we treat as the source of truth for Go dependencies, and we automatically generate file
+`//go_repositories.bzl` from `//go.mod` via Gazelle.
+
+#### Adding or updating Go modules
+
+The process is similar to non-Bazel Go projects, but instead of running e.g.
+`go get example.com/foo@v0.1.2`, we use the `//:go` Bazel wrapper mentioned earlier. This avoids
+potential differences in `//go.mod` and `//go.sum` that might be introduced by a local Go SDK whose
+version differs from the hermetic Go SDK downloaded by Bazel.
+
+First, update the `//go.mod` file:
+
+```
+$ bazel run //:go -- get example.com/foo@v0.1.2
+```
+
+Then run Gazelle, which will update `//go_repositories.bzl`:
+
+```
+$ make gazelle
+```
+
+#### Troubleshooting Go dependency changes
+
+While the above steps work for most Go dependencies, we occasionally run into issues that require
+manual work to resolve.
+
+For example:
+
+- Most Go modules do not include `BUILD` files, in which case the `go_repository` rule will
+  generate `BUILD` files automatically using Gazelle. However, some Go modules are distributed
+  with `BUILD` files, in which case the `go_repository` rule will not generate any `BUILD` files.
+  This behavior can be customized to some extent via the `go_repository` rule's
+  `build_file_generation` attribute
+  ([example](https://skia-review.googlesource.com/c/buildbot/+/772355/6/go_repositories.bzl#205)).
+
+- For those Go modules that include `BUILD` files, sometimes the target names in those files will
+  use the
+  [`go_default_library`](https://github.com/bazelbuild/rules_go#what-s-up-with-the-go-default-library-name)
+  naming convention. In such cases, we must explicitly tell the `go_repository` rule via the
+  `build_naming_convention` attribute
+  ([example](https://skia.googlesource.com/buildbot/+/232683f4840a825514e931d8201940388b3997dc/go_repositories.bzl#204)).
+
+- For Go modules that include `.proto` files, sometimes they also include pre-generated `.pb.go`
+  files, in which case we need to tell the `go_repository` rule not to generate
+  [`go_proto_library`](https://github.com/bazelbuild/rules_go/blob/master/proto/core.rst#go_proto_library)
+  targets
+  ([example](https://skia.googlesource.com/buildbot/+/232683f4840a825514e931d8201940388b3997dc/go_repositories.bzl#3174)).
+
+Another important aspect to keep in mind while debugging problematic Go modules is that the order
+in which we import external Bazel repositories in the `//WORKSPACE` file matters greatly. This is
+relevant to Go modules because the `//go_repositories.bzl` file is imported from `//WORKSPACE`.
+
+As an example, on Q4 2023 we updated the `google.golang.org/grpc` Go module. This update was
+particularly challenging because it required:
+
+- Investigating and simplifying non-`go_repository` external Bazel repositories in `//WORKSPACE`.
+- Updating both rules_go and Gazelle.
+- Updating numerous transitive dependencies which required customizing the attributes of some
+  `go_repository` rules in `//go_repositories.bzl`
+- Compatibility hacks for certain Go modules that assumed an older version of `rules_go`.
+
+This [bug](https://g-issues.skia.org/issues/308044304) tracks all the work that went into this
+update. We recommend reading through the CL descriptions; it might give you some ideas as to what
+to try next if you get stuck during a tricky Go module update.
+
 ## Front-end development in TypeScript
 
 Our front-end code is built and tested using a set of custom Bazel macros built on top of rules
