@@ -1,5 +1,5 @@
-load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
 load(":gold_launcher.bzl", "gold_launcher")
 
 skia_app_container(

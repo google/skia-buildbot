@@ -183,8 +183,8 @@ def go_repositories():
         # See https://github.com/bazelbuild/bazel-gazelle/blob/master/repository.rst#go_repository.
         build_naming_convention = "go_default_library",
         importpath = "github.com/bazelbuild/buildtools",
-        sum = "h1:a+J2VBrlAmgdb1eXDTFxdoPA/wA/L2+33DcdfzhnhXM=",
-        version = "v0.0.0-20201102150426-f0f162f0456b",
+        sum = "h1:VUHCI4QRifAGYsbVJYqJndLf7YqV12YthB+PLFsEKqo=",
+        version = "v0.0.0-20231017121127-23aa65d4e117",
     )
     go_repository(
         name = "com_github_bazelbuild_remote_apis",
@@ -2939,8 +2939,8 @@ def go_repositories():
     go_repository(
         name = "net_starlark_go",
         importpath = "go.starlark.net",
-        sum = "h1:+FNtrFTmVw0YZGpBGX56XDee331t6JAXeK2bcyhLOOc=",
-        version = "v0.0.0-20200306205701-8dd3e2ee1dd5",
+        sum = "h1:xwwDQW5We85NaTk2APgoN9202w/l0DVGp+GZMfsrh7s=",
+        version = "v0.0.0-20210223155950-e043a3d3c984",
     )
 
     go_repository(

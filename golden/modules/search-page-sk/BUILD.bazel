@@ -1,5 +1,5 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 load("//golden/demo-page-assets:index.bzl", "GOLD_DEMO_PAGE_ASSETS")
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page", "ts_library")
 
 ts_library(
     name = "demo_data_ts_lib",

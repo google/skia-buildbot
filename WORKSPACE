@@ -25,21 +25,6 @@ http_archive(
     ],
 )
 
-###############
-# Buildifier. #
-###############
-
-http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
-    strip_prefix = "buildtools-4.0.0",
-    urls = gcs_mirror_url(
-        sha256 = "2adaafee16c53b80adff742b88bc90b2a5e99bf6889a5d82f22ef66655dc467b",
-        # Fix after https://github.com/bazelbuild/buildtools/issues/1135 is addressed
-        url = "https://github.com/bazelbuild/buildtools/archive/4.0.0.zip",
-    ),
-)
-
 #################
 # Python rules. #
 #################

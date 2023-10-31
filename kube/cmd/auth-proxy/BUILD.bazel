@@ -1,5 +1,5 @@
-load("//bazel:skia_app_container.bzl", "skia_app_container")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 go_library(
     name = "auth-proxy_lib",

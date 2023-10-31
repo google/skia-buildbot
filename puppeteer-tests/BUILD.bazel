@@ -19,9 +19,9 @@ ts_library(
     data = select({
         # Provides Google Chrome, libraries and fonts.
         "@platforms//os:linux": [
-            "@google_chrome//:all_files",
             ":chrome",
             "//:.puppeteerrc.js",
+            "@google_chrome//:all_files",
         ],
         # We don't have hermetic support for Mac and Windows. Users are expected
         # to have a working chrome installation already.

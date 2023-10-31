@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 
 # The purpose of this target is to easily include all of CT's python files in
 # the skia_app_container in ct/BUILD.bazel

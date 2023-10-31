@@ -18,7 +18,7 @@ require (
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
 	github.com/bazelbuild/bazel-gazelle v0.23.0
-	github.com/bazelbuild/buildtools v0.0.0-20201102150426-f0f162f0456b
+	github.com/bazelbuild/buildtools v0.0.0-20231017121127-23aa65d4e117
 	github.com/bazelbuild/remote-apis v0.0.0-20230822133051-6c32c3b917cc
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20220429154201-6c8489803a6f
 	github.com/blakesmith/ar v0.0.0-20190502131153-809d4375e1fb

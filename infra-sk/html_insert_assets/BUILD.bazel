@@ -1,5 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 load(":index.bzl", "html_insert_assets")
 

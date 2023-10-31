@@ -1,8 +1,8 @@
 """This module defines the karma_test rule."""
 
 load("@npm//karma:index.bzl", _generated_karma_test = "karma_test")
-load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle")
 load("//infra-sk:ts_library.bzl", "ts_library")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle")
 
 def karma_test(
         name,

@@ -1,3 +1,4 @@
+# buildifier: disable=native-cc
 cc_binary(
     name = "fiddle_secwrap",
     srcs = [
