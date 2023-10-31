@@ -253,6 +253,9 @@
         },
         "query_config": {
           "$ref": "#/$defs/QueryConfig"
+        },
+        "ga_measurement_id": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

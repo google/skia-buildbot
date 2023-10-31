@@ -1,5 +1,6 @@
 {
     "URL": "https://perf.luci.app",
+    "ga_measurement_id": "G-ZR01MG8PGX",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.2,
     "contact": "browser-perf-engprod@google.com",

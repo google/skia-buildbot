@@ -1,5 +1,6 @@
 {
     "URL": "https://chrome-perf.corp.goog",
+    "ga_measurement_id": "G-LEQSJH1GXP",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
     "trace_sample_proportion": 1.0,

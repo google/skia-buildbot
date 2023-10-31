@@ -4,6 +4,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "frontend",
     srcs = ["frontend.go"],
+    embedsrcs = [
+        "googleanalytics.html",
+        "cookieconsent.html",
+    ],
     importpath = "go.skia.org/infra/perf/go/frontend",
     visibility = ["//visibility:public"],
     deps = [

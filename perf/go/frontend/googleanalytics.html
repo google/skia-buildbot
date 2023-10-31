@@ -1,0 +1,12 @@
+{%- if not (eq .GoogleAnalyticsMeasurementID "") %}
+<script async type="text/javascript" charset="utf-8" nonce="{% .Nonce %}"
+    src="https://www.googletagmanager.com/gtag/js?id={% .GoogleAnalyticsMeasurementID %}">
+</script>
+<script type="text/javascript" charset="utf-8" nonce="{% .Nonce %}">
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{% .GoogleAnalyticsMeasurementID %}');
+</script>
+<link href="https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css" rel="stylesheet">
+ {% end -%}

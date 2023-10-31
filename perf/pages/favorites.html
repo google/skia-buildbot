@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    {%- template "googleanalytics" . -%}
     <title>Skia Performance Monitoring - Alerts</title>
     <script type="text/javascript" charset="utf-8" nonce="{% .Nonce %}">
       window.perf = {%.context %};
@@ -17,4 +18,5 @@
       <favorites-sk>Loading favorites...</favorites-sk>
     </perf-scaffold-sk>
   </body>
+  {%- template "cookieconsent" . -%}
 </html>

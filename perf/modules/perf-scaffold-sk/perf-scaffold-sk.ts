@@ -86,7 +86,7 @@ export class PerfScaffoldSk extends ElementSk {
     </aside>
     <main>
     </main>
-    <footer>
+    <footer class="glue-footer">
       <error-toast-sk></error-toast-sk>
     </footer>
   </app-sk>

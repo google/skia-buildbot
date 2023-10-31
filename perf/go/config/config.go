@@ -695,6 +695,9 @@ type InstanceConfig struct {
 	NotifyConfig    NotifyConfig    `json:"notify_config"`
 	AnomalyConfig   AnomalyConfig   `json:"anomaly_config,omitempty"`
 	QueryConfig     QueryConfig     `json:"query_config,omitempty"`
+
+	// Measurement ID to use when tracking user metrics with Google Analytics.
+	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`
 }
 
 // Config is the currently running config.

@@ -3,6 +3,7 @@ package frontend
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -99,6 +100,20 @@ const (
 	// making a request that involves the database. For more complex requests
 	// use config.QueryMaxRuntime.
 	defaultDatabaseTimeout = time.Minute
+)
+
+var (
+	// googleAnalyticsSnippet is rendered into page html templates for configs
+	// that specfy a value for [config.Config.GoogleAnalyticsMeasurementID], aka
+	// 'ga_measurement_id' in the config's json file.
+	//go:embed googleanalytics.html
+	googleAnalyticsSnippet string
+
+	// cookieConsentSnippet adds a cookie consent banner that gets rendered into
+	// the perf-scaffold-sk element's footer if it is present, or at the bottom
+	// of the body element otherwise.
+	//go:embed cookieconsent.html
+	cookieConsentSnippet string
 )
 
 // Frontend is the server for the Perf web UI.
@@ -198,8 +213,15 @@ func (f *Frontend) loadTemplatesImpl() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		f.templates = f.templates.New(filename).Delims("{%", "%}")
+		f.templates = f.templates.New(filename).Delims("{%", "%}").Option("missingkey=error")
 		_, err = f.templates.Parse(contents)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+	for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet} {
+		f.templates = f.templates.New(name).Delims("{%", "%}").Option("missingkey=error")
+		_, err := f.templates.Parse(snippet)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -274,7 +296,8 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 			sklog.Errorf("Failed to JSON encode window.perf context: %s", err)
 		}
 		if err := f.templates.ExecuteTemplate(w, name, map[string]interface{}{
-			"context": context,
+			"context":                      context,
+			"GoogleAnalyticsMeasurementID": config.Config.GoogleAnalyticsMeasurementID,
 			// Look in //machine/pages/BUILD.bazel for where the nonce templates are injected.
 			"Nonce": secure.CSPNonce(r.Context()),
 		}); err != nil {
