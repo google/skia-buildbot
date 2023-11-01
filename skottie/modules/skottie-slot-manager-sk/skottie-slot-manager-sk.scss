@@ -2,13 +2,57 @@
 
 // TODO(jmbetancourt): wait on UX for official styling
 skottie-slot-manager-sk {
-  .slots-container {
-    .slot {
-      &--color {
-        color: var(--on-surface);
-        font-size: 17px;
-        padding-top: 4px;
-        flex: 0 0 auto;
+  .wrapper {
+    width: 100%;
+    padding: 8px;
+
+    #wrapper-form {
+      font-size: 0;
+    }
+
+    .slots-container {
+      .slotID {
+        display: block;
+      }
+
+      .slot {
+        &--color {
+          color: var(--on-surface);
+          font-size: 17px;
+          padding-top: 4px;
+          flex: 0 0 auto;
+        }
+      }
+
+      .text-box {
+        display: inline-block;
+        width: 110px;
+        align-items: baseline;
+        background-color: var(--surface-2dp);
+        border-radius: 4px;
+        gap: 8px;
+        padding: 4px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+
+        &--label {
+          display: inline-block;
+        }
+
+        &__left {
+          border-radius: 4px 0 0 4px;
+        }
+
+        &__right {
+          border-radius: 0 4px 4px 0;
+        }
+
+        &--input {
+          flex: 1 1 auto;
+          min-width: 0;
+          width: max-content;
+          border: none;
+        }
       }
     }
   }
