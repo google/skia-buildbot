@@ -2,15 +2,15 @@ module go.skia.org/infra
 
 require (
 	cloud.google.com/go/bigtable v1.6.0
-	cloud.google.com/go/compute v1.5.0
-	cloud.google.com/go/datastore v1.3.0
-	cloud.google.com/go/firestore v1.6.1
-	cloud.google.com/go/iam v0.3.0
-	cloud.google.com/go/logging v1.1.1
-	cloud.google.com/go/monitoring v1.5.0
-	cloud.google.com/go/pubsub v1.8.2
-	cloud.google.com/go/secretmanager v1.4.0
-	cloud.google.com/go/storage v1.14.0
+	cloud.google.com/go/compute/metadata v0.2.3
+	cloud.google.com/go/datastore v1.13.0
+	cloud.google.com/go/firestore v1.12.0
+	cloud.google.com/go/iam v1.1.1
+	cloud.google.com/go/logging v1.7.0
+	cloud.google.com/go/monitoring v1.15.1
+	cloud.google.com/go/pubsub v1.33.0
+	cloud.google.com/go/secretmanager v1.11.1
+	cloud.google.com/go/storage v1.30.1
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	github.com/Jeffail/gabs/v2 v2.6.0
 	github.com/Masterminds/semver v1.5.0
@@ -34,12 +34,12 @@ require (
 	github.com/go-python/gpython v0.0.3
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
-	github.com/google/uuid v1.1.2
-	github.com/googleapis/gax-go/v2 v2.3.0
+	github.com/google/uuid v1.3.1
+	github.com/googleapis/gax-go/v2 v2.11.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hako/durafmt v0.0.0-20200710122514-c0fb7b4da026
 	github.com/hashicorp/go-multierror v1.1.0
@@ -81,18 +81,19 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.2
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20201029184154-594d11850ebf
-	go.opencensus.io v0.23.0
-	golang.org/x/net v0.7.0
-	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
+	go.opencensus.io v0.24.0
+	golang.org/x/net v0.14.0
+	golang.org/x/oauth2 v0.11.0
 	golang.org/x/sync v0.3.0
 	golang.org/x/sys v0.12.0
-	golang.org/x/term v0.5.0
-	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
-	golang.org/x/tools v0.1.12
-	google.golang.org/api v0.74.0
-	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
-	google.golang.org/grpc v1.51.0
-	google.golang.org/protobuf v1.28.0
+	golang.org/x/term v0.11.0
+	golang.org/x/time v0.3.0
+	golang.org/x/tools v0.6.0
+	google.golang.org/api v0.126.0
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/grpc v1.59.0
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
 	gopkg.in/yaml.v2 v2.4.0
@@ -105,15 +106,16 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.100.2 // indirect
-	cloud.google.com/go/container v1.2.0 // indirect
-	cloud.google.com/go/kms v1.4.0 // indirect
-	cloud.google.com/go/trace v1.2.0 // indirect
+	cloud.google.com/go v0.110.7 // indirect
+	cloud.google.com/go/compute v1.23.0 // indirect
+	cloud.google.com/go/container v1.24.0 // indirect
+	cloud.google.com/go/longrunning v0.5.1 // indirect
+	cloud.google.com/go/trace v1.10.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
@@ -121,11 +123,13 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/golang/snappy v0.0.3 // indirect
+	github.com/golang/glog v1.1.2 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/licenseclassifier v0.0.0-20210722185704-3043a050f148 // indirect
+	github.com/google/s2a-go v0.1.4 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -192,11 +196,13 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230530153820-e85fd2cbaebc // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
