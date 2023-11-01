@@ -413,13 +413,12 @@ export class SkottieSk extends ElementSk {
           @files-selected=${this.skottieFilesSelected}></skottie-file-form-sk>
       </div>
 
-      ${this.fileSettingsDialog()} ${this.colorManager()}
+      ${this.fileSettingsDialog()} ${this.slotManager()} ${this.colorManager()}
       ${this.backgroundDialog()} ${this.audioDialog()} ${this.optionsDialog()}`;
   };
 
   private rightControls = () => html`
     ${this.jsonTextEditor()} ${this.library()} ${this.embedDialog()}
-    ${this.slotManager()}
   `;
 
   private renderDownload() {
