@@ -9,6 +9,7 @@
     "ianhickson@gmail.com",
     "lavidalovett@gmail.com",
     "taha@nevercode.io",
+    "bruno@nevercode.io",
     "coldpalelight@gmail.com",
   ],
   client_secret_file: "/etc/skia.org/login.json",
