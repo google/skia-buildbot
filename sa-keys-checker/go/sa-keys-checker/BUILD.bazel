@@ -14,9 +14,9 @@ go_library(
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_iam//admin/apiv1",
-        "@go_googleapis//google/iam/admin/v1:admin_go_proto",
         "@org_golang_google_api//iterator",
         "@org_golang_google_api//option",
+        "@org_golang_google_genproto//googleapis/iam/admin/v1:admin",
         "@org_golang_x_oauth2//google",
     ],
 )
@@ -34,7 +34,7 @@ go_test(
     deps = [
         "//go/metrics2",
         "@com_github_stretchr_testify//require",
-        "@go_googleapis//google/iam/admin/v1:admin_go_proto",
+        "@org_golang_google_genproto//googleapis/iam/admin/v1:admin",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

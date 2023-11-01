@@ -17,7 +17,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/a8m/envsubst v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20190830160640-d16893ddf098
-	github.com/bazelbuild/bazel-gazelle v0.23.0
+	github.com/bazelbuild/bazel-gazelle v0.33.0
 	github.com/bazelbuild/buildtools v0.0.0-20231017121127-23aa65d4e117
 	github.com/bazelbuild/remote-apis v0.0.0-20230822133051-6c32c3b917cc
 	github.com/bazelbuild/remote-apis-sdks v0.0.0-20220429154201-6c8489803a6f
@@ -35,7 +35,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
 	github.com/google/uuid v1.1.2
@@ -84,8 +84,8 @@ require (
 	go.opencensus.io v0.23.0
 	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
-	golang.org/x/sync v0.2.0
-	golang.org/x/sys v0.5.0
+	golang.org/x/sync v0.3.0
+	golang.org/x/sys v0.12.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
 	golang.org/x/tools v0.1.12
@@ -117,7 +117,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danjacques/gofslock v0.0.0-20200623023034-5d0bd0fa6ef0 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -193,7 +193,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

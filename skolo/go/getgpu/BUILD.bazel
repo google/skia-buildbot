@@ -5,10 +5,13 @@ go_library(
     srcs = ["getgpu.go"],
     importpath = "go.skia.org/infra/skolo/go/getgpu",
     visibility = ["//visibility:private"],
-    deps = [
-        "//go/gpus",
-        "@com_github_yusufpapurcu_wmi//:wmi",
-    ],
+    deps = select({
+        "@io_bazel_rules_go//go/platform:windows": [
+            "//go/gpus",
+            "@com_github_yusufpapurcu_wmi//:wmi",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 go_binary(
