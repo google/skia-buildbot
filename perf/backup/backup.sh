@@ -13,7 +13,6 @@ CONFIGS=(
   'flutter-engine2.json'
   'flutter-flutter2.json'
   'v8.json'
-  'comp-ui.json'
 )
 
 # Dump the tables we want backed up and copy the gzipped output to Google Cloud Storage.
