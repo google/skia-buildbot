@@ -59,6 +59,7 @@ import {
   ColumnHeader,
   CIDHandlerResponse,
   QueryConfig,
+  TraceSet,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -101,6 +102,8 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
+import { join, timestampBounds } from '../dataframe';
+import { TryJob_Status } from '../../../autoroll/modules/rpc';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import {
   TraceFormatter,
@@ -228,6 +231,8 @@ export class State {
   summary: boolean = false; // Whether to show the zoom/summary area.
 
   selected: PointSelected = defaultPointSelected(); // The point on a trace that was clicked on.
+
+  _incremental: boolean = false; // Enables a data fetching optimization.
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -497,6 +502,13 @@ export class ExploreSimpleSk extends ElementSk {
           ?checked=${ele._state.autoRefresh}
           label='Auto-refresh'
           title='Auto-refresh the data displayed in the graph.'>
+        </checkbox-sk>
+        <checkbox-sk
+          name=auto
+          @change=${ele.enableIncrementalDataFrameFetchHandler}
+          ?checked=${ele._state._incremental}
+          label='Incremental data fetch'
+          title='Only fetch deltas when panning left or right.'>
         </checkbox-sk>
         <div
           id=calcButtons
@@ -1026,6 +1038,7 @@ export class ExploreSimpleSk extends ElementSk {
     ];
 
     const result = calculateRangeChange(zoom, clampedZoom, offsets);
+
     if (result.rangeChange) {
       // Convert the offsets into timestamps, which are needed when building
       // dataframes.
@@ -1044,7 +1057,9 @@ export class ExploreSimpleSk extends ElementSk {
         .then((json: ShiftResponse) => {
           this._state.begin = json.begin;
           this._state.end = json.end;
-          this._state.requestType = 0;
+          if (!this._state._incremental) {
+            this._state.requestType = 0;
+          }
           this._stateHasChanged();
           this.rangeChangeImpl();
         })
@@ -1468,6 +1483,84 @@ export class ExploreSimpleSk extends ElementSk {
     this.helpDialog!.close();
   }
 
+  /** Create a FrameRequest that will fill in data specified by this._state.begin and end,
+   *  but is not yet present in this._dataframe.
+   */
+  private requestFrameBodyDeltaFromState(): FrameRequest {
+    // Make this optional until we iron out any bugs that surface in production.
+    if (!this._state._incremental) {
+      return this.requestFrameBodyFullFromState();
+    }
+    // If there's nothing loaded in the current dataframe, go ahead and fetch the entire
+    // timestamp range in this._state.begin/end.
+    if (this._dataframe === null || this._dataframe!.header!.length == 0) {
+      return this.requestFrameBodyFullFromState();
+    }
+
+    // If the queries have changed, just fetch a full dataframe rather than try to merge
+    // dataframes with different queries.
+    const existingQueries = fromParamSet(this._dataframe.paramset)
+      .split('&')
+      .sort();
+    const stateQueries = this._state.queries.sort();
+    if (
+      existingQueries.length != stateQueries.length ||
+      !existingQueries.every((val, i) => stateQueries[i] === val)
+    ) {
+      return this.requestFrameBodyFullFromState();
+    }
+
+    // Now compare the existing dataframe's bounds to the begin and end values in this._state
+    // to determine what the fetchable difference is, if there is any.
+    const existingBounds = timestampBounds(this._dataframe);
+    const newBounds = [this._state.begin, this._state.end];
+
+    if (newBounds[0] < existingBounds[0] && newBounds[1] > existingBounds[1]) {
+      // Zoom out. newBounds completely contains existingBounds.
+      // We'd have to make two separate dataframe fetches for the data missing on either side.
+      // That's more complex than we want to handle yet, so just do a full data fetch instead.
+      return this.requestFrameBodyFullFromState();
+    }
+
+    if (newBounds[0] > existingBounds[1] || newBounds[1] < existingBounds[0]) {
+      // No overlap. newBounds is entirely outside of existingBounds.
+      return this.requestFrameBodyFullFromState();
+    }
+
+    const fetchRange = [0, 0];
+
+    if (newBounds[0] < existingBounds[0]) {
+      // Pan left.
+      fetchRange[0] = Math.min(existingBounds[0], newBounds[0]);
+      fetchRange[1] = Math.max(existingBounds[0], newBounds[0]);
+    } else if (newBounds[1] > existingBounds[1]) {
+      // Pan right.
+      fetchRange[0] = Math.min(existingBounds[1], newBounds[1]);
+      fetchRange[1] = Math.max(existingBounds[1], newBounds[1]);
+    } else {
+      console.error(
+        'unexpected new vs existing bounds condition',
+        existingBounds,
+        newBounds
+      );
+    }
+
+    return {
+      begin: fetchRange[0],
+      end: fetchRange[1],
+      num_commits: this._state.numCommits,
+      request_type: this._state.requestType,
+      formulas: this._state.formulas,
+      queries: this._state.queries,
+      keys: this._state.keys,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      pivot:
+        validatePivotRequest(this._state.pivotRequest) === ''
+          ? this._state.pivotRequest
+          : null,
+    };
+  }
+
   /** Create a FrameRequest that will re-create the current state of the page. */
   private requestFrameBodyFullFromState(): FrameRequest {
     return {
@@ -1499,8 +1592,15 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
+    const body = this.requestFrameBodyDeltaFromState();
+
+    if (body.begin == body.end) {
+      console.log(
+        'skipped fetching this dataframe because it would be empty anyways'
+      );
+      return;
+    }
     this.commitTime!.textContent = '';
-    const body = this.requestFrameBodyFullFromState();
     const switchToTab =
       body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
@@ -1508,7 +1608,8 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      this.plot!.removeAll();
+      // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
+      // this.plot!.removeAll();
       this.addTraces(json, switchToTab);
       this._render();
       if (isValidSelection(this._state.selected)) {
@@ -1590,15 +1691,33 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
+  private enableIncrementalDataFrameFetchHandler(e: MouseEvent) {
+    this._state._incremental = (e.target! as HTMLInputElement).checked;
+    this._stateHasChanged();
+  }
+
   /**
    * Add traces to the display. Always called from within the
    * this._requestFrame() callback.
+   *
+   * There are three distinct cases of incoming FrameResponse to handle in this method:
+   * - user panned left to incrementally load older data points to an existing query
+   * - user panned right to incrementally load newer data points to an existing query
+   * - a new page load, user made an entirely new query, or made a zoom-out request that
+   *   includes both newer and older data points than are currently loaded.
+   * The first two cases mean we can merge the existing dataframe with the incoming dataframe.
+   * The third case means we need to replace the existing dataframe with the incoming dataframe.
    *
    * @param {Object} json - The parsed JSON returned from the server.
    * otherwise replace them all with the new ones.
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
   private addTraces(json: FrameResponse, tab: boolean) {
+    // If this is data returned from a panning-triggered dataframe fetch, then
+    // we want to try to preserve the existing zoom *size* so the zoomed data range
+    // only pans left or right, without re-sizing the zoomed range.
+    const previousZoom = this.plot!.zoom;
+
     const dataframe = json.dataframe!;
     if (
       dataframe.traceset === null ||
@@ -1627,26 +1746,69 @@ export class ExploreSimpleSk extends ElementSk {
       dataframe.traceset[ZERO_NAME] = Array(dataframe.header!.length).fill(0);
     }
 
-    this._dataframe = dataframe;
+    const exsitingBounds = timestampBounds(this._dataframe);
+    const newBounds = timestampBounds(dataframe);
+
+    let mergedDataframe = dataframe;
+    if (this._dataframe !== null && this._state._incremental) {
+      mergedDataframe = join(this._dataframe, dataframe);
+    }
+
+    // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
+    // before it called this method. Why does it do this twice? Is it a bug?
     this.plot!.removeAll();
     const labels: Date[] = [];
-    dataframe.header!.forEach((header) => {
+    mergedDataframe.header!.forEach((header) => {
       labels.push(new Date(header!.timestamp * 1000));
     });
 
-    this.plot!.addLines(dataframe.traceset, labels);
+    // TODO(seanmccullough): verify the order of addLines and setting the zoom on this.plot.
+    // Turns out that with real-life dataframe sizes, this "empty the plot and add all the
+    // data again" generates a lot of visual noise.  For the case of zoomed plots, this
+    // is really noticeable. It first renders the entire merged dataframe, flashes all those
+    // series squished into the main plot, then zooms it back in to just the previously-set
+    // zoom window.  I'm sure this is also quite inneficient compared to just having
+    // the plot render only the zoomed portion on the first try here.
+    this.plot!.addLines(mergedDataframe.traceset, labels);
 
+    // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
+    // for panning.
+    if (previousZoom !== null) {
+      if (
+        exsitingBounds[0] > newBounds[0] &&
+        exsitingBounds[1] >= newBounds[1]
+      ) {
+        // Pan left: Just re-use previousZoom, since it's indexed starting from 0 on the
+        // left and should be the same when you pan that direction.
+        this.plot!.zoom = previousZoom;
+      } else if (
+        exsitingBounds[1] < newBounds[1] &&
+        exsitingBounds[0] <= newBounds[0]
+      ) {
+        // Pan right. Adjust the start and end zoom bounds because the size of dataframe
+        // into which we are zooming has changed, and we'll need to push the zoom window
+        // indexes back out to the right edge of the newly merged dataframe.
+        this.plot!.zoom = [
+          this.plot!.zoom![1] - (previousZoom![1] - previousZoom![0]),
+          this.plot!.zoom![1],
+        ];
+      }
+    }
+
+    // TODO(seanmccullough): merge logic for anomalymap - without merging, the incremental
+    // fetch might invalidate or erase already loaded data from whatever is in anomalymap.
     if (json.anomalymap !== null) {
       const anomalyDataMap = getAnomalyDataMap(
-        dataframe.traceset,
-        dataframe.header!,
+        mergedDataframe.traceset,
+        mergedDataframe.header!,
         json.anomalymap
       );
       this.plot!.anomalyDataMap = anomalyDataMap;
     }
+
     // Normalize bands to be just offsets.
     const bands: number[] = [];
-    dataframe.header!.forEach((h, i) => {
+    mergedDataframe.header!.forEach((h, i) => {
       if (json.skps!.indexOf(h!.offset) !== -1) {
         bands.push(i);
       }
@@ -1657,7 +1819,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.xbaroffset !== -1) {
       const xbaroffset = this._state.xbaroffset;
       let xbar = -1;
-      this._dataframe.header!.forEach((h, i) => {
+      mergedDataframe.header!.forEach((h, i) => {
         if (h!.offset === xbaroffset) {
           xbar = i;
         }
@@ -1672,10 +1834,11 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Populate the paramset element.
-    this.paramset!.paramsets = [dataframe.paramset as CommonSkParamSet];
+    this.paramset!.paramsets = [mergedDataframe.paramset as CommonSkParamSet];
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
+    this._dataframe = mergedDataframe;
   }
 
   /**
@@ -1818,6 +1981,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.queries = [];
     this._state.keys = '';
     this.plot!.removeAll();
+    this._dataframe.header = [];
     this._dataframe.traceset = {};
     this.paramset!.paramsets = [];
     this.commitTime!.textContent = '';

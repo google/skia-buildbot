@@ -108,6 +108,8 @@ export class ExploreMultiSk extends ElementSk {
             pivotRequest: elem.state.pivotRequest,
             sort: elem.state.sort,
             selected: elem.state.selected,
+            // TODO(seanmccullough): Make sure this feature works for /m/ too.
+            _incremental: false,
           };
           elem.state = newState;
         });

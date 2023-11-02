@@ -104,10 +104,6 @@ explore-simple-sk {
     display: none;
   }
 
-  #explore.display_spinner .hide_on_spinner {
-    display: none;
-  }
-
   #plot {
     display: block;
     height: 600px;
@@ -151,6 +147,8 @@ explore-simple-sk {
   }
 
   #spin-container {
+    position: absolute;
+    opacity: 0.5;
     top: 0;
     left: 0;
     display: flex;

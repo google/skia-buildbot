@@ -3,7 +3,12 @@
  * so they share the same json data for test case input and exepected output.
  */
 import { assert } from 'chai';
-import { buildParamSet, mergeColumnHeaders, join } from './index';
+import {
+  buildParamSet,
+  mergeColumnHeaders,
+  join,
+  timestampBounds,
+} from './index';
 import {
   DataFrame,
   ParamSet,
@@ -211,5 +216,50 @@ describe('join', () => {
     assert.deepEqual(got.traceset, expected.traceset);
     assert.deepEqual(got.paramset, expected.paramset);
     assert.deepEqual(got, expected);
+  });
+});
+
+describe('timestampBounds', () => {
+  it('returns NaNs for null DataFrame', () => {
+    const nullBounds = timestampBounds(null);
+    assert.deepEqual([NaN, NaN], nullBounds);
+  });
+
+  it('returns NaNs for empty DataFrame', () => {
+    const emptyDataFrame: DataFrame = {
+      header: [],
+      traceset: {},
+      paramset: {},
+      skip: 0,
+    };
+    const emptyBounds = timestampBounds(emptyDataFrame);
+    assert.deepEqual([NaN, NaN], emptyBounds);
+  });
+
+  it('returns bounds for single-element DataFrame', () => {
+    const singleElementDataFrame: DataFrame = {
+      header: [{ offset: 1, timestamp: 0 }],
+      traceset: {},
+      paramset: {},
+      skip: 0,
+    };
+    const singleElementBounds = timestampBounds(singleElementDataFrame);
+    assert.deepEqual([0, 0], singleElementBounds);
+  });
+
+  it('returns bounds for multiple-element DataFrame', () => {
+    const multipleElementDataFrame: DataFrame = {
+      header: [
+        { offset: 1, timestamp: 11 },
+        { offset: 2, timestamp: 12 },
+        { offset: 3, timestamp: 13 },
+        { offset: 4, timestamp: 14 },
+      ],
+      traceset: {},
+      paramset: {},
+      skip: 0,
+    };
+    const multipleElementBounds = timestampBounds(multipleElementDataFrame);
+    assert.deepEqual([11, 14], multipleElementBounds);
   });
 });

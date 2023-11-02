@@ -441,7 +441,7 @@ interface DetailArea extends Area {
 }
 
 // Describes the zoom in terms of x-axis source values.
-type ZoomRange = [number, number] | null;
+export type ZoomRange = [number, number] | null;
 
 // Used for both the trace_selected and trace_focused events.
 export interface PlotSimpleSkTraceEventDetails {

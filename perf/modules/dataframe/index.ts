@@ -139,6 +139,20 @@ export function buildParamSet(d: DataFrame): void {
   d.paramset = paramSet as ReadOnlyParamSet;
 }
 
+/** timestampBounds returns the timestamps for the first and last header values.
+ * If df is null, or its header value is null or of length 0, this will return
+ * [NaN, NaN].
+ */
+export function timestampBounds(df: DataFrame | null): [number, number] {
+  if (df === null || df.header === null || df.header.length == 0) {
+    return [NaN, NaN];
+  }
+  let ret: [number, number] = [NaN, NaN];
+  ret[0] = df.header![0]!.timestamp;
+  ret[1] = df.header![df.header!.length - 1]!.timestamp;
+  return ret;
+}
+
 function normalize(ps: ParamSet): void {
   for (const [k, v] of Object.entries(ps)) {
     v.sort();
