@@ -444,6 +444,9 @@ message GoModParentConfig {
     repeated PreUploadStep pre_upload_steps = 4;
     // pre_upload describes command(s) to run before uploading roll CLs.
     PreUploadConfig pre_upload_commands = 5;
+    // go_cmd is an alternate command to run to invoke Go, eg. for hermetic
+    // installation via Bazel.
+    string go_cmd = 6;
 }
 
 // DEPSLocalConfig provides configuration for a Parent which uses a local

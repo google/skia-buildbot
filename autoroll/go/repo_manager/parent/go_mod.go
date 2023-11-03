@@ -78,17 +78,28 @@ func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *confi
 		return nil, skerr.Wrap(err)
 	}
 
-	goBin, err := golang.FindGo()
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	// Support a custom wrapper around Go, so that we can support hermetic
+	// installation eg. via Bazel.
+	var goCmd []string
+	if c.GoCmd != "" {
+		goCmd = strings.Fields(c.GoCmd)
+	} else {
+		goBin, err := golang.FindGo()
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		goCmd = []string{goBin}
+	}
+	runGo := func(ctx context.Context, dir string, cmd ...string) (string, error) {
+		return exec.RunCwd(ctx, dir, append(goCmd, cmd...)...)
 	}
 
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Update the Go module.
-		if _, err := exec.RunCwd(ctx, co.Dir(), goBin, "get", fmt.Sprintf("%s@%s", c.ModulePath, to.Id)); err != nil {
+		if _, err := runGo(ctx, co.Dir(), "get", fmt.Sprintf("%s@%s", c.ModulePath, to.Id)); err != nil {
 			return "", skerr.Wrap(err)
 		}
-		if _, err := exec.RunCwd(ctx, co.Dir(), goBin, "mod", "tidy"); err != nil {
+		if _, err := runGo(ctx, co.Dir(), "mod", "tidy"); err != nil {
 			return "", skerr.Wrap(err)
 		}
 

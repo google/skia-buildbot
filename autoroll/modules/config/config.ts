@@ -464,6 +464,7 @@ export interface GoModParentConfig {
   findAndReplace?: string[];
   preUploadSteps?: PreUploadStep[];
   preUploadCommands?: PreUploadConfig;
+  goCmd: string;
 }
 
 interface GoModParentConfigJSON {
@@ -472,6 +473,7 @@ interface GoModParentConfigJSON {
   find_and_replace?: string[];
   pre_upload_steps?: string[];
   pre_upload_commands?: PreUploadConfigJSON;
+  go_cmd?: string;
 }
 
 export interface DEPSLocalParentConfig {

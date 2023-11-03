@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/golang"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -78,6 +79,9 @@ func setupGoModGerrit(t *testing.T) (context.Context, *goModParent, *gerrit_test
 			Config:  config.GerritConfig_CHROMIUM_BOT_COMMIT,
 		},
 	}
+	goBin, err := golang.FindGo()
+	require.NoError(t, err)
+	cfg.GoMod.GoCmd = goBin
 	cfg.GoMod.GitCheckout.RepoUrl = parent.RepoUrl()
 	urlmock := mockhttpclient.NewURLMock()
 	g.MockDownloadCommitMsgHook()

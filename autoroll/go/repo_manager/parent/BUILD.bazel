@@ -74,6 +74,7 @@ go_test(
         "//go/gerrit/testutils",
         "//go/git",
         "//go/git/testutils",
+        "//go/golang",
         "//go/mockhttpclient",
         "//go/testutils",
         "//go/testutils/unittest",
