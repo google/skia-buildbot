@@ -21,7 +21,8 @@ debugger-page-sk {
   }
 
   commands-sk {
-    width: 32em;
+    min-width: 32em;
+    flex-grow: 1;
   }
 
   #content {
