@@ -21,11 +21,15 @@ import {
   State as ExploreState,
 } from '../explore-simple-sk/explore-simple-sk';
 
+import { fromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../explore-simple-sk';
+
+const GRAPH_LIMIT = 50;
 
 class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -62,6 +66,10 @@ export class ExploreMultiSk extends ElementSk {
 
   private _state: State = new State();
 
+  private splitGraphButton: HTMLButtonElement | null = null;
+
+  private mergeGraphsButton: HTMLButtonElement | null = null;
+
   constructor() {
     super(ExploreMultiSk.template);
   }
@@ -69,6 +77,9 @@ export class ExploreMultiSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
+
+    this.splitGraphButton = this.querySelector('#split-graph-button');
+    this.mergeGraphsButton = this.querySelector('#merge-graphs-button');
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
@@ -82,12 +93,12 @@ export class ExploreMultiSk extends ElementSk {
             this.addEmptyGraph();
           }
         }
-
         while (this.exploreElements.length > state.numGraphs) {
           this.popGraph();
         }
 
         this.state = state;
+        this.updateButtons();
 
         this.exploreElements.forEach((elem, i) => {
           const graphConfig = this.graphConfigs[i];
@@ -118,15 +129,37 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private static template = (ele: ExploreMultiSk) => html`
+    <div id="menu">
+      <h1>MultiGraph Menu</h1>
+      <button
+        @click=${() => {
+          const explore = ele.addEmptyGraph();
+          if (explore) {
+            explore.openQuery();
+          }
+        }}
+        title="Add empty graph.">
+        Add Graph
+      </button>
+      <button
+        id="split-graph-button"
+        @click=${() => {
+          ele.splitGraph();
+        }}
+        title="Create multiple graphs from a single graph.">
+        Split Graph
+      </button>
+      <button
+        id="merge-graphs-button"
+        @click=${() => {
+          ele.mergeGraphs();
+        }}
+        title="Merge all graphs into a single graph.">
+        Merge Graphs
+      </button>
+    </div>
+    <hr />
     <div id="graphContainer"></div>
-    <button
-      @click=${() => {
-        const explore = ele.addEmptyGraph();
-        explore.openQuery();
-      }}
-      title="Add empty graph.">
-      Add Graph
-    </button>
   `;
 
   private popGraph() {
@@ -134,16 +167,32 @@ export class ExploreMultiSk extends ElementSk {
 
     this.exploreElements.pop();
     this.graphConfigs.pop();
+    this._state.numGraphs -= 1;
+    this.updateButtons();
     graphDiv!.removeChild(graphDiv!.lastChild!);
   }
 
-  private addEmptyGraph(): ExploreSimpleSk {
+  private clearGraphs() {
+    while (this.exploreElements.length > 0) {
+      this.popGraph();
+    }
+    this._state.numGraphs = 0;
+  }
+
+  private addEmptyGraph(): ExploreSimpleSk | null {
+    if (this.exploreElements.length >= GRAPH_LIMIT) {
+      errorMessage(`Cannot exceed display limit of ${GRAPH_LIMIT} graphs.`);
+      return null;
+    }
+
     const graphDiv: Element | null = this.querySelector('#graphContainer');
     const explore: ExploreSimpleSk = new ExploreSimpleSk();
 
     explore.openQueryByDefault = false;
-    this._state.numGraphs += 1;
+    explore.navOpen = false;
     this.exploreElements.push(explore);
+    this._state.numGraphs += 1;
+    this.updateButtons();
     this.graphConfigs.push(new GraphConfig());
 
     const index = this.exploreElements.length - 1;
@@ -193,6 +242,193 @@ export class ExploreMultiSk extends ElementSk {
     });
 
     this._state = v;
+  }
+
+  private updateButtons() {
+    if (this._state.numGraphs === 1) {
+      this.splitGraphButton!.disabled = false;
+    } else {
+      this.splitGraphButton!.disabled = true;
+    }
+
+    if (this._state.numGraphs > 1) {
+      this.mergeGraphsButton!.disabled = false;
+    } else {
+      this.mergeGraphsButton!.disabled = true;
+    }
+  }
+
+  /**
+   * Get the trace keys for each graph formatted in a 2D string array.
+   *
+   * In the case of formulas, we extract the base key, since all the operations
+   * we will do on these keys (adding to shortcut store, merging into single graph, etc.)
+   * are not applicable to function strings. Currently does not support query-based formulas
+   * (e.g. count(filter("a=b"))).
+   *
+   * TODO(@eduardoyap): add support for query-based formulas.
+   *
+   * Example output given that we're displaying 2 graphs:
+   *
+   * [
+   *  [
+   *    ",a=1,b=2,c=3,",
+   *    ",a=1,b=2,c=4,"
+   *  ],
+   *  [
+   *    ",a=1,b=2,c=5,"
+   *  ]
+   * ]
+   *
+   * @returns {string[][]} - Trace keys.
+   */
+  private getTracesets(): string[][] {
+    const tracesets: string[][] = [];
+
+    this.exploreElements.forEach((elem) => {
+      const traceset: string[] = [];
+
+      const formula_regex = new RegExp(/\((,[^)]+,)\)/);
+      // Tracesets include traces from Queries and Keys. Traces
+      // from formulas are wrapped around a formula string.
+      Object.keys(elem.getTraceset()).forEach((key) => {
+        if (key[0] === ',') {
+          traceset.push(key);
+        } else {
+          const match = formula_regex.exec(key);
+          if (match) {
+            traceset.push(match[1]);
+          }
+        }
+      });
+      if (traceset.length !== 0) {
+        tracesets.push(traceset);
+      }
+    });
+    return tracesets;
+  }
+
+  /**
+   * Parse a structured key into a queries string.
+   *
+   * Since this is done on the frontend, this function does not do key or query validation.
+   *
+   * Example:
+   *
+   * Key ",a=1,b=2,c=3,"
+   *
+   * transforms into
+   *
+   * Query "a=1&b=2&c=3"
+   *
+   * @param {string} key - A structured trace key.
+   *
+   * @returns {string} - A query string that can be used in the queries property
+   * of explore-simple-sk's state.
+   */
+  private queryFromKey(key: string): string {
+    return new URLSearchParams(fromKey(key)).toString();
+  }
+
+  /**
+   * Takes the traces of a single graph and create a separate graph for each of those
+   * traces.
+   *
+   * Say the displayed graphs are of the following form:
+   *
+   * [
+   *  [
+   *    ",a=1,b=2,c=3,",
+   *    ",a=1,b=2,c=4,",
+   *    ",a=1,b=2,c=5,"
+   *  ],
+   * ]
+   *
+   * The resulting Multigraph structure will be:
+   *
+   * [
+   *  [
+   *    ",a=1,b=2,c=3,"
+   *  ],
+   *  [
+   *    ",a=1,b=2,c=4,"
+   *  ],
+   *  [
+   *    ",a=1,b=2,c=5,"
+   *  ]
+   * ]
+   *
+   *
+   */
+  private async splitGraph() {
+    const traceset = this.getTracesets()[0];
+    if (!traceset) {
+      return;
+    }
+    this.clearGraphs();
+    traceset.forEach((key, i) => {
+      const newExplore = this.addEmptyGraph();
+      if (newExplore) {
+        if (key[0] === ',') {
+          const queries = this.queryFromKey(key);
+          newExplore.state = {
+            ...newExplore.state,
+            queries: [queries],
+          };
+          this.graphConfigs[i].queries = [queries];
+        } else {
+          const formulas = key;
+          newExplore.state = {
+            ...newExplore.state,
+            formulas: [formulas],
+          };
+          this.graphConfigs[i].formulas = [formulas];
+        }
+      }
+    });
+    this.stateHasChanged!();
+  }
+
+  /**
+   *
+   * Takes the traces of all Graphs and merges them into a single Graph.
+   *
+   * Opposite of splitGraph function.
+   */
+  private async mergeGraphs() {
+    const tracesets = this.getTracesets();
+
+    const traces: string[] = [];
+    // Flatten tracesets
+    tracesets.forEach((traceset) => {
+      traceset.forEach((trace) => {
+        if (!traces.includes(trace)) {
+          traces.push(trace);
+        }
+      });
+    });
+
+    this.clearGraphs();
+    const newExplore = this.addEmptyGraph();
+
+    const queries: string[] = [];
+    const formulas: string[] = [];
+
+    traces.forEach((trace) => {
+      if (trace[0] === ',') {
+        queries.push(this.queryFromKey(trace));
+      } else {
+        formulas.push(trace);
+      }
+    });
+    newExplore!.state = {
+      ...newExplore!.state,
+      formulas: formulas,
+      queries: queries,
+    };
+    this.graphConfigs[0].formulas = formulas;
+    this.graphConfigs[0].queries = queries;
+    this.stateHasChanged!();
   }
 }
 

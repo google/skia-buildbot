@@ -427,8 +427,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private bisectButton: HTMLButtonElement | null = null;
 
-  private navOpen: boolean = true;
-
   private collapseButton: HTMLButtonElement | null = null;
 
   private collapseDetails: CollapseSk | null = null;
@@ -727,7 +725,7 @@ export class ExploreSimpleSk extends ElementSk {
           : html`<expand-more-icon-sk></expand-more-icon-sk>`
       }
       </button>
-      <collapse-sk id=collapseDetails>
+      <collapse-sk id=collapseDetails .closed=${!ele.navOpen}>
         <tabs-sk id=detailTab>
           <button>Params</button>
           <button id=commitsTab disabled>Details</button>
@@ -1697,6 +1695,21 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /**
+   * Wrapper for reShortcut and addTraces. It takes in a list of trace keys, creates
+   * a shortcut, and renders the traces into the display. If there's already traces
+   * being displayed, the graph will conain the union of the existing traces and the
+   * traces from keys.
+   *
+   * @param {string[]} keys - The list of keys to display in the frame.
+   */
+  public async addTracesFromList(keys: string[]) {
+    await this.reShortCut(keys);
+    await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
+      this.addTraces(json, false);
+    });
+  }
+
+  /**
    * Add traces to the display. Always called from within the
    * this._requestFrame() callback.
    *
@@ -2297,10 +2310,25 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
+  get navOpen(): boolean {
+    return this.hasAttribute('nav-open');
+  }
+
+  set navOpen(val: boolean) {
+    if (val) {
+      this.setAttribute('nav-open', '');
+    } else {
+      this.removeAttribute('nav-open');
+    }
+  }
+
   private toggleDetails() {
     this.navOpen = !this.navOpen;
-    this.collapseDetails!.closed = !this.collapseDetails!.closed;
     this._render();
+  }
+
+  getTraceset(): { [key: string]: number[] } {
+    return this._dataframe.traceset;
   }
 }
 

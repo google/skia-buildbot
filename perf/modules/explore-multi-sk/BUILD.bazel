@@ -8,10 +8,12 @@ sk_element(
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
         "@npm//lit-html",
     ],
     ts_srcs = [

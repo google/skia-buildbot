@@ -28,6 +28,7 @@ export class ExploreSk extends ElementSk {
 
     this.exploreSimpleSk = this.querySelector('explore-simple-sk');
     this.exploreSimpleSk!.openQueryByDefault = true;
+    this.exploreSimpleSk!.navOpen = true;
     this.stateHasChanged = stateReflector(
       () => this.exploreSimpleSk!.state as unknown as HintableObject,
       (hintableState) => {
