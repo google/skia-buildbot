@@ -110,7 +110,7 @@
     "chromiumide": {
       "repo_url": "https://chromium.googlesource.com/chromiumos/chromite",
       "git_branch": "main",
-      "package_json_dir": "ide_tooling/cros-ide",
+      "package_json_dir": "ide_tooling/chromiumide",
       "packages_allow_list": [
         {
           "name": "@babel/traverse",
