@@ -56,3 +56,18 @@
     - Users
     - '{{ ansible_hostname }}\chrome-bot'
     action: add
+
+  - name: Delete old metadata server from hosts file if applicable.
+    # Based on
+    # https://skia.googlesource.com/buildbot/+/f90b188b889759a0646ac296320a4d73ca32542a/skolo/win/ansible/skolo-credentials.yml#18.
+    win_lineinfile:
+      path: c:\Windows\System32\Drivers\etc\hosts
+      regex: '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}.*metadata$'
+      state: absent
+
+  - name: Add metadata server to hosts file.
+    # Based on
+    # https://skia.googlesource.com/buildbot/+/f90b188b889759a0646ac296320a4d73ca32542a/skolo/win/ansible/skolo-credentials.yml#18.
+    win_lineinfile:
+      path: c:\Windows\System32\Drivers\etc\hosts
+      line: "{{ metadata_ip }} metadata"
