@@ -59,6 +59,13 @@ export interface PrefixItem {
   count: number;
 }
 
+export interface CommandGroup {
+  // id of the group this op belongs to. In Android this is typically which RenderNode has drawn it
+  groupId: number;
+  // How far left the commands should be indented (if enabled)
+  indentLevel: number;
+}
+
 /** A processed command object, created from a SkpJsonCommand */
 export interface Command {
   // Index of the command in the unfiltered list.
@@ -76,6 +83,8 @@ export interface Command {
   visible: boolean;
   // index of any image referenced by this command
   imageIndex?: number;
+  // group metadata if available
+  group?: CommandGroup;
 }
 
 // Information about layers collected by processCommands.
@@ -129,6 +138,10 @@ export class CommandsSk extends ElementDocSk {
     <div class="horizontal-flex">
       <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
       <play-sk .visual=${'full'}></play-sk>
+      <checkbox-sk
+        label="Indent by RenderNode"
+        ?checked=${ele._isIndented}
+        @change=${() => ele._toggleIndent()}></checkbox-sk>
     </div>
     <div class="list">
       ${ele._filtered.map((i: number, filtPos: number) =>
@@ -144,6 +157,9 @@ export class CommandsSk extends ElementDocSk {
   ) => html`<div
     class="op"
     id="op-${op.index}"
+    style="padding-left:${ele._isIndented && op.group
+      ? op.group.indentLevel
+      : 0}em"
     @click=${(e: MouseEvent) => {
       ele._clickItem(e, filtpos);
     }}>
@@ -272,6 +288,9 @@ Command types can also be filted by clicking on their names in the histogram"
     names: new Map<number, string>(),
   };
 
+  // If true, indent the commands by RenderNode hierarchy
+  private _isIndented = false;
+
   // the command count with no filtering
   get count(): number {
     return this._cmd.length;
@@ -382,8 +401,10 @@ Command types can also be filted by clicking on their names in the histogram"
     this._layerInfo.names = new Map<number, string>();
 
     // Finds things like "RenderNode(id=10, name='DecorView')"
-    const renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
+    const renderNodeRe =
+      /^(\/?)RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'/;
 
+    let lastGroup: CommandGroup | undefined;
     cmd.commands.forEach((com, i) => {
       const name = com.command;
       this._available.add(name.toLowerCase());
@@ -401,6 +422,8 @@ Command types can also be filted by clicking on their names in the histogram"
       if (com.imageIndex) {
         out.imageIndex = com.imageIndex;
       }
+
+      out.group = lastGroup;
 
       if (name in INDENTERS) {
         depth++;
@@ -444,9 +467,27 @@ Command types can also be filted by clicking on their names in the histogram"
         // All render nodes have names, but not all of them are drawn with offscreen buffers
         const found = com.key!.match(renderNodeRe);
         if (found) {
-          // group 1 is the render node id
-          // group 2 is the name of the rendernode.
-          this._layerInfo.names.set(parseInt(found[1]), found[2]);
+          // group 2 is the render node id
+          // group 3 is the name of the rendernode.
+          const isEnd = found[1] === '/';
+          const groupId = parseInt(found[2]);
+          this._layerInfo.names.set(groupId, found[3]);
+
+          let indentLevel = lastGroup ? lastGroup.indentLevel : 0;
+          if (isEnd) {
+            indentLevel--;
+          } else {
+            indentLevel++;
+          }
+          lastGroup = {
+            groupId,
+            indentLevel,
+          };
+
+          // Indent the ending tag at the same indent as the start
+          if (isEnd) {
+            out.group = lastGroup;
+          }
         }
       }
 
@@ -809,6 +850,11 @@ Command types can also be filted by clicking on their names in the histogram"
 
     this._playSk!.size = this._filtered.length;
     this.item = this._filtered.length - 1;
+  }
+
+  private _toggleIndent() {
+    this._isIndented = !this._isIndented;
+    this._render();
   }
 }
 

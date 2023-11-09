@@ -18,6 +18,14 @@ commands-sk {
     display: flex;
     justify-items: stretch;
     align-items: center;
+
+    checkbox-sk {
+      flex-grow: 1;
+
+      label {
+        justify-content: flex-end;
+      }
+    }
   }
 
   .icon {
