@@ -409,74 +409,85 @@ func (c *Continuous) Run(ctx context.Context) {
 		clusteringLatency.Start()
 		sklog.Infof("Clustering over %d configs.", len(cnp.configs))
 		for _, cfg := range cnp.configs {
-			c.setCurrentConfig(cfg)
-
-			// Smoketest the query, but only if we are not in event driven mode.
-			if cfg.GroupBy != "" && !c.flags.EventDrivenRegressionDetection {
-				sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
-				u, err := url.ParseQuery(cfg.Query)
-				if err != nil {
-					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
-					continue
-				}
-				q, err := query.New(u)
-				if err != nil {
-					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
-					continue
-				}
-
-				var matches int64
-				ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
-					matches, err = c.dfBuilder.NumMatches(ctx, q)
-				})
-				if err != nil {
-					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
-					continue
-				}
-				if matches == 0 {
-					sklog.Warningf("Alert failed smoketest: %q Failed to get any traces for generic query.", cfg.DisplayName)
-					continue
-				}
-				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
-			} else {
-				sklog.Info("Not a GroupBy Alert.")
-			}
-
-			clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
-				c.reportRegressions(ctx, req, resps, cfg)
-			}
-			if cfg.Radius == 0 {
-				cfg.Radius = c.flags.Radius
-			}
-			domain := types.Domain{
-				N:   int32(c.flags.NumContinuous),
-				End: time.Time{},
-			}
-			req := regression.NewRegressionDetectionRequest()
-			req.Alert = cfg
-			req.Domain = domain
-
-			expandBaseRequest := regression.ExpandBaseAlertByGroupBy
-			if c.flags.EventDrivenRegressionDetection {
-				// Alert configs generated through
-				// EventDrivenRegressionDetection are already given more precise
-				// queries that take into account their GroupBy values and the
-				// traces they matched.
-				expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
-			}
-
-			var err error
-			ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
-				err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig)
-			})
-			if err != nil {
-				sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
-			}
-
+			c.ProcessAlertConfig(ctx, cfg)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
 		configsCounter.Reset()
+	}
+}
+
+// ProcessAlertConfig processes the supplied alert config to detect regressions
+func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert) {
+	c.setCurrentConfig(cfg)
+	alertConfigLatencyTimer := metrics2.NewTimer(
+		"perf_alertconfig_clustering_latency",
+		map[string]string{
+			"configName": cfg.DisplayName,
+		})
+
+	alertConfigLatencyTimer.Start()
+	defer alertConfigLatencyTimer.Stop()
+	// Smoketest the query, but only if we are not in event driven mode.
+	if cfg.GroupBy != "" && !c.flags.EventDrivenRegressionDetection {
+		sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
+		u, err := url.ParseQuery(cfg.Query)
+		if err != nil {
+			sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
+			return
+		}
+		q, err := query.New(u)
+		if err != nil {
+			sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
+			return
+		}
+
+		var matches int64
+		ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
+			matches, err = c.dfBuilder.NumMatches(ctx, q)
+		})
+		if err != nil {
+			sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
+			return
+		}
+		if matches == 0 {
+			sklog.Warningf("Alert failed smoketest: %q Failed to get any traces for generic query.", cfg.DisplayName)
+			return
+		}
+		sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
+	} else {
+		sklog.Info("Not a GroupBy Alert.")
+	}
+
+	clusterResponseProcessor := func(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
+		c.reportRegressions(ctx, req, resps, cfg)
+	}
+	if cfg.Radius == 0 {
+		cfg.Radius = c.flags.Radius
+	}
+	domain := types.Domain{
+		N:   int32(c.flags.NumContinuous),
+		End: time.Time{},
+	}
+	req := regression.NewRegressionDetectionRequest()
+	req.Alert = cfg
+	req.Domain = domain
+
+	expandBaseRequest := regression.ExpandBaseAlertByGroupBy
+	if c.flags.EventDrivenRegressionDetection {
+		// Alert configs generated through
+		// EventDrivenRegressionDetection are already given more precise
+		// queries that take into account their GroupBy values and the
+		// traces they matched.
+		expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
+	}
+
+	var err error
+	ctxutil.WithContextTimeout(ctx, config.QueryMaxRunTime, func(ctx context.Context) {
+		err = regression.ProcessRegressions(ctx, req, clusterResponseProcessor, c.perfGit, c.shortcutStore, c.dfBuilder, c.paramsProvider(), expandBaseRequest, regression.ContinueOnError, c.instanceConfig.AnomalyConfig)
+	})
+	if err != nil {
+		sklog.Warningf("Failed regression detection: Query: %q Error: %s", req.Query, err)
 	}
 }
