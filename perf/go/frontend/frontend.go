@@ -423,19 +423,21 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
-	// Update the git repo periodically since perfGit.LogEntry does interrogate
-	// the git repo itself instead of using the SQL backend.
-	//
-	// TODO(jcgregorio) Remove once perfgit stores full commit messages.
-	go func() {
-		for range time.Tick(gitRepoUpdatePeriod) {
-			timeoutContext, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
-			if err := f.perfGit.Update(timeoutContext); err != nil {
-				sklog.Errorf("Failed to update git repo: %s", err)
+	if !f.flags.DisableGitUpdate {
+		// Update the git repo periodically since perfGit.LogEntry does interrogate
+		// the git repo itself instead of using the SQL backend.
+		//
+		// TODO(jcgregorio) Remove once perfgit stores full commit messages.
+		go func() {
+			for range time.Tick(gitRepoUpdatePeriod) {
+				timeoutContext, cancel := context.WithTimeout(ctx, defaultDatabaseTimeout)
+				if err := f.perfGit.Update(timeoutContext); err != nil {
+					sklog.Errorf("Failed to update git repo: %s", err)
+				}
+				cancel()
 			}
-			cancel()
-		}
-	}()
+		}()
+	}
 
 	sklog.Info("About to build dfbuilder.")
 

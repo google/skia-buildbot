@@ -407,6 +407,7 @@ type FrontendFlags struct {
 	HideListOfCommitsOnExplore     bool
 	FetchChromePerfAnomalies       bool
 	FeedbackURL                    string
+	DisableGitUpdate               bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -557,6 +558,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "feedback_url",
 			Value:       "",
 			Usage:       "Feedback Url to display on the page",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DisableGitUpdate,
+			Name:        "disable_git_update",
+			Value:       false,
+			Usage:       "Disables updating of the git repository",
 		},
 	}
 }
