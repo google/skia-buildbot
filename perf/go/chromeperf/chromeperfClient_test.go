@@ -24,7 +24,7 @@ func TestSendRegression_RequestIsValid_Success(t *testing.T) {
 	ctx := context.Background()
 	cpClient, err := NewChromePerfClient(context.Background(), ts.URL)
 	assert.Nil(t, err, "No error expected when creating a new client.")
-	response, err := cpClient.SendRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false)
+	response, err := cpClient.SendRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
 	assert.NotNil(t, response)
 	assert.Nil(t, err, "No error expected in the SendRegression call.")
 	assert.Equal(t, anomalyResponse, response)
@@ -39,7 +39,7 @@ func TestSendRegression_ServerReturnsError_ReturnsError(t *testing.T) {
 	ctx := context.Background()
 	cpClient, err := NewChromePerfClient(context.Background(), ts.URL)
 	assert.Nil(t, err, "No error expected when creating a new client")
-	response, err := cpClient.SendRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false)
+	response, err := cpClient.SendRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
 	assert.Nil(t, response, "Nil response expected for server error.")
 	assert.NotNil(t, err, "Non nil error expected.")
 }

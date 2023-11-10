@@ -17,13 +17,13 @@ type ChromePerfClient struct {
 	mock.Mock
 }
 
-// SendRegression provides a mock function with given fields: ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal
-func (_m *ChromePerfClient) SendRegression(ctx context.Context, testPath string, startCommitPosition int32, endCommitPosition int32, projectId string, isImprovement bool, botName string, internal bool) (*chromeperf.ChromePerfResponse, error) {
-	ret := _m.Called(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal)
+// SendRegression provides a mock function with given fields: ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter
+func (_m *ChromePerfClient) SendRegression(ctx context.Context, testPath string, startCommitPosition int32, endCommitPosition int32, projectId string, isImprovement bool, botName string, internal bool, medianBefore float32, medianAfter float32) (*chromeperf.ChromePerfResponse, error) {
+	ret := _m.Called(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
 
 	var r0 *chromeperf.ChromePerfResponse
-	if rf, ok := ret.Get(0).(func(context.Context, string, int32, int32, string, bool, string, bool) *chromeperf.ChromePerfResponse); ok {
-		r0 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int32, int32, string, bool, string, bool, float32, float32) *chromeperf.ChromePerfResponse); ok {
+		r0 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*chromeperf.ChromePerfResponse)
@@ -31,8 +31,8 @@ func (_m *ChromePerfClient) SendRegression(ctx context.Context, testPath string,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, string, int32, int32, string, bool, string, bool) error); ok {
-		r1 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal)
+	if rf, ok := ret.Get(1).(func(context.Context, string, int32, int32, string, bool, string, bool, float32, float32) error); ok {
+		r1 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
 	} else {
 		r1 = ret.Error(1)
 	}

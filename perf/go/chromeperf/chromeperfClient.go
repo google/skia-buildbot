@@ -28,7 +28,9 @@ type ChromePerfClient interface {
 		projectId string,
 		isImprovement bool,
 		botName string,
-		internal bool) (*ChromePerfResponse, error)
+		internal bool,
+		medianBefore float32,
+		medianAfter float32) (*ChromePerfResponse, error)
 }
 
 // ChromePerfClientImpl struct is used to handle the actual api call.
@@ -63,15 +65,19 @@ func (cp *ChromePerfClientImpl) SendRegression(
 	projectId string,
 	isImprovement bool,
 	botName string,
-	internal bool) (*ChromePerfResponse, error) {
+	internal bool,
+	medianBefore float32,
+	medianAfter float32) (*ChromePerfResponse, error) {
 	request := &ChromePerfRequest{
-		TestPath:      testPath,
-		StartRevision: startCommitPosition,
-		EndRevision:   endCommitPosition,
-		ProjectID:     projectId,
-		IsImprovement: isImprovement,
-		BotName:       botName,
-		Internal:      internal,
+		TestPath:            testPath,
+		StartRevision:       startCommitPosition,
+		EndRevision:         endCommitPosition,
+		ProjectID:           projectId,
+		IsImprovement:       isImprovement,
+		BotName:             botName,
+		Internal:            internal,
+		MedianBeforeAnomaly: medianBefore,
+		MedianAfterAnomaly:  medianAfter,
 	}
 	requestBodyJSONStr, err := json.Marshal(request)
 	if err != nil {

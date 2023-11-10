@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -61,6 +62,9 @@ func (n *ChromePerfNotifier) RegressionFound(
 			return "", skerr.Fmt("Invalid paramset %s for chromeperf", paramset)
 		}
 
+		medianBeforeAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[:cl.StepFit.TurningPoint])
+		medianAfterAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[cl.StepFit.TurningPoint:])
+		sklog.Infof("Median Before: %f, Median After: %f", medianBeforeAnomaly, medianAfterAnomaly)
 		response, err := n.chromePerfClient.SendRegression(
 			ctx,
 			getTestPath(paramset),
@@ -69,7 +73,9 @@ func (n *ChromePerfNotifier) RegressionFound(
 			"chromium",
 			false,
 			paramset["bot"],
-			true)
+			true,
+			medianBeforeAnomaly,
+			medianAfterAnomaly)
 
 		if err != nil {
 			return "", err
@@ -103,6 +109,9 @@ func (n *ChromePerfNotifier) RegressionMissing(
 			return skerr.Fmt(errorFormat, paramset)
 		}
 
+		medianBeforeAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[:cl.StepFit.TurningPoint])
+		medianAfterAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[cl.StepFit.TurningPoint:])
+		sklog.Infof("Median Before: %f, Median After: %f", medianBeforeAnomaly, medianAfterAnomaly)
 		_, err = n.chromePerfClient.SendRegression(
 			ctx,
 			getTestPath(paramset),
@@ -111,7 +120,9 @@ func (n *ChromePerfNotifier) RegressionMissing(
 			"chromium",
 			true,
 			paramset["bot"],
-			true)
+			true,
+			medianBeforeAnomaly,
+			medianAfterAnomaly)
 		if err != nil {
 			return err
 		}
