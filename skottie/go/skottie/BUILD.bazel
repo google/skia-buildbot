@@ -24,12 +24,6 @@ go_library(
     ],
 )
 
-go_binary(
-    name = "skottie",
-    embed = [":skottie_lib"],
-    visibility = ["//visibility:public"],
-)
-
 go_test(
     name = "skottie_test",
     srcs = ["skottie_test.go"],
@@ -44,4 +38,10 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
+)
+
+go_binary(
+    name = "skottie",
+    embed = [":skottie_lib"],
+    visibility = ["//visibility:public"],
 )

@@ -13,6 +13,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -103,6 +104,7 @@ func main() {
 
 	r.Get("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
 	r.Get(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler)
+	r.Get("/_/r/{hash:[0-9A-Za-z]+}", srv.resourceListHandler)
 	r.Post("/_/upload", srv.uploadHandler)
 
 	r.Get("/static/*", http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(sc.ResourcesPath)))).ServeHTTP)
@@ -258,6 +260,35 @@ func (s *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// list handler expects a URL as follows:
+// [endpoint]/[hash]
+// It then looks in the GCS location:
+// gs://[bucket]/[hash]/assets/
+// and prints the available names to the writer
+func (s *Server) resourceListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	hash := chi.URLParam(r, "hash")
+	directory := strings.Join([]string{hash, "assets"}, "/")
+	var fileNames []string
+	err := s.gcsClient.AllFilesInDirectory(r.Context(), directory,
+		func(item *storage.ObjectAttrs) error {
+			fileNames = append(fileNames, path.Base(item.Name))
+			return nil
+		})
+	resp := ResourceListResponse{
+		Files: fileNames,
+	}
+	if err != nil {
+		http.Error(w, "Can't find asset directory", http.StatusNotFound)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		httputils.ReportError(w, err, "Failed to write JSON file.", http.StatusInternalServerError)
+		return
+	}
+}
+
 type UploadRequest struct {
 	Lottie   interface{} `json:"lottie"` // the parsed JSON
 	Filename string      `json:"filename"`
@@ -272,6 +303,10 @@ type UploadRequest struct {
 	//  contents and we want to indicate they should
 	// re-attach them if they re-upload the animation.
 	AssetsFilename string `json:"assetsFilename"`
+}
+
+type ResourceListResponse struct {
+	Files []string `json:"files"`
 }
 
 type UploadResponse struct {
