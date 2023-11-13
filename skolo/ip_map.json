@@ -1,9 +1,9 @@
 {
-  "jumphost-internal-01": "100.115.95.131",
-  "jumphost-rack-01": "100.115.95.143",
-  "jumphost-rack-02": "100.115.95.133",
-  "jumphost-rack-03": "100.115.95.134",
-  "jumphost-rack-04": "100.115.95.135",
-  "jumphost-rack-06": "100.115.95.136"
+  "jumphost-internal-01": "100.76.44.7",
+  "jumphost-rack-01": "100.76.44.1",
+  "jumphost-rack-02": "100.76.44.2",
+  "jumphost-rack-03": "100.76.44.3",
+  "jumphost-rack-04": "100.76.44.4",
+  "jumphost-rack-06": "100.76.44.6"
   
 }
