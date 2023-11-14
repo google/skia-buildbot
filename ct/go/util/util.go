@@ -806,11 +806,8 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		// instances.
 		pythonExec = BINARY_PYTHON
 	} else if targetPlatform == PLATFORM_ANDROID {
-		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 		// Reset android logcat prior to the run so that we can examine the logs later.
 		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
-	} else if targetPlatform == PLATFORM_LINUX {
-		env = append(env, "BOTO_CONFIG=/home/chrome-bot/.boto.puppet-bak")
 	}
 
 	// Create buffer for capturing the stdout and stderr of the benchmark run.
