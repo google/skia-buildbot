@@ -14,10 +14,20 @@ const state = {
   filename: 'moving_image.json',
   lottie: lottieToServe,
 };
+const resources = {
+  files: [],
+};
+
 fetchMock.config.fallbackToNetwork = true;
 fetchMock.get('glob:/_/j/*', {
   status: 200,
   body: JSON.stringify(state),
+  headers: { 'Content-Type': 'application/json' },
+});
+
+fetchMock.get('glob:/_/r/*', {
+  status: 200,
+  body: JSON.stringify(resources),
   headers: { 'Content-Type': 'application/json' },
 });
 

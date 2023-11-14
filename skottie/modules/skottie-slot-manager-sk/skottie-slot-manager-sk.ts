@@ -22,9 +22,12 @@ import './skottie-vec2-input-sk';
 
 export class SkottieSlotManagerSk extends ElementSk {
   private _player: SkottiePlayerSk | null = null;
+  private _resourceList: string[] = [];
+
   private colorSlots: ColorSlot[] = [];
   private scalarSlots: ScalarSlot[] = [];
   private vec2Slots: Vec2Slot[] = [];
+  private imageSlots: string[] = [];
 
   private static template = (ele: SkottieSlotManagerSk) => html`
     <div class="wrapper">
@@ -32,6 +35,7 @@ export class SkottieSlotManagerSk extends ElementSk {
         ${ele.colorSlots.map((item: ColorSlot) => ele.colorSlot(item))}
         ${ele.scalarSlots.map((item: ScalarSlot) => ele.scalarSlot(item))}
         ${ele.vec2Slots.map((item: Vec2Slot) => ele.vec2Slot(item))}
+        ${ele.imageSlots.map((item: string) => ele.imageSlot(item))}
       </ul>
     </div>
   `;
@@ -73,6 +77,20 @@ export class SkottieSlotManagerSk extends ElementSk {
     </div>
   `;
 
+  private imageSlot = (is: string) => html`
+    <div class="slot--image">
+      <span class="slotID">${is}</span>
+      <select @change=${(e: Event) => this.onImageSlotChange(e, is)}>
+        <option>--Select from uploaded</option>
+        ${this._resourceList.map((item: string) => this.imageOption(item))}
+      </select>
+    </div>
+  `;
+
+  private imageOption = (name: string) => html`
+    <option value="${name}">${name}</option>
+  `;
+
   private onColorSlotChange(
     e: CustomEvent<SkottieColorEventDetail>,
     sid: string
@@ -103,6 +121,15 @@ export class SkottieSlotManagerSk extends ElementSk {
       ?.setVec2Slot(e.detail.label, [e.detail.x, e.detail.y]);
   }
 
+  private onImageSlotChange(e: Event, sid: string): void {
+    if (!this._player) {
+      return;
+    }
+    const target = e.target as HTMLInputElement;
+    this._player.managedAnimation()?.setImageSlot(sid, target.value);
+    this._render();
+  }
+
   set player(value: SkottiePlayerSk) {
     this._player = value;
 
@@ -131,7 +158,14 @@ export class SkottieSlotManagerSk extends ElementSk {
           this.vec2Slots.push({ id: sid, x: vec2[0], y: vec2[1] });
         }
       }
+      this.imageSlots = slotInfo.imageSlotIDs;
     }
+
+    this._render();
+  }
+
+  set resourceList(value: string[]) {
+    this._resourceList = value;
 
     this._render();
   }

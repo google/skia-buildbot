@@ -1002,53 +1002,91 @@ export class SkottieSk extends ElementSk {
     });
   }
 
-  private loadAssetsAndRender(): Promise<void> {
-    const toLoad: Promise<LoadedAsset | null>[] = [];
-
-    const lottie = this.state.lottie!;
-    let fonts: FontAsset[] = [];
-    let assets: LottieAsset[] = [];
-    if (lottie.fonts && lottie.fonts.list) {
-      fonts = lottie.fonts.list;
-    }
-    if (lottie.assets && lottie.assets.length) {
-      assets = lottie.assets;
-    }
-
-    toLoad.push(...this.loadFonts(fonts));
-    toLoad.push(...this.loadAssets(assets));
-
-    return Promise.all(toLoad)
-      .then((externalAssets: (LoadedAsset | null)[]) => {
-        const loadedAssets: Record<string, ArrayBuffer> = {};
-        const sounds = new SoundMap();
-        for (const asset of externalAssets) {
-          if (asset && asset.bytes) {
-            loadedAssets[asset.name] = asset.bytes;
-          } else if (asset && asset.player) {
-            sounds.setPlayer(asset.name, asset.player);
+  private fetchAdditionalAssets(): Promise<string[]> {
+    return fetch(`/_/r/${this.hash}`)
+      .then(jsonOrThrow)
+      .then((json) => {
+        let allFileNames: string[] = json.files;
+        let additionalAssets: string[] = [];
+        if (allFileNames) {
+          for (const fileName of allFileNames) {
+            const ext: string | undefined = fileName.split('.').pop();
+            if (ext && (ext == 'png' || ext == 'jpg')) {
+              additionalAssets.push(fileName);
+            }
           }
         }
-
-        // check fonts
-        fonts.forEach((font: FontAsset) => {
-          if (!loadedAssets[font.fName]) {
-            console.error(`Could not load font '${font.fName}'.`);
-          }
-        });
-
-        this.state.assets = loadedAssets;
-        this.state.soundMap = sounds;
-        if (this.ui === 'synced') {
-          this.ui = 'loaded';
-        } else if (this.ui === 'unsynced') {
-          this.ui = 'draft';
-        }
-        this.render();
-      })
-      .catch(() => {
-        this.render();
+        return additionalAssets;
       });
+  }
+
+  private loadAssetsAndRender(): Promise<void> {
+    // We always fetch additional asset list before loading assets
+    // While more readable, could be further optimized if startup time gets too bloated as a result
+    return this.fetchAdditionalAssets().then((additionalAssets: string[]) => {
+      const toLoad: Promise<LoadedAsset | null>[] = [];
+
+      const lottie = this.state.lottie!;
+      let fonts: FontAsset[] = [];
+      let assets: LottieAsset[] = [];
+      let loadAdditionalAssets: boolean = false;
+      if (lottie.fonts && lottie.fonts.list) {
+        fonts = lottie.fonts.list;
+      }
+      if (lottie.assets && lottie.assets.length) {
+        assets = lottie.assets;
+
+        // check for slot ids
+        for (const asset of assets) {
+          if (!isBinaryAsset(asset)) {
+            continue;
+          }
+          if (asset.sid) {
+            loadAdditionalAssets = true;
+            break;
+          }
+        }
+      }
+
+      toLoad.push(...this.loadFonts(fonts));
+      if (loadAdditionalAssets) {
+        toLoad.push(...this.loadAssets(assets, additionalAssets));
+      } else {
+        toLoad.push(...this.loadAssets(assets, []));
+      }
+      return Promise.all(toLoad)
+        .then((externalAssets: (LoadedAsset | null)[]) => {
+          const loadedAssets: Record<string, ArrayBuffer> = {};
+          const sounds = new SoundMap();
+          for (const asset of externalAssets) {
+            if (asset && asset.bytes) {
+              loadedAssets[asset.name] = asset.bytes;
+            } else if (asset && asset.player) {
+              sounds.setPlayer(asset.name, asset.player);
+            }
+          }
+
+          // check fonts
+          fonts.forEach((font: FontAsset) => {
+            if (!loadedAssets[font.fName]) {
+              console.error(`Could not load font '${font.fName}'.`);
+            }
+          });
+
+          this.state.assets = loadedAssets;
+          this.state.soundMap = sounds;
+          if (this.ui === 'synced') {
+            this.ui = 'loaded';
+          } else if (this.ui === 'unsynced') {
+            this.ui = 'draft';
+          }
+          this.renderSlotManager();
+          this.render();
+        })
+        .catch(() => {
+          this.render();
+        });
+    });
   }
 
   private loadFonts(fonts: FontAsset[]): Promise<LoadedAsset | null>[] {
@@ -1089,7 +1127,11 @@ export class SkottieSk extends ElementSk {
     return promises;
   }
 
-  private loadAssets(assets: LottieAsset[]): Promise<LoadedAsset | null>[] {
+  private loadAssets(
+    assets: LottieAsset[],
+    additionalAssets: string[]
+  ): Promise<LoadedAsset | null>[] {
+    const alreadyPromised = new Set<string>();
     const promises: Promise<LoadedAsset | null>[] = [];
     for (const asset of assets) {
       if (!isBinaryAsset(asset)) {
@@ -1123,6 +1165,7 @@ export class SkottieSk extends ElementSk {
         const should_load =
           asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
         if (should_load) {
+          alreadyPromised.add(asset.p);
           promises.push(
             fetch(`${this.assetsPath}/${this.hash}/${asset.p}`).then(
               (resp: Response) => {
@@ -1141,6 +1184,27 @@ export class SkottieSk extends ElementSk {
             )
           );
         }
+      }
+    }
+    for (const assetName of additionalAssets) {
+      if (!alreadyPromised.has(assetName)) {
+        promises.push(
+          fetch(`${this.assetsPath}/${this.hash}/${assetName}`).then(
+            (resp: Response) => {
+              // fetch does not reject on 404
+              if (!resp.ok) {
+                console.error(
+                  `Could not load ${assetName}: status ${resp.status}`
+                );
+                return null;
+              }
+              return resp.arrayBuffer().then((buffer) => ({
+                name: assetName,
+                bytes: buffer,
+              }));
+            }
+          )
+        );
       }
     }
     return promises;
@@ -1297,6 +1361,9 @@ export class SkottieSk extends ElementSk {
     );
     if (slotManager) {
       slotManager.player = this.skottiePlayer!;
+      if (this.state.assets) {
+        slotManager.resourceList = Object.keys(this.state.assets);
+      }
     }
   }
 

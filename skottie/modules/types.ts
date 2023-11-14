@@ -76,10 +76,11 @@ export interface LottieLayer extends Record<string, unknown> {
 export interface LottieBinaryAsset {
   id: string;
   p: string; // path
-  u: string; // directory
-  w: number;
-  h: number;
+  u?: string; // directory
+  w?: number;
+  h?: number;
   nm?: string; // name
+  sid?: string; // slot id
 }
 
 export interface LottieCompAsset {
