@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sort"
 	"strings"
 	"time"
 
@@ -279,47 +278,6 @@ func (c *TasksCfg) Validate() error {
 		}
 	}
 
-	// CD and non-CD jobs may not share any tasks.
-	isCD := map[string]bool{}
-	var checkTaskAndJobCD func(string, string) error
-	checkTaskAndJobCD = func(taskName, jobName string) error {
-		job := c.Jobs[jobName]
-		task := c.Tasks[taskName]
-		if taskIsCD, ok := isCD[taskName]; ok && taskIsCD != job.IsCD {
-			return skerr.Fmt("Mixing CD and non-CD tasks: task %q wanted by job %q", taskName, jobName)
-		}
-		isCD[taskName] = job.IsCD
-		for _, depName := range task.Dependencies {
-			if err := checkTaskAndJobCD(depName, jobName); err != nil {
-				return skerr.Wrap(err)
-			}
-		}
-		return nil
-	}
-	// Sort by job name to make tests consistent.
-	jobNames := make([]string, 0, len(c.Jobs))
-	for jobName := range c.Jobs {
-		jobNames = append(jobNames, jobName)
-	}
-	sort.Strings(jobNames)
-	for _, jobName := range jobNames {
-		job := c.Jobs[jobName]
-		for _, taskName := range job.TaskSpecs {
-			if err := checkTaskAndJobCD(taskName, jobName); err != nil {
-				return skerr.Wrap(err)
-			}
-		}
-	}
-
-	// CD jobs may only trigger on the main or master branch.
-	for jobName, job := range c.Jobs {
-		if job.IsCD {
-			if job.Trigger != TRIGGER_MAIN_ONLY && job.Trigger != TRIGGER_MASTER_ONLY {
-				return skerr.Fmt("CD job %q must trigger on main/master branch only", jobName)
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -498,11 +456,6 @@ type CipdPackage = cipd.Package
 // JobSpec is a struct which describes a set of TaskSpecs to run as part of a
 // larger effort.
 type JobSpec struct {
-	// IsCD indicates whether this job is a Continuous Deployment pipeline. If
-	// true, this job is not allowed to be triggered as a try job, no backfills
-	// of tasks are run (ie. only the newest Task Candidate runs), and its tasks
-	// run on a special pool of machines which are dedicated only to CD tasks.
-	IsCD bool `json:"is_cd,omitempty"`
 	// Priority indicates the relative priority of the job, with 0 < p <= 1,
 	// where higher values result in scheduling the job's tasks sooner. If
 	// unspecified or outside this range, DEFAULT_JOB_SPEC_PRIORITY is used.
@@ -545,7 +498,6 @@ func (j *JobSpec) Copy() *JobSpec {
 		copy(taskSpecs, j.TaskSpecs)
 	}
 	return &JobSpec{
-		IsCD:      j.IsCD,
 		Priority:  j.Priority,
 		TaskSpecs: taskSpecs,
 		Trigger:   j.Trigger,

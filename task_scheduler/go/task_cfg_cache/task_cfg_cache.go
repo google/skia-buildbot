@@ -281,9 +281,6 @@ func MakeJob(ctx context.Context, c TaskCfgCache, rs types.RepoState, name strin
 	if !ok {
 		return nil, fmt.Errorf("No such job: %s", name)
 	}
-	if rs.IsTryJob() && spec.IsCD {
-		return nil, fmt.Errorf("Cannot trigger try jobs for CD job %q", name)
-	}
 	deps, err := spec.GetTaskSpecDAG(cfg)
 	if err != nil {
 		return nil, err

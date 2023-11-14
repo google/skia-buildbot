@@ -21,7 +21,6 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
 	"go.skia.org/infra/go/cas/mocks"
-	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	ftestutils "go.skia.org/infra/go/firestore/testutils"
@@ -32,7 +31,6 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
@@ -58,7 +56,6 @@ import (
 
 const (
 	scoreDelta = 0.000001
-	cdPoolName = "cd-pool"
 )
 
 var (
@@ -297,7 +294,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 		types.TaskExecutor_Swarming:   taskExec,
 		types.TaskExecutor_UseDefault: taskExec,
 	}
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, false)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, false)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -2362,7 +2359,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 		types.TaskExecutor_Swarming:   taskExec,
 		types.TaskExecutor_UseDefault: taskExec,
 	}
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, cdPoolName, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, BusyBotsDebugLoggingOff)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, cas, "fake-cas-instance", taskExecs, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, BusyBotsDebugLoggingOff)
 	require.NoError(t, err)
 
 	for _, h := range hashes {
@@ -4263,296 +4260,6 @@ func newTask(id string, ranAt string, alsoCovered ...string) *types.Task {
 		nt.Commits = append(nt.Commits, c)
 	}
 	return &nt
-}
-
-func TestRegenerateTaskQueue_OnlyBestCandidateForCD(t *testing.T) {
-
-	ctx := context.Background()
-
-	// Create a TasksCfg.
-	tc := &specs.TasksCfg{
-		Jobs: map[string]*specs.JobSpec{
-			"cd-job": {
-				IsCD: true,
-				TaskSpecs: []string{
-					"cd-task",
-				},
-			},
-		},
-		Tasks: map[string]*specs.TaskSpec{
-			"cd-task": {
-				CasSpec:    "empty",
-				Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
-			},
-		},
-		CasSpecs: map[string]*specs.CasSpec{
-			"empty": {
-				Digest: rbe.EmptyDigest,
-			},
-		},
-	}
-	tcc := &tcc_mocks.TaskCfgCache{}
-	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
-
-	// There are three commits in the repo.
-	mg, repo := newMemRepo(t)
-	hashes := mg.CommitN(3)
-	rs1 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[2],
-	}
-	rs2 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[1],
-	}
-	rs3 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[0],
-	}
-	repos := repograph.Map{
-		rs1.Repo: repo,
-	}
-
-	// Add jobs to the cache.
-	jCache := &cache_mocks.JobCache{}
-	jobs := []*types.Job{
-		{
-			Name:         "cd-job",
-			RepoState:    rs1,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-		{
-			Name:         "cd-job",
-			RepoState:    rs2,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-		{
-			Name:         "cd-job",
-			RepoState:    rs3,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-	}
-	jCache.On("UnfinishedJobs").Return(jobs, nil)
-
-	// No tasks in the TaskCache.
-	tCache := &cache_mocks.TaskCache{}
-	tCache.On("GetTasksByKey", mock.Anything).Return([]*types.Task{}, nil)
-	tCache.On("GetTaskForCommit", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil)
-
-	// Set up a time window to include everything.
-	w := window_mocks.AllInclusiveWindow()
-
-	// Create the scheduler.
-	s := &TaskScheduler{
-		candidateMetrics: map[string]metrics2.Int64Metric{},
-		jCache:           jCache,
-		repos:            repos,
-		taskCfgCache:     tcc,
-		tCache:           tCache,
-		window:           w,
-	}
-
-	// Regenerate the task queue.
-	queue, _, err := s.regenerateTaskQueue(ctx)
-	require.NoError(t, err)
-
-	// There should only be one task in the queue, despite the fact that there
-	// are three candidates available, since we only consider running the newest
-	// candidate.
-	require.Len(t, queue, 1)
-	c := queue[0]
-	require.Len(t, c.Commits, 3)
-	require.True(t, c.IsCD)
-	require.Equal(t, rs3.Revision, c.Revision)
-}
-
-func TestRegenerateTaskQueue_NoBackfillForCD(t *testing.T) {
-
-	ctx := context.Background()
-
-	// Create a TasksCfg.
-	tc := &specs.TasksCfg{
-		Jobs: map[string]*specs.JobSpec{
-			"cd-job": {
-				IsCD: true,
-				TaskSpecs: []string{
-					"cd-task",
-				},
-			},
-		},
-		Tasks: map[string]*specs.TaskSpec{
-			"cd-task": {
-				CasSpec:    "empty",
-				Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
-			},
-		},
-		CasSpecs: map[string]*specs.CasSpec{
-			"empty": {
-				Digest: rbe.EmptyDigest,
-			},
-		},
-	}
-	tcc := &tcc_mocks.TaskCfgCache{}
-	tcc.On("Get", mock.Anything, mock.Anything).Return(tc, nil, nil)
-
-	// There are three commits in the repo.
-	gb, repo := newMemRepo(t)
-	hashes := gb.CommitN(3)
-	rs1 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[2],
-	}
-	rs2 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[1],
-	}
-	rs3 := types.RepoState{
-		Repo:     "fake-repo",
-		Revision: hashes[0],
-	}
-	repos := repograph.Map{
-		rs1.Repo: repo,
-	}
-
-	// Add jobs to the cache.
-	jCache := &cache_mocks.JobCache{}
-	jobs := []*types.Job{
-		{
-			Name:         "cd-job",
-			RepoState:    rs1,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-		{
-			Name:         "cd-job",
-			RepoState:    rs2,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-		{
-			Name:         "cd-job",
-			RepoState:    rs3,
-			Created:      rfc3339(t, "2021-10-01T15:00:00Z"),
-			Dependencies: map[string][]string{"cd-task": {}},
-		},
-	}
-	jCache.On("UnfinishedJobs").Return(jobs, nil)
-
-	// One task already ran at the newest commit.
-	t3 := &types.Task{
-		Commits: []string{rs3.Revision, rs2.Revision, rs1.Revision},
-		Id:      "fake-task",
-		TaskKey: types.TaskKey{
-			Name:      "cd-task",
-			RepoState: rs3,
-		},
-		Status: types.TASK_STATUS_SUCCESS,
-	}
-	tCache := &cache_mocks.TaskCache{}
-	tCache.On("GetTasksByKey", types.TaskKey{
-		RepoState: rs3,
-		Name:      "cd-task",
-	}).Return([]*types.Task{t3}, nil)
-	tCache.On("GetTasksByKey", mock.Anything).Return([]*types.Task{}, nil)
-	tCache.On("GetTaskForCommit", rs1.Repo, rs1.Revision, "cd-task").Return(t3, nil)
-	tCache.On("GetTaskForCommit", rs2.Repo, rs2.Revision, "cd-task").Return(t3, nil)
-
-	// Set up a time window to include everything.
-	w := window_mocks.AllInclusiveWindow()
-
-	// Create the scheduler.
-	s := &TaskScheduler{
-		candidateMetrics: map[string]metrics2.Int64Metric{},
-		jCache:           jCache,
-		repos:            repos,
-		taskCfgCache:     tcc,
-		tCache:           tCache,
-		window:           w,
-	}
-
-	// Regenerate the task queue. We should end up with zero candidates, despite
-	// the fact that we have two unfinished jobs at the older commits.
-	queue, _, err := s.regenerateTaskQueue(ctx)
-	require.NoError(t, err)
-	require.Empty(t, queue)
-}
-
-func TestFilterTaskCandidates_NoCDTasksInRegularPools(t *testing.T) {
-
-	ctx := context.Background()
-
-	// Create a single candidate, which is a CD task but requests to be run in a
-	// non-CD pool.
-	k1 := types.TaskKey{
-		RepoState: rs1,
-		Name:      tcc_testutils.BuildTaskName,
-	}
-	candidate := &TaskCandidate{
-		IsCD:    true,
-		TaskKey: k1,
-		TaskSpec: &specs.TaskSpec{
-			Dimensions: []string{"pool:Skia"},
-		},
-	}
-	candidates := map[types.TaskKey]*TaskCandidate{
-		k1: candidate,
-	}
-
-	// Set up mocks.
-	tCache := &cache_mocks.TaskCache{}
-	tCache.On("GetTasksByKey", candidate.TaskKey).Return([]*types.Task{}, nil)
-	s := &TaskScheduler{
-		cdPool: cdPoolName,
-		tCache: tCache,
-		window: window_mocks.AllInclusiveWindow(),
-	}
-
-	// Ensure that the candidate gets filtered out, and that the diagnostics
-	// tell us why.
-	c, err := s.filterTaskCandidates(ctx, candidates)
-	require.NoError(t, err)
-	require.Empty(t, c)
-	require.Equal(t, "Skia", candidate.GetDiagnostics().Filtering.ForbiddenPool)
-}
-
-func TestFilterTaskCandidates_NoRegularTasksInCDPool(t *testing.T) {
-
-	ctx := context.Background()
-
-	// Create a single candidate, which is a non-CD task but requests to be run
-	// in the CD pool.
-	k1 := types.TaskKey{
-		RepoState: rs1,
-		Name:      tcc_testutils.BuildTaskName,
-	}
-	candidate := &TaskCandidate{
-		TaskKey: k1,
-		TaskSpec: &specs.TaskSpec{
-			Dimensions: []string{fmt.Sprintf("pool:%s", cdPoolName)},
-		},
-	}
-	candidates := map[types.TaskKey]*TaskCandidate{
-		k1: candidate,
-	}
-
-	// Set up mocks.
-	tCache := &cache_mocks.TaskCache{}
-	tCache.On("GetTasksByKey", candidate.TaskKey).Return([]*types.Task{}, nil)
-	s := &TaskScheduler{
-		cdPool: cdPoolName,
-		tCache: tCache,
-		window: window_mocks.AllInclusiveWindow(),
-	}
-
-	// Ensure that the candidate gets filtered out, and that the diagnostics
-	// tell us why.
-	c, err := s.filterTaskCandidates(ctx, candidates)
-	require.NoError(t, err)
-	require.Empty(t, c)
-	require.Equal(t, cdPoolName, candidate.GetDiagnostics().Filtering.ForbiddenPool)
 }
 
 // newMemRepo is a convenience function which creates a MemGit backed by an

@@ -550,33 +550,3 @@ func TestPoll(t *testing.T) {
 	require.True(t, mock.Empty())
 	assertAdded(builds)
 }
-
-func TestTryJobsNotAllowedForCD(t *testing.T) {
-	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
-
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
-
-	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
-
-	aj := addedJobs(map[string]*types.Job{})
-
-	rs := types.RepoState{
-		Patch:    gerritPatch,
-		Repo:     gb.RepoUrl(),
-		Revision: trybots.rm[gb.RepoUrl()].Get(git.MainBranch).Hash,
-	}
-	rs.Patch.PatchRepo = rs.Repo
-
-	// Someone requested a try job of "cd-job"; which is not allowed.
-	b1 := Build(t, now)
-	b1.Builder.Builder = "cd-job"
-	mockBB.On("GetBuild", ctx, b1.Id).Return(b1, nil)
-	MockCancelBuild(mock, b1.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s @ %+v: Cannot trigger try jobs for CD job %q", b1.Builder.Builder, rs, b1.Builder.Builder), nil)
-	err := trybots.insertNewJob(ctx, b1.Id)
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), fmt.Sprintf("Cannot trigger try jobs for CD job %q", b1.Builder.Builder))
-	result := aj.getAddedJob(ctx, t, trybots.db)
-	require.Nil(t, result)
-	require.True(t, mock.Empty())
-}

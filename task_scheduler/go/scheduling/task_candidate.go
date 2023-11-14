@@ -26,7 +26,6 @@ type TaskCandidate struct {
 	Commits            []string `json:"commits"`
 	CasInput           string   `json:"casInput"`
 	CasDigests         []string `json:"casDigests"`
-	IsCD               bool     `json:"isCd"`
 	// Jobs must be kept in sorted order; see AddJob.
 	Jobs           []*types.Job `json:"jobs"`
 	ParentTaskIds  []string     `json:"parentTaskIds"`
@@ -49,7 +48,6 @@ func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 		Commits:            util.CopyStringSlice(c.Commits),
 		CasInput:           c.CasInput,
 		CasDigests:         util.CopyStringSlice(c.CasDigests),
-		IsCD:               c.IsCD,
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
