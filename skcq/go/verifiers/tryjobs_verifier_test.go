@@ -351,6 +351,72 @@ func TestVerify_IncludeTryjobsFooter(t *testing.T) {
 	require.Equal(t, types.VerifierFailureState, vs)
 }
 
+func TestVerify_IncludeTryjobsFooter_WithTryJobNotInLocationRegex(t *testing.T) {
+
+	ci, gerritURL, tasksCfg := setupTest()
+	latestPatchsetID := int64(5)
+	tryJobName1 := "try_job1"
+	tryJobName2 := "try_job2"
+	tryJobName3 := "try_job3"
+
+	// Setup codereview mock.
+	cr := &cr_mocks.CodeReview{}
+	cr.On("GetLatestPatchSetID", ci).Return(latestPatchsetID).Times(3)
+	cr.On("GetEquivalentPatchSetIDs", ci, latestPatchsetID).Return([]int64{latestPatchsetID}).Times(3)
+	cr.On("GetFileNames", testutils.AnyContext, ci).Return([]string{"dir1/dir2/file"}, nil).Twice()
+
+	// Setup buildbucket mock.
+	bb := &bb_mocks.BuildBucketInterface{}
+	bbBuilds := []*buildbucketpb.Build{
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName1},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName2},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_SUCCESS,
+		},
+		{
+			Builder:    &buildbucketpb.BuilderID{Builder: tryJobName3},
+			CreateTime: &timestamppb.Timestamp{Seconds: currentTime.Unix()},
+			Status:     buildbucketpb.Status_FAILURE,
+		},
+	}
+	bb.On("GetTrybotsForCL", testutils.AnyContext, ci.Issue, latestPatchsetID, "https://"+gerritURL, map[string]string(nil)).Return(bbBuilds, nil).Times(3)
+	defaultTags := map[string]string{
+		"triggered_by":    "skcq",
+		"cq_experimental": "false",
+	}
+	botsToTags := map[string]map[string]string{
+		tryJobName3: defaultTags,
+	}
+	bb.On("ScheduleBuilds", testutils.AnyContext, mock.Anything, botsToTags, ci.Issue, latestPatchsetID, gerritURL, ci.Project, BuildBucketDefaultSkiaProject, BuildBucketDefaultSkiaBucket).Return(bbBuilds, nil).Once()
+
+	// Test verify.
+
+	// Set tryJobName3 with a location regex that does not match cr.GetFileNames.
+	tasksCfg.CommitQueue[tryJobName3] = &specs.CommitQueueJobConfig{
+		LocationRegexes: []string{"dir9/.*"},
+	}
+	// Specify tryJobName3 in the footers.IncludeTryjobsFooter map.
+	tv := &TryJobsVerifier{
+		bb2:       bb,
+		cr:        cr,
+		tasksCfg:  tasksCfg,
+		gerritURL: gerritURL,
+		footersMap: map[string]string{
+			string(footers.IncludeTryjobsFooter): fmt.Sprintf("%s/%s:%s", BuildBucketDefaultSkiaProject, BuildBucketDefaultSkiaBucket, tryJobName3),
+		},
+	}
+	vs, _, err := tv.Verify(context.Background(), ci, timeNowFunc().Unix())
+	require.NoError(t, err)
+	// Verifier state should be waiting because tryjob3 should be considered
+	// even though it did not match the location regex.
+	require.Equal(t, types.VerifierWaitingState, vs)
+}
+
 func TestVerify_FailureTryJob_CurrentCQAttempt_WithinQuota(t *testing.T) {
 
 	ci, gerritURL, tasksCfg := setupTest()

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -189,7 +190,9 @@ func (tv *TryJobsVerifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, st
 		jobsToExperimental[cqJobName] = cqCfg.Experimental
 
 		// Make sure the location regex (if specified) matches before we consider this job.
-		if len(cqCfg.LocationRegexes) > 0 {
+		// Only check location regexes if this tryjob was not explicitly specified in the
+		// includeTryJobs.
+		if len(cqCfg.LocationRegexes) > 0 && !slices.Contains(includeTryJobs, cqJobName) {
 			matched, locationRegexMatch, err := tv.doesLocationRegexMatch(ctx, ci, latestPatchSetID, cqCfg.LocationRegexes)
 			if err != nil {
 				return "", "", skerr.Wrap(err)
