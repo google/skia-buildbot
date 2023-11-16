@@ -60,8 +60,6 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules/helpers:domains_ts_lib",
-        "//skottie/modules/helpers:templates_ts_lib",
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
         "@npm//@types/jsoneditor",
@@ -74,8 +72,10 @@ sk_element(
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules/window:window_ts_lib",
+        "//skottie/modules/helpers:animation_ts_lib",
+        "//skottie/modules/helpers:domains_ts_lib",
+        "//skottie/modules/helpers:templates_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

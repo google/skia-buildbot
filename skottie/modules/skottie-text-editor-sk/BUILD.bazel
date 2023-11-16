@@ -4,14 +4,17 @@ sk_element(
     name = "skottie-text-editor-sk",
     sass_deps = ["//infra-sk:themes_sass_lib"],
     sass_srcs = ["skottie-text-editor-sk.scss"],
-    sk_element_deps = ["//skottie/modules/skottie-text-editor-sk/text-box-sk"],
+    sk_element_deps = [
+        "//skottie/modules/skottie-text-editor-sk/text-box-sk",
+        "//skottie/modules/skottie-player-sk",
+    ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules:types_ts_lib",
         ":text-replace_ts_lib",
         "@npm//lit-html",
+        "//skottie/modules/helpers:animation_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

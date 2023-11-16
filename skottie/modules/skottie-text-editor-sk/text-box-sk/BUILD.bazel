@@ -7,6 +7,8 @@ sk_element(
     sk_element_deps = [
         "//skottie/modules/skottie-font-selector-sk",
         "//skottie/modules/skottie-text-sampler-sk",
+        "//skottie/modules/skottie-player-sk",
+        "//skottie/modules/skottie-button-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
@@ -15,6 +17,7 @@ sk_element(
         "//skottie/modules/skottie-text-editor-sk:text-sanizite_ts_lib",
         "//skottie/modules:types_ts_lib",
         "@npm//lit-html",
+        "//skottie/modules/helpers:textmanagerfactory_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

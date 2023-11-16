@@ -601,6 +601,7 @@ export class SkottieSk extends ElementSk {
     <skottie-text-editor-sk
       .animation=${this.state.lottie}
       .mode=${this.viewMode}
+      .skottiePlayer=${this.skottiePlayer}
       @text-change=${this.onTextChange}>
     </skottie-text-editor-sk>
   `;
