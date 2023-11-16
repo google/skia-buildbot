@@ -154,6 +154,29 @@ func (_m *JobCache) GetMatchingJobsFromDateRange(names []string, from time.Time,
 	return r0, r1
 }
 
+// NotYetStartedJobs provides a mock function with given fields:
+func (_m *JobCache) NotYetStartedJobs() ([]*types.Job, error) {
+	ret := _m.Called()
+
+	var r0 []*types.Job
+	if rf, ok := ret.Get(0).(func() []*types.Job); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*types.Job)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UnfinishedJobs provides a mock function with given fields:
 func (_m *JobCache) UnfinishedJobs() ([]*types.Job, error) {
 	ret := _m.Called()

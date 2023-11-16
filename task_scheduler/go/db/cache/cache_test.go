@@ -884,3 +884,57 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	test([]string{j1.Name, j2.Name}, j1.Created.Add(time.Nanosecond), time.Now().Add(24*time.Hour))
 	test([]string{j1.Name}, j1.Created, j1.Created.Add(time.Nanosecond), j1)
 }
+
+func TestJobCache_NotYetStartedJobs(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	d := memory.NewInMemoryJobDB()
+
+	// Pre-load a job into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	j1 := types.MakeTestJob(startTime)
+	j1.Status = types.JOB_STATUS_REQUESTED
+	require.NoError(t, d.PutJobs(ctx, []*types.Job{j1}))
+	d.Wait()
+
+	// Create the cache. Ensure that the job is present and is returned by the
+	// correct methods.
+	w, err := window.New(ctx, time.Hour, 0, nil)
+	require.NoError(t, err)
+	c, err := NewJobCache(ctx, d, w, nil)
+	require.NoError(t, err)
+
+	assertPresent := func(jobs []*types.Job, err error) {
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		require.Equal(t, j1, jobs[0])
+	}
+
+	// Assert that the job is returned by NotYetStartedJobs.
+	assertPresent(c.NotYetStartedJobs())
+
+	// Assert that the job is NOT returned by UnfinishedJobs.
+	jobs, err := c.UnfinishedJobs()
+	require.NoError(t, err)
+	require.Empty(t, jobs)
+
+	// Assert that the job is returned by all other methods.
+	assertPresent(c.GetAllCachedJobs(), nil)
+
+	job, err := c.GetJob(j1.Id)
+	require.NoError(t, err)
+	require.Equal(t, j1, job)
+
+	job, err = c.GetJobMaybeExpired(ctx, j1.Id)
+	require.NoError(t, err)
+	require.Equal(t, j1, job)
+
+	assertPresent(c.GetJobsByRepoState(j1.Name, j1.RepoState))
+
+	start := j1.Created.Add(-10 * time.Second)
+	end := j1.Created.Add(10 * time.Second)
+	assertPresent(c.GetJobsFromDateRange(start, end))
+
+	jobMap, err := c.GetMatchingJobsFromDateRange([]string{j1.Name}, start, end)
+	assertPresent(jobMap[j1.Name], err)
+}

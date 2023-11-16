@@ -537,6 +537,7 @@ func TestConvertJobStatus(t *testing.T) {
 		require.Equal(t, expect, actual)
 	}
 
+	test(types.JOB_STATUS_REQUESTED, JobStatus_JOB_STATUS_REQUESTED)
 	test(types.JOB_STATUS_IN_PROGRESS, JobStatus_JOB_STATUS_IN_PROGRESS)
 	test(types.JOB_STATUS_SUCCESS, JobStatus_JOB_STATUS_SUCCESS)
 	test(types.JOB_STATUS_FAILURE, JobStatus_JOB_STATUS_FAILURE)

@@ -479,8 +479,12 @@ type JobCache interface {
 	// in the given date range and match one of the given job names.
 	GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error)
 
-	// UnfinishedJobs returns a list of jobs which were not finished at
+	// NotYetStartedJobs returns a list of jobs which were not yet started at
 	// the time of the last cache update.
+	NotYetStartedJobs() ([]*types.Job, error)
+
+	// UnfinishedJobs returns a list of jobs which were started but not finished
+	// at the time of the last cache update.
 	UnfinishedJobs() ([]*types.Job, error)
 
 	// Update loads new jobs from the database.
@@ -496,9 +500,10 @@ type jobCache struct {
 	jobs               map[string]*types.Job
 	jobsByNameAndState map[types.RepoState]map[string]map[string]*types.Job
 	// jobsByTime is sorted by Task.Created.
-	jobsByTime []*types.Job
-	timeWindow window.Window
-	unfinished map[string]*types.Job
+	jobsByTime    []*types.Job
+	timeWindow    window.Window
+	notYetStarted map[string]*types.Job
+	unfinished    map[string]*types.Job
 
 	modified map[string]*types.Job
 	modMtx   sync.Mutex
@@ -603,6 +608,18 @@ func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, 
 }
 
 // See documentation for JobCache interface.
+func (c *jobCache) NotYetStartedJobs() ([]*types.Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	rv := make([]*types.Job, 0, len(c.notYetStarted))
+	for _, t := range c.notYetStarted {
+		rv = append(rv, t.Copy())
+	}
+	return rv, nil
+}
+
+// See documentation for JobCache interface.
 func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
@@ -693,10 +710,17 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 	byId[job.Id] = job
 
 	// Unfinished jobs.
-	if job.Done() {
-		delete(c.unfinished, job.Id)
-	} else {
+	if job.Status == types.JOB_STATUS_IN_PROGRESS {
 		c.unfinished[job.Id] = job
+	} else {
+		delete(c.unfinished, job.Id)
+	}
+
+	// Requested but not started jobs.
+	if job.Status == types.JOB_STATUS_REQUESTED {
+		c.notYetStarted[job.Id] = job
+	} else {
+		delete(c.notYetStarted, job.Id)
 	}
 
 	if isUpdate {
@@ -783,6 +807,7 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 		db:                 d,
 		jobs:               map[string]*types.Job{},
 		jobsByNameAndState: map[types.RepoState]map[string]map[string]*types.Job{},
+		notYetStarted:      map[string]*types.Job{},
 		unfinished:         map[string]*types.Job{},
 		modified:           map[string]*types.Job{},
 		timeWindow:         timeWindow,

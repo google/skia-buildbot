@@ -8,6 +8,10 @@ import (
 )
 
 const (
+	// JOB_STATUS_REQUESTED indicates that we are aware of the Job but are not
+	// yet ready to start running Tasks for it.
+	JOB_STATUS_REQUESTED JobStatus = "REQUESTED"
+
 	// JOB_STATUS_IN_PROGRESS indicates that one or more of the Job's
 	// Task dependencies has not yet been satisfied.
 	JOB_STATUS_IN_PROGRESS JobStatus = ""
@@ -41,11 +45,13 @@ var (
 	JOB_STATUS_BADNESS = map[JobStatus]int{
 		JOB_STATUS_SUCCESS:     0,
 		JOB_STATUS_IN_PROGRESS: 1,
-		JOB_STATUS_CANCELED:    2,
-		JOB_STATUS_FAILURE:     3,
-		JOB_STATUS_MISHAP:      4,
+		JOB_STATUS_REQUESTED:   2,
+		JOB_STATUS_CANCELED:    3,
+		JOB_STATUS_FAILURE:     4,
+		JOB_STATUS_MISHAP:      5,
 	}
 	VALID_JOB_STATUSES = []JobStatus{
+		JOB_STATUS_REQUESTED,
 		JOB_STATUS_IN_PROGRESS,
 		JOB_STATUS_SUCCESS,
 		JOB_STATUS_FAILURE,

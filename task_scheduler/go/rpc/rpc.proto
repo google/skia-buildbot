@@ -330,6 +330,7 @@ enum JobStatus {
 	JOB_STATUS_FAILURE = 2;
 	JOB_STATUS_MISHAP = 3;
 	JOB_STATUS_CANCELED = 4;
+	JOB_STATUS_REQUESTED = 5;
 }
 
 // TaskDependencies represents dependencies of a task.

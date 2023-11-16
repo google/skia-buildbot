@@ -210,6 +210,8 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 	if req.HasStatus {
 		status := types.JobStatus("")
 		switch req.Status {
+		case JobStatus_JOB_STATUS_REQUESTED:
+			status = types.JOB_STATUS_REQUESTED
 		case JobStatus_JOB_STATUS_IN_PROGRESS:
 			status = types.JOB_STATUS_IN_PROGRESS
 		case JobStatus_JOB_STATUS_SUCCESS:
@@ -488,6 +490,8 @@ func convertTasks(tasks []*types.Task) ([]*Task, error) {
 // convertJobStatus converts a types.JobStatus to rpc.JobStatus.
 func convertJobStatus(st types.JobStatus) (JobStatus, error) {
 	switch st {
+	case types.JOB_STATUS_REQUESTED:
+		return JobStatus_JOB_STATUS_REQUESTED, nil
 	case types.JOB_STATUS_IN_PROGRESS:
 		return JobStatus_JOB_STATUS_IN_PROGRESS, nil
 	case types.JOB_STATUS_SUCCESS:
