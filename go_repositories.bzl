@@ -582,6 +582,13 @@ def go_repositories():
         version = "v0.0.0-20151013193312-d6023ce2651d",
     )
     go_repository(
+        name = "com_github_facebookgo_clock",
+        importpath = "github.com/facebookgo/clock",
+        sum = "h1:yDWHCSQ40h88yih2JAcL6Ls/kVkSE8GFACTGVnMPruw=",
+        version = "v0.0.0-20150410010913-600d898af40a",
+    )
+
+    go_repository(
         name = "com_github_fatih_camelcase",
         importpath = "github.com/fatih/camelcase",
         sum = "h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8=",
@@ -779,12 +786,24 @@ def go_repositories():
         sum = "h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=",
         version = "v4.0.0+incompatible",
     )
+    go_repository(
+        name = "com_github_gogo_googleapis",
+        importpath = "github.com/gogo/googleapis",
+        sum = "h1:1Yx4Myt7BxzvUr5ldGSbwYiZG6t9wGBZ+8/fX3Wvtq0=",
+        version = "v1.4.1",
+    )
 
     go_repository(
         name = "com_github_gogo_protobuf",
         importpath = "github.com/gogo/protobuf",
         sum = "h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=",
         version = "v1.3.2",
+    )
+    go_repository(
+        name = "com_github_gogo_status",
+        importpath = "github.com/gogo/status",
+        sum = "h1:DuHXlSFHNKqTQ+/ACf5Vs6r4X/dH2EgIzR9Vr+H65kg=",
+        version = "v1.1.1",
     )
 
     go_repository(
@@ -993,8 +1012,8 @@ def go_repositories():
     go_repository(
         name = "com_github_grpc_ecosystem_go_grpc_middleware",
         importpath = "github.com/grpc-ecosystem/go-grpc-middleware",
-        sum = "h1:Iju5GlWwrvL6UBg4zJJt3btmonfrMlCDdsejg4CZE7c=",
-        version = "v1.0.0",
+        sum = "h1:+9834+KizmvFV7pXQGSXQTsaWhq2GjuNUt0aUU0YBYw=",
+        version = "v1.3.0",
     )
 
     go_repository(
@@ -2002,6 +2021,12 @@ def go_repositories():
         importpath = "github.com/robertkrimen/otto",
         sum = "h1:kYPjbEN6YPYWWHI6ky1J813KzIq/8+Wg4TO4xU7A/KU=",
         version = "v0.0.0-20200922221731-ef014fd054ac",
+    )
+    go_repository(
+        name = "com_github_robfig_cron",
+        importpath = "github.com/robfig/cron",
+        sum = "h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=",
+        version = "v1.2.0",
     )
 
     go_repository(
@@ -3597,6 +3622,19 @@ def go_repositories():
         version = "v1.3.0",
     )
     go_repository(
+        name = "io_temporal_go_api",
+        importpath = "go.temporal.io/api",
+        sum = "h1:WWjMYSXNh4+T4Y4jq1e/d9yCNnWoHhq4bIwflHY6fic=",
+        version = "v1.24.0",
+    )
+    go_repository(
+        name = "io_temporal_go_sdk",
+        importpath = "go.temporal.io/sdk",
+        sum = "h1:urC4CYy3ZJOC4oOWreNfIH08N4qHydOc20pN1bYpmYw=",
+        version = "v1.25.0",
+    )
+
+    go_repository(
         name = "net_howett_plist",
         importpath = "howett.net/plist",
         sum = "h1:7CrbWYbPPO/PyNy38b2EB/+gYbjCe2DXBxgtOOZbSQM=",
@@ -3793,8 +3831,8 @@ def go_repositories():
     go_repository(
         name = "org_uber_go_atomic",
         importpath = "go.uber.org/atomic",
-        sum = "h1:ADUqmZGgLDDfbSL9ZmPxKTybcoEYHgpYfELNoN+7hsw=",
-        version = "v1.7.0",
+        sum = "h1:ECmE8Bn/WFTYwEW/bpKD3M8VtR/zQVbavAoalC1PYyE=",
+        version = "v1.9.0",
     )
 
     go_repository(
