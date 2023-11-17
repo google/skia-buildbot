@@ -50,7 +50,7 @@ const (
 Please visit [review.skia.org/{{.GerritChangeID}}]({{.GerritURL}}) to see it. Please CC yourself to the Gerrit change.
 
 Note:
-* Skia uses only Gerrit for reviews and submitting code ([doc](https://skia.org/dev/contrib)).
+* Skia uses only Gerrit for reviews and submitting code ([doc](https://skia.org/docs/dev/contrib/)).
 * All comments are handled within Gerrit. Any comments on the GitHub PR will be ignored.
 * The PR author can continue to upload commits to the branch used by the PR in order to address feedback from Gerrit.
 * Once the code is ready to be merged, a maintainer will submit the change on Gerrit and skia-codereview-bot will close this PR.
