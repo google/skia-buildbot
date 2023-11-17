@@ -5,6 +5,7 @@ go_library(
     name = "alerts",
     srcs = [
         "config.go",
+        "configprovider.go",
         "store.go",
     ],
     importpath = "go.skia.org/infra/perf/go/alerts",
@@ -18,8 +19,12 @@ go_library(
 
 go_test(
     name = "alerts_test",
-    srcs = ["config_test.go"],
+    srcs = [
+        "config_test.go",
+        "configprovider_test.go",
+    ],
     embed = [":alerts"],
+    race = "on",
     deps = [
         "//go/paramtools",
         "@com_github_stretchr_testify//assert",

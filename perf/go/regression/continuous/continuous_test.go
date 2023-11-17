@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
+	alertconfigmocks "go.skia.org/infra/perf/go/alerts/mock"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -27,19 +28,18 @@ import (
 )
 
 func TestBuildConfigsAndParamSet(t *testing.T) {
+	mockConfigProvider := alertconfigmocks.NewConfigProvider(t)
+	mockConfigProvider.On("GetAllAlertConfigs", testutils.AnyContext, false).Return(
+		[]*alerts.Alert{
+			{
+				IDAsString: "1",
+			},
+			{
+				IDAsString: "3",
+			},
+		}, nil)
 	c := Continuous{
-		provider: func(_ context.Context) ([]*alerts.Alert, error) {
-			// Only fill in ID since we are just testing if ch channel returns
-			// what we set here.
-			return []*alerts.Alert{
-				{
-					IDAsString: "1",
-				},
-				{
-					IDAsString: "3",
-				},
-			}, nil
-		},
+		provider: mockConfigProvider,
 		paramsProvider: func() paramtools.ReadOnlyParamSet {
 			return paramtools.ReadOnlyParamSet{
 				"config": []string{"8888", "565"},
@@ -161,9 +161,7 @@ func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.Regr
 	pg := gitmocks.NewGit(t)
 	ss := shortcutmocks.NewStore(t)
 	rs := regressionmocks.NewStore(t)
-	cp := func(ctx context.Context) ([]*alerts.Alert, error) {
-		return nil, nil
-	}
+	cp := alertconfigmocks.NewConfigProvider(t)
 	n := notifymocks.NewNotifier(t)
 	pp := func() paramtools.ReadOnlyParamSet {
 		return nil

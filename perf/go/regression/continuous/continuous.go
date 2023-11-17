@@ -42,17 +42,13 @@ const (
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 )
 
-// ConfigProvider is a function that's called to return a slice of
-// alerts.Config.
-type ConfigProvider func(ctx context.Context) ([]*alerts.Alert, error)
-
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
 	perfGit        perfgit.Git
 	shortcutStore  shortcut.Store
 	store          regression.Store
-	provider       ConfigProvider
+	provider       alerts.ConfigProvider
 	notifier       notify.Notifier
 	paramsProvider regression.ParamsetProvider
 	dfBuilder      dataframe.DataFrameBuilder
@@ -72,7 +68,7 @@ type Continuous struct {
 func New(
 	perfGit perfgit.Git,
 	shortcutStore shortcut.Store,
-	provider ConfigProvider,
+	provider alerts.ConfigProvider,
 	store regression.Store,
 	notifier notify.Notifier,
 	paramsProvider regression.ParamsetProvider,
@@ -212,7 +208,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 	defer cancel()
-	return c.provider(timeoutCtx)
+	return c.provider.GetAllAlertConfigs(timeoutCtx, false)
 }
 
 // buildConfigAndParamsetChannel returns a channel that will feed the configs
@@ -322,6 +318,7 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 				configs[i], configs[j] = configs[j], configs[i]
 			})
 
+			sklog.Info("Configs shuffled")
 			ret <- configsAndParamSet{
 				configs:  configs,
 				paramset: c.paramsProvider(),

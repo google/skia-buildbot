@@ -135,7 +135,7 @@ type Frontend struct {
 
 	shortcutStore shortcut.Store
 
-	configProvider continuous.ConfigProvider
+	configProvider alerts.ConfigProvider
 
 	notifier notify.Notifier
 
@@ -314,14 +314,6 @@ func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetPro
 	}
 }
 
-// newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
-// of alerts.Config to run continuous clustering against.
-func (f *Frontend) newAlertsConfigProvider() continuous.ConfigProvider {
-	return func(ctx context.Context) ([]*alerts.Alert, error) {
-		return f.alertStore.List(ctx, false)
-	}
-}
-
 // initialize the application.
 func (f *Frontend) initialize() {
 	rand.Seed(time.Now().UnixNano())
@@ -497,7 +489,7 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
-	f.configProvider = f.newAlertsConfigProvider()
+	f.configProvider = alerts.NewConfigProvider(f.alertStore, 120)
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
 	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
@@ -1050,7 +1042,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &TriageResponse{}
 
 	if tr.Triage.Status == regression.Negative && config.Config.NotifyConfig.Notifications != notifytypes.MarkdownIssueTracker {
-		cfgs, err := f.configProvider(ctx)
+		cfgs, err := f.configProvider.GetAllAlertConfigs(ctx, false)
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)
 		}
@@ -1089,7 +1081,7 @@ func (f *Frontend) unixTimestampRangeToCommitNumberRange(ctx context.Context, be
 // regressionCount returns the number of commits that have regressions for alerts
 // in the given category. The time range of commits is REGRESSION_COUNT_DURATION.
 func (f *Frontend) regressionCount(ctx context.Context, category string) (int, error) {
-	configs, err := f.configProvider(ctx)
+	configs, err := f.configProvider.GetAllAlertConfigs(ctx, false)
 	if err != nil {
 		return 0, err
 	}
@@ -1214,7 +1206,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	headers, err := f.configProvider(ctx)
+	headers, err := f.configProvider.GetAllAlertConfigs(ctx, false)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 		return
@@ -1458,7 +1450,7 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	show := chi.URLParam(r, "show")
-	resp, err := f.alertStore.List(ctx, show == "true")
+	resp, err := f.configProvider.GetAllAlertConfigs(ctx, show == "true")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 	}
@@ -1467,7 +1459,8 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func alertNewHandler(w http.ResponseWriter, _ *http.Request) {
+func (f *Frontend) alertNewHandler(w http.ResponseWriter, r *http.Request) {
+	defer f.configProvider.Refresh()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(alerts.NewConfig()); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
@@ -1482,6 +1475,7 @@ type AlertUpdateResponse struct {
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
+	defer f.configProvider.Refresh()
 	w.Header().Set("Content-Type", "application/json")
 
 	cfg := &alerts.Alert{}
@@ -1512,6 +1506,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
+	defer f.configProvider.Refresh()
 	w.Header().Set("Content-Type", "application/json")
 
 	sid := chi.URLParam(r, "id")
@@ -1745,7 +1740,7 @@ func (f *Frontend) Serve() {
 	router.Post("/_/details/", f.detailsHandler)
 	router.Post("/_/shift/", f.shiftHandler)
 	router.Get("/_/alert/list/{show}", f.alertListHandler)
-	router.Get("/_/alert/new", alertNewHandler)
+	router.Get("/_/alert/new", f.alertNewHandler)
 	router.Post("/_/alert/update", f.alertUpdateHandler)
 	router.Post("/_/alert/delete/{id:[0-9]+}", f.alertDeleteHandler)
 	router.Post("/_/alert/bug/try", f.alertBugTryHandler)

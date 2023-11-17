@@ -36,6 +36,7 @@ go_test(
         "//go/paramtools",
         "//go/testutils",
         "//perf/go/alerts",
+        "//perf/go/alerts/mock",
         "//perf/go/clustering2",
         "//perf/go/config",
         "//perf/go/dataframe",
