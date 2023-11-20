@@ -155,7 +155,7 @@ demo_word-cloud-sk:
 # Run "bazel build //perf/..." after making any frontend changes to pick up the
 # change without restarting the golang server.
 run-local-instance:
-	$(BAZEL) build --config=mayberemote //perf/...
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
 		--do_clustering=false \
@@ -178,8 +178,8 @@ run-local-instance:
 #
 # 	http://localhost:8002/.
 run-demo-instance:
-	$(BAZEL) build --config=mayberemote //perf/...
-	$(BAZEL) run --config=mayberemote //perf/go/initdemo:initdemo
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo.json \
@@ -196,8 +196,8 @@ run-demo-instance:
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
 run-demo-chromeperf:
-	$(BAZEL) build --config=mayberemote //perf/...
-	$(BAZEL) run --config=mayberemote //perf/go/initdemo:initdemo
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo.json \
@@ -233,8 +233,8 @@ run-auth-proxy-before-demo-instance:
 #  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
 #
 run-chrome-ingest-demo-instance:
-	$(BAZEL) build --config=mayberemote //perf/...
-	$(BAZEL) run --config=mayberemote //perf/go/initdemo:initdemo -- --databasename=chrome_pub
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- --databasename=chrome_pub
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--num_parallel_ingesters=1 \
