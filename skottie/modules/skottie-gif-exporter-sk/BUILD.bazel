@@ -9,10 +9,10 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//skottie/modules/helpers:gifstorage_ts_lib",
         "@npm//lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//skottie/modules/helpers:gifstorage_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

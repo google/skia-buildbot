@@ -321,22 +321,6 @@ export class SkottiePlayerSk extends ElementSk {
     return this.querySelector<HTMLCanvasElement>('.skottie-canvas');
   }
 
-  canvasKit(): CanvasKit | null {
-    return this.kit;
-  }
-
-  canvasWidth(): number {
-    return this.width;
-  }
-
-  canvasHeight(): number {
-    return this.height;
-  }
-
-  skottieAnimation(): ManagedSkottieAnimation | null {
-    return this.animation;
-  }
-
   seek(t: number, forceRender: boolean = false): void {
     this.timeOrigin = Date.now() - this.duration() * t;
 

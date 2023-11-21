@@ -70,9 +70,3 @@ ts_library(
     srcs = ["availableFonts.ts"],
     visibility = ["//visibility:public"],
 )
-
-ts_library(
-    name = "textmanagerfactory_ts_lib",
-    srcs = ["textManagerFactory.ts"],
-    visibility = ["//visibility:public"],
-)

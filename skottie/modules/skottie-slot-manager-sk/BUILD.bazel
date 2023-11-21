@@ -12,9 +12,9 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "@npm//lit-html",
+        "//skottie/modules/helpers:color_ts_lib",
         ":slot-info_ts_lib",
         ":skottie-vec2-input-sk_ts_lib",
-        "//skottie/modules/helpers:color_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

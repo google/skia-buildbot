@@ -25,7 +25,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { isCompAsset } from '../helpers/animation';
 import './text-box-sk';
 import { SkottieFontChangeEventDetail } from './text-box-sk/text-box-sk';
-import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 
 export interface TextEditEventDetail {
   animation: LottieAnimation;
@@ -38,19 +37,15 @@ export class SkottieTextEditorSk extends ElementSk {
   private static template = (ele: SkottieTextEditorSk) => html`
     <div>
       <ul class="text-container">
-        ${ele.texts.map((item: TextData) =>
-          ele.textElement(item, ele.texts.length === 1)
-        )}
+        ${ele.texts.map((item: TextData) => ele.textElement(item))}
       </ul>
     </div>
   `;
 
-  private textElement = (item: TextData, isUnique: boolean) => html`
+  private textElement = (item: TextData) => html`
     <skottie-text-editor-box-sk
       .textData=${item}
       .mode=${this.mode}
-      .skottiePlayer=${this._skottiePlayer}
-      .canActivateOnDoubleClick=${isUnique}
       @text-data-change=${this.save}
       @font-change=${this.updateFont}>
     </skottie-text-editor-box-sk>
@@ -65,8 +60,6 @@ export class SkottieTextEditorSk extends ElementSk {
   private mode: ViewMode = 'default';
 
   private texts: TextData[] = [];
-
-  private _skottiePlayer: SkottiePlayerSk | null = null;
 
   constructor() {
     super(SkottieTextEditorSk.template);
@@ -243,11 +236,6 @@ export class SkottieTextEditorSk extends ElementSk {
 
   set animation(val: LottieAnimation) {
     this.updateAnimation(val);
-  }
-
-  set skottiePlayer(val: SkottiePlayerSk) {
-    this._skottiePlayer = val;
-    this._render();
   }
 
   connectedCallback(): void {
