@@ -355,7 +355,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 			continue
 		}
 		f := fi.Name()
-		if filepath.Ext(f) != ".yaml" {
+		if filepath.Ext(f) != ".yaml" && filepath.Ext(f) != ".yml" {
 			// Only interested in YAML configs.
 			continue
 		}
