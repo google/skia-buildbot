@@ -397,6 +397,10 @@ func (f *Frontend) initialize() {
 	sklog.Info("About to build trace store.")
 
 	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, f.flags.Local, config.Config)
+	if !f.flags.DisableMetricsUpdate {
+		go f.traceStore.StartBackgroundMetricsGathering()
+	}
+
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}

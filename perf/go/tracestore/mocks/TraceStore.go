@@ -262,6 +262,11 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 	return r0, r1
 }
 
+// StartBackgroundMetricsGathering provides a mock function with given fields:
+func (_m *TraceStore) StartBackgroundMetricsGathering() {
+	_m.Called()
+}
+
 // TileNumber provides a mock function with given fields: commitNumber
 func (_m *TraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNumber {
 	ret := _m.Called(commitNumber)

@@ -741,24 +741,25 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, 
 		commitSliceFromCommitNumberRangeCalled: metrics2.GetCounter("perfserver_sqltracestore_commit_slice_from_commit_number_range_called"),
 	}
 
-	// Update metrics periodically.
-	go func() {
-		for range time.Tick(cacheMetricsRefreshDuration) {
-			ret.orderedParamSetCacheLen.Update(int64(ret.orderedParamSetCache.Len()))
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-			tileNumber, err := ret.GetLatestTile(ctx)
-			if err != nil {
-				sklog.Errorf("Failed to load latest tile when calculating metrics: %s")
-				cancel()
-				continue
-			}
-			ret.updateParamSetMetricsForTile(ctx, tileNumber)
-			ret.updateParamSetMetricsForTile(ctx, tileNumber-1)
-			cancel()
-		}
-	}()
-
 	return ret, nil
+}
+
+// StartBackgroundMetricsGathering runs continuously in the background and gathers
+// metrics related to param sets in the database.
+func (s *SQLTraceStore) StartBackgroundMetricsGathering() {
+	for range time.Tick(cacheMetricsRefreshDuration) {
+		s.orderedParamSetCacheLen.Update(int64(s.orderedParamSetCache.Len()))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		tileNumber, err := s.GetLatestTile(ctx)
+		if err != nil {
+			sklog.Errorf("Failed to load latest tile when calculating metrics: %s", err)
+			cancel()
+			continue
+		}
+		s.updateParamSetMetricsForTile(ctx, tileNumber)
+		s.updateParamSetMetricsForTile(ctx, tileNumber-1)
+		cancel()
+	}
 }
 
 func (s *SQLTraceStore) updateParamSetMetricsForTile(ctx context.Context, tileNumber types.TileNumber) {

@@ -408,6 +408,7 @@ type FrontendFlags struct {
 	FetchChromePerfAnomalies       bool
 	FeedbackURL                    string
 	DisableGitUpdate               bool
+	DisableMetricsUpdate           bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -564,6 +565,12 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Name:        "disable_git_update",
 			Value:       false,
 			Usage:       "Disables updating of the git repository",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DisableMetricsUpdate,
+			Name:        "disable_metrics_update",
+			Value:       false,
+			Usage:       "Disables updating of the database metrics",
 		},
 	}
 }
