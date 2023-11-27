@@ -41,6 +41,7 @@ go_test(
     ],
     data = ["@cabe_replay_data//:all_files"],
     embed = [":cli"],
+    race = "on",
     deps = [
         "//bazel/go/bazel",
         "//cabe/go/proto:go_proto_lib",

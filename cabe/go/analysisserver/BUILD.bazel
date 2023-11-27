@@ -21,6 +21,7 @@ go_test(
     srcs = ["analysisserver_impl_test.go"],
     data = ["@cabe_replay_data//:all_files"],
     embed = [":analysisserver"],
+    race = "on",
     deps = [
         "//bazel/go/bazel",
         "//cabe/go/backends",

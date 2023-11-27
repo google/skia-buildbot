@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"sync"
 	"testing"
-	"time"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"google.golang.org/grpc"
@@ -39,25 +37,33 @@ func testSetupAppWithBackends(t *testing.T) (context.Context, *App, func()) {
 		rbeClients:     map[string]*rbeclient.Client{},
 		swarmingClient: swarmingClient,
 	}
-	var w sync.WaitGroup
-	w.Add(1)
+	ch := make(chan interface{})
+
+	err := a.ConfigureAuthorization()
+	require.NoError(t, err)
+	err = a.Init(ctx)
+	assert.NoError(t, err)
 	go func() {
-		err := a.ConfigureAuthorization()
-		require.NoError(t, err)
-		err = a.Start(ctx)
+		err := a.ServeGRPC(ctx)
 		assert.NoError(t, err)
-		w.Done()
+		ch <- nil
 	}()
-	time.Sleep(time.Second)
+	go func() {
+		err := a.ServeHTTP()
+		assert.NoError(t, err)
+		ch <- nil
+	}()
 
 	return ctx, a, func() {
 		a.Cleanup()
-		w.Wait()
+		<-ch
+		<-ch
 	}
 }
 
 func testSetupClientWithUserInRoles(t *testing.T, ctx context.Context, a *App, roles roles.Roles) (context.Context, cpb.AnalysisClient) {
 	conn, err := grpc.Dial(a.grpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
 	require.NoError(t, err)
 
 	analysisClient := cpb.NewAnalysisClient(conn)
@@ -75,14 +81,9 @@ func TestApp_StartNoBackends_Fails(t *testing.T) {
 		promPort: ":0",
 	}
 	ctx := context.Background()
-	var w sync.WaitGroup
-	w.Add(1)
-	go func() {
-		err := a.Start(ctx)
-		assert.Error(t, err)
-		w.Done()
-	}()
-	w.Wait()
+
+	err := a.Init(ctx)
+	assert.Error(t, err)
 }
 
 func TestApp_StartWithBackendsAndHTTPHealthCheck_Succeeds(t *testing.T) {

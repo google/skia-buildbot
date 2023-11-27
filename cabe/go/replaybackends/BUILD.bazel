@@ -21,6 +21,7 @@ go_test(
     srcs = ["replaybackends_test.go"],
     data = ["@cabe_replay_data//:all_files"],
     embed = [":replaybackends"],
+    race = "on",
     deps = [
         "//bazel/go/bazel",
         "@com_github_stretchr_testify//assert",

@@ -39,6 +39,7 @@ go_test(
     name = "cabeserver_test",
     srcs = ["main_test.go"],
     embed = [":cabeserver_lib"],
+    race = "on",
     deps = [
         "//cabe/go/proto:go_proto_lib",
         "//go/httputils",

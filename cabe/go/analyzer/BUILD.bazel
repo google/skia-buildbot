@@ -39,6 +39,7 @@ go_test(
     ],
     data = ["@cabe_replay_data//:all_files"],
     embed = [":analyzer"],
+    race = "on",
     deps = [
         "//bazel/go/bazel",
         "//cabe/go/perfresults",

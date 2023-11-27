@@ -26,6 +26,7 @@ go_test(
     name = "grpclogging_test",
     srcs = ["grpclogging_test.go"],
     embed = [":grpclogging"],
+    race = "on",
     deps = [
         "//cabe/go/grpclogging/proto",
         "//cabe/go/proto:go_proto_lib",

@@ -55,6 +55,9 @@ type App struct {
 	disableGRPCSP  bool
 	disableGRPCLog bool
 
+	lisGRPC net.Listener
+	lisHTTP net.Listener
+
 	authPolicy     *grpcsp.ServerPolicy
 	grpcLogger     *grpclogging.GRPCLogger
 	swarmingClient swarming.ApiClient
@@ -94,11 +97,8 @@ func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*
 	return tasksResp, nil
 }
 
-// Start creates server instances and listens for connections on their ports.
-// It does not return unless there is an error during the startup process, in which case it
-// returns the error, or if a call to [Cleanup()] causes a graceful shutdown, in which
-// case it returns either nil if the graceful shutdown succeeds, or an error if it does not.
-func (a *App) Start(ctx context.Context) error {
+// Init creates listeners for required service ports and prepares the App for serving.
+func (a *App) Init(ctx context.Context) error {
 	if a.swarmingClient == nil {
 		return fmt.Errorf("missing swarming service client")
 	}
@@ -108,33 +108,30 @@ func (a *App) Start(ctx context.Context) error {
 	if a.authPolicy == nil && !a.disableGRPCSP {
 		return fmt.Errorf("missing required grpc authorization policy")
 	}
+	var err error
 
-	go func() {
-		// Just testing the http healthz check to make sure envoy can
-		// connect to these processes at all. If we end up needing
-		// both the http server and the grpc server in order to satisfy envoy
-		// health checks AND serve grpc requests, we can separate the http and
-		// grpc port flags in k8s configs.
-		sklog.Infof("registering http healthz handler")
-		topLevelRouter := chi.NewRouter()
-		h := httputils.HealthzAndHTTPS(topLevelRouter)
-		httpServeMux := http.NewServeMux()
-		httpServeMux.Handle("/", h)
-		lis, err := net.Listen("tcp", a.port)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		// If the port was specified as ":0" and the OS picked a port for us,
-		// set the app's port to the actual port it's listening on.
-		a.port = lis.Addr().String()
-		a.httpServer = &http.Server{
-			Addr:    a.port,
-			Handler: httpServeMux,
-		}
-		if err := a.httpServer.Serve(lis); err != nil && err != http.ErrServerClosed {
-			sklog.Fatal(err)
-		}
-	}()
+	// Just testing the http healthz check to make sure envoy can
+	// connect to these processes at all. If we end up needing
+	// both the http server and the grpc server in order to satisfy envoy
+	// health checks AND serve grpc requests, we can separate the http and
+	// grpc port flags in k8s configs.
+	sklog.Infof("registering http healthz handler")
+	topLevelRouter := chi.NewRouter()
+	h := httputils.HealthzAndHTTPS(topLevelRouter)
+	httpServeMux := http.NewServeMux()
+	httpServeMux.Handle("/", h)
+	a.lisHTTP, err = net.Listen("tcp", a.port)
+	if err != nil {
+		return err
+	}
+	// If the port was specified as ":0" and the OS picked a port for us,
+	// set the app's port to the actual port it's listening on.
+	a.port = a.lisHTTP.Addr().String()
+	a.httpServer = &http.Server{
+		Addr:    a.port,
+		Handler: httpServeMux,
+	}
+
 	opts := []grpc.ServerOption{}
 
 	interceptors := []grpc.UnaryServerInterceptor{}
@@ -162,19 +159,37 @@ func (a *App) Start(ctx context.Context) error {
 	sklog.Infof("registering cabe grpc server")
 	analysisServer := analysisserver.New(a.casResultReader, a.swarmingTaskReader)
 	cpb.RegisterAnalysisServer(a.grpcServer, analysisServer)
-
-	lis, err := net.Listen("tcp", a.grpcPort)
+	a.lisGRPC, err = net.Listen("tcp", a.grpcPort)
 	if err != nil {
 		sklog.Fatalf("failed to listen: %v", err)
 	}
 	// If the port was specified as ":0" and the OS picked a port for us,
 	// set the app's grpc port to the actual port it's listening on.
-	a.grpcPort = lis.Addr().String()
-	sklog.Infof("server listening at %v", lis.Addr())
-	if err := a.grpcServer.Serve(lis); err != nil {
-		sklog.Fatalf("failed to serve grpc: %v", err)
+	a.grpcPort = a.lisGRPC.Addr().String()
+	sklog.Infof("server listening at %v", a.lisGRPC.Addr())
+	return nil
+}
+
+// ServeGRPC does not return unless there is an error during the startup process, in which case it
+// returns the error, or if a call to [Cleanup()] causes a graceful shutdown, in which
+// case it returns either nil if the graceful shutdown succeeds, or an error if it does not.
+func (a *App) ServeGRPC(ctx context.Context) error {
+	if err := a.grpcServer.Serve(a.lisGRPC); err != nil {
+		sklog.Errorf("failed to serve grpc: %v", err)
+		return err
 	}
 
+	return nil
+}
+
+// ServeHTTP does not return unless there is an error in [http.Server#Serve], in which case
+// it returns the error, or if a call to [Cleanup()] causes a graceful shutdown, in which
+// case it returns either nil if the graceful shutdown succeeds, or an error if it does not.
+func (a *App) ServeHTTP() error {
+	if err := a.httpServer.Serve(a.lisHTTP); err != nil && err != http.ErrServerClosed {
+		sklog.Errorf("faled to serve http: %v", err)
+		return err
+	}
 	return nil
 }
 
@@ -286,5 +301,22 @@ func main() {
 	}
 
 	cleanup.AtExit(a.Cleanup)
-	sklog.Fatal(a.Start(ctx))
+	if err := a.Init(ctx); err != nil {
+		sklog.Fatal(err)
+	}
+	ch := make(chan interface{})
+	go func() {
+		if err := a.ServeGRPC(ctx); err != nil {
+			sklog.Fatal(err)
+		}
+		ch <- nil
+	}()
+	go func() {
+		if err := a.ServeHTTP(); err != nil {
+			sklog.Fatal(err)
+		}
+		ch <- nil
+	}()
+	<-ch
+	<-ch
 }
