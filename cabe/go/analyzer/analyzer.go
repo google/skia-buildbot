@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"go.opencensus.io/trace"
+
 	stat "github.com/aclements/go-moremath/stats"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"
 	"github.com/golang/protobuf/proto"
@@ -158,6 +160,9 @@ func (a *Analyzer) ExperimentSpec() *cpb.ExperimentSpec {
 // Run executes the whole Analyzer process for a single, complete experiment.
 // TODO(seanmccullough): break this up into distinct, testable stages with one function per stage.
 func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
+	ctx, span := trace.StartSpan(ctx, "Analyzer_Run")
+	defer span.End()
+
 	var control, treatment []float64
 	var benchmark, workload, buildspec, runspec []string
 	var replicas []int
@@ -411,6 +416,9 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 	// Fetch outputs from control and treatment arms in parallel since there is no data dependency between them.
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
+		ctx, span := trace.StartSpan(ctx, "Analyzer_extractTaskOutputs_control")
+		defer span.End()
+
 		controlDigests := map[int]*swarming.SwarmingRpcsCASReference{}
 		for n, t := range processedArms.control.tasks {
 			if t.taskInfo.TaskResult.State != taskCompletedState {
@@ -429,6 +437,9 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 	})
 
 	g.Go(func() error {
+		ctx, span := trace.StartSpan(ctx, "Analyzer_extractTaskOutputs_treatment")
+		defer span.End()
+
 		treatmentDigests := map[int]*swarming.SwarmingRpcsCASReference{}
 		for n, t := range processedArms.treatment.tasks {
 			if t.taskInfo.TaskResult.State != taskCompletedState {
@@ -469,6 +480,9 @@ func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int
 		replica := replica
 		casRef := casRef
 		g.Go(func() error {
+			ctx, span := trace.StartSpan(ctx, "Analyzer_fetchOutputsFromReplicas_readOutput")
+			defer span.End()
+
 			if casRef.Digest == nil {
 				sklog.Error("missing CAS reference for replica %d", replica)
 				return fmt.Errorf("missing CAS reference for replica %d", replica)
@@ -478,6 +492,7 @@ func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int
 				sklog.Errorf("digest.New: %v", err)
 				return err
 			}
+			span.AddAttributes(trace.StringAttribute("digest", casDigest.String()))
 			res, err := a.readCAS(ctx, casRef.CasInstance, casDigest.String())
 			if err != nil {
 				sklog.Errorf("e.readCAS: %v", err)

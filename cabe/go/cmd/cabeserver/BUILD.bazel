@@ -19,6 +19,8 @@ go_library(
         "//go/roles",
         "//go/sklog",
         "//go/swarming",
+        "//go/tracing",
+        "//go/tracing/loggingtracer",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_go_chi_chi_v5//:chi",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",

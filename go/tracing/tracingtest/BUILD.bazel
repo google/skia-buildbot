@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "tracingtest",
+    srcs = ["exporter.go"],
+    importpath = "go.skia.org/infra/go/tracing/tracingtest",
+    visibility = ["//visibility:public"],
+    deps = ["@io_opencensus_go//trace"],
+)
+
+go_test(
+    name = "tracingtest_test",
+    srcs = ["exporter_test.go"],
+    embed = [":tracingtest"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@io_opencensus_go//trace",
+    ],
+)

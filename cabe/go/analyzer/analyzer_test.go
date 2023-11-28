@@ -5,10 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/bazel/go/bazel"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/cabe/go/replaybackends"
 	cabe_stats "go.skia.org/infra/cabe/go/stats"
+	"go.skia.org/infra/go/tracing/tracingtest"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -352,6 +355,34 @@ func TestRun_withReplayBackends(t *testing.T) {
 	assert.Equal(t, 64, len(diag.IncludedReplicas))
 }
 
+func TestRun_withReplayBackends_tracing(t *testing.T) {
+	ctx := context.Background()
+
+	path := filepath.Join(
+		bazel.RunfilesDir(),
+		"external/cabe_replay_data",
+		// https://pinpoint-dot-chromeperf.appspot.com/job/16f46f1c260000
+		"pinpoint_16f46f1c260000.zip")
+	replayer := replaybackends.FromZipFile(
+		path,
+		fakeBenchmarkName,
+	)
+	a := New(
+		"16f46f1c260000",
+		WithCASResultReader(replayer.CASResultReader),
+		WithSwarmingTaskReader(replayer.SwarmingTaskReader),
+	)
+	exporter := &tracingtest.Exporter{}
+	trace.RegisterExporter(exporter)
+	defer trace.UnregisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
+	res, err := a.Run(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), 13)
+	assert.NotEmpty(t, exporter.SpanData())
+}
+
 func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	ctx := context.Background()
 
@@ -409,5 +440,4 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	assert.Equal(t, 2, len(diag.ExcludedReplicas))
 	assert.Equal(t, 16, len(diag.IncludedSwarmingTasks))
 	assert.Equal(t, 8, len(diag.IncludedReplicas))
-
 }

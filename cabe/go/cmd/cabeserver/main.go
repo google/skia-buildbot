@@ -25,6 +25,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/tracing"
+	"go.skia.org/infra/go/tracing/loggingtracer"
 
 	"go.skia.org/infra/cabe/go/analysisserver"
 	"go.skia.org/infra/cabe/go/backends"
@@ -49,11 +51,13 @@ func init() {
 
 // App is the cabe server application.
 type App struct {
-	port           string
-	grpcPort       string
-	promPort       string
-	disableGRPCSP  bool
-	disableGRPCLog bool
+	port            string
+	grpcPort        string
+	promPort        string
+	disableGRPCSP   bool
+	disableGRPCLog  bool
+	traceSampleRate float64
+	logTracing      bool
 
 	lisGRPC net.Listener
 	lisHTTP net.Listener
@@ -75,6 +79,8 @@ func (a *App) FlagSet() *flag.FlagSet {
 	fs.StringVar(&a.grpcPort, "grpc_port", ":50051", "gRPC service port (e.g., ':50051')")
 	fs.BoolVar(&a.disableGRPCSP, "disable_grpcsp", false, "disable authorization checks for incoming grpc calls")
 	fs.BoolVar(&a.disableGRPCLog, "disable_grpclog", false, "disable structured logging for grpc client and server calls")
+	fs.Float64Var(&a.traceSampleRate, "trace_sample", 0.0, "sampling rate for trace collection")
+	fs.BoolVar(&a.logTracing, "log_tracing", false, "send tracing information to logs (DO NOT use in production!)")
 
 	return fs
 }
@@ -287,6 +293,15 @@ func main() {
 		common.FlagSetOpt(a.FlagSet()),
 	)
 
+	traceAttrs := map[string]interface{}{
+		"podName": os.Getenv("K8S_POD_NAME"),
+	}
+	if a.logTracing {
+		loggingtracer.Initialize()
+	}
+	if err := tracing.Initialize(a.traceSampleRate, "skia-infra-public", traceAttrs); err != nil {
+		sklog.Fatalf("Could not initialize tracing: %s", err)
+	}
 	if err := a.ConfigureAuthorization(); err != nil {
 		sklog.Fatalf("configuring authorization policy: %v", err)
 	}

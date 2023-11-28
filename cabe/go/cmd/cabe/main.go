@@ -7,10 +7,12 @@ import (
 	"os"
 
 	"github.com/urfave/cli/v2"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog/nooplogging"
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/sklog/stdlogging"
+	"go.skia.org/infra/go/tracing/loggingtracer"
 
 	cabecli "go.skia.org/infra/cabe/go/cmd/cabe/cli"
 )
@@ -30,12 +32,21 @@ func main() {
 		Value: false,
 		Usage: "Turn on logging while running commands.",
 	}
+	logTracingFlag := &cli.BoolFlag{
+		Name:  "log-tracing",
+		Value: false,
+		Usage: "Turn on tracing while running commands. Will print trace logs to stdout.",
+	}
+
+	var mainSpan *trace.Span
+
 	app := &cli.App{
 		Name:        "cabe",
 		Usage:       "Command-line tool for working with cabe",
 		Description: "cli tools for analyzing and debugging pinpoint A/B experiment tryobs using cabe",
 		Flags: []cli.Flag{
 			loggingFlag,
+			logTracingFlag,
 		},
 		Before: func(c *cli.Context) error {
 			if c.Bool(loggingFlag.Name) {
@@ -43,6 +54,14 @@ func main() {
 			} else {
 				sklogimpl.SetLogger(nooplogging.New())
 			}
+			if c.Bool(logTracingFlag.Name) {
+				loggingtracer.Initialize()
+				c.Context, mainSpan = trace.StartSpan(c.Context, "cabe cli main")
+			}
+			return nil
+		},
+		After: func(c *cli.Context) error {
+			mainSpan.End()
 			return nil
 		},
 		Commands: []*cli.Command{
