@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/cacher"
@@ -148,6 +149,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 			lvPoll.Reset()
 		}
 	}, nil)
+	go t.startJobsLoop(ctx)
 }
 
 // getActiveTryJobs returns the active (not yet marked as finished in
@@ -217,7 +219,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("Failed to update jobs; got errors: %v", errs)
+		return skerr.Fmt("Failed to update jobs; got errors: %v", errs)
 	}
 	return nil
 }
@@ -262,12 +264,12 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 			Heartbeats: heartbeats,
 		}).Do()
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Failed to send heartbeat request: %s", err))
+			errs = append(errs, skerr.Wrapf(err, "failed to send heartbeat request"))
 			return
 		}
 		// Results should follow the same ordering as the jobs we sent.
 		if len(resp.Results) != len(jobs) {
-			errs = append(errs, fmt.Errorf("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
+			errs = append(errs, skerr.Fmt("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
 			return
 		}
 		cancelJobs := []*types.Job{}
@@ -303,39 +305,40 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 	}
 	sklog.Infof("Finished sending heartbeats.")
 	if len(errs) > 0 {
-		return fmt.Errorf("Got errors sending heartbeats: %v", errs)
+		return skerr.Fmt("got errors sending heartbeats: %v", errs)
 	}
 	return nil
 }
 
-// getRepo returns the repo information associated with the given project.
-// Returns the repo URL and its associated repograph.Graph instance or an error.
-func (t *TryJobIntegrator) getRepo(project string) (string, *repograph.Graph, error) {
-	repoUrl, ok := t.projectRepoMapping[project]
-	if !ok {
-		return "", nil, fmt.Errorf("Unknown patch project %q", project)
-	}
+// getRepo returns the repo information associated with the given URL.
+func (t *TryJobIntegrator) getRepo(repoUrl string) (*repograph.Graph, error) {
 	r, ok := t.rm[repoUrl]
 	if !ok {
-		return "", nil, fmt.Errorf("Unknown repo %q", repoUrl)
+		return nil, skerr.Fmt("unknown repo %q", repoUrl)
 	}
-	return repoUrl, r, nil
+	return r, nil
 }
 
-func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Graph, issue int64) (string, error) {
-	// Obtain the branch name from Gerrit, then use the head of that branch.
-	changeInfo, err := t.gerrit.GetIssueProperties(ctx, issue)
+// getRevision obtains the branch name from Gerrit, then retrieves and returns
+// the current commit at the head of that branch.
+func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Graph, issue string) (string, error) {
+	issueNum, err := strconv.ParseInt(issue, 10, 64)
 	if err != nil {
-		return "", fmt.Errorf("Failed to get ChangeInfo: %s", err)
+		return "", skerr.Wrapf(err, "failed to parse issue number")
+	}
+	changeInfo, err := t.gerrit.GetIssueProperties(ctx, issueNum)
+	if err != nil {
+		return "", skerr.Wrapf(err, "failed to get ChangeInfo")
 	}
 	c := repo.Get(changeInfo.Branch)
 	if c == nil {
-		return "", fmt.Errorf("Unknown branch %s", changeInfo.Branch)
+		return "", skerr.Fmt("Unknown branch %s", changeInfo.Branch)
 	}
 	return c.Hash, nil
 }
 
 func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Job) error {
+	// TODO(borenet): Require a cancellation reason and update the Job field.
 	for _, j := range jobs {
 		j.BuildbucketLeaseKey = 0
 		j.Status = types.JOB_STATUS_CANCELED
@@ -371,31 +374,32 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	return nil
 }
 
-func (t *TryJobIntegrator) tryLeaseBuild(ctx context.Context, id int64) (int64, error) {
+func (t *TryJobIntegrator) tryLeaseBuild(ctx context.Context, id int64) (int64, *buildbucket_api.LegacyApiErrorMessage, error) {
 	expiration := now.Now(ctx).Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros
 	sklog.Infof("Attempting to lease build %d", id)
 	resp, err := t.bb.Lease(id, &buildbucket_api.LegacyApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
 	}).Do()
 	if err != nil {
-		return 0, fmt.Errorf("Failed request to lease buildbucket build %d: %s", id, err)
+		return 0, nil, skerr.Wrapf(err, "failed request to lease buildbucket build %d", id)
 	}
-	if resp.Error != nil {
-		return 0, fmt.Errorf("Error response for leasing buildbucket build %d: %s", id, resp.Error.Message)
+	leaseKey := int64(0)
+	if resp.Build != nil {
+		leaseKey = resp.Build.LeaseKey
 	}
-	return resp.Build.LeaseKey, nil
+	return leaseKey, resp.Error, nil
 }
 
 func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) error {
 	// Get the build details from the v2 API.
 	build, err := t.bb2.GetBuild(ctx, buildId)
 	if err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to retrieve build %q: %s", buildId, err))
+		return skerr.Wrapf(err, "failed to retrieve build %d", buildId)
 	}
 	if build.Status != buildbucketpb.Status_SCHEDULED {
 		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
-		_, err := t.tryLeaseBuild(ctx, buildId)
-		if err != nil {
+		_, bbError, err := t.tryLeaseBuild(ctx, buildId)
+		if err != nil || bbError != nil {
 			// This is expected.
 			return nil
 		}
@@ -411,13 +415,9 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid Build %d: input should have exactly one GerritChanges: %+v", buildId, build.Input))
 	}
 	gerritChange := build.Input.GerritChanges[0]
-	repoUrl, repoGraph, err := t.getRepo(gerritChange.Project)
-	if err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Unable to find repo: %s", err))
-	}
-	revision, err := t.getRevision(ctx, repoGraph, gerritChange.Change)
-	if err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid revision: %s", err))
+	repoUrl, ok := t.projectRepoMapping[gerritChange.Project]
+	if !ok {
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Unknown patch project %q", gerritChange.Project))
 	}
 	server := gerritChange.Host
 	if !strings.Contains(server, "://") {
@@ -430,72 +430,170 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 			PatchRepo: repoUrl,
 			Patchset:  strconv.FormatInt(gerritChange.Patchset, 10),
 		},
-		Repo:     repoUrl,
-		Revision: revision,
-	}
-	if !rs.Valid() || !rs.IsTryJob() || skipRepoState(rs) {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Invalid RepoState: %s", rs))
-	}
-
-	// Create a Job.
-	if _, err := t.chr.GetOrCacheRepoState(ctx, rs); err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, rs))
-	}
-	j, err := task_cfg_cache.MakeJob(ctx, t.taskCfgCache, rs, build.Builder.Builder)
-	if err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to create Job from JobSpec: %s @ %+v: %s", build.Builder.Builder, rs, err))
+		Repo: repoUrl,
+		// We can't fill this out without retrieving the Gerrit ChangeInfo and
+		// resolving the branch to a commit hash. Defer that work until later.
+		Revision: "",
 	}
 	requested, err := ptypes.Timestamp(build.CreateTime)
 	if err != nil {
 		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to convert timestamp for %d: %s", build.Id, err))
 	}
-	j.Requested = firestore.FixTimestamp(requested.UTC())
-	j.Created = firestore.FixTimestamp(j.Created)
+	j := &types.Job{
+		Name:               build.Builder.Builder,
+		BuildbucketBuildId: buildId,
+		Requested:          firestore.FixTimestamp(requested.UTC()),
+		Created:            firestore.FixTimestamp(now.Now(ctx)),
+		RepoState:          rs,
+		Status:             types.JOB_STATUS_REQUESTED,
+	}
 	if !j.Requested.Before(j.Created) {
 		sklog.Errorf("Try job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
 		j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)
 	}
-
-	// Determine if this is a manual retry of a previously-run try job. If
-	// so, set IsForce to ensure that we don't immediately de-duplicate all
-	// of its tasks.
-	prevJobs, err := t.jCache.GetJobsByRepoState(j.Name, j.RepoState)
-	if err != nil {
-		return err
-	}
-	if len(prevJobs) > 0 {
-		j.IsForce = true
-	}
-
 	// Attempt to lease the build.
-	leaseKey, err := t.tryLeaseBuild(ctx, buildId)
+	leaseKey, bbError, err := t.tryLeaseBuild(ctx, j.BuildbucketBuildId)
 	if err != nil {
-		// TODO(borenet): Buildbot cancels the build in this case.
-		// Should we do that too?
-		return err
+		return skerr.Wrapf(err, "failed to lease build %d", j.BuildbucketBuildId)
+	} else if bbError != nil {
+		// Note: we're just assuming that the only reason Buildbucket would
+		// return an error is that the Build has been canceled. While this
+		// is the most likely reason, others are possible, and we may gain
+		// some information by reading the error and behaving accordingly.
+		return t.remoteCancelBuild(buildId, fmt.Sprintf("Buildbucket refused lease with %q", bbError.Message))
+	}
+	j.BuildbucketLeaseKey = leaseKey
+
+	if err := t.db.PutJob(ctx, j); err != nil {
+		return t.remoteCancelBuild(j.BuildbucketBuildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
+	}
+	t.jCache.AddJobs([]*types.Job{j})
+	return nil
+}
+
+func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
+	// The code in startJob makes the assumption that we'll come back to the job
+	// and try again if requests to Buildbucket fail for transient-looking
+	// reasons. ModifiedJobsCh only changes when jobs are modified in the
+	// database, so we also need a periodic poll to ensure that we retry any
+	// jobs we failed to start on the first try. A 5-minute period was chosen
+	// because it is short enough not to cause significant lag in handling try
+	// jobs but hopefully long enough that any transient errors are resolved
+	// before we try again.
+	jobsCh := t.db.ModifiedJobsCh(ctx)
+	ticker := time.NewTicker(5 * time.Minute)
+	tickCh := ticker.C
+	doneCh := ctx.Done()
+	for {
+		select {
+		case jobs := <-jobsCh:
+			for _, job := range jobs {
+				if job.Status != types.JOB_STATUS_REQUESTED {
+					continue
+				}
+				if err := t.startJob(ctx, job); err != nil {
+					sklog.Errorf("failed to start job: %s", err)
+				}
+			}
+		case <-tickCh:
+			st := types.JOB_STATUS_REQUESTED
+			jobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
+				Status: &st,
+			})
+			if err != nil {
+				sklog.Errorf("failed retrieving Jobs: %s", err)
+			} else {
+				for _, job := range jobs {
+					if err := t.startJob(ctx, job); err != nil {
+						sklog.Errorf("failed to start job: %s", err)
+					}
+				}
+			}
+		case <-doneCh:
+			ticker.Stop()
+			return
+		}
+	}
+}
+
+func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
+	startJobHelper := func() error {
+		repoGraph, err := t.getRepo(job.Repo)
+		if err != nil {
+			return skerr.Wrapf(err, "unable to find repo %s", job.Repo)
+		}
+		revision, err := t.getRevision(ctx, repoGraph, job.Issue)
+		if err != nil {
+			return skerr.Wrapf(err, "invalid revision %s", job.Revision)
+		}
+		job.Revision = revision
+		if !job.RepoState.Valid() || !job.RepoState.IsTryJob() || skipRepoState(job.RepoState) {
+			return skerr.Fmt("invalid RepoState: %s", job.RepoState)
+		}
+
+		// Create a Job.
+		if _, err := t.chr.GetOrCacheRepoState(ctx, job.RepoState); err != nil {
+			return skerr.Wrapf(err, "failed to obtain JobSpec")
+		}
+		cfg, cachedErr, err := t.taskCfgCache.Get(ctx, job.RepoState)
+		if err != nil {
+			return err
+		}
+		if cachedErr != nil {
+			return cachedErr
+		}
+		spec, ok := cfg.Jobs[job.Name]
+		if !ok {
+			return skerr.Fmt("no such job: %s", job.Name)
+		}
+		deps, err := spec.GetTaskSpecDAG(cfg)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		job.Dependencies = deps
+		job.Tasks = map[string][]*types.TaskSummary{}
+
+		// Determine if this is a manual retry of a previously-run try job. If
+		// so, set IsForce to ensure that we don't immediately de-duplicate all
+		// of its tasks.
+		prevJobs, err := t.jCache.GetJobsByRepoState(job.Name, job.RepoState)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		if len(prevJobs) > 0 {
+			job.IsForce = true
+		}
+		return nil
+	}
+
+	if err := startJobHelper(); err != nil {
+		job.Status = types.JOB_STATUS_MISHAP
+		// TODO(borenet): Add a field to Job to give more details.
+	} else {
+		job.Status = types.JOB_STATUS_IN_PROGRESS
+
+		// Notify Buildbucket that the Job has started.
+		bbError, err := t.jobStarted(job)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to send job-started notification")
+		} else if bbError != nil {
+			// Note: we're just assuming that the only reason Buildbucket would
+			// return an error is that the Build has been canceled. While this
+			// is the most likely reason, others are possible, and we may gain
+			// some information by reading the error and behaving accordingly.
+			if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}); cancelErr != nil {
+				return skerr.Wrapf(cancelErr, "failed to start build %d with %q and failed to cancel job", job.BuildbucketBuildId, bbError.Message)
+			} else {
+				return skerr.Fmt("failed to start build %d with %q", job.BuildbucketBuildId, bbError.Message)
+			}
+		}
 	}
 
 	// Update the job and insert into the DB.
-	j.BuildbucketBuildId = buildId
-	j.BuildbucketLeaseKey = leaseKey
-	if err := t.db.PutJob(ctx, j); err != nil {
-		return t.remoteCancelBuild(buildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
+	if err := t.db.PutJob(ctx, job); err != nil {
+		return skerr.Wrapf(err, "failed to insert Job into the DB")
 	}
-	t.jCache.AddJobs([]*types.Job{j})
-
-	// Since Jobs may consist of multiple Tasks, we consider them to be
-	// "started" as soon as we've picked them up.
-	// TODO(borenet): Sending "started" notifications after inserting the
-	// new Jobs into the database puts us at risk of never sending the
-	// notification if the process is interrupted. However, we need to
-	// include the Job ID with the notification, so we have to insert the
-	// Job into the DB first.
-	if err := t.jobStarted(j); err != nil {
-		if cancelErr := t.localCancelJobs(ctx, []*types.Job{j}); cancelErr != nil {
-			return fmt.Errorf("Failed to send job-started notification with: %s\nAnd failed to cancel the job with: %s", err, cancelErr)
-		}
-		return fmt.Errorf("Failed to send job-started notification with: %s", err)
-	}
+	t.jCache.AddJobs([]*types.Job{job})
 	return nil
 }
 
@@ -542,33 +640,30 @@ func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 
 	// Report any errors.
 	if len(errs) > 0 {
-		return fmt.Errorf("Got errors loading builds from Buildbucket: %v", errs)
+		return skerr.Fmt("got errors loading builds from Buildbucket: %v", errs)
 	}
 
 	return nil
 }
 
-// jobStarted notifies Buildbucket that the given Job has started.
-func (t *TryJobIntegrator) jobStarted(j *types.Job) error {
+// jobStarted notifies Buildbucket that the given Job has started. Returns any
+// error object returned by Buildbucket (eg. if the Build has been canceled), or
+// any error which occurred when attempting the request.
+func (t *TryJobIntegrator) jobStarted(j *types.Job) (*buildbucket_api.LegacyApiErrorMessage, error) {
 	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.LegacyApiStartRequestBodyMessage{
 		LeaseKey: j.BuildbucketLeaseKey,
 		Url:      j.URL(t.host),
 	}).Do()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if resp.Error != nil {
-		// TODO(borenet): Buildbot cancels builds in this case. Should
-		// we do that too?
-		return fmt.Errorf(resp.Error.Message)
-	}
-	return nil
+	return resp.Error, nil
 }
 
 // jobFinished notifies Buildbucket that the given Job has finished.
 func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 	if !j.Done() {
-		return fmt.Errorf("JobFinished called for unfinished Job!")
+		return skerr.Fmt("JobFinished called for unfinished Job!")
 	}
 	b, err := json.Marshal(struct {
 		Job *types.Job `json:"job"`
