@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -73,9 +72,7 @@ type TaskReader interface {
 	// may or may not be empty.
 	ModifiedTasksCh(context.Context) <-chan []*types.Task
 
-	// SearchTasks retrieves all matching Tasks from the DB. Users should not
-	// call this directly and should instead use the SearchJobs function from
-	// this package.
+	// SearchTasks retrieves all matching Tasks from the DB.
 	SearchTasks(context.Context, *TaskSearchParams) ([]*types.Task, error)
 }
 
@@ -191,9 +188,7 @@ type JobReader interface {
 	// may or may not be empty.
 	ModifiedJobsCh(context.Context) <-chan []*types.Job
 
-	// SearchJobs retrieves all matching Jobs from the DB. Users should not call
-	// this directly and should instead use the SearchJobs function from this
-	// package.
+	// SearchJobs retrieves all matching Jobs from the DB.
 	SearchJobs(context.Context, *JobSearchParams) ([]*types.Job, error)
 }
 
@@ -222,8 +217,9 @@ type JobDB interface {
 
 // JobSearchParams are parameters on which Jobs may be searched. All fields
 // are optional; if a field is not provided, the search will return Jobs with
-// any value for that field. If either of TimeStart or TimeEnd is not provided,
-// the search defaults to the last 24 hours.
+// any value for that field. If TimeEnd is not provided the search terminates at
+// the current time. If TimeStart is not provided the search begins 24 hours
+// before TimeEnd.
 type JobSearchParams struct {
 	BuildbucketBuildID *int64           `json:"buildbucket_build_id,string,omitempty"`
 	IsForce            *bool            `json:"is_force,omitempty"`
@@ -302,22 +298,6 @@ func FilterJobs(jobs []*types.Job, p *JobSearchParams) []*types.Job {
 	return rv
 }
 
-// SearchJobs returns Jobs in the given time range which match the given search
-// parameters.
-func SearchJobs(ctx context.Context, db JobReader, p *JobSearchParams) ([]*types.Job, error) {
-	ctx, span := trace.StartSpan(ctx, "db_SearchJobs")
-	defer span.End()
-	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
-		end := time.Now()
-		p.TimeEnd = &end
-	}
-	if p.TimeStart == nil || util.TimeIsZero(*p.TimeStart) {
-		start := (*p.TimeEnd).Add(-24 * time.Hour)
-		p.TimeStart = &start
-	}
-	return db.SearchJobs(ctx, p)
-}
-
 // MatchTask returns true if the given Task matches the given search parameters.
 func MatchTask(t *types.Task, p *TaskSearchParams) bool {
 	// Compare all attributes which are provided.
@@ -349,8 +329,9 @@ func FilterTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
 
 // TaskSearchParams are parameters on which Tasks may be searched. All fields
 // are optional; if a field is not provided, the search will return Tasks with
-// any value for that field. If either of TimeStart or TimeEnd is not provided,
-// the search defaults to the last 24 hours.
+// any value for that field. If TimeEnd is not provided the search terminates at
+// the current time. If TimeStart is not provided the search begins 24 hours
+// before TimeEnd.
 type TaskSearchParams struct {
 	Attempt     *int64            `json:"attempt,string,omitempty"`
 	Status      *types.TaskStatus `json:"status"`
@@ -362,22 +343,6 @@ type TaskSearchParams struct {
 	Revision    *string           `json:"revision,omitempty"`
 	TimeStart   *time.Time        `json:"time_start"`
 	TimeEnd     *time.Time        `json:"time_end"`
-}
-
-// SearchTasks returns Tasks in the given time range which match the given search
-// parameters.
-func SearchTasks(ctx context.Context, db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
-	ctx, span := trace.StartSpan(ctx, "db_SearchTasks")
-	defer span.End()
-	if p.TimeEnd == nil || util.TimeIsZero(*p.TimeEnd) {
-		end := time.Now()
-		p.TimeEnd = &end
-	}
-	if p.TimeStart == nil || util.TimeIsZero(*p.TimeStart) {
-		start := (*p.TimeEnd).Add(-24 * time.Hour)
-		p.TimeStart = &start
-	}
-	return db.SearchTasks(ctx, p)
 }
 
 // RemoteDB allows retrieving tasks and jobs and full access to comments.

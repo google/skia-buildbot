@@ -8,6 +8,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
@@ -238,6 +239,9 @@ func (d *firestoreDB) PutJobsInChunks(ctx context.Context, jobs []*types.Job) er
 
 // SearchJobs implements db.JobReader.
 func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams) ([]*types.Job, error) {
+	ctx, span := trace.StartSpan(ctx, "db_SearchJobs")
+	defer span.End()
+
 	// Firestore requires all multi-column indexes to be created in advance.
 	// Because we can't predict which search parameters will be given (and
 	// because we don't want to create indexes for every combination of
@@ -245,6 +249,14 @@ func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams
 	// the most, then filter those results by the other parameters.
 	q := d.jobs().Query
 	term := "none"
+	if params.TimeEnd == nil || util.TimeIsZero(*params.TimeEnd) {
+		end := now.Now(ctx)
+		params.TimeEnd = &end
+	}
+	if params.TimeStart == nil || util.TimeIsZero(*params.TimeStart) {
+		start := (*params.TimeEnd).Add(-24 * time.Hour)
+		params.TimeStart = &start
+	}
 	if params.BuildbucketBuildID != nil && *params.BuildbucketBuildID != 0 {
 		q = q.Where("BuildbucketBuildId", "==", *params.BuildbucketBuildID)
 		term = fmt.Sprintf("BuildBucketBuildId == %d", *params.BuildbucketBuildID)
@@ -257,9 +269,12 @@ func (d *firestoreDB) SearchJobs(ctx context.Context, params *db.JobSearchParams
 	} else if params.Revision != nil {
 		q = q.Where("Revision", "==", *params.Revision)
 		term = fmt.Sprintf("Revision == %s", *params.Revision)
+	} else if params.Status != nil && *params.Status == types.JOB_STATUS_REQUESTED {
+		q = q.Where("Status", "==", *params.Status)
+		term = fmt.Sprintf("Status == %s", *params.Status)
 	} else {
-		term = fmt.Sprintf("Created in [%s, %s)", *params.TimeStart, params.TimeEnd)
-		q = q.Where(KEY_CREATED, "<", *params.TimeEnd).Where(KEY_CREATED, ">=", *params.TimeStart)
+		term = fmt.Sprintf("Created in [%s, %s)", params.TimeStart, params.TimeEnd)
+		q = q.Where(KEY_CREATED, "<", params.TimeEnd).Where(KEY_CREATED, ">=", params.TimeStart)
 
 		// Repo is compatible with TimeStart and TimeEnd because we have an
 		// index for it.

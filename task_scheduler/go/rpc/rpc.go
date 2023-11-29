@@ -231,7 +231,7 @@ func (s *taskSchedulerServiceImpl) SearchJobs(ctx context.Context, req *SearchJo
 	if req.HasTimeStart {
 		params.TimeStart = timePtr(req.TimeStart.AsTime())
 	}
-	results, err := db.SearchJobs(ctx, s.db, params)
+	results, err := s.db.SearchJobs(ctx, params)
 	if err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to search jobs")
@@ -331,7 +331,7 @@ func (s *taskSchedulerServiceImpl) SearchTasks(ctx context.Context, req *SearchT
 		params.TimeStart = timePtr(req.TimeStart.AsTime())
 	}
 
-	results, err := db.SearchTasks(ctx, s.db, params)
+	results, err := s.db.SearchTasks(ctx, params)
 	if err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to search jobs")

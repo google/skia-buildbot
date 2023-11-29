@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -772,8 +773,10 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 
 	require.NoError(t, db.PutTasks(ctx, []*types.Task{t1, t2, t3, t4, t5, t6}))
 
+	ctx = now.TimeTravelingContext(tCurrent).Context
+
 	test := func(params *TaskSearchParams, expect ...*types.Task) {
-		actual, err := SearchTasks(ctx, db, params)
+		actual, err := db.SearchTasks(ctx, params)
 		require.NoError(t, err)
 		sort.Sort(types.TaskSlice(expect))
 		sort.Sort(types.TaskSlice(actual))
@@ -853,6 +856,10 @@ func TestTaskDBSearch(t sktest.TestingT, db TaskDB) {
 		Name:      s("my-task"),
 		TimeStart: &tStart,
 		TimeEnd:   &tCurrent,
+	}, t1, t2, t3, t4, t6)
+	// Use the default time window if none is provided.
+	test(&TaskSearchParams{
+		Name: s("my-task"),
 	}, t1, t2, t3, t4, t6)
 }
 
@@ -1096,8 +1103,10 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 
 	require.NoError(t, db.PutJobs(ctx, []*types.Job{j1, j2, j3, j4, j5}))
 
+	ctx = now.TimeTravelingContext(tCurrent).Context
+
 	test := func(params *JobSearchParams, expect ...*types.Job) {
-		actual, err := SearchJobs(ctx, db, params)
+		actual, err := db.SearchJobs(ctx, params)
 		require.NoError(t, err)
 		sort.Sort(types.JobSlice(expect))
 		sort.Sort(types.JobSlice(actual))
@@ -1172,6 +1181,10 @@ func TestJobDBSearch(t sktest.TestingT, db JobDB) {
 		Name:      s("my-job"),
 		TimeStart: &tStart,
 		TimeEnd:   &tCurrent,
+	}, j1, j2, j3, j4)
+	// Use the default time window if none is provided.
+	test(&JobSearchParams{
+		Name: s("my-job"),
 	}, j1, j2, j3, j4)
 }
 

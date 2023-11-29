@@ -7,6 +7,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
@@ -233,6 +234,9 @@ func (d *firestoreDB) PutTasksInChunks(ctx context.Context, tasks []*types.Task)
 
 // SearchTasks implements db.JobReader.
 func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchParams) ([]*types.Task, error) {
+	ctx, span := trace.StartSpan(ctx, "db_SearchTasks")
+	defer span.End()
+
 	// Firestore requires all multi-column indexes to be created in advance.
 	// Because we can't predict which search parameters will be given (and
 	// because we don't want to create indexes for every combination of
@@ -240,6 +244,14 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 	// the most, then filter those results by the other parameters.
 	q := d.tasks().Query
 	term := "none"
+	if params.TimeEnd == nil || util.TimeIsZero(*params.TimeEnd) {
+		end := now.Now(ctx)
+		params.TimeEnd = &end
+	}
+	if params.TimeStart == nil || util.TimeIsZero(*params.TimeStart) {
+		start := (*params.TimeEnd).Add(-24 * time.Hour)
+		params.TimeStart = &start
+	}
 	if params.ForcedJobId != nil && *params.ForcedJobId != "" {
 		q = q.Where("ForcedJobId", "==", *params.ForcedJobId)
 		term = fmt.Sprintf("ForcedJobId == %s", *params.ForcedJobId)
@@ -259,8 +271,8 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 		q = q.Where("Status", "==", *params.Status)
 		term = fmt.Sprintf("Status == %s", *params.Status)
 	} else {
-		term = fmt.Sprintf("Created in [%s, %s)", *params.TimeStart, params.TimeEnd)
-		q = q.Where(KEY_CREATED, "<", *params.TimeEnd).Where(KEY_CREATED, ">=", *params.TimeStart)
+		term = fmt.Sprintf("Created in [%s, %s)", params.TimeStart, params.TimeEnd)
+		q = q.Where(KEY_CREATED, "<", params.TimeEnd).Where(KEY_CREATED, ">=", params.TimeStart)
 
 		// Repo is compatible with TimeStart and TimeEnd because we have an
 		// index for it.
@@ -286,5 +298,6 @@ func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchPara
 	if err == db.ErrDoneSearching {
 		err = nil
 	}
+	sklog.Infof("Searching tasks; terms: %q; results: %d", term, len(results))
 	return results, err
 }
