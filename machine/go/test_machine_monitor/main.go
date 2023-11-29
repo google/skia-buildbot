@@ -65,10 +65,10 @@ func main() {
 	triggerInterrogationCh := make(chan bool, interrogationChannelSize)
 	machineState, err := machine.New(ctx, *local, instanceConfig, Version, *startSwarming, *machineServerHost, triggerInterrogationCh)
 	if err != nil {
-		sklog.Fatal("Failed to create machine: %s", err)
+		sklog.Fatalf("Failed to create machine: %s", err)
 	}
 	if err := machineState.Start(ctx); err != nil {
-		sklog.Fatal("Failed to start machine: %s", err)
+		sklog.Fatalf("Failed to start machine: %s", err)
 	}
 
 	sklog.Infof("Starting the server.")
