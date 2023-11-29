@@ -1,0 +1,34 @@
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_extract")
+
+# Build Temporal from the source
+container_run_and_extract(
+    name = "temporal-build",
+    commands = [
+        "export CGO_ENABLED=0 GOOS=linux GOBIN=/tmp/temporal",
+        "mkdir -p /tmp/temporal",
+        "go install go.temporal.io/server/cmd/server@v1.22.2",
+        "cp /tmp/temporal/server /temporal",
+    ],
+    extract_file = "/temporal",
+    image = "@golang//image",
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+)
+
+# Docker image with Temporal server
+container_image(
+    name = "temporal-server",
+    base = "@basealpine//image",
+    entrypoint = ["/temporal"],
+    files = [
+        "temporal-build/temporal",
+    ],
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+    workdir = "/",
+)

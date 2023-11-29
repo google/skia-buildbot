@@ -419,6 +419,14 @@ container_pull(
     repository = "google.com/cloudsdktool/cloud-sdk",
 )
 
+container_pull(
+    name = "golang",
+    digest = "sha256:80ccdc8f8ac8d819cdbc15a33334125e0288c09ac030307dcd893d2b5c6179ae",
+    import_tags = ["1.21.3"],
+    registry = "google-go.pkg.dev",
+    repository = "golang",
+)
+
 ##################
 # CIPD packages. #
 ##################
