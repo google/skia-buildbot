@@ -29,6 +29,10 @@ import '../../../elements-sk/modules/icons/search-icon-sk';
 import '../../../elements-sk/modules/icons/timeline-icon-sk';
 
 const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_REQUESTED, [
+  'in progress',
+  'bg-in-progress',
+]);
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, [
   'in progress',
   'bg-in-progress',
@@ -55,7 +59,8 @@ export class JobSk extends ElementSk {
         <timeline-icon-sk></timeline-icon-sk>
         View Timeline
       </a>
-      ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS
+      ${ele.job!.status === JobStatus.JOB_STATUS_IN_PROGRESS ||
+      ele.job!.status === JobStatus.JOB_STATUS_REQUESTED
         ? html`
             <button id="cancelButton" @click="${() => ele.cancel()}">
               <delete-icon-sk></delete-icon-sk>
