@@ -406,10 +406,12 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		ret.TraceSet = filterParentTraces(ret.TraceSet)
 	}
 
-	if total < n {
+	if trimIndex := n - total; trimIndex > 0 {
 		// Trim down the traces so they are the same length as ret.Header.
 		for key, tr := range ret.TraceSet {
-			ret.TraceSet[key] = tr[n-total:]
+			if len(tr) > int(trimIndex) {
+				ret.TraceSet[key] = tr[trimIndex:]
+			}
 		}
 	}
 
