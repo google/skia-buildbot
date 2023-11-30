@@ -34,7 +34,7 @@ const (
 
 var (
 	// TODO(borenet): Can we avoid hard-coding these directories?
-	configDirs = []string{"skia-infra-corp", "skia-infra-public", "skia-infra-public-dev", "templates"}
+	configDirs = []string{"skia-corp", "skia-public", "skia-infra-corp", "skia-infra-public", "skia-infra-public-dev", "templates"}
 )
 
 // CommitResolver is a function used to resolve a short Git commit hash or ref
