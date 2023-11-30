@@ -206,37 +206,6 @@ func TestGetJob(t *testing.T) {
 	assertdeep.Equal(t, []string{"os:linux"}, res.Job.TaskDimensions[0].Dimensions)
 }
 
-func TestGetJob_NotStarted(t *testing.T) {
-
-	ctx, srv, _, _, _, _, cleanup := setup(t)
-	defer cleanup()
-
-	job := &types.Job{
-		Created: time.Now(),
-		Name:    "my-job",
-		RepoState: types.RepoState{
-			Repo:     fakeRepo,
-			Revision: "",
-		},
-		Status: types.JOB_STATUS_REQUESTED,
-	}
-	require.NoError(t, srv.db.PutJob(ctx, job))
-
-	req := &GetJobRequest{
-		Id: job.Id,
-	}
-
-	// Check results.
-	ctx = alogin.FakeStatus(ctx, &unauthorizedStatus)
-	res, err := srv.GetJob(ctx, req)
-	require.NoError(t, err)
-	require.NotNil(t, res.Job)
-	require.Equal(t, job.Id, res.Job.Id)
-	// Don't bother checking other fields, since we have a separate test for
-	// convertJob.
-	require.Equal(t, 0, len(res.Job.TaskDimensions))
-}
-
 func TestCancelJob(t *testing.T) {
 
 	ctx, srv, _, job, _, _, cleanup := setup(t)
@@ -580,6 +549,7 @@ func TestConvertJobStatus(t *testing.T) {
 }
 
 func TestConvertJob(t *testing.T) {
+
 	actual, err := convertJob(&types.Job{
 		BuildbucketBuildId:  12345,
 		BuildbucketLeaseKey: 67890,
@@ -627,9 +597,17 @@ func TestConvertJob(t *testing.T) {
 			},
 		},
 	})
+	// Use a placeholder value for TaskDimensions since it isn't filled in by
+	// convertJob.
+	actual.TaskDimensions = []*TaskDimensions{
+		{
+			TaskName:   "taskA",
+			Dimensions: []string{"os:OS-A"},
+		},
+	}
 
 	require.NoError(t, err)
-	require.Equal(t, &Job{
+	assertdeep.Copy(t, &Job{
 		BuildbucketBuildId:  "12345",
 		BuildbucketLeaseKey: "67890",
 		CreatedAt:           timestamppb.New(time.Unix(1600181000, 0)),
@@ -690,56 +668,13 @@ func TestConvertJob(t *testing.T) {
 				},
 			},
 		},
-	}, actual)
-}
-
-func TestConvertJob_NotStarted(t *testing.T) {
-	actual, err := convertJob(&types.Job{
-		BuildbucketBuildId:  12345,
-		BuildbucketLeaseKey: 67890,
-		Created:             time.Unix(1600181000, 0),
-		DbModified:          time.Unix(1600182000, 0),
-		Finished:            time.Unix(1600183000, 0),
-		Id:                  "fake-job-id",
-		IsForce:             true,
-		Name:                "My Job",
-		Priority:            0.8,
-		RepoState: types.RepoState{
-			Repo:     fakeRepo,
-			Revision: "",
-			Patch: types.Patch{
-				Issue:     "9999",
-				PatchRepo: "patch.git",
-				Patchset:  "2",
-				Server:    "https://patch.com",
+		// Just use a placeholder value for TaskDimensions; it isn't filled in
+		// by convertJob.
+		TaskDimensions: []*TaskDimensions{
+			{
+				TaskName:   "taskA",
+				Dimensions: []string{"os:OS-A"},
 			},
 		},
-		Requested: time.Unix(1600180000, 0),
-		Status:    types.JOB_STATUS_REQUESTED,
-	})
-	require.NoError(t, err)
-
-	require.Equal(t, &Job{
-		BuildbucketBuildId:  "12345",
-		BuildbucketLeaseKey: "67890",
-		CreatedAt:           timestamppb.New(time.Unix(1600181000, 0)),
-		DbModifiedAt:        timestamppb.New(time.Unix(1600182000, 0)),
-		FinishedAt:          timestamppb.New(time.Unix(1600183000, 0)),
-		Id:                  "fake-job-id",
-		IsForce:             true,
-		Name:                "My Job",
-		Priority:            0.8,
-		RepoState: &RepoState{
-			Repo:     fakeRepo,
-			Revision: "",
-			Patch: &RepoState_Patch{
-				Issue:     "9999",
-				PatchRepo: "patch.git",
-				Patchset:  "2",
-				Server:    "https://patch.com",
-			},
-		},
-		RequestedAt: timestamppb.New(time.Unix(1600180000, 0)),
-		Status:      JobStatus_JOB_STATUS_REQUESTED,
 	}, actual)
 }

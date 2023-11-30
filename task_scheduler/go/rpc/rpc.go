@@ -115,32 +115,29 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 	}
 
 	// Retrieve the task specs, so that we can include the task dimensions
-	// in the results. We can only do this after the job has been started,
-	// otherwise the TasksCfg may not yet be cached.
-	if dbJob.Status != types.JOB_STATUS_REQUESTED {
-		cfg, cachedErr, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
-		if cachedErr != nil {
-			err = cachedErr
-		}
-		if err != nil {
-			sklog.Error(err)
-			return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
-		}
-		taskDimensions := make([]*TaskDimensions, 0, len(rv.Dependencies))
-		for _, task := range rv.Dependencies {
-			taskSpec, ok := cfg.Tasks[task.Task]
-			if !ok {
-				err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", rv.Id, rv.Name, task.Task, rv.RepoState)
-				sklog.Error(err)
-				return nil, nil, twirp.InternalError(err.Error())
-			}
-			taskDimensions = append(taskDimensions, &TaskDimensions{
-				TaskName:   task.Task,
-				Dimensions: taskSpec.Dimensions,
-			})
-		}
-		rv.TaskDimensions = taskDimensions
+	// in the results.
+	cfg, cachedErr, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
+	if cachedErr != nil {
+		err = cachedErr
 	}
+	if err != nil {
+		sklog.Error(err)
+		return nil, nil, twirp.InternalError("Failed to retrieve job dependencies")
+	}
+	taskDimensions := make([]*TaskDimensions, 0, len(rv.Dependencies))
+	for _, task := range rv.Dependencies {
+		taskSpec, ok := cfg.Tasks[task.Task]
+		if !ok {
+			err := fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", rv.Id, rv.Name, task.Task, rv.RepoState)
+			sklog.Error(err)
+			return nil, nil, twirp.InternalError(err.Error())
+		}
+		taskDimensions = append(taskDimensions, &TaskDimensions{
+			TaskName:   task.Task,
+			Dimensions: taskSpec.Dimensions,
+		})
+	}
+	rv.TaskDimensions = taskDimensions
 
 	return rv, dbJob, nil
 }
@@ -512,59 +509,53 @@ func convertJobStatus(st types.JobStatus) (JobStatus, error) {
 
 // convertJob converts a types.Job to rpc.Job.
 func convertJob(job *types.Job) (*Job, error) {
-	var deps []*TaskDependencies
-	if len(job.Dependencies) > 0 {
-		depNames := make([]string, 0, len(job.Dependencies))
-		for name := range job.Dependencies {
-			depNames = append(depNames, name)
-		}
-		sort.Strings(depNames)
-		deps = make([]*TaskDependencies, 0, len(job.Dependencies))
-		for _, name := range depNames {
-			taskDeps := job.Dependencies[name]
-			deps = append(deps, &TaskDependencies{
-				Task:         name,
-				Dependencies: taskDeps,
-			})
-		}
-		// Sort the deps by task name for determinism.
-		sort.Slice(deps, func(i, j int) bool {
-			return deps[i].Task < deps[j].Task
+	depNames := make([]string, 0, len(job.Dependencies))
+	for name := range job.Dependencies {
+		depNames = append(depNames, name)
+	}
+	sort.Strings(depNames)
+	deps := make([]*TaskDependencies, 0, len(job.Dependencies))
+	for _, name := range depNames {
+		taskDeps := job.Dependencies[name]
+		deps = append(deps, &TaskDependencies{
+			Task:         name,
+			Dependencies: taskDeps,
 		})
 	}
+	// Sort the deps by task name for determinism.
+	sort.Slice(deps, func(i, j int) bool {
+		return deps[i].Task < deps[j].Task
+	})
 	status, err := convertJobStatus(job.Status)
 	if err != nil {
 		return nil, err
 	}
-	var tasks []*TaskSummaries
-	if len(job.Tasks) > 0 {
-		taskNames := make([]string, 0, len(job.Tasks))
-		for name := range job.Tasks {
-			taskNames = append(taskNames, name)
-		}
-		sort.Strings(taskNames)
-		tasks = make([]*TaskSummaries, 0, len(job.Tasks))
-		for _, name := range taskNames {
-			taskSummaries := job.Tasks[name]
-			ts := make([]*TaskSummary, 0, len(tasks))
-			for _, taskSummary := range taskSummaries {
-				st, err := convertTaskStatus(taskSummary.Status)
-				if err != nil {
-					return nil, err
-				}
-				ts = append(ts, &TaskSummary{
-					Id:             taskSummary.Id,
-					Attempt:        int32(taskSummary.Attempt),
-					MaxAttempts:    int32(taskSummary.MaxAttempts),
-					Status:         st,
-					SwarmingTaskId: taskSummary.SwarmingTaskId,
-				})
+	taskNames := make([]string, 0, len(job.Tasks))
+	for name := range job.Tasks {
+		taskNames = append(taskNames, name)
+	}
+	sort.Strings(taskNames)
+	tasks := make([]*TaskSummaries, 0, len(job.Tasks))
+	for _, name := range taskNames {
+		taskSummaries := job.Tasks[name]
+		ts := make([]*TaskSummary, 0, len(tasks))
+		for _, taskSummary := range taskSummaries {
+			st, err := convertTaskStatus(taskSummary.Status)
+			if err != nil {
+				return nil, err
 			}
-			tasks = append(tasks, &TaskSummaries{
-				Name:  name,
-				Tasks: ts,
+			ts = append(ts, &TaskSummary{
+				Id:             taskSummary.Id,
+				Attempt:        int32(taskSummary.Attempt),
+				MaxAttempts:    int32(taskSummary.MaxAttempts),
+				Status:         st,
+				SwarmingTaskId: taskSummary.SwarmingTaskId,
 			})
 		}
+		tasks = append(tasks, &TaskSummaries{
+			Name:  name,
+			Tasks: ts,
+		})
 	}
 	bbID := fmt.Sprintf("%d", job.BuildbucketBuildId)
 	bbKey := fmt.Sprintf("%d", job.BuildbucketLeaseKey)
