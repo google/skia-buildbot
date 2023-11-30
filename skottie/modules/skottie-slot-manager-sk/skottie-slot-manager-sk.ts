@@ -10,7 +10,7 @@
  */
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { html } from 'lit-html';
+import { html, TemplateResult } from 'lit-html';
 import { SkottieColorEventDetail } from '../skottie-color-input-sk/skottie-color-input-sk';
 import { colorToHex, hexToColor } from '../helpers/color';
 import { ColorSlot, ScalarSlot, Vec2Slot } from './slot-info';
@@ -30,15 +30,21 @@ export class SkottieSlotManagerSk extends ElementSk {
   private imageSlots: string[] = [];
 
   private static template = (ele: SkottieSlotManagerSk) => html`
-    <div class="wrapper">
-      <ul class="slots-container">
-        ${ele.colorSlots.map((item: ColorSlot) => ele.colorSlot(item))}
-        ${ele.scalarSlots.map((item: ScalarSlot) => ele.scalarSlot(item))}
-        ${ele.vec2Slots.map((item: Vec2Slot) => ele.vec2Slot(item))}
-        ${ele.imageSlots.map((item: string) => ele.imageSlot(item))}
-      </ul>
-    </div>
+    <div class="wrapper">${ele.renderView()}</div>
   `;
+
+  private renderView(): TemplateResult {
+    if (
+      this.colorSlots.length ||
+      this.scalarSlots.length ||
+      this.vec2Slots.length ||
+      this.imageSlots.length
+    ) {
+      return this.renderSlotManager(this);
+    } else {
+      return this.renderUnslotted();
+    }
+  }
 
   private colorSlot = (cs: ColorSlot) => html`
     <div class="slot--color">
@@ -90,6 +96,34 @@ export class SkottieSlotManagerSk extends ElementSk {
   private imageOption = (name: string) => html`
     <option value="${name}">${name}</option>
   `;
+
+  private renderUnslotted(): TemplateResult {
+    return html`
+      <div class="no-manager">
+        <div class="info-box">
+          <span class="icon-sk info-box--icon">info</span>
+          <span class="info-box--description">
+            Add properties to AE's Essential Graphics window to create slots.
+            Ensure that that slots are being exported correctly by checking
+            exporter settings.
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderSlotManager(ele: SkottieSlotManagerSk): TemplateResult {
+    return html`
+      <div class="wrapper">
+        <ul class="slots-container">
+          ${ele.colorSlots.map((item: ColorSlot) => ele.colorSlot(item))}
+          ${ele.scalarSlots.map((item: ScalarSlot) => ele.scalarSlot(item))}
+          ${ele.vec2Slots.map((item: Vec2Slot) => ele.vec2Slot(item))}
+          ${ele.imageSlots.map((item: string) => ele.imageSlot(item))}
+        </ul>
+      </div>
+    `;
+  }
 
   private onColorSlotChange(
     e: CustomEvent<SkottieColorEventDetail>,
