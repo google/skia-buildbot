@@ -274,34 +274,43 @@ func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Ti
 	mock.MockOnce(fmt.Sprintf("%sheartbeat?alt=json&prettyPrint=false", API_URL_TESTING), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string, err error) {
+func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string) {
 	req := []byte(fmt.Sprintf("{\"result_details_json\":\"{\\\"message\\\":\\\"%s\\\"}\"}\n", msg))
-	respStr := "{}"
-	if err != nil {
-		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
-	}
-	resp := []byte(respStr)
+	resp := []byte("{}")
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, err error) {
+func MockCancelBuildFailed(mock *mockhttpclient.URLMock, id int64, msg string, mockErr string) {
+	req := []byte(fmt.Sprintf("{\"result_details_json\":\"{\\\"message\\\":\\\"%s\\\"}\"}\n", msg))
+	resp := []byte(fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", mockErr))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64) {
 	req := mockhttpclient.DONT_CARE_REQUEST
-	respStr := fmt.Sprintf("{\"build\": {\"lease_key\": \"%d\"}}", 987654321)
-	if err != nil {
-		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
-	}
-	resp := []byte(respStr)
+	resp := []byte(fmt.Sprintf("{\"build\": {\"lease_key\": \"%d\"}}", 987654321))
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobStarted(mock *mockhttpclient.URLMock, id int64, err error) {
+func MockTryLeaseBuildFailed(mock *mockhttpclient.URLMock, id int64, mockErr string) {
+	req := mockhttpclient.DONT_CARE_REQUEST
+	resp := []byte(fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", mockErr))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockJobStarted(mock *mockhttpclient.URLMock, id int64) {
 	// We have to use this because we don't know what the Job ID is going to
 	// be until after it's inserted into the DB.
 	req := mockhttpclient.DONT_CARE_REQUEST
 	resp := []byte("{}")
-	if err != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", err.Error()))
-	}
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockJobStartedFailed(mock *mockhttpclient.URLMock, id int64, mockErr string) {
+	// We have to use this because we don't know what the Job ID is going to
+	// be until after it's inserted into the DB.
+	req := mockhttpclient.DONT_CARE_REQUEST
+	resp := []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", mockErr))
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
@@ -317,37 +326,49 @@ func serializeJob(j *types.Job) string {
 	return string(escape[1 : len(escape)-1])
 }
 
-func MockJobSuccess(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error, dontCareRequest bool) {
+func MockJobSuccess(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, dontCareRequest bool) {
 	req := mockhttpclient.DONT_CARE_REQUEST
 	if !dontCareRequest {
 		req = []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	}
 	resp := []byte("{}")
-	if expectErr != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
-	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobFailure(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error) {
+func MockJobSuccess_Failed(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, dontCareRequest bool, expectErr string) {
+	req := mockhttpclient.DONT_CARE_REQUEST
+	if !dontCareRequest {
+		req = []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+	}
+	resp := []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockJobFailure(mock *mockhttpclient.URLMock, j *types.Job, now time.Time) {
 	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
-	if expectErr != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
-	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobMishap(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error) {
+func MockJobFailure_Failed(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr string) {
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+	resp := []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockJobMishap(mock *mockhttpclient.URLMock, j *types.Job, now time.Time) {
 	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
-	if expectErr != nil {
-		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
-	}
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucketpb.Build, now time.Time, cursor, nextcursor string, err error) {
+func MockJobMishap_Failed(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr string) {
+	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
+	resp := []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+}
+
+func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucketpb.Build, now time.Time, cursor, nextcursor string) {
 	legacyBuilds := make([]*buildbucket_api.LegacyApiCommonBuildMessage, 0, len(builds))
 	for _, b := range builds {
 		legacyBuilds = append(legacyBuilds, &buildbucket_api.LegacyApiCommonBuildMessage{
@@ -358,10 +379,26 @@ func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucketpb.Build, now t
 		Builds:     legacyBuilds,
 		NextCursor: nextcursor,
 	}
+	respBytes, err := json.Marshal(&resp)
 	if err != nil {
-		resp.Error = &buildbucket_api.LegacyApiErrorMessage{
-			Message: err.Error(),
-		}
+		panic(err)
+	}
+	mock.MockOnce(fmt.Sprintf("%speek?alt=json&bucket=%s&max_builds=%d&prettyPrint=false&start_cursor=%s", API_URL_TESTING, BUCKET_TESTING, PEEK_MAX_BUILDS, cursor), mockhttpclient.MockGetDialogue(respBytes))
+}
+
+func MockPeekFailed(mock *mockhttpclient.URLMock, builds []*buildbucketpb.Build, now time.Time, cursor, nextcursor, mockErr string) {
+	legacyBuilds := make([]*buildbucket_api.LegacyApiCommonBuildMessage, 0, len(builds))
+	for _, b := range builds {
+		legacyBuilds = append(legacyBuilds, &buildbucket_api.LegacyApiCommonBuildMessage{
+			Id: b.Id,
+		})
+	}
+	resp := buildbucket_api.LegacyApiSearchResponseMessage{
+		Builds:     legacyBuilds,
+		NextCursor: nextcursor,
+		Error: &buildbucket_api.LegacyApiErrorMessage{
+			Message: mockErr,
+		},
 	}
 	respBytes, err := json.Marshal(&resp)
 	if err != nil {
