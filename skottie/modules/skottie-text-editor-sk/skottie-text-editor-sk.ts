@@ -116,14 +116,16 @@ export class SkottieTextEditorSk extends ElementSk {
   }
 
   private buildTexts(animation: LottieAnimation): void {
-    const textsData = animation.layers // we iterate all layer at the root layer
+    let textsData = animation.layers // we iterate all layer at the root layer
       .filter((layer: LottieLayer) => layer.ty === LAYER_TEXT_TYPE) // we filter all layers of type text
       .map((layer: LottieLayer) => ({
         layer: layer,
         parentId: '',
         precompName: COMP_ROOT_NAME,
-      })) // we map them to some extra data
-      .concat(
+      }));
+    // we map them to some extra data
+    if (animation.assets) {
+      textsData = textsData.concat(
         animation.assets // we iterate over the assets of the animation looking for precomps
           // we filter assets that of type precomp (by querying if they have a layers property)
           .filter((asset: LottieAsset) => isCompAsset(asset))
@@ -144,39 +146,42 @@ export class SkottieTextEditorSk extends ElementSk {
             );
             return accumulator;
           }, [] as ExtraLayerData[])
-      ) // this creates a dictionary with all available texts
-      .reduce(
-        (
-          accumulator: Record<string, TextData>,
-          item: ExtraLayerData,
-          index: number
-        ) => {
-          const key: string = this.areTextsCollapsed
-            ? item.layer.nm // if texts are collapsed the key will be the layer name (nm)
-            : String(index + 1); // if they are not collapse we use the index as key to be unique
-          if (!accumulator[key]) {
-            accumulator[key] = {
-              id: item.layer.nm,
-              name: item.layer.nm,
-              items: [],
-              // this property is the text string of a text layer.
-              // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
-              text: item.layer.t?.d.k[0].s.t || 'unnamed layer',
-              maxChars: item.layer.t?.d.k[0].s.mc, // Max characters text document attribute
-              precompName: item.precompName,
-              fontName: item.layer.t?.d.k[0].s.f || '', // font name
-              tracking: item.layer.t?.d.k[0].s.tr || 0,
-              lineHeight: item.layer.t?.d.k[0].s.lh || 0,
-            };
-          }
-
-          accumulator[key].items.push(item);
-          return accumulator;
-        },
-        {} as Record<string, TextData>
       );
+    } // this creates a dictionary with all available texts
+    let reducedTextsData = textsData.reduce(
+      (
+        accumulator: Record<string, TextData>,
+        item: ExtraLayerData,
+        index: number
+      ) => {
+        const key: string = this.areTextsCollapsed
+          ? item.layer.nm // if texts are collapsed the key will be the layer name (nm)
+          : String(index + 1); // if they are not collapse we use the index as key to be unique
+        if (!accumulator[key]) {
+          accumulator[key] = {
+            id: item.layer.nm,
+            name: item.layer.nm,
+            items: [],
+            // this property is the text string of a text layer.
+            // It's read as: Text Element > Text document > First Keyframe > Start Value > Text
+            text: item.layer.t?.d.k[0].s.t || 'unnamed layer',
+            maxChars: item.layer.t?.d.k[0].s.mc, // Max characters text document attribute
+            precompName: item.precompName,
+            fontName: item.layer.t?.d.k[0].s.f || '', // font name
+            tracking: item.layer.t?.d.k[0].s.tr || 0,
+            lineHeight: item.layer.t?.d.k[0].s.lh || 0,
+          };
+        }
+
+        accumulator[key].items.push(item);
+        return accumulator;
+      },
+      {} as Record<string, TextData>
+    );
     // we map the dictionary back to an array to get the final texts to render
-    this.texts = Object.keys(textsData).map((key: string) => textsData[key]);
+    this.texts = Object.keys(textsData).map(
+      (key: string) => reducedTextsData[key]
+    );
   }
 
   private save(): void {
