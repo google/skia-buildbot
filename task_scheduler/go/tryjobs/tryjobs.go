@@ -696,7 +696,7 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		return err
 	}
 	if j.Status == types.JOB_STATUS_SUCCESS {
-		sklog.Infof("bb.Start for job %s (build %d)", j.Id, j.BuildbucketBuildId)
+		sklog.Infof("bb.Succeed for job %s (build %d)", j.Id, j.BuildbucketBuildId)
 		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.LegacyApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
