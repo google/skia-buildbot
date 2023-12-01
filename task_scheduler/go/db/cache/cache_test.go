@@ -618,15 +618,15 @@ func TestJobCache(t *testing.T) {
 	assertdeep.Equal(t, got, j1)
 }
 
-func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
-	jobs, err := cache.UnfinishedJobs()
+func testGetInProgress(t *testing.T, expect []*types.Job, cache JobCache) {
+	jobs, err := cache.InProgressJobs()
 	require.NoError(t, err)
 	sort.Sort(types.JobSlice(jobs))
 	sort.Sort(types.JobSlice(expect))
 	assertdeep.Equal(t, expect, jobs)
 }
 
-func TestJobCacheUnfinished(t *testing.T) {
+func TestJobCacheInProgress(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryJobDB()
@@ -647,7 +647,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	})
 	require.NoError(t, err)
 	<-wait
-	testGetUnfinished(t, []*types.Job{j1}, c)
+	testGetInProgress(t, []*types.Job{j1}, c)
 
 	// Finish the job. Insert it, ensure that it's not unfinished.
 	j1.Status = types.JOB_STATUS_SUCCESS
@@ -656,7 +656,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
-	testGetUnfinished(t, []*types.Job{}, c)
+	testGetInProgress(t, []*types.Job{}, c)
 
 	// Already-finished job.
 	j2 := types.MakeTestJob(time.Now())
@@ -666,7 +666,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
-	testGetUnfinished(t, []*types.Job{}, c)
+	testGetInProgress(t, []*types.Job{}, c)
 
 	// An unfinished job, created after the cache was created.
 	j3 := types.MakeTestJob(time.Now())
@@ -675,7 +675,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
-	testGetUnfinished(t, []*types.Job{j3}, c)
+	testGetInProgress(t, []*types.Job{j3}, c)
 
 	// Update the job.
 	j3.Dependencies = map[string][]string{"a": {}, "b": {}, "c": {}}
@@ -684,7 +684,7 @@ func TestJobCacheUnfinished(t *testing.T) {
 	d.Wait()
 	<-wait
 	require.NoError(t, c.Update(ctx))
-	testGetUnfinished(t, []*types.Job{j3}, c)
+	testGetInProgress(t, []*types.Job{j3}, c)
 }
 
 // assertJobInSlice fails the test if job is not deep-equal to an element of
@@ -701,7 +701,7 @@ func assertJobInSlice(t *testing.T, job *types.Job, slice []*types.Job) {
 
 // assertJobsCached checks that all of jobs are retrievable from c.
 func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
-	unfinishedJobs, err := c.UnfinishedJobs()
+	unfinishedJobs, err := c.InProgressJobs()
 	require.NoError(t, err)
 	for _, job := range jobs {
 		cachedJob, err := c.GetJob(job.Id)
@@ -740,7 +740,7 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 
 // assertJobsNotCached checks that none of jobs are retrievable from c.
 func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
-	unfinishedJobs, err := c.UnfinishedJobs()
+	unfinishedJobs, err := c.InProgressJobs()
 	require.NoError(t, err)
 	for _, job := range jobs {
 		_, err := c.GetJob(job.Id)
@@ -749,7 +749,7 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 
 		for _, other := range unfinishedJobs {
 			if job.Id == other.Id {
-				t.Errorf("Found unexpected job %v in UnfinishedJobs.", job)
+				t.Errorf("Found unexpected job %v in InProgressJobs.", job)
 			}
 		}
 
@@ -885,7 +885,7 @@ func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
 	test([]string{j1.Name}, j1.Created, j1.Created.Add(time.Nanosecond), j1)
 }
 
-func TestJobCache_NotYetStartedJobs(t *testing.T) {
+func TestJobCache_RequestedJobs(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	d := memory.NewInMemoryJobDB()
@@ -910,11 +910,11 @@ func TestJobCache_NotYetStartedJobs(t *testing.T) {
 		require.Equal(t, j1, jobs[0])
 	}
 
-	// Assert that the job is returned by NotYetStartedJobs.
-	assertPresent(c.NotYetStartedJobs())
+	// Assert that the job is returned by RequestedJobs.
+	assertPresent(c.RequestedJobs())
 
-	// Assert that the job is NOT returned by UnfinishedJobs.
-	jobs, err := c.UnfinishedJobs()
+	// Assert that the job is NOT returned by InProgressJobs.
+	jobs, err := c.InProgressJobs()
 	require.NoError(t, err)
 	require.Empty(t, jobs)
 

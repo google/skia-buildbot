@@ -616,7 +616,7 @@ func TestRetry(t *testing.T) {
 }
 
 func testPollAssertAdded(t *testing.T, now time.Time, trybots *TryJobIntegrator, builds []*buildbucketpb.Build) {
-	jobs, err := trybots.jCache.NotYetStartedJobs()
+	jobs, err := trybots.jCache.RequestedJobs()
 	require.NoError(t, err)
 	byId := make(map[int64]*types.Job, len(jobs))
 	for _, j := range jobs {

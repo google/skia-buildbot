@@ -2699,7 +2699,7 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Cycle once, check that we have empty sets for all Jobs.
 	runMainLoop(t, s, ctx)
-	jobs, err := s.jCache.UnfinishedJobs()
+	jobs, err := s.jCache.InProgressJobs()
 	require.NoError(t, err)
 	require.Len(t, jobs, 5)
 	var j1, j2, j3, j4, j5 *types.Job

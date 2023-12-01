@@ -202,7 +202,7 @@ func (j *Job) Copy() *Job {
 }
 
 func (j *Job) Done() bool {
-	return j.Status != JOB_STATUS_IN_PROGRESS
+	return j.Status != JOB_STATUS_IN_PROGRESS && j.Status != JOB_STATUS_REQUESTED
 }
 
 // MakeTaskKey returns a TaskKey for the given Task name.
@@ -254,6 +254,9 @@ func (j *Job) TraverseDependencies(fn func(string) error) error {
 // DeriveStatus derives a JobStatus based on the TaskStatuses in the Job's
 // dependency tree.
 func (j *Job) DeriveStatus() JobStatus {
+	if j.Status == JOB_STATUS_REQUESTED {
+		return JOB_STATUS_REQUESTED
+	}
 	if len(j.Tasks) == 0 {
 		return JOB_STATUS_IN_PROGRESS
 	}

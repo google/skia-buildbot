@@ -384,7 +384,7 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 
 // See documentation for TaskCache interface.
 func (c *taskCache) Update(ctx context.Context) error {
-	ctx, span := trace.StartSpan(ctx, "taskcache_Update")
+	_, span := trace.StartSpan(ctx, "taskcache_Update")
 	defer span.End()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -479,13 +479,13 @@ type JobCache interface {
 	// in the given date range and match one of the given job names.
 	GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error)
 
-	// NotYetStartedJobs returns a list of jobs which were not yet started at
+	// RequestedJobs returns a list of jobs which were not yet started at
 	// the time of the last cache update.
-	NotYetStartedJobs() ([]*types.Job, error)
+	RequestedJobs() ([]*types.Job, error)
 
-	// UnfinishedJobs returns a list of jobs which were started but not finished
+	// InProgressJobs returns a list of jobs which were started but not finished
 	// at the time of the last cache update.
-	UnfinishedJobs() ([]*types.Job, error)
+	InProgressJobs() ([]*types.Job, error)
 
 	// Update loads new jobs from the database.
 	Update(ctx context.Context) error
@@ -500,10 +500,10 @@ type jobCache struct {
 	jobs               map[string]*types.Job
 	jobsByNameAndState map[types.RepoState]map[string]map[string]*types.Job
 	// jobsByTime is sorted by Task.Created.
-	jobsByTime    []*types.Job
-	timeWindow    window.Window
-	notYetStarted map[string]*types.Job
-	unfinished    map[string]*types.Job
+	jobsByTime []*types.Job
+	timeWindow window.Window
+	requested  map[string]*types.Job
+	inProgress map[string]*types.Job
 
 	modified map[string]*types.Job
 	modMtx   sync.Mutex
@@ -608,24 +608,24 @@ func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, 
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) NotYetStartedJobs() ([]*types.Job, error) {
+func (c *jobCache) RequestedJobs() ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
-	rv := make([]*types.Job, 0, len(c.notYetStarted))
-	for _, t := range c.notYetStarted {
+	rv := make([]*types.Job, 0, len(c.requested))
+	for _, t := range c.requested {
 		rv = append(rv, t.Copy())
 	}
 	return rv, nil
 }
 
 // See documentation for JobCache interface.
-func (c *jobCache) UnfinishedJobs() ([]*types.Job, error) {
+func (c *jobCache) InProgressJobs() ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
-	rv := make([]*types.Job, 0, len(c.unfinished))
-	for _, t := range c.unfinished {
+	rv := make([]*types.Job, 0, len(c.inProgress))
+	for _, t := range c.inProgress {
 		rv = append(rv, t.Copy())
 	}
 	return rv, nil
@@ -644,14 +644,14 @@ func (c *jobCache) expireJobs() {
 		// Debugging for https://bugs.chromium.org/p/skia/issues/detail?id=9444
 		if len(c.jobsByTime) > 0 {
 			firstTs := c.jobsByTime[0].Created
-			for _, job := range c.unfinished {
+			for _, job := range c.inProgress {
 				if job.Created.Before(firstTs) {
 					sklog.Warningf("Found job %q in unfinished, Created %s, before first jobsByTime, Created %s. %+v", job.Id, job.Created.Format(time.RFC3339Nano), firstTs.Format(time.RFC3339Nano), job)
 				}
 			}
 		} else {
-			if len(c.unfinished) > 0 {
-				sklog.Warningf("Found %d jobs in unfinished when jobsByTime is empty", len(c.unfinished))
+			if len(c.inProgress) > 0 {
+				sklog.Warningf("Found %d jobs in unfinished when jobsByTime is empty", len(c.inProgress))
 			}
 		}
 	}()
@@ -663,7 +663,7 @@ func (c *jobCache) expireJobs() {
 		// Allow GC.
 		c.jobsByTime[i] = nil
 		delete(c.jobs, job.Id)
-		delete(c.unfinished, job.Id)
+		delete(c.inProgress, job.Id)
 
 		byName := c.jobsByNameAndState[job.RepoState]
 		byId := byName[job.Name]
@@ -709,18 +709,18 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 	}
 	byId[job.Id] = job
 
-	// Unfinished jobs.
+	// In-progress jobs.
 	if job.Status == types.JOB_STATUS_IN_PROGRESS {
-		c.unfinished[job.Id] = job
+		c.inProgress[job.Id] = job
 	} else {
-		delete(c.unfinished, job.Id)
+		delete(c.inProgress, job.Id)
 	}
 
 	// Requested but not started jobs.
 	if job.Status == types.JOB_STATUS_REQUESTED {
-		c.notYetStarted[job.Id] = job
+		c.requested[job.Id] = job
 	} else {
-		delete(c.notYetStarted, job.Id)
+		delete(c.requested, job.Id)
 	}
 
 	if isUpdate {
@@ -758,7 +758,7 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 
 // See documentation for JobCache interface.
 func (c *jobCache) Update(ctx context.Context) error {
-	ctx, span := trace.StartSpan(ctx, "jobcache_Update")
+	_, span := trace.StartSpan(ctx, "jobcache_Update")
 	defer span.End()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -807,8 +807,8 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 		db:                 d,
 		jobs:               map[string]*types.Job{},
 		jobsByNameAndState: map[types.RepoState]map[string]map[string]*types.Job{},
-		notYetStarted:      map[string]*types.Job{},
-		unfinished:         map[string]*types.Job{},
+		requested:          map[string]*types.Job{},
+		inProgress:         map[string]*types.Job{},
 		modified:           map[string]*types.Job{},
 		timeWindow:         timeWindow,
 		onModFn:            onModifiedJobs,

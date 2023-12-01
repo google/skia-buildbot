@@ -105,13 +105,13 @@ func TestGatherNewJobs(t *testing.T) {
 
 	testGatherNewJobs := func(expectedJobs int) {
 		updateRepos(t, ctx, jc)
-		jobs, err := jc.jCache.UnfinishedJobs()
+		jobs, err := jc.jCache.InProgressJobs()
 		require.NoError(t, err)
 		require.Equal(t, expectedJobs, len(jobs))
 	}
 
 	// Ensure that the JobDB is empty.
-	jobs, err := jc.jCache.UnfinishedJobs()
+	jobs, err := jc.jCache.InProgressJobs()
 	require.NoError(t, err)
 	require.Equal(t, 0, len(jobs))
 

@@ -336,7 +336,7 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 	if err := jc.jCache.Update(ctx); err != nil {
 		return fmt.Errorf("Failed to update job cache: %s", err)
 	}
-	unfinishedJobs, err := jc.jCache.UnfinishedJobs()
+	unfinishedJobs, err := jc.jCache.InProgressJobs()
 	if err != nil {
 		return err
 	}

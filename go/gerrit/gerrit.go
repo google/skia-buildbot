@@ -670,7 +670,7 @@ func (g *Gerrit) GetChange(ctx context.Context, id string) (*ChangeInfo, error) 
 		if err == ErrNotFound {
 			return nil, err
 		}
-		return nil, skerr.Wrapf(err, "Failed to load details for issue %q: %v", id)
+		return nil, skerr.Wrapf(err, "failed to load details for issue %q", id)
 	}
 	return fixupChangeInfo(fullIssue), nil
 }

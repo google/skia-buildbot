@@ -1003,7 +1003,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*TaskCandida
 	defer span.End()
 
 	// Find the unfinished Jobs.
-	unfinishedJobs, err := s.jCache.UnfinishedJobs()
+	unfinishedJobs, err := s.jCache.InProgressJobs()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1716,7 +1716,7 @@ func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "updateUnfinishedJobs")
 	defer span.End()
 
-	jobs, err := s.jCache.UnfinishedJobs()
+	jobs, err := s.jCache.InProgressJobs()
 	if err != nil {
 		return err
 	}

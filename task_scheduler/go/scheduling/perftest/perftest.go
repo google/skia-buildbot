@@ -140,7 +140,7 @@ func waitForNewJobs(ctx context.Context, repos repograph.Map, jc *job_creation.J
 	for {
 		time.Sleep(500 * time.Millisecond)
 		assertNoError(jCache.Update(ctx))
-		unfinished, err := jCache.UnfinishedJobs()
+		unfinished, err := jCache.InProgressJobs()
 		assertNoError(err)
 		if len(unfinished) == expectJobs {
 			break
@@ -394,7 +394,7 @@ func main() {
 	for {
 		sklog.Infof("Running all tasks...")
 		runTasks(bots)
-		unfinished, err := jCache.UnfinishedJobs()
+		unfinished, err := jCache.InProgressJobs()
 		assertNoError(err)
 		sklog.Infof("Found %d unfinished jobs.", len(unfinished))
 		if len(unfinished) == 0 {

@@ -152,8 +152,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 	go t.startJobsLoop(ctx)
 }
 
-// getActiveTryJobs returns the active (not yet marked as finished in
-// Buildbucket) tryjobs.
+// getActiveTryJobs returns the active (started but not yet marked as finished
+// in Buildbucket) tryjobs.
 func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, error) {
 	if err := t.jCache.Update(ctx); err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, 
 	jobs := t.jCache.GetAllCachedJobs()
 	rv := []*types.Job{}
 	for _, job := range jobs {
-		if job.BuildbucketLeaseKey != 0 {
+		if job.BuildbucketLeaseKey != 0 && job.Status != types.JOB_STATUS_REQUESTED {
 			rv = append(rv, job)
 		}
 	}
@@ -251,6 +251,13 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 
 	// Send heartbeats for all leases.
 	send := func(jobs []*types.Job) {
+		// TODO(borenet): Remove this logging when no longer needed.
+		ids := make([]string, 0, len(jobs))
+		for _, job := range jobs {
+			ids = append(ids, job.Id)
+		}
+		sklog.Infof("Sending heartbeats for jobs: %s", strings.Join(ids, ", "))
+
 		heartbeats := make([]*buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
 		for _, j := range jobs {
 			heartbeats = append(heartbeats, &buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat{
@@ -499,10 +506,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 				}
 			}
 		case <-tickCh:
-			st := types.JOB_STATUS_REQUESTED
-			jobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
-				Status: &st,
-			})
+			jobs, err := t.jCache.RequestedJobs()
 			if err != nil {
 				sklog.Errorf("failed retrieving Jobs: %s", err)
 			} else {
@@ -667,6 +671,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 // error object returned by Buildbucket (eg. if the Build has been canceled), or
 // any error which occurred when attempting the request.
 func (t *TryJobIntegrator) jobStarted(j *types.Job) (*buildbucket_api.LegacyApiErrorMessage, error) {
+	sklog.Infof("bb.Start for job %s (build %d)", j.Id, j.BuildbucketBuildId)
 	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.LegacyApiStartRequestBodyMessage{
 		LeaseKey: j.BuildbucketLeaseKey,
 		Url:      j.URL(t.host),
@@ -691,6 +696,7 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		return err
 	}
 	if j.Status == types.JOB_STATUS_SUCCESS {
+		sklog.Infof("bb.Start for job %s (build %d)", j.Id, j.BuildbucketBuildId)
 		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.LegacyApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
@@ -711,6 +717,7 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 		if j.Status == types.JOB_STATUS_MISHAP {
 			failureReason = "INFRA_FAILURE"
 		}
+		sklog.Infof("bb.Fail for job %s (build %d)", j.Id, j.BuildbucketBuildId)
 		resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.LegacyApiFailRequestBodyMessage{
 			FailureReason:     failureReason,
 			LeaseKey:          j.BuildbucketLeaseKey,

@@ -154,8 +154,8 @@ func (_m *JobCache) GetMatchingJobsFromDateRange(names []string, from time.Time,
 	return r0, r1
 }
 
-// NotYetStartedJobs provides a mock function with given fields:
-func (_m *JobCache) NotYetStartedJobs() ([]*types.Job, error) {
+// InProgressJobs provides a mock function with given fields:
+func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	ret := _m.Called()
 
 	var r0 []*types.Job
@@ -177,8 +177,8 @@ func (_m *JobCache) NotYetStartedJobs() ([]*types.Job, error) {
 	return r0, r1
 }
 
-// UnfinishedJobs provides a mock function with given fields:
-func (_m *JobCache) UnfinishedJobs() ([]*types.Job, error) {
+// RequestedJobs provides a mock function with given fields:
+func (_m *JobCache) RequestedJobs() ([]*types.Job, error) {
 	ret := _m.Called()
 
 	var r0 []*types.Job
