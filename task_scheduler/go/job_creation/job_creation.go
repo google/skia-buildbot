@@ -52,7 +52,7 @@ var (
 // JobCreator is a struct used for creating Jobs based on new commits, tryjobs,
 // and timed triggers.
 type JobCreator struct {
-	cacher        *cacher.Cacher
+	cacher        cacher.Cacher
 	db            db.DB
 	jCache        cache.JobCache
 	lvUpdateRepos metrics2.Liveness

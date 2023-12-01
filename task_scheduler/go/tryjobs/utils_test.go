@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"os"
-	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,75 +14,77 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
-	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	"go.skia.org/infra/go/buildbucket/mocks"
-	cas_mocks "go.skia.org/infra/go/cas/mocks"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/cacher"
+	"go.skia.org/infra/go/vcsinfo"
+	cacher_mocks "go.skia.org/infra/task_scheduler/go/cacher/mocks"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/syncer"
-	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_mocks "go.skia.org/infra/task_scheduler/go/task_cfg_cache/mocks"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
-	repoBaseName = "skia.git"
-	test         = `a"bc"`
+	repoUrl = "skia.git"
 
-	testTasksCfg = `{
-  "casSpecs": {
-    "fake": {
-      "digest": "` + tcc_testutils.CompileCASDigest + `"
-    }
-  },
-  "tasks": {
-    "fake-task1": {
-      "casSpec": "fake",
-      "dependencies": [],
-      "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
-      "extra_args": [],
-      "priority": 0.8
-    },
-    "fake-task2": {
-      "casSpec": "fake",
-      "dependencies": ["fake-task1"],
-      "dimensions": ["pool:Skia", "os:Ubuntu", "cpu:x86-64-avx2", "gpu:none"],
-      "extra_args": [],
-      "priority": 0.8
-	}
-  },
-  "jobs": {
-    "fake-job": {
-      "priority": 0.8,
-      "tasks": ["fake-task2"]
-    }
-  }
-}`
 	gerritIssue    = 2112
 	gerritPatchset = 3
 	patchProject   = "skia"
 	parentProject  = "parent-project"
 
 	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
+	oldBranchName = "old-branch"
 )
 
 var (
 	gerritPatch = types.Patch{
-		Server:   fakeGerritUrl,
-		Issue:    fmt.Sprintf("%d", gerritIssue),
-		Patchset: fmt.Sprintf("%d", gerritPatchset),
+		Server:    fakeGerritUrl,
+		Issue:     fmt.Sprintf("%d", gerritIssue),
+		PatchRepo: repoUrl,
+		Patchset:  fmt.Sprintf("%d", gerritPatchset),
+	}
+
+	commit1 = &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    "abc123",
+			Author:  "me@google.com",
+			Subject: "initial commit",
+		},
+		Branches: map[string]bool{
+			git.MainBranch: true,
+		},
+	}
+
+	commit2 = &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    "def456",
+			Author:  "me@google.com",
+			Subject: "second commit",
+		},
+		Branches: map[string]bool{
+			git.MainBranch: true,
+		},
+		Parents: []string{commit1.Hash},
+	}
+
+	repoState1 = types.RepoState{
+		Patch:    gerritPatch,
+		Repo:     repoUrl,
+		Revision: commit1.Hash,
+	}
+	repoState2 = types.RepoState{
+		Patch:    gerritPatch,
+		Repo:     repoUrl,
+		Revision: commit2.Hash,
 	}
 
 	// Arbitrary start time to keep tests consistent.
@@ -93,71 +93,46 @@ var (
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, *mocks.BuildBucketInterface, func()) {
-
+func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclient.URLMock, *mocks.BuildBucketInterface) {
 	ctx := context.WithValue(context.Background(), now.ContextKey, ts)
-	ctx = cipd_git.UseGitFinder(ctx)
-	// Skip download-topics in gclient calls to avoid that network call.
-	ctx = context.WithValue(ctx, syncer.SkipDownloadTopicsKey, true)
-	// Set up the test Git repo.
-	gb := git_testutils.GitInit(t, ctx)
-	require.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
-	tasksJson := path.Join("infra", "bots", "tasks.json")
-	gb.Add(ctx, tasksJson, testTasksCfg)
-	gb.Commit(ctx)
-
-	rs := types.RepoState{
-		Patch:    gerritPatch,
-		Repo:     gb.RepoUrl(),
-		Revision: git.MainBranch,
-	}
-
-	// Create a ref for a fake patch.
-	gb.CreateFakeGerritCLGen(ctx, rs.Issue, rs.Patchset)
-
-	// Create a second repo, for cross-repo tryjob testing.
-	gb2 := git_testutils.GitInit(t, ctx)
-	gb2.CommitGen(ctx, "somefile")
-
-	// Create repo map.
-	tmpDir, err := os.MkdirTemp("", "")
-	require.NoError(t, err)
-
-	rm, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
-	require.NoError(t, err)
-	require.NoError(t, rm.Update(ctx))
 
 	// Set up other TryJobIntegrator inputs.
-	window, err := window.New(ctx, time.Hour, 100, rm)
-	require.NoError(t, err)
-	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
-	require.NoError(t, err)
+	taskCfgCache := tcc_mocks.FixedTasksCfg(tcc_testutils.TasksCfg1)
 	d := memory.NewInMemoryDB()
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
-		patchProject:  gb.RepoUrl(),
-		parentProject: gb2.RepoUrl(),
+		patchProject: repoUrl,
 	}
-
 	g, err := gerrit.NewGerrit(fakeGerritUrl, mock.Client())
 	require.NoError(t, err)
+	chr := &cacher_mocks.Cacher{}
+	chr.On("GetOrCacheRepoState", testutils.AnyContext, repoState1).Return(tcc_testutils.TasksCfg1, nil)
+	chr.On("GetOrCacheRepoState", testutils.AnyContext, repoState2).Return(tcc_testutils.TasksCfg1, nil)
 
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DefaultNumWorkers)
-	cas := &cas_mocks.CAS{}
-	chr := cacher.New(s, taskCfgCache, cas)
+	branch1 := &git.Branch{
+		Name: git.MainBranch,
+		Head: commit2.Hash,
+	}
+	branch2 := &git.Branch{
+		Name: oldBranchName,
+		Head: commit1.Hash,
+	}
+	repoImpl := repograph.NewMemCacheRepoImpl(map[string]*vcsinfo.LongCommit{
+		commit1.Hash: commit1,
+		commit2.Hash: commit2,
+	}, []*git.Branch{branch1, branch2})
+	repo, err := repograph.NewWithRepoImpl(ctx, repoImpl)
+	require.NoError(t, err)
+	rm := map[string]*repograph.Graph{
+		repoUrl: repo,
+	}
+	window, err := window.New(ctx, time.Hour, 100, rm)
+	require.NoError(t, err)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	require.NoError(t, err)
-	return ctx, integrator, gb, mock, MockBuildbucket(integrator), func() {
-		testutils.AssertCloses(t, taskCfgCache)
-		testutils.RemoveAll(t, tmpDir)
-		gb.Cleanup()
-		btCleanup()
-		require.NoError(t, s.Close())
-	}
+	return ctx, integrator, mock, MockBuildbucket(integrator)
 }
 
 func MockBuildbucket(tj *TryJobIntegrator) *mocks.BuildBucketInterface {
@@ -177,7 +152,7 @@ func Build(t sktest.TestingT, now time.Time) *buildbucketpb.Build {
 		Builder: &buildbucketpb.BuilderID{
 			Project: "TESTING",
 			Bucket:  BUCKET_TESTING,
-			Builder: "fake-job",
+			Builder: tcc_testutils.BuildTaskName,
 		},
 		CreatedBy:  "tests",
 		CreateTime: ts,

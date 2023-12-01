@@ -41,8 +41,7 @@ func assertNoActiveTryJobs(t *testing.T, trybots *TryJobIntegrator) {
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
 // success/failure for finished Jobs.
 func TestUpdateJobs_NoJobs_NoAction(t *testing.T) {
-	ctx, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	assertNoActiveTryJobs(t, trybots)
 	require.NoError(t, trybots.updateJobs(ctx))
@@ -50,10 +49,9 @@ func TestUpdateJobs_NoJobs_NoAction(t *testing.T) {
 }
 
 func TestUpdateJobs_OneUnfinished_SendsHeartbeat(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j1 := tryjob(ctx, gb.RepoUrl())
+	j1 := tryjob(ctx, repoUrl)
 	MockHeartbeats(t, mock, ts, []*types.Job{j1}, nil)
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
@@ -63,10 +61,9 @@ func TestUpdateJobs_OneUnfinished_SendsHeartbeat(t *testing.T) {
 }
 
 func TestUpdateJobs_FinishedJob_SendSuccess(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j1 := tryjob(ctx, gb.RepoUrl())
+	j1 := tryjob(ctx, repoUrl)
 	j1.Status = types.JOB_STATUS_SUCCESS
 	j1.Finished = ts
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
@@ -78,10 +75,9 @@ func TestUpdateJobs_FinishedJob_SendSuccess(t *testing.T) {
 }
 
 func TestUpdateJobs_FailedJob_SendFailure(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j1 := tryjob(ctx, gb.RepoUrl())
+	j1 := tryjob(ctx, repoUrl)
 	j1.Status = types.JOB_STATUS_FAILURE
 	j1.Finished = ts
 	j1.BuildbucketLeaseKey = 12345
@@ -94,12 +90,11 @@ func TestUpdateJobs_FailedJob_SendFailure(t *testing.T) {
 }
 
 func TestUpdateJobs_ManyInProgress_MultipleHeartbeatBatches(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	jobs := []*types.Job{}
 	for i := 0; i < LEASE_BATCH_SIZE+2; i++ {
-		jobs = append(jobs, tryjob(ctx, gb.RepoUrl()))
+		jobs = append(jobs, tryjob(ctx, repoUrl))
 	}
 	sort.Sort(heartbeatJobSlice(jobs))
 	MockHeartbeats(t, mock, ts, jobs[:LEASE_BATCH_SIZE], nil)
@@ -111,12 +106,11 @@ func TestUpdateJobs_ManyInProgress_MultipleHeartbeatBatches(t *testing.T) {
 }
 
 func TestUpdateJobs_HeartbeatBatchOneFailed_JobIsCanceled(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	jobs := []*types.Job{}
 	for i := 0; i < LEASE_BATCH_SIZE+2; i++ {
-		jobs = append(jobs, tryjob(ctx, gb.RepoUrl()))
+		jobs = append(jobs, tryjob(ctx, repoUrl))
 	}
 	j1, j2 := jobs[0], jobs[1]
 	for _, j := range jobs[2:] {
@@ -148,11 +142,10 @@ func TestUpdateJobs_HeartbeatBatchOneFailed_JobIsCanceled(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	// Get the (only) commit from the repo.
-	r, err := trybots.getRepo(gb.RepoUrl())
+	r, err := trybots.getRepo(repoUrl)
 	require.NoError(t, err)
 	c := r.Get(git.MainBranch).Hash
 
@@ -172,8 +165,7 @@ func TestGetRevision(t *testing.T) {
 }
 
 func TestCancelBuild_Success(t *testing.T) {
-	_, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, _ := setup(t)
 
 	const id = int64(12345)
 	MockCancelBuild(mock, id, "Canceling!")
@@ -182,8 +174,7 @@ func TestCancelBuild_Success(t *testing.T) {
 }
 
 func TestCancelBuild_Success_LongMessageTruncated(t *testing.T) {
-	_, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, _ := setup(t)
 
 	const id = int64(12345)
 	MockCancelBuild(mock, id, strings.Repeat("X", maxCancelReasonLen-3)+"...")
@@ -192,8 +183,7 @@ func TestCancelBuild_Success_LongMessageTruncated(t *testing.T) {
 }
 
 func TestCancelBuild_Failed(t *testing.T) {
-	_, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, _ := setup(t)
 
 	const id = int64(12345)
 	expectErr := "Build does not exist!"
@@ -203,8 +193,7 @@ func TestCancelBuild_Failed(t *testing.T) {
 }
 
 func TestTryLeaseBuild_Success(t *testing.T) {
-	ctx, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	const id = int64(12345)
 	MockTryLeaseBuild(mock, id)
@@ -216,8 +205,7 @@ func TestTryLeaseBuild_Success(t *testing.T) {
 }
 
 func TestTryLeaseBuild_Failure(t *testing.T) {
-	ctx, trybots, _, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
 	const id = int64(12345)
 	expect := "Can't lease this!"
@@ -230,10 +218,9 @@ func TestTryLeaseBuild_Failure(t *testing.T) {
 }
 
 func TestJobStarted_Success(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 
 	MockJobStarted(mock, j.BuildbucketBuildId)
 	bbError, err := trybots.jobStarted(j)
@@ -243,10 +230,9 @@ func TestJobStarted_Success(t *testing.T) {
 }
 
 func TestJobStarted_Failure(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 
 	expectErr := "fail"
 	MockJobStartedFailed(mock, j.BuildbucketBuildId, expectErr)
@@ -258,19 +244,17 @@ func TestJobStarted_Failure(t *testing.T) {
 }
 
 func TestJobFinished_NotActuallyFinished(t *testing.T) {
-	ctx, trybots, gb, _, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, _, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 
 	require.ErrorContains(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
 }
 
 func TestJobFinished_JobSucceeded_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_SUCCESS
 	j.Finished = now
@@ -282,10 +266,9 @@ func TestJobFinished_JobSucceeded_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinished_JobSucceeded_UpdateFails(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_SUCCESS
 	j.Finished = now
@@ -298,10 +281,9 @@ func TestJobFinished_JobSucceeded_UpdateFails(t *testing.T) {
 }
 
 func TestJobFinished_JobFailed_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_FAILURE
 	j.Finished = now
@@ -313,10 +295,9 @@ func TestJobFinished_JobFailed_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinished_JobFailed_UpdateFails(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_FAILURE
 	j.Finished = now
@@ -329,10 +310,9 @@ func TestJobFinished_JobFailed_UpdateFails(t *testing.T) {
 }
 
 func TestJobFinished_JobMishap_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_MISHAP
 	j.Finished = now
@@ -344,10 +324,9 @@ func TestJobFinished_JobMishap_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinished_JobMishap_UpdateFails(t *testing.T) {
-	ctx, trybots, gb, mock, _, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, _ := setup(t)
 
-	j := tryjob(ctx, gb.RepoUrl())
+	j := tryjob(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	j.Status = types.JOB_STATUS_MISHAP
 	j.Finished = now
@@ -374,8 +353,7 @@ func (aj addedJobs) getAddedJob(ctx context.Context, t *testing.T, d db.JobReade
 }
 
 func TestInsertNewJob_LeaseSucceeds_StatusIsRequested(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	aj := addedJobs(map[string]*types.Job{})
@@ -403,8 +381,7 @@ func TestInsertNewJob_LeaseSucceeds_StatusIsRequested(t *testing.T) {
 }
 
 func TestInsertNewJob_NoGerritChanges_BuildIsCanceled(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	aj := addedJobs(map[string]*types.Job{})
@@ -421,8 +398,7 @@ func TestInsertNewJob_NoGerritChanges_BuildIsCanceled(t *testing.T) {
 }
 
 func TestInsertNewJob_InvalidRepo_BuildIsCanceled(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	aj := addedJobs(map[string]*types.Job{})
@@ -439,8 +415,7 @@ func TestInsertNewJob_InvalidRepo_BuildIsCanceled(t *testing.T) {
 }
 
 func TestInsertNewJob_LeaseFailed_BuildIsCanceled(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	aj := addedJobs(map[string]*types.Job{})
@@ -458,8 +433,7 @@ func TestInsertNewJob_LeaseFailed_BuildIsCanceled(t *testing.T) {
 }
 
 func TestStartJob_NormalJob_Succeeds(t *testing.T) {
-	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -477,13 +451,11 @@ func TestStartJob_NormalJob_Succeeds(t *testing.T) {
 	require.True(t, mock.Empty(), mock.List())
 	require.Equal(t, j1.BuildbucketBuildId, b1.Id)
 	require.NotEqual(t, "", j1.BuildbucketLeaseKey)
-	expectRev := strings.TrimSpace(gb.Git(ctx, "rev-parse", git.MainBranch))
-	require.Equal(t, expectRev, j1.Revision)
+	require.Equal(t, commit2.Hash, j1.Revision)
 }
 
 func TestStartJob_RevisionAlreadySet_Succeeds(t *testing.T) {
-	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -493,7 +465,7 @@ func TestStartJob_RevisionAlreadySet_Succeeds(t *testing.T) {
 	MockTryLeaseBuild(mock, b1.Id)
 	require.NoError(t, trybots.insertNewJob(ctx, b1.Id))
 	j1 := aj.getAddedJob(ctx, t, trybots.db)
-	j1.Revision = "main"
+	j1.Revision = oldBranchName // We'll resolve this to the actual hash.
 
 	MockJobStarted(mock, b1.Id)
 	err := trybots.startJob(ctx, j1)
@@ -501,16 +473,11 @@ func TestStartJob_RevisionAlreadySet_Succeeds(t *testing.T) {
 	require.True(t, mock.Empty(), mock.List())
 	require.Equal(t, j1.BuildbucketBuildId, b1.Id)
 	require.NotEqual(t, "", j1.BuildbucketLeaseKey)
-	// TODO(borenet): This is identical behavior to when job.Revision is empty,
-	// at least from the perspective of the test.  Ideally we'd add a different
-	// branch with a different commit hash and verify that we used that instead.
-	expectRev := strings.TrimSpace(gb.Git(ctx, "rev-parse", git.MainBranch))
-	require.Equal(t, expectRev, j1.Revision)
+	require.Equal(t, commit1.Hash, j1.Revision) // Ensure we resolved the branch
 }
 
 func TestStartJob_NormalJob_Failed(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -524,7 +491,7 @@ func TestStartJob_NormalJob_Failed(t *testing.T) {
 	expectErr := "Can't start this build!"
 	MockJobStartedFailed(mock, b1.Id, expectErr)
 	err := trybots.startJob(ctx, j1)
-	require.Contains(t, err.Error(), expectErr)
+	require.ErrorContains(t, err, expectErr)
 	require.True(t, mock.Empty(), mock.List())
 	updatedJ1, err := trybots.jCache.GetJob(j1.Id)
 	require.NoError(t, err)
@@ -533,19 +500,12 @@ func TestStartJob_NormalJob_Failed(t *testing.T) {
 }
 
 func TestStartJob_InvalidJobSpec_Failed(t *testing.T) {
-	ctx, trybots, gb, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 	aj := addedJobs(map[string]*types.Job{})
 
-	rs := types.RepoState{
-		Patch:    gerritPatch,
-		Repo:     gb.RepoUrl(),
-		Revision: trybots.rm[gb.RepoUrl()].Get(git.MainBranch).Hash,
-	}
-	rs.Patch.PatchRepo = rs.Repo
 	b2 := Build(t, now)
 	b2.Builder.Builder = "bogus-job"
 	mockBB.On("GetBuild", ctx, b2.Id).Return(b2, nil)
@@ -575,8 +535,7 @@ func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, proje
 }
 
 func TestRetry(t *testing.T) {
-	ctx, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	ctx, trybots, mock, mockBB := setup(t)
 
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 
@@ -658,8 +617,7 @@ func testPollCheck(t *testing.T, now time.Time, trybots *TryJobIntegrator, mock 
 }
 
 func TestPoll_OneNewBuild_Success(t *testing.T) {
-	_, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, mockBB := setup(t)
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -667,8 +625,7 @@ func TestPoll_OneNewBuild_Success(t *testing.T) {
 }
 
 func TestPoll_MultipleNewBuilds_Success(t *testing.T) {
-	_, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, mockBB := setup(t)
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -676,8 +633,7 @@ func TestPoll_MultipleNewBuilds_Success(t *testing.T) {
 }
 
 func TestPoll_MultiplePagesOfNewBuilds_Success(t *testing.T) {
-	_, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, mockBB := setup(t)
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -692,8 +648,7 @@ func TestPoll_MultiplePagesOfNewBuilds_Success(t *testing.T) {
 }
 
 func TestPoll_MultipleNewBuilds_OneFailsInsert_OthersInsertSuccessfully(t *testing.T) {
-	_, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, mockBB := setup(t)
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 
@@ -713,8 +668,7 @@ func TestPoll_MultipleNewBuilds_OneFailsInsert_OthersInsertSuccessfully(t *testi
 }
 
 func TestPoll_MultiplePagesOfNewBuilds_OnePeekFails_OthersInsertSuccessfully(t *testing.T) {
-	_, trybots, _, mock, mockBB, cleanup := setup(t)
-	defer cleanup()
+	_, trybots, mock, mockBB := setup(t)
 	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
 

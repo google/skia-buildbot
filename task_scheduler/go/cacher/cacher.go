@@ -29,18 +29,25 @@ func IsCachedError(err error) bool {
 	return ok
 }
 
-// Cacher is a struct which handles insertion of data for RepoStates into
+type Cacher interface {
+	// GetOrCacheRepoState returns the cached value(s) for the given RepoState,
+	// performing the sync to obtain and insert the value(s) into the cache(s) if
+	// necessary.
+	GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error)
+}
+
+// CacherImpl is a struct which handles insertion of data for RepoStates into
 // various caches used by Task Scheduler. It ensures that we only sync to a
 // given RepoState once (barring transient errors).
-type Cacher struct {
+type CacherImpl struct {
 	rbeCas cas.CAS
 	s      *syncer.Syncer
 	tcc    task_cfg_cache.TaskCfgCache
 }
 
 // New creates a Cacher instance.
-func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *Cacher {
-	return &Cacher{
+func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *CacherImpl {
+	return &CacherImpl{
 		rbeCas: rbeCas,
 		s:      s,
 		tcc:    tcc,
@@ -50,7 +57,7 @@ func New(s *syncer.Syncer, tcc task_cfg_cache.TaskCfgCache, rbeCas cas.CAS) *Cac
 // GetOrCacheRepoState returns the cached value(s) for the given RepoState,
 // performing the sync to obtain and insert the value(s) into the cache(s) if
 // necessary.
-func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
+func (c *CacherImpl) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
 	ltgr := c.s.LazyTempGitRepo(rs)
 	defer ltgr.Done()
 
@@ -96,3 +103,6 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 	}
 	return cv.Cfg, nil
 }
+
+// Assert that CacherImpl implements Cacher.
+var _ Cacher = &CacherImpl{}
