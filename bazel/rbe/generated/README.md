@@ -71,7 +71,8 @@ $ rbe_configs_gen \
       --output_src_root=<PATH TO REPOSITORY CHECKOUT> \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
-      --target_os=linux
+      --target_os=linux \
+      --generate_java_configs=false
 ```
 
 Example:
@@ -83,7 +84,8 @@ $ rbe_configs_gen \
       --output_src_root=$HOME/buildbot \
       --output_config_path=bazel/rbe/generated \
       --exec_os=linux \
-      --target_os=linux
+      --target_os=linux \
+      --generate_java_configs=false
 ```
 
 If `rbe_configs_gen` fails, try deleting all files under `//bazel/rbe/generated` (except for this
