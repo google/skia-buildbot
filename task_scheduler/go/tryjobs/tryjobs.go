@@ -525,13 +525,6 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 }
 
 func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
-	// TODO(borenet): Remove this as soon as we've verified that the UI behaves
-	// correctly in the new split insert/start flow.
-	if job.Name == "Housekeeper-PerCommit-InfraTests" {
-		sklog.Infof("Delaying before starting job %s (build %s)", job.Id, job.BuildbucketBuildId)
-		time.Sleep(10 * time.Minute)
-	}
-
 	sklog.Infof("Starting job %s (build %d); lease key: %d", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey)
 	startJobHelper := func() error {
 		repoGraph, err := t.getRepo(job.Repo)
