@@ -539,6 +539,31 @@ export class ExploreSimpleSk extends ElementSk {
             @click=${ele.openBisect}>
             Bisect
           </button>
+          <h3>Zoom/Pan:<h3>
+          <button
+            class=navigation
+            @click=${ele.zoomInKey}
+            title='Zoom In'>
+            <span class=icon-sk>add</span>
+          </button>
+          <button
+            class=navigation
+            @click=${ele.zoomOutKey}
+            title='Zoom Out'>
+            <span class=icon-sk>remove</span>
+          </button>
+          <button
+            class=navigation
+            @click=${ele.zoomLeftKey}
+            title='Pan Left'>
+            <span class=icon-sk>arrow_back</span>
+          </button>
+          <button
+            class=navigation
+            @click=${ele.zoomRightKey}
+            title='Pan Right'>
+            <span class=icon-sk>arrow_forward</span>
+          </button>
         </div>
       </div>
     </div>
