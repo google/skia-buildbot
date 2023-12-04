@@ -21,15 +21,14 @@ import { CountHandlerRequest, CountHandlerResponse, ParamSet } from '../json';
 import '../../../elements-sk/modules/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
-  private _last_query = '';
-
   private _count = '';
 
   private _requestInProgress = false;
 
+  private fetchController: AbortController | null = null;
+
   constructor() {
     super(QueryCountSk.template);
-    this._last_query = '';
     this._count = '';
     this._requestInProgress = false;
   }
@@ -64,11 +63,13 @@ export class QueryCountSk extends ElementSk {
     if (!this.url) {
       return;
     }
-    if (this._requestInProgress) {
-      return;
+
+    // Force only one fetch at a time. Abort any outstanding requests.
+    if (this.fetchController) {
+      this.fetchController.abort();
     }
+    this.fetchController = new AbortController();
     this._requestInProgress = true;
-    this._last_query = this.current_query;
     const now = Math.floor(Date.now() / 1000);
     const body: CountHandlerRequest = {
       q: this.current_query,
@@ -78,6 +79,7 @@ export class QueryCountSk extends ElementSk {
     this._render();
     fetch(this.url, {
       method: 'POST',
+      signal: this.fetchController.signal,
       body: JSON.stringify(body),
       headers: {
         'Content-Type': 'application/json',
@@ -88,9 +90,6 @@ export class QueryCountSk extends ElementSk {
         this._count = `${json.count}`;
         this._requestInProgress = false;
         this._render();
-        if (this._last_query !== this.current_query) {
-          this._fetch();
-        }
         this.dispatchEvent(
           new CustomEvent<ParamSet>('paramset-changed', {
             detail: json.paramset,
@@ -100,6 +99,12 @@ export class QueryCountSk extends ElementSk {
       })
       .catch((msg) => {
         this._requestInProgress = false;
+        if (msg.name == 'AbortError') {
+          // User did something to invalidate the request, so just
+          // return without updating the UI state or displaying an
+          // error message.
+          return;
+        }
         this._render();
         errorMessage(msg);
       });
