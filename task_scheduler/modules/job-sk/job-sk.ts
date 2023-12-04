@@ -88,7 +88,7 @@ export class JobSk extends ElementSk {
         <tr>
           <td>Status</td>
           <td class="${ele.statusClass}">${ele.statusText}</td>
-          <td></td>
+          <td>${ele.job!.statusDetails}</td>
         </tr>
         <tr>
           <td>Requested</td>

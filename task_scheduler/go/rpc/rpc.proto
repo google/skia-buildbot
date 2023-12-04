@@ -434,6 +434,12 @@ message Job {
 	// status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	JobStatus status = 13;
 
+	// status_details provides additional details for the status of the Job,
+	// including reasons it might have failed. This may be truncated due to
+	// database storage limitations, so it should not include, for example, full
+	// logs.
+	string status_details = 16;
+
 	// tasks are the Task instances which satisfied the dependencies of
 	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
 	// instances describing the Tasks.

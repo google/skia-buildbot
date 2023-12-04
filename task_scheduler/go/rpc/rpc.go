@@ -158,7 +158,8 @@ func (s *taskSchedulerServiceImpl) GetJob(ctx context.Context, req *GetJobReques
 
 // CancelJob cancels the given job.
 func (s *taskSchedulerServiceImpl) CancelJob(ctx context.Context, req *CancelJobRequest) (*CancelJobResponse, error) {
-	if _, err := s.GetEditor(ctx); err != nil {
+	email, err := s.GetEditor(ctx)
+	if err != nil {
 		return nil, err
 	}
 	_, job, err := s.getJob(ctx, req.Id)
@@ -172,6 +173,7 @@ func (s *taskSchedulerServiceImpl) CancelJob(ctx context.Context, req *CancelJob
 	}
 	job.Finished = now.Now(ctx)
 	job.Status = types.JOB_STATUS_CANCELED
+	job.StatusDetails = fmt.Sprintf("Job was canceled by %s", email)
 	if err := s.db.PutJob(ctx, job); err != nil {
 		sklog.Error(err)
 		return nil, twirp.InternalError("Failed to update job")

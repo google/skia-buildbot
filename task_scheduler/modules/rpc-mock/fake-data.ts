@@ -196,6 +196,7 @@ export const job1: Job = {
   repoState: repoState,
   requestedAt: new Date('2019-02-19T13:20:32.277737Z').toString(),
   status: JobStatus.JOB_STATUS_SUCCESS,
+  statusDetails: 'job finished successfully',
   tasks: [
     {
       name: task1.taskKey!.name,
@@ -313,6 +314,7 @@ export const job2: Job = {
   repoState: repoState,
   requestedAt: new Date('2019-10-10T13:55:44.572122663Z').toUTCString(),
   status: JobStatus.JOB_STATUS_IN_PROGRESS,
+  statusDetails: 'job not finished',
   tasks: [
     {
       name: 'A',

@@ -40,21 +40,24 @@ func MakeTestJob(ts time.Time) *Job {
 // MakeFullJob creates a Job instance which has all of its fields filled.
 func MakeFullJob(now time.Time) *Job {
 	return &Job{
-		BuildbucketBuildId:  12345,
-		BuildbucketLeaseKey: 987,
-		Created:             now.Add(time.Nanosecond),
-		DbModified:          now.Add(time.Millisecond),
-		Dependencies:        map[string][]string{"A": {"B"}, "B": {}},
-		Finished:            now.Add(time.Second),
-		Id:                  "abc123",
-		IsForce:             true,
-		Name:                "C",
-		Priority:            1.2,
+		BuildbucketBuildId:     12345,
+		BuildbucketLeaseKey:    987,
+		BuildbucketPubSubTopic: "bb-pubsub",
+		BuildbucketToken:       "9876",
+		Created:                now.Add(time.Nanosecond),
+		DbModified:             now.Add(time.Millisecond),
+		Dependencies:           map[string][]string{"A": {"B"}, "B": {}},
+		Finished:               now.Add(time.Second),
+		Id:                     "abc123",
+		IsForce:                true,
+		Name:                   "C",
+		Priority:               1.2,
 		RepoState: RepoState{
 			Repo: DEFAULT_TEST_REPO,
 		},
-		Requested: now,
-		Status:    JOB_STATUS_SUCCESS,
+		Requested:     now,
+		Status:        JOB_STATUS_SUCCESS,
+		StatusDetails: "All tasks succeeded!",
 		Tasks: map[string][]*TaskSummary{
 			"task-name": {&TaskSummary{
 				Id:             "12345",

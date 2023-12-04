@@ -109,6 +109,14 @@ type Job struct {
 	// TODO(borenet): Maybe this doesn't belong in the DB.
 	BuildbucketLeaseKey int64 `json:"buildbucketLeaseKey"`
 
+	// BuildbucketPubSubTopic is the pub/sub topic to which we'll pub/sub
+	// messages to update the build.
+	BuildbucketPubSubTopic string `json:"buildbucketPubSubTopic"`
+
+	// BuildbucketToken is used to authenticate requests to update the
+	// Buildbucket build.
+	BuildbucketToken string `json:"buildbucketToken"`
+
 	// Created is the creation timestamp. This property should never change
 	// for a given Job instance.
 	Created time.Time `json:"created"`
@@ -155,6 +163,12 @@ type Job struct {
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	Status JobStatus `json:"status"`
 
+	// StatusDetails provides additional details for the status of the Job,
+	// including reasons it might have failed. This may be truncated due to
+	// database storage limitations, so it should not include, for example, full
+	// logs.
+	StatusDetails string `json:"statusDetails"`
+
 	// Tasks are the Task instances which satisfied the dependencies of
 	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
 	// instances describing the Tasks.
@@ -184,20 +198,23 @@ func (j *Job) Copy() *Job {
 		}
 	}
 	return &Job{
-		BuildbucketBuildId:  j.BuildbucketBuildId,
-		BuildbucketLeaseKey: j.BuildbucketLeaseKey,
-		Created:             j.Created,
-		DbModified:          j.DbModified,
-		Dependencies:        deps,
-		Finished:            j.Finished,
-		Id:                  j.Id,
-		IsForce:             j.IsForce,
-		Name:                j.Name,
-		Priority:            j.Priority,
-		RepoState:           j.RepoState.Copy(),
-		Requested:           j.Requested,
-		Status:              j.Status,
-		Tasks:               tasks,
+		BuildbucketBuildId:     j.BuildbucketBuildId,
+		BuildbucketLeaseKey:    j.BuildbucketLeaseKey,
+		BuildbucketPubSubTopic: j.BuildbucketPubSubTopic,
+		BuildbucketToken:       j.BuildbucketToken,
+		Created:                j.Created,
+		DbModified:             j.DbModified,
+		Dependencies:           deps,
+		Finished:               j.Finished,
+		Id:                     j.Id,
+		IsForce:                j.IsForce,
+		Name:                   j.Name,
+		Priority:               j.Priority,
+		RepoState:              j.RepoState.Copy(),
+		Requested:              j.Requested,
+		Status:                 j.Status,
+		StatusDetails:          j.StatusDetails,
+		Tasks:                  tasks,
 	}
 }
 

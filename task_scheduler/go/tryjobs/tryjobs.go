@@ -279,7 +279,8 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 			errs = append(errs, skerr.Fmt("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
 			return
 		}
-		cancelJobs := []*types.Job{}
+		var cancelJobs []*types.Job
+		var cancelReasons []string
 		for i, result := range resp.Results {
 			if result.Error != nil {
 				// Cancel the job.
@@ -291,11 +292,12 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 					sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
 				}
 				cancelJobs = append(cancelJobs, jobs[i])
+				cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat with: %s", result.Error.Reason))
 			}
 		}
 		if len(cancelJobs) > 0 {
 			sklog.Infof("Canceling %d jobs", len(cancelJobs))
-			if err := t.localCancelJobs(ctx, cancelJobs); err != nil {
+			if err := t.localCancelJobs(ctx, cancelJobs, cancelReasons); err != nil {
 				errs = append(errs, err)
 			}
 		}
@@ -344,11 +346,14 @@ func (t *TryJobIntegrator) getRevision(ctx context.Context, repo *repograph.Grap
 	return c.Hash, nil
 }
 
-func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Job) error {
-	// TODO(borenet): Require a cancellation reason and update the Job field.
-	for _, j := range jobs {
+func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Job, reasons []string) error {
+	if len(jobs) != len(reasons) {
+		return skerr.Fmt("expected jobs and reasons to have the same length")
+	}
+	for idx, j := range jobs {
 		j.BuildbucketLeaseKey = 0
 		j.Status = types.JOB_STATUS_CANCELED
+		j.StatusDetails = reasons[idx]
 		j.Finished = now.Now(ctx)
 	}
 	if err := t.db.PutJobsInChunks(ctx, jobs); err != nil {
@@ -589,7 +594,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 	if err := startJobHelper(); err != nil {
 		sklog.Infof("Failed to start job %s (build %d) with: %s", job.Id, job.BuildbucketBuildId, err)
 		job.Status = types.JOB_STATUS_MISHAP
-		// TODO(borenet): Add a field to Job to give more details.
+		job.StatusDetails = util.Truncate(fmt.Sprintf("Failed to start Job: %s", err), 1024)
 	} else {
 		job.Status = types.JOB_STATUS_IN_PROGRESS
 
@@ -602,7 +607,8 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 			// return an error is that the Build has been canceled. While this
 			// is the most likely reason, others are possible, and we may gain
 			// some information by reading the error and behaving accordingly.
-			if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}); cancelErr != nil {
+			cancelReason := fmt.Sprintf("Buildbucket rejected Start with: %s", bbError.Reason)
+			if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}, []string{cancelReason}); cancelErr != nil {
 				return skerr.Wrapf(cancelErr, "failed to start build %d with %q and failed to cancel job", job.BuildbucketBuildId, bbError.Message)
 			} else {
 				return skerr.Fmt("failed to start build %d with %q", job.BuildbucketBuildId, bbError.Message)

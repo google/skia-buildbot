@@ -676,6 +676,7 @@ export interface Job {
   repoState?: RepoState;
   requestedAt?: string;
   status: JobStatus;
+  statusDetails: string;
   tasks?: TaskSummaries[];
   taskDimensions?: TaskDimensions[];
 }
@@ -694,6 +695,7 @@ interface JobJSON {
   repo_state?: RepoStateJSON;
   requested_at?: string;
   status?: string;
+  status_details?: string;
   tasks?: TaskSummariesJSON[];
   task_dimensions?: TaskDimensionsJSON[];
 }
@@ -713,6 +715,7 @@ const JSONToJob = (m: JobJSON): Job => {
     repoState: m.repo_state && JSONToRepoState(m.repo_state),
     requestedAt: m.requested_at,
     status: (m.status || Object.keys(JobStatus)[0]) as JobStatus,
+    statusDetails: m.status_details || "",
     tasks: m.tasks && m.tasks.map(JSONToTaskSummaries),
     taskDimensions: m.task_dimensions && m.task_dimensions.map(JSONToTaskDimensions),
   };
