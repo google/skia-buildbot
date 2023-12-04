@@ -250,7 +250,7 @@ alias(
 # Sample usage: "bazel run //:npm -- install some-package"
 alias(
     name = "npm",
-    actual = "@nodejs_linux_amd64//:bin/nodejs/bin/npm",
+    actual = "//bazel/tools/npm",
     visibility = ["//visibility:public"],
 )
 
@@ -261,7 +261,7 @@ alias(
 # Sample usage: "bazel run //:npx -- eslint --fix ."
 alias(
     name = "npx",
-    actual = "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
+    actual = "//bazel/tools/npx",
     visibility = ["//visibility:public"],
 )
 

@@ -1,0 +1,46 @@
+# Non-predefined variables must be escaped with "$$" (e.g. "$$FOO"); see
+# https://bazel.build/reference/be/make-variables#predefined_label_variables.
+#
+# We cannot use single quotes here because of the "echo '%s' > $@" command in the below genrule.
+_SCRIPT = """
+
+# The "realpath" comand gives us an absolute path where any symlinks are resolved.
+NPX_BIN=$$(realpath $(rootpath @nodejs_linux_amd64//:bin/nodejs/bin/npx))
+
+# We need to make sure the Bazel-downloaded "node" binary comes first in the PATH environment
+# variable, or "npx" might fail if it picks up the system "node" binary and its version is too
+# old.
+NODE_BIN_DIR=$$(realpath $$(dirname $(rootpath @nodejs_linux_amd64//:bin/nodejs/bin/node)))
+export PATH=$$NODE_BIN_DIR:$$PATH
+
+# Change into the directory where Bazel was invoked.
+cd $$BUILD_WORKING_DIRECTORY
+
+$$NPX_BIN $$@
+"""
+
+genrule(
+    name = "gen_script",
+    outs = ["npx.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT,
+    exec_tools = [
+        "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
+        "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+    ],
+)
+
+# Wrapper script around the Bazel-downloaded "npx" binary.
+#
+# This script ensures "npx" always uses the Bazel-downloaded "node" binary rather than the system's
+# "node" binary.
+#
+# Reference: https://bazel.build/reference/be/shell#sh_binary.
+sh_binary(
+    name = "npx",
+    srcs = ["npx.sh"],
+    data = [
+        "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+        "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
+    ],
+    visibility = ["//visibility:public"],
+)
