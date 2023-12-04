@@ -12,6 +12,7 @@
   --color-failure: rgb(217, 95, 2);
   --color-in-progress: rgb(248, 230, 180);
   --color-mishap: rgb(117, 112, 179);
+  --color-requested: rgb(127, 127, 127);
   --color-success: rgb(209, 228, 188);
 }
 
@@ -48,6 +49,10 @@ a.visited {
   background-color: var(--color-mishap);
   fill: var(--color-mishap);
 }
+.bg-requested {
+  background-color: var(--color-requested);
+  fill: var(--color-requested);
+}
 .bg-success {
   background-color: var(--color-success);
   fill: var(--color-success);
@@ -68,6 +73,10 @@ a.visited {
 .fg-mishap {
   color: var(--color-mishap);
   fill: var(--color-mishap);
+}
+.fg-requested {
+  color: var(--color-requested);
+  fill: var(--color-requested);
 }
 .fg-success {
   color: var(--color-success);

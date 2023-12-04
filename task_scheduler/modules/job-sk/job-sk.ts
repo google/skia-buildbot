@@ -30,7 +30,7 @@ import '../../../elements-sk/modules/icons/timeline-icon-sk';
 
 const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_REQUESTED, [
-  'in progress',
+  'requested',
   'bg-in-progress',
 ]);
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, [
