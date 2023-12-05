@@ -117,7 +117,7 @@ func (s *taskSchedulerServiceImpl) getJob(ctx context.Context, id string) (*Job,
 	// Retrieve the task specs, so that we can include the task dimensions
 	// in the results. We can only do this after the job has been started,
 	// otherwise the TasksCfg may not yet be cached.
-	if dbJob.Status != types.JOB_STATUS_REQUESTED {
+	if len(dbJob.Dependencies) > 0 {
 		cfg, cachedErr, err := s.taskCfgCache.Get(ctx, dbJob.RepoState)
 		if cachedErr != nil {
 			err = cachedErr
