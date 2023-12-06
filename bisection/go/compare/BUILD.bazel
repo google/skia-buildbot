@@ -3,18 +3,23 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "compare",
-    srcs = ["compare.go"],
+    srcs = [
+        "compare.go",
+        "kolmogorov_smirnov.go",
+        "mann_whitney_u.go",
+    ],
     importpath = "go.skia.org/infra/bisection/go/compare",
     visibility = ["//visibility:public"],
-    deps = ["//bisection/go/proto"],
+    deps = ["//bisection/go/compare/thresholds"],
 )
 
 go_test(
     name = "compare_test",
-    srcs = ["compare_test.go"],
-    embed = [":compare"],
-    deps = [
-        "//bisection/go/proto",
-        "@com_github_google_go_cmp//cmp",
+    srcs = [
+        "compare_test.go",
+        "kolmogorov_smirnov_test.go",
+        "mann_whitney_u_test.go",
     ],
+    embed = [":compare"],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

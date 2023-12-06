@@ -1,83 +1,138 @@
 package compare
 
 import (
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	bpb "go.skia.org/infra/bisection/go/proto"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestHighThreshold(t *testing.T) {
+func TestCompareNoData(t *testing.T) {
 	for i, test := range []struct {
-		name        string
-		performance bool
-		expected    float64
+		name                 string
+		performance_mode     bool
+		x                    []float64
+		y                    []float64
+		sample_size          int
+		normalized_magnitude float64
+		expected             VerdictEnum
 	}{
 		{
-			name:        "performance mode",
-			performance: true,
-			expected:    0.99,
+			name:                 "functional no data",
+			performance_mode:     false,
+			x:                    []float64{},
+			y:                    []float64{0, 0, 0, 0, 0},
+			sample_size:          5,
+			normalized_magnitude: 1.0,
+			expected:             Unknown,
 		},
 		{
-			name:        "functional mode",
-			performance: false,
-			expected:    0.66,
+			name:                 "performance no data",
+			performance_mode:     true,
+			x:                    []float64{0, 0, 0, 0, 0},
+			y:                    []float64{},
+			sample_size:          5,
+			normalized_magnitude: 1.0,
+			expected:             Unknown,
 		},
 	} {
-		got := getHighThreshold(test.performance)
-		diff := cmp.Diff(got, test.expected)
-		if diff != "" {
-			t.Errorf("[%d] %s:\nexpected %+v got %+v\ndiff:%v", i, test.name, test.expected, got, diff)
-		}
+		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
+			var result CompareResults
+			if test.performance_mode {
+				result, _ = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
+			} else {
+				result, _ = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
+			}
+			assert.Equal(t, result.Verdict, test.expected)
+			assert.Zero(t, result.PValue)
+		})
 	}
 }
 
-func TestCompareSamples(t *testing.T) {
+func TestCompare(t *testing.T) {
 	for i, test := range []struct {
-		name         string
-		a            []float64
-		b            []float64
-		mag          float64
-		expected     bpb.State
-		expectError  bool
-		expectErrMsg string
+		name                 string
+		performance_mode     bool
+		x                    []float64
+		y                    []float64
+		sample_size          int
+		normalized_magnitude float64
+		expected             VerdictEnum
 	}{
 		{
-			name:        "basic performance test",
-			a:           []float64{1.0, 4.0},
-			b:           []float64{2.0, 3.0},
-			expected:    bpb.State_UNKNOWN,
-			expectError: false,
+			name:                 "functional unknown",
+			performance_mode:     false,
+			x:                    []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+			y:                    []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			sample_size:          10,
+			normalized_magnitude: 0.5,
+			expected:             Unknown,
 		},
 		{
-			name:         "length of Sample A = 0",
-			a:            []float64{},
-			b:            []float64{2.0, 3.0},
-			expectError:  true,
-			expectErrMsg: "Commit(s) has sample size of 0",
+			name:                 "functional same",
+			performance_mode:     false,
+			x:                    []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			y:                    []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			sample_size:          10,
+			normalized_magnitude: 0.5,
+			expected:             Same,
+		},
+		{
+			name:                 "functional different",
+			performance_mode:     false,
+			x:                    []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			y:                    []float64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+			sample_size:          10,
+			normalized_magnitude: 0.5,
+			expected:             Different,
+		},
+		{
+			name:                 "performance different",
+			performance_mode:     true,
+			x:                    []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			y:                    []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+			sample_size:          10,
+			normalized_magnitude: 1,
+			expected:             Different,
+		},
+		{
+			name:                 "performance unknown",
+			performance_mode:     true,
+			x:                    []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			y:                    []float64{3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+			sample_size:          10,
+			normalized_magnitude: 1,
+			expected:             Unknown,
+		},
+		{
+			name:                 "performance same",
+			performance_mode:     true,
+			x:                    []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			y:                    []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			sample_size:          10,
+			normalized_magnitude: 1,
+			expected:             Same,
 		},
 	} {
-		req := bpb.GetPerformanceDifferenceRequest{
-			SamplesA: test.a,
-			SamplesB: test.b,
-			Difference: &bpb.RequestedDifference{
-				ComparisonMagnitude: test.mag,
-			},
-		}
-		got, err := CompareSamples(&req)
-		if test.expectError {
-			if err == nil {
-				t.Error("Expected error but not nil")
+		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
+			var result CompareResults
+			if test.performance_mode {
+				result, _ = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
+			} else {
+				result, _ = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
 			}
-			if !strings.Contains(err.Error(), test.expectErrMsg) {
-				t.Errorf("[%d] %s:\nexpected error msg (%s) and received error msg (%v) did not match", i, test.name, test.expectErrMsg, err)
+			assert.Equal(t, result.Verdict, test.expected)
+			if result.Verdict == verdict(0) {
+				// unknown
+				assert.LessOrEqual(t, result.PValue, result.HighThreshold)
+				assert.Greater(t, result.PValue, result.LowThreshold)
+			} else if result.Verdict == verdict(1) {
+				// same
+				assert.Greater(t, result.PValue, result.HighThreshold)
+			} else {
+				// different
+				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
 			}
-		} else {
-			diff := cmp.Diff(got.State, test.expected)
-			if diff != "" {
-				t.Errorf("[%d] %s:\nexpected %+v got %+v\ndiff:%v", i, test.name, test.expected, got, diff)
-			}
-		}
+		})
 	}
 }

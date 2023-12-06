@@ -1,77 +1,168 @@
+// Package compare compares two arrays of data and determines if the two arrays
+// are statistically different, the same, or unknown
+//
+// The method is roughly:
+// - Calculate the p-value using the KS test and the MWU test
+// - Take the minimum of the two p-values
+// - If the p-value < low_threshold (0.01), return different
+// - Else if the p-value > high_threshold, return same
+// - Else return unknown
+//
+// See [thresholds] for more context on the thresholds
+//
+// # Functional bisections vs performance bisections:
+//
+// Most bisections are performance, meaning they measure performance regressions
+// of benchmarks and stories on a device. Functional bisections measure how often
+// a test fails during experimentation and if a CL can be attributed to an increase
+// in the failure rate. i.e., how functional is the measurement at that build of Chrome.
+//
+// Functional bisection is not explictly implemented, due to its low demand. However,
+// the analysis used in functional bisection is built into performance bisection.
+// Sometimes a test will fail and rather than throw out the data, performance
+// bisection backdoors into a functional bisection by using the functional
+// bisection's thresholds.
+//
+// Algorithmically, there is no difference between the two, only the mathematical
+// parameters used to define differences and their data inputs. Functional bisection
+// deals with data in 0s and 1s (fail or success) and performance bisection deals
+// with rational nonnegative numbers.
+
 package compare
 
 import (
 	"fmt"
-	"math"
 
-	bpb "go.skia.org/infra/bisection/go/proto"
+	"go.skia.org/infra/bisection/go/compare/thresholds"
 )
 
-// the low threshold by default is p = 0.01
-const lowThreshold = 0.01
+// define verdict enums
+type verdict int
 
-// TODO(b/299537769) the high threshold will need to be replaced by the high
-// threshold function here:
-// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/compare/thresholds.py;drc=511350a8196b221b1e3949030a92e9d4e7c705b8;l=26
-func getHighThreshold(performance_mode bool) float64 {
-	if performance_mode {
-		return 0.99
-	}
-	return 0.66
+// These verdicts are the possible results of the statistical analysis.
+const (
+	// Unknown means that there is not enough evidence to reject
+	// either hypothesis. Collect more data before making a final decision.
+	Unknown verdict = iota
+	// Same means that the sample likely come from the same distribution.
+	// Cannot reject the null hypothesis.
+	Same
+	// Different means that the samples are unlikely to come
+	// from the same distribution. Reject the null hypothesis.
+	Different
+)
+
+type VerdictEnum interface {
+	Verdict() verdict
 }
 
-// TODO(b/299537769) this stats function will need to be eventually replaced by the KS test
-// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/compare/kolmogorov_smirnov.py
-// for now, create dummy KS_test to get the ball rolling
-func kolmogorovSmirnov(a []float64, b []float64) (float64, error) {
-	return 0.05, nil
+func (v verdict) Verdict() verdict {
+	return v
 }
 
-// TODO(b/299537769) this stats function will need to be eventually replaced by the KS test
-// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/compare/kolmogorov_smirnov.py
-// for now, create dummy KS_test to get the ball rolling
-func mannWhitneyU(a []float64, b []float64) (float64, error) {
-	return 0.15, nil
+// CompareResults contains the results of a comparison between two samples.
+// TODO(b/299537769): update verdict to use protos
+type CompareResults struct {
+	// Verdict is the outcome of the statistical analysis which is either
+	// Unknown, Same, or Different.
+	Verdict VerdictEnum
+	// PValue is the consolidated p-value for the statistical tests used.
+	PValue float64
+	// PValueKS is the p-value estimate from the KS test
+	PValueKS float64
+	// PValueMWU is the p-value estimate from the MWU test
+	PValueMWU float64
+	// LowThreshold is `alpha` where if the p-value is lower means we can
+	// 										reject the null hypothesis.
+	LowThreshold float64
+	// 	HighThreshold is the `alpha` where if the p-value is lower means we need
+	// 											more information to make a definitive judgement.
+	HighThreshold float64
 }
 
-// Compares if samples collected from two CLs perform significantly different
-// according to the Kolmogorov Smirnov test and the Mann Whitney U test.
-func CompareSamples(
-	req *bpb.GetPerformanceDifferenceRequest,
-) (
-	*bpb.GetPerformanceDifferenceResponse, error,
-) {
-	a := req.GetSamplesA()
-	b := req.GetSamplesB()
-
-	if len(a) == 0 || len(b) == 0 {
-		return nil, fmt.Errorf("Commit(s) has sample size of 0. Sample size of A %v and sample size of B %v", len(a), len(b))
-	}
-
-	ks_pval, err := kolmogorovSmirnov(a, b)
+// CompareFunctional determines if valuesA and valuesB are statistically different,
+// statistically same or unknown from each other based on the perceived
+// normalizedMagnitude difference between valuesA and valuesB using the functional
+// low and high thresholds.
+//
+// The normalizedMagnitude is the failure rate,
+// a float between 0 and 1. The attemptCount is the average number of
+// samples between valuesA and valuesB.
+func CompareFunctional(valuesA []float64, valuesB []float64, attemptCount int,
+	normalizedMagnitude float64) (CompareResults, error) {
+	LowThreshold := thresholds.LowThreshold
+	HighThreshold, err := thresholds.HighThresholdFunctional(normalizedMagnitude, attemptCount)
 	if err != nil {
-		return nil, fmt.Errorf("Kolmogorov Smirnov statistical test failed with err %v", err)
+		return CompareResults{}, fmt.Errorf("Could not get high threshold for bisection due to error: %v", err)
 	}
-	mwu_pval, err := mannWhitneyU(a, b)
+	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
+}
+
+// ComparePerformance determines if valuesA and valuesB are statistically different,
+// statistically same or unknown from each other based on the perceived
+// normalizedMagnitude difference between valuesA and valuesB using the performance
+// low and high thresholds.
+//
+// The normalizedMagnitude is the perceived difference
+// normalized by the interquartile range (IQR). We need more values to find smaller
+// differences. The attemptCount is the average number of samples between valuesA
+// and valuesB.
+func ComparePerformance(valuesA []float64, valuesB []float64, attemptCount int,
+	normalizedMagnitude float64) (CompareResults, error) {
+	LowThreshold := thresholds.LowThreshold
+	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, attemptCount)
 	if err != nil {
-		return nil, fmt.Errorf("Mann Whitney U statistical test failed with err %v", err)
-	}
-	pval := math.Min(ks_pval, mwu_pval)
-
-	high := getHighThreshold(true)
-
-	resp := &bpb.GetPerformanceDifferenceResponse{
-		State:         bpb.State_UNKNOWN,
-		PValue:        pval,
-		LowThreshold:  lowThreshold,
-		HighThreshold: high,
+		return CompareResults{}, fmt.Errorf("Could not get high threshold for bisection due to error: %v", err)
 	}
 
-	if pval <= lowThreshold {
-		resp.State = bpb.State_DIFFERENT
-	} else if pval >= high {
-		resp.State = bpb.State_SAME
+	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
+}
+
+// compare decides whether two samples are the same, different, or unknown
+// using the KS and MWU tests and compare their p-values against the
+// LowThreshold and HighThreshold.
+func compare(valuesA []float64, valuesB []float64, LowThreshold float64, HighThreshold float64) (CompareResults, error) {
+	if len(valuesA) == 0 || len(valuesB) == 0 {
+		// A sample has no values in it. Return verdict to measure more data.
+		return CompareResults{Verdict: Unknown}, nil
 	}
 
-	return resp, nil
+	// MWU is bad at detecting changes in variance, and K-S is bad with discrete
+	// distributions. So use both. We want low p-values for the below examples.
+	//        a                     b               MWU(a, b)  KS(a, b)
+	// [0]*20            [0]*15+[1]*5                0.0097     0.4973
+	// range(10, 30)     range(10)+range(30, 40)     0.4946     0.0082
+	PValueKS, err := KolmogorovSmirnov(valuesA, valuesB)
+	if err != nil {
+		return CompareResults{}, fmt.Errorf("Failed KS test: %v", err)
+	}
+	PValueMWU := MannWhitneyU(valuesA, valuesB)
+	if err != nil {
+		return CompareResults{}, fmt.Errorf("Failed MWU test: %v", err)
+	}
+	PValue := min(PValueKS, PValueMWU)
+
+	result := CompareResults{
+		PValue:        PValue,
+		PValueKS:      PValueKS,
+		PValueMWU:     PValueMWU,
+		LowThreshold:  LowThreshold,
+		HighThreshold: HighThreshold,
+	}
+
+	if PValue <= LowThreshold {
+		// The p-value is less than the significance level. Reject the null
+		// hypothesis.
+		result.Verdict = Different
+	} else if PValue <= HighThreshold {
+		// The p-value is not less than the significance level, but it's small
+		// enough to be suspicious. We'd like to investigate more closely.
+		result.Verdict = Unknown
+	} else {
+		// The p-value is quite large. We're not suspicious that the two samples might
+		// come from different distributions, and we don't care to investigate more.
+		result.Verdict = Same
+	}
+
+	return result, nil
 }
