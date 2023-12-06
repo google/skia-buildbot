@@ -11,6 +11,7 @@ go_library(
         "//cabe/go/perfresults",
         "//go/sklog",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
 

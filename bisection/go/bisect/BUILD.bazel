@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "bisect_lib",
+    srcs = ["bisect.go"],
+    importpath = "go.skia.org/infra/bisection/go/bisect",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bisection/go/read_values",
+        "//bisection/go/run_benchmark",
+        "//go/sklog",
+        "//go/swarming",
+        "@com_github_davecgh_go_spew//spew",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_binary(
+    name = "bisect",
+    embed = [":bisect_lib"],
+    visibility = ["//visibility:public"],
+)

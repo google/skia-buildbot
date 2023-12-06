@@ -9,9 +9,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
+	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
-// Dial RBE CAS client given a swarming instance.
+// DialRBECAS dials an RBE CAS client given a swarming instance.
 // Pinpoint uses 3 swarming instances to store CAS results
 // https://skia.googlesource.com/buildbot/+/5291743c698e/cabe/go/backends/rbecas.go#19
 func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error) {
@@ -26,23 +27,25 @@ func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error)
 	return nil, fmt.Errorf("Swarming instance %s is not within the set of allowed instances", instance)
 }
 
-// Reads Pinpoint results for specific benchmark and chart from a list of CAS digests
+// ReadValuesByChart reads Pinpoint results for specific benchmark and chart from a list of CAS digests
+//
 // Example Usage:
 //
 //	ctx := context.Background()
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, client, benchmark, chart, digests)
-func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []string) []float64 {
+func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []swarmingV1.SwarmingRpcsCASReference) []float64 {
 	values := []float64{}
 	for _, digest := range digests {
-		res, _ := backends.FetchBenchmarkJSON(ctx, client, digest)
+		res, _ := backends.FetchBenchmarkJSON(ctx, client,
+			fmt.Sprintf("%s/%d", digest.Digest.Hash, digest.Digest.SizeBytes))
 		v := ReadChart(res, benchmark, chart)
 		values = append(values, v...)
 	}
 	return values
 }
 
-// Extracts specific benchmark and chart data from one CAS digest
+// ReadChart reads the specific benchmark and chart data from one CAS digest
 func ReadChart(data map[string]perfresults.PerfResults, benchmark string, chart string) []float64 {
 	var v = []float64{}
 	for b := range data {

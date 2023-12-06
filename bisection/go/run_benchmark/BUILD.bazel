@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "run_benchmark",
+    srcs = ["run_benchmark.go"],
+    importpath = "go.skia.org/infra/bisection/go/run_benchmark",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//cabe/go/backends",
+        "//go/swarming",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
