@@ -25,7 +25,6 @@ type TaskRequest struct {
 	EnvPrefixes         map[string][]string
 	ExecutionTimeout    time.Duration
 	Expiration          time.Duration
-	ExtraArgs           []string
 	Idempotent          bool
 	IoTimeout           time.Duration
 	Name                string

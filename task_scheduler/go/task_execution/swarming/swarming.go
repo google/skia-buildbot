@@ -251,7 +251,6 @@ func (s *SwarmingTaskExecutor) convertTaskRequest(req *types.TaskRequest) (*swar
 					Env:                  env,
 					EnvPrefixes:          envPrefixes,
 					ExecutionTimeoutSecs: executionTimeoutSecs,
-					ExtraArgs:            req.ExtraArgs,
 					Idempotent:           req.Idempotent,
 					IoTimeoutSecs:        ioTimeoutSecs,
 					Outputs:              outputs,
@@ -269,9 +268,7 @@ func (s *SwarmingTaskExecutor) convertTaskRequest(req *types.TaskRequest) (*swar
 func convertTaskResult(res *swarming_api.SwarmingRpcsTaskResult) (*types.TaskResult, error) {
 	// Isolated output.
 	var casOutput string
-	if res.OutputsRef != nil {
-		casOutput = res.OutputsRef.Isolated
-	} else if res.CasOutputRoot != nil && res.CasOutputRoot.Digest.Hash != "" {
+	if res.CasOutputRoot != nil && res.CasOutputRoot.Digest.Hash != "" {
 		casOutput = rbe.DigestToString(res.CasOutputRoot.Digest.Hash, res.CasOutputRoot.Digest.SizeBytes)
 	}
 

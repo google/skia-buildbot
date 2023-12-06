@@ -2,7 +2,6 @@ package rbe
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
@@ -70,7 +69,7 @@ type Client struct {
 // RBEClient is an abstraction of client.Client which enables mocks for testing.
 type RBEClient interface {
 	Close() error
-	ComputeMerkleTree(execRoot, workingDir, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache) (root digest.Digest, inputs []*uploadinfo.Entry, stats *client.TreeStats, err error)
+	ComputeMerkleTree(ctx context.Context, execRoot, workingDir, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache) (root digest.Digest, inputs []*uploadinfo.Entry, stats *client.TreeStats, err error)
 	DownloadDirectory(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache) (map[string]*client.TreeOutput, *client.MovedBytesMetadata, error)
 	GetDirectoryTree(ctx context.Context, d *remoteexecution.Digest) (result []*remoteexecution.Directory, err error)
 	UploadIfMissing(ctx context.Context, data ...*uploadinfo.Entry) ([]digest.Digest, int64, error)
@@ -113,7 +112,7 @@ func (c *Client) Upload(ctx context.Context, root string, paths, excludes []stri
 		Inputs:          paths,
 		InputExclusions: ex,
 	}
-	rootDigest, entries, _, err := c.client.ComputeMerkleTree(root, "" /* =workingDir */, "" /* =remoteWorkingDir */, &is, filemetadata.NewNoopCache())
+	rootDigest, entries, _, err := c.client.ComputeMerkleTree(ctx, root, "" /* =workingDir */, "" /* =remoteWorkingDir */, &is, filemetadata.NewNoopCache())
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -244,36 +243,6 @@ func makeTree(dirsByDigest map[digest.Digest]*remoteexecution.Directory, d diges
 		rv.Children[childDir.Name] = childNode
 	}
 	return rv, nil
-}
-
-// printTree returns a string representation of the tree rooted at the given
-// directoryNode. Useful for debugging.
-func printTree(node *directoryNode, name, indent string) string {
-	d, err := digest.NewFromMessage(node.Directory)
-	if err != nil {
-		panic(err)
-	}
-	rv := fmt.Sprintf("%s%s: (d) %s\n", indent, name, d.String())
-
-	for _, file := range node.Files {
-		d := digest.NewFromProtoUnvalidated(file.Digest)
-		rv += fmt.Sprintf("%s%s: (f) %s\n", indent, file.Name, d.String())
-	}
-
-	for _, symlink := range node.Symlinks {
-		rv += fmt.Sprintf("%s%s: (s) -> %s\n", indent, symlink.Name, symlink.Target)
-	}
-
-	childDirs := make([]string, 0, len(node.Children))
-	for name := range node.Children {
-		childDirs = append(childDirs, name)
-	}
-	subIndent := indent + "| "
-	sort.Strings(childDirs)
-	for _, name := range childDirs {
-		rv += printTree(node.Children[name], name, subIndent)
-	}
-	return rv
 }
 
 // mergeTrees merges the given trees of directoryNodes into a new directoryNode.

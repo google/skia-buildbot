@@ -178,7 +178,7 @@ type gsObjectList struct {
 }
 
 func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath string, items map[string]string) {
-	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeTrailingDelimiter=false&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", bucket, url.PathEscape(gsPath))
+	fakeUrl := fmt.Sprintf("https://storage.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&endOffset=&includeTrailingDelimiter=false&matchGlob=&pageToken=&prefix=%s&prettyPrint=false&projection=full&startOffset=&versions=false", bucket, url.PathEscape(gsPath))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},

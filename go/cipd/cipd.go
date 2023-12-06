@@ -289,11 +289,11 @@ func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pin.PackageName)
 		pkgs[pkg.Path] = append(pkgs[pkg.Path], pin)
 	}
-	// This means use as many threads as CPUs. (Prior to
-	// https://chromium-review.googlesource.com/c/infra/luci/luci-go/+/1848212,
-	// extracting the packages was always single-threaded.)
-	const maxThreads = 0
-	if _, err := c.EnsurePackages(ctx, pkgs, cipd.CheckPresence, maxThreads, false); err != nil {
+	opts := &cipd.EnsureOptions{
+		Paranoia: cipd.CheckPresence,
+		DryRun:   false,
+	}
+	if _, err := c.EnsurePackages(ctx, pkgs, opts); err != nil {
 		return skerr.Wrapf(err, "failed to ensure packages")
 	}
 	return nil
@@ -365,11 +365,11 @@ func (c *Client) Create(ctx context.Context, name, dir string, installMode pkg.I
 	}
 
 	// Register the instance.
-	f, err = os.Open(pkgFile)
+	src, err := pkg.NewFileSource(pkgFile)
 	if err != nil {
 		return common.Pin{}, skerr.Wrap(err)
 	}
-	if err := c.RegisterInstance(ctx, pin, f, cipd.CASFinalizationTimeout); err != nil {
+	if err := c.RegisterInstance(ctx, pin, src, cipd.CASFinalizationTimeout); err != nil {
 		return common.Pin{}, skerr.Wrap(err)
 	}
 

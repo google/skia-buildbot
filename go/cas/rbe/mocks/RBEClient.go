@@ -40,20 +40,20 @@ func (_m *RBEClient) Close() error {
 	return r0
 }
 
-// ComputeMerkleTree provides a mock function with given fields: execRoot, workingDir, remoteWorkingDir, is, cache
-func (_m *RBEClient) ComputeMerkleTree(execRoot string, workingDir string, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache) (digest.Digest, []*uploadinfo.Entry, *client.TreeStats, error) {
-	ret := _m.Called(execRoot, workingDir, remoteWorkingDir, is, cache)
+// ComputeMerkleTree provides a mock function with given fields: ctx, execRoot, workingDir, remoteWorkingDir, is, cache
+func (_m *RBEClient) ComputeMerkleTree(ctx context.Context, execRoot string, workingDir string, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache) (digest.Digest, []*uploadinfo.Entry, *client.TreeStats, error) {
+	ret := _m.Called(ctx, execRoot, workingDir, remoteWorkingDir, is, cache)
 
 	var r0 digest.Digest
-	if rf, ok := ret.Get(0).(func(string, string, string, *command.InputSpec, filemetadata.Cache) digest.Digest); ok {
-		r0 = rf(execRoot, workingDir, remoteWorkingDir, is, cache)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, *command.InputSpec, filemetadata.Cache) digest.Digest); ok {
+		r0 = rf(ctx, execRoot, workingDir, remoteWorkingDir, is, cache)
 	} else {
 		r0 = ret.Get(0).(digest.Digest)
 	}
 
 	var r1 []*uploadinfo.Entry
-	if rf, ok := ret.Get(1).(func(string, string, string, *command.InputSpec, filemetadata.Cache) []*uploadinfo.Entry); ok {
-		r1 = rf(execRoot, workingDir, remoteWorkingDir, is, cache)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, *command.InputSpec, filemetadata.Cache) []*uploadinfo.Entry); ok {
+		r1 = rf(ctx, execRoot, workingDir, remoteWorkingDir, is, cache)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]*uploadinfo.Entry)
@@ -61,8 +61,8 @@ func (_m *RBEClient) ComputeMerkleTree(execRoot string, workingDir string, remot
 	}
 
 	var r2 *client.TreeStats
-	if rf, ok := ret.Get(2).(func(string, string, string, *command.InputSpec, filemetadata.Cache) *client.TreeStats); ok {
-		r2 = rf(execRoot, workingDir, remoteWorkingDir, is, cache)
+	if rf, ok := ret.Get(2).(func(context.Context, string, string, string, *command.InputSpec, filemetadata.Cache) *client.TreeStats); ok {
+		r2 = rf(ctx, execRoot, workingDir, remoteWorkingDir, is, cache)
 	} else {
 		if ret.Get(2) != nil {
 			r2 = ret.Get(2).(*client.TreeStats)
@@ -70,8 +70,8 @@ func (_m *RBEClient) ComputeMerkleTree(execRoot string, workingDir string, remot
 	}
 
 	var r3 error
-	if rf, ok := ret.Get(3).(func(string, string, string, *command.InputSpec, filemetadata.Cache) error); ok {
-		r3 = rf(execRoot, workingDir, remoteWorkingDir, is, cache)
+	if rf, ok := ret.Get(3).(func(context.Context, string, string, string, *command.InputSpec, filemetadata.Cache) error); ok {
+		r3 = rf(ctx, execRoot, workingDir, remoteWorkingDir, is, cache)
 	} else {
 		r3 = ret.Error(3)
 	}

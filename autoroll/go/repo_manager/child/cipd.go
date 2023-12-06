@@ -12,6 +12,7 @@ import (
 	"time"
 
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
+	"go.chromium.org/luci/cipd/client/cipd/pkg"
 	"go.chromium.org/luci/cipd/common"
 
 	"go.skia.org/infra/autoroll/go/config"
@@ -193,15 +194,22 @@ func (c *CIPDChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, er
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	pin := common.Pin{
-		PackageName: c.name,
-		InstanceID:  rev.Id,
-	}
 	dest, err := filepath.Rel(c.root, fs.Dir())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := c.client.FetchAndDeployInstance(ctx, dest, pin, 0); err != nil {
+	if _, err := c.client.EnsurePackages(ctx, common.PinSliceBySubdir{
+		dest: []common.Pin{
+			{
+				PackageName: c.name,
+				InstanceID:  rev.Id,
+			},
+		},
+	}, &cipd_api.EnsureOptions{
+		Paranoia:            cipd_api.CheckPresence,
+		DryRun:              false,
+		OverrideInstallMode: pkg.InstallModeCopy,
+	}); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return fs, nil

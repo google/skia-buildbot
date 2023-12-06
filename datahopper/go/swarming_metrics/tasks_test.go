@@ -61,11 +61,11 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 			Name:        name,
 			PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
 				BotOverhead: float64(botOverhead / time.Second),
-				IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{
+				IsolatedDownload: &swarming_api.SwarmingRpcsCASOperationStats{
 					Duration:            float64(downloadOverhead / time.Second),
 					TotalBytesItemsCold: 50000000.0,
 				},
-				IsolatedUpload: &swarming_api.SwarmingRpcsOperationStats{
+				IsolatedUpload: &swarming_api.SwarmingRpcsCASOperationStats{
 					Duration:            float64(uploadOverhead / time.Second),
 					TotalBytesItemsCold: 70000000.0,
 				},
@@ -125,10 +125,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 		require.Eventually(t, func() bool {
 			ev, err := edb.Range(streamForPool("Skia"), from, to)
 			require.NoError(t, err)
-			if len(ev) != expect {
-				return false
-			}
-			return true
+			return len(ev) == expect
 		}, 5*time.Second, 100*time.Millisecond)
 	}
 	assertCount(lastLoad, now, 1)
@@ -388,8 +385,7 @@ func TestPerfUpload(t *testing.T) {
 	}).Return(nil)
 
 	// Load Swarming tasks again.
-
-	revisit, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
+	_, err = loadSwarmingTasks(ctx, swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	require.NoError(t, err)
 	pc.AssertNumberOfCalls(t, "PushToPerf", 3)
 

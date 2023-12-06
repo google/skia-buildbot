@@ -138,9 +138,9 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 
 func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) {
 	c := fuchsiaCfg().GetFuchsiaSdkChild()
-	urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+c.LatestLinuxPath, mockhttpclient.MockGetDialogue([]byte(revLinux)))
+	urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+url.QueryEscape(c.LatestLinuxPath), mockhttpclient.MockGetDialogue([]byte(revLinux)))
 	if c.LatestMacPath != "" {
-		urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+c.LatestMacPath, mockhttpclient.MockGetDialogue([]byte(revMac)))
+		urlmock.MockOnce("https://storage.googleapis.com/"+c.GcsBucket+"/"+url.QueryEscape(c.LatestMacPath), mockhttpclient.MockGetDialogue([]byte(revMac)))
 	}
 }
 

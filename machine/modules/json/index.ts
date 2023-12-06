@@ -40,7 +40,6 @@ export interface TaskRequest {
 	EnvPrefixes: { [key: string]: string[] };
 	ExecutionTimeout: Duration;
 	Expiration: Duration;
-	ExtraArgs: string[];
 	Idempotent: boolean;
 	IoTimeout: Duration;
 	Name: string;

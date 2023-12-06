@@ -225,11 +225,6 @@ func (c *TaskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*t
 		cmd = append(cmd, replaceVars(c, arg, id))
 	}
 
-	extraArgs := make([]string, 0, len(c.TaskSpec.ExtraArgs))
-	for _, arg := range c.TaskSpec.ExtraArgs {
-		extraArgs = append(extraArgs, replaceVars(c, arg, id))
-	}
-
 	extraTags := make(map[string]string, len(c.TaskSpec.ExtraTags))
 	for k, v := range c.TaskSpec.ExtraTags {
 		extraTags[k] = replaceVars(c, v, id)
@@ -251,7 +246,6 @@ func (c *TaskCandidate) MakeTaskRequest(id, casInstance, pubSubTopic string) (*t
 		EnvPrefixes:         c.TaskSpec.EnvPrefixes,
 		ExecutionTimeout:    c.TaskSpec.ExecutionTimeout,
 		Expiration:          c.TaskSpec.Expiration,
-		ExtraArgs:           extraArgs,
 		Idempotent:          idempotent,
 		IoTimeout:           c.TaskSpec.IoTimeout,
 		Name:                c.Name,

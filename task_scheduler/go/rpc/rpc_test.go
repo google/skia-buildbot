@@ -308,10 +308,10 @@ func TestGetTask(t *testing.T) {
 	swarm.On("GetTask", testutils.AnyContext, task.SwarmingTaskId, true).Return(&swarming_api.SwarmingRpcsTaskResult{
 		PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
 			BotOverhead: 10.0,
-			IsolatedDownload: &swarming_api.SwarmingRpcsOperationStats{
+			IsolatedDownload: &swarming_api.SwarmingRpcsCASOperationStats{
 				Duration: 6.0,
 			},
-			IsolatedUpload: &swarming_api.SwarmingRpcsOperationStats{
+			IsolatedUpload: &swarming_api.SwarmingRpcsCASOperationStats{
 				Duration: 4.0,
 			},
 		},

@@ -322,6 +322,7 @@ type TaskSpec struct {
 	Expiration time.Duration `json:"expiration_ns,omitempty"`
 
 	// ExtraArgs are extra command-line arguments to pass to the task.
+	// DEPRECATED: These are now ignored.
 	ExtraArgs []string `json:"extra_args,omitempty"`
 
 	// ExtraTags are extra tags to add to the Swarming task.

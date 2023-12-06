@@ -18,6 +18,7 @@ import (
 	"github.com/urfave/cli/v2"
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/client/cipd/pkg"
+	"go.chromium.org/luci/cipd/common"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc/codes"
@@ -268,7 +269,7 @@ func cmdAdd(ctx context.Context, name string) error {
 		if err := os.WriteFile(creationScript, []byte(creationScriptInitialContents), os.ModePerm); err != nil {
 			return skerr.Wrap(err)
 		}
-		fmt.Println(fmt.Sprintf("Created %s; you will need to add implementation before uploading the asset.", creationScript))
+		fmt.Printf("Created %s; you will need to add implementation before uploading the asset.\n", creationScript)
 	}
 
 	// "git add" the new directory.
@@ -336,10 +337,16 @@ func cmdDownload(ctx context.Context, name, dest string, local bool) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	fmt.Println(fmt.Sprintf("Downloading %s", pin.String()))
+	fmt.Printf("Downloading %s\n", pin.String())
 	downloadTracker.Start()
 	defer downloadTracker.Stop()
-	if err := cipdClient.FetchAndDeployInstance(ctx, "", pin, 0); err != nil {
+	if _, err := cipdClient.EnsurePackages(ctx, common.PinSliceBySubdir{
+		"": []common.Pin{pin},
+	}, &cipd_api.EnsureOptions{
+		Paranoia:            cipd_api.CheckPresence,
+		DryRun:              false,
+		OverrideInstallMode: pkg.InstallModeCopy,
+	}); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -387,7 +394,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		cmd := os_exec.CommandContext(ctx, "python3", "-u", creationScript, "-t", src)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		fmt.Println(fmt.Sprintf("Running: %s %s", cmd.Path, strings.Join(cmd.Args, " ")))
+		fmt.Printf("Running: %s %s\n", cmd.Path, strings.Join(cmd.Args, " "))
 		if err := cmd.Run(); err != nil {
 			return skerr.Wrap(err)
 		}
@@ -400,7 +407,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	fmt.Println(fmt.Sprintf("Found %d package instances.", len(instances)))
+	fmt.Printf("Found %d package instances.\n", len(instances))
 	highestVersion := -1
 	for version := range instances {
 		if version > highestVersion {
@@ -411,7 +418,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 
 	// If --dry-run was provided, quit now.
 	if dryRun {
-		fmt.Println(fmt.Sprintf("--dry-run was specified; not uploading package version %d", nextVersion))
+		fmt.Printf("--dry-run was specified; not uploading package version %d\n", nextVersion)
 		return nil
 	}
 
@@ -422,7 +429,7 @@ func cmdUpload(ctx context.Context, name, src string, dryRun bool, extraTags []s
 		tagProject,
 	}, extraTags...)
 	packagePath := fmt.Sprintf(cipdPackageNameTmpl, name)
-	fmt.Println(fmt.Sprintf("Uploading %s", packagePath))
+	fmt.Printf("Uploading %s\n", packagePath)
 	uploadTracker.Start()
 	defer uploadTracker.Stop()
 	if _, err := cipdClient.Create(ctx, packagePath, src, settings.InstallMode, skipFilesRegex, refs, tags, nil); err != nil {
@@ -643,7 +650,7 @@ func getAvailableVersions(ctx context.Context, cipdClient cipd.CIPDClient, name 
 		}
 		fmt.Println("  Processing batch of package instances.")
 		for _, info := range infos {
-			fmt.Println(fmt.Sprintf("    Processing: %s", info.Pin.InstanceID))
+			fmt.Printf("    Processing: %s\n", info.Pin.InstanceID)
 			// Retrieve the details for the instance, which include the tags.
 			instance, err := cipdClient.DescribeInstance(ctx, info.Pin, &cipd_api.DescribeInstanceOpts{
 				DescribeTags: true,
