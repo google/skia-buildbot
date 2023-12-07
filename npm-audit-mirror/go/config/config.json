@@ -104,6 +104,26 @@
         {
           "name": "terser",
           "version": "5.26.0"
+        },
+        {
+          "name": "core-js-compat",
+          "version": "3.34.0"
+        },
+        {
+          "name": "browserslist",
+          "version": "4.22.2"
+        },
+        {
+          "name": "node-releases",
+          "version": "2.0.14"
+        },
+        {
+          "name": "caniuse-lite",
+          "version": "1.0.30001566"
+        },
+        {
+          "name": "electron-to-chromium",
+          "version": "1.4.608"
         }
       ],
       "trusted_scopes": [],
