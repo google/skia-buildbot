@@ -100,6 +100,10 @@
         {
           "name": "@babel/traverse",
           "version": "7.23.2"
+        },
+        {
+          "name": "terser",
+          "version": "5.26.0"
         }
       ],
       "trusted_scopes": [],
