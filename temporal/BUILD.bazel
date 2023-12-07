@@ -6,9 +6,14 @@ container_run_and_extract(
     name = "temporal-build",
     commands = [
         "export CGO_ENABLED=0 GOOS=linux GOBIN=/tmp/temporal",
-        "mkdir -p /tmp/temporal",
+        "mkdir -p /tmp/temporal /temporal/config/dynamicconfig",
         "go install go.temporal.io/server/cmd/server@v1.22.2",
-        "cp /tmp/temporal/server /temporal",
+        "go install go.temporal.io/server/cmd/tools/sql@v1.22.2",
+        "wget -P /temporal/config/ https://github.com/temporalio/temporal/raw/v1.22.2/docker/config_template.yaml",
+        "wget -O - https://github.com/temporalio/cli/releases/download/v0.10.7/temporal_cli_0.10.7_linux_amd64.tar.gz | tar xzf - -C /temporal",
+        "wget -O - https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz | tar xzf - -C /temporal",
+        "cp /tmp/temporal/server /temporal/temporal-server",
+        "cp /tmp/temporal/sql /temporal/temporal-sql-tool",
     ],
     extract_file = "/temporal",
     image = "@golang//image",
@@ -22,9 +27,10 @@ container_run_and_extract(
 container_image(
     name = "temporal-server",
     base = "@basealpine//image",
-    entrypoint = ["/temporal"],
+    entrypoint = ["/entrypoint.sh"],
     files = [
         "temporal-build/temporal",
+        ":docker/entrypoint.sh",
     ],
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
