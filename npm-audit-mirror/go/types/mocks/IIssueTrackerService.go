@@ -12,14 +12,6 @@ type IIssueTrackerService struct {
 	mock.Mock
 }
 
-type IIssueTrackerService_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *IIssueTrackerService) EXPECT() *IIssueTrackerService_Expecter {
-	return &IIssueTrackerService_Expecter{mock: &_m.Mock}
-}
-
 // GetIssue provides a mock function with given fields: issueId
 func (_m *IIssueTrackerService) GetIssue(issueId int64) (*issuetracker.Issue, error) {
 	ret := _m.Called(issueId)
@@ -50,34 +42,6 @@ func (_m *IIssueTrackerService) GetIssue(issueId int64) (*issuetracker.Issue, er
 	return r0, r1
 }
 
-// IIssueTrackerService_GetIssue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIssue'
-type IIssueTrackerService_GetIssue_Call struct {
-	*mock.Call
-}
-
-// GetIssue is a helper method to define mock.On call
-//   - issueId int64
-func (_e *IIssueTrackerService_Expecter) GetIssue(issueId interface{}) *IIssueTrackerService_GetIssue_Call {
-	return &IIssueTrackerService_GetIssue_Call{Call: _e.mock.On("GetIssue", issueId)}
-}
-
-func (_c *IIssueTrackerService_GetIssue_Call) Run(run func(issueId int64)) *IIssueTrackerService_GetIssue_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int64))
-	})
-	return _c
-}
-
-func (_c *IIssueTrackerService_GetIssue_Call) Return(_a0 *issuetracker.Issue, _a1 error) *IIssueTrackerService_GetIssue_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IIssueTrackerService_GetIssue_Call) RunAndReturn(run func(int64) (*issuetracker.Issue, error)) *IIssueTrackerService_GetIssue_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // MakeIssue provides a mock function with given fields: title, body, owner
 func (_m *IIssueTrackerService) MakeIssue(title string, body string, owner string) (*issuetracker.Issue, error) {
 	ret := _m.Called(title, body, owner)
@@ -106,36 +70,6 @@ func (_m *IIssueTrackerService) MakeIssue(title string, body string, owner strin
 	}
 
 	return r0, r1
-}
-
-// IIssueTrackerService_MakeIssue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MakeIssue'
-type IIssueTrackerService_MakeIssue_Call struct {
-	*mock.Call
-}
-
-// MakeIssue is a helper method to define mock.On call
-//   - title string
-//   - body string
-//   - owner string
-func (_e *IIssueTrackerService_Expecter) MakeIssue(title interface{}, body interface{}, owner interface{}) *IIssueTrackerService_MakeIssue_Call {
-	return &IIssueTrackerService_MakeIssue_Call{Call: _e.mock.On("MakeIssue", title, body, owner)}
-}
-
-func (_c *IIssueTrackerService_MakeIssue_Call) Run(run func(title string, body string, owner string)) *IIssueTrackerService_MakeIssue_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *IIssueTrackerService_MakeIssue_Call) Return(_a0 *issuetracker.Issue, _a1 error) *IIssueTrackerService_MakeIssue_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IIssueTrackerService_MakeIssue_Call) RunAndReturn(run func(string, string, string) (*issuetracker.Issue, error)) *IIssueTrackerService_MakeIssue_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewIIssueTrackerService creates a new instance of IIssueTrackerService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

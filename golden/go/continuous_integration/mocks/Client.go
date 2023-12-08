@@ -14,14 +14,6 @@ type Client struct {
 	mock.Mock
 }
 
-type Client_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Client) EXPECT() *Client_Expecter {
-	return &Client_Expecter{mock: &_m.Mock}
-}
-
 // GetTryJob provides a mock function with given fields: ctx, id
 func (_m *Client) GetTryJob(ctx context.Context, id string) (continuous_integration.TryJob, error) {
 	ret := _m.Called(ctx, id)
@@ -48,35 +40,6 @@ func (_m *Client) GetTryJob(ctx context.Context, id string) (continuous_integrat
 	}
 
 	return r0, r1
-}
-
-// Client_GetTryJob_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTryJob'
-type Client_GetTryJob_Call struct {
-	*mock.Call
-}
-
-// GetTryJob is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *Client_Expecter) GetTryJob(ctx interface{}, id interface{}) *Client_GetTryJob_Call {
-	return &Client_GetTryJob_Call{Call: _e.mock.On("GetTryJob", ctx, id)}
-}
-
-func (_c *Client_GetTryJob_Call) Run(run func(ctx context.Context, id string)) *Client_GetTryJob_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Client_GetTryJob_Call) Return(_a0 continuous_integration.TryJob, _a1 error) *Client_GetTryJob_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetTryJob_Call) RunAndReturn(run func(context.Context, string) (continuous_integration.TryJob, error)) *Client_GetTryJob_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -17,14 +17,6 @@ type ConfigReader struct {
 	mock.Mock
 }
 
-type ConfigReader_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ConfigReader) EXPECT() *ConfigReader_Expecter {
-	return &ConfigReader_Expecter{mock: &_m.Mock}
-}
-
 // GetAuthorsFileContents provides a mock function with given fields: ctx, authorsPath
 func (_m *ConfigReader) GetAuthorsFileContents(ctx context.Context, authorsPath string) (string, error) {
 	ret := _m.Called(ctx, authorsPath)
@@ -51,35 +43,6 @@ func (_m *ConfigReader) GetAuthorsFileContents(ctx context.Context, authorsPath 
 	}
 
 	return r0, r1
-}
-
-// ConfigReader_GetAuthorsFileContents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorsFileContents'
-type ConfigReader_GetAuthorsFileContents_Call struct {
-	*mock.Call
-}
-
-// GetAuthorsFileContents is a helper method to define mock.On call
-//   - ctx context.Context
-//   - authorsPath string
-func (_e *ConfigReader_Expecter) GetAuthorsFileContents(ctx interface{}, authorsPath interface{}) *ConfigReader_GetAuthorsFileContents_Call {
-	return &ConfigReader_GetAuthorsFileContents_Call{Call: _e.mock.On("GetAuthorsFileContents", ctx, authorsPath)}
-}
-
-func (_c *ConfigReader_GetAuthorsFileContents_Call) Run(run func(ctx context.Context, authorsPath string)) *ConfigReader_GetAuthorsFileContents_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ConfigReader_GetAuthorsFileContents_Call) Return(_a0 string, _a1 error) *ConfigReader_GetAuthorsFileContents_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ConfigReader_GetAuthorsFileContents_Call) RunAndReturn(run func(context.Context, string) (string, error)) *ConfigReader_GetAuthorsFileContents_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetSkCQCfg provides a mock function with given fields: ctx
@@ -112,34 +75,6 @@ func (_m *ConfigReader) GetSkCQCfg(ctx context.Context) (*config.SkCQCfg, error)
 	return r0, r1
 }
 
-// ConfigReader_GetSkCQCfg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSkCQCfg'
-type ConfigReader_GetSkCQCfg_Call struct {
-	*mock.Call
-}
-
-// GetSkCQCfg is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *ConfigReader_Expecter) GetSkCQCfg(ctx interface{}) *ConfigReader_GetSkCQCfg_Call {
-	return &ConfigReader_GetSkCQCfg_Call{Call: _e.mock.On("GetSkCQCfg", ctx)}
-}
-
-func (_c *ConfigReader_GetSkCQCfg_Call) Run(run func(ctx context.Context)) *ConfigReader_GetSkCQCfg_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *ConfigReader_GetSkCQCfg_Call) Return(_a0 *config.SkCQCfg, _a1 error) *ConfigReader_GetSkCQCfg_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ConfigReader_GetSkCQCfg_Call) RunAndReturn(run func(context.Context) (*config.SkCQCfg, error)) *ConfigReader_GetSkCQCfg_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTasksCfg provides a mock function with given fields: ctx, tasksJSONPath
 func (_m *ConfigReader) GetTasksCfg(ctx context.Context, tasksJSONPath string) (*specs.TasksCfg, error) {
 	ret := _m.Called(ctx, tasksJSONPath)
@@ -168,35 +103,6 @@ func (_m *ConfigReader) GetTasksCfg(ctx context.Context, tasksJSONPath string) (
 	}
 
 	return r0, r1
-}
-
-// ConfigReader_GetTasksCfg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTasksCfg'
-type ConfigReader_GetTasksCfg_Call struct {
-	*mock.Call
-}
-
-// GetTasksCfg is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tasksJSONPath string
-func (_e *ConfigReader_Expecter) GetTasksCfg(ctx interface{}, tasksJSONPath interface{}) *ConfigReader_GetTasksCfg_Call {
-	return &ConfigReader_GetTasksCfg_Call{Call: _e.mock.On("GetTasksCfg", ctx, tasksJSONPath)}
-}
-
-func (_c *ConfigReader_GetTasksCfg_Call) Run(run func(ctx context.Context, tasksJSONPath string)) *ConfigReader_GetTasksCfg_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ConfigReader_GetTasksCfg_Call) Return(_a0 *specs.TasksCfg, _a1 error) *ConfigReader_GetTasksCfg_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ConfigReader_GetTasksCfg_Call) RunAndReturn(run func(context.Context, string) (*specs.TasksCfg, error)) *ConfigReader_GetTasksCfg_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewConfigReader creates a new instance of ConfigReader. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

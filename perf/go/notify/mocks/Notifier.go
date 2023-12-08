@@ -20,14 +20,6 @@ type Notifier struct {
 	mock.Mock
 }
 
-type Notifier_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Notifier) EXPECT() *Notifier_Expecter {
-	return &Notifier_Expecter{mock: &_m.Mock}
-}
-
 // ExampleSend provides a mock function with given fields: ctx, alert
 func (_m *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 	ret := _m.Called(ctx, alert)
@@ -44,35 +36,6 @@ func (_m *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error 
 	}
 
 	return r0
-}
-
-// Notifier_ExampleSend_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExampleSend'
-type Notifier_ExampleSend_Call struct {
-	*mock.Call
-}
-
-// ExampleSend is a helper method to define mock.On call
-//   - ctx context.Context
-//   - alert *alerts.Alert
-func (_e *Notifier_Expecter) ExampleSend(ctx interface{}, alert interface{}) *Notifier_ExampleSend_Call {
-	return &Notifier_ExampleSend_Call{Call: _e.mock.On("ExampleSend", ctx, alert)}
-}
-
-func (_c *Notifier_ExampleSend_Call) Run(run func(ctx context.Context, alert *alerts.Alert)) *Notifier_ExampleSend_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*alerts.Alert))
-	})
-	return _c
-}
-
-func (_c *Notifier_ExampleSend_Call) Return(_a0 error) *Notifier_ExampleSend_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Notifier_ExampleSend_Call) RunAndReturn(run func(context.Context, *alerts.Alert) error) *Notifier_ExampleSend_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // RegressionFound provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5
@@ -103,39 +66,6 @@ func (_m *Notifier) RegressionFound(ctx context.Context, commit provider.Commit,
 	return r0, r1
 }
 
-// Notifier_RegressionFound_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegressionFound'
-type Notifier_RegressionFound_Call struct {
-	*mock.Call
-}
-
-// RegressionFound is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commit provider.Commit
-//   - previousCommit provider.Commit
-//   - alert *alerts.Alert
-//   - cl *clustering2.ClusterSummary
-//   - _a5 *frame.FrameResponse
-func (_e *Notifier_Expecter) RegressionFound(ctx interface{}, commit interface{}, previousCommit interface{}, alert interface{}, cl interface{}, _a5 interface{}) *Notifier_RegressionFound_Call {
-	return &Notifier_RegressionFound_Call{Call: _e.mock.On("RegressionFound", ctx, commit, previousCommit, alert, cl, _a5)}
-}
-
-func (_c *Notifier_RegressionFound_Call) Run(run func(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse)) *Notifier_RegressionFound_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(provider.Commit), args[2].(provider.Commit), args[3].(*alerts.Alert), args[4].(*clustering2.ClusterSummary), args[5].(*frame.FrameResponse))
-	})
-	return _c
-}
-
-func (_c *Notifier_RegressionFound_Call) Return(_a0 string, _a1 error) *Notifier_RegressionFound_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Notifier_RegressionFound_Call) RunAndReturn(run func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse) (string, error)) *Notifier_RegressionFound_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RegressionMissing provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5, threadingReference
 func (_m *Notifier) RegressionMissing(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse, threadingReference string) error {
 	ret := _m.Called(ctx, commit, previousCommit, alert, cl, _a5, threadingReference)
@@ -152,40 +82,6 @@ func (_m *Notifier) RegressionMissing(ctx context.Context, commit provider.Commi
 	}
 
 	return r0
-}
-
-// Notifier_RegressionMissing_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegressionMissing'
-type Notifier_RegressionMissing_Call struct {
-	*mock.Call
-}
-
-// RegressionMissing is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commit provider.Commit
-//   - previousCommit provider.Commit
-//   - alert *alerts.Alert
-//   - cl *clustering2.ClusterSummary
-//   - _a5 *frame.FrameResponse
-//   - threadingReference string
-func (_e *Notifier_Expecter) RegressionMissing(ctx interface{}, commit interface{}, previousCommit interface{}, alert interface{}, cl interface{}, _a5 interface{}, threadingReference interface{}) *Notifier_RegressionMissing_Call {
-	return &Notifier_RegressionMissing_Call{Call: _e.mock.On("RegressionMissing", ctx, commit, previousCommit, alert, cl, _a5, threadingReference)}
-}
-
-func (_c *Notifier_RegressionMissing_Call) Run(run func(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse, threadingReference string)) *Notifier_RegressionMissing_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(provider.Commit), args[2].(provider.Commit), args[3].(*alerts.Alert), args[4].(*clustering2.ClusterSummary), args[5].(*frame.FrameResponse), args[6].(string))
-	})
-	return _c
-}
-
-func (_c *Notifier_RegressionMissing_Call) Return(_a0 error) *Notifier_RegressionMissing_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Notifier_RegressionMissing_Call) RunAndReturn(run func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) error) *Notifier_RegressionMissing_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewNotifier creates a new instance of Notifier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -16,14 +16,6 @@ type IncrementalCache struct {
 	mock.Mock
 }
 
-type IncrementalCache_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *IncrementalCache) EXPECT() *IncrementalCache_Expecter {
-	return &IncrementalCache_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: repo, since, maxCommits
 func (_m *IncrementalCache) Get(repo string, since time.Time, maxCommits int) (*incremental.Update, error) {
 	ret := _m.Called(repo, since, maxCommits)
@@ -52,36 +44,6 @@ func (_m *IncrementalCache) Get(repo string, since time.Time, maxCommits int) (*
 	}
 
 	return r0, r1
-}
-
-// IncrementalCache_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type IncrementalCache_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - repo string
-//   - since time.Time
-//   - maxCommits int
-func (_e *IncrementalCache_Expecter) Get(repo interface{}, since interface{}, maxCommits interface{}) *IncrementalCache_Get_Call {
-	return &IncrementalCache_Get_Call{Call: _e.mock.On("Get", repo, since, maxCommits)}
-}
-
-func (_c *IncrementalCache_Get_Call) Run(run func(repo string, since time.Time, maxCommits int)) *IncrementalCache_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(time.Time), args[2].(int))
-	})
-	return _c
-}
-
-func (_c *IncrementalCache_Get_Call) Return(_a0 *incremental.Update, _a1 error) *IncrementalCache_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IncrementalCache_Get_Call) RunAndReturn(run func(string, time.Time, int) (*incremental.Update, error)) *IncrementalCache_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetAll provides a mock function with given fields: repo, maxCommits
@@ -114,35 +76,6 @@ func (_m *IncrementalCache) GetAll(repo string, maxCommits int) (*incremental.Up
 	return r0, r1
 }
 
-// IncrementalCache_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
-type IncrementalCache_GetAll_Call struct {
-	*mock.Call
-}
-
-// GetAll is a helper method to define mock.On call
-//   - repo string
-//   - maxCommits int
-func (_e *IncrementalCache_Expecter) GetAll(repo interface{}, maxCommits interface{}) *IncrementalCache_GetAll_Call {
-	return &IncrementalCache_GetAll_Call{Call: _e.mock.On("GetAll", repo, maxCommits)}
-}
-
-func (_c *IncrementalCache_GetAll_Call) Run(run func(repo string, maxCommits int)) *IncrementalCache_GetAll_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *IncrementalCache_GetAll_Call) Return(_a0 *incremental.Update, _a1 error) *IncrementalCache_GetAll_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IncrementalCache_GetAll_Call) RunAndReturn(run func(string, int) (*incremental.Update, error)) *IncrementalCache_GetAll_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetRange provides a mock function with given fields: repo, from, to, maxCommits
 func (_m *IncrementalCache) GetRange(repo string, from time.Time, to time.Time, maxCommits int) (*incremental.Update, error) {
 	ret := _m.Called(repo, from, to, maxCommits)
@@ -173,37 +106,6 @@ func (_m *IncrementalCache) GetRange(repo string, from time.Time, to time.Time, 
 	return r0, r1
 }
 
-// IncrementalCache_GetRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRange'
-type IncrementalCache_GetRange_Call struct {
-	*mock.Call
-}
-
-// GetRange is a helper method to define mock.On call
-//   - repo string
-//   - from time.Time
-//   - to time.Time
-//   - maxCommits int
-func (_e *IncrementalCache_Expecter) GetRange(repo interface{}, from interface{}, to interface{}, maxCommits interface{}) *IncrementalCache_GetRange_Call {
-	return &IncrementalCache_GetRange_Call{Call: _e.mock.On("GetRange", repo, from, to, maxCommits)}
-}
-
-func (_c *IncrementalCache_GetRange_Call) Run(run func(repo string, from time.Time, to time.Time, maxCommits int)) *IncrementalCache_GetRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(time.Time), args[2].(time.Time), args[3].(int))
-	})
-	return _c
-}
-
-func (_c *IncrementalCache_GetRange_Call) Return(_a0 *incremental.Update, _a1 error) *IncrementalCache_GetRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IncrementalCache_GetRange_Call) RunAndReturn(run func(string, time.Time, time.Time, int) (*incremental.Update, error)) *IncrementalCache_GetRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx, reset
 func (_m *IncrementalCache) Update(ctx context.Context, reset bool) error {
 	ret := _m.Called(ctx, reset)
@@ -222,67 +124,9 @@ func (_m *IncrementalCache) Update(ctx context.Context, reset bool) error {
 	return r0
 }
 
-// IncrementalCache_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type IncrementalCache_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-//   - reset bool
-func (_e *IncrementalCache_Expecter) Update(ctx interface{}, reset interface{}) *IncrementalCache_Update_Call {
-	return &IncrementalCache_Update_Call{Call: _e.mock.On("Update", ctx, reset)}
-}
-
-func (_c *IncrementalCache_Update_Call) Run(run func(ctx context.Context, reset bool)) *IncrementalCache_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(bool))
-	})
-	return _c
-}
-
-func (_c *IncrementalCache_Update_Call) Return(_a0 error) *IncrementalCache_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *IncrementalCache_Update_Call) RunAndReturn(run func(context.Context, bool) error) *IncrementalCache_Update_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // UpdateLoop provides a mock function with given fields: ctx, frequency
 func (_m *IncrementalCache) UpdateLoop(ctx context.Context, frequency time.Duration) {
 	_m.Called(ctx, frequency)
-}
-
-// IncrementalCache_UpdateLoop_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateLoop'
-type IncrementalCache_UpdateLoop_Call struct {
-	*mock.Call
-}
-
-// UpdateLoop is a helper method to define mock.On call
-//   - ctx context.Context
-//   - frequency time.Duration
-func (_e *IncrementalCache_Expecter) UpdateLoop(ctx interface{}, frequency interface{}) *IncrementalCache_UpdateLoop_Call {
-	return &IncrementalCache_UpdateLoop_Call{Call: _e.mock.On("UpdateLoop", ctx, frequency)}
-}
-
-func (_c *IncrementalCache_UpdateLoop_Call) Run(run func(ctx context.Context, frequency time.Duration)) *IncrementalCache_UpdateLoop_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Duration))
-	})
-	return _c
-}
-
-func (_c *IncrementalCache_UpdateLoop_Call) Return() *IncrementalCache_UpdateLoop_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *IncrementalCache_UpdateLoop_Call) RunAndReturn(run func(context.Context, time.Duration)) *IncrementalCache_UpdateLoop_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewIncrementalCache creates a new instance of IncrementalCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

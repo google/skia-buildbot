@@ -15,14 +15,6 @@ type Transport struct {
 	mock.Mock
 }
 
-type Transport_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Transport) EXPECT() *Transport_Expecter {
-	return &Transport_Expecter{mock: &_m.Mock}
-}
-
 // SendNewRegression provides a mock function with given fields: ctx, alert, body, subject
 func (_m *Transport) SendNewRegression(ctx context.Context, alert *alerts.Alert, body string, subject string) (string, error) {
 	ret := _m.Called(ctx, alert, body, subject)
@@ -51,37 +43,6 @@ func (_m *Transport) SendNewRegression(ctx context.Context, alert *alerts.Alert,
 	return r0, r1
 }
 
-// Transport_SendNewRegression_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendNewRegression'
-type Transport_SendNewRegression_Call struct {
-	*mock.Call
-}
-
-// SendNewRegression is a helper method to define mock.On call
-//   - ctx context.Context
-//   - alert *alerts.Alert
-//   - body string
-//   - subject string
-func (_e *Transport_Expecter) SendNewRegression(ctx interface{}, alert interface{}, body interface{}, subject interface{}) *Transport_SendNewRegression_Call {
-	return &Transport_SendNewRegression_Call{Call: _e.mock.On("SendNewRegression", ctx, alert, body, subject)}
-}
-
-func (_c *Transport_SendNewRegression_Call) Run(run func(ctx context.Context, alert *alerts.Alert, body string, subject string)) *Transport_SendNewRegression_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*alerts.Alert), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Transport_SendNewRegression_Call) Return(threadingReference string, err error) *Transport_SendNewRegression_Call {
-	_c.Call.Return(threadingReference, err)
-	return _c
-}
-
-func (_c *Transport_SendNewRegression_Call) RunAndReturn(run func(context.Context, *alerts.Alert, string, string) (string, error)) *Transport_SendNewRegression_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SendRegressionMissing provides a mock function with given fields: ctx, threadingReference, alert, body, subject
 func (_m *Transport) SendRegressionMissing(ctx context.Context, threadingReference string, alert *alerts.Alert, body string, subject string) error {
 	ret := _m.Called(ctx, threadingReference, alert, body, subject)
@@ -98,38 +59,6 @@ func (_m *Transport) SendRegressionMissing(ctx context.Context, threadingReferen
 	}
 
 	return r0
-}
-
-// Transport_SendRegressionMissing_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendRegressionMissing'
-type Transport_SendRegressionMissing_Call struct {
-	*mock.Call
-}
-
-// SendRegressionMissing is a helper method to define mock.On call
-//   - ctx context.Context
-//   - threadingReference string
-//   - alert *alerts.Alert
-//   - body string
-//   - subject string
-func (_e *Transport_Expecter) SendRegressionMissing(ctx interface{}, threadingReference interface{}, alert interface{}, body interface{}, subject interface{}) *Transport_SendRegressionMissing_Call {
-	return &Transport_SendRegressionMissing_Call{Call: _e.mock.On("SendRegressionMissing", ctx, threadingReference, alert, body, subject)}
-}
-
-func (_c *Transport_SendRegressionMissing_Call) Run(run func(ctx context.Context, threadingReference string, alert *alerts.Alert, body string, subject string)) *Transport_SendRegressionMissing_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*alerts.Alert), args[3].(string), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *Transport_SendRegressionMissing_Call) Return(err error) *Transport_SendRegressionMissing_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *Transport_SendRegressionMissing_Call) RunAndReturn(run func(context.Context, string, *alerts.Alert, string, string) error) *Transport_SendRegressionMissing_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewTransport creates a new instance of Transport. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

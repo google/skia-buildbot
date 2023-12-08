@@ -16,14 +16,6 @@ type VCS struct {
 	mock.Mock
 }
 
-type VCS_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *VCS) EXPECT() *VCS_Expecter {
-	return &VCS_Expecter{mock: &_m.Mock}
-}
-
 // ByIndex provides a mock function with given fields: ctx, N
 func (_m *VCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	ret := _m.Called(ctx, N)
@@ -52,35 +44,6 @@ func (_m *VCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) 
 	}
 
 	return r0, r1
-}
-
-// VCS_ByIndex_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ByIndex'
-type VCS_ByIndex_Call struct {
-	*mock.Call
-}
-
-// ByIndex is a helper method to define mock.On call
-//   - ctx context.Context
-//   - N int
-func (_e *VCS_Expecter) ByIndex(ctx interface{}, N interface{}) *VCS_ByIndex_Call {
-	return &VCS_ByIndex_Call{Call: _e.mock.On("ByIndex", ctx, N)}
-}
-
-func (_c *VCS_ByIndex_Call) Run(run func(ctx context.Context, N int)) *VCS_ByIndex_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *VCS_ByIndex_Call) Return(_a0 *vcsinfo.LongCommit, _a1 error) *VCS_ByIndex_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *VCS_ByIndex_Call) RunAndReturn(run func(context.Context, int) (*vcsinfo.LongCommit, error)) *VCS_ByIndex_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Details provides a mock function with given fields: ctx, hash, includeBranchInfo
@@ -113,36 +76,6 @@ func (_m *VCS) Details(ctx context.Context, hash string, includeBranchInfo bool)
 	return r0, r1
 }
 
-// VCS_Details_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Details'
-type VCS_Details_Call struct {
-	*mock.Call
-}
-
-// Details is a helper method to define mock.On call
-//   - ctx context.Context
-//   - hash string
-//   - includeBranchInfo bool
-func (_e *VCS_Expecter) Details(ctx interface{}, hash interface{}, includeBranchInfo interface{}) *VCS_Details_Call {
-	return &VCS_Details_Call{Call: _e.mock.On("Details", ctx, hash, includeBranchInfo)}
-}
-
-func (_c *VCS_Details_Call) Run(run func(ctx context.Context, hash string, includeBranchInfo bool)) *VCS_Details_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(bool))
-	})
-	return _c
-}
-
-func (_c *VCS_Details_Call) Return(_a0 *vcsinfo.LongCommit, _a1 error) *VCS_Details_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *VCS_Details_Call) RunAndReturn(run func(context.Context, string, bool) (*vcsinfo.LongCommit, error)) *VCS_Details_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DetailsMulti provides a mock function with given fields: ctx, hashes, includeBranchInfo
 func (_m *VCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
 	ret := _m.Called(ctx, hashes, includeBranchInfo)
@@ -173,36 +106,6 @@ func (_m *VCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchI
 	return r0, r1
 }
 
-// VCS_DetailsMulti_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetailsMulti'
-type VCS_DetailsMulti_Call struct {
-	*mock.Call
-}
-
-// DetailsMulti is a helper method to define mock.On call
-//   - ctx context.Context
-//   - hashes []string
-//   - includeBranchInfo bool
-func (_e *VCS_Expecter) DetailsMulti(ctx interface{}, hashes interface{}, includeBranchInfo interface{}) *VCS_DetailsMulti_Call {
-	return &VCS_DetailsMulti_Call{Call: _e.mock.On("DetailsMulti", ctx, hashes, includeBranchInfo)}
-}
-
-func (_c *VCS_DetailsMulti_Call) Run(run func(ctx context.Context, hashes []string, includeBranchInfo bool)) *VCS_DetailsMulti_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string), args[2].(bool))
-	})
-	return _c
-}
-
-func (_c *VCS_DetailsMulti_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *VCS_DetailsMulti_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *VCS_DetailsMulti_Call) RunAndReturn(run func(context.Context, []string, bool) ([]*vcsinfo.LongCommit, error)) *VCS_DetailsMulti_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // From provides a mock function with given fields: start
 func (_m *VCS) From(start time.Time) []string {
 	ret := _m.Called(start)
@@ -221,34 +124,6 @@ func (_m *VCS) From(start time.Time) []string {
 	}
 
 	return r0
-}
-
-// VCS_From_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'From'
-type VCS_From_Call struct {
-	*mock.Call
-}
-
-// From is a helper method to define mock.On call
-//   - start time.Time
-func (_e *VCS_Expecter) From(start interface{}) *VCS_From_Call {
-	return &VCS_From_Call{Call: _e.mock.On("From", start)}
-}
-
-func (_c *VCS_From_Call) Run(run func(start time.Time)) *VCS_From_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(time.Time))
-	})
-	return _c
-}
-
-func (_c *VCS_From_Call) Return(_a0 []string) *VCS_From_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *VCS_From_Call) RunAndReturn(run func(time.Time) []string) *VCS_From_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // IndexOf provides a mock function with given fields: ctx, hash
@@ -279,35 +154,6 @@ func (_m *VCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	return r0, r1
 }
 
-// VCS_IndexOf_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IndexOf'
-type VCS_IndexOf_Call struct {
-	*mock.Call
-}
-
-// IndexOf is a helper method to define mock.On call
-//   - ctx context.Context
-//   - hash string
-func (_e *VCS_Expecter) IndexOf(ctx interface{}, hash interface{}) *VCS_IndexOf_Call {
-	return &VCS_IndexOf_Call{Call: _e.mock.On("IndexOf", ctx, hash)}
-}
-
-func (_c *VCS_IndexOf_Call) Run(run func(ctx context.Context, hash string)) *VCS_IndexOf_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *VCS_IndexOf_Call) Return(_a0 int, _a1 error) *VCS_IndexOf_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *VCS_IndexOf_Call) RunAndReturn(run func(context.Context, string) (int, error)) *VCS_IndexOf_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LastNIndex provides a mock function with given fields: N
 func (_m *VCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	ret := _m.Called(N)
@@ -326,34 +172,6 @@ func (_m *VCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	}
 
 	return r0
-}
-
-// VCS_LastNIndex_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LastNIndex'
-type VCS_LastNIndex_Call struct {
-	*mock.Call
-}
-
-// LastNIndex is a helper method to define mock.On call
-//   - N int
-func (_e *VCS_Expecter) LastNIndex(N interface{}) *VCS_LastNIndex_Call {
-	return &VCS_LastNIndex_Call{Call: _e.mock.On("LastNIndex", N)}
-}
-
-func (_c *VCS_LastNIndex_Call) Run(run func(N int)) *VCS_LastNIndex_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int))
-	})
-	return _c
-}
-
-func (_c *VCS_LastNIndex_Call) Return(_a0 []*vcsinfo.IndexCommit) *VCS_LastNIndex_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *VCS_LastNIndex_Call) RunAndReturn(run func(int) []*vcsinfo.IndexCommit) *VCS_LastNIndex_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Range provides a mock function with given fields: begin, end
@@ -376,35 +194,6 @@ func (_m *VCS) Range(begin time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	return r0
 }
 
-// VCS_Range_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Range'
-type VCS_Range_Call struct {
-	*mock.Call
-}
-
-// Range is a helper method to define mock.On call
-//   - begin time.Time
-//   - end time.Time
-func (_e *VCS_Expecter) Range(begin interface{}, end interface{}) *VCS_Range_Call {
-	return &VCS_Range_Call{Call: _e.mock.On("Range", begin, end)}
-}
-
-func (_c *VCS_Range_Call) Run(run func(begin time.Time, end time.Time)) *VCS_Range_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(time.Time), args[1].(time.Time))
-	})
-	return _c
-}
-
-func (_c *VCS_Range_Call) Return(_a0 []*vcsinfo.IndexCommit) *VCS_Range_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *VCS_Range_Call) RunAndReturn(run func(time.Time, time.Time) []*vcsinfo.IndexCommit) *VCS_Range_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx, pull, allBranches
 func (_m *VCS) Update(ctx context.Context, pull bool, allBranches bool) error {
 	ret := _m.Called(ctx, pull, allBranches)
@@ -421,36 +210,6 @@ func (_m *VCS) Update(ctx context.Context, pull bool, allBranches bool) error {
 	}
 
 	return r0
-}
-
-// VCS_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type VCS_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-//   - pull bool
-//   - allBranches bool
-func (_e *VCS_Expecter) Update(ctx interface{}, pull interface{}, allBranches interface{}) *VCS_Update_Call {
-	return &VCS_Update_Call{Call: _e.mock.On("Update", ctx, pull, allBranches)}
-}
-
-func (_c *VCS_Update_Call) Run(run func(ctx context.Context, pull bool, allBranches bool)) *VCS_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(bool), args[2].(bool))
-	})
-	return _c
-}
-
-func (_c *VCS_Update_Call) Return(_a0 error) *VCS_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *VCS_Update_Call) RunAndReturn(run func(context.Context, bool, bool) error) *VCS_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewVCS creates a new instance of VCS. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

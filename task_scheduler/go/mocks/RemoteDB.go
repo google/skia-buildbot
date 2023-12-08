@@ -18,14 +18,6 @@ type RemoteDB struct {
 	mock.Mock
 }
 
-type RemoteDB_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *RemoteDB) EXPECT() *RemoteDB_Expecter {
-	return &RemoteDB_Expecter{mock: &_m.Mock}
-}
-
 // DeleteCommitComment provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) DeleteCommitComment(_a0 context.Context, _a1 *types.CommitComment) error {
 	ret := _m.Called(_a0, _a1)
@@ -42,35 +34,6 @@ func (_m *RemoteDB) DeleteCommitComment(_a0 context.Context, _a1 *types.CommitCo
 	}
 
 	return r0
-}
-
-// RemoteDB_DeleteCommitComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteCommitComment'
-type RemoteDB_DeleteCommitComment_Call struct {
-	*mock.Call
-}
-
-// DeleteCommitComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.CommitComment
-func (_e *RemoteDB_Expecter) DeleteCommitComment(_a0 interface{}, _a1 interface{}) *RemoteDB_DeleteCommitComment_Call {
-	return &RemoteDB_DeleteCommitComment_Call{Call: _e.mock.On("DeleteCommitComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_DeleteCommitComment_Call) Run(run func(_a0 context.Context, _a1 *types.CommitComment)) *RemoteDB_DeleteCommitComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.CommitComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_DeleteCommitComment_Call) Return(_a0 error) *RemoteDB_DeleteCommitComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_DeleteCommitComment_Call) RunAndReturn(run func(context.Context, *types.CommitComment) error) *RemoteDB_DeleteCommitComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // DeleteTaskComment provides a mock function with given fields: _a0, _a1
@@ -91,35 +54,6 @@ func (_m *RemoteDB) DeleteTaskComment(_a0 context.Context, _a1 *types.TaskCommen
 	return r0
 }
 
-// RemoteDB_DeleteTaskComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTaskComment'
-type RemoteDB_DeleteTaskComment_Call struct {
-	*mock.Call
-}
-
-// DeleteTaskComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.TaskComment
-func (_e *RemoteDB_Expecter) DeleteTaskComment(_a0 interface{}, _a1 interface{}) *RemoteDB_DeleteTaskComment_Call {
-	return &RemoteDB_DeleteTaskComment_Call{Call: _e.mock.On("DeleteTaskComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_DeleteTaskComment_Call) Run(run func(_a0 context.Context, _a1 *types.TaskComment)) *RemoteDB_DeleteTaskComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.TaskComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_DeleteTaskComment_Call) Return(_a0 error) *RemoteDB_DeleteTaskComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_DeleteTaskComment_Call) RunAndReturn(run func(context.Context, *types.TaskComment) error) *RemoteDB_DeleteTaskComment_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteTaskSpecComment provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) DeleteTaskSpecComment(_a0 context.Context, _a1 *types.TaskSpecComment) error {
 	ret := _m.Called(_a0, _a1)
@@ -136,35 +70,6 @@ func (_m *RemoteDB) DeleteTaskSpecComment(_a0 context.Context, _a1 *types.TaskSp
 	}
 
 	return r0
-}
-
-// RemoteDB_DeleteTaskSpecComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTaskSpecComment'
-type RemoteDB_DeleteTaskSpecComment_Call struct {
-	*mock.Call
-}
-
-// DeleteTaskSpecComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.TaskSpecComment
-func (_e *RemoteDB_Expecter) DeleteTaskSpecComment(_a0 interface{}, _a1 interface{}) *RemoteDB_DeleteTaskSpecComment_Call {
-	return &RemoteDB_DeleteTaskSpecComment_Call{Call: _e.mock.On("DeleteTaskSpecComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_DeleteTaskSpecComment_Call) Run(run func(_a0 context.Context, _a1 *types.TaskSpecComment)) *RemoteDB_DeleteTaskSpecComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.TaskSpecComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_DeleteTaskSpecComment_Call) Return(_a0 error) *RemoteDB_DeleteTaskSpecComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_DeleteTaskSpecComment_Call) RunAndReturn(run func(context.Context, *types.TaskSpecComment) error) *RemoteDB_DeleteTaskSpecComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetCommentsForRepos provides a mock function with given fields: ctx, repos, from
@@ -197,36 +102,6 @@ func (_m *RemoteDB) GetCommentsForRepos(ctx context.Context, repos []string, fro
 	return r0, r1
 }
 
-// RemoteDB_GetCommentsForRepos_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommentsForRepos'
-type RemoteDB_GetCommentsForRepos_Call struct {
-	*mock.Call
-}
-
-// GetCommentsForRepos is a helper method to define mock.On call
-//   - ctx context.Context
-//   - repos []string
-//   - from time.Time
-func (_e *RemoteDB_Expecter) GetCommentsForRepos(ctx interface{}, repos interface{}, from interface{}) *RemoteDB_GetCommentsForRepos_Call {
-	return &RemoteDB_GetCommentsForRepos_Call{Call: _e.mock.On("GetCommentsForRepos", ctx, repos, from)}
-}
-
-func (_c *RemoteDB_GetCommentsForRepos_Call) Run(run func(ctx context.Context, repos []string, from time.Time)) *RemoteDB_GetCommentsForRepos_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_GetCommentsForRepos_Call) Return(_a0 []*types.RepoComments, _a1 error) *RemoteDB_GetCommentsForRepos_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_GetCommentsForRepos_Call) RunAndReturn(run func(context.Context, []string, time.Time) ([]*types.RepoComments, error)) *RemoteDB_GetCommentsForRepos_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetJobById provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) GetJobById(_a0 context.Context, _a1 string) (*types.Job, error) {
 	ret := _m.Called(_a0, _a1)
@@ -255,35 +130,6 @@ func (_m *RemoteDB) GetJobById(_a0 context.Context, _a1 string) (*types.Job, err
 	}
 
 	return r0, r1
-}
-
-// RemoteDB_GetJobById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobById'
-type RemoteDB_GetJobById_Call struct {
-	*mock.Call
-}
-
-// GetJobById is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-func (_e *RemoteDB_Expecter) GetJobById(_a0 interface{}, _a1 interface{}) *RemoteDB_GetJobById_Call {
-	return &RemoteDB_GetJobById_Call{Call: _e.mock.On("GetJobById", _a0, _a1)}
-}
-
-func (_c *RemoteDB_GetJobById_Call) Run(run func(_a0 context.Context, _a1 string)) *RemoteDB_GetJobById_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_GetJobById_Call) Return(_a0 *types.Job, _a1 error) *RemoteDB_GetJobById_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_GetJobById_Call) RunAndReturn(run func(context.Context, string) (*types.Job, error)) *RemoteDB_GetJobById_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetJobsFromDateRange provides a mock function with given fields: _a0, _a1, _a2, _a3
@@ -316,37 +162,6 @@ func (_m *RemoteDB) GetJobsFromDateRange(_a0 context.Context, _a1 time.Time, _a2
 	return r0, r1
 }
 
-// RemoteDB_GetJobsFromDateRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobsFromDateRange'
-type RemoteDB_GetJobsFromDateRange_Call struct {
-	*mock.Call
-}
-
-// GetJobsFromDateRange is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 time.Time
-//   - _a2 time.Time
-//   - _a3 string
-func (_e *RemoteDB_Expecter) GetJobsFromDateRange(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *RemoteDB_GetJobsFromDateRange_Call {
-	return &RemoteDB_GetJobsFromDateRange_Call{Call: _e.mock.On("GetJobsFromDateRange", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *RemoteDB_GetJobsFromDateRange_Call) Run(run func(_a0 context.Context, _a1 time.Time, _a2 time.Time, _a3 string)) *RemoteDB_GetJobsFromDateRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_GetJobsFromDateRange_Call) Return(_a0 []*types.Job, _a1 error) *RemoteDB_GetJobsFromDateRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_GetJobsFromDateRange_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, string) ([]*types.Job, error)) *RemoteDB_GetJobsFromDateRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTaskById provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) GetTaskById(_a0 context.Context, _a1 string) (*types.Task, error) {
 	ret := _m.Called(_a0, _a1)
@@ -375,35 +190,6 @@ func (_m *RemoteDB) GetTaskById(_a0 context.Context, _a1 string) (*types.Task, e
 	}
 
 	return r0, r1
-}
-
-// RemoteDB_GetTaskById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTaskById'
-type RemoteDB_GetTaskById_Call struct {
-	*mock.Call
-}
-
-// GetTaskById is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-func (_e *RemoteDB_Expecter) GetTaskById(_a0 interface{}, _a1 interface{}) *RemoteDB_GetTaskById_Call {
-	return &RemoteDB_GetTaskById_Call{Call: _e.mock.On("GetTaskById", _a0, _a1)}
-}
-
-func (_c *RemoteDB_GetTaskById_Call) Run(run func(_a0 context.Context, _a1 string)) *RemoteDB_GetTaskById_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_GetTaskById_Call) Return(_a0 *types.Task, _a1 error) *RemoteDB_GetTaskById_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_GetTaskById_Call) RunAndReturn(run func(context.Context, string) (*types.Task, error)) *RemoteDB_GetTaskById_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetTasksFromDateRange provides a mock function with given fields: _a0, _a1, _a2, _a3
@@ -436,37 +222,6 @@ func (_m *RemoteDB) GetTasksFromDateRange(_a0 context.Context, _a1 time.Time, _a
 	return r0, r1
 }
 
-// RemoteDB_GetTasksFromDateRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTasksFromDateRange'
-type RemoteDB_GetTasksFromDateRange_Call struct {
-	*mock.Call
-}
-
-// GetTasksFromDateRange is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 time.Time
-//   - _a2 time.Time
-//   - _a3 string
-func (_e *RemoteDB_Expecter) GetTasksFromDateRange(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *RemoteDB_GetTasksFromDateRange_Call {
-	return &RemoteDB_GetTasksFromDateRange_Call{Call: _e.mock.On("GetTasksFromDateRange", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *RemoteDB_GetTasksFromDateRange_Call) Run(run func(_a0 context.Context, _a1 time.Time, _a2 time.Time, _a3 string)) *RemoteDB_GetTasksFromDateRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_GetTasksFromDateRange_Call) Return(_a0 []*types.Task, _a1 error) *RemoteDB_GetTasksFromDateRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_GetTasksFromDateRange_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, string) ([]*types.Task, error)) *RemoteDB_GetTasksFromDateRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ModifiedCommitCommentsCh provides a mock function with given fields: _a0
 func (_m *RemoteDB) ModifiedCommitCommentsCh(_a0 context.Context) <-chan []*types.CommitComment {
 	ret := _m.Called(_a0)
@@ -485,34 +240,6 @@ func (_m *RemoteDB) ModifiedCommitCommentsCh(_a0 context.Context) <-chan []*type
 	}
 
 	return r0
-}
-
-// RemoteDB_ModifiedCommitCommentsCh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifiedCommitCommentsCh'
-type RemoteDB_ModifiedCommitCommentsCh_Call struct {
-	*mock.Call
-}
-
-// ModifiedCommitCommentsCh is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *RemoteDB_Expecter) ModifiedCommitCommentsCh(_a0 interface{}) *RemoteDB_ModifiedCommitCommentsCh_Call {
-	return &RemoteDB_ModifiedCommitCommentsCh_Call{Call: _e.mock.On("ModifiedCommitCommentsCh", _a0)}
-}
-
-func (_c *RemoteDB_ModifiedCommitCommentsCh_Call) Run(run func(_a0 context.Context)) *RemoteDB_ModifiedCommitCommentsCh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedCommitCommentsCh_Call) Return(_a0 <-chan []*types.CommitComment) *RemoteDB_ModifiedCommitCommentsCh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedCommitCommentsCh_Call) RunAndReturn(run func(context.Context) <-chan []*types.CommitComment) *RemoteDB_ModifiedCommitCommentsCh_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ModifiedJobsCh provides a mock function with given fields: _a0
@@ -535,34 +262,6 @@ func (_m *RemoteDB) ModifiedJobsCh(_a0 context.Context) <-chan []*types.Job {
 	return r0
 }
 
-// RemoteDB_ModifiedJobsCh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifiedJobsCh'
-type RemoteDB_ModifiedJobsCh_Call struct {
-	*mock.Call
-}
-
-// ModifiedJobsCh is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *RemoteDB_Expecter) ModifiedJobsCh(_a0 interface{}) *RemoteDB_ModifiedJobsCh_Call {
-	return &RemoteDB_ModifiedJobsCh_Call{Call: _e.mock.On("ModifiedJobsCh", _a0)}
-}
-
-func (_c *RemoteDB_ModifiedJobsCh_Call) Run(run func(_a0 context.Context)) *RemoteDB_ModifiedJobsCh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedJobsCh_Call) Return(_a0 <-chan []*types.Job) *RemoteDB_ModifiedJobsCh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedJobsCh_Call) RunAndReturn(run func(context.Context) <-chan []*types.Job) *RemoteDB_ModifiedJobsCh_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ModifiedTaskCommentsCh provides a mock function with given fields: _a0
 func (_m *RemoteDB) ModifiedTaskCommentsCh(_a0 context.Context) <-chan []*types.TaskComment {
 	ret := _m.Called(_a0)
@@ -581,34 +280,6 @@ func (_m *RemoteDB) ModifiedTaskCommentsCh(_a0 context.Context) <-chan []*types.
 	}
 
 	return r0
-}
-
-// RemoteDB_ModifiedTaskCommentsCh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifiedTaskCommentsCh'
-type RemoteDB_ModifiedTaskCommentsCh_Call struct {
-	*mock.Call
-}
-
-// ModifiedTaskCommentsCh is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *RemoteDB_Expecter) ModifiedTaskCommentsCh(_a0 interface{}) *RemoteDB_ModifiedTaskCommentsCh_Call {
-	return &RemoteDB_ModifiedTaskCommentsCh_Call{Call: _e.mock.On("ModifiedTaskCommentsCh", _a0)}
-}
-
-func (_c *RemoteDB_ModifiedTaskCommentsCh_Call) Run(run func(_a0 context.Context)) *RemoteDB_ModifiedTaskCommentsCh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTaskCommentsCh_Call) Return(_a0 <-chan []*types.TaskComment) *RemoteDB_ModifiedTaskCommentsCh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTaskCommentsCh_Call) RunAndReturn(run func(context.Context) <-chan []*types.TaskComment) *RemoteDB_ModifiedTaskCommentsCh_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ModifiedTaskSpecCommentsCh provides a mock function with given fields: _a0
@@ -631,34 +302,6 @@ func (_m *RemoteDB) ModifiedTaskSpecCommentsCh(_a0 context.Context) <-chan []*ty
 	return r0
 }
 
-// RemoteDB_ModifiedTaskSpecCommentsCh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifiedTaskSpecCommentsCh'
-type RemoteDB_ModifiedTaskSpecCommentsCh_Call struct {
-	*mock.Call
-}
-
-// ModifiedTaskSpecCommentsCh is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *RemoteDB_Expecter) ModifiedTaskSpecCommentsCh(_a0 interface{}) *RemoteDB_ModifiedTaskSpecCommentsCh_Call {
-	return &RemoteDB_ModifiedTaskSpecCommentsCh_Call{Call: _e.mock.On("ModifiedTaskSpecCommentsCh", _a0)}
-}
-
-func (_c *RemoteDB_ModifiedTaskSpecCommentsCh_Call) Run(run func(_a0 context.Context)) *RemoteDB_ModifiedTaskSpecCommentsCh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTaskSpecCommentsCh_Call) Return(_a0 <-chan []*types.TaskSpecComment) *RemoteDB_ModifiedTaskSpecCommentsCh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTaskSpecCommentsCh_Call) RunAndReturn(run func(context.Context) <-chan []*types.TaskSpecComment) *RemoteDB_ModifiedTaskSpecCommentsCh_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ModifiedTasksCh provides a mock function with given fields: _a0
 func (_m *RemoteDB) ModifiedTasksCh(_a0 context.Context) <-chan []*types.Task {
 	ret := _m.Called(_a0)
@@ -679,34 +322,6 @@ func (_m *RemoteDB) ModifiedTasksCh(_a0 context.Context) <-chan []*types.Task {
 	return r0
 }
 
-// RemoteDB_ModifiedTasksCh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifiedTasksCh'
-type RemoteDB_ModifiedTasksCh_Call struct {
-	*mock.Call
-}
-
-// ModifiedTasksCh is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *RemoteDB_Expecter) ModifiedTasksCh(_a0 interface{}) *RemoteDB_ModifiedTasksCh_Call {
-	return &RemoteDB_ModifiedTasksCh_Call{Call: _e.mock.On("ModifiedTasksCh", _a0)}
-}
-
-func (_c *RemoteDB_ModifiedTasksCh_Call) Run(run func(_a0 context.Context)) *RemoteDB_ModifiedTasksCh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTasksCh_Call) Return(_a0 <-chan []*types.Task) *RemoteDB_ModifiedTasksCh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_ModifiedTasksCh_Call) RunAndReturn(run func(context.Context) <-chan []*types.Task) *RemoteDB_ModifiedTasksCh_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PutCommitComment provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) PutCommitComment(_a0 context.Context, _a1 *types.CommitComment) error {
 	ret := _m.Called(_a0, _a1)
@@ -723,35 +338,6 @@ func (_m *RemoteDB) PutCommitComment(_a0 context.Context, _a1 *types.CommitComme
 	}
 
 	return r0
-}
-
-// RemoteDB_PutCommitComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutCommitComment'
-type RemoteDB_PutCommitComment_Call struct {
-	*mock.Call
-}
-
-// PutCommitComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.CommitComment
-func (_e *RemoteDB_Expecter) PutCommitComment(_a0 interface{}, _a1 interface{}) *RemoteDB_PutCommitComment_Call {
-	return &RemoteDB_PutCommitComment_Call{Call: _e.mock.On("PutCommitComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_PutCommitComment_Call) Run(run func(_a0 context.Context, _a1 *types.CommitComment)) *RemoteDB_PutCommitComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.CommitComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_PutCommitComment_Call) Return(_a0 error) *RemoteDB_PutCommitComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_PutCommitComment_Call) RunAndReturn(run func(context.Context, *types.CommitComment) error) *RemoteDB_PutCommitComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // PutTaskComment provides a mock function with given fields: _a0, _a1
@@ -772,35 +358,6 @@ func (_m *RemoteDB) PutTaskComment(_a0 context.Context, _a1 *types.TaskComment) 
 	return r0
 }
 
-// RemoteDB_PutTaskComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTaskComment'
-type RemoteDB_PutTaskComment_Call struct {
-	*mock.Call
-}
-
-// PutTaskComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.TaskComment
-func (_e *RemoteDB_Expecter) PutTaskComment(_a0 interface{}, _a1 interface{}) *RemoteDB_PutTaskComment_Call {
-	return &RemoteDB_PutTaskComment_Call{Call: _e.mock.On("PutTaskComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_PutTaskComment_Call) Run(run func(_a0 context.Context, _a1 *types.TaskComment)) *RemoteDB_PutTaskComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.TaskComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_PutTaskComment_Call) Return(_a0 error) *RemoteDB_PutTaskComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_PutTaskComment_Call) RunAndReturn(run func(context.Context, *types.TaskComment) error) *RemoteDB_PutTaskComment_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PutTaskSpecComment provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) PutTaskSpecComment(_a0 context.Context, _a1 *types.TaskSpecComment) error {
 	ret := _m.Called(_a0, _a1)
@@ -817,35 +374,6 @@ func (_m *RemoteDB) PutTaskSpecComment(_a0 context.Context, _a1 *types.TaskSpecC
 	}
 
 	return r0
-}
-
-// RemoteDB_PutTaskSpecComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTaskSpecComment'
-type RemoteDB_PutTaskSpecComment_Call struct {
-	*mock.Call
-}
-
-// PutTaskSpecComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *types.TaskSpecComment
-func (_e *RemoteDB_Expecter) PutTaskSpecComment(_a0 interface{}, _a1 interface{}) *RemoteDB_PutTaskSpecComment_Call {
-	return &RemoteDB_PutTaskSpecComment_Call{Call: _e.mock.On("PutTaskSpecComment", _a0, _a1)}
-}
-
-func (_c *RemoteDB_PutTaskSpecComment_Call) Run(run func(_a0 context.Context, _a1 *types.TaskSpecComment)) *RemoteDB_PutTaskSpecComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*types.TaskSpecComment))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_PutTaskSpecComment_Call) Return(_a0 error) *RemoteDB_PutTaskSpecComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RemoteDB_PutTaskSpecComment_Call) RunAndReturn(run func(context.Context, *types.TaskSpecComment) error) *RemoteDB_PutTaskSpecComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SearchJobs provides a mock function with given fields: _a0, _a1
@@ -878,35 +406,6 @@ func (_m *RemoteDB) SearchJobs(_a0 context.Context, _a1 *db.JobSearchParams) ([]
 	return r0, r1
 }
 
-// RemoteDB_SearchJobs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchJobs'
-type RemoteDB_SearchJobs_Call struct {
-	*mock.Call
-}
-
-// SearchJobs is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *db.JobSearchParams
-func (_e *RemoteDB_Expecter) SearchJobs(_a0 interface{}, _a1 interface{}) *RemoteDB_SearchJobs_Call {
-	return &RemoteDB_SearchJobs_Call{Call: _e.mock.On("SearchJobs", _a0, _a1)}
-}
-
-func (_c *RemoteDB_SearchJobs_Call) Run(run func(_a0 context.Context, _a1 *db.JobSearchParams)) *RemoteDB_SearchJobs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*db.JobSearchParams))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_SearchJobs_Call) Return(_a0 []*types.Job, _a1 error) *RemoteDB_SearchJobs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_SearchJobs_Call) RunAndReturn(run func(context.Context, *db.JobSearchParams) ([]*types.Job, error)) *RemoteDB_SearchJobs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SearchTasks provides a mock function with given fields: _a0, _a1
 func (_m *RemoteDB) SearchTasks(_a0 context.Context, _a1 *db.TaskSearchParams) ([]*types.Task, error) {
 	ret := _m.Called(_a0, _a1)
@@ -935,35 +434,6 @@ func (_m *RemoteDB) SearchTasks(_a0 context.Context, _a1 *db.TaskSearchParams) (
 	}
 
 	return r0, r1
-}
-
-// RemoteDB_SearchTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchTasks'
-type RemoteDB_SearchTasks_Call struct {
-	*mock.Call
-}
-
-// SearchTasks is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *db.TaskSearchParams
-func (_e *RemoteDB_Expecter) SearchTasks(_a0 interface{}, _a1 interface{}) *RemoteDB_SearchTasks_Call {
-	return &RemoteDB_SearchTasks_Call{Call: _e.mock.On("SearchTasks", _a0, _a1)}
-}
-
-func (_c *RemoteDB_SearchTasks_Call) Run(run func(_a0 context.Context, _a1 *db.TaskSearchParams)) *RemoteDB_SearchTasks_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*db.TaskSearchParams))
-	})
-	return _c
-}
-
-func (_c *RemoteDB_SearchTasks_Call) Return(_a0 []*types.Task, _a1 error) *RemoteDB_SearchTasks_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *RemoteDB_SearchTasks_Call) RunAndReturn(run func(context.Context, *db.TaskSearchParams) ([]*types.Task, error)) *RemoteDB_SearchTasks_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewRemoteDB creates a new instance of RemoteDB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

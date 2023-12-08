@@ -15,14 +15,6 @@ type OAuthConfig struct {
 	mock.Mock
 }
 
-type OAuthConfig_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *OAuthConfig) EXPECT() *OAuthConfig_Expecter {
-	return &OAuthConfig_Expecter{mock: &_m.Mock}
-}
-
 // AuthCodeURL provides a mock function with given fields: state, opts
 func (_m *OAuthConfig) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string {
 	_va := make([]interface{}, len(opts))
@@ -46,42 +38,6 @@ func (_m *OAuthConfig) AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) 
 	}
 
 	return r0
-}
-
-// OAuthConfig_AuthCodeURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthCodeURL'
-type OAuthConfig_AuthCodeURL_Call struct {
-	*mock.Call
-}
-
-// AuthCodeURL is a helper method to define mock.On call
-//   - state string
-//   - opts ...oauth2.AuthCodeOption
-func (_e *OAuthConfig_Expecter) AuthCodeURL(state interface{}, opts ...interface{}) *OAuthConfig_AuthCodeURL_Call {
-	return &OAuthConfig_AuthCodeURL_Call{Call: _e.mock.On("AuthCodeURL",
-		append([]interface{}{state}, opts...)...)}
-}
-
-func (_c *OAuthConfig_AuthCodeURL_Call) Run(run func(state string, opts ...oauth2.AuthCodeOption)) *OAuthConfig_AuthCodeURL_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]oauth2.AuthCodeOption, len(args)-1)
-		for i, a := range args[1:] {
-			if a != nil {
-				variadicArgs[i] = a.(oauth2.AuthCodeOption)
-			}
-		}
-		run(args[0].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *OAuthConfig_AuthCodeURL_Call) Return(_a0 string) *OAuthConfig_AuthCodeURL_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *OAuthConfig_AuthCodeURL_Call) RunAndReturn(run func(string, ...oauth2.AuthCodeOption) string) *OAuthConfig_AuthCodeURL_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Exchange provides a mock function with given fields: ctx, code, opts
@@ -119,43 +75,6 @@ func (_m *OAuthConfig) Exchange(ctx context.Context, code string, opts ...oauth2
 	}
 
 	return r0, r1
-}
-
-// OAuthConfig_Exchange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exchange'
-type OAuthConfig_Exchange_Call struct {
-	*mock.Call
-}
-
-// Exchange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - code string
-//   - opts ...oauth2.AuthCodeOption
-func (_e *OAuthConfig_Expecter) Exchange(ctx interface{}, code interface{}, opts ...interface{}) *OAuthConfig_Exchange_Call {
-	return &OAuthConfig_Exchange_Call{Call: _e.mock.On("Exchange",
-		append([]interface{}{ctx, code}, opts...)...)}
-}
-
-func (_c *OAuthConfig_Exchange_Call) Run(run func(ctx context.Context, code string, opts ...oauth2.AuthCodeOption)) *OAuthConfig_Exchange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]oauth2.AuthCodeOption, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(oauth2.AuthCodeOption)
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *OAuthConfig_Exchange_Call) Return(_a0 *oauth2.Token, _a1 error) *OAuthConfig_Exchange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *OAuthConfig_Exchange_Call) RunAndReturn(run func(context.Context, string, ...oauth2.AuthCodeOption) (*oauth2.Token, error)) *OAuthConfig_Exchange_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewOAuthConfig creates a new instance of OAuthConfig. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

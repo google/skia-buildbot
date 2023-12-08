@@ -12,14 +12,6 @@ type IMonorailService struct {
 	mock.Mock
 }
 
-type IMonorailService_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *IMonorailService) EXPECT() *IMonorailService_Expecter {
-	return &IMonorailService_Expecter{mock: &_m.Mock}
-}
-
 // GetEmail provides a mock function with given fields: userName
 func (_m *IMonorailService) GetEmail(userName string) (*monorail.MonorailUser, error) {
 	ret := _m.Called(userName)
@@ -48,34 +40,6 @@ func (_m *IMonorailService) GetEmail(userName string) (*monorail.MonorailUser, e
 	}
 
 	return r0, r1
-}
-
-// IMonorailService_GetEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEmail'
-type IMonorailService_GetEmail_Call struct {
-	*mock.Call
-}
-
-// GetEmail is a helper method to define mock.On call
-//   - userName string
-func (_e *IMonorailService_Expecter) GetEmail(userName interface{}) *IMonorailService_GetEmail_Call {
-	return &IMonorailService_GetEmail_Call{Call: _e.mock.On("GetEmail", userName)}
-}
-
-func (_c *IMonorailService_GetEmail_Call) Run(run func(userName string)) *IMonorailService_GetEmail_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_GetEmail_Call) Return(_a0 *monorail.MonorailUser, _a1 error) *IMonorailService_GetEmail_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IMonorailService_GetEmail_Call) RunAndReturn(run func(string) (*monorail.MonorailUser, error)) *IMonorailService_GetEmail_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetIssue provides a mock function with given fields: issueName
@@ -108,34 +72,6 @@ func (_m *IMonorailService) GetIssue(issueName string) (*monorail.MonorailIssue,
 	return r0, r1
 }
 
-// IMonorailService_GetIssue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIssue'
-type IMonorailService_GetIssue_Call struct {
-	*mock.Call
-}
-
-// GetIssue is a helper method to define mock.On call
-//   - issueName string
-func (_e *IMonorailService_Expecter) GetIssue(issueName interface{}) *IMonorailService_GetIssue_Call {
-	return &IMonorailService_GetIssue_Call{Call: _e.mock.On("GetIssue", issueName)}
-}
-
-func (_c *IMonorailService_GetIssue_Call) Run(run func(issueName string)) *IMonorailService_GetIssue_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_GetIssue_Call) Return(_a0 *monorail.MonorailIssue, _a1 error) *IMonorailService_GetIssue_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IMonorailService_GetIssue_Call) RunAndReturn(run func(string) (*monorail.MonorailIssue, error)) *IMonorailService_GetIssue_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetIssueLink provides a mock function with given fields: instance, id
 func (_m *IMonorailService) GetIssueLink(instance string, id string) string {
 	ret := _m.Called(instance, id)
@@ -152,35 +88,6 @@ func (_m *IMonorailService) GetIssueLink(instance string, id string) string {
 	}
 
 	return r0
-}
-
-// IMonorailService_GetIssueLink_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIssueLink'
-type IMonorailService_GetIssueLink_Call struct {
-	*mock.Call
-}
-
-// GetIssueLink is a helper method to define mock.On call
-//   - instance string
-//   - id string
-func (_e *IMonorailService_Expecter) GetIssueLink(instance interface{}, id interface{}) *IMonorailService_GetIssueLink_Call {
-	return &IMonorailService_GetIssueLink_Call{Call: _e.mock.On("GetIssueLink", instance, id)}
-}
-
-func (_c *IMonorailService_GetIssueLink_Call) Run(run func(instance string, id string)) *IMonorailService_GetIssueLink_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_GetIssueLink_Call) Return(_a0 string) *IMonorailService_GetIssueLink_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *IMonorailService_GetIssueLink_Call) RunAndReturn(run func(string, string) string) *IMonorailService_GetIssueLink_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // MakeIssue provides a mock function with given fields: instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers
@@ -213,43 +120,6 @@ func (_m *IMonorailService) MakeIssue(instance string, owner string, summary str
 	return r0, r1
 }
 
-// IMonorailService_MakeIssue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MakeIssue'
-type IMonorailService_MakeIssue_Call struct {
-	*mock.Call
-}
-
-// MakeIssue is a helper method to define mock.On call
-//   - instance string
-//   - owner string
-//   - summary string
-//   - description string
-//   - status string
-//   - priority string
-//   - issueType string
-//   - labels []string
-//   - componentDefIDs []string
-//   - ccUsers []string
-func (_e *IMonorailService_Expecter) MakeIssue(instance interface{}, owner interface{}, summary interface{}, description interface{}, status interface{}, priority interface{}, issueType interface{}, labels interface{}, componentDefIDs interface{}, ccUsers interface{}) *IMonorailService_MakeIssue_Call {
-	return &IMonorailService_MakeIssue_Call{Call: _e.mock.On("MakeIssue", instance, owner, summary, description, status, priority, issueType, labels, componentDefIDs, ccUsers)}
-}
-
-func (_c *IMonorailService_MakeIssue_Call) Run(run func(instance string, owner string, summary string, description string, status string, priority string, issueType string, labels []string, componentDefIDs []string, ccUsers []string)) *IMonorailService_MakeIssue_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string), args[3].(string), args[4].(string), args[5].(string), args[6].(string), args[7].([]string), args[8].([]string), args[9].([]string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_MakeIssue_Call) Return(_a0 *monorail.MonorailIssue, _a1 error) *IMonorailService_MakeIssue_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IMonorailService_MakeIssue_Call) RunAndReturn(run func(string, string, string, string, string, string, string, []string, []string, []string) (*monorail.MonorailIssue, error)) *IMonorailService_MakeIssue_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SearchIssuesWithPagination provides a mock function with given fields: instance, query
 func (_m *IMonorailService) SearchIssuesWithPagination(instance string, query string) ([]monorail.MonorailIssue, error) {
 	ret := _m.Called(instance, query)
@@ -280,35 +150,6 @@ func (_m *IMonorailService) SearchIssuesWithPagination(instance string, query st
 	return r0, r1
 }
 
-// IMonorailService_SearchIssuesWithPagination_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchIssuesWithPagination'
-type IMonorailService_SearchIssuesWithPagination_Call struct {
-	*mock.Call
-}
-
-// SearchIssuesWithPagination is a helper method to define mock.On call
-//   - instance string
-//   - query string
-func (_e *IMonorailService_Expecter) SearchIssuesWithPagination(instance interface{}, query interface{}) *IMonorailService_SearchIssuesWithPagination_Call {
-	return &IMonorailService_SearchIssuesWithPagination_Call{Call: _e.mock.On("SearchIssuesWithPagination", instance, query)}
-}
-
-func (_c *IMonorailService_SearchIssuesWithPagination_Call) Run(run func(instance string, query string)) *IMonorailService_SearchIssuesWithPagination_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_SearchIssuesWithPagination_Call) Return(_a0 []monorail.MonorailIssue, _a1 error) *IMonorailService_SearchIssuesWithPagination_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *IMonorailService_SearchIssuesWithPagination_Call) RunAndReturn(run func(string, string) ([]monorail.MonorailIssue, error)) *IMonorailService_SearchIssuesWithPagination_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetOwnerAndAddComment provides a mock function with given fields: instance, owner, comment, id
 func (_m *IMonorailService) SetOwnerAndAddComment(instance string, owner string, comment string, id string) error {
 	ret := _m.Called(instance, owner, comment, id)
@@ -325,37 +166,6 @@ func (_m *IMonorailService) SetOwnerAndAddComment(instance string, owner string,
 	}
 
 	return r0
-}
-
-// IMonorailService_SetOwnerAndAddComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetOwnerAndAddComment'
-type IMonorailService_SetOwnerAndAddComment_Call struct {
-	*mock.Call
-}
-
-// SetOwnerAndAddComment is a helper method to define mock.On call
-//   - instance string
-//   - owner string
-//   - comment string
-//   - id string
-func (_e *IMonorailService_Expecter) SetOwnerAndAddComment(instance interface{}, owner interface{}, comment interface{}, id interface{}) *IMonorailService_SetOwnerAndAddComment_Call {
-	return &IMonorailService_SetOwnerAndAddComment_Call{Call: _e.mock.On("SetOwnerAndAddComment", instance, owner, comment, id)}
-}
-
-func (_c *IMonorailService_SetOwnerAndAddComment_Call) Run(run func(instance string, owner string, comment string, id string)) *IMonorailService_SetOwnerAndAddComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *IMonorailService_SetOwnerAndAddComment_Call) Return(_a0 error) *IMonorailService_SetOwnerAndAddComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *IMonorailService_SetOwnerAndAddComment_Call) RunAndReturn(run func(string, string, string, string) error) *IMonorailService_SetOwnerAndAddComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewIMonorailService creates a new instance of IMonorailService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

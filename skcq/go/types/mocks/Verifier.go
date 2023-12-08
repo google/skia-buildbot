@@ -16,47 +16,9 @@ type Verifier struct {
 	mock.Mock
 }
 
-type Verifier_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Verifier) EXPECT() *Verifier_Expecter {
-	return &Verifier_Expecter{mock: &_m.Mock}
-}
-
 // Cleanup provides a mock function with given fields: ctx, ci, cleanupPatchsetID
 func (_m *Verifier) Cleanup(ctx context.Context, ci *gerrit.ChangeInfo, cleanupPatchsetID int64) {
 	_m.Called(ctx, ci, cleanupPatchsetID)
-}
-
-// Verifier_Cleanup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cleanup'
-type Verifier_Cleanup_Call struct {
-	*mock.Call
-}
-
-// Cleanup is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-//   - cleanupPatchsetID int64
-func (_e *Verifier_Expecter) Cleanup(ctx interface{}, ci interface{}, cleanupPatchsetID interface{}) *Verifier_Cleanup_Call {
-	return &Verifier_Cleanup_Call{Call: _e.mock.On("Cleanup", ctx, ci, cleanupPatchsetID)}
-}
-
-func (_c *Verifier_Cleanup_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo, cleanupPatchsetID int64)) *Verifier_Cleanup_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(int64))
-	})
-	return _c
-}
-
-func (_c *Verifier_Cleanup_Call) Return() *Verifier_Cleanup_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *Verifier_Cleanup_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, int64)) *Verifier_Cleanup_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Name provides a mock function with given fields:
@@ -75,33 +37,6 @@ func (_m *Verifier) Name() string {
 	}
 
 	return r0
-}
-
-// Verifier_Name_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Name'
-type Verifier_Name_Call struct {
-	*mock.Call
-}
-
-// Name is a helper method to define mock.On call
-func (_e *Verifier_Expecter) Name() *Verifier_Name_Call {
-	return &Verifier_Name_Call{Call: _e.mock.On("Name")}
-}
-
-func (_c *Verifier_Name_Call) Run(run func()) *Verifier_Name_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Verifier_Name_Call) Return(_a0 string) *Verifier_Name_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Verifier_Name_Call) RunAndReturn(run func() string) *Verifier_Name_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Verify provides a mock function with given fields: ctx, ci, startTime
@@ -137,36 +72,6 @@ func (_m *Verifier) Verify(ctx context.Context, ci *gerrit.ChangeInfo, startTime
 	}
 
 	return r0, r1, r2
-}
-
-// Verifier_Verify_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Verify'
-type Verifier_Verify_Call struct {
-	*mock.Call
-}
-
-// Verify is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-//   - startTime int64
-func (_e *Verifier_Expecter) Verify(ctx interface{}, ci interface{}, startTime interface{}) *Verifier_Verify_Call {
-	return &Verifier_Verify_Call{Call: _e.mock.On("Verify", ctx, ci, startTime)}
-}
-
-func (_c *Verifier_Verify_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo, startTime int64)) *Verifier_Verify_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(int64))
-	})
-	return _c
-}
-
-func (_c *Verifier_Verify_Call) Return(state types.VerifierState, reason string, err error) *Verifier_Verify_Call {
-	_c.Call.Return(state, reason, err)
-	return _c
-}
-
-func (_c *Verifier_Verify_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, int64) (types.VerifierState, string, error)) *Verifier_Verify_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewVerifier creates a new instance of Verifier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

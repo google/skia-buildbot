@@ -17,14 +17,6 @@ type CapacityClient struct {
 	mock.Mock
 }
 
-type CapacityClient_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *CapacityClient) EXPECT() *CapacityClient_Expecter {
-	return &CapacityClient_Expecter{mock: &_m.Mock}
-}
-
 // CapacityMetrics provides a mock function with given fields:
 func (_m *CapacityClient) CapacityMetrics() map[string]capacity.BotConfig {
 	ret := _m.Called()
@@ -45,33 +37,6 @@ func (_m *CapacityClient) CapacityMetrics() map[string]capacity.BotConfig {
 	return r0
 }
 
-// CapacityClient_CapacityMetrics_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CapacityMetrics'
-type CapacityClient_CapacityMetrics_Call struct {
-	*mock.Call
-}
-
-// CapacityMetrics is a helper method to define mock.On call
-func (_e *CapacityClient_Expecter) CapacityMetrics() *CapacityClient_CapacityMetrics_Call {
-	return &CapacityClient_CapacityMetrics_Call{Call: _e.mock.On("CapacityMetrics")}
-}
-
-func (_c *CapacityClient_CapacityMetrics_Call) Run(run func()) *CapacityClient_CapacityMetrics_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *CapacityClient_CapacityMetrics_Call) Return(_a0 map[string]capacity.BotConfig) *CapacityClient_CapacityMetrics_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CapacityClient_CapacityMetrics_Call) RunAndReturn(run func() map[string]capacity.BotConfig) *CapacityClient_CapacityMetrics_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // QueryAll provides a mock function with given fields: ctx
 func (_m *CapacityClient) QueryAll(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -90,66 +55,9 @@ func (_m *CapacityClient) QueryAll(ctx context.Context) error {
 	return r0
 }
 
-// CapacityClient_QueryAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryAll'
-type CapacityClient_QueryAll_Call struct {
-	*mock.Call
-}
-
-// QueryAll is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *CapacityClient_Expecter) QueryAll(ctx interface{}) *CapacityClient_QueryAll_Call {
-	return &CapacityClient_QueryAll_Call{Call: _e.mock.On("QueryAll", ctx)}
-}
-
-func (_c *CapacityClient_QueryAll_Call) Run(run func(ctx context.Context)) *CapacityClient_QueryAll_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *CapacityClient_QueryAll_Call) Return(_a0 error) *CapacityClient_QueryAll_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CapacityClient_QueryAll_Call) RunAndReturn(run func(context.Context) error) *CapacityClient_QueryAll_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // StartLoading provides a mock function with given fields: ctx, interval
 func (_m *CapacityClient) StartLoading(ctx context.Context, interval time.Duration) {
 	_m.Called(ctx, interval)
-}
-
-// CapacityClient_StartLoading_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartLoading'
-type CapacityClient_StartLoading_Call struct {
-	*mock.Call
-}
-
-// StartLoading is a helper method to define mock.On call
-//   - ctx context.Context
-//   - interval time.Duration
-func (_e *CapacityClient_Expecter) StartLoading(ctx interface{}, interval interface{}) *CapacityClient_StartLoading_Call {
-	return &CapacityClient_StartLoading_Call{Call: _e.mock.On("StartLoading", ctx, interval)}
-}
-
-func (_c *CapacityClient_StartLoading_Call) Run(run func(ctx context.Context, interval time.Duration)) *CapacityClient_StartLoading_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Duration))
-	})
-	return _c
-}
-
-func (_c *CapacityClient_StartLoading_Call) Return() *CapacityClient_StartLoading_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *CapacityClient_StartLoading_Call) RunAndReturn(run func(context.Context, time.Duration)) *CapacityClient_StartLoading_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewCapacityClient creates a new instance of CapacityClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

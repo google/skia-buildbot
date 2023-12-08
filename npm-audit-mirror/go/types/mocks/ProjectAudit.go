@@ -14,46 +14,9 @@ type ProjectAudit struct {
 	mock.Mock
 }
 
-type ProjectAudit_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ProjectAudit) EXPECT() *ProjectAudit_Expecter {
-	return &ProjectAudit_Expecter{mock: &_m.Mock}
-}
-
 // StartAudit provides a mock function with given fields: ctx, pollInterval
 func (_m *ProjectAudit) StartAudit(ctx context.Context, pollInterval time.Duration) {
 	_m.Called(ctx, pollInterval)
-}
-
-// ProjectAudit_StartAudit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAudit'
-type ProjectAudit_StartAudit_Call struct {
-	*mock.Call
-}
-
-// StartAudit is a helper method to define mock.On call
-//   - ctx context.Context
-//   - pollInterval time.Duration
-func (_e *ProjectAudit_Expecter) StartAudit(ctx interface{}, pollInterval interface{}) *ProjectAudit_StartAudit_Call {
-	return &ProjectAudit_StartAudit_Call{Call: _e.mock.On("StartAudit", ctx, pollInterval)}
-}
-
-func (_c *ProjectAudit_StartAudit_Call) Run(run func(ctx context.Context, pollInterval time.Duration)) *ProjectAudit_StartAudit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Duration))
-	})
-	return _c
-}
-
-func (_c *ProjectAudit_StartAudit_Call) Return() *ProjectAudit_StartAudit_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *ProjectAudit_StartAudit_Call) RunAndReturn(run func(context.Context, time.Duration)) *ProjectAudit_StartAudit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewProjectAudit creates a new instance of ProjectAudit. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

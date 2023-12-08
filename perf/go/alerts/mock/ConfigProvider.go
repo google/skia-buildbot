@@ -15,14 +15,6 @@ type ConfigProvider struct {
 	mock.Mock
 }
 
-type ConfigProvider_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ConfigProvider) EXPECT() *ConfigProvider_Expecter {
-	return &ConfigProvider_Expecter{mock: &_m.Mock}
-}
-
 // GetAllAlertConfigs provides a mock function with given fields: ctx, includeDeleted
 func (_m *ConfigProvider) GetAllAlertConfigs(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	ret := _m.Called(ctx, includeDeleted)
@@ -53,65 +45,9 @@ func (_m *ConfigProvider) GetAllAlertConfigs(ctx context.Context, includeDeleted
 	return r0, r1
 }
 
-// ConfigProvider_GetAllAlertConfigs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllAlertConfigs'
-type ConfigProvider_GetAllAlertConfigs_Call struct {
-	*mock.Call
-}
-
-// GetAllAlertConfigs is a helper method to define mock.On call
-//   - ctx context.Context
-//   - includeDeleted bool
-func (_e *ConfigProvider_Expecter) GetAllAlertConfigs(ctx interface{}, includeDeleted interface{}) *ConfigProvider_GetAllAlertConfigs_Call {
-	return &ConfigProvider_GetAllAlertConfigs_Call{Call: _e.mock.On("GetAllAlertConfigs", ctx, includeDeleted)}
-}
-
-func (_c *ConfigProvider_GetAllAlertConfigs_Call) Run(run func(ctx context.Context, includeDeleted bool)) *ConfigProvider_GetAllAlertConfigs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(bool))
-	})
-	return _c
-}
-
-func (_c *ConfigProvider_GetAllAlertConfigs_Call) Return(_a0 []*alerts.Alert, _a1 error) *ConfigProvider_GetAllAlertConfigs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ConfigProvider_GetAllAlertConfigs_Call) RunAndReturn(run func(context.Context, bool) ([]*alerts.Alert, error)) *ConfigProvider_GetAllAlertConfigs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Refresh provides a mock function with given fields:
 func (_m *ConfigProvider) Refresh() {
 	_m.Called()
-}
-
-// ConfigProvider_Refresh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Refresh'
-type ConfigProvider_Refresh_Call struct {
-	*mock.Call
-}
-
-// Refresh is a helper method to define mock.On call
-func (_e *ConfigProvider_Expecter) Refresh() *ConfigProvider_Refresh_Call {
-	return &ConfigProvider_Refresh_Call{Call: _e.mock.On("Refresh")}
-}
-
-func (_c *ConfigProvider_Refresh_Call) Run(run func()) *ConfigProvider_Refresh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *ConfigProvider_Refresh_Call) Return() *ConfigProvider_Refresh_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *ConfigProvider_Refresh_Call) RunAndReturn(run func()) *ConfigProvider_Refresh_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewConfigProvider creates a new instance of ConfigProvider. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

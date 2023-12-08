@@ -15,14 +15,6 @@ type DB struct {
 	mock.Mock
 }
 
-type DB_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *DB) EXPECT() *DB_Expecter {
-	return &DB_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *DB) Close() error {
 	ret := _m.Called()
@@ -41,33 +33,6 @@ func (_m *DB) Close() error {
 	return r0
 }
 
-// DB_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type DB_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *DB_Expecter) Close() *DB_Close_Call {
-	return &DB_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *DB_Close_Call) Run(run func()) *DB_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *DB_Close_Call) Return(_a0 error) *DB_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Close_Call) RunAndReturn(run func() error) *DB_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Delete provides a mock function with given fields: ctx, rollerID
 func (_m *DB) Delete(ctx context.Context, rollerID string) error {
 	ret := _m.Called(ctx, rollerID)
@@ -84,35 +49,6 @@ func (_m *DB) Delete(ctx context.Context, rollerID string) error {
 	}
 
 	return r0
-}
-
-// DB_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type DB_Delete_Call struct {
-	*mock.Call
-}
-
-// Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollerID string
-func (_e *DB_Expecter) Delete(ctx interface{}, rollerID interface{}) *DB_Delete_Call {
-	return &DB_Delete_Call{Call: _e.mock.On("Delete", ctx, rollerID)}
-}
-
-func (_c *DB_Delete_Call) Run(run func(ctx context.Context, rollerID string)) *DB_Delete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *DB_Delete_Call) Return(_a0 error) *DB_Delete_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Delete_Call) RunAndReturn(run func(context.Context, string) error) *DB_Delete_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Get provides a mock function with given fields: ctx, rollerID
@@ -145,35 +81,6 @@ func (_m *DB) Get(ctx context.Context, rollerID string) (*config.Config, error) 
 	return r0, r1
 }
 
-// DB_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type DB_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollerID string
-func (_e *DB_Expecter) Get(ctx interface{}, rollerID interface{}) *DB_Get_Call {
-	return &DB_Get_Call{Call: _e.mock.On("Get", ctx, rollerID)}
-}
-
-func (_c *DB_Get_Call) Run(run func(ctx context.Context, rollerID string)) *DB_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *DB_Get_Call) Return(_a0 *config.Config, _a1 error) *DB_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_Get_Call) RunAndReturn(run func(context.Context, string) (*config.Config, error)) *DB_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetAll provides a mock function with given fields: ctx
 func (_m *DB) GetAll(ctx context.Context) ([]*config.Config, error) {
 	ret := _m.Called(ctx)
@@ -204,34 +111,6 @@ func (_m *DB) GetAll(ctx context.Context) ([]*config.Config, error) {
 	return r0, r1
 }
 
-// DB_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
-type DB_GetAll_Call struct {
-	*mock.Call
-}
-
-// GetAll is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *DB_Expecter) GetAll(ctx interface{}) *DB_GetAll_Call {
-	return &DB_GetAll_Call{Call: _e.mock.On("GetAll", ctx)}
-}
-
-func (_c *DB_GetAll_Call) Run(run func(ctx context.Context)) *DB_GetAll_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *DB_GetAll_Call) Return(_a0 []*config.Config, _a1 error) *DB_GetAll_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_GetAll_Call) RunAndReturn(run func(context.Context) ([]*config.Config, error)) *DB_GetAll_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Put provides a mock function with given fields: ctx, rollerID, cfg
 func (_m *DB) Put(ctx context.Context, rollerID string, cfg *config.Config) error {
 	ret := _m.Called(ctx, rollerID, cfg)
@@ -248,36 +127,6 @@ func (_m *DB) Put(ctx context.Context, rollerID string, cfg *config.Config) erro
 	}
 
 	return r0
-}
-
-// DB_Put_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Put'
-type DB_Put_Call struct {
-	*mock.Call
-}
-
-// Put is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollerID string
-//   - cfg *config.Config
-func (_e *DB_Expecter) Put(ctx interface{}, rollerID interface{}, cfg interface{}) *DB_Put_Call {
-	return &DB_Put_Call{Call: _e.mock.On("Put", ctx, rollerID, cfg)}
-}
-
-func (_c *DB_Put_Call) Run(run func(ctx context.Context, rollerID string, cfg *config.Config)) *DB_Put_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*config.Config))
-	})
-	return _c
-}
-
-func (_c *DB_Put_Call) Return(_a0 error) *DB_Put_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Put_Call) RunAndReturn(run func(context.Context, string, *config.Config) error) *DB_Put_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDB creates a new instance of DB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

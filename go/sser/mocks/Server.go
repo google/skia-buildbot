@@ -14,14 +14,6 @@ type Server struct {
 	mock.Mock
 }
 
-type Server_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Server) EXPECT() *Server_Expecter {
-	return &Server_Expecter{mock: &_m.Mock}
-}
-
 // ClientConnectionHandler provides a mock function with given fields: ctx
 func (_m *Server) ClientConnectionHandler(ctx context.Context) http.HandlerFunc {
 	ret := _m.Called(ctx)
@@ -42,34 +34,6 @@ func (_m *Server) ClientConnectionHandler(ctx context.Context) http.HandlerFunc 
 	return r0
 }
 
-// Server_ClientConnectionHandler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClientConnectionHandler'
-type Server_ClientConnectionHandler_Call struct {
-	*mock.Call
-}
-
-// ClientConnectionHandler is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Server_Expecter) ClientConnectionHandler(ctx interface{}) *Server_ClientConnectionHandler_Call {
-	return &Server_ClientConnectionHandler_Call{Call: _e.mock.On("ClientConnectionHandler", ctx)}
-}
-
-func (_c *Server_ClientConnectionHandler_Call) Run(run func(ctx context.Context)) *Server_ClientConnectionHandler_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Server_ClientConnectionHandler_Call) Return(_a0 http.HandlerFunc) *Server_ClientConnectionHandler_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Server_ClientConnectionHandler_Call) RunAndReturn(run func(context.Context) http.HandlerFunc) *Server_ClientConnectionHandler_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Send provides a mock function with given fields: ctx, stream, msg
 func (_m *Server) Send(ctx context.Context, stream string, msg string) error {
 	ret := _m.Called(ctx, stream, msg)
@@ -88,36 +52,6 @@ func (_m *Server) Send(ctx context.Context, stream string, msg string) error {
 	return r0
 }
 
-// Server_Send_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Send'
-type Server_Send_Call struct {
-	*mock.Call
-}
-
-// Send is a helper method to define mock.On call
-//   - ctx context.Context
-//   - stream string
-//   - msg string
-func (_e *Server_Expecter) Send(ctx interface{}, stream interface{}, msg interface{}) *Server_Send_Call {
-	return &Server_Send_Call{Call: _e.mock.On("Send", ctx, stream, msg)}
-}
-
-func (_c *Server_Send_Call) Run(run func(ctx context.Context, stream string, msg string)) *Server_Send_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Server_Send_Call) Return(_a0 error) *Server_Send_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Server_Send_Call) RunAndReturn(run func(context.Context, string, string) error) *Server_Send_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Start provides a mock function with given fields: ctx
 func (_m *Server) Start(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -134,34 +68,6 @@ func (_m *Server) Start(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// Server_Start_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Start'
-type Server_Start_Call struct {
-	*mock.Call
-}
-
-// Start is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Server_Expecter) Start(ctx interface{}) *Server_Start_Call {
-	return &Server_Start_Call{Call: _e.mock.On("Start", ctx)}
-}
-
-func (_c *Server_Start_Call) Run(run func(ctx context.Context)) *Server_Start_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Server_Start_Call) Return(_a0 error) *Server_Start_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Server_Start_Call) RunAndReturn(run func(context.Context) error) *Server_Start_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewServer creates a new instance of Server. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

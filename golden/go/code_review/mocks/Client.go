@@ -17,14 +17,6 @@ type Client struct {
 	mock.Mock
 }
 
-type Client_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Client) EXPECT() *Client_Expecter {
-	return &Client_Expecter{mock: &_m.Mock}
-}
-
 // CommentOn provides a mock function with given fields: ctx, clID, message
 func (_m *Client) CommentOn(ctx context.Context, clID string, message string) error {
 	ret := _m.Called(ctx, clID, message)
@@ -41,36 +33,6 @@ func (_m *Client) CommentOn(ctx context.Context, clID string, message string) er
 	}
 
 	return r0
-}
-
-// Client_CommentOn_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommentOn'
-type Client_CommentOn_Call struct {
-	*mock.Call
-}
-
-// CommentOn is a helper method to define mock.On call
-//   - ctx context.Context
-//   - clID string
-//   - message string
-func (_e *Client_Expecter) CommentOn(ctx interface{}, clID interface{}, message interface{}) *Client_CommentOn_Call {
-	return &Client_CommentOn_Call{Call: _e.mock.On("CommentOn", ctx, clID, message)}
-}
-
-func (_c *Client_CommentOn_Call) Run(run func(ctx context.Context, clID string, message string)) *Client_CommentOn_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Client_CommentOn_Call) Return(_a0 error) *Client_CommentOn_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_CommentOn_Call) RunAndReturn(run func(context.Context, string, string) error) *Client_CommentOn_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetChangelist provides a mock function with given fields: ctx, id
@@ -101,35 +63,6 @@ func (_m *Client) GetChangelist(ctx context.Context, id string) (code_review.Cha
 	return r0, r1
 }
 
-// Client_GetChangelist_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChangelist'
-type Client_GetChangelist_Call struct {
-	*mock.Call
-}
-
-// GetChangelist is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *Client_Expecter) GetChangelist(ctx interface{}, id interface{}) *Client_GetChangelist_Call {
-	return &Client_GetChangelist_Call{Call: _e.mock.On("GetChangelist", ctx, id)}
-}
-
-func (_c *Client_GetChangelist_Call) Run(run func(ctx context.Context, id string)) *Client_GetChangelist_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Client_GetChangelist_Call) Return(_a0 code_review.Changelist, _a1 error) *Client_GetChangelist_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetChangelist_Call) RunAndReturn(run func(context.Context, string) (code_review.Changelist, error)) *Client_GetChangelist_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetChangelistIDForCommit provides a mock function with given fields: ctx, commit
 func (_m *Client) GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.LongCommit) (string, error) {
 	ret := _m.Called(ctx, commit)
@@ -158,35 +91,6 @@ func (_m *Client) GetChangelistIDForCommit(ctx context.Context, commit *vcsinfo.
 	return r0, r1
 }
 
-// Client_GetChangelistIDForCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChangelistIDForCommit'
-type Client_GetChangelistIDForCommit_Call struct {
-	*mock.Call
-}
-
-// GetChangelistIDForCommit is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commit *vcsinfo.LongCommit
-func (_e *Client_Expecter) GetChangelistIDForCommit(ctx interface{}, commit interface{}) *Client_GetChangelistIDForCommit_Call {
-	return &Client_GetChangelistIDForCommit_Call{Call: _e.mock.On("GetChangelistIDForCommit", ctx, commit)}
-}
-
-func (_c *Client_GetChangelistIDForCommit_Call) Run(run func(ctx context.Context, commit *vcsinfo.LongCommit)) *Client_GetChangelistIDForCommit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*vcsinfo.LongCommit))
-	})
-	return _c
-}
-
-func (_c *Client_GetChangelistIDForCommit_Call) Return(_a0 string, _a1 error) *Client_GetChangelistIDForCommit_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetChangelistIDForCommit_Call) RunAndReturn(run func(context.Context, *vcsinfo.LongCommit) (string, error)) *Client_GetChangelistIDForCommit_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetPatchset provides a mock function with given fields: ctx, clID, psID, psOrder
 func (_m *Client) GetPatchset(ctx context.Context, clID string, psID string, psOrder int) (code_review.Patchset, error) {
 	ret := _m.Called(ctx, clID, psID, psOrder)
@@ -213,37 +117,6 @@ func (_m *Client) GetPatchset(ctx context.Context, clID string, psID string, psO
 	}
 
 	return r0, r1
-}
-
-// Client_GetPatchset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatchset'
-type Client_GetPatchset_Call struct {
-	*mock.Call
-}
-
-// GetPatchset is a helper method to define mock.On call
-//   - ctx context.Context
-//   - clID string
-//   - psID string
-//   - psOrder int
-func (_e *Client_Expecter) GetPatchset(ctx interface{}, clID interface{}, psID interface{}, psOrder interface{}) *Client_GetPatchset_Call {
-	return &Client_GetPatchset_Call{Call: _e.mock.On("GetPatchset", ctx, clID, psID, psOrder)}
-}
-
-func (_c *Client_GetPatchset_Call) Run(run func(ctx context.Context, clID string, psID string, psOrder int)) *Client_GetPatchset_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(int))
-	})
-	return _c
-}
-
-func (_c *Client_GetPatchset_Call) Return(_a0 code_review.Patchset, _a1 error) *Client_GetPatchset_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetPatchset_Call) RunAndReturn(run func(context.Context, string, string, int) (code_review.Patchset, error)) *Client_GetPatchset_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

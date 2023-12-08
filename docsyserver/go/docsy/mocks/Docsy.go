@@ -13,14 +13,6 @@ type Docsy struct {
 	mock.Mock
 }
 
-type Docsy_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Docsy) EXPECT() *Docsy_Expecter {
-	return &Docsy_Expecter{mock: &_m.Mock}
-}
-
 // Render provides a mock function with given fields: ctx, src, dst
 func (_m *Docsy) Render(ctx context.Context, src string, dst string) error {
 	ret := _m.Called(ctx, src, dst)
@@ -37,36 +29,6 @@ func (_m *Docsy) Render(ctx context.Context, src string, dst string) error {
 	}
 
 	return r0
-}
-
-// Docsy_Render_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Render'
-type Docsy_Render_Call struct {
-	*mock.Call
-}
-
-// Render is a helper method to define mock.On call
-//   - ctx context.Context
-//   - src string
-//   - dst string
-func (_e *Docsy_Expecter) Render(ctx interface{}, src interface{}, dst interface{}) *Docsy_Render_Call {
-	return &Docsy_Render_Call{Call: _e.mock.On("Render", ctx, src, dst)}
-}
-
-func (_c *Docsy_Render_Call) Run(run func(ctx context.Context, src string, dst string)) *Docsy_Render_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Docsy_Render_Call) Return(_a0 error) *Docsy_Render_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Docsy_Render_Call) RunAndReturn(run func(context.Context, string, string) error) *Docsy_Render_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDocsy creates a new instance of Docsy. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

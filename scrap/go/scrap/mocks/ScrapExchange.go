@@ -16,14 +16,6 @@ type ScrapExchange struct {
 	mock.Mock
 }
 
-type ScrapExchange_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ScrapExchange) EXPECT() *ScrapExchange_Expecter {
-	return &ScrapExchange_Expecter{mock: &_m.Mock}
-}
-
 // CreateScrap provides a mock function with given fields: ctx, _a1
 func (_m *ScrapExchange) CreateScrap(ctx context.Context, _a1 scrap.ScrapBody) (scrap.ScrapID, error) {
 	ret := _m.Called(ctx, _a1)
@@ -52,35 +44,6 @@ func (_m *ScrapExchange) CreateScrap(ctx context.Context, _a1 scrap.ScrapBody) (
 	return r0, r1
 }
 
-// ScrapExchange_CreateScrap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateScrap'
-type ScrapExchange_CreateScrap_Call struct {
-	*mock.Call
-}
-
-// CreateScrap is a helper method to define mock.On call
-//   - ctx context.Context
-//   - _a1 scrap.ScrapBody
-func (_e *ScrapExchange_Expecter) CreateScrap(ctx interface{}, _a1 interface{}) *ScrapExchange_CreateScrap_Call {
-	return &ScrapExchange_CreateScrap_Call{Call: _e.mock.On("CreateScrap", ctx, _a1)}
-}
-
-func (_c *ScrapExchange_CreateScrap_Call) Run(run func(ctx context.Context, _a1 scrap.ScrapBody)) *ScrapExchange_CreateScrap_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.ScrapBody))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_CreateScrap_Call) Return(_a0 scrap.ScrapID, _a1 error) *ScrapExchange_CreateScrap_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ScrapExchange_CreateScrap_Call) RunAndReturn(run func(context.Context, scrap.ScrapBody) (scrap.ScrapID, error)) *ScrapExchange_CreateScrap_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteName provides a mock function with given fields: ctx, t, name
 func (_m *ScrapExchange) DeleteName(ctx context.Context, t scrap.Type, name string) error {
 	ret := _m.Called(ctx, t, name)
@@ -97,36 +60,6 @@ func (_m *ScrapExchange) DeleteName(ctx context.Context, t scrap.Type, name stri
 	}
 
 	return r0
-}
-
-// ScrapExchange_DeleteName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteName'
-type ScrapExchange_DeleteName_Call struct {
-	*mock.Call
-}
-
-// DeleteName is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - name string
-func (_e *ScrapExchange_Expecter) DeleteName(ctx interface{}, t interface{}, name interface{}) *ScrapExchange_DeleteName_Call {
-	return &ScrapExchange_DeleteName_Call{Call: _e.mock.On("DeleteName", ctx, t, name)}
-}
-
-func (_c *ScrapExchange_DeleteName_Call) Run(run func(ctx context.Context, t scrap.Type, name string)) *ScrapExchange_DeleteName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_DeleteName_Call) Return(_a0 error) *ScrapExchange_DeleteName_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ScrapExchange_DeleteName_Call) RunAndReturn(run func(context.Context, scrap.Type, string) error) *ScrapExchange_DeleteName_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // DeleteScrap provides a mock function with given fields: ctx, t, hashOrName
@@ -147,36 +80,6 @@ func (_m *ScrapExchange) DeleteScrap(ctx context.Context, t scrap.Type, hashOrNa
 	return r0
 }
 
-// ScrapExchange_DeleteScrap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteScrap'
-type ScrapExchange_DeleteScrap_Call struct {
-	*mock.Call
-}
-
-// DeleteScrap is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - hashOrName string
-func (_e *ScrapExchange_Expecter) DeleteScrap(ctx interface{}, t interface{}, hashOrName interface{}) *ScrapExchange_DeleteScrap_Call {
-	return &ScrapExchange_DeleteScrap_Call{Call: _e.mock.On("DeleteScrap", ctx, t, hashOrName)}
-}
-
-func (_c *ScrapExchange_DeleteScrap_Call) Run(run func(ctx context.Context, t scrap.Type, hashOrName string)) *ScrapExchange_DeleteScrap_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_DeleteScrap_Call) Return(_a0 error) *ScrapExchange_DeleteScrap_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ScrapExchange_DeleteScrap_Call) RunAndReturn(run func(context.Context, scrap.Type, string) error) *ScrapExchange_DeleteScrap_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Expand provides a mock function with given fields: ctx, t, hashOrName, lang, w
 func (_m *ScrapExchange) Expand(ctx context.Context, t scrap.Type, hashOrName string, lang scrap.Lang, w io.Writer) error {
 	ret := _m.Called(ctx, t, hashOrName, lang, w)
@@ -193,38 +96,6 @@ func (_m *ScrapExchange) Expand(ctx context.Context, t scrap.Type, hashOrName st
 	}
 
 	return r0
-}
-
-// ScrapExchange_Expand_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Expand'
-type ScrapExchange_Expand_Call struct {
-	*mock.Call
-}
-
-// Expand is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - hashOrName string
-//   - lang scrap.Lang
-//   - w io.Writer
-func (_e *ScrapExchange_Expecter) Expand(ctx interface{}, t interface{}, hashOrName interface{}, lang interface{}, w interface{}) *ScrapExchange_Expand_Call {
-	return &ScrapExchange_Expand_Call{Call: _e.mock.On("Expand", ctx, t, hashOrName, lang, w)}
-}
-
-func (_c *ScrapExchange_Expand_Call) Run(run func(ctx context.Context, t scrap.Type, hashOrName string, lang scrap.Lang, w io.Writer)) *ScrapExchange_Expand_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string), args[3].(scrap.Lang), args[4].(io.Writer))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_Expand_Call) Return(_a0 error) *ScrapExchange_Expand_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ScrapExchange_Expand_Call) RunAndReturn(run func(context.Context, scrap.Type, string, scrap.Lang, io.Writer) error) *ScrapExchange_Expand_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetName provides a mock function with given fields: ctx, t, name
@@ -253,36 +124,6 @@ func (_m *ScrapExchange) GetName(ctx context.Context, t scrap.Type, name string)
 	}
 
 	return r0, r1
-}
-
-// ScrapExchange_GetName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetName'
-type ScrapExchange_GetName_Call struct {
-	*mock.Call
-}
-
-// GetName is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - name string
-func (_e *ScrapExchange_Expecter) GetName(ctx interface{}, t interface{}, name interface{}) *ScrapExchange_GetName_Call {
-	return &ScrapExchange_GetName_Call{Call: _e.mock.On("GetName", ctx, t, name)}
-}
-
-func (_c *ScrapExchange_GetName_Call) Run(run func(ctx context.Context, t scrap.Type, name string)) *ScrapExchange_GetName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_GetName_Call) Return(_a0 scrap.Name, _a1 error) *ScrapExchange_GetName_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ScrapExchange_GetName_Call) RunAndReturn(run func(context.Context, scrap.Type, string) (scrap.Name, error)) *ScrapExchange_GetName_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ListNames provides a mock function with given fields: ctx, t
@@ -315,35 +156,6 @@ func (_m *ScrapExchange) ListNames(ctx context.Context, t scrap.Type) ([]string,
 	return r0, r1
 }
 
-// ScrapExchange_ListNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNames'
-type ScrapExchange_ListNames_Call struct {
-	*mock.Call
-}
-
-// ListNames is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-func (_e *ScrapExchange_Expecter) ListNames(ctx interface{}, t interface{}) *ScrapExchange_ListNames_Call {
-	return &ScrapExchange_ListNames_Call{Call: _e.mock.On("ListNames", ctx, t)}
-}
-
-func (_c *ScrapExchange_ListNames_Call) Run(run func(ctx context.Context, t scrap.Type)) *ScrapExchange_ListNames_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_ListNames_Call) Return(_a0 []string, _a1 error) *ScrapExchange_ListNames_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ScrapExchange_ListNames_Call) RunAndReturn(run func(context.Context, scrap.Type) ([]string, error)) *ScrapExchange_ListNames_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LoadScrap provides a mock function with given fields: ctx, t, hashOrName
 func (_m *ScrapExchange) LoadScrap(ctx context.Context, t scrap.Type, hashOrName string) (scrap.ScrapBody, error) {
 	ret := _m.Called(ctx, t, hashOrName)
@@ -372,36 +184,6 @@ func (_m *ScrapExchange) LoadScrap(ctx context.Context, t scrap.Type, hashOrName
 	return r0, r1
 }
 
-// ScrapExchange_LoadScrap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoadScrap'
-type ScrapExchange_LoadScrap_Call struct {
-	*mock.Call
-}
-
-// LoadScrap is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - hashOrName string
-func (_e *ScrapExchange_Expecter) LoadScrap(ctx interface{}, t interface{}, hashOrName interface{}) *ScrapExchange_LoadScrap_Call {
-	return &ScrapExchange_LoadScrap_Call{Call: _e.mock.On("LoadScrap", ctx, t, hashOrName)}
-}
-
-func (_c *ScrapExchange_LoadScrap_Call) Run(run func(ctx context.Context, t scrap.Type, hashOrName string)) *ScrapExchange_LoadScrap_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_LoadScrap_Call) Return(_a0 scrap.ScrapBody, _a1 error) *ScrapExchange_LoadScrap_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ScrapExchange_LoadScrap_Call) RunAndReturn(run func(context.Context, scrap.Type, string) (scrap.ScrapBody, error)) *ScrapExchange_LoadScrap_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PutName provides a mock function with given fields: ctx, t, name, nameBody
 func (_m *ScrapExchange) PutName(ctx context.Context, t scrap.Type, name string, nameBody scrap.Name) error {
 	ret := _m.Called(ctx, t, name, nameBody)
@@ -418,37 +200,6 @@ func (_m *ScrapExchange) PutName(ctx context.Context, t scrap.Type, name string,
 	}
 
 	return r0
-}
-
-// ScrapExchange_PutName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutName'
-type ScrapExchange_PutName_Call struct {
-	*mock.Call
-}
-
-// PutName is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t scrap.Type
-//   - name string
-//   - nameBody scrap.Name
-func (_e *ScrapExchange_Expecter) PutName(ctx interface{}, t interface{}, name interface{}, nameBody interface{}) *ScrapExchange_PutName_Call {
-	return &ScrapExchange_PutName_Call{Call: _e.mock.On("PutName", ctx, t, name, nameBody)}
-}
-
-func (_c *ScrapExchange_PutName_Call) Run(run func(ctx context.Context, t scrap.Type, name string, nameBody scrap.Name)) *ScrapExchange_PutName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(scrap.Type), args[2].(string), args[3].(scrap.Name))
-	})
-	return _c
-}
-
-func (_c *ScrapExchange_PutName_Call) Return(_a0 error) *ScrapExchange_PutName_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ScrapExchange_PutName_Call) RunAndReturn(run func(context.Context, scrap.Type, string, scrap.Name) error) *ScrapExchange_PutName_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewScrapExchange creates a new instance of ScrapExchange. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

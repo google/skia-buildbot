@@ -17,14 +17,6 @@ type Login struct {
 	mock.Mock
 }
 
-type Login_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Login) EXPECT() *Login_Expecter {
-	return &Login_Expecter{mock: &_m.Mock}
-}
-
 // HasRole provides a mock function with given fields: r, role
 func (_m *Login) HasRole(r *http.Request, role roles.Role) bool {
 	ret := _m.Called(r, role)
@@ -41,35 +33,6 @@ func (_m *Login) HasRole(r *http.Request, role roles.Role) bool {
 	}
 
 	return r0
-}
-
-// Login_HasRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasRole'
-type Login_HasRole_Call struct {
-	*mock.Call
-}
-
-// HasRole is a helper method to define mock.On call
-//   - r *http.Request
-//   - role roles.Role
-func (_e *Login_Expecter) HasRole(r interface{}, role interface{}) *Login_HasRole_Call {
-	return &Login_HasRole_Call{Call: _e.mock.On("HasRole", r, role)}
-}
-
-func (_c *Login_HasRole_Call) Run(run func(r *http.Request, role roles.Role)) *Login_HasRole_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request), args[1].(roles.Role))
-	})
-	return _c
-}
-
-func (_c *Login_HasRole_Call) Return(_a0 bool) *Login_HasRole_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Login_HasRole_Call) RunAndReturn(run func(*http.Request, roles.Role) bool) *Login_HasRole_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // LoggedInAs provides a mock function with given fields: r
@@ -90,34 +53,6 @@ func (_m *Login) LoggedInAs(r *http.Request) alogin.EMail {
 	return r0
 }
 
-// Login_LoggedInAs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoggedInAs'
-type Login_LoggedInAs_Call struct {
-	*mock.Call
-}
-
-// LoggedInAs is a helper method to define mock.On call
-//   - r *http.Request
-func (_e *Login_Expecter) LoggedInAs(r interface{}) *Login_LoggedInAs_Call {
-	return &Login_LoggedInAs_Call{Call: _e.mock.On("LoggedInAs", r)}
-}
-
-func (_c *Login_LoggedInAs_Call) Run(run func(r *http.Request)) *Login_LoggedInAs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Login_LoggedInAs_Call) Return(_a0 alogin.EMail) *Login_LoggedInAs_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Login_LoggedInAs_Call) RunAndReturn(run func(*http.Request) alogin.EMail) *Login_LoggedInAs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LoginURL provides a mock function with given fields: r
 func (_m *Login) LoginURL(r *http.Request) string {
 	ret := _m.Called(r)
@@ -134,34 +69,6 @@ func (_m *Login) LoginURL(r *http.Request) string {
 	}
 
 	return r0
-}
-
-// Login_LoginURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoginURL'
-type Login_LoginURL_Call struct {
-	*mock.Call
-}
-
-// LoginURL is a helper method to define mock.On call
-//   - r *http.Request
-func (_e *Login_Expecter) LoginURL(r interface{}) *Login_LoginURL_Call {
-	return &Login_LoginURL_Call{Call: _e.mock.On("LoginURL", r)}
-}
-
-func (_c *Login_LoginURL_Call) Run(run func(r *http.Request)) *Login_LoginURL_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Login_LoginURL_Call) Return(_a0 string) *Login_LoginURL_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Login_LoginURL_Call) RunAndReturn(run func(*http.Request) string) *Login_LoginURL_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Roles provides a mock function with given fields: r
@@ -184,34 +91,6 @@ func (_m *Login) Roles(r *http.Request) roles.Roles {
 	return r0
 }
 
-// Login_Roles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Roles'
-type Login_Roles_Call struct {
-	*mock.Call
-}
-
-// Roles is a helper method to define mock.On call
-//   - r *http.Request
-func (_e *Login_Expecter) Roles(r interface{}) *Login_Roles_Call {
-	return &Login_Roles_Call{Call: _e.mock.On("Roles", r)}
-}
-
-func (_c *Login_Roles_Call) Run(run func(r *http.Request)) *Login_Roles_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Login_Roles_Call) Return(_a0 roles.Roles) *Login_Roles_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Login_Roles_Call) RunAndReturn(run func(*http.Request) roles.Roles) *Login_Roles_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Status provides a mock function with given fields: r
 func (_m *Login) Status(r *http.Request) alogin.Status {
 	ret := _m.Called(r)
@@ -228,34 +107,6 @@ func (_m *Login) Status(r *http.Request) alogin.Status {
 	}
 
 	return r0
-}
-
-// Login_Status_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Status'
-type Login_Status_Call struct {
-	*mock.Call
-}
-
-// Status is a helper method to define mock.On call
-//   - r *http.Request
-func (_e *Login_Expecter) Status(r interface{}) *Login_Status_Call {
-	return &Login_Status_Call{Call: _e.mock.On("Status", r)}
-}
-
-func (_c *Login_Status_Call) Run(run func(r *http.Request)) *Login_Status_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Login_Status_Call) Return(_a0 alogin.Status) *Login_Status_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Login_Status_Call) RunAndReturn(run func(*http.Request) alogin.Status) *Login_Status_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewLogin creates a new instance of Login. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -19,14 +19,6 @@ type VerifiersManager struct {
 	mock.Mock
 }
 
-type VerifiersManager_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *VerifiersManager) EXPECT() *VerifiersManager_Expecter {
-	return &VerifiersManager_Expecter{mock: &_m.Mock}
-}
-
 // GetVerifiers provides a mock function with given fields: ctx, cfg, ci, isSubmittedTogetherChange, configReader
 func (_m *VerifiersManager) GetVerifiers(ctx context.Context, cfg *config.SkCQCfg, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader) ([]types.Verifier, []string, error) {
 	ret := _m.Called(ctx, cfg, ci, isSubmittedTogetherChange, configReader)
@@ -66,38 +58,6 @@ func (_m *VerifiersManager) GetVerifiers(ctx context.Context, cfg *config.SkCQCf
 	return r0, r1, r2
 }
 
-// VerifiersManager_GetVerifiers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetVerifiers'
-type VerifiersManager_GetVerifiers_Call struct {
-	*mock.Call
-}
-
-// GetVerifiers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - cfg *config.SkCQCfg
-//   - ci *gerrit.ChangeInfo
-//   - isSubmittedTogetherChange bool
-//   - configReader config.ConfigReader
-func (_e *VerifiersManager_Expecter) GetVerifiers(ctx interface{}, cfg interface{}, ci interface{}, isSubmittedTogetherChange interface{}, configReader interface{}) *VerifiersManager_GetVerifiers_Call {
-	return &VerifiersManager_GetVerifiers_Call{Call: _e.mock.On("GetVerifiers", ctx, cfg, ci, isSubmittedTogetherChange, configReader)}
-}
-
-func (_c *VerifiersManager_GetVerifiers_Call) Run(run func(ctx context.Context, cfg *config.SkCQCfg, ci *gerrit.ChangeInfo, isSubmittedTogetherChange bool, configReader config.ConfigReader)) *VerifiersManager_GetVerifiers_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*config.SkCQCfg), args[2].(*gerrit.ChangeInfo), args[3].(bool), args[4].(config.ConfigReader))
-	})
-	return _c
-}
-
-func (_c *VerifiersManager_GetVerifiers_Call) Return(verifiers []types.Verifier, togetherChanges []string, err error) *VerifiersManager_GetVerifiers_Call {
-	_c.Call.Return(verifiers, togetherChanges, err)
-	return _c
-}
-
-func (_c *VerifiersManager_GetVerifiers_Call) RunAndReturn(run func(context.Context, *config.SkCQCfg, *gerrit.ChangeInfo, bool, config.ConfigReader) ([]types.Verifier, []string, error)) *VerifiersManager_GetVerifiers_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RunVerifiers provides a mock function with given fields: ctx, ci, verifiers, startTime
 func (_m *VerifiersManager) RunVerifiers(ctx context.Context, ci *gerrit.ChangeInfo, verifiers []types.Verifier, startTime int64) []*types.VerifierStatus {
 	ret := _m.Called(ctx, ci, verifiers, startTime)
@@ -116,37 +76,6 @@ func (_m *VerifiersManager) RunVerifiers(ctx context.Context, ci *gerrit.ChangeI
 	}
 
 	return r0
-}
-
-// VerifiersManager_RunVerifiers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RunVerifiers'
-type VerifiersManager_RunVerifiers_Call struct {
-	*mock.Call
-}
-
-// RunVerifiers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-//   - verifiers []types.Verifier
-//   - startTime int64
-func (_e *VerifiersManager_Expecter) RunVerifiers(ctx interface{}, ci interface{}, verifiers interface{}, startTime interface{}) *VerifiersManager_RunVerifiers_Call {
-	return &VerifiersManager_RunVerifiers_Call{Call: _e.mock.On("RunVerifiers", ctx, ci, verifiers, startTime)}
-}
-
-func (_c *VerifiersManager_RunVerifiers_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo, verifiers []types.Verifier, startTime int64)) *VerifiersManager_RunVerifiers_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].([]types.Verifier), args[3].(int64))
-	})
-	return _c
-}
-
-func (_c *VerifiersManager_RunVerifiers_Call) Return(_a0 []*types.VerifierStatus) *VerifiersManager_RunVerifiers_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *VerifiersManager_RunVerifiers_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, []types.Verifier, int64) []*types.VerifierStatus) *VerifiersManager_RunVerifiers_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewVerifiersManager creates a new instance of VerifiersManager. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

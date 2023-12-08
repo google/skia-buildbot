@@ -15,14 +15,6 @@ type Source struct {
 	mock.Mock
 }
 
-type Source_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Source) EXPECT() *Source_Expecter {
-	return &Source_Expecter{mock: &_m.Mock}
-}
-
 // GetReader provides a mock function with given fields: ctx, name
 func (_m *Source) GetReader(ctx context.Context, name string) (io.ReadCloser, error) {
 	ret := _m.Called(ctx, name)
@@ -53,35 +45,6 @@ func (_m *Source) GetReader(ctx context.Context, name string) (io.ReadCloser, er
 	return r0, r1
 }
 
-// Source_GetReader_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetReader'
-type Source_GetReader_Call struct {
-	*mock.Call
-}
-
-// GetReader is a helper method to define mock.On call
-//   - ctx context.Context
-//   - name string
-func (_e *Source_Expecter) GetReader(ctx interface{}, name interface{}) *Source_GetReader_Call {
-	return &Source_GetReader_Call{Call: _e.mock.On("GetReader", ctx, name)}
-}
-
-func (_c *Source_GetReader_Call) Run(run func(ctx context.Context, name string)) *Source_GetReader_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Source_GetReader_Call) Return(_a0 io.ReadCloser, _a1 error) *Source_GetReader_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Source_GetReader_Call) RunAndReturn(run func(context.Context, string) (io.ReadCloser, error)) *Source_GetReader_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // HandlesFile provides a mock function with given fields: name
 func (_m *Source) HandlesFile(name string) bool {
 	ret := _m.Called(name)
@@ -98,34 +61,6 @@ func (_m *Source) HandlesFile(name string) bool {
 	}
 
 	return r0
-}
-
-// Source_HandlesFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandlesFile'
-type Source_HandlesFile_Call struct {
-	*mock.Call
-}
-
-// HandlesFile is a helper method to define mock.On call
-//   - name string
-func (_e *Source_Expecter) HandlesFile(name interface{}) *Source_HandlesFile_Call {
-	return &Source_HandlesFile_Call{Call: _e.mock.On("HandlesFile", name)}
-}
-
-func (_c *Source_HandlesFile_Call) Run(run func(name string)) *Source_HandlesFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *Source_HandlesFile_Call) Return(_a0 bool) *Source_HandlesFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Source_HandlesFile_Call) RunAndReturn(run func(string) bool) *Source_HandlesFile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewSource creates a new instance of Source. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

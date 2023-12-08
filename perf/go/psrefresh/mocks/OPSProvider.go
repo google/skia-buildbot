@@ -16,14 +16,6 @@ type OPSProvider struct {
 	mock.Mock
 }
 
-type OPSProvider_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *OPSProvider) EXPECT() *OPSProvider_Expecter {
-	return &OPSProvider_Expecter{mock: &_m.Mock}
-}
-
 // GetLatestTile provides a mock function with given fields: _a0
 func (_m *OPSProvider) GetLatestTile(_a0 context.Context) (types.TileNumber, error) {
 	ret := _m.Called(_a0)
@@ -50,34 +42,6 @@ func (_m *OPSProvider) GetLatestTile(_a0 context.Context) (types.TileNumber, err
 	}
 
 	return r0, r1
-}
-
-// OPSProvider_GetLatestTile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestTile'
-type OPSProvider_GetLatestTile_Call struct {
-	*mock.Call
-}
-
-// GetLatestTile is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *OPSProvider_Expecter) GetLatestTile(_a0 interface{}) *OPSProvider_GetLatestTile_Call {
-	return &OPSProvider_GetLatestTile_Call{Call: _e.mock.On("GetLatestTile", _a0)}
-}
-
-func (_c *OPSProvider_GetLatestTile_Call) Run(run func(_a0 context.Context)) *OPSProvider_GetLatestTile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *OPSProvider_GetLatestTile_Call) Return(_a0 types.TileNumber, _a1 error) *OPSProvider_GetLatestTile_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *OPSProvider_GetLatestTile_Call) RunAndReturn(run func(context.Context) (types.TileNumber, error)) *OPSProvider_GetLatestTile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetParamSet provides a mock function with given fields: ctx, tileNumber
@@ -108,35 +72,6 @@ func (_m *OPSProvider) GetParamSet(ctx context.Context, tileNumber types.TileNum
 	}
 
 	return r0, r1
-}
-
-// OPSProvider_GetParamSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParamSet'
-type OPSProvider_GetParamSet_Call struct {
-	*mock.Call
-}
-
-// GetParamSet is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tileNumber types.TileNumber
-func (_e *OPSProvider_Expecter) GetParamSet(ctx interface{}, tileNumber interface{}) *OPSProvider_GetParamSet_Call {
-	return &OPSProvider_GetParamSet_Call{Call: _e.mock.On("GetParamSet", ctx, tileNumber)}
-}
-
-func (_c *OPSProvider_GetParamSet_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber)) *OPSProvider_GetParamSet_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.TileNumber))
-	})
-	return _c
-}
-
-func (_c *OPSProvider_GetParamSet_Call) Return(_a0 paramtools.ReadOnlyParamSet, _a1 error) *OPSProvider_GetParamSet_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *OPSProvider_GetParamSet_Call) RunAndReturn(run func(context.Context, types.TileNumber) (paramtools.ReadOnlyParamSet, error)) *OPSProvider_GetParamSet_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewOPSProvider creates a new instance of OPSProvider. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

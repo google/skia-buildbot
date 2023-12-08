@@ -15,14 +15,6 @@ type Store struct {
 	mock.Mock
 }
 
-type Store_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Store) EXPECT() *Store_Expecter {
-	return &Store_Expecter{mock: &_m.Mock}
-}
-
 // GetAnomalies provides a mock function with given fields: ctx, traceNames, startCommitPosition, endCommitPosition
 func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
 	ret := _m.Called(ctx, traceNames, startCommitPosition, endCommitPosition)
@@ -51,37 +43,6 @@ func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 	}
 
 	return r0, r1
-}
-
-// Store_GetAnomalies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAnomalies'
-type Store_GetAnomalies_Call struct {
-	*mock.Call
-}
-
-// GetAnomalies is a helper method to define mock.On call
-//   - ctx context.Context
-//   - traceNames []string
-//   - startCommitPosition int
-//   - endCommitPosition int
-func (_e *Store_Expecter) GetAnomalies(ctx interface{}, traceNames interface{}, startCommitPosition interface{}, endCommitPosition interface{}) *Store_GetAnomalies_Call {
-	return &Store_GetAnomalies_Call{Call: _e.mock.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition)}
-}
-
-func (_c *Store_GetAnomalies_Call) Run(run func(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int)) *Store_GetAnomalies_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string), args[2].(int), args[3].(int))
-	})
-	return _c
-}
-
-func (_c *Store_GetAnomalies_Call) Return(_a0 anomalies.AnomalyMap, _a1 error) *Store_GetAnomalies_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_GetAnomalies_Call) RunAndReturn(run func(context.Context, []string, int, int) (anomalies.AnomalyMap, error)) *Store_GetAnomalies_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

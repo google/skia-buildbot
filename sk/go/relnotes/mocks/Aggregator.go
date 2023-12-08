@@ -15,14 +15,6 @@ type Aggregator struct {
 	mock.Mock
 }
 
-type Aggregator_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Aggregator) EXPECT() *Aggregator_Expecter {
-	return &Aggregator_Expecter{mock: &_m.Mock}
-}
-
 // Aggregate provides a mock function with given fields: ctx, fs, currentMilestone, aggregateFilePath, relnotesDir
 func (_m *Aggregator) Aggregate(ctx context.Context, fs vfs.FS, currentMilestone int, aggregateFilePath string, relnotesDir string) ([]byte, error) {
 	ret := _m.Called(ctx, fs, currentMilestone, aggregateFilePath, relnotesDir)
@@ -53,38 +45,6 @@ func (_m *Aggregator) Aggregate(ctx context.Context, fs vfs.FS, currentMilestone
 	return r0, r1
 }
 
-// Aggregator_Aggregate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Aggregate'
-type Aggregator_Aggregate_Call struct {
-	*mock.Call
-}
-
-// Aggregate is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fs vfs.FS
-//   - currentMilestone int
-//   - aggregateFilePath string
-//   - relnotesDir string
-func (_e *Aggregator_Expecter) Aggregate(ctx interface{}, fs interface{}, currentMilestone interface{}, aggregateFilePath interface{}, relnotesDir interface{}) *Aggregator_Aggregate_Call {
-	return &Aggregator_Aggregate_Call{Call: _e.mock.On("Aggregate", ctx, fs, currentMilestone, aggregateFilePath, relnotesDir)}
-}
-
-func (_c *Aggregator_Aggregate_Call) Run(run func(ctx context.Context, fs vfs.FS, currentMilestone int, aggregateFilePath string, relnotesDir string)) *Aggregator_Aggregate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(vfs.FS), args[2].(int), args[3].(string), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *Aggregator_Aggregate_Call) Return(_a0 []byte, _a1 error) *Aggregator_Aggregate_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Aggregator_Aggregate_Call) RunAndReturn(run func(context.Context, vfs.FS, int, string, string) ([]byte, error)) *Aggregator_Aggregate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListNoteFiles provides a mock function with given fields: ctx, fs, notesDir
 func (_m *Aggregator) ListNoteFiles(ctx context.Context, fs vfs.FS, notesDir string) ([]string, error) {
 	ret := _m.Called(ctx, fs, notesDir)
@@ -113,36 +73,6 @@ func (_m *Aggregator) ListNoteFiles(ctx context.Context, fs vfs.FS, notesDir str
 	}
 
 	return r0, r1
-}
-
-// Aggregator_ListNoteFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListNoteFiles'
-type Aggregator_ListNoteFiles_Call struct {
-	*mock.Call
-}
-
-// ListNoteFiles is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fs vfs.FS
-//   - notesDir string
-func (_e *Aggregator_Expecter) ListNoteFiles(ctx interface{}, fs interface{}, notesDir interface{}) *Aggregator_ListNoteFiles_Call {
-	return &Aggregator_ListNoteFiles_Call{Call: _e.mock.On("ListNoteFiles", ctx, fs, notesDir)}
-}
-
-func (_c *Aggregator_ListNoteFiles_Call) Run(run func(ctx context.Context, fs vfs.FS, notesDir string)) *Aggregator_ListNoteFiles_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(vfs.FS), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Aggregator_ListNoteFiles_Call) Return(_a0 []string, _a1 error) *Aggregator_ListNoteFiles_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Aggregator_ListNoteFiles_Call) RunAndReturn(run func(context.Context, vfs.FS, string) ([]string, error)) *Aggregator_ListNoteFiles_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewAggregator creates a new instance of Aggregator. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

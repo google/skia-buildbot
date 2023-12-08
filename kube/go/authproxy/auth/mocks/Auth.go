@@ -14,14 +14,6 @@ type Auth struct {
 	mock.Mock
 }
 
-type Auth_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Auth) EXPECT() *Auth_Expecter {
-	return &Auth_Expecter{mock: &_m.Mock}
-}
-
 // Init provides a mock function with given fields: ctx
 func (_m *Auth) Init(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -38,34 +30,6 @@ func (_m *Auth) Init(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// Auth_Init_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Init'
-type Auth_Init_Call struct {
-	*mock.Call
-}
-
-// Init is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Auth_Expecter) Init(ctx interface{}) *Auth_Init_Call {
-	return &Auth_Init_Call{Call: _e.mock.On("Init", ctx)}
-}
-
-func (_c *Auth_Init_Call) Run(run func(ctx context.Context)) *Auth_Init_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Auth_Init_Call) Return(_a0 error) *Auth_Init_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Auth_Init_Call) RunAndReturn(run func(context.Context) error) *Auth_Init_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // LoggedInAs provides a mock function with given fields: r
@@ -86,34 +50,6 @@ func (_m *Auth) LoggedInAs(r *http.Request) string {
 	return r0
 }
 
-// Auth_LoggedInAs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoggedInAs'
-type Auth_LoggedInAs_Call struct {
-	*mock.Call
-}
-
-// LoggedInAs is a helper method to define mock.On call
-//   - r *http.Request
-func (_e *Auth_Expecter) LoggedInAs(r interface{}) *Auth_LoggedInAs_Call {
-	return &Auth_LoggedInAs_Call{Call: _e.mock.On("LoggedInAs", r)}
-}
-
-func (_c *Auth_LoggedInAs_Call) Run(run func(r *http.Request)) *Auth_LoggedInAs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Auth_LoggedInAs_Call) Return(_a0 string) *Auth_LoggedInAs_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Auth_LoggedInAs_Call) RunAndReturn(run func(*http.Request) string) *Auth_LoggedInAs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LoginURL provides a mock function with given fields: w, r
 func (_m *Auth) LoginURL(w http.ResponseWriter, r *http.Request) string {
 	ret := _m.Called(w, r)
@@ -130,35 +66,6 @@ func (_m *Auth) LoginURL(w http.ResponseWriter, r *http.Request) string {
 	}
 
 	return r0
-}
-
-// Auth_LoginURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoginURL'
-type Auth_LoginURL_Call struct {
-	*mock.Call
-}
-
-// LoginURL is a helper method to define mock.On call
-//   - w http.ResponseWriter
-//   - r *http.Request
-func (_e *Auth_Expecter) LoginURL(w interface{}, r interface{}) *Auth_LoginURL_Call {
-	return &Auth_LoginURL_Call{Call: _e.mock.On("LoginURL", w, r)}
-}
-
-func (_c *Auth_LoginURL_Call) Run(run func(w http.ResponseWriter, r *http.Request)) *Auth_LoginURL_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(http.ResponseWriter), args[1].(*http.Request))
-	})
-	return _c
-}
-
-func (_c *Auth_LoginURL_Call) Return(_a0 string) *Auth_LoginURL_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Auth_LoginURL_Call) RunAndReturn(run func(http.ResponseWriter, *http.Request) string) *Auth_LoginURL_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewAuth creates a new instance of Auth. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -13,14 +13,6 @@ type Source struct {
 	mock.Mock
 }
 
-type Source_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Source) EXPECT() *Source_Expecter {
-	return &Source_Expecter{mock: &_m.Mock}
-}
-
 // Start provides a mock function with given fields: ctx
 func (_m *Source) Start(ctx context.Context) <-chan interface{} {
 	ret := _m.Called(ctx)
@@ -39,34 +31,6 @@ func (_m *Source) Start(ctx context.Context) <-chan interface{} {
 	}
 
 	return r0
-}
-
-// Source_Start_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Start'
-type Source_Start_Call struct {
-	*mock.Call
-}
-
-// Start is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Source_Expecter) Start(ctx interface{}) *Source_Start_Call {
-	return &Source_Start_Call{Call: _e.mock.On("Start", ctx)}
-}
-
-func (_c *Source_Start_Call) Run(run func(ctx context.Context)) *Source_Start_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Source_Start_Call) Return(_a0 <-chan interface{}) *Source_Start_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Source_Start_Call) RunAndReturn(run func(context.Context) <-chan interface{}) *Source_Start_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewSource creates a new instance of Source. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

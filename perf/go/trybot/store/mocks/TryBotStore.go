@@ -20,14 +20,6 @@ type TryBotStore struct {
 	mock.Mock
 }
 
-type TryBotStore_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *TryBotStore) EXPECT() *TryBotStore_Expecter {
-	return &TryBotStore_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: ctx, cl, patch
 func (_m *TryBotStore) Get(ctx context.Context, cl types.CL, patch int) ([]store.GetResult, error) {
 	ret := _m.Called(ctx, cl, patch)
@@ -56,36 +48,6 @@ func (_m *TryBotStore) Get(ctx context.Context, cl types.CL, patch int) ([]store
 	}
 
 	return r0, r1
-}
-
-// TryBotStore_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type TryBotStore_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - cl types.CL
-//   - patch int
-func (_e *TryBotStore_Expecter) Get(ctx interface{}, cl interface{}, patch interface{}) *TryBotStore_Get_Call {
-	return &TryBotStore_Get_Call{Call: _e.mock.On("Get", ctx, cl, patch)}
-}
-
-func (_c *TryBotStore_Get_Call) Run(run func(ctx context.Context, cl types.CL, patch int)) *TryBotStore_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CL), args[2].(int))
-	})
-	return _c
-}
-
-func (_c *TryBotStore_Get_Call) Return(_a0 []store.GetResult, _a1 error) *TryBotStore_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TryBotStore_Get_Call) RunAndReturn(run func(context.Context, types.CL, int) ([]store.GetResult, error)) *TryBotStore_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // List provides a mock function with given fields: ctx, since
@@ -118,35 +80,6 @@ func (_m *TryBotStore) List(ctx context.Context, since time.Time) ([]store.ListR
 	return r0, r1
 }
 
-// TryBotStore_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
-type TryBotStore_List_Call struct {
-	*mock.Call
-}
-
-// List is a helper method to define mock.On call
-//   - ctx context.Context
-//   - since time.Time
-func (_e *TryBotStore_Expecter) List(ctx interface{}, since interface{}) *TryBotStore_List_Call {
-	return &TryBotStore_List_Call{Call: _e.mock.On("List", ctx, since)}
-}
-
-func (_c *TryBotStore_List_Call) Run(run func(ctx context.Context, since time.Time)) *TryBotStore_List_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time))
-	})
-	return _c
-}
-
-func (_c *TryBotStore_List_Call) Return(_a0 []store.ListResult, _a1 error) *TryBotStore_List_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TryBotStore_List_Call) RunAndReturn(run func(context.Context, time.Time) ([]store.ListResult, error)) *TryBotStore_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Write provides a mock function with given fields: ctx, tryFile
 func (_m *TryBotStore) Write(ctx context.Context, tryFile trybot.TryFile) error {
 	ret := _m.Called(ctx, tryFile)
@@ -163,35 +96,6 @@ func (_m *TryBotStore) Write(ctx context.Context, tryFile trybot.TryFile) error 
 	}
 
 	return r0
-}
-
-// TryBotStore_Write_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Write'
-type TryBotStore_Write_Call struct {
-	*mock.Call
-}
-
-// Write is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tryFile trybot.TryFile
-func (_e *TryBotStore_Expecter) Write(ctx interface{}, tryFile interface{}) *TryBotStore_Write_Call {
-	return &TryBotStore_Write_Call{Call: _e.mock.On("Write", ctx, tryFile)}
-}
-
-func (_c *TryBotStore_Write_Call) Run(run func(ctx context.Context, tryFile trybot.TryFile)) *TryBotStore_Write_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(trybot.TryFile))
-	})
-	return _c
-}
-
-func (_c *TryBotStore_Write_Call) Return(_a0 error) *TryBotStore_Write_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *TryBotStore_Write_Call) RunAndReturn(run func(context.Context, trybot.TryFile) error) *TryBotStore_Write_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewTryBotStore creates a new instance of TryBotStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

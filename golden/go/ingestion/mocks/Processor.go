@@ -13,14 +13,6 @@ type Processor struct {
 	mock.Mock
 }
 
-type Processor_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Processor) EXPECT() *Processor_Expecter {
-	return &Processor_Expecter{mock: &_m.Mock}
-}
-
 // HandlesFile provides a mock function with given fields: name
 func (_m *Processor) HandlesFile(name string) bool {
 	ret := _m.Called(name)
@@ -39,34 +31,6 @@ func (_m *Processor) HandlesFile(name string) bool {
 	return r0
 }
 
-// Processor_HandlesFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandlesFile'
-type Processor_HandlesFile_Call struct {
-	*mock.Call
-}
-
-// HandlesFile is a helper method to define mock.On call
-//   - name string
-func (_e *Processor_Expecter) HandlesFile(name interface{}) *Processor_HandlesFile_Call {
-	return &Processor_HandlesFile_Call{Call: _e.mock.On("HandlesFile", name)}
-}
-
-func (_c *Processor_HandlesFile_Call) Run(run func(name string)) *Processor_HandlesFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *Processor_HandlesFile_Call) Return(_a0 bool) *Processor_HandlesFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Processor_HandlesFile_Call) RunAndReturn(run func(string) bool) *Processor_HandlesFile_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Process provides a mock function with given fields: ctx, filename
 func (_m *Processor) Process(ctx context.Context, filename string) error {
 	ret := _m.Called(ctx, filename)
@@ -83,35 +47,6 @@ func (_m *Processor) Process(ctx context.Context, filename string) error {
 	}
 
 	return r0
-}
-
-// Processor_Process_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Process'
-type Processor_Process_Call struct {
-	*mock.Call
-}
-
-// Process is a helper method to define mock.On call
-//   - ctx context.Context
-//   - filename string
-func (_e *Processor_Expecter) Process(ctx interface{}, filename interface{}) *Processor_Process_Call {
-	return &Processor_Process_Call{Call: _e.mock.On("Process", ctx, filename)}
-}
-
-func (_c *Processor_Process_Call) Run(run func(ctx context.Context, filename string)) *Processor_Process_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Processor_Process_Call) Return(_a0 error) *Processor_Process_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Processor_Process_Call) RunAndReturn(run func(context.Context, string) error) *Processor_Process_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewProcessor creates a new instance of Processor. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

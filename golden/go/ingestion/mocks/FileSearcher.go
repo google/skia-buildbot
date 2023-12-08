@@ -15,14 +15,6 @@ type FileSearcher struct {
 	mock.Mock
 }
 
-type FileSearcher_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *FileSearcher) EXPECT() *FileSearcher_Expecter {
-	return &FileSearcher_Expecter{mock: &_m.Mock}
-}
-
 // SearchForFiles provides a mock function with given fields: ctx, start, end
 func (_m *FileSearcher) SearchForFiles(ctx context.Context, start time.Time, end time.Time) []string {
 	ret := _m.Called(ctx, start, end)
@@ -41,36 +33,6 @@ func (_m *FileSearcher) SearchForFiles(ctx context.Context, start time.Time, end
 	}
 
 	return r0
-}
-
-// FileSearcher_SearchForFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchForFiles'
-type FileSearcher_SearchForFiles_Call struct {
-	*mock.Call
-}
-
-// SearchForFiles is a helper method to define mock.On call
-//   - ctx context.Context
-//   - start time.Time
-//   - end time.Time
-func (_e *FileSearcher_Expecter) SearchForFiles(ctx interface{}, start interface{}, end interface{}) *FileSearcher_SearchForFiles_Call {
-	return &FileSearcher_SearchForFiles_Call{Call: _e.mock.On("SearchForFiles", ctx, start, end)}
-}
-
-func (_c *FileSearcher_SearchForFiles_Call) Run(run func(ctx context.Context, start time.Time, end time.Time)) *FileSearcher_SearchForFiles_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *FileSearcher_SearchForFiles_Call) Return(_a0 []string) *FileSearcher_SearchForFiles_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *FileSearcher_SearchForFiles_Call) RunAndReturn(run func(context.Context, time.Time, time.Time) []string) *FileSearcher_SearchForFiles_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewFileSearcher creates a new instance of FileSearcher. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

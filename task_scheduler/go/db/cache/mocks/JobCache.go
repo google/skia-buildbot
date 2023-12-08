@@ -16,45 +16,9 @@ type JobCache struct {
 	mock.Mock
 }
 
-type JobCache_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *JobCache) EXPECT() *JobCache_Expecter {
-	return &JobCache_Expecter{mock: &_m.Mock}
-}
-
 // AddJobs provides a mock function with given fields: _a0
 func (_m *JobCache) AddJobs(_a0 []*types.Job) {
 	_m.Called(_a0)
-}
-
-// JobCache_AddJobs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddJobs'
-type JobCache_AddJobs_Call struct {
-	*mock.Call
-}
-
-// AddJobs is a helper method to define mock.On call
-//   - _a0 []*types.Job
-func (_e *JobCache_Expecter) AddJobs(_a0 interface{}) *JobCache_AddJobs_Call {
-	return &JobCache_AddJobs_Call{Call: _e.mock.On("AddJobs", _a0)}
-}
-
-func (_c *JobCache_AddJobs_Call) Run(run func(_a0 []*types.Job)) *JobCache_AddJobs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]*types.Job))
-	})
-	return _c
-}
-
-func (_c *JobCache_AddJobs_Call) Return() *JobCache_AddJobs_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *JobCache_AddJobs_Call) RunAndReturn(run func([]*types.Job)) *JobCache_AddJobs_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetAllCachedJobs provides a mock function with given fields:
@@ -75,33 +39,6 @@ func (_m *JobCache) GetAllCachedJobs() []*types.Job {
 	}
 
 	return r0
-}
-
-// JobCache_GetAllCachedJobs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllCachedJobs'
-type JobCache_GetAllCachedJobs_Call struct {
-	*mock.Call
-}
-
-// GetAllCachedJobs is a helper method to define mock.On call
-func (_e *JobCache_Expecter) GetAllCachedJobs() *JobCache_GetAllCachedJobs_Call {
-	return &JobCache_GetAllCachedJobs_Call{Call: _e.mock.On("GetAllCachedJobs")}
-}
-
-func (_c *JobCache_GetAllCachedJobs_Call) Run(run func()) *JobCache_GetAllCachedJobs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *JobCache_GetAllCachedJobs_Call) Return(_a0 []*types.Job) *JobCache_GetAllCachedJobs_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *JobCache_GetAllCachedJobs_Call) RunAndReturn(run func() []*types.Job) *JobCache_GetAllCachedJobs_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetJob provides a mock function with given fields: _a0
@@ -134,34 +71,6 @@ func (_m *JobCache) GetJob(_a0 string) (*types.Job, error) {
 	return r0, r1
 }
 
-// JobCache_GetJob_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJob'
-type JobCache_GetJob_Call struct {
-	*mock.Call
-}
-
-// GetJob is a helper method to define mock.On call
-//   - _a0 string
-func (_e *JobCache_Expecter) GetJob(_a0 interface{}) *JobCache_GetJob_Call {
-	return &JobCache_GetJob_Call{Call: _e.mock.On("GetJob", _a0)}
-}
-
-func (_c *JobCache_GetJob_Call) Run(run func(_a0 string)) *JobCache_GetJob_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *JobCache_GetJob_Call) Return(_a0 *types.Job, _a1 error) *JobCache_GetJob_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_GetJob_Call) RunAndReturn(run func(string) (*types.Job, error)) *JobCache_GetJob_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetJobMaybeExpired provides a mock function with given fields: _a0, _a1
 func (_m *JobCache) GetJobMaybeExpired(_a0 context.Context, _a1 string) (*types.Job, error) {
 	ret := _m.Called(_a0, _a1)
@@ -190,35 +99,6 @@ func (_m *JobCache) GetJobMaybeExpired(_a0 context.Context, _a1 string) (*types.
 	}
 
 	return r0, r1
-}
-
-// JobCache_GetJobMaybeExpired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobMaybeExpired'
-type JobCache_GetJobMaybeExpired_Call struct {
-	*mock.Call
-}
-
-// GetJobMaybeExpired is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-func (_e *JobCache_Expecter) GetJobMaybeExpired(_a0 interface{}, _a1 interface{}) *JobCache_GetJobMaybeExpired_Call {
-	return &JobCache_GetJobMaybeExpired_Call{Call: _e.mock.On("GetJobMaybeExpired", _a0, _a1)}
-}
-
-func (_c *JobCache_GetJobMaybeExpired_Call) Run(run func(_a0 context.Context, _a1 string)) *JobCache_GetJobMaybeExpired_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *JobCache_GetJobMaybeExpired_Call) Return(_a0 *types.Job, _a1 error) *JobCache_GetJobMaybeExpired_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_GetJobMaybeExpired_Call) RunAndReturn(run func(context.Context, string) (*types.Job, error)) *JobCache_GetJobMaybeExpired_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetJobsByRepoState provides a mock function with given fields: _a0, _a1
@@ -251,35 +131,6 @@ func (_m *JobCache) GetJobsByRepoState(_a0 string, _a1 types.RepoState) ([]*type
 	return r0, r1
 }
 
-// JobCache_GetJobsByRepoState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobsByRepoState'
-type JobCache_GetJobsByRepoState_Call struct {
-	*mock.Call
-}
-
-// GetJobsByRepoState is a helper method to define mock.On call
-//   - _a0 string
-//   - _a1 types.RepoState
-func (_e *JobCache_Expecter) GetJobsByRepoState(_a0 interface{}, _a1 interface{}) *JobCache_GetJobsByRepoState_Call {
-	return &JobCache_GetJobsByRepoState_Call{Call: _e.mock.On("GetJobsByRepoState", _a0, _a1)}
-}
-
-func (_c *JobCache_GetJobsByRepoState_Call) Run(run func(_a0 string, _a1 types.RepoState)) *JobCache_GetJobsByRepoState_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(types.RepoState))
-	})
-	return _c
-}
-
-func (_c *JobCache_GetJobsByRepoState_Call) Return(_a0 []*types.Job, _a1 error) *JobCache_GetJobsByRepoState_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_GetJobsByRepoState_Call) RunAndReturn(run func(string, types.RepoState) ([]*types.Job, error)) *JobCache_GetJobsByRepoState_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetJobsFromDateRange provides a mock function with given fields: _a0, _a1
 func (_m *JobCache) GetJobsFromDateRange(_a0 time.Time, _a1 time.Time) ([]*types.Job, error) {
 	ret := _m.Called(_a0, _a1)
@@ -308,35 +159,6 @@ func (_m *JobCache) GetJobsFromDateRange(_a0 time.Time, _a1 time.Time) ([]*types
 	}
 
 	return r0, r1
-}
-
-// JobCache_GetJobsFromDateRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJobsFromDateRange'
-type JobCache_GetJobsFromDateRange_Call struct {
-	*mock.Call
-}
-
-// GetJobsFromDateRange is a helper method to define mock.On call
-//   - _a0 time.Time
-//   - _a1 time.Time
-func (_e *JobCache_Expecter) GetJobsFromDateRange(_a0 interface{}, _a1 interface{}) *JobCache_GetJobsFromDateRange_Call {
-	return &JobCache_GetJobsFromDateRange_Call{Call: _e.mock.On("GetJobsFromDateRange", _a0, _a1)}
-}
-
-func (_c *JobCache_GetJobsFromDateRange_Call) Run(run func(_a0 time.Time, _a1 time.Time)) *JobCache_GetJobsFromDateRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(time.Time), args[1].(time.Time))
-	})
-	return _c
-}
-
-func (_c *JobCache_GetJobsFromDateRange_Call) Return(_a0 []*types.Job, _a1 error) *JobCache_GetJobsFromDateRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_GetJobsFromDateRange_Call) RunAndReturn(run func(time.Time, time.Time) ([]*types.Job, error)) *JobCache_GetJobsFromDateRange_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetMatchingJobsFromDateRange provides a mock function with given fields: names, from, to
@@ -369,36 +191,6 @@ func (_m *JobCache) GetMatchingJobsFromDateRange(names []string, from time.Time,
 	return r0, r1
 }
 
-// JobCache_GetMatchingJobsFromDateRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMatchingJobsFromDateRange'
-type JobCache_GetMatchingJobsFromDateRange_Call struct {
-	*mock.Call
-}
-
-// GetMatchingJobsFromDateRange is a helper method to define mock.On call
-//   - names []string
-//   - from time.Time
-//   - to time.Time
-func (_e *JobCache_Expecter) GetMatchingJobsFromDateRange(names interface{}, from interface{}, to interface{}) *JobCache_GetMatchingJobsFromDateRange_Call {
-	return &JobCache_GetMatchingJobsFromDateRange_Call{Call: _e.mock.On("GetMatchingJobsFromDateRange", names, from, to)}
-}
-
-func (_c *JobCache_GetMatchingJobsFromDateRange_Call) Run(run func(names []string, from time.Time, to time.Time)) *JobCache_GetMatchingJobsFromDateRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]string), args[1].(time.Time), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *JobCache_GetMatchingJobsFromDateRange_Call) Return(_a0 map[string][]*types.Job, _a1 error) *JobCache_GetMatchingJobsFromDateRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_GetMatchingJobsFromDateRange_Call) RunAndReturn(run func([]string, time.Time, time.Time) (map[string][]*types.Job, error)) *JobCache_GetMatchingJobsFromDateRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // InProgressJobs provides a mock function with given fields:
 func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	ret := _m.Called()
@@ -427,33 +219,6 @@ func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	}
 
 	return r0, r1
-}
-
-// JobCache_InProgressJobs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InProgressJobs'
-type JobCache_InProgressJobs_Call struct {
-	*mock.Call
-}
-
-// InProgressJobs is a helper method to define mock.On call
-func (_e *JobCache_Expecter) InProgressJobs() *JobCache_InProgressJobs_Call {
-	return &JobCache_InProgressJobs_Call{Call: _e.mock.On("InProgressJobs")}
-}
-
-func (_c *JobCache_InProgressJobs_Call) Run(run func()) *JobCache_InProgressJobs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *JobCache_InProgressJobs_Call) Return(_a0 []*types.Job, _a1 error) *JobCache_InProgressJobs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_InProgressJobs_Call) RunAndReturn(run func() ([]*types.Job, error)) *JobCache_InProgressJobs_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // RequestedJobs provides a mock function with given fields:
@@ -486,33 +251,6 @@ func (_m *JobCache) RequestedJobs() ([]*types.Job, error) {
 	return r0, r1
 }
 
-// JobCache_RequestedJobs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequestedJobs'
-type JobCache_RequestedJobs_Call struct {
-	*mock.Call
-}
-
-// RequestedJobs is a helper method to define mock.On call
-func (_e *JobCache_Expecter) RequestedJobs() *JobCache_RequestedJobs_Call {
-	return &JobCache_RequestedJobs_Call{Call: _e.mock.On("RequestedJobs")}
-}
-
-func (_c *JobCache_RequestedJobs_Call) Run(run func()) *JobCache_RequestedJobs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *JobCache_RequestedJobs_Call) Return(_a0 []*types.Job, _a1 error) *JobCache_RequestedJobs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *JobCache_RequestedJobs_Call) RunAndReturn(run func() ([]*types.Job, error)) *JobCache_RequestedJobs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx
 func (_m *JobCache) Update(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -529,34 +267,6 @@ func (_m *JobCache) Update(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// JobCache_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type JobCache_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *JobCache_Expecter) Update(ctx interface{}) *JobCache_Update_Call {
-	return &JobCache_Update_Call{Call: _e.mock.On("Update", ctx)}
-}
-
-func (_c *JobCache_Update_Call) Run(run func(ctx context.Context)) *JobCache_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *JobCache_Update_Call) Return(_a0 error) *JobCache_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *JobCache_Update_Call) RunAndReturn(run func(context.Context) error) *JobCache_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewJobCache creates a new instance of JobCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

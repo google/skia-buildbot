@@ -14,14 +14,6 @@ type DB struct {
 	mock.Mock
 }
 
-type DB_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *DB) EXPECT() *DB_Expecter {
-	return &DB_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *DB) Close() error {
 	ret := _m.Called()
@@ -38,33 +30,6 @@ func (_m *DB) Close() error {
 	}
 
 	return r0
-}
-
-// DB_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type DB_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *DB_Expecter) Close() *DB_Close_Call {
-	return &DB_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *DB_Close_Call) Run(run func()) *DB_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *DB_Close_Call) Return(_a0 error) *DB_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Close_Call) RunAndReturn(run func() error) *DB_Close_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Get provides a mock function with given fields: ctx, rollId
@@ -97,35 +62,6 @@ func (_m *DB) Get(ctx context.Context, rollId string) (*manual.ManualRollRequest
 	return r0, r1
 }
 
-// DB_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type DB_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollId string
-func (_e *DB_Expecter) Get(ctx interface{}, rollId interface{}) *DB_Get_Call {
-	return &DB_Get_Call{Call: _e.mock.On("Get", ctx, rollId)}
-}
-
-func (_c *DB_Get_Call) Run(run func(ctx context.Context, rollId string)) *DB_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *DB_Get_Call) Return(_a0 *manual.ManualRollRequest, _a1 error) *DB_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_Get_Call) RunAndReturn(run func(context.Context, string) (*manual.ManualRollRequest, error)) *DB_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetIncomplete provides a mock function with given fields: rollerName
 func (_m *DB) GetIncomplete(rollerName string) ([]*manual.ManualRollRequest, error) {
 	ret := _m.Called(rollerName)
@@ -154,34 +90,6 @@ func (_m *DB) GetIncomplete(rollerName string) ([]*manual.ManualRollRequest, err
 	}
 
 	return r0, r1
-}
-
-// DB_GetIncomplete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIncomplete'
-type DB_GetIncomplete_Call struct {
-	*mock.Call
-}
-
-// GetIncomplete is a helper method to define mock.On call
-//   - rollerName string
-func (_e *DB_Expecter) GetIncomplete(rollerName interface{}) *DB_GetIncomplete_Call {
-	return &DB_GetIncomplete_Call{Call: _e.mock.On("GetIncomplete", rollerName)}
-}
-
-func (_c *DB_GetIncomplete_Call) Run(run func(rollerName string)) *DB_GetIncomplete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *DB_GetIncomplete_Call) Return(_a0 []*manual.ManualRollRequest, _a1 error) *DB_GetIncomplete_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_GetIncomplete_Call) RunAndReturn(run func(string) ([]*manual.ManualRollRequest, error)) *DB_GetIncomplete_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetRecent provides a mock function with given fields: rollerName, limit
@@ -214,35 +122,6 @@ func (_m *DB) GetRecent(rollerName string, limit int) ([]*manual.ManualRollReque
 	return r0, r1
 }
 
-// DB_GetRecent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRecent'
-type DB_GetRecent_Call struct {
-	*mock.Call
-}
-
-// GetRecent is a helper method to define mock.On call
-//   - rollerName string
-//   - limit int
-func (_e *DB_Expecter) GetRecent(rollerName interface{}, limit interface{}) *DB_GetRecent_Call {
-	return &DB_GetRecent_Call{Call: _e.mock.On("GetRecent", rollerName, limit)}
-}
-
-func (_c *DB_GetRecent_Call) Run(run func(rollerName string, limit int)) *DB_GetRecent_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *DB_GetRecent_Call) Return(_a0 []*manual.ManualRollRequest, _a1 error) *DB_GetRecent_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_GetRecent_Call) RunAndReturn(run func(string, int) ([]*manual.ManualRollRequest, error)) *DB_GetRecent_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Put provides a mock function with given fields: req
 func (_m *DB) Put(req *manual.ManualRollRequest) error {
 	ret := _m.Called(req)
@@ -259,34 +138,6 @@ func (_m *DB) Put(req *manual.ManualRollRequest) error {
 	}
 
 	return r0
-}
-
-// DB_Put_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Put'
-type DB_Put_Call struct {
-	*mock.Call
-}
-
-// Put is a helper method to define mock.On call
-//   - req *manual.ManualRollRequest
-func (_e *DB_Expecter) Put(req interface{}) *DB_Put_Call {
-	return &DB_Put_Call{Call: _e.mock.On("Put", req)}
-}
-
-func (_c *DB_Put_Call) Run(run func(req *manual.ManualRollRequest)) *DB_Put_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*manual.ManualRollRequest))
-	})
-	return _c
-}
-
-func (_c *DB_Put_Call) Return(_a0 error) *DB_Put_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Put_Call) RunAndReturn(run func(*manual.ManualRollRequest) error) *DB_Put_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDB creates a new instance of DB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

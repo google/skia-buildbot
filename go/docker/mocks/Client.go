@@ -14,14 +14,6 @@ type Client struct {
 	mock.Mock
 }
 
-type Client_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Client) EXPECT() *Client_Expecter {
-	return &Client_Expecter{mock: &_m.Mock}
-}
-
 // GetConfig provides a mock function with given fields: ctx, registry, repository, configDigest
 func (_m *Client) GetConfig(ctx context.Context, registry string, repository string, configDigest string) (*docker.ImageConfig, error) {
 	ret := _m.Called(ctx, registry, repository, configDigest)
@@ -50,37 +42,6 @@ func (_m *Client) GetConfig(ctx context.Context, registry string, repository str
 	}
 
 	return r0, r1
-}
-
-// Client_GetConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConfig'
-type Client_GetConfig_Call struct {
-	*mock.Call
-}
-
-// GetConfig is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-//   - repository string
-//   - configDigest string
-func (_e *Client_Expecter) GetConfig(ctx interface{}, registry interface{}, repository interface{}, configDigest interface{}) *Client_GetConfig_Call {
-	return &Client_GetConfig_Call{Call: _e.mock.On("GetConfig", ctx, registry, repository, configDigest)}
-}
-
-func (_c *Client_GetConfig_Call) Run(run func(ctx context.Context, registry string, repository string, configDigest string)) *Client_GetConfig_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_GetConfig_Call) Return(_a0 *docker.ImageConfig, _a1 error) *Client_GetConfig_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetConfig_Call) RunAndReturn(run func(context.Context, string, string, string) (*docker.ImageConfig, error)) *Client_GetConfig_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetManifest provides a mock function with given fields: ctx, registry, repository, reference
@@ -113,37 +74,6 @@ func (_m *Client) GetManifest(ctx context.Context, registry string, repository s
 	return r0, r1
 }
 
-// Client_GetManifest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetManifest'
-type Client_GetManifest_Call struct {
-	*mock.Call
-}
-
-// GetManifest is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-//   - repository string
-//   - reference string
-func (_e *Client_Expecter) GetManifest(ctx interface{}, registry interface{}, repository interface{}, reference interface{}) *Client_GetManifest_Call {
-	return &Client_GetManifest_Call{Call: _e.mock.On("GetManifest", ctx, registry, repository, reference)}
-}
-
-func (_c *Client_GetManifest_Call) Run(run func(ctx context.Context, registry string, repository string, reference string)) *Client_GetManifest_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_GetManifest_Call) Return(_a0 *docker.Manifest, _a1 error) *Client_GetManifest_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_GetManifest_Call) RunAndReturn(run func(context.Context, string, string, string) (*docker.Manifest, error)) *Client_GetManifest_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListInstances provides a mock function with given fields: ctx, registry, repository
 func (_m *Client) ListInstances(ctx context.Context, registry string, repository string) (map[string]*docker.ImageInstance, error) {
 	ret := _m.Called(ctx, registry, repository)
@@ -172,36 +102,6 @@ func (_m *Client) ListInstances(ctx context.Context, registry string, repository
 	}
 
 	return r0, r1
-}
-
-// Client_ListInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstances'
-type Client_ListInstances_Call struct {
-	*mock.Call
-}
-
-// ListInstances is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-//   - repository string
-func (_e *Client_Expecter) ListInstances(ctx interface{}, registry interface{}, repository interface{}) *Client_ListInstances_Call {
-	return &Client_ListInstances_Call{Call: _e.mock.On("ListInstances", ctx, registry, repository)}
-}
-
-func (_c *Client_ListInstances_Call) Run(run func(ctx context.Context, registry string, repository string)) *Client_ListInstances_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Client_ListInstances_Call) Return(_a0 map[string]*docker.ImageInstance, _a1 error) *Client_ListInstances_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_ListInstances_Call) RunAndReturn(run func(context.Context, string, string) (map[string]*docker.ImageInstance, error)) *Client_ListInstances_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ListRepositories provides a mock function with given fields: ctx, registry
@@ -234,35 +134,6 @@ func (_m *Client) ListRepositories(ctx context.Context, registry string) ([]stri
 	return r0, r1
 }
 
-// Client_ListRepositories_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRepositories'
-type Client_ListRepositories_Call struct {
-	*mock.Call
-}
-
-// ListRepositories is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-func (_e *Client_Expecter) ListRepositories(ctx interface{}, registry interface{}) *Client_ListRepositories_Call {
-	return &Client_ListRepositories_Call{Call: _e.mock.On("ListRepositories", ctx, registry)}
-}
-
-func (_c *Client_ListRepositories_Call) Run(run func(ctx context.Context, registry string)) *Client_ListRepositories_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Client_ListRepositories_Call) Return(_a0 []string, _a1 error) *Client_ListRepositories_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_ListRepositories_Call) RunAndReturn(run func(context.Context, string) ([]string, error)) *Client_ListRepositories_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListTags provides a mock function with given fields: ctx, registry, repository
 func (_m *Client) ListTags(ctx context.Context, registry string, repository string) ([]string, error) {
 	ret := _m.Called(ctx, registry, repository)
@@ -293,36 +164,6 @@ func (_m *Client) ListTags(ctx context.Context, registry string, repository stri
 	return r0, r1
 }
 
-// Client_ListTags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTags'
-type Client_ListTags_Call struct {
-	*mock.Call
-}
-
-// ListTags is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-//   - repository string
-func (_e *Client_Expecter) ListTags(ctx interface{}, registry interface{}, repository interface{}) *Client_ListTags_Call {
-	return &Client_ListTags_Call{Call: _e.mock.On("ListTags", ctx, registry, repository)}
-}
-
-func (_c *Client_ListTags_Call) Run(run func(ctx context.Context, registry string, repository string)) *Client_ListTags_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Client_ListTags_Call) Return(_a0 []string, _a1 error) *Client_ListTags_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_ListTags_Call) RunAndReturn(run func(context.Context, string, string) ([]string, error)) *Client_ListTags_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetTag provides a mock function with given fields: ctx, registry, repository, reference, newTag
 func (_m *Client) SetTag(ctx context.Context, registry string, repository string, reference string, newTag string) error {
 	ret := _m.Called(ctx, registry, repository, reference, newTag)
@@ -339,38 +180,6 @@ func (_m *Client) SetTag(ctx context.Context, registry string, repository string
 	}
 
 	return r0
-}
-
-// Client_SetTag_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetTag'
-type Client_SetTag_Call struct {
-	*mock.Call
-}
-
-// SetTag is a helper method to define mock.On call
-//   - ctx context.Context
-//   - registry string
-//   - repository string
-//   - reference string
-//   - newTag string
-func (_e *Client_Expecter) SetTag(ctx interface{}, registry interface{}, repository interface{}, reference interface{}, newTag interface{}) *Client_SetTag_Call {
-	return &Client_SetTag_Call{Call: _e.mock.On("SetTag", ctx, registry, repository, reference, newTag)}
-}
-
-func (_c *Client_SetTag_Call) Run(run func(ctx context.Context, registry string, repository string, reference string, newTag string)) *Client_SetTag_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *Client_SetTag_Call) Return(_a0 error) *Client_SetTag_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_SetTag_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *Client_SetTag_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

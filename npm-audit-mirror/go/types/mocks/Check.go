@@ -12,14 +12,6 @@ type Check struct {
 	mock.Mock
 }
 
-type Check_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Check) EXPECT() *Check_Expecter {
-	return &Check_Expecter{mock: &_m.Mock}
-}
-
 // Name provides a mock function with given fields:
 func (_m *Check) Name() string {
 	ret := _m.Called()
@@ -36,33 +28,6 @@ func (_m *Check) Name() string {
 	}
 
 	return r0
-}
-
-// Check_Name_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Name'
-type Check_Name_Call struct {
-	*mock.Call
-}
-
-// Name is a helper method to define mock.On call
-func (_e *Check_Expecter) Name() *Check_Name_Call {
-	return &Check_Name_Call{Call: _e.mock.On("Name")}
-}
-
-func (_c *Check_Name_Call) Run(run func()) *Check_Name_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Check_Name_Call) Return(_a0 string) *Check_Name_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Check_Name_Call) RunAndReturn(run func() string) *Check_Name_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // PerformCheck provides a mock function with given fields: packageName, packageVersion, npmPackage
@@ -98,36 +63,6 @@ func (_m *Check) PerformCheck(packageName string, packageVersion string, npmPack
 	}
 
 	return r0, r1, r2
-}
-
-// Check_PerformCheck_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PerformCheck'
-type Check_PerformCheck_Call struct {
-	*mock.Call
-}
-
-// PerformCheck is a helper method to define mock.On call
-//   - packageName string
-//   - packageVersion string
-//   - npmPackage *types.NpmPackage
-func (_e *Check_Expecter) PerformCheck(packageName interface{}, packageVersion interface{}, npmPackage interface{}) *Check_PerformCheck_Call {
-	return &Check_PerformCheck_Call{Call: _e.mock.On("PerformCheck", packageName, packageVersion, npmPackage)}
-}
-
-func (_c *Check_PerformCheck_Call) Run(run func(packageName string, packageVersion string, npmPackage *types.NpmPackage)) *Check_PerformCheck_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(*types.NpmPackage))
-	})
-	return _c
-}
-
-func (_c *Check_PerformCheck_Call) Return(_a0 bool, _a1 string, _a2 error) *Check_PerformCheck_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *Check_PerformCheck_Call) RunAndReturn(run func(string, string, *types.NpmPackage) (bool, string, error)) *Check_PerformCheck_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewCheck creates a new instance of Check. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

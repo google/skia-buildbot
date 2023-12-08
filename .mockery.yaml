@@ -1,4 +1,4 @@
-#with-expecter: true
+with-expecter: false
 quiet: False
 mockname: "{{.InterfaceName}}"
 filename: "{{.MockName}}.go"

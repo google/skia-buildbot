@@ -16,14 +16,6 @@ type Store struct {
 	mock.Mock
 }
 
-type Store_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Store) EXPECT() *Store_Expecter {
-	return &Store_Expecter{mock: &_m.Mock}
-}
-
 // Delete provides a mock function with given fields: ctx, machineID
 func (_m *Store) Delete(ctx context.Context, machineID string) error {
 	ret := _m.Called(ctx, machineID)
@@ -40,35 +32,6 @@ func (_m *Store) Delete(ctx context.Context, machineID string) error {
 	}
 
 	return r0
-}
-
-// Store_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type Store_Delete_Call struct {
-	*mock.Call
-}
-
-// Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - machineID string
-func (_e *Store_Expecter) Delete(ctx interface{}, machineID interface{}) *Store_Delete_Call {
-	return &Store_Delete_Call{Call: _e.mock.On("Delete", ctx, machineID)}
-}
-
-func (_c *Store_Delete_Call) Run(run func(ctx context.Context, machineID string)) *Store_Delete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Store_Delete_Call) Return(_a0 error) *Store_Delete_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_Delete_Call) RunAndReturn(run func(context.Context, string) error) *Store_Delete_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Get provides a mock function with given fields: ctx, machineID
@@ -97,35 +60,6 @@ func (_m *Store) Get(ctx context.Context, machineID string) (machine.Description
 	}
 
 	return r0, r1
-}
-
-// Store_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type Store_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - machineID string
-func (_e *Store_Expecter) Get(ctx interface{}, machineID interface{}) *Store_Get_Call {
-	return &Store_Get_Call{Call: _e.mock.On("Get", ctx, machineID)}
-}
-
-func (_c *Store_Get_Call) Run(run func(ctx context.Context, machineID string)) *Store_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Store_Get_Call) Return(_a0 machine.Description, _a1 error) *Store_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_Get_Call) RunAndReturn(run func(context.Context, string) (machine.Description, error)) *Store_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetFreeMachines provides a mock function with given fields: ctx, pool
@@ -158,35 +92,6 @@ func (_m *Store) GetFreeMachines(ctx context.Context, pool string) ([]machine.De
 	return r0, r1
 }
 
-// Store_GetFreeMachines_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFreeMachines'
-type Store_GetFreeMachines_Call struct {
-	*mock.Call
-}
-
-// GetFreeMachines is a helper method to define mock.On call
-//   - ctx context.Context
-//   - pool string
-func (_e *Store_Expecter) GetFreeMachines(ctx interface{}, pool interface{}) *Store_GetFreeMachines_Call {
-	return &Store_GetFreeMachines_Call{Call: _e.mock.On("GetFreeMachines", ctx, pool)}
-}
-
-func (_c *Store_GetFreeMachines_Call) Run(run func(ctx context.Context, pool string)) *Store_GetFreeMachines_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Store_GetFreeMachines_Call) Return(_a0 []machine.Description, _a1 error) *Store_GetFreeMachines_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_GetFreeMachines_Call) RunAndReturn(run func(context.Context, string) ([]machine.Description, error)) *Store_GetFreeMachines_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // List provides a mock function with given fields: ctx
 func (_m *Store) List(ctx context.Context) ([]machine.Description, error) {
 	ret := _m.Called(ctx)
@@ -215,34 +120,6 @@ func (_m *Store) List(ctx context.Context) ([]machine.Description, error) {
 	}
 
 	return r0, r1
-}
-
-// Store_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
-type Store_List_Call struct {
-	*mock.Call
-}
-
-// List is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Store_Expecter) List(ctx interface{}) *Store_List_Call {
-	return &Store_List_Call{Call: _e.mock.On("List", ctx)}
-}
-
-func (_c *Store_List_Call) Run(run func(ctx context.Context)) *Store_List_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Store_List_Call) Return(_a0 []machine.Description, _a1 error) *Store_List_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_List_Call) RunAndReturn(run func(context.Context) ([]machine.Description, error)) *Store_List_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ListPowerCycle provides a mock function with given fields: ctx
@@ -275,34 +152,6 @@ func (_m *Store) ListPowerCycle(ctx context.Context) ([]string, error) {
 	return r0, r1
 }
 
-// Store_ListPowerCycle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPowerCycle'
-type Store_ListPowerCycle_Call struct {
-	*mock.Call
-}
-
-// ListPowerCycle is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Store_Expecter) ListPowerCycle(ctx interface{}) *Store_ListPowerCycle_Call {
-	return &Store_ListPowerCycle_Call{Call: _e.mock.On("ListPowerCycle", ctx)}
-}
-
-func (_c *Store_ListPowerCycle_Call) Run(run func(ctx context.Context)) *Store_ListPowerCycle_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Store_ListPowerCycle_Call) Return(_a0 []string, _a1 error) *Store_ListPowerCycle_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_ListPowerCycle_Call) RunAndReturn(run func(context.Context) ([]string, error)) *Store_ListPowerCycle_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx, machineID, updateCallback
 func (_m *Store) Update(ctx context.Context, machineID string, updateCallback store.UpdateCallback) error {
 	ret := _m.Called(ctx, machineID, updateCallback)
@@ -319,36 +168,6 @@ func (_m *Store) Update(ctx context.Context, machineID string, updateCallback st
 	}
 
 	return r0
-}
-
-// Store_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type Store_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-//   - machineID string
-//   - updateCallback store.UpdateCallback
-func (_e *Store_Expecter) Update(ctx interface{}, machineID interface{}, updateCallback interface{}) *Store_Update_Call {
-	return &Store_Update_Call{Call: _e.mock.On("Update", ctx, machineID, updateCallback)}
-}
-
-func (_c *Store_Update_Call) Run(run func(ctx context.Context, machineID string, updateCallback store.UpdateCallback)) *Store_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(store.UpdateCallback))
-	})
-	return _c
-}
-
-func (_c *Store_Update_Call) Return(_a0 error) *Store_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_Update_Call) RunAndReturn(run func(context.Context, string, store.UpdateCallback) error) *Store_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

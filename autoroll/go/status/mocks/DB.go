@@ -14,14 +14,6 @@ type DB struct {
 	mock.Mock
 }
 
-type DB_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *DB) EXPECT() *DB_Expecter {
-	return &DB_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *DB) Close() error {
 	ret := _m.Called()
@@ -38,33 +30,6 @@ func (_m *DB) Close() error {
 	}
 
 	return r0
-}
-
-// DB_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type DB_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *DB_Expecter) Close() *DB_Close_Call {
-	return &DB_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *DB_Close_Call) Run(run func()) *DB_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *DB_Close_Call) Return(_a0 error) *DB_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Close_Call) RunAndReturn(run func() error) *DB_Close_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Get provides a mock function with given fields: ctx, rollerName
@@ -97,35 +62,6 @@ func (_m *DB) Get(ctx context.Context, rollerName string) (*status.AutoRollStatu
 	return r0, r1
 }
 
-// DB_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type DB_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollerName string
-func (_e *DB_Expecter) Get(ctx interface{}, rollerName interface{}) *DB_Get_Call {
-	return &DB_Get_Call{Call: _e.mock.On("Get", ctx, rollerName)}
-}
-
-func (_c *DB_Get_Call) Run(run func(ctx context.Context, rollerName string)) *DB_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *DB_Get_Call) Return(_a0 *status.AutoRollStatus, _a1 error) *DB_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_Get_Call) RunAndReturn(run func(context.Context, string) (*status.AutoRollStatus, error)) *DB_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Set provides a mock function with given fields: ctx, rollerName, st
 func (_m *DB) Set(ctx context.Context, rollerName string, st *status.AutoRollStatus) error {
 	ret := _m.Called(ctx, rollerName, st)
@@ -142,36 +78,6 @@ func (_m *DB) Set(ctx context.Context, rollerName string, st *status.AutoRollSta
 	}
 
 	return r0
-}
-
-// DB_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
-type DB_Set_Call struct {
-	*mock.Call
-}
-
-// Set is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rollerName string
-//   - st *status.AutoRollStatus
-func (_e *DB_Expecter) Set(ctx interface{}, rollerName interface{}, st interface{}) *DB_Set_Call {
-	return &DB_Set_Call{Call: _e.mock.On("Set", ctx, rollerName, st)}
-}
-
-func (_c *DB_Set_Call) Run(run func(ctx context.Context, rollerName string, st *status.AutoRollStatus)) *DB_Set_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*status.AutoRollStatus))
-	})
-	return _c
-}
-
-func (_c *DB_Set_Call) Return(_a0 error) *DB_Set_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_Set_Call) RunAndReturn(run func(context.Context, string, *status.AutoRollStatus) error) *DB_Set_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDB creates a new instance of DB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

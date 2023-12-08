@@ -15,14 +15,6 @@ type ImageDownloader struct {
 	mock.Mock
 }
 
-type ImageDownloader_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ImageDownloader) EXPECT() *ImageDownloader_Expecter {
-	return &ImageDownloader_Expecter{mock: &_m.Mock}
-}
-
 // DownloadImage provides a mock function with given fields: ctx, goldURL, digest
 func (_m *ImageDownloader) DownloadImage(ctx context.Context, goldURL string, digest types.Digest) ([]byte, error) {
 	ret := _m.Called(ctx, goldURL, digest)
@@ -51,36 +43,6 @@ func (_m *ImageDownloader) DownloadImage(ctx context.Context, goldURL string, di
 	}
 
 	return r0, r1
-}
-
-// ImageDownloader_DownloadImage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DownloadImage'
-type ImageDownloader_DownloadImage_Call struct {
-	*mock.Call
-}
-
-// DownloadImage is a helper method to define mock.On call
-//   - ctx context.Context
-//   - goldURL string
-//   - digest types.Digest
-func (_e *ImageDownloader_Expecter) DownloadImage(ctx interface{}, goldURL interface{}, digest interface{}) *ImageDownloader_DownloadImage_Call {
-	return &ImageDownloader_DownloadImage_Call{Call: _e.mock.On("DownloadImage", ctx, goldURL, digest)}
-}
-
-func (_c *ImageDownloader_DownloadImage_Call) Run(run func(ctx context.Context, goldURL string, digest types.Digest)) *ImageDownloader_DownloadImage_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(types.Digest))
-	})
-	return _c
-}
-
-func (_c *ImageDownloader_DownloadImage_Call) Return(_a0 []byte, _a1 error) *ImageDownloader_DownloadImage_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ImageDownloader_DownloadImage_Call) RunAndReturn(run func(context.Context, string, types.Digest) ([]byte, error)) *ImageDownloader_DownloadImage_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewImageDownloader creates a new instance of ImageDownloader. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

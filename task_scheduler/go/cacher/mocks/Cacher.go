@@ -16,14 +16,6 @@ type Cacher struct {
 	mock.Mock
 }
 
-type Cacher_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Cacher) EXPECT() *Cacher_Expecter {
-	return &Cacher_Expecter{mock: &_m.Mock}
-}
-
 // GetOrCacheRepoState provides a mock function with given fields: ctx, rs
 func (_m *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
 	ret := _m.Called(ctx, rs)
@@ -52,35 +44,6 @@ func (_m *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (
 	}
 
 	return r0, r1
-}
-
-// Cacher_GetOrCacheRepoState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrCacheRepoState'
-type Cacher_GetOrCacheRepoState_Call struct {
-	*mock.Call
-}
-
-// GetOrCacheRepoState is a helper method to define mock.On call
-//   - ctx context.Context
-//   - rs types.RepoState
-func (_e *Cacher_Expecter) GetOrCacheRepoState(ctx interface{}, rs interface{}) *Cacher_GetOrCacheRepoState_Call {
-	return &Cacher_GetOrCacheRepoState_Call{Call: _e.mock.On("GetOrCacheRepoState", ctx, rs)}
-}
-
-func (_c *Cacher_GetOrCacheRepoState_Call) Run(run func(ctx context.Context, rs types.RepoState)) *Cacher_GetOrCacheRepoState_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.RepoState))
-	})
-	return _c
-}
-
-func (_c *Cacher_GetOrCacheRepoState_Call) Return(_a0 *specs.TasksCfg, _a1 error) *Cacher_GetOrCacheRepoState_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Cacher_GetOrCacheRepoState_Call) RunAndReturn(run func(context.Context, types.RepoState) (*specs.TasksCfg, error)) *Cacher_GetOrCacheRepoState_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewCacher creates a new instance of Cacher. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

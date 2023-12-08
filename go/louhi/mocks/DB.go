@@ -14,14 +14,6 @@ type DB struct {
 	mock.Mock
 }
 
-type DB_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *DB) EXPECT() *DB_Expecter {
-	return &DB_Expecter{mock: &_m.Mock}
-}
-
 // GetFlowExecution provides a mock function with given fields: ctx, id
 func (_m *DB) GetFlowExecution(ctx context.Context, id string) (*louhi.FlowExecution, error) {
 	ret := _m.Called(ctx, id)
@@ -50,35 +42,6 @@ func (_m *DB) GetFlowExecution(ctx context.Context, id string) (*louhi.FlowExecu
 	}
 
 	return r0, r1
-}
-
-// DB_GetFlowExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFlowExecution'
-type DB_GetFlowExecution_Call struct {
-	*mock.Call
-}
-
-// GetFlowExecution is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *DB_Expecter) GetFlowExecution(ctx interface{}, id interface{}) *DB_GetFlowExecution_Call {
-	return &DB_GetFlowExecution_Call{Call: _e.mock.On("GetFlowExecution", ctx, id)}
-}
-
-func (_c *DB_GetFlowExecution_Call) Run(run func(ctx context.Context, id string)) *DB_GetFlowExecution_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *DB_GetFlowExecution_Call) Return(_a0 *louhi.FlowExecution, _a1 error) *DB_GetFlowExecution_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_GetFlowExecution_Call) RunAndReturn(run func(context.Context, string) (*louhi.FlowExecution, error)) *DB_GetFlowExecution_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetLatestFlowExecutions provides a mock function with given fields: ctx
@@ -111,34 +74,6 @@ func (_m *DB) GetLatestFlowExecutions(ctx context.Context) (map[string]*louhi.Fl
 	return r0, r1
 }
 
-// DB_GetLatestFlowExecutions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestFlowExecutions'
-type DB_GetLatestFlowExecutions_Call struct {
-	*mock.Call
-}
-
-// GetLatestFlowExecutions is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *DB_Expecter) GetLatestFlowExecutions(ctx interface{}) *DB_GetLatestFlowExecutions_Call {
-	return &DB_GetLatestFlowExecutions_Call{Call: _e.mock.On("GetLatestFlowExecutions", ctx)}
-}
-
-func (_c *DB_GetLatestFlowExecutions_Call) Run(run func(ctx context.Context)) *DB_GetLatestFlowExecutions_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *DB_GetLatestFlowExecutions_Call) Return(_a0 map[string]*louhi.FlowExecution, _a1 error) *DB_GetLatestFlowExecutions_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DB_GetLatestFlowExecutions_Call) RunAndReturn(run func(context.Context) (map[string]*louhi.FlowExecution, error)) *DB_GetLatestFlowExecutions_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PutFlowExecution provides a mock function with given fields: ctx, fe
 func (_m *DB) PutFlowExecution(ctx context.Context, fe *louhi.FlowExecution) error {
 	ret := _m.Called(ctx, fe)
@@ -155,35 +90,6 @@ func (_m *DB) PutFlowExecution(ctx context.Context, fe *louhi.FlowExecution) err
 	}
 
 	return r0
-}
-
-// DB_PutFlowExecution_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutFlowExecution'
-type DB_PutFlowExecution_Call struct {
-	*mock.Call
-}
-
-// PutFlowExecution is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fe *louhi.FlowExecution
-func (_e *DB_Expecter) PutFlowExecution(ctx interface{}, fe interface{}) *DB_PutFlowExecution_Call {
-	return &DB_PutFlowExecution_Call{Call: _e.mock.On("PutFlowExecution", ctx, fe)}
-}
-
-func (_c *DB_PutFlowExecution_Call) Run(run func(ctx context.Context, fe *louhi.FlowExecution)) *DB_PutFlowExecution_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*louhi.FlowExecution))
-	})
-	return _c
-}
-
-func (_c *DB_PutFlowExecution_Call) Return(_a0 error) *DB_PutFlowExecution_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *DB_PutFlowExecution_Call) RunAndReturn(run func(context.Context, *louhi.FlowExecution) error) *DB_PutFlowExecution_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDB creates a new instance of DB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

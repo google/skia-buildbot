@@ -18,14 +18,6 @@ type GCSClient struct {
 	mock.Mock
 }
 
-type GCSClient_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GCSClient) EXPECT() *GCSClient_Expecter {
-	return &GCSClient_Expecter{mock: &_m.Mock}
-}
-
 // GetImage provides a mock function with given fields: ctx, digest
 func (_m *GCSClient) GetImage(ctx context.Context, digest types.Digest) ([]byte, error) {
 	ret := _m.Called(ctx, digest)
@@ -56,35 +48,6 @@ func (_m *GCSClient) GetImage(ctx context.Context, digest types.Digest) ([]byte,
 	return r0, r1
 }
 
-// GCSClient_GetImage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetImage'
-type GCSClient_GetImage_Call struct {
-	*mock.Call
-}
-
-// GetImage is a helper method to define mock.On call
-//   - ctx context.Context
-//   - digest types.Digest
-func (_e *GCSClient_Expecter) GetImage(ctx interface{}, digest interface{}) *GCSClient_GetImage_Call {
-	return &GCSClient_GetImage_Call{Call: _e.mock.On("GetImage", ctx, digest)}
-}
-
-func (_c *GCSClient_GetImage_Call) Run(run func(ctx context.Context, digest types.Digest)) *GCSClient_GetImage_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.Digest))
-	})
-	return _c
-}
-
-func (_c *GCSClient_GetImage_Call) Return(_a0 []byte, _a1 error) *GCSClient_GetImage_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GCSClient_GetImage_Call) RunAndReturn(run func(context.Context, types.Digest) ([]byte, error)) *GCSClient_GetImage_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LoadKnownDigests provides a mock function with given fields: ctx, w
 func (_m *GCSClient) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	ret := _m.Called(ctx, w)
@@ -101,35 +64,6 @@ func (_m *GCSClient) LoadKnownDigests(ctx context.Context, w io.Writer) error {
 	}
 
 	return r0
-}
-
-// GCSClient_LoadKnownDigests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LoadKnownDigests'
-type GCSClient_LoadKnownDigests_Call struct {
-	*mock.Call
-}
-
-// LoadKnownDigests is a helper method to define mock.On call
-//   - ctx context.Context
-//   - w io.Writer
-func (_e *GCSClient_Expecter) LoadKnownDigests(ctx interface{}, w interface{}) *GCSClient_LoadKnownDigests_Call {
-	return &GCSClient_LoadKnownDigests_Call{Call: _e.mock.On("LoadKnownDigests", ctx, w)}
-}
-
-func (_c *GCSClient_LoadKnownDigests_Call) Run(run func(ctx context.Context, w io.Writer)) *GCSClient_LoadKnownDigests_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(io.Writer))
-	})
-	return _c
-}
-
-func (_c *GCSClient_LoadKnownDigests_Call) Return(_a0 error) *GCSClient_LoadKnownDigests_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_LoadKnownDigests_Call) RunAndReturn(run func(context.Context, io.Writer) error) *GCSClient_LoadKnownDigests_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Options provides a mock function with given fields:
@@ -150,33 +84,6 @@ func (_m *GCSClient) Options() storage.GCSClientOptions {
 	return r0
 }
 
-// GCSClient_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
-type GCSClient_Options_Call struct {
-	*mock.Call
-}
-
-// Options is a helper method to define mock.On call
-func (_e *GCSClient_Expecter) Options() *GCSClient_Options_Call {
-	return &GCSClient_Options_Call{Call: _e.mock.On("Options")}
-}
-
-func (_c *GCSClient_Options_Call) Run(run func()) *GCSClient_Options_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *GCSClient_Options_Call) Return(_a0 storage.GCSClientOptions) *GCSClient_Options_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_Options_Call) RunAndReturn(run func() storage.GCSClientOptions) *GCSClient_Options_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // WriteKnownDigests provides a mock function with given fields: ctx, digests
 func (_m *GCSClient) WriteKnownDigests(ctx context.Context, digests types.DigestSlice) error {
 	ret := _m.Called(ctx, digests)
@@ -193,35 +100,6 @@ func (_m *GCSClient) WriteKnownDigests(ctx context.Context, digests types.Digest
 	}
 
 	return r0
-}
-
-// GCSClient_WriteKnownDigests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WriteKnownDigests'
-type GCSClient_WriteKnownDigests_Call struct {
-	*mock.Call
-}
-
-// WriteKnownDigests is a helper method to define mock.On call
-//   - ctx context.Context
-//   - digests types.DigestSlice
-func (_e *GCSClient_Expecter) WriteKnownDigests(ctx interface{}, digests interface{}) *GCSClient_WriteKnownDigests_Call {
-	return &GCSClient_WriteKnownDigests_Call{Call: _e.mock.On("WriteKnownDigests", ctx, digests)}
-}
-
-func (_c *GCSClient_WriteKnownDigests_Call) Run(run func(ctx context.Context, digests types.DigestSlice)) *GCSClient_WriteKnownDigests_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.DigestSlice))
-	})
-	return _c
-}
-
-func (_c *GCSClient_WriteKnownDigests_Call) Return(_a0 error) *GCSClient_WriteKnownDigests_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_WriteKnownDigests_Call) RunAndReturn(run func(context.Context, types.DigestSlice) error) *GCSClient_WriteKnownDigests_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGCSClient creates a new instance of GCSClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

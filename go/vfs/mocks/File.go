@@ -14,14 +14,6 @@ type File struct {
 	mock.Mock
 }
 
-type File_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *File) EXPECT() *File_Expecter {
-	return &File_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields: ctx
 func (_m *File) Close(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -38,34 +30,6 @@ func (_m *File) Close(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// File_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type File_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *File_Expecter) Close(ctx interface{}) *File_Close_Call {
-	return &File_Close_Call{Call: _e.mock.On("Close", ctx)}
-}
-
-func (_c *File_Close_Call) Run(run func(ctx context.Context)) *File_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *File_Close_Call) Return(_a0 error) *File_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *File_Close_Call) RunAndReturn(run func(context.Context) error) *File_Close_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Read provides a mock function with given fields: ctx, buf
@@ -94,35 +58,6 @@ func (_m *File) Read(ctx context.Context, buf []byte) (int, error) {
 	}
 
 	return r0, r1
-}
-
-// File_Read_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Read'
-type File_Read_Call struct {
-	*mock.Call
-}
-
-// Read is a helper method to define mock.On call
-//   - ctx context.Context
-//   - buf []byte
-func (_e *File_Expecter) Read(ctx interface{}, buf interface{}) *File_Read_Call {
-	return &File_Read_Call{Call: _e.mock.On("Read", ctx, buf)}
-}
-
-func (_c *File_Read_Call) Run(run func(ctx context.Context, buf []byte)) *File_Read_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]byte))
-	})
-	return _c
-}
-
-func (_c *File_Read_Call) Return(_a0 int, _a1 error) *File_Read_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *File_Read_Call) RunAndReturn(run func(context.Context, []byte) (int, error)) *File_Read_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ReadDir provides a mock function with given fields: ctx, n
@@ -155,35 +90,6 @@ func (_m *File) ReadDir(ctx context.Context, n int) ([]fs.FileInfo, error) {
 	return r0, r1
 }
 
-// File_ReadDir_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadDir'
-type File_ReadDir_Call struct {
-	*mock.Call
-}
-
-// ReadDir is a helper method to define mock.On call
-//   - ctx context.Context
-//   - n int
-func (_e *File_Expecter) ReadDir(ctx interface{}, n interface{}) *File_ReadDir_Call {
-	return &File_ReadDir_Call{Call: _e.mock.On("ReadDir", ctx, n)}
-}
-
-func (_c *File_ReadDir_Call) Run(run func(ctx context.Context, n int)) *File_ReadDir_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *File_ReadDir_Call) Return(_a0 []fs.FileInfo, _a1 error) *File_ReadDir_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *File_ReadDir_Call) RunAndReturn(run func(context.Context, int) ([]fs.FileInfo, error)) *File_ReadDir_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Stat provides a mock function with given fields: ctx
 func (_m *File) Stat(ctx context.Context) (fs.FileInfo, error) {
 	ret := _m.Called(ctx)
@@ -214,34 +120,6 @@ func (_m *File) Stat(ctx context.Context) (fs.FileInfo, error) {
 	return r0, r1
 }
 
-// File_Stat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Stat'
-type File_Stat_Call struct {
-	*mock.Call
-}
-
-// Stat is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *File_Expecter) Stat(ctx interface{}) *File_Stat_Call {
-	return &File_Stat_Call{Call: _e.mock.On("Stat", ctx)}
-}
-
-func (_c *File_Stat_Call) Run(run func(ctx context.Context)) *File_Stat_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *File_Stat_Call) Return(_a0 fs.FileInfo, _a1 error) *File_Stat_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *File_Stat_Call) RunAndReturn(run func(context.Context) (fs.FileInfo, error)) *File_Stat_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Write provides a mock function with given fields: ctx, b
 func (_m *File) Write(ctx context.Context, b []byte) (int, error) {
 	ret := _m.Called(ctx, b)
@@ -268,35 +146,6 @@ func (_m *File) Write(ctx context.Context, b []byte) (int, error) {
 	}
 
 	return r0, r1
-}
-
-// File_Write_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Write'
-type File_Write_Call struct {
-	*mock.Call
-}
-
-// Write is a helper method to define mock.On call
-//   - ctx context.Context
-//   - b []byte
-func (_e *File_Expecter) Write(ctx interface{}, b interface{}) *File_Write_Call {
-	return &File_Write_Call{Call: _e.mock.On("Write", ctx, b)}
-}
-
-func (_c *File_Write_Call) Run(run func(ctx context.Context, b []byte)) *File_Write_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]byte))
-	})
-	return _c
-}
-
-func (_c *File_Write_Call) Return(n int, err error) *File_Write_Call {
-	_c.Call.Return(n, err)
-	return _c
-}
-
-func (_c *File_Write_Call) RunAndReturn(run func(context.Context, []byte) (int, error)) *File_Write_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewFile creates a new instance of File. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

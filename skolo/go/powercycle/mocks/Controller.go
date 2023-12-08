@@ -16,14 +16,6 @@ type Controller struct {
 	mock.Mock
 }
 
-type Controller_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Controller) EXPECT() *Controller_Expecter {
-	return &Controller_Expecter{mock: &_m.Mock}
-}
-
 // DeviceIDs provides a mock function with given fields:
 func (_m *Controller) DeviceIDs() []powercycle.DeviceID {
 	ret := _m.Called()
@@ -44,33 +36,6 @@ func (_m *Controller) DeviceIDs() []powercycle.DeviceID {
 	return r0
 }
 
-// Controller_DeviceIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceIDs'
-type Controller_DeviceIDs_Call struct {
-	*mock.Call
-}
-
-// DeviceIDs is a helper method to define mock.On call
-func (_e *Controller_Expecter) DeviceIDs() *Controller_DeviceIDs_Call {
-	return &Controller_DeviceIDs_Call{Call: _e.mock.On("DeviceIDs")}
-}
-
-func (_c *Controller_DeviceIDs_Call) Run(run func()) *Controller_DeviceIDs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Controller_DeviceIDs_Call) Return(_a0 []powercycle.DeviceID) *Controller_DeviceIDs_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Controller_DeviceIDs_Call) RunAndReturn(run func() []powercycle.DeviceID) *Controller_DeviceIDs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PowerCycle provides a mock function with given fields: ctx, id, delayOverride
 func (_m *Controller) PowerCycle(ctx context.Context, id powercycle.DeviceID, delayOverride time.Duration) error {
 	ret := _m.Called(ctx, id, delayOverride)
@@ -87,36 +52,6 @@ func (_m *Controller) PowerCycle(ctx context.Context, id powercycle.DeviceID, de
 	}
 
 	return r0
-}
-
-// Controller_PowerCycle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PowerCycle'
-type Controller_PowerCycle_Call struct {
-	*mock.Call
-}
-
-// PowerCycle is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id powercycle.DeviceID
-//   - delayOverride time.Duration
-func (_e *Controller_Expecter) PowerCycle(ctx interface{}, id interface{}, delayOverride interface{}) *Controller_PowerCycle_Call {
-	return &Controller_PowerCycle_Call{Call: _e.mock.On("PowerCycle", ctx, id, delayOverride)}
-}
-
-func (_c *Controller_PowerCycle_Call) Run(run func(ctx context.Context, id powercycle.DeviceID, delayOverride time.Duration)) *Controller_PowerCycle_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(powercycle.DeviceID), args[2].(time.Duration))
-	})
-	return _c
-}
-
-func (_c *Controller_PowerCycle_Call) Return(_a0 error) *Controller_PowerCycle_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Controller_PowerCycle_Call) RunAndReturn(run func(context.Context, powercycle.DeviceID, time.Duration) error) *Controller_PowerCycle_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewController creates a new instance of Controller. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

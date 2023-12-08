@@ -13,45 +13,9 @@ type ProjectMirror struct {
 	mock.Mock
 }
 
-type ProjectMirror_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ProjectMirror) EXPECT() *ProjectMirror_Expecter {
-	return &ProjectMirror_Expecter{mock: &_m.Mock}
-}
-
 // AddToDownloadedPackageTarballs provides a mock function with given fields: packageTarballName
 func (_m *ProjectMirror) AddToDownloadedPackageTarballs(packageTarballName string) {
 	_m.Called(packageTarballName)
-}
-
-// ProjectMirror_AddToDownloadedPackageTarballs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddToDownloadedPackageTarballs'
-type ProjectMirror_AddToDownloadedPackageTarballs_Call struct {
-	*mock.Call
-}
-
-// AddToDownloadedPackageTarballs is a helper method to define mock.On call
-//   - packageTarballName string
-func (_e *ProjectMirror_Expecter) AddToDownloadedPackageTarballs(packageTarballName interface{}) *ProjectMirror_AddToDownloadedPackageTarballs_Call {
-	return &ProjectMirror_AddToDownloadedPackageTarballs_Call{Call: _e.mock.On("AddToDownloadedPackageTarballs", packageTarballName)}
-}
-
-func (_c *ProjectMirror_AddToDownloadedPackageTarballs_Call) Run(run func(packageTarballName string)) *ProjectMirror_AddToDownloadedPackageTarballs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *ProjectMirror_AddToDownloadedPackageTarballs_Call) Return() *ProjectMirror_AddToDownloadedPackageTarballs_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *ProjectMirror_AddToDownloadedPackageTarballs_Call) RunAndReturn(run func(string)) *ProjectMirror_AddToDownloadedPackageTarballs_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetDownloadedPackageNames provides a mock function with given fields:
@@ -84,33 +48,6 @@ func (_m *ProjectMirror) GetDownloadedPackageNames() ([]string, error) {
 	return r0, r1
 }
 
-// ProjectMirror_GetDownloadedPackageNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDownloadedPackageNames'
-type ProjectMirror_GetDownloadedPackageNames_Call struct {
-	*mock.Call
-}
-
-// GetDownloadedPackageNames is a helper method to define mock.On call
-func (_e *ProjectMirror_Expecter) GetDownloadedPackageNames() *ProjectMirror_GetDownloadedPackageNames_Call {
-	return &ProjectMirror_GetDownloadedPackageNames_Call{Call: _e.mock.On("GetDownloadedPackageNames")}
-}
-
-func (_c *ProjectMirror_GetDownloadedPackageNames_Call) Run(run func()) *ProjectMirror_GetDownloadedPackageNames_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *ProjectMirror_GetDownloadedPackageNames_Call) Return(_a0 []string, _a1 error) *ProjectMirror_GetDownloadedPackageNames_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ProjectMirror_GetDownloadedPackageNames_Call) RunAndReturn(run func() ([]string, error)) *ProjectMirror_GetDownloadedPackageNames_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetProjectName provides a mock function with given fields:
 func (_m *ProjectMirror) GetProjectName() string {
 	ret := _m.Called()
@@ -127,33 +64,6 @@ func (_m *ProjectMirror) GetProjectName() string {
 	}
 
 	return r0
-}
-
-// ProjectMirror_GetProjectName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProjectName'
-type ProjectMirror_GetProjectName_Call struct {
-	*mock.Call
-}
-
-// GetProjectName is a helper method to define mock.On call
-func (_e *ProjectMirror_Expecter) GetProjectName() *ProjectMirror_GetProjectName_Call {
-	return &ProjectMirror_GetProjectName_Call{Call: _e.mock.On("GetProjectName")}
-}
-
-func (_c *ProjectMirror_GetProjectName_Call) Run(run func()) *ProjectMirror_GetProjectName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *ProjectMirror_GetProjectName_Call) Return(_a0 string) *ProjectMirror_GetProjectName_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ProjectMirror_GetProjectName_Call) RunAndReturn(run func() string) *ProjectMirror_GetProjectName_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // IsPackageTarballDownloaded provides a mock function with given fields: packageTarballName
@@ -174,34 +84,6 @@ func (_m *ProjectMirror) IsPackageTarballDownloaded(packageTarballName string) b
 	return r0
 }
 
-// ProjectMirror_IsPackageTarballDownloaded_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPackageTarballDownloaded'
-type ProjectMirror_IsPackageTarballDownloaded_Call struct {
-	*mock.Call
-}
-
-// IsPackageTarballDownloaded is a helper method to define mock.On call
-//   - packageTarballName string
-func (_e *ProjectMirror_Expecter) IsPackageTarballDownloaded(packageTarballName interface{}) *ProjectMirror_IsPackageTarballDownloaded_Call {
-	return &ProjectMirror_IsPackageTarballDownloaded_Call{Call: _e.mock.On("IsPackageTarballDownloaded", packageTarballName)}
-}
-
-func (_c *ProjectMirror_IsPackageTarballDownloaded_Call) Run(run func(packageTarballName string)) *ProjectMirror_IsPackageTarballDownloaded_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *ProjectMirror_IsPackageTarballDownloaded_Call) Return(_a0 bool) *ProjectMirror_IsPackageTarballDownloaded_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ProjectMirror_IsPackageTarballDownloaded_Call) RunAndReturn(run func(string) bool) *ProjectMirror_IsPackageTarballDownloaded_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // StartMirror provides a mock function with given fields: ctx, port
 func (_m *ProjectMirror) StartMirror(ctx context.Context, port int) error {
 	ret := _m.Called(ctx, port)
@@ -218,35 +100,6 @@ func (_m *ProjectMirror) StartMirror(ctx context.Context, port int) error {
 	}
 
 	return r0
-}
-
-// ProjectMirror_StartMirror_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartMirror'
-type ProjectMirror_StartMirror_Call struct {
-	*mock.Call
-}
-
-// StartMirror is a helper method to define mock.On call
-//   - ctx context.Context
-//   - port int
-func (_e *ProjectMirror_Expecter) StartMirror(ctx interface{}, port interface{}) *ProjectMirror_StartMirror_Call {
-	return &ProjectMirror_StartMirror_Call{Call: _e.mock.On("StartMirror", ctx, port)}
-}
-
-func (_c *ProjectMirror_StartMirror_Call) Run(run func(ctx context.Context, port int)) *ProjectMirror_StartMirror_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *ProjectMirror_StartMirror_Call) Return(_a0 error) *ProjectMirror_StartMirror_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ProjectMirror_StartMirror_Call) RunAndReturn(run func(context.Context, int) error) *ProjectMirror_StartMirror_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewProjectMirror creates a new instance of ProjectMirror. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

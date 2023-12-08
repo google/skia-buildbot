@@ -16,45 +16,9 @@ type TaskCache struct {
 	mock.Mock
 }
 
-type TaskCache_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *TaskCache) EXPECT() *TaskCache_Expecter {
-	return &TaskCache_Expecter{mock: &_m.Mock}
-}
-
 // AddTasks provides a mock function with given fields: tasks
 func (_m *TaskCache) AddTasks(tasks []*types.Task) {
 	_m.Called(tasks)
-}
-
-// TaskCache_AddTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddTasks'
-type TaskCache_AddTasks_Call struct {
-	*mock.Call
-}
-
-// AddTasks is a helper method to define mock.On call
-//   - tasks []*types.Task
-func (_e *TaskCache_Expecter) AddTasks(tasks interface{}) *TaskCache_AddTasks_Call {
-	return &TaskCache_AddTasks_Call{Call: _e.mock.On("AddTasks", tasks)}
-}
-
-func (_c *TaskCache_AddTasks_Call) Run(run func(tasks []*types.Task)) *TaskCache_AddTasks_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]*types.Task))
-	})
-	return _c
-}
-
-func (_c *TaskCache_AddTasks_Call) Return() *TaskCache_AddTasks_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *TaskCache_AddTasks_Call) RunAndReturn(run func([]*types.Task)) *TaskCache_AddTasks_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetTask provides a mock function with given fields: id
@@ -87,34 +51,6 @@ func (_m *TaskCache) GetTask(id string) (*types.Task, error) {
 	return r0, r1
 }
 
-// TaskCache_GetTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTask'
-type TaskCache_GetTask_Call struct {
-	*mock.Call
-}
-
-// GetTask is a helper method to define mock.On call
-//   - id string
-func (_e *TaskCache_Expecter) GetTask(id interface{}) *TaskCache_GetTask_Call {
-	return &TaskCache_GetTask_Call{Call: _e.mock.On("GetTask", id)}
-}
-
-func (_c *TaskCache_GetTask_Call) Run(run func(id string)) *TaskCache_GetTask_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTask_Call) Return(_a0 *types.Task, _a1 error) *TaskCache_GetTask_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTask_Call) RunAndReturn(run func(string) (*types.Task, error)) *TaskCache_GetTask_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTaskForCommit provides a mock function with given fields: repo, revision, name
 func (_m *TaskCache) GetTaskForCommit(repo string, revision string, name string) (*types.Task, error) {
 	ret := _m.Called(repo, revision, name)
@@ -143,36 +79,6 @@ func (_m *TaskCache) GetTaskForCommit(repo string, revision string, name string)
 	}
 
 	return r0, r1
-}
-
-// TaskCache_GetTaskForCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTaskForCommit'
-type TaskCache_GetTaskForCommit_Call struct {
-	*mock.Call
-}
-
-// GetTaskForCommit is a helper method to define mock.On call
-//   - repo string
-//   - revision string
-//   - name string
-func (_e *TaskCache_Expecter) GetTaskForCommit(repo interface{}, revision interface{}, name interface{}) *TaskCache_GetTaskForCommit_Call {
-	return &TaskCache_GetTaskForCommit_Call{Call: _e.mock.On("GetTaskForCommit", repo, revision, name)}
-}
-
-func (_c *TaskCache_GetTaskForCommit_Call) Run(run func(repo string, revision string, name string)) *TaskCache_GetTaskForCommit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTaskForCommit_Call) Return(_a0 *types.Task, _a1 error) *TaskCache_GetTaskForCommit_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTaskForCommit_Call) RunAndReturn(run func(string, string, string) (*types.Task, error)) *TaskCache_GetTaskForCommit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetTaskMaybeExpired provides a mock function with given fields: _a0, _a1
@@ -205,35 +111,6 @@ func (_m *TaskCache) GetTaskMaybeExpired(_a0 context.Context, _a1 string) (*type
 	return r0, r1
 }
 
-// TaskCache_GetTaskMaybeExpired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTaskMaybeExpired'
-type TaskCache_GetTaskMaybeExpired_Call struct {
-	*mock.Call
-}
-
-// GetTaskMaybeExpired is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-func (_e *TaskCache_Expecter) GetTaskMaybeExpired(_a0 interface{}, _a1 interface{}) *TaskCache_GetTaskMaybeExpired_Call {
-	return &TaskCache_GetTaskMaybeExpired_Call{Call: _e.mock.On("GetTaskMaybeExpired", _a0, _a1)}
-}
-
-func (_c *TaskCache_GetTaskMaybeExpired_Call) Run(run func(_a0 context.Context, _a1 string)) *TaskCache_GetTaskMaybeExpired_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTaskMaybeExpired_Call) Return(_a0 *types.Task, _a1 error) *TaskCache_GetTaskMaybeExpired_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTaskMaybeExpired_Call) RunAndReturn(run func(context.Context, string) (*types.Task, error)) *TaskCache_GetTaskMaybeExpired_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTasksByKey provides a mock function with given fields: key
 func (_m *TaskCache) GetTasksByKey(key types.TaskKey) ([]*types.Task, error) {
 	ret := _m.Called(key)
@@ -262,34 +139,6 @@ func (_m *TaskCache) GetTasksByKey(key types.TaskKey) ([]*types.Task, error) {
 	}
 
 	return r0, r1
-}
-
-// TaskCache_GetTasksByKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTasksByKey'
-type TaskCache_GetTasksByKey_Call struct {
-	*mock.Call
-}
-
-// GetTasksByKey is a helper method to define mock.On call
-//   - key types.TaskKey
-func (_e *TaskCache_Expecter) GetTasksByKey(key interface{}) *TaskCache_GetTasksByKey_Call {
-	return &TaskCache_GetTasksByKey_Call{Call: _e.mock.On("GetTasksByKey", key)}
-}
-
-func (_c *TaskCache_GetTasksByKey_Call) Run(run func(key types.TaskKey)) *TaskCache_GetTasksByKey_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(types.TaskKey))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTasksByKey_Call) Return(_a0 []*types.Task, _a1 error) *TaskCache_GetTasksByKey_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTasksByKey_Call) RunAndReturn(run func(types.TaskKey) ([]*types.Task, error)) *TaskCache_GetTasksByKey_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetTasksForCommits provides a mock function with given fields: repo, commits
@@ -322,35 +171,6 @@ func (_m *TaskCache) GetTasksForCommits(repo string, commits []string) (map[stri
 	return r0, r1
 }
 
-// TaskCache_GetTasksForCommits_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTasksForCommits'
-type TaskCache_GetTasksForCommits_Call struct {
-	*mock.Call
-}
-
-// GetTasksForCommits is a helper method to define mock.On call
-//   - repo string
-//   - commits []string
-func (_e *TaskCache_Expecter) GetTasksForCommits(repo interface{}, commits interface{}) *TaskCache_GetTasksForCommits_Call {
-	return &TaskCache_GetTasksForCommits_Call{Call: _e.mock.On("GetTasksForCommits", repo, commits)}
-}
-
-func (_c *TaskCache_GetTasksForCommits_Call) Run(run func(repo string, commits []string)) *TaskCache_GetTasksForCommits_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].([]string))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTasksForCommits_Call) Return(_a0 map[string]map[string]*types.Task, _a1 error) *TaskCache_GetTasksForCommits_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTasksForCommits_Call) RunAndReturn(run func(string, []string) (map[string]map[string]*types.Task, error)) *TaskCache_GetTasksForCommits_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTasksFromDateRange provides a mock function with given fields: from, to
 func (_m *TaskCache) GetTasksFromDateRange(from time.Time, to time.Time) ([]*types.Task, error) {
 	ret := _m.Called(from, to)
@@ -381,35 +201,6 @@ func (_m *TaskCache) GetTasksFromDateRange(from time.Time, to time.Time) ([]*typ
 	return r0, r1
 }
 
-// TaskCache_GetTasksFromDateRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTasksFromDateRange'
-type TaskCache_GetTasksFromDateRange_Call struct {
-	*mock.Call
-}
-
-// GetTasksFromDateRange is a helper method to define mock.On call
-//   - from time.Time
-//   - to time.Time
-func (_e *TaskCache_Expecter) GetTasksFromDateRange(from interface{}, to interface{}) *TaskCache_GetTasksFromDateRange_Call {
-	return &TaskCache_GetTasksFromDateRange_Call{Call: _e.mock.On("GetTasksFromDateRange", from, to)}
-}
-
-func (_c *TaskCache_GetTasksFromDateRange_Call) Run(run func(from time.Time, to time.Time)) *TaskCache_GetTasksFromDateRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(time.Time), args[1].(time.Time))
-	})
-	return _c
-}
-
-func (_c *TaskCache_GetTasksFromDateRange_Call) Return(_a0 []*types.Task, _a1 error) *TaskCache_GetTasksFromDateRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_GetTasksFromDateRange_Call) RunAndReturn(run func(time.Time, time.Time) ([]*types.Task, error)) *TaskCache_GetTasksFromDateRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // KnownTaskName provides a mock function with given fields: repo, name
 func (_m *TaskCache) KnownTaskName(repo string, name string) bool {
 	ret := _m.Called(repo, name)
@@ -426,35 +217,6 @@ func (_m *TaskCache) KnownTaskName(repo string, name string) bool {
 	}
 
 	return r0
-}
-
-// TaskCache_KnownTaskName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'KnownTaskName'
-type TaskCache_KnownTaskName_Call struct {
-	*mock.Call
-}
-
-// KnownTaskName is a helper method to define mock.On call
-//   - repo string
-//   - name string
-func (_e *TaskCache_Expecter) KnownTaskName(repo interface{}, name interface{}) *TaskCache_KnownTaskName_Call {
-	return &TaskCache_KnownTaskName_Call{Call: _e.mock.On("KnownTaskName", repo, name)}
-}
-
-func (_c *TaskCache_KnownTaskName_Call) Run(run func(repo string, name string)) *TaskCache_KnownTaskName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *TaskCache_KnownTaskName_Call) Return(_a0 bool) *TaskCache_KnownTaskName_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *TaskCache_KnownTaskName_Call) RunAndReturn(run func(string, string) bool) *TaskCache_KnownTaskName_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // UnfinishedTasks provides a mock function with given fields:
@@ -487,33 +249,6 @@ func (_m *TaskCache) UnfinishedTasks() ([]*types.Task, error) {
 	return r0, r1
 }
 
-// TaskCache_UnfinishedTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnfinishedTasks'
-type TaskCache_UnfinishedTasks_Call struct {
-	*mock.Call
-}
-
-// UnfinishedTasks is a helper method to define mock.On call
-func (_e *TaskCache_Expecter) UnfinishedTasks() *TaskCache_UnfinishedTasks_Call {
-	return &TaskCache_UnfinishedTasks_Call{Call: _e.mock.On("UnfinishedTasks")}
-}
-
-func (_c *TaskCache_UnfinishedTasks_Call) Run(run func()) *TaskCache_UnfinishedTasks_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *TaskCache_UnfinishedTasks_Call) Return(_a0 []*types.Task, _a1 error) *TaskCache_UnfinishedTasks_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *TaskCache_UnfinishedTasks_Call) RunAndReturn(run func() ([]*types.Task, error)) *TaskCache_UnfinishedTasks_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx
 func (_m *TaskCache) Update(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -530,34 +265,6 @@ func (_m *TaskCache) Update(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// TaskCache_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type TaskCache_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *TaskCache_Expecter) Update(ctx interface{}) *TaskCache_Update_Call {
-	return &TaskCache_Update_Call{Call: _e.mock.On("Update", ctx)}
-}
-
-func (_c *TaskCache_Update_Call) Run(run func(ctx context.Context)) *TaskCache_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *TaskCache_Update_Call) Return(_a0 error) *TaskCache_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *TaskCache_Update_Call) RunAndReturn(run func(context.Context) error) *TaskCache_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewTaskCache creates a new instance of TaskCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

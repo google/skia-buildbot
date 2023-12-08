@@ -15,14 +15,6 @@ type Client struct {
 	mock.Mock
 }
 
-type Client_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Client) EXPECT() *Client_Expecter {
-	return &Client_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: _a0
 func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, error) {
 	ret := _m.Called(_a0)
@@ -60,34 +52,6 @@ func (_m *Client) Get(_a0 context.Context) (*chrome_branch.Branches, []*chrome_b
 	}
 
 	return r0, r1, r2
-}
-
-// Client_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type Client_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *Client_Expecter) Get(_a0 interface{}) *Client_Get_Call {
-	return &Client_Get_Call{Call: _e.mock.On("Get", _a0)}
-}
-
-func (_c *Client_Get_Call) Run(run func(_a0 context.Context)) *Client_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Client_Get_Call) Return(_a0 *chrome_branch.Branches, _a1 []*chrome_branch.Branch, _a2 error) *Client_Get_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *Client_Get_Call) RunAndReturn(run func(context.Context) (*chrome_branch.Branches, []*chrome_branch.Branch, error)) *Client_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

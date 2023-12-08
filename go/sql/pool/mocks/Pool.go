@@ -18,14 +18,6 @@ type Pool struct {
 	mock.Mock
 }
 
-type Pool_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Pool) EXPECT() *Pool_Expecter {
-	return &Pool_Expecter{mock: &_m.Mock}
-}
-
 // Acquire provides a mock function with given fields: ctx
 func (_m *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	ret := _m.Called(ctx)
@@ -56,34 +48,6 @@ func (_m *Pool) Acquire(ctx context.Context) (*pgxpool.Conn, error) {
 	return r0, r1
 }
 
-// Pool_Acquire_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Acquire'
-type Pool_Acquire_Call struct {
-	*mock.Call
-}
-
-// Acquire is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Pool_Expecter) Acquire(ctx interface{}) *Pool_Acquire_Call {
-	return &Pool_Acquire_Call{Call: _e.mock.On("Acquire", ctx)}
-}
-
-func (_c *Pool_Acquire_Call) Run(run func(ctx context.Context)) *Pool_Acquire_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Pool_Acquire_Call) Return(_a0 *pgxpool.Conn, _a1 error) *Pool_Acquire_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_Acquire_Call) RunAndReturn(run func(context.Context) (*pgxpool.Conn, error)) *Pool_Acquire_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AcquireAllIdle provides a mock function with given fields: ctx
 func (_m *Pool) AcquireAllIdle(ctx context.Context) []*pgxpool.Conn {
 	ret := _m.Called(ctx)
@@ -104,34 +68,6 @@ func (_m *Pool) AcquireAllIdle(ctx context.Context) []*pgxpool.Conn {
 	return r0
 }
 
-// Pool_AcquireAllIdle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AcquireAllIdle'
-type Pool_AcquireAllIdle_Call struct {
-	*mock.Call
-}
-
-// AcquireAllIdle is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Pool_Expecter) AcquireAllIdle(ctx interface{}) *Pool_AcquireAllIdle_Call {
-	return &Pool_AcquireAllIdle_Call{Call: _e.mock.On("AcquireAllIdle", ctx)}
-}
-
-func (_c *Pool_AcquireAllIdle_Call) Run(run func(ctx context.Context)) *Pool_AcquireAllIdle_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Pool_AcquireAllIdle_Call) Return(_a0 []*pgxpool.Conn) *Pool_AcquireAllIdle_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_AcquireAllIdle_Call) RunAndReturn(run func(context.Context) []*pgxpool.Conn) *Pool_AcquireAllIdle_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AcquireFunc provides a mock function with given fields: ctx, f
 func (_m *Pool) AcquireFunc(ctx context.Context, f func(*pgxpool.Conn) error) error {
 	ret := _m.Called(ctx, f)
@@ -148,35 +84,6 @@ func (_m *Pool) AcquireFunc(ctx context.Context, f func(*pgxpool.Conn) error) er
 	}
 
 	return r0
-}
-
-// Pool_AcquireFunc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AcquireFunc'
-type Pool_AcquireFunc_Call struct {
-	*mock.Call
-}
-
-// AcquireFunc is a helper method to define mock.On call
-//   - ctx context.Context
-//   - f func(*pgxpool.Conn) error
-func (_e *Pool_Expecter) AcquireFunc(ctx interface{}, f interface{}) *Pool_AcquireFunc_Call {
-	return &Pool_AcquireFunc_Call{Call: _e.mock.On("AcquireFunc", ctx, f)}
-}
-
-func (_c *Pool_AcquireFunc_Call) Run(run func(ctx context.Context, f func(*pgxpool.Conn) error)) *Pool_AcquireFunc_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(func(*pgxpool.Conn) error))
-	})
-	return _c
-}
-
-func (_c *Pool_AcquireFunc_Call) Return(_a0 error) *Pool_AcquireFunc_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_AcquireFunc_Call) RunAndReturn(run func(context.Context, func(*pgxpool.Conn) error) error) *Pool_AcquireFunc_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Begin provides a mock function with given fields: ctx
@@ -209,34 +116,6 @@ func (_m *Pool) Begin(ctx context.Context) (pgx.Tx, error) {
 	return r0, r1
 }
 
-// Pool_Begin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Begin'
-type Pool_Begin_Call struct {
-	*mock.Call
-}
-
-// Begin is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Pool_Expecter) Begin(ctx interface{}) *Pool_Begin_Call {
-	return &Pool_Begin_Call{Call: _e.mock.On("Begin", ctx)}
-}
-
-func (_c *Pool_Begin_Call) Run(run func(ctx context.Context)) *Pool_Begin_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Pool_Begin_Call) Return(_a0 pgx.Tx, _a1 error) *Pool_Begin_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_Begin_Call) RunAndReturn(run func(context.Context) (pgx.Tx, error)) *Pool_Begin_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // BeginFunc provides a mock function with given fields: ctx, f
 func (_m *Pool) BeginFunc(ctx context.Context, f func(pgx.Tx) error) error {
 	ret := _m.Called(ctx, f)
@@ -253,35 +132,6 @@ func (_m *Pool) BeginFunc(ctx context.Context, f func(pgx.Tx) error) error {
 	}
 
 	return r0
-}
-
-// Pool_BeginFunc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BeginFunc'
-type Pool_BeginFunc_Call struct {
-	*mock.Call
-}
-
-// BeginFunc is a helper method to define mock.On call
-//   - ctx context.Context
-//   - f func(pgx.Tx) error
-func (_e *Pool_Expecter) BeginFunc(ctx interface{}, f interface{}) *Pool_BeginFunc_Call {
-	return &Pool_BeginFunc_Call{Call: _e.mock.On("BeginFunc", ctx, f)}
-}
-
-func (_c *Pool_BeginFunc_Call) Run(run func(ctx context.Context, f func(pgx.Tx) error)) *Pool_BeginFunc_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(func(pgx.Tx) error))
-	})
-	return _c
-}
-
-func (_c *Pool_BeginFunc_Call) Return(_a0 error) *Pool_BeginFunc_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_BeginFunc_Call) RunAndReturn(run func(context.Context, func(pgx.Tx) error) error) *Pool_BeginFunc_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // BeginTx provides a mock function with given fields: ctx, txOptions
@@ -314,35 +164,6 @@ func (_m *Pool) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, e
 	return r0, r1
 }
 
-// Pool_BeginTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BeginTx'
-type Pool_BeginTx_Call struct {
-	*mock.Call
-}
-
-// BeginTx is a helper method to define mock.On call
-//   - ctx context.Context
-//   - txOptions pgx.TxOptions
-func (_e *Pool_Expecter) BeginTx(ctx interface{}, txOptions interface{}) *Pool_BeginTx_Call {
-	return &Pool_BeginTx_Call{Call: _e.mock.On("BeginTx", ctx, txOptions)}
-}
-
-func (_c *Pool_BeginTx_Call) Run(run func(ctx context.Context, txOptions pgx.TxOptions)) *Pool_BeginTx_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(pgx.TxOptions))
-	})
-	return _c
-}
-
-func (_c *Pool_BeginTx_Call) Return(_a0 pgx.Tx, _a1 error) *Pool_BeginTx_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_BeginTx_Call) RunAndReturn(run func(context.Context, pgx.TxOptions) (pgx.Tx, error)) *Pool_BeginTx_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // BeginTxFunc provides a mock function with given fields: ctx, txOptions, f
 func (_m *Pool) BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func(pgx.Tx) error) error {
 	ret := _m.Called(ctx, txOptions, f)
@@ -361,66 +182,9 @@ func (_m *Pool) BeginTxFunc(ctx context.Context, txOptions pgx.TxOptions, f func
 	return r0
 }
 
-// Pool_BeginTxFunc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BeginTxFunc'
-type Pool_BeginTxFunc_Call struct {
-	*mock.Call
-}
-
-// BeginTxFunc is a helper method to define mock.On call
-//   - ctx context.Context
-//   - txOptions pgx.TxOptions
-//   - f func(pgx.Tx) error
-func (_e *Pool_Expecter) BeginTxFunc(ctx interface{}, txOptions interface{}, f interface{}) *Pool_BeginTxFunc_Call {
-	return &Pool_BeginTxFunc_Call{Call: _e.mock.On("BeginTxFunc", ctx, txOptions, f)}
-}
-
-func (_c *Pool_BeginTxFunc_Call) Run(run func(ctx context.Context, txOptions pgx.TxOptions, f func(pgx.Tx) error)) *Pool_BeginTxFunc_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(pgx.TxOptions), args[2].(func(pgx.Tx) error))
-	})
-	return _c
-}
-
-func (_c *Pool_BeginTxFunc_Call) Return(_a0 error) *Pool_BeginTxFunc_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_BeginTxFunc_Call) RunAndReturn(run func(context.Context, pgx.TxOptions, func(pgx.Tx) error) error) *Pool_BeginTxFunc_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Close provides a mock function with given fields:
 func (_m *Pool) Close() {
 	_m.Called()
-}
-
-// Pool_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type Pool_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *Pool_Expecter) Close() *Pool_Close_Call {
-	return &Pool_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *Pool_Close_Call) Run(run func()) *Pool_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Pool_Close_Call) Return() *Pool_Close_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *Pool_Close_Call) RunAndReturn(run func()) *Pool_Close_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Config provides a mock function with given fields:
@@ -441,33 +205,6 @@ func (_m *Pool) Config() *pgxpool.Config {
 	}
 
 	return r0
-}
-
-// Pool_Config_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Config'
-type Pool_Config_Call struct {
-	*mock.Call
-}
-
-// Config is a helper method to define mock.On call
-func (_e *Pool_Expecter) Config() *Pool_Config_Call {
-	return &Pool_Config_Call{Call: _e.mock.On("Config")}
-}
-
-func (_c *Pool_Config_Call) Run(run func()) *Pool_Config_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Pool_Config_Call) Return(_a0 *pgxpool.Config) *Pool_Config_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_Config_Call) RunAndReturn(run func() *pgxpool.Config) *Pool_Config_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CopyFrom provides a mock function with given fields: ctx, tableName, columnNames, rowSrc
@@ -496,37 +233,6 @@ func (_m *Pool) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNa
 	}
 
 	return r0, r1
-}
-
-// Pool_CopyFrom_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CopyFrom'
-type Pool_CopyFrom_Call struct {
-	*mock.Call
-}
-
-// CopyFrom is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tableName pgx.Identifier
-//   - columnNames []string
-//   - rowSrc pgx.CopyFromSource
-func (_e *Pool_Expecter) CopyFrom(ctx interface{}, tableName interface{}, columnNames interface{}, rowSrc interface{}) *Pool_CopyFrom_Call {
-	return &Pool_CopyFrom_Call{Call: _e.mock.On("CopyFrom", ctx, tableName, columnNames, rowSrc)}
-}
-
-func (_c *Pool_CopyFrom_Call) Run(run func(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource)) *Pool_CopyFrom_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(pgx.Identifier), args[2].([]string), args[3].(pgx.CopyFromSource))
-	})
-	return _c
-}
-
-func (_c *Pool_CopyFrom_Call) Return(_a0 int64, _a1 error) *Pool_CopyFrom_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_CopyFrom_Call) RunAndReturn(run func(context.Context, pgx.Identifier, []string, pgx.CopyFromSource) (int64, error)) *Pool_CopyFrom_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Exec provides a mock function with given fields: ctx, sql, arguments
@@ -562,43 +268,6 @@ func (_m *Pool) Exec(ctx context.Context, sql string, arguments ...interface{}) 
 	return r0, r1
 }
 
-// Pool_Exec_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exec'
-type Pool_Exec_Call struct {
-	*mock.Call
-}
-
-// Exec is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sql string
-//   - arguments ...interface{}
-func (_e *Pool_Expecter) Exec(ctx interface{}, sql interface{}, arguments ...interface{}) *Pool_Exec_Call {
-	return &Pool_Exec_Call{Call: _e.mock.On("Exec",
-		append([]interface{}{ctx, sql}, arguments...)...)}
-}
-
-func (_c *Pool_Exec_Call) Run(run func(ctx context.Context, sql string, arguments ...interface{})) *Pool_Exec_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]interface{}, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(interface{})
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *Pool_Exec_Call) Return(_a0 pgconn.CommandTag, _a1 error) *Pool_Exec_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_Exec_Call) RunAndReturn(run func(context.Context, string, ...interface{}) (pgconn.CommandTag, error)) *Pool_Exec_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Ping provides a mock function with given fields: ctx
 func (_m *Pool) Ping(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -615,34 +284,6 @@ func (_m *Pool) Ping(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// Pool_Ping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Ping'
-type Pool_Ping_Call struct {
-	*mock.Call
-}
-
-// Ping is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Pool_Expecter) Ping(ctx interface{}) *Pool_Ping_Call {
-	return &Pool_Ping_Call{Call: _e.mock.On("Ping", ctx)}
-}
-
-func (_c *Pool_Ping_Call) Run(run func(ctx context.Context)) *Pool_Ping_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Pool_Ping_Call) Return(_a0 error) *Pool_Ping_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_Ping_Call) RunAndReturn(run func(context.Context) error) *Pool_Ping_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Query provides a mock function with given fields: ctx, sql, args
@@ -678,43 +319,6 @@ func (_m *Pool) Query(ctx context.Context, sql string, args ...interface{}) (pgx
 	return r0, r1
 }
 
-// Pool_Query_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Query'
-type Pool_Query_Call struct {
-	*mock.Call
-}
-
-// Query is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sql string
-//   - args ...interface{}
-func (_e *Pool_Expecter) Query(ctx interface{}, sql interface{}, args ...interface{}) *Pool_Query_Call {
-	return &Pool_Query_Call{Call: _e.mock.On("Query",
-		append([]interface{}{ctx, sql}, args...)...)}
-}
-
-func (_c *Pool_Query_Call) Run(run func(ctx context.Context, sql string, args ...interface{})) *Pool_Query_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]interface{}, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(interface{})
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *Pool_Query_Call) Return(_a0 pgx.Rows, _a1 error) *Pool_Query_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_Query_Call) RunAndReturn(run func(context.Context, string, ...interface{}) (pgx.Rows, error)) *Pool_Query_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // QueryFunc provides a mock function with given fields: ctx, sql, args, scans, f
 func (_m *Pool) QueryFunc(ctx context.Context, sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error) {
 	ret := _m.Called(ctx, sql, args, scans, f)
@@ -745,38 +349,6 @@ func (_m *Pool) QueryFunc(ctx context.Context, sql string, args []interface{}, s
 	return r0, r1
 }
 
-// Pool_QueryFunc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryFunc'
-type Pool_QueryFunc_Call struct {
-	*mock.Call
-}
-
-// QueryFunc is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sql string
-//   - args []interface{}
-//   - scans []interface{}
-//   - f func(pgx.QueryFuncRow) error
-func (_e *Pool_Expecter) QueryFunc(ctx interface{}, sql interface{}, args interface{}, scans interface{}, f interface{}) *Pool_QueryFunc_Call {
-	return &Pool_QueryFunc_Call{Call: _e.mock.On("QueryFunc", ctx, sql, args, scans, f)}
-}
-
-func (_c *Pool_QueryFunc_Call) Run(run func(ctx context.Context, sql string, args []interface{}, scans []interface{}, f func(pgx.QueryFuncRow) error)) *Pool_QueryFunc_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]interface{}), args[3].([]interface{}), args[4].(func(pgx.QueryFuncRow) error))
-	})
-	return _c
-}
-
-func (_c *Pool_QueryFunc_Call) Return(_a0 pgconn.CommandTag, _a1 error) *Pool_QueryFunc_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Pool_QueryFunc_Call) RunAndReturn(run func(context.Context, string, []interface{}, []interface{}, func(pgx.QueryFuncRow) error) (pgconn.CommandTag, error)) *Pool_QueryFunc_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // QueryRow provides a mock function with given fields: ctx, sql, args
 func (_m *Pool) QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row {
 	var _ca []interface{}
@@ -800,43 +372,6 @@ func (_m *Pool) QueryRow(ctx context.Context, sql string, args ...interface{}) p
 	return r0
 }
 
-// Pool_QueryRow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryRow'
-type Pool_QueryRow_Call struct {
-	*mock.Call
-}
-
-// QueryRow is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sql string
-//   - args ...interface{}
-func (_e *Pool_Expecter) QueryRow(ctx interface{}, sql interface{}, args ...interface{}) *Pool_QueryRow_Call {
-	return &Pool_QueryRow_Call{Call: _e.mock.On("QueryRow",
-		append([]interface{}{ctx, sql}, args...)...)}
-}
-
-func (_c *Pool_QueryRow_Call) Run(run func(ctx context.Context, sql string, args ...interface{})) *Pool_QueryRow_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]interface{}, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(interface{})
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *Pool_QueryRow_Call) Return(_a0 pgx.Row) *Pool_QueryRow_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_QueryRow_Call) RunAndReturn(run func(context.Context, string, ...interface{}) pgx.Row) *Pool_QueryRow_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SendBatch provides a mock function with given fields: ctx, b
 func (_m *Pool) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
 	ret := _m.Called(ctx, b)
@@ -855,35 +390,6 @@ func (_m *Pool) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
 	}
 
 	return r0
-}
-
-// Pool_SendBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendBatch'
-type Pool_SendBatch_Call struct {
-	*mock.Call
-}
-
-// SendBatch is a helper method to define mock.On call
-//   - ctx context.Context
-//   - b *pgx.Batch
-func (_e *Pool_Expecter) SendBatch(ctx interface{}, b interface{}) *Pool_SendBatch_Call {
-	return &Pool_SendBatch_Call{Call: _e.mock.On("SendBatch", ctx, b)}
-}
-
-func (_c *Pool_SendBatch_Call) Run(run func(ctx context.Context, b *pgx.Batch)) *Pool_SendBatch_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*pgx.Batch))
-	})
-	return _c
-}
-
-func (_c *Pool_SendBatch_Call) Return(_a0 pgx.BatchResults) *Pool_SendBatch_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Pool_SendBatch_Call) RunAndReturn(run func(context.Context, *pgx.Batch) pgx.BatchResults) *Pool_SendBatch_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewPool creates a new instance of Pool. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

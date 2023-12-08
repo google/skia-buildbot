@@ -18,14 +18,6 @@ type GitStore struct {
 	mock.Mock
 }
 
-type GitStore_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GitStore) EXPECT() *GitStore_Expecter {
-	return &GitStore_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: ctx, hashes
 func (_m *GitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCommit, error) {
 	ret := _m.Called(ctx, hashes)
@@ -54,35 +46,6 @@ func (_m *GitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongCo
 	}
 
 	return r0, r1
-}
-
-// GitStore_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type GitStore_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - hashes []string
-func (_e *GitStore_Expecter) Get(ctx interface{}, hashes interface{}) *GitStore_Get_Call {
-	return &GitStore_Get_Call{Call: _e.mock.On("Get", ctx, hashes)}
-}
-
-func (_c *GitStore_Get_Call) Run(run func(ctx context.Context, hashes []string)) *GitStore_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string))
-	})
-	return _c
-}
-
-func (_c *GitStore_Get_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitStore_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitStore_Get_Call) RunAndReturn(run func(context.Context, []string) ([]*vcsinfo.LongCommit, error)) *GitStore_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetBranches provides a mock function with given fields: ctx
@@ -115,34 +78,6 @@ func (_m *GitStore) GetBranches(ctx context.Context) (map[string]*gitstore.Branc
 	return r0, r1
 }
 
-// GitStore_GetBranches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBranches'
-type GitStore_GetBranches_Call struct {
-	*mock.Call
-}
-
-// GetBranches is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *GitStore_Expecter) GetBranches(ctx interface{}) *GitStore_GetBranches_Call {
-	return &GitStore_GetBranches_Call{Call: _e.mock.On("GetBranches", ctx)}
-}
-
-func (_c *GitStore_GetBranches_Call) Run(run func(ctx context.Context)) *GitStore_GetBranches_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *GitStore_GetBranches_Call) Return(_a0 map[string]*gitstore.BranchPointer, _a1 error) *GitStore_GetBranches_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitStore_GetBranches_Call) RunAndReturn(run func(context.Context) (map[string]*gitstore.BranchPointer, error)) *GitStore_GetBranches_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Put provides a mock function with given fields: ctx, commits
 func (_m *GitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	ret := _m.Called(ctx, commits)
@@ -161,35 +96,6 @@ func (_m *GitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) erro
 	return r0
 }
 
-// GitStore_Put_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Put'
-type GitStore_Put_Call struct {
-	*mock.Call
-}
-
-// Put is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commits []*vcsinfo.LongCommit
-func (_e *GitStore_Expecter) Put(ctx interface{}, commits interface{}) *GitStore_Put_Call {
-	return &GitStore_Put_Call{Call: _e.mock.On("Put", ctx, commits)}
-}
-
-func (_c *GitStore_Put_Call) Run(run func(ctx context.Context, commits []*vcsinfo.LongCommit)) *GitStore_Put_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]*vcsinfo.LongCommit))
-	})
-	return _c
-}
-
-func (_c *GitStore_Put_Call) Return(_a0 error) *GitStore_Put_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GitStore_Put_Call) RunAndReturn(run func(context.Context, []*vcsinfo.LongCommit) error) *GitStore_Put_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PutBranches provides a mock function with given fields: ctx, branches
 func (_m *GitStore) PutBranches(ctx context.Context, branches map[string]string) error {
 	ret := _m.Called(ctx, branches)
@@ -206,35 +112,6 @@ func (_m *GitStore) PutBranches(ctx context.Context, branches map[string]string)
 	}
 
 	return r0
-}
-
-// GitStore_PutBranches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutBranches'
-type GitStore_PutBranches_Call struct {
-	*mock.Call
-}
-
-// PutBranches is a helper method to define mock.On call
-//   - ctx context.Context
-//   - branches map[string]string
-func (_e *GitStore_Expecter) PutBranches(ctx interface{}, branches interface{}) *GitStore_PutBranches_Call {
-	return &GitStore_PutBranches_Call{Call: _e.mock.On("PutBranches", ctx, branches)}
-}
-
-func (_c *GitStore_PutBranches_Call) Run(run func(ctx context.Context, branches map[string]string)) *GitStore_PutBranches_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(map[string]string))
-	})
-	return _c
-}
-
-func (_c *GitStore_PutBranches_Call) Return(_a0 error) *GitStore_PutBranches_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GitStore_PutBranches_Call) RunAndReturn(run func(context.Context, map[string]string) error) *GitStore_PutBranches_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // RangeByTime provides a mock function with given fields: ctx, start, end, branch
@@ -267,37 +144,6 @@ func (_m *GitStore) RangeByTime(ctx context.Context, start time.Time, end time.T
 	return r0, r1
 }
 
-// GitStore_RangeByTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RangeByTime'
-type GitStore_RangeByTime_Call struct {
-	*mock.Call
-}
-
-// RangeByTime is a helper method to define mock.On call
-//   - ctx context.Context
-//   - start time.Time
-//   - end time.Time
-//   - branch string
-func (_e *GitStore_Expecter) RangeByTime(ctx interface{}, start interface{}, end interface{}, branch interface{}) *GitStore_RangeByTime_Call {
-	return &GitStore_RangeByTime_Call{Call: _e.mock.On("RangeByTime", ctx, start, end, branch)}
-}
-
-func (_c *GitStore_RangeByTime_Call) Run(run func(ctx context.Context, start time.Time, end time.Time, branch string)) *GitStore_RangeByTime_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GitStore_RangeByTime_Call) Return(_a0 []*vcsinfo.IndexCommit, _a1 error) *GitStore_RangeByTime_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitStore_RangeByTime_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, string) ([]*vcsinfo.IndexCommit, error)) *GitStore_RangeByTime_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RangeN provides a mock function with given fields: ctx, startIndex, endIndex, branch
 func (_m *GitStore) RangeN(ctx context.Context, startIndex int, endIndex int, branch string) ([]*vcsinfo.IndexCommit, error) {
 	ret := _m.Called(ctx, startIndex, endIndex, branch)
@@ -326,37 +172,6 @@ func (_m *GitStore) RangeN(ctx context.Context, startIndex int, endIndex int, br
 	}
 
 	return r0, r1
-}
-
-// GitStore_RangeN_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RangeN'
-type GitStore_RangeN_Call struct {
-	*mock.Call
-}
-
-// RangeN is a helper method to define mock.On call
-//   - ctx context.Context
-//   - startIndex int
-//   - endIndex int
-//   - branch string
-func (_e *GitStore_Expecter) RangeN(ctx interface{}, startIndex interface{}, endIndex interface{}, branch interface{}) *GitStore_RangeN_Call {
-	return &GitStore_RangeN_Call{Call: _e.mock.On("RangeN", ctx, startIndex, endIndex, branch)}
-}
-
-func (_c *GitStore_RangeN_Call) Run(run func(ctx context.Context, startIndex int, endIndex int, branch string)) *GitStore_RangeN_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int), args[2].(int), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GitStore_RangeN_Call) Return(_a0 []*vcsinfo.IndexCommit, _a1 error) *GitStore_RangeN_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitStore_RangeN_Call) RunAndReturn(run func(context.Context, int, int, string) ([]*vcsinfo.IndexCommit, error)) *GitStore_RangeN_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGitStore creates a new instance of GitStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

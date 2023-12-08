@@ -18,14 +18,6 @@ type GCSClient struct {
 	mock.Mock
 }
 
-type GCSClient_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GCSClient) EXPECT() *GCSClient_Expecter {
-	return &GCSClient_Expecter{mock: &_m.Mock}
-}
-
 // AllFilesInDirectory provides a mock function with given fields: ctx, prefix, callback
 func (_m *GCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(*storage.ObjectAttrs) error) error {
 	ret := _m.Called(ctx, prefix, callback)
@@ -42,36 +34,6 @@ func (_m *GCSClient) AllFilesInDirectory(ctx context.Context, prefix string, cal
 	}
 
 	return r0
-}
-
-// GCSClient_AllFilesInDirectory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AllFilesInDirectory'
-type GCSClient_AllFilesInDirectory_Call struct {
-	*mock.Call
-}
-
-// AllFilesInDirectory is a helper method to define mock.On call
-//   - ctx context.Context
-//   - prefix string
-//   - callback func(*storage.ObjectAttrs) error
-func (_e *GCSClient_Expecter) AllFilesInDirectory(ctx interface{}, prefix interface{}, callback interface{}) *GCSClient_AllFilesInDirectory_Call {
-	return &GCSClient_AllFilesInDirectory_Call{Call: _e.mock.On("AllFilesInDirectory", ctx, prefix, callback)}
-}
-
-func (_c *GCSClient_AllFilesInDirectory_Call) Run(run func(ctx context.Context, prefix string, callback func(*storage.ObjectAttrs) error)) *GCSClient_AllFilesInDirectory_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(func(*storage.ObjectAttrs) error))
-	})
-	return _c
-}
-
-func (_c *GCSClient_AllFilesInDirectory_Call) Return(_a0 error) *GCSClient_AllFilesInDirectory_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_AllFilesInDirectory_Call) RunAndReturn(run func(context.Context, string, func(*storage.ObjectAttrs) error) error) *GCSClient_AllFilesInDirectory_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Bucket provides a mock function with given fields:
@@ -92,33 +54,6 @@ func (_m *GCSClient) Bucket() string {
 	return r0
 }
 
-// GCSClient_Bucket_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Bucket'
-type GCSClient_Bucket_Call struct {
-	*mock.Call
-}
-
-// Bucket is a helper method to define mock.On call
-func (_e *GCSClient_Expecter) Bucket() *GCSClient_Bucket_Call {
-	return &GCSClient_Bucket_Call{Call: _e.mock.On("Bucket")}
-}
-
-func (_c *GCSClient_Bucket_Call) Run(run func()) *GCSClient_Bucket_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *GCSClient_Bucket_Call) Return(_a0 string) *GCSClient_Bucket_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_Bucket_Call) RunAndReturn(run func() string) *GCSClient_Bucket_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteFile provides a mock function with given fields: ctx, path
 func (_m *GCSClient) DeleteFile(ctx context.Context, path string) error {
 	ret := _m.Called(ctx, path)
@@ -135,35 +70,6 @@ func (_m *GCSClient) DeleteFile(ctx context.Context, path string) error {
 	}
 
 	return r0
-}
-
-// GCSClient_DeleteFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFile'
-type GCSClient_DeleteFile_Call struct {
-	*mock.Call
-}
-
-// DeleteFile is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-func (_e *GCSClient_Expecter) DeleteFile(ctx interface{}, path interface{}) *GCSClient_DeleteFile_Call {
-	return &GCSClient_DeleteFile_Call{Call: _e.mock.On("DeleteFile", ctx, path)}
-}
-
-func (_c *GCSClient_DeleteFile_Call) Run(run func(ctx context.Context, path string)) *GCSClient_DeleteFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GCSClient_DeleteFile_Call) Return(_a0 error) *GCSClient_DeleteFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_DeleteFile_Call) RunAndReturn(run func(context.Context, string) error) *GCSClient_DeleteFile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // DoesFileExist provides a mock function with given fields: ctx, path
@@ -192,35 +98,6 @@ func (_m *GCSClient) DoesFileExist(ctx context.Context, path string) (bool, erro
 	}
 
 	return r0, r1
-}
-
-// GCSClient_DoesFileExist_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoesFileExist'
-type GCSClient_DoesFileExist_Call struct {
-	*mock.Call
-}
-
-// DoesFileExist is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-func (_e *GCSClient_Expecter) DoesFileExist(ctx interface{}, path interface{}) *GCSClient_DoesFileExist_Call {
-	return &GCSClient_DoesFileExist_Call{Call: _e.mock.On("DoesFileExist", ctx, path)}
-}
-
-func (_c *GCSClient_DoesFileExist_Call) Run(run func(ctx context.Context, path string)) *GCSClient_DoesFileExist_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GCSClient_DoesFileExist_Call) Return(_a0 bool, _a1 error) *GCSClient_DoesFileExist_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GCSClient_DoesFileExist_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *GCSClient_DoesFileExist_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // FileReader provides a mock function with given fields: ctx, path
@@ -253,35 +130,6 @@ func (_m *GCSClient) FileReader(ctx context.Context, path string) (io.ReadCloser
 	return r0, r1
 }
 
-// GCSClient_FileReader_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FileReader'
-type GCSClient_FileReader_Call struct {
-	*mock.Call
-}
-
-// FileReader is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-func (_e *GCSClient_Expecter) FileReader(ctx interface{}, path interface{}) *GCSClient_FileReader_Call {
-	return &GCSClient_FileReader_Call{Call: _e.mock.On("FileReader", ctx, path)}
-}
-
-func (_c *GCSClient_FileReader_Call) Run(run func(ctx context.Context, path string)) *GCSClient_FileReader_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GCSClient_FileReader_Call) Return(_a0 io.ReadCloser, _a1 error) *GCSClient_FileReader_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GCSClient_FileReader_Call) RunAndReturn(run func(context.Context, string) (io.ReadCloser, error)) *GCSClient_FileReader_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // FileWriter provides a mock function with given fields: ctx, path, opts
 func (_m *GCSClient) FileWriter(ctx context.Context, path string, opts gcs.FileWriteOptions) io.WriteCloser {
 	ret := _m.Called(ctx, path, opts)
@@ -300,36 +148,6 @@ func (_m *GCSClient) FileWriter(ctx context.Context, path string, opts gcs.FileW
 	}
 
 	return r0
-}
-
-// GCSClient_FileWriter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FileWriter'
-type GCSClient_FileWriter_Call struct {
-	*mock.Call
-}
-
-// FileWriter is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-//   - opts gcs.FileWriteOptions
-func (_e *GCSClient_Expecter) FileWriter(ctx interface{}, path interface{}, opts interface{}) *GCSClient_FileWriter_Call {
-	return &GCSClient_FileWriter_Call{Call: _e.mock.On("FileWriter", ctx, path, opts)}
-}
-
-func (_c *GCSClient_FileWriter_Call) Run(run func(ctx context.Context, path string, opts gcs.FileWriteOptions)) *GCSClient_FileWriter_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(gcs.FileWriteOptions))
-	})
-	return _c
-}
-
-func (_c *GCSClient_FileWriter_Call) Return(_a0 io.WriteCloser) *GCSClient_FileWriter_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_FileWriter_Call) RunAndReturn(run func(context.Context, string, gcs.FileWriteOptions) io.WriteCloser) *GCSClient_FileWriter_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetFileContents provides a mock function with given fields: ctx, path
@@ -362,35 +180,6 @@ func (_m *GCSClient) GetFileContents(ctx context.Context, path string) ([]byte, 
 	return r0, r1
 }
 
-// GCSClient_GetFileContents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFileContents'
-type GCSClient_GetFileContents_Call struct {
-	*mock.Call
-}
-
-// GetFileContents is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-func (_e *GCSClient_Expecter) GetFileContents(ctx interface{}, path interface{}) *GCSClient_GetFileContents_Call {
-	return &GCSClient_GetFileContents_Call{Call: _e.mock.On("GetFileContents", ctx, path)}
-}
-
-func (_c *GCSClient_GetFileContents_Call) Run(run func(ctx context.Context, path string)) *GCSClient_GetFileContents_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GCSClient_GetFileContents_Call) Return(_a0 []byte, _a1 error) *GCSClient_GetFileContents_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GCSClient_GetFileContents_Call) RunAndReturn(run func(context.Context, string) ([]byte, error)) *GCSClient_GetFileContents_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetFileObjectAttrs provides a mock function with given fields: ctx, path
 func (_m *GCSClient) GetFileObjectAttrs(ctx context.Context, path string) (*storage.ObjectAttrs, error) {
 	ret := _m.Called(ctx, path)
@@ -421,35 +210,6 @@ func (_m *GCSClient) GetFileObjectAttrs(ctx context.Context, path string) (*stor
 	return r0, r1
 }
 
-// GCSClient_GetFileObjectAttrs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFileObjectAttrs'
-type GCSClient_GetFileObjectAttrs_Call struct {
-	*mock.Call
-}
-
-// GetFileObjectAttrs is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-func (_e *GCSClient_Expecter) GetFileObjectAttrs(ctx interface{}, path interface{}) *GCSClient_GetFileObjectAttrs_Call {
-	return &GCSClient_GetFileObjectAttrs_Call{Call: _e.mock.On("GetFileObjectAttrs", ctx, path)}
-}
-
-func (_c *GCSClient_GetFileObjectAttrs_Call) Run(run func(ctx context.Context, path string)) *GCSClient_GetFileObjectAttrs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GCSClient_GetFileObjectAttrs_Call) Return(_a0 *storage.ObjectAttrs, _a1 error) *GCSClient_GetFileObjectAttrs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GCSClient_GetFileObjectAttrs_Call) RunAndReturn(run func(context.Context, string) (*storage.ObjectAttrs, error)) *GCSClient_GetFileObjectAttrs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetFileContents provides a mock function with given fields: ctx, path, opts, contents
 func (_m *GCSClient) SetFileContents(ctx context.Context, path string, opts gcs.FileWriteOptions, contents []byte) error {
 	ret := _m.Called(ctx, path, opts, contents)
@@ -466,37 +226,6 @@ func (_m *GCSClient) SetFileContents(ctx context.Context, path string, opts gcs.
 	}
 
 	return r0
-}
-
-// GCSClient_SetFileContents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetFileContents'
-type GCSClient_SetFileContents_Call struct {
-	*mock.Call
-}
-
-// SetFileContents is a helper method to define mock.On call
-//   - ctx context.Context
-//   - path string
-//   - opts gcs.FileWriteOptions
-//   - contents []byte
-func (_e *GCSClient_Expecter) SetFileContents(ctx interface{}, path interface{}, opts interface{}, contents interface{}) *GCSClient_SetFileContents_Call {
-	return &GCSClient_SetFileContents_Call{Call: _e.mock.On("SetFileContents", ctx, path, opts, contents)}
-}
-
-func (_c *GCSClient_SetFileContents_Call) Run(run func(ctx context.Context, path string, opts gcs.FileWriteOptions, contents []byte)) *GCSClient_SetFileContents_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(gcs.FileWriteOptions), args[3].([]byte))
-	})
-	return _c
-}
-
-func (_c *GCSClient_SetFileContents_Call) Return(_a0 error) *GCSClient_SetFileContents_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSClient_SetFileContents_Call) RunAndReturn(run func(context.Context, string, gcs.FileWriteOptions, []byte) error) *GCSClient_SetFileContents_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGCSClient creates a new instance of GCSClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

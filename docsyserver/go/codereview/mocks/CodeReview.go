@@ -15,14 +15,6 @@ type CodeReview struct {
 	mock.Mock
 }
 
-type CodeReview_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *CodeReview) EXPECT() *CodeReview_Expecter {
-	return &CodeReview_Expecter{mock: &_m.Mock}
-}
-
 // GetFile provides a mock function with given fields: ctx, filename, ref
 func (_m *CodeReview) GetFile(ctx context.Context, filename string, ref string) ([]byte, error) {
 	ret := _m.Called(ctx, filename, ref)
@@ -51,36 +43,6 @@ func (_m *CodeReview) GetFile(ctx context.Context, filename string, ref string) 
 	}
 
 	return r0, r1
-}
-
-// CodeReview_GetFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFile'
-type CodeReview_GetFile_Call struct {
-	*mock.Call
-}
-
-// GetFile is a helper method to define mock.On call
-//   - ctx context.Context
-//   - filename string
-//   - ref string
-func (_e *CodeReview_Expecter) GetFile(ctx interface{}, filename interface{}, ref interface{}) *CodeReview_GetFile_Call {
-	return &CodeReview_GetFile_Call{Call: _e.mock.On("GetFile", ctx, filename, ref)}
-}
-
-func (_c *CodeReview_GetFile_Call) Run(run func(ctx context.Context, filename string, ref string)) *CodeReview_GetFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetFile_Call) Return(_a0 []byte, _a1 error) *CodeReview_GetFile_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetFile_Call) RunAndReturn(run func(context.Context, string, string) ([]byte, error)) *CodeReview_GetFile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetPatchsetInfo provides a mock function with given fields: ctx, issue
@@ -118,35 +80,6 @@ func (_m *CodeReview) GetPatchsetInfo(ctx context.Context, issue codereview.Issu
 	return r0, r1, r2
 }
 
-// CodeReview_GetPatchsetInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatchsetInfo'
-type CodeReview_GetPatchsetInfo_Call struct {
-	*mock.Call
-}
-
-// GetPatchsetInfo is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue codereview.Issue
-func (_e *CodeReview_Expecter) GetPatchsetInfo(ctx interface{}, issue interface{}) *CodeReview_GetPatchsetInfo_Call {
-	return &CodeReview_GetPatchsetInfo_Call{Call: _e.mock.On("GetPatchsetInfo", ctx, issue)}
-}
-
-func (_c *CodeReview_GetPatchsetInfo_Call) Run(run func(ctx context.Context, issue codereview.Issue)) *CodeReview_GetPatchsetInfo_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(codereview.Issue))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetPatchsetInfo_Call) Return(_a0 string, _a1 bool, _a2 error) *CodeReview_GetPatchsetInfo_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *CodeReview_GetPatchsetInfo_Call) RunAndReturn(run func(context.Context, codereview.Issue) (string, bool, error)) *CodeReview_GetPatchsetInfo_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListModifiedFiles provides a mock function with given fields: ctx, issue, ref
 func (_m *CodeReview) ListModifiedFiles(ctx context.Context, issue codereview.Issue, ref string) ([]codereview.ListModifiedFilesResult, error) {
 	ret := _m.Called(ctx, issue, ref)
@@ -175,36 +108,6 @@ func (_m *CodeReview) ListModifiedFiles(ctx context.Context, issue codereview.Is
 	}
 
 	return r0, r1
-}
-
-// CodeReview_ListModifiedFiles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListModifiedFiles'
-type CodeReview_ListModifiedFiles_Call struct {
-	*mock.Call
-}
-
-// ListModifiedFiles is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue codereview.Issue
-//   - ref string
-func (_e *CodeReview_Expecter) ListModifiedFiles(ctx interface{}, issue interface{}, ref interface{}) *CodeReview_ListModifiedFiles_Call {
-	return &CodeReview_ListModifiedFiles_Call{Call: _e.mock.On("ListModifiedFiles", ctx, issue, ref)}
-}
-
-func (_c *CodeReview_ListModifiedFiles_Call) Run(run func(ctx context.Context, issue codereview.Issue, ref string)) *CodeReview_ListModifiedFiles_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(codereview.Issue), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *CodeReview_ListModifiedFiles_Call) Return(_a0 []codereview.ListModifiedFilesResult, _a1 error) *CodeReview_ListModifiedFiles_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_ListModifiedFiles_Call) RunAndReturn(run func(context.Context, codereview.Issue, string) ([]codereview.ListModifiedFilesResult, error)) *CodeReview_ListModifiedFiles_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewCodeReview creates a new instance of CodeReview. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -13,14 +13,6 @@ type Throttle struct {
 	mock.Mock
 }
 
-type Throttle_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Throttle) EXPECT() *Throttle_Expecter {
-	return &Throttle_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: ctx, roller
 func (_m *Throttle) Get(ctx context.Context, roller string) (bool, error) {
 	ret := _m.Called(ctx, roller)
@@ -49,35 +41,6 @@ func (_m *Throttle) Get(ctx context.Context, roller string) (bool, error) {
 	return r0, r1
 }
 
-// Throttle_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type Throttle_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - roller string
-func (_e *Throttle_Expecter) Get(ctx interface{}, roller interface{}) *Throttle_Get_Call {
-	return &Throttle_Get_Call{Call: _e.mock.On("Get", ctx, roller)}
-}
-
-func (_c *Throttle_Get_Call) Run(run func(ctx context.Context, roller string)) *Throttle_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Throttle_Get_Call) Return(_a0 bool, _a1 error) *Throttle_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Throttle_Get_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *Throttle_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Reset provides a mock function with given fields: ctx, roller
 func (_m *Throttle) Reset(ctx context.Context, roller string) error {
 	ret := _m.Called(ctx, roller)
@@ -96,35 +59,6 @@ func (_m *Throttle) Reset(ctx context.Context, roller string) error {
 	return r0
 }
 
-// Throttle_Reset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Reset'
-type Throttle_Reset_Call struct {
-	*mock.Call
-}
-
-// Reset is a helper method to define mock.On call
-//   - ctx context.Context
-//   - roller string
-func (_e *Throttle_Expecter) Reset(ctx interface{}, roller interface{}) *Throttle_Reset_Call {
-	return &Throttle_Reset_Call{Call: _e.mock.On("Reset", ctx, roller)}
-}
-
-func (_c *Throttle_Reset_Call) Run(run func(ctx context.Context, roller string)) *Throttle_Reset_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Throttle_Reset_Call) Return(_a0 error) *Throttle_Reset_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Throttle_Reset_Call) RunAndReturn(run func(context.Context, string) error) *Throttle_Reset_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Unthrottle provides a mock function with given fields: ctx, roller
 func (_m *Throttle) Unthrottle(ctx context.Context, roller string) error {
 	ret := _m.Called(ctx, roller)
@@ -141,35 +75,6 @@ func (_m *Throttle) Unthrottle(ctx context.Context, roller string) error {
 	}
 
 	return r0
-}
-
-// Throttle_Unthrottle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Unthrottle'
-type Throttle_Unthrottle_Call struct {
-	*mock.Call
-}
-
-// Unthrottle is a helper method to define mock.On call
-//   - ctx context.Context
-//   - roller string
-func (_e *Throttle_Expecter) Unthrottle(ctx interface{}, roller interface{}) *Throttle_Unthrottle_Call {
-	return &Throttle_Unthrottle_Call{Call: _e.mock.On("Unthrottle", ctx, roller)}
-}
-
-func (_c *Throttle_Unthrottle_Call) Run(run func(ctx context.Context, roller string)) *Throttle_Unthrottle_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Throttle_Unthrottle_Call) Return(_a0 error) *Throttle_Unthrottle_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Throttle_Unthrottle_Call) RunAndReturn(run func(context.Context, string) error) *Throttle_Unthrottle_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewThrottle creates a new instance of Throttle. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

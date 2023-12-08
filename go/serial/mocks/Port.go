@@ -9,14 +9,6 @@ type Port struct {
 	mock.Mock
 }
 
-type Port_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Port) EXPECT() *Port_Expecter {
-	return &Port_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *Port) Close() error {
 	ret := _m.Called()
@@ -35,33 +27,6 @@ func (_m *Port) Close() error {
 	return r0
 }
 
-// Port_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type Port_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *Port_Expecter) Close() *Port_Close_Call {
-	return &Port_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *Port_Close_Call) Run(run func()) *Port_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Port_Close_Call) Return(err error) *Port_Close_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *Port_Close_Call) RunAndReturn(run func() error) *Port_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Flush provides a mock function with given fields:
 func (_m *Port) Flush() error {
 	ret := _m.Called()
@@ -78,33 +43,6 @@ func (_m *Port) Flush() error {
 	}
 
 	return r0
-}
-
-// Port_Flush_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Flush'
-type Port_Flush_Call struct {
-	*mock.Call
-}
-
-// Flush is a helper method to define mock.On call
-func (_e *Port_Expecter) Flush() *Port_Flush_Call {
-	return &Port_Flush_Call{Call: _e.mock.On("Flush")}
-}
-
-func (_c *Port_Flush_Call) Run(run func()) *Port_Flush_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Port_Flush_Call) Return(_a0 error) *Port_Flush_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Port_Flush_Call) RunAndReturn(run func() error) *Port_Flush_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Read provides a mock function with given fields: b
@@ -135,34 +73,6 @@ func (_m *Port) Read(b []byte) (int, error) {
 	return r0, r1
 }
 
-// Port_Read_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Read'
-type Port_Read_Call struct {
-	*mock.Call
-}
-
-// Read is a helper method to define mock.On call
-//   - b []byte
-func (_e *Port_Expecter) Read(b interface{}) *Port_Read_Call {
-	return &Port_Read_Call{Call: _e.mock.On("Read", b)}
-}
-
-func (_c *Port_Read_Call) Run(run func(b []byte)) *Port_Read_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]byte))
-	})
-	return _c
-}
-
-func (_c *Port_Read_Call) Return(n int, err error) *Port_Read_Call {
-	_c.Call.Return(n, err)
-	return _c
-}
-
-func (_c *Port_Read_Call) RunAndReturn(run func([]byte) (int, error)) *Port_Read_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Write provides a mock function with given fields: b
 func (_m *Port) Write(b []byte) (int, error) {
 	ret := _m.Called(b)
@@ -189,34 +99,6 @@ func (_m *Port) Write(b []byte) (int, error) {
 	}
 
 	return r0, r1
-}
-
-// Port_Write_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Write'
-type Port_Write_Call struct {
-	*mock.Call
-}
-
-// Write is a helper method to define mock.On call
-//   - b []byte
-func (_e *Port_Expecter) Write(b interface{}) *Port_Write_Call {
-	return &Port_Write_Call{Call: _e.mock.On("Write", b)}
-}
-
-func (_c *Port_Write_Call) Run(run func(b []byte)) *Port_Write_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]byte))
-	})
-	return _c
-}
-
-func (_c *Port_Write_Call) Return(n int, err error) *Port_Write_Call {
-	_c.Call.Return(n, err)
-	return _c
-}
-
-func (_c *Port_Write_Call) RunAndReturn(run func([]byte) (int, error)) *Port_Write_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewPort creates a new instance of Port. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

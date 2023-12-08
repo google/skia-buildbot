@@ -19,14 +19,6 @@ type Git struct {
 	mock.Mock
 }
 
-type Git_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Git) EXPECT() *Git_Expecter {
-	return &Git_Expecter{mock: &_m.Mock}
-}
-
 // CommitFromCommitNumber provides a mock function with given fields: ctx, commitNumber
 func (_m *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (provider.Commit, error) {
 	ret := _m.Called(ctx, commitNumber)
@@ -53,35 +45,6 @@ func (_m *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.Co
 	}
 
 	return r0, r1
-}
-
-// Git_CommitFromCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitFromCommitNumber'
-type Git_CommitFromCommitNumber_Call struct {
-	*mock.Call
-}
-
-// CommitFromCommitNumber is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-func (_e *Git_Expecter) CommitFromCommitNumber(ctx interface{}, commitNumber interface{}) *Git_CommitFromCommitNumber_Call {
-	return &Git_CommitFromCommitNumber_Call{Call: _e.mock.On("CommitFromCommitNumber", ctx, commitNumber)}
-}
-
-func (_c *Git_CommitFromCommitNumber_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber)) *Git_CommitFromCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_CommitFromCommitNumber_Call) Return(_a0 provider.Commit, _a1 error) *Git_CommitFromCommitNumber_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitFromCommitNumber_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (provider.Commit, error)) *Git_CommitFromCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CommitNumberFromGitHash provides a mock function with given fields: ctx, githash
@@ -112,35 +75,6 @@ func (_m *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (typ
 	return r0, r1
 }
 
-// Git_CommitNumberFromGitHash_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitNumberFromGitHash'
-type Git_CommitNumberFromGitHash_Call struct {
-	*mock.Call
-}
-
-// CommitNumberFromGitHash is a helper method to define mock.On call
-//   - ctx context.Context
-//   - githash string
-func (_e *Git_Expecter) CommitNumberFromGitHash(ctx interface{}, githash interface{}) *Git_CommitNumberFromGitHash_Call {
-	return &Git_CommitNumberFromGitHash_Call{Call: _e.mock.On("CommitNumberFromGitHash", ctx, githash)}
-}
-
-func (_c *Git_CommitNumberFromGitHash_Call) Run(run func(ctx context.Context, githash string)) *Git_CommitNumberFromGitHash_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Git_CommitNumberFromGitHash_Call) Return(_a0 types.CommitNumber, _a1 error) *Git_CommitNumberFromGitHash_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitNumberFromGitHash_Call) RunAndReturn(run func(context.Context, string) (types.CommitNumber, error)) *Git_CommitNumberFromGitHash_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CommitNumberFromTime provides a mock function with given fields: ctx, t
 func (_m *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.CommitNumber, error) {
 	ret := _m.Called(ctx, t)
@@ -167,35 +101,6 @@ func (_m *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Com
 	}
 
 	return r0, r1
-}
-
-// Git_CommitNumberFromTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitNumberFromTime'
-type Git_CommitNumberFromTime_Call struct {
-	*mock.Call
-}
-
-// CommitNumberFromTime is a helper method to define mock.On call
-//   - ctx context.Context
-//   - t time.Time
-func (_e *Git_Expecter) CommitNumberFromTime(ctx interface{}, t interface{}) *Git_CommitNumberFromTime_Call {
-	return &Git_CommitNumberFromTime_Call{Call: _e.mock.On("CommitNumberFromTime", ctx, t)}
-}
-
-func (_c *Git_CommitNumberFromTime_Call) Run(run func(ctx context.Context, t time.Time)) *Git_CommitNumberFromTime_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time))
-	})
-	return _c
-}
-
-func (_c *Git_CommitNumberFromTime_Call) Return(_a0 types.CommitNumber, _a1 error) *Git_CommitNumberFromTime_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitNumberFromTime_Call) RunAndReturn(run func(context.Context, time.Time) (types.CommitNumber, error)) *Git_CommitNumberFromTime_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CommitNumbersWhenFileChangesInCommitNumberRange provides a mock function with given fields: ctx, begin, end, filename
@@ -228,37 +133,6 @@ func (_m *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Conte
 	return r0, r1
 }
 
-// Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitNumbersWhenFileChangesInCommitNumberRange'
-type Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call struct {
-	*mock.Call
-}
-
-// CommitNumbersWhenFileChangesInCommitNumberRange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - begin types.CommitNumber
-//   - end types.CommitNumber
-//   - filename string
-func (_e *Git_Expecter) CommitNumbersWhenFileChangesInCommitNumberRange(ctx interface{}, begin interface{}, end interface{}, filename interface{}) *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call {
-	return &Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call{Call: _e.mock.On("CommitNumbersWhenFileChangesInCommitNumberRange", ctx, begin, end, filename)}
-}
-
-func (_c *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call) Run(run func(ctx context.Context, begin types.CommitNumber, end types.CommitNumber, filename string)) *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(types.CommitNumber), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call) Return(_a0 []types.CommitNumber, _a1 error) *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call) RunAndReturn(run func(context.Context, types.CommitNumber, types.CommitNumber, string) ([]types.CommitNumber, error)) *Git_CommitNumbersWhenFileChangesInCommitNumberRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CommitSliceFromCommitNumberRange provides a mock function with given fields: ctx, begin, end
 func (_m *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin types.CommitNumber, end types.CommitNumber) ([]provider.Commit, error) {
 	ret := _m.Called(ctx, begin, end)
@@ -287,36 +161,6 @@ func (_m *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin types
 	}
 
 	return r0, r1
-}
-
-// Git_CommitSliceFromCommitNumberRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitSliceFromCommitNumberRange'
-type Git_CommitSliceFromCommitNumberRange_Call struct {
-	*mock.Call
-}
-
-// CommitSliceFromCommitNumberRange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - begin types.CommitNumber
-//   - end types.CommitNumber
-func (_e *Git_Expecter) CommitSliceFromCommitNumberRange(ctx interface{}, begin interface{}, end interface{}) *Git_CommitSliceFromCommitNumberRange_Call {
-	return &Git_CommitSliceFromCommitNumberRange_Call{Call: _e.mock.On("CommitSliceFromCommitNumberRange", ctx, begin, end)}
-}
-
-func (_c *Git_CommitSliceFromCommitNumberRange_Call) Run(run func(ctx context.Context, begin types.CommitNumber, end types.CommitNumber)) *Git_CommitSliceFromCommitNumberRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_CommitSliceFromCommitNumberRange_Call) Return(_a0 []provider.Commit, _a1 error) *Git_CommitSliceFromCommitNumberRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitSliceFromCommitNumberRange_Call) RunAndReturn(run func(context.Context, types.CommitNumber, types.CommitNumber) ([]provider.Commit, error)) *Git_CommitSliceFromCommitNumberRange_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CommitSliceFromCommitNumberSlice provides a mock function with given fields: ctx, commitNumberSlice
@@ -349,35 +193,6 @@ func (_m *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumbe
 	return r0, r1
 }
 
-// Git_CommitSliceFromCommitNumberSlice_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitSliceFromCommitNumberSlice'
-type Git_CommitSliceFromCommitNumberSlice_Call struct {
-	*mock.Call
-}
-
-// CommitSliceFromCommitNumberSlice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumberSlice []types.CommitNumber
-func (_e *Git_Expecter) CommitSliceFromCommitNumberSlice(ctx interface{}, commitNumberSlice interface{}) *Git_CommitSliceFromCommitNumberSlice_Call {
-	return &Git_CommitSliceFromCommitNumberSlice_Call{Call: _e.mock.On("CommitSliceFromCommitNumberSlice", ctx, commitNumberSlice)}
-}
-
-func (_c *Git_CommitSliceFromCommitNumberSlice_Call) Run(run func(ctx context.Context, commitNumberSlice []types.CommitNumber)) *Git_CommitSliceFromCommitNumberSlice_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_CommitSliceFromCommitNumberSlice_Call) Return(_a0 []provider.Commit, _a1 error) *Git_CommitSliceFromCommitNumberSlice_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitSliceFromCommitNumberSlice_Call) RunAndReturn(run func(context.Context, []types.CommitNumber) ([]provider.Commit, error)) *Git_CommitSliceFromCommitNumberSlice_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CommitSliceFromTimeRange provides a mock function with given fields: ctx, begin, end
 func (_m *Git) CommitSliceFromTimeRange(ctx context.Context, begin time.Time, end time.Time) ([]provider.Commit, error) {
 	ret := _m.Called(ctx, begin, end)
@@ -408,36 +223,6 @@ func (_m *Git) CommitSliceFromTimeRange(ctx context.Context, begin time.Time, en
 	return r0, r1
 }
 
-// Git_CommitSliceFromTimeRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitSliceFromTimeRange'
-type Git_CommitSliceFromTimeRange_Call struct {
-	*mock.Call
-}
-
-// CommitSliceFromTimeRange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - begin time.Time
-//   - end time.Time
-func (_e *Git_Expecter) CommitSliceFromTimeRange(ctx interface{}, begin interface{}, end interface{}) *Git_CommitSliceFromTimeRange_Call {
-	return &Git_CommitSliceFromTimeRange_Call{Call: _e.mock.On("CommitSliceFromTimeRange", ctx, begin, end)}
-}
-
-func (_c *Git_CommitSliceFromTimeRange_Call) Run(run func(ctx context.Context, begin time.Time, end time.Time)) *Git_CommitSliceFromTimeRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time))
-	})
-	return _c
-}
-
-func (_c *Git_CommitSliceFromTimeRange_Call) Return(_a0 []provider.Commit, _a1 error) *Git_CommitSliceFromTimeRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_CommitSliceFromTimeRange_Call) RunAndReturn(run func(context.Context, time.Time, time.Time) ([]provider.Commit, error)) *Git_CommitSliceFromTimeRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetCommitNumber provides a mock function with given fields: ctx, githash, commitNumber
 func (_m *Git) GetCommitNumber(ctx context.Context, githash string, commitNumber types.CommitNumber) (types.CommitNumber, error) {
 	ret := _m.Called(ctx, githash, commitNumber)
@@ -464,36 +249,6 @@ func (_m *Git) GetCommitNumber(ctx context.Context, githash string, commitNumber
 	}
 
 	return r0, r1
-}
-
-// Git_GetCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommitNumber'
-type Git_GetCommitNumber_Call struct {
-	*mock.Call
-}
-
-// GetCommitNumber is a helper method to define mock.On call
-//   - ctx context.Context
-//   - githash string
-//   - commitNumber types.CommitNumber
-func (_e *Git_Expecter) GetCommitNumber(ctx interface{}, githash interface{}, commitNumber interface{}) *Git_GetCommitNumber_Call {
-	return &Git_GetCommitNumber_Call{Call: _e.mock.On("GetCommitNumber", ctx, githash, commitNumber)}
-}
-
-func (_c *Git_GetCommitNumber_Call) Run(run func(ctx context.Context, githash string, commitNumber types.CommitNumber)) *Git_GetCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_GetCommitNumber_Call) Return(_a0 types.CommitNumber, _a1 error) *Git_GetCommitNumber_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_GetCommitNumber_Call) RunAndReturn(run func(context.Context, string, types.CommitNumber) (types.CommitNumber, error)) *Git_GetCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GitHashFromCommitNumber provides a mock function with given fields: ctx, commitNumber
@@ -524,35 +279,6 @@ func (_m *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.C
 	return r0, r1
 }
 
-// Git_GitHashFromCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GitHashFromCommitNumber'
-type Git_GitHashFromCommitNumber_Call struct {
-	*mock.Call
-}
-
-// GitHashFromCommitNumber is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-func (_e *Git_Expecter) GitHashFromCommitNumber(ctx interface{}, commitNumber interface{}) *Git_GitHashFromCommitNumber_Call {
-	return &Git_GitHashFromCommitNumber_Call{Call: _e.mock.On("GitHashFromCommitNumber", ctx, commitNumber)}
-}
-
-func (_c *Git_GitHashFromCommitNumber_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber)) *Git_GitHashFromCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_GitHashFromCommitNumber_Call) Return(_a0 string, _a1 error) *Git_GitHashFromCommitNumber_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_GitHashFromCommitNumber_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (string, error)) *Git_GitHashFromCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LogEntry provides a mock function with given fields: ctx, commit
 func (_m *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string, error) {
 	ret := _m.Called(ctx, commit)
@@ -579,35 +305,6 @@ func (_m *Git) LogEntry(ctx context.Context, commit types.CommitNumber) (string,
 	}
 
 	return r0, r1
-}
-
-// Git_LogEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogEntry'
-type Git_LogEntry_Call struct {
-	*mock.Call
-}
-
-// LogEntry is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commit types.CommitNumber
-func (_e *Git_Expecter) LogEntry(ctx interface{}, commit interface{}) *Git_LogEntry_Call {
-	return &Git_LogEntry_Call{Call: _e.mock.On("LogEntry", ctx, commit)}
-}
-
-func (_c *Git_LogEntry_Call) Run(run func(ctx context.Context, commit types.CommitNumber)) *Git_LogEntry_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_LogEntry_Call) Return(_a0 string, _a1 error) *Git_LogEntry_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_LogEntry_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (string, error)) *Git_LogEntry_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // PreviousCommitNumberFromCommitNumber provides a mock function with given fields: ctx, commitNumber
@@ -638,35 +335,6 @@ func (_m *Git) PreviousCommitNumberFromCommitNumber(ctx context.Context, commitN
 	return r0, r1
 }
 
-// Git_PreviousCommitNumberFromCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PreviousCommitNumberFromCommitNumber'
-type Git_PreviousCommitNumberFromCommitNumber_Call struct {
-	*mock.Call
-}
-
-// PreviousCommitNumberFromCommitNumber is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-func (_e *Git_Expecter) PreviousCommitNumberFromCommitNumber(ctx interface{}, commitNumber interface{}) *Git_PreviousCommitNumberFromCommitNumber_Call {
-	return &Git_PreviousCommitNumberFromCommitNumber_Call{Call: _e.mock.On("PreviousCommitNumberFromCommitNumber", ctx, commitNumber)}
-}
-
-func (_c *Git_PreviousCommitNumberFromCommitNumber_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber)) *Git_PreviousCommitNumberFromCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_PreviousCommitNumberFromCommitNumber_Call) Return(_a0 types.CommitNumber, _a1 error) *Git_PreviousCommitNumberFromCommitNumber_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_PreviousCommitNumberFromCommitNumber_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (types.CommitNumber, error)) *Git_PreviousCommitNumberFromCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PreviousGitHashFromCommitNumber provides a mock function with given fields: ctx, commitNumber
 func (_m *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
 	ret := _m.Called(ctx, commitNumber)
@@ -695,35 +363,6 @@ func (_m *Git) PreviousGitHashFromCommitNumber(ctx context.Context, commitNumber
 	return r0, r1
 }
 
-// Git_PreviousGitHashFromCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PreviousGitHashFromCommitNumber'
-type Git_PreviousGitHashFromCommitNumber_Call struct {
-	*mock.Call
-}
-
-// PreviousGitHashFromCommitNumber is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-func (_e *Git_Expecter) PreviousGitHashFromCommitNumber(ctx interface{}, commitNumber interface{}) *Git_PreviousGitHashFromCommitNumber_Call {
-	return &Git_PreviousGitHashFromCommitNumber_Call{Call: _e.mock.On("PreviousGitHashFromCommitNumber", ctx, commitNumber)}
-}
-
-func (_c *Git_PreviousGitHashFromCommitNumber_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber)) *Git_PreviousGitHashFromCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Git_PreviousGitHashFromCommitNumber_Call) Return(_a0 string, _a1 error) *Git_PreviousGitHashFromCommitNumber_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Git_PreviousGitHashFromCommitNumber_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (string, error)) *Git_PreviousGitHashFromCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RepoSuppliedCommitNumber provides a mock function with given fields:
 func (_m *Git) RepoSuppliedCommitNumber() bool {
 	ret := _m.Called()
@@ -742,65 +381,9 @@ func (_m *Git) RepoSuppliedCommitNumber() bool {
 	return r0
 }
 
-// Git_RepoSuppliedCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RepoSuppliedCommitNumber'
-type Git_RepoSuppliedCommitNumber_Call struct {
-	*mock.Call
-}
-
-// RepoSuppliedCommitNumber is a helper method to define mock.On call
-func (_e *Git_Expecter) RepoSuppliedCommitNumber() *Git_RepoSuppliedCommitNumber_Call {
-	return &Git_RepoSuppliedCommitNumber_Call{Call: _e.mock.On("RepoSuppliedCommitNumber")}
-}
-
-func (_c *Git_RepoSuppliedCommitNumber_Call) Run(run func()) *Git_RepoSuppliedCommitNumber_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Git_RepoSuppliedCommitNumber_Call) Return(_a0 bool) *Git_RepoSuppliedCommitNumber_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Git_RepoSuppliedCommitNumber_Call) RunAndReturn(run func() bool) *Git_RepoSuppliedCommitNumber_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // StartBackgroundPolling provides a mock function with given fields: ctx, duration
 func (_m *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration) {
 	_m.Called(ctx, duration)
-}
-
-// Git_StartBackgroundPolling_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartBackgroundPolling'
-type Git_StartBackgroundPolling_Call struct {
-	*mock.Call
-}
-
-// StartBackgroundPolling is a helper method to define mock.On call
-//   - ctx context.Context
-//   - duration time.Duration
-func (_e *Git_Expecter) StartBackgroundPolling(ctx interface{}, duration interface{}) *Git_StartBackgroundPolling_Call {
-	return &Git_StartBackgroundPolling_Call{Call: _e.mock.On("StartBackgroundPolling", ctx, duration)}
-}
-
-func (_c *Git_StartBackgroundPolling_Call) Run(run func(ctx context.Context, duration time.Duration)) *Git_StartBackgroundPolling_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Duration))
-	})
-	return _c
-}
-
-func (_c *Git_StartBackgroundPolling_Call) Return() *Git_StartBackgroundPolling_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *Git_StartBackgroundPolling_Call) RunAndReturn(run func(context.Context, time.Duration)) *Git_StartBackgroundPolling_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Update provides a mock function with given fields: ctx
@@ -819,34 +402,6 @@ func (_m *Git) Update(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// Git_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type Git_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Git_Expecter) Update(ctx interface{}) *Git_Update_Call {
-	return &Git_Update_Call{Call: _e.mock.On("Update", ctx)}
-}
-
-func (_c *Git_Update_Call) Run(run func(ctx context.Context)) *Git_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Git_Update_Call) Return(_a0 error) *Git_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Git_Update_Call) RunAndReturn(run func(context.Context) error) *Git_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGit creates a new instance of Git. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -24,14 +24,6 @@ type RBEClient struct {
 	mock.Mock
 }
 
-type RBEClient_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *RBEClient) EXPECT() *RBEClient_Expecter {
-	return &RBEClient_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *RBEClient) Close() error {
 	ret := _m.Called()
@@ -48,33 +40,6 @@ func (_m *RBEClient) Close() error {
 	}
 
 	return r0
-}
-
-// RBEClient_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type RBEClient_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *RBEClient_Expecter) Close() *RBEClient_Close_Call {
-	return &RBEClient_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *RBEClient_Close_Call) Run(run func()) *RBEClient_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *RBEClient_Close_Call) Return(_a0 error) *RBEClient_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *RBEClient_Close_Call) RunAndReturn(run func() error) *RBEClient_Close_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ComputeMerkleTree provides a mock function with given fields: ctx, execRoot, workingDir, remoteWorkingDir, is, cache
@@ -123,39 +88,6 @@ func (_m *RBEClient) ComputeMerkleTree(ctx context.Context, execRoot string, wor
 	return r0, r1, r2, r3
 }
 
-// RBEClient_ComputeMerkleTree_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ComputeMerkleTree'
-type RBEClient_ComputeMerkleTree_Call struct {
-	*mock.Call
-}
-
-// ComputeMerkleTree is a helper method to define mock.On call
-//   - ctx context.Context
-//   - execRoot string
-//   - workingDir string
-//   - remoteWorkingDir string
-//   - is *command.InputSpec
-//   - cache filemetadata.Cache
-func (_e *RBEClient_Expecter) ComputeMerkleTree(ctx interface{}, execRoot interface{}, workingDir interface{}, remoteWorkingDir interface{}, is interface{}, cache interface{}) *RBEClient_ComputeMerkleTree_Call {
-	return &RBEClient_ComputeMerkleTree_Call{Call: _e.mock.On("ComputeMerkleTree", ctx, execRoot, workingDir, remoteWorkingDir, is, cache)}
-}
-
-func (_c *RBEClient_ComputeMerkleTree_Call) Run(run func(ctx context.Context, execRoot string, workingDir string, remoteWorkingDir string, is *command.InputSpec, cache filemetadata.Cache)) *RBEClient_ComputeMerkleTree_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(*command.InputSpec), args[5].(filemetadata.Cache))
-	})
-	return _c
-}
-
-func (_c *RBEClient_ComputeMerkleTree_Call) Return(root digest.Digest, inputs []*uploadinfo.Entry, stats *client.TreeStats, err error) *RBEClient_ComputeMerkleTree_Call {
-	_c.Call.Return(root, inputs, stats, err)
-	return _c
-}
-
-func (_c *RBEClient_ComputeMerkleTree_Call) RunAndReturn(run func(context.Context, string, string, string, *command.InputSpec, filemetadata.Cache) (digest.Digest, []*uploadinfo.Entry, *client.TreeStats, error)) *RBEClient_ComputeMerkleTree_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DownloadDirectory provides a mock function with given fields: ctx, d, execRoot, cache
 func (_m *RBEClient) DownloadDirectory(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache) (map[string]*client.TreeOutput, *client.MovedBytesMetadata, error) {
 	ret := _m.Called(ctx, d, execRoot, cache)
@@ -195,37 +127,6 @@ func (_m *RBEClient) DownloadDirectory(ctx context.Context, d digest.Digest, exe
 	return r0, r1, r2
 }
 
-// RBEClient_DownloadDirectory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DownloadDirectory'
-type RBEClient_DownloadDirectory_Call struct {
-	*mock.Call
-}
-
-// DownloadDirectory is a helper method to define mock.On call
-//   - ctx context.Context
-//   - d digest.Digest
-//   - execRoot string
-//   - cache filemetadata.Cache
-func (_e *RBEClient_Expecter) DownloadDirectory(ctx interface{}, d interface{}, execRoot interface{}, cache interface{}) *RBEClient_DownloadDirectory_Call {
-	return &RBEClient_DownloadDirectory_Call{Call: _e.mock.On("DownloadDirectory", ctx, d, execRoot, cache)}
-}
-
-func (_c *RBEClient_DownloadDirectory_Call) Run(run func(ctx context.Context, d digest.Digest, execRoot string, cache filemetadata.Cache)) *RBEClient_DownloadDirectory_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(digest.Digest), args[2].(string), args[3].(filemetadata.Cache))
-	})
-	return _c
-}
-
-func (_c *RBEClient_DownloadDirectory_Call) Return(_a0 map[string]*client.TreeOutput, _a1 *client.MovedBytesMetadata, _a2 error) *RBEClient_DownloadDirectory_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *RBEClient_DownloadDirectory_Call) RunAndReturn(run func(context.Context, digest.Digest, string, filemetadata.Cache) (map[string]*client.TreeOutput, *client.MovedBytesMetadata, error)) *RBEClient_DownloadDirectory_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetDirectoryTree provides a mock function with given fields: ctx, d
 func (_m *RBEClient) GetDirectoryTree(ctx context.Context, d *remoteexecution.Digest) ([]*remoteexecution.Directory, error) {
 	ret := _m.Called(ctx, d)
@@ -254,35 +155,6 @@ func (_m *RBEClient) GetDirectoryTree(ctx context.Context, d *remoteexecution.Di
 	}
 
 	return r0, r1
-}
-
-// RBEClient_GetDirectoryTree_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDirectoryTree'
-type RBEClient_GetDirectoryTree_Call struct {
-	*mock.Call
-}
-
-// GetDirectoryTree is a helper method to define mock.On call
-//   - ctx context.Context
-//   - d *remoteexecution.Digest
-func (_e *RBEClient_Expecter) GetDirectoryTree(ctx interface{}, d interface{}) *RBEClient_GetDirectoryTree_Call {
-	return &RBEClient_GetDirectoryTree_Call{Call: _e.mock.On("GetDirectoryTree", ctx, d)}
-}
-
-func (_c *RBEClient_GetDirectoryTree_Call) Run(run func(ctx context.Context, d *remoteexecution.Digest)) *RBEClient_GetDirectoryTree_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*remoteexecution.Digest))
-	})
-	return _c
-}
-
-func (_c *RBEClient_GetDirectoryTree_Call) Return(result []*remoteexecution.Directory, err error) *RBEClient_GetDirectoryTree_Call {
-	_c.Call.Return(result, err)
-	return _c
-}
-
-func (_c *RBEClient_GetDirectoryTree_Call) RunAndReturn(run func(context.Context, *remoteexecution.Digest) ([]*remoteexecution.Directory, error)) *RBEClient_GetDirectoryTree_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // UploadIfMissing provides a mock function with given fields: ctx, data
@@ -327,42 +199,6 @@ func (_m *RBEClient) UploadIfMissing(ctx context.Context, data ...*uploadinfo.En
 	}
 
 	return r0, r1, r2
-}
-
-// RBEClient_UploadIfMissing_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadIfMissing'
-type RBEClient_UploadIfMissing_Call struct {
-	*mock.Call
-}
-
-// UploadIfMissing is a helper method to define mock.On call
-//   - ctx context.Context
-//   - data ...*uploadinfo.Entry
-func (_e *RBEClient_Expecter) UploadIfMissing(ctx interface{}, data ...interface{}) *RBEClient_UploadIfMissing_Call {
-	return &RBEClient_UploadIfMissing_Call{Call: _e.mock.On("UploadIfMissing",
-		append([]interface{}{ctx}, data...)...)}
-}
-
-func (_c *RBEClient_UploadIfMissing_Call) Run(run func(ctx context.Context, data ...*uploadinfo.Entry)) *RBEClient_UploadIfMissing_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*uploadinfo.Entry, len(args)-1)
-		for i, a := range args[1:] {
-			if a != nil {
-				variadicArgs[i] = a.(*uploadinfo.Entry)
-			}
-		}
-		run(args[0].(context.Context), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *RBEClient_UploadIfMissing_Call) Return(_a0 []digest.Digest, _a1 int64, _a2 error) *RBEClient_UploadIfMissing_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *RBEClient_UploadIfMissing_Call) RunAndReturn(run func(context.Context, ...*uploadinfo.Entry) ([]digest.Digest, int64, error)) *RBEClient_UploadIfMissing_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewRBEClient creates a new instance of RBEClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -22,14 +22,6 @@ type DataFrameBuilder struct {
 	mock.Mock
 }
 
-type DataFrameBuilder_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *DataFrameBuilder) EXPECT() *DataFrameBuilder_Expecter {
-	return &DataFrameBuilder_Expecter{mock: &_m.Mock}
-}
-
 // NewFromKeysAndRange provides a mock function with given fields: ctx, keys, begin, end, downsample, _a5
 func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []string, begin time.Time, end time.Time, downsample bool, _a5 progress.Progress) (*dataframe.DataFrame, error) {
 	ret := _m.Called(ctx, keys, begin, end, downsample, _a5)
@@ -58,39 +50,6 @@ func (_m *DataFrameBuilder) NewFromKeysAndRange(ctx context.Context, keys []stri
 	}
 
 	return r0, r1
-}
-
-// DataFrameBuilder_NewFromKeysAndRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewFromKeysAndRange'
-type DataFrameBuilder_NewFromKeysAndRange_Call struct {
-	*mock.Call
-}
-
-// NewFromKeysAndRange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - keys []string
-//   - begin time.Time
-//   - end time.Time
-//   - downsample bool
-//   - _a5 progress.Progress
-func (_e *DataFrameBuilder_Expecter) NewFromKeysAndRange(ctx interface{}, keys interface{}, begin interface{}, end interface{}, downsample interface{}, _a5 interface{}) *DataFrameBuilder_NewFromKeysAndRange_Call {
-	return &DataFrameBuilder_NewFromKeysAndRange_Call{Call: _e.mock.On("NewFromKeysAndRange", ctx, keys, begin, end, downsample, _a5)}
-}
-
-func (_c *DataFrameBuilder_NewFromKeysAndRange_Call) Run(run func(ctx context.Context, keys []string, begin time.Time, end time.Time, downsample bool, _a5 progress.Progress)) *DataFrameBuilder_NewFromKeysAndRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string), args[2].(time.Time), args[3].(time.Time), args[4].(bool), args[5].(progress.Progress))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewFromKeysAndRange_Call) Return(_a0 *dataframe.DataFrame, _a1 error) *DataFrameBuilder_NewFromKeysAndRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewFromKeysAndRange_Call) RunAndReturn(run func(context.Context, []string, time.Time, time.Time, bool, progress.Progress) (*dataframe.DataFrame, error)) *DataFrameBuilder_NewFromKeysAndRange_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewFromQueryAndRange provides a mock function with given fields: ctx, begin, end, q, downsample, _a5
@@ -123,39 +82,6 @@ func (_m *DataFrameBuilder) NewFromQueryAndRange(ctx context.Context, begin time
 	return r0, r1
 }
 
-// DataFrameBuilder_NewFromQueryAndRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewFromQueryAndRange'
-type DataFrameBuilder_NewFromQueryAndRange_Call struct {
-	*mock.Call
-}
-
-// NewFromQueryAndRange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - begin time.Time
-//   - end time.Time
-//   - q *query.Query
-//   - downsample bool
-//   - _a5 progress.Progress
-func (_e *DataFrameBuilder_Expecter) NewFromQueryAndRange(ctx interface{}, begin interface{}, end interface{}, q interface{}, downsample interface{}, _a5 interface{}) *DataFrameBuilder_NewFromQueryAndRange_Call {
-	return &DataFrameBuilder_NewFromQueryAndRange_Call{Call: _e.mock.On("NewFromQueryAndRange", ctx, begin, end, q, downsample, _a5)}
-}
-
-func (_c *DataFrameBuilder_NewFromQueryAndRange_Call) Run(run func(ctx context.Context, begin time.Time, end time.Time, q *query.Query, downsample bool, _a5 progress.Progress)) *DataFrameBuilder_NewFromQueryAndRange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].(*query.Query), args[4].(bool), args[5].(progress.Progress))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewFromQueryAndRange_Call) Return(_a0 *dataframe.DataFrame, _a1 error) *DataFrameBuilder_NewFromQueryAndRange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewFromQueryAndRange_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, *query.Query, bool, progress.Progress) (*dataframe.DataFrame, error)) *DataFrameBuilder_NewFromQueryAndRange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewNFromKeys provides a mock function with given fields: ctx, end, keys, n, _a4
 func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress) (*dataframe.DataFrame, error) {
 	ret := _m.Called(ctx, end, keys, n, _a4)
@@ -184,38 +110,6 @@ func (_m *DataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, key
 	}
 
 	return r0, r1
-}
-
-// DataFrameBuilder_NewNFromKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewNFromKeys'
-type DataFrameBuilder_NewNFromKeys_Call struct {
-	*mock.Call
-}
-
-// NewNFromKeys is a helper method to define mock.On call
-//   - ctx context.Context
-//   - end time.Time
-//   - keys []string
-//   - n int32
-//   - _a4 progress.Progress
-func (_e *DataFrameBuilder_Expecter) NewNFromKeys(ctx interface{}, end interface{}, keys interface{}, n interface{}, _a4 interface{}) *DataFrameBuilder_NewNFromKeys_Call {
-	return &DataFrameBuilder_NewNFromKeys_Call{Call: _e.mock.On("NewNFromKeys", ctx, end, keys, n, _a4)}
-}
-
-func (_c *DataFrameBuilder_NewNFromKeys_Call) Run(run func(ctx context.Context, end time.Time, keys []string, n int32, _a4 progress.Progress)) *DataFrameBuilder_NewNFromKeys_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].([]string), args[3].(int32), args[4].(progress.Progress))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewNFromKeys_Call) Return(_a0 *dataframe.DataFrame, _a1 error) *DataFrameBuilder_NewNFromKeys_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewNFromKeys_Call) RunAndReturn(run func(context.Context, time.Time, []string, int32, progress.Progress) (*dataframe.DataFrame, error)) *DataFrameBuilder_NewNFromKeys_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewNFromQuery provides a mock function with given fields: ctx, end, q, n, _a4
@@ -248,38 +142,6 @@ func (_m *DataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q 
 	return r0, r1
 }
 
-// DataFrameBuilder_NewNFromQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewNFromQuery'
-type DataFrameBuilder_NewNFromQuery_Call struct {
-	*mock.Call
-}
-
-// NewNFromQuery is a helper method to define mock.On call
-//   - ctx context.Context
-//   - end time.Time
-//   - q *query.Query
-//   - n int32
-//   - _a4 progress.Progress
-func (_e *DataFrameBuilder_Expecter) NewNFromQuery(ctx interface{}, end interface{}, q interface{}, n interface{}, _a4 interface{}) *DataFrameBuilder_NewNFromQuery_Call {
-	return &DataFrameBuilder_NewNFromQuery_Call{Call: _e.mock.On("NewNFromQuery", ctx, end, q, n, _a4)}
-}
-
-func (_c *DataFrameBuilder_NewNFromQuery_Call) Run(run func(ctx context.Context, end time.Time, q *query.Query, n int32, _a4 progress.Progress)) *DataFrameBuilder_NewNFromQuery_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(time.Time), args[2].(*query.Query), args[3].(int32), args[4].(progress.Progress))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewNFromQuery_Call) Return(_a0 *dataframe.DataFrame, _a1 error) *DataFrameBuilder_NewNFromQuery_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DataFrameBuilder_NewNFromQuery_Call) RunAndReturn(run func(context.Context, time.Time, *query.Query, int32, progress.Progress) (*dataframe.DataFrame, error)) *DataFrameBuilder_NewNFromQuery_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NumMatches provides a mock function with given fields: ctx, q
 func (_m *DataFrameBuilder) NumMatches(ctx context.Context, q *query.Query) (int64, error) {
 	ret := _m.Called(ctx, q)
@@ -306,35 +168,6 @@ func (_m *DataFrameBuilder) NumMatches(ctx context.Context, q *query.Query) (int
 	}
 
 	return r0, r1
-}
-
-// DataFrameBuilder_NumMatches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NumMatches'
-type DataFrameBuilder_NumMatches_Call struct {
-	*mock.Call
-}
-
-// NumMatches is a helper method to define mock.On call
-//   - ctx context.Context
-//   - q *query.Query
-func (_e *DataFrameBuilder_Expecter) NumMatches(ctx interface{}, q interface{}) *DataFrameBuilder_NumMatches_Call {
-	return &DataFrameBuilder_NumMatches_Call{Call: _e.mock.On("NumMatches", ctx, q)}
-}
-
-func (_c *DataFrameBuilder_NumMatches_Call) Run(run func(ctx context.Context, q *query.Query)) *DataFrameBuilder_NumMatches_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*query.Query))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_NumMatches_Call) Return(_a0 int64, _a1 error) *DataFrameBuilder_NumMatches_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *DataFrameBuilder_NumMatches_Call) RunAndReturn(run func(context.Context, *query.Query) (int64, error)) *DataFrameBuilder_NumMatches_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // PreflightQuery provides a mock function with given fields: ctx, q, referenceParamSet
@@ -372,36 +205,6 @@ func (_m *DataFrameBuilder) PreflightQuery(ctx context.Context, q *query.Query, 
 	}
 
 	return r0, r1, r2
-}
-
-// DataFrameBuilder_PreflightQuery_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PreflightQuery'
-type DataFrameBuilder_PreflightQuery_Call struct {
-	*mock.Call
-}
-
-// PreflightQuery is a helper method to define mock.On call
-//   - ctx context.Context
-//   - q *query.Query
-//   - referenceParamSet paramtools.ReadOnlyParamSet
-func (_e *DataFrameBuilder_Expecter) PreflightQuery(ctx interface{}, q interface{}, referenceParamSet interface{}) *DataFrameBuilder_PreflightQuery_Call {
-	return &DataFrameBuilder_PreflightQuery_Call{Call: _e.mock.On("PreflightQuery", ctx, q, referenceParamSet)}
-}
-
-func (_c *DataFrameBuilder_PreflightQuery_Call) Run(run func(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet)) *DataFrameBuilder_PreflightQuery_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*query.Query), args[2].(paramtools.ReadOnlyParamSet))
-	})
-	return _c
-}
-
-func (_c *DataFrameBuilder_PreflightQuery_Call) Return(_a0 int64, _a1 paramtools.ParamSet, _a2 error) *DataFrameBuilder_PreflightQuery_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *DataFrameBuilder_PreflightQuery_Call) RunAndReturn(run func(context.Context, *query.Query, paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error)) *DataFrameBuilder_PreflightQuery_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewDataFrameBuilder creates a new instance of DataFrameBuilder. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

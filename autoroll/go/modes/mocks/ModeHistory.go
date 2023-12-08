@@ -14,14 +14,6 @@ type ModeHistory struct {
 	mock.Mock
 }
 
-type ModeHistory_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ModeHistory) EXPECT() *ModeHistory_Expecter {
-	return &ModeHistory_Expecter{mock: &_m.Mock}
-}
-
 // Add provides a mock function with given fields: ctx, mode, user, message
 func (_m *ModeHistory) Add(ctx context.Context, mode string, user string, message string) error {
 	ret := _m.Called(ctx, mode, user, message)
@@ -38,37 +30,6 @@ func (_m *ModeHistory) Add(ctx context.Context, mode string, user string, messag
 	}
 
 	return r0
-}
-
-// ModeHistory_Add_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Add'
-type ModeHistory_Add_Call struct {
-	*mock.Call
-}
-
-// Add is a helper method to define mock.On call
-//   - ctx context.Context
-//   - mode string
-//   - user string
-//   - message string
-func (_e *ModeHistory_Expecter) Add(ctx interface{}, mode interface{}, user interface{}, message interface{}) *ModeHistory_Add_Call {
-	return &ModeHistory_Add_Call{Call: _e.mock.On("Add", ctx, mode, user, message)}
-}
-
-func (_c *ModeHistory_Add_Call) Run(run func(ctx context.Context, mode string, user string, message string)) *ModeHistory_Add_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *ModeHistory_Add_Call) Return(_a0 error) *ModeHistory_Add_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ModeHistory_Add_Call) RunAndReturn(run func(context.Context, string, string, string) error) *ModeHistory_Add_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CurrentMode provides a mock function with given fields:
@@ -89,33 +50,6 @@ func (_m *ModeHistory) CurrentMode() *modes.ModeChange {
 	}
 
 	return r0
-}
-
-// ModeHistory_CurrentMode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CurrentMode'
-type ModeHistory_CurrentMode_Call struct {
-	*mock.Call
-}
-
-// CurrentMode is a helper method to define mock.On call
-func (_e *ModeHistory_Expecter) CurrentMode() *ModeHistory_CurrentMode_Call {
-	return &ModeHistory_CurrentMode_Call{Call: _e.mock.On("CurrentMode")}
-}
-
-func (_c *ModeHistory_CurrentMode_Call) Run(run func()) *ModeHistory_CurrentMode_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *ModeHistory_CurrentMode_Call) Return(_a0 *modes.ModeChange) *ModeHistory_CurrentMode_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ModeHistory_CurrentMode_Call) RunAndReturn(run func() *modes.ModeChange) *ModeHistory_CurrentMode_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetHistory provides a mock function with given fields: ctx, offset
@@ -155,35 +89,6 @@ func (_m *ModeHistory) GetHistory(ctx context.Context, offset int) ([]*modes.Mod
 	return r0, r1, r2
 }
 
-// ModeHistory_GetHistory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetHistory'
-type ModeHistory_GetHistory_Call struct {
-	*mock.Call
-}
-
-// GetHistory is a helper method to define mock.On call
-//   - ctx context.Context
-//   - offset int
-func (_e *ModeHistory_Expecter) GetHistory(ctx interface{}, offset interface{}) *ModeHistory_GetHistory_Call {
-	return &ModeHistory_GetHistory_Call{Call: _e.mock.On("GetHistory", ctx, offset)}
-}
-
-func (_c *ModeHistory_GetHistory_Call) Run(run func(ctx context.Context, offset int)) *ModeHistory_GetHistory_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *ModeHistory_GetHistory_Call) Return(_a0 []*modes.ModeChange, _a1 int, _a2 error) *ModeHistory_GetHistory_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *ModeHistory_GetHistory_Call) RunAndReturn(run func(context.Context, int) ([]*modes.ModeChange, int, error)) *ModeHistory_GetHistory_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx
 func (_m *ModeHistory) Update(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -200,34 +105,6 @@ func (_m *ModeHistory) Update(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// ModeHistory_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type ModeHistory_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *ModeHistory_Expecter) Update(ctx interface{}) *ModeHistory_Update_Call {
-	return &ModeHistory_Update_Call{Call: _e.mock.On("Update", ctx)}
-}
-
-func (_c *ModeHistory_Update_Call) Run(run func(ctx context.Context)) *ModeHistory_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *ModeHistory_Update_Call) Return(_a0 error) *ModeHistory_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ModeHistory_Update_Call) RunAndReturn(run func(context.Context) error) *ModeHistory_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewModeHistory creates a new instance of ModeHistory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

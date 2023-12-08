@@ -9,14 +9,6 @@ type ChecksManager struct {
 	mock.Mock
 }
 
-type ChecksManager_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ChecksManager) EXPECT() *ChecksManager_Expecter {
-	return &ChecksManager_Expecter{mock: &_m.Mock}
-}
-
 // PerformChecks provides a mock function with given fields: packageRequestURL
 func (_m *ChecksManager) PerformChecks(packageRequestURL string) (bool, string, error) {
 	ret := _m.Called(packageRequestURL)
@@ -50,34 +42,6 @@ func (_m *ChecksManager) PerformChecks(packageRequestURL string) (bool, string, 
 	}
 
 	return r0, r1, r2
-}
-
-// ChecksManager_PerformChecks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PerformChecks'
-type ChecksManager_PerformChecks_Call struct {
-	*mock.Call
-}
-
-// PerformChecks is a helper method to define mock.On call
-//   - packageRequestURL string
-func (_e *ChecksManager_Expecter) PerformChecks(packageRequestURL interface{}) *ChecksManager_PerformChecks_Call {
-	return &ChecksManager_PerformChecks_Call{Call: _e.mock.On("PerformChecks", packageRequestURL)}
-}
-
-func (_c *ChecksManager_PerformChecks_Call) Run(run func(packageRequestURL string)) *ChecksManager_PerformChecks_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *ChecksManager_PerformChecks_Call) Return(_a0 bool, _a1 string, _a2 error) *ChecksManager_PerformChecks_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *ChecksManager_PerformChecks_Call) RunAndReturn(run func(string) (bool, string, error)) *ChecksManager_PerformChecks_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewChecksManager creates a new instance of ChecksManager. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

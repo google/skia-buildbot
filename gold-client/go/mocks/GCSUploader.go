@@ -13,14 +13,6 @@ type GCSUploader struct {
 	mock.Mock
 }
 
-type GCSUploader_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GCSUploader) EXPECT() *GCSUploader_Expecter {
-	return &GCSUploader_Expecter{mock: &_m.Mock}
-}
-
 // UploadBytes provides a mock function with given fields: ctx, data, fallbackSrc, dst
 func (_m *GCSUploader) UploadBytes(ctx context.Context, data []byte, fallbackSrc string, dst string) error {
 	ret := _m.Called(ctx, data, fallbackSrc, dst)
@@ -39,37 +31,6 @@ func (_m *GCSUploader) UploadBytes(ctx context.Context, data []byte, fallbackSrc
 	return r0
 }
 
-// GCSUploader_UploadBytes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadBytes'
-type GCSUploader_UploadBytes_Call struct {
-	*mock.Call
-}
-
-// UploadBytes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - data []byte
-//   - fallbackSrc string
-//   - dst string
-func (_e *GCSUploader_Expecter) UploadBytes(ctx interface{}, data interface{}, fallbackSrc interface{}, dst interface{}) *GCSUploader_UploadBytes_Call {
-	return &GCSUploader_UploadBytes_Call{Call: _e.mock.On("UploadBytes", ctx, data, fallbackSrc, dst)}
-}
-
-func (_c *GCSUploader_UploadBytes_Call) Run(run func(ctx context.Context, data []byte, fallbackSrc string, dst string)) *GCSUploader_UploadBytes_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]byte), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GCSUploader_UploadBytes_Call) Return(_a0 error) *GCSUploader_UploadBytes_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSUploader_UploadBytes_Call) RunAndReturn(run func(context.Context, []byte, string, string) error) *GCSUploader_UploadBytes_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // UploadJSON provides a mock function with given fields: ctx, data, tempFileName, gcsObjectPath
 func (_m *GCSUploader) UploadJSON(ctx context.Context, data interface{}, tempFileName string, gcsObjectPath string) error {
 	ret := _m.Called(ctx, data, tempFileName, gcsObjectPath)
@@ -86,37 +47,6 @@ func (_m *GCSUploader) UploadJSON(ctx context.Context, data interface{}, tempFil
 	}
 
 	return r0
-}
-
-// GCSUploader_UploadJSON_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UploadJSON'
-type GCSUploader_UploadJSON_Call struct {
-	*mock.Call
-}
-
-// UploadJSON is a helper method to define mock.On call
-//   - ctx context.Context
-//   - data interface{}
-//   - tempFileName string
-//   - gcsObjectPath string
-func (_e *GCSUploader_Expecter) UploadJSON(ctx interface{}, data interface{}, tempFileName interface{}, gcsObjectPath interface{}) *GCSUploader_UploadJSON_Call {
-	return &GCSUploader_UploadJSON_Call{Call: _e.mock.On("UploadJSON", ctx, data, tempFileName, gcsObjectPath)}
-}
-
-func (_c *GCSUploader_UploadJSON_Call) Run(run func(ctx context.Context, data interface{}, tempFileName string, gcsObjectPath string)) *GCSUploader_UploadJSON_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(interface{}), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GCSUploader_UploadJSON_Call) Return(_a0 error) *GCSUploader_UploadJSON_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GCSUploader_UploadJSON_Call) RunAndReturn(run func(context.Context, interface{}, string, string) error) *GCSUploader_UploadJSON_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGCSUploader creates a new instance of GCSUploader. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -15,14 +15,6 @@ type HTTPClient struct {
 	mock.Mock
 }
 
-type HTTPClient_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *HTTPClient) EXPECT() *HTTPClient_Expecter {
-	return &HTTPClient_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: url
 func (_m *HTTPClient) Get(url string) (*http.Response, error) {
 	ret := _m.Called(url)
@@ -53,34 +45,6 @@ func (_m *HTTPClient) Get(url string) (*http.Response, error) {
 	return r0, r1
 }
 
-// HTTPClient_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type HTTPClient_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - url string
-func (_e *HTTPClient_Expecter) Get(url interface{}) *HTTPClient_Get_Call {
-	return &HTTPClient_Get_Call{Call: _e.mock.On("Get", url)}
-}
-
-func (_c *HTTPClient_Get_Call) Run(run func(url string)) *HTTPClient_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *HTTPClient_Get_Call) Return(resp *http.Response, err error) *HTTPClient_Get_Call {
-	_c.Call.Return(resp, err)
-	return _c
-}
-
-func (_c *HTTPClient_Get_Call) RunAndReturn(run func(string) (*http.Response, error)) *HTTPClient_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Post provides a mock function with given fields: url, contentType, body
 func (_m *HTTPClient) Post(url string, contentType string, body io.Reader) (*http.Response, error) {
 	ret := _m.Called(url, contentType, body)
@@ -109,36 +73,6 @@ func (_m *HTTPClient) Post(url string, contentType string, body io.Reader) (*htt
 	}
 
 	return r0, r1
-}
-
-// HTTPClient_Post_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Post'
-type HTTPClient_Post_Call struct {
-	*mock.Call
-}
-
-// Post is a helper method to define mock.On call
-//   - url string
-//   - contentType string
-//   - body io.Reader
-func (_e *HTTPClient_Expecter) Post(url interface{}, contentType interface{}, body interface{}) *HTTPClient_Post_Call {
-	return &HTTPClient_Post_Call{Call: _e.mock.On("Post", url, contentType, body)}
-}
-
-func (_c *HTTPClient_Post_Call) Run(run func(url string, contentType string, body io.Reader)) *HTTPClient_Post_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(io.Reader))
-	})
-	return _c
-}
-
-func (_c *HTTPClient_Post_Call) Return(resp *http.Response, err error) *HTTPClient_Post_Call {
-	_c.Call.Return(resp, err)
-	return _c
-}
-
-func (_c *HTTPClient_Post_Call) RunAndReturn(run func(string, string, io.Reader) (*http.Response, error)) *HTTPClient_Post_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewHTTPClient creates a new instance of HTTPClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

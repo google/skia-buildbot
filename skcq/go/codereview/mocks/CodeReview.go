@@ -17,14 +17,6 @@ type CodeReview struct {
 	mock.Mock
 }
 
-type CodeReview_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *CodeReview) EXPECT() *CodeReview_Expecter {
-	return &CodeReview_Expecter{mock: &_m.Mock}
-}
-
 // AddComment provides a mock function with given fields: ctx, ci, comment, notify, notifyReason
 func (_m *CodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notify codereview.NotifyOption, notifyReason string) error {
 	ret := _m.Called(ctx, ci, comment, notify, notifyReason)
@@ -41,38 +33,6 @@ func (_m *CodeReview) AddComment(ctx context.Context, ci *gerrit.ChangeInfo, com
 	}
 
 	return r0
-}
-
-// CodeReview_AddComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddComment'
-type CodeReview_AddComment_Call struct {
-	*mock.Call
-}
-
-// AddComment is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-//   - comment string
-//   - notify codereview.NotifyOption
-//   - notifyReason string
-func (_e *CodeReview_Expecter) AddComment(ctx interface{}, ci interface{}, comment interface{}, notify interface{}, notifyReason interface{}) *CodeReview_AddComment_Call {
-	return &CodeReview_AddComment_Call{Call: _e.mock.On("AddComment", ctx, ci, comment, notify, notifyReason)}
-}
-
-func (_c *CodeReview_AddComment_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notify codereview.NotifyOption, notifyReason string)) *CodeReview_AddComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(codereview.NotifyOption), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *CodeReview_AddComment_Call) Return(_a0 error) *CodeReview_AddComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_AddComment_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, codereview.NotifyOption, string) error) *CodeReview_AddComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetCQVoters provides a mock function with given fields: ctx, ci
@@ -95,35 +55,6 @@ func (_m *CodeReview) GetCQVoters(ctx context.Context, ci *gerrit.ChangeInfo) []
 	return r0
 }
 
-// CodeReview_GetCQVoters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCQVoters'
-type CodeReview_GetCQVoters_Call struct {
-	*mock.Call
-}
-
-// GetCQVoters is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetCQVoters(ctx interface{}, ci interface{}) *CodeReview_GetCQVoters_Call {
-	return &CodeReview_GetCQVoters_Call{Call: _e.mock.On("GetCQVoters", ctx, ci)}
-}
-
-func (_c *CodeReview_GetCQVoters_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_GetCQVoters_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetCQVoters_Call) Return(_a0 []string) *CodeReview_GetCQVoters_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetCQVoters_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) []string) *CodeReview_GetCQVoters_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetChangeRef provides a mock function with given fields: ci
 func (_m *CodeReview) GetChangeRef(ci *gerrit.ChangeInfo) string {
 	ret := _m.Called(ci)
@@ -140,34 +71,6 @@ func (_m *CodeReview) GetChangeRef(ci *gerrit.ChangeInfo) string {
 	}
 
 	return r0
-}
-
-// CodeReview_GetChangeRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChangeRef'
-type CodeReview_GetChangeRef_Call struct {
-	*mock.Call
-}
-
-// GetChangeRef is a helper method to define mock.On call
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetChangeRef(ci interface{}) *CodeReview_GetChangeRef_Call {
-	return &CodeReview_GetChangeRef_Call{Call: _e.mock.On("GetChangeRef", ci)}
-}
-
-func (_c *CodeReview_GetChangeRef_Call) Run(run func(ci *gerrit.ChangeInfo)) *CodeReview_GetChangeRef_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetChangeRef_Call) Return(_a0 string) *CodeReview_GetChangeRef_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetChangeRef_Call) RunAndReturn(run func(*gerrit.ChangeInfo) string) *CodeReview_GetChangeRef_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetCommitAuthor provides a mock function with given fields: ctx, issue, revision
@@ -198,36 +101,6 @@ func (_m *CodeReview) GetCommitAuthor(ctx context.Context, issue int64, revision
 	return r0, r1
 }
 
-// CodeReview_GetCommitAuthor_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommitAuthor'
-type CodeReview_GetCommitAuthor_Call struct {
-	*mock.Call
-}
-
-// GetCommitAuthor is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - revision string
-func (_e *CodeReview_Expecter) GetCommitAuthor(ctx interface{}, issue interface{}, revision interface{}) *CodeReview_GetCommitAuthor_Call {
-	return &CodeReview_GetCommitAuthor_Call{Call: _e.mock.On("GetCommitAuthor", ctx, issue, revision)}
-}
-
-func (_c *CodeReview_GetCommitAuthor_Call) Run(run func(ctx context.Context, issue int64, revision string)) *CodeReview_GetCommitAuthor_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetCommitAuthor_Call) Return(_a0 string, _a1 error) *CodeReview_GetCommitAuthor_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetCommitAuthor_Call) RunAndReturn(run func(context.Context, int64, string) (string, error)) *CodeReview_GetCommitAuthor_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetCommitMessage provides a mock function with given fields: ctx, issue
 func (_m *CodeReview) GetCommitMessage(ctx context.Context, issue int64) (string, error) {
 	ret := _m.Called(ctx, issue)
@@ -256,35 +129,6 @@ func (_m *CodeReview) GetCommitMessage(ctx context.Context, issue int64) (string
 	return r0, r1
 }
 
-// CodeReview_GetCommitMessage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommitMessage'
-type CodeReview_GetCommitMessage_Call struct {
-	*mock.Call
-}
-
-// GetCommitMessage is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-func (_e *CodeReview_Expecter) GetCommitMessage(ctx interface{}, issue interface{}) *CodeReview_GetCommitMessage_Call {
-	return &CodeReview_GetCommitMessage_Call{Call: _e.mock.On("GetCommitMessage", ctx, issue)}
-}
-
-func (_c *CodeReview_GetCommitMessage_Call) Run(run func(ctx context.Context, issue int64)) *CodeReview_GetCommitMessage_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetCommitMessage_Call) Return(_a0 string, _a1 error) *CodeReview_GetCommitMessage_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetCommitMessage_Call) RunAndReturn(run func(context.Context, int64) (string, error)) *CodeReview_GetCommitMessage_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetEarliestEquivalentPatchSetID provides a mock function with given fields: ci
 func (_m *CodeReview) GetEarliestEquivalentPatchSetID(ci *gerrit.ChangeInfo) int64 {
 	ret := _m.Called(ci)
@@ -301,34 +145,6 @@ func (_m *CodeReview) GetEarliestEquivalentPatchSetID(ci *gerrit.ChangeInfo) int
 	}
 
 	return r0
-}
-
-// CodeReview_GetEarliestEquivalentPatchSetID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEarliestEquivalentPatchSetID'
-type CodeReview_GetEarliestEquivalentPatchSetID_Call struct {
-	*mock.Call
-}
-
-// GetEarliestEquivalentPatchSetID is a helper method to define mock.On call
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetEarliestEquivalentPatchSetID(ci interface{}) *CodeReview_GetEarliestEquivalentPatchSetID_Call {
-	return &CodeReview_GetEarliestEquivalentPatchSetID_Call{Call: _e.mock.On("GetEarliestEquivalentPatchSetID", ci)}
-}
-
-func (_c *CodeReview_GetEarliestEquivalentPatchSetID_Call) Run(run func(ci *gerrit.ChangeInfo)) *CodeReview_GetEarliestEquivalentPatchSetID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetEarliestEquivalentPatchSetID_Call) Return(_a0 int64) *CodeReview_GetEarliestEquivalentPatchSetID_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetEarliestEquivalentPatchSetID_Call) RunAndReturn(run func(*gerrit.ChangeInfo) int64) *CodeReview_GetEarliestEquivalentPatchSetID_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetEquivalentPatchSetIDs provides a mock function with given fields: ci, patchsetID
@@ -349,35 +165,6 @@ func (_m *CodeReview) GetEquivalentPatchSetIDs(ci *gerrit.ChangeInfo, patchsetID
 	}
 
 	return r0
-}
-
-// CodeReview_GetEquivalentPatchSetIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetEquivalentPatchSetIDs'
-type CodeReview_GetEquivalentPatchSetIDs_Call struct {
-	*mock.Call
-}
-
-// GetEquivalentPatchSetIDs is a helper method to define mock.On call
-//   - ci *gerrit.ChangeInfo
-//   - patchsetID int64
-func (_e *CodeReview_Expecter) GetEquivalentPatchSetIDs(ci interface{}, patchsetID interface{}) *CodeReview_GetEquivalentPatchSetIDs_Call {
-	return &CodeReview_GetEquivalentPatchSetIDs_Call{Call: _e.mock.On("GetEquivalentPatchSetIDs", ci, patchsetID)}
-}
-
-func (_c *CodeReview_GetEquivalentPatchSetIDs_Call) Run(run func(ci *gerrit.ChangeInfo, patchsetID int64)) *CodeReview_GetEquivalentPatchSetIDs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*gerrit.ChangeInfo), args[1].(int64))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetEquivalentPatchSetIDs_Call) Return(_a0 []int64) *CodeReview_GetEquivalentPatchSetIDs_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetEquivalentPatchSetIDs_Call) RunAndReturn(run func(*gerrit.ChangeInfo, int64) []int64) *CodeReview_GetEquivalentPatchSetIDs_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetFileNames provides a mock function with given fields: ctx, ci
@@ -410,35 +197,6 @@ func (_m *CodeReview) GetFileNames(ctx context.Context, ci *gerrit.ChangeInfo) (
 	return r0, r1
 }
 
-// CodeReview_GetFileNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFileNames'
-type CodeReview_GetFileNames_Call struct {
-	*mock.Call
-}
-
-// GetFileNames is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetFileNames(ctx interface{}, ci interface{}) *CodeReview_GetFileNames_Call {
-	return &CodeReview_GetFileNames_Call{Call: _e.mock.On("GetFileNames", ctx, ci)}
-}
-
-func (_c *CodeReview_GetFileNames_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_GetFileNames_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetFileNames_Call) Return(_a0 []string, _a1 error) *CodeReview_GetFileNames_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetFileNames_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) ([]string, error)) *CodeReview_GetFileNames_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetIssueProperties provides a mock function with given fields: ctx, issue
 func (_m *CodeReview) GetIssueProperties(ctx context.Context, issue int64) (*gerrit.ChangeInfo, error) {
 	ret := _m.Called(ctx, issue)
@@ -469,35 +227,6 @@ func (_m *CodeReview) GetIssueProperties(ctx context.Context, issue int64) (*ger
 	return r0, r1
 }
 
-// CodeReview_GetIssueProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIssueProperties'
-type CodeReview_GetIssueProperties_Call struct {
-	*mock.Call
-}
-
-// GetIssueProperties is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-func (_e *CodeReview_Expecter) GetIssueProperties(ctx interface{}, issue interface{}) *CodeReview_GetIssueProperties_Call {
-	return &CodeReview_GetIssueProperties_Call{Call: _e.mock.On("GetIssueProperties", ctx, issue)}
-}
-
-func (_c *CodeReview_GetIssueProperties_Call) Run(run func(ctx context.Context, issue int64)) *CodeReview_GetIssueProperties_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetIssueProperties_Call) Return(_a0 *gerrit.ChangeInfo, _a1 error) *CodeReview_GetIssueProperties_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetIssueProperties_Call) RunAndReturn(run func(context.Context, int64) (*gerrit.ChangeInfo, error)) *CodeReview_GetIssueProperties_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetLatestPatchSetID provides a mock function with given fields: ci
 func (_m *CodeReview) GetLatestPatchSetID(ci *gerrit.ChangeInfo) int64 {
 	ret := _m.Called(ci)
@@ -516,34 +245,6 @@ func (_m *CodeReview) GetLatestPatchSetID(ci *gerrit.ChangeInfo) int64 {
 	return r0
 }
 
-// CodeReview_GetLatestPatchSetID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestPatchSetID'
-type CodeReview_GetLatestPatchSetID_Call struct {
-	*mock.Call
-}
-
-// GetLatestPatchSetID is a helper method to define mock.On call
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetLatestPatchSetID(ci interface{}) *CodeReview_GetLatestPatchSetID_Call {
-	return &CodeReview_GetLatestPatchSetID_Call{Call: _e.mock.On("GetLatestPatchSetID", ci)}
-}
-
-func (_c *CodeReview_GetLatestPatchSetID_Call) Run(run func(ci *gerrit.ChangeInfo)) *CodeReview_GetLatestPatchSetID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetLatestPatchSetID_Call) Return(_a0 int64) *CodeReview_GetLatestPatchSetID_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetLatestPatchSetID_Call) RunAndReturn(run func(*gerrit.ChangeInfo) int64) *CodeReview_GetLatestPatchSetID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetRepoUrl provides a mock function with given fields: ci
 func (_m *CodeReview) GetRepoUrl(ci *gerrit.ChangeInfo) string {
 	ret := _m.Called(ci)
@@ -560,34 +261,6 @@ func (_m *CodeReview) GetRepoUrl(ci *gerrit.ChangeInfo) string {
 	}
 
 	return r0
-}
-
-// CodeReview_GetRepoUrl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRepoUrl'
-type CodeReview_GetRepoUrl_Call struct {
-	*mock.Call
-}
-
-// GetRepoUrl is a helper method to define mock.On call
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetRepoUrl(ci interface{}) *CodeReview_GetRepoUrl_Call {
-	return &CodeReview_GetRepoUrl_Call{Call: _e.mock.On("GetRepoUrl", ci)}
-}
-
-func (_c *CodeReview_GetRepoUrl_Call) Run(run func(ci *gerrit.ChangeInfo)) *CodeReview_GetRepoUrl_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetRepoUrl_Call) Return(_a0 string) *CodeReview_GetRepoUrl_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_GetRepoUrl_Call) RunAndReturn(run func(*gerrit.ChangeInfo) string) *CodeReview_GetRepoUrl_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetSubmittedTogether provides a mock function with given fields: ctx, ci
@@ -620,35 +293,6 @@ func (_m *CodeReview) GetSubmittedTogether(ctx context.Context, ci *gerrit.Chang
 	return r0, r1
 }
 
-// CodeReview_GetSubmittedTogether_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSubmittedTogether'
-type CodeReview_GetSubmittedTogether_Call struct {
-	*mock.Call
-}
-
-// GetSubmittedTogether is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) GetSubmittedTogether(ctx interface{}, ci interface{}) *CodeReview_GetSubmittedTogether_Call {
-	return &CodeReview_GetSubmittedTogether_Call{Call: _e.mock.On("GetSubmittedTogether", ctx, ci)}
-}
-
-func (_c *CodeReview_GetSubmittedTogether_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_GetSubmittedTogether_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_GetSubmittedTogether_Call) Return(_a0 []*gerrit.ChangeInfo, _a1 error) *CodeReview_GetSubmittedTogether_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_GetSubmittedTogether_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) ([]*gerrit.ChangeInfo, error)) *CodeReview_GetSubmittedTogether_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // IsCQ provides a mock function with given fields: ctx, ci
 func (_m *CodeReview) IsCQ(ctx context.Context, ci *gerrit.ChangeInfo) bool {
 	ret := _m.Called(ctx, ci)
@@ -665,35 +309,6 @@ func (_m *CodeReview) IsCQ(ctx context.Context, ci *gerrit.ChangeInfo) bool {
 	}
 
 	return r0
-}
-
-// CodeReview_IsCQ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsCQ'
-type CodeReview_IsCQ_Call struct {
-	*mock.Call
-}
-
-// IsCQ is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) IsCQ(ctx interface{}, ci interface{}) *CodeReview_IsCQ_Call {
-	return &CodeReview_IsCQ_Call{Call: _e.mock.On("IsCQ", ctx, ci)}
-}
-
-func (_c *CodeReview_IsCQ_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_IsCQ_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_IsCQ_Call) Return(_a0 bool) *CodeReview_IsCQ_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_IsCQ_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) bool) *CodeReview_IsCQ_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // IsDryRun provides a mock function with given fields: ctx, ci
@@ -714,69 +329,9 @@ func (_m *CodeReview) IsDryRun(ctx context.Context, ci *gerrit.ChangeInfo) bool 
 	return r0
 }
 
-// CodeReview_IsDryRun_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsDryRun'
-type CodeReview_IsDryRun_Call struct {
-	*mock.Call
-}
-
-// IsDryRun is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) IsDryRun(ctx interface{}, ci interface{}) *CodeReview_IsDryRun_Call {
-	return &CodeReview_IsDryRun_Call{Call: _e.mock.On("IsDryRun", ctx, ci)}
-}
-
-func (_c *CodeReview_IsDryRun_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_IsDryRun_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_IsDryRun_Call) Return(_a0 bool) *CodeReview_IsDryRun_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_IsDryRun_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) bool) *CodeReview_IsDryRun_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RemoveFromCQ provides a mock function with given fields: ctx, ci, comment, notifyReason
 func (_m *CodeReview) RemoveFromCQ(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notifyReason string) {
 	_m.Called(ctx, ci, comment, notifyReason)
-}
-
-// CodeReview_RemoveFromCQ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveFromCQ'
-type CodeReview_RemoveFromCQ_Call struct {
-	*mock.Call
-}
-
-// RemoveFromCQ is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-//   - comment string
-//   - notifyReason string
-func (_e *CodeReview_Expecter) RemoveFromCQ(ctx interface{}, ci interface{}, comment interface{}, notifyReason interface{}) *CodeReview_RemoveFromCQ_Call {
-	return &CodeReview_RemoveFromCQ_Call{Call: _e.mock.On("RemoveFromCQ", ctx, ci, comment, notifyReason)}
-}
-
-func (_c *CodeReview_RemoveFromCQ_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo, comment string, notifyReason string)) *CodeReview_RemoveFromCQ_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *CodeReview_RemoveFromCQ_Call) Return() *CodeReview_RemoveFromCQ_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *CodeReview_RemoveFromCQ_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, string)) *CodeReview_RemoveFromCQ_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Search provides a mock function with given fields: ctx
@@ -809,34 +364,6 @@ func (_m *CodeReview) Search(ctx context.Context) ([]*gerrit.ChangeInfo, error) 
 	return r0, r1
 }
 
-// CodeReview_Search_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Search'
-type CodeReview_Search_Call struct {
-	*mock.Call
-}
-
-// Search is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *CodeReview_Expecter) Search(ctx interface{}) *CodeReview_Search_Call {
-	return &CodeReview_Search_Call{Call: _e.mock.On("Search", ctx)}
-}
-
-func (_c *CodeReview_Search_Call) Run(run func(ctx context.Context)) *CodeReview_Search_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *CodeReview_Search_Call) Return(_a0 []*gerrit.ChangeInfo, _a1 error) *CodeReview_Search_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *CodeReview_Search_Call) RunAndReturn(run func(context.Context) ([]*gerrit.ChangeInfo, error)) *CodeReview_Search_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetReadyForReview provides a mock function with given fields: ctx, ci
 func (_m *CodeReview) SetReadyForReview(ctx context.Context, ci *gerrit.ChangeInfo) error {
 	ret := _m.Called(ctx, ci)
@@ -853,35 +380,6 @@ func (_m *CodeReview) SetReadyForReview(ctx context.Context, ci *gerrit.ChangeIn
 	}
 
 	return r0
-}
-
-// CodeReview_SetReadyForReview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetReadyForReview'
-type CodeReview_SetReadyForReview_Call struct {
-	*mock.Call
-}
-
-// SetReadyForReview is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) SetReadyForReview(ctx interface{}, ci interface{}) *CodeReview_SetReadyForReview_Call {
-	return &CodeReview_SetReadyForReview_Call{Call: _e.mock.On("SetReadyForReview", ctx, ci)}
-}
-
-func (_c *CodeReview_SetReadyForReview_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_SetReadyForReview_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_SetReadyForReview_Call) Return(_a0 error) *CodeReview_SetReadyForReview_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_SetReadyForReview_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *CodeReview_SetReadyForReview_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Submit provides a mock function with given fields: ctx, ci
@@ -902,35 +400,6 @@ func (_m *CodeReview) Submit(ctx context.Context, ci *gerrit.ChangeInfo) error {
 	return r0
 }
 
-// CodeReview_Submit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Submit'
-type CodeReview_Submit_Call struct {
-	*mock.Call
-}
-
-// Submit is a helper method to define mock.On call
-//   - ctx context.Context
-//   - ci *gerrit.ChangeInfo
-func (_e *CodeReview_Expecter) Submit(ctx interface{}, ci interface{}) *CodeReview_Submit_Call {
-	return &CodeReview_Submit_Call{Call: _e.mock.On("Submit", ctx, ci)}
-}
-
-func (_c *CodeReview_Submit_Call) Run(run func(ctx context.Context, ci *gerrit.ChangeInfo)) *CodeReview_Submit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *CodeReview_Submit_Call) Return(_a0 error) *CodeReview_Submit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_Submit_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *CodeReview_Submit_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Url provides a mock function with given fields: issueID
 func (_m *CodeReview) Url(issueID int64) string {
 	ret := _m.Called(issueID)
@@ -947,34 +416,6 @@ func (_m *CodeReview) Url(issueID int64) string {
 	}
 
 	return r0
-}
-
-// CodeReview_Url_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Url'
-type CodeReview_Url_Call struct {
-	*mock.Call
-}
-
-// Url is a helper method to define mock.On call
-//   - issueID int64
-func (_e *CodeReview_Expecter) Url(issueID interface{}) *CodeReview_Url_Call {
-	return &CodeReview_Url_Call{Call: _e.mock.On("Url", issueID)}
-}
-
-func (_c *CodeReview_Url_Call) Run(run func(issueID int64)) *CodeReview_Url_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int64))
-	})
-	return _c
-}
-
-func (_c *CodeReview_Url_Call) Return(_a0 string) *CodeReview_Url_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *CodeReview_Url_Call) RunAndReturn(run func(int64) string) *CodeReview_Url_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewCodeReview creates a new instance of CodeReview. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

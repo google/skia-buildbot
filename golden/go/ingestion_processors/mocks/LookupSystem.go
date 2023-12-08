@@ -13,14 +13,6 @@ type LookupSystem struct {
 	mock.Mock
 }
 
-type LookupSystem_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *LookupSystem) EXPECT() *LookupSystem_Expecter {
-	return &LookupSystem_Expecter{mock: &_m.Mock}
-}
-
 // Lookup provides a mock function with given fields: ctx, tjID
 func (_m *LookupSystem) Lookup(ctx context.Context, tjID string) (string, string, int, error) {
 	ret := _m.Called(ctx, tjID)
@@ -61,35 +53,6 @@ func (_m *LookupSystem) Lookup(ctx context.Context, tjID string) (string, string
 	}
 
 	return r0, r1, r2, r3
-}
-
-// LookupSystem_Lookup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Lookup'
-type LookupSystem_Lookup_Call struct {
-	*mock.Call
-}
-
-// Lookup is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tjID string
-func (_e *LookupSystem_Expecter) Lookup(ctx interface{}, tjID interface{}) *LookupSystem_Lookup_Call {
-	return &LookupSystem_Lookup_Call{Call: _e.mock.On("Lookup", ctx, tjID)}
-}
-
-func (_c *LookupSystem_Lookup_Call) Run(run func(ctx context.Context, tjID string)) *LookupSystem_Lookup_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *LookupSystem_Lookup_Call) Return(_a0 string, _a1 string, _a2 int, _a3 error) *LookupSystem_Lookup_Call {
-	_c.Call.Return(_a0, _a1, _a2, _a3)
-	return _c
-}
-
-func (_c *LookupSystem_Lookup_Call) RunAndReturn(run func(context.Context, string) (string, string, int, error)) *LookupSystem_Lookup_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewLookupSystem creates a new instance of LookupSystem. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

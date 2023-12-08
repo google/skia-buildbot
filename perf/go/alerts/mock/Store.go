@@ -15,14 +15,6 @@ type Store struct {
 	mock.Mock
 }
 
-type Store_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Store) EXPECT() *Store_Expecter {
-	return &Store_Expecter{mock: &_m.Mock}
-}
-
 // Delete provides a mock function with given fields: ctx, id
 func (_m *Store) Delete(ctx context.Context, id int) error {
 	ret := _m.Called(ctx, id)
@@ -39,35 +31,6 @@ func (_m *Store) Delete(ctx context.Context, id int) error {
 	}
 
 	return r0
-}
-
-// Store_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type Store_Delete_Call struct {
-	*mock.Call
-}
-
-// Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id int
-func (_e *Store_Expecter) Delete(ctx interface{}, id interface{}) *Store_Delete_Call {
-	return &Store_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
-}
-
-func (_c *Store_Delete_Call) Run(run func(ctx context.Context, id int)) *Store_Delete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *Store_Delete_Call) Return(_a0 error) *Store_Delete_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_Delete_Call) RunAndReturn(run func(context.Context, int) error) *Store_Delete_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // List provides a mock function with given fields: ctx, includeDeleted
@@ -100,35 +63,6 @@ func (_m *Store) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert
 	return r0, r1
 }
 
-// Store_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
-type Store_List_Call struct {
-	*mock.Call
-}
-
-// List is a helper method to define mock.On call
-//   - ctx context.Context
-//   - includeDeleted bool
-func (_e *Store_Expecter) List(ctx interface{}, includeDeleted interface{}) *Store_List_Call {
-	return &Store_List_Call{Call: _e.mock.On("List", ctx, includeDeleted)}
-}
-
-func (_c *Store_List_Call) Run(run func(ctx context.Context, includeDeleted bool)) *Store_List_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(bool))
-	})
-	return _c
-}
-
-func (_c *Store_List_Call) Return(_a0 []*alerts.Alert, _a1 error) *Store_List_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_List_Call) RunAndReturn(run func(context.Context, bool) ([]*alerts.Alert, error)) *Store_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Save provides a mock function with given fields: ctx, cfg
 func (_m *Store) Save(ctx context.Context, cfg *alerts.Alert) error {
 	ret := _m.Called(ctx, cfg)
@@ -145,35 +79,6 @@ func (_m *Store) Save(ctx context.Context, cfg *alerts.Alert) error {
 	}
 
 	return r0
-}
-
-// Store_Save_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Save'
-type Store_Save_Call struct {
-	*mock.Call
-}
-
-// Save is a helper method to define mock.On call
-//   - ctx context.Context
-//   - cfg *alerts.Alert
-func (_e *Store_Expecter) Save(ctx interface{}, cfg interface{}) *Store_Save_Call {
-	return &Store_Save_Call{Call: _e.mock.On("Save", ctx, cfg)}
-}
-
-func (_c *Store_Save_Call) Run(run func(ctx context.Context, cfg *alerts.Alert)) *Store_Save_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*alerts.Alert))
-	})
-	return _c
-}
-
-func (_c *Store_Save_Call) Return(_a0 error) *Store_Save_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_Save_Call) RunAndReturn(run func(context.Context, *alerts.Alert) error) *Store_Save_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

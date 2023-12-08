@@ -14,14 +14,6 @@ type StrategyHistory struct {
 	mock.Mock
 }
 
-type StrategyHistory_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *StrategyHistory) EXPECT() *StrategyHistory_Expecter {
-	return &StrategyHistory_Expecter{mock: &_m.Mock}
-}
-
 // Add provides a mock function with given fields: ctx, s, user, message
 func (_m *StrategyHistory) Add(ctx context.Context, s string, user string, message string) error {
 	ret := _m.Called(ctx, s, user, message)
@@ -38,37 +30,6 @@ func (_m *StrategyHistory) Add(ctx context.Context, s string, user string, messa
 	}
 
 	return r0
-}
-
-// StrategyHistory_Add_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Add'
-type StrategyHistory_Add_Call struct {
-	*mock.Call
-}
-
-// Add is a helper method to define mock.On call
-//   - ctx context.Context
-//   - s string
-//   - user string
-//   - message string
-func (_e *StrategyHistory_Expecter) Add(ctx interface{}, s interface{}, user interface{}, message interface{}) *StrategyHistory_Add_Call {
-	return &StrategyHistory_Add_Call{Call: _e.mock.On("Add", ctx, s, user, message)}
-}
-
-func (_c *StrategyHistory_Add_Call) Run(run func(ctx context.Context, s string, user string, message string)) *StrategyHistory_Add_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *StrategyHistory_Add_Call) Return(_a0 error) *StrategyHistory_Add_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *StrategyHistory_Add_Call) RunAndReturn(run func(context.Context, string, string, string) error) *StrategyHistory_Add_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CurrentStrategy provides a mock function with given fields:
@@ -89,33 +50,6 @@ func (_m *StrategyHistory) CurrentStrategy() *strategy.StrategyChange {
 	}
 
 	return r0
-}
-
-// StrategyHistory_CurrentStrategy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CurrentStrategy'
-type StrategyHistory_CurrentStrategy_Call struct {
-	*mock.Call
-}
-
-// CurrentStrategy is a helper method to define mock.On call
-func (_e *StrategyHistory_Expecter) CurrentStrategy() *StrategyHistory_CurrentStrategy_Call {
-	return &StrategyHistory_CurrentStrategy_Call{Call: _e.mock.On("CurrentStrategy")}
-}
-
-func (_c *StrategyHistory_CurrentStrategy_Call) Run(run func()) *StrategyHistory_CurrentStrategy_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *StrategyHistory_CurrentStrategy_Call) Return(_a0 *strategy.StrategyChange) *StrategyHistory_CurrentStrategy_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *StrategyHistory_CurrentStrategy_Call) RunAndReturn(run func() *strategy.StrategyChange) *StrategyHistory_CurrentStrategy_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetHistory provides a mock function with given fields: ctx, offset
@@ -155,35 +89,6 @@ func (_m *StrategyHistory) GetHistory(ctx context.Context, offset int) ([]*strat
 	return r0, r1, r2
 }
 
-// StrategyHistory_GetHistory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetHistory'
-type StrategyHistory_GetHistory_Call struct {
-	*mock.Call
-}
-
-// GetHistory is a helper method to define mock.On call
-//   - ctx context.Context
-//   - offset int
-func (_e *StrategyHistory_Expecter) GetHistory(ctx interface{}, offset interface{}) *StrategyHistory_GetHistory_Call {
-	return &StrategyHistory_GetHistory_Call{Call: _e.mock.On("GetHistory", ctx, offset)}
-}
-
-func (_c *StrategyHistory_GetHistory_Call) Run(run func(ctx context.Context, offset int)) *StrategyHistory_GetHistory_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int))
-	})
-	return _c
-}
-
-func (_c *StrategyHistory_GetHistory_Call) Return(_a0 []*strategy.StrategyChange, _a1 int, _a2 error) *StrategyHistory_GetHistory_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *StrategyHistory_GetHistory_Call) RunAndReturn(run func(context.Context, int) ([]*strategy.StrategyChange, int, error)) *StrategyHistory_GetHistory_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx
 func (_m *StrategyHistory) Update(ctx context.Context) error {
 	ret := _m.Called(ctx)
@@ -200,34 +105,6 @@ func (_m *StrategyHistory) Update(ctx context.Context) error {
 	}
 
 	return r0
-}
-
-// StrategyHistory_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type StrategyHistory_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *StrategyHistory_Expecter) Update(ctx interface{}) *StrategyHistory_Update_Call {
-	return &StrategyHistory_Update_Call{Call: _e.mock.On("Update", ctx)}
-}
-
-func (_c *StrategyHistory_Update_Call) Run(run func(ctx context.Context)) *StrategyHistory_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *StrategyHistory_Update_Call) Return(_a0 error) *StrategyHistory_Update_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *StrategyHistory_Update_Call) RunAndReturn(run func(context.Context) error) *StrategyHistory_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStrategyHistory creates a new instance of StrategyHistory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

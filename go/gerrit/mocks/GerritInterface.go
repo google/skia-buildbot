@@ -17,14 +17,6 @@ type GerritInterface struct {
 	mock.Mock
 }
 
-type GerritInterface_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GerritInterface) EXPECT() *GerritInterface_Expecter {
-	return &GerritInterface_Expecter{mock: &_m.Mock}
-}
-
 // Abandon provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) Abandon(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -41,36 +33,6 @@ func (_m *GerritInterface) Abandon(_a0 context.Context, _a1 *gerrit.ChangeInfo, 
 	}
 
 	return r0
-}
-
-// GerritInterface_Abandon_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Abandon'
-type GerritInterface_Abandon_Call struct {
-	*mock.Call
-}
-
-// Abandon is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) Abandon(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_Abandon_Call {
-	return &GerritInterface_Abandon_Call{Call: _e.mock.On("Abandon", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_Abandon_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_Abandon_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Abandon_Call) Return(_a0 error) *GerritInterface_Abandon_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Abandon_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_Abandon_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // AddCC provides a mock function with given fields: _a0, _a1, _a2
@@ -91,36 +53,6 @@ func (_m *GerritInterface) AddCC(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a
 	return r0
 }
 
-// GerritInterface_AddCC_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddCC'
-type GerritInterface_AddCC_Call struct {
-	*mock.Call
-}
-
-// AddCC is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 []string
-func (_e *GerritInterface_Expecter) AddCC(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_AddCC_Call {
-	return &GerritInterface_AddCC_Call{Call: _e.mock.On("AddCC", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_AddCC_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 []string)) *GerritInterface_AddCC_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_AddCC_Call) Return(_a0 error) *GerritInterface_AddCC_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_AddCC_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, []string) error) *GerritInterface_AddCC_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // AddComment provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) AddComment(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -137,36 +69,6 @@ func (_m *GerritInterface) AddComment(_a0 context.Context, _a1 *gerrit.ChangeInf
 	}
 
 	return r0
-}
-
-// GerritInterface_AddComment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddComment'
-type GerritInterface_AddComment_Call struct {
-	*mock.Call
-}
-
-// AddComment is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) AddComment(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_AddComment_Call {
-	return &GerritInterface_AddComment_Call{Call: _e.mock.On("AddComment", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_AddComment_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_AddComment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_AddComment_Call) Return(_a0 error) *GerritInterface_AddComment_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_AddComment_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_AddComment_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Approve provides a mock function with given fields: _a0, _a1, _a2
@@ -187,36 +89,6 @@ func (_m *GerritInterface) Approve(_a0 context.Context, _a1 *gerrit.ChangeInfo, 
 	return r0
 }
 
-// GerritInterface_Approve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Approve'
-type GerritInterface_Approve_Call struct {
-	*mock.Call
-}
-
-// Approve is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) Approve(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_Approve_Call {
-	return &GerritInterface_Approve_Call{Call: _e.mock.On("Approve", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_Approve_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_Approve_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Approve_Call) Return(_a0 error) *GerritInterface_Approve_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Approve_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_Approve_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Config provides a mock function with given fields:
 func (_m *GerritInterface) Config() *gerrit.Config {
 	ret := _m.Called()
@@ -235,33 +107,6 @@ func (_m *GerritInterface) Config() *gerrit.Config {
 	}
 
 	return r0
-}
-
-// GerritInterface_Config_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Config'
-type GerritInterface_Config_Call struct {
-	*mock.Call
-}
-
-// Config is a helper method to define mock.On call
-func (_e *GerritInterface_Expecter) Config() *GerritInterface_Config_Call {
-	return &GerritInterface_Config_Call{Call: _e.mock.On("Config")}
-}
-
-func (_c *GerritInterface_Config_Call) Run(run func()) *GerritInterface_Config_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Config_Call) Return(_a0 *gerrit.Config) *GerritInterface_Config_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Config_Call) RunAndReturn(run func() *gerrit.Config) *GerritInterface_Config_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // CreateChange provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5
@@ -294,39 +139,6 @@ func (_m *GerritInterface) CreateChange(_a0 context.Context, _a1 string, _a2 str
 	return r0, r1
 }
 
-// GerritInterface_CreateChange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateChange'
-type GerritInterface_CreateChange_Call struct {
-	*mock.Call
-}
-
-// CreateChange is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-//   - _a2 string
-//   - _a3 string
-//   - _a4 string
-//   - _a5 string
-func (_e *GerritInterface_Expecter) CreateChange(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}, _a4 interface{}, _a5 interface{}) *GerritInterface_CreateChange_Call {
-	return &GerritInterface_CreateChange_Call{Call: _e.mock.On("CreateChange", _a0, _a1, _a2, _a3, _a4, _a5)}
-}
-
-func (_c *GerritInterface_CreateChange_Call) Run(run func(_a0 context.Context, _a1 string, _a2 string, _a3 string, _a4 string, _a5 string)) *GerritInterface_CreateChange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string), args[5].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_CreateChange_Call) Return(_a0 *gerrit.ChangeInfo, _a1 error) *GerritInterface_CreateChange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_CreateChange_Call) RunAndReturn(run func(context.Context, string, string, string, string, string) (*gerrit.ChangeInfo, error)) *GerritInterface_CreateChange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateCherryPickChange provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4
 func (_m *GerritInterface) CreateCherryPickChange(_a0 context.Context, _a1 string, _a2 string, _a3 string, _a4 string) (*gerrit.ChangeInfo, error) {
 	ret := _m.Called(_a0, _a1, _a2, _a3, _a4)
@@ -357,38 +169,6 @@ func (_m *GerritInterface) CreateCherryPickChange(_a0 context.Context, _a1 strin
 	return r0, r1
 }
 
-// GerritInterface_CreateCherryPickChange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCherryPickChange'
-type GerritInterface_CreateCherryPickChange_Call struct {
-	*mock.Call
-}
-
-// CreateCherryPickChange is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-//   - _a2 string
-//   - _a3 string
-//   - _a4 string
-func (_e *GerritInterface_Expecter) CreateCherryPickChange(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}, _a4 interface{}) *GerritInterface_CreateCherryPickChange_Call {
-	return &GerritInterface_CreateCherryPickChange_Call{Call: _e.mock.On("CreateCherryPickChange", _a0, _a1, _a2, _a3, _a4)}
-}
-
-func (_c *GerritInterface_CreateCherryPickChange_Call) Run(run func(_a0 context.Context, _a1 string, _a2 string, _a3 string, _a4 string)) *GerritInterface_CreateCherryPickChange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_CreateCherryPickChange_Call) Return(_a0 *gerrit.ChangeInfo, _a1 error) *GerritInterface_CreateCherryPickChange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_CreateCherryPickChange_Call) RunAndReturn(run func(context.Context, string, string, string, string) (*gerrit.ChangeInfo, error)) *GerritInterface_CreateCherryPickChange_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteChangeEdit provides a mock function with given fields: _a0, _a1
 func (_m *GerritInterface) DeleteChangeEdit(_a0 context.Context, _a1 *gerrit.ChangeInfo) error {
 	ret := _m.Called(_a0, _a1)
@@ -405,35 +185,6 @@ func (_m *GerritInterface) DeleteChangeEdit(_a0 context.Context, _a1 *gerrit.Cha
 	}
 
 	return r0
-}
-
-// GerritInterface_DeleteChangeEdit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteChangeEdit'
-type GerritInterface_DeleteChangeEdit_Call struct {
-	*mock.Call
-}
-
-// DeleteChangeEdit is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-func (_e *GerritInterface_Expecter) DeleteChangeEdit(_a0 interface{}, _a1 interface{}) *GerritInterface_DeleteChangeEdit_Call {
-	return &GerritInterface_DeleteChangeEdit_Call{Call: _e.mock.On("DeleteChangeEdit", _a0, _a1)}
-}
-
-func (_c *GerritInterface_DeleteChangeEdit_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo)) *GerritInterface_DeleteChangeEdit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_DeleteChangeEdit_Call) Return(_a0 error) *GerritInterface_DeleteChangeEdit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_DeleteChangeEdit_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *GerritInterface_DeleteChangeEdit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // DeleteFile provides a mock function with given fields: _a0, _a1, _a2
@@ -454,36 +205,6 @@ func (_m *GerritInterface) DeleteFile(_a0 context.Context, _a1 *gerrit.ChangeInf
 	return r0
 }
 
-// GerritInterface_DeleteFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteFile'
-type GerritInterface_DeleteFile_Call struct {
-	*mock.Call
-}
-
-// DeleteFile is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) DeleteFile(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_DeleteFile_Call {
-	return &GerritInterface_DeleteFile_Call{Call: _e.mock.On("DeleteFile", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_DeleteFile_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_DeleteFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_DeleteFile_Call) Return(_a0 error) *GerritInterface_DeleteFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_DeleteFile_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_DeleteFile_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteVote provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5
 func (_m *GerritInterface) DeleteVote(_a0 context.Context, _a1 int64, _a2 string, _a3 int, _a4 gerrit.NotifyOption, _a5 bool) error {
 	ret := _m.Called(_a0, _a1, _a2, _a3, _a4, _a5)
@@ -500,39 +221,6 @@ func (_m *GerritInterface) DeleteVote(_a0 context.Context, _a1 int64, _a2 string
 	}
 
 	return r0
-}
-
-// GerritInterface_DeleteVote_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteVote'
-type GerritInterface_DeleteVote_Call struct {
-	*mock.Call
-}
-
-// DeleteVote is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int64
-//   - _a2 string
-//   - _a3 int
-//   - _a4 gerrit.NotifyOption
-//   - _a5 bool
-func (_e *GerritInterface_Expecter) DeleteVote(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}, _a4 interface{}, _a5 interface{}) *GerritInterface_DeleteVote_Call {
-	return &GerritInterface_DeleteVote_Call{Call: _e.mock.On("DeleteVote", _a0, _a1, _a2, _a3, _a4, _a5)}
-}
-
-func (_c *GerritInterface_DeleteVote_Call) Run(run func(_a0 context.Context, _a1 int64, _a2 string, _a3 int, _a4 gerrit.NotifyOption, _a5 bool)) *GerritInterface_DeleteVote_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string), args[3].(int), args[4].(gerrit.NotifyOption), args[5].(bool))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_DeleteVote_Call) Return(_a0 error) *GerritInterface_DeleteVote_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_DeleteVote_Call) RunAndReturn(run func(context.Context, int64, string, int, gerrit.NotifyOption, bool) error) *GerritInterface_DeleteVote_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Disapprove provides a mock function with given fields: _a0, _a1, _a2
@@ -553,36 +241,6 @@ func (_m *GerritInterface) Disapprove(_a0 context.Context, _a1 *gerrit.ChangeInf
 	return r0
 }
 
-// GerritInterface_Disapprove_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Disapprove'
-type GerritInterface_Disapprove_Call struct {
-	*mock.Call
-}
-
-// Disapprove is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) Disapprove(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_Disapprove_Call {
-	return &GerritInterface_Disapprove_Call{Call: _e.mock.On("Disapprove", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_Disapprove_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_Disapprove_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Disapprove_Call) Return(_a0 error) *GerritInterface_Disapprove_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Disapprove_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_Disapprove_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DownloadCommitMsgHook provides a mock function with given fields: ctx, dest
 func (_m *GerritInterface) DownloadCommitMsgHook(ctx context.Context, dest string) error {
 	ret := _m.Called(ctx, dest)
@@ -601,35 +259,6 @@ func (_m *GerritInterface) DownloadCommitMsgHook(ctx context.Context, dest strin
 	return r0
 }
 
-// GerritInterface_DownloadCommitMsgHook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DownloadCommitMsgHook'
-type GerritInterface_DownloadCommitMsgHook_Call struct {
-	*mock.Call
-}
-
-// DownloadCommitMsgHook is a helper method to define mock.On call
-//   - ctx context.Context
-//   - dest string
-func (_e *GerritInterface_Expecter) DownloadCommitMsgHook(ctx interface{}, dest interface{}) *GerritInterface_DownloadCommitMsgHook_Call {
-	return &GerritInterface_DownloadCommitMsgHook_Call{Call: _e.mock.On("DownloadCommitMsgHook", ctx, dest)}
-}
-
-func (_c *GerritInterface_DownloadCommitMsgHook_Call) Run(run func(ctx context.Context, dest string)) *GerritInterface_DownloadCommitMsgHook_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_DownloadCommitMsgHook_Call) Return(_a0 error) *GerritInterface_DownloadCommitMsgHook_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_DownloadCommitMsgHook_Call) RunAndReturn(run func(context.Context, string) error) *GerritInterface_DownloadCommitMsgHook_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // EditFile provides a mock function with given fields: _a0, _a1, _a2, _a3
 func (_m *GerritInterface) EditFile(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 string) error {
 	ret := _m.Called(_a0, _a1, _a2, _a3)
@@ -646,37 +275,6 @@ func (_m *GerritInterface) EditFile(_a0 context.Context, _a1 *gerrit.ChangeInfo,
 	}
 
 	return r0
-}
-
-// GerritInterface_EditFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EditFile'
-type GerritInterface_EditFile_Call struct {
-	*mock.Call
-}
-
-// EditFile is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-//   - _a3 string
-func (_e *GerritInterface_Expecter) EditFile(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *GerritInterface_EditFile_Call {
-	return &GerritInterface_EditFile_Call{Call: _e.mock.On("EditFile", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *GerritInterface_EditFile_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 string)) *GerritInterface_EditFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_EditFile_Call) Return(_a0 error) *GerritInterface_EditFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_EditFile_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, string) error) *GerritInterface_EditFile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ExtractIssueFromCommit provides a mock function with given fields: _a0
@@ -705,34 +303,6 @@ func (_m *GerritInterface) ExtractIssueFromCommit(_a0 string) (int64, error) {
 	}
 
 	return r0, r1
-}
-
-// GerritInterface_ExtractIssueFromCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ExtractIssueFromCommit'
-type GerritInterface_ExtractIssueFromCommit_Call struct {
-	*mock.Call
-}
-
-// ExtractIssueFromCommit is a helper method to define mock.On call
-//   - _a0 string
-func (_e *GerritInterface_Expecter) ExtractIssueFromCommit(_a0 interface{}) *GerritInterface_ExtractIssueFromCommit_Call {
-	return &GerritInterface_ExtractIssueFromCommit_Call{Call: _e.mock.On("ExtractIssueFromCommit", _a0)}
-}
-
-func (_c *GerritInterface_ExtractIssueFromCommit_Call) Run(run func(_a0 string)) *GerritInterface_ExtractIssueFromCommit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_ExtractIssueFromCommit_Call) Return(_a0 int64, _a1 error) *GerritInterface_ExtractIssueFromCommit_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_ExtractIssueFromCommit_Call) RunAndReturn(run func(string) (int64, error)) *GerritInterface_ExtractIssueFromCommit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Files provides a mock function with given fields: ctx, issue, patch
@@ -765,36 +335,6 @@ func (_m *GerritInterface) Files(ctx context.Context, issue int64, patch string)
 	return r0, r1
 }
 
-// GerritInterface_Files_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Files'
-type GerritInterface_Files_Call struct {
-	*mock.Call
-}
-
-// Files is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - patch string
-func (_e *GerritInterface_Expecter) Files(ctx interface{}, issue interface{}, patch interface{}) *GerritInterface_Files_Call {
-	return &GerritInterface_Files_Call{Call: _e.mock.On("Files", ctx, issue, patch)}
-}
-
-func (_c *GerritInterface_Files_Call) Run(run func(ctx context.Context, issue int64, patch string)) *GerritInterface_Files_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Files_Call) Return(_a0 map[string]*gerrit.FileInfo, _a1 error) *GerritInterface_Files_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_Files_Call) RunAndReturn(run func(context.Context, int64, string) (map[string]*gerrit.FileInfo, error)) *GerritInterface_Files_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetChange provides a mock function with given fields: ctx, id
 func (_m *GerritInterface) GetChange(ctx context.Context, id string) (*gerrit.ChangeInfo, error) {
 	ret := _m.Called(ctx, id)
@@ -823,35 +363,6 @@ func (_m *GerritInterface) GetChange(ctx context.Context, id string) (*gerrit.Ch
 	}
 
 	return r0, r1
-}
-
-// GerritInterface_GetChange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChange'
-type GerritInterface_GetChange_Call struct {
-	*mock.Call
-}
-
-// GetChange is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *GerritInterface_Expecter) GetChange(ctx interface{}, id interface{}) *GerritInterface_GetChange_Call {
-	return &GerritInterface_GetChange_Call{Call: _e.mock.On("GetChange", ctx, id)}
-}
-
-func (_c *GerritInterface_GetChange_Call) Run(run func(ctx context.Context, id string)) *GerritInterface_GetChange_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetChange_Call) Return(_a0 *gerrit.ChangeInfo, _a1 error) *GerritInterface_GetChange_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetChange_Call) RunAndReturn(run func(context.Context, string) (*gerrit.ChangeInfo, error)) *GerritInterface_GetChange_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetCommit provides a mock function with given fields: ctx, issue, revision
@@ -884,36 +395,6 @@ func (_m *GerritInterface) GetCommit(ctx context.Context, issue int64, revision 
 	return r0, r1
 }
 
-// GerritInterface_GetCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommit'
-type GerritInterface_GetCommit_Call struct {
-	*mock.Call
-}
-
-// GetCommit is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - revision string
-func (_e *GerritInterface_Expecter) GetCommit(ctx interface{}, issue interface{}, revision interface{}) *GerritInterface_GetCommit_Call {
-	return &GerritInterface_GetCommit_Call{Call: _e.mock.On("GetCommit", ctx, issue, revision)}
-}
-
-func (_c *GerritInterface_GetCommit_Call) Run(run func(ctx context.Context, issue int64, revision string)) *GerritInterface_GetCommit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetCommit_Call) Return(_a0 *gerrit.CommitInfo, _a1 error) *GerritInterface_GetCommit_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetCommit_Call) RunAndReturn(run func(context.Context, int64, string) (*gerrit.CommitInfo, error)) *GerritInterface_GetCommit_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetContent provides a mock function with given fields: _a0, _a1, _a2, _a3
 func (_m *GerritInterface) GetContent(_a0 context.Context, _a1 int64, _a2 string, _a3 string) (string, error) {
 	ret := _m.Called(_a0, _a1, _a2, _a3)
@@ -940,37 +421,6 @@ func (_m *GerritInterface) GetContent(_a0 context.Context, _a1 int64, _a2 string
 	}
 
 	return r0, r1
-}
-
-// GerritInterface_GetContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetContent'
-type GerritInterface_GetContent_Call struct {
-	*mock.Call
-}
-
-// GetContent is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int64
-//   - _a2 string
-//   - _a3 string
-func (_e *GerritInterface_Expecter) GetContent(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *GerritInterface_GetContent_Call {
-	return &GerritInterface_GetContent_Call{Call: _e.mock.On("GetContent", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *GerritInterface_GetContent_Call) Run(run func(_a0 context.Context, _a1 int64, _a2 string, _a3 string)) *GerritInterface_GetContent_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetContent_Call) Return(_a0 string, _a1 error) *GerritInterface_GetContent_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetContent_Call) RunAndReturn(run func(context.Context, int64, string, string) (string, error)) *GerritInterface_GetContent_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetFileNames provides a mock function with given fields: ctx, issue, patch
@@ -1003,36 +453,6 @@ func (_m *GerritInterface) GetFileNames(ctx context.Context, issue int64, patch 
 	return r0, r1
 }
 
-// GerritInterface_GetFileNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFileNames'
-type GerritInterface_GetFileNames_Call struct {
-	*mock.Call
-}
-
-// GetFileNames is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - patch string
-func (_e *GerritInterface_Expecter) GetFileNames(ctx interface{}, issue interface{}, patch interface{}) *GerritInterface_GetFileNames_Call {
-	return &GerritInterface_GetFileNames_Call{Call: _e.mock.On("GetFileNames", ctx, issue, patch)}
-}
-
-func (_c *GerritInterface_GetFileNames_Call) Run(run func(ctx context.Context, issue int64, patch string)) *GerritInterface_GetFileNames_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetFileNames_Call) Return(_a0 []string, _a1 error) *GerritInterface_GetFileNames_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetFileNames_Call) RunAndReturn(run func(context.Context, int64, string) ([]string, error)) *GerritInterface_GetFileNames_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetFilesToContent provides a mock function with given fields: ctx, issue, revision
 func (_m *GerritInterface) GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error) {
 	ret := _m.Called(ctx, issue, revision)
@@ -1061,36 +481,6 @@ func (_m *GerritInterface) GetFilesToContent(ctx context.Context, issue int64, r
 	}
 
 	return r0, r1
-}
-
-// GerritInterface_GetFilesToContent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFilesToContent'
-type GerritInterface_GetFilesToContent_Call struct {
-	*mock.Call
-}
-
-// GetFilesToContent is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - revision string
-func (_e *GerritInterface_Expecter) GetFilesToContent(ctx interface{}, issue interface{}, revision interface{}) *GerritInterface_GetFilesToContent_Call {
-	return &GerritInterface_GetFilesToContent_Call{Call: _e.mock.On("GetFilesToContent", ctx, issue, revision)}
-}
-
-func (_c *GerritInterface_GetFilesToContent_Call) Run(run func(ctx context.Context, issue int64, revision string)) *GerritInterface_GetFilesToContent_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetFilesToContent_Call) Return(_a0 map[string]string, _a1 error) *GerritInterface_GetFilesToContent_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetFilesToContent_Call) RunAndReturn(run func(context.Context, int64, string) (map[string]string, error)) *GerritInterface_GetFilesToContent_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetIssueProperties provides a mock function with given fields: _a0, _a1
@@ -1123,35 +513,6 @@ func (_m *GerritInterface) GetIssueProperties(_a0 context.Context, _a1 int64) (*
 	return r0, r1
 }
 
-// GerritInterface_GetIssueProperties_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetIssueProperties'
-type GerritInterface_GetIssueProperties_Call struct {
-	*mock.Call
-}
-
-// GetIssueProperties is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int64
-func (_e *GerritInterface_Expecter) GetIssueProperties(_a0 interface{}, _a1 interface{}) *GerritInterface_GetIssueProperties_Call {
-	return &GerritInterface_GetIssueProperties_Call{Call: _e.mock.On("GetIssueProperties", _a0, _a1)}
-}
-
-func (_c *GerritInterface_GetIssueProperties_Call) Run(run func(_a0 context.Context, _a1 int64)) *GerritInterface_GetIssueProperties_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetIssueProperties_Call) Return(_a0 *gerrit.ChangeInfo, _a1 error) *GerritInterface_GetIssueProperties_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetIssueProperties_Call) RunAndReturn(run func(context.Context, int64) (*gerrit.ChangeInfo, error)) *GerritInterface_GetIssueProperties_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetPatch provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string) (string, error) {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -1180,36 +541,6 @@ func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string) 
 	return r0, r1
 }
 
-// GerritInterface_GetPatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPatch'
-type GerritInterface_GetPatch_Call struct {
-	*mock.Call
-}
-
-// GetPatch is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int64
-//   - _a2 string
-func (_e *GerritInterface_Expecter) GetPatch(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_GetPatch_Call {
-	return &GerritInterface_GetPatch_Call{Call: _e.mock.On("GetPatch", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_GetPatch_Call) Run(run func(_a0 context.Context, _a1 int64, _a2 string)) *GerritInterface_GetPatch_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetPatch_Call) Return(_a0 string, _a1 error) *GerritInterface_GetPatch_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetPatch_Call) RunAndReturn(run func(context.Context, int64, string) (string, error)) *GerritInterface_GetPatch_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetRepoUrl provides a mock function with given fields:
 func (_m *GerritInterface) GetRepoUrl() string {
 	ret := _m.Called()
@@ -1226,33 +557,6 @@ func (_m *GerritInterface) GetRepoUrl() string {
 	}
 
 	return r0
-}
-
-// GerritInterface_GetRepoUrl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRepoUrl'
-type GerritInterface_GetRepoUrl_Call struct {
-	*mock.Call
-}
-
-// GetRepoUrl is a helper method to define mock.On call
-func (_e *GerritInterface_Expecter) GetRepoUrl() *GerritInterface_GetRepoUrl_Call {
-	return &GerritInterface_GetRepoUrl_Call{Call: _e.mock.On("GetRepoUrl")}
-}
-
-func (_c *GerritInterface_GetRepoUrl_Call) Run(run func()) *GerritInterface_GetRepoUrl_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetRepoUrl_Call) Return(_a0 string) *GerritInterface_GetRepoUrl_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_GetRepoUrl_Call) RunAndReturn(run func() string) *GerritInterface_GetRepoUrl_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetTrybotResults provides a mock function with given fields: _a0, _a1, _a2
@@ -1285,36 +589,6 @@ func (_m *GerritInterface) GetTrybotResults(_a0 context.Context, _a1 int64, _a2 
 	return r0, r1
 }
 
-// GerritInterface_GetTrybotResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTrybotResults'
-type GerritInterface_GetTrybotResults_Call struct {
-	*mock.Call
-}
-
-// GetTrybotResults is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int64
-//   - _a2 int64
-func (_e *GerritInterface_Expecter) GetTrybotResults(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_GetTrybotResults_Call {
-	return &GerritInterface_GetTrybotResults_Call{Call: _e.mock.On("GetTrybotResults", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_GetTrybotResults_Call) Run(run func(_a0 context.Context, _a1 int64, _a2 int64)) *GerritInterface_GetTrybotResults_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(int64))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetTrybotResults_Call) Return(_a0 []*buildbucketpb.Build, _a1 error) *GerritInterface_GetTrybotResults_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetTrybotResults_Call) RunAndReturn(run func(context.Context, int64, int64) ([]*buildbucketpb.Build, error)) *GerritInterface_GetTrybotResults_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetUserEmail provides a mock function with given fields: _a0
 func (_m *GerritInterface) GetUserEmail(_a0 context.Context) (string, error) {
 	ret := _m.Called(_a0)
@@ -1343,34 +617,6 @@ func (_m *GerritInterface) GetUserEmail(_a0 context.Context) (string, error) {
 	return r0, r1
 }
 
-// GerritInterface_GetUserEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserEmail'
-type GerritInterface_GetUserEmail_Call struct {
-	*mock.Call
-}
-
-// GetUserEmail is a helper method to define mock.On call
-//   - _a0 context.Context
-func (_e *GerritInterface_Expecter) GetUserEmail(_a0 interface{}) *GerritInterface_GetUserEmail_Call {
-	return &GerritInterface_GetUserEmail_Call{Call: _e.mock.On("GetUserEmail", _a0)}
-}
-
-func (_c *GerritInterface_GetUserEmail_Call) Run(run func(_a0 context.Context)) *GerritInterface_GetUserEmail_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_GetUserEmail_Call) Return(_a0 string, _a1 error) *GerritInterface_GetUserEmail_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_GetUserEmail_Call) RunAndReturn(run func(context.Context) (string, error)) *GerritInterface_GetUserEmail_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Initialized provides a mock function with given fields:
 func (_m *GerritInterface) Initialized() bool {
 	ret := _m.Called()
@@ -1387,33 +633,6 @@ func (_m *GerritInterface) Initialized() bool {
 	}
 
 	return r0
-}
-
-// GerritInterface_Initialized_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Initialized'
-type GerritInterface_Initialized_Call struct {
-	*mock.Call
-}
-
-// Initialized is a helper method to define mock.On call
-func (_e *GerritInterface_Expecter) Initialized() *GerritInterface_Initialized_Call {
-	return &GerritInterface_Initialized_Call{Call: _e.mock.On("Initialized")}
-}
-
-func (_c *GerritInterface_Initialized_Call) Run(run func()) *GerritInterface_Initialized_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Initialized_Call) Return(_a0 bool) *GerritInterface_Initialized_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Initialized_Call) RunAndReturn(run func() bool) *GerritInterface_Initialized_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // IsBinaryPatch provides a mock function with given fields: ctx, issue, patch
@@ -1444,36 +663,6 @@ func (_m *GerritInterface) IsBinaryPatch(ctx context.Context, issue int64, patch
 	return r0, r1
 }
 
-// GerritInterface_IsBinaryPatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsBinaryPatch'
-type GerritInterface_IsBinaryPatch_Call struct {
-	*mock.Call
-}
-
-// IsBinaryPatch is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - patch string
-func (_e *GerritInterface_Expecter) IsBinaryPatch(ctx interface{}, issue interface{}, patch interface{}) *GerritInterface_IsBinaryPatch_Call {
-	return &GerritInterface_IsBinaryPatch_Call{Call: _e.mock.On("IsBinaryPatch", ctx, issue, patch)}
-}
-
-func (_c *GerritInterface_IsBinaryPatch_Call) Run(run func(ctx context.Context, issue int64, patch string)) *GerritInterface_IsBinaryPatch_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_IsBinaryPatch_Call) Return(_a0 bool, _a1 error) *GerritInterface_IsBinaryPatch_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_IsBinaryPatch_Call) RunAndReturn(run func(context.Context, int64, string) (bool, error)) *GerritInterface_IsBinaryPatch_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // MoveFile provides a mock function with given fields: _a0, _a1, _a2, _a3
 func (_m *GerritInterface) MoveFile(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 string) error {
 	ret := _m.Called(_a0, _a1, _a2, _a3)
@@ -1490,37 +679,6 @@ func (_m *GerritInterface) MoveFile(_a0 context.Context, _a1 *gerrit.ChangeInfo,
 	}
 
 	return r0
-}
-
-// GerritInterface_MoveFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MoveFile'
-type GerritInterface_MoveFile_Call struct {
-	*mock.Call
-}
-
-// MoveFile is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-//   - _a3 string
-func (_e *GerritInterface_Expecter) MoveFile(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *GerritInterface_MoveFile_Call {
-	return &GerritInterface_MoveFile_Call{Call: _e.mock.On("MoveFile", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *GerritInterface_MoveFile_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 string)) *GerritInterface_MoveFile_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_MoveFile_Call) Return(_a0 error) *GerritInterface_MoveFile_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_MoveFile_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, string) error) *GerritInterface_MoveFile_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NoScore provides a mock function with given fields: _a0, _a1, _a2
@@ -1541,36 +699,6 @@ func (_m *GerritInterface) NoScore(_a0 context.Context, _a1 *gerrit.ChangeInfo, 
 	return r0
 }
 
-// GerritInterface_NoScore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NoScore'
-type GerritInterface_NoScore_Call struct {
-	*mock.Call
-}
-
-// NoScore is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) NoScore(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_NoScore_Call {
-	return &GerritInterface_NoScore_Call{Call: _e.mock.On("NoScore", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_NoScore_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_NoScore_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_NoScore_Call) Return(_a0 error) *GerritInterface_NoScore_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_NoScore_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_NoScore_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // PublishChangeEdit provides a mock function with given fields: _a0, _a1
 func (_m *GerritInterface) PublishChangeEdit(_a0 context.Context, _a1 *gerrit.ChangeInfo) error {
 	ret := _m.Called(_a0, _a1)
@@ -1587,35 +715,6 @@ func (_m *GerritInterface) PublishChangeEdit(_a0 context.Context, _a1 *gerrit.Ch
 	}
 
 	return r0
-}
-
-// GerritInterface_PublishChangeEdit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PublishChangeEdit'
-type GerritInterface_PublishChangeEdit_Call struct {
-	*mock.Call
-}
-
-// PublishChangeEdit is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-func (_e *GerritInterface_Expecter) PublishChangeEdit(_a0 interface{}, _a1 interface{}) *GerritInterface_PublishChangeEdit_Call {
-	return &GerritInterface_PublishChangeEdit_Call{Call: _e.mock.On("PublishChangeEdit", _a0, _a1)}
-}
-
-func (_c *GerritInterface_PublishChangeEdit_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo)) *GerritInterface_PublishChangeEdit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_PublishChangeEdit_Call) Return(_a0 error) *GerritInterface_PublishChangeEdit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_PublishChangeEdit_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *GerritInterface_PublishChangeEdit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Rebase provides a mock function with given fields: _a0, _a1, _a2, _a3
@@ -1636,37 +735,6 @@ func (_m *GerritInterface) Rebase(_a0 context.Context, _a1 *gerrit.ChangeInfo, _
 	return r0
 }
 
-// GerritInterface_Rebase_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Rebase'
-type GerritInterface_Rebase_Call struct {
-	*mock.Call
-}
-
-// Rebase is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-//   - _a3 bool
-func (_e *GerritInterface_Expecter) Rebase(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}) *GerritInterface_Rebase_Call {
-	return &GerritInterface_Rebase_Call{Call: _e.mock.On("Rebase", _a0, _a1, _a2, _a3)}
-}
-
-func (_c *GerritInterface_Rebase_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 bool)) *GerritInterface_Rebase_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(bool))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Rebase_Call) Return(_a0 error) *GerritInterface_Rebase_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Rebase_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, bool) error) *GerritInterface_Rebase_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RemoveFromCQ provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) RemoveFromCQ(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -1683,36 +751,6 @@ func (_m *GerritInterface) RemoveFromCQ(_a0 context.Context, _a1 *gerrit.ChangeI
 	}
 
 	return r0
-}
-
-// GerritInterface_RemoveFromCQ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveFromCQ'
-type GerritInterface_RemoveFromCQ_Call struct {
-	*mock.Call
-}
-
-// RemoveFromCQ is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) RemoveFromCQ(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_RemoveFromCQ_Call {
-	return &GerritInterface_RemoveFromCQ_Call{Call: _e.mock.On("RemoveFromCQ", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_RemoveFromCQ_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_RemoveFromCQ_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_RemoveFromCQ_Call) Return(_a0 error) *GerritInterface_RemoveFromCQ_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_RemoveFromCQ_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_RemoveFromCQ_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Search provides a mock function with given fields: _a0, _a1, _a2, _a3
@@ -1752,44 +790,6 @@ func (_m *GerritInterface) Search(_a0 context.Context, _a1 int, _a2 bool, _a3 ..
 	return r0, r1
 }
 
-// GerritInterface_Search_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Search'
-type GerritInterface_Search_Call struct {
-	*mock.Call
-}
-
-// Search is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 int
-//   - _a2 bool
-//   - _a3 ...*gerrit.SearchTerm
-func (_e *GerritInterface_Expecter) Search(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 ...interface{}) *GerritInterface_Search_Call {
-	return &GerritInterface_Search_Call{Call: _e.mock.On("Search",
-		append([]interface{}{_a0, _a1, _a2}, _a3...)...)}
-}
-
-func (_c *GerritInterface_Search_Call) Run(run func(_a0 context.Context, _a1 int, _a2 bool, _a3 ...*gerrit.SearchTerm)) *GerritInterface_Search_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*gerrit.SearchTerm, len(args)-3)
-		for i, a := range args[3:] {
-			if a != nil {
-				variadicArgs[i] = a.(*gerrit.SearchTerm)
-			}
-		}
-		run(args[0].(context.Context), args[1].(int), args[2].(bool), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Search_Call) Return(_a0 []*gerrit.ChangeInfo, _a1 error) *GerritInterface_Search_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GerritInterface_Search_Call) RunAndReturn(run func(context.Context, int, bool, ...*gerrit.SearchTerm) ([]*gerrit.ChangeInfo, error)) *GerritInterface_Search_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SelfApprove provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) SelfApprove(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -1806,36 +806,6 @@ func (_m *GerritInterface) SelfApprove(_a0 context.Context, _a1 *gerrit.ChangeIn
 	}
 
 	return r0
-}
-
-// GerritInterface_SelfApprove_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SelfApprove'
-type GerritInterface_SelfApprove_Call struct {
-	*mock.Call
-}
-
-// SelfApprove is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) SelfApprove(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_SelfApprove_Call {
-	return &GerritInterface_SelfApprove_Call{Call: _e.mock.On("SelfApprove", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_SelfApprove_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_SelfApprove_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SelfApprove_Call) Return(_a0 error) *GerritInterface_SelfApprove_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SelfApprove_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_SelfApprove_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SendToCQ provides a mock function with given fields: _a0, _a1, _a2
@@ -1856,36 +826,6 @@ func (_m *GerritInterface) SendToCQ(_a0 context.Context, _a1 *gerrit.ChangeInfo,
 	return r0
 }
 
-// GerritInterface_SendToCQ_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendToCQ'
-type GerritInterface_SendToCQ_Call struct {
-	*mock.Call
-}
-
-// SendToCQ is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) SendToCQ(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_SendToCQ_Call {
-	return &GerritInterface_SendToCQ_Call{Call: _e.mock.On("SendToCQ", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_SendToCQ_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_SendToCQ_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SendToCQ_Call) Return(_a0 error) *GerritInterface_SendToCQ_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SendToCQ_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_SendToCQ_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SendToDryRun provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) SendToDryRun(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -1902,36 +842,6 @@ func (_m *GerritInterface) SendToDryRun(_a0 context.Context, _a1 *gerrit.ChangeI
 	}
 
 	return r0
-}
-
-// GerritInterface_SendToDryRun_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendToDryRun'
-type GerritInterface_SendToDryRun_Call struct {
-	*mock.Call
-}
-
-// SendToDryRun is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) SendToDryRun(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_SendToDryRun_Call {
-	return &GerritInterface_SendToDryRun_Call{Call: _e.mock.On("SendToDryRun", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_SendToDryRun_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_SendToDryRun_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SendToDryRun_Call) Return(_a0 error) *GerritInterface_SendToDryRun_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SendToDryRun_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_SendToDryRun_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SetCommitMessage provides a mock function with given fields: _a0, _a1, _a2
@@ -1952,36 +862,6 @@ func (_m *GerritInterface) SetCommitMessage(_a0 context.Context, _a1 *gerrit.Cha
 	return r0
 }
 
-// GerritInterface_SetCommitMessage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetCommitMessage'
-type GerritInterface_SetCommitMessage_Call struct {
-	*mock.Call
-}
-
-// SetCommitMessage is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-func (_e *GerritInterface_Expecter) SetCommitMessage(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_SetCommitMessage_Call {
-	return &GerritInterface_SetCommitMessage_Call{Call: _e.mock.On("SetCommitMessage", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_SetCommitMessage_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string)) *GerritInterface_SetCommitMessage_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SetCommitMessage_Call) Return(_a0 error) *GerritInterface_SetCommitMessage_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SetCommitMessage_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string) error) *GerritInterface_SetCommitMessage_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetReadyForReview provides a mock function with given fields: _a0, _a1
 func (_m *GerritInterface) SetReadyForReview(_a0 context.Context, _a1 *gerrit.ChangeInfo) error {
 	ret := _m.Called(_a0, _a1)
@@ -1998,35 +878,6 @@ func (_m *GerritInterface) SetReadyForReview(_a0 context.Context, _a1 *gerrit.Ch
 	}
 
 	return r0
-}
-
-// GerritInterface_SetReadyForReview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetReadyForReview'
-type GerritInterface_SetReadyForReview_Call struct {
-	*mock.Call
-}
-
-// SetReadyForReview is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-func (_e *GerritInterface_Expecter) SetReadyForReview(_a0 interface{}, _a1 interface{}) *GerritInterface_SetReadyForReview_Call {
-	return &GerritInterface_SetReadyForReview_Call{Call: _e.mock.On("SetReadyForReview", _a0, _a1)}
-}
-
-func (_c *GerritInterface_SetReadyForReview_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo)) *GerritInterface_SetReadyForReview_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SetReadyForReview_Call) Return(_a0 error) *GerritInterface_SetReadyForReview_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SetReadyForReview_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *GerritInterface_SetReadyForReview_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SetReview provides a mock function with given fields: _a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9
@@ -2047,43 +898,6 @@ func (_m *GerritInterface) SetReview(_a0 context.Context, _a1 *gerrit.ChangeInfo
 	return r0
 }
 
-// GerritInterface_SetReview_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetReview'
-type GerritInterface_SetReview_Call struct {
-	*mock.Call
-}
-
-// SetReview is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-//   - _a2 string
-//   - _a3 map[string]int
-//   - _a4 []string
-//   - _a5 gerrit.NotifyOption
-//   - _a6 gerrit.NotifyDetails
-//   - _a7 string
-//   - _a8 int
-//   - _a9 []*gerrit.AttentionSetInput
-func (_e *GerritInterface_Expecter) SetReview(_a0 interface{}, _a1 interface{}, _a2 interface{}, _a3 interface{}, _a4 interface{}, _a5 interface{}, _a6 interface{}, _a7 interface{}, _a8 interface{}, _a9 interface{}) *GerritInterface_SetReview_Call {
-	return &GerritInterface_SetReview_Call{Call: _e.mock.On("SetReview", _a0, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9)}
-}
-
-func (_c *GerritInterface_SetReview_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo, _a2 string, _a3 map[string]int, _a4 []string, _a5 gerrit.NotifyOption, _a6 gerrit.NotifyDetails, _a7 string, _a8 int, _a9 []*gerrit.AttentionSetInput)) *GerritInterface_SetReview_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo), args[2].(string), args[3].(map[string]int), args[4].([]string), args[5].(gerrit.NotifyOption), args[6].(gerrit.NotifyDetails), args[7].(string), args[8].(int), args[9].([]*gerrit.AttentionSetInput))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SetReview_Call) Return(_a0 error) *GerritInterface_SetReview_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SetReview_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo, string, map[string]int, []string, gerrit.NotifyOption, gerrit.NotifyDetails, string, int, []*gerrit.AttentionSetInput) error) *GerritInterface_SetReview_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetTopic provides a mock function with given fields: _a0, _a1, _a2
 func (_m *GerritInterface) SetTopic(_a0 context.Context, _a1 string, _a2 int64) error {
 	ret := _m.Called(_a0, _a1, _a2)
@@ -2102,67 +916,9 @@ func (_m *GerritInterface) SetTopic(_a0 context.Context, _a1 string, _a2 int64) 
 	return r0
 }
 
-// GerritInterface_SetTopic_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetTopic'
-type GerritInterface_SetTopic_Call struct {
-	*mock.Call
-}
-
-// SetTopic is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 string
-//   - _a2 int64
-func (_e *GerritInterface_Expecter) SetTopic(_a0 interface{}, _a1 interface{}, _a2 interface{}) *GerritInterface_SetTopic_Call {
-	return &GerritInterface_SetTopic_Call{Call: _e.mock.On("SetTopic", _a0, _a1, _a2)}
-}
-
-func (_c *GerritInterface_SetTopic_Call) Run(run func(_a0 context.Context, _a1 string, _a2 int64)) *GerritInterface_SetTopic_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(int64))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SetTopic_Call) Return(_a0 error) *GerritInterface_SetTopic_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_SetTopic_Call) RunAndReturn(run func(context.Context, string, int64) error) *GerritInterface_SetTopic_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetTraceIDPrefix provides a mock function with given fields: traceIdPrefix
 func (_m *GerritInterface) SetTraceIDPrefix(traceIdPrefix string) {
 	_m.Called(traceIdPrefix)
-}
-
-// GerritInterface_SetTraceIDPrefix_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetTraceIDPrefix'
-type GerritInterface_SetTraceIDPrefix_Call struct {
-	*mock.Call
-}
-
-// SetTraceIDPrefix is a helper method to define mock.On call
-//   - traceIdPrefix string
-func (_e *GerritInterface_Expecter) SetTraceIDPrefix(traceIdPrefix interface{}) *GerritInterface_SetTraceIDPrefix_Call {
-	return &GerritInterface_SetTraceIDPrefix_Call{Call: _e.mock.On("SetTraceIDPrefix", traceIdPrefix)}
-}
-
-func (_c *GerritInterface_SetTraceIDPrefix_Call) Run(run func(traceIdPrefix string)) *GerritInterface_SetTraceIDPrefix_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SetTraceIDPrefix_Call) Return() *GerritInterface_SetTraceIDPrefix_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *GerritInterface_SetTraceIDPrefix_Call) RunAndReturn(run func(string)) *GerritInterface_SetTraceIDPrefix_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Submit provides a mock function with given fields: _a0, _a1
@@ -2181,35 +937,6 @@ func (_m *GerritInterface) Submit(_a0 context.Context, _a1 *gerrit.ChangeInfo) e
 	}
 
 	return r0
-}
-
-// GerritInterface_Submit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Submit'
-type GerritInterface_Submit_Call struct {
-	*mock.Call
-}
-
-// Submit is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-func (_e *GerritInterface_Expecter) Submit(_a0 interface{}, _a1 interface{}) *GerritInterface_Submit_Call {
-	return &GerritInterface_Submit_Call{Call: _e.mock.On("Submit", _a0, _a1)}
-}
-
-func (_c *GerritInterface_Submit_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo)) *GerritInterface_Submit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Submit_Call) Return(_a0 error) *GerritInterface_Submit_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Submit_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) error) *GerritInterface_Submit_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SubmittedTogether provides a mock function with given fields: _a0, _a1
@@ -2249,35 +976,6 @@ func (_m *GerritInterface) SubmittedTogether(_a0 context.Context, _a1 *gerrit.Ch
 	return r0, r1, r2
 }
 
-// GerritInterface_SubmittedTogether_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SubmittedTogether'
-type GerritInterface_SubmittedTogether_Call struct {
-	*mock.Call
-}
-
-// SubmittedTogether is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *gerrit.ChangeInfo
-func (_e *GerritInterface_Expecter) SubmittedTogether(_a0 interface{}, _a1 interface{}) *GerritInterface_SubmittedTogether_Call {
-	return &GerritInterface_SubmittedTogether_Call{Call: _e.mock.On("SubmittedTogether", _a0, _a1)}
-}
-
-func (_c *GerritInterface_SubmittedTogether_Call) Run(run func(_a0 context.Context, _a1 *gerrit.ChangeInfo)) *GerritInterface_SubmittedTogether_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*gerrit.ChangeInfo))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_SubmittedTogether_Call) Return(_a0 []*gerrit.ChangeInfo, _a1 int, _a2 error) *GerritInterface_SubmittedTogether_Call {
-	_c.Call.Return(_a0, _a1, _a2)
-	return _c
-}
-
-func (_c *GerritInterface_SubmittedTogether_Call) RunAndReturn(run func(context.Context, *gerrit.ChangeInfo) ([]*gerrit.ChangeInfo, int, error)) *GerritInterface_SubmittedTogether_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Url provides a mock function with given fields: _a0
 func (_m *GerritInterface) Url(_a0 int64) string {
 	ret := _m.Called(_a0)
@@ -2294,34 +992,6 @@ func (_m *GerritInterface) Url(_a0 int64) string {
 	}
 
 	return r0
-}
-
-// GerritInterface_Url_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Url'
-type GerritInterface_Url_Call struct {
-	*mock.Call
-}
-
-// Url is a helper method to define mock.On call
-//   - _a0 int64
-func (_e *GerritInterface_Expecter) Url(_a0 interface{}) *GerritInterface_Url_Call {
-	return &GerritInterface_Url_Call{Call: _e.mock.On("Url", _a0)}
-}
-
-func (_c *GerritInterface_Url_Call) Run(run func(_a0 int64)) *GerritInterface_Url_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(int64))
-	})
-	return _c
-}
-
-func (_c *GerritInterface_Url_Call) Return(_a0 string) *GerritInterface_Url_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GerritInterface_Url_Call) RunAndReturn(run func(int64) string) *GerritInterface_Url_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGerritInterface creates a new instance of GerritInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -15,14 +15,6 @@ type BuildBucketInterface struct {
 	mock.Mock
 }
 
-type BuildBucketInterface_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *BuildBucketInterface) EXPECT() *BuildBucketInterface_Expecter {
-	return &BuildBucketInterface_Expecter{mock: &_m.Mock}
-}
-
 // CancelBuilds provides a mock function with given fields: ctx, buildIDs, summaryMarkdown
 func (_m *BuildBucketInterface) CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, buildIDs, summaryMarkdown)
@@ -51,36 +43,6 @@ func (_m *BuildBucketInterface) CancelBuilds(ctx context.Context, buildIDs []int
 	}
 
 	return r0, r1
-}
-
-// BuildBucketInterface_CancelBuilds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelBuilds'
-type BuildBucketInterface_CancelBuilds_Call struct {
-	*mock.Call
-}
-
-// CancelBuilds is a helper method to define mock.On call
-//   - ctx context.Context
-//   - buildIDs []int64
-//   - summaryMarkdown string
-func (_e *BuildBucketInterface_Expecter) CancelBuilds(ctx interface{}, buildIDs interface{}, summaryMarkdown interface{}) *BuildBucketInterface_CancelBuilds_Call {
-	return &BuildBucketInterface_CancelBuilds_Call{Call: _e.mock.On("CancelBuilds", ctx, buildIDs, summaryMarkdown)}
-}
-
-func (_c *BuildBucketInterface_CancelBuilds_Call) Run(run func(ctx context.Context, buildIDs []int64, summaryMarkdown string)) *BuildBucketInterface_CancelBuilds_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]int64), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *BuildBucketInterface_CancelBuilds_Call) Return(_a0 []*buildbucketpb.Build, _a1 error) *BuildBucketInterface_CancelBuilds_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BuildBucketInterface_CancelBuilds_Call) RunAndReturn(run func(context.Context, []int64, string) ([]*buildbucketpb.Build, error)) *BuildBucketInterface_CancelBuilds_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetBuild provides a mock function with given fields: ctx, buildId
@@ -113,35 +75,6 @@ func (_m *BuildBucketInterface) GetBuild(ctx context.Context, buildId int64) (*b
 	return r0, r1
 }
 
-// BuildBucketInterface_GetBuild_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBuild'
-type BuildBucketInterface_GetBuild_Call struct {
-	*mock.Call
-}
-
-// GetBuild is a helper method to define mock.On call
-//   - ctx context.Context
-//   - buildId int64
-func (_e *BuildBucketInterface_Expecter) GetBuild(ctx interface{}, buildId interface{}) *BuildBucketInterface_GetBuild_Call {
-	return &BuildBucketInterface_GetBuild_Call{Call: _e.mock.On("GetBuild", ctx, buildId)}
-}
-
-func (_c *BuildBucketInterface_GetBuild_Call) Run(run func(ctx context.Context, buildId int64)) *BuildBucketInterface_GetBuild_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64))
-	})
-	return _c
-}
-
-func (_c *BuildBucketInterface_GetBuild_Call) Return(_a0 *buildbucketpb.Build, _a1 error) *BuildBucketInterface_GetBuild_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BuildBucketInterface_GetBuild_Call) RunAndReturn(run func(context.Context, int64) (*buildbucketpb.Build, error)) *BuildBucketInterface_GetBuild_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetTrybotsForCL provides a mock function with given fields: ctx, issue, patchset, gerritUrl, tags
 func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, issue, patchset, gerritUrl, tags)
@@ -170,38 +103,6 @@ func (_m *BuildBucketInterface) GetTrybotsForCL(ctx context.Context, issue int64
 	}
 
 	return r0, r1
-}
-
-// BuildBucketInterface_GetTrybotsForCL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTrybotsForCL'
-type BuildBucketInterface_GetTrybotsForCL_Call struct {
-	*mock.Call
-}
-
-// GetTrybotsForCL is a helper method to define mock.On call
-//   - ctx context.Context
-//   - issue int64
-//   - patchset int64
-//   - gerritUrl string
-//   - tags map[string]string
-func (_e *BuildBucketInterface_Expecter) GetTrybotsForCL(ctx interface{}, issue interface{}, patchset interface{}, gerritUrl interface{}, tags interface{}) *BuildBucketInterface_GetTrybotsForCL_Call {
-	return &BuildBucketInterface_GetTrybotsForCL_Call{Call: _e.mock.On("GetTrybotsForCL", ctx, issue, patchset, gerritUrl, tags)}
-}
-
-func (_c *BuildBucketInterface_GetTrybotsForCL_Call) Run(run func(ctx context.Context, issue int64, patchset int64, gerritUrl string, tags map[string]string)) *BuildBucketInterface_GetTrybotsForCL_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(string), args[4].(map[string]string))
-	})
-	return _c
-}
-
-func (_c *BuildBucketInterface_GetTrybotsForCL_Call) Return(_a0 []*buildbucketpb.Build, _a1 error) *BuildBucketInterface_GetTrybotsForCL_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BuildBucketInterface_GetTrybotsForCL_Call) RunAndReturn(run func(context.Context, int64, int64, string, map[string]string) ([]*buildbucketpb.Build, error)) *BuildBucketInterface_GetTrybotsForCL_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // ScheduleBuilds provides a mock function with given fields: ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket
@@ -234,42 +135,6 @@ func (_m *BuildBucketInterface) ScheduleBuilds(ctx context.Context, builds []str
 	return r0, r1
 }
 
-// BuildBucketInterface_ScheduleBuilds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ScheduleBuilds'
-type BuildBucketInterface_ScheduleBuilds_Call struct {
-	*mock.Call
-}
-
-// ScheduleBuilds is a helper method to define mock.On call
-//   - ctx context.Context
-//   - builds []string
-//   - buildsToTags map[string]map[string]string
-//   - issue int64
-//   - patchset int64
-//   - gerritUrl string
-//   - repo string
-//   - bbProject string
-//   - bbBucket string
-func (_e *BuildBucketInterface_Expecter) ScheduleBuilds(ctx interface{}, builds interface{}, buildsToTags interface{}, issue interface{}, patchset interface{}, gerritUrl interface{}, repo interface{}, bbProject interface{}, bbBucket interface{}) *BuildBucketInterface_ScheduleBuilds_Call {
-	return &BuildBucketInterface_ScheduleBuilds_Call{Call: _e.mock.On("ScheduleBuilds", ctx, builds, buildsToTags, issue, patchset, gerritUrl, repo, bbProject, bbBucket)}
-}
-
-func (_c *BuildBucketInterface_ScheduleBuilds_Call) Run(run func(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue int64, patchset int64, gerritUrl string, repo string, bbProject string, bbBucket string)) *BuildBucketInterface_ScheduleBuilds_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string), args[2].(map[string]map[string]string), args[3].(int64), args[4].(int64), args[5].(string), args[6].(string), args[7].(string), args[8].(string))
-	})
-	return _c
-}
-
-func (_c *BuildBucketInterface_ScheduleBuilds_Call) Return(_a0 []*buildbucketpb.Build, _a1 error) *BuildBucketInterface_ScheduleBuilds_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BuildBucketInterface_ScheduleBuilds_Call) RunAndReturn(run func(context.Context, []string, map[string]map[string]string, int64, int64, string, string, string, string) ([]*buildbucketpb.Build, error)) *BuildBucketInterface_ScheduleBuilds_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Search provides a mock function with given fields: ctx, pred
 func (_m *BuildBucketInterface) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, pred)
@@ -298,35 +163,6 @@ func (_m *BuildBucketInterface) Search(ctx context.Context, pred *buildbucketpb.
 	}
 
 	return r0, r1
-}
-
-// BuildBucketInterface_Search_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Search'
-type BuildBucketInterface_Search_Call struct {
-	*mock.Call
-}
-
-// Search is a helper method to define mock.On call
-//   - ctx context.Context
-//   - pred *buildbucketpb.BuildPredicate
-func (_e *BuildBucketInterface_Expecter) Search(ctx interface{}, pred interface{}) *BuildBucketInterface_Search_Call {
-	return &BuildBucketInterface_Search_Call{Call: _e.mock.On("Search", ctx, pred)}
-}
-
-func (_c *BuildBucketInterface_Search_Call) Run(run func(ctx context.Context, pred *buildbucketpb.BuildPredicate)) *BuildBucketInterface_Search_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*buildbucketpb.BuildPredicate))
-	})
-	return _c
-}
-
-func (_c *BuildBucketInterface_Search_Call) Return(_a0 []*buildbucketpb.Build, _a1 error) *BuildBucketInterface_Search_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *BuildBucketInterface_Search_Call) RunAndReturn(run func(context.Context, *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error)) *BuildBucketInterface_Search_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewBuildBucketInterface creates a new instance of BuildBucketInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

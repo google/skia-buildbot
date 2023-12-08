@@ -21,14 +21,6 @@ type Store struct {
 	mock.Mock
 }
 
-type Store_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Store) EXPECT() *Store_Expecter {
-	return &Store_Expecter{mock: &_m.Mock}
-}
-
 // Range provides a mock function with given fields: ctx, begin, end
 func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := _m.Called(ctx, begin, end)
@@ -59,36 +51,6 @@ func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.
 	return r0, r1
 }
 
-// Store_Range_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Range'
-type Store_Range_Call struct {
-	*mock.Call
-}
-
-// Range is a helper method to define mock.On call
-//   - ctx context.Context
-//   - begin types.CommitNumber
-//   - end types.CommitNumber
-func (_e *Store_Expecter) Range(ctx interface{}, begin interface{}, end interface{}) *Store_Range_Call {
-	return &Store_Range_Call{Call: _e.mock.On("Range", ctx, begin, end)}
-}
-
-func (_c *Store_Range_Call) Run(run func(ctx context.Context, begin types.CommitNumber, end types.CommitNumber)) *Store_Range_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(types.CommitNumber))
-	})
-	return _c
-}
-
-func (_c *Store_Range_Call) Return(_a0 map[types.CommitNumber]*regression.AllRegressionsForCommit, _a1 error) *Store_Range_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_Range_Call) RunAndReturn(run func(context.Context, types.CommitNumber, types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error)) *Store_Range_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SetHigh provides a mock function with given fields: ctx, commitNumber, alertID, df, high
 func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	ret := _m.Called(ctx, commitNumber, alertID, df, high)
@@ -115,38 +77,6 @@ func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, a
 	}
 
 	return r0, r1
-}
-
-// Store_SetHigh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetHigh'
-type Store_SetHigh_Call struct {
-	*mock.Call
-}
-
-// SetHigh is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-//   - alertID string
-//   - df *frame.FrameResponse
-//   - high *clustering2.ClusterSummary
-func (_e *Store_Expecter) SetHigh(ctx interface{}, commitNumber interface{}, alertID interface{}, df interface{}, high interface{}) *Store_SetHigh_Call {
-	return &Store_SetHigh_Call{Call: _e.mock.On("SetHigh", ctx, commitNumber, alertID, df, high)}
-}
-
-func (_c *Store_SetHigh_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary)) *Store_SetHigh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(string), args[3].(*frame.FrameResponse), args[4].(*clustering2.ClusterSummary))
-	})
-	return _c
-}
-
-func (_c *Store_SetHigh_Call) Return(_a0 bool, _a1 error) *Store_SetHigh_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_SetHigh_Call) RunAndReturn(run func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, error)) *Store_SetHigh_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // SetLow provides a mock function with given fields: ctx, commitNumber, alertID, df, low
@@ -177,38 +107,6 @@ func (_m *Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, al
 	return r0, r1
 }
 
-// Store_SetLow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetLow'
-type Store_SetLow_Call struct {
-	*mock.Call
-}
-
-// SetLow is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-//   - alertID string
-//   - df *frame.FrameResponse
-//   - low *clustering2.ClusterSummary
-func (_e *Store_Expecter) SetLow(ctx interface{}, commitNumber interface{}, alertID interface{}, df interface{}, low interface{}) *Store_SetLow_Call {
-	return &Store_SetLow_Call{Call: _e.mock.On("SetLow", ctx, commitNumber, alertID, df, low)}
-}
-
-func (_c *Store_SetLow_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary)) *Store_SetLow_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(string), args[3].(*frame.FrameResponse), args[4].(*clustering2.ClusterSummary))
-	})
-	return _c
-}
-
-func (_c *Store_SetLow_Call) Return(_a0 bool, _a1 error) *Store_SetLow_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_SetLow_Call) RunAndReturn(run func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, error)) *Store_SetLow_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // TriageHigh provides a mock function with given fields: ctx, commitNumber, alertID, tr
 func (_m *Store) TriageHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus) error {
 	ret := _m.Called(ctx, commitNumber, alertID, tr)
@@ -225,37 +123,6 @@ func (_m *Store) TriageHigh(ctx context.Context, commitNumber types.CommitNumber
 	}
 
 	return r0
-}
-
-// Store_TriageHigh_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TriageHigh'
-type Store_TriageHigh_Call struct {
-	*mock.Call
-}
-
-// TriageHigh is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-//   - alertID string
-//   - tr regression.TriageStatus
-func (_e *Store_Expecter) TriageHigh(ctx interface{}, commitNumber interface{}, alertID interface{}, tr interface{}) *Store_TriageHigh_Call {
-	return &Store_TriageHigh_Call{Call: _e.mock.On("TriageHigh", ctx, commitNumber, alertID, tr)}
-}
-
-func (_c *Store_TriageHigh_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus)) *Store_TriageHigh_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(string), args[3].(regression.TriageStatus))
-	})
-	return _c
-}
-
-func (_c *Store_TriageHigh_Call) Return(_a0 error) *Store_TriageHigh_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_TriageHigh_Call) RunAndReturn(run func(context.Context, types.CommitNumber, string, regression.TriageStatus) error) *Store_TriageHigh_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // TriageLow provides a mock function with given fields: ctx, commitNumber, alertID, tr
@@ -276,37 +143,6 @@ func (_m *Store) TriageLow(ctx context.Context, commitNumber types.CommitNumber,
 	return r0
 }
 
-// Store_TriageLow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TriageLow'
-type Store_TriageLow_Call struct {
-	*mock.Call
-}
-
-// TriageLow is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commitNumber types.CommitNumber
-//   - alertID string
-//   - tr regression.TriageStatus
-func (_e *Store_Expecter) TriageLow(ctx interface{}, commitNumber interface{}, alertID interface{}, tr interface{}) *Store_TriageLow_Call {
-	return &Store_TriageLow_Call{Call: _e.mock.On("TriageLow", ctx, commitNumber, alertID, tr)}
-}
-
-func (_c *Store_TriageLow_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus)) *Store_TriageLow_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(string), args[3].(regression.TriageStatus))
-	})
-	return _c
-}
-
-func (_c *Store_TriageLow_Call) Return(_a0 error) *Store_TriageLow_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_TriageLow_Call) RunAndReturn(run func(context.Context, types.CommitNumber, string, regression.TriageStatus) error) *Store_TriageLow_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Write provides a mock function with given fields: ctx, regressions
 func (_m *Store) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit) error {
 	ret := _m.Called(ctx, regressions)
@@ -323,35 +159,6 @@ func (_m *Store) Write(ctx context.Context, regressions map[types.CommitNumber]*
 	}
 
 	return r0
-}
-
-// Store_Write_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Write'
-type Store_Write_Call struct {
-	*mock.Call
-}
-
-// Write is a helper method to define mock.On call
-//   - ctx context.Context
-//   - regressions map[types.CommitNumber]*regression.AllRegressionsForCommit
-func (_e *Store_Expecter) Write(ctx interface{}, regressions interface{}) *Store_Write_Call {
-	return &Store_Write_Call{Call: _e.mock.On("Write", ctx, regressions)}
-}
-
-func (_c *Store_Write_Call) Run(run func(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit)) *Store_Write_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(map[types.CommitNumber]*regression.AllRegressionsForCommit))
-	})
-	return _c
-}
-
-func (_c *Store_Write_Call) Return(_a0 error) *Store_Write_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Store_Write_Call) RunAndReturn(run func(context.Context, map[types.CommitNumber]*regression.AllRegressionsForCommit) error) *Store_Write_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

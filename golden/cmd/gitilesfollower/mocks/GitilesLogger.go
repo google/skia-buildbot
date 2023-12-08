@@ -16,14 +16,6 @@ type GitilesLogger struct {
 	mock.Mock
 }
 
-type GitilesLogger_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *GitilesLogger) EXPECT() *GitilesLogger_Expecter {
-	return &GitilesLogger_Expecter{mock: &_m.Mock}
-}
-
 // Log provides a mock function with given fields: ctx, logExpr, opts
 func (_m *GitilesLogger) Log(ctx context.Context, logExpr string, opts ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error) {
 	_va := make([]interface{}, len(opts))
@@ -61,43 +53,6 @@ func (_m *GitilesLogger) Log(ctx context.Context, logExpr string, opts ...gitile
 	return r0, r1
 }
 
-// GitilesLogger_Log_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Log'
-type GitilesLogger_Log_Call struct {
-	*mock.Call
-}
-
-// Log is a helper method to define mock.On call
-//   - ctx context.Context
-//   - logExpr string
-//   - opts ...gitiles.LogOption
-func (_e *GitilesLogger_Expecter) Log(ctx interface{}, logExpr interface{}, opts ...interface{}) *GitilesLogger_Log_Call {
-	return &GitilesLogger_Log_Call{Call: _e.mock.On("Log",
-		append([]interface{}{ctx, logExpr}, opts...)...)}
-}
-
-func (_c *GitilesLogger_Log_Call) Run(run func(ctx context.Context, logExpr string, opts ...gitiles.LogOption)) *GitilesLogger_Log_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]gitiles.LogOption, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(gitiles.LogOption)
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *GitilesLogger_Log_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitilesLogger_Log_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitilesLogger_Log_Call) RunAndReturn(run func(context.Context, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)) *GitilesLogger_Log_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LogFirstParent provides a mock function with given fields: ctx, from, to, opts
 func (_m *GitilesLogger) LogFirstParent(ctx context.Context, from string, to string, opts ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error) {
 	_va := make([]interface{}, len(opts))
@@ -133,44 +88,6 @@ func (_m *GitilesLogger) LogFirstParent(ctx context.Context, from string, to str
 	}
 
 	return r0, r1
-}
-
-// GitilesLogger_LogFirstParent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogFirstParent'
-type GitilesLogger_LogFirstParent_Call struct {
-	*mock.Call
-}
-
-// LogFirstParent is a helper method to define mock.On call
-//   - ctx context.Context
-//   - from string
-//   - to string
-//   - opts ...gitiles.LogOption
-func (_e *GitilesLogger_Expecter) LogFirstParent(ctx interface{}, from interface{}, to interface{}, opts ...interface{}) *GitilesLogger_LogFirstParent_Call {
-	return &GitilesLogger_LogFirstParent_Call{Call: _e.mock.On("LogFirstParent",
-		append([]interface{}{ctx, from, to}, opts...)...)}
-}
-
-func (_c *GitilesLogger_LogFirstParent_Call) Run(run func(ctx context.Context, from string, to string, opts ...gitiles.LogOption)) *GitilesLogger_LogFirstParent_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]gitiles.LogOption, len(args)-3)
-		for i, a := range args[3:] {
-			if a != nil {
-				variadicArgs[i] = a.(gitiles.LogOption)
-			}
-		}
-		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
-	})
-	return _c
-}
-
-func (_c *GitilesLogger_LogFirstParent_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitilesLogger_LogFirstParent_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *GitilesLogger_LogFirstParent_Call) RunAndReturn(run func(context.Context, string, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)) *GitilesLogger_LogFirstParent_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewGitilesLogger creates a new instance of GitilesLogger. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -16,14 +16,6 @@ type Store struct {
 	mock.Mock
 }
 
-type Store_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Store) EXPECT() *Store_Expecter {
-	return &Store_Expecter{mock: &_m.Mock}
-}
-
 // Get provides a mock function with given fields: ctx, id
 func (_m *Store) Get(ctx context.Context, id string) (*shortcut.Shortcut, error) {
 	ret := _m.Called(ctx, id)
@@ -52,35 +44,6 @@ func (_m *Store) Get(ctx context.Context, id string) (*shortcut.Shortcut, error)
 	}
 
 	return r0, r1
-}
-
-// Store_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type Store_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *Store_Expecter) Get(ctx interface{}, id interface{}) *Store_Get_Call {
-	return &Store_Get_Call{Call: _e.mock.On("Get", ctx, id)}
-}
-
-func (_c *Store_Get_Call) Run(run func(ctx context.Context, id string)) *Store_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Store_Get_Call) Return(_a0 *shortcut.Shortcut, _a1 error) *Store_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_Get_Call) RunAndReturn(run func(context.Context, string) (*shortcut.Shortcut, error)) *Store_Get_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // GetAll provides a mock function with given fields: ctx
@@ -113,34 +76,6 @@ func (_m *Store) GetAll(ctx context.Context) (<-chan *shortcut.Shortcut, error) 
 	return r0, r1
 }
 
-// Store_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
-type Store_GetAll_Call struct {
-	*mock.Call
-}
-
-// GetAll is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *Store_Expecter) GetAll(ctx interface{}) *Store_GetAll_Call {
-	return &Store_GetAll_Call{Call: _e.mock.On("GetAll", ctx)}
-}
-
-func (_c *Store_GetAll_Call) Run(run func(ctx context.Context)) *Store_GetAll_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *Store_GetAll_Call) Return(_a0 <-chan *shortcut.Shortcut, _a1 error) *Store_GetAll_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_GetAll_Call) RunAndReturn(run func(context.Context) (<-chan *shortcut.Shortcut, error)) *Store_GetAll_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Insert provides a mock function with given fields: ctx, r
 func (_m *Store) Insert(ctx context.Context, r io.Reader) (string, error) {
 	ret := _m.Called(ctx, r)
@@ -169,35 +104,6 @@ func (_m *Store) Insert(ctx context.Context, r io.Reader) (string, error) {
 	return r0, r1
 }
 
-// Store_Insert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Insert'
-type Store_Insert_Call struct {
-	*mock.Call
-}
-
-// Insert is a helper method to define mock.On call
-//   - ctx context.Context
-//   - r io.Reader
-func (_e *Store_Expecter) Insert(ctx interface{}, r interface{}) *Store_Insert_Call {
-	return &Store_Insert_Call{Call: _e.mock.On("Insert", ctx, r)}
-}
-
-func (_c *Store_Insert_Call) Run(run func(ctx context.Context, r io.Reader)) *Store_Insert_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(io.Reader))
-	})
-	return _c
-}
-
-func (_c *Store_Insert_Call) Return(_a0 string, _a1 error) *Store_Insert_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_Insert_Call) RunAndReturn(run func(context.Context, io.Reader) (string, error)) *Store_Insert_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // InsertShortcut provides a mock function with given fields: ctx, _a1
 func (_m *Store) InsertShortcut(ctx context.Context, _a1 *shortcut.Shortcut) (string, error) {
 	ret := _m.Called(ctx, _a1)
@@ -224,35 +130,6 @@ func (_m *Store) InsertShortcut(ctx context.Context, _a1 *shortcut.Shortcut) (st
 	}
 
 	return r0, r1
-}
-
-// Store_InsertShortcut_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InsertShortcut'
-type Store_InsertShortcut_Call struct {
-	*mock.Call
-}
-
-// InsertShortcut is a helper method to define mock.On call
-//   - ctx context.Context
-//   - _a1 *shortcut.Shortcut
-func (_e *Store_Expecter) InsertShortcut(ctx interface{}, _a1 interface{}) *Store_InsertShortcut_Call {
-	return &Store_InsertShortcut_Call{Call: _e.mock.On("InsertShortcut", ctx, _a1)}
-}
-
-func (_c *Store_InsertShortcut_Call) Run(run func(ctx context.Context, _a1 *shortcut.Shortcut)) *Store_InsertShortcut_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*shortcut.Shortcut))
-	})
-	return _c
-}
-
-func (_c *Store_InsertShortcut_Call) Return(_a0 string, _a1 error) *Store_InsertShortcut_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Store_InsertShortcut_Call) RunAndReturn(run func(context.Context, *shortcut.Shortcut) (string, error)) *Store_InsertShortcut_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

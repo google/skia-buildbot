@@ -14,14 +14,6 @@ type ChangelistLandedUpdater struct {
 	mock.Mock
 }
 
-type ChangelistLandedUpdater_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ChangelistLandedUpdater) EXPECT() *ChangelistLandedUpdater_Expecter {
-	return &ChangelistLandedUpdater_Expecter{mock: &_m.Mock}
-}
-
 // UpdateChangelistsAsLanded provides a mock function with given fields: ctx, commits
 func (_m *ChangelistLandedUpdater) UpdateChangelistsAsLanded(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 	ret := _m.Called(ctx, commits)
@@ -38,35 +30,6 @@ func (_m *ChangelistLandedUpdater) UpdateChangelistsAsLanded(ctx context.Context
 	}
 
 	return r0
-}
-
-// ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateChangelistsAsLanded'
-type ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call struct {
-	*mock.Call
-}
-
-// UpdateChangelistsAsLanded is a helper method to define mock.On call
-//   - ctx context.Context
-//   - commits []*vcsinfo.LongCommit
-func (_e *ChangelistLandedUpdater_Expecter) UpdateChangelistsAsLanded(ctx interface{}, commits interface{}) *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call {
-	return &ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call{Call: _e.mock.On("UpdateChangelistsAsLanded", ctx, commits)}
-}
-
-func (_c *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call) Run(run func(ctx context.Context, commits []*vcsinfo.LongCommit)) *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]*vcsinfo.LongCommit))
-	})
-	return _c
-}
-
-func (_c *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call) Return(_a0 error) *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call) RunAndReturn(run func(context.Context, []*vcsinfo.LongCommit) error) *ChangelistLandedUpdater_UpdateChangelistsAsLanded_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewChangelistLandedUpdater creates a new instance of ChangelistLandedUpdater. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

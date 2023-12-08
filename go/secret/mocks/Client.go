@@ -13,14 +13,6 @@ type Client struct {
 	mock.Mock
 }
 
-type Client_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Client) EXPECT() *Client_Expecter {
-	return &Client_Expecter{mock: &_m.Mock}
-}
-
 // Close provides a mock function with given fields:
 func (_m *Client) Close() error {
 	ret := _m.Called()
@@ -39,33 +31,6 @@ func (_m *Client) Close() error {
 	return r0
 }
 
-// Client_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type Client_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *Client_Expecter) Close() *Client_Close_Call {
-	return &Client_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *Client_Close_Call) Run(run func()) *Client_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *Client_Close_Call) Return(_a0 error) *Client_Close_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_Close_Call) RunAndReturn(run func() error) *Client_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Create provides a mock function with given fields: ctx, project, name
 func (_m *Client) Create(ctx context.Context, project string, name string) error {
 	ret := _m.Called(ctx, project, name)
@@ -82,36 +47,6 @@ func (_m *Client) Create(ctx context.Context, project string, name string) error
 	}
 
 	return r0
-}
-
-// Client_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type Client_Create_Call struct {
-	*mock.Call
-}
-
-// Create is a helper method to define mock.On call
-//   - ctx context.Context
-//   - project string
-//   - name string
-func (_e *Client_Expecter) Create(ctx interface{}, project interface{}, name interface{}) *Client_Create_Call {
-	return &Client_Create_Call{Call: _e.mock.On("Create", ctx, project, name)}
-}
-
-func (_c *Client_Create_Call) Run(run func(ctx context.Context, project string, name string)) *Client_Create_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *Client_Create_Call) Return(_a0 error) *Client_Create_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_Create_Call) RunAndReturn(run func(context.Context, string, string) error) *Client_Create_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Get provides a mock function with given fields: ctx, project, _a2, version
@@ -142,37 +77,6 @@ func (_m *Client) Get(ctx context.Context, project string, _a2 string, version s
 	return r0, r1
 }
 
-// Client_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type Client_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - project string
-//   - _a2 string
-//   - version string
-func (_e *Client_Expecter) Get(ctx interface{}, project interface{}, _a2 interface{}, version interface{}) *Client_Get_Call {
-	return &Client_Get_Call{Call: _e.mock.On("Get", ctx, project, _a2, version)}
-}
-
-func (_c *Client_Get_Call) Run(run func(ctx context.Context, project string, _a2 string, version string)) *Client_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_Get_Call) Return(_a0 string, _a1 error) *Client_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_Get_Call) RunAndReturn(run func(context.Context, string, string, string) (string, error)) *Client_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GrantAccess provides a mock function with given fields: ctx, project, name, serviceAccount
 func (_m *Client) GrantAccess(ctx context.Context, project string, name string, serviceAccount string) error {
 	ret := _m.Called(ctx, project, name, serviceAccount)
@@ -191,37 +95,6 @@ func (_m *Client) GrantAccess(ctx context.Context, project string, name string, 
 	return r0
 }
 
-// Client_GrantAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GrantAccess'
-type Client_GrantAccess_Call struct {
-	*mock.Call
-}
-
-// GrantAccess is a helper method to define mock.On call
-//   - ctx context.Context
-//   - project string
-//   - name string
-//   - serviceAccount string
-func (_e *Client_Expecter) GrantAccess(ctx interface{}, project interface{}, name interface{}, serviceAccount interface{}) *Client_GrantAccess_Call {
-	return &Client_GrantAccess_Call{Call: _e.mock.On("GrantAccess", ctx, project, name, serviceAccount)}
-}
-
-func (_c *Client_GrantAccess_Call) Run(run func(ctx context.Context, project string, name string, serviceAccount string)) *Client_GrantAccess_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_GrantAccess_Call) Return(_a0 error) *Client_GrantAccess_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_GrantAccess_Call) RunAndReturn(run func(context.Context, string, string, string) error) *Client_GrantAccess_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // RevokeAccess provides a mock function with given fields: ctx, project, name, serviceAccount
 func (_m *Client) RevokeAccess(ctx context.Context, project string, name string, serviceAccount string) error {
 	ret := _m.Called(ctx, project, name, serviceAccount)
@@ -238,37 +111,6 @@ func (_m *Client) RevokeAccess(ctx context.Context, project string, name string,
 	}
 
 	return r0
-}
-
-// Client_RevokeAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RevokeAccess'
-type Client_RevokeAccess_Call struct {
-	*mock.Call
-}
-
-// RevokeAccess is a helper method to define mock.On call
-//   - ctx context.Context
-//   - project string
-//   - name string
-//   - serviceAccount string
-func (_e *Client_Expecter) RevokeAccess(ctx interface{}, project interface{}, name interface{}, serviceAccount interface{}) *Client_RevokeAccess_Call {
-	return &Client_RevokeAccess_Call{Call: _e.mock.On("RevokeAccess", ctx, project, name, serviceAccount)}
-}
-
-func (_c *Client_RevokeAccess_Call) Run(run func(ctx context.Context, project string, name string, serviceAccount string)) *Client_RevokeAccess_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_RevokeAccess_Call) Return(_a0 error) *Client_RevokeAccess_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Client_RevokeAccess_Call) RunAndReturn(run func(context.Context, string, string, string) error) *Client_RevokeAccess_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // Update provides a mock function with given fields: ctx, project, name, value
@@ -297,37 +139,6 @@ func (_m *Client) Update(ctx context.Context, project string, name string, value
 	}
 
 	return r0, r1
-}
-
-// Client_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
-type Client_Update_Call struct {
-	*mock.Call
-}
-
-// Update is a helper method to define mock.On call
-//   - ctx context.Context
-//   - project string
-//   - name string
-//   - value string
-func (_e *Client_Expecter) Update(ctx interface{}, project interface{}, name interface{}, value interface{}) *Client_Update_Call {
-	return &Client_Update_Call{Call: _e.mock.On("Update", ctx, project, name, value)}
-}
-
-func (_c *Client_Update_Call) Run(run func(ctx context.Context, project string, name string, value string)) *Client_Update_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *Client_Update_Call) Return(_a0 string, _a1 error) *Client_Update_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Client_Update_Call) RunAndReturn(run func(context.Context, string, string, string) (string, error)) *Client_Update_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

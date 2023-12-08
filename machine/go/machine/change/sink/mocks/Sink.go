@@ -13,14 +13,6 @@ type Sink struct {
 	mock.Mock
 }
 
-type Sink_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *Sink) EXPECT() *Sink_Expecter {
-	return &Sink_Expecter{mock: &_m.Mock}
-}
-
 // Send provides a mock function with given fields: ctx, machineID
 func (_m *Sink) Send(ctx context.Context, machineID string) error {
 	ret := _m.Called(ctx, machineID)
@@ -37,35 +29,6 @@ func (_m *Sink) Send(ctx context.Context, machineID string) error {
 	}
 
 	return r0
-}
-
-// Sink_Send_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Send'
-type Sink_Send_Call struct {
-	*mock.Call
-}
-
-// Send is a helper method to define mock.On call
-//   - ctx context.Context
-//   - machineID string
-func (_e *Sink_Expecter) Send(ctx interface{}, machineID interface{}) *Sink_Send_Call {
-	return &Sink_Send_Call{Call: _e.mock.On("Send", ctx, machineID)}
-}
-
-func (_c *Sink_Send_Call) Run(run func(ctx context.Context, machineID string)) *Sink_Send_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *Sink_Send_Call) Return(_a0 error) *Sink_Send_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *Sink_Send_Call) RunAndReturn(run func(context.Context, string) error) *Sink_Send_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewSink creates a new instance of Sink. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
