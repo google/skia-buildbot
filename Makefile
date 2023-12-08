@@ -73,6 +73,10 @@ eslint:
 
 .PHONY: errcheck
 errcheck:
-	bazel run //:errcheck -- -ignore :Close go.skia.org/infra/...
+	$(BAZEL) run //:errcheck -- -ignore :Close go.skia.org/infra/...
+
+.PHONY: mocks
+mocks:
+	$(BAZEL) run //:mockery
 
 include make/npm.mk
