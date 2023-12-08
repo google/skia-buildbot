@@ -21,7 +21,7 @@ go_test(
     srcs = ["gcssamplesloader_test.go"],
     embed = [":gcssamplesloader"],
     deps = [
-        "//go/gcs/test_gcsclient",
+        "//go/gcs/mocks",
         "//go/paramtools",
         "//go/testutils",
         "//perf/go/config",

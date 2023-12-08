@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "GitilesRepo.go",
-        "generate.go",
-    ],
+    srcs = ["GitilesRepo.go"],
     importpath = "go.skia.org/infra/go/gitiles/mocks",
     visibility = ["//visibility:public"],
     deps = [

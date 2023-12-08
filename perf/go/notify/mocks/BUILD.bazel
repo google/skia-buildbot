@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "Notifier.go",
         "Transport.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/perf/go/notify/mocks",
     visibility = ["//visibility:public"],

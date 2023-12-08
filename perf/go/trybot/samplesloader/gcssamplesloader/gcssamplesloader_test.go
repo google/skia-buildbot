@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mocks"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
@@ -65,7 +65,7 @@ func TestLoad_Success(t *testing.T) {
 	const sourceFilePath = "path/file.json"
 	const sourceFileName = "gs://skia-perf/" + sourceFilePath
 
-	gcsclient := &test_gcsclient.GCSClient{}
+	gcsclient := &mocks.GCSClient{}
 	r := bytes.NewBufferString(sourceFileBody)
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(io.NopCloser(r), nil)
 
@@ -89,7 +89,7 @@ func TestLoad_FileReaderFails_Failure(t *testing.T) {
 	ctx := context.Background()
 	const sourceFilePath = "path/file.json"
 	const sourceFileName = "gs://skia-perf/" + sourceFilePath
-	gcsclient := &test_gcsclient.GCSClient{}
+	gcsclient := &mocks.GCSClient{}
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(nil, fmt.Errorf("something broke"))
 
 	g := New(gcsclient, ingestParser(t))
@@ -99,7 +99,7 @@ func TestLoad_FileReaderFails_Failure(t *testing.T) {
 
 func TestLoad_InvalidFilenameURL_Failure(t *testing.T) {
 	ctx := context.Background()
-	gcsclient := &test_gcsclient.GCSClient{}
+	gcsclient := &mocks.GCSClient{}
 	g := New(gcsclient, ingestParser(t))
 	_, err := g.Load(ctx, "::: not a valid url :::")
 	require.Contains(t, err.Error(), "Failed to parse filename")
@@ -111,7 +111,7 @@ func TestLoad_InvalidJSON_Failure(t *testing.T) {
 	const sourceFilePath = "path/file.json"
 	const sourceFileName = "gs://skia-perf/" + sourceFilePath
 
-	gcsclient := &test_gcsclient.GCSClient{}
+	gcsclient := &mocks.GCSClient{}
 	r := bytes.NewBufferString("}this isn't valid JSON{")
 	gcsclient.On("FileReader", testutils.AnyContext, sourceFilePath).Return(io.NopCloser(r), nil)
 

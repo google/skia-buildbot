@@ -8,8 +8,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	db "go.skia.org/infra/skcq/go/db"
 
-	testing "testing"
-
 	types "go.skia.org/infra/skcq/go/types"
 )
 
@@ -18,11 +16,27 @@ type DB struct {
 	mock.Mock
 }
 
+type DB_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *DB) EXPECT() *DB_Expecter {
+	return &DB_Expecter{mock: &_m.Mock}
+}
+
 // GetChangeAttempts provides a mock function with given fields: ctx, changeID, patchsetID, changesCol
 func (_m *DB) GetChangeAttempts(ctx context.Context, changeID int64, patchsetID int64, changesCol db.ChangesCol) (*types.ChangeAttempts, error) {
 	ret := _m.Called(ctx, changeID, patchsetID, changesCol)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetChangeAttempts")
+	}
+
 	var r0 *types.ChangeAttempts
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, db.ChangesCol) (*types.ChangeAttempts, error)); ok {
+		return rf(ctx, changeID, patchsetID, changesCol)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, db.ChangesCol) *types.ChangeAttempts); ok {
 		r0 = rf(ctx, changeID, patchsetID, changesCol)
 	} else {
@@ -31,7 +45,6 @@ func (_m *DB) GetChangeAttempts(ctx context.Context, changeID int64, patchsetID 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, db.ChangesCol) error); ok {
 		r1 = rf(ctx, changeID, patchsetID, changesCol)
 	} else {
@@ -41,11 +54,50 @@ func (_m *DB) GetChangeAttempts(ctx context.Context, changeID int64, patchsetID 
 	return r0, r1
 }
 
+// DB_GetChangeAttempts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChangeAttempts'
+type DB_GetChangeAttempts_Call struct {
+	*mock.Call
+}
+
+// GetChangeAttempts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - changeID int64
+//   - patchsetID int64
+//   - changesCol db.ChangesCol
+func (_e *DB_Expecter) GetChangeAttempts(ctx interface{}, changeID interface{}, patchsetID interface{}, changesCol interface{}) *DB_GetChangeAttempts_Call {
+	return &DB_GetChangeAttempts_Call{Call: _e.mock.On("GetChangeAttempts", ctx, changeID, patchsetID, changesCol)}
+}
+
+func (_c *DB_GetChangeAttempts_Call) Run(run func(ctx context.Context, changeID int64, patchsetID int64, changesCol db.ChangesCol)) *DB_GetChangeAttempts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(db.ChangesCol))
+	})
+	return _c
+}
+
+func (_c *DB_GetChangeAttempts_Call) Return(_a0 *types.ChangeAttempts, _a1 error) *DB_GetChangeAttempts_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *DB_GetChangeAttempts_Call) RunAndReturn(run func(context.Context, int64, int64, db.ChangesCol) (*types.ChangeAttempts, error)) *DB_GetChangeAttempts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCurrentChanges provides a mock function with given fields: ctx
 func (_m *DB) GetCurrentChanges(ctx context.Context) (map[string]*types.CurrentlyProcessingChange, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCurrentChanges")
+	}
+
 	var r0 map[string]*types.CurrentlyProcessingChange
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]*types.CurrentlyProcessingChange, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) map[string]*types.CurrentlyProcessingChange); ok {
 		r0 = rf(ctx)
 	} else {
@@ -54,7 +106,6 @@ func (_m *DB) GetCurrentChanges(ctx context.Context) (map[string]*types.Currentl
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -64,9 +115,41 @@ func (_m *DB) GetCurrentChanges(ctx context.Context) (map[string]*types.Currentl
 	return r0, r1
 }
 
+// DB_GetCurrentChanges_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCurrentChanges'
+type DB_GetCurrentChanges_Call struct {
+	*mock.Call
+}
+
+// GetCurrentChanges is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *DB_Expecter) GetCurrentChanges(ctx interface{}) *DB_GetCurrentChanges_Call {
+	return &DB_GetCurrentChanges_Call{Call: _e.mock.On("GetCurrentChanges", ctx)}
+}
+
+func (_c *DB_GetCurrentChanges_Call) Run(run func(ctx context.Context)) *DB_GetCurrentChanges_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *DB_GetCurrentChanges_Call) Return(_a0 map[string]*types.CurrentlyProcessingChange, _a1 error) *DB_GetCurrentChanges_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *DB_GetCurrentChanges_Call) RunAndReturn(run func(context.Context) (map[string]*types.CurrentlyProcessingChange, error)) *DB_GetCurrentChanges_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutChangeAttempt provides a mock function with given fields: ctx, newChangeAttempt, changesCol
 func (_m *DB) PutChangeAttempt(ctx context.Context, newChangeAttempt *types.ChangeAttempt, changesCol db.ChangesCol) error {
 	ret := _m.Called(ctx, newChangeAttempt, changesCol)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutChangeAttempt")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *types.ChangeAttempt, db.ChangesCol) error); ok {
@@ -78,9 +161,43 @@ func (_m *DB) PutChangeAttempt(ctx context.Context, newChangeAttempt *types.Chan
 	return r0
 }
 
+// DB_PutChangeAttempt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutChangeAttempt'
+type DB_PutChangeAttempt_Call struct {
+	*mock.Call
+}
+
+// PutChangeAttempt is a helper method to define mock.On call
+//   - ctx context.Context
+//   - newChangeAttempt *types.ChangeAttempt
+//   - changesCol db.ChangesCol
+func (_e *DB_Expecter) PutChangeAttempt(ctx interface{}, newChangeAttempt interface{}, changesCol interface{}) *DB_PutChangeAttempt_Call {
+	return &DB_PutChangeAttempt_Call{Call: _e.mock.On("PutChangeAttempt", ctx, newChangeAttempt, changesCol)}
+}
+
+func (_c *DB_PutChangeAttempt_Call) Run(run func(ctx context.Context, newChangeAttempt *types.ChangeAttempt, changesCol db.ChangesCol)) *DB_PutChangeAttempt_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*types.ChangeAttempt), args[2].(db.ChangesCol))
+	})
+	return _c
+}
+
+func (_c *DB_PutChangeAttempt_Call) Return(_a0 error) *DB_PutChangeAttempt_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *DB_PutChangeAttempt_Call) RunAndReturn(run func(context.Context, *types.ChangeAttempt, db.ChangesCol) error) *DB_PutChangeAttempt_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutCurrentChanges provides a mock function with given fields: ctx, currentChangesCache
 func (_m *DB) PutCurrentChanges(ctx context.Context, currentChangesCache interface{}) error {
 	ret := _m.Called(ctx, currentChangesCache)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutCurrentChanges")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, interface{}) error); ok {
@@ -92,9 +209,42 @@ func (_m *DB) PutCurrentChanges(ctx context.Context, currentChangesCache interfa
 	return r0
 }
 
+// DB_PutCurrentChanges_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutCurrentChanges'
+type DB_PutCurrentChanges_Call struct {
+	*mock.Call
+}
+
+// PutCurrentChanges is a helper method to define mock.On call
+//   - ctx context.Context
+//   - currentChangesCache interface{}
+func (_e *DB_Expecter) PutCurrentChanges(ctx interface{}, currentChangesCache interface{}) *DB_PutCurrentChanges_Call {
+	return &DB_PutCurrentChanges_Call{Call: _e.mock.On("PutCurrentChanges", ctx, currentChangesCache)}
+}
+
+func (_c *DB_PutCurrentChanges_Call) Run(run func(ctx context.Context, currentChangesCache interface{})) *DB_PutCurrentChanges_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(interface{}))
+	})
+	return _c
+}
+
+func (_c *DB_PutCurrentChanges_Call) Return(_a0 error) *DB_PutCurrentChanges_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *DB_PutCurrentChanges_Call) RunAndReturn(run func(context.Context, interface{}) error) *DB_PutCurrentChanges_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateChangeAttemptAsAbandoned provides a mock function with given fields: ctx, changeID, patchsetID, changesCol, patchStart
 func (_m *DB) UpdateChangeAttemptAsAbandoned(ctx context.Context, changeID int64, patchsetID int64, changesCol db.ChangesCol, patchStart int64) error {
 	ret := _m.Called(ctx, changeID, patchsetID, changesCol, patchStart)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateChangeAttemptAsAbandoned")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, db.ChangesCol, int64) error); ok {
@@ -106,9 +256,46 @@ func (_m *DB) UpdateChangeAttemptAsAbandoned(ctx context.Context, changeID int64
 	return r0
 }
 
-// NewDB creates a new instance of DB. It also registers a cleanup function to assert the mocks expectations.
-func NewDB(t testing.TB) *DB {
+// DB_UpdateChangeAttemptAsAbandoned_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateChangeAttemptAsAbandoned'
+type DB_UpdateChangeAttemptAsAbandoned_Call struct {
+	*mock.Call
+}
+
+// UpdateChangeAttemptAsAbandoned is a helper method to define mock.On call
+//   - ctx context.Context
+//   - changeID int64
+//   - patchsetID int64
+//   - changesCol db.ChangesCol
+//   - patchStart int64
+func (_e *DB_Expecter) UpdateChangeAttemptAsAbandoned(ctx interface{}, changeID interface{}, patchsetID interface{}, changesCol interface{}, patchStart interface{}) *DB_UpdateChangeAttemptAsAbandoned_Call {
+	return &DB_UpdateChangeAttemptAsAbandoned_Call{Call: _e.mock.On("UpdateChangeAttemptAsAbandoned", ctx, changeID, patchsetID, changesCol, patchStart)}
+}
+
+func (_c *DB_UpdateChangeAttemptAsAbandoned_Call) Run(run func(ctx context.Context, changeID int64, patchsetID int64, changesCol db.ChangesCol, patchStart int64)) *DB_UpdateChangeAttemptAsAbandoned_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int64), args[2].(int64), args[3].(db.ChangesCol), args[4].(int64))
+	})
+	return _c
+}
+
+func (_c *DB_UpdateChangeAttemptAsAbandoned_Call) Return(_a0 error) *DB_UpdateChangeAttemptAsAbandoned_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *DB_UpdateChangeAttemptAsAbandoned_Call) RunAndReturn(run func(context.Context, int64, int64, db.ChangesCol, int64) error) *DB_UpdateChangeAttemptAsAbandoned_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewDB creates a new instance of DB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewDB(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *DB {
 	mock := &DB{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

@@ -4,11 +4,9 @@ package mocks
 
 import (
 	context "context"
-	testing "testing"
+	time "time"
 
 	mock "github.com/stretchr/testify/mock"
-
-	time "time"
 
 	types "go.skia.org/infra/bugs-central/go/types"
 )
@@ -18,9 +16,21 @@ type BugsDB struct {
 	mock.Mock
 }
 
+type BugsDB_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *BugsDB) EXPECT() *BugsDB_Expecter {
+	return &BugsDB_Expecter{mock: &_m.Mock}
+}
+
 // GenerateRunId provides a mock function with given fields: ts
 func (_m *BugsDB) GenerateRunId(ts time.Time) string {
 	ret := _m.Called(ts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GenerateRunId")
+	}
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func(time.Time) string); ok {
@@ -32,11 +42,47 @@ func (_m *BugsDB) GenerateRunId(ts time.Time) string {
 	return r0
 }
 
+// BugsDB_GenerateRunId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateRunId'
+type BugsDB_GenerateRunId_Call struct {
+	*mock.Call
+}
+
+// GenerateRunId is a helper method to define mock.On call
+//   - ts time.Time
+func (_e *BugsDB_Expecter) GenerateRunId(ts interface{}) *BugsDB_GenerateRunId_Call {
+	return &BugsDB_GenerateRunId_Call{Call: _e.mock.On("GenerateRunId", ts)}
+}
+
+func (_c *BugsDB_GenerateRunId_Call) Run(run func(ts time.Time)) *BugsDB_GenerateRunId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(time.Time))
+	})
+	return _c
+}
+
+func (_c *BugsDB_GenerateRunId_Call) Return(_a0 string) *BugsDB_GenerateRunId_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BugsDB_GenerateRunId_Call) RunAndReturn(run func(time.Time) string) *BugsDB_GenerateRunId_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllRecognizedRunIds provides a mock function with given fields: ctx
 func (_m *BugsDB) GetAllRecognizedRunIds(ctx context.Context) (map[string]bool, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllRecognizedRunIds")
+	}
+
 	var r0 map[string]bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]bool, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) map[string]bool); ok {
 		r0 = rf(ctx)
 	} else {
@@ -45,7 +91,6 @@ func (_m *BugsDB) GetAllRecognizedRunIds(ctx context.Context) (map[string]bool, 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -55,11 +100,47 @@ func (_m *BugsDB) GetAllRecognizedRunIds(ctx context.Context) (map[string]bool, 
 	return r0, r1
 }
 
+// BugsDB_GetAllRecognizedRunIds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllRecognizedRunIds'
+type BugsDB_GetAllRecognizedRunIds_Call struct {
+	*mock.Call
+}
+
+// GetAllRecognizedRunIds is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *BugsDB_Expecter) GetAllRecognizedRunIds(ctx interface{}) *BugsDB_GetAllRecognizedRunIds_Call {
+	return &BugsDB_GetAllRecognizedRunIds_Call{Call: _e.mock.On("GetAllRecognizedRunIds", ctx)}
+}
+
+func (_c *BugsDB_GetAllRecognizedRunIds_Call) Run(run func(ctx context.Context)) *BugsDB_GetAllRecognizedRunIds_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *BugsDB_GetAllRecognizedRunIds_Call) Return(_a0 map[string]bool, _a1 error) *BugsDB_GetAllRecognizedRunIds_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BugsDB_GetAllRecognizedRunIds_Call) RunAndReturn(run func(context.Context) (map[string]bool, error)) *BugsDB_GetAllRecognizedRunIds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetClientsFromDB provides a mock function with given fields: ctx
 func (_m *BugsDB) GetClientsFromDB(ctx context.Context) (map[types.RecognizedClient]map[types.IssueSource]map[string]bool, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetClientsFromDB")
+	}
+
 	var r0 map[types.RecognizedClient]map[types.IssueSource]map[string]bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[types.RecognizedClient]map[types.IssueSource]map[string]bool, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) map[types.RecognizedClient]map[types.IssueSource]map[string]bool); ok {
 		r0 = rf(ctx)
 	} else {
@@ -68,7 +149,6 @@ func (_m *BugsDB) GetClientsFromDB(ctx context.Context) (map[types.RecognizedCli
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -78,11 +158,47 @@ func (_m *BugsDB) GetClientsFromDB(ctx context.Context) (map[types.RecognizedCli
 	return r0, r1
 }
 
+// BugsDB_GetClientsFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetClientsFromDB'
+type BugsDB_GetClientsFromDB_Call struct {
+	*mock.Call
+}
+
+// GetClientsFromDB is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *BugsDB_Expecter) GetClientsFromDB(ctx interface{}) *BugsDB_GetClientsFromDB_Call {
+	return &BugsDB_GetClientsFromDB_Call{Call: _e.mock.On("GetClientsFromDB", ctx)}
+}
+
+func (_c *BugsDB_GetClientsFromDB_Call) Run(run func(ctx context.Context)) *BugsDB_GetClientsFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *BugsDB_GetClientsFromDB_Call) Return(_a0 map[types.RecognizedClient]map[types.IssueSource]map[string]bool, _a1 error) *BugsDB_GetClientsFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BugsDB_GetClientsFromDB_Call) RunAndReturn(run func(context.Context) (map[types.RecognizedClient]map[types.IssueSource]map[string]bool, error)) *BugsDB_GetClientsFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCountsFromDB provides a mock function with given fields: ctx, client, source, query
 func (_m *BugsDB) GetCountsFromDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string) (*types.IssueCountsData, error) {
 	ret := _m.Called(ctx, client, source, query)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCountsFromDB")
+	}
+
 	var r0 *types.IssueCountsData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RecognizedClient, types.IssueSource, string) (*types.IssueCountsData, error)); ok {
+		return rf(ctx, client, source, query)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.RecognizedClient, types.IssueSource, string) *types.IssueCountsData); ok {
 		r0 = rf(ctx, client, source, query)
 	} else {
@@ -91,7 +207,6 @@ func (_m *BugsDB) GetCountsFromDB(ctx context.Context, client types.RecognizedCl
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.RecognizedClient, types.IssueSource, string) error); ok {
 		r1 = rf(ctx, client, source, query)
 	} else {
@@ -101,11 +216,50 @@ func (_m *BugsDB) GetCountsFromDB(ctx context.Context, client types.RecognizedCl
 	return r0, r1
 }
 
+// BugsDB_GetCountsFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCountsFromDB'
+type BugsDB_GetCountsFromDB_Call struct {
+	*mock.Call
+}
+
+// GetCountsFromDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - client types.RecognizedClient
+//   - source types.IssueSource
+//   - query string
+func (_e *BugsDB_Expecter) GetCountsFromDB(ctx interface{}, client interface{}, source interface{}, query interface{}) *BugsDB_GetCountsFromDB_Call {
+	return &BugsDB_GetCountsFromDB_Call{Call: _e.mock.On("GetCountsFromDB", ctx, client, source, query)}
+}
+
+func (_c *BugsDB_GetCountsFromDB_Call) Run(run func(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string)) *BugsDB_GetCountsFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RecognizedClient), args[2].(types.IssueSource), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *BugsDB_GetCountsFromDB_Call) Return(_a0 *types.IssueCountsData, _a1 error) *BugsDB_GetCountsFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BugsDB_GetCountsFromDB_Call) RunAndReturn(run func(context.Context, types.RecognizedClient, types.IssueSource, string) (*types.IssueCountsData, error)) *BugsDB_GetCountsFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetQueryDataFromDB provides a mock function with given fields: ctx, client, source, query
 func (_m *BugsDB) GetQueryDataFromDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string) ([]*types.QueryData, error) {
 	ret := _m.Called(ctx, client, source, query)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetQueryDataFromDB")
+	}
+
 	var r0 []*types.QueryData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RecognizedClient, types.IssueSource, string) ([]*types.QueryData, error)); ok {
+		return rf(ctx, client, source, query)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.RecognizedClient, types.IssueSource, string) []*types.QueryData); ok {
 		r0 = rf(ctx, client, source, query)
 	} else {
@@ -114,7 +268,6 @@ func (_m *BugsDB) GetQueryDataFromDB(ctx context.Context, client types.Recognize
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.RecognizedClient, types.IssueSource, string) error); ok {
 		r1 = rf(ctx, client, source, query)
 	} else {
@@ -124,9 +277,44 @@ func (_m *BugsDB) GetQueryDataFromDB(ctx context.Context, client types.Recognize
 	return r0, r1
 }
 
+// BugsDB_GetQueryDataFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetQueryDataFromDB'
+type BugsDB_GetQueryDataFromDB_Call struct {
+	*mock.Call
+}
+
+// GetQueryDataFromDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - client types.RecognizedClient
+//   - source types.IssueSource
+//   - query string
+func (_e *BugsDB_Expecter) GetQueryDataFromDB(ctx interface{}, client interface{}, source interface{}, query interface{}) *BugsDB_GetQueryDataFromDB_Call {
+	return &BugsDB_GetQueryDataFromDB_Call{Call: _e.mock.On("GetQueryDataFromDB", ctx, client, source, query)}
+}
+
+func (_c *BugsDB_GetQueryDataFromDB_Call) Run(run func(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string)) *BugsDB_GetQueryDataFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RecognizedClient), args[2].(types.IssueSource), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *BugsDB_GetQueryDataFromDB_Call) Return(_a0 []*types.QueryData, _a1 error) *BugsDB_GetQueryDataFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BugsDB_GetQueryDataFromDB_Call) RunAndReturn(run func(context.Context, types.RecognizedClient, types.IssueSource, string) ([]*types.QueryData, error)) *BugsDB_GetQueryDataFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutInDB provides a mock function with given fields: ctx, client, source, query, runId, countsData
 func (_m *BugsDB) PutInDB(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string, runId string, countsData *types.IssueCountsData) error {
 	ret := _m.Called(ctx, client, source, query, runId, countsData)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutInDB")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.RecognizedClient, types.IssueSource, string, string, *types.IssueCountsData) error); ok {
@@ -138,9 +326,46 @@ func (_m *BugsDB) PutInDB(ctx context.Context, client types.RecognizedClient, so
 	return r0
 }
 
+// BugsDB_PutInDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutInDB'
+type BugsDB_PutInDB_Call struct {
+	*mock.Call
+}
+
+// PutInDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - client types.RecognizedClient
+//   - source types.IssueSource
+//   - query string
+//   - runId string
+//   - countsData *types.IssueCountsData
+func (_e *BugsDB_Expecter) PutInDB(ctx interface{}, client interface{}, source interface{}, query interface{}, runId interface{}, countsData interface{}) *BugsDB_PutInDB_Call {
+	return &BugsDB_PutInDB_Call{Call: _e.mock.On("PutInDB", ctx, client, source, query, runId, countsData)}
+}
+
+func (_c *BugsDB_PutInDB_Call) Run(run func(ctx context.Context, client types.RecognizedClient, source types.IssueSource, query string, runId string, countsData *types.IssueCountsData)) *BugsDB_PutInDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RecognizedClient), args[2].(types.IssueSource), args[3].(string), args[4].(string), args[5].(*types.IssueCountsData))
+	})
+	return _c
+}
+
+func (_c *BugsDB_PutInDB_Call) Return(_a0 error) *BugsDB_PutInDB_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BugsDB_PutInDB_Call) RunAndReturn(run func(context.Context, types.RecognizedClient, types.IssueSource, string, string, *types.IssueCountsData) error) *BugsDB_PutInDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StoreRunId provides a mock function with given fields: ctx, runId
 func (_m *BugsDB) StoreRunId(ctx context.Context, runId string) error {
 	ret := _m.Called(ctx, runId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StoreRunId")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
@@ -152,9 +377,43 @@ func (_m *BugsDB) StoreRunId(ctx context.Context, runId string) error {
 	return r0
 }
 
-// NewBugsDB creates a new instance of BugsDB. It also registers a cleanup function to assert the mocks expectations.
-func NewBugsDB(t testing.TB) *BugsDB {
+// BugsDB_StoreRunId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StoreRunId'
+type BugsDB_StoreRunId_Call struct {
+	*mock.Call
+}
+
+// StoreRunId is a helper method to define mock.On call
+//   - ctx context.Context
+//   - runId string
+func (_e *BugsDB_Expecter) StoreRunId(ctx interface{}, runId interface{}) *BugsDB_StoreRunId_Call {
+	return &BugsDB_StoreRunId_Call{Call: _e.mock.On("StoreRunId", ctx, runId)}
+}
+
+func (_c *BugsDB_StoreRunId_Call) Run(run func(ctx context.Context, runId string)) *BugsDB_StoreRunId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *BugsDB_StoreRunId_Call) Return(_a0 error) *BugsDB_StoreRunId_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *BugsDB_StoreRunId_Call) RunAndReturn(run func(context.Context, string) error) *BugsDB_StoreRunId_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewBugsDB creates a new instance of BugsDB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewBugsDB(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *BugsDB {
 	mock := &BugsDB{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

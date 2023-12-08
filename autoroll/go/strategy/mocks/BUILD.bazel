@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "StrategyHistory.go",
-        "generate.go",
-    ],
+    srcs = ["StrategyHistory.go"],
     importpath = "go.skia.org/infra/autoroll/go/strategy/mocks",
     visibility = ["//visibility:public"],
     deps = [

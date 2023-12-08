@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "Calculator.go",
         "ImageSource.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/golden/go/diff/mocks",
     visibility = ["//visibility:public"],

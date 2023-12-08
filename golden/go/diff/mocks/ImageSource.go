@@ -4,10 +4,8 @@ package mocks
 
 import (
 	context "context"
-	testing "testing"
 
 	mock "github.com/stretchr/testify/mock"
-
 	types "go.skia.org/infra/golden/go/types"
 )
 
@@ -16,11 +14,27 @@ type ImageSource struct {
 	mock.Mock
 }
 
+type ImageSource_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ImageSource) EXPECT() *ImageSource_Expecter {
+	return &ImageSource_Expecter{mock: &_m.Mock}
+}
+
 // GetImage provides a mock function with given fields: ctx, digest
 func (_m *ImageSource) GetImage(ctx context.Context, digest types.Digest) ([]byte, error) {
 	ret := _m.Called(ctx, digest)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetImage")
+	}
+
 	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.Digest) ([]byte, error)); ok {
+		return rf(ctx, digest)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.Digest) []byte); ok {
 		r0 = rf(ctx, digest)
 	} else {
@@ -29,7 +43,6 @@ func (_m *ImageSource) GetImage(ctx context.Context, digest types.Digest) ([]byt
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.Digest) error); ok {
 		r1 = rf(ctx, digest)
 	} else {
@@ -39,9 +52,43 @@ func (_m *ImageSource) GetImage(ctx context.Context, digest types.Digest) ([]byt
 	return r0, r1
 }
 
-// NewImageSource creates a new instance of ImageSource. It also registers a cleanup function to assert the mocks expectations.
-func NewImageSource(t testing.TB) *ImageSource {
+// ImageSource_GetImage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetImage'
+type ImageSource_GetImage_Call struct {
+	*mock.Call
+}
+
+// GetImage is a helper method to define mock.On call
+//   - ctx context.Context
+//   - digest types.Digest
+func (_e *ImageSource_Expecter) GetImage(ctx interface{}, digest interface{}) *ImageSource_GetImage_Call {
+	return &ImageSource_GetImage_Call{Call: _e.mock.On("GetImage", ctx, digest)}
+}
+
+func (_c *ImageSource_GetImage_Call) Run(run func(ctx context.Context, digest types.Digest)) *ImageSource_GetImage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.Digest))
+	})
+	return _c
+}
+
+func (_c *ImageSource_GetImage_Call) Return(_a0 []byte, _a1 error) *ImageSource_GetImage_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ImageSource_GetImage_Call) RunAndReturn(run func(context.Context, types.Digest) ([]byte, error)) *ImageSource_GetImage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewImageSource creates a new instance of ImageSource. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewImageSource(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *ImageSource {
 	mock := &ImageSource{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

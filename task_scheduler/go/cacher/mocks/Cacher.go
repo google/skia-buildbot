@@ -8,8 +8,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	specs "go.skia.org/infra/task_scheduler/go/specs"
 
-	testing "testing"
-
 	types "go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -18,11 +16,27 @@ type Cacher struct {
 	mock.Mock
 }
 
+type Cacher_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Cacher) EXPECT() *Cacher_Expecter {
+	return &Cacher_Expecter{mock: &_m.Mock}
+}
+
 // GetOrCacheRepoState provides a mock function with given fields: ctx, rs
 func (_m *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
 	ret := _m.Called(ctx, rs)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetOrCacheRepoState")
+	}
+
 	var r0 *specs.TasksCfg
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState) (*specs.TasksCfg, error)); ok {
+		return rf(ctx, rs)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState) *specs.TasksCfg); ok {
 		r0 = rf(ctx, rs)
 	} else {
@@ -31,7 +45,6 @@ func (_m *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.RepoState) error); ok {
 		r1 = rf(ctx, rs)
 	} else {
@@ -41,9 +54,43 @@ func (_m *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (
 	return r0, r1
 }
 
-// NewCacher creates a new instance of Cacher. It also registers a cleanup function to assert the mocks expectations.
-func NewCacher(t testing.TB) *Cacher {
+// Cacher_GetOrCacheRepoState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrCacheRepoState'
+type Cacher_GetOrCacheRepoState_Call struct {
+	*mock.Call
+}
+
+// GetOrCacheRepoState is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rs types.RepoState
+func (_e *Cacher_Expecter) GetOrCacheRepoState(ctx interface{}, rs interface{}) *Cacher_GetOrCacheRepoState_Call {
+	return &Cacher_GetOrCacheRepoState_Call{Call: _e.mock.On("GetOrCacheRepoState", ctx, rs)}
+}
+
+func (_c *Cacher_GetOrCacheRepoState_Call) Run(run func(ctx context.Context, rs types.RepoState)) *Cacher_GetOrCacheRepoState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RepoState))
+	})
+	return _c
+}
+
+func (_c *Cacher_GetOrCacheRepoState_Call) Return(_a0 *specs.TasksCfg, _a1 error) *Cacher_GetOrCacheRepoState_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Cacher_GetOrCacheRepoState_Call) RunAndReturn(run func(context.Context, types.RepoState) (*specs.TasksCfg, error)) *Cacher_GetOrCacheRepoState_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewCacher creates a new instance of Cacher. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewCacher(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *Cacher {
 	mock := &Cacher{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

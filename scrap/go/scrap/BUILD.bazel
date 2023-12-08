@@ -34,7 +34,7 @@ go_test(
     embed = [":scrap"],
     deps = [
         "//go/gcs",
-        "//go/gcs/test_gcsclient",
+        "//go/gcs/mocks",
         "//go/testutils",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",

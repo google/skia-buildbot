@@ -22,7 +22,7 @@ go_test(
     embed = [":perfclient"],
     deps = [
         "//go/gcs",
-        "//go/gcs/test_gcsclient",
+        "//go/gcs/mocks",
         "//go/testutils",
         "//perf/go/ingest/format",
         "@com_github_stretchr_testify//require",

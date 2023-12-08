@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "ApiClient.go",
-        "generate.go",
-    ],
+    srcs = ["ApiClient.go"],
     importpath = "go.skia.org/infra/go/swarming/mocks",
     visibility = ["//visibility:public"],
     deps = [

@@ -32,7 +32,7 @@ go_test(
     deps = [
         "//go/config",
         "//go/gcs",
-        "//go/gcs/test_gcsclient",
+        "//go/gcs/mocks",
         "//go/testutils",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",

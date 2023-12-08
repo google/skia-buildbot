@@ -6,7 +6,6 @@ go_library(
         "Interface.go",
         "PeerFinder.go",
         "Server.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/go/sser/mocks",
     visibility = ["//visibility:public"],

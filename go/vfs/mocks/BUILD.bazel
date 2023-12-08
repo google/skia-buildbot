@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "FS.go",
         "File.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/go/vfs/mocks",
     visibility = ["//visibility:public"],

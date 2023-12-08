@@ -4,10 +4,8 @@ package mocks
 
 import (
 	context "context"
-	testing "testing"
 
 	mock "github.com/stretchr/testify/mock"
-
 	types "go.skia.org/infra/skcq/go/types"
 )
 
@@ -16,25 +14,40 @@ type CurrentChangesCache struct {
 	mock.Mock
 }
 
+type CurrentChangesCache_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *CurrentChangesCache) EXPECT() *CurrentChangesCache_Expecter {
+	return &CurrentChangesCache_Expecter{mock: &_m.Mock}
+}
+
 // Add provides a mock function with given fields: ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID
 func (_m *CurrentChangesCache) Add(ctx context.Context, changeEquivalentPatchset string, changeSubject string, changeOwner string, repo string, branch string, dryRun bool, internal bool, changeID int64, latestPatchsetID int64) (int64, bool, error) {
 	ret := _m.Called(ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Add")
+	}
+
 	var r0 int64
+	var r1 bool
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, bool, bool, int64, int64) (int64, bool, error)); ok {
+		return rf(ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, string, bool, bool, int64, int64) int64); ok {
 		r0 = rf(ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 bool
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, string, bool, bool, int64, int64) bool); ok {
 		r1 = rf(ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
 
-	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, string, string, string, string, string, bool, bool, int64, int64) error); ok {
 		r2 = rf(ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)
 	} else {
@@ -44,9 +57,50 @@ func (_m *CurrentChangesCache) Add(ctx context.Context, changeEquivalentPatchset
 	return r0, r1, r2
 }
 
+// CurrentChangesCache_Add_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Add'
+type CurrentChangesCache_Add_Call struct {
+	*mock.Call
+}
+
+// Add is a helper method to define mock.On call
+//   - ctx context.Context
+//   - changeEquivalentPatchset string
+//   - changeSubject string
+//   - changeOwner string
+//   - repo string
+//   - branch string
+//   - dryRun bool
+//   - internal bool
+//   - changeID int64
+//   - latestPatchsetID int64
+func (_e *CurrentChangesCache_Expecter) Add(ctx interface{}, changeEquivalentPatchset interface{}, changeSubject interface{}, changeOwner interface{}, repo interface{}, branch interface{}, dryRun interface{}, internal interface{}, changeID interface{}, latestPatchsetID interface{}) *CurrentChangesCache_Add_Call {
+	return &CurrentChangesCache_Add_Call{Call: _e.mock.On("Add", ctx, changeEquivalentPatchset, changeSubject, changeOwner, repo, branch, dryRun, internal, changeID, latestPatchsetID)}
+}
+
+func (_c *CurrentChangesCache_Add_Call) Run(run func(ctx context.Context, changeEquivalentPatchset string, changeSubject string, changeOwner string, repo string, branch string, dryRun bool, internal bool, changeID int64, latestPatchsetID int64)) *CurrentChangesCache_Add_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string), args[5].(string), args[6].(bool), args[7].(bool), args[8].(int64), args[9].(int64))
+	})
+	return _c
+}
+
+func (_c *CurrentChangesCache_Add_Call) Return(_a0 int64, _a1 bool, _a2 error) *CurrentChangesCache_Add_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *CurrentChangesCache_Add_Call) RunAndReturn(run func(context.Context, string, string, string, string, string, bool, bool, int64, int64) (int64, bool, error)) *CurrentChangesCache_Add_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function with given fields:
 func (_m *CurrentChangesCache) Get() map[string]*types.CurrentlyProcessingChange {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
 
 	var r0 map[string]*types.CurrentlyProcessingChange
 	if rf, ok := ret.Get(0).(func() map[string]*types.CurrentlyProcessingChange); ok {
@@ -60,9 +114,40 @@ func (_m *CurrentChangesCache) Get() map[string]*types.CurrentlyProcessingChange
 	return r0
 }
 
+// CurrentChangesCache_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type CurrentChangesCache_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+func (_e *CurrentChangesCache_Expecter) Get() *CurrentChangesCache_Get_Call {
+	return &CurrentChangesCache_Get_Call{Call: _e.mock.On("Get")}
+}
+
+func (_c *CurrentChangesCache_Get_Call) Run(run func()) *CurrentChangesCache_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CurrentChangesCache_Get_Call) Return(_a0 map[string]*types.CurrentlyProcessingChange) *CurrentChangesCache_Get_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CurrentChangesCache_Get_Call) RunAndReturn(run func() map[string]*types.CurrentlyProcessingChange) *CurrentChangesCache_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Remove provides a mock function with given fields: ctx, changeEquivalentPatchset
 func (_m *CurrentChangesCache) Remove(ctx context.Context, changeEquivalentPatchset string) error {
 	ret := _m.Called(ctx, changeEquivalentPatchset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Remove")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
@@ -74,9 +159,43 @@ func (_m *CurrentChangesCache) Remove(ctx context.Context, changeEquivalentPatch
 	return r0
 }
 
-// NewCurrentChangesCache creates a new instance of CurrentChangesCache. It also registers a cleanup function to assert the mocks expectations.
-func NewCurrentChangesCache(t testing.TB) *CurrentChangesCache {
+// CurrentChangesCache_Remove_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Remove'
+type CurrentChangesCache_Remove_Call struct {
+	*mock.Call
+}
+
+// Remove is a helper method to define mock.On call
+//   - ctx context.Context
+//   - changeEquivalentPatchset string
+func (_e *CurrentChangesCache_Expecter) Remove(ctx interface{}, changeEquivalentPatchset interface{}) *CurrentChangesCache_Remove_Call {
+	return &CurrentChangesCache_Remove_Call{Call: _e.mock.On("Remove", ctx, changeEquivalentPatchset)}
+}
+
+func (_c *CurrentChangesCache_Remove_Call) Run(run func(ctx context.Context, changeEquivalentPatchset string)) *CurrentChangesCache_Remove_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CurrentChangesCache_Remove_Call) Return(_a0 error) *CurrentChangesCache_Remove_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CurrentChangesCache_Remove_Call) RunAndReturn(run func(context.Context, string) error) *CurrentChangesCache_Remove_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewCurrentChangesCache creates a new instance of CurrentChangesCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewCurrentChangesCache(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *CurrentChangesCache {
 	mock := &CurrentChangesCache{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

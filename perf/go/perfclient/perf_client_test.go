@@ -9,14 +9,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ingest/format"
 )
 
 func TestHappyCase(t *testing.T) {
 
-	ms := test_gcsclient.NewMockClient()
+	ms := &mocks.GCSClient{}
 	defer ms.AssertExpectations(t)
 	pc := New("/foobar", ms)
 

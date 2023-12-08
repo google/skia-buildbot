@@ -6,7 +6,6 @@ go_library(
         "ThrottlerManager.go",
         "Verifier.go",
         "VerifiersManager.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/skcq/go/types/mocks",
     visibility = ["//visibility:public"],

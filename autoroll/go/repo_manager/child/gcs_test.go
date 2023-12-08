@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mocks"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -105,7 +105,7 @@ func TestGCSChild_ObjectAttrsToRevision_Basename(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Regex(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:             mockGCS,
 		gcsPath:         gcsPath_regex,
@@ -130,7 +130,7 @@ func TestGCSChild_GetRevision_Regex(t *testing.T) {
 }
 
 func TestGCSChild_GetRevision_Basename(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:      mockGCS,
 		gcsPath:  gcsPath_basename,
@@ -149,7 +149,7 @@ func TestGCSChild_GetRevision_Basename(t *testing.T) {
 }
 
 func TestGCSChild_LogRevisions(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:           mockGCS,
 		gcsPath:       gcsPath_basename,
@@ -207,7 +207,7 @@ func TestGCSChild_LogRevisions(t *testing.T) {
 }
 
 func TestGCSChild_GetAllRevisions(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:             mockGCS,
 		gcsPath:         gcsPath_regex,
@@ -264,7 +264,7 @@ func (v *testGcsVersion) Id() string {
 }
 
 func TestGCSChild_Update_Regex(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:             mockGCS,
 		gcsPath:         gcsPath_regex,
@@ -297,7 +297,7 @@ func TestGCSChild_Update_Regex(t *testing.T) {
 }
 
 func TestGCSChild_Update_Basename(t *testing.T) {
-	mockGCS := &test_gcsclient.GCSClient{}
+	mockGCS := &mocks.GCSClient{}
 	c := &gcsChild{
 		gcs:           mockGCS,
 		gcsPath:       gcsPath_regex,

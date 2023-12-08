@@ -9,8 +9,6 @@ import (
 
 	paramtools "go.skia.org/infra/go/paramtools"
 
-	testing "testing"
-
 	types "go.skia.org/infra/golden/go/types"
 )
 
@@ -19,9 +17,21 @@ type Calculator struct {
 	mock.Mock
 }
 
+type Calculator_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Calculator) EXPECT() *Calculator_Expecter {
+	return &Calculator_Expecter{mock: &_m.Mock}
+}
+
 // CalculateDiffs provides a mock function with given fields: ctx, grouping, additional
 func (_m *Calculator) CalculateDiffs(ctx context.Context, grouping paramtools.Params, additional []types.Digest) error {
 	ret := _m.Called(ctx, grouping, additional)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CalculateDiffs")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, []types.Digest) error); ok {
@@ -33,9 +43,44 @@ func (_m *Calculator) CalculateDiffs(ctx context.Context, grouping paramtools.Pa
 	return r0
 }
 
-// NewCalculator creates a new instance of Calculator. It also registers a cleanup function to assert the mocks expectations.
-func NewCalculator(t testing.TB) *Calculator {
+// Calculator_CalculateDiffs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CalculateDiffs'
+type Calculator_CalculateDiffs_Call struct {
+	*mock.Call
+}
+
+// CalculateDiffs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - grouping paramtools.Params
+//   - additional []types.Digest
+func (_e *Calculator_Expecter) CalculateDiffs(ctx interface{}, grouping interface{}, additional interface{}) *Calculator_CalculateDiffs_Call {
+	return &Calculator_CalculateDiffs_Call{Call: _e.mock.On("CalculateDiffs", ctx, grouping, additional)}
+}
+
+func (_c *Calculator_CalculateDiffs_Call) Run(run func(ctx context.Context, grouping paramtools.Params, additional []types.Digest)) *Calculator_CalculateDiffs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(paramtools.Params), args[2].([]types.Digest))
+	})
+	return _c
+}
+
+func (_c *Calculator_CalculateDiffs_Call) Return(_a0 error) *Calculator_CalculateDiffs_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Calculator_CalculateDiffs_Call) RunAndReturn(run func(context.Context, paramtools.Params, []types.Digest) error) *Calculator_CalculateDiffs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewCalculator creates a new instance of Calculator. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewCalculator(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *Calculator {
 	mock := &Calculator{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

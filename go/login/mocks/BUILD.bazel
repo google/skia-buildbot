@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "OAuthConfig.go",
-        "generate.go",
-    ],
+    srcs = ["OAuthConfig.go"],
     importpath = "go.skia.org/infra/go/login/mocks",
     visibility = ["//visibility:public"],
     deps = [

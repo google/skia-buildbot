@@ -4,11 +4,9 @@ package mocks
 
 import (
 	context "context"
-	testing "testing"
+	time "time"
 
 	mock "github.com/stretchr/testify/mock"
-
-	time "time"
 
 	types "go.skia.org/infra/npm-audit-mirror/go/types"
 )
@@ -18,11 +16,27 @@ type NpmDB struct {
 	mock.Mock
 }
 
+type NpmDB_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *NpmDB) EXPECT() *NpmDB_Expecter {
+	return &NpmDB_Expecter{mock: &_m.Mock}
+}
+
 // GetFromDB provides a mock function with given fields: ctx, key
 func (_m *NpmDB) GetFromDB(ctx context.Context, key string) (*types.NpmAuditData, error) {
 	ret := _m.Called(ctx, key)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetFromDB")
+	}
+
 	var r0 *types.NpmAuditData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*types.NpmAuditData, error)); ok {
+		return rf(ctx, key)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *types.NpmAuditData); ok {
 		r0 = rf(ctx, key)
 	} else {
@@ -31,7 +45,6 @@ func (_m *NpmDB) GetFromDB(ctx context.Context, key string) (*types.NpmAuditData
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, key)
 	} else {
@@ -41,9 +54,42 @@ func (_m *NpmDB) GetFromDB(ctx context.Context, key string) (*types.NpmAuditData
 	return r0, r1
 }
 
+// NpmDB_GetFromDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetFromDB'
+type NpmDB_GetFromDB_Call struct {
+	*mock.Call
+}
+
+// GetFromDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+func (_e *NpmDB_Expecter) GetFromDB(ctx interface{}, key interface{}) *NpmDB_GetFromDB_Call {
+	return &NpmDB_GetFromDB_Call{Call: _e.mock.On("GetFromDB", ctx, key)}
+}
+
+func (_c *NpmDB_GetFromDB_Call) Run(run func(ctx context.Context, key string)) *NpmDB_GetFromDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *NpmDB_GetFromDB_Call) Return(_a0 *types.NpmAuditData, _a1 error) *NpmDB_GetFromDB_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *NpmDB_GetFromDB_Call) RunAndReturn(run func(context.Context, string) (*types.NpmAuditData, error)) *NpmDB_GetFromDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutInDB provides a mock function with given fields: ctx, key, issueId, created
 func (_m *NpmDB) PutInDB(ctx context.Context, key string, issueId int64, created time.Time) error {
 	ret := _m.Called(ctx, key, issueId, created)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutInDB")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, int64, time.Time) error); ok {
@@ -55,9 +101,45 @@ func (_m *NpmDB) PutInDB(ctx context.Context, key string, issueId int64, created
 	return r0
 }
 
-// NewNpmDB creates a new instance of NpmDB. It also registers a cleanup function to assert the mocks expectations.
-func NewNpmDB(t testing.TB) *NpmDB {
+// NpmDB_PutInDB_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutInDB'
+type NpmDB_PutInDB_Call struct {
+	*mock.Call
+}
+
+// PutInDB is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+//   - issueId int64
+//   - created time.Time
+func (_e *NpmDB_Expecter) PutInDB(ctx interface{}, key interface{}, issueId interface{}, created interface{}) *NpmDB_PutInDB_Call {
+	return &NpmDB_PutInDB_Call{Call: _e.mock.On("PutInDB", ctx, key, issueId, created)}
+}
+
+func (_c *NpmDB_PutInDB_Call) Run(run func(ctx context.Context, key string, issueId int64, created time.Time)) *NpmDB_PutInDB_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int64), args[3].(time.Time))
+	})
+	return _c
+}
+
+func (_c *NpmDB_PutInDB_Call) Return(_a0 error) *NpmDB_PutInDB_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *NpmDB_PutInDB_Call) RunAndReturn(run func(context.Context, string, int64, time.Time) error) *NpmDB_PutInDB_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewNpmDB creates a new instance of NpmDB. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewNpmDB(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *NpmDB {
 	mock := &NpmDB{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

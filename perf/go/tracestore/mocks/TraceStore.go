@@ -10,8 +10,6 @@ import (
 
 	query "go.skia.org/infra/go/query"
 
-	testing "testing"
-
 	time "time"
 
 	tracestore "go.skia.org/infra/perf/go/tracestore"
@@ -24,18 +22,33 @@ type TraceStore struct {
 	mock.Mock
 }
 
+type TraceStore_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *TraceStore) EXPECT() *TraceStore_Expecter {
+	return &TraceStore_Expecter{mock: &_m.Mock}
+}
+
 // CommitNumberOfTileStart provides a mock function with given fields: ctx, commitNumber
 func (_m *TraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
 	ret := _m.Called(ctx, commitNumber)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CommitNumberOfTileStart")
+	}
+
 	var r0 types.CommitNumber
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber) (types.CommitNumber, error)); ok {
+		return rf(ctx, commitNumber)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber) types.CommitNumber); ok {
 		r0 = rf(ctx, commitNumber)
 	} else {
 		r0 = ret.Get(0).(types.CommitNumber)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber) error); ok {
 		r1 = rf(ctx, commitNumber)
 	} else {
@@ -45,11 +58,48 @@ func (_m *TraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumber 
 	return r0, r1
 }
 
+// TraceStore_CommitNumberOfTileStart_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitNumberOfTileStart'
+type TraceStore_CommitNumberOfTileStart_Call struct {
+	*mock.Call
+}
+
+// CommitNumberOfTileStart is a helper method to define mock.On call
+//   - ctx context.Context
+//   - commitNumber types.CommitNumber
+func (_e *TraceStore_Expecter) CommitNumberOfTileStart(ctx interface{}, commitNumber interface{}) *TraceStore_CommitNumberOfTileStart_Call {
+	return &TraceStore_CommitNumberOfTileStart_Call{Call: _e.mock.On("CommitNumberOfTileStart", ctx, commitNumber)}
+}
+
+func (_c *TraceStore_CommitNumberOfTileStart_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber)) *TraceStore_CommitNumberOfTileStart_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.CommitNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_CommitNumberOfTileStart_Call) Return(_a0 types.CommitNumber, _a1 error) *TraceStore_CommitNumberOfTileStart_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_CommitNumberOfTileStart_Call) RunAndReturn(run func(context.Context, types.CommitNumber) (types.CommitNumber, error)) *TraceStore_CommitNumberOfTileStart_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetLastNSources provides a mock function with given fields: ctx, traceID, n
 func (_m *TraceStore) GetLastNSources(ctx context.Context, traceID string, n int) ([]tracestore.Source, error) {
 	ret := _m.Called(ctx, traceID, n)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetLastNSources")
+	}
+
 	var r0 []tracestore.Source
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) ([]tracestore.Source, error)); ok {
+		return rf(ctx, traceID, n)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, int) []tracestore.Source); ok {
 		r0 = rf(ctx, traceID, n)
 	} else {
@@ -58,7 +108,6 @@ func (_m *TraceStore) GetLastNSources(ctx context.Context, traceID string, n int
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
 		r1 = rf(ctx, traceID, n)
 	} else {
@@ -68,18 +117,55 @@ func (_m *TraceStore) GetLastNSources(ctx context.Context, traceID string, n int
 	return r0, r1
 }
 
+// TraceStore_GetLastNSources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLastNSources'
+type TraceStore_GetLastNSources_Call struct {
+	*mock.Call
+}
+
+// GetLastNSources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - traceID string
+//   - n int
+func (_e *TraceStore_Expecter) GetLastNSources(ctx interface{}, traceID interface{}, n interface{}) *TraceStore_GetLastNSources_Call {
+	return &TraceStore_GetLastNSources_Call{Call: _e.mock.On("GetLastNSources", ctx, traceID, n)}
+}
+
+func (_c *TraceStore_GetLastNSources_Call) Run(run func(ctx context.Context, traceID string, n int)) *TraceStore_GetLastNSources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int))
+	})
+	return _c
+}
+
+func (_c *TraceStore_GetLastNSources_Call) Return(_a0 []tracestore.Source, _a1 error) *TraceStore_GetLastNSources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_GetLastNSources_Call) RunAndReturn(run func(context.Context, string, int) ([]tracestore.Source, error)) *TraceStore_GetLastNSources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetLatestTile provides a mock function with given fields: _a0
 func (_m *TraceStore) GetLatestTile(_a0 context.Context) (types.TileNumber, error) {
 	ret := _m.Called(_a0)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatestTile")
+	}
+
 	var r0 types.TileNumber
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (types.TileNumber, error)); ok {
+		return rf(_a0)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) types.TileNumber); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Get(0).(types.TileNumber)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(_a0)
 	} else {
@@ -89,11 +175,47 @@ func (_m *TraceStore) GetLatestTile(_a0 context.Context) (types.TileNumber, erro
 	return r0, r1
 }
 
+// TraceStore_GetLatestTile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestTile'
+type TraceStore_GetLatestTile_Call struct {
+	*mock.Call
+}
+
+// GetLatestTile is a helper method to define mock.On call
+//   - _a0 context.Context
+func (_e *TraceStore_Expecter) GetLatestTile(_a0 interface{}) *TraceStore_GetLatestTile_Call {
+	return &TraceStore_GetLatestTile_Call{Call: _e.mock.On("GetLatestTile", _a0)}
+}
+
+func (_c *TraceStore_GetLatestTile_Call) Run(run func(_a0 context.Context)) *TraceStore_GetLatestTile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *TraceStore_GetLatestTile_Call) Return(_a0 types.TileNumber, _a1 error) *TraceStore_GetLatestTile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_GetLatestTile_Call) RunAndReturn(run func(context.Context) (types.TileNumber, error)) *TraceStore_GetLatestTile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetParamSet provides a mock function with given fields: ctx, tileNumber
 func (_m *TraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx, tileNumber)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetParamSet")
+	}
+
 	var r0 paramtools.ReadOnlyParamSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) (paramtools.ReadOnlyParamSet, error)); ok {
+		return rf(ctx, tileNumber)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) paramtools.ReadOnlyParamSet); ok {
 		r0 = rf(ctx, tileNumber)
 	} else {
@@ -102,7 +224,6 @@ func (_m *TraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumb
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber) error); ok {
 		r1 = rf(ctx, tileNumber)
 	} else {
@@ -112,18 +233,54 @@ func (_m *TraceStore) GetParamSet(ctx context.Context, tileNumber types.TileNumb
 	return r0, r1
 }
 
+// TraceStore_GetParamSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetParamSet'
+type TraceStore_GetParamSet_Call struct {
+	*mock.Call
+}
+
+// GetParamSet is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tileNumber types.TileNumber
+func (_e *TraceStore_Expecter) GetParamSet(ctx interface{}, tileNumber interface{}) *TraceStore_GetParamSet_Call {
+	return &TraceStore_GetParamSet_Call{Call: _e.mock.On("GetParamSet", ctx, tileNumber)}
+}
+
+func (_c *TraceStore_GetParamSet_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber)) *TraceStore_GetParamSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.TileNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_GetParamSet_Call) Return(_a0 paramtools.ReadOnlyParamSet, _a1 error) *TraceStore_GetParamSet_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_GetParamSet_Call) RunAndReturn(run func(context.Context, types.TileNumber) (paramtools.ReadOnlyParamSet, error)) *TraceStore_GetParamSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSource provides a mock function with given fields: ctx, commitNumber, traceId
 func (_m *TraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error) {
 	ret := _m.Called(ctx, commitNumber, traceId)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetSource")
+	}
+
 	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string) (string, error)); ok {
+		return rf(ctx, commitNumber, traceId)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string) string); ok {
 		r0 = rf(ctx, commitNumber, traceId)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string) error); ok {
 		r1 = rf(ctx, commitNumber, traceId)
 	} else {
@@ -133,11 +290,49 @@ func (_m *TraceStore) GetSource(ctx context.Context, commitNumber types.CommitNu
 	return r0, r1
 }
 
+// TraceStore_GetSource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSource'
+type TraceStore_GetSource_Call struct {
+	*mock.Call
+}
+
+// GetSource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - commitNumber types.CommitNumber
+//   - traceId string
+func (_e *TraceStore_Expecter) GetSource(ctx interface{}, commitNumber interface{}, traceId interface{}) *TraceStore_GetSource_Call {
+	return &TraceStore_GetSource_Call{Call: _e.mock.On("GetSource", ctx, commitNumber, traceId)}
+}
+
+func (_c *TraceStore_GetSource_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, traceId string)) *TraceStore_GetSource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *TraceStore_GetSource_Call) Return(_a0 string, _a1 error) *TraceStore_GetSource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_GetSource_Call) RunAndReturn(run func(context.Context, types.CommitNumber, string) (string, error)) *TraceStore_GetSource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTraceIDsBySource provides a mock function with given fields: ctx, sourceFilename, tileNumber
 func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename string, tileNumber types.TileNumber) ([]string, error) {
 	ret := _m.Called(ctx, sourceFilename, tileNumber)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetTraceIDsBySource")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, types.TileNumber) ([]string, error)); ok {
+		return rf(ctx, sourceFilename, tileNumber)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, types.TileNumber) []string); ok {
 		r0 = rf(ctx, sourceFilename, tileNumber)
 	} else {
@@ -146,7 +341,6 @@ func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename st
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, types.TileNumber) error); ok {
 		r1 = rf(ctx, sourceFilename, tileNumber)
 	} else {
@@ -156,9 +350,43 @@ func (_m *TraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename st
 	return r0, r1
 }
 
+// TraceStore_GetTraceIDsBySource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTraceIDsBySource'
+type TraceStore_GetTraceIDsBySource_Call struct {
+	*mock.Call
+}
+
+// GetTraceIDsBySource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sourceFilename string
+//   - tileNumber types.TileNumber
+func (_e *TraceStore_Expecter) GetTraceIDsBySource(ctx interface{}, sourceFilename interface{}, tileNumber interface{}) *TraceStore_GetTraceIDsBySource_Call {
+	return &TraceStore_GetTraceIDsBySource_Call{Call: _e.mock.On("GetTraceIDsBySource", ctx, sourceFilename, tileNumber)}
+}
+
+func (_c *TraceStore_GetTraceIDsBySource_Call) Run(run func(ctx context.Context, sourceFilename string, tileNumber types.TileNumber)) *TraceStore_GetTraceIDsBySource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(types.TileNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_GetTraceIDsBySource_Call) Return(_a0 []string, _a1 error) *TraceStore_GetTraceIDsBySource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_GetTraceIDsBySource_Call) RunAndReturn(run func(context.Context, string, types.TileNumber) ([]string, error)) *TraceStore_GetTraceIDsBySource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OffsetFromCommitNumber provides a mock function with given fields: commitNumber
 func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	ret := _m.Called(commitNumber)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OffsetFromCommitNumber")
+	}
 
 	var r0 int32
 	if rf, ok := ret.Get(0).(func(types.CommitNumber) int32); ok {
@@ -170,11 +398,47 @@ func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) in
 	return r0
 }
 
+// TraceStore_OffsetFromCommitNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OffsetFromCommitNumber'
+type TraceStore_OffsetFromCommitNumber_Call struct {
+	*mock.Call
+}
+
+// OffsetFromCommitNumber is a helper method to define mock.On call
+//   - commitNumber types.CommitNumber
+func (_e *TraceStore_Expecter) OffsetFromCommitNumber(commitNumber interface{}) *TraceStore_OffsetFromCommitNumber_Call {
+	return &TraceStore_OffsetFromCommitNumber_Call{Call: _e.mock.On("OffsetFromCommitNumber", commitNumber)}
+}
+
+func (_c *TraceStore_OffsetFromCommitNumber_Call) Run(run func(commitNumber types.CommitNumber)) *TraceStore_OffsetFromCommitNumber_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(types.CommitNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_OffsetFromCommitNumber_Call) Return(_a0 int32) *TraceStore_OffsetFromCommitNumber_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TraceStore_OffsetFromCommitNumber_Call) RunAndReturn(run func(types.CommitNumber) int32) *TraceStore_OffsetFromCommitNumber_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // QueryTraces provides a mock function with given fields: ctx, tileNumber, q
 func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
 	ret := _m.Called(ctx, tileNumber, q)
 
+	if len(ret) == 0 {
+		panic("no return value specified for QueryTraces")
+	}
+
 	var r0 types.TraceSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) (types.TraceSet, error)); ok {
+		return rf(ctx, tileNumber, q)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) types.TraceSet); ok {
 		r0 = rf(ctx, tileNumber, q)
 	} else {
@@ -183,7 +447,6 @@ func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumb
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query) error); ok {
 		r1 = rf(ctx, tileNumber, q)
 	} else {
@@ -193,11 +456,49 @@ func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumb
 	return r0, r1
 }
 
+// TraceStore_QueryTraces_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryTraces'
+type TraceStore_QueryTraces_Call struct {
+	*mock.Call
+}
+
+// QueryTraces is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tileNumber types.TileNumber
+//   - q *query.Query
+func (_e *TraceStore_Expecter) QueryTraces(ctx interface{}, tileNumber interface{}, q interface{}) *TraceStore_QueryTraces_Call {
+	return &TraceStore_QueryTraces_Call{Call: _e.mock.On("QueryTraces", ctx, tileNumber, q)}
+}
+
+func (_c *TraceStore_QueryTraces_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber, q *query.Query)) *TraceStore_QueryTraces_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.TileNumber), args[2].(*query.Query))
+	})
+	return _c
+}
+
+func (_c *TraceStore_QueryTraces_Call) Return(_a0 types.TraceSet, _a1 error) *TraceStore_QueryTraces_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_QueryTraces_Call) RunAndReturn(run func(context.Context, types.TileNumber, *query.Query) (types.TraceSet, error)) *TraceStore_QueryTraces_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // QueryTracesIDOnly provides a mock function with given fields: ctx, tileNumber, q
 func (_m *TraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
 	ret := _m.Called(ctx, tileNumber, q)
 
+	if len(ret) == 0 {
+		panic("no return value specified for QueryTracesIDOnly")
+	}
+
 	var r0 <-chan paramtools.Params
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) (<-chan paramtools.Params, error)); ok {
+		return rf(ctx, tileNumber, q)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) <-chan paramtools.Params); ok {
 		r0 = rf(ctx, tileNumber, q)
 	} else {
@@ -206,7 +507,6 @@ func (_m *TraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.Ti
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query) error); ok {
 		r1 = rf(ctx, tileNumber, q)
 	} else {
@@ -216,11 +516,49 @@ func (_m *TraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.Ti
 	return r0, r1
 }
 
+// TraceStore_QueryTracesIDOnly_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'QueryTracesIDOnly'
+type TraceStore_QueryTracesIDOnly_Call struct {
+	*mock.Call
+}
+
+// QueryTracesIDOnly is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tileNumber types.TileNumber
+//   - q *query.Query
+func (_e *TraceStore_Expecter) QueryTracesIDOnly(ctx interface{}, tileNumber interface{}, q interface{}) *TraceStore_QueryTracesIDOnly_Call {
+	return &TraceStore_QueryTracesIDOnly_Call{Call: _e.mock.On("QueryTracesIDOnly", ctx, tileNumber, q)}
+}
+
+func (_c *TraceStore_QueryTracesIDOnly_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber, q *query.Query)) *TraceStore_QueryTracesIDOnly_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.TileNumber), args[2].(*query.Query))
+	})
+	return _c
+}
+
+func (_c *TraceStore_QueryTracesIDOnly_Call) Return(_a0 <-chan paramtools.Params, _a1 error) *TraceStore_QueryTracesIDOnly_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_QueryTracesIDOnly_Call) RunAndReturn(run func(context.Context, types.TileNumber, *query.Query) (<-chan paramtools.Params, error)) *TraceStore_QueryTracesIDOnly_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReadTraces provides a mock function with given fields: ctx, tileNumber, keys
 func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
 	ret := _m.Called(ctx, tileNumber, keys)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ReadTraces")
+	}
+
 	var r0 types.TraceSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, []string) (types.TraceSet, error)); ok {
+		return rf(ctx, tileNumber, keys)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, []string) types.TraceSet); ok {
 		r0 = rf(ctx, tileNumber, keys)
 	} else {
@@ -229,7 +567,6 @@ func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumbe
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, []string) error); ok {
 		r1 = rf(ctx, tileNumber, keys)
 	} else {
@@ -239,11 +576,49 @@ func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumbe
 	return r0, r1
 }
 
+// TraceStore_ReadTraces_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadTraces'
+type TraceStore_ReadTraces_Call struct {
+	*mock.Call
+}
+
+// ReadTraces is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tileNumber types.TileNumber
+//   - keys []string
+func (_e *TraceStore_Expecter) ReadTraces(ctx interface{}, tileNumber interface{}, keys interface{}) *TraceStore_ReadTraces_Call {
+	return &TraceStore_ReadTraces_Call{Call: _e.mock.On("ReadTraces", ctx, tileNumber, keys)}
+}
+
+func (_c *TraceStore_ReadTraces_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber, keys []string)) *TraceStore_ReadTraces_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.TileNumber), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *TraceStore_ReadTraces_Call) Return(_a0 types.TraceSet, _a1 error) *TraceStore_ReadTraces_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_ReadTraces_Call) RunAndReturn(run func(context.Context, types.TileNumber, []string) (types.TraceSet, error)) *TraceStore_ReadTraces_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReadTracesForCommitRange provides a mock function with given fields: ctx, keys, begin, end
 func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, error) {
 	ret := _m.Called(ctx, keys, begin, end)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ReadTracesForCommitRange")
+	}
+
 	var r0 types.TraceSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) (types.TraceSet, error)); ok {
+		return rf(ctx, keys, begin, end)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) types.TraceSet); ok {
 		r0 = rf(ctx, keys, begin, end)
 	} else {
@@ -252,7 +627,6 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) error); ok {
 		r1 = rf(ctx, keys, begin, end)
 	} else {
@@ -262,14 +636,76 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 	return r0, r1
 }
 
+// TraceStore_ReadTracesForCommitRange_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadTracesForCommitRange'
+type TraceStore_ReadTracesForCommitRange_Call struct {
+	*mock.Call
+}
+
+// ReadTracesForCommitRange is a helper method to define mock.On call
+//   - ctx context.Context
+//   - keys []string
+//   - begin types.CommitNumber
+//   - end types.CommitNumber
+func (_e *TraceStore_Expecter) ReadTracesForCommitRange(ctx interface{}, keys interface{}, begin interface{}, end interface{}) *TraceStore_ReadTracesForCommitRange_Call {
+	return &TraceStore_ReadTracesForCommitRange_Call{Call: _e.mock.On("ReadTracesForCommitRange", ctx, keys, begin, end)}
+}
+
+func (_c *TraceStore_ReadTracesForCommitRange_Call) Run(run func(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber)) *TraceStore_ReadTracesForCommitRange_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string), args[2].(types.CommitNumber), args[3].(types.CommitNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_ReadTracesForCommitRange_Call) Return(_a0 types.TraceSet, _a1 error) *TraceStore_ReadTracesForCommitRange_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_ReadTracesForCommitRange_Call) RunAndReturn(run func(context.Context, []string, types.CommitNumber, types.CommitNumber) (types.TraceSet, error)) *TraceStore_ReadTracesForCommitRange_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartBackgroundMetricsGathering provides a mock function with given fields:
 func (_m *TraceStore) StartBackgroundMetricsGathering() {
 	_m.Called()
 }
 
+// TraceStore_StartBackgroundMetricsGathering_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartBackgroundMetricsGathering'
+type TraceStore_StartBackgroundMetricsGathering_Call struct {
+	*mock.Call
+}
+
+// StartBackgroundMetricsGathering is a helper method to define mock.On call
+func (_e *TraceStore_Expecter) StartBackgroundMetricsGathering() *TraceStore_StartBackgroundMetricsGathering_Call {
+	return &TraceStore_StartBackgroundMetricsGathering_Call{Call: _e.mock.On("StartBackgroundMetricsGathering")}
+}
+
+func (_c *TraceStore_StartBackgroundMetricsGathering_Call) Run(run func()) *TraceStore_StartBackgroundMetricsGathering_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *TraceStore_StartBackgroundMetricsGathering_Call) Return() *TraceStore_StartBackgroundMetricsGathering_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *TraceStore_StartBackgroundMetricsGathering_Call) RunAndReturn(run func()) *TraceStore_StartBackgroundMetricsGathering_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TileNumber provides a mock function with given fields: commitNumber
 func (_m *TraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNumber {
 	ret := _m.Called(commitNumber)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TileNumber")
+	}
 
 	var r0 types.TileNumber
 	if rf, ok := ret.Get(0).(func(types.CommitNumber) types.TileNumber); ok {
@@ -281,9 +717,41 @@ func (_m *TraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNumb
 	return r0
 }
 
+// TraceStore_TileNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TileNumber'
+type TraceStore_TileNumber_Call struct {
+	*mock.Call
+}
+
+// TileNumber is a helper method to define mock.On call
+//   - commitNumber types.CommitNumber
+func (_e *TraceStore_Expecter) TileNumber(commitNumber interface{}) *TraceStore_TileNumber_Call {
+	return &TraceStore_TileNumber_Call{Call: _e.mock.On("TileNumber", commitNumber)}
+}
+
+func (_c *TraceStore_TileNumber_Call) Run(run func(commitNumber types.CommitNumber)) *TraceStore_TileNumber_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(types.CommitNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_TileNumber_Call) Return(_a0 types.TileNumber) *TraceStore_TileNumber_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TraceStore_TileNumber_Call) RunAndReturn(run func(types.CommitNumber) types.TileNumber) *TraceStore_TileNumber_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TileSize provides a mock function with given fields:
 func (_m *TraceStore) TileSize() int32 {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TileSize")
+	}
 
 	var r0 int32
 	if rf, ok := ret.Get(0).(func() int32); ok {
@@ -295,18 +763,52 @@ func (_m *TraceStore) TileSize() int32 {
 	return r0
 }
 
+// TraceStore_TileSize_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TileSize'
+type TraceStore_TileSize_Call struct {
+	*mock.Call
+}
+
+// TileSize is a helper method to define mock.On call
+func (_e *TraceStore_Expecter) TileSize() *TraceStore_TileSize_Call {
+	return &TraceStore_TileSize_Call{Call: _e.mock.On("TileSize")}
+}
+
+func (_c *TraceStore_TileSize_Call) Run(run func()) *TraceStore_TileSize_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *TraceStore_TileSize_Call) Return(_a0 int32) *TraceStore_TileSize_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TraceStore_TileSize_Call) RunAndReturn(run func() int32) *TraceStore_TileSize_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TraceCount provides a mock function with given fields: ctx, tileNumber
 func (_m *TraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	ret := _m.Called(ctx, tileNumber)
 
+	if len(ret) == 0 {
+		panic("no return value specified for TraceCount")
+	}
+
 	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) (int64, error)); ok {
+		return rf(ctx, tileNumber)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) int64); ok {
 		r0 = rf(ctx, tileNumber)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber) error); ok {
 		r1 = rf(ctx, tileNumber)
 	} else {
@@ -316,9 +818,42 @@ func (_m *TraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumbe
 	return r0, r1
 }
 
+// TraceStore_TraceCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TraceCount'
+type TraceStore_TraceCount_Call struct {
+	*mock.Call
+}
+
+// TraceCount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tileNumber types.TileNumber
+func (_e *TraceStore_Expecter) TraceCount(ctx interface{}, tileNumber interface{}) *TraceStore_TraceCount_Call {
+	return &TraceStore_TraceCount_Call{Call: _e.mock.On("TraceCount", ctx, tileNumber)}
+}
+
+func (_c *TraceStore_TraceCount_Call) Run(run func(ctx context.Context, tileNumber types.TileNumber)) *TraceStore_TraceCount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.TileNumber))
+	})
+	return _c
+}
+
+func (_c *TraceStore_TraceCount_Call) Return(_a0 int64, _a1 error) *TraceStore_TraceCount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TraceStore_TraceCount_Call) RunAndReturn(run func(context.Context, types.TileNumber) (int64, error)) *TraceStore_TraceCount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WriteTraces provides a mock function with given fields: ctx, commitNumber, params, values, paramset, source, timestamp
 func (_m *TraceStore) WriteTraces(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time) error {
 	ret := _m.Called(ctx, commitNumber, params, values, paramset, source, timestamp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WriteTraces")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, []paramtools.Params, []float32, paramtools.ParamSet, string, time.Time) error); ok {
@@ -330,9 +865,48 @@ func (_m *TraceStore) WriteTraces(ctx context.Context, commitNumber types.Commit
 	return r0
 }
 
-// NewTraceStore creates a new instance of TraceStore. It also registers a cleanup function to assert the mocks expectations.
-func NewTraceStore(t testing.TB) *TraceStore {
+// TraceStore_WriteTraces_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WriteTraces'
+type TraceStore_WriteTraces_Call struct {
+	*mock.Call
+}
+
+// WriteTraces is a helper method to define mock.On call
+//   - ctx context.Context
+//   - commitNumber types.CommitNumber
+//   - params []paramtools.Params
+//   - values []float32
+//   - paramset paramtools.ParamSet
+//   - source string
+//   - timestamp time.Time
+func (_e *TraceStore_Expecter) WriteTraces(ctx interface{}, commitNumber interface{}, params interface{}, values interface{}, paramset interface{}, source interface{}, timestamp interface{}) *TraceStore_WriteTraces_Call {
+	return &TraceStore_WriteTraces_Call{Call: _e.mock.On("WriteTraces", ctx, commitNumber, params, values, paramset, source, timestamp)}
+}
+
+func (_c *TraceStore_WriteTraces_Call) Run(run func(ctx context.Context, commitNumber types.CommitNumber, params []paramtools.Params, values []float32, paramset paramtools.ParamSet, source string, timestamp time.Time)) *TraceStore_WriteTraces_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.CommitNumber), args[2].([]paramtools.Params), args[3].([]float32), args[4].(paramtools.ParamSet), args[5].(string), args[6].(time.Time))
+	})
+	return _c
+}
+
+func (_c *TraceStore_WriteTraces_Call) Return(_a0 error) *TraceStore_WriteTraces_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TraceStore_WriteTraces_Call) RunAndReturn(run func(context.Context, types.CommitNumber, []paramtools.Params, []float32, paramtools.ParamSet, string, time.Time) error) *TraceStore_WriteTraces_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewTraceStore creates a new instance of TraceStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewTraceStore(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *TraceStore {
 	mock := &TraceStore{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

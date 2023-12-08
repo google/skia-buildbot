@@ -9,7 +9,6 @@ go_library(
         "NpmDB.go",
         "ProjectAudit.go",
         "ProjectMirror.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/npm-audit-mirror/go/types/mocks",
     visibility = ["//visibility:public"],

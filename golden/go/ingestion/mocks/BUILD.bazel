@@ -7,7 +7,6 @@ go_library(
         "Processor.go",
         "Source.go",
         "Store.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/golden/go/ingestion/mocks",
     visibility = ["//visibility:public"],

@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "Cacher.go",
-        "generate.go",
-    ],
+    srcs = ["Cacher.go"],
     importpath = "go.skia.org/infra/task_scheduler/go/cacher/mocks",
     visibility = ["//visibility:public"],
     deps = [

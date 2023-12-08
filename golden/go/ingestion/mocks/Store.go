@@ -7,8 +7,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	testing "testing"
-
 	time "time"
 )
 
@@ -17,9 +15,21 @@ type Store struct {
 	mock.Mock
 }
 
+type Store_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Store) EXPECT() *Store_Expecter {
+	return &Store_Expecter{mock: &_m.Mock}
+}
+
 // SetIngested provides a mock function with given fields: ctx, fileName, ts
 func (_m *Store) SetIngested(ctx context.Context, fileName string, ts time.Time) error {
 	ret := _m.Called(ctx, fileName, ts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetIngested")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time) error); ok {
@@ -31,18 +41,55 @@ func (_m *Store) SetIngested(ctx context.Context, fileName string, ts time.Time)
 	return r0
 }
 
+// Store_SetIngested_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetIngested'
+type Store_SetIngested_Call struct {
+	*mock.Call
+}
+
+// SetIngested is a helper method to define mock.On call
+//   - ctx context.Context
+//   - fileName string
+//   - ts time.Time
+func (_e *Store_Expecter) SetIngested(ctx interface{}, fileName interface{}, ts interface{}) *Store_SetIngested_Call {
+	return &Store_SetIngested_Call{Call: _e.mock.On("SetIngested", ctx, fileName, ts)}
+}
+
+func (_c *Store_SetIngested_Call) Run(run func(ctx context.Context, fileName string, ts time.Time)) *Store_SetIngested_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(time.Time))
+	})
+	return _c
+}
+
+func (_c *Store_SetIngested_Call) Return(_a0 error) *Store_SetIngested_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_SetIngested_Call) RunAndReturn(run func(context.Context, string, time.Time) error) *Store_SetIngested_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WasIngested provides a mock function with given fields: ctx, fileName
 func (_m *Store) WasIngested(ctx context.Context, fileName string) (bool, error) {
 	ret := _m.Called(ctx, fileName)
 
+	if len(ret) == 0 {
+		panic("no return value specified for WasIngested")
+	}
+
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, fileName)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
 		r0 = rf(ctx, fileName)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, fileName)
 	} else {
@@ -52,9 +99,43 @@ func (_m *Store) WasIngested(ctx context.Context, fileName string) (bool, error)
 	return r0, r1
 }
 
-// NewStore creates a new instance of Store. It also registers a cleanup function to assert the mocks expectations.
-func NewStore(t testing.TB) *Store {
+// Store_WasIngested_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WasIngested'
+type Store_WasIngested_Call struct {
+	*mock.Call
+}
+
+// WasIngested is a helper method to define mock.On call
+//   - ctx context.Context
+//   - fileName string
+func (_e *Store_Expecter) WasIngested(ctx interface{}, fileName interface{}) *Store_WasIngested_Call {
+	return &Store_WasIngested_Call{Call: _e.mock.On("WasIngested", ctx, fileName)}
+}
+
+func (_c *Store_WasIngested_Call) Run(run func(ctx context.Context, fileName string)) *Store_WasIngested_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Store_WasIngested_Call) Return(_a0 bool, _a1 error) *Store_WasIngested_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Store_WasIngested_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *Store_WasIngested_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewStore(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *Store {
 	mock := &Store{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

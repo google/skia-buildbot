@@ -8,8 +8,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	repograph "go.skia.org/infra/go/git/repograph"
 
-	testing "testing"
-
 	time "time"
 )
 
@@ -18,9 +16,21 @@ type Window struct {
 	mock.Mock
 }
 
+type Window_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Window) EXPECT() *Window_Expecter {
+	return &Window_Expecter{mock: &_m.Mock}
+}
+
 // EarliestStart provides a mock function with given fields:
 func (_m *Window) EarliestStart() time.Time {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for EarliestStart")
+	}
 
 	var r0 time.Time
 	if rf, ok := ret.Get(0).(func() time.Time); ok {
@@ -32,9 +42,40 @@ func (_m *Window) EarliestStart() time.Time {
 	return r0
 }
 
+// Window_EarliestStart_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EarliestStart'
+type Window_EarliestStart_Call struct {
+	*mock.Call
+}
+
+// EarliestStart is a helper method to define mock.On call
+func (_e *Window_Expecter) EarliestStart() *Window_EarliestStart_Call {
+	return &Window_EarliestStart_Call{Call: _e.mock.On("EarliestStart")}
+}
+
+func (_c *Window_EarliestStart_Call) Run(run func()) *Window_EarliestStart_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Window_EarliestStart_Call) Return(_a0 time.Time) *Window_EarliestStart_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_EarliestStart_Call) RunAndReturn(run func() time.Time) *Window_EarliestStart_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Start provides a mock function with given fields: repo
 func (_m *Window) Start(repo string) time.Time {
 	ret := _m.Called(repo)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Start")
+	}
 
 	var r0 time.Time
 	if rf, ok := ret.Get(0).(func(string) time.Time); ok {
@@ -46,9 +87,41 @@ func (_m *Window) Start(repo string) time.Time {
 	return r0
 }
 
+// Window_Start_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Start'
+type Window_Start_Call struct {
+	*mock.Call
+}
+
+// Start is a helper method to define mock.On call
+//   - repo string
+func (_e *Window_Expecter) Start(repo interface{}) *Window_Start_Call {
+	return &Window_Start_Call{Call: _e.mock.On("Start", repo)}
+}
+
+func (_c *Window_Start_Call) Run(run func(repo string)) *Window_Start_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Window_Start_Call) Return(_a0 time.Time) *Window_Start_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_Start_Call) RunAndReturn(run func(string) time.Time) *Window_Start_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartTimesByRepo provides a mock function with given fields:
 func (_m *Window) StartTimesByRepo() map[string]time.Time {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartTimesByRepo")
+	}
 
 	var r0 map[string]time.Time
 	if rf, ok := ret.Get(0).(func() map[string]time.Time); ok {
@@ -62,9 +135,40 @@ func (_m *Window) StartTimesByRepo() map[string]time.Time {
 	return r0
 }
 
+// Window_StartTimesByRepo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartTimesByRepo'
+type Window_StartTimesByRepo_Call struct {
+	*mock.Call
+}
+
+// StartTimesByRepo is a helper method to define mock.On call
+func (_e *Window_Expecter) StartTimesByRepo() *Window_StartTimesByRepo_Call {
+	return &Window_StartTimesByRepo_Call{Call: _e.mock.On("StartTimesByRepo")}
+}
+
+func (_c *Window_StartTimesByRepo_Call) Run(run func()) *Window_StartTimesByRepo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Window_StartTimesByRepo_Call) Return(_a0 map[string]time.Time) *Window_StartTimesByRepo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_StartTimesByRepo_Call) RunAndReturn(run func() map[string]time.Time) *Window_StartTimesByRepo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TestCommit provides a mock function with given fields: repo, c
 func (_m *Window) TestCommit(repo string, c *repograph.Commit) bool {
 	ret := _m.Called(repo, c)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestCommit")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, *repograph.Commit) bool); ok {
@@ -76,18 +180,54 @@ func (_m *Window) TestCommit(repo string, c *repograph.Commit) bool {
 	return r0
 }
 
+// Window_TestCommit_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestCommit'
+type Window_TestCommit_Call struct {
+	*mock.Call
+}
+
+// TestCommit is a helper method to define mock.On call
+//   - repo string
+//   - c *repograph.Commit
+func (_e *Window_Expecter) TestCommit(repo interface{}, c interface{}) *Window_TestCommit_Call {
+	return &Window_TestCommit_Call{Call: _e.mock.On("TestCommit", repo, c)}
+}
+
+func (_c *Window_TestCommit_Call) Run(run func(repo string, c *repograph.Commit)) *Window_TestCommit_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(*repograph.Commit))
+	})
+	return _c
+}
+
+func (_c *Window_TestCommit_Call) Return(_a0 bool) *Window_TestCommit_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_TestCommit_Call) RunAndReturn(run func(string, *repograph.Commit) bool) *Window_TestCommit_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TestCommitHash provides a mock function with given fields: repo, revision
 func (_m *Window) TestCommitHash(repo string, revision string) (bool, error) {
 	ret := _m.Called(repo, revision)
 
+	if len(ret) == 0 {
+		panic("no return value specified for TestCommitHash")
+	}
+
 	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (bool, error)); ok {
+		return rf(repo, revision)
+	}
 	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
 		r0 = rf(repo, revision)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(repo, revision)
 	} else {
@@ -97,9 +237,42 @@ func (_m *Window) TestCommitHash(repo string, revision string) (bool, error) {
 	return r0, r1
 }
 
+// Window_TestCommitHash_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestCommitHash'
+type Window_TestCommitHash_Call struct {
+	*mock.Call
+}
+
+// TestCommitHash is a helper method to define mock.On call
+//   - repo string
+//   - revision string
+func (_e *Window_Expecter) TestCommitHash(repo interface{}, revision interface{}) *Window_TestCommitHash_Call {
+	return &Window_TestCommitHash_Call{Call: _e.mock.On("TestCommitHash", repo, revision)}
+}
+
+func (_c *Window_TestCommitHash_Call) Run(run func(repo string, revision string)) *Window_TestCommitHash_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Window_TestCommitHash_Call) Return(_a0 bool, _a1 error) *Window_TestCommitHash_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Window_TestCommitHash_Call) RunAndReturn(run func(string, string) (bool, error)) *Window_TestCommitHash_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TestTime provides a mock function with given fields: repo, t
 func (_m *Window) TestTime(repo string, t time.Time) bool {
 	ret := _m.Called(repo, t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestTime")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, time.Time) bool); ok {
@@ -111,9 +284,42 @@ func (_m *Window) TestTime(repo string, t time.Time) bool {
 	return r0
 }
 
+// Window_TestTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TestTime'
+type Window_TestTime_Call struct {
+	*mock.Call
+}
+
+// TestTime is a helper method to define mock.On call
+//   - repo string
+//   - t time.Time
+func (_e *Window_Expecter) TestTime(repo interface{}, t interface{}) *Window_TestTime_Call {
+	return &Window_TestTime_Call{Call: _e.mock.On("TestTime", repo, t)}
+}
+
+func (_c *Window_TestTime_Call) Run(run func(repo string, t time.Time)) *Window_TestTime_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(time.Time))
+	})
+	return _c
+}
+
+func (_c *Window_TestTime_Call) Return(_a0 bool) *Window_TestTime_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_TestTime_Call) RunAndReturn(run func(string, time.Time) bool) *Window_TestTime_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx
 func (_m *Window) Update(ctx context.Context) error {
 	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
@@ -125,9 +331,41 @@ func (_m *Window) Update(ctx context.Context) error {
 	return r0
 }
 
+// Window_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type Window_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Window_Expecter) Update(ctx interface{}) *Window_Update_Call {
+	return &Window_Update_Call{Call: _e.mock.On("Update", ctx)}
+}
+
+func (_c *Window_Update_Call) Run(run func(ctx context.Context)) *Window_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Window_Update_Call) Return(_a0 error) *Window_Update_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_Update_Call) RunAndReturn(run func(context.Context) error) *Window_Update_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateWithTime provides a mock function with given fields: now
 func (_m *Window) UpdateWithTime(now time.Time) error {
 	ret := _m.Called(now)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateWithTime")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(time.Time) error); ok {
@@ -139,9 +377,42 @@ func (_m *Window) UpdateWithTime(now time.Time) error {
 	return r0
 }
 
-// NewWindow creates a new instance of Window. It also registers a cleanup function to assert the mocks expectations.
-func NewWindow(t testing.TB) *Window {
+// Window_UpdateWithTime_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateWithTime'
+type Window_UpdateWithTime_Call struct {
+	*mock.Call
+}
+
+// UpdateWithTime is a helper method to define mock.On call
+//   - now time.Time
+func (_e *Window_Expecter) UpdateWithTime(now interface{}) *Window_UpdateWithTime_Call {
+	return &Window_UpdateWithTime_Call{Call: _e.mock.On("UpdateWithTime", now)}
+}
+
+func (_c *Window_UpdateWithTime_Call) Run(run func(now time.Time)) *Window_UpdateWithTime_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(time.Time))
+	})
+	return _c
+}
+
+func (_c *Window_UpdateWithTime_Call) Return(_a0 error) *Window_UpdateWithTime_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Window_UpdateWithTime_Call) RunAndReturn(run func(time.Time) error) *Window_UpdateWithTime_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewWindow creates a new instance of Window. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewWindow(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *Window {
 	mock := &Window{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

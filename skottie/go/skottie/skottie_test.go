@@ -16,7 +16,7 @@ import (
 
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gcs/test_gcsclient"
+	"go.skia.org/infra/go/gcs/mocks"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -28,7 +28,7 @@ func TestUploadHandler_ValidJSONFile_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/does/not/matter", testutils.GetReader(t, "skottie-luma-matte-request.json"))
 
-	mgc := test_gcsclient.NewMockClient()
+	mgc := &mocks.GCSClient{}
 
 	optsMatcher := mock.MatchedBy(func(opts gcs.FileWriteOptions) bool {
 		assert.Equal(t, jsonContentType, opts.ContentEncoding)
@@ -68,7 +68,7 @@ func TestUploadHandler_ValidJSONWithAssetZip_FilesInZipUploaded(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/does/not/matter", testutils.GetReader(t, "skottie-images-asset.json"))
 
-	mgc := test_gcsclient.NewMockClient()
+	mgc := &mocks.GCSClient{}
 
 	jsonOptsMatcher := mock.MatchedBy(func(opts gcs.FileWriteOptions) bool {
 		return opts.ContentEncoding == jsonContentType

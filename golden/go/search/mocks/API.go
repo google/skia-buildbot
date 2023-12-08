@@ -14,8 +14,6 @@ import (
 
 	search "go.skia.org/infra/golden/go/search"
 
-	testing "testing"
-
 	time "time"
 
 	types "go.skia.org/infra/golden/go/types"
@@ -26,18 +24,33 @@ type API struct {
 	mock.Mock
 }
 
+type API_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *API) EXPECT() *API_Expecter {
+	return &API_Expecter{mock: &_m.Mock}
+}
+
 // ChangelistLastUpdated provides a mock function with given fields: ctx, qCLID
 func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Time, error) {
 	ret := _m.Called(ctx, qCLID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ChangelistLastUpdated")
+	}
+
 	var r0 time.Time
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (time.Time, error)); ok {
+		return rf(ctx, qCLID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) time.Time); ok {
 		r0 = rf(ctx, qCLID)
 	} else {
 		r0 = ret.Get(0).(time.Time)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, qCLID)
 	} else {
@@ -47,18 +60,54 @@ func (_m *API) ChangelistLastUpdated(ctx context.Context, qCLID string) (time.Ti
 	return r0, r1
 }
 
+// API_ChangelistLastUpdated_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ChangelistLastUpdated'
+type API_ChangelistLastUpdated_Call struct {
+	*mock.Call
+}
+
+// ChangelistLastUpdated is a helper method to define mock.On call
+//   - ctx context.Context
+//   - qCLID string
+func (_e *API_Expecter) ChangelistLastUpdated(ctx interface{}, qCLID interface{}) *API_ChangelistLastUpdated_Call {
+	return &API_ChangelistLastUpdated_Call{Call: _e.mock.On("ChangelistLastUpdated", ctx, qCLID)}
+}
+
+func (_c *API_ChangelistLastUpdated_Call) Run(run func(ctx context.Context, qCLID string)) *API_ChangelistLastUpdated_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *API_ChangelistLastUpdated_Call) Return(_a0 time.Time, _a1 error) *API_ChangelistLastUpdated_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_ChangelistLastUpdated_Call) RunAndReturn(run func(context.Context, string) (time.Time, error)) *API_ChangelistLastUpdated_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ComputeGUIStatus provides a mock function with given fields: ctx
 func (_m *API) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ComputeGUIStatus")
+	}
+
 	var r0 frontend.GUIStatus
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (frontend.GUIStatus, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) frontend.GUIStatus); ok {
 		r0 = rf(ctx)
 	} else {
 		r0 = ret.Get(0).(frontend.GUIStatus)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -68,18 +117,53 @@ func (_m *API) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 	return r0, r1
 }
 
+// API_ComputeGUIStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ComputeGUIStatus'
+type API_ComputeGUIStatus_Call struct {
+	*mock.Call
+}
+
+// ComputeGUIStatus is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *API_Expecter) ComputeGUIStatus(ctx interface{}) *API_ComputeGUIStatus_Call {
+	return &API_ComputeGUIStatus_Call{Call: _e.mock.On("ComputeGUIStatus", ctx)}
+}
+
+func (_c *API_ComputeGUIStatus_Call) Run(run func(ctx context.Context)) *API_ComputeGUIStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *API_ComputeGUIStatus_Call) Return(_a0 frontend.GUIStatus, _a1 error) *API_ComputeGUIStatus_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_ComputeGUIStatus_Call) RunAndReturn(run func(context.Context) (frontend.GUIStatus, error)) *API_ComputeGUIStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CountDigestsByTest provides a mock function with given fields: ctx, q
 func (_m *API) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error) {
 	ret := _m.Called(ctx, q)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CountDigestsByTest")
+	}
+
 	var r0 frontend.ListTestsResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, frontend.ListTestsQuery) (frontend.ListTestsResponse, error)); ok {
+		return rf(ctx, q)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, frontend.ListTestsQuery) frontend.ListTestsResponse); ok {
 		r0 = rf(ctx, q)
 	} else {
 		r0 = ret.Get(0).(frontend.ListTestsResponse)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, frontend.ListTestsQuery) error); ok {
 		r1 = rf(ctx, q)
 	} else {
@@ -89,18 +173,54 @@ func (_m *API) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery
 	return r0, r1
 }
 
+// API_CountDigestsByTest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountDigestsByTest'
+type API_CountDigestsByTest_Call struct {
+	*mock.Call
+}
+
+// CountDigestsByTest is a helper method to define mock.On call
+//   - ctx context.Context
+//   - q frontend.ListTestsQuery
+func (_e *API_Expecter) CountDigestsByTest(ctx interface{}, q interface{}) *API_CountDigestsByTest_Call {
+	return &API_CountDigestsByTest_Call{Call: _e.mock.On("CountDigestsByTest", ctx, q)}
+}
+
+func (_c *API_CountDigestsByTest_Call) Run(run func(ctx context.Context, q frontend.ListTestsQuery)) *API_CountDigestsByTest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(frontend.ListTestsQuery))
+	})
+	return _c
+}
+
+func (_c *API_CountDigestsByTest_Call) Return(_a0 frontend.ListTestsResponse, _a1 error) *API_CountDigestsByTest_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_CountDigestsByTest_Call) RunAndReturn(run func(context.Context, frontend.ListTestsQuery) (frontend.ListTestsResponse, error)) *API_CountDigestsByTest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetBlamesForUntriagedDigests provides a mock function with given fields: ctx, corpus
 func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) (search.BlameSummaryV1, error) {
 	ret := _m.Called(ctx, corpus)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetBlamesForUntriagedDigests")
+	}
+
 	var r0 search.BlameSummaryV1
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (search.BlameSummaryV1, error)); ok {
+		return rf(ctx, corpus)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) search.BlameSummaryV1); ok {
 		r0 = rf(ctx, corpus)
 	} else {
 		r0 = ret.Get(0).(search.BlameSummaryV1)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, corpus)
 	} else {
@@ -110,11 +230,48 @@ func (_m *API) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 	return r0, r1
 }
 
+// API_GetBlamesForUntriagedDigests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBlamesForUntriagedDigests'
+type API_GetBlamesForUntriagedDigests_Call struct {
+	*mock.Call
+}
+
+// GetBlamesForUntriagedDigests is a helper method to define mock.On call
+//   - ctx context.Context
+//   - corpus string
+func (_e *API_Expecter) GetBlamesForUntriagedDigests(ctx interface{}, corpus interface{}) *API_GetBlamesForUntriagedDigests_Call {
+	return &API_GetBlamesForUntriagedDigests_Call{Call: _e.mock.On("GetBlamesForUntriagedDigests", ctx, corpus)}
+}
+
+func (_c *API_GetBlamesForUntriagedDigests_Call) Run(run func(ctx context.Context, corpus string)) *API_GetBlamesForUntriagedDigests_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *API_GetBlamesForUntriagedDigests_Call) Return(_a0 search.BlameSummaryV1, _a1 error) *API_GetBlamesForUntriagedDigests_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetBlamesForUntriagedDigests_Call) RunAndReturn(run func(context.Context, string) (search.BlameSummaryV1, error)) *API_GetBlamesForUntriagedDigests_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetChangelistParamset provides a mock function with given fields: ctx, crs, clID
 func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID string) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx, crs, clID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetChangelistParamset")
+	}
+
 	var r0 paramtools.ReadOnlyParamSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (paramtools.ReadOnlyParamSet, error)); ok {
+		return rf(ctx, crs, clID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) paramtools.ReadOnlyParamSet); ok {
 		r0 = rf(ctx, crs, clID)
 	} else {
@@ -123,7 +280,6 @@ func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID strin
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, crs, clID)
 	} else {
@@ -133,18 +289,55 @@ func (_m *API) GetChangelistParamset(ctx context.Context, crs string, clID strin
 	return r0, r1
 }
 
+// API_GetChangelistParamset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetChangelistParamset'
+type API_GetChangelistParamset_Call struct {
+	*mock.Call
+}
+
+// GetChangelistParamset is a helper method to define mock.On call
+//   - ctx context.Context
+//   - crs string
+//   - clID string
+func (_e *API_Expecter) GetChangelistParamset(ctx interface{}, crs interface{}, clID interface{}) *API_GetChangelistParamset_Call {
+	return &API_GetChangelistParamset_Call{Call: _e.mock.On("GetChangelistParamset", ctx, crs, clID)}
+}
+
+func (_c *API_GetChangelistParamset_Call) Run(run func(ctx context.Context, crs string, clID string)) *API_GetChangelistParamset_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *API_GetChangelistParamset_Call) Return(_a0 paramtools.ReadOnlyParamSet, _a1 error) *API_GetChangelistParamset_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetChangelistParamset_Call) RunAndReturn(run func(context.Context, string, string) (paramtools.ReadOnlyParamSet, error)) *API_GetChangelistParamset_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCluster provides a mock function with given fields: ctx, opts
 func (_m *API) GetCluster(ctx context.Context, opts search.ClusterOptions) (frontend.ClusterDiffResult, error) {
 	ret := _m.Called(ctx, opts)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCluster")
+	}
+
 	var r0 frontend.ClusterDiffResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, search.ClusterOptions) (frontend.ClusterDiffResult, error)); ok {
+		return rf(ctx, opts)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, search.ClusterOptions) frontend.ClusterDiffResult); ok {
 		r0 = rf(ctx, opts)
 	} else {
 		r0 = ret.Get(0).(frontend.ClusterDiffResult)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, search.ClusterOptions) error); ok {
 		r1 = rf(ctx, opts)
 	} else {
@@ -154,11 +347,48 @@ func (_m *API) GetCluster(ctx context.Context, opts search.ClusterOptions) (fron
 	return r0, r1
 }
 
+// API_GetCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCluster'
+type API_GetCluster_Call struct {
+	*mock.Call
+}
+
+// GetCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - opts search.ClusterOptions
+func (_e *API_Expecter) GetCluster(ctx interface{}, opts interface{}) *API_GetCluster_Call {
+	return &API_GetCluster_Call{Call: _e.mock.On("GetCluster", ctx, opts)}
+}
+
+func (_c *API_GetCluster_Call) Run(run func(ctx context.Context, opts search.ClusterOptions)) *API_GetCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(search.ClusterOptions))
+	})
+	return _c
+}
+
+func (_c *API_GetCluster_Call) Return(_a0 frontend.ClusterDiffResult, _a1 error) *API_GetCluster_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetCluster_Call) RunAndReturn(run func(context.Context, search.ClusterOptions) (frontend.ClusterDiffResult, error)) *API_GetCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCommitsInWindow provides a mock function with given fields: ctx
 func (_m *API) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCommitsInWindow")
+	}
+
 	var r0 []frontend.Commit
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]frontend.Commit, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) []frontend.Commit); ok {
 		r0 = rf(ctx)
 	} else {
@@ -167,7 +397,6 @@ func (_m *API) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -177,18 +406,53 @@ func (_m *API) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error
 	return r0, r1
 }
 
+// API_GetCommitsInWindow_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCommitsInWindow'
+type API_GetCommitsInWindow_Call struct {
+	*mock.Call
+}
+
+// GetCommitsInWindow is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *API_Expecter) GetCommitsInWindow(ctx interface{}) *API_GetCommitsInWindow_Call {
+	return &API_GetCommitsInWindow_Call{Call: _e.mock.On("GetCommitsInWindow", ctx)}
+}
+
+func (_c *API_GetCommitsInWindow_Call) Run(run func(ctx context.Context)) *API_GetCommitsInWindow_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *API_GetCommitsInWindow_Call) Return(_a0 []frontend.Commit, _a1 error) *API_GetCommitsInWindow_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetCommitsInWindow_Call) RunAndReturn(run func(context.Context) ([]frontend.Commit, error)) *API_GetCommitsInWindow_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDigestDetails provides a mock function with given fields: ctx, grouping, digest, clID, crs
 func (_m *API) GetDigestDetails(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID string, crs string) (frontend.DigestDetails, error) {
 	ret := _m.Called(ctx, grouping, digest, clID, crs)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetDigestDetails")
+	}
+
 	var r0 frontend.DigestDetails
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, types.Digest, string, string) (frontend.DigestDetails, error)); ok {
+		return rf(ctx, grouping, digest, clID, crs)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, types.Digest, string, string) frontend.DigestDetails); ok {
 		r0 = rf(ctx, grouping, digest, clID, crs)
 	} else {
 		r0 = ret.Get(0).(frontend.DigestDetails)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, paramtools.Params, types.Digest, string, string) error); ok {
 		r1 = rf(ctx, grouping, digest, clID, crs)
 	} else {
@@ -198,18 +462,57 @@ func (_m *API) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	return r0, r1
 }
 
+// API_GetDigestDetails_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDigestDetails'
+type API_GetDigestDetails_Call struct {
+	*mock.Call
+}
+
+// GetDigestDetails is a helper method to define mock.On call
+//   - ctx context.Context
+//   - grouping paramtools.Params
+//   - digest types.Digest
+//   - clID string
+//   - crs string
+func (_e *API_Expecter) GetDigestDetails(ctx interface{}, grouping interface{}, digest interface{}, clID interface{}, crs interface{}) *API_GetDigestDetails_Call {
+	return &API_GetDigestDetails_Call{Call: _e.mock.On("GetDigestDetails", ctx, grouping, digest, clID, crs)}
+}
+
+func (_c *API_GetDigestDetails_Call) Run(run func(ctx context.Context, grouping paramtools.Params, digest types.Digest, clID string, crs string)) *API_GetDigestDetails_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(paramtools.Params), args[2].(types.Digest), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *API_GetDigestDetails_Call) Return(_a0 frontend.DigestDetails, _a1 error) *API_GetDigestDetails_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetDigestDetails_Call) RunAndReturn(run func(context.Context, paramtools.Params, types.Digest, string, string) (frontend.DigestDetails, error)) *API_GetDigestDetails_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDigestsDiff provides a mock function with given fields: ctx, grouping, left, right, clID, crs
 func (_m *API) GetDigestsDiff(ctx context.Context, grouping paramtools.Params, left types.Digest, right types.Digest, clID string, crs string) (frontend.DigestComparison, error) {
 	ret := _m.Called(ctx, grouping, left, right, clID, crs)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetDigestsDiff")
+	}
+
 	var r0 frontend.DigestComparison
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) (frontend.DigestComparison, error)); ok {
+		return rf(ctx, grouping, left, right, clID, crs)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) frontend.DigestComparison); ok {
 		r0 = rf(ctx, grouping, left, right, clID, crs)
 	} else {
 		r0 = ret.Get(0).(frontend.DigestComparison)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) error); ok {
 		r1 = rf(ctx, grouping, left, right, clID, crs)
 	} else {
@@ -219,18 +522,58 @@ func (_m *API) GetDigestsDiff(ctx context.Context, grouping paramtools.Params, l
 	return r0, r1
 }
 
+// API_GetDigestsDiff_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDigestsDiff'
+type API_GetDigestsDiff_Call struct {
+	*mock.Call
+}
+
+// GetDigestsDiff is a helper method to define mock.On call
+//   - ctx context.Context
+//   - grouping paramtools.Params
+//   - left types.Digest
+//   - right types.Digest
+//   - clID string
+//   - crs string
+func (_e *API_Expecter) GetDigestsDiff(ctx interface{}, grouping interface{}, left interface{}, right interface{}, clID interface{}, crs interface{}) *API_GetDigestsDiff_Call {
+	return &API_GetDigestsDiff_Call{Call: _e.mock.On("GetDigestsDiff", ctx, grouping, left, right, clID, crs)}
+}
+
+func (_c *API_GetDigestsDiff_Call) Run(run func(ctx context.Context, grouping paramtools.Params, left types.Digest, right types.Digest, clID string, crs string)) *API_GetDigestsDiff_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(paramtools.Params), args[2].(types.Digest), args[3].(types.Digest), args[4].(string), args[5].(string))
+	})
+	return _c
+}
+
+func (_c *API_GetDigestsDiff_Call) Return(_a0 frontend.DigestComparison, _a1 error) *API_GetDigestsDiff_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetDigestsDiff_Call) RunAndReturn(run func(context.Context, paramtools.Params, types.Digest, types.Digest, string, string) (frontend.DigestComparison, error)) *API_GetDigestsDiff_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetDigestsForGrouping provides a mock function with given fields: ctx, grouping
 func (_m *API) GetDigestsForGrouping(ctx context.Context, grouping paramtools.Params) (frontend.DigestListResponse, error) {
 	ret := _m.Called(ctx, grouping)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetDigestsForGrouping")
+	}
+
 	var r0 frontend.DigestListResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params) (frontend.DigestListResponse, error)); ok {
+		return rf(ctx, grouping)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, paramtools.Params) frontend.DigestListResponse); ok {
 		r0 = rf(ctx, grouping)
 	} else {
 		r0 = ret.Get(0).(frontend.DigestListResponse)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, paramtools.Params) error); ok {
 		r1 = rf(ctx, grouping)
 	} else {
@@ -240,11 +583,48 @@ func (_m *API) GetDigestsForGrouping(ctx context.Context, grouping paramtools.Pa
 	return r0, r1
 }
 
+// API_GetDigestsForGrouping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDigestsForGrouping'
+type API_GetDigestsForGrouping_Call struct {
+	*mock.Call
+}
+
+// GetDigestsForGrouping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - grouping paramtools.Params
+func (_e *API_Expecter) GetDigestsForGrouping(ctx interface{}, grouping interface{}) *API_GetDigestsForGrouping_Call {
+	return &API_GetDigestsForGrouping_Call{Call: _e.mock.On("GetDigestsForGrouping", ctx, grouping)}
+}
+
+func (_c *API_GetDigestsForGrouping_Call) Run(run func(ctx context.Context, grouping paramtools.Params)) *API_GetDigestsForGrouping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(paramtools.Params))
+	})
+	return _c
+}
+
+func (_c *API_GetDigestsForGrouping_Call) Return(_a0 frontend.DigestListResponse, _a1 error) *API_GetDigestsForGrouping_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetDigestsForGrouping_Call) RunAndReturn(run func(context.Context, paramtools.Params) (frontend.DigestListResponse, error)) *API_GetDigestsForGrouping_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPrimaryBranchParamset provides a mock function with given fields: ctx
 func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnlyParamSet, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetPrimaryBranchParamset")
+	}
+
 	var r0 paramtools.ReadOnlyParamSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (paramtools.ReadOnlyParamSet, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) paramtools.ReadOnlyParamSet); ok {
 		r0 = rf(ctx)
 	} else {
@@ -253,7 +633,6 @@ func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnl
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -263,18 +642,53 @@ func (_m *API) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnl
 	return r0, r1
 }
 
+// API_GetPrimaryBranchParamset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPrimaryBranchParamset'
+type API_GetPrimaryBranchParamset_Call struct {
+	*mock.Call
+}
+
+// GetPrimaryBranchParamset is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *API_Expecter) GetPrimaryBranchParamset(ctx interface{}) *API_GetPrimaryBranchParamset_Call {
+	return &API_GetPrimaryBranchParamset_Call{Call: _e.mock.On("GetPrimaryBranchParamset", ctx)}
+}
+
+func (_c *API_GetPrimaryBranchParamset_Call) Run(run func(ctx context.Context)) *API_GetPrimaryBranchParamset_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *API_GetPrimaryBranchParamset_Call) Return(_a0 paramtools.ReadOnlyParamSet, _a1 error) *API_GetPrimaryBranchParamset_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_GetPrimaryBranchParamset_Call) RunAndReturn(run func(context.Context) (paramtools.ReadOnlyParamSet, error)) *API_GetPrimaryBranchParamset_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewAndUntriagedSummaryForCL provides a mock function with given fields: ctx, qCLID
 func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (search.NewAndUntriagedSummary, error) {
 	ret := _m.Called(ctx, qCLID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for NewAndUntriagedSummaryForCL")
+	}
+
 	var r0 search.NewAndUntriagedSummary
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (search.NewAndUntriagedSummary, error)); ok {
+		return rf(ctx, qCLID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) search.NewAndUntriagedSummary); ok {
 		r0 = rf(ctx, qCLID)
 	} else {
 		r0 = ret.Get(0).(search.NewAndUntriagedSummary)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, qCLID)
 	} else {
@@ -284,11 +698,48 @@ func (_m *API) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (s
 	return r0, r1
 }
 
+// API_NewAndUntriagedSummaryForCL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewAndUntriagedSummaryForCL'
+type API_NewAndUntriagedSummaryForCL_Call struct {
+	*mock.Call
+}
+
+// NewAndUntriagedSummaryForCL is a helper method to define mock.On call
+//   - ctx context.Context
+//   - qCLID string
+func (_e *API_Expecter) NewAndUntriagedSummaryForCL(ctx interface{}, qCLID interface{}) *API_NewAndUntriagedSummaryForCL_Call {
+	return &API_NewAndUntriagedSummaryForCL_Call{Call: _e.mock.On("NewAndUntriagedSummaryForCL", ctx, qCLID)}
+}
+
+func (_c *API_NewAndUntriagedSummaryForCL_Call) Run(run func(ctx context.Context, qCLID string)) *API_NewAndUntriagedSummaryForCL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *API_NewAndUntriagedSummaryForCL_Call) Return(_a0 search.NewAndUntriagedSummary, _a1 error) *API_NewAndUntriagedSummaryForCL_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_NewAndUntriagedSummaryForCL_Call) RunAndReturn(run func(context.Context, string) (search.NewAndUntriagedSummary, error)) *API_NewAndUntriagedSummaryForCL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Search provides a mock function with given fields: _a0, _a1
 func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*frontend.SearchResponse, error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Search")
+	}
+
 	var r0 *frontend.SearchResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *query.Search) (*frontend.SearchResponse, error)); ok {
+		return rf(_a0, _a1)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, *query.Search) *frontend.SearchResponse); ok {
 		r0 = rf(_a0, _a1)
 	} else {
@@ -297,7 +748,6 @@ func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*frontend.SearchR
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *query.Search) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
@@ -307,9 +757,43 @@ func (_m *API) Search(_a0 context.Context, _a1 *query.Search) (*frontend.SearchR
 	return r0, r1
 }
 
-// NewAPI creates a new instance of API. It also registers a cleanup function to assert the mocks expectations.
-func NewAPI(t testing.TB) *API {
+// API_Search_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Search'
+type API_Search_Call struct {
+	*mock.Call
+}
+
+// Search is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *query.Search
+func (_e *API_Expecter) Search(_a0 interface{}, _a1 interface{}) *API_Search_Call {
+	return &API_Search_Call{Call: _e.mock.On("Search", _a0, _a1)}
+}
+
+func (_c *API_Search_Call) Run(run func(_a0 context.Context, _a1 *query.Search)) *API_Search_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*query.Search))
+	})
+	return _c
+}
+
+func (_c *API_Search_Call) Return(_a0 *frontend.SearchResponse, _a1 error) *API_Search_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *API_Search_Call) RunAndReturn(run func(context.Context, *query.Search) (*frontend.SearchResponse, error)) *API_Search_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewAPI creates a new instance of API. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewAPI(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *API {
 	mock := &API{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

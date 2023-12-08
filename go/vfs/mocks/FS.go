@@ -4,10 +4,8 @@ package mocks
 
 import (
 	context "context"
-	testing "testing"
 
 	mock "github.com/stretchr/testify/mock"
-
 	vfs "go.skia.org/infra/go/vfs"
 )
 
@@ -16,9 +14,21 @@ type FS struct {
 	mock.Mock
 }
 
+type FS_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *FS) EXPECT() *FS_Expecter {
+	return &FS_Expecter{mock: &_m.Mock}
+}
+
 // Close provides a mock function with given fields: ctx
 func (_m *FS) Close(ctx context.Context) error {
 	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Close")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
@@ -30,11 +40,47 @@ func (_m *FS) Close(ctx context.Context) error {
 	return r0
 }
 
+// FS_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type FS_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *FS_Expecter) Close(ctx interface{}) *FS_Close_Call {
+	return &FS_Close_Call{Call: _e.mock.On("Close", ctx)}
+}
+
+func (_c *FS_Close_Call) Run(run func(ctx context.Context)) *FS_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *FS_Close_Call) Return(_a0 error) *FS_Close_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *FS_Close_Call) RunAndReturn(run func(context.Context) error) *FS_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, name
 func (_m *FS) Create(ctx context.Context, name string) (vfs.File, error) {
 	ret := _m.Called(ctx, name)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Create")
+	}
+
 	var r0 vfs.File
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (vfs.File, error)); ok {
+		return rf(ctx, name)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) vfs.File); ok {
 		r0 = rf(ctx, name)
 	} else {
@@ -43,7 +89,6 @@ func (_m *FS) Create(ctx context.Context, name string) (vfs.File, error) {
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, name)
 	} else {
@@ -51,13 +96,50 @@ func (_m *FS) Create(ctx context.Context, name string) (vfs.File, error) {
 	}
 
 	return r0, r1
+}
+
+// FS_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type FS_Create_Call struct {
+	*mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *FS_Expecter) Create(ctx interface{}, name interface{}) *FS_Create_Call {
+	return &FS_Create_Call{Call: _e.mock.On("Create", ctx, name)}
+}
+
+func (_c *FS_Create_Call) Run(run func(ctx context.Context, name string)) *FS_Create_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *FS_Create_Call) Return(_a0 vfs.File, _a1 error) *FS_Create_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *FS_Create_Call) RunAndReturn(run func(context.Context, string) (vfs.File, error)) *FS_Create_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // Open provides a mock function with given fields: ctx, name
 func (_m *FS) Open(ctx context.Context, name string) (vfs.File, error) {
 	ret := _m.Called(ctx, name)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Open")
+	}
+
 	var r0 vfs.File
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (vfs.File, error)); ok {
+		return rf(ctx, name)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) vfs.File); ok {
 		r0 = rf(ctx, name)
 	} else {
@@ -66,7 +148,6 @@ func (_m *FS) Open(ctx context.Context, name string) (vfs.File, error) {
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, name)
 	} else {
@@ -76,9 +157,43 @@ func (_m *FS) Open(ctx context.Context, name string) (vfs.File, error) {
 	return r0, r1
 }
 
-// NewFS creates a new instance of FS. It also registers a cleanup function to assert the mocks expectations.
-func NewFS(t testing.TB) *FS {
+// FS_Open_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Open'
+type FS_Open_Call struct {
+	*mock.Call
+}
+
+// Open is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *FS_Expecter) Open(ctx interface{}, name interface{}) *FS_Open_Call {
+	return &FS_Open_Call{Call: _e.mock.On("Open", ctx, name)}
+}
+
+func (_c *FS_Open_Call) Run(run func(ctx context.Context, name string)) *FS_Open_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *FS_Open_Call) Return(_a0 vfs.File, _a1 error) *FS_Open_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *FS_Open_Call) RunAndReturn(run func(context.Context, string) (vfs.File, error)) *FS_Open_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewFS creates a new instance of FS. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewFS(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *FS {
 	mock := &FS{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

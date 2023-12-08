@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "JobCache.go",
         "TaskCache.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/task_scheduler/go/db/cache/mocks",
     visibility = ["//visibility:public"],

@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "CurrentChangesCache.go",
-        "generate.go",
-    ],
+    srcs = ["CurrentChangesCache.go"],
     importpath = "go.skia.org/infra/skcq/go/caches/mocks",
     visibility = ["//visibility:public"],
     deps = [

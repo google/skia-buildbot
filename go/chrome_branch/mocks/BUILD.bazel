@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "Client.go",
-        "generate.go",
-    ],
+    srcs = ["Client.go"],
     importpath = "go.skia.org/infra/go/chrome_branch/mocks",
     visibility = ["//visibility:public"],
     deps = [

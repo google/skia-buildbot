@@ -6,8 +6,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	config "go.skia.org/infra/skcq/go/config"
 
-	testing "testing"
-
 	time "time"
 )
 
@@ -16,9 +14,21 @@ type ThrottlerManager struct {
 	mock.Mock
 }
 
+type ThrottlerManager_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ThrottlerManager) EXPECT() *ThrottlerManager_Expecter {
+	return &ThrottlerManager_Expecter{mock: &_m.Mock}
+}
+
 // Throttle provides a mock function with given fields: repoBranch, commitTime
 func (_m *ThrottlerManager) Throttle(repoBranch string, commitTime time.Time) bool {
 	ret := _m.Called(repoBranch, commitTime)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Throttle")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string, time.Time) bool); ok {
@@ -30,14 +40,78 @@ func (_m *ThrottlerManager) Throttle(repoBranch string, commitTime time.Time) bo
 	return r0
 }
 
+// ThrottlerManager_Throttle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Throttle'
+type ThrottlerManager_Throttle_Call struct {
+	*mock.Call
+}
+
+// Throttle is a helper method to define mock.On call
+//   - repoBranch string
+//   - commitTime time.Time
+func (_e *ThrottlerManager_Expecter) Throttle(repoBranch interface{}, commitTime interface{}) *ThrottlerManager_Throttle_Call {
+	return &ThrottlerManager_Throttle_Call{Call: _e.mock.On("Throttle", repoBranch, commitTime)}
+}
+
+func (_c *ThrottlerManager_Throttle_Call) Run(run func(repoBranch string, commitTime time.Time)) *ThrottlerManager_Throttle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(time.Time))
+	})
+	return _c
+}
+
+func (_c *ThrottlerManager_Throttle_Call) Return(_a0 bool) *ThrottlerManager_Throttle_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ThrottlerManager_Throttle_Call) RunAndReturn(run func(string, time.Time) bool) *ThrottlerManager_Throttle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateThrottler provides a mock function with given fields: repoBranch, commitTime, throttlerCfg
 func (_m *ThrottlerManager) UpdateThrottler(repoBranch string, commitTime time.Time, throttlerCfg *config.ThrottlerCfg) {
 	_m.Called(repoBranch, commitTime, throttlerCfg)
 }
 
-// NewThrottlerManager creates a new instance of ThrottlerManager. It also registers a cleanup function to assert the mocks expectations.
-func NewThrottlerManager(t testing.TB) *ThrottlerManager {
+// ThrottlerManager_UpdateThrottler_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateThrottler'
+type ThrottlerManager_UpdateThrottler_Call struct {
+	*mock.Call
+}
+
+// UpdateThrottler is a helper method to define mock.On call
+//   - repoBranch string
+//   - commitTime time.Time
+//   - throttlerCfg *config.ThrottlerCfg
+func (_e *ThrottlerManager_Expecter) UpdateThrottler(repoBranch interface{}, commitTime interface{}, throttlerCfg interface{}) *ThrottlerManager_UpdateThrottler_Call {
+	return &ThrottlerManager_UpdateThrottler_Call{Call: _e.mock.On("UpdateThrottler", repoBranch, commitTime, throttlerCfg)}
+}
+
+func (_c *ThrottlerManager_UpdateThrottler_Call) Run(run func(repoBranch string, commitTime time.Time, throttlerCfg *config.ThrottlerCfg)) *ThrottlerManager_UpdateThrottler_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(time.Time), args[2].(*config.ThrottlerCfg))
+	})
+	return _c
+}
+
+func (_c *ThrottlerManager_UpdateThrottler_Call) Return() *ThrottlerManager_UpdateThrottler_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *ThrottlerManager_UpdateThrottler_Call) RunAndReturn(run func(string, time.Time, *config.ThrottlerCfg)) *ThrottlerManager_UpdateThrottler_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewThrottlerManager creates a new instance of ThrottlerManager. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewThrottlerManager(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *ThrottlerManager {
 	mock := &ThrottlerManager{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

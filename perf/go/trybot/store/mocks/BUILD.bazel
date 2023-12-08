@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "TryBotStore.go",
-        "generate.go",
-    ],
+    srcs = ["TryBotStore.go"],
     importpath = "go.skia.org/infra/perf/go/trybot/store/mocks",
     visibility = ["//visibility:public"],
     deps = [

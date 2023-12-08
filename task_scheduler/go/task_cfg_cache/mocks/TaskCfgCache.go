@@ -10,8 +10,6 @@ import (
 
 	task_cfg_cache "go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 
-	testing "testing"
-
 	time "time"
 
 	types "go.skia.org/infra/task_scheduler/go/types"
@@ -22,9 +20,21 @@ type TaskCfgCache struct {
 	mock.Mock
 }
 
+type TaskCfgCache_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *TaskCfgCache) EXPECT() *TaskCfgCache_Expecter {
+	return &TaskCfgCache_Expecter{mock: &_m.Mock}
+}
+
 // Cleanup provides a mock function with given fields: ctx, period
 func (_m *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error {
 	ret := _m.Called(ctx, period)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Cleanup")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, time.Duration) error); ok {
@@ -36,9 +46,42 @@ func (_m *TaskCfgCache) Cleanup(ctx context.Context, period time.Duration) error
 	return r0
 }
 
+// TaskCfgCache_Cleanup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cleanup'
+type TaskCfgCache_Cleanup_Call struct {
+	*mock.Call
+}
+
+// Cleanup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - period time.Duration
+func (_e *TaskCfgCache_Expecter) Cleanup(ctx interface{}, period interface{}) *TaskCfgCache_Cleanup_Call {
+	return &TaskCfgCache_Cleanup_Call{Call: _e.mock.On("Cleanup", ctx, period)}
+}
+
+func (_c *TaskCfgCache_Cleanup_Call) Run(run func(ctx context.Context, period time.Duration)) *TaskCfgCache_Cleanup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(time.Duration))
+	})
+	return _c
+}
+
+func (_c *TaskCfgCache_Cleanup_Call) Return(_a0 error) *TaskCfgCache_Cleanup_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TaskCfgCache_Cleanup_Call) RunAndReturn(run func(context.Context, time.Duration) error) *TaskCfgCache_Cleanup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Close provides a mock function with given fields:
 func (_m *TaskCfgCache) Close() error {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Close")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
@@ -50,11 +93,47 @@ func (_m *TaskCfgCache) Close() error {
 	return r0
 }
 
+// TaskCfgCache_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type TaskCfgCache_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+func (_e *TaskCfgCache_Expecter) Close() *TaskCfgCache_Close_Call {
+	return &TaskCfgCache_Close_Call{Call: _e.mock.On("Close")}
+}
+
+func (_c *TaskCfgCache_Close_Call) Run(run func()) *TaskCfgCache_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *TaskCfgCache_Close_Call) Return(_a0 error) *TaskCfgCache_Close_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TaskCfgCache_Close_Call) RunAndReturn(run func() error) *TaskCfgCache_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function with given fields: _a0, _a1
 func (_m *TaskCfgCache) Get(_a0 context.Context, _a1 types.RepoState) (*specs.TasksCfg, error, error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
 	var r0 *specs.TasksCfg
+	var r1 error
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState) (*specs.TasksCfg, error, error)); ok {
+		return rf(_a0, _a1)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState) *specs.TasksCfg); ok {
 		r0 = rf(_a0, _a1)
 	} else {
@@ -63,14 +142,12 @@ func (_m *TaskCfgCache) Get(_a0 context.Context, _a1 types.RepoState) (*specs.Ta
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.RepoState) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
 
-	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, types.RepoState) error); ok {
 		r2 = rf(_a0, _a1)
 	} else {
@@ -80,9 +157,42 @@ func (_m *TaskCfgCache) Get(_a0 context.Context, _a1 types.RepoState) (*specs.Ta
 	return r0, r1, r2
 }
 
+// TaskCfgCache_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type TaskCfgCache_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 types.RepoState
+func (_e *TaskCfgCache_Expecter) Get(_a0 interface{}, _a1 interface{}) *TaskCfgCache_Get_Call {
+	return &TaskCfgCache_Get_Call{Call: _e.mock.On("Get", _a0, _a1)}
+}
+
+func (_c *TaskCfgCache_Get_Call) Run(run func(_a0 context.Context, _a1 types.RepoState)) *TaskCfgCache_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RepoState))
+	})
+	return _c
+}
+
+func (_c *TaskCfgCache_Get_Call) Return(_a0 *specs.TasksCfg, _a1 error, _a2 error) *TaskCfgCache_Get_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *TaskCfgCache_Get_Call) RunAndReturn(run func(context.Context, types.RepoState) (*specs.TasksCfg, error, error)) *TaskCfgCache_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Set provides a mock function with given fields: ctx, rs, cfg, storedErr
 func (_m *TaskCfgCache) Set(ctx context.Context, rs types.RepoState, cfg *specs.TasksCfg, storedErr error) error {
 	ret := _m.Called(ctx, rs, cfg, storedErr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Set")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState, *specs.TasksCfg, error) error); ok {
@@ -94,11 +204,50 @@ func (_m *TaskCfgCache) Set(ctx context.Context, rs types.RepoState, cfg *specs.
 	return r0
 }
 
+// TaskCfgCache_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
+type TaskCfgCache_Set_Call struct {
+	*mock.Call
+}
+
+// Set is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rs types.RepoState
+//   - cfg *specs.TasksCfg
+//   - storedErr error
+func (_e *TaskCfgCache_Expecter) Set(ctx interface{}, rs interface{}, cfg interface{}, storedErr interface{}) *TaskCfgCache_Set_Call {
+	return &TaskCfgCache_Set_Call{Call: _e.mock.On("Set", ctx, rs, cfg, storedErr)}
+}
+
+func (_c *TaskCfgCache_Set_Call) Run(run func(ctx context.Context, rs types.RepoState, cfg *specs.TasksCfg, storedErr error)) *TaskCfgCache_Set_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RepoState), args[2].(*specs.TasksCfg), args[3].(error))
+	})
+	return _c
+}
+
+func (_c *TaskCfgCache_Set_Call) Return(_a0 error) *TaskCfgCache_Set_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TaskCfgCache_Set_Call) RunAndReturn(run func(context.Context, types.RepoState, *specs.TasksCfg, error) error) *TaskCfgCache_Set_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetIfUnset provides a mock function with given fields: ctx, rs, fn
 func (_m *TaskCfgCache) SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*task_cfg_cache.CachedValue, error)) (*task_cfg_cache.CachedValue, error) {
 	ret := _m.Called(ctx, rs, fn)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SetIfUnset")
+	}
+
 	var r0 *task_cfg_cache.CachedValue
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState, func(context.Context) (*task_cfg_cache.CachedValue, error)) (*task_cfg_cache.CachedValue, error)); ok {
+		return rf(ctx, rs, fn)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.RepoState, func(context.Context) (*task_cfg_cache.CachedValue, error)) *task_cfg_cache.CachedValue); ok {
 		r0 = rf(ctx, rs, fn)
 	} else {
@@ -107,7 +256,6 @@ func (_m *TaskCfgCache) SetIfUnset(ctx context.Context, rs types.RepoState, fn f
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, types.RepoState, func(context.Context) (*task_cfg_cache.CachedValue, error)) error); ok {
 		r1 = rf(ctx, rs, fn)
 	} else {
@@ -117,9 +265,44 @@ func (_m *TaskCfgCache) SetIfUnset(ctx context.Context, rs types.RepoState, fn f
 	return r0, r1
 }
 
-// NewTaskCfgCache creates a new instance of TaskCfgCache. It also registers a cleanup function to assert the mocks expectations.
-func NewTaskCfgCache(t testing.TB) *TaskCfgCache {
+// TaskCfgCache_SetIfUnset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetIfUnset'
+type TaskCfgCache_SetIfUnset_Call struct {
+	*mock.Call
+}
+
+// SetIfUnset is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rs types.RepoState
+//   - fn func(context.Context)(*task_cfg_cache.CachedValue , error)
+func (_e *TaskCfgCache_Expecter) SetIfUnset(ctx interface{}, rs interface{}, fn interface{}) *TaskCfgCache_SetIfUnset_Call {
+	return &TaskCfgCache_SetIfUnset_Call{Call: _e.mock.On("SetIfUnset", ctx, rs, fn)}
+}
+
+func (_c *TaskCfgCache_SetIfUnset_Call) Run(run func(ctx context.Context, rs types.RepoState, fn func(context.Context) (*task_cfg_cache.CachedValue, error))) *TaskCfgCache_SetIfUnset_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(types.RepoState), args[2].(func(context.Context) (*task_cfg_cache.CachedValue, error)))
+	})
+	return _c
+}
+
+func (_c *TaskCfgCache_SetIfUnset_Call) Return(_a0 *task_cfg_cache.CachedValue, _a1 error) *TaskCfgCache_SetIfUnset_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TaskCfgCache_SetIfUnset_Call) RunAndReturn(run func(context.Context, types.RepoState, func(context.Context) (*task_cfg_cache.CachedValue, error)) (*task_cfg_cache.CachedValue, error)) *TaskCfgCache_SetIfUnset_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewTaskCfgCache creates a new instance of TaskCfgCache. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewTaskCfgCache(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *TaskCfgCache {
 	mock := &TaskCfgCache{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

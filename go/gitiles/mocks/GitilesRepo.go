@@ -12,8 +12,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	testing "testing"
-
 	vcsinfo "go.skia.org/infra/go/vcsinfo"
 )
 
@@ -22,11 +20,27 @@ type GitilesRepo struct {
 	mock.Mock
 }
 
+type GitilesRepo_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *GitilesRepo) EXPECT() *GitilesRepo_Expecter {
+	return &GitilesRepo_Expecter{mock: &_m.Mock}
+}
+
 // Branches provides a mock function with given fields: ctx
 func (_m *GitilesRepo) Branches(ctx context.Context) ([]*git.Branch, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Branches")
+	}
+
 	var r0 []*git.Branch
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*git.Branch, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) []*git.Branch); ok {
 		r0 = rf(ctx)
 	} else {
@@ -35,7 +49,6 @@ func (_m *GitilesRepo) Branches(ctx context.Context) ([]*git.Branch, error) {
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -45,11 +58,47 @@ func (_m *GitilesRepo) Branches(ctx context.Context) ([]*git.Branch, error) {
 	return r0, r1
 }
 
+// GitilesRepo_Branches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Branches'
+type GitilesRepo_Branches_Call struct {
+	*mock.Call
+}
+
+// Branches is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *GitilesRepo_Expecter) Branches(ctx interface{}) *GitilesRepo_Branches_Call {
+	return &GitilesRepo_Branches_Call{Call: _e.mock.On("Branches", ctx)}
+}
+
+func (_c *GitilesRepo_Branches_Call) Run(run func(ctx context.Context)) *GitilesRepo_Branches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_Branches_Call) Return(_a0 []*git.Branch, _a1 error) *GitilesRepo_Branches_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_Branches_Call) RunAndReturn(run func(context.Context) ([]*git.Branch, error)) *GitilesRepo_Branches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Details provides a mock function with given fields: ctx, ref
 func (_m *GitilesRepo) Details(ctx context.Context, ref string) (*vcsinfo.LongCommit, error) {
 	ret := _m.Called(ctx, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Details")
+	}
+
 	var r0 *vcsinfo.LongCommit
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*vcsinfo.LongCommit, error)); ok {
+		return rf(ctx, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *vcsinfo.LongCommit); ok {
 		r0 = rf(ctx, ref)
 	} else {
@@ -58,7 +107,6 @@ func (_m *GitilesRepo) Details(ctx context.Context, ref string) (*vcsinfo.LongCo
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, ref)
 	} else {
@@ -68,9 +116,42 @@ func (_m *GitilesRepo) Details(ctx context.Context, ref string) (*vcsinfo.LongCo
 	return r0, r1
 }
 
+// GitilesRepo_Details_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Details'
+type GitilesRepo_Details_Call struct {
+	*mock.Call
+}
+
+// Details is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ref string
+func (_e *GitilesRepo_Expecter) Details(ctx interface{}, ref interface{}) *GitilesRepo_Details_Call {
+	return &GitilesRepo_Details_Call{Call: _e.mock.On("Details", ctx, ref)}
+}
+
+func (_c *GitilesRepo_Details_Call) Run(run func(ctx context.Context, ref string)) *GitilesRepo_Details_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_Details_Call) Return(_a0 *vcsinfo.LongCommit, _a1 error) *GitilesRepo_Details_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_Details_Call) RunAndReturn(run func(context.Context, string) (*vcsinfo.LongCommit, error)) *GitilesRepo_Details_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DownloadFile provides a mock function with given fields: ctx, srcPath, dstPath
 func (_m *GitilesRepo) DownloadFile(ctx context.Context, srcPath string, dstPath string) error {
 	ret := _m.Called(ctx, srcPath, dstPath)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DownloadFile")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
@@ -82,9 +163,43 @@ func (_m *GitilesRepo) DownloadFile(ctx context.Context, srcPath string, dstPath
 	return r0
 }
 
+// GitilesRepo_DownloadFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DownloadFile'
+type GitilesRepo_DownloadFile_Call struct {
+	*mock.Call
+}
+
+// DownloadFile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - srcPath string
+//   - dstPath string
+func (_e *GitilesRepo_Expecter) DownloadFile(ctx interface{}, srcPath interface{}, dstPath interface{}) *GitilesRepo_DownloadFile_Call {
+	return &GitilesRepo_DownloadFile_Call{Call: _e.mock.On("DownloadFile", ctx, srcPath, dstPath)}
+}
+
+func (_c *GitilesRepo_DownloadFile_Call) Run(run func(ctx context.Context, srcPath string, dstPath string)) *GitilesRepo_DownloadFile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_DownloadFile_Call) Return(_a0 error) *GitilesRepo_DownloadFile_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GitilesRepo_DownloadFile_Call) RunAndReturn(run func(context.Context, string, string) error) *GitilesRepo_DownloadFile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DownloadFileAtRef provides a mock function with given fields: ctx, srcPath, ref, dstPath
 func (_m *GitilesRepo) DownloadFileAtRef(ctx context.Context, srcPath string, ref string, dstPath string) error {
 	ret := _m.Called(ctx, srcPath, ref, dstPath)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DownloadFileAtRef")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
@@ -96,11 +211,50 @@ func (_m *GitilesRepo) DownloadFileAtRef(ctx context.Context, srcPath string, re
 	return r0
 }
 
+// GitilesRepo_DownloadFileAtRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DownloadFileAtRef'
+type GitilesRepo_DownloadFileAtRef_Call struct {
+	*mock.Call
+}
+
+// DownloadFileAtRef is a helper method to define mock.On call
+//   - ctx context.Context
+//   - srcPath string
+//   - ref string
+//   - dstPath string
+func (_e *GitilesRepo_Expecter) DownloadFileAtRef(ctx interface{}, srcPath interface{}, ref interface{}, dstPath interface{}) *GitilesRepo_DownloadFileAtRef_Call {
+	return &GitilesRepo_DownloadFileAtRef_Call{Call: _e.mock.On("DownloadFileAtRef", ctx, srcPath, ref, dstPath)}
+}
+
+func (_c *GitilesRepo_DownloadFileAtRef_Call) Run(run func(ctx context.Context, srcPath string, ref string, dstPath string)) *GitilesRepo_DownloadFileAtRef_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_DownloadFileAtRef_Call) Return(_a0 error) *GitilesRepo_DownloadFileAtRef_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GitilesRepo_DownloadFileAtRef_Call) RunAndReturn(run func(context.Context, string, string, string) error) *GitilesRepo_DownloadFileAtRef_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDir provides a mock function with given fields: ctx, dir
 func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, dir)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListDir")
+	}
+
 	var r0 []fs.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]fs.FileInfo, error)); ok {
+		return rf(ctx, dir)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []fs.FileInfo); ok {
 		r0 = rf(ctx, dir)
 	} else {
@@ -109,7 +263,6 @@ func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]fs.FileInfo, 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, dir)
 	} else {
@@ -119,11 +272,48 @@ func (_m *GitilesRepo) ListDir(ctx context.Context, dir string) ([]fs.FileInfo, 
 	return r0, r1
 }
 
+// GitilesRepo_ListDir_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDir'
+type GitilesRepo_ListDir_Call struct {
+	*mock.Call
+}
+
+// ListDir is a helper method to define mock.On call
+//   - ctx context.Context
+//   - dir string
+func (_e *GitilesRepo_Expecter) ListDir(ctx interface{}, dir interface{}) *GitilesRepo_ListDir_Call {
+	return &GitilesRepo_ListDir_Call{Call: _e.mock.On("ListDir", ctx, dir)}
+}
+
+func (_c *GitilesRepo_ListDir_Call) Run(run func(ctx context.Context, dir string)) *GitilesRepo_ListDir_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ListDir_Call) Return(_a0 []fs.FileInfo, _a1 error) *GitilesRepo_ListDir_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ListDir_Call) RunAndReturn(run func(context.Context, string) ([]fs.FileInfo, error)) *GitilesRepo_ListDir_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDirAtRef provides a mock function with given fields: ctx, dir, ref
 func (_m *GitilesRepo) ListDirAtRef(ctx context.Context, dir string, ref string) ([]fs.FileInfo, error) {
 	ret := _m.Called(ctx, dir, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListDirAtRef")
+	}
+
 	var r0 []fs.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]fs.FileInfo, error)); ok {
+		return rf(ctx, dir, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) []fs.FileInfo); ok {
 		r0 = rf(ctx, dir, ref)
 	} else {
@@ -132,7 +322,6 @@ func (_m *GitilesRepo) ListDirAtRef(ctx context.Context, dir string, ref string)
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, dir, ref)
 	} else {
@@ -142,11 +331,49 @@ func (_m *GitilesRepo) ListDirAtRef(ctx context.Context, dir string, ref string)
 	return r0, r1
 }
 
+// GitilesRepo_ListDirAtRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDirAtRef'
+type GitilesRepo_ListDirAtRef_Call struct {
+	*mock.Call
+}
+
+// ListDirAtRef is a helper method to define mock.On call
+//   - ctx context.Context
+//   - dir string
+//   - ref string
+func (_e *GitilesRepo_Expecter) ListDirAtRef(ctx interface{}, dir interface{}, ref interface{}) *GitilesRepo_ListDirAtRef_Call {
+	return &GitilesRepo_ListDirAtRef_Call{Call: _e.mock.On("ListDirAtRef", ctx, dir, ref)}
+}
+
+func (_c *GitilesRepo_ListDirAtRef_Call) Run(run func(ctx context.Context, dir string, ref string)) *GitilesRepo_ListDirAtRef_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ListDirAtRef_Call) Return(_a0 []fs.FileInfo, _a1 error) *GitilesRepo_ListDirAtRef_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ListDirAtRef_Call) RunAndReturn(run func(context.Context, string, string) ([]fs.FileInfo, error)) *GitilesRepo_ListDirAtRef_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListFilesRecursive provides a mock function with given fields: ctx, dir
 func (_m *GitilesRepo) ListFilesRecursive(ctx context.Context, dir string) ([]string, error) {
 	ret := _m.Called(ctx, dir)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListFilesRecursive")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
+		return rf(ctx, dir)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
 		r0 = rf(ctx, dir)
 	} else {
@@ -155,7 +382,6 @@ func (_m *GitilesRepo) ListFilesRecursive(ctx context.Context, dir string) ([]st
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, dir)
 	} else {
@@ -165,11 +391,48 @@ func (_m *GitilesRepo) ListFilesRecursive(ctx context.Context, dir string) ([]st
 	return r0, r1
 }
 
+// GitilesRepo_ListFilesRecursive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListFilesRecursive'
+type GitilesRepo_ListFilesRecursive_Call struct {
+	*mock.Call
+}
+
+// ListFilesRecursive is a helper method to define mock.On call
+//   - ctx context.Context
+//   - dir string
+func (_e *GitilesRepo_Expecter) ListFilesRecursive(ctx interface{}, dir interface{}) *GitilesRepo_ListFilesRecursive_Call {
+	return &GitilesRepo_ListFilesRecursive_Call{Call: _e.mock.On("ListFilesRecursive", ctx, dir)}
+}
+
+func (_c *GitilesRepo_ListFilesRecursive_Call) Run(run func(ctx context.Context, dir string)) *GitilesRepo_ListFilesRecursive_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ListFilesRecursive_Call) Return(_a0 []string, _a1 error) *GitilesRepo_ListFilesRecursive_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ListFilesRecursive_Call) RunAndReturn(run func(context.Context, string) ([]string, error)) *GitilesRepo_ListFilesRecursive_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListFilesRecursiveAtRef provides a mock function with given fields: ctx, topDir, ref
 func (_m *GitilesRepo) ListFilesRecursiveAtRef(ctx context.Context, topDir string, ref string) ([]string, error) {
 	ret := _m.Called(ctx, topDir, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListFilesRecursiveAtRef")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]string, error)); ok {
+		return rf(ctx, topDir, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) []string); ok {
 		r0 = rf(ctx, topDir, ref)
 	} else {
@@ -178,7 +441,6 @@ func (_m *GitilesRepo) ListFilesRecursiveAtRef(ctx context.Context, topDir strin
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, topDir, ref)
 	} else {
@@ -186,6 +448,36 @@ func (_m *GitilesRepo) ListFilesRecursiveAtRef(ctx context.Context, topDir strin
 	}
 
 	return r0, r1
+}
+
+// GitilesRepo_ListFilesRecursiveAtRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListFilesRecursiveAtRef'
+type GitilesRepo_ListFilesRecursiveAtRef_Call struct {
+	*mock.Call
+}
+
+// ListFilesRecursiveAtRef is a helper method to define mock.On call
+//   - ctx context.Context
+//   - topDir string
+//   - ref string
+func (_e *GitilesRepo_Expecter) ListFilesRecursiveAtRef(ctx interface{}, topDir interface{}, ref interface{}) *GitilesRepo_ListFilesRecursiveAtRef_Call {
+	return &GitilesRepo_ListFilesRecursiveAtRef_Call{Call: _e.mock.On("ListFilesRecursiveAtRef", ctx, topDir, ref)}
+}
+
+func (_c *GitilesRepo_ListFilesRecursiveAtRef_Call) Run(run func(ctx context.Context, topDir string, ref string)) *GitilesRepo_ListFilesRecursiveAtRef_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ListFilesRecursiveAtRef_Call) Return(_a0 []string, _a1 error) *GitilesRepo_ListFilesRecursiveAtRef_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ListFilesRecursiveAtRef_Call) RunAndReturn(run func(context.Context, string, string) ([]string, error)) *GitilesRepo_ListFilesRecursiveAtRef_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // Log provides a mock function with given fields: ctx, logExpr, opts
@@ -199,7 +491,15 @@ func (_m *GitilesRepo) Log(ctx context.Context, logExpr string, opts ...gitiles.
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Log")
+	}
+
 	var r0 []*vcsinfo.LongCommit
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)); ok {
+		return rf(ctx, logExpr, opts...)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, ...gitiles.LogOption) []*vcsinfo.LongCommit); ok {
 		r0 = rf(ctx, logExpr, opts...)
 	} else {
@@ -208,7 +508,6 @@ func (_m *GitilesRepo) Log(ctx context.Context, logExpr string, opts ...gitiles.
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, ...gitiles.LogOption) error); ok {
 		r1 = rf(ctx, logExpr, opts...)
 	} else {
@@ -216,6 +515,43 @@ func (_m *GitilesRepo) Log(ctx context.Context, logExpr string, opts ...gitiles.
 	}
 
 	return r0, r1
+}
+
+// GitilesRepo_Log_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Log'
+type GitilesRepo_Log_Call struct {
+	*mock.Call
+}
+
+// Log is a helper method to define mock.On call
+//   - ctx context.Context
+//   - logExpr string
+//   - opts ...gitiles.LogOption
+func (_e *GitilesRepo_Expecter) Log(ctx interface{}, logExpr interface{}, opts ...interface{}) *GitilesRepo_Log_Call {
+	return &GitilesRepo_Log_Call{Call: _e.mock.On("Log",
+		append([]interface{}{ctx, logExpr}, opts...)...)}
+}
+
+func (_c *GitilesRepo_Log_Call) Run(run func(ctx context.Context, logExpr string, opts ...gitiles.LogOption)) *GitilesRepo_Log_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gitiles.LogOption, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(gitiles.LogOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_Log_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitilesRepo_Log_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_Log_Call) RunAndReturn(run func(context.Context, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)) *GitilesRepo_Log_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LogFirstParent provides a mock function with given fields: ctx, from, to, opts
@@ -229,7 +565,15 @@ func (_m *GitilesRepo) LogFirstParent(ctx context.Context, from string, to strin
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for LogFirstParent")
+	}
+
 	var r0 []*vcsinfo.LongCommit
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)); ok {
+		return rf(ctx, from, to, opts...)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...gitiles.LogOption) []*vcsinfo.LongCommit); ok {
 		r0 = rf(ctx, from, to, opts...)
 	} else {
@@ -238,7 +582,6 @@ func (_m *GitilesRepo) LogFirstParent(ctx context.Context, from string, to strin
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, ...gitiles.LogOption) error); ok {
 		r1 = rf(ctx, from, to, opts...)
 	} else {
@@ -246,6 +589,44 @@ func (_m *GitilesRepo) LogFirstParent(ctx context.Context, from string, to strin
 	}
 
 	return r0, r1
+}
+
+// GitilesRepo_LogFirstParent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogFirstParent'
+type GitilesRepo_LogFirstParent_Call struct {
+	*mock.Call
+}
+
+// LogFirstParent is a helper method to define mock.On call
+//   - ctx context.Context
+//   - from string
+//   - to string
+//   - opts ...gitiles.LogOption
+func (_e *GitilesRepo_Expecter) LogFirstParent(ctx interface{}, from interface{}, to interface{}, opts ...interface{}) *GitilesRepo_LogFirstParent_Call {
+	return &GitilesRepo_LogFirstParent_Call{Call: _e.mock.On("LogFirstParent",
+		append([]interface{}{ctx, from, to}, opts...)...)}
+}
+
+func (_c *GitilesRepo_LogFirstParent_Call) Run(run func(ctx context.Context, from string, to string, opts ...gitiles.LogOption)) *GitilesRepo_LogFirstParent_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gitiles.LogOption, len(args)-3)
+		for i, a := range args[3:] {
+			if a != nil {
+				variadicArgs[i] = a.(gitiles.LogOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_LogFirstParent_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitilesRepo_LogFirstParent_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_LogFirstParent_Call) RunAndReturn(run func(context.Context, string, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)) *GitilesRepo_LogFirstParent_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LogFn provides a mock function with given fields: ctx, logExpr, fn, opts
@@ -259,6 +640,10 @@ func (_m *GitilesRepo) LogFn(ctx context.Context, logExpr string, fn func(contex
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for LogFn")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, func(context.Context, *vcsinfo.LongCommit) error, ...gitiles.LogOption) error); ok {
 		r0 = rf(ctx, logExpr, fn, opts...)
@@ -267,6 +652,44 @@ func (_m *GitilesRepo) LogFn(ctx context.Context, logExpr string, fn func(contex
 	}
 
 	return r0
+}
+
+// GitilesRepo_LogFn_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogFn'
+type GitilesRepo_LogFn_Call struct {
+	*mock.Call
+}
+
+// LogFn is a helper method to define mock.On call
+//   - ctx context.Context
+//   - logExpr string
+//   - fn func(context.Context , *vcsinfo.LongCommit) error
+//   - opts ...gitiles.LogOption
+func (_e *GitilesRepo_Expecter) LogFn(ctx interface{}, logExpr interface{}, fn interface{}, opts ...interface{}) *GitilesRepo_LogFn_Call {
+	return &GitilesRepo_LogFn_Call{Call: _e.mock.On("LogFn",
+		append([]interface{}{ctx, logExpr, fn}, opts...)...)}
+}
+
+func (_c *GitilesRepo_LogFn_Call) Run(run func(ctx context.Context, logExpr string, fn func(context.Context, *vcsinfo.LongCommit) error, opts ...gitiles.LogOption)) *GitilesRepo_LogFn_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gitiles.LogOption, len(args)-3)
+		for i, a := range args[3:] {
+			if a != nil {
+				variadicArgs[i] = a.(gitiles.LogOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(func(context.Context, *vcsinfo.LongCommit) error), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_LogFn_Call) Return(_a0 error) *GitilesRepo_LogFn_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GitilesRepo_LogFn_Call) RunAndReturn(run func(context.Context, string, func(context.Context, *vcsinfo.LongCommit) error, ...gitiles.LogOption) error) *GitilesRepo_LogFn_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LogFnBatch provides a mock function with given fields: ctx, logExpr, fn, opts
@@ -280,6 +703,10 @@ func (_m *GitilesRepo) LogFnBatch(ctx context.Context, logExpr string, fn func(c
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for LogFnBatch")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, func(context.Context, []*vcsinfo.LongCommit) error, ...gitiles.LogOption) error); ok {
 		r0 = rf(ctx, logExpr, fn, opts...)
@@ -288,6 +715,44 @@ func (_m *GitilesRepo) LogFnBatch(ctx context.Context, logExpr string, fn func(c
 	}
 
 	return r0
+}
+
+// GitilesRepo_LogFnBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogFnBatch'
+type GitilesRepo_LogFnBatch_Call struct {
+	*mock.Call
+}
+
+// LogFnBatch is a helper method to define mock.On call
+//   - ctx context.Context
+//   - logExpr string
+//   - fn func(context.Context , []*vcsinfo.LongCommit) error
+//   - opts ...gitiles.LogOption
+func (_e *GitilesRepo_Expecter) LogFnBatch(ctx interface{}, logExpr interface{}, fn interface{}, opts ...interface{}) *GitilesRepo_LogFnBatch_Call {
+	return &GitilesRepo_LogFnBatch_Call{Call: _e.mock.On("LogFnBatch",
+		append([]interface{}{ctx, logExpr, fn}, opts...)...)}
+}
+
+func (_c *GitilesRepo_LogFnBatch_Call) Run(run func(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...gitiles.LogOption)) *GitilesRepo_LogFnBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gitiles.LogOption, len(args)-3)
+		for i, a := range args[3:] {
+			if a != nil {
+				variadicArgs[i] = a.(gitiles.LogOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(func(context.Context, []*vcsinfo.LongCommit) error), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_LogFnBatch_Call) Return(_a0 error) *GitilesRepo_LogFnBatch_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GitilesRepo_LogFnBatch_Call) RunAndReturn(run func(context.Context, string, func(context.Context, []*vcsinfo.LongCommit) error, ...gitiles.LogOption) error) *GitilesRepo_LogFnBatch_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LogLinear provides a mock function with given fields: ctx, from, to, opts
@@ -301,7 +766,15 @@ func (_m *GitilesRepo) LogLinear(ctx context.Context, from string, to string, op
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for LogLinear")
+	}
+
 	var r0 []*vcsinfo.LongCommit
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)); ok {
+		return rf(ctx, from, to, opts...)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, ...gitiles.LogOption) []*vcsinfo.LongCommit); ok {
 		r0 = rf(ctx, from, to, opts...)
 	} else {
@@ -310,7 +783,6 @@ func (_m *GitilesRepo) LogLinear(ctx context.Context, from string, to string, op
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, ...gitiles.LogOption) error); ok {
 		r1 = rf(ctx, from, to, opts...)
 	} else {
@@ -320,11 +792,57 @@ func (_m *GitilesRepo) LogLinear(ctx context.Context, from string, to string, op
 	return r0, r1
 }
 
+// GitilesRepo_LogLinear_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LogLinear'
+type GitilesRepo_LogLinear_Call struct {
+	*mock.Call
+}
+
+// LogLinear is a helper method to define mock.On call
+//   - ctx context.Context
+//   - from string
+//   - to string
+//   - opts ...gitiles.LogOption
+func (_e *GitilesRepo_Expecter) LogLinear(ctx interface{}, from interface{}, to interface{}, opts ...interface{}) *GitilesRepo_LogLinear_Call {
+	return &GitilesRepo_LogLinear_Call{Call: _e.mock.On("LogLinear",
+		append([]interface{}{ctx, from, to}, opts...)...)}
+}
+
+func (_c *GitilesRepo_LogLinear_Call) Run(run func(ctx context.Context, from string, to string, opts ...gitiles.LogOption)) *GitilesRepo_LogLinear_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]gitiles.LogOption, len(args)-3)
+		for i, a := range args[3:] {
+			if a != nil {
+				variadicArgs[i] = a.(gitiles.LogOption)
+			}
+		}
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_LogLinear_Call) Return(_a0 []*vcsinfo.LongCommit, _a1 error) *GitilesRepo_LogLinear_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_LogLinear_Call) RunAndReturn(run func(context.Context, string, string, ...gitiles.LogOption) ([]*vcsinfo.LongCommit, error)) *GitilesRepo_LogLinear_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReadFile provides a mock function with given fields: ctx, srcPath
 func (_m *GitilesRepo) ReadFile(ctx context.Context, srcPath string) ([]byte, error) {
 	ret := _m.Called(ctx, srcPath)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ReadFile")
+	}
+
 	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]byte, error)); ok {
+		return rf(ctx, srcPath)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
 		r0 = rf(ctx, srcPath)
 	} else {
@@ -333,7 +851,6 @@ func (_m *GitilesRepo) ReadFile(ctx context.Context, srcPath string) ([]byte, er
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, srcPath)
 	} else {
@@ -343,11 +860,48 @@ func (_m *GitilesRepo) ReadFile(ctx context.Context, srcPath string) ([]byte, er
 	return r0, r1
 }
 
+// GitilesRepo_ReadFile_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadFile'
+type GitilesRepo_ReadFile_Call struct {
+	*mock.Call
+}
+
+// ReadFile is a helper method to define mock.On call
+//   - ctx context.Context
+//   - srcPath string
+func (_e *GitilesRepo_Expecter) ReadFile(ctx interface{}, srcPath interface{}) *GitilesRepo_ReadFile_Call {
+	return &GitilesRepo_ReadFile_Call{Call: _e.mock.On("ReadFile", ctx, srcPath)}
+}
+
+func (_c *GitilesRepo_ReadFile_Call) Run(run func(ctx context.Context, srcPath string)) *GitilesRepo_ReadFile_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ReadFile_Call) Return(_a0 []byte, _a1 error) *GitilesRepo_ReadFile_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ReadFile_Call) RunAndReturn(run func(context.Context, string) ([]byte, error)) *GitilesRepo_ReadFile_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReadFileAtRef provides a mock function with given fields: ctx, srcPath, ref
 func (_m *GitilesRepo) ReadFileAtRef(ctx context.Context, srcPath string, ref string) ([]byte, error) {
 	ret := _m.Called(ctx, srcPath, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ReadFileAtRef")
+	}
+
 	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]byte, error)); ok {
+		return rf(ctx, srcPath, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) []byte); ok {
 		r0 = rf(ctx, srcPath, ref)
 	} else {
@@ -356,7 +910,6 @@ func (_m *GitilesRepo) ReadFileAtRef(ctx context.Context, srcPath string, ref st
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, srcPath, ref)
 	} else {
@@ -366,11 +919,50 @@ func (_m *GitilesRepo) ReadFileAtRef(ctx context.Context, srcPath string, ref st
 	return r0, r1
 }
 
+// GitilesRepo_ReadFileAtRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadFileAtRef'
+type GitilesRepo_ReadFileAtRef_Call struct {
+	*mock.Call
+}
+
+// ReadFileAtRef is a helper method to define mock.On call
+//   - ctx context.Context
+//   - srcPath string
+//   - ref string
+func (_e *GitilesRepo_Expecter) ReadFileAtRef(ctx interface{}, srcPath interface{}, ref interface{}) *GitilesRepo_ReadFileAtRef_Call {
+	return &GitilesRepo_ReadFileAtRef_Call{Call: _e.mock.On("ReadFileAtRef", ctx, srcPath, ref)}
+}
+
+func (_c *GitilesRepo_ReadFileAtRef_Call) Run(run func(ctx context.Context, srcPath string, ref string)) *GitilesRepo_ReadFileAtRef_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ReadFileAtRef_Call) Return(_a0 []byte, _a1 error) *GitilesRepo_ReadFileAtRef_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ReadFileAtRef_Call) RunAndReturn(run func(context.Context, string, string) ([]byte, error)) *GitilesRepo_ReadFileAtRef_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReadObject provides a mock function with given fields: ctx, path, ref
 func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) (fs.FileInfo, []byte, error) {
 	ret := _m.Called(ctx, path, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ReadObject")
+	}
+
 	var r0 fs.FileInfo
+	var r1 []byte
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (fs.FileInfo, []byte, error)); ok {
+		return rf(ctx, path, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) fs.FileInfo); ok {
 		r0 = rf(ctx, path, ref)
 	} else {
@@ -379,7 +971,6 @@ func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) 
 		}
 	}
 
-	var r1 []byte
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) []byte); ok {
 		r1 = rf(ctx, path, ref)
 	} else {
@@ -388,7 +979,6 @@ func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) 
 		}
 	}
 
-	var r2 error
 	if rf, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
 		r2 = rf(ctx, path, ref)
 	} else {
@@ -398,18 +988,55 @@ func (_m *GitilesRepo) ReadObject(ctx context.Context, path string, ref string) 
 	return r0, r1, r2
 }
 
+// GitilesRepo_ReadObject_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadObject'
+type GitilesRepo_ReadObject_Call struct {
+	*mock.Call
+}
+
+// ReadObject is a helper method to define mock.On call
+//   - ctx context.Context
+//   - path string
+//   - ref string
+func (_e *GitilesRepo_Expecter) ReadObject(ctx interface{}, path interface{}, ref interface{}) *GitilesRepo_ReadObject_Call {
+	return &GitilesRepo_ReadObject_Call{Call: _e.mock.On("ReadObject", ctx, path, ref)}
+}
+
+func (_c *GitilesRepo_ReadObject_Call) Run(run func(ctx context.Context, path string, ref string)) *GitilesRepo_ReadObject_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ReadObject_Call) Return(_a0 fs.FileInfo, _a1 []byte, _a2 error) *GitilesRepo_ReadObject_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *GitilesRepo_ReadObject_Call) RunAndReturn(run func(context.Context, string, string) (fs.FileInfo, []byte, error)) *GitilesRepo_ReadObject_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResolveRef provides a mock function with given fields: ctx, ref
 func (_m *GitilesRepo) ResolveRef(ctx context.Context, ref string) (string, error) {
 	ret := _m.Called(ctx, ref)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveRef")
+	}
+
 	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return rf(ctx, ref)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
 		r0 = rf(ctx, ref)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, ref)
 	} else {
@@ -419,11 +1046,48 @@ func (_m *GitilesRepo) ResolveRef(ctx context.Context, ref string) (string, erro
 	return r0, r1
 }
 
+// GitilesRepo_ResolveRef_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveRef'
+type GitilesRepo_ResolveRef_Call struct {
+	*mock.Call
+}
+
+// ResolveRef is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ref string
+func (_e *GitilesRepo_Expecter) ResolveRef(ctx interface{}, ref interface{}) *GitilesRepo_ResolveRef_Call {
+	return &GitilesRepo_ResolveRef_Call{Call: _e.mock.On("ResolveRef", ctx, ref)}
+}
+
+func (_c *GitilesRepo_ResolveRef_Call) Run(run func(ctx context.Context, ref string)) *GitilesRepo_ResolveRef_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_ResolveRef_Call) Return(_a0 string, _a1 error) *GitilesRepo_ResolveRef_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_ResolveRef_Call) RunAndReturn(run func(context.Context, string) (string, error)) *GitilesRepo_ResolveRef_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Tags provides a mock function with given fields: ctx
 func (_m *GitilesRepo) Tags(ctx context.Context) (map[string]string, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Tags")
+	}
+
 	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]string, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) map[string]string); ok {
 		r0 = rf(ctx)
 	} else {
@@ -432,7 +1096,6 @@ func (_m *GitilesRepo) Tags(ctx context.Context) (map[string]string, error) {
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -442,9 +1105,41 @@ func (_m *GitilesRepo) Tags(ctx context.Context) (map[string]string, error) {
 	return r0, r1
 }
 
+// GitilesRepo_Tags_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Tags'
+type GitilesRepo_Tags_Call struct {
+	*mock.Call
+}
+
+// Tags is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *GitilesRepo_Expecter) Tags(ctx interface{}) *GitilesRepo_Tags_Call {
+	return &GitilesRepo_Tags_Call{Call: _e.mock.On("Tags", ctx)}
+}
+
+func (_c *GitilesRepo_Tags_Call) Run(run func(ctx context.Context)) *GitilesRepo_Tags_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_Tags_Call) Return(_a0 map[string]string, _a1 error) *GitilesRepo_Tags_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *GitilesRepo_Tags_Call) RunAndReturn(run func(context.Context) (map[string]string, error)) *GitilesRepo_Tags_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // URL provides a mock function with given fields:
 func (_m *GitilesRepo) URL() string {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for URL")
+	}
 
 	var r0 string
 	if rf, ok := ret.Get(0).(func() string); ok {
@@ -456,9 +1151,41 @@ func (_m *GitilesRepo) URL() string {
 	return r0
 }
 
-// NewGitilesRepo creates a new instance of GitilesRepo. It also registers a cleanup function to assert the mocks expectations.
-func NewGitilesRepo(t testing.TB) *GitilesRepo {
+// GitilesRepo_URL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'URL'
+type GitilesRepo_URL_Call struct {
+	*mock.Call
+}
+
+// URL is a helper method to define mock.On call
+func (_e *GitilesRepo_Expecter) URL() *GitilesRepo_URL_Call {
+	return &GitilesRepo_URL_Call{Call: _e.mock.On("URL")}
+}
+
+func (_c *GitilesRepo_URL_Call) Run(run func()) *GitilesRepo_URL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *GitilesRepo_URL_Call) Return(_a0 string) *GitilesRepo_URL_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *GitilesRepo_URL_Call) RunAndReturn(run func() string) *GitilesRepo_URL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewGitilesRepo creates a new instance of GitilesRepo. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewGitilesRepo(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *GitilesRepo {
 	mock := &GitilesRepo{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

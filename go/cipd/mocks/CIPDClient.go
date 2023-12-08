@@ -18,8 +18,6 @@ import (
 
 	regexp "regexp"
 
-	testing "testing"
-
 	time "time"
 )
 
@@ -28,9 +26,21 @@ type CIPDClient struct {
 	mock.Mock
 }
 
+type CIPDClient_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *CIPDClient) EXPECT() *CIPDClient_Expecter {
+	return &CIPDClient_Expecter{mock: &_m.Mock}
+}
+
 // Attach provides a mock function with given fields: ctx, pin, refs, tags, metadata
 func (_m *CIPDClient) Attach(ctx context.Context, pin common.Pin, refs []string, tags []string, metadata map[string]string) error {
 	ret := _m.Called(ctx, pin, refs, tags, metadata)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Attach")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []string, []string, map[string]string) error); ok {
@@ -42,9 +52,45 @@ func (_m *CIPDClient) Attach(ctx context.Context, pin common.Pin, refs []string,
 	return r0
 }
 
+// CIPDClient_Attach_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Attach'
+type CIPDClient_Attach_Call struct {
+	*mock.Call
+}
+
+// Attach is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - refs []string
+//   - tags []string
+//   - metadata map[string]string
+func (_e *CIPDClient_Expecter) Attach(ctx interface{}, pin interface{}, refs interface{}, tags interface{}, metadata interface{}) *CIPDClient_Attach_Call {
+	return &CIPDClient_Attach_Call{Call: _e.mock.On("Attach", ctx, pin, refs, tags, metadata)}
+}
+
+func (_c *CIPDClient_Attach_Call) Run(run func(ctx context.Context, pin common.Pin, refs []string, tags []string, metadata map[string]string)) *CIPDClient_Attach_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].([]string), args[3].([]string), args[4].(map[string]string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Attach_Call) Return(_a0 error) *CIPDClient_Attach_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_Attach_Call) RunAndReturn(run func(context.Context, common.Pin, []string, []string, map[string]string) error) *CIPDClient_Attach_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachMetadataWhenReady provides a mock function with given fields: ctx, pin, md
 func (_m *CIPDClient) AttachMetadataWhenReady(ctx context.Context, pin common.Pin, md []clientcipd.Metadata) error {
 	ret := _m.Called(ctx, pin, md)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachMetadataWhenReady")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []clientcipd.Metadata) error); ok {
@@ -56,9 +102,43 @@ func (_m *CIPDClient) AttachMetadataWhenReady(ctx context.Context, pin common.Pi
 	return r0
 }
 
+// CIPDClient_AttachMetadataWhenReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachMetadataWhenReady'
+type CIPDClient_AttachMetadataWhenReady_Call struct {
+	*mock.Call
+}
+
+// AttachMetadataWhenReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - md []clientcipd.Metadata
+func (_e *CIPDClient_Expecter) AttachMetadataWhenReady(ctx interface{}, pin interface{}, md interface{}) *CIPDClient_AttachMetadataWhenReady_Call {
+	return &CIPDClient_AttachMetadataWhenReady_Call{Call: _e.mock.On("AttachMetadataWhenReady", ctx, pin, md)}
+}
+
+func (_c *CIPDClient_AttachMetadataWhenReady_Call) Run(run func(ctx context.Context, pin common.Pin, md []clientcipd.Metadata)) *CIPDClient_AttachMetadataWhenReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].([]clientcipd.Metadata))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_AttachMetadataWhenReady_Call) Return(_a0 error) *CIPDClient_AttachMetadataWhenReady_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_AttachMetadataWhenReady_Call) RunAndReturn(run func(context.Context, common.Pin, []clientcipd.Metadata) error) *CIPDClient_AttachMetadataWhenReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachTagsWhenReady provides a mock function with given fields: ctx, pin, tags
 func (_m *CIPDClient) AttachTagsWhenReady(ctx context.Context, pin common.Pin, tags []string) error {
 	ret := _m.Called(ctx, pin, tags)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachTagsWhenReady")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, []string) error); ok {
@@ -70,9 +150,67 @@ func (_m *CIPDClient) AttachTagsWhenReady(ctx context.Context, pin common.Pin, t
 	return r0
 }
 
+// CIPDClient_AttachTagsWhenReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachTagsWhenReady'
+type CIPDClient_AttachTagsWhenReady_Call struct {
+	*mock.Call
+}
+
+// AttachTagsWhenReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - tags []string
+func (_e *CIPDClient_Expecter) AttachTagsWhenReady(ctx interface{}, pin interface{}, tags interface{}) *CIPDClient_AttachTagsWhenReady_Call {
+	return &CIPDClient_AttachTagsWhenReady_Call{Call: _e.mock.On("AttachTagsWhenReady", ctx, pin, tags)}
+}
+
+func (_c *CIPDClient_AttachTagsWhenReady_Call) Run(run func(ctx context.Context, pin common.Pin, tags []string)) *CIPDClient_AttachTagsWhenReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_AttachTagsWhenReady_Call) Return(_a0 error) *CIPDClient_AttachTagsWhenReady_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_AttachTagsWhenReady_Call) RunAndReturn(run func(context.Context, common.Pin, []string) error) *CIPDClient_AttachTagsWhenReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BeginBatch provides a mock function with given fields: ctx
 func (_m *CIPDClient) BeginBatch(ctx context.Context) {
 	_m.Called(ctx)
+}
+
+// CIPDClient_BeginBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BeginBatch'
+type CIPDClient_BeginBatch_Call struct {
+	*mock.Call
+}
+
+// BeginBatch is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CIPDClient_Expecter) BeginBatch(ctx interface{}) *CIPDClient_BeginBatch_Call {
+	return &CIPDClient_BeginBatch_Call{Call: _e.mock.On("BeginBatch", ctx)}
+}
+
+func (_c *CIPDClient_BeginBatch_Call) Run(run func(ctx context.Context)) *CIPDClient_BeginBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_BeginBatch_Call) Return() *CIPDClient_BeginBatch_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CIPDClient_BeginBatch_Call) RunAndReturn(run func(context.Context)) *CIPDClient_BeginBatch_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // Close provides a mock function with given fields: ctx
@@ -80,18 +218,53 @@ func (_m *CIPDClient) Close(ctx context.Context) {
 	_m.Called(ctx)
 }
 
+// CIPDClient_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type CIPDClient_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CIPDClient_Expecter) Close(ctx interface{}) *CIPDClient_Close_Call {
+	return &CIPDClient_Close_Call{Call: _e.mock.On("Close", ctx)}
+}
+
+func (_c *CIPDClient_Close_Call) Run(run func(ctx context.Context)) *CIPDClient_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Close_Call) Return() *CIPDClient_Close_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CIPDClient_Close_Call) RunAndReturn(run func(context.Context)) *CIPDClient_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata
 func (_m *CIPDClient) Create(ctx context.Context, name string, dir string, installMode pkg.InstallMode, excludeMatchingFiles []*regexp.Regexp, refs []string, tags []string, metadata map[string]string) (common.Pin, error) {
 	ret := _m.Called(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Create")
+	}
+
 	var r0 common.Pin
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) (common.Pin, error)); ok {
+		return rf(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) common.Pin); ok {
 		r0 = rf(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
 	} else {
 		r0 = ret.Get(0).(common.Pin)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) error); ok {
 		r1 = rf(ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)
 	} else {
@@ -101,11 +274,54 @@ func (_m *CIPDClient) Create(ctx context.Context, name string, dir string, insta
 	return r0, r1
 }
 
+// CIPDClient_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type CIPDClient_Create_Call struct {
+	*mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - dir string
+//   - installMode pkg.InstallMode
+//   - excludeMatchingFiles []*regexp.Regexp
+//   - refs []string
+//   - tags []string
+//   - metadata map[string]string
+func (_e *CIPDClient_Expecter) Create(ctx interface{}, name interface{}, dir interface{}, installMode interface{}, excludeMatchingFiles interface{}, refs interface{}, tags interface{}, metadata interface{}) *CIPDClient_Create_Call {
+	return &CIPDClient_Create_Call{Call: _e.mock.On("Create", ctx, name, dir, installMode, excludeMatchingFiles, refs, tags, metadata)}
+}
+
+func (_c *CIPDClient_Create_Call) Run(run func(ctx context.Context, name string, dir string, installMode pkg.InstallMode, excludeMatchingFiles []*regexp.Regexp, refs []string, tags []string, metadata map[string]string)) *CIPDClient_Create_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(pkg.InstallMode), args[4].([]*regexp.Regexp), args[5].([]string), args[6].([]string), args[7].(map[string]string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Create_Call) Return(_a0 common.Pin, _a1 error) *CIPDClient_Create_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_Create_Call) RunAndReturn(run func(context.Context, string, string, pkg.InstallMode, []*regexp.Regexp, []string, []string, map[string]string) (common.Pin, error)) *CIPDClient_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Describe provides a mock function with given fields: ctx, _a1, instance
 func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string) (*clientcipd.InstanceDescription, error) {
 	ret := _m.Called(ctx, _a1, instance)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Describe")
+	}
+
 	var r0 *clientcipd.InstanceDescription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*clientcipd.InstanceDescription, error)); ok {
+		return rf(ctx, _a1, instance)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *clientcipd.InstanceDescription); ok {
 		r0 = rf(ctx, _a1, instance)
 	} else {
@@ -114,7 +330,6 @@ func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string)
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, _a1, instance)
 	} else {
@@ -124,11 +339,49 @@ func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string)
 	return r0, r1
 }
 
+// CIPDClient_Describe_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Describe'
+type CIPDClient_Describe_Call struct {
+	*mock.Call
+}
+
+// Describe is a helper method to define mock.On call
+//   - ctx context.Context
+//   - _a1 string
+//   - instance string
+func (_e *CIPDClient_Expecter) Describe(ctx interface{}, _a1 interface{}, instance interface{}) *CIPDClient_Describe_Call {
+	return &CIPDClient_Describe_Call{Call: _e.mock.On("Describe", ctx, _a1, instance)}
+}
+
+func (_c *CIPDClient_Describe_Call) Run(run func(ctx context.Context, _a1 string, instance string)) *CIPDClient_Describe_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Describe_Call) Return(_a0 *clientcipd.InstanceDescription, _a1 error) *CIPDClient_Describe_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_Describe_Call) RunAndReturn(run func(context.Context, string, string) (*clientcipd.InstanceDescription, error)) *CIPDClient_Describe_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeClient provides a mock function with given fields: ctx, pin
 func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*clientcipd.ClientDescription, error) {
 	ret := _m.Called(ctx, pin)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeClient")
+	}
+
 	var r0 *clientcipd.ClientDescription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) (*clientcipd.ClientDescription, error)); ok {
+		return rf(ctx, pin)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) *clientcipd.ClientDescription); ok {
 		r0 = rf(ctx, pin)
 	} else {
@@ -137,7 +390,6 @@ func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*clie
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, common.Pin) error); ok {
 		r1 = rf(ctx, pin)
 	} else {
@@ -147,11 +399,48 @@ func (_m *CIPDClient) DescribeClient(ctx context.Context, pin common.Pin) (*clie
 	return r0, r1
 }
 
+// CIPDClient_DescribeClient_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeClient'
+type CIPDClient_DescribeClient_Call struct {
+	*mock.Call
+}
+
+// DescribeClient is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+func (_e *CIPDClient_Expecter) DescribeClient(ctx interface{}, pin interface{}) *CIPDClient_DescribeClient_Call {
+	return &CIPDClient_DescribeClient_Call{Call: _e.mock.On("DescribeClient", ctx, pin)}
+}
+
+func (_c *CIPDClient_DescribeClient_Call) Run(run func(ctx context.Context, pin common.Pin)) *CIPDClient_DescribeClient_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_DescribeClient_Call) Return(_a0 *clientcipd.ClientDescription, _a1 error) *CIPDClient_DescribeClient_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_DescribeClient_Call) RunAndReturn(run func(context.Context, common.Pin) (*clientcipd.ClientDescription, error)) *CIPDClient_DescribeClient_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeInstance provides a mock function with given fields: ctx, pin, opts
 func (_m *CIPDClient) DescribeInstance(ctx context.Context, pin common.Pin, opts *clientcipd.DescribeInstanceOpts) (*clientcipd.InstanceDescription, error) {
 	ret := _m.Called(ctx, pin, opts)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DescribeInstance")
+	}
+
 	var r0 *clientcipd.InstanceDescription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) (*clientcipd.InstanceDescription, error)); ok {
+		return rf(ctx, pin, opts)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) *clientcipd.InstanceDescription); ok {
 		r0 = rf(ctx, pin, opts)
 	} else {
@@ -160,7 +449,6 @@ func (_m *CIPDClient) DescribeInstance(ctx context.Context, pin common.Pin, opts
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) error); ok {
 		r1 = rf(ctx, pin, opts)
 	} else {
@@ -170,9 +458,67 @@ func (_m *CIPDClient) DescribeInstance(ctx context.Context, pin common.Pin, opts
 	return r0, r1
 }
 
+// CIPDClient_DescribeInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DescribeInstance'
+type CIPDClient_DescribeInstance_Call struct {
+	*mock.Call
+}
+
+// DescribeInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - opts *clientcipd.DescribeInstanceOpts
+func (_e *CIPDClient_Expecter) DescribeInstance(ctx interface{}, pin interface{}, opts interface{}) *CIPDClient_DescribeInstance_Call {
+	return &CIPDClient_DescribeInstance_Call{Call: _e.mock.On("DescribeInstance", ctx, pin, opts)}
+}
+
+func (_c *CIPDClient_DescribeInstance_Call) Run(run func(ctx context.Context, pin common.Pin, opts *clientcipd.DescribeInstanceOpts)) *CIPDClient_DescribeInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].(*clientcipd.DescribeInstanceOpts))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_DescribeInstance_Call) Return(_a0 *clientcipd.InstanceDescription, _a1 error) *CIPDClient_DescribeInstance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_DescribeInstance_Call) RunAndReturn(run func(context.Context, common.Pin, *clientcipd.DescribeInstanceOpts) (*clientcipd.InstanceDescription, error)) *CIPDClient_DescribeInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EndBatch provides a mock function with given fields: ctx
 func (_m *CIPDClient) EndBatch(ctx context.Context) {
 	_m.Called(ctx)
+}
+
+// CIPDClient_EndBatch_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EndBatch'
+type CIPDClient_EndBatch_Call struct {
+	*mock.Call
+}
+
+// EndBatch is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CIPDClient_Expecter) EndBatch(ctx interface{}) *CIPDClient_EndBatch_Call {
+	return &CIPDClient_EndBatch_Call{Call: _e.mock.On("EndBatch", ctx)}
+}
+
+func (_c *CIPDClient_EndBatch_Call) Run(run func(ctx context.Context)) *CIPDClient_EndBatch_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_EndBatch_Call) Return() *CIPDClient_EndBatch_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CIPDClient_EndBatch_Call) RunAndReturn(run func(context.Context)) *CIPDClient_EndBatch_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // Ensure provides a mock function with given fields: ctx, packages
@@ -186,6 +532,10 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) err
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Ensure")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, ...*cipd.Package) error); ok {
 		r0 = rf(ctx, packages...)
@@ -196,11 +546,55 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) err
 	return r0
 }
 
+// CIPDClient_Ensure_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Ensure'
+type CIPDClient_Ensure_Call struct {
+	*mock.Call
+}
+
+// Ensure is a helper method to define mock.On call
+//   - ctx context.Context
+//   - packages ...*cipd.Package
+func (_e *CIPDClient_Expecter) Ensure(ctx interface{}, packages ...interface{}) *CIPDClient_Ensure_Call {
+	return &CIPDClient_Ensure_Call{Call: _e.mock.On("Ensure",
+		append([]interface{}{ctx}, packages...)...)}
+}
+
+func (_c *CIPDClient_Ensure_Call) Run(run func(ctx context.Context, packages ...*cipd.Package)) *CIPDClient_Ensure_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := make([]*cipd.Package, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(*cipd.Package)
+			}
+		}
+		run(args[0].(context.Context), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Ensure_Call) Return(_a0 error) *CIPDClient_Ensure_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_Ensure_Call) RunAndReturn(run func(context.Context, ...*cipd.Package) error) *CIPDClient_Ensure_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnsurePackages provides a mock function with given fields: ctx, pkgs, opts
 func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBySubdir, opts *clientcipd.EnsureOptions) (clientcipd.ActionMap, error) {
 	ret := _m.Called(ctx, pkgs, opts)
 
+	if len(ret) == 0 {
+		panic("no return value specified for EnsurePackages")
+	}
+
 	var r0 clientcipd.ActionMap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, *clientcipd.EnsureOptions) (clientcipd.ActionMap, error)); ok {
+		return rf(ctx, pkgs, opts)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, common.PinSliceBySubdir, *clientcipd.EnsureOptions) clientcipd.ActionMap); ok {
 		r0 = rf(ctx, pkgs, opts)
 	} else {
@@ -209,7 +603,6 @@ func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBy
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, common.PinSliceBySubdir, *clientcipd.EnsureOptions) error); ok {
 		r1 = rf(ctx, pkgs, opts)
 	} else {
@@ -219,11 +612,49 @@ func (_m *CIPDClient) EnsurePackages(ctx context.Context, pkgs common.PinSliceBy
 	return r0, r1
 }
 
+// CIPDClient_EnsurePackages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsurePackages'
+type CIPDClient_EnsurePackages_Call struct {
+	*mock.Call
+}
+
+// EnsurePackages is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pkgs common.PinSliceBySubdir
+//   - opts *clientcipd.EnsureOptions
+func (_e *CIPDClient_Expecter) EnsurePackages(ctx interface{}, pkgs interface{}, opts interface{}) *CIPDClient_EnsurePackages_Call {
+	return &CIPDClient_EnsurePackages_Call{Call: _e.mock.On("EnsurePackages", ctx, pkgs, opts)}
+}
+
+func (_c *CIPDClient_EnsurePackages_Call) Run(run func(ctx context.Context, pkgs common.PinSliceBySubdir, opts *clientcipd.EnsureOptions)) *CIPDClient_EnsurePackages_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.PinSliceBySubdir), args[2].(*clientcipd.EnsureOptions))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_EnsurePackages_Call) Return(_a0 clientcipd.ActionMap, _a1 error) *CIPDClient_EnsurePackages_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_EnsurePackages_Call) RunAndReturn(run func(context.Context, common.PinSliceBySubdir, *clientcipd.EnsureOptions) (clientcipd.ActionMap, error)) *CIPDClient_EnsurePackages_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchACL provides a mock function with given fields: ctx, prefix
 func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]clientcipd.PackageACL, error) {
 	ret := _m.Called(ctx, prefix)
 
+	if len(ret) == 0 {
+		panic("no return value specified for FetchACL")
+	}
+
 	var r0 []clientcipd.PackageACL
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]clientcipd.PackageACL, error)); ok {
+		return rf(ctx, prefix)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []clientcipd.PackageACL); ok {
 		r0 = rf(ctx, prefix)
 	} else {
@@ -232,7 +663,6 @@ func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]clientcipd
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, prefix)
 	} else {
@@ -242,11 +672,48 @@ func (_m *CIPDClient) FetchACL(ctx context.Context, prefix string) ([]clientcipd
 	return r0, r1
 }
 
+// CIPDClient_FetchACL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchACL'
+type CIPDClient_FetchACL_Call struct {
+	*mock.Call
+}
+
+// FetchACL is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prefix string
+func (_e *CIPDClient_Expecter) FetchACL(ctx interface{}, prefix interface{}) *CIPDClient_FetchACL_Call {
+	return &CIPDClient_FetchACL_Call{Call: _e.mock.On("FetchACL", ctx, prefix)}
+}
+
+func (_c *CIPDClient_FetchACL_Call) Run(run func(ctx context.Context, prefix string)) *CIPDClient_FetchACL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FetchACL_Call) Return(_a0 []clientcipd.PackageACL, _a1 error) *CIPDClient_FetchACL_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_FetchACL_Call) RunAndReturn(run func(context.Context, string) ([]clientcipd.PackageACL, error)) *CIPDClient_FetchACL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchInstance provides a mock function with given fields: ctx, pin
 func (_m *CIPDClient) FetchInstance(ctx context.Context, pin common.Pin) (pkg.Source, error) {
 	ret := _m.Called(ctx, pin)
 
+	if len(ret) == 0 {
+		panic("no return value specified for FetchInstance")
+	}
+
 	var r0 pkg.Source
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) (pkg.Source, error)); ok {
+		return rf(ctx, pin)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin) pkg.Source); ok {
 		r0 = rf(ctx, pin)
 	} else {
@@ -255,7 +722,6 @@ func (_m *CIPDClient) FetchInstance(ctx context.Context, pin common.Pin) (pkg.So
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, common.Pin) error); ok {
 		r1 = rf(ctx, pin)
 	} else {
@@ -265,9 +731,42 @@ func (_m *CIPDClient) FetchInstance(ctx context.Context, pin common.Pin) (pkg.So
 	return r0, r1
 }
 
+// CIPDClient_FetchInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchInstance'
+type CIPDClient_FetchInstance_Call struct {
+	*mock.Call
+}
+
+// FetchInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+func (_e *CIPDClient_Expecter) FetchInstance(ctx interface{}, pin interface{}) *CIPDClient_FetchInstance_Call {
+	return &CIPDClient_FetchInstance_Call{Call: _e.mock.On("FetchInstance", ctx, pin)}
+}
+
+func (_c *CIPDClient_FetchInstance_Call) Run(run func(ctx context.Context, pin common.Pin)) *CIPDClient_FetchInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FetchInstance_Call) Return(_a0 pkg.Source, _a1 error) *CIPDClient_FetchInstance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_FetchInstance_Call) RunAndReturn(run func(context.Context, common.Pin) (pkg.Source, error)) *CIPDClient_FetchInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchInstanceTo provides a mock function with given fields: ctx, pin, output
 func (_m *CIPDClient) FetchInstanceTo(ctx context.Context, pin common.Pin, output io.WriteSeeker) error {
 	ret := _m.Called(ctx, pin, output)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchInstanceTo")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, io.WriteSeeker) error); ok {
@@ -279,11 +778,49 @@ func (_m *CIPDClient) FetchInstanceTo(ctx context.Context, pin common.Pin, outpu
 	return r0
 }
 
+// CIPDClient_FetchInstanceTo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchInstanceTo'
+type CIPDClient_FetchInstanceTo_Call struct {
+	*mock.Call
+}
+
+// FetchInstanceTo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - output io.WriteSeeker
+func (_e *CIPDClient_Expecter) FetchInstanceTo(ctx interface{}, pin interface{}, output interface{}) *CIPDClient_FetchInstanceTo_Call {
+	return &CIPDClient_FetchInstanceTo_Call{Call: _e.mock.On("FetchInstanceTo", ctx, pin, output)}
+}
+
+func (_c *CIPDClient_FetchInstanceTo_Call) Run(run func(ctx context.Context, pin common.Pin, output io.WriteSeeker)) *CIPDClient_FetchInstanceTo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].(io.WriteSeeker))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FetchInstanceTo_Call) Return(_a0 error) *CIPDClient_FetchInstanceTo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_FetchInstanceTo_Call) RunAndReturn(run func(context.Context, common.Pin, io.WriteSeeker) error) *CIPDClient_FetchInstanceTo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchPackageRefs provides a mock function with given fields: ctx, packageName
 func (_m *CIPDClient) FetchPackageRefs(ctx context.Context, packageName string) ([]clientcipd.RefInfo, error) {
 	ret := _m.Called(ctx, packageName)
 
+	if len(ret) == 0 {
+		panic("no return value specified for FetchPackageRefs")
+	}
+
 	var r0 []clientcipd.RefInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]clientcipd.RefInfo, error)); ok {
+		return rf(ctx, packageName)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []clientcipd.RefInfo); ok {
 		r0 = rf(ctx, packageName)
 	} else {
@@ -292,7 +829,6 @@ func (_m *CIPDClient) FetchPackageRefs(ctx context.Context, packageName string) 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, packageName)
 	} else {
@@ -302,11 +838,48 @@ func (_m *CIPDClient) FetchPackageRefs(ctx context.Context, packageName string) 
 	return r0, r1
 }
 
+// CIPDClient_FetchPackageRefs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchPackageRefs'
+type CIPDClient_FetchPackageRefs_Call struct {
+	*mock.Call
+}
+
+// FetchPackageRefs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - packageName string
+func (_e *CIPDClient_Expecter) FetchPackageRefs(ctx interface{}, packageName interface{}) *CIPDClient_FetchPackageRefs_Call {
+	return &CIPDClient_FetchPackageRefs_Call{Call: _e.mock.On("FetchPackageRefs", ctx, packageName)}
+}
+
+func (_c *CIPDClient_FetchPackageRefs_Call) Run(run func(ctx context.Context, packageName string)) *CIPDClient_FetchPackageRefs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FetchPackageRefs_Call) Return(_a0 []clientcipd.RefInfo, _a1 error) *CIPDClient_FetchPackageRefs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_FetchPackageRefs_Call) RunAndReturn(run func(context.Context, string) ([]clientcipd.RefInfo, error)) *CIPDClient_FetchPackageRefs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FetchRoles provides a mock function with given fields: ctx, prefix
 func (_m *CIPDClient) FetchRoles(ctx context.Context, prefix string) ([]string, error) {
 	ret := _m.Called(ctx, prefix)
 
+	if len(ret) == 0 {
+		panic("no return value specified for FetchRoles")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]string, error)); ok {
+		return rf(ctx, prefix)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []string); ok {
 		r0 = rf(ctx, prefix)
 	} else {
@@ -315,7 +888,6 @@ func (_m *CIPDClient) FetchRoles(ctx context.Context, prefix string) ([]string, 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, prefix)
 	} else {
@@ -325,11 +897,48 @@ func (_m *CIPDClient) FetchRoles(ctx context.Context, prefix string) ([]string, 
 	return r0, r1
 }
 
+// CIPDClient_FetchRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FetchRoles'
+type CIPDClient_FetchRoles_Call struct {
+	*mock.Call
+}
+
+// FetchRoles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prefix string
+func (_e *CIPDClient_Expecter) FetchRoles(ctx interface{}, prefix interface{}) *CIPDClient_FetchRoles_Call {
+	return &CIPDClient_FetchRoles_Call{Call: _e.mock.On("FetchRoles", ctx, prefix)}
+}
+
+func (_c *CIPDClient_FetchRoles_Call) Run(run func(ctx context.Context, prefix string)) *CIPDClient_FetchRoles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FetchRoles_Call) Return(_a0 []string, _a1 error) *CIPDClient_FetchRoles_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_FetchRoles_Call) RunAndReturn(run func(context.Context, string) ([]string, error)) *CIPDClient_FetchRoles_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindDeployed provides a mock function with given fields: ctx
 func (_m *CIPDClient) FindDeployed(ctx context.Context) (common.PinSliceBySubdir, error) {
 	ret := _m.Called(ctx)
 
+	if len(ret) == 0 {
+		panic("no return value specified for FindDeployed")
+	}
+
 	var r0 common.PinSliceBySubdir
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (common.PinSliceBySubdir, error)); ok {
+		return rf(ctx)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context) common.PinSliceBySubdir); ok {
 		r0 = rf(ctx)
 	} else {
@@ -338,7 +947,6 @@ func (_m *CIPDClient) FindDeployed(ctx context.Context) (common.PinSliceBySubdir
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
 		r1 = rf(ctx)
 	} else {
@@ -348,11 +956,47 @@ func (_m *CIPDClient) FindDeployed(ctx context.Context) (common.PinSliceBySubdir
 	return r0, r1
 }
 
+// CIPDClient_FindDeployed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindDeployed'
+type CIPDClient_FindDeployed_Call struct {
+	*mock.Call
+}
+
+// FindDeployed is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *CIPDClient_Expecter) FindDeployed(ctx interface{}) *CIPDClient_FindDeployed_Call {
+	return &CIPDClient_FindDeployed_Call{Call: _e.mock.On("FindDeployed", ctx)}
+}
+
+func (_c *CIPDClient_FindDeployed_Call) Run(run func(ctx context.Context)) *CIPDClient_FindDeployed_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_FindDeployed_Call) Return(_a0 common.PinSliceBySubdir, _a1 error) *CIPDClient_FindDeployed_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_FindDeployed_Call) RunAndReturn(run func(context.Context) (common.PinSliceBySubdir, error)) *CIPDClient_FindDeployed_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListInstances provides a mock function with given fields: ctx, packageName
 func (_m *CIPDClient) ListInstances(ctx context.Context, packageName string) (clientcipd.InstanceEnumerator, error) {
 	ret := _m.Called(ctx, packageName)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListInstances")
+	}
+
 	var r0 clientcipd.InstanceEnumerator
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (clientcipd.InstanceEnumerator, error)); ok {
+		return rf(ctx, packageName)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) clientcipd.InstanceEnumerator); ok {
 		r0 = rf(ctx, packageName)
 	} else {
@@ -361,7 +1005,6 @@ func (_m *CIPDClient) ListInstances(ctx context.Context, packageName string) (cl
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, packageName)
 	} else {
@@ -371,11 +1014,48 @@ func (_m *CIPDClient) ListInstances(ctx context.Context, packageName string) (cl
 	return r0, r1
 }
 
+// CIPDClient_ListInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInstances'
+type CIPDClient_ListInstances_Call struct {
+	*mock.Call
+}
+
+// ListInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - packageName string
+func (_e *CIPDClient_Expecter) ListInstances(ctx interface{}, packageName interface{}) *CIPDClient_ListInstances_Call {
+	return &CIPDClient_ListInstances_Call{Call: _e.mock.On("ListInstances", ctx, packageName)}
+}
+
+func (_c *CIPDClient_ListInstances_Call) Run(run func(ctx context.Context, packageName string)) *CIPDClient_ListInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_ListInstances_Call) Return(_a0 clientcipd.InstanceEnumerator, _a1 error) *CIPDClient_ListInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_ListInstances_Call) RunAndReturn(run func(context.Context, string) (clientcipd.InstanceEnumerator, error)) *CIPDClient_ListInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPackages provides a mock function with given fields: ctx, prefix, recursive, includeHidden
 func (_m *CIPDClient) ListPackages(ctx context.Context, prefix string, recursive bool, includeHidden bool) ([]string, error) {
 	ret := _m.Called(ctx, prefix, recursive, includeHidden)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListPackages")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool) ([]string, error)); ok {
+		return rf(ctx, prefix, recursive, includeHidden)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool, bool) []string); ok {
 		r0 = rf(ctx, prefix, recursive, includeHidden)
 	} else {
@@ -384,7 +1064,6 @@ func (_m *CIPDClient) ListPackages(ctx context.Context, prefix string, recursive
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, bool, bool) error); ok {
 		r1 = rf(ctx, prefix, recursive, includeHidden)
 	} else {
@@ -394,9 +1073,44 @@ func (_m *CIPDClient) ListPackages(ctx context.Context, prefix string, recursive
 	return r0, r1
 }
 
+// CIPDClient_ListPackages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPackages'
+type CIPDClient_ListPackages_Call struct {
+	*mock.Call
+}
+
+// ListPackages is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prefix string
+//   - recursive bool
+//   - includeHidden bool
+func (_e *CIPDClient_Expecter) ListPackages(ctx interface{}, prefix interface{}, recursive interface{}, includeHidden interface{}) *CIPDClient_ListPackages_Call {
+	return &CIPDClient_ListPackages_Call{Call: _e.mock.On("ListPackages", ctx, prefix, recursive, includeHidden)}
+}
+
+func (_c *CIPDClient_ListPackages_Call) Run(run func(ctx context.Context, prefix string, recursive bool, includeHidden bool)) *CIPDClient_ListPackages_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(bool), args[3].(bool))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_ListPackages_Call) Return(_a0 []string, _a1 error) *CIPDClient_ListPackages_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_ListPackages_Call) RunAndReturn(run func(context.Context, string, bool, bool) ([]string, error)) *CIPDClient_ListPackages_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ModifyACL provides a mock function with given fields: ctx, prefix, changes
 func (_m *CIPDClient) ModifyACL(ctx context.Context, prefix string, changes []clientcipd.PackageACLChange) error {
 	ret := _m.Called(ctx, prefix, changes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ModifyACL")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, []clientcipd.PackageACLChange) error); ok {
@@ -408,9 +1122,43 @@ func (_m *CIPDClient) ModifyACL(ctx context.Context, prefix string, changes []cl
 	return r0
 }
 
+// CIPDClient_ModifyACL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ModifyACL'
+type CIPDClient_ModifyACL_Call struct {
+	*mock.Call
+}
+
+// ModifyACL is a helper method to define mock.On call
+//   - ctx context.Context
+//   - prefix string
+//   - changes []clientcipd.PackageACLChange
+func (_e *CIPDClient_Expecter) ModifyACL(ctx interface{}, prefix interface{}, changes interface{}) *CIPDClient_ModifyACL_Call {
+	return &CIPDClient_ModifyACL_Call{Call: _e.mock.On("ModifyACL", ctx, prefix, changes)}
+}
+
+func (_c *CIPDClient_ModifyACL_Call) Run(run func(ctx context.Context, prefix string, changes []clientcipd.PackageACLChange)) *CIPDClient_ModifyACL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]clientcipd.PackageACLChange))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_ModifyACL_Call) Return(_a0 error) *CIPDClient_ModifyACL_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_ModifyACL_Call) RunAndReturn(run func(context.Context, string, []clientcipd.PackageACLChange) error) *CIPDClient_ModifyACL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Options provides a mock function with given fields:
 func (_m *CIPDClient) Options() clientcipd.ClientOptions {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Options")
+	}
 
 	var r0 clientcipd.ClientOptions
 	if rf, ok := ret.Get(0).(func() clientcipd.ClientOptions); ok {
@@ -422,9 +1170,40 @@ func (_m *CIPDClient) Options() clientcipd.ClientOptions {
 	return r0
 }
 
+// CIPDClient_Options_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Options'
+type CIPDClient_Options_Call struct {
+	*mock.Call
+}
+
+// Options is a helper method to define mock.On call
+func (_e *CIPDClient_Expecter) Options() *CIPDClient_Options_Call {
+	return &CIPDClient_Options_Call{Call: _e.mock.On("Options")}
+}
+
+func (_c *CIPDClient_Options_Call) Run(run func()) *CIPDClient_Options_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *CIPDClient_Options_Call) Return(_a0 clientcipd.ClientOptions) *CIPDClient_Options_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_Options_Call) RunAndReturn(run func() clientcipd.ClientOptions) *CIPDClient_Options_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterInstance provides a mock function with given fields: ctx, pin, src, timeout
 func (_m *CIPDClient) RegisterInstance(ctx context.Context, pin common.Pin, src pkg.Source, timeout time.Duration) error {
 	ret := _m.Called(ctx, pin, src, timeout)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterInstance")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, common.Pin, pkg.Source, time.Duration) error); ok {
@@ -436,18 +1215,56 @@ func (_m *CIPDClient) RegisterInstance(ctx context.Context, pin common.Pin, src 
 	return r0
 }
 
+// CIPDClient_RegisterInstance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterInstance'
+type CIPDClient_RegisterInstance_Call struct {
+	*mock.Call
+}
+
+// RegisterInstance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pin common.Pin
+//   - src pkg.Source
+//   - timeout time.Duration
+func (_e *CIPDClient_Expecter) RegisterInstance(ctx interface{}, pin interface{}, src interface{}, timeout interface{}) *CIPDClient_RegisterInstance_Call {
+	return &CIPDClient_RegisterInstance_Call{Call: _e.mock.On("RegisterInstance", ctx, pin, src, timeout)}
+}
+
+func (_c *CIPDClient_RegisterInstance_Call) Run(run func(ctx context.Context, pin common.Pin, src pkg.Source, timeout time.Duration)) *CIPDClient_RegisterInstance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(common.Pin), args[2].(pkg.Source), args[3].(time.Duration))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_RegisterInstance_Call) Return(_a0 error) *CIPDClient_RegisterInstance_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_RegisterInstance_Call) RunAndReturn(run func(context.Context, common.Pin, pkg.Source, time.Duration) error) *CIPDClient_RegisterInstance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResolveVersion provides a mock function with given fields: ctx, packageName, version
 func (_m *CIPDClient) ResolveVersion(ctx context.Context, packageName string, version string) (common.Pin, error) {
 	ret := _m.Called(ctx, packageName, version)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ResolveVersion")
+	}
+
 	var r0 common.Pin
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (common.Pin, error)); ok {
+		return rf(ctx, packageName, version)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) common.Pin); ok {
 		r0 = rf(ctx, packageName, version)
 	} else {
 		r0 = ret.Get(0).(common.Pin)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, packageName, version)
 	} else {
@@ -457,11 +1274,49 @@ func (_m *CIPDClient) ResolveVersion(ctx context.Context, packageName string, ve
 	return r0, r1
 }
 
+// CIPDClient_ResolveVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResolveVersion'
+type CIPDClient_ResolveVersion_Call struct {
+	*mock.Call
+}
+
+// ResolveVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - packageName string
+//   - version string
+func (_e *CIPDClient_Expecter) ResolveVersion(ctx interface{}, packageName interface{}, version interface{}) *CIPDClient_ResolveVersion_Call {
+	return &CIPDClient_ResolveVersion_Call{Call: _e.mock.On("ResolveVersion", ctx, packageName, version)}
+}
+
+func (_c *CIPDClient_ResolveVersion_Call) Run(run func(ctx context.Context, packageName string, version string)) *CIPDClient_ResolveVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_ResolveVersion_Call) Return(_a0 common.Pin, _a1 error) *CIPDClient_ResolveVersion_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_ResolveVersion_Call) RunAndReturn(run func(context.Context, string, string) (common.Pin, error)) *CIPDClient_ResolveVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SearchInstances provides a mock function with given fields: ctx, packageName, tags
 func (_m *CIPDClient) SearchInstances(ctx context.Context, packageName string, tags []string) (common.PinSlice, error) {
 	ret := _m.Called(ctx, packageName, tags)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SearchInstances")
+	}
+
 	var r0 common.PinSlice
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (common.PinSlice, error)); ok {
+		return rf(ctx, packageName, tags)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, []string) common.PinSlice); ok {
 		r0 = rf(ctx, packageName, tags)
 	} else {
@@ -470,7 +1325,6 @@ func (_m *CIPDClient) SearchInstances(ctx context.Context, packageName string, t
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
 		r1 = rf(ctx, packageName, tags)
 	} else {
@@ -480,9 +1334,43 @@ func (_m *CIPDClient) SearchInstances(ctx context.Context, packageName string, t
 	return r0, r1
 }
 
+// CIPDClient_SearchInstances_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchInstances'
+type CIPDClient_SearchInstances_Call struct {
+	*mock.Call
+}
+
+// SearchInstances is a helper method to define mock.On call
+//   - ctx context.Context
+//   - packageName string
+//   - tags []string
+func (_e *CIPDClient_Expecter) SearchInstances(ctx interface{}, packageName interface{}, tags interface{}) *CIPDClient_SearchInstances_Call {
+	return &CIPDClient_SearchInstances_Call{Call: _e.mock.On("SearchInstances", ctx, packageName, tags)}
+}
+
+func (_c *CIPDClient_SearchInstances_Call) Run(run func(ctx context.Context, packageName string, tags []string)) *CIPDClient_SearchInstances_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_SearchInstances_Call) Return(_a0 common.PinSlice, _a1 error) *CIPDClient_SearchInstances_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CIPDClient_SearchInstances_Call) RunAndReturn(run func(context.Context, string, []string) (common.PinSlice, error)) *CIPDClient_SearchInstances_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetRefWhenReady provides a mock function with given fields: ctx, ref, pin
 func (_m *CIPDClient) SetRefWhenReady(ctx context.Context, ref string, pin common.Pin) error {
 	ret := _m.Called(ctx, ref, pin)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetRefWhenReady")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, common.Pin) error); ok {
@@ -494,9 +1382,44 @@ func (_m *CIPDClient) SetRefWhenReady(ctx context.Context, ref string, pin commo
 	return r0
 }
 
-// NewCIPDClient creates a new instance of CIPDClient. It also registers a cleanup function to assert the mocks expectations.
-func NewCIPDClient(t testing.TB) *CIPDClient {
+// CIPDClient_SetRefWhenReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetRefWhenReady'
+type CIPDClient_SetRefWhenReady_Call struct {
+	*mock.Call
+}
+
+// SetRefWhenReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ref string
+//   - pin common.Pin
+func (_e *CIPDClient_Expecter) SetRefWhenReady(ctx interface{}, ref interface{}, pin interface{}) *CIPDClient_SetRefWhenReady_Call {
+	return &CIPDClient_SetRefWhenReady_Call{Call: _e.mock.On("SetRefWhenReady", ctx, ref, pin)}
+}
+
+func (_c *CIPDClient_SetRefWhenReady_Call) Run(run func(ctx context.Context, ref string, pin common.Pin)) *CIPDClient_SetRefWhenReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(common.Pin))
+	})
+	return _c
+}
+
+func (_c *CIPDClient_SetRefWhenReady_Call) Return(_a0 error) *CIPDClient_SetRefWhenReady_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CIPDClient_SetRefWhenReady_Call) RunAndReturn(run func(context.Context, string, common.Pin) error) *CIPDClient_SetRefWhenReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewCIPDClient creates a new instance of CIPDClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewCIPDClient(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *CIPDClient {
 	mock := &CIPDClient{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "CapacityClient.go",
         "IncrementalCache.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/status/go/mocks",
     visibility = ["//visibility:public"],

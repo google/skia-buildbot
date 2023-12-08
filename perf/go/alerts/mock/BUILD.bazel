@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "ConfigProvider.go",
         "Store.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/perf/go/alerts/mock",
     visibility = ["//visibility:public"],

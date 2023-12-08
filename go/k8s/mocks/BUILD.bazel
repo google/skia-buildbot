@@ -7,7 +7,6 @@ go_library(
         "CoreV1Interface.go",
         "Interface.go",
         "PodInterface.go",
-        "generate.go",
     ],
     importpath = "go.skia.org/infra/go/k8s/mocks",
     visibility = ["//visibility:public"],

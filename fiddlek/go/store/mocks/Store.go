@@ -6,8 +6,6 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	store "go.skia.org/infra/fiddlek/go/store"
 
-	testing "testing"
-
 	types "go.skia.org/infra/fiddlek/go/types"
 )
 
@@ -16,9 +14,21 @@ type Store struct {
 	mock.Mock
 }
 
+type Store_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *Store) EXPECT() *Store_Expecter {
+	return &Store_Expecter{mock: &_m.Mock}
+}
+
 // DeleteName provides a mock function with given fields: name
 func (_m *Store) DeleteName(name string) error {
 	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteName")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
@@ -30,9 +40,41 @@ func (_m *Store) DeleteName(name string) error {
 	return r0
 }
 
+// Store_DeleteName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteName'
+type Store_DeleteName_Call struct {
+	*mock.Call
+}
+
+// DeleteName is a helper method to define mock.On call
+//   - name string
+func (_e *Store_Expecter) DeleteName(name interface{}) *Store_DeleteName_Call {
+	return &Store_DeleteName_Call{Call: _e.mock.On("DeleteName", name)}
+}
+
+func (_c *Store_DeleteName_Call) Run(run func(name string)) *Store_DeleteName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Store_DeleteName_Call) Return(_a0 error) *Store_DeleteName_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_DeleteName_Call) RunAndReturn(run func(string) error) *Store_DeleteName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Exists provides a mock function with given fields: hash
 func (_m *Store) Exists(hash string) error {
 	ret := _m.Called(hash)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Exists")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
@@ -44,18 +86,54 @@ func (_m *Store) Exists(hash string) error {
 	return r0
 }
 
+// Store_Exists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Exists'
+type Store_Exists_Call struct {
+	*mock.Call
+}
+
+// Exists is a helper method to define mock.On call
+//   - hash string
+func (_e *Store_Expecter) Exists(hash interface{}) *Store_Exists_Call {
+	return &Store_Exists_Call{Call: _e.mock.On("Exists", hash)}
+}
+
+func (_c *Store_Exists_Call) Run(run func(hash string)) *Store_Exists_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Store_Exists_Call) Return(_a0 error) *Store_Exists_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_Exists_Call) RunAndReturn(run func(string) error) *Store_Exists_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCode provides a mock function with given fields: fiddleHash
 func (_m *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	ret := _m.Called(fiddleHash)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCode")
+	}
+
 	var r0 string
+	var r1 *types.Options
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string) (string, *types.Options, error)); ok {
+		return rf(fiddleHash)
+	}
 	if rf, ok := ret.Get(0).(func(string) string); ok {
 		r0 = rf(fiddleHash)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *types.Options
 	if rf, ok := ret.Get(1).(func(string) *types.Options); ok {
 		r1 = rf(fiddleHash)
 	} else {
@@ -64,7 +142,6 @@ func (_m *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 		}
 	}
 
-	var r2 error
 	if rf, ok := ret.Get(2).(func(string) error); ok {
 		r2 = rf(fiddleHash)
 	} else {
@@ -74,18 +151,53 @@ func (_m *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	return r0, r1, r2
 }
 
+// Store_GetCode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCode'
+type Store_GetCode_Call struct {
+	*mock.Call
+}
+
+// GetCode is a helper method to define mock.On call
+//   - fiddleHash string
+func (_e *Store_Expecter) GetCode(fiddleHash interface{}) *Store_GetCode_Call {
+	return &Store_GetCode_Call{Call: _e.mock.On("GetCode", fiddleHash)}
+}
+
+func (_c *Store_GetCode_Call) Run(run func(fiddleHash string)) *Store_GetCode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Store_GetCode_Call) Return(_a0 string, _a1 *types.Options, _a2 error) *Store_GetCode_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *Store_GetCode_Call) RunAndReturn(run func(string) (string, *types.Options, error)) *Store_GetCode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetHashFromName provides a mock function with given fields: name
 func (_m *Store) GetHashFromName(name string) (string, error) {
 	ret := _m.Called(name)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetHashFromName")
+	}
+
 	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(name)
+	}
 	if rf, ok := ret.Get(0).(func(string) string); ok {
 		r0 = rf(name)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(name)
 	} else {
@@ -95,11 +207,49 @@ func (_m *Store) GetHashFromName(name string) (string, error) {
 	return r0, r1
 }
 
+// Store_GetHashFromName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetHashFromName'
+type Store_GetHashFromName_Call struct {
+	*mock.Call
+}
+
+// GetHashFromName is a helper method to define mock.On call
+//   - name string
+func (_e *Store_Expecter) GetHashFromName(name interface{}) *Store_GetHashFromName_Call {
+	return &Store_GetHashFromName_Call{Call: _e.mock.On("GetHashFromName", name)}
+}
+
+func (_c *Store_GetHashFromName_Call) Run(run func(name string)) *Store_GetHashFromName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Store_GetHashFromName_Call) Return(_a0 string, _a1 error) *Store_GetHashFromName_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Store_GetHashFromName_Call) RunAndReturn(run func(string) (string, error)) *Store_GetHashFromName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetMedia provides a mock function with given fields: fiddleHash, media
 func (_m *Store) GetMedia(fiddleHash string, media store.Media) ([]byte, string, string, error) {
 	ret := _m.Called(fiddleHash, media)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetMedia")
+	}
+
 	var r0 []byte
+	var r1 string
+	var r2 string
+	var r3 error
+	if rf, ok := ret.Get(0).(func(string, store.Media) ([]byte, string, string, error)); ok {
+		return rf(fiddleHash, media)
+	}
 	if rf, ok := ret.Get(0).(func(string, store.Media) []byte); ok {
 		r0 = rf(fiddleHash, media)
 	} else {
@@ -108,21 +258,18 @@ func (_m *Store) GetMedia(fiddleHash string, media store.Media) ([]byte, string,
 		}
 	}
 
-	var r1 string
 	if rf, ok := ret.Get(1).(func(string, store.Media) string); ok {
 		r1 = rf(fiddleHash, media)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
-	var r2 string
 	if rf, ok := ret.Get(2).(func(string, store.Media) string); ok {
 		r2 = rf(fiddleHash, media)
 	} else {
 		r2 = ret.Get(2).(string)
 	}
 
-	var r3 error
 	if rf, ok := ret.Get(3).(func(string, store.Media) error); ok {
 		r3 = rf(fiddleHash, media)
 	} else {
@@ -132,11 +279,48 @@ func (_m *Store) GetMedia(fiddleHash string, media store.Media) ([]byte, string,
 	return r0, r1, r2, r3
 }
 
+// Store_GetMedia_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMedia'
+type Store_GetMedia_Call struct {
+	*mock.Call
+}
+
+// GetMedia is a helper method to define mock.On call
+//   - fiddleHash string
+//   - media store.Media
+func (_e *Store_Expecter) GetMedia(fiddleHash interface{}, media interface{}) *Store_GetMedia_Call {
+	return &Store_GetMedia_Call{Call: _e.mock.On("GetMedia", fiddleHash, media)}
+}
+
+func (_c *Store_GetMedia_Call) Run(run func(fiddleHash string, media store.Media)) *Store_GetMedia_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(store.Media))
+	})
+	return _c
+}
+
+func (_c *Store_GetMedia_Call) Return(_a0 []byte, _a1 string, _a2 string, _a3 error) *Store_GetMedia_Call {
+	_c.Call.Return(_a0, _a1, _a2, _a3)
+	return _c
+}
+
+func (_c *Store_GetMedia_Call) RunAndReturn(run func(string, store.Media) ([]byte, string, string, error)) *Store_GetMedia_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListAllNames provides a mock function with given fields:
 func (_m *Store) ListAllNames() ([]store.Named, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllNames")
+	}
+
 	var r0 []store.Named
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]store.Named, error)); ok {
+		return rf()
+	}
 	if rf, ok := ret.Get(0).(func() []store.Named); ok {
 		r0 = rf()
 	} else {
@@ -145,7 +329,6 @@ func (_m *Store) ListAllNames() ([]store.Named, error) {
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
 	} else {
@@ -155,18 +338,52 @@ func (_m *Store) ListAllNames() ([]store.Named, error) {
 	return r0, r1
 }
 
+// Store_ListAllNames_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllNames'
+type Store_ListAllNames_Call struct {
+	*mock.Call
+}
+
+// ListAllNames is a helper method to define mock.On call
+func (_e *Store_Expecter) ListAllNames() *Store_ListAllNames_Call {
+	return &Store_ListAllNames_Call{Call: _e.mock.On("ListAllNames")}
+}
+
+func (_c *Store_ListAllNames_Call) Run(run func()) *Store_ListAllNames_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *Store_ListAllNames_Call) Return(_a0 []store.Named, _a1 error) *Store_ListAllNames_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Store_ListAllNames_Call) RunAndReturn(run func() ([]store.Named, error)) *Store_ListAllNames_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Put provides a mock function with given fields: code, options, results
 func (_m *Store) Put(code string, options types.Options, results *types.Result) (string, error) {
 	ret := _m.Called(code, options, results)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Put")
+	}
+
 	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, types.Options, *types.Result) (string, error)); ok {
+		return rf(code, options, results)
+	}
 	if rf, ok := ret.Get(0).(func(string, types.Options, *types.Result) string); ok {
 		r0 = rf(code, options, results)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(string, types.Options, *types.Result) error); ok {
 		r1 = rf(code, options, results)
 	} else {
@@ -176,9 +393,43 @@ func (_m *Store) Put(code string, options types.Options, results *types.Result) 
 	return r0, r1
 }
 
+// Store_Put_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Put'
+type Store_Put_Call struct {
+	*mock.Call
+}
+
+// Put is a helper method to define mock.On call
+//   - code string
+//   - options types.Options
+//   - results *types.Result
+func (_e *Store_Expecter) Put(code interface{}, options interface{}, results interface{}) *Store_Put_Call {
+	return &Store_Put_Call{Call: _e.mock.On("Put", code, options, results)}
+}
+
+func (_c *Store_Put_Call) Run(run func(code string, options types.Options, results *types.Result)) *Store_Put_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(types.Options), args[2].(*types.Result))
+	})
+	return _c
+}
+
+func (_c *Store_Put_Call) Return(_a0 string, _a1 error) *Store_Put_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Store_Put_Call) RunAndReturn(run func(string, types.Options, *types.Result) (string, error)) *Store_Put_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutMedia provides a mock function with given fields: options, fiddleHash, results
 func (_m *Store) PutMedia(options types.Options, fiddleHash string, results *types.Result) error {
 	ret := _m.Called(options, fiddleHash, results)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutMedia")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(types.Options, string, *types.Result) error); ok {
@@ -190,9 +441,43 @@ func (_m *Store) PutMedia(options types.Options, fiddleHash string, results *typ
 	return r0
 }
 
+// Store_PutMedia_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutMedia'
+type Store_PutMedia_Call struct {
+	*mock.Call
+}
+
+// PutMedia is a helper method to define mock.On call
+//   - options types.Options
+//   - fiddleHash string
+//   - results *types.Result
+func (_e *Store_Expecter) PutMedia(options interface{}, fiddleHash interface{}, results interface{}) *Store_PutMedia_Call {
+	return &Store_PutMedia_Call{Call: _e.mock.On("PutMedia", options, fiddleHash, results)}
+}
+
+func (_c *Store_PutMedia_Call) Run(run func(options types.Options, fiddleHash string, results *types.Result)) *Store_PutMedia_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(types.Options), args[1].(string), args[2].(*types.Result))
+	})
+	return _c
+}
+
+func (_c *Store_PutMedia_Call) Return(_a0 error) *Store_PutMedia_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_PutMedia_Call) RunAndReturn(run func(types.Options, string, *types.Result) error) *Store_PutMedia_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetStatus provides a mock function with given fields: name, status
 func (_m *Store) SetStatus(name string, status string) error {
 	ret := _m.Called(name, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetStatus")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
@@ -204,9 +489,42 @@ func (_m *Store) SetStatus(name string, status string) error {
 	return r0
 }
 
+// Store_SetStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetStatus'
+type Store_SetStatus_Call struct {
+	*mock.Call
+}
+
+// SetStatus is a helper method to define mock.On call
+//   - name string
+//   - status string
+func (_e *Store_Expecter) SetStatus(name interface{}, status interface{}) *Store_SetStatus_Call {
+	return &Store_SetStatus_Call{Call: _e.mock.On("SetStatus", name, status)}
+}
+
+func (_c *Store_SetStatus_Call) Run(run func(name string, status string)) *Store_SetStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Store_SetStatus_Call) Return(_a0 error) *Store_SetStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_SetStatus_Call) RunAndReturn(run func(string, string) error) *Store_SetStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ValidName provides a mock function with given fields: name
 func (_m *Store) ValidName(name string) bool {
 	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidName")
+	}
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string) bool); ok {
@@ -218,9 +536,41 @@ func (_m *Store) ValidName(name string) bool {
 	return r0
 }
 
+// Store_ValidName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidName'
+type Store_ValidName_Call struct {
+	*mock.Call
+}
+
+// ValidName is a helper method to define mock.On call
+//   - name string
+func (_e *Store_Expecter) ValidName(name interface{}) *Store_ValidName_Call {
+	return &Store_ValidName_Call{Call: _e.mock.On("ValidName", name)}
+}
+
+func (_c *Store_ValidName_Call) Run(run func(name string)) *Store_ValidName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *Store_ValidName_Call) Return(_a0 bool) *Store_ValidName_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_ValidName_Call) RunAndReturn(run func(string) bool) *Store_ValidName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WriteName provides a mock function with given fields: name, hash, user, status
 func (_m *Store) WriteName(name string, hash string, user string, status string) error {
 	ret := _m.Called(name, hash, user, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WriteName")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string, string) error); ok {
@@ -232,9 +582,45 @@ func (_m *Store) WriteName(name string, hash string, user string, status string)
 	return r0
 }
 
-// NewStore creates a new instance of Store. It also registers a cleanup function to assert the mocks expectations.
-func NewStore(t testing.TB) *Store {
+// Store_WriteName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WriteName'
+type Store_WriteName_Call struct {
+	*mock.Call
+}
+
+// WriteName is a helper method to define mock.On call
+//   - name string
+//   - hash string
+//   - user string
+//   - status string
+func (_e *Store_Expecter) WriteName(name interface{}, hash interface{}, user interface{}, status interface{}) *Store_WriteName_Call {
+	return &Store_WriteName_Call{Call: _e.mock.On("WriteName", name, hash, user, status)}
+}
+
+func (_c *Store_WriteName_Call) Run(run func(name string, hash string, user string, status string)) *Store_WriteName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *Store_WriteName_Call) Return(_a0 error) *Store_WriteName_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Store_WriteName_Call) RunAndReturn(run func(string, string, string, string) error) *Store_WriteName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewStore(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *Store {
 	mock := &Store{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

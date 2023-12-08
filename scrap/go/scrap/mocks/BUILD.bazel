@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = [
-        "ScrapExchange.go",
-        "mocks.go",
-    ],
+    srcs = ["ScrapExchange.go"],
     importpath = "go.skia.org/infra/scrap/go/scrap/mocks",
     visibility = ["//visibility:public"],
     deps = [

@@ -7,8 +7,6 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	testing "testing"
-
 	time "time"
 
 	v1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -19,9 +17,21 @@ type ApiClient struct {
 	mock.Mock
 }
 
+type ApiClient_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *ApiClient) EXPECT() *ApiClient_Expecter {
+	return &ApiClient_Expecter{mock: &_m.Mock}
+}
+
 // CancelTask provides a mock function with given fields: ctx, id, killRunning
 func (_m *ApiClient) CancelTask(ctx context.Context, id string, killRunning bool) error {
 	ret := _m.Called(ctx, id, killRunning)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelTask")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
@@ -33,9 +43,43 @@ func (_m *ApiClient) CancelTask(ctx context.Context, id string, killRunning bool
 	return r0
 }
 
+// ApiClient_CancelTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CancelTask'
+type ApiClient_CancelTask_Call struct {
+	*mock.Call
+}
+
+// CancelTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - killRunning bool
+func (_e *ApiClient_Expecter) CancelTask(ctx interface{}, id interface{}, killRunning interface{}) *ApiClient_CancelTask_Call {
+	return &ApiClient_CancelTask_Call{Call: _e.mock.On("CancelTask", ctx, id, killRunning)}
+}
+
+func (_c *ApiClient_CancelTask_Call) Run(run func(ctx context.Context, id string, killRunning bool)) *ApiClient_CancelTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *ApiClient_CancelTask_Call) Return(_a0 error) *ApiClient_CancelTask_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ApiClient_CancelTask_Call) RunAndReturn(run func(context.Context, string, bool) error) *ApiClient_CancelTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteBots provides a mock function with given fields: ctx, bots
 func (_m *ApiClient) DeleteBots(ctx context.Context, bots []string) error {
 	ret := _m.Called(ctx, bots)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteBots")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, []string) error); ok {
@@ -47,11 +91,48 @@ func (_m *ApiClient) DeleteBots(ctx context.Context, bots []string) error {
 	return r0
 }
 
+// ApiClient_DeleteBots_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteBots'
+type ApiClient_DeleteBots_Call struct {
+	*mock.Call
+}
+
+// DeleteBots is a helper method to define mock.On call
+//   - ctx context.Context
+//   - bots []string
+func (_e *ApiClient_Expecter) DeleteBots(ctx interface{}, bots interface{}) *ApiClient_DeleteBots_Call {
+	return &ApiClient_DeleteBots_Call{Call: _e.mock.On("DeleteBots", ctx, bots)}
+}
+
+func (_c *ApiClient_DeleteBots_Call) Run(run func(ctx context.Context, bots []string)) *ApiClient_DeleteBots_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_DeleteBots_Call) Return(_a0 error) *ApiClient_DeleteBots_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ApiClient_DeleteBots_Call) RunAndReturn(run func(context.Context, []string) error) *ApiClient_DeleteBots_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetStates provides a mock function with given fields: ctx, ids
 func (_m *ApiClient) GetStates(ctx context.Context, ids []string) ([]string, error) {
 	ret := _m.Called(ctx, ids)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetStates")
+	}
+
 	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]string, error)); ok {
+		return rf(ctx, ids)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, []string) []string); ok {
 		r0 = rf(ctx, ids)
 	} else {
@@ -60,7 +141,6 @@ func (_m *ApiClient) GetStates(ctx context.Context, ids []string) ([]string, err
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
 		r1 = rf(ctx, ids)
 	} else {
@@ -70,11 +150,48 @@ func (_m *ApiClient) GetStates(ctx context.Context, ids []string) ([]string, err
 	return r0, r1
 }
 
+// ApiClient_GetStates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStates'
+type ApiClient_GetStates_Call struct {
+	*mock.Call
+}
+
+// GetStates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ids []string
+func (_e *ApiClient_Expecter) GetStates(ctx interface{}, ids interface{}) *ApiClient_GetStates_Call {
+	return &ApiClient_GetStates_Call{Call: _e.mock.On("GetStates", ctx, ids)}
+}
+
+func (_c *ApiClient_GetStates_Call) Run(run func(ctx context.Context, ids []string)) *ApiClient_GetStates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_GetStates_Call) Return(_a0 []string, _a1 error) *ApiClient_GetStates_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_GetStates_Call) RunAndReturn(run func(context.Context, []string) ([]string, error)) *ApiClient_GetStates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetStdoutOfTask provides a mock function with given fields: ctx, id
 func (_m *ApiClient) GetStdoutOfTask(ctx context.Context, id string) (*v1.SwarmingRpcsTaskOutput, error) {
 	ret := _m.Called(ctx, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetStdoutOfTask")
+	}
+
 	var r0 *v1.SwarmingRpcsTaskOutput
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*v1.SwarmingRpcsTaskOutput, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *v1.SwarmingRpcsTaskOutput); ok {
 		r0 = rf(ctx, id)
 	} else {
@@ -83,7 +200,6 @@ func (_m *ApiClient) GetStdoutOfTask(ctx context.Context, id string) (*v1.Swarmi
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
@@ -93,11 +209,48 @@ func (_m *ApiClient) GetStdoutOfTask(ctx context.Context, id string) (*v1.Swarmi
 	return r0, r1
 }
 
+// ApiClient_GetStdoutOfTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStdoutOfTask'
+type ApiClient_GetStdoutOfTask_Call struct {
+	*mock.Call
+}
+
+// GetStdoutOfTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ApiClient_Expecter) GetStdoutOfTask(ctx interface{}, id interface{}) *ApiClient_GetStdoutOfTask_Call {
+	return &ApiClient_GetStdoutOfTask_Call{Call: _e.mock.On("GetStdoutOfTask", ctx, id)}
+}
+
+func (_c *ApiClient_GetStdoutOfTask_Call) Run(run func(ctx context.Context, id string)) *ApiClient_GetStdoutOfTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_GetStdoutOfTask_Call) Return(_a0 *v1.SwarmingRpcsTaskOutput, _a1 error) *ApiClient_GetStdoutOfTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_GetStdoutOfTask_Call) RunAndReturn(run func(context.Context, string) (*v1.SwarmingRpcsTaskOutput, error)) *ApiClient_GetStdoutOfTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTask provides a mock function with given fields: ctx, id, includePerformanceStats
 func (_m *ApiClient) GetTask(ctx context.Context, id string, includePerformanceStats bool) (*v1.SwarmingRpcsTaskResult, error) {
 	ret := _m.Called(ctx, id, includePerformanceStats)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetTask")
+	}
+
 	var r0 *v1.SwarmingRpcsTaskResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (*v1.SwarmingRpcsTaskResult, error)); ok {
+		return rf(ctx, id, includePerformanceStats)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *v1.SwarmingRpcsTaskResult); ok {
 		r0 = rf(ctx, id, includePerformanceStats)
 	} else {
@@ -106,7 +259,6 @@ func (_m *ApiClient) GetTask(ctx context.Context, id string, includePerformanceS
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
 		r1 = rf(ctx, id, includePerformanceStats)
 	} else {
@@ -116,11 +268,49 @@ func (_m *ApiClient) GetTask(ctx context.Context, id string, includePerformanceS
 	return r0, r1
 }
 
+// ApiClient_GetTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTask'
+type ApiClient_GetTask_Call struct {
+	*mock.Call
+}
+
+// GetTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - includePerformanceStats bool
+func (_e *ApiClient_Expecter) GetTask(ctx interface{}, id interface{}, includePerformanceStats interface{}) *ApiClient_GetTask_Call {
+	return &ApiClient_GetTask_Call{Call: _e.mock.On("GetTask", ctx, id, includePerformanceStats)}
+}
+
+func (_c *ApiClient_GetTask_Call) Run(run func(ctx context.Context, id string, includePerformanceStats bool)) *ApiClient_GetTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *ApiClient_GetTask_Call) Return(_a0 *v1.SwarmingRpcsTaskResult, _a1 error) *ApiClient_GetTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_GetTask_Call) RunAndReturn(run func(context.Context, string, bool) (*v1.SwarmingRpcsTaskResult, error)) *ApiClient_GetTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTaskMetadata provides a mock function with given fields: ctx, id
 func (_m *ApiClient) GetTaskMetadata(ctx context.Context, id string) (*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(ctx, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetTaskMetadata")
+	}
+
 	var r0 *v1.SwarmingRpcsTaskRequestMetadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*v1.SwarmingRpcsTaskRequestMetadata, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *v1.SwarmingRpcsTaskRequestMetadata); ok {
 		r0 = rf(ctx, id)
 	} else {
@@ -129,7 +319,6 @@ func (_m *ApiClient) GetTaskMetadata(ctx context.Context, id string) (*v1.Swarmi
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
@@ -139,11 +328,48 @@ func (_m *ApiClient) GetTaskMetadata(ctx context.Context, id string) (*v1.Swarmi
 	return r0, r1
 }
 
+// ApiClient_GetTaskMetadata_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTaskMetadata'
+type ApiClient_GetTaskMetadata_Call struct {
+	*mock.Call
+}
+
+// GetTaskMetadata is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ApiClient_Expecter) GetTaskMetadata(ctx interface{}, id interface{}) *ApiClient_GetTaskMetadata_Call {
+	return &ApiClient_GetTaskMetadata_Call{Call: _e.mock.On("GetTaskMetadata", ctx, id)}
+}
+
+func (_c *ApiClient_GetTaskMetadata_Call) Run(run func(ctx context.Context, id string)) *ApiClient_GetTaskMetadata_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_GetTaskMetadata_Call) Return(_a0 *v1.SwarmingRpcsTaskRequestMetadata, _a1 error) *ApiClient_GetTaskMetadata_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_GetTaskMetadata_Call) RunAndReturn(run func(context.Context, string) (*v1.SwarmingRpcsTaskRequestMetadata, error)) *ApiClient_GetTaskMetadata_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GracefullyShutdownBot provides a mock function with given fields: ctx, id
 func (_m *ApiClient) GracefullyShutdownBot(ctx context.Context, id string) (*v1.SwarmingRpcsTerminateResponse, error) {
 	ret := _m.Called(ctx, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GracefullyShutdownBot")
+	}
+
 	var r0 *v1.SwarmingRpcsTerminateResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*v1.SwarmingRpcsTerminateResponse, error)); ok {
+		return rf(ctx, id)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) *v1.SwarmingRpcsTerminateResponse); ok {
 		r0 = rf(ctx, id)
 	} else {
@@ -152,7 +378,6 @@ func (_m *ApiClient) GracefullyShutdownBot(ctx context.Context, id string) (*v1.
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
@@ -162,11 +387,48 @@ func (_m *ApiClient) GracefullyShutdownBot(ctx context.Context, id string) (*v1.
 	return r0, r1
 }
 
+// ApiClient_GracefullyShutdownBot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GracefullyShutdownBot'
+type ApiClient_GracefullyShutdownBot_Call struct {
+	*mock.Call
+}
+
+// GracefullyShutdownBot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ApiClient_Expecter) GracefullyShutdownBot(ctx interface{}, id interface{}) *ApiClient_GracefullyShutdownBot_Call {
+	return &ApiClient_GracefullyShutdownBot_Call{Call: _e.mock.On("GracefullyShutdownBot", ctx, id)}
+}
+
+func (_c *ApiClient_GracefullyShutdownBot_Call) Run(run func(ctx context.Context, id string)) *ApiClient_GracefullyShutdownBot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_GracefullyShutdownBot_Call) Return(_a0 *v1.SwarmingRpcsTerminateResponse, _a1 error) *ApiClient_GracefullyShutdownBot_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_GracefullyShutdownBot_Call) RunAndReturn(run func(context.Context, string) (*v1.SwarmingRpcsTerminateResponse, error)) *ApiClient_GracefullyShutdownBot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListBotTasks provides a mock function with given fields: ctx, botID, limit
 func (_m *ApiClient) ListBotTasks(ctx context.Context, botID string, limit int) ([]*v1.SwarmingRpcsTaskResult, error) {
 	ret := _m.Called(ctx, botID, limit)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListBotTasks")
+	}
+
 	var r0 []*v1.SwarmingRpcsTaskResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int) ([]*v1.SwarmingRpcsTaskResult, error)); ok {
+		return rf(ctx, botID, limit)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, int) []*v1.SwarmingRpcsTaskResult); ok {
 		r0 = rf(ctx, botID, limit)
 	} else {
@@ -175,7 +437,6 @@ func (_m *ApiClient) ListBotTasks(ctx context.Context, botID string, limit int) 
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string, int) error); ok {
 		r1 = rf(ctx, botID, limit)
 	} else {
@@ -185,11 +446,49 @@ func (_m *ApiClient) ListBotTasks(ctx context.Context, botID string, limit int) 
 	return r0, r1
 }
 
+// ApiClient_ListBotTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBotTasks'
+type ApiClient_ListBotTasks_Call struct {
+	*mock.Call
+}
+
+// ListBotTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - botID string
+//   - limit int
+func (_e *ApiClient_Expecter) ListBotTasks(ctx interface{}, botID interface{}, limit interface{}) *ApiClient_ListBotTasks_Call {
+	return &ApiClient_ListBotTasks_Call{Call: _e.mock.On("ListBotTasks", ctx, botID, limit)}
+}
+
+func (_c *ApiClient_ListBotTasks_Call) Run(run func(ctx context.Context, botID string, limit int)) *ApiClient_ListBotTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListBotTasks_Call) Return(_a0 []*v1.SwarmingRpcsTaskResult, _a1 error) *ApiClient_ListBotTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListBotTasks_Call) RunAndReturn(run func(context.Context, string, int) ([]*v1.SwarmingRpcsTaskResult, error)) *ApiClient_ListBotTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListBots provides a mock function with given fields: ctx, dimensions
 func (_m *ApiClient) ListBots(ctx context.Context, dimensions map[string]string) ([]*v1.SwarmingRpcsBotInfo, error) {
 	ret := _m.Called(ctx, dimensions)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListBots")
+	}
+
 	var r0 []*v1.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) ([]*v1.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, dimensions)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) []*v1.SwarmingRpcsBotInfo); ok {
 		r0 = rf(ctx, dimensions)
 	} else {
@@ -198,7 +497,6 @@ func (_m *ApiClient) ListBots(ctx context.Context, dimensions map[string]string)
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
 		r1 = rf(ctx, dimensions)
 	} else {
@@ -208,11 +506,48 @@ func (_m *ApiClient) ListBots(ctx context.Context, dimensions map[string]string)
 	return r0, r1
 }
 
+// ApiClient_ListBots_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBots'
+type ApiClient_ListBots_Call struct {
+	*mock.Call
+}
+
+// ListBots is a helper method to define mock.On call
+//   - ctx context.Context
+//   - dimensions map[string]string
+func (_e *ApiClient_Expecter) ListBots(ctx interface{}, dimensions interface{}) *ApiClient_ListBots_Call {
+	return &ApiClient_ListBots_Call{Call: _e.mock.On("ListBots", ctx, dimensions)}
+}
+
+func (_c *ApiClient_ListBots_Call) Run(run func(ctx context.Context, dimensions map[string]string)) *ApiClient_ListBots_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(map[string]string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListBots_Call) Return(_a0 []*v1.SwarmingRpcsBotInfo, _a1 error) *ApiClient_ListBots_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListBots_Call) RunAndReturn(run func(context.Context, map[string]string) ([]*v1.SwarmingRpcsBotInfo, error)) *ApiClient_ListBots_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListBotsForPool provides a mock function with given fields: ctx, pool
 func (_m *ApiClient) ListBotsForPool(ctx context.Context, pool string) ([]*v1.SwarmingRpcsBotInfo, error) {
 	ret := _m.Called(ctx, pool)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListBotsForPool")
+	}
+
 	var r0 []*v1.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, pool)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*v1.SwarmingRpcsBotInfo); ok {
 		r0 = rf(ctx, pool)
 	} else {
@@ -221,7 +556,6 @@ func (_m *ApiClient) ListBotsForPool(ctx context.Context, pool string) ([]*v1.Sw
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, pool)
 	} else {
@@ -229,13 +563,50 @@ func (_m *ApiClient) ListBotsForPool(ctx context.Context, pool string) ([]*v1.Sw
 	}
 
 	return r0, r1
+}
+
+// ApiClient_ListBotsForPool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListBotsForPool'
+type ApiClient_ListBotsForPool_Call struct {
+	*mock.Call
+}
+
+// ListBotsForPool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pool string
+func (_e *ApiClient_Expecter) ListBotsForPool(ctx interface{}, pool interface{}) *ApiClient_ListBotsForPool_Call {
+	return &ApiClient_ListBotsForPool_Call{Call: _e.mock.On("ListBotsForPool", ctx, pool)}
+}
+
+func (_c *ApiClient_ListBotsForPool_Call) Run(run func(ctx context.Context, pool string)) *ApiClient_ListBotsForPool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListBotsForPool_Call) Return(_a0 []*v1.SwarmingRpcsBotInfo, _a1 error) *ApiClient_ListBotsForPool_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListBotsForPool_Call) RunAndReturn(run func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)) *ApiClient_ListBotsForPool_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListDownBots provides a mock function with given fields: ctx, pool
 func (_m *ApiClient) ListDownBots(ctx context.Context, pool string) ([]*v1.SwarmingRpcsBotInfo, error) {
 	ret := _m.Called(ctx, pool)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListDownBots")
+	}
+
 	var r0 []*v1.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, pool)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*v1.SwarmingRpcsBotInfo); ok {
 		r0 = rf(ctx, pool)
 	} else {
@@ -244,7 +615,6 @@ func (_m *ApiClient) ListDownBots(ctx context.Context, pool string) ([]*v1.Swarm
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, pool)
 	} else {
@@ -252,13 +622,50 @@ func (_m *ApiClient) ListDownBots(ctx context.Context, pool string) ([]*v1.Swarm
 	}
 
 	return r0, r1
+}
+
+// ApiClient_ListDownBots_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDownBots'
+type ApiClient_ListDownBots_Call struct {
+	*mock.Call
+}
+
+// ListDownBots is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pool string
+func (_e *ApiClient_Expecter) ListDownBots(ctx interface{}, pool interface{}) *ApiClient_ListDownBots_Call {
+	return &ApiClient_ListDownBots_Call{Call: _e.mock.On("ListDownBots", ctx, pool)}
+}
+
+func (_c *ApiClient_ListDownBots_Call) Run(run func(ctx context.Context, pool string)) *ApiClient_ListDownBots_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListDownBots_Call) Return(_a0 []*v1.SwarmingRpcsBotInfo, _a1 error) *ApiClient_ListDownBots_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListDownBots_Call) RunAndReturn(run func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)) *ApiClient_ListDownBots_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListFreeBots provides a mock function with given fields: ctx, pool
 func (_m *ApiClient) ListFreeBots(ctx context.Context, pool string) ([]*v1.SwarmingRpcsBotInfo, error) {
 	ret := _m.Called(ctx, pool)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListFreeBots")
+	}
+
 	var r0 []*v1.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, pool)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*v1.SwarmingRpcsBotInfo); ok {
 		r0 = rf(ctx, pool)
 	} else {
@@ -267,7 +674,6 @@ func (_m *ApiClient) ListFreeBots(ctx context.Context, pool string) ([]*v1.Swarm
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, pool)
 	} else {
@@ -277,11 +683,48 @@ func (_m *ApiClient) ListFreeBots(ctx context.Context, pool string) ([]*v1.Swarm
 	return r0, r1
 }
 
+// ApiClient_ListFreeBots_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListFreeBots'
+type ApiClient_ListFreeBots_Call struct {
+	*mock.Call
+}
+
+// ListFreeBots is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pool string
+func (_e *ApiClient_Expecter) ListFreeBots(ctx interface{}, pool interface{}) *ApiClient_ListFreeBots_Call {
+	return &ApiClient_ListFreeBots_Call{Call: _e.mock.On("ListFreeBots", ctx, pool)}
+}
+
+func (_c *ApiClient_ListFreeBots_Call) Run(run func(ctx context.Context, pool string)) *ApiClient_ListFreeBots_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListFreeBots_Call) Return(_a0 []*v1.SwarmingRpcsBotInfo, _a1 error) *ApiClient_ListFreeBots_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListFreeBots_Call) RunAndReturn(run func(context.Context, string) ([]*v1.SwarmingRpcsBotInfo, error)) *ApiClient_ListFreeBots_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListSkiaTasks provides a mock function with given fields: ctx, start, end
 func (_m *ApiClient) ListSkiaTasks(ctx context.Context, start time.Time, end time.Time) ([]*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(ctx, start, end)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListSkiaTasks")
+	}
+
 	var r0 []*v1.SwarmingRpcsTaskRequestMetadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time) ([]*v1.SwarmingRpcsTaskRequestMetadata, error)); ok {
+		return rf(ctx, start, end)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time) []*v1.SwarmingRpcsTaskRequestMetadata); ok {
 		r0 = rf(ctx, start, end)
 	} else {
@@ -290,7 +733,6 @@ func (_m *ApiClient) ListSkiaTasks(ctx context.Context, start time.Time, end tim
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time) error); ok {
 		r1 = rf(ctx, start, end)
 	} else {
@@ -300,11 +742,49 @@ func (_m *ApiClient) ListSkiaTasks(ctx context.Context, start time.Time, end tim
 	return r0, r1
 }
 
+// ApiClient_ListSkiaTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSkiaTasks'
+type ApiClient_ListSkiaTasks_Call struct {
+	*mock.Call
+}
+
+// ListSkiaTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - start time.Time
+//   - end time.Time
+func (_e *ApiClient_Expecter) ListSkiaTasks(ctx interface{}, start interface{}, end interface{}) *ApiClient_ListSkiaTasks_Call {
+	return &ApiClient_ListSkiaTasks_Call{Call: _e.mock.On("ListSkiaTasks", ctx, start, end)}
+}
+
+func (_c *ApiClient_ListSkiaTasks_Call) Run(run func(ctx context.Context, start time.Time, end time.Time)) *ApiClient_ListSkiaTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListSkiaTasks_Call) Return(_a0 []*v1.SwarmingRpcsTaskRequestMetadata, _a1 error) *ApiClient_ListSkiaTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListSkiaTasks_Call) RunAndReturn(run func(context.Context, time.Time, time.Time) ([]*v1.SwarmingRpcsTaskRequestMetadata, error)) *ApiClient_ListSkiaTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListTaskResults provides a mock function with given fields: ctx, start, end, tags, state, includePerformanceStats
 func (_m *ApiClient) ListTaskResults(ctx context.Context, start time.Time, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*v1.SwarmingRpcsTaskResult, error) {
 	ret := _m.Called(ctx, start, end, tags, state, includePerformanceStats)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListTaskResults")
+	}
+
 	var r0 []*v1.SwarmingRpcsTaskResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, []string, string, bool) ([]*v1.SwarmingRpcsTaskResult, error)); ok {
+		return rf(ctx, start, end, tags, state, includePerformanceStats)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, []string, string, bool) []*v1.SwarmingRpcsTaskResult); ok {
 		r0 = rf(ctx, start, end, tags, state, includePerformanceStats)
 	} else {
@@ -313,7 +793,6 @@ func (_m *ApiClient) ListTaskResults(ctx context.Context, start time.Time, end t
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, []string, string, bool) error); ok {
 		r1 = rf(ctx, start, end, tags, state, includePerformanceStats)
 	} else {
@@ -323,11 +802,52 @@ func (_m *ApiClient) ListTaskResults(ctx context.Context, start time.Time, end t
 	return r0, r1
 }
 
+// ApiClient_ListTaskResults_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTaskResults'
+type ApiClient_ListTaskResults_Call struct {
+	*mock.Call
+}
+
+// ListTaskResults is a helper method to define mock.On call
+//   - ctx context.Context
+//   - start time.Time
+//   - end time.Time
+//   - tags []string
+//   - state string
+//   - includePerformanceStats bool
+func (_e *ApiClient_Expecter) ListTaskResults(ctx interface{}, start interface{}, end interface{}, tags interface{}, state interface{}, includePerformanceStats interface{}) *ApiClient_ListTaskResults_Call {
+	return &ApiClient_ListTaskResults_Call{Call: _e.mock.On("ListTaskResults", ctx, start, end, tags, state, includePerformanceStats)}
+}
+
+func (_c *ApiClient_ListTaskResults_Call) Run(run func(ctx context.Context, start time.Time, end time.Time, tags []string, state string, includePerformanceStats bool)) *ApiClient_ListTaskResults_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].([]string), args[4].(string), args[5].(bool))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListTaskResults_Call) Return(_a0 []*v1.SwarmingRpcsTaskResult, _a1 error) *ApiClient_ListTaskResults_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListTaskResults_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, []string, string, bool) ([]*v1.SwarmingRpcsTaskResult, error)) *ApiClient_ListTaskResults_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListTasks provides a mock function with given fields: ctx, start, end, tags, state
 func (_m *ApiClient) ListTasks(ctx context.Context, start time.Time, end time.Time, tags []string, state string) ([]*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(ctx, start, end, tags, state)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ListTasks")
+	}
+
 	var r0 []*v1.SwarmingRpcsTaskRequestMetadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, []string, string) ([]*v1.SwarmingRpcsTaskRequestMetadata, error)); ok {
+		return rf(ctx, start, end, tags, state)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, time.Time, time.Time, []string, string) []*v1.SwarmingRpcsTaskRequestMetadata); ok {
 		r0 = rf(ctx, start, end, tags, state)
 	} else {
@@ -336,7 +856,6 @@ func (_m *ApiClient) ListTasks(ctx context.Context, start time.Time, end time.Ti
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, time.Time, time.Time, []string, string) error); ok {
 		r1 = rf(ctx, start, end, tags, state)
 	} else {
@@ -346,11 +865,51 @@ func (_m *ApiClient) ListTasks(ctx context.Context, start time.Time, end time.Ti
 	return r0, r1
 }
 
+// ApiClient_ListTasks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTasks'
+type ApiClient_ListTasks_Call struct {
+	*mock.Call
+}
+
+// ListTasks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - start time.Time
+//   - end time.Time
+//   - tags []string
+//   - state string
+func (_e *ApiClient_Expecter) ListTasks(ctx interface{}, start interface{}, end interface{}, tags interface{}, state interface{}) *ApiClient_ListTasks_Call {
+	return &ApiClient_ListTasks_Call{Call: _e.mock.On("ListTasks", ctx, start, end, tags, state)}
+}
+
+func (_c *ApiClient_ListTasks_Call) Run(run func(ctx context.Context, start time.Time, end time.Time, tags []string, state string)) *ApiClient_ListTasks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(time.Time), args[2].(time.Time), args[3].([]string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *ApiClient_ListTasks_Call) Return(_a0 []*v1.SwarmingRpcsTaskRequestMetadata, _a1 error) *ApiClient_ListTasks_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_ListTasks_Call) RunAndReturn(run func(context.Context, time.Time, time.Time, []string, string) ([]*v1.SwarmingRpcsTaskRequestMetadata, error)) *ApiClient_ListTasks_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RetryTask provides a mock function with given fields: ctx, t
 func (_m *ApiClient) RetryTask(ctx context.Context, t *v1.SwarmingRpcsTaskRequestMetadata) (*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(ctx, t)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RetryTask")
+	}
+
 	var r0 *v1.SwarmingRpcsTaskRequestMetadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.SwarmingRpcsTaskRequestMetadata) (*v1.SwarmingRpcsTaskRequestMetadata, error)); ok {
+		return rf(ctx, t)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, *v1.SwarmingRpcsTaskRequestMetadata) *v1.SwarmingRpcsTaskRequestMetadata); ok {
 		r0 = rf(ctx, t)
 	} else {
@@ -359,7 +918,6 @@ func (_m *ApiClient) RetryTask(ctx context.Context, t *v1.SwarmingRpcsTaskReques
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *v1.SwarmingRpcsTaskRequestMetadata) error); ok {
 		r1 = rf(ctx, t)
 	} else {
@@ -369,9 +927,42 @@ func (_m *ApiClient) RetryTask(ctx context.Context, t *v1.SwarmingRpcsTaskReques
 	return r0, r1
 }
 
+// ApiClient_RetryTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RetryTask'
+type ApiClient_RetryTask_Call struct {
+	*mock.Call
+}
+
+// RetryTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - t *v1.SwarmingRpcsTaskRequestMetadata
+func (_e *ApiClient_Expecter) RetryTask(ctx interface{}, t interface{}) *ApiClient_RetryTask_Call {
+	return &ApiClient_RetryTask_Call{Call: _e.mock.On("RetryTask", ctx, t)}
+}
+
+func (_c *ApiClient_RetryTask_Call) Run(run func(ctx context.Context, t *v1.SwarmingRpcsTaskRequestMetadata)) *ApiClient_RetryTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*v1.SwarmingRpcsTaskRequestMetadata))
+	})
+	return _c
+}
+
+func (_c *ApiClient_RetryTask_Call) Return(_a0 *v1.SwarmingRpcsTaskRequestMetadata, _a1 error) *ApiClient_RetryTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_RetryTask_Call) RunAndReturn(run func(context.Context, *v1.SwarmingRpcsTaskRequestMetadata) (*v1.SwarmingRpcsTaskRequestMetadata, error)) *ApiClient_RetryTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SwarmingService provides a mock function with given fields:
 func (_m *ApiClient) SwarmingService() *v1.Service {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SwarmingService")
+	}
 
 	var r0 *v1.Service
 	if rf, ok := ret.Get(0).(func() *v1.Service); ok {
@@ -385,11 +976,46 @@ func (_m *ApiClient) SwarmingService() *v1.Service {
 	return r0
 }
 
+// ApiClient_SwarmingService_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SwarmingService'
+type ApiClient_SwarmingService_Call struct {
+	*mock.Call
+}
+
+// SwarmingService is a helper method to define mock.On call
+func (_e *ApiClient_Expecter) SwarmingService() *ApiClient_SwarmingService_Call {
+	return &ApiClient_SwarmingService_Call{Call: _e.mock.On("SwarmingService")}
+}
+
+func (_c *ApiClient_SwarmingService_Call) Run(run func()) *ApiClient_SwarmingService_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *ApiClient_SwarmingService_Call) Return(_a0 *v1.Service) *ApiClient_SwarmingService_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ApiClient_SwarmingService_Call) RunAndReturn(run func() *v1.Service) *ApiClient_SwarmingService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TriggerTask provides a mock function with given fields: ctx, t
 func (_m *ApiClient) TriggerTask(ctx context.Context, t *v1.SwarmingRpcsNewTaskRequest) (*v1.SwarmingRpcsTaskRequestMetadata, error) {
 	ret := _m.Called(ctx, t)
 
+	if len(ret) == 0 {
+		panic("no return value specified for TriggerTask")
+	}
+
 	var r0 *v1.SwarmingRpcsTaskRequestMetadata
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.SwarmingRpcsNewTaskRequest) (*v1.SwarmingRpcsTaskRequestMetadata, error)); ok {
+		return rf(ctx, t)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, *v1.SwarmingRpcsNewTaskRequest) *v1.SwarmingRpcsTaskRequestMetadata); ok {
 		r0 = rf(ctx, t)
 	} else {
@@ -398,7 +1024,6 @@ func (_m *ApiClient) TriggerTask(ctx context.Context, t *v1.SwarmingRpcsNewTaskR
 		}
 	}
 
-	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *v1.SwarmingRpcsNewTaskRequest) error); ok {
 		r1 = rf(ctx, t)
 	} else {
@@ -408,9 +1033,43 @@ func (_m *ApiClient) TriggerTask(ctx context.Context, t *v1.SwarmingRpcsNewTaskR
 	return r0, r1
 }
 
-// NewApiClient creates a new instance of ApiClient. It also registers a cleanup function to assert the mocks expectations.
-func NewApiClient(t testing.TB) *ApiClient {
+// ApiClient_TriggerTask_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TriggerTask'
+type ApiClient_TriggerTask_Call struct {
+	*mock.Call
+}
+
+// TriggerTask is a helper method to define mock.On call
+//   - ctx context.Context
+//   - t *v1.SwarmingRpcsNewTaskRequest
+func (_e *ApiClient_Expecter) TriggerTask(ctx interface{}, t interface{}) *ApiClient_TriggerTask_Call {
+	return &ApiClient_TriggerTask_Call{Call: _e.mock.On("TriggerTask", ctx, t)}
+}
+
+func (_c *ApiClient_TriggerTask_Call) Run(run func(ctx context.Context, t *v1.SwarmingRpcsNewTaskRequest)) *ApiClient_TriggerTask_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*v1.SwarmingRpcsNewTaskRequest))
+	})
+	return _c
+}
+
+func (_c *ApiClient_TriggerTask_Call) Return(_a0 *v1.SwarmingRpcsTaskRequestMetadata, _a1 error) *ApiClient_TriggerTask_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ApiClient_TriggerTask_Call) RunAndReturn(run func(context.Context, *v1.SwarmingRpcsNewTaskRequest) (*v1.SwarmingRpcsTaskRequestMetadata, error)) *ApiClient_TriggerTask_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewApiClient creates a new instance of ApiClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewApiClient(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *ApiClient {
 	mock := &ApiClient{}
+	mock.Mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
