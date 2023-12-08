@@ -89,6 +89,16 @@ packages:
   go.skia.org/infra/go/now:
     interfaces:
       TimeTicker:
+  go.skia.org/infra/go/pubsub:
+    config:
+      replace-type:
+        - cloud.google.com/go/internal/pubsub=cloud.google.com/go/pubsub
+    interfaces:
+      Client:
+      Snapshot:
+      Subscription:
+      Topic:
+      PublishResult:
   go.skia.org/infra/go/secret:
     interfaces:
       Client:

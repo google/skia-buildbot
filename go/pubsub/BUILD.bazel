@@ -6,7 +6,13 @@ go_library(
     srcs = ["pubsub.go"],
     importpath = "go.skia.org/infra/go/pubsub",
     visibility = ["//visibility:public"],
-    deps = ["//go/emulators"],
+    deps = [
+        "//go/emulators",
+        "//go/skerr",
+        "@com_google_cloud_go_iam//:iam",
+        "@com_google_cloud_go_pubsub//:pubsub",
+        "@org_golang_google_api//option",
+    ],
 )
 
 go_test(

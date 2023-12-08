@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = [
+        "Client.go",
+        "PublishResult.go",
+        "Snapshot.go",
+        "Subscription.go",
+        "Topic.go",
+    ],
+    importpath = "go.skia.org/infra/go/pubsub/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/pubsub",
+        "@com_github_stretchr_testify//mock",
+        "@com_google_cloud_go_iam//:iam",
+        "@com_google_cloud_go_pubsub//:pubsub",
+    ],
+)
