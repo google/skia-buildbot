@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -13,12 +12,7 @@ describe('auto-refresh-sk', () => {
   });
 
   beforeEach(async () => {
-    // Remove the /dist/ below for //infra-sk elements.
-    await testBed.page.goto(
-      inBazel()
-        ? testBed.baseUrl
-        : `${testBed.baseUrl}/dist/auto-refresh-sk.html`
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 300, height: 300 });
   });
 

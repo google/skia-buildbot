@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,

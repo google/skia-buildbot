@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -13,7 +12,6 @@ describe('ingest-file-links-sk', () => {
   });
 
   beforeEach(async () => {
-    // Remove the /dist/ below for //infra-sk elements.
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });

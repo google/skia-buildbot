@@ -87,11 +87,6 @@ export const addEventListenersToPuppeteerPage = async (
 };
 
 /**
- * Returns true if running from Bazel (e.g. with "bazel test"), or false otherwise.
- */
-export const inBazel = () => !!process.env.BAZEL_WORKSPACE;
-
-/**
  * Returns the path to the Bazel runfiles directory.
  *
  * See:
@@ -145,31 +140,26 @@ export interface TestBed {
  * Screenshots saved in this directory will be uploaded to Gold.
  */
 export const outputDir = () => {
-  // When running via "bazel test", screenshots for e.g. //path/to/my:puppeteer_test will be found
+  // Screenshots will be saved as test undeclared outputs, which will be found at
   // at //_bazel_testlogs/path/to/my/puppeteer_test/test.outputs/outputs.zip. This is true when
   // running on RBE as well (e.g. "bazel test --config=remote").
   //
   // See the following link for more:
   // https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.
-  if (exports.inBazel()) {
-    const undeclaredOutputsDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR;
-    if (!undeclaredOutputsDir) {
-      throw new Error(
-        'required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset'
-      );
-    }
-    const outputDir = path.join(
-      undeclaredOutputsDir,
-      'puppeteer-test-screenshots'
+  const undeclaredOutputsDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR;
+  if (!undeclaredOutputsDir) {
+    throw new Error(
+      'required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset'
     );
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir);
-    }
-    return outputDir;
   }
-
-  // Resolves to //puppeteer-tests/output when running locally.
-  return path.join(__dirname, 'output');
+  const outputDir = path.join(
+    undeclaredOutputsDir,
+    'puppeteer-test-screenshots'
+  );
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
+  return outputDir;
 };
 
 /**
@@ -185,7 +175,7 @@ export function takeScreenshot(
   appName: string,
   testName: string
 ): Promise<Buffer | string> {
-  const pngPath = path.join(exports.outputDir(), `${appName}_${testName}.png`);
+  const pngPath = path.join(outputDir(), `${appName}_${testName}.png`);
   // Typescript is unhappy about the type union due to the ElementHandle having a "this"
   // typing. Both Page and ElementHandle have a screenshot method, so we can just
   // pretend it's one of those two.
@@ -258,11 +248,8 @@ function setBeforeAfterHooks() {
     await testBed.page!.close();
   });
 
-  // When running under Bazel, we need to explicitly shut down Puppeteer, otherwise tests will run
-  // forever, eventually timing out and failing.
-  if (inBazel()) {
-    after(async () => {
-      await browser.close();
-    });
-  }
+  // Shut down Puppeteer, otherwise tests will run forever, eventually timing out and failing.
+  after(async () => {
+    await browser.close();
+  });
 }

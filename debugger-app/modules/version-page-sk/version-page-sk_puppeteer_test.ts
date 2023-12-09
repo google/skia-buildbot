@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -13,12 +12,7 @@ describe('version-page-sk', () => {
   });
 
   beforeEach(async () => {
-    // Remove the /dist/ below for //infra-sk elements.
-    await testBed.page.goto(
-      inBazel()
-        ? testBed.baseUrl
-        : `${testBed.baseUrl}/dist/version-page-sk.html`
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 

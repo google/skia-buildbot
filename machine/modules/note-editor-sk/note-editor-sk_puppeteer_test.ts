@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -13,11 +12,7 @@ describe('note-editor-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-      inBazel()
-        ? testBed.baseUrl
-        : `${testBed.baseUrl}/dist/note-editor-sk.html`
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 640, height: 480 });
   });
 

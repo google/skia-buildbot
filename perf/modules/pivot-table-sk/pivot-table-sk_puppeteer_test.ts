@@ -12,7 +12,6 @@ describe('pivot-table-sk', () => {
   });
 
   beforeEach(async () => {
-    // Remove the /dist/ below for //infra-sk elements.
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 600, height: 600 });
   });

@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -13,11 +12,7 @@ describe('machines-table-sk', () => {
   });
 
   beforeEach(async () => {
-    await testBed.page.goto(
-      inBazel()
-        ? testBed.baseUrl
-        : `${testBed.baseUrl}/dist/machines-table-sk.html`
-    );
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 2800, height: 500 });
   });
 

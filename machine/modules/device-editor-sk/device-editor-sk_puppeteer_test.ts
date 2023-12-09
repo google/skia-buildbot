@@ -1,5 +1,4 @@
 import {
-  inBazel,
   loadCachedTestBed,
   takeScreenshot,
   TestBed,
@@ -37,11 +36,7 @@ describe('device-editor-sk', () => {
   });
 
   async function navigateTo(hash: string) {
-    await testBed.page.goto(
-      inBazel()
-        ? testBed.baseUrl
-        : `${testBed.baseUrl}/dist/device-editor-sk.html${hash}`
-    );
+    await testBed.page.goto(testBed.baseUrl + hash);
     await testBed.page.setViewport({ width: 640, height: 480 });
   }
 });

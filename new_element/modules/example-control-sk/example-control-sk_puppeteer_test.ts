@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {
-  inBazel, loadCachedTestBed, takeScreenshot, TestBed,
+  loadCachedTestBed, takeScreenshot, TestBed,
 } from '../../../puppeteer-tests/util';
 
 describe('example-control-sk', () => {
@@ -10,8 +10,7 @@ describe('example-control-sk', () => {
   });
 
   beforeEach(async () => {
-    // Remove the /dist/ below for //infra-sk elements.
-    await testBed.page.goto(inBazel() ? testBed.baseUrl : `${testBed.baseUrl}/dist/example-control-sk.html`);
+    await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 400, height: 550 });
   });
 
