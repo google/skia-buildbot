@@ -141,7 +141,7 @@ export class SkottieTextEditorSk extends ElementSk {
                       layer: layer,
                       parentId: precomp.id,
                       precompName: this.findPrecompName(animation, precomp.id),
-                    } as ExtraLayerData)
+                    }) as ExtraLayerData
                 )
             );
             return accumulator;

@@ -16,29 +16,30 @@ import {
 } from '../events';
 
 export class TimelineSk extends ElementSk {
-  private static template = (ele: TimelineSk) => html` <div class="horizontal">
-    <play-sk .visual=${'simple'}></play-sk>
-    <div class="outer">
-      <div class="hallway">
-        ${[...Array(ele._count).keys()].map(
-          (i) => html`
-            <div
-              class="room ${ele._item === i ? 'selected' : 'not-selected'}"
-              @click=${() => {
-                ele._roomClick(i);
-              }}>
-              ${i % ele._modulo === 0
-                ? html`<div class="rel-point">
+  private static template = (ele: TimelineSk) =>
+    html` <div class="horizontal">
+      <play-sk .visual=${'simple'}></play-sk>
+      <div class="outer">
+        <div class="hallway">
+          ${[...Array(ele._count).keys()].map(
+            (i) => html`
+              <div
+                class="room ${ele._item === i ? 'selected' : 'not-selected'}"
+                @click=${() => {
+                  ele._roomClick(i);
+                }}>
+                ${i % ele._modulo === 0
+                  ? html`<div class="rel-point">
                     <span class="label">${i}<span>
                   </div>`
-                : ''}
-            </div>
-          `
-        )}
+                  : ''}
+              </div>
+            `
+          )}
+        </div>
+        <div class="basement"><div></div></div>
       </div>
-      <div class="basement"><div></div></div>
-    </div>
-  </div>`;
+    </div>`;
 
   private _count = 50;
 

@@ -98,8 +98,7 @@ export class JobSearchSk extends ElementSk {
                           term.value = input.value;
                           ele.updateQuery();
                         }}"
-                        selected=
-                      >
+                        selected="">
                         ${Object.entries(jobStatusToLabelAndClass).map(
                           ([status, labelAndClass]) => html`
                             <option

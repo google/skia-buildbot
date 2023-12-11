@@ -1,3 +1,4 @@
+.git
 node_modules
 dist/
 build/
@@ -19,3 +20,4 @@ _bazel*/**
 *.json5
 *.json
 *.html
+

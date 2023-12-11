@@ -226,25 +226,22 @@ const domIDFromHashOrName = (hashOrName: string): string => {
  * @param i the shader example
  * @returns formated shader exanple entry div
  */
-const shaderEntry = (ele: ShadersAppSk, i: shaderExample) => html` <li
-  class="thumbnails"
-  id="${domIDFromHashOrName(i.hash)}">
-  <a href="/?id=${i.hash}">
-    <img
-      src=${cdnImage(i)}
-      alt=${`Clickable thumbnail of ${i.imageName} shader example`} />
-  </a>
-</li>`;
+const shaderEntry = (ele: ShadersAppSk, i: shaderExample) =>
+  html` <li class="thumbnails" id="${domIDFromHashOrName(i.hash)}">
+    <a href="/?id=${i.hash}">
+      <img
+        src=${cdnImage(i)}
+        alt=${`Clickable thumbnail of ${i.imageName} shader example`} />
+    </a>
+  </li>`;
 
 /**
  * Formats each uniform entry attaching the link with the display text.
  */
-const uniformExampleEntry = (
-  ele: ShadersAppSk,
-  uni: uniformExample
-) => html` <li class="thumbnails" id="${domIDFromHashOrName(uni.id)}">
-  <a href="/?id=${uni.id}">${uni.name}</a>
-</li>`;
+const uniformExampleEntry = (ele: ShadersAppSk, uni: uniformExample) =>
+  html` <li class="thumbnails" id="${domIDFromHashOrName(uni.id)}">
+    <a href="/?id=${uni.id}">${uni.name}</a>
+  </li>`;
 
 /**
  * Formats the shader example thumbnail url
@@ -359,27 +356,27 @@ export class ShadersAppSk extends ElementSk {
     // Prepend some fixed width spaces based on the depth so we get a nested
     // directory type of layout. See https://en.wikipedia.org/wiki/Figure_space.
     const prefix = new Array(depth).fill('&numsp;&numsp;').join('');
-    ret.push(html` <p
-      class="childShader"
-      @click=${() => ele.childShaderClick(node)}>
-      <span>
-        ${unsafeHTML(prefix)}
-        <span class="linkish">${name}</span>
-        ${ele.rootShaderNode!.children.length > 0 && ele.currentNode === node
-          ? '*'
-          : ''}
-      </span>
-      <span>
-        ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
-        ${ShadersAppSk.editButton(ele, parentNode, node, childIndex)}
-        <button
-          class="addButton"
-          title="Append a new child shader."
-          @click=${(e: Event) => ele.appendChildShader(e, node)}>
-          <add-icon-sk></add-icon-sk>
-        </button>
-      </span>
-    </p>`);
+    ret.push(
+      html` <p class="childShader" @click=${() => ele.childShaderClick(node)}>
+        <span>
+          ${unsafeHTML(prefix)}
+          <span class="linkish">${name}</span>
+          ${ele.rootShaderNode!.children.length > 0 && ele.currentNode === node
+            ? '*'
+            : ''}
+        </span>
+        <span>
+          ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
+          ${ShadersAppSk.editButton(ele, parentNode, node, childIndex)}
+          <button
+            class="addButton"
+            title="Append a new child shader."
+            @click=${(e: Event) => ele.appendChildShader(e, node)}>
+            <add-icon-sk></add-icon-sk>
+          </button>
+        </span>
+      </p>`
+    );
     node.children.forEach((childNode, index) => {
       ret = ret.concat(
         ShadersAppSk.displayShaderTreeImpl(
@@ -434,9 +431,11 @@ export class ShadersAppSk extends ElementSk {
           break;
         case 'iResolution':
           ele.numPredefinedUniformControls++;
-          ret.push(html` <uniform-dimensions-sk
-            .uniform=${uniform}
-            @dimensions-changed=${ele.dimensionsChanged}></uniform-dimensions-sk>`);
+          ret.push(
+            html` <uniform-dimensions-sk
+              .uniform=${uniform}
+              @dimensions-changed=${ele.dimensionsChanged}></uniform-dimensions-sk>`
+          );
           break;
         case 'iImageResolution':
           // No-op. This is no longer handled via uniform control, the

@@ -106,10 +106,11 @@ export class ParamSetSk extends ElementSk {
   private static rowsTemplate = (ele: ParamSetSk) =>
     ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
 
-  private static rowTemplate = (ele: ParamSetSk, key: string) => html` <tr>
-    <th data-key=${key}>${key}</th>
-    ${ParamSetSk.paramsetValuesTemplate(ele, key)}
-  </tr>`;
+  private static rowTemplate = (ele: ParamSetSk, key: string) =>
+    html` <tr>
+      <th data-key=${key}>${key}</th>
+      ${ParamSetSk.paramsetValuesTemplate(ele, key)}
+    </tr>`;
 
   private static paramsetValuesTemplate = (ele: ParamSetSk, key: string) => {
     const ret: TemplateResult[] = [];
@@ -163,12 +164,13 @@ export class ParamSetSk extends ElementSk {
     params: string[]
   ) => {
     return params.map(
-      (value) => html`<div
-        class=${ele._highlighted(key, value)}
-        data-key=${key}
-        data-value=${value}>
-        ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
-      </div> `
+      (value) =>
+        html`<div
+          class=${ele._highlighted(key, value)}
+          data-key=${key}
+          data-value=${value}>
+          ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
+        </div> `
     );
   };
 

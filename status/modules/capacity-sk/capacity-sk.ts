@@ -89,122 +89,125 @@ export class CapacitySk extends ElementSk {
 
   private stateHasChanged = () => {};
 
-  private static template = (el: CapacitySk) => html`<app-sk>
-    <header>
-      <h1>Capacity Statistics for Skia Bots</h1>
-      <div class="spacer"></div>
-      <alogin-sk></alogin-sk>
-      <theme-chooser-sk></theme-chooser-sk>
-    </header>
-    <aside>
-      <div>
-        <div class="table">
-          <a class="tr" href="/">
-            <span class="td">
-              <dashboard-icon-sk class="icon"></dashboard-icon-sk> Status Tree
-            </span>
-          </a>
-          <a class="tr" href="https://goto.google.com/skbl">
-            <span class="td">
-              <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots
-            </span>
-          </a>
-          <a class="tr" href="/capacity">
-            <span class="td">
-              <battery-charging-80-icon-sk
-                class="icon"></battery-charging-80-icon-sk>
-              Capacity Stats
-            </span>
-          </a>
+  private static template = (el: CapacitySk) =>
+    html`<app-sk>
+      <header>
+        <h1>Capacity Statistics for Skia Bots</h1>
+        <div class="spacer"></div>
+        <alogin-sk></alogin-sk>
+        <theme-chooser-sk></theme-chooser-sk>
+      </header>
+      <aside>
+        <div>
+          <div class="table">
+            <a class="tr" href="/">
+              <span class="td">
+                <dashboard-icon-sk class="icon"></dashboard-icon-sk> Status Tree
+              </span>
+            </a>
+            <a class="tr" href="https://goto.google.com/skbl">
+              <span class="td">
+                <devices-icon-sk class="icon"></devices-icon-sk> Swarming Bots
+              </span>
+            </a>
+            <a class="tr" href="/capacity">
+              <span class="td">
+                <battery-charging-80-icon-sk
+                  class="icon"></battery-charging-80-icon-sk>
+                Capacity Stats
+              </span>
+            </a>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
 
-    <main>
-      <div class="inputs horizontal">
-        <input-sk
-          @change=${() => el.refresh()}
-          id="commits"
-          label="Commits Per Day (typically 15-35)"></input-sk>
-        <input-sk
-          @change=${() => el.refresh()}
-          id="cq"
-          label="CQ attempts per commit"></input-sk>
-        <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
+      <main>
+        <div class="inputs horizontal">
+          <input-sk
+            @change=${() => el.refresh()}
+            id="commits"
+            label="Commits Per Day (typically 15-35)"></input-sk>
+          <input-sk
+            @change=${() => el.refresh()}
+            id="cq"
+            label="CQ attempts per commit"></input-sk>
+          <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
           reference.-->
-        <input-sk
-          @change=${() => el.refresh()}
-          id="optimistic"
-          label="Optimistic Utilization % Estimate"></input-sk>
-        <input-sk
-          @change=${() => el.refresh()}
-          id="pessimistic"
-          label="Pessimistic Utilization % Estimate"></input-sk>
-        <input-sk
-          @change=${() => el.refresh()}
-          id="backfill"
-          label="Target Backfill %"></input-sk>
-      </div>
+          <input-sk
+            @change=${() => el.refresh()}
+            id="optimistic"
+            label="Optimistic Utilization % Estimate"></input-sk>
+          <input-sk
+            @change=${() => el.refresh()}
+            id="pessimistic"
+            label="Pessimistic Utilization % Estimate"></input-sk>
+          <input-sk
+            @change=${() => el.refresh()}
+            id="backfill"
+            label="Target Backfill %"></input-sk>
+        </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th @click=${() => el.updateSort('config')}>
-              Bot Config${el.sortIcon('config')}
-            </th>
-            <th @click=${() => el.updateSort('commitTime')}>
-              Minutes per Commit${el.sortIcon('commitTime')}
-            </th>
-            <th @click=${() => el.updateSort('commitTasks')}>
-              Tasks per Commit${el.sortIcon('commitTasks')}
-            </th>
-            <th @click=${() => el.updateSort('cqTime')}>
-              Minutes per CQ run${el.sortIcon('cqTime')}
-            </th>
-            <th @click=${() => el.updateSort('cqTasks')}>
-              Tasks on CQ${el.sortIcon('cqTasks')}
-            </th>
-            <th @click=${() => el.updateSort('botDays')}>
-              Bot days of work / actual day${el.sortIcon('botDays')}
-            </th>
-            <th @click=${() => el.updateSort('optimisticBots')}>
-              Required Bots (optimistic)${el.sortIcon('optimisticBots')}
-            </th>
-            <th @click=${() => el.updateSort('pessimisticBots')}>
-              Required Bots (pessimistic)${el.sortIcon('pessimisticBots')}
-            </th>
-            <th @click=${() => el.updateSort('botCount')}>
-              Actual Bot Count${el.sortIcon('botCount')}
-            </th>
-            <th @click=${() => el.updateSort('optimisticPercent')}>
-              Percent of Optimistic Estimate${el.sortIcon('optimisticPercent')}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          ${el.botsets
-            .map((botset) => el.rowFromBotset(botset))
-            .sort((a, b) => el.compareRow(a, b))
-            .map(
-              (row) => html` <tr class=${row.displayClass}>
-                <td><a href=${row.swarmingUrl}>${row.config}</a></td>
-                <td>${row.commitTime.toFixed(1)}</td>
-                <td>${row.commitTasks}</td>
-                <td>${row.cqTime.toFixed(1)}</td>
-                <td>${row.cqTasks}</td>
-                <td>${row.botDays.toFixed(1)}</td>
-                <td>${row.optimisticBots.toFixed(1)}</td>
-                <td>${row.pessimisticBots.toFixed(1)}</td>
-                <td>${row.botCount}</td>
-                <td>${row.optimisticPercent.toFixed(1)} %</td>
-              </tr>`
-            )}
-        </tbody>
-      </table>
-    </main>
+        <table>
+          <thead>
+            <tr>
+              <th @click=${() => el.updateSort('config')}>
+                Bot Config${el.sortIcon('config')}
+              </th>
+              <th @click=${() => el.updateSort('commitTime')}>
+                Minutes per Commit${el.sortIcon('commitTime')}
+              </th>
+              <th @click=${() => el.updateSort('commitTasks')}>
+                Tasks per Commit${el.sortIcon('commitTasks')}
+              </th>
+              <th @click=${() => el.updateSort('cqTime')}>
+                Minutes per CQ run${el.sortIcon('cqTime')}
+              </th>
+              <th @click=${() => el.updateSort('cqTasks')}>
+                Tasks on CQ${el.sortIcon('cqTasks')}
+              </th>
+              <th @click=${() => el.updateSort('botDays')}>
+                Bot days of work / actual day${el.sortIcon('botDays')}
+              </th>
+              <th @click=${() => el.updateSort('optimisticBots')}>
+                Required Bots (optimistic)${el.sortIcon('optimisticBots')}
+              </th>
+              <th @click=${() => el.updateSort('pessimisticBots')}>
+                Required Bots (pessimistic)${el.sortIcon('pessimisticBots')}
+              </th>
+              <th @click=${() => el.updateSort('botCount')}>
+                Actual Bot Count${el.sortIcon('botCount')}
+              </th>
+              <th @click=${() => el.updateSort('optimisticPercent')}>
+                Percent of Optimistic
+                Estimate${el.sortIcon('optimisticPercent')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            ${el.botsets
+              .map((botset) => el.rowFromBotset(botset))
+              .sort((a, b) => el.compareRow(a, b))
+              .map(
+                (row) =>
+                  html` <tr class=${row.displayClass}>
+                    <td><a href=${row.swarmingUrl}>${row.config}</a></td>
+                    <td>${row.commitTime.toFixed(1)}</td>
+                    <td>${row.commitTasks}</td>
+                    <td>${row.cqTime.toFixed(1)}</td>
+                    <td>${row.cqTasks}</td>
+                    <td>${row.botDays.toFixed(1)}</td>
+                    <td>${row.optimisticBots.toFixed(1)}</td>
+                    <td>${row.pessimisticBots.toFixed(1)}</td>
+                    <td>${row.botCount}</td>
+                    <td>${row.optimisticPercent.toFixed(1)} %</td>
+                  </tr>`
+              )}
+          </tbody>
+        </table>
+      </main>
 
-    <footer><error-toast-sk></error-toast-sk></footer>
-  </app-sk> `;
+      <footer><error-toast-sk></error-toast-sk></footer>
+    </app-sk> `;
 
   constructor() {
     super(CapacitySk.template);
@@ -251,8 +254,8 @@ export class CapacitySk extends ElementSk {
     return column !== this.sortColumn
       ? html``
       : this.sortDirection === 1
-      ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
-      : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
+        ? html`<arrow-drop-down-icon-sk></arrow-drop-down-icon-sk>`
+        : html`<arrow-drop-up-icon-sk></arrow-drop-up-icon-sk>`;
   }
 
   private refresh() {
@@ -309,8 +312,8 @@ export class CapacitySk extends ElementSk {
         botset.botCount < optimisticBots
           ? 'lowBotCount'
           : botset.botCount < pessimisticBots
-          ? 'mediumBotCount'
-          : 'highBotCount',
+            ? 'mediumBotCount'
+            : 'highBotCount',
     };
   }
 

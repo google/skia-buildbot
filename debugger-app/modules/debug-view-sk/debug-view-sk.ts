@@ -20,37 +20,41 @@ import {
 export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 
 export class DebugViewSk extends ElementDocSk {
-  private static template = (ele: DebugViewSk) => html` <div
-      class="horizontal-flex">
-      <button title="Original size." @click=${() => (ele.fitStyle = 'natural')}>
-        <img src="/dist/image.png" />
-      </button>
-      <button title="Fit in page." @click=${() => (ele.fitStyle = 'fit')}>
-        <img src="/dist/both.png" />
-      </button>
-      <button title="Fit to width." @click=${() => (ele.fitStyle = 'right')}>
-        <img src="/dist/right.png" />
-      </button>
-      <button title="Fit to height." @click=${() => (ele.fitStyle = 'bottom')}>
-        <img src="/dist/bottom.png" />
-      </button>
-    </div>
-    <div id="backdrop" class="${ele._backdropStyle} grid">
-      ${ele._renderCanvas
-        ? html`<canvas
-            id="main-canvas"
-            class=${ele._fitStyle}
-            width=${ele._width}
-            height=${ele._height}></canvas>`
-        : ''}
-      <canvas
-        id="crosshair-canvas"
-        class=${ele._fitStyle}
-        width=${ele._width}
-        height=${ele._height}
-        @click=${ele._canvasClicked}
-        @mousemove=${ele._canvasMouseMove}></canvas>
-    </div>`;
+  private static template = (ele: DebugViewSk) =>
+    html` <div class="horizontal-flex">
+        <button
+          title="Original size."
+          @click=${() => (ele.fitStyle = 'natural')}>
+          <img src="/dist/image.png" />
+        </button>
+        <button title="Fit in page." @click=${() => (ele.fitStyle = 'fit')}>
+          <img src="/dist/both.png" />
+        </button>
+        <button title="Fit to width." @click=${() => (ele.fitStyle = 'right')}>
+          <img src="/dist/right.png" />
+        </button>
+        <button
+          title="Fit to height."
+          @click=${() => (ele.fitStyle = 'bottom')}>
+          <img src="/dist/bottom.png" />
+        </button>
+      </div>
+      <div id="backdrop" class="${ele._backdropStyle} grid">
+        ${ele._renderCanvas
+          ? html`<canvas
+              id="main-canvas"
+              class=${ele._fitStyle}
+              width=${ele._width}
+              height=${ele._height}></canvas>`
+          : ''}
+        <canvas
+          id="crosshair-canvas"
+          class=${ele._fitStyle}
+          width=${ele._width}
+          height=${ele._height}
+          @click=${ele._canvasClicked}
+          @mousemove=${ele._canvasMouseMove}></canvas>
+      </div>`;
 
   // the native width and height of the main canvas, before css is applied
   private _width: number = 400;

@@ -102,36 +102,37 @@ export class SkottiePlayerSk extends ElementSk {
     return ele.runningTemplate();
   };
 
-  private runningTemplate = () => html` <div class="container">
-    <div class="wrapper">
-      <canvas
-        class="skottie-canvas"
-        id="skottie"
-        width=${this.width * window.devicePixelRatio}
-        height=${this.height * window.devicePixelRatio}
-        style="max-width: 100%;max-height:100%;aspect-ratio: ${this.width /
-        this.height}; background-color: ${this.bgColor}">
-        Your browser does not support the canvas tag.
-      </canvas>
-      <div class="controls" ?hidden=${!this.showControls}>
-        <play-arrow-icon-sk
-          @click=${this.onPlay}
-          ?hidden=${!this.paused}></play-arrow-icon-sk>
-        <pause-icon-sk
-          @click=${this.onPause}
-          ?hidden=${this.paused}></pause-icon-sk>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          @input=${this.onScrub}
-          @change=${this.onScrubEnd}
-          class="skottie-player-scrubber" />
-        <settings-icon-sk @click=${this.onSettings}></settings-icon-sk>
+  private runningTemplate = () =>
+    html` <div class="container">
+      <div class="wrapper">
+        <canvas
+          class="skottie-canvas"
+          id="skottie"
+          width=${this.width * window.devicePixelRatio}
+          height=${this.height * window.devicePixelRatio}
+          style="max-width: 100%;max-height:100%;aspect-ratio: ${this.width /
+          this.height}; background-color: ${this.bgColor}">
+          Your browser does not support the canvas tag.
+        </canvas>
+        <div class="controls" ?hidden=${!this.showControls}>
+          <play-arrow-icon-sk
+            @click=${this.onPlay}
+            ?hidden=${!this.paused}></play-arrow-icon-sk>
+          <pause-icon-sk
+            @click=${this.onPause}
+            ?hidden=${this.paused}></pause-icon-sk>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            @input=${this.onScrub}
+            @change=${this.onScrubEnd}
+            class="skottie-player-scrubber" />
+          <settings-icon-sk @click=${this.onSettings}></settings-icon-sk>
+        </div>
       </div>
-    </div>
-    ${this.settingsTemplate()}
-  </div>`;
+      ${this.settingsTemplate()}
+    </div>`;
 
   private settingsTemplate = () => html`
 <div class=skottie-player-settings-container ?hidden=${!this.showSettings}>
@@ -193,13 +194,14 @@ export class SkottiePlayerSk extends ElementSk {
 </div>
 `;
 
-  private loadingTemplate = () => html` <div
-    class="player-loading"
-    title="Loading animation and engine."
-    style="aspect-ratio: ${this.width / this.height};">
-    <div>Loading</div>
-    <spinner-sk active></spinner-sk>
-  </div>`;
+  private loadingTemplate = () =>
+    html` <div
+      class="player-loading"
+      title="Loading animation and engine."
+      style="aspect-ratio: ${this.width / this.height};">
+      <div>Loading</div>
+      <spinner-sk active></spinner-sk>
+    </div>`;
 
   private animation: ManagedSkottieAnimation | null = null; // Skottie Animation instance
 

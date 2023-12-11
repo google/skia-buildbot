@@ -26,17 +26,18 @@ import '../../../infra-sk/modules/paramset-sk';
 import '../query-dialog-sk';
 
 export class TraceFilterSk extends ElementSk {
-  private static template = (el: TraceFilterSk) => html` <div class="selection">
-      ${Object.keys(el._selection).length === 0
-        ? html`<div class="empty-placeholder">All traces.</div>`
-        : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
-    </div>
-    <button class="edit-query" @click=${el._onEditQueryBtnClick}>Edit</button>
+  private static template = (el: TraceFilterSk) =>
+    html` <div class="selection">
+        ${Object.keys(el._selection).length === 0
+          ? html`<div class="empty-placeholder">All traces.</div>`
+          : html`<paramset-sk .paramsets=${[el._selection]}></paramset-sk>`}
+      </div>
+      <button class="edit-query" @click=${el._onEditQueryBtnClick}>Edit</button>
 
-    <query-dialog-sk
-      .submitButtonLabel=${'Select'}
-      @edit=${el._onQueryDialogEdit}>
-    </query-dialog-sk>`;
+      <query-dialog-sk
+        .submitButtonLabel=${'Select'}
+        @edit=${el._onQueryDialogEdit}>
+      </query-dialog-sk>`;
 
   private _paramSet: ParamSet = {};
 

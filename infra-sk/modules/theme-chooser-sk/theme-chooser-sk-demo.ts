@@ -172,13 +172,13 @@ const specialty: example[] = [
 
 const template = (context: example[]): TemplateResult => html`
   ${context.map(
-    (ex: example): TemplateResult => html` <tr
-      style="background: var(${ex.background})">
-      <td style="color: var(${ex.color})">
-        background: var(${ex.background});
-      </td>
-      <td style="color: var(${ex.color})">color: var(${ex.color});</td>
-    </tr>`
+    (ex: example): TemplateResult =>
+      html` <tr style="background: var(${ex.background})">
+        <td style="color: var(${ex.color})">
+          background: var(${ex.background});
+        </td>
+        <td style="color: var(${ex.color})">color: var(${ex.color});</td>
+      </tr>`
   )}
 `;
 
@@ -229,11 +229,10 @@ const updateTokens = () => {
 
   // Add element to the head.
   $$('head')!.appendChild(style);
-  $$(
-    '#generate-cmd'
-  )!.textContent = `//go:generate bazelisk run --config=mayberemote //infra-sk/modules/gentheme/cmd:gentheme -- ${primary.value.slice(
-    1
-  )} ${secondary.value.slice(1)} $\{PWD}/tokens.scss`;
+  $$('#generate-cmd')!.textContent =
+    `//go:generate bazelisk run --config=mayberemote //infra-sk/modules/gentheme/cmd:gentheme -- ${primary.value.slice(
+      1
+    )} ${secondary.value.slice(1)} $\{PWD}/tokens.scss`;
 };
 
 document.querySelector('#primary')!.addEventListener('input', updateTokens);

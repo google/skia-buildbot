@@ -570,127 +570,128 @@ export class CommitsTableSk extends ElementSk {
 
   private data: Data = new Data();
 
-  private static template = (el: CommitsTableSk) => html`<div
-    class="commitsTableContainer">
-    <div
-      class="legend"
-      style=${el.gridLocation(
-        CATEGORY_START_ROW,
-        COMMIT_START_COL,
-        COMMIT_START_ROW
-      )}>
-      <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
-      <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
-      <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
-      <undo-icon-sk class="tiny fill-red"></undo-icon-sk>Revert<br />
-      <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
-    </div>
-    <div class="tasksTable">${el.fillTableTemplate()}</div>
-    <div
-      class="reloadControls"
-      style=${el.gridLocation(
-        CONTROL_START_ROW,
-        BRANCH_START_COL,
-        COMMIT_START_ROW
-      )}>
-      <div id="repoContainer">
-        <div id="repoLabel">Repo:</div>
-        <select
-          id="repoSelector"
-          @change=${(e: Event) => {
-            el.repo = (e.target as any).value;
-          }}>
-          ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
-        </select>
+  private static template = (el: CommitsTableSk) =>
+    html`<div class="commitsTableContainer">
+      <div
+        class="legend"
+        style=${el.gridLocation(
+          CATEGORY_START_ROW,
+          COMMIT_START_COL,
+          COMMIT_START_ROW
+        )}>
+        <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
+        <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
+        <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
+        <undo-icon-sk class="tiny fill-red"></undo-icon-sk>Revert<br />
+        <redo-icon-sk class="tiny fill-green"></redo-icon-sk>Reland<br />
       </div>
-      <div class="refresh">
-        <input-sk
-          type="number"
-          textPrefix="Reload (s):&nbsp"
-          id="reloadInput"
-          @change=${() => el.update()}></input-sk>
-        <input-sk
-          type="number"
-          textPrefix="Commits:&nbsp&nbsp&nbsp"
-          id="commitsInput"
-          @change=${() => el.update()}>
-        </input-sk>
-        <div class="lastLoaded">
-          ${el.data.lastLoaded
-            ? `Loaded ${el.data.lastLoaded.toLocaleTimeString()}`
-            : '(Not yet loaded)'}
+      <div class="tasksTable">${el.fillTableTemplate()}</div>
+      <div
+        class="reloadControls"
+        style=${el.gridLocation(
+          CONTROL_START_ROW,
+          BRANCH_START_COL,
+          COMMIT_START_ROW
+        )}>
+        <div id="repoContainer">
+          <div id="repoLabel">Repo:</div>
+          <select
+            id="repoSelector"
+            @change=${(e: Event) => {
+              el.repo = (e.target as any).value;
+            }}>
+            ${repos().map((r) => html`<option value=${r}>${r}</option>`)}
+          </select>
         </div>
-      </div>
-    </div>
-    <branches-sk
-      style=${el.gridLocation(
-        COMMIT_START_ROW,
-        BRANCH_START_COL,
-        COMMIT_START_ROW + el.data.commits.length
-      )}></branches-sk>
-    <div
-      class="controls"
-      style=${el.gridLocation(
-        CONTROL_START_ROW,
-        COMMIT_START_COL,
-        CONTROL_START_ROW + 1,
-        // We render this after the table so we know our last column.
-        el.lastColumn
-      )}>
-      <div class="horizontal">
-        <div class="commitLabelSelector">
-          ${['Author', 'Subject'].map(
-            (label, i) => html` <radio-sk
-              class="tiny"
-              label=${label}
-              name="commitLabel"
-              ?checked=${!!i === el.displayCommitSubject}
-              @change=${el.toggleCommitLabel}></radio-sk>`
-          )}
-        </div>
-
-        <div class="horizontal">
-          <tabs-sk
-            @tab-selected-sk=${(e: CustomEvent) =>
-              (el.filter = FILTER_INDEX[e.detail.index])}>
-            ${Array.from(FILTER_INFO).map(([filter, info]) =>
-              filter === 'Search'
-                ? html``
-                : html`<button
-                    title=${info.title}
-                    class=${el._filter === filter ? 'selected' : ''}>
-                    ${info.text}
-                    <help-icon-sk class="tiny"></help-icon-sk>
-                  </button> `
-            )}
-          </tabs-sk>
+        <div class="refresh">
           <input-sk
-            id="searchInput"
-            class=${el.filter === 'Search' ? 'selected' : ''}
-            label="Filter task spec"
-            @change=${el.searchFilter}>
+            type="number"
+            textPrefix="Reload (s):&nbsp"
+            id="reloadInput"
+            @change=${() => el.update()}></input-sk>
+          <input-sk
+            type="number"
+            textPrefix="Commits:&nbsp&nbsp&nbsp"
+            id="commitsInput"
+            @change=${() => el.update()}>
           </input-sk>
-          <a
-            href="${taskSchedulerUrl()}/trigger"
-            target="_blank"
-            rel="noopener">
-            <button>
-              <add-icon-sk></add-icon-sk>
-              Trigger a Job
-            </button>
-          </a>
-          <a href=${el.reRunMishapsUrl()} target="_blank" rel="noopener">
-            <button>
-              <autorenew-icon-sk></autorenew-icon-sk>
-              Re-Run Purple Jobs
-            </button>
-          </a>
+          <div class="lastLoaded">
+            ${el.data.lastLoaded
+              ? `Loaded ${el.data.lastLoaded.toLocaleTimeString()}`
+              : '(Not yet loaded)'}
+          </div>
         </div>
       </div>
-    </div>
+      <branches-sk
+        style=${el.gridLocation(
+          COMMIT_START_ROW,
+          BRANCH_START_COL,
+          COMMIT_START_ROW + el.data.commits.length
+        )}></branches-sk>
+      <div
+        class="controls"
+        style=${el.gridLocation(
+          CONTROL_START_ROW,
+          COMMIT_START_COL,
+          CONTROL_START_ROW + 1,
+          // We render this after the table so we know our last column.
+          el.lastColumn
+        )}>
+        <div class="horizontal">
+          <div class="commitLabelSelector">
+            ${['Author', 'Subject'].map(
+              (label, i) =>
+                html` <radio-sk
+                  class="tiny"
+                  label=${label}
+                  name="commitLabel"
+                  ?checked=${!!i === el.displayCommitSubject}
+                  @change=${el.toggleCommitLabel}></radio-sk>`
+            )}
+          </div>
 
-    <details-dialog-sk .repo=${el.repo}></details-dialog-sk>
-  </div>`;
+          <div class="horizontal">
+            <tabs-sk
+              @tab-selected-sk=${(e: CustomEvent) =>
+                (el.filter = FILTER_INDEX[e.detail.index])}>
+              ${Array.from(FILTER_INFO).map(([filter, info]) =>
+                filter === 'Search'
+                  ? html``
+                  : html`<button
+                      title=${info.title}
+                      class=${el._filter === filter ? 'selected' : ''}>
+                      ${info.text}
+                      <help-icon-sk class="tiny"></help-icon-sk>
+                    </button> `
+              )}
+            </tabs-sk>
+            <input-sk
+              id="searchInput"
+              class=${el.filter === 'Search' ? 'selected' : ''}
+              label="Filter task spec"
+              @change=${el.searchFilter}>
+            </input-sk>
+            <a
+              href="${taskSchedulerUrl()}/trigger"
+              target="_blank"
+              rel="noopener">
+              <button>
+                <add-icon-sk></add-icon-sk>
+                Trigger a Job
+              </button>
+            </a>
+            <a href=${el.reRunMishapsUrl()} target="_blank" rel="noopener">
+              <button>
+                <autorenew-icon-sk></autorenew-icon-sk>
+                Re-Run Purple Jobs
+              </button>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <details-dialog-sk .repo=${el.repo}></details-dialog-sk>
+    </div>`;
 
   constructor() {
     super(CommitsTableSk.template);
@@ -952,22 +953,27 @@ export class CommitsTableSk extends ElementSk {
 
     const relanded = this.data.relandedMap.get(commit.hash);
     if (relanded && relanded.timestamp! > commit.timestamp!) {
-      res.push(html`<redo-icon-sk
-        class="tiny fill-green"
-        @mouseenter=${() =>
-          this.highlightAssociatedCommit(relanded.hash, false)}
-        @mouseleave=${() =>
-          this.highlightAssociatedCommit(relanded.hash, false)}>
-      </redo-icon-sk>`);
+      res.push(
+        html`<redo-icon-sk
+          class="tiny fill-green"
+          @mouseenter=${() =>
+            this.highlightAssociatedCommit(relanded.hash, false)}
+          @mouseleave=${() =>
+            this.highlightAssociatedCommit(relanded.hash, false)}>
+        </redo-icon-sk>`
+      );
     }
     const reverted = this.data.revertedMap.get(commit.hash);
     if (reverted && reverted.timestamp! > commit.timestamp!) {
-      res.push(html`<undo-icon-sk
-        class="tiny fill-red"
-        @mouseenter=${() => this.highlightAssociatedCommit(reverted.hash, true)}
-        @mouseleave=${() =>
-          this.highlightAssociatedCommit(reverted.hash, true)}>
-      </undo-icon-sk>`);
+      res.push(
+        html`<undo-icon-sk
+          class="tiny fill-red"
+          @mouseenter=${() =>
+            this.highlightAssociatedCommit(reverted.hash, true)}
+          @mouseleave=${() =>
+            this.highlightAssociatedCommit(reverted.hash, true)}>
+        </undo-icon-sk>`
+      );
     }
     if (commit.ignoreFailure) {
       res.push(html`<block-icon-sk class="tiny"></block-icon-sk>`);
@@ -1256,39 +1262,40 @@ export class CommitsTableSk extends ElementSk {
         );
       }
       // Draw commits last so the span.highlight-row naturally renders above the tasks.
-      res.push(
-        html`
+      res.push(html`
+        <div
+          class="commit-container"
+          style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
+          <div class="time-spacer">${timeLabel}</div>
           <div
-            class="commit-container"
-            style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
-            <div class="time-spacer">${timeLabel}</div>
-            <div
-              class="commit ${this.attributeStringFromHash(commit.hash)}"
-              title=${title}
-              data-commit-index=${i}>
-              <span class="nowrap commit-text">${text}</span>
-              <span class="nowrap icons">${this.commitIcons(commit)}</span>
-            </div>
-            ${timeLabel ? html`<span class="time-underline"></span>` : html``}
+            class="commit ${this.attributeStringFromHash(commit.hash)}"
+            title=${title}
+            data-commit-index=${i}>
+            <span class="nowrap commit-text">${text}</span>
+            <span class="nowrap icons">${this.commitIcons(commit)}</span>
           </div>
-          <span
-            class="highlight-row"
-            style=${this.gridLocation(
-              rowStart,
-              COMMIT_START_COL + 1,
-              rowStart + 1,
-              this.lastColumn
-            )}></span>
-        `
-      );
+          ${timeLabel ? html`<span class="time-underline"></span>` : html``}
+        </div>
+        <span
+          class="highlight-row"
+          style=${this.gridLocation(
+            rowStart,
+            COMMIT_START_COL + 1,
+            rowStart + 1,
+            this.lastColumn
+          )}></span>
+      `);
     }
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
     let row = taskStartRow;
-    const nextRowDiv = () => html` <div
-      style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
-    res.push(html` <div class="rowUnderlay">
-      ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
-    </div>`);
+    const nextRowDiv = () =>
+      html` <div
+        style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
+    res.push(
+      html` <div class="rowUnderlay">
+        ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
+      </div>`
+    );
     return res;
   }
 

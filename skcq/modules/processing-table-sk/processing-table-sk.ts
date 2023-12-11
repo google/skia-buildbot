@@ -81,24 +81,14 @@ export class ProcessingTableSk extends ElementSk {
     return this.changes.map(
       (change) => html`
       <tr>
-        <td><a href="http://skia-review.googlesource.com/c/${
-          change?.change_id
-        }/${change?.latest_patchset_id}" target=_blank>${change?.change_id}/${
-        change?.latest_patchset_id
-      }</a></td>
+        <td><a href="http://skia-review.googlesource.com/c/${change?.change_id}/${change?.latest_patchset_id}" target=_blank>${change?.change_id}/${change?.latest_patchset_id}</a></td>
         <td><span title="${change?.change_subject}">${truncate(
-        change?.change_subject as string,
-        30
-      )}</span></td>
+          change?.change_subject as string,
+          30
+        )}</span></td>
         <td>${change?.change_owner}</td>
-        <td><a href="https://skia-review.googlesource.com/q/project:${
-          change?.repo
-        }+branch:${change?.branch}+status:open" target=_branch>${
-        change?.repo
-      }/${change?.branch}</a></td>
-        <td><a href="/verifiers_detail/${change?.change_id}/${
-        change?.latest_patchset_id
-      }">Verfiers Details<a></td>
+        <td><a href="https://skia-review.googlesource.com/q/project:${change?.repo}+branch:${change?.branch}+status:open" target=_branch>${change?.repo}/${change?.branch}</a></td>
+        <td><a href="/verifiers_detail/${change?.change_id}/${change?.latest_patchset_id}">Verfiers Details<a></td>
         <td>${diffDate((change?.start_ts as number) * 1000)}</td>
       </tr>
     `

@@ -59,8 +59,8 @@ export class LeasingSelectionsSk extends ElementSk {
         <td class="step-title">Select Pool</td>
         <td>
           <select id="pool" ?disabled=${ele.loadingDetails} .selection=${
-    ele.pool
-  } @input=${ele.poolChanged}>
+            ele.pool
+          } @input=${ele.poolChanged}>
             ${LeasingSelectionsSk.displayPools(ele)}
           </select>
         </td>
@@ -70,8 +70,8 @@ export class LeasingSelectionsSk extends ElementSk {
         <td class="step-title">Select OS Type</td>
         <td>
           <select id="os_type" ?disabled=${ele.loadingDetails} @input=${
-    ele.osTypeChanged
-  }>
+            ele.osTypeChanged
+          }>
             ${LeasingSelectionsSk.displayOsTypes(ele)}
           </select>
         </td>
@@ -129,8 +129,8 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td colspan="2" class="center">
           <button raised @click=${ele.addTask} ?disabled=${
-    ele.loadingDetails
-  }>Lease Bot</button>
+            ele.loadingDetails
+          }>Lease Bot</button>
         </td>
       </tr>
 
@@ -139,9 +139,10 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private static displayPools(ele: LeasingSelectionsSk): TemplateResult[] {
     return ele.all_pools.map(
-      (p) => html` <option ?selected=${ele.pool === p} value=${p} title=${p}>
-        ${p}
-      </option>`
+      (p) =>
+        html` <option ?selected=${ele.pool === p} value=${p} title=${p}>
+          ${p}
+        </option>`
     );
   }
 
@@ -150,9 +151,10 @@ export class LeasingSelectionsSk extends ElementSk {
       return [html``];
     }
     return Object.keys(ele.osTypes).map(
-      (o) => html` <option value=${o} title=${o}>
-        ${o} - ${ele.osTypes[o]} bots online
-      </option>`
+      (o) =>
+        html` <option value=${o} title=${o}>
+          ${o} - ${ele.osTypes[o]} bots online
+        </option>`
     );
   }
 
@@ -167,9 +169,10 @@ export class LeasingSelectionsSk extends ElementSk {
     }
     const deviceTypes = ele.osToDeviceTypes[ele.selectedOsType] || {};
     return Object.keys(deviceTypes).map(
-      (d) => html` <option value=${d} title=${d}>
-        ${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
-      </option>`
+      (d) =>
+        html` <option value=${d} title=${d}>
+          ${device(d)} ${getAKAStr(d)} - ${deviceTypes[d]} bots online
+        </option>`
     );
   }
 

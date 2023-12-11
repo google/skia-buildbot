@@ -38,75 +38,76 @@ function clamp(c: number): number {
 }
 
 export class ZoomSk extends ElementDocSk {
-  private static template = (ele: ZoomSk) => html` <dl>
-      <dt><b>Postion</b></dt>
-      <dd>(${ele._cursor[0]}, ${ele._cursor[1]})</dd>
-      <dt><b>Color</b></dt>
-      <dd>
-        <div
-          class="color-preview"
-          id="prevColor"
-          style="background-color: ${ele._rgb}"></div>
-        ${ele._rgb}
-      </dd>
-      <dd>${ele._hex}</dd>
-    </dl>
-    <div>
-      <!-- this div is block while the one inside it is inline-block -->
-      <div class="${ele._backdropStyle} shrink">
-        <canvas
-          class="zoom-canvas"
-          width="228"
-          height="228"
-          @click=${ele._canvasClicked}></canvas>
+  private static template = (ele: ZoomSk) =>
+    html` <dl>
+        <dt><b>Postion</b></dt>
+        <dd>(${ele._cursor[0]}, ${ele._cursor[1]})</dd>
+        <dt><b>Color</b></dt>
+        <dd>
+          <div
+            class="color-preview"
+            id="prevColor"
+            style="background-color: ${ele._rgb}"></div>
+          ${ele._rgb}
+        </dd>
+        <dd>${ele._hex}</dd>
+      </dl>
+      <div>
+        <!-- this div is block while the one inside it is inline-block -->
+        <div class="${ele._backdropStyle} shrink">
+          <canvas
+            class="zoom-canvas"
+            width="228"
+            height="228"
+            @click=${ele._canvasClicked}></canvas>
+        </div>
       </div>
-    </div>
-    <details>
-      <summary><b>Keyboard shortcuts</b></summary>
-      <table class="shortcuts">
-        <tr>
-          <th>H</th>
-          <td>Cursor left</td>
-        </tr>
-        <tr>
-          <th>L</th>
-          <td>Cursor right</td>
-        </tr>
-        <tr>
-          <th>J</th>
-          <td>Cursor down</td>
-        </tr>
-        <tr>
-          <th>K</th>
-          <td>Cursor up</td>
-        </tr>
-        <tr>
-          <th>.</th>
-          <td>Step command forward</td>
-        </tr>
-        <tr>
-          <th>,</th>
-          <td>Step command back</td>
-        </tr>
-        <tr>
-          <th>w</th>
-          <td>Previous Frame</td>
-        </tr>
-        <tr>
-          <th>s</th>
-          <td>Next Frame</td>
-        </tr>
-        <tr>
-          <th>p</th>
-          <td>Play/Pause frame playback</td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            Click the image again to turn off keyboard navigation.
-          </td>
-        </tr>
-      </table>
-    </details>`;
+      <details>
+        <summary><b>Keyboard shortcuts</b></summary>
+        <table class="shortcuts">
+          <tr>
+            <th>H</th>
+            <td>Cursor left</td>
+          </tr>
+          <tr>
+            <th>L</th>
+            <td>Cursor right</td>
+          </tr>
+          <tr>
+            <th>J</th>
+            <td>Cursor down</td>
+          </tr>
+          <tr>
+            <th>K</th>
+            <td>Cursor up</td>
+          </tr>
+          <tr>
+            <th>.</th>
+            <td>Step command forward</td>
+          </tr>
+          <tr>
+            <th>,</th>
+            <td>Step command back</td>
+          </tr>
+          <tr>
+            <th>w</th>
+            <td>Previous Frame</td>
+          </tr>
+          <tr>
+            <th>s</th>
+            <td>Next Frame</td>
+          </tr>
+          <tr>
+            <th>p</th>
+            <td>Play/Pause frame playback</td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              Click the image again to turn off keyboard navigation.
+            </td>
+          </tr>
+        </table>
+      </details>`;
 
   // Our own canvas
   private _canvas: HTMLCanvasElement | null = null;

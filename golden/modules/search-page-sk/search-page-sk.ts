@@ -90,92 +90,92 @@ export interface SearchRequest {
 }
 
 export class SearchPageSk extends ElementSk {
-  private static template = (el: SearchPageSk) => html` <div
-      class="top-controls">
-      <search-controls-sk
-        .corpora=${el.corpora}
-        .searchCriteria=${el.searchCriteria}
-        .paramSet=${el.paramSet}
-        @search-controls-sk-change=${el.onSearchControlsChange}>
-      </search-controls-sk>
-      <div class="buttons">
-        <button
-          class="bulk-triage"
-          @click=${() => el.bulkTriageDialog?.showModal()}>
-          Bulk Triage
-        </button>
-        <button
-          class="full-size-images"
-          @click=${() => el.toggleFullSizeImages()}>
-          Toggle Full Size Images
-        </button>
-        <button class="help" @click=${() => el.helpDialog?.showModal()}>
-          Help
-        </button>
+  private static template = (el: SearchPageSk) =>
+    html` <div class="top-controls">
+        <search-controls-sk
+          .corpora=${el.corpora}
+          .searchCriteria=${el.searchCriteria}
+          .paramSet=${el.paramSet}
+          @search-controls-sk-change=${el.onSearchControlsChange}>
+        </search-controls-sk>
+        <div class="buttons">
+          <button
+            class="bulk-triage"
+            @click=${() => el.bulkTriageDialog?.showModal()}>
+            Bulk Triage
+          </button>
+          <button
+            class="full-size-images"
+            @click=${() => el.toggleFullSizeImages()}>
+            Toggle Full Size Images
+          </button>
+          <button class="help" @click=${() => el.helpDialog?.showModal()}>
+            Help
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- This is only visible when the summary property is not null. -->
-    <changelist-controls-sk
-      .ps_order=${el.patchset}
-      .include_master=${el.includeDigestsFromPrimary}
-      .summary=${el.changeListSummaryResponse}
-      @cl-control-change=${el.onChangelistControlsChange}>
-    </changelist-controls-sk>
+      <!-- This is only visible when the summary property is not null. -->
+      <changelist-controls-sk
+        .ps_order=${el.patchset}
+        .include_master=${el.includeDigestsFromPrimary}
+        .summary=${el.changeListSummaryResponse}
+        @cl-control-change=${el.onChangelistControlsChange}>
+      </changelist-controls-sk>
 
-    <p class="summary">${SearchPageSk.summary(el)}</p>
+      <p class="summary">${SearchPageSk.summary(el)}</p>
 
-    ${SearchPageSk.paginationTemplate(el, 'top')}
+      ${SearchPageSk.paginationTemplate(el, 'top')}
 
-    <div class="results">
-      ${el.searchResponse?.digests?.map(
-        (result: SearchResult | null, idx: number) =>
-          SearchPageSk.resultTemplate(
-            el,
-            result,
-            /* selected= */ idx === el.selectedSearchResultIdx
-          )
-      )}
-    </div>
-
-    ${SearchPageSk.paginationTemplate(el, 'bottom')}
-
-    <dialog class="bulk-triage">
-      <bulk-triage-sk
-        .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos ||
-        []}
-        .crs=${el.crs || ''}
-        .changeListID=${el.changelistId || ''}
-        @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
-        @bulk_triage_finished=${() => el.fetchSearchResults()}
-        @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
-      </bulk-triage-sk>
-    </dialog>
-
-    <dialog class="help">
-      <h2>Keyboard shortcuts</h2>
-      <dl>
-        <dt>J</dt>
-        <dd>Next digest</dd>
-        <dt>K</dt>
-        <dd>Previous digest</dd>
-        <dt>W</dt>
-        <dd>Zoom into current digest</dd>
-        <dt>A</dt>
-        <dd>Mark as positive</dd>
-        <dt>S</dt>
-        <dd>Mark as negative</dd>
-        <dt>D</dt>
-        <dd>Mark as untriaged</dd>
-        <dt>?</dt>
-        <dd>Show help dialog</dd>
-      </dl>
-      <div class="buttons">
-        <button class="cancel action" @click=${() => el.helpDialog?.close()}>
-          Close
-        </button>
+      <div class="results">
+        ${el.searchResponse?.digests?.map(
+          (result: SearchResult | null, idx: number) =>
+            SearchPageSk.resultTemplate(
+              el,
+              result,
+              /* selected= */ idx === el.selectedSearchResultIdx
+            )
+        )}
       </div>
-    </dialog>`;
+
+      ${SearchPageSk.paginationTemplate(el, 'bottom')}
+
+      <dialog class="bulk-triage">
+        <bulk-triage-sk
+          .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos ||
+          []}
+          .crs=${el.crs || ''}
+          .changeListID=${el.changelistId || ''}
+          @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
+          @bulk_triage_finished=${() => el.fetchSearchResults()}
+          @bulk_triage_cancelled=${() => el.bulkTriageDialog?.close()}>
+        </bulk-triage-sk>
+      </dialog>
+
+      <dialog class="help">
+        <h2>Keyboard shortcuts</h2>
+        <dl>
+          <dt>J</dt>
+          <dd>Next digest</dd>
+          <dt>K</dt>
+          <dd>Previous digest</dd>
+          <dt>W</dt>
+          <dd>Zoom into current digest</dd>
+          <dt>A</dt>
+          <dd>Mark as positive</dd>
+          <dt>S</dt>
+          <dd>Mark as negative</dd>
+          <dt>D</dt>
+          <dd>Mark as untriaged</dd>
+          <dt>?</dt>
+          <dd>Show help dialog</dd>
+        </dl>
+        <div class="buttons">
+          <button class="cancel action" @click=${() => el.helpDialog?.close()}>
+            Close
+          </button>
+        </div>
+      </dialog>`;
 
   private static summary = (el: SearchPageSk) => {
     if (!el.searchResponse || el.loading) {

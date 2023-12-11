@@ -62,12 +62,13 @@ export class DisplayTreeStatusSk extends ElementSk {
 
   private recentStatuses() {
     return this.statusesData.map(
-      (status) => html` <tr class=${this.getStatusClass(status.message)}>
-        <td>${status.username}</td>
-        <td>${this.getLocalDate(status.date)}</td>
-        <td>${status.message}</td>
-        <td>${status.rollers}</td>
-      </tr>`
+      (status) =>
+        html` <tr class=${this.getStatusClass(status.message)}>
+          <td>${status.username}</td>
+          <td>${this.getLocalDate(status.date)}</td>
+          <td>${status.message}</td>
+          <td>${status.rollers}</td>
+        </tr>`
     );
   }
 

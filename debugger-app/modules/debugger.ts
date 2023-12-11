@@ -64,13 +64,13 @@ export type Color = number;
 export type Matrix3x3 = [
   [number, number, number],
   [number, number, number],
-  [number, number, number]
+  [number, number, number],
 ];
 export type Matrix4x4 = [
   [number, number, number, number],
   [number, number, number, number],
   [number, number, number, number],
-  [number, number, number, number]
+  [number, number, number, number],
 ];
 // return type of lastCommandInfo after json.parse
 export interface MatrixClipInfo {

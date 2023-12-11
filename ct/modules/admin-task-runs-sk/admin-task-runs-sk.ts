@@ -83,67 +83,68 @@ export class AdminTaskRunsSk extends ElementSk {
     el: AdminTaskRunsSk,
     task: AdminDatastoreTask,
     index: number
-  ) => html` <tr>
-    <!-- Id col -->
-    <td class="nowrap">
-      <span>${task.id}</span>
-      <delete-icon-sk
-        title="Delete this task"
-        alt="Delete"
-        ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
-      <redo-icon-sk
-        title="Redo this task"
-        alt="Redo"
-        ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
-    </td>
-    <!-- User col -->
-    <td>${task.username}</td>
-    <!-- Timestamps col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>Added:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
-        </tr>
-        <tr>
-          <td>Started:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
-        </tr>
-        <tr>
-          <td>Completed:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
-        </tr>
-      </table>
-    </td>
-    <!-- Task Config col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>PageSet:</td>
-          <td>${task.page_sets}</td>
-        </tr>
-      </table>
-    </td>
-    <!-- Results col -->
-    <td class="nowrap">
-      ${task.failure ? html`<div class="error">Failed</div>` : ''}
-      ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
-      ${!task.failure && task.task_done ? 'Done' : ''}
-      ${task.swarming_logs
-        ? html` <br />
-            <a
-              href="${task.swarming_logs}"
-              target="_blank"
-              rel="noopener noreferrer">
-              Swarming Logs
-            </a>`
-        : ''}
-    </td>
-    <!-- Task Repeats -->
-    <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
-  </tr>`;
+  ) =>
+    html` <tr>
+      <!-- Id col -->
+      <td class="nowrap">
+        <span>${task.id}</span>
+        <delete-icon-sk
+          title="Delete this task"
+          alt="Delete"
+          ?hidden=${!task.can_delete}
+          @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
+        <redo-icon-sk
+          title="Redo this task"
+          alt="Redo"
+          ?hidden=${!task.can_redo}
+          @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
+      </td>
+      <!-- User col -->
+      <td>${task.username}</td>
+      <!-- Timestamps col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>Added:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
+          </tr>
+          <tr>
+            <td>Started:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
+          </tr>
+          <tr>
+            <td>Completed:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
+          </tr>
+        </table>
+      </td>
+      <!-- Task Config col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>PageSet:</td>
+            <td>${task.page_sets}</td>
+          </tr>
+        </table>
+      </td>
+      <!-- Results col -->
+      <td class="nowrap">
+        ${task.failure ? html`<div class="error">Failed</div>` : ''}
+        ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
+        ${!task.failure && task.task_done ? 'Done' : ''}
+        ${task.swarming_logs
+          ? html` <br />
+              <a
+                href="${task.swarming_logs}"
+                target="_blank"
+                rel="noopener noreferrer">
+                Swarming Logs
+              </a>`
+          : ''}
+      </td>
+      <!-- Task Repeats -->
+      <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
+    </tr>`;
 
   connectedCallback(): void {
     super.connectedCallback();

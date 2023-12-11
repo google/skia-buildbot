@@ -50,12 +50,13 @@ export class PaginationSk extends ElementSk {
         <chevron-left-icon-sk></chevron-left-icon-sk>
       </button>
       ${el._pageButtons.map(
-        (page) => html` <button
-          data-page=${page}
-          @click=${el._update}
-          ?disabled=${page === el._page}>
-          ${page + 1}
-        </button>`
+        (page) =>
+          html` <button
+            data-page=${page}
+            @click=${el._update}
+            ?disabled=${page === el._page}>
+            ${page + 1}
+          </button>`
       )}
       <button
         class="action"

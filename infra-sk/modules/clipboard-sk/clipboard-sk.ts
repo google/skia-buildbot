@@ -44,13 +44,14 @@ export class ClipboardSk extends ElementSk {
     super(ClipboardSk.template);
   }
 
-  private static template = (ele: ClipboardSk) => html` <content-copy-icon-sk
-      id=${ele.icon_id}
-      @click=${() => ele.copyToClipboard()}
-      @mouseleave=${() => ele.restoreToolTipMessage()}>
-    </content-copy-icon-sk>
-    <tooltip-sk target=${ele.icon_id} value=${defaultToolTipMessage}>
-    </tooltip-sk>`;
+  private static template = (ele: ClipboardSk) =>
+    html` <content-copy-icon-sk
+        id=${ele.icon_id}
+        @click=${() => ele.copyToClipboard()}
+        @mouseleave=${() => ele.restoreToolTipMessage()}>
+      </content-copy-icon-sk>
+      <tooltip-sk target=${ele.icon_id} value=${defaultToolTipMessage}>
+      </tooltip-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();

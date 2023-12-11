@@ -48,11 +48,13 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   ): TemplateResult[] => {
     const ret: TemplateResult[] = [];
     for (let col = 0; col < ele._uniform.columns; col++) {
-      ret.push(html` <td>
-        <input
-          value="${UniformGenericSk.defaultValue(ele, row, col)}"
-          id="${ele._uniform.name}_${row}_${col}" />
-      </td>`);
+      ret.push(
+        html` <td>
+          <input
+            value="${UniformGenericSk.defaultValue(ele, row, col)}"
+            id="${ele._uniform.name}_${row}_${col}" />
+        </td>`
+      );
     }
     return ret;
   };

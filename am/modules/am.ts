@@ -67,17 +67,18 @@ export function displayNotes(
     return [];
   }
   return notes.map(
-    (note: Note, index: number) => html`<section class="note">
-      <p class="note-text">${linkify(note.text)}</p>
-      <div class="meta">
-        <span class="author">${note.author}</span>
-        <span class="date">${diffDate(note.ts * 1000)}</span>
-        <delete-icon-sk
-          title="Delete comment."
-          @click=${(e: Event) =>
-            deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
-      </div>
-    </section>`
+    (note: Note, index: number) =>
+      html`<section class="note">
+        <p class="note-text">${linkify(note.text)}</p>
+        <div class="meta">
+          <span class="author">${note.author}</span>
+          <span class="date">${diffDate(note.ts * 1000)}</span>
+          <delete-icon-sk
+            title="Delete comment."
+            @click=${(e: Event) =>
+              deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
+        </div>
+      </section>`
   );
 }
 

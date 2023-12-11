@@ -699,11 +699,13 @@ export class MachinesTableSk extends ElementSk {
 
   private attachedDeviceOptions(machine: Description): TemplateResult[] {
     return attachedDeviceDisplayNamesOrder.map(
-      (key: string) => html` <option
-        value=${attachedDeviceDisplayName[key]}
-        ?selected=${attachedDeviceDisplayName[key] === machine.AttachedDevice}>
-        ${key}
-      </option>`
+      (key: string) =>
+        html` <option
+          value=${attachedDeviceDisplayName[key]}
+          ?selected=${attachedDeviceDisplayName[key] ===
+          machine.AttachedDevice}>
+          ${key}
+        </option>`
     );
   }
 

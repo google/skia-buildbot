@@ -39,9 +39,13 @@ buildifier:
 gofmt:
 	$(BAZEL) run --config=mayberemote //:gofmt -- -s -w .
 
+node_modules: package-lock.json
+	$(BAZEL) run --config=mayberemote //:npm -- ci
+
+# We add node_modules as a dependency because npx looks for prettier in that directory.
 .PHONY: prettier
-prettier:
-	$(BAZEL) run --config=mayberemote @npm//prettier/bin:prettier --run_under="cd $(PWD) &&" -- --write .
+prettier: node_modules
+	$(BAZEL) run --config=mayberemote //:npx -- prettier --write . --ignore-unknown
 
 .PHONY: bazel-build
 bazel-build:

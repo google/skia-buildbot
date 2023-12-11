@@ -95,169 +95,170 @@ export class MetricsAnalysisRunsSk extends ElementSk {
     el: MetricsAnalysisRunsSk,
     task: MetricsAnalysisDatastoreTask,
     index: number
-  ) => html` <tr>
-    <!-- Id col -->
-    <td class="nowrap">
-      ${task.raw_output
-        ? html`<a
-            href="${task.raw_output}"
-            target="_blank"
-            rel="noopener noreferrer"
-            >${task.id}</a
-          >`
-        : html`<span>${task.id}</span>`}
-      <delete-icon-sk
-        title="Delete this task"
-        alt="Delete"
-        ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
-      <redo-icon-sk
-        title="Redo this task"
-        alt="Redo"
-        ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
-      <mode-edit-icon-sk
-        title="Edit and redo this task"
-        alt="Edit"
-        @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
-    </td>
-    <!-- User col -->
-    <td>${task.username}</td>
-    <!-- Timestamps col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>Added:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
-        </tr>
-        <tr>
-          <td>Started:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
-        </tr>
-        <tr>
-          <td>Completed:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
-        </tr>
-      </table>
-    </td>
-    <!-- Task Config col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>Metric Name:</td>
-          <td>${task.metric_name}</td>
-        </tr>
-        ${task.value_column_name
-          ? html` <tr>
-              <td class="nowrap">Value Column:</td>
-              <td class="nowrap">${task.value_column_name}</td>
-            </tr>`
-          : ''}
-        ${task.analysis_output_link
-          ? html` <tr>
-              <td>Analysis Task Id:</td>
-              <td class="nowrap">
-                <a
-                  href="${task.analysis_output_link}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >${task.analysis_task_id}
-                </a>
-              </td>
-            </tr>`
-          : ''}
-        ${!isEmptyPatch(task.custom_traces_gspath)
-          ? html` <tr>
-              <td>Custom Traces:</td>
-              <td class="nowrap">
-                <a
-                  href="${getGSLink(task.custom_traces_gspath)}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >traces
-                </a>
-              </td>
-            </tr>`
-          : ''}
-        ${task.task_priority
-          ? html` <tr>
-              <td>TaskPriority:</td>
-              <td>${task.task_priority}</td>
-            </tr>`
-          : ''}
-        ${task.cc_list
-          ? html` <tr>
-              <td>CC List:</td>
-              <td>${task.cc_list}</td>
-            </tr>`
-          : ''}
-      </table>
-    </td>
+  ) =>
+    html` <tr>
+      <!-- Id col -->
+      <td class="nowrap">
+        ${task.raw_output
+          ? html`<a
+              href="${task.raw_output}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >${task.id}</a
+            >`
+          : html`<span>${task.id}</span>`}
+        <delete-icon-sk
+          title="Delete this task"
+          alt="Delete"
+          ?hidden=${!task.can_delete}
+          @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
+        <redo-icon-sk
+          title="Redo this task"
+          alt="Redo"
+          ?hidden=${!task.can_redo}
+          @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
+        <mode-edit-icon-sk
+          title="Edit and redo this task"
+          alt="Edit"
+          @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
+      </td>
+      <!-- User col -->
+      <td>${task.username}</td>
+      <!-- Timestamps col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>Added:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
+          </tr>
+          <tr>
+            <td>Started:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
+          </tr>
+          <tr>
+            <td>Completed:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
+          </tr>
+        </table>
+      </td>
+      <!-- Task Config col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>Metric Name:</td>
+            <td>${task.metric_name}</td>
+          </tr>
+          ${task.value_column_name
+            ? html` <tr>
+                <td class="nowrap">Value Column:</td>
+                <td class="nowrap">${task.value_column_name}</td>
+              </tr>`
+            : ''}
+          ${task.analysis_output_link
+            ? html` <tr>
+                <td>Analysis Task Id:</td>
+                <td class="nowrap">
+                  <a
+                    href="${task.analysis_output_link}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >${task.analysis_task_id}
+                  </a>
+                </td>
+              </tr>`
+            : ''}
+          ${!isEmptyPatch(task.custom_traces_gspath)
+            ? html` <tr>
+                <td>Custom Traces:</td>
+                <td class="nowrap">
+                  <a
+                    href="${getGSLink(task.custom_traces_gspath)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >traces
+                  </a>
+                </td>
+              </tr>`
+            : ''}
+          ${task.task_priority
+            ? html` <tr>
+                <td>TaskPriority:</td>
+                <td>${task.task_priority}</td>
+              </tr>`
+            : ''}
+          ${task.cc_list
+            ? html` <tr>
+                <td>CC List:</td>
+                <td>${task.cc_list}</td>
+              </tr>`
+            : ''}
+        </table>
+      </td>
 
-    <!-- Description col -->
-    <td>${task.description}</td>
+      <!-- Description col -->
+      <td>${task.description}</td>
 
-    <!-- Results col -->
-    <td class="nowrap">
-      ${task.failure ? html`<div class="error">Failed</div>` : ''}
-      ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
-      ${task.raw_output
-        ? html` <a
-            href="${task.raw_output}"
-            target="_blank"
-            rel="noopener noreferrer">
-            Output
-          </a>`
-        : ''}
-      ${task.swarming_logs
-        ? html` <br />
-            <a
-              href="${task.swarming_logs}"
+      <!-- Results col -->
+      <td class="nowrap">
+        ${task.failure ? html`<div class="error">Failed</div>` : ''}
+        ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
+        ${task.raw_output
+          ? html` <a
+              href="${task.raw_output}"
               target="_blank"
               rel="noopener noreferrer">
-              Swarming Logs
+              Output
             </a>`
-        : ''}
-    </td>
+          : ''}
+        ${task.swarming_logs
+          ? html` <br />
+              <a
+                href="${task.swarming_logs}"
+                target="_blank"
+                rel="noopener noreferrer">
+                Swarming Logs
+              </a>`
+          : ''}
+      </td>
 
-    <!-- Arguments -->
-    <td class="nowrap">
-      ${task.benchmark_args
-        ? html` <a
-              href="javascript:;"
-              class="details"
-              @click=${() => el._showDialog('benchmarkArgs', index)}>
-              Benchmark Args
-            </a>
-            <br />`
-        : ''}
-    </td>
+      <!-- Arguments -->
+      <td class="nowrap">
+        ${task.benchmark_args
+          ? html` <a
+                href="javascript:;"
+                class="details"
+                @click=${() => el._showDialog('benchmarkArgs', index)}>
+                Benchmark Args
+              </a>
+              <br />`
+          : ''}
+      </td>
 
-    <!-- Patches -->
-    <td>
-      ${!isEmptyPatch(task.chromium_patch_gspath)
-        ? html` <a
-              href="${getGSLink(task.chromium_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Chromium
-            </a>
-            <br />`
-        : ''}
-      ${!isEmptyPatch(task.catapult_patch_gspath)
-        ? html` <a
-              href="${getGSLink(task.catapult_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Catapult
-            </a>
-            <br />`
-        : ''}
-    </td>
+      <!-- Patches -->
+      <td>
+        ${!isEmptyPatch(task.chromium_patch_gspath)
+          ? html` <a
+                href="${getGSLink(task.chromium_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Chromium
+              </a>
+              <br />`
+          : ''}
+        ${!isEmptyPatch(task.catapult_patch_gspath)
+          ? html` <a
+                href="${getGSLink(task.catapult_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Catapult
+              </a>
+              <br />`
+          : ''}
+      </td>
 
-    <!-- Task Repeats -->
-    <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
-  </tr>`;
+      <!-- Task Repeats -->
+      <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
+    </tr>`;
 
   private static taskDialogTemplate = (
     task: MetricsAnalysisDatastoreTask,

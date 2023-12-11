@@ -38,69 +38,71 @@ function displayName(item: ImageItem): string {
 }
 
 export class ResourcesSk extends ElementDocSk {
-  private static template = (ele: ResourcesSk) => html` <p>
-      ${ele.list.length} images were stored in this file. Note that image
-      indices here are file indices, which corresponded 1:1 to the gen ids that
-      the images had during recording. If an image appears more than once, that
-      indicates there were multiple copies of it in memory at record time. These
-      indices appear in the 'imageIndex' field of commands using them. This
-      metadata is only recorded for multi frame (mskp) files from android, so
-      nothing is shown here for other skps. All images in SKPs are serialized as
-      PNG regardless of their original encoding.
-    </p>
-    <div class="main-box ${ele.backdropStyle}">
-      ${ele.list.map((item: ImageItem) => ResourcesSk.templateImage(ele, item))}
-    </div>
-    <div class="selection-detail">
-      Selected:
-      ${ele.selection !== null
-        ? ResourcesSk.templateSelectionDetail(ele, ele.list[ele.selection])
-        : 'none'}
-    </div>`;
+  private static template = (ele: ResourcesSk) =>
+    html` <p>
+        ${ele.list.length} images were stored in this file. Note that image
+        indices here are file indices, which corresponded 1:1 to the gen ids
+        that the images had during recording. If an image appears more than
+        once, that indicates there were multiple copies of it in memory at
+        record time. These indices appear in the 'imageIndex' field of commands
+        using them. This metadata is only recorded for multi frame (mskp) files
+        from android, so nothing is shown here for other skps. All images in
+        SKPs are serialized as PNG regardless of their original encoding.
+      </p>
+      <div class="main-box ${ele.backdropStyle}">
+        ${ele.list.map((item: ImageItem) =>
+          ResourcesSk.templateImage(ele, item)
+        )}
+      </div>
+      <div class="selection-detail">
+        Selected:
+        ${ele.selection !== null
+          ? ResourcesSk.templateSelectionDetail(ele, ele.list[ele.selection])
+          : 'none'}
+      </div>`;
 
-  private static templateImage = (
-    ele: ResourcesSk,
-    item: ImageItem
-  ) => html` <div class="image-box">
-    <span
-      class="resource-name ${ele.textContrast()}"
-      @click=${
-        () => {
+  private static templateImage = (ele: ResourcesSk, item: ImageItem) =>
+    html` <div class="image-box">
+      <span
+        class="resource-name ${ele.textContrast()}"
+        @click=${
+          () => {
+            ele.selectItem(item.index);
+          } /* makes it easier to select 1x1 images */
+        }>
+        ${displayName(item)} </span
+      ><br />
+      <img
+        src="${item.pngUri}"
+        id="res-img-${item.index}"
+        class="outline-on-hover ${ele.selection === item.index
+          ? 'selected-image'
+          : ''}"
+        @click=${() => {
           ele.selectItem(item.index);
-        } /* makes it easier to select 1x1 images */
-      }>
-      ${displayName(item)} </span
-    ><br />
-    <img
-      src="${item.pngUri}"
-      id="res-img-${item.index}"
-      class="outline-on-hover ${ele.selection === item.index
-        ? 'selected-image'
-        : ''}"
-      @click=${() => {
-        ele.selectItem(item.index);
-      }} />
-  </div>`;
+        }} />
+    </div>`;
 
   private static templateSelectionDetail = (
     ele: ResourcesSk,
     item: ImageItem
-  ) => html` <b>${item.index}</b><br />
-    size: (${item.width}, ${item.height})<br />
-    Usage in top-level skp
-    ${item.uses.size > 0
-      ? html`<table class="usage-table">
-          ${ele.usageTable(item.uses)}
-        </table>`
-      : html`<p>
-          No uses found in any drawImage* commands. May occur in shaders.
-        </p>`}
-    Usage in offscreen buffers
-    ${item.layeruses.size > 0
-      ? html`<table class="usage-table">
-          ${ele.layerUsageTable(item.layeruses)}
-        </table>`
-      : html`<p>Not used</p>`}`;
+  ) =>
+    html` <b>${item.index}</b><br />
+      size: (${item.width}, ${item.height})<br />
+      Usage in top-level skp
+      ${item.uses.size > 0
+        ? html`<table class="usage-table">
+            ${ele.usageTable(item.uses)}
+          </table>`
+        : html`<p>
+            No uses found in any drawImage* commands. May occur in shaders.
+          </p>`}
+      Usage in offscreen buffers
+      ${item.layeruses.size > 0
+        ? html`<table class="usage-table">
+            ${ele.layerUsageTable(item.layeruses)}
+          </table>`
+        : html`<p>Not used</p>`}`;
 
   private list: ImageItem[] = [];
 
@@ -208,21 +210,24 @@ export class ResourcesSk extends ElementDocSk {
   ): TemplateResult[] {
     const out: TemplateResult[] = [];
     uses.forEach((frames: number[], key: number) => {
-      out.push(html` <tr>
-        <td class="command-cell">Command <b>${key}</b> on frames:</td>
-        ${frames.map(
-          (f: number) => html` <td
-            title="Jump to command ${key} frame ${f} ${nodeId >= 0
-              ? `on layer ${nodeId}`
-              : ''}"
-            class="clickable-cell"
-            @click=${() => {
-              this.jump(f, key, nodeId);
-            }}>
-            ${f}
-          </td>`
-        )}
-      </tr>`);
+      out.push(
+        html` <tr>
+          <td class="command-cell">Command <b>${key}</b> on frames:</td>
+          ${frames.map(
+            (f: number) =>
+              html` <td
+                title="Jump to command ${key} frame ${f} ${nodeId >= 0
+                  ? `on layer ${nodeId}`
+                  : ''}"
+                class="clickable-cell"
+                @click=${() => {
+                  this.jump(f, key, nodeId);
+                }}>
+                ${f}
+              </td>`
+          )}
+        </tr>`
+      );
     });
     return out;
   }
@@ -233,10 +238,12 @@ export class ResourcesSk extends ElementDocSk {
     const out: TemplateResult[] = [];
     layeruses.forEach(
       (usemap: DefaultMap<number, number[]>, nodeid: number) => {
-        out.push(html` <tr>
-            <td class="layer-cell"><b>Layer ${nodeid}</b></td>
-          </tr>
-          ${this.usageTable(usemap, nodeid)}`);
+        out.push(
+          html` <tr>
+              <td class="layer-cell"><b>Layer ${nodeid}</b></td>
+            </tr>
+            ${this.usageTable(usemap, nodeid)}`
+        );
       }
     );
     return out;

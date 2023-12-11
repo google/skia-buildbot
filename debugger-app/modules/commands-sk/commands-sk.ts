@@ -133,129 +133,125 @@ const INDENTERS: { [key: string]: PrefixItem } = {
 const OUTDENTERS: string[] = ['Restore', 'EndDrawPicture'];
 
 export class CommandsSk extends ElementDocSk {
-  private static template = (ele: CommandsSk) => html` <div>
-    ${CommandsSk.filterTemplate(ele)}
-    <div class="horizontal-flex">
-      <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
-      <play-sk .visual=${'full'}></play-sk>
-      <checkbox-sk
-        label="Indent by RenderNode"
-        ?checked=${ele._isIndented}
-        @change=${() => ele._toggleIndent()}></checkbox-sk>
-    </div>
-    <div class="list">
-      ${ele._filtered.map((i: number, filtPos: number) =>
-        CommandsSk.opTemplate(ele, filtPos, ele._cmd[i])
-      )}
-    </div>
-  </div>`;
-
-  private static opTemplate = (
-    ele: CommandsSk,
-    filtpos: number,
-    op: Command
-  ) => html`<div
-    class="op"
-    id="op-${op.index}"
-    style="padding-left:${ele._isIndented && op.group
-      ? op.group.indentLevel
-      : 0}em"
-    @click=${(e: MouseEvent) => {
-      ele._clickItem(e, filtpos);
-    }}>
-    <details>
-      <summary
-        class="command-summary ${ele.position === op.index ? 'selected' : ''}">
-        <div class="command-icons-group">
-          <span class="index">${op.index}</span>
-          ${op.prefixes.map((pre: PrefixItem) =>
-            CommandsSk.prefixItemTemplate(ele, pre)
-          )}
-        </div>
-        <div class="command-title">${op.name}</div>
-        <code class="short-desc">${op.details.shortDesc}</code>
-        ${op.range
-          ? html`<button
-              @click=${() => {
-                ele.range = op.range!;
-              }}
-              title="Range-filter the command list to this save/restore pair">
-              Zoom
-            </button>`
-          : ''}
-        ${op.imageIndex
-          ? html`<button
-              @click=${() => {
-                ele._jumpToImage(op.imageIndex!);
-              }}
-              title="Show the image referenced by this command in the resource viewer">
-              Image
-            </button>`
-          : ''}
-        <div class="gpu-ops-group">
-          ${op.details.auditTrail && op.details.auditTrail.Ops
-            ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
-                CommandsSk.gpuOpIdTemplate(ele, gpuOp)
-              )
-            : ''}
-        </div>
-      </summary>
-      <div>
+  private static template = (ele: CommandsSk) =>
+    html` <div>
+      ${CommandsSk.filterTemplate(ele)}
+      <div class="horizontal-flex">
+        <button @click=${ele._opIdFilter} class="short">Show By Op-Id</button>
+        <play-sk .visual=${'full'}></play-sk>
         <checkbox-sk
-          title="Toggle command visibility"
-          checked=${op.visible}
-          @change=${() => ele._toggleVisible(op.index)}></checkbox-sk>
-        <strong>Index: </strong> <span class="index">${op.index}</span>
+          label="Indent by RenderNode"
+          ?checked=${ele._isIndented}
+          @change=${() => ele._toggleIndent()}></checkbox-sk>
       </div>
-      ${ele._renderRullOpRepresentation(ele, op)}
-    </details>
-  </div> `;
+      <div class="list">
+        ${ele._filtered.map((i: number, filtPos: number) =>
+          CommandsSk.opTemplate(ele, filtPos, ele._cmd[i])
+        )}
+      </div>
+    </div>`;
 
-  private static prefixItemTemplate = (
-    ele: CommandsSk,
-    item: PrefixItem
-  ) => html`${ele._icon(item)}
-  ${item.count > 1
-    ? html`<div title="depth of indenting operation" class="count">
-        ${item.count}
-      </div>`
-    : ''}`;
+  private static opTemplate = (ele: CommandsSk, filtpos: number, op: Command) =>
+    html`<div
+      class="op"
+      id="op-${op.index}"
+      style="padding-left:${ele._isIndented && op.group
+        ? op.group.indentLevel
+        : 0}em"
+      @click=${(e: MouseEvent) => {
+        ele._clickItem(e, filtpos);
+      }}>
+      <details>
+        <summary
+          class="command-summary ${ele.position === op.index
+            ? 'selected'
+            : ''}">
+          <div class="command-icons-group">
+            <span class="index">${op.index}</span>
+            ${op.prefixes.map((pre: PrefixItem) =>
+              CommandsSk.prefixItemTemplate(ele, pre)
+            )}
+          </div>
+          <div class="command-title">${op.name}</div>
+          <code class="short-desc">${op.details.shortDesc}</code>
+          ${op.range
+            ? html`<button
+                @click=${() => {
+                  ele.range = op.range!;
+                }}
+                title="Range-filter the command list to this save/restore pair">
+                Zoom
+              </button>`
+            : ''}
+          ${op.imageIndex
+            ? html`<button
+                @click=${() => {
+                  ele._jumpToImage(op.imageIndex!);
+                }}
+                title="Show the image referenced by this command in the resource viewer">
+                Image
+              </button>`
+            : ''}
+          <div class="gpu-ops-group">
+            ${op.details.auditTrail && op.details.auditTrail.Ops
+              ? op.details.auditTrail.Ops.map((gpuOp: SkpJsonGpuOp) =>
+                  CommandsSk.gpuOpIdTemplate(ele, gpuOp)
+                )
+              : ''}
+          </div>
+        </summary>
+        <div>
+          <checkbox-sk
+            title="Toggle command visibility"
+            checked=${op.visible}
+            @change=${() => ele._toggleVisible(op.index)}></checkbox-sk>
+          <strong>Index: </strong> <span class="index">${op.index}</span>
+        </div>
+        ${ele._renderRullOpRepresentation(ele, op)}
+      </details>
+    </div> `;
 
-  private static gpuOpIdTemplate = (
-    ele: CommandsSk,
-    gpuOp: SkpJsonGpuOp
-  ) => html`<span
-    title="GPU Op ID - group of commands this was executed with on the GPU"
-    class="gpu-op-id"
-    style="background: ${ele._gpuOpColor(gpuOp.OpsTaskID)}"
-    >${gpuOp.OpsTaskID}</span
-  >`;
+  private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) =>
+    html`${ele._icon(item)}
+    ${item.count > 1
+      ? html`<div title="depth of indenting operation" class="count">
+          ${item.count}
+        </div>`
+      : ''}`;
 
-  private static filterTemplate = (ele: CommandsSk) => html` <div
-    class="horizontal-flex">
-    <label
-      title="Filter command names (Single leading ! negates entire filter).
+  private static gpuOpIdTemplate = (ele: CommandsSk, gpuOp: SkpJsonGpuOp) =>
+    html`<span
+      title="GPU Op ID - group of commands this was executed with on the GPU"
+      class="gpu-op-id"
+      style="background: ${ele._gpuOpColor(gpuOp.OpsTaskID)}"
+      >${gpuOp.OpsTaskID}</span
+    >`;
+
+  private static filterTemplate = (ele: CommandsSk) =>
+    html` <div class="horizontal-flex">
+      <label
+        title="Filter command names (Single leading ! negates entire filter).
 Command types can also be filted by clicking on their names in the histogram"
-      >Filter</label
-    >
-    <input
-      @change=${ele._textFilter}
-      value="!DrawAnnotation"
-      id="text-filter" />&nbsp;
-    <label>Range</label>
-    <input
-      @change=${ele._rangeInputHandler}
-      class="range-input"
-      value="${ele._range[0]}"
-      id="rangelo" />
-    <b>:</b>
-    <input
-      @change=${ele._rangeInputHandler}
-      class="range-input"
-      value="${ele._range[1]}"
-      id="rangehi" />
-    <button @click=${ele.clearFilter} id="clear-filter-button">Clear</button>
-  </div>`;
+        >Filter</label
+      >
+      <input
+        @change=${ele._textFilter}
+        value="!DrawAnnotation"
+        id="text-filter" />&nbsp;
+      <label>Range</label>
+      <input
+        @change=${ele._rangeInputHandler}
+        class="range-input"
+        value="${ele._range[0]}"
+        id="rangelo" />
+      <b>:</b>
+      <input
+        @change=${ele._rangeInputHandler}
+        class="range-input"
+        value="${ele._range[1]}"
+        id="rangehi" />
+      <button @click=${ele.clearFilter} id="clear-filter-button">Clear</button>
+    </div>`;
 
   // processed command list (no filtering applied). change with processCommands
   private _cmd: Command[] = [];
@@ -570,14 +566,16 @@ Command types can also be filted by clicking on their names in the histogram"
     const replacer = function (name: string, value: any) {
       if (name === 'imageIndex') {
         // Show a clickable button that takes the user to the image resource viewer.
-        inserts.push(html`<b>${value}</b>
-          <button
-            @click=${() => {
-              ele._jumpToImage(value);
-            }}
-            title="Show the image referenced by this command in the resource viewer">
-            Image
-          </button>`);
+        inserts.push(
+          html`<b>${value}</b>
+            <button
+              @click=${() => {
+                ele._jumpToImage(value);
+              }}
+              title="Show the image referenced by this command in the resource viewer">
+              Image
+            </button>`
+        );
         return magic;
       }
       return value;

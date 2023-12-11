@@ -71,38 +71,42 @@ export class TaskQueueSk extends ElementSk {
     el: TaskQueueSk,
     task: CommonCols,
     index: number
-  ) => html` <tr>
-    <td class="nowrap">
-      ${index + 1}
-      <delete-icon-sk
-        title="Delete this task"
-        alt="Delete"
-        ?hidden=${!task.can_delete}
-        @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
-    </td>
-    <td>
-      ${getFormattedTimestamp(task.ts_added)}
-      ${task.future_date
-        ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
-        : ''}
-    </td>
-    <td>${task.task_type}</td>
-    <td>${task.username}</td>
-    <td class="nowrap">
-      ${task.future_date
-        ? html`N/A`
-        : task.swarming_logs
-        ? html`<a href="${task.swarming_logs}" rel="noopener" target="_blank"
-            >Swarming Logs</a
-          >`
-        : html`No Swarming Logs`}
-    </td>
-    <td class="nowrap">
-      <a href="#" class="details" @click=${() => el.showDetailsDialog(index)}
-        >Task Details</a
-      >
-    </td>
-  </tr>`;
+  ) =>
+    html` <tr>
+      <td class="nowrap">
+        ${index + 1}
+        <delete-icon-sk
+          title="Delete this task"
+          alt="Delete"
+          ?hidden=${!task.can_delete}
+          @click=${() => el.confirmDeleteTask(index)}></delete-icon-sk>
+      </td>
+      <td>
+        ${getFormattedTimestamp(task.ts_added)}
+        ${task.future_date
+          ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
+          : ''}
+      </td>
+      <td>${task.task_type}</td>
+      <td>${task.username}</td>
+      <td class="nowrap">
+        ${task.future_date
+          ? html`N/A`
+          : task.swarming_logs
+            ? html`<a
+                href="${task.swarming_logs}"
+                rel="noopener"
+                target="_blank"
+                >Swarming Logs</a
+              >`
+            : html`No Swarming Logs`}
+      </td>
+      <td class="nowrap">
+        <a href="#" class="details" @click=${() => el.showDetailsDialog(index)}
+          >Task Details</a
+        >
+      </td>
+    </tr>`;
 
   private static taskDetailDialogTemplate = (
     task: CommonCols,

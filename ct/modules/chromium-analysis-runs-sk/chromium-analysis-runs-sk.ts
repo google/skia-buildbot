@@ -102,280 +102,281 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
     el: ChromiumAnalysisRunsSk,
     task: ChromiumAnalysisDatastoreTask,
     index: number
-  ) => html` <tr>
-    <!-- Id col -->
-    <td class="nowrap">
-      ${task.raw_output
-        ? html`<a
-            href="${task.raw_output}"
-            target="_blank"
-            rel="noopener noreferrer"
-            >${task.id}</a
-          >`
-        : html`<span>${task.id}</span>`}
-      <delete-icon-sk
-        title="Delete this task"
-        alt="Delete"
-        ?hidden=${!task.can_delete}
-        @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
-      <redo-icon-sk
-        title="Redo this task"
-        alt="Redo"
-        ?hidden=${!task.can_redo}
-        @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
-      <mode-edit-icon-sk
-        title="Edit and redo this task"
-        alt="Edit"
-        @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
-    </td>
-    <!-- User col -->
-    <td>${task.username}</td>
-    <!-- Timestamps col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>Added:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
-        </tr>
-        <tr>
-          <td>Started:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
-        </tr>
-        <tr>
-          <td>Completed:</td>
-          <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
-        </tr>
-      </table>
-    </td>
-    <!-- Task Config col -->
-    <td>
-      <table class="inner-table">
-        <tr>
-          <td>Benchmark:</td>
-          <td>${task.benchmark}</td>
-        </tr>
-        <tr>
-          <td>Platform:</td>
-          <td>${task.platform}</td>
-        </tr>
-        <tr>
-          <td>RunOnGCE:</td>
-          <td>${task.run_on_gce}</td>
-        </tr>
-        <tr>
-          <td>PageSet:</td>
-          <td>
-            ${!isEmptyPatch(task.custom_webpages_gspath)
-              ? html`<a
-                  href="${getGSLink(task.custom_webpages_gspath)}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >Custom Webpages</a
-                >`
-              : task.page_sets}
-          </td>
-        </tr>
-        <tr>
-          <td>ParallelRun:</td>
-          <td>${task.run_in_parallel}</td>
-        </tr>
-        ${task.value_column_name
-          ? html`<tr>
-              <td class="nowrap">Value Column:</td>
-              <td class="nowrap">${task.value_column_name}</td>
-            </tr>`
-          : ''}
-        ${task.task_priority
-          ? html`<tr>
-              <td>TaskPriority:</td>
-              <td>${task.task_priority}</td>
-            </tr>`
-          : ''}
-        ${task.cc_list
-          ? html`<tr>
-              <td>CC List:</td>
-              <td>${task.cc_list}</td>
-            </tr>`
-          : ''}
-        ${task.group_name
-          ? html`<tr>
-              <td>GroupName:</td>
-              <td>
-                <a href="https://ct-perf.skia.org/e/?request_type=1"
-                  >${task.group_name}</a
-                >
-              </td>
-            </tr>`
-          : ''}
-        ${task.chromium_hash
-          ? html`<tr>
-              <td>ChromiumHash:</td>
-              <td>
-                <a
-                  href="https://chromium.googlesource.com/chromium/src/+show/${task.chromium_hash}"
-                  >${task.chromium_hash}</a
-                >
-              </td>
-            </tr>`
-          : ''}
-        ${task.apk_gspath
-          ? html`<tr>
-              <td>ApkGsPath:</td>
-              <td>
-                <a
-                  href="javascript:;"
-                  class="details"
-                  @click=${() => el._showDialog('apkGsPath', index)}>
-                  Display Path
-                </a>
-              </td>
-            </tr>`
-          : ''}
-        ${task.chrome_build_gs_path
-          ? html`<tr>
-              <td>ChromeBuildGsPath:</td>
-              <td>
-                <a
-                  href="javascript:;"
-                  class="details"
-                  @click=${() => el._showDialog('chromeBuildGsPath', index)}>
-                  Display Path
-                </a>
-              </td>
-            </tr>`
-          : ''}
-        ${task.telemetry_isolate_hash
-          ? html`<tr>
-              <td>TelemetryCASHash:</td>
-              <td>
-                <a
-                  href="https://cas-viewer.appspot.com/projects/chrome-swarming/instances/default_instance/blobs/${task.telemetry_isolate_hash}/tree"
-                  >${task.telemetry_isolate_hash}</a
-                >
-              </td>
-            </tr>`
-          : ''}
-      </table>
-    </td>
+  ) =>
+    html` <tr>
+      <!-- Id col -->
+      <td class="nowrap">
+        ${task.raw_output
+          ? html`<a
+              href="${task.raw_output}"
+              target="_blank"
+              rel="noopener noreferrer"
+              >${task.id}</a
+            >`
+          : html`<span>${task.id}</span>`}
+        <delete-icon-sk
+          title="Delete this task"
+          alt="Delete"
+          ?hidden=${!task.can_delete}
+          @click=${() => el._confirmDeleteTask(index)}></delete-icon-sk>
+        <redo-icon-sk
+          title="Redo this task"
+          alt="Redo"
+          ?hidden=${!task.can_redo}
+          @click=${() => el._confirmRedoTask(index)}></redo-icon-sk>
+        <mode-edit-icon-sk
+          title="Edit and redo this task"
+          alt="Edit"
+          @click=${() => el._confirmEditTask(index)}></mode-edit-icon-sk>
+      </td>
+      <!-- User col -->
+      <td>${task.username}</td>
+      <!-- Timestamps col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>Added:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_added)}</td>
+          </tr>
+          <tr>
+            <td>Started:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_started)}</td>
+          </tr>
+          <tr>
+            <td>Completed:</td>
+            <td class="nowrap">${getFormattedTimestamp(task.ts_completed)}</td>
+          </tr>
+        </table>
+      </td>
+      <!-- Task Config col -->
+      <td>
+        <table class="inner-table">
+          <tr>
+            <td>Benchmark:</td>
+            <td>${task.benchmark}</td>
+          </tr>
+          <tr>
+            <td>Platform:</td>
+            <td>${task.platform}</td>
+          </tr>
+          <tr>
+            <td>RunOnGCE:</td>
+            <td>${task.run_on_gce}</td>
+          </tr>
+          <tr>
+            <td>PageSet:</td>
+            <td>
+              ${!isEmptyPatch(task.custom_webpages_gspath)
+                ? html`<a
+                    href="${getGSLink(task.custom_webpages_gspath)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Custom Webpages</a
+                  >`
+                : task.page_sets}
+            </td>
+          </tr>
+          <tr>
+            <td>ParallelRun:</td>
+            <td>${task.run_in_parallel}</td>
+          </tr>
+          ${task.value_column_name
+            ? html`<tr>
+                <td class="nowrap">Value Column:</td>
+                <td class="nowrap">${task.value_column_name}</td>
+              </tr>`
+            : ''}
+          ${task.task_priority
+            ? html`<tr>
+                <td>TaskPriority:</td>
+                <td>${task.task_priority}</td>
+              </tr>`
+            : ''}
+          ${task.cc_list
+            ? html`<tr>
+                <td>CC List:</td>
+                <td>${task.cc_list}</td>
+              </tr>`
+            : ''}
+          ${task.group_name
+            ? html`<tr>
+                <td>GroupName:</td>
+                <td>
+                  <a href="https://ct-perf.skia.org/e/?request_type=1"
+                    >${task.group_name}</a
+                  >
+                </td>
+              </tr>`
+            : ''}
+          ${task.chromium_hash
+            ? html`<tr>
+                <td>ChromiumHash:</td>
+                <td>
+                  <a
+                    href="https://chromium.googlesource.com/chromium/src/+show/${task.chromium_hash}"
+                    >${task.chromium_hash}</a
+                  >
+                </td>
+              </tr>`
+            : ''}
+          ${task.apk_gspath
+            ? html`<tr>
+                <td>ApkGsPath:</td>
+                <td>
+                  <a
+                    href="javascript:;"
+                    class="details"
+                    @click=${() => el._showDialog('apkGsPath', index)}>
+                    Display Path
+                  </a>
+                </td>
+              </tr>`
+            : ''}
+          ${task.chrome_build_gs_path
+            ? html`<tr>
+                <td>ChromeBuildGsPath:</td>
+                <td>
+                  <a
+                    href="javascript:;"
+                    class="details"
+                    @click=${() => el._showDialog('chromeBuildGsPath', index)}>
+                    Display Path
+                  </a>
+                </td>
+              </tr>`
+            : ''}
+          ${task.telemetry_isolate_hash
+            ? html`<tr>
+                <td>TelemetryCASHash:</td>
+                <td>
+                  <a
+                    href="https://cas-viewer.appspot.com/projects/chrome-swarming/instances/default_instance/blobs/${task.telemetry_isolate_hash}/tree"
+                    >${task.telemetry_isolate_hash}</a
+                  >
+                </td>
+              </tr>`
+            : ''}
+        </table>
+      </td>
 
-    <!-- Description col -->
-    <td>${task.description}</td>
+      <!-- Description col -->
+      <td>${task.description}</td>
 
-    <!-- Results col -->
-    <td class="nowrap">
-      ${task.failure ? html`<div class="error">Failed</div>` : ''}
-      ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
-      ${task.raw_output
-        ? html`<a
-            href="${task.raw_output}"
-            target="_blank"
-            rel="noopener noreferrer">
-            Output
-          </a>`
-        : ''}
-      ${task.swarming_logs
-        ? html`<br />
-            <a
-              href="${task.swarming_logs}"
+      <!-- Results col -->
+      <td class="nowrap">
+        ${task.failure ? html`<div class="error">Failed</div>` : ''}
+        ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
+        ${task.raw_output
+          ? html`<a
+              href="${task.raw_output}"
               target="_blank"
               rel="noopener noreferrer">
-              Swarming Logs
+              Output
             </a>`
-        : ''}
-    </td>
+          : ''}
+        ${task.swarming_logs
+          ? html`<br />
+              <a
+                href="${task.swarming_logs}"
+                target="_blank"
+                rel="noopener noreferrer">
+                Swarming Logs
+              </a>`
+          : ''}
+      </td>
 
-    <!-- Arguments -->
-    <td class="nowrap">
-      ${task.gn_args
-        ? html`<a
-              href="javascript:;"
-              class="details"
-              @click=${() => el._showDialog('gnArgs', index)}>
-              GN Args
-            </a>
-            <br />`
-        : ''}
-      ${task.benchmark_args
-        ? html`<a
-              href="javascript:;"
-              class="details"
-              @click=${() => el._showDialog('benchmarkArgs', index)}>
-              Benchmark Args
-            </a>
-            <br />`
-        : ''}
-      ${task.browser_args
-        ? html`<a
-              href="javascript:;"
-              class="details"
-              @click=${() => el._showDialog('browserArgs', index)}>
-              Browser Args
-            </a>
-            <br />`
-        : ''}
-      ${task.match_stdout_txt
-        ? html`<a
-              href="javascript:;"
-              class="details"
-              @click=${() => el._showDialog('matchStdoutTxt', index)}>
-              Match Stdout Text
-            </a>
-            <br />`
-        : ''}
-    </td>
+      <!-- Arguments -->
+      <td class="nowrap">
+        ${task.gn_args
+          ? html`<a
+                href="javascript:;"
+                class="details"
+                @click=${() => el._showDialog('gnArgs', index)}>
+                GN Args
+              </a>
+              <br />`
+          : ''}
+        ${task.benchmark_args
+          ? html`<a
+                href="javascript:;"
+                class="details"
+                @click=${() => el._showDialog('benchmarkArgs', index)}>
+                Benchmark Args
+              </a>
+              <br />`
+          : ''}
+        ${task.browser_args
+          ? html`<a
+                href="javascript:;"
+                class="details"
+                @click=${() => el._showDialog('browserArgs', index)}>
+                Browser Args
+              </a>
+              <br />`
+          : ''}
+        ${task.match_stdout_txt
+          ? html`<a
+                href="javascript:;"
+                class="details"
+                @click=${() => el._showDialog('matchStdoutTxt', index)}>
+                Match Stdout Text
+              </a>
+              <br />`
+          : ''}
+      </td>
 
-    <!-- Patches -->
-    <td>
-      ${!isEmptyPatch(task.chromium_patch_gspath)
-        ? html`<a
-              href="${getGSLink(task.chromium_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Chromium</a
-            >
-            <br /> `
-        : ''}
-      ${!isEmptyPatch(task.skia_patch_gspath)
-        ? html`<a
-              href="${getGSLink(task.skia_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Skia</a
-            >
-            <br /> `
-        : ''}
-      ${!isEmptyPatch(task.v8_patch_gspath)
-        ? html`<a
-              href="${getGSLink(task.v8_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >V8</a
-            >
-            <br /> `
-        : ''}
-      ${!isEmptyPatch(task.catapult_patch_gspath)
-        ? html`<a
-              href="${getGSLink(task.catapult_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Catapult</a
-            >
-            <br /> `
-        : ''}
-      ${!isEmptyPatch(task.benchmark_patch_gspath)
-        ? html`<a
-              href="${getGSLink(task.benchmark_patch_gspath)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Telemetry</a
-            >
-            <br /> `
-        : ''}
-    </td>
+      <!-- Patches -->
+      <td>
+        ${!isEmptyPatch(task.chromium_patch_gspath)
+          ? html`<a
+                href="${getGSLink(task.chromium_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Chromium</a
+              >
+              <br /> `
+          : ''}
+        ${!isEmptyPatch(task.skia_patch_gspath)
+          ? html`<a
+                href="${getGSLink(task.skia_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Skia</a
+              >
+              <br /> `
+          : ''}
+        ${!isEmptyPatch(task.v8_patch_gspath)
+          ? html`<a
+                href="${getGSLink(task.v8_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >V8</a
+              >
+              <br /> `
+          : ''}
+        ${!isEmptyPatch(task.catapult_patch_gspath)
+          ? html`<a
+                href="${getGSLink(task.catapult_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Catapult</a
+              >
+              <br /> `
+          : ''}
+        ${!isEmptyPatch(task.benchmark_patch_gspath)
+          ? html`<a
+                href="${getGSLink(task.benchmark_patch_gspath)}"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Telemetry</a
+              >
+              <br /> `
+          : ''}
+      </td>
 
-    <!-- Task Repeats -->
-    <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
-  </tr>`;
+      <!-- Task Repeats -->
+      <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
+    </tr>`;
 
   private static taskDialogTemplate = (
     task: ChromiumAnalysisDatastoreTask,

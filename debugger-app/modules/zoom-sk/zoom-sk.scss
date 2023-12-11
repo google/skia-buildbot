@@ -1,7 +1,9 @@
 zoom-sk {
   .light-checkerboard {
     border: solid lightgray 1px;
-    background-position: 0px 0px, 10px 10px;
+    background-position:
+      0px 0px,
+      10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
         45deg,
@@ -23,7 +25,9 @@ zoom-sk {
 
   .dark-checkerboard {
     border: solid lightgray 1px;
-    background-position: 0px 0px, 10px 10px;
+    background-position:
+      0px 0px,
+      10px 10px;
     background-size: 20px 20px;
     background-image: linear-gradient(
         45deg,

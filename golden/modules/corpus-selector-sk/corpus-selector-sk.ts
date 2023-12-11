@@ -40,12 +40,13 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   private static corpusTemplate = <T extends Object>(
     el: CorpusSelectorSk<T>,
     corpus: T
-  ) => html` <li
-    class=${el._selectedCorpus === corpus ? 'selected' : ''}
-    title="${el._corpusRendererFn(corpus)}"
-    @click=${() => el._handleCorpusClick(corpus)}>
-    ${el._corpusRendererFn(corpus)}
-  </li>`;
+  ) =>
+    html` <li
+      class=${el._selectedCorpus === corpus ? 'selected' : ''}
+      title="${el._corpusRendererFn(corpus)}"
+      @click=${() => el._handleCorpusClick(corpus)}>
+      ${el._corpusRendererFn(corpus)}
+    </li>`;
 
   private _corpora: T[] = [];
 

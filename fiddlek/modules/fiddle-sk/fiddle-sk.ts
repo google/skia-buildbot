@@ -384,8 +384,8 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             ?hidden=${ele._options.animated}
             title="CPU"
             src="${ele._config.domain}/i/${
-      ele._runResults.fiddleHash
-    }_raster.png"
+              ele._runResults.fiddleHash
+            }_raster.png"
             width=${ele._options.width}
             height=${ele._options.height}
           />
@@ -479,12 +479,13 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
     } ?hidden=${!ele.hasCompileWarningsOrErrors()}>
       <h2>Compilation Warnings/Errors</h2>
       ${ele._runResults.compile_errors?.map(
-        (err) => html`<pre
-          class="compile-error ${err.line > 0 ? 'clickable' : ''}"
-          data-line=${err.line}
-          data-col=${err.col}>
+        (err) =>
+          html`<pre
+            class="compile-error ${err.line > 0 ? 'clickable' : ''}"
+            data-line=${err.line}
+            data-col=${err.col}>
 ${err.text}</pre
-        >`
+          >`
       )}
   </div>
   <div ?hidden=${!ele._runResults.runtime_error}>

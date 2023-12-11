@@ -64,11 +64,10 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
   private static template = (ele: UniformDimensionsSk) => html`
     <select @change=${ele.selectionChanged} size="1">
       ${choices.map(
-        (choice, index) => html` <option
-          value=${index}
-          ?selected=${index === ele._choice}>
-          ${choice.width} x ${choice.height}
-        </option>`
+        (choice, index) =>
+          html` <option value=${index} ?selected=${index === ele._choice}>
+            ${choice.width} x ${choice.height}
+          </option>`
       )}
     </select>
   `;

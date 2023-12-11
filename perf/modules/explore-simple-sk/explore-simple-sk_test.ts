@@ -242,9 +242,8 @@ describe('Default values', () => {
       body: defaultBody,
     });
 
-    var explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    var explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await fetchMock.flush(true);
     const originalState = deepCopy(explore!.state);
     await explore['applyQueryDefaultsIfMissing']();
@@ -316,9 +315,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //     state: [300,       1200]
     //   request: [300, 1100]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [300, 1200],
@@ -355,9 +353,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //     state: [300,          1400]
     //   request: [300,          1400]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [300, 1400],
@@ -394,9 +391,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //     state:   [1200,           2100]
     //   request:          [1400,    2100]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [1200, 2100],
@@ -426,9 +422,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     // dataframe:    [1100,   1400]
     //     state: [700,              2100]
     //   request: [700,              2100]
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [700, 2100],
@@ -458,9 +453,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     // dataframe:    [1100,   1400]
     //     state:                   [1900, 2100]
     //   request:                   [1900, 2100]
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [700, 2100],
@@ -491,9 +485,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //     state: [300,          1400]
     //   request: [300,          1400]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
     // User does something to cause this._state's timestamp range to become [300, 1400],
@@ -523,9 +516,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //     state: [900,        1200]
     //   request: [900,        1200]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     const existingDataFrame = fakeDataFrame();
     explore['_dataframe'] = existingDataFrame;
@@ -600,9 +592,8 @@ describe('requestFrameBodyDeltaFromState', () => {
     //      state (queries: ['test=B']): [900,        1200]
     //    request (queries: ['test=B']): [900,        1200]
 
-    const explore = await setUpElementUnderTest<ExploreSimpleSk>(
-      'explore-simple-sk'
-    )();
+    const explore =
+      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     // run a query, test=A
     const queryTestADataFrame: DataFrame = {

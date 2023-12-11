@@ -62,18 +62,21 @@ export class ByBlameEntrySk extends ElementSk {
 
       <ul class="blames">
         ${commits.map(
-          (commit: Commit) => html` <li>
-            <a href=${commitHref(commit.hash)} target="_blank" rel="noopener">
-              ${commit.hash.slice(0, 7)}
-            </a>
-            <span class="commit-message"> ${commit.message} </span>
-            <br />
-            <small>
-              <span class="author">${commit.author}</span>,
-              <span class="age"> ${diffDate(commit.commit_time * 1000)} </span>
-              ago.
-            </small>
-          </li>`
+          (commit: Commit) =>
+            html` <li>
+              <a href=${commitHref(commit.hash)} target="_blank" rel="noopener">
+                ${commit.hash.slice(0, 7)}
+              </a>
+              <span class="commit-message"> ${commit.message} </span>
+              <br />
+              <small>
+                <span class="author">${commit.author}</span>,
+                <span class="age">
+                  ${diffDate(commit.commit_time * 1000)}
+                </span>
+                ago.
+              </small>
+            </li>`
         )}
         ${andNMore > 0 ? html`<li>And ${andNMore} other commit(s)</li>` : ''}
       </ul>`;
@@ -95,20 +98,21 @@ export class ByBlameEntrySk extends ElementSk {
         </thead>
         <tbody>
           ${affectedTests.map(
-            (test: TestRollup) => html` <tr>
-              <td class="test">${test.grouping.name}</td>
-              <td class="corpus">${test.grouping.source_type}</td>
-              <td class="num-digests">${test.num}</td>
-              <td>
-                <a
-                  href=${detailHref(test.grouping, test.sample_digest)}
-                  class="example-link"
-                  target="_blank"
-                  rel="noopener">
-                  ${test.sample_digest}
-                </a>
-              </td>
-            </tr>`
+            (test: TestRollup) =>
+              html` <tr>
+                <td class="test">${test.grouping.name}</td>
+                <td class="corpus">${test.grouping.source_type}</td>
+                <td class="num-digests">${test.num}</td>
+                <td>
+                  <a
+                    href=${detailHref(test.grouping, test.sample_digest)}
+                    class="example-link"
+                    target="_blank"
+                    rel="noopener">
+                    ${test.sample_digest}
+                  </a>
+                </td>
+              </tr>`
           )}
         </tbody>
       </table>

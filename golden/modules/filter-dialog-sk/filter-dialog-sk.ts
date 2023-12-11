@@ -85,59 +85,59 @@ export class FilterDialogSk extends ElementSk {
   // Concrete example: without the live() directives, if the user opens the dialog, makes changes,
   // cancels and reopens the dialog, the user will see their previous input, when the expected
   // behavior is for their previous input to be discarded.
-  private static _template = (el: FilterDialogSk) => html` <dialog
-    class="filter-dialog">
-    <div class="content">
-      <span class="label">Right-hand traces:</span>
-      <trace-filter-sk
-        .paramSet=${el._paramSet!}
-        .selection=${live(el._filters?.diffConfig || {})}
-        @trace-filter-sk-change=${el._onTraceFilterSkChange}>
-      </trace-filter-sk>
+  private static _template = (el: FilterDialogSk) =>
+    html` <dialog class="filter-dialog">
+      <div class="content">
+        <span class="label">Right-hand traces:</span>
+        <trace-filter-sk
+          .paramSet=${el._paramSet!}
+          .selection=${live(el._filters?.diffConfig || {})}
+          @trace-filter-sk-change=${el._onTraceFilterSkChange}>
+        </trace-filter-sk>
 
-      ${numericParamTemplate(
-        'min-rgba-delta',
-        'Min RGBA delta:',
-        /* setterFn= */ (val) => (el._filters!.minRGBADelta = val),
-        /* value= */ el._filters?.minRGBADelta,
-        /* min= */ 0,
-        /* max= */ 255,
-        /* step= */ 1
-      )}
-      ${numericParamTemplate(
-        'max-rgba-delta',
-        'Max RGBA delta:',
-        /* setterFn= */ (val) => (el._filters!.maxRGBADelta = val),
-        /* value= */ el._filters?.maxRGBADelta,
-        /* min= */ 0,
-        /* max= */ 255,
-        /* step= */ 1
-      )}
+        ${numericParamTemplate(
+          'min-rgba-delta',
+          'Min RGBA delta:',
+          /* setterFn= */ (val) => (el._filters!.minRGBADelta = val),
+          /* value= */ el._filters?.minRGBADelta,
+          /* min= */ 0,
+          /* max= */ 255,
+          /* step= */ 1
+        )}
+        ${numericParamTemplate(
+          'max-rgba-delta',
+          'Max RGBA delta:',
+          /* setterFn= */ (val) => (el._filters!.maxRGBADelta = val),
+          /* value= */ el._filters?.maxRGBADelta,
+          /* min= */ 0,
+          /* max= */ 255,
+          /* step= */ 1
+        )}
 
-      <label for="sort-order">Sort order:</label>
-      <select
-        id="sort-order"
-        .value=${live(el._filters?.sortOrder)}
-        @change=${el._sortOrderChanged}>
-        <option value="ascending">Ascending</option>
-        <option value="descending">Descending</option>
-      </select>
+        <label for="sort-order">Sort order:</label>
+        <select
+          id="sort-order"
+          .value=${live(el._filters?.sortOrder)}
+          @change=${el._sortOrderChanged}>
+          <option value="ascending">Ascending</option>
+          <option value="descending">Descending</option>
+        </select>
 
-      <checkbox-sk
-        id="must-have-reference-image"
-        label="Must have a reference image."
-        ?checked=${live(el._filters?.mustHaveReferenceImage)}
-        @change=${el._mustHaveReferenceImageChanged}>
-      </checkbox-sk>
-    </div>
+        <checkbox-sk
+          id="must-have-reference-image"
+          label="Must have a reference image."
+          ?checked=${live(el._filters?.mustHaveReferenceImage)}
+          @change=${el._mustHaveReferenceImageChanged}>
+        </checkbox-sk>
+      </div>
 
-    <div class="buttons">
-      <button class="filter action" @click=${el._filterBtnClicked}>
-        Apply
-      </button>
-      <button class="cancel" @click=${el._cancelBtnClicked}>Cancel</button>
-    </div>
-  </dialog>`;
+      <div class="buttons">
+        <button class="filter action" @click=${el._filterBtnClicked}>
+          Apply
+        </button>
+        <button class="cancel" @click=${el._cancelBtnClicked}>Cancel</button>
+      </div>
+    </dialog>`;
 
   private _dialog: HTMLDialogElement | null = null;
 

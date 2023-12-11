@@ -47,10 +47,11 @@ export class FiddleEmbed extends ElementSk {
     this._render();
   }
 
-  private static template = (ele: FiddleEmbed) => html`<fiddle-sk
-      .config=${ele.mergedConfig()}
-      .context=${ele.context}></fiddle-sk>
-    <error-toast-sk></error-toast-sk> `;
+  private static template = (ele: FiddleEmbed) =>
+    html`<fiddle-sk
+        .config=${ele.mergedConfig()}
+        .context=${ele.context}></fiddle-sk>
+      <error-toast-sk></error-toast-sk> `;
 
   connectedCallback(): void {
     super.connectedCallback();

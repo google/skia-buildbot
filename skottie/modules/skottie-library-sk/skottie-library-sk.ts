@@ -94,9 +94,11 @@ If not selected, the animations will be paused and not respond to scrubbing of t
     }
     const options = [];
     for (let i = 0; i < totalAnimationsCount; i++) {
-      options.push(html` <option value=${i} ?selected=${this.currentPage === i}>
-        ${i + 1}
-      </option>`);
+      options.push(
+        html` <option value=${i} ?selected=${this.currentPage === i}>
+          ${i + 1}
+        </option>`
+      );
     }
     return html`
       <label class="page">

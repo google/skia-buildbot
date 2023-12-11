@@ -126,61 +126,62 @@ export function SearchCriteriaToHintableObject(
 
 /** A component that allows the user to view and edit a digest search criteria. */
 export class SearchControlsSk extends ElementSk {
-  private static _template = (el: SearchControlsSk) => html` <corpus-selector-sk
-      .corpora=${el._corpora}
-      .selectedCorpus=${live(el._searchCriteria.corpus)}
-      @corpus-selected=${el._onCorpusSelected}>
-    </corpus-selector-sk>
+  private static _template = (el: SearchControlsSk) =>
+    html` <corpus-selector-sk
+        .corpora=${el._corpora}
+        .selectedCorpus=${live(el._searchCriteria.corpus)}
+        @corpus-selected=${el._onCorpusSelected}>
+      </corpus-selector-sk>
 
-    <div class="digests">
-      <span class="legend">Digests:</span>
+      <div class="digests">
+        <span class="legend">Digests:</span>
 
-      ${SearchControlsSk._checkBoxTemplate(
-        el,
-        /* label= */ 'Positive',
-        /* cssClass= */ 'include-positive-digests',
-        /* fieldName= */ 'includePositiveDigests'
-      )}
-      ${SearchControlsSk._checkBoxTemplate(
-        el,
-        /* label= */ 'Negative',
-        /* cssClass= */ 'include-negative-digests',
-        /* fieldName= */ 'includeNegativeDigests'
-      )}
-      ${SearchControlsSk._checkBoxTemplate(
-        el,
-        /* label= */ 'Untriaged',
-        /* cssClass= */ 'include-untriaged-digests',
-        /* fieldName= */ 'includeUntriagedDigests'
-      )}
-      ${SearchControlsSk._checkBoxTemplate(
-        el,
-        /* label= */ 'Include not at HEAD',
-        /* cssClass= */ 'include-digests-not-at-head',
-        /* fieldName= */ 'includeDigestsNotAtHead'
-      )}
-      ${SearchControlsSk._checkBoxTemplate(
-        el,
-        /* label= */ 'Include ignored',
-        /* cssClass= */ 'include-ignored-digests',
-        /* fieldName= */ 'includeIgnoredDigests'
-      )}
+        ${SearchControlsSk._checkBoxTemplate(
+          el,
+          /* label= */ 'Positive',
+          /* cssClass= */ 'include-positive-digests',
+          /* fieldName= */ 'includePositiveDigests'
+        )}
+        ${SearchControlsSk._checkBoxTemplate(
+          el,
+          /* label= */ 'Negative',
+          /* cssClass= */ 'include-negative-digests',
+          /* fieldName= */ 'includeNegativeDigests'
+        )}
+        ${SearchControlsSk._checkBoxTemplate(
+          el,
+          /* label= */ 'Untriaged',
+          /* cssClass= */ 'include-untriaged-digests',
+          /* fieldName= */ 'includeUntriagedDigests'
+        )}
+        ${SearchControlsSk._checkBoxTemplate(
+          el,
+          /* label= */ 'Include not at HEAD',
+          /* cssClass= */ 'include-digests-not-at-head',
+          /* fieldName= */ 'includeDigestsNotAtHead'
+        )}
+        ${SearchControlsSk._checkBoxTemplate(
+          el,
+          /* label= */ 'Include ignored',
+          /* cssClass= */ 'include-ignored-digests',
+          /* fieldName= */ 'includeIgnoredDigests'
+        )}
 
-      <button class="more-filters" @click=${el._openFilterDialog}>
-        More filters
-      </button>
-    </div>
+        <button class="more-filters" @click=${el._openFilterDialog}>
+          More filters
+        </button>
+      </div>
 
-    <div class="traces">
-      <span class="legend">Traces:</span>
-      <trace-filter-sk
-        .selection=${el._searchCriteria.leftHandTraceFilter}
-        .paramSet=${el._paramSet}
-        @trace-filter-sk-change=${el._onTraceFilterSkChange}>
-      </trace-filter-sk>
-    </div>
+      <div class="traces">
+        <span class="legend">Traces:</span>
+        <trace-filter-sk
+          .selection=${el._searchCriteria.leftHandTraceFilter}
+          .paramSet=${el._paramSet}
+          @trace-filter-sk-change=${el._onTraceFilterSkChange}>
+        </trace-filter-sk>
+      </div>
 
-    <filter-dialog-sk @edit=${el._onFilterDialogSkEdit}></filter-dialog-sk>`;
+      <filter-dialog-sk @edit=${el._onFilterDialogSkEdit}></filter-dialog-sk>`;
 
   private static _checkBoxTemplate = (
     el: SearchControlsSk,

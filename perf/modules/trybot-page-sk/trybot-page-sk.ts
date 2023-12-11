@@ -294,19 +294,21 @@ export class TrybotPageSk extends ElementSk {
       if (i > numHeadTail && i < ele.byParams.length - numHeadTail) {
         return;
       }
-      ret.push(html`<tr>
-        <td>${i + 1}</td>
-        <td
-          class="link"
-          @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}>
-          <timeline-icon-sk></timeline-icon-sk>
-        </td>
-        <td>${b.keyValue}</td>
-        <td>${b.aveStdDevRatio}</td>
-        <td>${b.n}</td>
-        <td>${b.high}</td>
-        <td>${b.low}</td>
-      </tr>`);
+      ret.push(
+        html`<tr>
+          <td>${i + 1}</td>
+          <td
+            class="link"
+            @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}>
+            <timeline-icon-sk></timeline-icon-sk>
+          </td>
+          <td>${b.keyValue}</td>
+          <td>${b.aveStdDevRatio}</td>
+          <td>${b.n}</td>
+          <td>${b.high}</td>
+          <td>${b.low}</td>
+        </tr>`
+      );
     });
     return ret;
   };

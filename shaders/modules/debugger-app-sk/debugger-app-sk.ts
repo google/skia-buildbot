@@ -193,15 +193,16 @@ export class DebuggerAppSk extends ElementSk {
     stack.unshift(`${this.arrowIfCurrentFrameIs(-1)}global scope`);
 
     const result: TemplateResult[] = stack.map(
-      (text: string, index: number) => html` <tr>
-        <td>
-          <a
-            href="javascript:;"
-            @click=${() => this.changeStackFrame(index - 1)}
-            >${text}</a
-          >
-        </td>
-      </tr>`
+      (text: string, index: number) =>
+        html` <tr>
+          <td>
+            <a
+              href="javascript:;"
+              @click=${() => this.changeStackFrame(index - 1)}
+              >${text}</a
+            >
+          </td>
+        </tr>`
     );
     return result.reverse();
   }

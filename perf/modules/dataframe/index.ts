@@ -22,7 +22,7 @@ export function mergeColumnHeaders(
 ): [
   (ColumnHeader | null)[] | null,
   { [key: number]: number },
-  { [key: number]: number }
+  { [key: number]: number },
 ] {
   if (a === null || a.length == 0) {
     return [b, simpleMap(0), simpleMap(b!.length)];

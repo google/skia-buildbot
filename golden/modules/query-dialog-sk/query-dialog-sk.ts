@@ -29,27 +29,28 @@ import '../../../infra-sk/modules/query-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
 export class QueryDialogSk extends ElementSk {
-  private static _template = (el: QueryDialogSk) => html` <dialog>
-    <div class="content">
-      <query-sk
-        @query-change=${el.queryChange}
-        hide_invert
-        hide_regex></query-sk>
-      <div class="selection-summary">
-        ${el.isSelectionEmpty()
-          ? html`<p class="empty-selection">No items selected.</p>`
-          : html`<paramset-sk
-              .paramsets=${[el.currentSelection]}></paramset-sk>`}
+  private static _template = (el: QueryDialogSk) =>
+    html` <dialog>
+      <div class="content">
+        <query-sk
+          @query-change=${el.queryChange}
+          hide_invert
+          hide_regex></query-sk>
+        <div class="selection-summary">
+          ${el.isSelectionEmpty()
+            ? html`<p class="empty-selection">No items selected.</p>`
+            : html`<paramset-sk
+                .paramsets=${[el.currentSelection]}></paramset-sk>`}
+        </div>
       </div>
-    </div>
 
-    <div class="buttons">
-      <button class="show-matches action" @click=${el.showMatches}>
-        ${el._submitButtonLabel}
-      </button>
-      <button class="cancel" @click=${el.close}>Cancel</button>
-    </div>
-  </dialog>`;
+      <div class="buttons">
+        <button class="show-matches action" @click=${el.showMatches}>
+          ${el._submitButtonLabel}
+        </button>
+        <button class="cancel" @click=${el.close}>Cancel</button>
+      </div>
+    </dialog>`;
 
   private dialog: HTMLDialogElement | null = null;
 

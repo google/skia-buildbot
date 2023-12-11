@@ -229,22 +229,24 @@ export class AlertManagerSk extends HTMLElement {
         )
         .slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB)
         .map(
-          (i: Silence) => html` <h2
-            class=${ele.classOfSilenceH2(i)}
-            @click=${() => ele.silenceClick(i)}>
-            <span> ${displaySilence(i.param_set)} </span>
-            <span>
-              <span title="Expires in"
-                >${expiresIn(i.active, i.created, i.duration)}</span
-              >
-              <comment-icon-sk
-                title="This silence has notes."
-                class=${ele.hasNotes(i)}></comment-icon-sk>
-              <span title="The number of active alerts that match this silence."
-                >${ele.numMatchSilence(i)}</span
-              >
-            </span>
-          </h2>`
+          (i: Silence) =>
+            html` <h2
+              class=${ele.classOfSilenceH2(i)}
+              @click=${() => ele.silenceClick(i)}>
+              <span> ${displaySilence(i.param_set)} </span>
+              <span>
+                <span title="Expires in"
+                  >${expiresIn(i.active, i.created, i.duration)}</span
+                >
+                <comment-icon-sk
+                  title="This silence has notes."
+                  class=${ele.hasNotes(i)}></comment-icon-sk>
+                <span
+                  title="The number of active alerts that match this silence."
+                  >${ele.numMatchSilence(i)}</span
+                >
+              </span>
+            </h2>`
         )}
     </section>
     <section class=stats>

@@ -33,12 +33,13 @@ export interface LayerDescription {
 }
 
 export class AndroidLayersSk extends ElementDocSk {
-  private static template = (ele: AndroidLayersSk) => html` <details open>
-    <summary><b>Offscreen Buffers</b></summary>
-    ${ele._layerList.map((l: LayerDescription) =>
-      AndroidLayersSk.layerTemplate(ele, l)
-    )}
-  </details>`;
+  private static template = (ele: AndroidLayersSk) =>
+    html` <details open>
+      <summary><b>Offscreen Buffers</b></summary>
+      ${ele._layerList.map((l: LayerDescription) =>
+        AndroidLayersSk.layerTemplate(ele, l)
+      )}
+    </details>`;
 
   private static layerTemplate = (
     ele: AndroidLayersSk,

@@ -28,28 +28,30 @@ const urls = [
   'https://chrome-m90-debugger.skia.org',
 ];
 
-const debuggerVersion = (url: string) => html`<li>
-  <a href="${url}">${url}</a>
-</li>`;
+const debuggerVersion = (url: string) =>
+  html`<li>
+    <a href="${url}">${url}</a>
+  </li>`;
 
 export class VersionPageSk extends ElementSk {
   constructor() {
     super(VersionPageSk.template);
   }
 
-  private static template = (ele: VersionPageSk) => html` <app-sk>
-    <header>
-      <h2>Skia WASM Debugger Versions</h2>
-      <span>
-        <theme-chooser-sk></theme-chooser-sk>
-      </span>
-    </header>
-    <main id="content">
-      <ul>
-        ${urls.map((u: string) => debuggerVersion(u))}
-      </ul>
-    </main>
-  </app-sk>`;
+  private static template = (ele: VersionPageSk) =>
+    html` <app-sk>
+      <header>
+        <h2>Skia WASM Debugger Versions</h2>
+        <span>
+          <theme-chooser-sk></theme-chooser-sk>
+        </span>
+      </header>
+      <main id="content">
+        <ul>
+          ${urls.map((u: string) => debuggerVersion(u))}
+        </ul>
+      </main>
+    </app-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();

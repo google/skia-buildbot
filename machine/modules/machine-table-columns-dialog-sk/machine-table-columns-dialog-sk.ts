@@ -70,22 +70,23 @@ export class MachineTableColumnsDialogSk extends ElementSk {
     super(MachineTableColumnsDialogSk.template);
   }
 
-  private static template = (ele: MachineTableColumnsDialogSk) => html` <dialog>
-    <h2>Select columns to display.</h2>
-    <div>
-      ${ColumnOrder.map(
-        (name: ColumnTitles) =>
-          html`<checkbox-sk
-            label=${name}
-            ?checked=${!ele.hiddenColumns.includes(name)}></checkbox-sk>`
-      )}
-    </div>
+  private static template = (ele: MachineTableColumnsDialogSk) =>
+    html` <dialog>
+      <h2>Select columns to display.</h2>
+      <div>
+        ${ColumnOrder.map(
+          (name: ColumnTitles) =>
+            html`<checkbox-sk
+              label=${name}
+              ?checked=${!ele.hiddenColumns.includes(name)}></checkbox-sk>`
+        )}
+      </div>
 
-    <div class="controls">
-      <button @click=${ele.okClick} id="ok">OK</button>
-      <button @click=${ele.cancelClick} id="cancel">Cancel</button>
-    </div>
-  </dialog>`;
+      <div class="controls">
+        <button @click=${ele.okClick} id="ok">OK</button>
+        <button @click=${ele.cancelClick} id="cancel">Cancel</button>
+      </div>
+    </dialog>`;
 
   connectedCallback(): void {
     super.connectedCallback();

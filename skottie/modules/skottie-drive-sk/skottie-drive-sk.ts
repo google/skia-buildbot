@@ -121,13 +121,14 @@ export class SkottieDriveSk extends ElementSk {
   // players returns one <skottie-player-sk> for each id.
   private players = () =>
     this.ids.map(
-      (id, i) => html` <figure>
-        <skottie-player-sk id="x${i}"></skottie-player-sk>
-        <figcaption>
-          <p>${until(SkottieDriveSk.caption(id), 'Loading...')}</p>
-          <p class="errors" id="errors${i}"></p>
-        </figcaption>
-      </figure>`
+      (id, i) =>
+        html` <figure>
+          <skottie-player-sk id="x${i}"></skottie-player-sk>
+          <figcaption>
+            <p>${until(SkottieDriveSk.caption(id), 'Loading...')}</p>
+            <p class="errors" id="errors${i}"></p>
+          </figcaption>
+        </figure>`
     );
 
   // The list of ids of documents to display.

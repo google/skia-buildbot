@@ -71,7 +71,7 @@
     "lottie-web": "^5.9.6",
     "mocha": "^9.2.2",
     "natives": "^1.1.6",
-    "prettier": "^2.8.1",
+    "prettier": "^3.1.0",
     "puppeteer": "19.2.2",
     "sinon": "^7.5.0",
     "socket.io-parser": "^4.2.3",

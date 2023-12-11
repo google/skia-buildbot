@@ -31,29 +31,30 @@ export class EditChildShaderSk extends ElementSk {
     super(EditChildShaderSk.template);
   }
 
-  private static template = (ele: EditChildShaderSk) => html`<dialog>
-    <label
-      >Uniform Name:
-      <input
-        @input=${() => ele._render()}
-        id="uniformName"
-        type="text"
-        pattern=${childShaderUniformNameRegex.source}
-        .value=${ele.childShader.UniformName}
-    /></label>
-    <div class="controls">
-      <button @click=${ele.cancelClick} id="cancel">Cancel</button>
-      <button
-        @click=${ele.okClick}
-        id="ok"
-        ?disabled=${ele.input?.validity.patternMismatch}>
-        OK
-      </button>
-    </div>
-    <span class="error" ?hidden=${!ele.input?.validity.patternMismatch}
-      >Not a valid uniform name.</span
-    >
-  </dialog>`;
+  private static template = (ele: EditChildShaderSk) =>
+    html`<dialog>
+      <label
+        >Uniform Name:
+        <input
+          @input=${() => ele._render()}
+          id="uniformName"
+          type="text"
+          pattern=${childShaderUniformNameRegex.source}
+          .value=${ele.childShader.UniformName}
+      /></label>
+      <div class="controls">
+        <button @click=${ele.cancelClick} id="cancel">Cancel</button>
+        <button
+          @click=${ele.okClick}
+          id="ok"
+          ?disabled=${ele.input?.validity.patternMismatch}>
+          OK
+        </button>
+      </div>
+      <span class="error" ?hidden=${!ele.input?.validity.patternMismatch}
+        >Not a valid uniform name.</span
+      >
+    </dialog>`;
 
   connectedCallback(): void {
     super.connectedCallback();

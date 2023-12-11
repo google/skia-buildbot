@@ -150,8 +150,8 @@ export class SilenceSk extends HTMLElement {
       <tr><th>Duration:</th><td><input class="duration" @change=${
         ele.durationChange
       } value=${ele.state.duration}></input><button class="param-btns" @click=${
-    ele.tillNextShift
-  }>Till next shift</button></td></th>
+        ele.tillNextShift
+      }>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(
         ele.state.created * 1000
       ).toLocaleString()}>${diffDate(ele.state.created * 1000)}</td></tr>
@@ -219,8 +219,8 @@ export class SilenceSk extends HTMLElement {
         <td>
           <input class=param-val @change=${(e: Event) =>
             this.modifyRule(e, k)} .value=${this.displayParamValue(
-          this.state.param_set[k]!
-        )}></input>
+            this.state.param_set[k]!
+          )}></input>
           ${this.displayAddBots(botCentricParams, k)}
         </td>
       </tr>`
@@ -393,7 +393,10 @@ export class SilenceSk extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(
-      new CustomEvent('delete-silence-param', { detail: detail, bubbles: true })
+      new CustomEvent('delete-silence-param', {
+        detail: detail,
+        bubbles: true,
+      })
     );
   }
 
@@ -404,7 +407,10 @@ export class SilenceSk extends HTMLElement {
       silence: silence,
     };
     this.dispatchEvent(
-      new CustomEvent('modify-silence-param', { detail: detail, bubbles: true })
+      new CustomEvent('modify-silence-param', {
+        detail: detail,
+        bubbles: true,
+      })
     );
   }
 

@@ -44,13 +44,12 @@ export class FavoritesSk extends ElementSk {
                   <th>Description</th>
                 </tr>
                 ${section.links?.map(
-                  (link) =>
-                    html`
-                      <tr>
-                        <td><a href=${link.href}>${link.text}</a></td>
-                        <td>${link.description}</td>
-                      </tr>
-                    `
+                  (link) => html`
+                    <tr>
+                      <td><a href=${link.href}>${link.text}</a></td>
+                      <td>${link.description}</td>
+                    </tr>
+                  `
                 )}
               </table>
             </div>

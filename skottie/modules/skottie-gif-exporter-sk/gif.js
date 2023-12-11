@@ -494,7 +494,7 @@
                   results.push(j);
                 }
                 return results;
-              }
+              })
                 .apply(this)
                 .forEach(
                   (function (_this) {
@@ -513,7 +513,7 @@
                       return _this.freeWorkers.push(worker);
                     };
                   })(this)
-                ));
+                );
               return numWorkers;
             };
             GIF.prototype.frameFinished = function (frame) {

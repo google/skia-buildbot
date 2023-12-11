@@ -481,60 +481,55 @@ export class SkottieSk extends ElementSk {
       AUDIO_SUPPORTED_DOMAINS
     );
 
-  private fileSettingsDialog = () =>
-    html`
-      <details
-        class="expando"
-        ?open=${this.showFileSettings}
-        @toggle=${(e: Event) =>
-          this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}>
-        <summary id="fileSettings-open">
-          <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk>
-          <expand-more-icon-sk></expand-more-icon-sk>
-        </summary>
-        <skottie-file-settings-sk
-          .width=${this.width}
-          .height=${this.height}
-          .fps=${this.fps}
-          @settings-change=${this
-            .skottieFileSettingsUpdated}></skottie-file-settings-sk>
-      </details>
-    `;
+  private fileSettingsDialog = () => html`
+    <details
+      class="expando"
+      ?open=${this.showFileSettings}
+      @toggle=${(e: Event) =>
+        this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}>
+      <summary id="fileSettings-open">
+        <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
+      <skottie-file-settings-sk
+        .width=${this.width}
+        .height=${this.height}
+        .fps=${this.fps}
+        @settings-change=${this
+          .skottieFileSettingsUpdated}></skottie-file-settings-sk>
+    </details>
+  `;
 
-  private backgroundDialog = () =>
-    html`
-      <details
-        class="expando"
-        ?open=${this.showBackgroundSettings}
-        @toggle=${(e: Event) =>
-          this.toggleBackgroundSettings(
-            (e.target! as HTMLDetailsElement).open
-          )}>
-        <summary>
-          <span>Background color</span>
-          <expand-less-icon-sk></expand-less-icon-sk>
-          <expand-more-icon-sk></expand-more-icon-sk>
-        </summary>
-        <skottie-background-settings-sk
-          @background-change=${this
-            .skottieBackgroundUpdated}></skottie-background-settings-sk>
-      </details>
-    `;
+  private backgroundDialog = () => html`
+    <details
+      class="expando"
+      ?open=${this.showBackgroundSettings}
+      @toggle=${(e: Event) =>
+        this.toggleBackgroundSettings((e.target! as HTMLDetailsElement).open)}>
+      <summary>
+        <span>Background color</span>
+        <expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
+      <skottie-background-settings-sk
+        @background-change=${this
+          .skottieBackgroundUpdated}></skottie-background-settings-sk>
+    </details>
+  `;
 
-  private colorManager = () =>
-    html`
-      <details class="expando">
-        <summary>
-          <span>Color manager</span>
-          <expand-less-icon-sk></expand-less-icon-sk>
-          <expand-more-icon-sk></expand-more-icon-sk>
-        </summary>
-        <skottie-color-manager-sk
-          .animation=${this.state.lottie}
-          @animation-updated=${this
-            .onColorManagerUpdated}></skottie-color-manager-sk>
-      </details>
-    `;
+  private colorManager = () => html`
+    <details class="expando">
+      <summary>
+        <span>Color manager</span>
+        <expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
+      <skottie-color-manager-sk
+        .animation=${this.state.lottie}
+        @animation-updated=${this
+          .onColorManagerUpdated}></skottie-color-manager-sk>
+    </details>
+  `;
 
   private iframeDirections = () =>
     `<iframe width="${this.width}" height="${this.height}" src="${window.location.origin}/e/${this.hash}?w=${this.width}&h=${this.height}" scrolling=no>`;
@@ -542,12 +537,12 @@ export class SkottieSk extends ElementSk {
   private inlineDirections = () =>
     `<skottie-inline-sk width="${this.width}" height="${this.height}" src="${window.location.origin}/_/j/${this.hash}"></skottie-inline-sk>`;
 
-  private skottiePlayerTemplate = () => html` <figure
-    class="players-container-player">
-    <skottie-player-sk paused width=${this.width} height=${this.height}>
-    </skottie-player-sk>
-    ${this.wasmCaption()}
-  </figure>`;
+  private skottiePlayerTemplate = () =>
+    html` <figure class="players-container-player">
+      <skottie-player-sk paused width=${this.width} height=${this.height}>
+      </skottie-player-sk>
+      ${this.wasmCaption()}
+    </figure>`;
 
   private lottiePlayerTemplate = () => {
     if (!this.showLottie) {
@@ -563,28 +558,28 @@ export class SkottieSk extends ElementSk {
     </figure>`;
   };
 
-  private library = () => html` <details
-    class="expando"
-    ?open=${this.showLibrary}
-    @toggle=${(e: Event) =>
-      this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
-    <summary id="library-open">
-      <span>Library</span><expand-less-icon-sk></expand-less-icon-sk>
-      <expand-more-icon-sk></expand-more-icon-sk>
-    </summary>
+  private library = () =>
+    html` <details
+      class="expando"
+      ?open=${this.showLibrary}
+      @toggle=${(e: Event) =>
+        this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
+      <summary id="library-open">
+        <span>Library</span><expand-less-icon-sk></expand-less-icon-sk>
+        <expand-more-icon-sk></expand-more-icon-sk>
+      </summary>
 
-    <skottie-library-sk @select=${this.updateAnimation}> </skottie-library-sk>
-  </details>`;
+      <skottie-library-sk @select=${this.updateAnimation}> </skottie-library-sk>
+    </details>`;
 
-  private jsonEditor = (): TemplateResult => html` <dialog
-    class="editor"
-    ?open=${this.showJSONEditor}>
-    <div class="top-ribbon">
-      <span>Layer Information</span>
-      <button @click=${this.toggleEditor}>Close</button>
-    </div>
-    <div id="json_editor"></div>
-  </dialog>`;
+  private jsonEditor = (): TemplateResult =>
+    html` <dialog class="editor" ?open=${this.showJSONEditor}>
+      <div class="top-ribbon">
+        <span>Layer Information</span>
+        <button @click=${this.toggleEditor}>Close</button>
+      </div>
+      <div id="json_editor"></div>
+    </dialog>`;
 
   private gifExporter = () => html`
     <dialog class="export" ?open=${this.showGifExporter}>

@@ -38,12 +38,13 @@ export class AutoRefreshSk extends ElementSk {
     return html` <play-arrow-icon-sk></play-arrow-icon-sk> `;
   };
 
-  private static template = (ele: AutoRefreshSk) => html` <span
-    id="refresh"
-    @click=${() => ele.toggleRefresh()}
-    title="Start/Stop the automatic refreshing of data on the page.">
-    ${AutoRefreshSk.refreshButtonDisplayValue(ele)}
-  </span>`;
+  private static template = (ele: AutoRefreshSk) =>
+    html` <span
+      id="refresh"
+      @click=${() => ele.toggleRefresh()}
+      title="Start/Stop the automatic refreshing of data on the page.">
+      ${AutoRefreshSk.refreshButtonDisplayValue(ele)}
+    </span>`;
 
   connectedCallback(): void {
     super.connectedCallback();

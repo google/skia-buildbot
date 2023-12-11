@@ -676,9 +676,9 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 }
 
 // runPrettier runs prettier --write on any changed files. It returns false if
-// prettier returns a non-zero error code..
+// prettier returns a non-zero error code.
 func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
-	args := []string{"run", "--config=mayberemote", "@npm//prettier/bin:prettier", "--run_under=cd " + workspaceRoot + " &&", "--", "--write", "--ignore-unknown"}
+	args := []string{"run", "--config=mayberemote", "//:npx", "--", "prettier", "--write", "--ignore-unknown"}
 	for _, f := range files {
 		args = append(args, f.fileName)
 	}

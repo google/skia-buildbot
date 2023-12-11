@@ -173,101 +173,102 @@ export class DebuggerPageSk extends ElementDocSk {
     </app-sk>
   `;
 
-  private static controlsTemplate = (ele: DebuggerPageSk) => html` <div>
-    <table>
-      <tr>
-        <td>
-          <checkbox-sk
-            label="GPU"
-            ?checked=${ele._gpuMode}
-            title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and copying the buffer into a Canvas2D element."
-            @change=${ele._gpuHandler}></checkbox-sk>
-        </td>
-        <td>
-          <checkbox-sk
-            label="Display GPU Op Bounds"
-            ?disabled=${!ele._gpuMode}
-            title="Show a visual representation of the GPU operations recorded in each command's audit trail."
-            @change=${ele._opBoundsHandler}></checkbox-sk>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <checkbox-sk
-            label="Light/Dark"
-            title="Show transparency backrounds as light or dark"
-            @change=${ele._lightDarkHandler}></checkbox-sk>
-        </td>
-        <td>
-          <checkbox-sk
-            label="Display Overdraw Viz"
-            title="Shades pixels redder in proportion to how many times they were written to in the current frame."
-            @change=${ele._overdrawHandler}></checkbox-sk>
-        </td>
-      </tr>
-    </table>
-    <details ?open=${ele._showOpBounds}>
-      <summary><b> GPU Op Bounds Legend</b></summary>
-      <p style="width: 200px">
-        GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean
-        you can't see them unless you scale the canvas view to its original
-        size.
-      </p>
-      <table class="shortcuts">
+  private static controlsTemplate = (ele: DebuggerPageSk) =>
+    html` <div>
+      <table>
         <tr>
-          <td class="gpuDrawBoundColor">Bounds for the current draw.</td>
-        </tr>
-        <tr>
-          <td class="gpuOpBoundColor">
-            Individual bounds for other draws in the same op.
+          <td>
+            <checkbox-sk
+              label="GPU"
+              ?checked=${ele._gpuMode}
+              title="Toggle between Skia making WebGL2 calls vs. using it's CPU backend and copying the buffer into a Canvas2D element."
+              @change=${ele._gpuHandler}></checkbox-sk>
+          </td>
+          <td>
+            <checkbox-sk
+              label="Display GPU Op Bounds"
+              ?disabled=${!ele._gpuMode}
+              title="Show a visual representation of the GPU operations recorded in each command's audit trail."
+              @change=${ele._opBoundsHandler}></checkbox-sk>
           </td>
         </tr>
         <tr>
-          <td class="gpuTotalOpColor">Total bounds of the current op.</td>
+          <td>
+            <checkbox-sk
+              label="Light/Dark"
+              title="Show transparency backrounds as light or dark"
+              @change=${ele._lightDarkHandler}></checkbox-sk>
+          </td>
+          <td>
+            <checkbox-sk
+              label="Display Overdraw Viz"
+              title="Shades pixels redder in proportion to how many times they were written to in the current frame."
+              @change=${ele._overdrawHandler}></checkbox-sk>
+          </td>
         </tr>
       </table>
-    </details>
-    <details open>
-      <summary><b>Overlay Options</b></summary>
-      <checkbox-sk
-        label="Show Clip"
-        title="Show a semi-transparent teal overlay on the areas within the current clip."
-        id="clip"
-        @change=${ele._clipHandler}></checkbox-sk>
-      <checkbox-sk
-        label="Show Android Device Clip Restriction"
-        title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction.
+      <details ?open=${ele._showOpBounds}>
+        <summary><b> GPU Op Bounds Legend</b></summary>
+        <p style="width: 200px">
+          GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean
+          you can't see them unless you scale the canvas view to its original
+          size.
+        </p>
+        <table class="shortcuts">
+          <tr>
+            <td class="gpuDrawBoundColor">Bounds for the current draw.</td>
+          </tr>
+          <tr>
+            <td class="gpuOpBoundColor">
+              Individual bounds for other draws in the same op.
+            </td>
+          </tr>
+          <tr>
+            <td class="gpuTotalOpColor">Total bounds of the current op.</td>
+          </tr>
+        </table>
+      </details>
+      <details open>
+        <summary><b>Overlay Options</b></summary>
+        <checkbox-sk
+          label="Show Clip"
+          title="Show a semi-transparent teal overlay on the areas within the current clip."
+          id="clip"
+          @change=${ele._clipHandler}></checkbox-sk>
+        <checkbox-sk
+          label="Show Android Device Clip Restriction"
+          title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction.
                      This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction"
-        id="androidclip"
-        @change=${ele._androidClipHandler}></checkbox-sk>
-      <checkbox-sk
-        label="Show Origin"
-        title="Show the origin of the coordinate space defined by the current matrix."
-        id="origin"
-        @change=${ele._originHandler}></checkbox-sk>
-      <div class="horizontal-flex">
-        <div class="matrixClipBox">
-          <h3 class="compact">Clip</h3>
-          <table>
-            <tr>
-              <td>${ele._info.ClipRect[0]}</td>
-              <td>${ele._info.ClipRect[1]}</td>
-            </tr>
-            <tr>
-              <td>${ele._info.ClipRect[2]}</td>
-              <td>${ele._info.ClipRect[3]}</td>
-            </tr>
-          </table>
+          id="androidclip"
+          @change=${ele._androidClipHandler}></checkbox-sk>
+        <checkbox-sk
+          label="Show Origin"
+          title="Show the origin of the coordinate space defined by the current matrix."
+          id="origin"
+          @change=${ele._originHandler}></checkbox-sk>
+        <div class="horizontal-flex">
+          <div class="matrixClipBox">
+            <h3 class="compact">Clip</h3>
+            <table>
+              <tr>
+                <td>${ele._info.ClipRect[0]}</td>
+                <td>${ele._info.ClipRect[1]}</td>
+              </tr>
+              <tr>
+                <td>${ele._info.ClipRect[2]}</td>
+                <td>${ele._info.ClipRect[3]}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="matrixClipBox">
+            <h3 class="compact">Matrix</h3>
+            <table>
+              ${ele._matrixTable(ele._info.ViewMatrix)}
+            </table>
+          </div>
         </div>
-        <div class="matrixClipBox">
-          <h3 class="compact">Matrix</h3>
-          <table>
-            ${ele._matrixTable(ele._info.ViewMatrix)}
-          </table>
-        </div>
-      </div>
-    </details>
-  </div>`;
+      </details>
+    </div>`;
 
   // defined by version.js which is included by main.html and generated in Makefile.
   private _skiaVersion: string = SKIA_VERSION;
