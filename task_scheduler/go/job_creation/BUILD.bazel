@@ -15,6 +15,7 @@ go_library(
         "//go/git/repograph",
         "//go/metrics2",
         "//go/now",
+        "//go/pubsub",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
@@ -27,7 +28,6 @@ go_library(
         "//task_scheduler/go/tryjobs",
         "//task_scheduler/go/types",
         "//task_scheduler/go/window",
-        "@org_golang_x_oauth2//:oauth2",
         "@org_golang_x_sync//errgroup",
     ],
 )

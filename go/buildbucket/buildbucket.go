@@ -5,7 +5,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 
 	"go.chromium.org/luci/grpc/prpc"
@@ -16,6 +19,7 @@ import (
 const (
 	BUILD_URL_TMPL = "https://%s/build/%d"
 	DEFAULT_HOST   = "cr-buildbucket.appspot.com"
+	headerToken    = "x-buildbucket-token"
 )
 
 var (
@@ -26,10 +30,12 @@ var (
 )
 
 type BuildBucketInterface interface {
+	// CancelBuilds cancels the specified buildIDs with the specified
+	// summaryMarkdown. Builds are cancelled with one batch request
+	// to buildbucket.
+	CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error)
 	// GetBuild retrieves the build with the given ID.
 	GetBuild(ctx context.Context, buildId int64) (*buildbucketpb.Build, error)
-	// Search retrieves Builds which match the given criteria.
-	Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error)
 	// GetTrybotsForCL retrieves trybot results for the given CL using the
 	// optional tags.
 	GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error)
@@ -42,10 +48,13 @@ type BuildBucketInterface interface {
 	// means that the Infra-PerCommit-Race build should be scheduled with the
 	// "triggered_by: skcq" tag.
 	ScheduleBuilds(ctx context.Context, builds []string, buildsToTags map[string]map[string]string, issue, patchset int64, gerritUrl, repo, bbProject, bbBucket string) ([]*buildbucketpb.Build, error)
-	// CancelBuilds cancels the specified buildIDs with the specified
-	// summaryMarkdown. Builds are cancelled with one batch request
-	// to buildbucket.
-	CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error)
+	// Search retrieves Builds which match the given criteria.
+	Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*buildbucketpb.Build, error)
+	// UpdateBuild sends an update for the given build.
+	UpdateBuild(ctx context.Context, build *buildbucketpb.Build, token string) error
+	// StartBuild notifies Buildbucket that the build has started. Returns the
+	// token which should be passed to UpdateBuild for subsequent calls.
+	StartBuild(ctx context.Context, buildId int64, taskId, token string) (string, error)
 }
 
 // Client is used for interacting with the BuildBucket API.
@@ -205,6 +214,77 @@ func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, ger
 		return nil, err
 	}
 	return c.Search(ctx, pred)
+}
+
+func contextWithTokenMetadata(ctx context.Context, token string) context.Context {
+	return metadata.NewOutgoingContext(ctx, map[string][]string{
+		headerToken: {token},
+	})
+}
+
+// StartBuild implements BuildbucketInterface.
+func (c *Client) StartBuild(ctx context.Context, buildId int64, taskId, token string) (string, error) {
+	resp, err := c.bc.StartBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.StartBuildRequest{
+		RequestId: uuid.New().String(),
+		BuildId:   buildId,
+		TaskId:    taskId,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.UpdateBuildToken, nil
+}
+
+// UpdateBuild implements BuildbucketInterface.
+func (c *Client) UpdateBuild(ctx context.Context, build *buildbucketpb.Build, token string) error {
+	var updatePaths []string
+	if build.Output != nil {
+		if build.Output.Properties != nil {
+			updatePaths = append(updatePaths, "build.output.properties")
+		}
+		if build.Output.GitilesCommit != nil {
+			updatePaths = append(updatePaths, "build.output.gitiles_commit")
+		}
+		if build.Output.Status != buildbucketpb.Status_STATUS_UNSPECIFIED {
+			updatePaths = append(updatePaths, "build.output.status")
+		}
+		if build.Output.StatusDetails != nil {
+			updatePaths = append(updatePaths, "build.output.status_details")
+		}
+		if build.Output.SummaryMarkdown != "" {
+			updatePaths = append(updatePaths, "build.output.summary_markdown")
+		}
+	}
+	if build.Status != buildbucketpb.Status_STATUS_UNSPECIFIED {
+		updatePaths = append(updatePaths, "build.status")
+	}
+	if build.StatusDetails != nil {
+		updatePaths = append(updatePaths, "build.status_details")
+	}
+	if len(build.Steps) > 0 {
+		updatePaths = append(updatePaths, "build.steps")
+	}
+	if build.SummaryMarkdown != "" {
+		updatePaths = append(updatePaths, "build.summary_markdown")
+	}
+	if len(build.Tags) > 0 {
+		updatePaths = append(updatePaths, "build.tags")
+	}
+	if build.Infra != nil && build.Infra.Buildbucket != nil && build.Infra.Buildbucket.Agent != nil {
+		if build.Infra.Buildbucket.Agent.Output != nil {
+			updatePaths = append(updatePaths, "build.infra.buildbucket.agent.output")
+		}
+		if build.Infra.Buildbucket.Agent.Purposes != nil {
+			updatePaths = append(updatePaths, "build.infra.buildbucket.agent.purposes")
+		}
+	}
+	_, err := c.bc.UpdateBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.UpdateBuildRequest{
+		Build: build,
+		UpdateMask: &fieldmaskpb.FieldMask{
+			Paths: updatePaths,
+		},
+	})
+	return skerr.Wrap(err)
 }
 
 // Make sure Client fulfills the BuildBucketInterface interface.

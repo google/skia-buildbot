@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
+	pubsub_mocks "go.skia.org/infra/go/pubsub/mocks"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -41,8 +42,12 @@ const (
 	patchProject   = "skia"
 	parentProject  = "parent-project"
 
-	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
-	oldBranchName = "old-branch"
+	fakeGerritUrl     = "https://fake-skia-review.googlesource.com"
+	oldBranchName     = "old-branch"
+	bbPubSubProject   = "fake-bb-pubsub-project"
+	bbPubSubTopic     = "fake-bb-pubsub-topic"
+	bbFakeStartToken  = "fake-bb-start-token"
+	bbFakeUpdateToken = "fake-bb-update-token"
 )
 
 var (
@@ -93,7 +98,7 @@ var (
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclient.URLMock, *mocks.BuildBucketInterface) {
+func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclient.URLMock, *mocks.BuildBucketInterface, *pubsub_mocks.Topic) {
 	ctx := context.WithValue(context.Background(), now.ContextKey, ts)
 
 	// Set up other TryJobIntegrator inputs.
@@ -130,9 +135,12 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclie
 	require.NoError(t, err)
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
+	pubsubClient := &pubsub_mocks.Client{}
+	pubsubTopic := &pubsub_mocks.Topic{}
+	pubsubClient.On("Topic", bbPubSubTopic).Return(pubsubTopic, nil)
+	integrator, err := NewTryJobIntegrator(ctx, API_URL_TESTING, "fake-bb-target", BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g, pubsubClient)
 	require.NoError(t, err)
-	return ctx, integrator, mock, MockBuildbucket(integrator)
+	return ctx, integrator, mock, MockBuildbucket(integrator), pubsubTopic
 }
 
 func MockBuildbucket(tj *TryJobIntegrator) *mocks.BuildBucketInterface {
@@ -171,22 +179,22 @@ func Build(t sktest.TestingT, now time.Time) *buildbucketpb.Build {
 	}
 }
 
-func tryjob(ctx context.Context, repoName string) *types.Job {
+func tryjobV1(ctx context.Context, repoName string) *types.Job {
 	return &types.Job{
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),
 		Created:             now.Now(ctx),
-		Name:                "fake-name",
-		RepoState: types.RepoState{
-			Patch: types.Patch{
-				Server:   "fake-server",
-				Issue:    "fake-issue",
-				Patchset: "fake-patchset",
-			},
-			Repo:     repoName,
-			Revision: "fake-revision",
-		},
+		Name:                tcc_testutils.BuildTaskName,
+		RepoState:           repoState2,
 	}
+}
+
+func tryjobV2(ctx context.Context, repoName string) *types.Job {
+	job := tryjobV1(ctx, repoName)
+	job.BuildbucketLeaseKey = 0
+	job.BuildbucketToken = bbFakeStartToken
+	job.BuildbucketPubSubTopic = bbPubSubTopic
+	return job
 }
 
 type errMsg struct {
@@ -277,15 +285,15 @@ func MockJobStarted(mock *mockhttpclient.URLMock, id int64) {
 	// We have to use this because we don't know what the Job ID is going to
 	// be until after it's inserted into the DB.
 	req := mockhttpclient.DONT_CARE_REQUEST
-	resp := []byte("{}")
+	resp := []byte(fmt.Sprintf(`{"build": {},"update_build_token":"%s"}`, bbFakeUpdateToken))
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobStartedFailed(mock *mockhttpclient.URLMock, id int64, mockErr string) {
+func MockJobStartedFailed(mock *mockhttpclient.URLMock, id int64, mockErr, mockReason string) {
 	// We have to use this because we don't know what the Job ID is going to
 	// be until after it's inserted into the DB.
 	req := mockhttpclient.DONT_CARE_REQUEST
-	resp := []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", mockErr))
+	resp := []byte(fmt.Sprintf(`{"error":{"message":"%s","reason":"%s"}}`, mockErr, mockReason))
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 

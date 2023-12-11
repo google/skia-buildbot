@@ -2,7 +2,6 @@ package job_creation
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
-	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -64,31 +63,31 @@ type JobCreator struct {
 }
 
 // NewJobCreator returns a JobCreator instance.
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, ts oauth2.TokenSource) (*JobCreator, error) {
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
 		if err := r.Update(ctx); err != nil {
-			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
+			return nil, skerr.Wrapf(err, "failed initial repo sync")
 		}
 	}
 	w, err := window.New(ctx, period, numCommits, repos)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create window: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create window")
 	}
 
 	// Create caches.
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
+		return nil, skerr.Wrapf(err, "fFailed to create JobCache")
 	}
 
 	sc := syncer.New(ctx, repos, depotTools, workdir, syncer.DefaultNumWorkers)
 	chr := cacher.New(sc, taskCfgCache, rbe)
 
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketApiUrl, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create TryJobIntegrator")
 	}
 	jc := &JobCreator{
 		cacher:        chr,
@@ -334,7 +333,7 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 	// because of poorly-timed process restarts. Go through the unfinished
 	// jobs and cache them if necessary.
 	if err := jc.jCache.Update(ctx); err != nil {
-		return fmt.Errorf("Failed to update job cache: %s", err)
+		return skerr.Wrapf(err, "failed to update job cache")
 	}
 	unfinishedJobs, err := jc.jCache.InProgressJobs()
 	if err != nil {
@@ -372,7 +371,7 @@ func (jc *JobCreator) initCaches(ctx context.Context) error {
 					// very long.
 					sklog.Errorf("Have cached error for RepoState %s", rs.RowKey())
 				} else {
-					return fmt.Errorf("Failed to cache RepoState: %s", err)
+					return skerr.Wrapf(err, "failed to cache RepoState")
 				}
 			}
 			return nil
@@ -413,7 +412,7 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 			main = repo.Get(git.MainBranch)
 		}
 		if main == nil {
-			return fmt.Errorf("Failed to retrieve branch %q or %q for %s", git.MasterBranch, git.MainBranch, repoUrl)
+			return skerr.Fmt("failed to retrieve branch %q or %q for %s", git.MasterBranch, git.MainBranch, repoUrl)
 		}
 		rs := types.RepoState{
 			Repo:     repoUrl,
@@ -424,13 +423,13 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 			err = cachedErr
 		}
 		if err != nil {
-			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
+			return skerr.Wrapf(err, "failed to retrieve TaskCfg from %s", repoUrl)
 		}
 		for name, js := range cfg.Jobs {
 			if js.Trigger == triggerName {
 				job, err := task_cfg_cache.MakeJob(ctx, jc.taskCfgCache, rs, name)
 				if err != nil {
-					return fmt.Errorf("Failed to create job: %s", err)
+					return skerr.Wrapf(err, "failed to create job")
 				}
 				job.Requested = job.Created
 				jobs = append(jobs, job)
@@ -474,7 +473,7 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 
 	// Insert the new jobs into the DB.
 	if err := jc.putJobsInChunks(ctx, jobsToInsert); err != nil {
-		return fmt.Errorf("Failed to add periodic jobs: %s", err)
+		return skerr.Wrapf(err, "failed to add periodic jobs")
 	}
 	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)
 	return nil

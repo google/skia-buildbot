@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/now"
+	pubsub_mocks "go.skia.org/infra/go/pubsub/mocks"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -303,6 +304,7 @@ func main() {
 	assertEqual(head, commits[0])
 
 	ts, err := google.DefaultTokenSource(ctx, datastore.ScopeDatastore)
+	assertNoError(err)
 	fsInstance := uuid.New().String()
 	d, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, fsInstance, ts)
 	assertNoError(err)
@@ -346,7 +348,8 @@ func main() {
 	}
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, *recipesCfgFile)
 	assertNoError(err)
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "", "", nil, depotTools, nil, taskCfgCache, ts)
+	pubsubClient := &pubsub_mocks.Client{}
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "fake-bb-url", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.

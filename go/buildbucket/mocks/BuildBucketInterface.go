@@ -165,6 +165,52 @@ func (_m *BuildBucketInterface) Search(ctx context.Context, pred *buildbucketpb.
 	return r0, r1
 }
 
+// StartBuild provides a mock function with given fields: ctx, buildId, taskId, token
+func (_m *BuildBucketInterface) StartBuild(ctx context.Context, buildId int64, taskId string, token string) (string, error) {
+	ret := _m.Called(ctx, buildId, taskId, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartBuild")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, string) (string, error)); ok {
+		return rf(ctx, buildId, taskId, token)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, string) string); ok {
+		r0 = rf(ctx, buildId, taskId, token)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string, string) error); ok {
+		r1 = rf(ctx, buildId, taskId, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateBuild provides a mock function with given fields: ctx, build, token
+func (_m *BuildBucketInterface) UpdateBuild(ctx context.Context, build *buildbucketpb.Build, token string) error {
+	ret := _m.Called(ctx, build, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateBuild")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *buildbucketpb.Build, string) error); ok {
+		r0 = rf(ctx, build, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewBuildBucketInterface creates a new instance of BuildBucketInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBuildBucketInterface(t interface {

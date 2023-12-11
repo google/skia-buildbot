@@ -11,10 +11,10 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
-	"cloud.google.com/go/pubsub"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cas/rbe"
@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/periodic"
+	"go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
@@ -48,22 +49,24 @@ const (
 
 var (
 	// Flags.
-	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	host              = flag.String("host", "localhost", "HTTP service host")
-	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
-	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	rbeInstance       = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
-	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
-	tryJobBucket      = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	workdir           = flag.String("workdir", "workdir", "Working directory to use.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	btInstance               = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject                = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	buildbucketBucket        = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	buildbucketTarget        = flag.String("buildbucket_target", "", "Buildbucket backend target name used to address this scheduler.")
+	buildbucketPubSubProject = flag.String("buildbucket_pubsub_project", "", "Pub/sub project used for sending messages to Buildbucket.")
+	host                     = flag.String("host", "localhost", "HTTP service host")
+	port                     = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	disableTryjobs           = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
+	firestoreInstance        = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable            = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
+	local                    = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	rbeInstance              = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
+	repoUrls                 = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile           = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	timePeriod               = flag.String("timeWindow", "4d", "Time period to use.")
+	commitWindow             = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	workdir                  = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 func main() {
@@ -174,9 +177,15 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 
+	// Create pubsub client.
+	var pubsubClient pubsub.Client
+	if *buildbucketPubSubProject != "" {
+		pubsubClient, err = pubsub.NewClient(ctx, *buildbucketPubSubProject, option.WithTokenSource(tokenSource))
+	}
+
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, tokenSource)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, tryjobs.API_URL_PROD, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}
