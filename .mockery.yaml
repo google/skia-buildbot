@@ -307,6 +307,7 @@ packages:
       dir: "{{.InterfaceDir}}/../mocks"
     interfaces:
       RemoteDB:
+      JobDB:
   go.skia.org/infra/task_scheduler/go/db/cache:
     interfaces:
       JobCache:

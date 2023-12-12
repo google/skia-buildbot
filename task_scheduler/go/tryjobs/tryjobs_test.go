@@ -20,10 +20,10 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/now"
 	pubsub_mocks "go.skia.org/infra/go/pubsub/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/encoding/prototext"
 )
@@ -77,15 +77,7 @@ func TestUpdateJobsV2_OneUnfinished_SendsPubSub(t *testing.T) {
 	// Mock the pubsub message.
 	update := &buildbucketpb.BuildTaskUpdate{
 		BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
-		Task: &buildbucketpb.Task{
-			Id: &buildbucketpb.TaskID{
-				Target: trybots.buildbucketTarget,
-				Id:     j1.Id,
-			},
-			Link:     j1.URL(trybots.host),
-			Status:   jobStatusToBuildbucketStatus(j1.Status),
-			UpdateId: now.Now(ctx).UnixNano(),
-		},
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
 	}
 	b, err := prototext.Marshal(update)
 	require.NoError(t, err)
@@ -221,15 +213,7 @@ func TestUpdateJobsV2_ManyInProgress_MultiplePubSubMessages(t *testing.T) {
 	for _, job := range jobs {
 		update := &buildbucketpb.BuildTaskUpdate{
 			BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
-			Task: &buildbucketpb.Task{
-				Id: &buildbucketpb.TaskID{
-					Target: trybots.buildbucketTarget,
-					Id:     job.Id,
-				},
-				Link:     job.URL(trybots.host),
-				Status:   jobStatusToBuildbucketStatus(job.Status),
-				UpdateId: now.Now(ctx).UnixNano(),
-			},
+			Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, trybots.buildbucketTarget, trybots.host),
 		}
 		b, err := prototext.Marshal(update)
 		require.NoError(t, err)

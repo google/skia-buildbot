@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/encoding/prototext"
@@ -354,7 +355,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 						Id:     job.Id,
 					},
 					Link:     job.URL(t.host),
-					Status:   jobStatusToBuildbucketStatus(job.Status),
+					Status:   buildbucket_taskbackend.JobStatusToBuildbucketStatus(job.Status),
 					UpdateId: now.Now(ctx).UnixNano(),
 				},
 			}
@@ -839,29 +840,10 @@ func skipRepoState(rs types.RepoState) bool {
 	return false
 }
 
-func jobStatusToBuildbucketStatus(status types.JobStatus) buildbucketpb.Status {
-	switch status {
-	case types.JOB_STATUS_CANCELED:
-		return buildbucketpb.Status_CANCELED
-	case types.JOB_STATUS_FAILURE:
-		return buildbucketpb.Status_FAILURE
-	case types.JOB_STATUS_IN_PROGRESS:
-		return buildbucketpb.Status_STARTED
-	case types.JOB_STATUS_MISHAP:
-		return buildbucketpb.Status_INFRA_FAILURE
-	case types.JOB_STATUS_REQUESTED:
-		return buildbucketpb.Status_SCHEDULED
-	case types.JOB_STATUS_SUCCESS:
-		return buildbucketpb.Status_SUCCESS
-	default:
-		return buildbucketpb.Status_STATUS_UNSPECIFIED
-	}
-}
-
 // jobToBuildV2 converts a Job to a Buildbucket V2 Build to be used with
 // UpdateBuild.
 func jobToBuildV2(job *types.Job) *buildbucketpb.Build {
-	status := jobStatusToBuildbucketStatus(job.Status)
+	status := buildbucket_taskbackend.JobStatusToBuildbucketStatus(job.Status)
 
 	// Note: There are other fields we could fill in, but I'm not sure they
 	// would provide any value since we don't actually use Buildbucket builds

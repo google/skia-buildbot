@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "mocks",
-    srcs = ["RemoteDB.go"],
+    srcs = [
+        "JobDB.go",
+        "RemoteDB.go",
+    ],
     importpath = "go.skia.org/infra/task_scheduler/go/mocks",
     visibility = ["//visibility:public"],
     deps = [
