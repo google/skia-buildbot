@@ -9,7 +9,7 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//tree_status/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [

@@ -5,8 +5,8 @@ ts_library(
     srcs = ["audio.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "@npm//@types/howler",
-        "@npm//howler",
+        "//npm_deps:@types/howler",
+        "//npm_deps:howler",
     ],
 )
 

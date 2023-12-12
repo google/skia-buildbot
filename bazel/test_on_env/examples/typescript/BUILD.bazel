@@ -10,8 +10,8 @@ nodejs_test(
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],
     deps = [
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//puppeteer",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:puppeteer",
     ],
 )

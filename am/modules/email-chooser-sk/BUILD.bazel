@@ -14,7 +14,7 @@ sk_element(
     ],
     sass_srcs = ["email-chooser-sk.scss"],
     ts_deps = [
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],
@@ -37,8 +37,8 @@ sk_element_puppeteer_test(
     src = "email-chooser-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

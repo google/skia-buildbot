@@ -7,7 +7,7 @@ nodejs_binary(
     visibility = ["//visibility:public"],
     deps = [
         "main_ts_lib",
-        "@npm//@material/material-color-utilities",
+        "//npm_deps:@material/material-color-utilities",
     ],
 )
 

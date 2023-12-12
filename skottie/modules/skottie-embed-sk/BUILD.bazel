@@ -11,7 +11,7 @@ sk_element(
     sk_element_deps = ["//skottie/modules/skottie-player-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -30,7 +30,7 @@ sk_page(
     sk_element_deps = [":skottie-embed-sk"],
     ts_deps = [
         "//skottie/modules/skottie-sk:test_gear_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
     ],
     ts_entry_point = "skottie-embed-sk-demo.ts",
 )

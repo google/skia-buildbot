@@ -11,7 +11,7 @@ sk_element(
     sass_srcs = ["screenshots-viewer-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//puppeteer-tests/modules:rpc_types_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -29,7 +29,7 @@ sk_page(
     html_file = "screenshots-viewer-sk-demo.html",
     sk_element_deps = [":screenshots-viewer-sk"],
     ts_deps = [
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         ":demo_data_ts_lib",
     ],
     ts_entry_point = "screenshots-viewer-sk-demo.ts",
@@ -42,9 +42,9 @@ karma_test(
         ":demo_data_ts_lib",
         ":screenshots-viewer-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
     ],
 )
 

@@ -11,7 +11,7 @@ sk_element(
     sk_element_deps = ["//debugger-app/modules/element-doc-sk"],
     ts_deps = [
         "//debugger-app/modules:events_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
@@ -33,9 +33,9 @@ sk_element_puppeteer_test(
     src = "histogram-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 
@@ -45,7 +45,7 @@ karma_test(
     deps = [
         ":histogram-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

@@ -5,10 +5,10 @@ karma_test(
     src = "index_test.ts",
     deps = [
         ":index_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 

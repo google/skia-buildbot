@@ -24,7 +24,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",

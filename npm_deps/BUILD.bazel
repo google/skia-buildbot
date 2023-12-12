@@ -1,0 +1,73 @@
+# This package generates aliases to NPM modules with the goal of easing the transition from
+# rules_nodejs to rules_js (see b/314813928).
+#
+# The rules_js ruleset uses a different naming convention for NPM dependencies. If we imagine a CL
+# where we migrate from rules_nodejs to rules_js, that CL would also include diffs to update all
+# references to NPM dependencies across hundreds of BUILD.bazel files, making it very difficult to
+# review. Instead, we have decided to land these aliases first, so that in the aforementioned CL we
+# will only have to update the labels in this file and nowhere else. After the migration is
+# complete, we will delete this file and update all labels for NPM dependencies to use the rules_js
+# naming convention.
+
+# The below list was generated with the following command:
+#
+#     $ git grep @npm// | grep BUILD.bazel | sed -E 's:^.*"@npm//(.*)".*$:@npm//\1:' | sort | uniq
+#
+# Then any missing labels were added by hand.
+NPM_DEPS = [
+    "@npm//@ffmpeg/ffmpeg",
+    "@npm//@google-web-components/google-chart",
+    "@npm//@material/material-color-utilities",
+    "@npm//@types/chai-dom",
+    "@npm//@types/chai",
+    "@npm//@types/codemirror",
+    "@npm//@types/codemirror5",
+    "@npm//@types/d3-array",
+    "@npm//@types/d3-force",
+    "@npm//@types/d3-scale",
+    "@npm//@types/d3-selection",
+    "@npm//@types/express",
+    "@npm//@types/google.visualization",
+    "@npm//@types/howler",
+    "@npm//@types/jsoneditor",
+    "@npm//@types/mocha",
+    "@npm//@types/node",
+    "@npm//@types/sinon",
+    "@npm//@webgpu/types",
+    "@npm//canvaskit-wasm",
+    "@npm//chai-dom",
+    "@npm//chai",
+    "@npm//chart.js",
+    "@npm//codemirror",
+    "@npm//codemirror5",
+    "@npm//d3-array",
+    "@npm//d3-force",
+    "@npm//d3-scale",
+    "@npm//d3-selection",
+    "@npm//express",
+    "@npm//fetch-mock",
+    "@npm//fuse.js",
+    "@npm//howler",
+    "@npm//jsoneditor",
+    "@npm//jszip",
+    "@npm//karma-chai-dom",
+    "@npm//karma-chai",
+    "@npm//karma-chrome-launcher",
+    "@npm//karma-mocha",
+    "@npm//karma-sinon",
+    "@npm//karma-spec-reporter",
+    "@npm//lit-html",
+    "@npm//lottie-web",
+    "@npm//mocha",
+    "@npm//puppeteer",
+    "@npm//sinon",
+]
+
+[
+    alias(
+        name = label.replace("@npm//", ""),
+        actual = label,
+        visibility = ["//visibility:public"],
+    )
+    for label in NPM_DEPS
+]

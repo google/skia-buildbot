@@ -20,7 +20,7 @@ sk_element(
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -43,7 +43,7 @@ sk_page(
     ],
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
     ],
     ts_entry_point = "cluster-lastn-page-sk-demo.ts",
 )
@@ -53,9 +53,9 @@ sk_element_puppeteer_test(
     src = "cluster-lastn-page-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 

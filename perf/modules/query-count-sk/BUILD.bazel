@@ -13,7 +13,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/errorMessage:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
@@ -31,7 +31,7 @@ sk_page(
         ":query-count-sk",
         "//elements-sk/modules/error-toast-sk",
     ],
-    ts_deps = ["@npm//fetch-mock"],
+    ts_deps = ["//npm_deps:fetch-mock"],
     ts_entry_point = "query-count-sk-demo.ts",
 )
 
@@ -40,8 +40,8 @@ sk_element_puppeteer_test(
     src = "query-count-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

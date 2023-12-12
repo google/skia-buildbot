@@ -26,7 +26,7 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:human_ts_lib",
@@ -45,7 +45,7 @@ sk_page(
     sk_element_deps = [":tree-status-sk"],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "tree-status-sk-demo.ts",
@@ -56,9 +56,9 @@ sk_element_puppeteer_test(
     src = "tree-status-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 
@@ -70,10 +70,10 @@ karma_test(
         ":tree-status-sk",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//@types/sinon",
-        "@npm//chai",
-        "@npm//fetch-mock",
-        "@npm//sinon",
+        "//npm_deps:@types/chai",
+        "//npm_deps:@types/sinon",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
+        "//npm_deps:sinon",
     ],
 )

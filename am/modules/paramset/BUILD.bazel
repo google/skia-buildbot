@@ -12,7 +12,7 @@ karma_test(
     src = "paramset_test.ts",
     deps = [
         ":index_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

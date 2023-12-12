@@ -14,7 +14,7 @@ sk_element(
         "//ct/modules/json:index_ts_lib",
         "//ct/modules:ctfe_utils_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
@@ -37,7 +37,7 @@ sk_page(
     ],
     ts_deps = [
         ":test_data_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
     ],
     ts_entry_point = "runs-history-summary-sk-demo.ts",
@@ -51,9 +51,9 @@ karma_test(
         ":test_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
     ],
 )
 

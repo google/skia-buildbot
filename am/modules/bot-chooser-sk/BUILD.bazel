@@ -10,7 +10,7 @@ sk_element(
     sass_srcs = ["bot-chooser-sk.scss"],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],

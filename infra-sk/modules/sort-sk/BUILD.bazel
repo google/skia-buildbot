@@ -40,9 +40,9 @@ sk_element_puppeteer_test(
     src = "sort-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 
@@ -52,7 +52,7 @@ karma_test(
     deps = [
         ":sort-sk",
         "//infra-sk/modules:dom_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

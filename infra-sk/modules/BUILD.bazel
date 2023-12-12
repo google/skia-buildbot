@@ -5,8 +5,8 @@ karma_test(
     src = "linkify_test.ts",
     deps = [
         ":linkify_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -21,8 +21,8 @@ karma_test(
     src = "string_test.ts",
     deps = [
         ":string_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -38,10 +38,10 @@ karma_test(
     deps = [
         ":dom_ts_lib",
         ":test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//@types/sinon",
-        "@npm//chai",
-        "@npm//sinon",
+        "//npm_deps:@types/chai",
+        "//npm_deps:@types/sinon",
+        "//npm_deps:chai",
+        "//npm_deps:sinon",
     ],
 )
 
@@ -51,8 +51,8 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":object_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -61,8 +61,8 @@ karma_test(
     src = "async_test.ts",
     deps = [
         ":async_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -83,8 +83,8 @@ karma_test(
     src = "dom_test.ts",
     deps = [
         ":dom_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -105,8 +105,8 @@ karma_test(
     src = "human_test.ts",
     deps = [
         ":human_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -128,8 +128,8 @@ karma_test(
     deps = [
         ":hintable_ts_lib",
         ":object_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -148,8 +148,8 @@ karma_test(
     src = "query_test.ts",
     deps = [
         ":query_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 
@@ -176,5 +176,5 @@ ts_library(
     name = "gentheme_ts_lib",
     srcs = ["gentheme.ts"],
     visibility = ["//visibility:public"],
-    deps = ["@npm//@material/material-color-utilities"],
+    deps = ["//npm_deps:@material/material-color-utilities"],
 )

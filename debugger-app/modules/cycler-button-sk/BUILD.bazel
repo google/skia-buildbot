@@ -5,7 +5,7 @@ sk_element(
     ts_deps = [
         "//debugger-app/modules:events_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [

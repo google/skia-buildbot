@@ -80,9 +80,9 @@ sk_element(
         "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
         "//shaders/modules/window:window_ts_lib",
         "//shaders/wasm_libs:canvaskit_types",  # keep
-        "@npm//@types/codemirror",
-        "@npm//codemirror",
-        "@npm//lit-html",
+        "//npm_deps:@types/codemirror",
+        "//npm_deps:codemirror",
+        "//npm_deps:lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -105,8 +105,8 @@ sk_element_puppeteer_test(
     src = "shaders-app-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

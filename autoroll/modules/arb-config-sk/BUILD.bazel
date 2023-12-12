@@ -18,7 +18,7 @@ sk_element(
         "//autoroll/modules/config:index_ts_lib",
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -42,7 +42,7 @@ sk_page(
     ts_deps = [
         "//autoroll/modules/rpc-mock:fake-config_ts_lib",
         "//autoroll/modules/rpc-mock:index_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "arb-config-sk-demo.ts",

@@ -26,7 +26,7 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
     ],
@@ -45,7 +45,7 @@ sk_page(
         "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_entry_point = "task-scheduler-scaffold-sk-demo.ts",

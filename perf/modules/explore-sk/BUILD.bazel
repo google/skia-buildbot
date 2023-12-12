@@ -10,7 +10,7 @@ sk_element(
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
     ],
     ts_srcs = [
         "explore-sk.ts",
@@ -34,7 +34,7 @@ sk_page(
         ":explore-sk",
     ],
     ts_deps = [
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//perf/modules/json:index_ts_lib",
@@ -47,8 +47,8 @@ sk_element_puppeteer_test(
     src = "explore-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

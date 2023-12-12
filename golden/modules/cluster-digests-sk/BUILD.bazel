@@ -9,11 +9,11 @@ sk_element(
     ts_deps = [
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@types/d3-force",
-        "@npm//@types/d3-selection",
-        "@npm//d3-force",
-        "@npm//d3-selection",
-        "@npm//lit-html",
+        "//npm_deps:@types/d3-force",
+        "//npm_deps:@types/d3-selection",
+        "//npm_deps:d3-force",
+        "//npm_deps:d3-selection",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
@@ -52,10 +52,10 @@ sk_element_puppeteer_test(
     deps = [
         ":cluster-digests-sk_po_ts_lib",
         "//golden/modules/cluster-page-sk:test_data_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:puppeteer",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//puppeteer",
     ],
 )
 

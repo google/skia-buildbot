@@ -28,7 +28,7 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//infra-sk/modules:string_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
@@ -51,7 +51,7 @@ sk_page(
         "//golden/modules:demo_util_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules:settings_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],
@@ -76,9 +76,9 @@ sk_element_puppeteer_test(
     src = "digest-details-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 
@@ -94,9 +94,9 @@ karma_test(
         "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
     ],
 )
 

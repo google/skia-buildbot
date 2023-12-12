@@ -6,8 +6,8 @@ karma_test(
     deps = [
         ":index_ts_lib",
         "//machine/modules/json:index_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 

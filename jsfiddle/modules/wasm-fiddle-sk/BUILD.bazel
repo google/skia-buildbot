@@ -39,10 +39,10 @@ sk_element(
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/fps:fps_ts_lib",
-        "@npm//@types/codemirror",
-        "@npm//codemirror",
-        "@npm//lit-html",
-        "@npm//canvaskit-wasm",
+        "//npm_deps:@types/codemirror",
+        "//npm_deps:codemirror",
+        "//npm_deps:lit-html",
+        "//npm_deps:canvaskit-wasm",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -59,7 +59,7 @@ karma_test(
     src = "wasm-fiddle-sk_test.ts",
     deps = [
         ":wasm-fiddle-sk",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

@@ -14,7 +14,7 @@ sk_element(
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",

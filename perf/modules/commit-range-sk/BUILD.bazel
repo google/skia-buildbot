@@ -10,7 +10,7 @@ sk_element(
     sass_srcs = ["commit-range-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/const:const_ts_lib",
@@ -29,7 +29,7 @@ sk_page(
     html_file = "commit-range-sk-demo.html",
     sk_element_deps = [":commit-range-sk"],
     ts_deps = [
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
         "//perf/modules/const:const_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],
@@ -42,9 +42,9 @@ karma_test(
     deps = [
         ":commit-range-sk",
         "//infra-sk/modules:test_util_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

@@ -13,6 +13,6 @@ ts_library(
     deps = [
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
     ],
 )

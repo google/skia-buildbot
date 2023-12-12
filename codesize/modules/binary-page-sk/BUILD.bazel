@@ -11,13 +11,13 @@ sk_element(
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//@google-web-components/google-chart",
+        "//npm_deps:@google-web-components/google-chart",
         # Provides types for the @google-web-components/google-chart import, which does not follow
         # the import naming convention expected by the Gazelle front-end extension, and thus needs
         # to be added manually.
-        "@npm//@types/google.visualization",  # keep
-        "@npm//lit-html",
-        "@npm//fuse.js",
+        "//npm_deps:@types/google.visualization",  # keep
+        "//npm_deps:lit-html",
+        "//npm_deps:fuse.js",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
@@ -38,7 +38,7 @@ sk_page(
     ],
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
     ],
     ts_entry_point = "binary-page-sk-demo.ts",
 )
@@ -49,9 +49,9 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//codesize/modules/codesize-scaffold-sk:events_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 
@@ -66,7 +66,7 @@ karma_test(
     deps = [
         ":binary-page-sk",
         "//codesize/modules:rpc_types_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

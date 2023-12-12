@@ -11,7 +11,7 @@ sk_element(
     sass_srcs = ["test-src-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [
@@ -25,7 +25,7 @@ sk_page(
     name = "test-src-sk-demo",
     html_file = "test-src-sk-demo.html",
     sk_element_deps = [":test-src-sk"],
-    ts_deps = ["@npm//fetch-mock"],
+    ts_deps = ["//npm_deps:fetch-mock"],
     ts_entry_point = "test-src-sk-demo.ts",
 )
 
@@ -34,10 +34,10 @@ sk_element_puppeteer_test(
     src = "test-src-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
     ],
 )
 
@@ -47,8 +47,8 @@ karma_test(
     deps = [
         ":test-src-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
     ],
 )

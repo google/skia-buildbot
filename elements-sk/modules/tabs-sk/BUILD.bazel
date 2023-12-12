@@ -18,7 +18,7 @@ karma_test(
     deps = [
         ":tabs-sk",
         "//elements-sk/modules/tabs-panel-sk",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )

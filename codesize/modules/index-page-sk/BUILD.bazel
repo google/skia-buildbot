@@ -25,7 +25,7 @@ sk_element(
     ts_deps = [
         "//codesize/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
@@ -45,7 +45,7 @@ sk_page(
     ],
     ts_deps = [
         ":demo_data_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
     ],
     ts_entry_point = "index-page-sk-demo.ts",
 )
@@ -56,8 +56,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         "//codesize/modules/codesize-scaffold-sk:events_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )

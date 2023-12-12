@@ -67,7 +67,7 @@ js_library(
     deps = [
         # Because we copy the index.d.ts out of canvaskit, we lose the transitive dependency on the
         # webgpu types that canvaskit itself has.
-        "@npm//@webgpu/types",
+        "//npm_deps:@webgpu/types",
     ],
 )
 

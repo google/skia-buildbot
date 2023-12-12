@@ -68,13 +68,13 @@ def karma_test(
         data = [
             name + "_bundle.js",
             karma_config_file,
-            "@npm//karma-chrome-launcher",
-            "@npm//karma-sinon",
-            "@npm//karma-mocha",
-            "@npm//karma-chai",
-            "@npm//karma-chai-dom",
-            "@npm//karma-spec-reporter",
-            "@npm//mocha",
+            "//npm_deps:karma-chrome-launcher",
+            "//npm_deps:karma-sinon",
+            "//npm_deps:karma-mocha",
+            "//npm_deps:karma-chai",
+            "//npm_deps:karma-chai-dom",
+            "//npm_deps:karma-spec-reporter",
+            "//npm_deps:mocha",
         ] + select({
             # Provides Google Chrome, libraries and fonts.
             "@platforms//os:linux": ["@google_chrome//:all_files"],

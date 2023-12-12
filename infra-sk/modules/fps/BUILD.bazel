@@ -5,8 +5,8 @@ karma_test(
     src = "fps_test.ts",
     deps = [
         ":fps_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
     ],
 )
 

@@ -5,9 +5,9 @@ karma_test(
     src = "debug-trace-player_test.ts",
     deps = [
         ":debug-trace-player_ts_lib",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//shaders/modules/debug-trace:debug-trace_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
 

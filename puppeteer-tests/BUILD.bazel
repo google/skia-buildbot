@@ -5,11 +5,11 @@ nodejs_test(
     src = "util_nodejs_test.ts",
     deps = [
         ":util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//@types/express",
-        "@npm//chai",
-        "@npm//express",
-        "@npm//puppeteer",
+        "//npm_deps:@types/chai",
+        "//npm_deps:@types/express",
+        "//npm_deps:chai",
+        "//npm_deps:express",
+        "//npm_deps:puppeteer",
     ],
 )
 
@@ -28,7 +28,7 @@ ts_library(
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
-    deps = ["@npm//puppeteer"],
+    deps = ["//npm_deps:puppeteer"],
 )
 
 # Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM

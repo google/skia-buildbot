@@ -19,7 +19,7 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules:linkify_ts_lib",
         "//task_driver/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
         "//infra-sk/modules:human_ts_lib",

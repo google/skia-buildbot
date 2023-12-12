@@ -14,7 +14,7 @@ sk_element(
         "//elements-sk/modules/error-toast-sk",
     ],
     ts_deps = [
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
     ],
     ts_srcs = [

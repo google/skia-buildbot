@@ -5,8 +5,8 @@ sk_element(
     sass_srcs = ["skottie-performance-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "@npm//chart.js",
-        "@npm//lit-html",
+        "//npm_deps:chart.js",
+        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
     ],

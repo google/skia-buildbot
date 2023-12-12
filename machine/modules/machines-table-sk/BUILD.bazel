@@ -32,7 +32,7 @@ sk_element(
     ],
     ts_deps = [
         "//machine/modules/json:index_ts_lib",
-        "@npm//lit-html",
+        "//npm_deps:lit-html",
         "//modules/devices:devices_ts_lib",
         "//machine/modules/sort:index_ts_lib",
         "//infra-sk/modules/ElementSk:elementsk_ts_lib",
@@ -58,9 +58,9 @@ karma_test(
         "//infra-sk/modules:dom_ts_lib",
         "//machine/modules/json:index_ts_lib",
         "//machine/modules/sort:index_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
-        "@npm//fetch-mock",
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
+        "//npm_deps:fetch-mock",
     ],
 )
 
@@ -82,7 +82,7 @@ sk_page(
     sk_element_deps = [":machines-table-sk"],
     ts_deps = [
         ":demo_data_ts_lib",
-        "@npm//fetch-mock",
+        "//npm_deps:fetch-mock",
     ],
     ts_entry_point = "machines-table-sk-demo.ts",
 )
@@ -92,8 +92,8 @@ sk_element_puppeteer_test(
     src = "machines-table-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//npm_deps:@types/chai",
+        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
-        "@npm//@types/chai",
-        "@npm//chai",
     ],
 )
