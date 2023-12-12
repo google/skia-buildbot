@@ -1,15 +1,41 @@
-load("//infra-sk:index.bzl", "karma_test", "sk_element")
+load("//infra-sk:index.bzl", "copy_file_from_npm_pkg", "karma_test", "sk_element")
+
+# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
+# packages directly. Instead, we must create local copies of those files. See the
+# copy_file_from_npm_pkg macro documentation for details.
+copy_file_from_npm_pkg(
+    name = "codemirror_codemirror_css",
+    src = "lib/codemirror.css",
+    out = "codemirror_codemirror.css",
+    npm_package_name = "codemirror",
+)
+
+copy_file_from_npm_pkg(
+    name = "codemirror5_ambiance_css",
+    src = "theme/ambiance.css",
+    out = "codemirror_ambiance.css",
+    npm_package_name = "codemirror",
+)
+
+copy_file_from_npm_pkg(
+    name = "codemirror_base16-light_css",
+    src = "theme/base16-light.css",
+    out = "codemirror_base16-light.css",
+    npm_package_name = "codemirror",
+)
 
 sk_element(
     name = "wasm-fiddle-sk",
     sass_deps = [
         "//infra-sk:themes_sass_lib",
-        "@npm//:node_modules/codemirror/lib/codemirror.css",
-        "@npm//:node_modules/codemirror/theme/ambiance.css",
-        "@npm//:node_modules/codemirror/theme/base16-light.css",
         "//elements-sk/modules/styles:buttons_sass_lib",
     ],
-    sass_srcs = ["wasm-fiddle-sk.scss"],
+    sass_srcs = [
+        "wasm-fiddle-sk.scss",
+        "codemirror_codemirror.css",  # keep
+        "codemirror_ambiance.css",  # keep
+        "codemirror_base16-light.css",  # keep
+    ],
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/fps:fps_ts_lib",

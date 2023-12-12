@@ -1,8 +1,8 @@
 // These make our Bazel rules happy
-@use 'node_modules/codemirror5/addon/fold/foldgutter.css';
-@use 'node_modules/codemirror5/lib/codemirror.css';
-@use 'node_modules/codemirror5/theme/base16-dark.css';
-@use 'node_modules/codemirror5/theme/base16-light.css';
+@use 'fiddlek/modules/textarea-numbers-sk/codemirror5_foldgutter.css';
+@use 'fiddlek/modules/textarea-numbers-sk/codemirror5_codemirror.css';
+@use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-dark.css';
+@use 'fiddlek/modules/textarea-numbers-sk/codemirror5_base16-light.css';
 
 @import '../themes/themes';
 

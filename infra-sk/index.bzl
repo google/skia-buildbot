@@ -4,16 +4,17 @@
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_binary = "nodejs_binary", _nodejs_test = "nodejs_test")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_node_bundle", "esbuild_prod_bundle")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
-load(":sass_library.bzl", _sass_library = "sass_library")
+load(":copy_file_from_npm_pkg.bzl", _copy_file_from_npm_pkg = "copy_file_from_npm_pkg")
 load(":ts_library.bzl", _ts_library = "ts_library")
 
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
+copy_file_from_npm_pkg = _copy_file_from_npm_pkg
 karma_test = _karma_test
 sass_library = _sass_library
 sk_demo_page_server = _sk_demo_page_server
@@ -41,10 +42,9 @@ def sk_element(
     Args:
       name: The name of the target.
       ts_srcs: TypeScript source files.
-      sass_srcs: Sass source files.
+      sass_srcs: Sass source files (either .scss or .css files).
       ts_deps: Any ts_library dependencies.
-      sass_deps: Any sass_library dependencies. This can include .css or .scss files from NPM
-        modules, e.g. "npm//:node_modules/some-module/hello.scss".
+      sass_deps: Any sass_library dependencies.
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to ts_deps and sass_deps, respectively.
       visibility: Visibility of the generated ts_library and sass_library targets.
@@ -414,8 +414,7 @@ def sk_page(
       ts_entry_point: TypeScript file used as the entry point for the JavaScript bundles.
       scss_entry_point: Sass file used as the entry point for the CSS bundles.
       ts_deps: Any ts_library dependencies.
-      sass_deps: Any sass_library dependencies. This can include .css or .scss files from NPM
-        modules, e.g. "npm//:node_modules/some-module/hello.scss".
+      sass_deps: Any sass_library dependencies.
       sk_element_deps: Any sk_element dependencies. Equivalent to adding the ts_library and
         sass_library of each sk_element to deps and sass_deps, respectively.
       assets_serving_path: Path prefix for the inserted <script> and <link> tags.

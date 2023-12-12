@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
+load("//infra-sk:index.bzl", "copy_file_from_npm_pkg", "nodejs_test", "ts_library")
 
 nodejs_test(
     name = "util_nodejs_test",
@@ -31,12 +31,24 @@ ts_library(
     deps = ["@npm//puppeteer"],
 )
 
+# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
+# packages directly. Instead, we must create local copies of those files. See the
+# copy_file_from_npm_pkg macro documentation for details.
+#
+# This target can be built to ensure that the "puppeteer" NPM package is downloaded by Bazel.
+copy_file_from_npm_pkg(
+    name = "puppeteer_readme_md",
+    src = "README.md",
+    out = "README.Puppeteer.md",
+    npm_package_name = "puppeteer",
+)
+
 # This is where we configured Puppeteer to download the cached version of Chrome.
 filegroup(
     name = "chrome",
-    # Add a dependency to puppeteer so Bazel globs the chrome_cache *after* npm installation
-    # completes
-    data = ["@npm//:node_modules/puppeteer/README.md"] + glob(
+    # Add a dependency to Puppeteer so Bazel globs the chrome_cache *after* NPM installation
+    # completes. The specific file we pull from the "puppeteer" NPM package does not matter.
+    data = [":puppeteer_readme_md"] + glob(
         [
             "chrome_cache/chrome/**",
         ],

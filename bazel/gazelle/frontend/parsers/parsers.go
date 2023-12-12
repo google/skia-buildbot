@@ -155,11 +155,10 @@ func ParseSassImports(source string) []string {
 		for _, re := range sassImportRegexps {
 			match := re.FindStringSubmatch(line)
 			if len(match) != 0 {
-				rule := match[1] // Either "import", "use", or "forward".
 				importPath := match[2]
 				// Filter out plain CSS imports. See
 				// https://sass-lang.com/documentation/at-rules/import#plain-css-imports.
-				if rule == "import" && strings.HasSuffix(importPath, ".css") {
+				if strings.HasSuffix(importPath, ".css") {
 					continue
 				}
 				importsSet[importPath] = true

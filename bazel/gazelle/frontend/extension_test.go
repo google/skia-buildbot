@@ -44,11 +44,11 @@ func TestGazelle_NewSourceFilesAdded_GeneratesBuildRules(t *testing.T) {
 		{
 			Path: "a/alfa.scss",
 			Content: `
-@import 'bravo';                                    // Resolves to a/bravo.scss.
-@import 'b/charlie';                                // Resolves to a/b/charlie.scss.
-@import '../c/delta';                               // Resolves to c/delta.scss.
-@import '../d_sass_lib/d';                          // Resolves to d_sass_lib/d.scss.
-@use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
+@import 'bravo';           // Resolves to a/bravo.scss.
+@import 'b/charlie';       // Resolves to a/b/charlie.scss.
+@import '../c/delta';      // Resolves to c/delta.scss.
+@import '../d_sass_lib/d'; // Resolves to d_sass_lib/d.scss.
+@use 'a/codemirror.css';   // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
 `,
 		},
 		{
@@ -127,12 +127,11 @@ import 'net'                                  // Built-in Node.js module.
 		{
 			Path: "myapp/modules/foxtrot-sk/foxtrot-sk.scss",
 			Content: `
-@import 'wibble';                                   // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
-@import 'wobble/wubble';                            // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
-@import '../golf-sk/golf-sk';                       // Resolves to myapp/modules/golf-sk/golf-sk.scss.
-@import '../../../d_sass_lib/d';                    // Resolves to d_sass_lib/d.scss.
-@use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
-
+@import 'wibble';                               // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
+@import 'wobble/wubble';                        // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
+@import '../golf-sk/golf-sk';                   // Resolves to myapp/modules/golf-sk/golf-sk.scss.
+@import '../../../d_sass_lib/d';                // Resolves to d_sass_lib/d.scss.
+@use 'myapp/modules/foxtrot-sk/codemirror.css'; // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
 `,
 		},
 		{
@@ -157,12 +156,11 @@ import 'net'                                    // Built-in Node.js module.
 @import 'foxtrot-sk';  // Resolves to myapp/modules/foxtrot-sk/foxtrot-sk.scss.
 
 // The below imports are copied from foxtrot-sk.scss.
-@import 'wibble';                                   // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
-@import 'wobble/wubble';                            // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
-@import '../golf-sk/golf-sk';                       // Resolves to myapp/modules/golf-sk/golf-sk.scss.
-@import '../../../d_sass_lib/d';                    // Resolves to d_sass_lib/d.scss.
-@use 'node_modules/codemirror5/lib/codemirror.css'; // Resolves to @npm//:node_modules/codemirror5/lib/codemirror.css.
-
+@import 'wibble';                               // Resolves to myapp/modules/foxtrot-sk/wibble.scss.
+@import 'wobble/wubble';                        // Resolves to myapp/modules/foxtrot-sk/wobble/wubble.scss.
+@import '../golf-sk/golf-sk';                   // Resolves to myapp/modules/golf-sk/golf-sk.scss.
+@import '../../../d_sass_lib/d';                // Resolves to d_sass_lib/d.scss.
+@use 'myapp/modules/foxtrot-sk/codemirror.css'; // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
 `,
 		},
 		{
@@ -299,7 +297,6 @@ sass_library(
         "//a/b:charlie_sass_lib",
         "//c:delta_sass_lib",
         "//d_sass_lib",
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
 )
 
@@ -456,7 +453,6 @@ sk_element(
         "//d_sass_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
         ":wibble_sass_lib",
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
     sass_srcs = ["foxtrot-sk.scss"],
     sk_element_deps = [
@@ -488,7 +484,6 @@ sk_page(
         "//d_sass_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_sass_lib",
         ":wibble_sass_lib",
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
     scss_entry_point = "foxtrot-sk-demo.scss",
     sk_element_deps = [
@@ -735,8 +730,6 @@ sass_library(
     deps = [
         ":bravo_sass_lib",  # Not imported from alfa.scss. Gazelle should remove this dep.
         ":charlie_sass_lib",
-        # Not imported from alfa.scss. Gazelle should remove this dep.
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
 )
 
@@ -782,9 +775,9 @@ sass_library(
 		{
 			Path: "a/alfa.scss",
 			Content: `
-@import 'charlie';                                  // Existing import.
-@import 'delta';                                    // New import. Gazelle should add this dep.
-@use 'node_modules/codemirror5/theme/ambiance.css'; // New import. Gazelle should add this dep.
+@import 'charlie';       // Existing import.
+@import 'delta';         // New import. Gazelle should add this dep.
+@use 'a/codemirror.css'; // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
 `,
 		},
 		{
@@ -825,8 +818,6 @@ sk_element(
     sass_deps = [
         "//a:alfa_sass_lib",  # Not imported from echo-sk.scss. Gazelle should remove this dep.
         "//a:bravo_sass_lib",
-        # Not imported from echo-sk.scss. Gazelle should remove this dep.
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
 
     ],
     sass_srcs = ["echo-sk.scss"],
@@ -850,8 +841,6 @@ sk_page(
     sass_deps = [
         "//a:alfa_sass_lib",  # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
         "//a:bravo_sass_lib",
-        # Not imported from echo-sk-demo.scss. Gazelle should remove this dep.
-        "@npm//:node_modules/codemirror5/lib/codemirror.css",
     ],
     scss_entry_point = "echo-sk-demo.scss",
     sk_element_deps = [
@@ -906,9 +895,10 @@ sk_demo_page_server(
 		{
 			Path: "myapp/modules/echo-sk/echo-sk.scss",
 			Content: `
-@import '../../../a/bravo.scss';                    // Existing import.
-@import '../../../a/charlie.scss';                  // New import. Gazelle should add this dep.
-@use 'node_modules/codemirror5/theme/ambiance.css'; // New import. Gazelle should add this dep.
+@import '../../../a/bravo.scss';             // Existing import.
+@import '../../../a/charlie.scss';           // New import. Gazelle should add this dep.
+@use 'myapp/modules/echo-sk/codemirror.css'; // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
+
 `,
 		},
 		{
@@ -925,11 +915,10 @@ import 'lit-html';                 // Existing import.
 		{
 			Path: "myapp/modules/echo-sk/echo-sk-demo.scss",
 			Content: `
-@import 'echo-sk.scss';                             // Existing import.
-@import '../../../a/bravo.scss';                    // Existing import.
-@import '../../../a/charlie.scss';                  // New import. Gazelle should add this dep.
-@use 'node_modules/codemirror5/theme/ambiance.css'; // New import. Gazelle should add this dep.
-
+@import 'echo-sk.scss';                      // Existing import.
+@import '../../../a/bravo.scss';             // Existing import.
+@import '../../../a/charlie.scss';           // New import. Gazelle should add this dep.
+@use 'myapp/modules/echo-sk/codemirror.css'; // Simulates a CSS file copied from the codemirror NPM package via the copy_file_from_npm_pkg rule. Ignored by Gazelle.
 `,
 		},
 		{
@@ -1038,7 +1027,6 @@ sass_library(
     deps = [
         ":charlie_sass_lib",
         ":delta_sass_lib",
-        "@npm//:node_modules/codemirror5/theme/ambiance.css",
     ],
 )
 
@@ -1091,7 +1079,6 @@ sk_element(
     sass_deps = [
         "//a:bravo_sass_lib",
         "//a:charlie_sass_lib",
-        "@npm//:node_modules/codemirror5/theme/ambiance.css",
     ],
     sass_srcs = ["echo-sk.scss"],
     sk_element_deps = [
@@ -1115,7 +1102,6 @@ sk_page(
     sass_deps = [
         "//a:bravo_sass_lib",
         "//a:charlie_sass_lib",
-        "@npm//:node_modules/codemirror5/theme/ambiance.css",
     ],
     scss_entry_point = "echo-sk-demo.scss",
     sk_element_deps = [

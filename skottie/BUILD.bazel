@@ -1,4 +1,5 @@
 load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//infra-sk:copy_file_from_npm_pkg.bzl", "copy_file_from_npm_pkg")
 
 filegroup(
     name = "configs",
@@ -7,6 +8,37 @@ filegroup(
         allow_empty = False,
     ),
     visibility = ["//skottie:__subpackages__"],
+)
+
+# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
+# packages directly. Instead, we must create local copies of those files. See the
+# copy_file_from_npm_pkg macro documentation for details.
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_js",
+    src = "core/dist/ffmpeg-core.js",
+    out = "ffmpeg-core.js",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_wasm",
+    src = "core/dist/ffmpeg-core.wasm",
+    out = "ffmpeg-core.wasm",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_worker_js",
+    src = "core/dist/ffmpeg-core.worker.js",
+    out = "ffmpeg-core.worker.js",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "jsoneditor_icons_svg",
+    src = "dist/img/jsoneditor-icons.svg",
+    out = "jsoneditor-icons.svg",
+    npm_package_name = "jsoneditor",
 )
 
 skia_app_container(
@@ -33,15 +65,15 @@ skia_app_container(
                 "0644",
             ],
             [
-                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
+                "ffmpeg-core.js",
                 "0644",
             ],
             [
-                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.wasm",
+                "ffmpeg-core.wasm",
                 "0644",
             ],
             [
-                "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.worker.js",
+                "ffmpeg-core.worker.js",
                 "0644",
             ],
         ] + [
@@ -68,7 +100,7 @@ skia_app_container(
         ],
         "/usr/local/share/skottie/img": [
             [
-                "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+                "jsoneditor-icons.svg",
                 "0644",
             ],
         ],

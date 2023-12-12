@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_page")
+load("//infra-sk:index.bzl", "copy_file_from_npm_pkg", "sk_page")
 load("//infra-sk/esbuild:esbuild.bzl", "esbuild_prod_bundle")
 
 CANVAKIT_FILES = [
@@ -34,6 +34,37 @@ sk_page(
     ts_entry_point = "embed.ts",
 )
 
+# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
+# packages directly. Instead, we must create local copies of those files. See the
+# copy_file_from_npm_pkg macro documentation for details.
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_js",
+    src = "core/dist/ffmpeg-core.js",
+    out = "ffmpeg-core.js",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_wasm",
+    src = "core/dist/ffmpeg-core.wasm",
+    out = "ffmpeg-core.wasm",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "ffmpeg_core_worker_js",
+    src = "core/dist/ffmpeg-core.worker.js",
+    out = "ffmpeg-core.worker.js",
+    npm_package_name = "@ffmpeg",
+)
+
+copy_file_from_npm_pkg(
+    name = "jsoneditor_icons_svg",
+    src = "dist/img/jsoneditor-icons.svg",
+    out = "jsoneditor-icons.svg",
+    npm_package_name = "jsoneditor",
+)
+
 sk_page(
     name = "index",
     assets_serving_path = "/static",
@@ -50,7 +81,7 @@ sk_page(
             "dst": "gif.worker.js",
         },
         {
-            "src": "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+            "src": "jsoneditor-icons.svg",
             "dst": "img/jsoneditor-icons.svg",
         },
         {
@@ -62,15 +93,15 @@ sk_page(
             "dst": "checker.png",
         },
         {
-            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
+            "src": "ffmpeg-core.js",
             "dst": "ffmpeg-core.js",
         },
         {
-            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.wasm",
+            "src": "ffmpeg-core.wasm",
             "dst": "ffmpeg-core.wasm",
         },
         {
-            "src": "@npm//:node_modules/@ffmpeg/core/dist/ffmpeg-core.worker.js",
+            "src": "ffmpeg-core.worker.js",
             "dst": "ffmpeg-core.worker.js",
         },
     ],

@@ -114,7 +114,7 @@ func main() {
 	// sometimes see builds fail because files (e.g. //puppeteer-tests:chrome_cache which is
 	// downloaded by the npm puppeteer script) don't exist (even if they are not necessary for
 	// compilation).
-	if _, err := bzl.Do(ctx, "build", "@npm//:node_modules/puppeteer/README.md"); err != nil {
+	if _, err := bzl.Do(ctx, "build", "//puppeteer-tests:puppeteer_readme_md"); err != nil {
 		td.Fatal(ctx, err)
 	}
 

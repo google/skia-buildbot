@@ -1,10 +1,28 @@
 load(
     "//infra-sk:index.bzl",
+    "copy_file_from_npm_pkg",
     "sk_demo_page_server",
     "sk_element",
     "sk_element_puppeteer_test",
     "sk_page",
     "ts_library",
+)
+
+# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
+# packages directly. Instead, we must create local copies of those files. See the
+# copy_file_from_npm_pkg macro documentation for details.
+copy_file_from_npm_pkg(
+    name = "jsoneditor_icons_svg",
+    src = "dist/img/jsoneditor-icons.svg",
+    out = "jsoneditor-icons.svg",
+    npm_package_name = "jsoneditor",
+)
+
+copy_file_from_npm_pkg(
+    name = "jsoneditor_min_css",
+    src = "dist/jsoneditor.min.css",
+    out = "jsoneditor.min.css",
+    npm_package_name = "jsoneditor",
 )
 
 sk_demo_page_server(
@@ -18,17 +36,17 @@ sk_demo_page_server(
         ],
         "/img": [
             # Not quite sure why this is being looked for in /img and not /static/img.
-            "@npm//:node_modules/jsoneditor/dist/img/jsoneditor-icons.svg",
+            "jsoneditor-icons.svg",
         ],
     },
 )
 
 sk_element(
     name = "skottie-sk",
-    sass_deps = [
-        "@npm//:node_modules/jsoneditor/dist/jsoneditor.min.css",
+    sass_srcs = [
+        "skottie-sk.scss",
+        "jsoneditor.min.css",  # keep
     ],
-    sass_srcs = ["skottie-sk.scss"],
     sk_element_deps = [
         "//skottie/modules/skottie-audio-sk",
         "//skottie/modules/skottie-config-sk",

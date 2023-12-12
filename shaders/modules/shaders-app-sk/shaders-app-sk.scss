@@ -1,6 +1,6 @@
-@use 'node_modules/codemirror/lib/codemirror.css';
-@use 'node_modules/codemirror/theme/ambiance.css';
-@use 'node_modules/codemirror/theme/base16-light.css';
+@use 'shaders/modules/shaders-app-sk/codemirror_codemirror.css';
+@use 'shaders/modules/shaders-app-sk/codemirror_ambiance.css';
+@use 'shaders/modules/shaders-app-sk/codemirror_base16-light.css';
 @import '../../../elements-sk/modules/styles/select';
 @import '../../../elements-sk/modules/styles/buttons';
 
