@@ -119,11 +119,14 @@ func main() {
 	}
 
 	// Build all code in the repository. The tryjob will fail upon any build errors.
+	//
+	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
+	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
 	doFunc := bzl.Do
 	if *rbe {
 		doFunc = bzl.DoOnRBE
 	}
-	if _, err := doFunc(ctx, "build", "//..."); err != nil {
+	if _, err := doFunc(ctx, "build", "//...", "--remote_download_minimal"); err != nil {
 		td.Fatal(ctx, err)
 	}
 }
