@@ -184,6 +184,14 @@ http_archive(
     url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.22.3.tar.gz",
 )
 
+http_archive(
+    name = "com_github_temporal_ui",
+    build_file = "//temporal:temporal-ui.BUILD",
+    sha256 = "6a8497bfb8c626964cde26f7d049fd6fbe4e2d609fb9774f0cb09bb97f8730c3",
+    strip_prefix = "./ui-server-2.21.3",
+    url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.21.3.tar.gz",
+)
+
 ###################################################
 # JavaScript / TypeScript rules and dependencies. #
 ###################################################
