@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package testproto;
+option go_package = "go.skia.org/infra/go/grpclogging/testproto";
+
+service TestService {
+  rpc GetSomething(GetSomethingRequest) returns (GetSomethingResponse) {
+  }
+}
+
+message GetSomethingRequest {
+  string something_id = 1;
+}
+
+message GetSomethingResponse {
+    string something_contents = 1;
+}

@@ -3,7 +3,6 @@ package grpclogging
 import (
 	"bytes"
 	"context"
-	"math"
 	"testing"
 	"time"
 
@@ -13,8 +12,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	pb "go.skia.org/infra/cabe/go/grpclogging/proto"
-	cpb "go.skia.org/infra/cabe/go/proto"
+	pb "go.skia.org/infra/go/grpclogging/proto"
+	tpb "go.skia.org/infra/go/grpclogging/testproto"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/kube/go/authproxy"
 
@@ -41,14 +40,14 @@ func entryFromBuf(t *testing.T, buf *bytes.Buffer) *pb.Entry {
 	return entry
 }
 
-func assertLoggedServerUnary(t *testing.T, entry *pb.Entry, req *cpb.GetAnalysisRequest) {
-	loggedReq := &cpb.GetAnalysisRequest{}
+func assertLoggedServerUnary(t *testing.T, entry *pb.Entry, req *tpb.GetSomethingRequest) {
+	loggedReq := &tpb.GetSomethingRequest{}
 	err := entry.ServerUnary.Request.UnmarshalTo(loggedReq)
 	require.NoError(t, err)
-	assert.Equal(t, loggedReq.PinpointJobId, req.PinpointJobId)
+	assert.Equal(t, loggedReq.SomethingId, req.SomethingId)
 
 	if entry.StatusCode == int32(codes.OK) {
-		loggedResp := &cpb.GetAnalysisResponse{}
+		loggedResp := &tpb.GetSomethingResponse{}
 		err = entry.ServerUnary.Response.UnmarshalTo(loggedResp)
 		require.NoError(t, err)
 	}
@@ -56,12 +55,12 @@ func assertLoggedServerUnary(t *testing.T, entry *pb.Entry, req *cpb.GetAnalysis
 
 func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
-		return &cpb.GetAnalysisResponse{}, nil
+		return &tpb.GetSomethingResponse{}, nil
 	}
 	resp, err := l.ServerUnaryLoggingInterceptor(ttCtx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
 	require.NoError(t, err)
@@ -76,19 +75,13 @@ func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 
 func TestServerUnaryLoggingInterceptor_withNaNs(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
-		return &cpb.GetAnalysisResponse{
-			Results: []*cpb.AnalysisResult{
-				{
-					Statistic: &cpb.Statistic{
-						Upper: math.NaN(),
-					},
-				},
-			},
+		return &tpb.GetSomethingResponse{
+			SomethingContents: "contents",
 		}, nil
 	}
 	resp, err := l.ServerUnaryLoggingInterceptor(ttCtx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
@@ -104,12 +97,12 @@ func TestServerUnaryLoggingInterceptor_withNaNs(t *testing.T) {
 
 func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
-		return &cpb.GetAnalysisResponse{}, nil
+		return &tpb.GetSomethingResponse{}, nil
 	}
 	md := metadata.New(map[string]string{
 		authproxy.WebAuthHeaderName: "user@domain.com",
@@ -130,8 +123,8 @@ func TestServerUnaryLoggingInterceptor_withAuthProxyUser(t *testing.T) {
 
 func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		ttCtx.SetTime(startTime.Add(1 * time.Second))
@@ -149,17 +142,17 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 
 func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	invoker := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
-		pb, _ := reply.(*cpb.GetAnalysisResponse)
-		pb.Results = []*cpb.AnalysisResult{}
+		pb, _ := reply.(*tpb.GetSomethingResponse)
+		pb.SomethingContents = "something"
 
 		return nil
 	}
-	resp := &cpb.GetAnalysisResponse{}
+	resp := &tpb.GetSomethingResponse{}
 	err := l.ClientUnaryLoggingInterceptor(ttCtx, "test.service/TestMethod", req, resp, nil, invoker, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -171,15 +164,15 @@ func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {
 
 func TestClientUnaryLoggingInterceptor_error(t *testing.T) {
 	ttCtx, l, buf := testSetupLogger(t)
-	req := &cpb.GetAnalysisRequest{
-		PinpointJobId: "d3c4f84d",
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
 	}
 	invoker := func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 		ttCtx.SetTime(startTime.Add(3 * time.Second))
 
 		return status.Errorf(codes.InvalidArgument, "forced error response")
 	}
-	resp := &cpb.GetAnalysisResponse{}
+	resp := &tpb.GetSomethingResponse{}
 	err := l.ClientUnaryLoggingInterceptor(ttCtx, "test.service/TestMethod", req, resp, nil, invoker, nil)
 	require.Error(t, err)
 

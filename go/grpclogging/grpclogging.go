@@ -21,7 +21,7 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	pb "go.skia.org/infra/cabe/go/grpclogging/proto"
+	pb "go.skia.org/infra/go/grpclogging/proto"
 )
 
 // GRPCLogger provides interceptor methods for grpc clients and servers to log the request

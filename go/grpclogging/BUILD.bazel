@@ -4,10 +4,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "grpclogging",
     srcs = ["grpclogging.go"],
-    importpath = "go.skia.org/infra/cabe/go/grpclogging",
+    importpath = "go.skia.org/infra/go/grpclogging",
     visibility = ["//visibility:public"],
     deps = [
-        "//cabe/go/grpclogging/proto",
+        "//go/grpclogging/proto",
         "//go/now",
         "//go/sklog",
         "//kube/go/authproxy",
@@ -28,8 +28,8 @@ go_test(
     embed = [":grpclogging"],
     race = "on",
     deps = [
-        "//cabe/go/grpclogging/proto",
-        "//cabe/go/proto:go_proto_lib",
+        "//go/grpclogging/proto",
+        "//go/grpclogging/testproto",
         "//go/now",
         "//kube/go/authproxy",
         "@com_github_stretchr_testify//assert",
