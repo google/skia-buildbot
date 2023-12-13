@@ -109,6 +109,16 @@ func main() {
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(runGofmt(ctx, changedFiles, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	if *commit {
+		// When running the presubmit checks on CI, we must manually ensure that the node_modules
+		// directory exists because Bazel no longer manages that directory for us. Running "npm ci"
+		// accomplishes this. If the node_modules directory does not exist, the prettier step below
+		// will fail.
+		//
+		// When running the presubmit checks as part of the "git cl upload" command, it is the
+		// developer's responsibility to keep their node_modules directory up-to-date.
+		trackErrors(runNpmCi(ctx))
+	}
 	trackErrors(runPrettier(ctx, changedFiles, *repoDir, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit))
@@ -670,6 +680,18 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 
 	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
 		logf(ctx, "goimports caused changes. Please inspect them (git diff) and commit if ok.\n")
+		return false
+	}
+	return true
+}
+
+// runNpmCi runs "npm ci" to ensure that the "node_modules" directory exists.
+func runNpmCi(ctx context.Context) bool {
+	cmd := exec.CommandContext(ctx, "bazelisk", "run", "--config=mayberemote", "//:npm", "--", "ci")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, "Command \"npm ci\" failed. Output:\n")
+		logf(ctx, string(output))
 		return false
 	}
 	return true
