@@ -1,3 +1,4 @@
+import './index';
 import fetchMock from 'fetch-mock';
 import { defaultStatusURL } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
@@ -9,5 +10,8 @@ const status: Status = {
 
 fetchMock.get(defaultStatusURL, status);
 
-// eslint-disable-next-line import/first
-import './index';
+document.querySelector('.component-goes-here')!.innerHTML = `
+<task-scheduler-scaffold-sk title="task-scheduler-scaffold-sk demo">
+  <main>Content goes here.</main>
+</task-scheduler-scaffold-sk>
+`;

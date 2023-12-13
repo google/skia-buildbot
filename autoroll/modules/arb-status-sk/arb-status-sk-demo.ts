@@ -4,6 +4,7 @@ import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { ARBStatusSk } from './arb-status-sk';
 import { SetupMocks, GetFakeStatus } from '../rpc-mock';
+import './index';
 
 import { Status } from '../../../infra-sk/modules/json';
 
@@ -16,8 +17,8 @@ fetchMock.get('/_/login/status', status);
 
 SetupMocks();
 
-// eslint-disable-next-line import/first
-import './index';
+document.querySelector('.component-goes-here')!.innerHTML =
+  `<arb-status-sk></arb-status-sk>`;
 
 // Get the name of the fake roller from the demo data.
 const ele = <ARBStatusSk>document.getElementsByTagName('arb-status-sk')[0];

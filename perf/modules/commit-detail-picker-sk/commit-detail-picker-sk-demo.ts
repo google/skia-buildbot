@@ -1,3 +1,4 @@
+import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { CommitDetailPickerSk } from './commit-detail-picker-sk';
@@ -34,11 +35,12 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     body: 'Commit body.',
   },
 ]);
-
-// eslint-disable-next-line import/first
-import './index';
-
 const evt = document.querySelector('#evt')!;
+
+document.querySelector('.lightmode-example')!.innerHTML =
+  `<commit-detail-picker-sk></commit-detail-picker-sk>`;
+document.querySelector('.darkmode-example')!.innerHTML =
+  `<commit-detail-picker-sk id="darkmode-picker"></commit-detail-picker-sk>`;
 
 document
   .querySelectorAll<CommitDetailPickerSk>('commit-detail-picker-sk')

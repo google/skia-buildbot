@@ -1,3 +1,5 @@
+import './index';
+import { EMail } from '../../../infra-sk/modules/json';
 import fetchMock from 'fetch-mock';
 import { defaultStatusURL } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
@@ -101,11 +103,6 @@ fetchMock.getOnce(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
   infraRoleResp
 );
-
-// eslint-disable-next-line import/first
-import './index';
-// eslint-disable-next-line import/first
-import { EMail } from '../../../infra-sk/modules/json';
 
 const data = document.createElement('status-sk');
 ($$('#container') as HTMLElement).appendChild(data);

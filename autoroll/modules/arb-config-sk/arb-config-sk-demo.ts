@@ -5,6 +5,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import { SetupMocks } from '../rpc-mock';
 import { GetFakeConfig } from '../rpc-mock/fake-config';
 import { Status } from '../../../infra-sk/modules/json';
+import './index';
 
 const status: Status = {
   email: 'user@google.com',
@@ -15,5 +16,5 @@ fetchMock.get('/_/login/status', status);
 fetchMock.get('/r/skia-skiabot-test/config', GetFakeConfig());
 SetupMocks();
 
-// eslint-disable-next-line import/first
-import './index';
+document.querySelector('.component-goes-here')!.innerHTML =
+  '<arb-config-sk></arb-config-sk>';

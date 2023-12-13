@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-/* eslint-disable import/first */
+import './index';
 import fetchMock from 'fetch-mock';
 import { SetupMocks } from '../rpc-mock';
 import { resp } from './test-data';
@@ -15,5 +15,4 @@ SetupMocks().expectGetBotUsage(resp);
 const el = document.createElement('capacity-sk');
 document.querySelector('#container')?.appendChild(el);
 
-import './index';
 import { Status, EMail } from '../../../infra-sk/modules/json';

@@ -1,3 +1,4 @@
+import './index';
 import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { Commit } from '../json';
@@ -114,8 +115,8 @@ fetchMock.get('path:/_/initpage/', () => ({
   msg: '',
 }));
 
-// eslint-disable-next-line import/first
-import './index';
+document.querySelector('.component-goes-here')!.innerHTML =
+  '<trybot-page-sk></trybot-page-sk>';
 
 $$<QuerySk>('query-sk')!.current_query = 'config=8888';
 $$<CommitDetailPickerSk>('commit-detail-picker-sk')!.selection = 43390;

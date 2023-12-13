@@ -1,3 +1,4 @@
+import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { Alert } from '../json';
@@ -101,6 +102,3 @@ fetchMock.get('/loginstatus/', {
 window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.demo = true;
-
-// eslint-disable-next-line import/first
-import './index';

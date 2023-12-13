@@ -1,3 +1,4 @@
+import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { Alert } from '../json';
@@ -180,6 +181,3 @@ customElements.whenDefined('alerts-page-sk').then(() => {
     );
   });
 });
-
-// eslint-disable-next-line import/first
-import './index';
