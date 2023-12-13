@@ -1,3 +1,5 @@
+const os = require('os');
+
 const startIdx = process.argv.findIndex((v) => v === 'start');
 
 // The path to the JS bundle is passed by the karma_test rule as the second argument after start.
@@ -17,11 +19,10 @@ const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running 
 // See:
 //  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
 //  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
-const bazelRunfilesDir = () =>
-  `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
+const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
 
 // Forces Karma to use the Bazel-downloaded Google Chrome browser.
-process.env.CHROME_BIN = `${bazelRunfilesDir()}/external/google_chrome/opt/google/chrome/chrome`;
+process.env.CHROME_BIN = `${bazelRunfilesDir}/external/google_chrome/opt/google/chrome/chrome`;
 
 module.exports = function (config) {
   config.set({
@@ -39,15 +40,19 @@ module.exports = function (config) {
 
     files: [
       // We want the WASM file to be available for loading by the debugger JS file.
-      { pattern: debuggerWASMFile, included: false, served: true },
-      // We want the version.js file to be run before the tests so SKIA_VERSION is defined.
-      { pattern: versionJSFile },
-      // We want the debugger.js file to be run before the tests so DebuggerInit is defined.
-      { pattern: debuggerJSFile },
       {
-        pattern: jsTestFile,
-        // Force the test files to be served from disk on each request. Without this,
-        // interactive mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
+        pattern: `${bazelRunfilesDir}/${debuggerWASMFile}`,
+        included: false,
+        served: true,
+      },
+      // We want the version.js file to be run before the tests so SKIA_VERSION is defined.
+      { pattern: `${bazelRunfilesDir}/${versionJSFile}` },
+      // We want the debugger.js file to be run before the tests so DebuggerInit is defined.
+      { pattern: `${bazelRunfilesDir}/${debuggerJSFile}` },
+      {
+        pattern: `${bazelRunfilesDir}/${jsTestFile}`,
+        // Force the test files to be served from disk on each request. Without this, interactive
+        // mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
         nocache: true,
       },
     ],
@@ -55,7 +60,7 @@ module.exports = function (config) {
     proxies: {
       // This lets our tests just try to load /dist/debugger.wasm instead of the
       // actual path (which is deep inside Bazel's output directory)
-      '/dist/debugger.wasm': debuggerWASMFile,
+      '/dist/debugger.wasm': `${bazelRunfilesDir}/${debuggerWASMFile}`,
     },
 
     // Only use a headless browser when running as a test (i.e. "bazel test").
@@ -99,5 +104,12 @@ module.exports = function (config) {
     //     opened in the browser. Tests are rebuilt automatically when the code changes. Reload the
     //     page manually to see the changes.
     autoWatch: false,
+
+    // Set hostname so that, when running in interactive mode (e.g. "bazel run //path/to:test"),
+    // the test runner prints "Karma vX.Y.Z server started at http://<HOSTNAME>:9876", where
+    // <HOSTNAME> is the actual host's name rather than "localhost". This is useful when running
+    // tests in interactive mode remotely via SSH and one wishes to open the test runner page in a
+    // browser running locally.
+    hostname: os.hostname(),
   });
 };

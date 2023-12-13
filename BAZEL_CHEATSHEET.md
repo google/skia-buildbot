@@ -378,9 +378,10 @@ to try next if you get stuck during a tricky Go module update.
 ## Front-end development in TypeScript
 
 Our front-end code is built and tested using a set of custom Bazel macros built on top of rules
-provided by the [rules_nodejs](https://github.com/bazelbuild/rules_nodejs) repository. All such
-macros are either defined in or re-exported from `//infra-sk/index.bzl`. This section uses the
-terms macro and rule interchangeably when referring to the macros exported from said file.
+provided by the [rules_js](https://github.com/aspect-build/rules_js) and
+[rules_ts](https://github.com/aspect-build/rules_ts) rulesets. All such macros are either defined
+in or re-exported from `//infra-sk/index.bzl`. This section uses the terms macro and rule
+interchangeably when referring to the macros exported from said file.
 
 As mentioned in the [Gazelle](#gazelle) section, most Bazel targets for front-end code are
 generated with Gazelle.

@@ -36,7 +36,6 @@ sk_element_puppeteer_test(
     deps = [
         "//npm_deps:@types/chai",
         "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

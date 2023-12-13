@@ -1,6 +1,9 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 load("@exec_properties//:constants.bzl", "NETWORK_ON")
+load("@npm//:defs.bzl", "npm_link_all_packages")
 
 # Disable generation of go_proto_library targets. Let Gazelle use checked-in .pb.go files instead.
 #
@@ -62,6 +65,7 @@ gazelle(
 
 exports_files(
     [
+        "package.json",
         "tsconfig.json",
         ".puppeteerrc.js",
     ],
@@ -96,6 +100,27 @@ platform(
     #
     # See //bazel/rbe/generated/README.md for details.
     parents = ["//bazel/rbe/generated/config:platform"],
+)
+
+######################################
+# JavaScript and TypeScript support. #
+######################################
+
+# Make NPM packages available as dependencies under //:node_modules.
+npm_link_all_packages(name = "node_modules")
+
+# Global tsconfig.json file.
+ts_config(
+    name = "ts_config",
+    src = "tsconfig.json",
+    visibility = ["//visibility:public"],
+)
+
+# Global Puppeteer configuration file.
+js_library(
+    name = "puppeteer_rc",
+    srcs = [".puppeteerrc.js"],
+    visibility = ["//visibility:public"],
 )
 
 #############################################################################

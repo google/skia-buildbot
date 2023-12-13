@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer, { Browser } from 'puppeteer';
+import { CHROME_EXECUTABLE_PATH } from './chrome_downloader/chrome_executable_path';
 
 // File inside $ENV_DIR containing the demo page server's TCP port. Only applies to Bazel tests
 // using the test_on_env rule.
@@ -101,8 +102,21 @@ const bazelRunfilesDir = () =>
  * This can be handy for debugging.
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
-  const chromeDir = path.join(bazelRunfilesDir(), 'external', 'google_chrome');
+  // TODO(lovisolo): Do we need this? Can't we use //puppeteer-tests:chrome for everything?
+  const fontconfigSysroot = path.join(
+    bazelRunfilesDir(),
+    'external',
+    'google_chrome'
+  );
   return puppeteer.launch({
+    // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
+    // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
+    executablePath: path.join(
+      bazelRunfilesDir(),
+      'puppeteer-tests',
+      'chrome',
+      CHROME_EXECUTABLE_PATH
+    ),
     // These options are required to run Puppeteer from within a Docker container, as is the case
     // under Bazel and RBE. See
     // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
@@ -118,7 +132,7 @@ export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
     headless: !showBrowser,
     env: {
       ...process.env, // Headful mode breaks without this line (e.g. "unable to open X display").
-      FONTCONFIG_SYSROOT: chromeDir,
+      FONTCONFIG_SYSROOT: fontconfigSysroot,
     },
   });
 };

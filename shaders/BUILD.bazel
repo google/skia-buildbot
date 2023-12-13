@@ -1,7 +1,9 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
 
-exports_files(
-    ["shaders.karma.conf.js"],
+js_library(
+    name = "karma_config",
+    srcs = ["shaders.karma.conf.js"],
     visibility = ["//shaders:__subpackages__"],
 )
 

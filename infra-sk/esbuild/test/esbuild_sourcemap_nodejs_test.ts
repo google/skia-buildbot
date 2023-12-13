@@ -1,12 +1,6 @@
 /**
  * Test the sourcemap generating behaviors of the esbuild_dev_bundle and esbuild_prod_bundle rules.
  *
- * Even though esbuild seems to behave as expected, the "sourcemap" attribute of esbuild Bazel rule
- * provided by the rules_nodejs does not seem to support not generating any sourcemaps at all. We
- * override this behavior by specifying extra arguments to the esbuild binary via the esbuild
- * rule's "args" argument, see //infra-sk/esbuild/esbuild.bzl for details. Given the hacky nature
- * of this workaround, it seems prudent to test it.
- *
  * To learn more about sourcemaps, see:
  *  - https://sourcemaps.info/spec.html
  *  - https://developers.google.com/web/updates/2013/06/sourceMappingURL-and-sourceURL-syntax-changed
@@ -17,19 +11,19 @@ import path from 'path';
 
 import { expect } from 'chai';
 
-// Inspired in
-// https://github.com/bazelbuild/rules_nodejs/blob/bca4dbeba5bf3be023aea602ea3eae2dee2ce10f/packages/esbuild/test/sourcemap/bundle_test.js#L4.
-const runfilesHelper = require(process.env.BAZEL_NODE_RUNFILES_HELPER!);
+// See https://docs.aspect.build/rulesets/aspect_rules_js/docs/js_binary#js_binary.
+const runfilesDir = process.env.JS_BINARY__RUNFILES!;
+
 const locationBase = 'skia_infra/infra-sk/esbuild/test';
 
 function doesRunfileExist(filename: string): boolean {
-  return fs.existsSync(path.join(locationBase, filename));
+  return fs.existsSync(path.join(runfilesDir, locationBase, filename));
 }
 
 function readBundle(filename: string): string {
   return fs.readFileSync(
-    runfilesHelper.resolve(path.join(locationBase, filename)),
-    'utf8'
+    path.join(runfilesDir, locationBase, filename),
+    'utf-8'
   );
 }
 

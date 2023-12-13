@@ -1,16 +1,18 @@
 """This module defines rules for building Skia Infrastructure web applications."""
 
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+
 # https://github.com/bazelbuild/bazel-skylib/blob/main/rules/common_settings.bzl
 load("@bazel_skylib//rules:common_settings.bzl", skylib_bool_flag = "bool_flag")
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_package_bin", _nodejs_binary = "nodejs_binary", _nodejs_test = "nodejs_test")
 load("@io_bazel_rules_docker//container:flatten.bzl", "container_flatten")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", _sass_library = "sass_library")
+load("@npm//:mocha/package_json.bzl", _mocha_bin = "bin")
 load("//bazel/test_on_env:test_on_env.bzl", "test_on_env")
 load("//infra-sk/esbuild:esbuild.bzl", "esbuild_dev_bundle", "esbuild_node_bundle", "esbuild_prod_bundle")
 load("//infra-sk/html_insert_assets:index.bzl", "html_insert_assets")
 load("//infra-sk/karma_test:index.bzl", _karma_test = "karma_test")
 load("//infra-sk/sk_demo_page_server:index.bzl", _sk_demo_page_server = "sk_demo_page_server")
 load(":copy_file_from_npm_pkg.bzl", _copy_file_from_npm_pkg = "copy_file_from_npm_pkg")
+load(":sass.bzl", "sass_binary", _sass_library = "sass_library")
 load(":ts_library.bzl", _ts_library = "ts_library")
 
 # Re-export these common rules so we only have to load this .bzl file from our BUILD.bazel files.
@@ -164,7 +166,7 @@ def nodejs_test(
     })
     ```
     2. Run `bazel run //path/to:foo_nodejs_test`.
-    3. Launch Chrome **in the machine where the test is running**, otherwise Chrome won't see the
+    3. Launch Chrome **on the machine where the test is running**, otherwise Chrome won't see the
        Node.js process.
     4. Enter chrome://inspect in the URL bar, then press return.
     5. You should see an "inspect" link under the "Remote Target" heading.
@@ -206,17 +208,16 @@ def nodejs_test(
         output = "%s_js_entry_point.js" % name,
     )
 
-    _nodejs_test(
+    # See https://docs.aspect.build/rulesets/aspect_rules_js/docs/#using-binaries-published-to-npm.
+    _mocha_bin.mocha_test(
         name = name,
-        entry_point = "@npm//:node_modules/mocha/bin/mocha",
         data = data + [
             "%s_js_entry_point.js" % name,
             # Pulls any transitives not included in the JS bundle, such as Puppeteer's Chromium
             # binary.
             src_lib,
-            "@npm//mocha",
         ],
-        templated_args = [
+        fixed_args = [
             "--timeout 60000",
             "--colors",
             "$(rootpath %s)" % "%s_js_entry_point.js" % name,
@@ -237,7 +238,7 @@ def nodejs_binary(
         env = {}):
     """Runs a Node script written in TS.
 
-    Wraps the nodejs_binary rule so that we can first compile the TS to JS.
+    Wraps the js_binary rule so that we can first compile the TS to JS.
 
     Args:
       name: Name of the target.
@@ -245,8 +246,8 @@ def nodejs_binary(
       src_lib: A ts_library containing src. If none is provided, one will be generated from the entry_point.
       data: Any data dependencies.
       deps: Any ts_library or NPM dependencies of src. Ignored if src_lib is provided.
-      tags: Tags for the generated nodejs_binary rule.
-      visibility: Visibility of the generated nodejs_binary rule.
+      tags: Tags for the generated js_binary rule.
+      visibility: Visibility of the generated js_binary rule.
       env: A dictionary of additional environment variables to set when the target is executed.
     """
 
@@ -265,7 +266,7 @@ def nodejs_binary(
         output = "%s_js_entry_point.js" % name,
     )
 
-    _nodejs_binary(
+    js_binary(
         name = name,
         entry_point = "%s_js_entry_point.js" % name,
         data = data + [
@@ -316,13 +317,6 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
     if not src.endswith("_puppeteer_test.ts"):
         fail("Puppeteer tests must end with \"_puppeteer_test.ts\".")
 
-    headless_opts = {
-        #  "PUPPETEER_CACHE_DIR": "test/kjlubick/whatever",
-    }
-    headful_opts = {
-        "PUPPETEER_TEST_SHOW_BROWSER": "true",
-    }.update(headless_opts)
-
     # Rather than letting the nodejs_test macro create a ts_library for the entrypoint file, we
     # create one here. The reason is that we will define multiple nodejs_test targets with
     # different sufixes ("_debug", "_headful"). If we do not provide a ts_library for the
@@ -348,7 +342,7 @@ def sk_element_puppeteer_test(name, src, sk_demo_page_server, deps = []):
             tags = ["manual"],  # Exclude it from wildcards, e.g. "bazel test //...".
             deps = deps,
             wait_for_debugger = debug,
-            env = headful_opts if headful else headless_opts,
+            env = {"PUPPETEER_TEST_SHOW_BROWSER": "true"} if headful else {},
             _internal_skip_naming_convention_enforcement = True,
         )
 
@@ -480,6 +474,7 @@ def sk_page(
         name = name + "_styles",
         srcs = [scss_entry_point],
         deps = all_sass_deps,
+        visibility = ["//visibility:public"],
     )
 
     # Generate a "ghost" Sass entry-point stylesheet with import statements for the following
@@ -489,6 +484,7 @@ def sk_page(
     #  - The "ghost" entry-point stylesheets of each sk_element in the sk_element_deps argument.
     #
     # We will use this generated stylesheet as the entry-points for the sass_binaries below.
+    scss_ghost_entry_point = name + "__generated_ghost_entrypoint.scss"
     generate_sass_stylesheet_with_imports(
         name = name + "_ghost_entrypoint_scss",
         scss_files_to_import = [scss_entry_point] +
@@ -496,97 +492,27 @@ def sk_page(
                                    make_label_target_explicit(dep) + "_ghost_entrypoint_scss"
                                    for dep in sk_element_deps
                                ],
-        scss_output_file = name + "__generated_ghost_entrypoint.scss",
+        scss_output_file = scss_ghost_entry_point,
     )
 
-    # Notes:
-    #  - Sass compilation errors are not visible unless "bazel build" is invoked with flag
-    #    "--strategy=SassCompiler=sandboxed" (now set by default in //.bazelrc). This is due to a
-    #    known issue with sass_binary. For more details please see
-    #    https://github.com/bazelbuild/rules_sass/issues/96.
-
-    # Generates files <name>_unoptimized_dev.css and <name>_unoptimized_dev.css.map.
-    #
-    # Produces sourcemaps with embedded sources. Produces CSS in "expanded" style, see
-    # https://sass-lang.com/documentation/cli/dart-sass/#style.
+    # Generates file development/<name>.css.
     sass_binary(
-        name = "%s_css_unoptimized_dev" % name,
-        src = name + "_ghost_entrypoint_scss",
-        output_name = "%s_unoptimized_dev.css" % name,
+        name = name + "_css_dev",
+        srcs = [scss_ghost_entry_point],
         deps = [name + "_styles"],
-        include_paths = [
-            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work.
-        ],
-        output_style = "expanded",
-        sourcemap = True,
-        sourcemap_embed_sources = True,
-        visibility = ["//visibility:public"],
-    )
-
-    # Generates file <name>_unoptimized_prod.css.
-    #
-    # Does not produce sourcemaps. Produces CSS in "compressed" style, see
-    # https://sass-lang.com/documentation/cli/dart-sass/#style.
-    sass_binary(
-        name = "%s_css_unoptimized_prod" % name,
-        src = name + "_ghost_entrypoint_scss",
-        output_name = "%s_unoptimized_prod.css" % name,
-        deps = [name + "_styles"],
-        include_paths = [
-            "//external/npm",  # Allows @use "node_modules/some_package/some_file.css" to work.
-        ],
-        output_style = "compressed",
-        sourcemap = False,
-        visibility = ["//visibility:public"],
-    )
-
-    # Generates files development/<name>.css and development/<name>.css.map.
-    #
-    # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
-    # so the output can contain many copies of the CSS rules like "colors.scss".
-    # We pass the CSS through csso to remove duplicate CSS rules, which can
-    # reduce a file to 1/10 its unoptimized size.
-    npm_package_bin(
-        name = "%s_css_dev" % name,
-        tool = "@npm//csso-cli/bin:csso",
-        chdir = "$(RULEDIR)",
-        data = [":%s_css_unoptimized_dev" % name],
-        outs = [
-            "%s/%s.css" % (DEV_OUT_DIR, name),
-            "%s/%s.css.map" % (DEV_OUT_DIR, name),
-        ],
-        args = [
-            "--input",
-            "%s_unoptimized_dev.css" % name,
-            "--input-source-map",
-            "%s_unoptimized_dev.css.map" % name,
-            "--output",
-            "%s/%s.css" % (DEV_OUT_DIR, name),
-            "--source-map",
-            "%s/%s.css.map" % (DEV_OUT_DIR, name),
-        ],
-        visibility = ["//visibility:public"],
+        entry_point = scss_ghost_entry_point,
+        out = "%s/%s.css" % (DEV_OUT_DIR, name),
+        mode = "development",
     )
 
     # Generates file production/<name>.css.
-    #
-    # That sass tool used by `sass_binary` doesn't remove duplicate CSS rules,
-    # so the output can contain many copies of the CSS rules like "colors.scss".
-    # We pass the CSS through csso to remove duplicate CSS rules, which can
-    # reduce a file to 1/10 its unoptimized size.
-    npm_package_bin(
-        name = "%s_css_prod" % name,
-        tool = "@npm//csso-cli/bin:csso",
-        chdir = "$(RULEDIR)",
-        data = [":%s_css_unoptimized_prod" % name],
-        outs = ["%s/%s.css" % (PROD_OUT_DIR, name)],
-        args = [
-            "--input",
-            "%s_unoptimized_prod.css" % name,
-            "--output",
-            "%s/%s.css" % (PROD_OUT_DIR, name),
-        ],
-        visibility = ["//visibility:public"],
+    sass_binary(
+        name = name + "_css_prod",
+        srcs = [scss_ghost_entry_point],
+        deps = [name + "_styles"],
+        entry_point = scss_ghost_entry_point,
+        out = "%s/%s.css" % (PROD_OUT_DIR, name),
+        mode = "production",
     )
 
     #####################
@@ -662,7 +588,6 @@ def sk_page(
             "development/%s.html" % name,
             "development/%s.js" % name,
             "development/%s.css" % name,
-            "development/%s.css.map" % name,
         ],
         visibility = ["//visibility:public"],
     )

@@ -1,0 +1,49 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("//bazel/go:go_test.bzl", "go_test")
+load("//infra-sk:index.bzl", "ts_library")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_node_bundle")
+
+ts_library(
+    name = "chrome_executable_path_ts_lib",
+    srcs = ["chrome_executable_path.ts"],
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "chrome_downloader_ts_lib",
+    srcs = ["chrome_downloader.ts"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":chrome_executable_path_ts_lib",
+        "//npm_deps:@puppeteer/browsers",
+        "//npm_deps:puppeteer-core",
+    ],
+)
+
+esbuild_node_bundle(
+    name = "chrome_downloader_bundle",
+    entry_point = "chrome_downloader.ts",
+    output = "chrome_downloader_bundle.js",
+    deps = [
+        ":chrome_downloader_ts_lib",
+    ],
+)
+
+js_binary(
+    name = "chrome_downloader",
+    entry_point = "chrome_downloader_bundle",
+    visibility = ["//puppeteer-tests:__pkg__"],
+)
+
+go_test(
+    name = "chrome_downloader_test",
+    srcs = ["puppeteer_version_check_test.go"],
+    data = [
+        "//:package.json",
+    ],
+    deps = [
+        "//bazel/go/bazel",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

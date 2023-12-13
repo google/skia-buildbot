@@ -15,23 +15,23 @@ filegroup(
 # copy_file_from_npm_pkg macro documentation for details.
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_js",
-    src = "core/dist/ffmpeg-core.js",
+    src = "dist/ffmpeg-core.js",
     out = "ffmpeg-core.js",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_wasm",
-    src = "core/dist/ffmpeg-core.wasm",
+    src = "dist/ffmpeg-core.wasm",
     out = "ffmpeg-core.wasm",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_worker_js",
-    src = "core/dist/ffmpeg-core.worker.js",
+    src = "dist/ffmpeg-core.worker.js",
     out = "ffmpeg-core.worker.js",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
@@ -61,7 +61,7 @@ skia_app_container(
                 "0644",
             ],
             [
-                "//skottie/pages:inline-bundle",
+                "//skottie/modules/skottie-inline-sk:bundle",
                 "0644",
             ],
             [

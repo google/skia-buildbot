@@ -1,4 +1,7 @@
-exports_files(
-    ["karma.conf.js"],
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+
+js_library(
+    name = "karma_config",
+    srcs = ["karma.conf.js"],
     visibility = ["//visibility:public"],
 )

@@ -1,4 +1,5 @@
 load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+load("//infra-sk/esbuild:esbuild.bzl", "esbuild_prod_bundle")
 
 sk_demo_page_server(
     name = "demo_page_server",
@@ -33,4 +34,18 @@ filegroup(
     name = "index_ts",
     srcs = ["index.ts"],
     visibility = ["//skottie:__subpackages__"],
+)
+
+# We want to make skottie-inline-sk available for the documentation on skia.org
+# (e.g. https://skia.org/docs/user/modules/skottie/). In order to do this, we make an
+# inline-bundle.js file with that element's code and make it available in the output directory.
+#
+# This rule lives here, rather than on //skottie/pages/BUILD.bazel, because esbuild_prod_bundle
+# complains if the entry-point file is not in the same Bazel package as the rule.
+esbuild_prod_bundle(
+    name = "bundle",
+    entry_point = "//skottie/modules/skottie-inline-sk:index_ts",
+    output = "inline-bundle.js",
+    visibility = ["//skottie:__subpackages__"],
+    deps = ["//skottie/modules/skottie-inline-sk"],
 )

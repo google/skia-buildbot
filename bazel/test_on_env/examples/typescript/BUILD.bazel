@@ -4,7 +4,7 @@ nodejs_test(
     name = "typescript_nodejs_test",
     src = "typescript_nodejs_test.ts",
     data = [
-        "//:.puppeteerrc.js",
+        "//:puppeteer_rc",
         "//puppeteer-tests:chrome",
     ],
     tags = ["manual"],
@@ -13,5 +13,6 @@ nodejs_test(
         "//npm_deps:@types/chai",
         "//npm_deps:chai",
         "//npm_deps:puppeteer",
+        "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
     ],
 )

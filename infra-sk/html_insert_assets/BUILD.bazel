@@ -1,4 +1,3 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("//bazel/go:go_test.bzl", "go_test")
 load(":index.bzl", "html_insert_assets")
@@ -39,8 +38,27 @@ html_insert_assets(
     nonce = "{% .Nonce %}",
 )
 
-generated_file_test(
+# The "diff" binary returns a non-zero exit code if the two files do not match.
+TEST = """
+#!/bin/sh
+diff $(rootpath :testdata/expected_output.html) $(rootpath :testdata/actual_output.html)
+"""
+
+genrule(
+    name = "gen_test",
+    srcs = [
+        ":testdata/expected_output.html",
+        ":testdata/actual_output.html",
+    ],
+    outs = ["test.sh"],
+    cmd = "echo '%s' > $@" % TEST,
+)
+
+sh_test(
     name = "test",
-    src = ":testdata/expected_output.html",
-    generated = ":testdata/actual_output.html",
+    srcs = ["test.sh"],
+    data = [
+        ":testdata/actual_output.html",
+        ":testdata/expected_output.html",
+    ],
 )

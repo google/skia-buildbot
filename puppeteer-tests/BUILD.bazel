@@ -1,4 +1,5 @@
-load("//infra-sk:index.bzl", "copy_file_from_npm_pkg", "nodejs_test", "ts_library")
+load("@aspect_rules_js//js:defs.bzl", "js_run_binary")
+load("//infra-sk:index.bzl", "nodejs_test", "ts_library")
 
 nodejs_test(
     name = "util_nodejs_test",
@@ -21,6 +22,7 @@ ts_library(
         "@platforms//os:linux": [
             ":chrome",
             "//:.puppeteerrc.js",
+            # TODO(lovisolo): Do we really need this? Can't we just use the :chrome target?
             "@google_chrome//:all_files",
         ],
         # We don't have hermetic support for Mac and Windows. Users are expected
@@ -28,31 +30,26 @@ ts_library(
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
-    deps = ["//npm_deps:puppeteer"],
+    deps = [
+        "//npm_deps:puppeteer",
+        "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
+    ],
 )
 
-# Under rules_js (https://github.com/aspect-build/rules_js), we cannot refer to files inside NPM
-# packages directly. Instead, we must create local copies of those files. See the
-# copy_file_from_npm_pkg macro documentation for details.
+# Hermetically downloads Chrome using Puppeteer's own code (@puppeteer/browsers NPM package). In
+# conjunction with disabling Puppeteer's automatic downloading behavior in //.puppeteerrc.json,
+# this guarantees that we get a Chrome version that is known to work well with Puppeteer, and that
+# it is placed in a predictable location.
 #
-# This target can be built to ensure that the "puppeteer" NPM package is downloaded by Bazel.
-copy_file_from_npm_pkg(
-    name = "puppeteer_readme_md",
-    src = "README.md",
-    out = "README.Puppeteer.md",
-    npm_package_name = "puppeteer",
-)
-
-# This is where we configured Puppeteer to download the cached version of Chrome.
-filegroup(
+# This rule behaves like a fancy genrule, and can be depended upon by other targets as if it were a
+# filegroup. See https://docs.aspect.build/rulesets/aspect_rules_js/docs/js_run_binary.
+js_run_binary(
     name = "chrome",
-    # Add a dependency to Puppeteer so Bazel globs the chrome_cache *after* NPM installation
-    # completes. The specific file we pull from the "puppeteer" NPM package does not matter.
-    data = [":puppeteer_readme_md"] + glob(
-        [
-            "chrome_cache/chrome/**",
-        ],
-        allow_empty = False,
-    ),
+    args = ["puppeteer-tests/chrome"],
+    mnemonic = "DownloadChrome",
+    out_dirs = ["chrome"],
+    stderr = "chrome.stderr",
+    stdout = "chrome.stdout",
+    tool = "//puppeteer-tests/chrome_downloader",
     visibility = ["//visibility:public"],
 )

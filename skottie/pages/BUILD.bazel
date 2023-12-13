@@ -1,5 +1,4 @@
 load("//infra-sk:index.bzl", "copy_file_from_npm_pkg", "sk_page")
-load("//infra-sk/esbuild:esbuild.bzl", "esbuild_prod_bundle")
 
 CANVAKIT_FILES = [
     {
@@ -39,23 +38,23 @@ sk_page(
 # copy_file_from_npm_pkg macro documentation for details.
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_js",
-    src = "core/dist/ffmpeg-core.js",
+    src = "dist/ffmpeg-core.js",
     out = "ffmpeg-core.js",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_wasm",
-    src = "core/dist/ffmpeg-core.wasm",
+    src = "dist/ffmpeg-core.wasm",
     out = "ffmpeg-core.wasm",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
     name = "ffmpeg_core_worker_js",
-    src = "core/dist/ffmpeg-core.worker.js",
+    src = "dist/ffmpeg-core.worker.js",
     out = "ffmpeg-core.worker.js",
-    npm_package_name = "@ffmpeg",
+    npm_package_name = "@ffmpeg/core",
 )
 
 copy_file_from_npm_pkg(
@@ -85,7 +84,7 @@ sk_page(
             "dst": "img/jsoneditor-icons.svg",
         },
         {
-            "src": ":inline-bundle.js",
+            "src": "//skottie/modules/skottie-inline-sk:bundle",
             "dst": "inline-bundle.js",
         },
         {
@@ -109,15 +108,4 @@ sk_page(
     scss_entry_point = "index.scss",
     sk_element_deps = ["//skottie/modules/skottie-sk"],
     ts_entry_point = "index.ts",
-)
-
-# We want to make skottie-inline-sk available for the documentation on skia.org
-# (e.g. https://skia.org/docs/user/modules/skottie/). In order to do this, we make an
-# inline-bundle.js file with that element's code and make it available in the output directory.
-esbuild_prod_bundle(
-    name = "inline-bundle",
-    entry_point = "//skottie/modules/skottie-inline-sk:index_ts",
-    output = "inline-bundle.js",
-    visibility = ["//skottie:__subpackages__"],
-    deps = ["//skottie/modules/skottie-inline-sk"],
 )

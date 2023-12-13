@@ -109,5 +109,5 @@ gold-client/build
 # is set in .bazelrc.
 _bazel_*
 
-# Puppeteer downloads things (e.g. Chrome) to this folder when installing
-puppeteer-tests/chrome_cache
+# Created by rules_js (https://github.com/aspect-build/rules_js).
+.aspect

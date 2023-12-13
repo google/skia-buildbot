@@ -6,6 +6,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+import { CHROME_EXECUTABLE_PATH } from '../../../../puppeteer-tests/chrome_downloader/chrome_executable_path';
 
 const ENV_PORT_FILE_BASE_NAME = 'port';
 
@@ -25,13 +26,25 @@ describe('example test', () => {
 
   before(async () => {
     baseUrl = `http://localhost:${readPort()}`;
+    const bazelRunfilesDir = path.join(
+      process.env.RUNFILES_DIR!,
+      process.env.TEST_WORKSPACE!
+    );
     browser = await puppeteer.launch({
+      executablePath: path.join(
+        bazelRunfilesDir,
+        'puppeteer-tests',
+        'chrome',
+        CHROME_EXECUTABLE_PATH
+      ),
       args: ['--disable-dev-shm-usage', '--no-sandbox'],
     });
   });
+
   after(async () => {
     await browser.close();
   });
+
   beforeEach(async () => {
     page = await browser.newPage();
   });

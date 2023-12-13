@@ -1,4 +1,4 @@
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("//infra-sk:index.bzl", "bool_flag", "extract_files_from_skia_wasm_container")
 
 bool_flag(

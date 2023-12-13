@@ -110,14 +110,6 @@ func main() {
 	}
 	failIfNonEmptyGitDiff()
 
-	// Make sure Bazel runs npm install before we try to build things. Without this, we would
-	// sometimes see builds fail because files (e.g. //puppeteer-tests:chrome_cache which is
-	// downloaded by the npm puppeteer script) don't exist (even if they are not necessary for
-	// compilation).
-	if _, err := bzl.Do(ctx, "build", "//puppeteer-tests:puppeteer_readme_md"); err != nil {
-		td.Fatal(ctx, err)
-	}
-
 	// Build all code in the repository. The tryjob will fail upon any build errors.
 	//
 	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See

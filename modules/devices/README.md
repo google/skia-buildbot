@@ -7,6 +7,9 @@ https://github.com/luci/luci-py/blob/master/appengine/swarming/ui2/modules/alias
 
 ## Importing JSON from TypeScript
 
+**Note: The below comments might be obsolete now that we have migrated to
+[rules_js](https://github.com/aspect-build/rules_js).**
+
 Currently, the [rules_nodejs](https://github.com/bazelbuild/rules_nodejs) Bazel rules do not allow
 importing JSON documents from TypeScript source files. See this
 [bug](https://github.com/bazelbuild/rules_nodejs/issues/1109).

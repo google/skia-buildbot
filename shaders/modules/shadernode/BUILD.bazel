@@ -3,7 +3,7 @@ load("//infra-sk:index.bzl", "karma_test", "ts_library")
 karma_test(
     name = "index_test",
     src = "index_test.ts",
-    karma_config_file = "//shaders:shaders.karma.conf.js",
+    karma_config_file = "//shaders:karma_config",
     static_karma_files = [
         "//shaders/wasm_libs:canvaskit.js",
         "//shaders/wasm_libs:canvaskit.wasm",

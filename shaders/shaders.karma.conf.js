@@ -1,12 +1,15 @@
+const os = require('os');
+
 // At this point, process.argv looks something like:
 // [
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/build_bazel_rules_nodejs/internal/node/_node_bin/node',
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/npm/node_modules/karma/bin/karma',
-//   'start',
-//   'shaders/modules/shadernode/shaders.karma.conf.js',
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/modules/shadernode/index_test_bundle.js',
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/test_bin/canvaskit.js',
-//   '/path/to/bazel/sandbox/execroot/skia_infra/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/test_bin/canvaskit.wasm'
+//  '/b/f/w/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/shaders/modules/shadernode/index_test_node_bin/node',
+//  '/b/f/w/bazel-out/k8-fastbuild/bin/shaders/modules/shadernode/index_test.sh.runfiles/skia_infra/node_modules/.aspect_rules_js/karma@6.3.16/node_modules/karma/bin/karma',
+//  'start',
+//  'shaders/shaders.karma.conf.js',
+//  'shaders/modules/shadernode/index_test_bundle.js',
+//  'shaders/wasm_libs/from_container/canvaskit.js',
+//  'shaders/wasm_libs/from_container/canvaskit.wasm',
+//  'shaders/wasm_libs/version.js'
 // ]
 const startIdx = process.argv.findIndex((v) => v === 'start');
 
@@ -27,11 +30,10 @@ const isBazelTest = !process.env.BUILD_WORKSPACE_DIRECTORY; // Set when running 
 // See:
 //  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
 //  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
-const bazelRunfilesDir = () =>
-  `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
+const bazelRunfilesDir = `${process.env.RUNFILES_DIR}/${process.env.TEST_WORKSPACE}`;
 
 // Forces Karma to use the Bazel-downloaded Google Chrome browser.
-process.env.CHROME_BIN = `${bazelRunfilesDir()}/external/google_chrome/opt/google/chrome/chrome`;
+process.env.CHROME_BIN = `${bazelRunfilesDir}/external/google_chrome/opt/google/chrome/chrome`;
 
 module.exports = function (config) {
   config.set({
@@ -49,14 +51,18 @@ module.exports = function (config) {
 
     files: [
       // We want the WASM file to be available for loading by the CanvasKit JS file.
-      { pattern: canvasKitWASMFile, included: false, served: true },
-      // We want the canvasKitJS file to be run before the tests so CanvasKitInit is defined.
-      { pattern: canvasKitJSFile },
-      { pattern: versionFile },
       {
-        pattern: jsTestFile,
-        // Force the test files to be served from disk on each request. Without this,
-        // interactive mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
+        pattern: `${bazelRunfilesDir}/${canvasKitWASMFile}`,
+        included: false,
+        served: true,
+      },
+      // We want the canvasKitJS file to be run before the tests so CanvasKitInit is defined.
+      { pattern: `${bazelRunfilesDir}/${canvasKitJSFile}` },
+      { pattern: `${bazelRunfilesDir}/${versionFile}` },
+      {
+        pattern: `${bazelRunfilesDir}/${jsTestFile}`,
+        // Force the test files to be served from disk on each request. Without this, interactive
+        // mode with ibazel does not work (e.g. "ibazel run //path/to/my:karma_test").
         nocache: true,
       },
     ],
@@ -64,7 +70,7 @@ module.exports = function (config) {
     proxies: {
       // This lets our tests just try to load /canvaskit_assets/canvaskit.wasm instead of the
       // actual path (which is deep inside Bazel's output directory)
-      '/canvaskit_assets/canvaskit.wasm': canvasKitWASMFile,
+      '/canvaskit_assets/canvaskit.wasm': `${bazelRunfilesDir}/${canvasKitWASMFile}`,
     },
 
     // Only use a headless browser when running as a test (i.e. "bazel test").
@@ -108,5 +114,12 @@ module.exports = function (config) {
     //     opened in the browser. Tests are rebuilt automatically when the code changes. Reload the
     //     page manually to see the changes.
     autoWatch: false,
+
+    // Set hostname so that, when running in interactive mode (e.g. "bazel run //path/to:test"),
+    // the test runner prints "Karma vX.Y.Z server started at http://<HOSTNAME>:9876", where
+    // <HOSTNAME> is the actual host's name rather than "localhost". This is useful when running
+    // tests in interactive mode remotely via SSH and one wishes to open the test runner page in a
+    // browser running locally.
+    hostname: os.hostname(),
   });
 };
