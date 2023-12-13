@@ -1,57 +1,46 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_extract")
-
-# Build Temporal from the source
-container_run_and_extract(
-    name = "temporal-build",
-    commands = [
-        "export CGO_ENABLED=0 GOOS=linux GOBIN=/tmp/temporal",
-        "mkdir -p /tmp/temporal /temporal/config/dynamicconfig",
-        "go install go.temporal.io/server/cmd/server@v1.22.2",
-        "go install go.temporal.io/server/cmd/tools/sql@v1.22.2",
-        "wget -P /temporal/config/ https://github.com/temporalio/temporal/raw/v1.22.2/docker/config_template.yaml",
-        "wget -O - https://github.com/temporalio/cli/releases/download/v0.10.7/temporal_cli_0.10.7_linux_amd64.tar.gz | tar xzf - -C /temporal",
-        "wget -O - https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz | tar xzf - -C /temporal",
-        "cp /tmp/temporal/server /temporal/temporal-server",
-        "cp /tmp/temporal/sql /temporal/temporal-sql-tool",
-    ],
-    extract_file = "/temporal",
-    image = "@golang//image",
-    tags = [
-        "manual",  # Exclusion from presubmit and RBE as it requires docker.
-        "no-remote",
-    ],
-)
 
 container_image(
     name = "temporal-admin",
     base = "@basealpine//image",
     entrypoint = ["/bin/sh"],
-    files = [
-        "temporal-build/temporal",
-    ],
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
         "no-remote",
     ],
     tars = [
-        "@com_github_temporal//:schemas",
+        "@com_github_temporal//:temporal",
     ],
-    workdir = "/",
+    workdir = "/etc/temporal",
 )
 
 # Docker image with Temporal server
 container_image(
     name = "temporal-server",
     base = "@basealpine//image",
+    # Temporal will need to generate yml file under config folder using
+    # environment vars. It needs root and access to the folder config.
+    empty_dirs = [
+        "/etc/temporal/config",
+    ],
+    empty_files = [
+        # The default dynamic config placeholder with empty content.
+        "/etc/temporal/config/dynamicconfig/docker.yaml",
+    ],
     entrypoint = ["/entrypoint.sh"],
+    env = {
+        "DYNAMIC_CONFIG_FILE_PATH": "/etc/temporal/config/dynamicconfig/docker.yaml",
+    },
     files = [
-        "temporal-build/temporal",
-        ":docker/entrypoint.sh",
+        "docker/entrypoint.sh",
     ],
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
         "no-remote",
     ],
-    workdir = "/",
+    tars = [
+        "@com_github_temporal//:temporal",
+    ],
+    user = "root",
+    workdir = "/etc/temporal",
 )

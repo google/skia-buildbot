@@ -21,6 +21,6 @@ if [[ -z "${TEMPORAL_ADDRESS:-}" ]]; then
     fi
 fi
 
-/temporal/dockerize -template /temporal/config/config_template.yaml:/tmp/docker.yaml
+/etc/temporal/dockerize -template /etc/config_template.yaml:/etc/temporal/config/docker.yaml
 
-exec /temporal/temporal-server --config /tmp -env docker start
+exec /etc/temporal/temporal-server --env docker start
