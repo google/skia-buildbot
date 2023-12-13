@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "buildbucket_taskbackend",
-    srcs = ["buildbucket_taskbackend.go"],
+    srcs = [
+        "buildbucket_taskbackend.go",
+        "server.go",
+    ],
     importpath = "go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend",
     visibility = ["//visibility:public"],
     deps = [
@@ -15,6 +18,8 @@ go_library(
         "//task_scheduler/go/db",
         "//task_scheduler/go/types",
         "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//grpc/prpc",
+        "@org_chromium_go_luci//server/router",
         "@org_golang_google_genproto_googleapis_rpc//status",
     ],
 )

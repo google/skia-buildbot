@@ -28,14 +28,14 @@ type TaskBackend struct {
 }
 
 // NewTaskBackend returns a TaskBackend instance.
-func NewTaskBackend(ctx context.Context, buildbucketTarget, taskSchedulerHost string, projectRepoMapping map[string]string, d db.JobDB, bb2 buildbucket.BuildBucketInterface) (*TaskBackend, error) {
+func NewTaskBackend(buildbucketTarget, taskSchedulerHost string, projectRepoMapping map[string]string, d db.JobDB, bb2 buildbucket.BuildBucketInterface) *TaskBackend {
 	return &TaskBackend{
 		bb2:                bb2,
 		buildbucketTarget:  buildbucketTarget,
 		db:                 d,
 		projectRepoMapping: projectRepoMapping,
 		taskSchedulerHost:  taskSchedulerHost,
-	}, nil
+	}
 }
 
 // RunTask implements TaskBackendServer.

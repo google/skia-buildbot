@@ -23,6 +23,9 @@ const (
 	// Bisecter can request a bisection.
 	Bisecter Role = "bisecter"
 
+	// Buildbucket represents the Buildbucket service.
+	Buildbucket Role = "buildbucket"
+
 	// If the above roles are not fine grained enough for your application add
 	// new Roles here and also remember to add them the AllValidRoles.
 
@@ -35,7 +38,7 @@ const (
 
 var (
 	// AllValidRoles is all valid Roles.
-	AllValidRoles Roles = []Role{Viewer, Editor, Admin, Bisecter}
+	AllValidRoles Roles = []Role{Viewer, Editor, Admin, Bisecter, Buildbucket}
 
 	// AllRoles is all Roles including InvalidRole.
 	AllRoles Roles = append(AllValidRoles, InvalidRole)

@@ -72,3 +72,17 @@ skia_app_container(
     },
     repository = "skia-public/task-scheduler-fe",
 )
+
+skia_app_container(
+    name = "task_scheduler_bbfe_container",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//task_scheduler/go/task-scheduler-fe:task-scheduler-fe",
+                "0755",
+            ],
+        ],
+    },
+    repository = "skia-public/task-scheduler-bbfe",
+)

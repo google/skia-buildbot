@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/proxylogin"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
@@ -29,12 +30,14 @@ import (
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/rpc"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -77,6 +80,7 @@ var (
 	// Flags.
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	buildbucketTarget = flag.String("buildbucket_target", "", "Target name used by Buildbucket to address this Task Scheduler.")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
@@ -172,21 +176,6 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to execute template.", http.StatusInternalServerError)
 		return
 	}
-}
-
-// makeJob creates a Job for the given repo, revision, and name.
-func makeJob(ctx context.Context, repo, revision, jobName string) (*types.Job, error) {
-	j, err := task_cfg_cache.MakeJob(ctx, taskCfgCache, types.RepoState{
-		Repo:     repo,
-		Revision: revision,
-	}, jobName)
-	if err != nil {
-		return nil, err
-	}
-	j.Requested = j.Created
-	j.IsForce = true
-	sklog.Infof("Created manually-triggered Job %q", j.Id)
-	return j, nil
 }
 
 func jobHandler(w http.ResponseWriter, r *http.Request) {
@@ -308,7 +297,7 @@ func addCorsMiddleware(handler http.Handler) http.Handler {
 	return corsWrapper.Handler(handler)
 }
 
-func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
+func runServer(serverURL string, srv, bbHandler http.Handler, plogin alogin.Login) {
 	r := chi.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.Handle("/dist/*", http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
@@ -322,6 +311,9 @@ func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.HandleFunc("/res/*", httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
+	if bbHandler != nil {
+		r.Handle("/bb/*", http.StripPrefix("/bb/", alogin.ForceRole(bbHandler, plogin, roles.Buildbucket)))
+	}
 
 	h := httputils.LoggingRequestResponse(r)
 	h = httputils.XFrameOptionsDeny(h)
@@ -335,7 +327,6 @@ func runServer(serverURL string, srv http.Handler, plogin alogin.Login) {
 }
 
 func main() {
-
 	// Global init.
 	common.InitWithMust(
 		APP_NAME,
@@ -424,7 +415,15 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	go runServer(serverURL, srv, plogin)
+	// Initialize Buildbucket TaskBackend.
+	var bbHandler http.Handler
+	if *buildbucketTarget != "" {
+		httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+		bb2 := buildbucket.NewClient(httpClient)
+		bbHandler = buildbucket_taskbackend.Handler(*buildbucketTarget, serverURL, common.PROJECT_REPO_MAPPING, tsDb, bb2)
+	}
+
+	go runServer(serverURL, srv, bbHandler, plogin)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}

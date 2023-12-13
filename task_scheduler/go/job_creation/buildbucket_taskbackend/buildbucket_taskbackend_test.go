@@ -49,8 +49,7 @@ func setup(t *testing.T) (context.Context, *TaskBackend, *mocks.JobDB, *buildbuc
 		fakeProject: fakeRepo,
 	}
 	db := &mocks.JobDB{}
-	tb, err := NewTaskBackend(ctx, fakeBuildbucketTarget, fakeTaskSchedulerHost, projectRepoMapping, db, bb)
-	require.NoError(t, err)
+	tb := NewTaskBackend(fakeBuildbucketTarget, fakeTaskSchedulerHost, projectRepoMapping, db, bb)
 	t.Cleanup(func() {
 		db.AssertExpectations(t)
 		bb.AssertExpectations(t)
