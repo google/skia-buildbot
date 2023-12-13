@@ -185,6 +185,14 @@ http_archive(
 )
 
 http_archive(
+    name = "com_github_temporal_cli",
+    build_file = "//temporal:temporal-cli.BUILD",
+    sha256 = "23ec436df5bb5fcd3ad25ace1ba5fc5af9666f28426d47d8a64a7bdf660b069a",
+    strip_prefix = "./cli-0.10.7",
+    url = "https://github.com/temporalio/cli/archive/refs/tags/v0.10.7.tar.gz",
+)
+
+http_archive(
     name = "com_github_temporal_ui",
     build_file = "//temporal:temporal-ui.BUILD",
     sha256 = "6a8497bfb8c626964cde26f7d049fd6fbe4e2d609fb9774f0cb09bb97f8730c3",
