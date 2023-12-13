@@ -23,6 +23,23 @@ container_run_and_extract(
     ],
 )
 
+container_image(
+    name = "temporal-admin",
+    base = "@basealpine//image",
+    entrypoint = ["/bin/sh"],
+    files = [
+        "temporal-build/temporal",
+    ],
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+    tars = [
+        "@com_github_temporal//:schemas",
+    ],
+    workdir = "/",
+)
+
 # Docker image with Temporal server
 container_image(
     name = "temporal-server",

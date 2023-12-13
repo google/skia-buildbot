@@ -176,6 +176,14 @@ http_archive(
     url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
 )
 
+http_archive(
+    name = "com_github_temporal",
+    build_file = "//temporal:BUILD.github",
+    sha256 = "8ab8cbe6092877904df40cbf6640936a9d68421520b877faa39e6e6775a95bcb",
+    strip_prefix = "./temporal-1.22.3",
+    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.22.3.tar.gz",
+)
+
 ###################################################
 # JavaScript / TypeScript rules and dependencies. #
 ###################################################
