@@ -27,10 +27,9 @@ container_run_and_extract(
     commands = [
         "export CGO_ENABLED=0 GOOS=linux",
         "mkdir -p /temporal",
-        "make bins",
-        "mv temporal-server temporal-sql-tool tdbg /temporal/.",
-        "wget -O - https://github.com/temporalio/cli/releases/download/v0.10.7/temporal_cli_0.10.7_linux_amd64.tar.gz | tar xzf - -C /temporal",
-        "wget -O - https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz | tar xzf - -C /temporal",
+        "go build -o /temporal/temporal-server ./cmd/server",
+        "go build -o /temporal/tdbg ./cmd/tools/tdbg",
+        "go build -o /temporal/temporal-sql-tool ./cmd/tools/sql",
     ],
     extract_file = "/temporal",
     image = ":temporal-srcs.tar",
