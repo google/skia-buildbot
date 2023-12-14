@@ -25,7 +25,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":domains_ts_lib",
-        "//npm_deps:lit-html",
+        "//:node_modules/lit-html",
     ],
 )
 
@@ -47,7 +47,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":delay_ts_lib",
-        "//npm_deps:@ffmpeg/ffmpeg",
+        "//:node_modules/@ffmpeg/ffmpeg",
         "//skottie/modules/skottie-player-sk",
     ],
 )

@@ -20,9 +20,9 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//leasing/modules/json:index_ts_lib",
         "//leasing/modules:leasing_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",

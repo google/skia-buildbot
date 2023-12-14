@@ -14,9 +14,9 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "clipboard-sk.ts",
@@ -39,8 +39,8 @@ sk_element_puppeteer_test(
     src = "clipboard-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -50,10 +50,10 @@ karma_test(
     src = "clipboard-sk_test.ts",
     deps = [
         ":clipboard-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//infra-sk/modules/tooltip-sk",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

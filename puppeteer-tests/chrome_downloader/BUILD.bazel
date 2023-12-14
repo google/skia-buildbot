@@ -15,8 +15,8 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":chrome_executable_path_ts_lib",
-        "//npm_deps:@puppeteer/browsers",
-        "//npm_deps:puppeteer-core",
+        "//:node_modules/@puppeteer/browsers",
+        "//:node_modules/puppeteer-core",
     ],
 )
 

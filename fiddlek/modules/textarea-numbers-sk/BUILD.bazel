@@ -51,9 +51,9 @@ sk_element(
     sk_element_deps = ["//infra-sk/modules/theme-chooser-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:codemirror5",
-        "//npm_deps:@types/codemirror5",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/@types/codemirror5",
+        "//:node_modules/codemirror5",
     ],
     ts_srcs = [
         "index.ts",
@@ -77,8 +77,8 @@ sk_element_puppeteer_test(
     src = "textarea-numbers-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

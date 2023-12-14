@@ -32,8 +32,8 @@ karma_test(
     src = "uniform-imageresolution-sk_test.ts",
     deps = [
         ":uniform-imageresolution-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

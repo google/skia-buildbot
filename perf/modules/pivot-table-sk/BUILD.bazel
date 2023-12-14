@@ -19,13 +19,13 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/pivotutil:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:query_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "pivot-table-sk.ts",
@@ -50,8 +50,8 @@ sk_element_puppeteer_test(
     src = "pivot-table-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -61,10 +61,10 @@ karma_test(
     src = "pivot-table-sk_test.ts",
     deps = [
         ":pivot-table-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//perf/modules/json:index_ts_lib",
     ],
 )

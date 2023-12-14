@@ -5,10 +5,10 @@ karma_test(
     src = "am_test.ts",
     deps = [
         ":am_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:@types/sinon",
-        "//npm_deps:chai",
-        "//npm_deps:sinon",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/sinon",
     ],
 )
 
@@ -17,8 +17,8 @@ ts_library(
     srcs = ["am.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/lit-html",
         "//am/modules/json:index_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//npm_deps:lit-html",
     ],
 )

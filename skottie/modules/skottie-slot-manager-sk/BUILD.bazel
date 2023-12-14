@@ -11,10 +11,10 @@ sk_element(
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//skottie/modules/helpers:color_ts_lib",
         ":slot-info_ts_lib",
         ":skottie-vec2-input-sk_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -34,8 +34,8 @@ ts_library(
     srcs = ["skottie-vec2-input-sk.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
     ],
 )

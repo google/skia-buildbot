@@ -5,10 +5,10 @@ sk_element(
     sass_srcs = ["skottie-performance-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:chart.js",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/chart.js",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",

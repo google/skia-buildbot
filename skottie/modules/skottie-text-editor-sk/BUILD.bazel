@@ -11,7 +11,7 @@ sk_element(
         "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules:types_ts_lib",
         ":text-replace_ts_lib",
-        "//npm_deps:lit-html",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",

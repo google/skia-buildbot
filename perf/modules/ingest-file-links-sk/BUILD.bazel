@@ -14,12 +14,12 @@ sk_element(
     sk_element_deps = ["//elements-sk/modules/spinner-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//perf/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "ingest-file-links-sk.ts",
@@ -32,7 +32,7 @@ sk_page(
     name = "ingest-file-links-sk-demo",
     html_file = "ingest-file-links-sk-demo.html",
     sk_element_deps = [":ingest-file-links-sk"],
-    ts_deps = ["//npm_deps:fetch-mock"],
+    ts_deps = ["//:node_modules/fetch-mock"],
     ts_entry_point = "ingest-file-links-sk-demo.ts",
 )
 
@@ -41,8 +41,8 @@ sk_element_puppeteer_test(
     src = "ingest-file-links-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -52,11 +52,11 @@ karma_test(
     src = "ingest-file-links-sk_test.ts",
     deps = [
         ":ingest-file-links-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//elements-sk/modules/spinner-sk",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
     ],
 )

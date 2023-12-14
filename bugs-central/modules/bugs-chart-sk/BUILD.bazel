@@ -8,10 +8,10 @@ sk_element(
         # Provides types for the @google-web-components/google-chart import, which does not follow
         # the import naming convention expected by the Gazelle front-end extension, and thus needs
         # to be added manually.
-        "//npm_deps:@types/google.visualization",  # keep
-        "//npm_deps:lit-html",
-        "//npm_deps:@google-web-components/google-chart",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/google.visualization",  # keep
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "bugs-chart-sk.ts",
@@ -32,8 +32,8 @@ sk_element_puppeteer_test(
     src = "bugs-chart-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

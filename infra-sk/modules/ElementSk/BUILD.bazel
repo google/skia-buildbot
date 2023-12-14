@@ -5,10 +5,10 @@ karma_test(
     src = "ElementSk_test.ts",
     deps = [
         ":elementsk_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/lit-html",
         "//elements-sk/modules:define_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:lit-html",
     ],
 )
 
@@ -17,8 +17,8 @@ ts_library(
     srcs = ["ElementSk.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/lit-html",
         "//elements-sk/modules:upgradeproperty_ts_lib",
-        "//npm_deps:lit-html",
     ],
 )
 

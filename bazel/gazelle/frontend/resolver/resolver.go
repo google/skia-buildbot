@@ -26,20 +26,6 @@ const (
 	//     $ bazel run gazelle -- update --lang go,frontend
 	gazelleExtensionName = "frontend"
 
-	// Bazel package with aliases to NPM modules.
-	//
-	// Under rules_nodejs, one can establish a dependency to a NPM module named "foo" via the
-	// "@npm//foo" Bazel label. However, we are currently migrating to rules_js (b/314813928), which
-	// exposes NPM modules to Bazel using a different naming convention. To ease the transition and
-	// minimize diffs during reviews, we have created aliases for all NPM dependencies in
-	// //npm_deps/BUILD.bazel so that we can express dependencies to the "foo" NPM module via
-	// "//npm_deps:foo" rather than "@npm//foo".
-	//
-	// After the bulk of the migration is done, these aliase will be deleted and we will update this
-	// Gazelle extension to generate dependencies using the naming convention native to rules_js.
-	// Again, the goal of these aliases is to minimize diffs during reviews.
-	npmDepsBazelPackage = "npm_deps"
-
 	// packageJsonPath is the path to the package.json file used by the npm_install rule in the
 	// workspace file. This path is relative to the workspace root directory.
 	packageJsonPath = "package.json"
@@ -409,8 +395,8 @@ func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel 
 		var rkals []ruleKindAndLabel
 		// Add as dependencies both the module and its type annotations package, if it exists.
 		rkals = append(rkals, ruleKindAndLabel{
-			kind:  "",                                                           // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-			label: label.New("", npmDepsBazelPackage, fullyQualifiedModuleName), // e.g. //npm_deps:puppeteer
+			kind:  "",                                                                                 // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+			label: label.New("" /* =repo */, "" /* =pkg */, "node_modules/"+fullyQualifiedModuleName), // e.g. //:node_modules/puppeteer
 		})
 
 		// We assume that scoped packages (e.g. @google-web-components/google-chart) include type
@@ -419,8 +405,8 @@ func (rslv *Resolver) resolveDepsForTypeScriptImport(ruleKind string, ruleLabel 
 			typesModuleName := "@types/" + moduleName // e.g. @types/my-module
 			if npmPackages[typesModuleName] {
 				rkals = append(rkals, ruleKindAndLabel{
-					kind:  "",                                                  // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
-					label: label.New("", npmDepsBazelPackage, typesModuleName), // e.g. //npm_deps:@types/puppeteer
+					kind:  "",                                                                        // This dependency is not a rule (e.g. ts_library), so we leave the rule kind blank.
+					label: label.New("" /* =repo */, "" /* =pkg */, "node_modules/"+typesModuleName), // e.g. //:node_modules/@types/puppeteer
 				})
 			}
 		}

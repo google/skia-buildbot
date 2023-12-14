@@ -19,10 +19,10 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules:linkify_ts_lib",
         "//status/modules/rpc:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "comments-sk.ts",
@@ -48,8 +48,8 @@ sk_element_puppeteer_test(
     src = "comments-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -60,10 +60,10 @@ karma_test(
     deps = [
         ":comments-sk",
         ":test_data_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//status/modules/rpc-mock:index_ts_lib",
     ],
 )

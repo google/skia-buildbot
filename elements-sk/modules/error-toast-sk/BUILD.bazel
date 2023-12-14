@@ -20,10 +20,10 @@ karma_test(
     src = "error-toast-sk_test.ts",
     deps = [
         ":error-toast-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//elements-sk/modules:errormessage_ts_lib",
         "//elements-sk/modules/toast-sk",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

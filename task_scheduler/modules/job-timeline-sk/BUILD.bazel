@@ -39,9 +39,9 @@ sk_element_puppeteer_test(
     src = "job-timeline-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules/theme-chooser-sk",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

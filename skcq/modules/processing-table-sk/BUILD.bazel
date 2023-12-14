@@ -26,9 +26,9 @@ sk_element(
         "//infra-sk/modules:string_ts_lib",
         "//skcq/modules/json:index_ts_lib",
         "//skcq/modules:skcq_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:human_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -43,7 +43,7 @@ sk_page(
     sk_element_deps = [":processing-table-sk"],
     ts_deps = [
         "//skcq/modules/json:index_ts_lib",
-        "//npm_deps:fetch-mock",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "processing-table-sk-demo.ts",
 )
@@ -53,8 +53,8 @@ sk_element_puppeteer_test(
     src = "processing-table-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

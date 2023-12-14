@@ -277,14 +277,14 @@ nodejs_test(
     deps = [
         ":alfa_ts_lib",
         ":bravo_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -306,14 +306,14 @@ karma_test(
     deps = [
         ":alfa_ts_lib",
         ":bravo_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -323,14 +323,14 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":bravo_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
         "//c:index_ts_lib",
         "//d_ts_lib",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -461,13 +461,13 @@ sk_element(
         "//myapp/modules/subdirectory/juliett-sk",
     ],
     ts_deps = [
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
         ":wibble_ts_lib",
     ],
     ts_srcs = [
@@ -492,13 +492,13 @@ sk_page(
         ":foxtrot-sk",
     ],
     ts_deps = [
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
         ":wibble_ts_lib",
     ],
     ts_entry_point = "foxtrot-sk-demo.ts",
@@ -511,14 +511,14 @@ sk_element_puppeteer_test(
     deps = [
         ":foxtrot-sk",
         ":wibble_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         "//myapp/modules/hotel-sk",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -528,14 +528,14 @@ karma_test(
     deps = [
         ":foxtrot-sk",
         ":wibble_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/puppeteer",
+        "//:node_modules/lit-html",
+        "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
         "//myapp/modules/foxtrot-sk/wobble:wubble_ts_lib",
         "//myapp/modules/hotel-sk",
-        "//npm_deps:@google-web-components/google-chart",
-        "//npm_deps:@types/puppeteer",
-        "//npm_deps:lit-html",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -718,8 +718,8 @@ nodejs_test(
     deps = [
         ":alfa_ts_lib",
         # Not imported from alfa_nodejs_test.ts. Gazelle should remove this dep.
-        "//npm_deps:common-sk",
-        "//npm_deps:elements-sk",
+        "//:node_modules/common-sk",
+        "//:node_modules/elements-sk",
     ],
 )
 
@@ -738,8 +738,8 @@ karma_test(
     src = "alfa_test.ts",
     deps = [
         ":alfa_ts_lib",
-        "//npm_deps:common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
-        "//npm_deps:elements-sk",
+        "//:node_modules/common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
+        "//:node_modules/elements-sk",
     ],
 )
 
@@ -748,8 +748,8 @@ ts_library(
     srcs = ["alfa.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//npm_deps:common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
-        "//npm_deps:elements-sk",
+        "//:node_modules/common-sk",  # Not imported from alfa.ts. Gazelle should remove this dep.
+        "//:node_modules/elements-sk",
     ],
 )
 
@@ -828,8 +828,8 @@ sk_element(
     ],
     ts_deps = [
         # Not imported from echo-sk.ts. Gazelle should remove this dep.
-        "//npm_deps:common-sk",
-        "//npm_deps:lit-html",
+        "//:node_modules/common-sk",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = ["echo-sk.ts"],
     visibility = ["//visibility:public"],
@@ -850,9 +850,9 @@ sk_page(
         "//myapp/modules/golf-sk",
     ],
     ts_deps = [
-        "//npm_deps:common-sk",
+        "//:node_modules/common-sk",
         # Not imported from echo-sk-demo.ts. Gazelle should remove this dep.
-        "//npm_deps:elements-sk",
+        "//:node_modules/elements-sk",
     ],
     ts_entry_point = "echo-sk-demo.ts",
 )
@@ -864,11 +864,11 @@ sk_element_puppeteer_test(
     deps = [
         ":echo-sk",
         # Not imported from echo-sk_puppeteer_test.ts. Gazelle should remove this dep.
+        "//:node_modules/common-sk",
+        "//:node_modules/elements-sk",
+        # Not imported from echo-sk_puppeteer_test.ts. Gazelle should remove this dep.
         "//myapp/modules/foxtrot-sk",
         "//myapp/modules/golf-sk",
-        # Not imported from echo-sk_puppeteer_test.ts. Gazelle should remove this dep.
-        "//npm_deps:common-sk",
-        "//npm_deps:elements-sk",
     ],
 )
 
@@ -878,11 +878,11 @@ karma_test(
     deps = [
         ":echo-sk",
         # Not imported from echo-sk_test.ts. Gazelle should remove this dep.
+        "//:node_modules/common-sk",
+        "//:node_modules/elements-sk",
+        # Not imported from echo-sk_test.ts. Gazelle should remove this dep.
         "//myapp/modules/foxtrot-sk",
         "//myapp/modules/golf-sk",
-        # Not imported from echo-sk_test.ts. Gazelle should remove this dep.
-        "//npm_deps:common-sk",
-        "//npm_deps:elements-sk",
     ],
 )
 
@@ -1015,8 +1015,8 @@ nodejs_test(
     src = "alfa_nodejs_test.ts",
     deps = [
         ":alfa_ts_lib",
-        "//npm_deps:elements-sk",
-        "//npm_deps:lit-html",
+        "//:node_modules/elements-sk",
+        "//:node_modules/lit-html",
     ],
 )
 
@@ -1035,8 +1035,8 @@ karma_test(
     src = "alfa_test.ts",
     deps = [
         ":alfa_ts_lib",
-        "//npm_deps:elements-sk",
-        "//npm_deps:lit-html",
+        "//:node_modules/elements-sk",
+        "//:node_modules/lit-html",
     ],
 )
 
@@ -1045,8 +1045,8 @@ ts_library(
     srcs = ["alfa.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//npm_deps:elements-sk",
-        "//npm_deps:lit-html",
+        "//:node_modules/elements-sk",
+        "//:node_modules/lit-html",
     ],
 )
 
@@ -1086,8 +1086,8 @@ sk_element(
         "//myapp/modules/hotel-sk",
     ],
     ts_deps = [
-        "//npm_deps:lit-html",
-        "//npm_deps:elements-sk",
+        "//:node_modules/lit-html",
+        "//:node_modules/elements-sk",
     ],
     ts_srcs = [
         "echo-sk.ts",
@@ -1110,8 +1110,8 @@ sk_page(
         "//myapp/modules/hotel-sk",
     ],
     ts_deps = [
-        "//npm_deps:common-sk",
-        "//npm_deps:lit-html",
+        "//:node_modules/common-sk",
+        "//:node_modules/lit-html",
     ],
     ts_entry_point = "echo-sk-demo.ts",
 )
@@ -1122,10 +1122,10 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":echo-sk",
+        "//:node_modules/elements-sk",
+        "//:node_modules/lit-html",
         "//myapp/modules/golf-sk",
         "//myapp/modules/hotel-sk",
-        "//npm_deps:elements-sk",
-        "//npm_deps:lit-html",
     ],
 )
 
@@ -1134,10 +1134,10 @@ karma_test(
     src = "echo-sk_test.ts",
     deps = [
         ":echo-sk",
+        "//:node_modules/elements-sk",
+        "//:node_modules/lit-html",
         "//myapp/modules/golf-sk",
         "//myapp/modules/hotel-sk",
-        "//npm_deps:elements-sk",
-        "//npm_deps:lit-html",
     ],
 )
 

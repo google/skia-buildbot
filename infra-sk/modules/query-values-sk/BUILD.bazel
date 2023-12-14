@@ -15,8 +15,8 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -51,8 +51,8 @@ karma_test(
     deps = [
         ":query-values-sk",
         ":query-values-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

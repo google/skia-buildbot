@@ -18,10 +18,10 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "details-page-sk.ts",
@@ -44,9 +44,9 @@ sk_page(
         "//golden/modules/digest-details-sk:test_data_ts_lib",
         "//golden/modules/last-commit-sk:demo_data_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:fetch-mock",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "details-page-sk-demo.ts",
 )
@@ -67,9 +67,9 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":details-page-sk_po_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -80,13 +80,13 @@ karma_test(
     deps = [
         ":details-page-sk",
         ":details-page-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//golden/modules:rpc_types_ts_lib",
         "//golden/modules/digest-details-sk:test_data_ts_lib",
         "//golden/modules/search-page-sk:demo_data_ts_lib",
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
     ],
 )

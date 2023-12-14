@@ -9,9 +9,9 @@ sk_element(
     name = "example-control-sk",
     sass_srcs = ["example-control-sk.scss"],
     ts_deps = [
+        "//:node_modules/lit-html",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
-        "//npm_deps:lit-html",
     ],
     ts_srcs = [
         "example-control-sk.ts",
@@ -33,8 +33,8 @@ sk_element_puppeteer_test(
     src = "example-control-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -44,8 +44,8 @@ karma_test(
     src = "example-control-sk_test.ts",
     deps = [
         ":example-control-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

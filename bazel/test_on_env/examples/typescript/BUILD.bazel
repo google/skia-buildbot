@@ -10,9 +10,9 @@ nodejs_test(
     tags = ["manual"],
     visibility = ["//bazel/test_on_env:__pkg__"],
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
     ],
 )

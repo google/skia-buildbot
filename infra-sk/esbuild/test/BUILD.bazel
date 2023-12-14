@@ -29,7 +29,7 @@ nodejs_test(
         ":prod_bundle.js",
     ],
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
     ],
 )

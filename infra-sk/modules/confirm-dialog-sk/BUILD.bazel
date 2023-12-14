@@ -5,8 +5,8 @@ sk_element(
     sass_deps = ["//elements-sk/modules/styles:buttons_sass_lib"],
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "confirm-dialog-sk.ts",
@@ -30,9 +30,9 @@ karma_test(
     src = "confirm-dialog-sk_test.ts",
     deps = [
         ":confirm-dialog-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )
 

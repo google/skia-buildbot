@@ -5,9 +5,9 @@ karma_test(
     src = "index_test.ts",
     deps = [
         ":index_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//machine/modules/json:index_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )
 

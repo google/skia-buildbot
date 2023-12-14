@@ -21,8 +21,8 @@ sk_element(
     ts_deps = [
         "//golden/modules:common_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "image-compare-sk.ts",
@@ -56,8 +56,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":image-compare-sk_po_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -68,8 +68,8 @@ karma_test(
     deps = [
         ":image-compare-sk",
         ":image-compare-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

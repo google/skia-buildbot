@@ -63,11 +63,11 @@ sk_element(
         "//shaders/modules/debug-trace-player:debug-trace-player_ts_lib",
         "//shaders/modules/debug-trace:debug-trace_ts_lib",
         "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
-        "//npm_deps:@types/codemirror",
-        "//npm_deps:codemirror",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/@types/codemirror",
+        "//:node_modules/codemirror",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -90,8 +90,8 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":demo_data_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -108,12 +108,12 @@ karma_test(
     deps = [
         ":debugger-app-sk",
         ":demo_data_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/codemirror",
+        "//:node_modules/chai",
+        "//:node_modules/codemirror",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:@types/codemirror",
-        "//npm_deps:chai",
-        "//npm_deps:codemirror",
     ],
 )
 

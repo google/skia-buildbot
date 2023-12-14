@@ -29,8 +29,8 @@ def ts_library(name, srcs, deps = [], **kwargs):
 
     # Keep in sync with the "types" field in //tsconfig.json.
     ambient_types = [
-        "//npm_deps:@types/mocha",
-        "//npm_deps:@types/node",
+        "//:node_modules/@types/mocha",
+        "//:node_modules/@types/node",
     ]
 
     ts_project(

@@ -13,9 +13,9 @@ sk_element(
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
-        "//npm_deps:lit-html",
-        "//npm_deps:jszip",
         "//skottie/modules/helpers:delay_ts_lib",
+        "//:node_modules/jszip",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",

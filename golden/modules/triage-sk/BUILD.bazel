@@ -22,8 +22,8 @@ sk_element(
     ts_deps = [
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -60,9 +60,9 @@ sk_element_puppeteer_test(
     sk_demo_page_server = ":demo_page_server",
     deps = [
         ":triage-sk_po_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -73,9 +73,9 @@ karma_test(
     deps = [
         ":triage-sk",
         ":triage-sk_po_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//golden/modules:rpc_types_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

@@ -6,11 +6,11 @@ nodejs_test(
     src = "util_nodejs_test.ts",
     deps = [
         ":util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:@types/express",
-        "//npm_deps:chai",
-        "//npm_deps:express",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/express",
+        "//:node_modules/chai",
+        "//:node_modules/express",
+        "//:node_modules/puppeteer",
     ],
 )
 
@@ -31,7 +31,7 @@ ts_library(
     }),
     visibility = ["//visibility:public"],
     deps = [
-        "//npm_deps:puppeteer",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests/chrome_downloader:chrome_executable_path_ts_lib",
     ],
 )

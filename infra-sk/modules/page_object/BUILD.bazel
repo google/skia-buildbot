@@ -15,9 +15,9 @@ nodejs_test(
     deps = [
         ":page_object_element_test_cases_ts_lib",
         ":page_object_element_ts_lib",
-        "//npm_deps:@types/express",
-        "//npm_deps:express",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/express",
+        "//:node_modules/express",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -28,8 +28,8 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":page_object_element_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
     ],
 )
 
@@ -38,8 +38,8 @@ ts_library(
     srcs = ["page_object_element.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//:node_modules/puppeteer",
         "//infra-sk/modules:async_ts_lib",
-        "//npm_deps:puppeteer",
     ],
 )
 
@@ -49,6 +49,6 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":page_object_element_ts_lib",
-        "//npm_deps:puppeteer",
+        "//:node_modules/puppeteer",
     ],
 )

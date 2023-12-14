@@ -15,8 +15,8 @@ sk_element(
     sk_element_deps = ["//elements-sk/modules/icons/invert-colors-icon-sk"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -58,10 +58,10 @@ sk_page(
         "//perf/modules/calendar-input-sk",
     ],
     ts_deps = [
-        "//npm_deps:lit-html",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:gentheme_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_entry_point = "theme-chooser-sk-demo.ts",
 )
@@ -71,8 +71,8 @@ sk_element_puppeteer_test(
     src = "theme-chooser-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -82,8 +82,8 @@ karma_test(
     src = "theme-chooser-sk_test.ts",
     deps = [
         ":theme-chooser-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

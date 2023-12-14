@@ -11,9 +11,9 @@ karma_test(
     ],
     deps = [
         ":index_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//shaders/modules/json:index_ts_lib",
         "//shaders/wasm_libs:canvaskit_types",  # keep
     ],

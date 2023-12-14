@@ -13,8 +13,8 @@ sk_element(
     sass_srcs = ["task-graph-sk.scss"],
     ts_deps = [
         "//task_scheduler/modules/rpc:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -40,9 +40,9 @@ sk_element_puppeteer_test(
     src = "task-graph-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules/theme-chooser-sk",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -52,9 +52,9 @@ karma_test(
     src = "task-graph-sk_test.ts",
     deps = [
         ":task-graph-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//task_scheduler/modules/rpc-mock:index_ts_lib",
     ],
 )

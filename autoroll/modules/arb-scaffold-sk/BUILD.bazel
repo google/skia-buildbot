@@ -18,9 +18,9 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "arb-scaffold-sk.ts",
@@ -34,8 +34,8 @@ sk_page(
     html_file = "arb-scaffold-sk-demo.html",
     sk_element_deps = [":arb-scaffold-sk"],
     ts_deps = [
-        "//npm_deps:fetch-mock",
         "//infra-sk/modules/json:index_ts_lib",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "arb-scaffold-sk-demo.ts",
 )

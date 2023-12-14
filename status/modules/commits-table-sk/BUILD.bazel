@@ -28,7 +28,6 @@ sk_element(
         "//status/modules/rpc:index_ts_lib",
         "//status/modules/rpc:status_ts_lib",
         "//status/modules:settings_ts_lib",
-        "//npm_deps:lit-html",
         "//status/modules:util_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
@@ -36,6 +35,7 @@ sk_element(
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "commits-table-sk.ts",
@@ -66,10 +66,10 @@ karma_test(
     src = "commits-table-sk_test.ts",
     deps = [
         ":commits-table-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
         "//status/modules:settings_ts_lib",
         "//status/modules/rpc:index_ts_lib",
         "//status/modules/rpc-mock:index_ts_lib",

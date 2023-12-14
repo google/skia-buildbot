@@ -11,13 +11,13 @@ sk_element(
     ts_deps = [
         "//bugs-central/modules/json:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "bugs-central-sk.ts",
@@ -30,7 +30,7 @@ sk_page(
     name = "bugs-central-sk-demo",
     html_file = "bugs-central-sk-demo.html",
     sk_element_deps = [":bugs-central-sk"],
-    ts_deps = ["//npm_deps:fetch-mock"],
+    ts_deps = ["//:node_modules/fetch-mock"],
     ts_entry_point = "bugs-central-sk-demo.ts",
 )
 
@@ -39,8 +39,8 @@ sk_element_puppeteer_test(
     src = "bugs-central-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

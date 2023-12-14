@@ -12,10 +12,10 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules/url:index_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "alogin-sk.ts",
@@ -31,7 +31,7 @@ sk_page(
     sk_element_deps = [":alogin-sk"],
     ts_deps = [
         "//infra-sk/modules/json:index_ts_lib",
-        "//npm_deps:fetch-mock",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "alogin-sk-demo.ts",
 )
@@ -41,8 +41,8 @@ sk_element_puppeteer_test(
     src = "alogin-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -52,8 +52,8 @@ karma_test(
     src = "alogin-sk_test.ts",
     deps = [
         ":alogin-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
     ],
 )

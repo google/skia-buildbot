@@ -82,10 +82,6 @@ sk_element(
         "//skottie/modules/helpers:templates_ts_lib",
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
-        "//npm_deps:@types/jsoneditor",
-        "//npm_deps:jsoneditor",
-        "//npm_deps:lit-html",
-        "//npm_deps:lottie-web",
         "//skottie/modules/skottie-shader-editor-sk:shader-replace_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
@@ -94,6 +90,10 @@ sk_element(
         "//infra-sk/modules:statereflector_ts_lib",
         "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules/window:window_ts_lib",
+        "//:node_modules/@types/jsoneditor",
+        "//:node_modules/jsoneditor",
+        "//:node_modules/lit-html",
+        "//:node_modules/lottie-web",
     ],
     ts_srcs = [
         "index.ts",
@@ -109,8 +109,8 @@ sk_page(
     sk_element_deps = [":skottie-sk"],
     ts_deps = [
         ":test_gear_ts_lib",
-        "//npm_deps:fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "skottie-sk-demo.ts",
 )
@@ -120,9 +120,9 @@ sk_element_puppeteer_test(
     src = "skottie-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:puppeteer",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/puppeteer",
         "//puppeteer-tests:util_ts_lib",
     ],
 )

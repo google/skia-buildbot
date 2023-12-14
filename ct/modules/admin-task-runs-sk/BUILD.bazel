@@ -11,12 +11,12 @@ sk_element(
         "//ct/modules/json:index_ts_lib",
         "//ct/modules:ctfe_utils_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "admin-task-runs-sk.ts",
@@ -34,7 +34,7 @@ sk_page(
     ],
     ts_deps = [
         ":test_data_ts_lib",
-        "//npm_deps:fetch-mock",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "admin-task-runs-sk-demo.ts",
 )
@@ -45,13 +45,13 @@ karma_test(
     deps = [
         ":admin-task-runs-sk",
         ":test_data_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/@types/sinon",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//:node_modules/sinon",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:@types/sinon",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
-        "//npm_deps:sinon",
     ],
 )
 

@@ -33,9 +33,9 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//golden/modules:settings_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "gold-scaffold-sk.ts",
@@ -60,8 +60,8 @@ sk_element_puppeteer_test(
     src = "gold-scaffold-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
         "//puppeteer-tests:util_ts_lib",
     ],
 )
@@ -71,14 +71,14 @@ karma_test(
     src = "gold-scaffold-sk_test.ts",
     deps = [
         ":gold-scaffold-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//elements-sk/modules/spinner-sk",
         "//golden/modules:common_ts_lib",
         "//golden/modules:settings_ts_lib",
         "//golden/modules/last-commit-sk:demo_data_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
     ],
 )

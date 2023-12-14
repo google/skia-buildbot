@@ -35,11 +35,11 @@ sk_element(
     ts_deps = [
         "//ct/modules:ctfe_utils_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "ct-scaffold-sk.ts",
@@ -60,12 +60,12 @@ karma_test(
     src = "ct-scaffold-sk_test.ts",
     deps = [
         ":ct-scaffold-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//elements-sk/modules/spinner-sk",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
     ],
 )
 

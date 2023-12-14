@@ -5,10 +5,10 @@ karma_test(
     src = "progress_test.ts",
     deps = [
         ":progress_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//elements-sk/modules/spinner-sk",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
         "//perf/modules/json:index_ts_lib",
     ],
 )

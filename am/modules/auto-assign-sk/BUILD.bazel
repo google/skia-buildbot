@@ -10,10 +10,10 @@ sk_element(
     sass_srcs = ["auto-assign-sk.scss"],
     ts_deps = [
         "//am/modules/json:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "auto-assign-sk.ts",

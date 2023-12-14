@@ -5,8 +5,8 @@ karma_test(
     src = "ctfe_utils_test.ts",
     deps = [
         ":ctfe_utils_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
     ],
 )
 

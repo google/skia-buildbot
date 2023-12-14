@@ -6,10 +6,10 @@ sk_element(
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",
-        "//npm_deps:@types/howler",
-        "//npm_deps:howler",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/@types/howler",
+        "//:node_modules/howler",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",

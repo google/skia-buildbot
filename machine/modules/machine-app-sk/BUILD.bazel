@@ -20,11 +20,11 @@ sk_element(
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
@@ -38,8 +38,8 @@ sk_page(
     html_file = "machine-app-sk-demo.html",
     sk_element_deps = [":machine-app-sk"],
     ts_deps = [
-        "//npm_deps:fetch-mock",
         "//machine/modules/machines-table-sk:demo_data_ts_lib",
+        "//:node_modules/fetch-mock",
     ],
     ts_entry_point = "machine-app-sk-demo.ts",
 )
@@ -49,10 +49,10 @@ karma_test(
     src = "machine-app-sk_test.ts",
     deps = [
         ":machine-app-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
         "//infra-sk/modules:dom_ts_lib",
         "//machine/modules/json:index_ts_lib",
-        "//npm_deps:@types/chai",
-        "//npm_deps:chai",
-        "//npm_deps:fetch-mock",
     ],
 )

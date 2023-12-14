@@ -14,9 +14,9 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:audio_ts_lib",
         "//skottie/modules:types_ts_lib",
-        "//npm_deps:lit-html",
         "//elements-sk/modules:errormessage_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/lit-html",
     ],
     ts_srcs = [
         "index.ts",
