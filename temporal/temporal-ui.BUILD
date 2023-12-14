@@ -32,12 +32,32 @@ container_run_and_extract(
     image = ":temporalui-srcs.tar",
 )
 
-# The built temporal UI server
 pkg_tar(
-    name = "temporal-ui-server",
+    name = "temporalui-pkg",
     srcs = [
+        ":docker/config-template.yaml",
+        ":docker/start-ui-server.sh",
         ":ui-server/temporalui-srcs/ui-server",
+        "@com_github_dockerize//:dockerize",
     ],
     package_dir = "/etc/temporal",
+)
+
+# The built temporal UI image
+container_image(
+    name = "temporal-ui",
+    base = "@basealpine//image",
+    empty_dirs = [
+        "/etc/temporal/config",
+    ],
+    entrypoint = "sh /etc/temporal/start-ui-server.sh",
+    symlinks = {
+        "/usr/bin/dockerize": "/etc/temporal/dockerize",
+    },
+    tars = [
+        ":temporalui-pkg",
+    ],
+    user = "root",
     visibility = ["//visibility:public"],
+    workdir = "/etc/temporal",
 )
