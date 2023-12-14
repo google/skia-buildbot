@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "build_chrome",
+    srcs = ["build_chrome.go"],
+    importpath = "go.skia.org/infra/bisection/go/build_chrome",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/buildbucket",
+        "//go/httputils",
+        "//go/sklog",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//grpc/prpc",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "build_chrome_test",
+    srcs = ["build_chrome_test.go"],
+    embed = [":build_chrome"],
+    deps = [
+        "@com_github_golang_mock//gomock",
+        "@com_github_stretchr_testify//assert",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)
