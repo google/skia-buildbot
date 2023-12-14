@@ -5,6 +5,8 @@
 
 set -eu -o pipefail
 
+source /env-default.sh
+
 : "${BIND_ON_IP:=$(getent hosts "$(hostname)" | awk '{print $1;}')}"
 export BIND_ON_IP
 
@@ -21,6 +23,21 @@ if [[ -z "${TEMPORAL_ADDRESS:-}" ]]; then
     fi
 fi
 
-/etc/temporal/dockerize -template /etc/config_template.yaml:/etc/temporal/config/docker.yaml
+source /utils.sh
 
-exec /etc/temporal/temporal-server --env docker start
+for arg; do
+  case ${arg} in
+    init-db)
+      validate_db_env
+      wait_for_postgres
+      setup_postgres_schema
+      ;;
+    setup-server)
+      setup_server
+      ;;
+    start-server)
+      dockerize -template /etc/config_template.yaml:/etc/temporal/config/docker.yaml
+      exec /etc/temporal/temporal-server --env docker start
+      ;;
+  esac
+done
