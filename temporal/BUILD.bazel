@@ -1,5 +1,16 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
+# Alias to build the image from within the main repo
+# Workaround for tha target name starting with "@".
+alias(
+    name = "temporal-ui",
+    actual = "@com_github_temporal_ui//:temporal-ui",
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+)
+
 # Docker image with Temporal server and tools to admin the server.
 container_image(
     name = "temporal-server",
