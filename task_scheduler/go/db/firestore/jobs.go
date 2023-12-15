@@ -139,7 +139,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
-				sklog.Infof("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%+v\nExisting job:\n%+v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), jobs[idx], old)
+				sklog.Errorf("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%+v\nExisting job:\n%+v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), jobs[idx], old)
 				return db.ErrConcurrentUpdate
 			}
 		}

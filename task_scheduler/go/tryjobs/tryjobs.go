@@ -456,6 +456,25 @@ func (t *TryJobIntegrator) tryLeaseV1Build(ctx context.Context, id int64) (int64
 }
 
 func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) error {
+	sklog.Infof("Creating job for build %d", buildId)
+
+	// Determine whether we've already created a Job for this Build. Note that
+	// due to concurrency some Jobs may slip through, so this isn't fail-safe.
+	foundJobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
+		BuildbucketBuildID: &buildId,
+	})
+	if err != nil {
+		return skerr.Wrapf(err, "failed searching for existing Jobs for build %d", buildId)
+	}
+	if len(foundJobs) > 0 {
+		ids := make([]string, 0, len(foundJobs))
+		for _, job := range foundJobs {
+			ids = append(ids, job.Id)
+		}
+		sklog.Errorf("Found %d existing Jobs for build %d; ignoring %v", len(foundJobs), buildId, ids)
+		return nil
+	}
+
 	// Get the build details from the v2 API.
 	build, err := t.bb2.GetBuild(ctx, buildId)
 	if err != nil {
@@ -531,10 +550,12 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 	}
 	j.BuildbucketLeaseKey = leaseKey
 
+	sklog.Infof("Inserting new job for build %d", buildId)
 	if err := t.db.PutJob(ctx, j); err != nil {
 		return t.remoteCancelV1Build(j.BuildbucketBuildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
 	}
 	t.jCache.AddJobs([]*types.Job{j})
+	sklog.Infof("Successfully created job %s for build %d", j.Id, buildId)
 	return nil
 }
 
@@ -560,7 +581,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 				}
 				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
 				if err := t.startJob(ctx, job); err != nil {
-					sklog.Errorf("failed to start job: %s", err)
+					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
 				}
 			}
 		case <-tickCh:
@@ -571,7 +592,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 				for _, job := range jobs {
 					sklog.Infof("Found job %s (build %d) via periodic DB poll", job.Id, job.BuildbucketBuildId)
 					if err := t.startJob(ctx, job); err != nil {
-						sklog.Errorf("failed to start job: %s", err)
+						sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
 					}
 				}
 			}
