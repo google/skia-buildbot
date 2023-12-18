@@ -253,17 +253,21 @@ export class PivotTableSk extends ElementSk {
   }
 
   private static template = (ele: PivotTableSk) => {
-    const invalidMessage = validateAsPivotTable(ele.req);
-    if (invalidMessage) {
-      return html`<h2>Cannot display: ${invalidMessage}</h2>`;
+    if (ele.shouldValidate()) {
+      const invalidMessage = validateAsPivotTable(ele.req);
+      if (invalidMessage) {
+        return html`<h2>Cannot display: ${invalidMessage}</h2>`;
+      }
+      if (!ele.df) {
+        return html`<h2>Cannot display: Data is missing.</h2>`;
+      }
+      return html` ${ele.queryDefinition()}
+        <table>
+          ${ele.tableHeader()} ${ele.tableRows()}
+        </table>`;
+    } else {
+      return html``;
     }
-    if (!ele.df) {
-      return html`<h2>Cannot display: Data is missing.</h2>`;
-    }
-    return html` ${ele.queryDefinition()}
-      <table>
-        ${ele.tableHeader()} ${ele.tableRows()}
-      </table>`;
   };
 
   connectedCallback(): void {
@@ -293,6 +297,10 @@ export class PivotTableSk extends ElementSk {
       this.keyValues
     );
     this._render();
+  }
+
+  private shouldValidate(): boolean {
+    return !this.hasAttribute('disable_validation');
   }
 
   private queryDefinition(): TemplateResult {

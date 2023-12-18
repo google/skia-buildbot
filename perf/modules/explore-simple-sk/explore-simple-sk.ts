@@ -587,6 +587,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     <pivot-table-sk
       @change=${ele.pivotTableSortChange}
+      disable_validation
       class="hide_on_plot hide_on_pivot_plot hide_on_query_only hide_on_spinner">
     </pivot-table-sk>
 
@@ -1771,6 +1772,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
 
     if (this.displayMode === 'display_pivot_table') {
+      this.pivotTable!.removeAttribute('disable_validation');
       this.pivotTable!.set(
         dataframe,
         this.pivotControl!.pivotRequest!,
