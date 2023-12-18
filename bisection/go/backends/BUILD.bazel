@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "backends",
+    srcs = [
+        "doc.go",
+        "gitiles.go",
+    ],
+    importpath = "go.skia.org/infra/bisection/go/backends",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/gitiles",
+        "//go/httputils",
+        "//go/skerr",
+        "@org_golang_x_oauth2//google",
+    ],
+)

@@ -556,13 +556,6 @@ def go_repositories():
     )
 
     go_repository(
-        name = "com_github_dockerize",
-        importpath = "github.com/jwilder/dockerize",
-        sum = "h1:LLfQaaK0E78KdU0euwbYVosTJEmab4gvHtbIVVJi3b8=",
-        version = "v0.7.0",
-    )
-
-    go_repository(
         name = "com_github_docopt_docopt_go",
         importpath = "github.com/docopt/docopt-go",
         sum = "h1:bWDMxwH3px2JBh6AyO7hdCn/PkvCZXii8TGj7sbtEbQ=",
@@ -581,14 +574,6 @@ def go_repositories():
         importpath = "github.com/elazarl/goproxy",
         sum = "h1:yUdfgN0XgIJw7foRItutHYUIhlcKzcSf5vDpdhQAKTc=",
         version = "v0.0.0-20180725130230-947c36da3153",
-    )
-
-    # Used by dockerize
-    go_repository(
-        name = "com_github_elgs_gosplitargs",
-        importpath = "github.com/elgs/gosplitargs",
-        sum = "h1:vO9yvZPJqJMJJsFdaD+sLkwjZfxzr/0fm22AnW8R6ms=",
-        version = "v0.0.0-20230310130726-7d16e488436a",
     )
 
     go_repository(
@@ -1553,14 +1538,6 @@ def go_repositories():
         version = "v1.3.0",
     )
 
-    # Used by dockerize
-    go_repository(
-        name = "com_github_jwilder_gojq",
-        importpath = "github.com/jwilder/gojq",
-        sum = "h1:ZSTiJFRPQr2XRqfgvm2xpEsrsudezdk8ykBXXiJDfiQ=",
-        version = "v0.0.0-20161018055142-c550732d4a52",
-    )
-
     go_repository(
         name = "com_github_kballard_go_shellquote",
         importpath = "github.com/kballard/go-shellquote",
@@ -1935,6 +1912,18 @@ def go_repositories():
         importpath = "github.com/mxk/go-flowrate",
         sum = "h1:y5//uYreIhSUg3J1GEMiLbxo1LJaP8RfCpH6pymGZus=",
         version = "v0.0.0-20140419014527-cca7078d478f",
+    )
+    go_repository(
+        name = "com_github_neelance_astrewrite",
+        importpath = "github.com/neelance/astrewrite",
+        sum = "h1:D6paGObi5Wud7xg83MaEFyjxQB1W5bz5d0IFppr+ymk=",
+        version = "v0.0.0-20160511093645-99348263ae86",
+    )
+    go_repository(
+        name = "com_github_neelance_sourcemap",
+        importpath = "github.com/neelance/sourcemap",
+        sum = "h1:bY6ktFuJkt+ZXkX0RChQch2FtHpWQLVS8Qo1YasiIVk=",
+        version = "v0.0.0-20200213170602-2833bce08e4c",
     )
 
     go_repository(
@@ -2330,6 +2319,18 @@ def go_repositories():
         sum = "h1:abSATXmQEYyShuxI4/vyW3tV1MrKAJzCZ/0zLUXYbsQ=",
         version = "v1.2.0",
     )
+    go_repository(
+        name = "com_github_shurcool_go",
+        importpath = "github.com/shurcooL/go",
+        sum = "h1:aSISeOcal5irEhJd1M+IrApc0PdcN7e7Aj4yuEnOrfQ=",
+        version = "v0.0.0-20200502201357-93f07166e636",
+    )
+    go_repository(
+        name = "com_github_shurcool_httpfs",
+        importpath = "github.com/shurcooL/httpfs",
+        sum = "h1:bUGsEnyNbVPw06Bs80sCeARAlK8lhwqGyi6UT8ymuGk=",
+        version = "v0.0.0-20190707220628-8d4bc4ba7749",
+    )
 
     go_repository(
         name = "com_github_shurcool_sanitized_anchor_name",
@@ -2337,12 +2338,18 @@ def go_repositories():
         sum = "h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=",
         version = "v1.0.0",
     )
+    go_repository(
+        name = "com_github_shurcool_vfsgen",
+        importpath = "github.com/shurcooL/vfsgen",
+        sum = "h1:pXY9qYc/MP5zdvqWEUH6SjNiu7VhSjuVFTFiTcphaLU=",
+        version = "v0.0.0-20200824052919-0d455de96546",
+    )
 
     go_repository(
         name = "com_github_sirupsen_logrus",
         importpath = "github.com/sirupsen/logrus",
-        sum = "h1:UBcNElsrwanuuMsnGSlYmtmgbb23qDR5dG+6X6Oo89I=",
-        version = "v1.6.0",
+        sum = "h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=",
+        version = "v1.8.1",
     )
 
     go_repository(

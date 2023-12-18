@@ -66,6 +66,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/skia-dev/protoc-gen-twirp_typescript v0.0.0-20220429132620-ad26708b7787
+	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.0
@@ -92,6 +93,7 @@ require (
 	google.golang.org/api v0.136.0
 	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -136,6 +138,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
+	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
@@ -154,6 +157,7 @@ require (
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
 	github.com/klauspost/compress v1.16.7 // indirect
@@ -188,6 +192,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
+	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -211,7 +216,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.8-0.20221117013220-504804fb50de // indirect
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
