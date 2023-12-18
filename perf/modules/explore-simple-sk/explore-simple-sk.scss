@@ -221,7 +221,8 @@ explore-simple-sk {
 
     paramset-sk {
       display: inline-block;
-
+      max-width: 40em;
+      overflow-x: auto;
       div {
         display: block;
       }

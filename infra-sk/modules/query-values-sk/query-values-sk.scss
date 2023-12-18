@@ -17,6 +17,8 @@ query-values-sk {
 
   multi-select-sk {
     max-height: 20em;
+    max-width: 40em;
+    overflow-x: auto;
     overflow-y: auto;
   }
 
