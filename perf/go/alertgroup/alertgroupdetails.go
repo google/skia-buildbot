@@ -2,15 +2,10 @@ package alertgroup
 
 import (
 	"context"
-	"net/url"
-	"strconv"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	perfgit "go.skia.org/infra/perf/go/git"
-	"go.skia.org/infra/perf/go/types"
 )
 
 // AlertGroupDetails contains data received from the alert group api.
@@ -21,24 +16,9 @@ type AlertGroupDetails struct {
 	EndCommitNumber   int32             `json:"end_commit"`
 }
 
-// GetQueryUrl returns the query url corresponding to the alert group data.
-func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit perfgit.Git) string {
+// GetQueryParams returns the query parameters corresponding to the alert group data.
+func (alertGroup *AlertGroupDetails) GetQueryParams(ctx context.Context) map[string]util.StringSet {
 	sklog.Infof("Start commit: %d, End commit: %d", alertGroup.StartCommitNumber, alertGroup.EndCommitNumber)
-	queryUrl := url.Values{}
-	// Create the end and begin query params based on the start and end commit numbers in the alert group
-	if perfGit != nil {
-		startCommit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(alertGroup.StartCommitNumber))
-		if err != nil {
-			sklog.Error("Error getting commit info")
-		}
-		endCommit, _ := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(alertGroup.EndCommitNumber))
-		queryUrl["begin"] = []string{strconv.Itoa(int(startCommit.Timestamp))}
-
-		// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
-		endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
-
-		queryUrl["end"] = []string{strconv.Itoa(int(endTime.Unix()))}
-	}
 
 	// We do not want duplicate params, hence create maps to use as a set datastructure for each param
 	masters_map := util.StringSet{}
@@ -69,23 +49,20 @@ func (alertGroup *AlertGroupDetails) GetQueryUrl(ctx context.Context, perfGit pe
 		}
 	}
 
-	// generate the query portion of the url
-	query_portion := url.Values{}
-	query_portion["stat"] = []string{"value"}
-	query_portion["master"] = parsedInfo[masters_key]
-	query_portion["bot"] = parsedInfo[bots_key]
-	query_portion["benchmark"] = parsedInfo[benchmarks_key]
-	query_portion["test"] = parsedInfo[tests_key]
-	query_portion["subtest_1"] = parsedInfo[subtests_1_key]
+	paramsMap := map[string]util.StringSet{}
+	paramsMap["stat"] = util.NewStringSet([]string{"value"})
+	paramsMap["master"] = util.NewStringSet(parsedInfo[masters_key])
+	paramsMap["bot"] = util.NewStringSet(parsedInfo[bots_key])
+	paramsMap["benchmark"] = util.NewStringSet(parsedInfo[benchmarks_key])
+	paramsMap["test"] = util.NewStringSet(parsedInfo[tests_key])
+	paramsMap["subtest_1"] = util.NewStringSet(parsedInfo[subtests_1_key])
 
 	sub_2, ok := parsedInfo[subtests_2_key]
 	if ok && len(sub_2) > 0 {
-		query_portion["subtest_2"] = parsedInfo[subtests_2_key]
+		paramsMap["subtest_2"] = util.NewStringSet(parsedInfo[subtests_2_key])
 	}
 
-	queryUrl["queries"] = []string{query_portion.Encode()}
-	queryUrl["summary"] = []string{"true"}
-	return queryUrl.Encode()
+	return paramsMap
 }
 
 func AddToSetIfNotExists(set util.StringSet, value string, parsedInfo map[string][]string, parsedInfoKey string) {

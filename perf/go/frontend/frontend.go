@@ -69,6 +69,7 @@ import (
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
+	"go.skia.org/infra/perf/go/urlprovider"
 )
 
 const (
@@ -167,6 +168,8 @@ type Frontend struct {
 	pinpoint *pinpoint.Client
 
 	alertGroupService alertgroup.Service
+
+	urlProvider *urlprovider.URLProvider
 }
 
 // New returns a new Frontend instance.
@@ -444,6 +447,7 @@ func (f *Frontend) initialize() {
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces))
 
+	var urlParamsProvider urlprovider.ParamsProvider = nil
 	if config.Config.FetchChromePerfAnomalies {
 		chromeClient, err := chrome.New(ctx)
 		if err != nil {
@@ -464,7 +468,18 @@ func (f *Frontend) initialize() {
 		if err != nil {
 			sklog.Fatal("Failed to build alertGroup.Store: %s", err)
 		}
+
+		ignoreParams := config.Config.QueryConfig.ChromePerfIgnoreParams
+		paramsMap := config.Config.QueryConfig.ChromePerfParamsMap
+		urlParamsProvider = &urlprovider.ChromeParamsProvider{
+			IgnoreParams: ignoreParams,
+			ParamsMap:    paramsMap,
+		}
+	} else {
+		urlParamsProvider = &urlprovider.DefaultParamsProvider{}
 	}
+
+	f.urlProvider = urlprovider.New(f.perfGit, urlParamsProvider)
 
 	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
 	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)
@@ -733,9 +748,10 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 
 	if alertGroupDetails != nil {
 		sklog.Infof("Retrieved %d anomalies for alert group id %s", len(alertGroupDetails.Anomalies), groupId)
-		query_url := alertGroupDetails.GetQueryUrl(ctx, f.perfGit)
-		sklog.Infof("Generated query: %s", query_url)
-		http.Redirect(w, r, "/e/?"+query_url, http.StatusSeeOther)
+		queryParams := alertGroupDetails.GetQueryParams(ctx)
+		redirectUrl := f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+		sklog.Infof("Generated url: %s", redirectUrl)
+		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 		return
 	}
 }

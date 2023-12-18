@@ -3,8 +3,6 @@ package alertgroup
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,19 +23,14 @@ func TestGetQueryUrl_Valid_NoSubTest2(t *testing.T) {
 		},
 	}
 
-	query_url := alertGroupData.GetQueryUrl(context.Background(), nil)
-	assert.NotNil(t, query_url, "Expected a non nil query url")
-	query_value := strings.Split(query_url, "=")[1]
-	unescaped_query, err := url.QueryUnescape(query_value)
-	assert.Nil(t, err)
-	parsed_query, err := url.ParseQuery(unescaped_query)
-	assert.Nil(t, err)
-	assert.Equal(t, master, parsed_query.Get("master"))
-	assert.Equal(t, bot, parsed_query.Get("bot"))
-	assert.Equal(t, benchmark, parsed_query.Get("benchmark"))
-	assert.Equal(t, test, parsed_query.Get("test"))
-	assert.Equal(t, subtest_1, parsed_query.Get("subtest_1"))
-	assert.Empty(t, parsed_query.Get("subtest_2"))
+	queryParams := alertGroupData.GetQueryParams(context.Background())
+	assert.NotNil(t, queryParams, "Expected a non nil query params map")
+	assert.Equal(t, master, queryParams["master"].Keys()[0])
+	assert.Equal(t, bot, queryParams["bot"].Keys()[0])
+	assert.Equal(t, benchmark, queryParams["benchmark"].Keys()[0])
+	assert.Equal(t, test, queryParams["test"].Keys()[0])
+	assert.Equal(t, subtest_1, queryParams["subtest_1"].Keys()[0])
+	assert.Empty(t, queryParams["subtest_2"])
 }
 
 func TestGetQueryUrl_Valid_SubTest2(t *testing.T) {
@@ -56,19 +49,13 @@ func TestGetQueryUrl_Valid_SubTest2(t *testing.T) {
 		},
 	}
 
-	query_url := alertGroupData.GetQueryUrl(context.Background(), nil)
-	assert.NotNil(t, query_url, "Expected a non nil query url")
-	query_value := strings.Split(query_url, "=")[1]
-	unescaped_query, err := url.QueryUnescape(query_value)
-	assert.Nil(t, err)
-	parsed_query, err := url.ParseQuery(unescaped_query)
-	assert.Nil(t, err)
-	assert.Equal(t, master, parsed_query.Get("master"))
-	assert.Equal(t, bot, parsed_query.Get("bot"))
-	assert.Equal(t, benchmark, parsed_query.Get("benchmark"))
-	assert.Equal(t, test, parsed_query.Get("test"))
-	assert.Equal(t, subtest_1, parsed_query.Get("subtest_1"))
-	assert.Equal(t, subtest_2, parsed_query.Get("subtest_2"))
+	queryParams := alertGroupData.GetQueryParams(context.Background())
+	assert.Equal(t, master, queryParams["master"].Keys()[0])
+	assert.Equal(t, bot, queryParams["bot"].Keys()[0])
+	assert.Equal(t, benchmark, queryParams["benchmark"].Keys()[0])
+	assert.Equal(t, test, queryParams["test"].Keys()[0])
+	assert.Equal(t, subtest_1, queryParams["subtest_1"].Keys()[0])
+	assert.Equal(t, subtest_2, queryParams["subtest_2"].Keys()[0])
 }
 
 func TestGetQueryUrl_DuplicateTestPath(t *testing.T) {
@@ -77,7 +64,6 @@ func TestGetQueryUrl_DuplicateTestPath(t *testing.T) {
 	const benchmark = "test_benchmark"
 	const test = "test_test"
 	const subtest_1 = "test_subtest_1"
-	const subtest_2 = "test_subtest_2"
 	alertGroupData := &AlertGroupDetails{
 		GroupId:           "group_id",
 		StartCommitNumber: 123,
@@ -88,19 +74,13 @@ func TestGetQueryUrl_DuplicateTestPath(t *testing.T) {
 		},
 	}
 
-	query_url := alertGroupData.GetQueryUrl(context.Background(), nil)
-	assert.NotNil(t, query_url, "Expected a non nil query url")
-	query_value := strings.Split(query_url, "=")[1]
-	unescaped_query, err := url.QueryUnescape(query_value)
-	assert.Nil(t, err)
-	parsed_query, err := url.ParseQuery(unescaped_query)
-	assert.Nil(t, err)
-	assert.Equal(t, master, parsed_query.Get("master"))
-	assert.Equal(t, bot, parsed_query.Get("bot"))
-	assert.Equal(t, benchmark, parsed_query.Get("benchmark"))
-	assert.Equal(t, test, parsed_query.Get("test"))
-	assert.Equal(t, subtest_1, parsed_query.Get("subtest_1"))
-	assert.Empty(t, parsed_query.Get(subtest_2))
+	queryParams := alertGroupData.GetQueryParams(context.Background())
+	assert.Equal(t, master, queryParams["master"].Keys()[0])
+	assert.Equal(t, bot, queryParams["bot"].Keys()[0])
+	assert.Equal(t, benchmark, queryParams["benchmark"].Keys()[0])
+	assert.Equal(t, test, queryParams["test"].Keys()[0])
+	assert.Equal(t, subtest_1, queryParams["subtest_1"].Keys()[0])
+	assert.Empty(t, queryParams["subtest_2"])
 }
 
 func TestGetQueryUrl_MultipleBots(t *testing.T) {
@@ -121,18 +101,12 @@ func TestGetQueryUrl_MultipleBots(t *testing.T) {
 		},
 	}
 
-	query_url := alertGroupData.GetQueryUrl(context.Background(), nil)
-	assert.NotNil(t, query_url, "Expected a non nil query url")
-	query_value := strings.Split(query_url, "=")[1]
-	unescaped_query, err := url.QueryUnescape(query_value)
-	assert.Nil(t, err)
-	parsed_query, err := url.ParseQuery(unescaped_query)
-	assert.Nil(t, err)
-	assert.Equal(t, master, parsed_query.Get("master"))
-	bots := parsed_query["bot"]
+	queryParams := alertGroupData.GetQueryParams(context.Background())
+	assert.Equal(t, master, queryParams["master"].Keys()[0])
+	bots := queryParams["bot"]
 	assert.Equal(t, 2, len(bots))
-	assert.Equal(t, benchmark, parsed_query.Get("benchmark"))
-	assert.Equal(t, test, parsed_query.Get("test"))
-	assert.Equal(t, subtest_1, parsed_query.Get("subtest_1"))
-	assert.Empty(t, parsed_query.Get(subtest_2))
+	assert.Equal(t, benchmark, queryParams["benchmark"].Keys()[0])
+	assert.Equal(t, test, queryParams["test"].Keys()[0])
+	assert.Equal(t, subtest_1, queryParams["subtest_1"].Keys()[0])
+	assert.Empty(t, queryParams["subtest_2"])
 }

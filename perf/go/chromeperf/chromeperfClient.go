@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 
 	"go.skia.org/infra/go/auth"
@@ -100,7 +101,11 @@ func (cp *ChromePerfClientImpl) SendRegression(
 		return nil, skerr.Wrapf(err, "Failed to get chrome perf response.")
 	}
 
-	if httpResponse.StatusCode != 200 {
+	acceptedStatusCodes := []int{
+		200, // Success
+		404, // NotFound - This is returned if the param value names are different.
+	}
+	if !slices.Contains(acceptedStatusCodes, httpResponse.StatusCode) {
 		cp.sendAnomalyFailed.Inc(1)
 		return nil, skerr.Fmt("Receive status %d from chromeperf", httpResponse.StatusCode)
 	}

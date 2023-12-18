@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "urlprovider",
+    srcs = [
+        "chromeparamsprovider.go",
+        "urlparamsprovider.go",
+        "urlprovider.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/urlprovider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog",
+        "//go/util",
+        "//perf/go/git",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "urlprovider_test",
+    srcs = ["urlprovider_test.go"],
+    embed = [":urlprovider"],
+    deps = [
+        "//go/util",
+        "//perf/go/git",
+        "//perf/go/git/gittest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
