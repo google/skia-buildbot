@@ -49,7 +49,7 @@ var iconCategories = []string{
 // We download the material-design-icons NPM package manually, rather than listing it in
 // //package.json, because we don't expect to run this program often, and said package is not used
 // anywhere else in our codebase.
-const materialDesignIconsNPMPackageURL = "https://npm.skia.org/skia-infra/material-design-icons/-/material-design-icons-3.0.1.tgz"
+const materialDesignIconsNPMPackageURL = "https://registry.npmjs.org/material-design-icons/-/material-design-icons-3.0.1.tgz"
 
 // There is one directory per icon category within the NPM package.
 const iconCategoryDirTmpl = "package/%s/svg/production/"
