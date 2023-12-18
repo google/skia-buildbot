@@ -115,20 +115,17 @@ func fromIndexRange(ctx context.Context, git perfgit.Git, beginIndex, endIndex t
 // should appear in the resulting Trace.
 type tileMapOffsetToIndex map[types.TileNumber]map[int32]int32
 
-// buildTileMapOffsetToIndex returns a tileMapOffsetToIndex for the given indices and the given TraceStore.
-//
-// The returned map is used when loading traces out of tiles.
-func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.TraceStore) tileMapOffsetToIndex {
-	ret := tileMapOffsetToIndex{}
-	for targetIndex, commitNumber := range indices {
-		tileNumber := store.TileNumber(commitNumber)
-		if traceMap, ok := ret[tileNumber]; !ok {
-			ret[tileNumber] = map[int32]int32{
-				store.OffsetFromCommitNumber(commitNumber): int32(targetIndex),
-			}
-		} else {
-			traceMap[store.OffsetFromCommitNumber(commitNumber)] = int32(targetIndex)
-		}
+// sliceOfTileNumbersFromCommits returns a slice of types.TileNumber that contains every Tile that needs
+// to be queried based on the all the commits in indices.
+func sliceOfTileNumbersFromCommits(indices []types.CommitNumber, store tracestore.TraceStore) []types.TileNumber {
+	ret := []types.TileNumber{}
+	if len(indices) == 0 {
+		return ret
+	}
+	begin := store.TileNumber(indices[0])
+	end := store.TileNumber(indices[len(indices)-1])
+	for i := begin; i <= end; i++ {
+		ret = append(ret, i)
 	}
 	return ret
 }
@@ -143,7 +140,12 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 	// TODO tickle progress as each Go routine completes.
 	defer timer.NewWithSummary("perfserver_dfbuilder_new", b.newTimer).Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
-	mapper := buildTileMapOffsetToIndex(indices, b.store)
+	mapper := sliceOfTileNumbersFromCommits(indices, b.store)
+
+	commitNumberToOutputIndex := map[types.CommitNumber]int32{}
+	for i, c := range indices {
+		commitNumberToOutputIndex[c] = int32(i)
+	}
 
 	traceSetBuilder := tracesetbuilder.New(len(indices))
 	defer traceSetBuilder.Close()
@@ -159,8 +161,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 	var g errgroup.Group
 	// For each tile.
-	for tileNumber, traceMap := range mapper {
-		traceMap := traceMap
+	for _, tileNumber := range mapper {
 		tileNumber := tileNumber
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
@@ -170,12 +171,12 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			// Query for matching traces in the given tile.
 			queryContext, cancel := context.WithTimeout(ctx, singleTileQueryTimeout)
 			defer cancel()
-			traces, err := b.store.QueryTraces(queryContext, tileNumber, q)
+			traces, commits, err := b.store.QueryTraces(queryContext, tileNumber, q)
 			if err != nil {
 				return err
 			}
 
-			traceSetBuilder.Add(traceMap, traces)
+			traceSetBuilder.Add(commitNumberToOutputIndex, commits, traces)
 			triggerProgress()
 			return nil
 		})
@@ -225,7 +226,13 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	}
 
 	// Determine which tiles we are querying over, and how each tile maps into our results.
-	mapper := buildTileMapOffsetToIndex(indices, b.store)
+	// In this case we don't need this, instead a mapping from CommitNumber to Index would be easier.
+	mapper := sliceOfTileNumbersFromCommits(indices, b.store)
+
+	commitNumberToOutputIndex := map[types.CommitNumber]int32{}
+	for i, c := range indices {
+		commitNumberToOutputIndex[c] = int32(i)
+	}
 
 	var mutex sync.Mutex // mutex protects traceSet and paramSet.
 	traceSet := types.TraceSet{}
@@ -239,12 +246,12 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 
 	var g errgroup.Group
 	// For each tile.
-	for tileKey, traceMap := range mapper {
-		tileKey := tileKey
-		traceMap := traceMap
+	for _, tileNumber := range mapper {
+		tileKey := tileNumber
+		// traceMap := traceMap
 		g.Go(func() error {
 			// Read the traces for the given keys.
-			traces, err := b.store.ReadTraces(ctx, tileKey, keys)
+			traces, commits, err := b.store.ReadTraces(ctx, tileKey, keys)
 			if err != nil {
 				return err
 			}
@@ -257,9 +264,16 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 				if !ok {
 					trace = types.NewTrace(len(indices))
 				}
-				for srcIndex, dstIndex := range traceMap {
-					trace[dstIndex] = tileTrace[srcIndex]
+				for i, c := range commits {
+					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
+					dstIndex := commitNumberToOutputIndex[c.CommitNumber]
+					trace[dstIndex] = tileTrace[i]
 				}
+				/*
+					for srcIndex, dstIndex := range traceMap {
+						trace[dstIndex] = tileTrace[srcIndex]
+					}
+				*/
 				traceSet[key] = trace
 				p, err := query.ParseKey(key)
 				if err != nil {
@@ -316,10 +330,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	// beginIndex is the index of the first commit in the tile that endIndex is
 	// in. We are OK if beginIndex == endIndex because fromIndexRange returns
 	// headers from begin to end *inclusive*.
-	beginIndex, err := b.store.CommitNumberOfTileStart(ctx, endIndex)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get the begin commit number of tile start for the commit number: %v", endIndex)
-	}
+	beginIndex := b.store.CommitNumberOfTileStart(endIndex)
 
 	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
@@ -392,10 +403,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if endIndex < 0 {
 			break
 		}
-		beginIndex, err = b.store.CommitNumberOfTileStart(ctx, endIndex)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to get the begin commit number of tile start for commit number: %v", endIndex)
-		}
+		beginIndex = b.store.CommitNumberOfTileStart(endIndex)
 		if beginIndex < 0 {
 			beginIndex = 0
 		}
@@ -447,12 +455,17 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		}
 
 		// Determine which tiles we are querying over, and how each tile maps into our results.
-		mapper := buildTileMapOffsetToIndex(indices, b.store)
+		mapper := sliceOfTileNumbersFromCommits(indices, b.store)
+
+		commitNumberToOutputIndex := map[types.CommitNumber]int32{}
+		for i, c := range indices {
+			commitNumberToOutputIndex[c] = int32(i)
+		}
 
 		traceSet := types.TraceSet{}
-		for tileKey, traceMap := range mapper {
+		for _, tileNumber := range mapper {
 			// Read the traces for the given keys.
-			traces, err := b.store.ReadTraces(ctx, tileKey, keys)
+			traces, commits, err := b.store.ReadTraces(ctx, tileNumber, keys)
 			if err != nil {
 				return nil, err
 			}
@@ -463,9 +476,17 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 				if !ok {
 					trace = types.NewTrace(len(indices))
 				}
-				for srcIndex, dstIndex := range traceMap {
-					trace[dstIndex] = tileTrace[srcIndex]
+				for i, c := range commits {
+					// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
+					dstIndex := commitNumberToOutputIndex[c.CommitNumber]
+					trace[dstIndex] = tileTrace[i]
 				}
+				/*
+					for srcIndex, dstIndex := range traceMap {
+						// What to we do with commits here?
+						trace[dstIndex] = tileTrace[srcIndex]
+					}
+				*/
 				traceSet[key] = trace
 			}
 		}

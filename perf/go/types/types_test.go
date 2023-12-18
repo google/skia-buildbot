@@ -23,6 +23,16 @@ func TestTileNumberFromCommitNumber_BadTileSize(t *testing.T) {
 	assert.Equal(t, BadTileNumber, TileNumberFromCommitNumber(CommitNumber(256), 0))
 }
 
+func TestTileCommitRangeForTileNumber(t *testing.T) {
+	begin, end := TileCommitRangeForTileNumber(TileNumber(0), 256)
+	assert.Equal(t, CommitNumber(0), begin)
+	assert.Equal(t, CommitNumber(255), end)
+
+	begin, end = TileCommitRangeForTileNumber(TileNumber(1), 256)
+	assert.Equal(t, CommitNumber(256), begin)
+	assert.Equal(t, CommitNumber(511), end)
+}
+
 func TestCommitNumberSlice_Sort_Success(t *testing.T) {
 	toSort := CommitNumberSlice{2, BadCommitNumber, 1}
 	sort.Sort(toSort)

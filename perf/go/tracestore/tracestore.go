@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -24,7 +25,7 @@ type Source struct {
 type TraceStore interface {
 	// CommitNumberOfTileStart returns the types.CommitNumber at the beginning of the
 	// given tile.
-	CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error)
+	CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber
 
 	// GetLatestTile returns the latest, i.e. the newest tile.
 	GetLatestTile(context.Context) (types.TileNumber, error)
@@ -49,7 +50,7 @@ type TraceStore interface {
 
 	// QueryTraces returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.
-	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error)
+	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, []provider.Commit, error)
 
 	// QueryTracesIDOnly returns a stream of ParamSets that match the
 	// given query.
@@ -57,11 +58,11 @@ type TraceStore interface {
 	QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.
-	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, error)
+	ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, []provider.Commit, error)
 
 	// ReadTracesForCommitRange loads the traces for the given trace keys and
 	// between the begin and end commit, inclusive.
-	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, error)
+	ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, []provider.Commit, error)
 
 	// TileNumber returns the types.TileNumber that the commit is stored in.
 	TileNumber(commitNumber types.CommitNumber) types.TileNumber

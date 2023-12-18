@@ -58,6 +58,12 @@ func TileNumberFromCommitNumber(commitNumber CommitNumber, tileSize int32) TileN
 	return TileNumber(int32(commitNumber) / tileSize)
 }
 
+// TileCommitRangeForTileNumber returns the first and last CommitNumbers that
+// would appear in a tile of size tileSize.
+func TileCommitRangeForTileNumber(tileNumber TileNumber, tileSize int32) (CommitNumber, CommitNumber) {
+	return CommitNumber(int32(tileNumber) * tileSize), CommitNumber((int32(tileNumber)+1)*tileSize - 1)
+}
+
 // Trace is just a slice of float32s.
 type Trace []float32
 

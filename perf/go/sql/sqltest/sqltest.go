@@ -28,7 +28,6 @@ import (
 func NewCockroachDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 	cockroachdb_instance.Require(t)
 
-	rand.Seed(time.Now().UnixNano())
 	databaseName := fmt.Sprintf("%s_%d", databaseNamePrefix, rand.Uint64())
 
 	host := emulators.GetEmulatorHostEnvVar(emulators.CockroachDB)

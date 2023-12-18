@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	paramtools "go.skia.org/infra/go/paramtools"
 
+	provider "go.skia.org/infra/perf/go/git/provider"
+
 	query "go.skia.org/infra/go/query"
 
 	time "time"
@@ -22,32 +24,22 @@ type TraceStore struct {
 	mock.Mock
 }
 
-// CommitNumberOfTileStart provides a mock function with given fields: ctx, commitNumber
-func (_m *TraceStore) CommitNumberOfTileStart(ctx context.Context, commitNumber types.CommitNumber) (types.CommitNumber, error) {
-	ret := _m.Called(ctx, commitNumber)
+// CommitNumberOfTileStart provides a mock function with given fields: commitNumber
+func (_m *TraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber {
+	ret := _m.Called(commitNumber)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CommitNumberOfTileStart")
 	}
 
 	var r0 types.CommitNumber
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber) (types.CommitNumber, error)); ok {
-		return rf(ctx, commitNumber)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber) types.CommitNumber); ok {
-		r0 = rf(ctx, commitNumber)
+	if rf, ok := ret.Get(0).(func(types.CommitNumber) types.CommitNumber); ok {
+		r0 = rf(commitNumber)
 	} else {
 		r0 = ret.Get(0).(types.CommitNumber)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber) error); ok {
-		r1 = rf(ctx, commitNumber)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // GetLastNSources provides a mock function with given fields: ctx, traceID, n
@@ -215,7 +207,7 @@ func (_m *TraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) in
 }
 
 // QueryTraces provides a mock function with given fields: ctx, tileNumber, q
-func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, []provider.Commit, error) {
 	ret := _m.Called(ctx, tileNumber, q)
 
 	if len(ret) == 0 {
@@ -223,8 +215,9 @@ func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumb
 	}
 
 	var r0 types.TraceSet
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) (types.TraceSet, error)); ok {
+	var r1 []provider.Commit
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) (types.TraceSet, []provider.Commit, error)); ok {
 		return rf(ctx, tileNumber, q)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, *query.Query) types.TraceSet); ok {
@@ -235,13 +228,21 @@ func (_m *TraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumb
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, *query.Query) []provider.Commit); ok {
 		r1 = rf(ctx, tileNumber, q)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]provider.Commit)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, types.TileNumber, *query.Query) error); ok {
+		r2 = rf(ctx, tileNumber, q)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // QueryTracesIDOnly provides a mock function with given fields: ctx, tileNumber, q
@@ -275,7 +276,7 @@ func (_m *TraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.Ti
 }
 
 // ReadTraces provides a mock function with given fields: ctx, tileNumber, keys
-func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
+func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumber, keys []string) (types.TraceSet, []provider.Commit, error) {
 	ret := _m.Called(ctx, tileNumber, keys)
 
 	if len(ret) == 0 {
@@ -283,8 +284,9 @@ func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumbe
 	}
 
 	var r0 types.TraceSet
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, []string) (types.TraceSet, error)); ok {
+	var r1 []provider.Commit
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, []string) (types.TraceSet, []provider.Commit, error)); ok {
 		return rf(ctx, tileNumber, keys)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, []string) types.TraceSet); ok {
@@ -295,17 +297,25 @@ func (_m *TraceStore) ReadTraces(ctx context.Context, tileNumber types.TileNumbe
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, []string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, []string) []provider.Commit); ok {
 		r1 = rf(ctx, tileNumber, keys)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]provider.Commit)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, types.TileNumber, []string) error); ok {
+		r2 = rf(ctx, tileNumber, keys)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // ReadTracesForCommitRange provides a mock function with given fields: ctx, keys, begin, end
-func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, error) {
+func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []string, begin types.CommitNumber, end types.CommitNumber) (types.TraceSet, []provider.Commit, error) {
 	ret := _m.Called(ctx, keys, begin, end)
 
 	if len(ret) == 0 {
@@ -313,8 +323,9 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 	}
 
 	var r0 types.TraceSet
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) (types.TraceSet, error)); ok {
+	var r1 []provider.Commit
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) (types.TraceSet, []provider.Commit, error)); ok {
 		return rf(ctx, keys, begin, end)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) types.TraceSet); ok {
@@ -325,13 +336,21 @@ func (_m *TraceStore) ReadTracesForCommitRange(ctx context.Context, keys []strin
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) []provider.Commit); ok {
 		r1 = rf(ctx, keys, begin, end)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]provider.Commit)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, []string, types.CommitNumber, types.CommitNumber) error); ok {
+		r2 = rf(ctx, keys, begin, end)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // StartBackgroundMetricsGathering provides a mock function with given fields:

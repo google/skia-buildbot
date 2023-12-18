@@ -155,8 +155,7 @@ demo_word-cloud-sk:
 # Run "bazel build //perf/..." after making any frontend changes to pick up the
 # change without restarting the golang server.
 run-local-instance:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
+	go run ./go/perfserver -- frontend \
 		--local \
 		--do_clustering=false \
 		--port=:8001 \
@@ -168,6 +167,18 @@ run-local-instance:
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable \
 		--commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end}
 
+
+run-flutter-instance:
+	go run ./go/perfserver -- frontend \
+		--local \
+		--do_clustering=false \
+		--port=:8001 \
+		--noemail \
+		--config_filename=./configs/flutter-engine2.json \
+		--num_continuous_parallel=1 \
+		--display_group_by=true \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
+		--connection_string=postgresql://root@127.0.0.1:25000/flutter_engine2?sslmode=disable
 
 # Before running this target you need to have a local single-instance of
 # cockroachdb running, started like this:

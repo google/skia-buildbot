@@ -59,6 +59,7 @@ go_test(
         "//perf/go/config",
         "//perf/go/git",
         "//perf/go/git/gittest",
+        "//perf/go/git/provider",
         "//perf/go/sql/sqltest",
         "//perf/go/tracestore",
         "//perf/go/types",

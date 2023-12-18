@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/paramtools",
         "//go/query",
+        "//perf/go/git/provider",
         "//perf/go/tracestore",
         "//perf/go/types",
         "@com_github_stretchr_testify//mock",

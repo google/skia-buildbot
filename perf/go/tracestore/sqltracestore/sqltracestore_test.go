@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -88,6 +89,13 @@ func TestUpdateSourceFile(t *testing.T) {
 	assert.Equal(t, id, id2)
 }
 
+func assertCommitNumbersMatch(t *testing.T, commits []provider.Commit, commitNumbers []types.CommitNumber) {
+	assert.Len(t, commits, len(commitNumbers), "Must be the same length.")
+	for i, c := range commits {
+		assert.Equal(t, c.CommitNumber, commitNumbers[i])
+	}
+}
+
 func TestReadTraces(t *testing.T) {
 	ctx, s := commonTestSetupWithCommits(t, true)
 
@@ -96,15 +104,17 @@ func TestReadTraces(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
@@ -119,8 +129,9 @@ func TestReadTraces_InvalidKey_AreIngored(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,": {e, 2.3, e, 3.3, e, e, e, e},
 	}, ts)
@@ -133,8 +144,10 @@ func TestReadTraces_NoResults(t *testing.T) {
 		",arch=unknown,",
 	}
 
-	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=unknown,": {e, e, e, e, e, e, e, e},
 	})
@@ -149,8 +162,9 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	}
 
 	// Reading from a tile we haven't written to should succeed and return no data.
-	ts, err := s.ReadTraces(ctx, types.TileNumber(2), keys)
+	ts, commits, err := s.ReadTraces(ctx, types.TileNumber(2), keys)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{16, 17, 18, 19, 20, 21, 22, 23})
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {e, e, e, e, e, e, e, e},
@@ -165,8 +179,9 @@ func TestReadTracesForCommitRange_OneCommit_Success(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(1))
+	ts, commits, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(1))
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{1})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {2.3},
 		",arch=x86,config=8888,": {1.5},
@@ -181,8 +196,9 @@ func TestReadTracesForCommitRange_TwoCommits_Success(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(2))
+	ts, commits, err := s.ReadTracesForCommitRange(ctx, keys, types.CommitNumber(1), types.CommitNumber(2))
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{1, 2})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {2.3, e},
 		",arch=x86,config=8888,": {1.5, e},
@@ -336,8 +352,9 @@ func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,": {e, 2.3, e, 3.3, e, e, e, e},
 	})
@@ -349,8 +366,9 @@ func TestQueryTraces_NegativeQuery(t *testing.T) {
 	// Query with a negative match that matches one trace.
 	q, err := query.NewFromString("config=!565")
 	require.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
@@ -362,8 +380,9 @@ func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 1, q)
+	ts, commits, err := s.QueryTraces(ctx, 1, q)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,": {4.3, e, e, e, e, e, e, e},
 	})
@@ -375,7 +394,8 @@ func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
 	assert.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
@@ -389,7 +409,8 @@ func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 0, q)
+	ts, commits, err := s.QueryTraces(ctx, 0, q)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.NoError(t, err)
 	assert.Empty(t, ts)
 }
@@ -400,8 +421,9 @@ func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, err := s.QueryTraces(ctx, 2, q)
+	ts, commits, err := s.QueryTraces(ctx, 2, q)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{16, 17, 18, 19, 20, 21, 22, 23})
 	assert.Empty(t, ts)
 }
 
@@ -574,27 +596,14 @@ func TestSQLTraceStore_TileSize(t *testing.T) {
 }
 
 func TestCommitNumberOfTileStart(t *testing.T) {
-	ctx, s := commonTestSetupWithCommits(t, false)
-
-	begin, err := s.CommitNumberOfTileStart(ctx, 0)
-	require.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(0), begin)
-
-	begin, err = s.CommitNumberOfTileStart(ctx, 1)
-	require.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(0), begin)
-
-	begin, err = s.CommitNumberOfTileStart(ctx, 7)
-	require.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(0), begin)
-
-	begin, err = s.CommitNumberOfTileStart(ctx, 8)
-	require.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(8), begin)
-
-	begin, err = s.CommitNumberOfTileStart(ctx, 9)
-	require.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(8), begin)
+	s := &SQLTraceStore{
+		tileSize: 8,
+	}
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(0))
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(1))
+	assert.Equal(t, types.CommitNumber(0), s.CommitNumberOfTileStart(7))
+	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(8))
+	assert.Equal(t, types.CommitNumber(8), s.CommitNumberOfTileStart(9))
 }
 
 func populatedTestDB(t *testing.T, ctx context.Context, store *SQLTraceStore) {
@@ -748,8 +757,10 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 	assert.Equal(t, file1, sourceFile)
 
 	traceNameStrings := []string{traceName1}
-	traceSet, err := s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
+	traceSet, commits, err := s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+
 	trace, ok := traceSet[traceName1]
 	assert.True(t, ok)
 	assert.Equal(t, float32(1.5), trace[1])
@@ -774,8 +785,10 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 	assert.NoError(t, err)
 	assert.Equal(t, file4, sourceFile)
 
-	traceSet, err = s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
+	traceSet, commits, err = s.ReadTraces(ctx, types.TileNumber(0), traceNameStrings)
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
+
 	trace, ok = traceSet[traceName1]
 	assert.True(t, ok)
 	assert.Equal(t, float32(1.6), trace[1])
@@ -786,8 +799,9 @@ func TestWriteTraces_InsertDifferentValueAndFile_OverwriteExistingTraceValues(t 
 	assert.NoError(t, err)
 	assert.Equal(t, file4, sourceFile)
 
-	traceSet, err = s.ReadTraces(ctx, types.TileNumber(0), []string{traceName2})
+	traceSet, commits, err = s.ReadTraces(ctx, types.TileNumber(0), []string{traceName2})
 	assert.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	trace, ok = traceSet[traceName2]
 	assert.True(t, ok)
 	assert.Equal(t, float32(2.4), trace[1])
@@ -801,15 +815,17 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 		",arch=x86,config=565,",
 	}
 
-	ts, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err := s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 2, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, e, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, e, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
@@ -818,15 +834,17 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 	err = s.deleteCommit(ctx, types.CommitNumber(2))
 	require.NoError(t, err)
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{0, 1, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},
@@ -835,15 +853,17 @@ func TestReadTraces_WithDiscontinueCommitNumbers_Succeed(t *testing.T) {
 	err = s.deleteCommit(ctx, types.CommitNumber(0))
 	require.NoError(t, err)
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(0), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{1, 3, 4, 5, 6, 7})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {2.3, 3.3, e, e, e, e},
 		",arch=x86,config=8888,": {1.5, 2.5, e, e, e, e},
 	}, ts)
 
-	ts, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
+	ts, commits, err = s.ReadTraces(ctx, types.TileNumber(1), keys)
 	require.NoError(t, err)
+	assertCommitNumbersMatch(t, commits, []types.CommitNumber{8, 9, 10, 11, 12, 13, 14, 15})
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=565,":  {4.3, e, e, e, e, e, e, e},
 		",arch=x86,config=8888,": {3.5, e, e, e, e, e, e, e},

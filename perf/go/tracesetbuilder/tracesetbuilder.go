@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -22,10 +23,11 @@ const (
 //
 // See New() for more details.
 type request struct {
-	key      string
-	params   paramtools.Params
-	trace    []float32
-	traceMap map[int32]int32
+	key                       string
+	params                    paramtools.Params
+	trace                     []float32
+	commitNumberToOutputIndex map[types.CommitNumber]int32
+	commits                   []provider.Commit
 }
 
 // mergeWorker merges the data in requests into a traceSet and paramSet.
@@ -50,9 +52,16 @@ func newMergeWorker(wg *sync.WaitGroup, size int) *mergeWorker {
 			if !ok {
 				trace = types.NewTrace(size)
 			}
-			for srcIndex, dstIndex := range req.traceMap {
-				trace[dstIndex] = req.trace[srcIndex]
+			for i, c := range req.commits {
+				// dstIndex := traceMap[b.store.OffsetFromCommitNumber(c.CommitNumber)]
+				dstIndex := req.commitNumberToOutputIndex[c.CommitNumber]
+				trace[dstIndex] = req.trace[i]
 			}
+			/*
+				for srcIndex, dstIndex := range req.traceMap {
+					trace[dstIndex] = req.trace[srcIndex]
+				}
+			*/
 			m.traceSet[req.key] = trace
 			m.paramSet.AddParams(req.params)
 			m.wg.Done()
@@ -109,7 +118,7 @@ func New(size int) *TraceSetBuilder {
 //
 // traceMap says where each trace value should be placed in the final trace.
 // traces are keyed by traceId (unencoded) and the traces are just a single tile length.
-func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
+func (t *TraceSetBuilder) Add(commitNumberToOutputIndex map[types.CommitNumber]int32, commits []provider.Commit, traces types.TraceSet) {
 	defer timer.New("TraceSetBuilder.Add").Stop()
 	t.wg.Add(len(traces))
 	for key, trace := range traces {
@@ -119,10 +128,11 @@ func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
 			continue
 		}
 		req := &request{
-			key:      key,
-			trace:    trace,
-			traceMap: traceMap,
-			params:   params,
+			key:                       key,
+			trace:                     trace,
+			commitNumberToOutputIndex: commitNumberToOutputIndex,
+			commits:                   commits,
+			params:                    params,
 		}
 		index := crc32.ChecksumIEEE([]byte(req.key)) % numWorkers
 		t.mergeWorkers[index].Process(req)

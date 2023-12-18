@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -19,9 +20,13 @@ func TestBuilder(t *testing.T) {
 		",arch=x86,name=bar,": []float32{3.0, 4.0},
 		",arch=x86,name=baz,": []float32{5.0, 6.0},
 	}
-	traceMap1 := map[int32]int32{
+	commitNumberToOutputIndex1 := map[types.CommitNumber]int32{
 		0: 0,
 		1: 1,
+	}
+	commits1 := []provider.Commit{
+		{CommitNumber: 0},
+		{CommitNumber: 1},
 	}
 
 	traces2 := types.TraceSet{
@@ -29,14 +34,20 @@ func TestBuilder(t *testing.T) {
 		",arch=x86,name=bar,": []float32{5.5, 6.6},
 		",arch=x86,name=baz,": []float32{7.7, 8.8},
 	}
-	traceMap2 := map[int32]int32{
-		0: 3,
-		1: 4,
+
+	commits2 := []provider.Commit{
+		{CommitNumber: 3},
+		{CommitNumber: 4},
+	}
+
+	commitNumberToOutputIndex2 := map[types.CommitNumber]int32{
+		3: 3,
+		4: 4,
 	}
 
 	builder := New(5)
-	builder.Add(traceMap1, traces1)
-	builder.Add(traceMap2, traces2)
+	builder.Add(commitNumberToOutputIndex1, commits1, traces1)
+	builder.Add(commitNumberToOutputIndex2, commits2, traces2)
 	traceSet, ops := builder.Build(context.Background())
 	builder.Close()
 	assert.Len(t, traceSet, 3)
