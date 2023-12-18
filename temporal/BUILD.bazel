@@ -73,3 +73,20 @@ container_image(
         "@com_github_temporal_ui//:temporalui-pkg",
     ],
 )
+
+genrule(
+    name = "temporal-cli",
+    srcs = [
+        "@com_github_temporal_cli//:temporal-cli",
+    ],
+    outs = ["temporal-cli-bin"],
+    cmd = """
+      tar -x -f $(location @com_github_temporal_cli//:temporal-cli) ./etc/temporal/temporal;
+      cp ./etc/temporal/temporal $@;
+    """,
+    executable = True,
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+)
