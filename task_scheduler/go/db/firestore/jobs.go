@@ -116,7 +116,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 		if !doc.Exists() {
 			// This is expected for new jobs.
 			if !isNew[idx] {
-				sklog.Errorf("Job is not new but wasn't found in the DB: %+v", jobs[idx])
+				sklog.Errorf("Job is not new but wasn't found in the DB: %#v", jobs[idx])
 				// If the job is supposed to exist but does not, then
 				// we have a problem.
 				return db.ErrConcurrentUpdate
@@ -128,7 +128,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 			if err := doc.DataTo(&old); err != nil {
 				return fmt.Errorf("Job has no DbModified timestamp but already exists in the DB. Failed to decode previous job with: %s", err)
 			}
-			sklog.Errorf("Job has no DbModified timestamp but already exists in the DB! \"New\" job:\n%+v\nExisting job:\n%+v", jobs[idx], old)
+			sklog.Errorf("Job has no DbModified timestamp but already exists in the DB! \"New\" job:\n%#v\nExisting job:\n%#v", jobs[idx], old)
 			return db.ErrConcurrentUpdate
 		}
 		// If the job already exists, check the DbModified timestamp
@@ -139,7 +139,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
-				sklog.Errorf("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%+v\nExisting job:\n%+v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), jobs[idx], old)
+				sklog.Errorf("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%#v\nExisting job:\n%#v", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), jobs[idx], old)
 				return db.ErrConcurrentUpdate
 			}
 		}
@@ -178,7 +178,7 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 	prevModified := make([]time.Time, len(jobs))
 	for idx, job := range jobs {
 		if util.TimeIsZero(job.Created) {
-			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
+			return fmt.Errorf("Created not set. Job %s created time is %s. %#v", job.Id, job.Created, job)
 		}
 		isNew[idx] = util.TimeIsZero(job.DbModified)
 		prevId[idx] = job.Id
