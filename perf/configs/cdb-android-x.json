@@ -27,7 +27,13 @@
       "```",
       "{{ range index .ParamSet \"device_name\" }} {{ . }}",
       "{{end}}",
-      "```"
+      "```",
+      "API Level:",
+      "```",
+      "{{ range index .ParamSet \"sdk_release_name\" }} {{ . }}",
+      "{{end}}",
+      "```",
+      ""
     ]
   },
   "auth_config": {
