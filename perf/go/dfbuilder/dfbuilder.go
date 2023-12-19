@@ -553,7 +553,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 
 // PreflightQuery implements dataframe.DataFrameBuilder.
 func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuiler.PreflightQuery")
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.PreflightQuery")
 	defer span.End()
 
 	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
@@ -614,7 +614,7 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 
 // NumMatches implements dataframe.DataFrameBuilder.
 func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuiler.NumMatches")
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NumMatches")
 	defer span.End()
 	defer timer.NewWithSummary("perfserver_dfbuilder_NumMatches", b.preflightQueryTimer).Stop()
 
