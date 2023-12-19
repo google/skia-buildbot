@@ -396,19 +396,31 @@ type FrontendFlags struct {
 	NumContinuous                  int
 	NumContinuousParallel          int
 	NumShift                       int
-	NumParamSetsForQueries         int
-	Port                           string
-	PromPort                       string
-	ResourcesDir                   string
-	InternalPort                   string
-	Radius                         int
-	StepUpOnly                     bool
-	DisplayGroupBy                 bool
-	HideListOfCommitsOnExplore     bool
-	FetchChromePerfAnomalies       bool
-	FeedbackURL                    string
-	DisableGitUpdate               bool
-	DisableMetricsUpdate           bool
+
+	// NumParamSetsForQueries is the number of Tiles to look backwards over when
+	// building a ParamSet that is used to present to users for then to build
+	// queries.
+	//
+	// This number needs to be large enough to hit enough Tiles so that no query
+	// parameters go missing.
+	//
+	// For example, let's say "test=foo" only runs once a week, but let's say
+	// the incoming data arriving fills one Tile per day, then you'd need
+	// NumParamSetsForQueries to be at least 7, otherwise "foo" will never show
+	// up as a query option in the UI for the "test" key.
+	NumParamSetsForQueries     int
+	Port                       string
+	PromPort                   string
+	ResourcesDir               string
+	InternalPort               string
+	Radius                     int
+	StepUpOnly                 bool
+	DisplayGroupBy             bool
+	HideListOfCommitsOnExplore bool
+	FetchChromePerfAnomalies   bool
+	FeedbackURL                string
+	DisableGitUpdate           bool
+	DisableMetricsUpdate       bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -498,7 +510,17 @@ func (flags *FrontendFlags) AsCliFlags(clustering bool) []cli.Flag {
 			Destination: &flags.NumParamSetsForQueries,
 			Name:        "num_paramsets_for_queries",
 			Value:       2,
-			Usage:       "The number of paramsets we gather to populate the query dialog.",
+			Usage: `The number of Tiles to look backwards over when building a ParamSet that
+is used to present to users for them to build queries.
+
+This number needs to be large enough to hit enough Tiles so that no query
+parameters go missing.
+
+For example, let's say "test=foo" only runs once a week, but let's say
+the incoming data fills one Tile per day, then you'd need
+num_paramsets_for_queries to be at least 7, otherwise "foo" might not
+show up as a query option in the UI for the "test" key.
+			`,
 		},
 		&cli.StringFlag{
 			Destination: &flags.Port,
