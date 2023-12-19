@@ -312,7 +312,7 @@ func runServer(serverURL string, srv, bbHandler http.Handler, plogin alogin.Logi
 	r.HandleFunc("/res/*", httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/_/login/status", alogin.LoginStatusHandler(plogin))
 	if bbHandler != nil {
-		r.Handle("/prpc/*", alogin.ForceRole(bbHandler, plogin, roles.Buildbucket))
+		r.Handle("/bb/*", http.StripPrefix("/bb/", alogin.ForceRole(bbHandler, plogin, roles.Buildbucket)))
 	}
 
 	h := httputils.LoggingRequestResponse(r)
