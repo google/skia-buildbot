@@ -199,3 +199,13 @@ setup_server(){
         add_custom_search_attributes
     fi
 }
+
+start_server(){
+    local flags=
+    if [[ -n ${SERVICES} ]]; then
+        SERVICES="${SERVICES//,/ }"
+        for i in $SERVICES; do flags="${flags} --service=$i"; done
+    fi
+    dockerize -template /etc/config_template.yaml:/etc/temporal/config/docker.yaml
+    exec /etc/temporal/temporal-server --env docker start $flags
+}

@@ -36,8 +36,7 @@ for arg; do
       setup_server
       ;;
     start-server)
-      dockerize -template /etc/config_template.yaml:/etc/temporal/config/docker.yaml
-      exec /etc/temporal/temporal-server --env docker start
+      start_server
       ;;
   esac
 done

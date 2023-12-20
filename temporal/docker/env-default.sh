@@ -3,6 +3,7 @@
 : "${DB:=postgresql}"
 : "${SKIP_DB_CREATE:=false}"
 : "${TEMPORAL_HOME:=/etc/temporal}"
+: "${SERVICES:=}"
 
 # PostgreSQL
 : "${DBNAME:=temporal}"
