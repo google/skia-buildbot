@@ -206,6 +206,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153 h1:yUdfgN0XgIJw7foRItutHYUIhlcKzcSf5vDpdhQAKTc=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
+github.com/elgs/gosplitargs v0.0.0-20230310130726-7d16e488436a h1:vO9yvZPJqJMJJsFdaD+sLkwjZfxzr/0fm22AnW8R6ms=
+github.com/elgs/gosplitargs v0.0.0-20230310130726-7d16e488436a/go.mod h1:1zHirgOZTAY00iwXKAX0NsVKjwkwjSr1P+yqciHfRH0=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
@@ -552,6 +554,10 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
+github.com/jwilder/dockerize v0.7.0 h1:LLfQaaK0E78KdU0euwbYVosTJEmab4gvHtbIVVJi3b8=
+github.com/jwilder/dockerize v0.7.0/go.mod h1:b51d6mHKp1Nxbl6WC+tgZX6NRiqRUJhs29trVAWeng4=
+github.com/jwilder/gojq v0.0.0-20161018055142-c550732d4a52 h1:ZSTiJFRPQr2XRqfgvm2xpEsrsudezdk8ykBXXiJDfiQ=
+github.com/jwilder/gojq v0.0.0-20161018055142-c550732d4a52/go.mod h1:pD7F1lLmlib/2Vy3xild2aXjNnnSudq54IJGftfO4O0=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
 github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd h1:Coekwdh0v2wtGp9Gmz1Ze3eVRAWJMLokvN3QjdzCHLY=
