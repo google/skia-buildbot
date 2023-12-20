@@ -44,7 +44,7 @@ var (
 func runServer(serverURL string, bbHandler http.Handler, plogin alogin.Login) {
 	r := chi.NewRouter()
 	if bbHandler != nil {
-		r.Handle("/bb/*", http.StripPrefix("/bb/", alogin.ForceRole(bbHandler, plogin, roles.Buildbucket)))
+		r.Handle("/prpc/*", alogin.ForceRole(bbHandler, plogin, roles.Buildbucket))
 	}
 
 	h := httputils.LoggingRequestResponse(r)
