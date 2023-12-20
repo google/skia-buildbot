@@ -1,25 +1,51 @@
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
+
+container_image(
+    name = "base",
+    base = "@basealpine//image",
+    files = [
+        "@com_github_jwilder_dockerize//:dockerize",
+    ],
+    symlinks = {
+        "/usr/bin/dockerize": "/dockerize",
+    },
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+    user = "root",
+    workdir = "/etc/temporal",
+)
+
+container_run_and_commit_layer(
+    name = "config",
+    # Temporal will need to generate yml file under config folder using
+    # environment vars. It needs root and access to the folder config.
+    commands = [
+        "mkdir -p /etc/temporal/config",
+        "chmod ugo+w /etc/temporal/config",
+    ],
+    image = ":base.tar",
+    tags = [
+        "manual",  # Exclusion from presubmit and RBE as it requires docker.
+        "no-remote",
+    ],
+)
 
 # Docker image with Temporal server and tools to admin the server.
 container_image(
     name = "temporal-server",
-    base = "@basealpine//image",
-    # Temporal will need to generate yml file under config folder using
-    # environment vars. It needs root and access to the folder config.
-    empty_dirs = [
-        "/etc/temporal/config",
-    ],
+    base = ":base.tar",
     empty_files = [
         # The default dynamic config placeholder with empty content.
         "/etc/temporal/config/dynamicconfig/docker.yaml",
     ],
     entrypoint = "/entrypoint.sh",
-    files = glob(["docker/*.sh"]) + [
-        "@com_github_dockerize//:dockerize",
+    files = glob(["docker/*.sh"]),
+    layers = [
+        ":config",
     ],
-    symlinks = {
-        "/usr/bin/dockerize": "/dockerize",
-    },
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
         "no-remote",
@@ -28,25 +54,17 @@ container_image(
         "@com_github_temporal//:temporal",
         "@com_github_temporal_cli//:temporal-cli",
     ],
-    user = "root",
-    workdir = "/etc/temporal",
 )
 
 # Docker image with Temporal UI
 # Launch with TEMPORAL_ADDRESS set to Temporal server, defaults to localhost.
 container_image(
     name = "temporal-ui",
-    base = "@basealpine//image",
-    empty_dirs = [
-        "/etc/temporal/config",
-    ],
+    base = ":base.tar",
     entrypoint = "sh /etc/temporal/start-ui-server.sh",
-    files = [
-        "@com_github_dockerize//:dockerize",
+    layers = [
+        ":config",
     ],
-    symlinks = {
-        "/usr/bin/dockerize": "/dockerize",
-    },
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
         "no-remote",
@@ -54,6 +72,4 @@ container_image(
     tars = [
         "@com_github_temporal_ui//:temporalui-pkg",
     ],
-    user = "root",
-    workdir = "/etc/temporal",
 )
