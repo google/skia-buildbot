@@ -4,12 +4,6 @@ load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_la
 container_image(
     name = "base",
     base = "@basealpine//image",
-    files = [
-        "@com_github_jwilder_dockerize//:dockerize",
-    ],
-    symlinks = {
-        "/usr/bin/dockerize": "/dockerize",
-    },
     tags = [
         "manual",  # Exclusion from presubmit and RBE as it requires docker.
         "no-remote",
@@ -25,6 +19,7 @@ container_run_and_commit_layer(
     commands = [
         "mkdir -p /etc/temporal/config",
         "chmod ugo+w /etc/temporal/config",
+        "wget -O - https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-linux-amd64-v0.7.0.tar.gz | tar xzf - -C /usr/bin",
     ],
     image = ":base.tar",
     tags = [
