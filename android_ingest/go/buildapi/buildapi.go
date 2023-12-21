@@ -59,6 +59,9 @@ func (a *API) GetMostRecentBuildID() (int64, int64, error) {
 		return -1, -1, skerr.Wrap(err)
 	}
 	sklog.Infof("Got %d items.", len(resp.Builds))
+	if len(resp.Builds) == 0 {
+		return 0, 0, skerr.Fmt("androidbuildinteral returned no results.")
+	}
 	build := resp.Builds[0]
 	// Convert build.BuildId to int64.
 	buildId, err := strconv.ParseInt(build.BuildId, 10, 64)
