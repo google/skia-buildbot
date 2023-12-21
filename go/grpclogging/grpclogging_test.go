@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.opencensus.io/trace"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -15,6 +17,7 @@ import (
 	pb "go.skia.org/infra/go/grpclogging/proto"
 	tpb "go.skia.org/infra/go/grpclogging/testproto"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/tracing/tracingtest"
 	"go.skia.org/infra/kube/go/authproxy"
 
 	"github.com/stretchr/testify/assert"
@@ -71,6 +74,11 @@ func TestServerUnaryLoggingInterceptor_noError(t *testing.T) {
 	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
 	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
 	assertLoggedServerUnary(t, entry, req)
+
+	// Make sure that no trace fields are set if tracing isn't active.
+	assert.Equal(t, "", entry.SpanId)
+	assert.Equal(t, "", entry.TraceId)
+	assert.False(t, entry.TraceSampled)
 }
 
 func TestServerUnaryLoggingInterceptor_withNaNs(t *testing.T) {
@@ -138,6 +146,42 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	assert.Equal(t, int32(codes.InvalidArgument), entry.StatusCode)
 	assert.Equal(t, int64(1), entry.Elapsed.Seconds)
 	assertLoggedServerUnary(t, entry, req)
+}
+
+func TestServerUnaryLoggingInterceptor_tracing(t *testing.T) {
+	exporter := &tracingtest.Exporter{}
+	trace.RegisterExporter(exporter)
+	defer trace.UnregisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{
+
+		DefaultSampler: trace.AlwaysSample()})
+
+	ttCtx, l, buf := testSetupLogger(t)
+	req := &tpb.GetSomethingRequest{
+		SomethingId: "d3c4f84d",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		ctx, span := trace.StartSpan(ctx, "handler")
+		defer span.End()
+		ttCtx.SetTime(startTime.Add(3 * time.Second))
+		return &tpb.GetSomethingResponse{}, nil
+	}
+
+	ctx, span := trace.StartSpan(ttCtx, "caller")
+	resp, err := l.ServerUnaryLoggingInterceptor(ctx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
+	span.End()
+
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 2, len(exporter.SpanData()))
+	entry := entryFromBuf(t, buf)
+
+	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
+	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
+	assertLoggedServerUnary(t, entry, req)
+	assert.NotEqual(t, "", entry.SpanId)
+	assert.NotEqual(t, "", entry.TraceId)
+	assert.True(t, entry.TraceSampled)
 }
 
 func TestClientUnaryLoggingInterceptor_noError(t *testing.T) {

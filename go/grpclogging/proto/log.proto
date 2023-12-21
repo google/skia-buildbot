@@ -30,6 +30,13 @@ message Entry {
     // When cabe makes an outgoing streaming gRPC call to some
     // other service, that gets logged in client_stream.
     ClientStream client_stream = 9;
+
+    // These fields are processed by gcp's log to connect log lines
+    // to traces and spans, if present. See:
+    // https://cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields
+    string trace_id = 10 [json_name =  "logging.googleapis.com/trace"];
+    string span_id = 11 [json_name = "logging.googleapis.com/spanId"];
+    bool trace_sampled = 12 [json_name= "logging.googleapis.com/trace_sampled"];
 }
 
 // ServerUnary logs the server side of a grpc unary request, as intercepted

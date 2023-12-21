@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 
+	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy"
@@ -79,7 +81,7 @@ func (l *GRPCLogger) ServerUnaryLoggingInterceptor(ctx context.Context, req any,
 			entry.ServerUnary.Response = respAny
 		}
 	}
-	l.log(entry, handlerErr)
+	l.log(ctx, entry, handlerErr)
 
 	return resp, handlerErr
 }
@@ -99,7 +101,7 @@ func (l *GRPCLogger) ClientUnaryLoggingInterceptor(ctx context.Context, method s
 	if err != nil {
 		sklog.Errorf("ClientUnaryLoggingInterceptor couldn't log response: %v", err)
 	}
-	l.log(&pb.Entry{
+	l.log(ctx, &pb.Entry{
 		Start:   startPb,
 		Elapsed: elapsed,
 		ClientUnary: &pb.ClientUnary{
@@ -120,7 +122,7 @@ func (l *GRPCLogger) ClientStreamLoggingInterceptor(ctx context.Context, desc *g
 	clientStream, streamerErr := streamer(ctx, desc, cc, method, opts...)
 	elapsed := durationpb.New(now.Now(ctx).Sub(start))
 
-	l.log(&pb.Entry{
+	l.log(ctx, &pb.Entry{
 		Start:   startPb,
 		Elapsed: elapsed,
 		ClientStream: &pb.ClientStream{
@@ -134,7 +136,17 @@ func (l *GRPCLogger) ClientStreamLoggingInterceptor(ctx context.Context, desc *g
 	return clientStream, streamerErr
 }
 
-func (l *GRPCLogger) log(entry *pb.Entry, err error) {
+func (l *GRPCLogger) log(ctx context.Context, entry *pb.Entry, err error) {
+	if span := trace.FromContext(ctx); span.IsRecordingEvents() {
+		spanContext := span.SpanContext()
+		// TODO(seanmccullough): Determine if TraceId needs to be formatted like:
+		//   	projects/<project ID>/traces/<trace ID>
+		// or if logs agent, or stackdriver, etc does that for us. GCP docs are ambiguous.
+		entry.TraceId = spanContext.TraceID.String()
+		entry.SpanId = spanContext.SpanID.String()
+		entry.TraceSampled = spanContext.IsSampled()
+	}
+
 	if st, ok := status.FromError(err); ok {
 		statusProto := st.Proto()
 		if statusProto != nil {
