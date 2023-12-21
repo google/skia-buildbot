@@ -575,12 +575,6 @@ def go_repositories():
         sum = "h1:yUdfgN0XgIJw7foRItutHYUIhlcKzcSf5vDpdhQAKTc=",
         version = "v0.0.0-20180725130230-947c36da3153",
     )
-    go_repository(
-        name = "com_github_elgs_gosplitargs",
-        importpath = "github.com/elgs/gosplitargs",
-        sum = "h1:vO9yvZPJqJMJJsFdaD+sLkwjZfxzr/0fm22AnW8R6ms=",
-        version = "v0.0.0-20230310130726-7d16e488436a",
-    )
 
     go_repository(
         name = "com_github_emicklei_go_restful",
@@ -1542,18 +1536,6 @@ def go_repositories():
         importpath = "github.com/julienschmidt/httprouter",
         sum = "h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=",
         version = "v1.3.0",
-    )
-    go_repository(
-        name = "com_github_jwilder_dockerize",
-        importpath = "github.com/jwilder/dockerize",
-        sum = "h1:LLfQaaK0E78KdU0euwbYVosTJEmab4gvHtbIVVJi3b8=",
-        version = "v0.7.0",
-    )
-    go_repository(
-        name = "com_github_jwilder_gojq",
-        importpath = "github.com/jwilder/gojq",
-        sum = "h1:ZSTiJFRPQr2XRqfgvm2xpEsrsudezdk8ykBXXiJDfiQ=",
-        version = "v0.0.0-20161018055142-c550732d4a52",
     )
 
     go_repository(

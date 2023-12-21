@@ -27,7 +27,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cockroachdb/cockroach-go/v2 v2.1.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/elgs/gosplitargs v0.0.0-20230310130726-7d16e488436a
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
@@ -50,8 +49,6 @@ require (
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jcgregorio/logger v0.1.3
-	github.com/jwilder/dockerize v0.7.0
-	github.com/jwilder/gojq v0.0.0-20161018055142-c550732d4a52
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/kisielk/errcheck v1.5.0
 	github.com/miekg/dns v1.1.41
