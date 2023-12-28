@@ -422,6 +422,7 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
+	// TODO(jcgregorio) Remove one `perfserver maintenance` is running for all instances.
 	if !f.flags.DisableGitUpdate {
 		// Update the git repo periodically since perfGit.LogEntry does interrogate
 		// the git repo itself instead of using the SQL backend.

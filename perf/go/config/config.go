@@ -642,6 +642,44 @@ func (flags *IngestFlags) AsCliFlags() []cli.Flag {
 	}
 }
 
+// MaintenanceFlags are the command-line flags for the maintenance process.
+type MaintenanceFlags struct {
+	ConfigFilename   string
+	ConnectionString string
+	PromPort         string
+	Local            bool
+}
+
+// AsCliFlags returns a slice of cli.Flag.
+func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Destination: &flags.ConfigFilename,
+			Name:        "config_filename",
+			Value:       "",
+			Usage:       "Instance config file. Must be supplied.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.ConnectionString,
+			Name:        "connection_string",
+			Value:       "",
+			Usage:       " Override the connection_string in the config file.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.PromPort,
+			Name:        "prom_port",
+			Value:       ":20000",
+			Usage:       "Metrics service address (e.g., ':20000')",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.Local,
+			Name:        "local",
+			Value:       false,
+			Usage:       "True if running locally and not in production.",
+		},
+	}
+}
+
 type FavoritesSectionLinkConfig struct {
 	// Text to display on the link
 	Text string `json:"text"`

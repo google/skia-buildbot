@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "maintenance",
+    srcs = ["maintenance.go"],
+    importpath = "go.skia.org/infra/perf/go/maintenance",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//perf/go/builders",
+        "//perf/go/config",
+        "//perf/go/tracing",
+    ],
+)

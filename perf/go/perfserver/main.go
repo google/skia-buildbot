@@ -19,12 +19,14 @@ import (
 	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/ingest/process"
+	"go.skia.org/infra/perf/go/maintenance"
 )
 
 func main() {
 	var clusterFlags config.FrontendFlags
 	var frontendFlags config.FrontendFlags
 	var ingestFlags config.IngestFlags
+	var maintenanceFlags config.MaintenanceFlags
 
 	cli.MarkdownDocTemplate = urfavecli.MarkdownDocTemplate
 
@@ -51,6 +53,29 @@ func main() {
 					}
 					f.Serve()
 					return nil
+				},
+			},
+			{
+				Name:        "maintenance",
+				Usage:       "Starts maintenance tasks.",
+				Description: "Runs maintenance tasks that require running from a singleton for each instance.",
+				Flags:       (&maintenanceFlags).AsCliFlags(),
+				Action: func(c *cli.Context) error {
+					urfavecli.LogFlags(c)
+					instanceConfig, schemaViolations, err := validate.InstanceConfigFromFile(maintenanceFlags.ConfigFilename)
+					if err != nil {
+						for _, v := range schemaViolations {
+							sklog.Error(v)
+						}
+						return err
+					}
+					if maintenanceFlags.ConnectionString != "" {
+						instanceConfig.DataStoreConfig.ConnectionString = maintenanceFlags.ConnectionString
+					}
+
+					metrics2.InitPrometheus(maintenanceFlags.PromPort)
+
+					return maintenance.Start(context.Background(), maintenanceFlags, instanceConfig)
 				},
 			},
 			{

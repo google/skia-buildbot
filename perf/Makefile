@@ -195,6 +195,19 @@ run-demo-instance:
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
+
+# Before running this target you need to have a local single-instance of
+# cockroachdb running, started like this:
+#
+#  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
+run-demo-maintenance:
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
+		--local \
+		--config_filename=./configs/demo.json \
+		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
+
 run-demo-chromeperf:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo

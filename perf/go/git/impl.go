@@ -270,6 +270,9 @@ func (g *Impl) Update(ctx context.Context) error {
 	ctx, span := trace.StartSpan(ctx, "perfgit.Update")
 	defer span.End()
 
+	ctx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
+	defer cancel()
+
 	sklog.Infof("perfgit: Update called.")
 	g.updateCalled.Inc(1)
 	if err := g.gp.Update(ctx); err != nil {
