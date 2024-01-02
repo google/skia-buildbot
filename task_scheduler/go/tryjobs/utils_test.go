@@ -197,10 +197,6 @@ func tryjobV2(ctx context.Context, repoName string) *types.Job {
 	return job
 }
 
-type errMsg struct {
-	Message string `json:"message"`
-}
-
 type heartbeat struct {
 	BuildId           string `json:"build_id"`
 	LeaseExpirationTs string `json:"lease_expiration_ts"`
@@ -208,8 +204,8 @@ type heartbeat struct {
 }
 
 type heartbeatResp struct {
-	BuildId string  `json:"build_id,omitempty"`
-	Error   *errMsg `json:"error,omitempty"`
+	BuildId string                                 `json:"build_id,omitempty"`
+	Error   *buildbucket_api.LegacyApiErrorMessage `json:"error,omitempty"`
 }
 
 func MockHeartbeats(t sktest.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {

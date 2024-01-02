@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
@@ -250,7 +251,8 @@ func TestUpdateJobsV1_HeartbeatBatchOneFailed_JobIsCanceled(t *testing.T) {
 	MockHeartbeats(t, mock, ts, []*types.Job{j1, j2}, map[string]*heartbeatResp{
 		j1.Id: {
 			BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
-			Error: &errMsg{
+			Error: &buildbucket_api.LegacyApiErrorMessage{
+				Reason:  "unknown reason",
 				Message: "fail",
 			},
 		},
@@ -264,6 +266,32 @@ func TestUpdateJobsV1_HeartbeatBatchOneFailed_JobIsCanceled(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, canceled.Done())
 	require.Equal(t, types.JOB_STATUS_CANCELED, canceled.Status)
+}
+
+func TestUpdateJobsV1_HeartbeatBatchLeaseExpired_LeaseRenewed(t *testing.T) {
+	ctx, trybots, mock, _, _ := setup(t)
+
+	j1 := tryjobV1(ctx, repoUrl)
+	jobs := []*types.Job{j1}
+	require.NoError(t, trybots.db.PutJobs(ctx, jobs))
+	trybots.jCache.AddJobs(jobs)
+	MockHeartbeats(t, mock, ts, []*types.Job{j1}, map[string]*heartbeatResp{
+		j1.Id: {
+			BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
+			Error: &buildbucket_api.LegacyApiErrorMessage{
+				Reason:  BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED,
+				Message: "fail",
+			},
+		},
+	})
+	require.NoError(t, trybots.updateJobs(ctx))
+	require.True(t, mock.Empty(), mock.List())
+	active, err := trybots.getActiveTryJobs(ctx)
+	require.NoError(t, err)
+	assertdeep.Equal(t, []*types.Job{j1}, active)
+	j1, err = trybots.db.GetJobById(ctx, j1.Id)
+	require.NoError(t, err)
+	require.False(t, j1.Done())
 }
 
 func TestGetRevision(t *testing.T) {

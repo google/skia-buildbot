@@ -54,7 +54,7 @@ const (
 	UPDATE_INTERVAL = 30 * time.Second
 
 	// We attempt to renew leases in batches. This is the batch size.
-	LEASE_BATCH_SIZE = 25
+	LEASE_BATCH_SIZE = 200
 
 	// We lease a build for this amount of time, and if we don't renew the
 	// lease before the time is up, the build resets to "scheduled" status
@@ -64,7 +64,7 @@ const (
 	// We use a shorter initial lease duration in case we succeed in leasing
 	// a build but fail to insert the associated Job into the DB, eg.
 	// because the scheduler was interrupted.
-	LEASE_DURATION_INITIAL = 5 * time.Minute
+	LEASE_DURATION_INITIAL = 30 * time.Minute
 
 	// How many pending builds to read from the bucket at a time.
 	PEEK_MAX_BUILDS = 50
@@ -75,6 +75,9 @@ const (
 	// This error reason indicates that we already marked the build as
 	// finished.
 	BUILDBUCKET_API_ERROR_REASON_COMPLETED = "BUILD_IS_COMPLETED"
+
+	// This error reason indicates that our lease on the build has expired.
+	BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED = "LEASE_EXPIRED"
 
 	secondsToMicros = 1000000
 	microsToNanos   = 1000
@@ -278,6 +281,7 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 	errs := []error{}
 
 	// Send heartbeats for all leases.
+	sklog.Infof("Sending heartbeats for %d jobs...", len(jobs))
 	send := func(jobs []*types.Job) {
 		heartbeats := make([]*buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
 		for _, j := range jobs {
@@ -287,7 +291,7 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 				LeaseExpirationTs: expiration,
 			})
 		}
-		sklog.Infof("Sending heartbeats for %d jobs...", len(jobs))
+		sklog.Infof("Sending heartbeat batch of %d jobs...", len(jobs))
 		resp, err := t.bb.HeartbeatBatch(&buildbucket_api.LegacyApiHeartbeatBatchRequestMessage{
 			Heartbeats: heartbeats,
 		}).Do()
@@ -300,6 +304,7 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 			errs = append(errs, skerr.Fmt("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
 			return
 		}
+		var retryLeaseJobs []*types.Job
 		var cancelJobs []*types.Job
 		var cancelReasons []string
 		for i, result := range resp.Results {
@@ -309,17 +314,49 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 					// This indicates that the build was canceled, eg. because
 					// a newer patchset was uploaded. This isn't an error, so we
 					// cancel the job but don't log an error.
+				} else if result.Error.Reason == BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED {
+					retryLeaseJobs = append(retryLeaseJobs, jobs[i])
 				} else {
 					sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+					cancelJobs = append(cancelJobs, jobs[i])
+					cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat with: %s", result.Error.Reason))
 				}
-				cancelJobs = append(cancelJobs, jobs[i])
-				cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat with: %s", result.Error.Reason))
+			}
+		}
+		var cancelBuilds []int64
+		if len(retryLeaseJobs) > 0 {
+			sklog.Infof("Attempting to re-lease %d builds", len(retryLeaseJobs))
+			for _, job := range retryLeaseJobs {
+				leaseKey, bbError, err := t.tryLeaseV1Build(ctx, job.BuildbucketBuildId)
+				if err != nil && bbError != nil {
+					var errMsg string
+					if err != nil {
+						errMsg = err.Error()
+					} else if bbError != nil {
+						errMsg = bbError.Message
+					}
+					sklog.Errorf("Attempted to retry leasing job %s for build %d but failed; canceling: %s", job.Id, job.BuildbucketBuildId, errMsg)
+					cancelJobs = append(cancelJobs, job)
+					cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat and failed to re-lease with: %s", errMsg))
+					cancelBuilds = append(cancelBuilds, job.BuildbucketBuildId)
+				} else {
+					sklog.Infof("Successfully re-leased job %s for build %d", job.Id, job.BuildbucketBuildId)
+					job.BuildbucketLeaseKey = leaseKey
+				}
 			}
 		}
 		if len(cancelJobs) > 0 {
 			sklog.Infof("Canceling %d jobs", len(cancelJobs))
 			if err := t.localCancelJobs(ctx, cancelJobs, cancelReasons); err != nil {
 				errs = append(errs, err)
+			}
+		}
+		if len(cancelBuilds) > 0 {
+			sklog.Infof("Canceling %d buildbucket builds", len(cancelBuilds))
+			for _, id := range cancelBuilds {
+				if err := t.remoteCancelV1Build(id, "failed to renew lease"); err != nil {
+					errs = append(errs, skerr.Wrapf(err, "failed to cancel build %d", id))
+				}
 			}
 		}
 	}
