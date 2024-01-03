@@ -43,8 +43,8 @@ type pinpointJob struct {
 
 // stats is a struct for reading results from cloud workflow executions.
 type stats struct {
-	Lower    float64 `json:lower`
-	Upper    float64 `json:upper`
+	Lower    float64 `json:"lower"`
+	Upper    float64 `json:"upper"`
 	PValue   float64 `json:"p_value"`
 	CtrlMed  float64 `json:"control_median"`
 	TreatMed float64 `json:"treatment_median"`
@@ -145,10 +145,9 @@ func (cmd *sandwichCmd) action(cliCtx *cli.Context) error {
 		return cmd.startWorkflow(ctx)
 	} else if cmd.executionID != "" {
 		return cmd.checkWorkflow(ctx)
-	} else {
-		return fmt.Errorf("please provide a Pinpoint Job ID or a Workflow Execution ID")
 	}
-	return nil
+
+	return fmt.Errorf("please provide a Pinpoint Job ID or a Workflow Execution ID")
 }
 
 func (cmd *sandwichCmd) startWorkflow(ctx context.Context) error {
