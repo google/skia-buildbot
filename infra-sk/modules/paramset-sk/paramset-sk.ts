@@ -25,6 +25,15 @@
  *        ctrl: false,
  *      }
  *
+ * @evt paramset-checkbox-click - Generated when the checkbox for a paramset value
+ *     is clicked.
+ *
+ *      {
+ *        key: "arch",
+ *        value: "x86",
+ *        selected: true
+ *      }
+ *
  * @evt plus-click - Generated when the plus sign is clicked. The element must
  *     have the 'clickable_plus' attribute set. The details of the event
  *     contains both the key and the values for the row, for example:
@@ -59,6 +68,9 @@
  * @attr {string} removable_values - If true then the cancel icon is displayed
  * next to each value in the paramset to remove the values from the set
  *
+ * @attr {string} checkbox_values - If true, then the values displayed will have
+ * a checkbox to let the user select/unselect the specific value.
+ *
  */
 import { html, TemplateResult } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
@@ -67,6 +79,7 @@ import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/add-icon-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
+import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/toast-sk';
 import { $$ } from '../dom';
 
@@ -84,6 +97,12 @@ export interface ParamSetSkPlusClickEventDetail {
 export interface ParamSetSkRemoveClickEventDetail {
   readonly key: string;
   readonly value: string;
+}
+
+export interface ParamSetSkCheckboxClickEventDetail {
+  readonly key: string;
+  readonly value: string;
+  readonly selected: boolean;
 }
 
 export class ParamSetSk extends ElementSk {
@@ -163,15 +182,34 @@ export class ParamSetSk extends ElementSk {
     key: string,
     params: string[]
   ) => {
-    return params.map(
-      (value) =>
-        html`<div
+    let disabled = true;
+    if (params.length > 1) {
+      disabled = false;
+    }
+    return params.map((value) => {
+      if (ele.checkbox_values) {
+        return html`
+          <div class=${ele._highlighted(key, value)}>
+            <checkbox-sk
+              name=${value}
+              @change=${(e: MouseEvent) =>
+                ele.checkboxValueClickHandler(e, key, value)}
+              label=${value}
+              checked
+              ?disabled=${disabled}
+              title="Select/Unselect this value from the graph.">
+            </checkbox-sk>
+          </div>
+        `;
+      } else {
+        return html`<div
           class=${ele._highlighted(key, value)}
           data-key=${key}
           data-value=${value}>
           ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
-        </div> `
-    );
+        </div> `;
+      }
+    });
   };
 
   private static cancelIconTemplate = (
@@ -210,6 +248,7 @@ export class ParamSetSk extends ElementSk {
     this._upgradeProperty('highlight');
     this._upgradeProperty('clickable');
     this._upgradeProperty('clickable_values');
+    this._upgradeProperty('checkbox_values');
     this._render();
     this.toast = $$<ToastSk>('toast-sk', this);
   }
@@ -233,6 +272,23 @@ export class ParamSetSk extends ElementSk {
     this.toast!.show();
   }
 
+  private checkboxValueClickHandler(e: MouseEvent, key: string, value: string) {
+    let isChecked = (e.target! as HTMLInputElement).checked;
+    const detail: ParamSetSkCheckboxClickEventDetail = {
+      selected: isChecked,
+      key: key,
+      value: value,
+    };
+    this.dispatchEvent(
+      new CustomEvent<ParamSetSkCheckboxClickEventDetail>(
+        'paramset-checkbox-click',
+        {
+          detail,
+          bubbles: true,
+        }
+      )
+    );
+  }
   private _click(e: MouseEvent) {
     if (
       !this.clickable &&
@@ -306,6 +362,19 @@ export class ParamSetSk extends ElementSk {
       this.setAttribute('clickable', '');
     } else {
       this.removeAttribute('clickable');
+    }
+  }
+
+  /** Mirrors the checkbox_values attribute */
+  get checkbox_values() {
+    return this.hasAttribute('checkbox_values');
+  }
+
+  set checkbox_values(val) {
+    if (val) {
+      this.setAttribute('checkbox_values', '');
+    } else {
+      this.removeAttribute('checkbox_values');
     }
   }
 

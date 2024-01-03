@@ -50,6 +50,7 @@ sk_element(
         "//autoroll/modules/rpc:index_ts_lib",
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//:node_modules/lit-html",
+        "//infra-sk/modules:object_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",

@@ -8,6 +8,7 @@ import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
+import { deepCopy } from '../../../infra-sk/modules/object';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { TabsSk } from '../../../elements-sk/modules/tabs-sk/tabs-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
@@ -69,6 +70,7 @@ import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-pan
 import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 import {
   ParamSetSk,
+  ParamSetSkCheckboxClickEventDetail,
   ParamSetSkClickEventDetail,
   ParamSetSkPlusClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
@@ -435,6 +437,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceFormatter: TraceFormatter | null = null;
 
+  private originalTraceSet: TraceSet = {};
+
   constructor() {
     super(ExploreSimpleSk.template);
     this.traceFormatter = GetTraceFormatter();
@@ -765,7 +769,8 @@ export class ExploreSimpleSk extends ElementSk {
             <paramset-sk
               id=paramset
               clickable_values
-              @paramset-key-value-click=${ele.paramsetKeyValueClick}>
+              checkbox_values
+              @paramset-checkbox-click=${ele.paramsetCheckboxClick}>
               </paramset-sk>
           </div>
           <div id=details>
@@ -1488,6 +1493,39 @@ export class ExploreSimpleSk extends ElementSk {
     this.query?.removeKeyValue(e.detail.key, e.detail.value);
   }
 
+  /**
+   * Handler for the event when the paramset checkbox is clicked.
+   * @param e Checkbox click event
+   */
+  private paramsetCheckboxClick(
+    e: CustomEvent<ParamSetSkCheckboxClickEventDetail>
+  ) {
+    if (!e.detail.selected) {
+      // Find the matching traces and remove them from the dataframe's traceset.
+      const keys: string[] = [];
+      Object.keys(this._dataframe.traceset).forEach((key) => {
+        if (_matches(key, e.detail.key, e.detail.value!)) {
+          keys.push(key);
+        }
+      });
+      this.removeKeys(keys, false);
+    } else {
+      // Adding is slightly more involved. The current dataframe may have matching traces removed,
+      // so we need to look at the original trace set to find matching traces. If we find any
+      // match, we add it to the current dataframe and then add the lines to the rendered plot.
+      const traceSet: TraceSet = {};
+      Object.keys(this.originalTraceSet).forEach((key) => {
+        if (_matches(key, e.detail.key, e.detail.value!)) {
+          if (!(key in this._dataframe.traceset)) {
+            this._dataframe.traceset[key] = this.originalTraceSet[key];
+          }
+          traceSet[key] = this.originalTraceSet[key];
+        }
+      });
+      this.plot!.addLines(traceSet, []);
+    }
+  }
+
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {
     const keys: string[] = [];
     Object.keys(this._dataframe.traceset).forEach((key) => {
@@ -1811,6 +1849,7 @@ export class ExploreSimpleSk extends ElementSk {
     // zoom window.  I'm sure this is also quite inneficient compared to just having
     // the plot render only the zoomed portion on the first try here.
     this.plot!.addLines(mergedDataframe.traceset, labels);
+    this.originalTraceSet = deepCopy(mergedDataframe.traceset);
 
     // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
     // for panning.
@@ -2116,34 +2155,41 @@ export class ExploreSimpleSk extends ElementSk {
 
   private removeHighlighted() {
     const ids = this.plot!.highlight;
-    const toShortcut: string[] = [];
+    this.removeKeys(ids, true);
+  }
 
+  private removeKeys(keysToRemove: string[], updateShortcut: boolean) {
+    const toShortcut: string[] = [];
     Object.keys(this._dataframe.traceset).forEach((key) => {
-      if (ids.indexOf(key) !== -1) {
+      if (keysToRemove.indexOf(key) !== -1) {
         // Detect if it is a formula being removed.
         if (this._state.formulas.indexOf(key) !== -1) {
           this._state.formulas.splice(this._state.formulas.indexOf(key), 1);
         }
         return;
       }
-      if (key[0] === ',') {
-        toShortcut.push(key);
+      if (updateShortcut) {
+        if (key[0] === ',') {
+          toShortcut.push(key);
+        }
       }
     });
 
     // Remove the traces from the traceset so they don't reappear.
-    ids.forEach((key) => {
+    keysToRemove.forEach((key) => {
       if (this._dataframe.traceset[key] !== undefined) {
         delete this._dataframe.traceset[key];
       }
     });
-    this.plot!.deleteLines(ids);
+    this.plot!.deleteLines(keysToRemove);
     this.plot!.highlight = [];
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
     }
-    this.reShortCut(toShortcut);
+    if (updateShortcut) {
+      this.reShortCut(toShortcut);
+    }
   }
 
   private highlightedOnly() {

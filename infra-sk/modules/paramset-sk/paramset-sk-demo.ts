@@ -73,6 +73,9 @@ paramSetSk.titles = [title1];
 paramSetSk = findParamSetSk('#removable-values');
 paramSetSk.paramsets = [paramSet1];
 
+paramSetSk = findParamSetSk('#checkbox-values');
+paramSetSk.paramsets = [paramSet1];
+
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;

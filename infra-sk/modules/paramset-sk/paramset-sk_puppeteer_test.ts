@@ -7,6 +7,7 @@ import {
   loadCachedTestBed,
 } from '../../../puppeteer-tests/util';
 import {
+  ParamSetSkCheckboxClickEventDetail,
   ParamSetSkClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
 } from './paramset-sk';
@@ -24,6 +25,7 @@ describe('paramset-sk', () => {
       'paramset-key-click',
       'paramset-key-value-click',
       'paramset-value-remove-click',
+      'paramset-checkbox-click',
     ]);
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 800, height: 600 });
@@ -83,6 +85,15 @@ describe('paramset-sk', () => {
         paramSetSk!,
         'infra-sk',
         'paramset-sk_removable-values'
+      );
+    });
+
+    it('has one ParamSet, with checkbox values', async () => {
+      const paramSetSk = await testBed.page.$('#checkbox-values');
+      await takeScreenshot(
+        paramSetSk!,
+        'infra-sk',
+        'paramset-sk_checkbox-values'
       );
     });
   });
@@ -186,6 +197,42 @@ describe('paramset-sk', () => {
           value: 'x86',
         };
         expect(await event).to.deep.equal(expected);
+      });
+    });
+
+    describe('click checkbox value', () => {
+      beforeEach(async () => {
+        paramSetSkPO = new ParamSetSkPO(
+          (await testBed.page.$('#checkbox-values'))!
+        );
+      });
+      it('emits the necessary event when checkbox is clicked.', async () => {
+        const event = eventPromise<ParamSetSkRemoveClickEventDetail>(
+          'paramset-checkbox-click'
+        );
+
+        // Let's click a value to unselect the checkbox
+        await testBed.page.click('checkbox-sk[label="x86"]');
+
+        const expectedUselected: ParamSetSkCheckboxClickEventDetail = {
+          key: 'arch',
+          value: 'x86',
+          selected: false,
+        };
+        expect(await event).to.deep.equal(expectedUselected);
+
+        // Now click the same value again to select the checkbox
+        const event2 = eventPromise<ParamSetSkRemoveClickEventDetail>(
+          'paramset-checkbox-click'
+        );
+        await testBed.page.click('checkbox-sk[label="x86"]');
+
+        const expectedSelected: ParamSetSkCheckboxClickEventDetail = {
+          key: 'arch',
+          value: 'x86',
+          selected: true,
+        };
+        expect(await event2).to.deep.equal(expectedSelected);
       });
     });
   });
