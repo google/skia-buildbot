@@ -156,7 +156,7 @@ func main() {
 						Usage:       "rm <image path> <stage name>",
 						Action: func(ctx *cli.Context) error {
 							args := ctx.Args().Slice()
-							if len(args) != 1 {
+							if len(args) != 2 {
 								return skerr.Fmt("Expected exactly two positional arguments, but got %d", len(args))
 							}
 							return sm.RemoveStage(ctx.Context, args[0], args[1])
