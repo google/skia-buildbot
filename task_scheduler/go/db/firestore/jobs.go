@@ -2,13 +2,13 @@ package firestore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
-	"github.com/davecgh/go-spew/spew"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/now"
@@ -140,7 +140,15 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 				return err
 			}
 			if old.DbModified != prevModified[idx] {
-				sklog.Errorf("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%s\nExisting job:\n%s", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), spew.Sdump(jobs[idx]), spew.Sdump(old))
+				oldBytes, err := json.Marshal(old)
+				if err != nil {
+					sklog.Errorf("Failed to marshal JSON: %s", err)
+				}
+				newBytes, err := json.Marshal(jobs[idx])
+				if err != nil {
+					sklog.Errorf("Failed to marshal JSON: %s", err)
+				}
+				sklog.Errorf("Concurrent update: Job %s in DB has DbModified %s; cached job has DbModified %s. \"New\" job:\n%s\nExisting job:\n%s", old.Id, old.DbModified.Format(time.RFC3339Nano), prevModified[idx].Format(time.RFC3339Nano), string(newBytes), string(oldBytes))
 				return db.ErrConcurrentUpdate
 			}
 		}
