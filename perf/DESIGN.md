@@ -39,10 +39,15 @@ The frontend is available at http://perf.skia.org for Skia.
                    |    | | Google   |
                    |    | | Storage  |
                    |    | +----------+
-                   |    v
-                 +-+-----------+
-                 | CockroachDB |
-                 +-------------+
+                   |    |
+                   |    |   +-------------+
+                   |    |   | Maintenance |
+                   |    |   +-------------+
+                   |    |     |
+                   |    v     v
+                 +-+-------------+
+                 |  CockroachDB  |
+                 +---------------+
 
 ```
 

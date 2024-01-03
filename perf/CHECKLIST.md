@@ -103,7 +103,7 @@ the link to the pubsub receiver in the `skia-public` project. For non-Skia Infra
 buckets I've found the easiest thing to do is give the requester privileges to
 the `skia-public` project (for an hour) and have them run the above command.
 
-## 7. Create a Service account for your instance
+## 7. Create a GCP Service account for your instance
 
 Create a CL like [this one](https://critique.corp.google.com/cl/568682178) to create a service
 account. Make sure it's in the correct project.
@@ -111,7 +111,31 @@ account. Make sure it's in the correct project.
 Give this service account read access to the bucket created in step 1 and Pub/Sub Editor role to
 both the topic and subscription created in step 5.
 
-## 8. Start new "perfserver ingest" instances for the given data with new service account.
+## 8. Bind the GCP service account to a Kubernetes service account in the cluster
+
+In `k8s-config` repo, create a CL with a `*-sa.yaml` file which points to the service account created in step 7:
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    iam.gke.io/gcp-service-account: perf-<XXXX>@<CLUSTER>.iam.gserviceaccount.com
+  name: perf-<XXXX>-internal
+  namespace: perf
+```
+
+See [this file](https://skia-review.googlesource.com/c/k8s-config/+/759064/4/skia-infra-corp/perf-webrtc-internal-sa.yaml)
+as an example.
+
+## 9. Start new "perfserver maintenance" instance for the given data with new service account.
+
+In `k8s-config` repo, create a CL like [this
+one](https://skia-review.googlesource.com/c/k8s-config/+/794378), where you
+create a `*-maintenance-*.yaml` file where you define the maintenance task for
+your perf instance.
+
+## 10. Start new "perfserver ingest" instances for the given data with new service account.
 
 In `k8s-config` repo, create a CL like
 [this one](https://skia-review.googlesource.com/c/k8s-config/+/759064), where you create a
@@ -119,13 +143,13 @@ In `k8s-config` repo, create a CL like
 file where you define the ingestor specs for your perf instance. In the ingest file, make sure
 to add the appropriate values for `app`, `serviceAccountName` and `--config_filename`.
 
-## 9. [Optional] Use perf-tool to forcibly trigger re-ingestion of existing files.
+## 11. [Optional] Use perf-tool to forcibly trigger re-ingestion of existing files.
 
 ```
 perf-tool ingest force-reingest --config_filename=./configs/flutter-flutter2.json
 ```
 
-## 10. Once data has been ingested stand up the "perfserver frontend" instance.
+## 12. Once data has been ingested stand up the "perfserver frontend" instance.
 
 In `k8s-config` repo, create a CL like
 [this one](https://skia-review.googlesource.com/c/k8s-config/+/761974), where you create a
@@ -134,13 +158,13 @@ and `--config_filename` flags.
 
 Then run `skfe/generate.sh`. This will create the envoy config to route traffic to the instance.
 
-## 11. Update the Skia zone file.
+## 13. Update the Skia zone file.
 
 Add the sub-domain of the new Perf instance to the zone file and run:
 
 ./update-zone-records.sh
 
-## 12. Add probers for the frontend.
+## 14. Add probers for the frontend.
 
 In `k8s-config` repo, create a CL like
 [this one](https://skia-review.googlesource.com/c/k8s-config/+/762921). Modify `perf.json` to
