@@ -119,6 +119,12 @@ func runGCloudCmd(args ...string) error {
 		return skerr.Wrap(err)
 	}
 
+	// If the gcloud command tries to use an interactive prompt to handle cases where e.g.
+	// a particular gcloud component isn't already installed and it asks the user if they want
+	// to install it, the `--quiet` flag tells gcloud to automatically use the default response
+	// (e.g. go ahead and install the missing component) rather than wait for user input.
+	args = append([]string{"--quiet"}, args...)
+
 	// We intentionally do not take a context parameter because we want this instance to
 	// outlive this test invocation (and be re-used by future tests).
 	cmd := exec.CommandContext(context.Background(), gcloud, args...)
