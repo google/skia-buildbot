@@ -12,7 +12,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/sklog",
-        "//go/util",
         "//perf/go/git",
         "//perf/go/types",
     ],
@@ -23,7 +22,6 @@ go_test(
     srcs = ["urlprovider_test.go"],
     embed = [":urlprovider"],
     deps = [
-        "//go/util",
         "//perf/go/git",
         "//perf/go/git/gittest",
         "@com_github_stretchr_testify//assert",

@@ -207,6 +207,7 @@ var templateFilenames = []string{
 	"dryrunalert.html",
 	"trybot.html",
 	"favorites.html",
+	"revisions.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -1153,6 +1154,81 @@ func (f *Frontend) regressionCountHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	ctx, span := trace.StartSpan(ctx, "revisionQueryRequest")
+	defer span.End()
+	revisionIdStr := r.URL.Query().Get("rev")
+	revisionId, err := strconv.Atoi(revisionIdStr)
+	if err != nil {
+		httputils.ReportError(w, err, "Revision value is not an integer", http.StatusBadRequest)
+		return
+	}
+
+	anomaliesForRevision, err := f.anomalyStore.GetAnomaliesAroundRevision(ctx, revisionId)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get tests with anomalies for revision", http.StatusInternalServerError)
+		return
+	}
+	// Create url for the test paths
+	_, err = f.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(revisionId))
+	if err != nil {
+		sklog.Error("Error getting commit info")
+	}
+
+	revisionInfoMap := map[string]anomalies.RevisionInfo{}
+	for _, anomalyData := range anomaliesForRevision {
+		key := fmt.Sprintf(
+			"%s-%s-%s-%s",
+			anomalyData.Params["master"],
+			anomalyData.Params["bot"],
+			anomalyData.Params["benchmark"],
+			anomalyData.Params["test"])
+		if _, ok := revisionInfoMap[key]; !ok {
+			exploreUrl := f.urlProvider.Explore(
+				ctx,
+				anomalyData.StartRevision,
+				anomalyData.EndRevision,
+				anomalyData.Params)
+			bugId := ""
+			if anomalyData.Anomaly.BugId > 0 {
+				bugId = strconv.Itoa(anomalyData.Anomaly.BugId)
+			}
+			revisionInfoMap[key] = anomalies.RevisionInfo{
+				StartRevision: anomalyData.StartRevision,
+				EndRevision:   anomalyData.EndRevision,
+				Master:        anomalyData.Params["master"][0],
+				Bot:           anomalyData.Params["bot"][0],
+				Benchmark:     anomalyData.Params["benchmark"][0],
+				Test:          anomalyData.Params["test"][0],
+				BugId:         bugId,
+				ExploreUrl:    exploreUrl,
+			}
+		} else {
+			revInfo := revisionInfoMap[key]
+			if anomalyData.StartRevision < revInfo.StartRevision {
+				revInfo.StartRevision = anomalyData.StartRevision
+			}
+
+			if anomalyData.EndRevision > revInfo.EndRevision {
+				revInfo.EndRevision = anomalyData.EndRevision
+			}
+
+			revisionInfoMap[key] = revInfo
+		}
+	}
+
+	revisionInfos := []anomalies.RevisionInfo{}
+	for _, info := range revisionInfoMap {
+		revisionInfos = append(revisionInfos, info)
+	}
+	sklog.Infof("Returning %d anomaly groups", len(revisionInfoMap))
+	if err := json.NewEncoder(w).Encode(revisionInfos); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 // Subset is the Subset of regressions we are querying for.
 type Subset string
 
@@ -1734,6 +1810,7 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/d/", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
+	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 
@@ -1773,6 +1850,7 @@ func (f *Frontend) Serve() {
 
 	router.Get("/_/favorites/", f.favoritesHandler)
 	router.Get("/_/defaults/", f.defaultsHandler)
+	router.Get("/_/revision/", f.revisionHandler)
 	var h http.Handler = router
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {

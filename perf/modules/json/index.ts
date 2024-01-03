@@ -37,6 +37,18 @@ export interface AlertsStatus {
 	alerts: number;
 }
 
+export interface RevisionInfo {
+	master: string;
+	bot: string;
+	benchmark: string;
+	start_revision: number;
+	end_revision: number;
+	test: string;
+	is_improvement: boolean;
+	bug_id: string;
+	explore_url: string;
+}
+
 export interface ValuePercent {
 	value: string;
 	percent: number;

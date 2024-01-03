@@ -17,7 +17,7 @@ type AlertGroupDetails struct {
 }
 
 // GetQueryParams returns the query parameters corresponding to the alert group data.
-func (alertGroup *AlertGroupDetails) GetQueryParams(ctx context.Context) map[string]util.StringSet {
+func (alertGroup *AlertGroupDetails) GetQueryParams(ctx context.Context) map[string][]string {
 	sklog.Infof("Start commit: %d, End commit: %d", alertGroup.StartCommitNumber, alertGroup.EndCommitNumber)
 
 	// We do not want duplicate params, hence create maps to use as a set datastructure for each param
@@ -49,17 +49,17 @@ func (alertGroup *AlertGroupDetails) GetQueryParams(ctx context.Context) map[str
 		}
 	}
 
-	paramsMap := map[string]util.StringSet{}
-	paramsMap["stat"] = util.NewStringSet([]string{"value"})
-	paramsMap["master"] = util.NewStringSet(parsedInfo[masters_key])
-	paramsMap["bot"] = util.NewStringSet(parsedInfo[bots_key])
-	paramsMap["benchmark"] = util.NewStringSet(parsedInfo[benchmarks_key])
-	paramsMap["test"] = util.NewStringSet(parsedInfo[tests_key])
-	paramsMap["subtest_1"] = util.NewStringSet(parsedInfo[subtests_1_key])
+	paramsMap := map[string][]string{}
+	paramsMap["stat"] = []string{"value"}
+	paramsMap["master"] = parsedInfo[masters_key]
+	paramsMap["bot"] = parsedInfo[bots_key]
+	paramsMap["benchmark"] = parsedInfo[benchmarks_key]
+	paramsMap["test"] = parsedInfo[tests_key]
+	paramsMap["subtest_1"] = parsedInfo[subtests_1_key]
 
 	sub_2, ok := parsedInfo[subtests_2_key]
 	if ok && len(sub_2) > 0 {
-		paramsMap["subtest_2"] = util.NewStringSet(parsedInfo[subtests_2_key])
+		paramsMap["subtest_2"] = parsedInfo[subtests_2_key]
 	}
 
 	return paramsMap

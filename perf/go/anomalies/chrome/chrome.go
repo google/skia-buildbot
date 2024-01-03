@@ -25,10 +25,15 @@ const (
 	contentType   = "application/json"
 )
 
+// chromePerfRequest struct to request anomalies from the chromeperf api.
+// The parameters can be one of below described.
+// 1. Revision: Retrieves anomalies around that revision number.
+// 2. Tests-MinRevision-MaxRevision: Retrieves anomalies for the given set of tests between the min and max revisions
 type chromePerfRequest struct {
-	Tests       []string `json:"tests"`
-	MaxRevision string   `json:"max_revision"`
-	MinRevision string   `json:"min_revision"`
+	Tests       []string `json:"tests,omitempty"`
+	MaxRevision string   `json:"max_revision,omitempty"`
+	MinRevision string   `json:"min_revision,omitempty"`
+	Revision    int      `json:"revision,omitempty"`
 }
 
 type chromePerfResponse struct {
@@ -75,17 +80,48 @@ func (cp *ChromePerfClient) GetAnomalies(ctx context.Context, traceNames []strin
 	if len(testPathes) > 0 {
 		cp.getAnomaliesCalled.Inc(1)
 		// Call Chrome Perf API to fetch anomalies.
-		chromePerfResp, err := cp.callChromePerf(ctx, testPathes, startCommitPosition, endCommitPosition)
+		chromePerfRequest := &chromePerfRequest{
+			Tests:       testPathes,
+			MaxRevision: strconv.Itoa(endCommitPosition),
+			MinRevision: strconv.Itoa(startCommitPosition),
+		}
+		chromePerfResp, err := cp.callChromePerf(ctx, *chromePerfRequest)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}
-		return GetAnomalyMapFromChromePerfResult(chromePerfResp, testPathTraceNameMap), nil
+		return getAnomalyMapFromChromePerfResult(chromePerfResp, testPathTraceNameMap), nil
 	}
 
 	return anomalies.AnomalyMap{}, nil
 }
 
-func GetAnomalyMapFromChromePerfResult(chromePerfResponse *chromePerfResponse, testPathTraceNameMap map[string]string) anomalies.AnomalyMap {
+func (cp *ChromePerfClient) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]anomalies.AnomalyForRevision, error) {
+	chromePerfRequest := &chromePerfRequest{
+		Revision: revision,
+	}
+
+	chromePerfResponse, err := cp.callChromePerf(ctx, *chromePerfRequest)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
+	}
+
+	response := []anomalies.AnomalyForRevision{}
+	for testPath, cpAnomalies := range chromePerfResponse.Anomalies {
+		for _, anomaly := range cpAnomalies {
+			response = append(response, anomalies.AnomalyForRevision{
+				TestPath:      testPath,
+				StartRevision: anomaly.StartRevision,
+				EndRevision:   anomaly.EndRevision,
+				Anomaly:       anomaly,
+				Params:        getParams(testPath),
+			})
+		}
+	}
+
+	return response, nil
+}
+
+func getAnomalyMapFromChromePerfResult(chromePerfResponse *chromePerfResponse, testPathTraceNameMap map[string]string) anomalies.AnomalyMap {
 	result := anomalies.AnomalyMap{}
 	for testPath, anomalyArr := range chromePerfResponse.Anomalies {
 		if traceName, ok := testPathTraceNameMap[testPath]; !ok {
@@ -102,12 +138,7 @@ func GetAnomalyMapFromChromePerfResult(chromePerfResponse *chromePerfResponse, t
 	return result
 }
 
-func (cp *ChromePerfClient) callChromePerf(ctx context.Context, testPathes []string, startCommitPosition int, endCommitPosition int) (*chromePerfResponse, error) {
-	request := &chromePerfRequest{
-		Tests:       testPathes,
-		MaxRevision: strconv.Itoa(endCommitPosition),
-		MinRevision: strconv.Itoa(startCommitPosition),
-	}
+func (cp *ChromePerfClient) callChromePerf(ctx context.Context, request chromePerfRequest) (*chromePerfResponse, error) {
 	requestBodyJSONStr, err := json.Marshal(request)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf request.")
@@ -135,6 +166,30 @@ func (cp *ChromePerfClient) callChromePerf(ctx context.Context, testPathes []str
 	}
 
 	return &resp, nil
+}
+
+func getParams(testPath string) map[string][]string {
+	params := map[string][]string{}
+	testPathParts := strings.Split(testPath, "/")
+	if len(testPathParts) == 0 {
+		return params
+	}
+	paramKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3"}
+	if len(testPathParts) > len(paramKeys) {
+		return params
+	}
+
+	i := 0
+	for _, testPart := range testPathParts {
+		if _, ok := params[paramKeys[i]]; !ok {
+			params[paramKeys[i]] = []string{testPart}
+		} else {
+			params[paramKeys[i]] = append(params[paramKeys[i]], testPart)
+		}
+		i++
+	}
+
+	return params
 }
 
 // traceNameToTestPath converts trace name to Chrome Perf test path.

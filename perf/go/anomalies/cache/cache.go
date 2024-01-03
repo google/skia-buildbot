@@ -25,7 +25,11 @@ const cacheItemTTL = 10 * time.Minute
 
 // store implements anomalies.Store.
 type store struct {
-	cache *lru.Cache
+	// testsCache contains data for the tests-minRevision-maxRevision requests.
+	testsCache *lru.Cache
+
+	// revisionCache contains data for anomalies around a revision requests.
+	revisionCache *lru.Cache
 
 	// metrics
 	numEntriesInCache metrics2.Int64Metric
@@ -40,20 +44,26 @@ type commitAnomalyMapCacheEntry struct {
 
 // New returns a new anomalies.Store instance with LRU cache.
 func New(chromePerf anomalies.Store) (*store, error) {
-	cache, err := lru.New(cacheSize)
+	testsCache, err := lru.New(cacheSize)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create anomaly store cache.")
+		return nil, skerr.Wrapf(err, "Failed to create anomaly store tests cache.")
 	}
 
+	revisionCache, err := lru.New(cacheSize)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create anomaly store revisions cache.")
+	}
 	// cleanup the lru cache periodically.
 	go func() {
 		for range time.Tick(cacheCleanupPeriod) {
-			cleanupCache(cache)
+			cleanupCache(testsCache)
+			cleanupCache(revisionCache)
 		}
 	}()
 
 	ret := &store{
-		cache:             cache,
+		testsCache:        testsCache,
+		revisionCache:     revisionCache,
 		numEntriesInCache: metrics2.GetInt64Metric("anomaly_store_num_entries_in_cache"),
 		ChromePerf:        chromePerf,
 	}
@@ -73,7 +83,7 @@ func cleanupCache(cache *lru.Cache) {
 			return
 		}
 
-		oldestCommitAnomalyMapCacheEntry, ok := iOldestCommitAnomalyMapCacheEntry.(commitAnomalyMapCacheEntry)
+		oldestCommitAnomalyMapCacheEntry, _ := iOldestCommitAnomalyMapCacheEntry.(commitAnomalyMapCacheEntry)
 		if oldestCommitAnomalyMapCacheEntry.addTime.Before(time.Now().Add(-cacheItemTTL)) {
 			cache.RemoveOldest()
 			sklog.Info("Cache item %s was removed from anomaly store cache.", oldestCommitAnomalyMapCacheEntry)
@@ -91,12 +101,12 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 	result := anomalies.AnomalyMap{}
 	numEntriesInCache := 0
 	for _, traceName := range traceNames {
-		iCommitAnomalyMapCacheEntry, ok := as.cache.Get(getAnomalyCacheKey(traceName, startCommitPosition, endCommitPosition))
+		iCommitAnomalyMapCacheEntry, ok := as.testsCache.Get(getAnomalyCacheKey(traceName, startCommitPosition, endCommitPosition))
 		if !ok {
 			traceNamesMissingFromCache = append(traceNamesMissingFromCache, traceName)
 			continue
 		}
-		commitAnomalyMapCacheEntry, ok := iCommitAnomalyMapCacheEntry.(commitAnomalyMapCacheEntry)
+		commitAnomalyMapCacheEntry, _ := iCommitAnomalyMapCacheEntry.(commitAnomalyMapCacheEntry)
 		result[traceName] = commitAnomalyMapCacheEntry.commitAnomalyMap
 		numEntriesInCache++
 	}
@@ -116,7 +126,7 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 			result[traceName] = commitNumberAnomalyMap
 
 			// Add anomalies to cache
-			as.cache.Add(getAnomalyCacheKey(traceName, startCommitPosition, endCommitPosition), commitAnomalyMapCacheEntry{
+			as.testsCache.Add(getAnomalyCacheKey(traceName, startCommitPosition, endCommitPosition), commitAnomalyMapCacheEntry{
 				addTime:          time.Now(),
 				commitAnomalyMap: commitNumberAnomalyMap,
 			})
@@ -124,6 +134,22 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 	}
 
 	return result, nil
+}
+
+// GetAnomaliesAroundRevision implements anomalies.Store
+// It fetches anomalies that occured around the specified revision number.
+func (as *store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]anomalies.AnomalyForRevision, error) {
+	iAnomalies, ok := as.revisionCache.Get(revision)
+	if ok {
+		return iAnomalies.([]anomalies.AnomalyForRevision), nil
+	} else {
+		result, err := as.ChromePerf.GetAnomaliesAroundRevision(ctx, revision)
+		if err != nil {
+			return nil, err
+		}
+		as.revisionCache.Add(revision, result)
+		return result, nil
+	}
 }
 
 // Anomaly cache key is "traceName:startCommitPosition:endCommitPosition"

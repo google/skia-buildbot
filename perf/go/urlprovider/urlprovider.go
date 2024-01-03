@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -18,7 +17,7 @@ type URLProvider struct {
 }
 
 // Explore generates a url to the explore page for the given parameters
-func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string]util.StringSet) string {
+func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string) string {
 	queryUrl := url.Values{}
 	startCommit, err := prov.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(startCommitNumber))
 	if err != nil {
@@ -37,7 +36,7 @@ func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, end
 	for paramName, paramValues := range parameters {
 		paramKey := prov.paramsProvider.GetParamKey(paramName)
 		if paramKey != "" {
-			query_portion[paramKey] = paramValues.Keys()
+			query_portion[paramKey] = paramValues
 		}
 	}
 

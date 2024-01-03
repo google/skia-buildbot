@@ -34,8 +34,31 @@ type Anomaly struct {
 	TStatistics         float64 `json:"t_statistic"`
 }
 
+type AnomalyForRevision struct {
+	StartRevision int                 `json:"start_revision"`
+	EndRevision   int                 `json:"end_revision"`
+	Anomaly       Anomaly             `json:"anomaly"`
+	Params        map[string][]string `json:"params"`
+	TestPath      string              `json:"test_path"`
+}
+
+type RevisionInfo struct {
+	Master        string `json:"master"`
+	Bot           string `json:"bot"`
+	Benchmark     string `json:"benchmark"`
+	StartRevision int    `json:"start_revision"`
+	EndRevision   int    `json:"end_revision"`
+	Test          string `json:"test"`
+	IsImprovement bool   `json:"is_improvement"`
+	BugId         string `json:"bug_id"`
+	ExploreUrl    string `json:"explore_url"`
+}
+
 // Store provides the interface to get anomalies.
 type Store interface {
 	// GetAnomalies retrieve anomalies for each trace within the begin commit and end commit.
 	GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (AnomalyMap, error)
+
+	// GetAnomaliesAroundRevision retrieves traces with anomalies that were generated around a specific commit
+	GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]AnomalyForRevision, error)
 }

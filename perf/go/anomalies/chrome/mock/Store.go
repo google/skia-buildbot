@@ -45,6 +45,36 @@ func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 	return r0, r1
 }
 
+// GetAnomaliesAroundRevision provides a mock function with given fields: ctx, revision
+func (_m *Store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]anomalies.AnomalyForRevision, error) {
+	ret := _m.Called(ctx, revision)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnomaliesAroundRevision")
+	}
+
+	var r0 []anomalies.AnomalyForRevision
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]anomalies.AnomalyForRevision, error)); ok {
+		return rf(ctx, revision)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int) []anomalies.AnomalyForRevision); ok {
+		r0 = rf(ctx, revision)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]anomalies.AnomalyForRevision)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, revision)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewStore(t interface {

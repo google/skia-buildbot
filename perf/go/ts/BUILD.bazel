@@ -11,6 +11,7 @@ go_library(
         "//go/sklog",
         "//go/util",
         "//perf/go/alerts",
+        "//perf/go/anomalies",
         "//perf/go/clustering2",
         "//perf/go/config",
         "//perf/go/dryrun",

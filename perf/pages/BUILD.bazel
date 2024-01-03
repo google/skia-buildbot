@@ -128,3 +128,17 @@ sk_page(
     ],
     ts_entry_point = "favorites.ts",
 )
+
+sk_page(
+    name = "revisions",
+    assets_serving_path = "/dist",
+    html_file = "revisions.html",
+    nonce = "{% .Nonce %}",
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "revisions.scss",
+    sk_element_deps = [
+        "//perf/modules/perf-scaffold-sk",
+        "//perf/modules/revision-info-sk",
+    ],
+    ts_entry_point = "revisions.ts",
+)

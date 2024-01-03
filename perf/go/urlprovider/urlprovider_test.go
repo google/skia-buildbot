@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/util"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 )
@@ -17,10 +16,10 @@ func TestProvider_Default(t *testing.T) {
 	perfgit := getPerfGit(t)
 	paramsProvider := &DefaultParamsProvider{}
 	urlProvider := New(perfgit, paramsProvider)
-	params := map[string]util.StringSet{
-		"param1": util.NewStringSet([]string{"value1"}),
-		"param2": util.NewStringSet([]string{"value2"}),
-		"param3": util.NewStringSet([]string{"value3"}),
+	params := map[string][]string{
+		"param1": {"value1"},
+		"param2": {"value2"},
+		"param3": {"value3"},
 	}
 	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
@@ -40,10 +39,10 @@ func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 	perfgit := getPerfGit(t)
 	paramsProvider := ChromeParamsProvider{}
 	urlProvider := New(perfgit, &paramsProvider)
-	params := map[string]util.StringSet{
-		"param1": util.NewStringSet([]string{"value1"}),
-		"param2": util.NewStringSet([]string{"value2"}),
-		"param3": util.NewStringSet([]string{"value3"}),
+	params := map[string][]string{
+		"param1": {"value1"},
+		"param2": {"value2"},
+		"param3": {"value3"},
 	}
 	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
@@ -70,10 +69,10 @@ func TestProvider_Chromeperf_Customization(t *testing.T) {
 		ParamsMap:    paramMap,
 	}
 	urlProvider := New(perfgit, &paramsProvider)
-	params := map[string]util.StringSet{
-		"param1": util.NewStringSet([]string{"value1"}),
-		"param2": util.NewStringSet([]string{"value2"}),
-		"param3": util.NewStringSet([]string{"value3"}),
+	params := map[string][]string{
+		"param1": {"value1"},
+		"param2": {"value2"},
+		"param3": {"value3"},
 	}
 	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
