@@ -41,6 +41,7 @@ skia_app_container(
                 "triage",
                 "trybot",
                 "favorites",
+                "revisions",
             ]
             for ext in [
                 "css",
