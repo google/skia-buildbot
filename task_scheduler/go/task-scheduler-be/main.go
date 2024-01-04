@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -79,9 +78,12 @@ func main() {
 	)
 	defer common.Defer()
 
-	if err := tracing.Initialize(0.01, *btProject, nil); err != nil {
-		sklog.Fatalf("Could not set up tracing: %s", err)
-	}
+	// TODO(borenet): This is disabled because it causes errors to be logged
+	// every 5 seconds. I've tried reducing the sample frequency significantly
+	// and it hasn't helped.
+	//if err := tracing.Initialize(0.01, *btProject, nil); err != nil {
+	//	sklog.Fatalf("Could not set up tracing: %s", err)
+	//}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
 

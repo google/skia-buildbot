@@ -19,7 +19,6 @@ go_library(
         "//go/human",
         "//go/sklog",
         "//go/swarming",
-        "//go/tracing",
         "//go/util",
         "//task_scheduler/go/db/firestore",
         "//task_scheduler/go/scheduling",
