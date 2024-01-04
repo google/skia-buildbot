@@ -322,5 +322,6 @@ func main() {
 		sklog.Infof("To finish setting up these machines, cd into %s, then run the following commands:", ansibleDirectory)
 		sklog.Infof("$ make update_ssh_gce_config")
 		sklog.Infof(command)
+		sklog.Infof("Then update hosts.yml to inclue the new machines.")
 	}
 }
