@@ -102,6 +102,10 @@
           "version": "7.23.7"
         },
         {
+          "name": "@mui/core-downloads-tracker",
+          "version": "5.15.3"
+        },
+        {
           "name": "@mui/private-theming",
           "version": "5.15.3"
         },
