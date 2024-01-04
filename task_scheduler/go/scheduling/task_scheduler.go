@@ -375,7 +375,7 @@ type commitGetter interface {
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
 func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo commitGetter, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, tcg tasksCfgGetter, ct commitTester) ([]string, *types.Task, error) {
-	ctx, span := trace.StartSpan(ctx, "taskscheduler_ComputeBlamelist")
+	ctx, span := trace.StartSpan(ctx, "taskscheduler_ComputeBlamelist", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	commitsBuf = commitsBuf[:0]
 	var stealFrom *types.Task
@@ -697,7 +697,7 @@ func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandi
 // scoreCandidate sets the Score field on the given Task Candidate. Also records
 // diagnostic information on TaskCandidate.Diagnostics.Scoring.
 func (s *TaskScheduler) scoreCandidate(ctx context.Context, c *TaskCandidate, cycleStart, commitTime time.Time, stealingFrom *types.Task) {
-	ctx, span := trace.StartSpan(ctx, "scoreTaskCandidate")
+	ctx, span := trace.StartSpan(ctx, "scoreTaskCandidate", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
@@ -772,7 +772,7 @@ func (s *TaskScheduler) scoreCandidate(ctx context.Context, c *TaskCandidate, cy
 
 // Process task candidates within a single task spec.
 func (s *TaskScheduler) processTaskCandidatesSingleTaskSpec(ctx context.Context, currentTime time.Time, repoUrl, name string, candidatesWithTryJobs []*TaskCandidate) ([]*TaskCandidate, error) {
-	ctx, span := trace.StartSpan(ctx, "processTaskCandidatesSingleTaskSpec")
+	ctx, span := trace.StartSpan(ctx, "processTaskCandidatesSingleTaskSpec", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 
 	// commitsBuf is used in blamelist computation to prevent needing repeated
@@ -945,7 +945,7 @@ func flatten(dims map[string]string) map[string]string {
 
 // recordCandidateMetrics generates metrics for candidates by dimension sets.
 func (s *TaskScheduler) recordCandidateMetrics(ctx context.Context, candidates map[string]map[string][]*TaskCandidate) {
-	ctx, span := trace.StartSpan(ctx, "recordCandidateMetrics")
+	ctx, span := trace.StartSpan(ctx, "recordCandidateMetrics", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 
 	// Generate counts. These maps are keyed by the MD5 hash of the
@@ -1151,7 +1151,7 @@ func getCandidatesToSchedule(ctx context.Context, bots []*types.Machine, tasks [
 // candidates AND an error may both be returned if some were successfully merged
 // but others failed.
 func (s *TaskScheduler) mergeCASInputs(ctx context.Context, candidates []*TaskCandidate) ([]*TaskCandidate, error) {
-	ctx, span := trace.StartSpan(ctx, "mergeCASInputs")
+	ctx, span := trace.StartSpan(ctx, "mergeCASInputs", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	start := now.Now(ctx)
 
@@ -1867,7 +1867,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
 // May modify Commits and Id of argument tasks on error.
 func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[string][]*types.Task) error {
-	ctx, span := trace.StartSpan(ctx, "addTasks")
+	ctx, span := trace.StartSpan(ctx, "addTasks", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	type queueItem struct {
 		Repo string
@@ -1938,7 +1938,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
-	ctx, span := trace.StartSpan(context.Background(), "taskscheduler_HandleSwarmingPubSub")
+	ctx, span := trace.StartSpan(context.Background(), "taskscheduler_HandleSwarmingPubSub", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {

@@ -441,6 +441,7 @@ func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Jo
 		return skerr.Fmt("expected jobs and reasons to have the same length")
 	}
 	for idx, j := range jobs {
+		sklog.Warningf("Canceling job %s (build %d). Reason: %s", j.Id, j.BuildbucketBuildId, reasons[idx])
 		j.BuildbucketLeaseKey = 0
 		j.Status = types.JOB_STATUS_CANCELED
 		j.StatusDetails = reasons[idx]
@@ -755,7 +756,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 
 func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 	if err := t.jCache.Update(ctx); err != nil {
-		return err
+		return skerr.Wrapf(err, "failed to update job cache")
 	}
 
 	// Grab all of the pending Builds from Buildbucket.

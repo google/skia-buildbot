@@ -234,7 +234,7 @@ func (d *firestoreDB) PutTasksInChunks(ctx context.Context, tasks []*types.Task)
 
 // SearchTasks implements db.JobReader.
 func (d *firestoreDB) SearchTasks(ctx context.Context, params *db.TaskSearchParams) ([]*types.Task, error) {
-	ctx, span := trace.StartSpan(ctx, "db_SearchTasks")
+	ctx, span := trace.StartSpan(ctx, "db_SearchTasks", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 
 	// Firestore requires all multi-column indexes to be created in advance.

@@ -85,7 +85,7 @@ func (s *SwarmingTaskExecutor) GetPendingTasks(ctx context.Context, pool string)
 
 // GetTaskResult implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) GetTaskResult(ctx context.Context, taskID string) (*types.TaskResult, error) {
-	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskResult")
+	ctx, span := trace.StartSpan(ctx, "swarming_GetTaskResult", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	swarmTask, err := s.swarming.GetTask(ctx, taskID, false)
 	if err != nil {
@@ -123,7 +123,7 @@ func (s *SwarmingTaskExecutor) GetTaskCompletionStatuses(ctx context.Context, ta
 
 // TriggerTask implements types.TaskExecutor.
 func (s *SwarmingTaskExecutor) TriggerTask(ctx context.Context, req *types.TaskRequest) (*types.TaskResult, error) {
-	ctx, span := trace.StartSpan(ctx, "swarming_TriggerTask")
+	ctx, span := trace.StartSpan(ctx, "swarming_TriggerTask", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	sReq, err := s.convertTaskRequest(req)
 	if err != nil {

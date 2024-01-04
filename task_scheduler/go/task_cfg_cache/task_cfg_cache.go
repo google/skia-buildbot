@@ -182,7 +182,7 @@ func (c *TaskCfgCacheImpl) Close() error {
 
 // Get implements TaskCfgCache.
 func (c *TaskCfgCacheImpl) Get(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error, error) {
-	ctx, span := trace.StartSpan(ctx, "taskcfgcache_Get")
+	ctx, span := trace.StartSpan(ctx, "taskcfgcache_Get", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	val, err := c.cache.Get(ctx, rs.RowKey())
 	if err != nil {

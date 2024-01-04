@@ -115,7 +115,7 @@ type TaskDB interface {
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
 func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.Task, error)) ([]*types.Task, error) {
-	ctx, span := trace.StartSpan(ctx, "db_UpdateTasksWithRetries")
+	ctx, span := trace.StartSpan(ctx, "db_UpdateTasksWithRetries", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
@@ -146,7 +146,7 @@ func UpdateTasksWithRetries(ctx context.Context, db TaskDB, f func() ([]*types.T
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
 func UpdateTaskWithRetries(ctx context.Context, db TaskDB, id string, f func(*types.Task) error) (*types.Task, error) {
-	ctx, span := trace.StartSpan(ctx, "db_UpdateTaskWithRetries")
+	ctx, span := trace.StartSpan(ctx, "db_UpdateTaskWithRetries", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	span.AddAttributes(trace.StringAttribute("task_id", id))
 	defer span.End()
 	tasks, err := UpdateTasksWithRetries(ctx, db, func() ([]*types.Task, error) {
@@ -444,7 +444,7 @@ var errNotModified = errors.New("Task not modified")
 
 // UpdateDBFromTaskResult updates a task in db from data in s.
 func UpdateDBFromTaskResult(ctx context.Context, db TaskDB, res *types.TaskResult) (bool, error) {
-	ctx, span := trace.StartSpan(ctx, "db_UpdateDBFromTaskResult")
+	ctx, span := trace.StartSpan(ctx, "db_UpdateDBFromTaskResult", trace.WithSampler(trace.ProbabilitySampler(0.01)))
 	defer span.End()
 	id, ok := res.Tags[types.SWARMING_TAG_ID]
 	if !ok || len(id) == 0 {
