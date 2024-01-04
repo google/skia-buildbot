@@ -641,6 +641,22 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 }
 
 func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
+	// We might encounter this Job via periodic polling or the query snapshot
+	// iterator, or both.  We don't want to start the Job multiple times, so
+	// retrieve the Job again here and ensure that we didn't already start it.
+	// Note: if this is ever parallelized, we'll need to come up with an
+	// alternative way to prevent double-starting jobs.
+	updatedJob, err := t.db.GetJobById(ctx, job.Id)
+	if err != nil {
+		return skerr.Wrapf(err, "failed loading job from DB")
+	}
+	if updatedJob.Status != types.JOB_STATUS_REQUESTED {
+		// TODO(borenet): Remove this, or at least demote it to Info level, once
+		// we're done debugging.
+		sklog.Errorf("Job %s (build %d) has already started; skipping", job.Id, job.BuildbucketBuildId)
+		return nil
+	}
+
 	sklog.Infof("Starting job %s (build %d); lease key: %d", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey)
 	startJobHelper := func() error {
 		repoGraph, err := t.getRepo(job.Repo)
