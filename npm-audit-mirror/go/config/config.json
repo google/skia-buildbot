@@ -98,32 +98,36 @@
       "package_json_dir": "go/src/infra_internal/appengine/testhaus/frontend/ui",
       "packages_allow_list": [
         {
-          "name": "@babel/traverse",
-          "version": "7.23.2"
+          "name": "@babel/runtime",
+          "version": "7.23.7"
         },
         {
-          "name": "terser",
-          "version": "5.26.0"
+          "name": "@mui/private-theming",
+          "version": "5.15.3"
         },
         {
-          "name": "core-js-compat",
-          "version": "3.34.0"
+          "name": "@mui/styled-engine",
+          "version": "5.15.3"
         },
         {
-          "name": "browserslist",
-          "version": "4.22.2"
+          "name": "@mui/system",
+          "version": "5.15.3"
         },
         {
-          "name": "node-releases",
-          "version": "2.0.14"
+          "name": "@mui/types",
+          "version": "7.2.12"
         },
         {
-          "name": "caniuse-lite",
-          "version": "1.0.30001566"
+          "name": "@mui/utils",
+          "version": "5.15.3"
         },
         {
-          "name": "electron-to-chromium",
-          "version": "1.4.608"
+          "name": "@types/node",
+          "version": "18.19.4"
+        },
+        {
+          "name": "clsx",
+          "version": "2.1.0"
         }
       ],
       "trusted_scopes": [],
