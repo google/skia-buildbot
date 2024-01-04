@@ -18,7 +18,6 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/go-chi/chi/v5"
 	"go.opencensus.io/trace"
 	"golang.org/x/oauth2/google"
@@ -26,7 +25,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/pubsub/sub"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/task_driver/go/db"
@@ -357,27 +355,4 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 	runServer(ctx, serverURL)
-}
-
-func initializeTracing(traceSampleProportion float64) error {
-	// TODO(kjlubick) deduplicate with Gold and Perf
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		// Use 10 times the default (because that's what perf does).
-		TraceSpansBufferMaxBytes: 80_000_000,
-		// It is not clear what the default interval is. One minute seems to be a good value since
-		// that is the same as our Prometheus metrics are reported.
-		ReportingInterval: time.Minute,
-		DefaultTraceAttributes: map[string]interface{}{
-			// This environment variable should be set in the k8s templates.
-			"podName": os.Getenv("K8S_POD_NAME"),
-		},
-	})
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-
-	trace.RegisterExporter(exporter)
-	sampler := trace.ProbabilitySampler(traceSampleProportion)
-	trace.ApplyConfig(trace.Config{DefaultSampler: sampler})
-	return nil
 }

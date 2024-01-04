@@ -79,7 +79,7 @@ func main() {
 	)
 	defer common.Defer()
 
-	if err := tracing.Initialize(0.1, *btProject, nil); err != nil {
+	if err := tracing.Initialize(0.01, *btProject, nil); err != nil {
 		sklog.Fatalf("Could not set up tracing: %s", err)
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())

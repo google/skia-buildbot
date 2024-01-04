@@ -9,7 +9,6 @@ go_library(
         "//go/common",
         "//go/httputils",
         "//go/pubsub/sub",
-        "//go/skerr",
         "//go/sklog",
         "//go/tracing",
         "//task_driver/go/db",
@@ -22,7 +21,6 @@ go_library(
         "@com_google_cloud_go_bigtable//:bigtable",
         "@com_google_cloud_go_pubsub//:pubsub",
         "@io_opencensus_go//trace",
-        "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
         "@org_golang_x_oauth2//google",
     ],
 )
