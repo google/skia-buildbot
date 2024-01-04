@@ -29,6 +29,9 @@ packages:
   go.skia.org/infra/autoroll/go/unthrottle:
     interfaces:
       Throttle:
+  go.skia.org/infra/bisection/go/backends:
+    interfaces:
+      SkiaBridge:
   go.skia.org/infra/bugs-central/go/types:
     interfaces:
       BugsDB:

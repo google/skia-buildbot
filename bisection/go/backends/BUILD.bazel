@@ -1,10 +1,12 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "backends",
     srcs = [
         "doc.go",
         "gitiles.go",
+        "skia_bridge.go",
     ],
     importpath = "go.skia.org/infra/bisection/go/backends",
     visibility = ["//visibility:public"],
@@ -13,6 +15,18 @@ go_library(
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
+        "//go/util",
         "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "backends_test",
+    srcs = ["skia_bridge_test.go"],
+    embed = [":backends"],
+    deps = [
+        "//go/mockhttpclient",
+        "@com_github_smartystreets_goconvey//convey",
+        "@org_chromium_go_luci//common/testing/assertions",
     ],
 )
