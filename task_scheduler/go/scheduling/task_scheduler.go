@@ -1008,15 +1008,6 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context) ([]*TaskCandida
 		return nil, nil, err
 	}
 
-	// Log an error for any Job we encounter with a status other than
-	// IN_PROGRESS to debug b/317112572.
-	// TODO(borenet): Remove this once we've found the problem.
-	for _, job := range unfinishedJobs {
-		if job.Status != types.JOB_STATUS_IN_PROGRESS {
-			sklog.Errorf("Job %s has status %q; expected %q", job.Id, job.Status, types.JOB_STATUS_IN_PROGRESS)
-		}
-	}
-
 	// Find TaskSpecs for all unfinished Jobs.
 	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, unfinishedJobs)
 	if err != nil {
@@ -1728,15 +1719,6 @@ func (s *TaskScheduler) updateUnfinishedJobs(ctx context.Context) error {
 	jobs, err := s.jCache.InProgressJobs()
 	if err != nil {
 		return err
-	}
-
-	// Log an error for any Job we encounter with a status other than
-	// IN_PROGRESS to debug b/317112572.
-	// TODO(borenet): Remove this once we've found the problem.
-	for _, job := range jobs {
-		if job.Status != types.JOB_STATUS_IN_PROGRESS {
-			sklog.Errorf("Job %s has status %q; expected %q", job.Id, job.Status, types.JOB_STATUS_IN_PROGRESS)
-		}
 	}
 
 	modifiedJobs := make([]*types.Job, 0, len(jobs))
