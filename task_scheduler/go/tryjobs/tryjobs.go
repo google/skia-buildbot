@@ -652,9 +652,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		return skerr.Wrapf(err, "failed loading job from DB")
 	}
 	if updatedJob.Status != types.JOB_STATUS_REQUESTED {
-		// TODO(borenet): Remove this, or at least demote it to Info level, once
-		// we're done debugging.
-		sklog.Errorf("Job %s (build %d) has already started; skipping", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Job %s (build %d) has already started; skipping", job.Id, job.BuildbucketBuildId)
 		return nil
 	}
 
