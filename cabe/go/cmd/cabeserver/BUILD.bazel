@@ -23,6 +23,7 @@ go_library(
         "//go/tracing/loggingtracer",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_go_chi_chi_v5//:chi",
+        "@io_opencensus_go//plugin/ocgrpc",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//health",

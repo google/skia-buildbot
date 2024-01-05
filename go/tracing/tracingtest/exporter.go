@@ -22,6 +22,8 @@ func (tte *Exporter) ExportSpan(s *trace.SpanData) {
 
 // SpanData returns any SpanData exported so far.
 func (tte *Exporter) SpanData() []*trace.SpanData {
+	tte.mu.Lock()
+	defer tte.mu.Unlock()
 	return tte.spanData
 }
 

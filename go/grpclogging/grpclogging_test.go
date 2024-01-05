@@ -3,13 +3,16 @@ package grpclogging
 import (
 	"bytes"
 	"context"
+	"net"
 	"testing"
 	"time"
 
+	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/trace"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -148,35 +151,75 @@ func TestServerUnaryLoggingInterceptor_error(t *testing.T) {
 	assertLoggedServerUnary(t, entry, req)
 }
 
+type testServiceImpl struct {
+	tpb.UnimplementedTestServiceServer
+	doWork func()
+}
+
+func (t *testServiceImpl) GetSomething(ctx context.Context, req *tpb.GetSomethingRequest) (*tpb.GetSomethingResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "internal GetSomething span")
+	defer span.End()
+	t.doWork() // rolls the clock forward to test the .Elapsed field.
+	return &tpb.GetSomethingResponse{}, nil
+}
+
 func TestServerUnaryLoggingInterceptor_tracing(t *testing.T) {
 	exporter := &tracingtest.Exporter{}
 	trace.RegisterExporter(exporter)
 	defer trace.UnregisterExporter(exporter)
 	trace.ApplyConfig(trace.Config{
-
-		DefaultSampler: trace.AlwaysSample()})
+		DefaultSampler: trace.AlwaysSample(),
+	})
 
 	ttCtx, l, buf := testSetupLogger(t)
+
+	// This interceptor replaces the context created by the grpc.Server with the [now.TimeTravelCtx] created by this test.
+	// Otherwise, the test grpc handler will get the actual current time rather than the fake time set by this test.
+	timeTravelInterceptor := func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		ttCtx = ttCtx.WithContext(ctx)
+		return handler(ttCtx, req)
+	}
+	interceptors := []grpc.UnaryServerInterceptor{
+		timeTravelInterceptor,
+		l.ServerUnaryLoggingInterceptor,
+	}
+	opts := []grpc.ServerOption{
+		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
+		grpc.ChainUnaryInterceptor(interceptors...)}
+	s := grpc.NewServer(opts...)
+
+	srv := &testServiceImpl{doWork: func() {
+		ttCtx.SetTime(startTime.Add(3 * time.Second))
+	}}
+	tpb.RegisterTestServiceServer(s, srv)
+
+	lisGRPC, err := net.Listen("tcp", ":0") // listen on a random unused port
+	grpcPort := lisGRPC.Addr().String()
+	ch := make(chan interface{})
+	defer func() {
+		s.GracefulStop()
+		<-ch
+	}()
+	go func() {
+		err := s.Serve(lisGRPC)
+		assert.NoError(t, err)
+		ch <- nil
+	}()
+
+	conn, err := grpc.Dial(grpcPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	require.NoError(t, err)
+	testClient := tpb.NewTestServiceClient(conn)
 	req := &tpb.GetSomethingRequest{
 		SomethingId: "d3c4f84d",
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		ctx, span := trace.StartSpan(ctx, "handler")
-		defer span.End()
-		ttCtx.SetTime(startTime.Add(3 * time.Second))
-		return &tpb.GetSomethingResponse{}, nil
-	}
-
-	ctx, span := trace.StartSpan(ttCtx, "caller")
-	resp, err := l.ServerUnaryLoggingInterceptor(ctx, req, &grpc.UnaryServerInfo{FullMethod: "test.service/TestMethod"}, handler)
-	span.End()
+	resp, err := testClient.GetSomething(ttCtx, req)
 
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, 2, len(exporter.SpanData()))
 	entry := entryFromBuf(t, buf)
 
-	assert.Equal(t, entry.ServerUnary.FullMethod, "test.service/TestMethod")
+	assert.Equal(t, tpb.TestService_GetSomething_FullMethodName, entry.ServerUnary.FullMethod)
 	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
 	assertLoggedServerUnary(t, entry, req)
 	assert.NotEqual(t, "", entry.SpanId)

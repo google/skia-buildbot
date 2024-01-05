@@ -13,6 +13,7 @@ import (
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/go-chi/chi/v5"
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.opencensus.io/plugin/ocgrpc"
 	"go.skia.org/infra/go/swarming"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -153,6 +154,10 @@ func (a *App) Init(ctx context.Context) error {
 	if !a.disableGRPCSP {
 		opts = append(opts, grpc.UnaryInterceptor(a.authPolicy.UnaryInterceptor()))
 	}
+	// Add the Opencensus grpc stats/server handler in order to attach traces to the
+	// contexts for incoming gRPC requests.
+	opts = append(opts, grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+
 	a.grpcServer = grpc.NewServer(opts...)
 
 	sklog.Infof("registering grpc health server")
@@ -294,7 +299,8 @@ func main() {
 	)
 
 	traceAttrs := map[string]interface{}{
-		"podName": os.Getenv("K8S_POD_NAME"),
+		"podName":       os.Getenv("POD_NAME"),
+		"containerName": os.Getenv("CONTAINER_NAME"),
 	}
 	if a.logTracing {
 		loggingtracer.Initialize()
