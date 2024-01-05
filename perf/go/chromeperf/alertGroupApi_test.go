@@ -1,4 +1,4 @@
-package alertgroup
+package chromeperf
 
 import (
 	"context"

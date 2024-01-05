@@ -5,5 +5,5 @@ go_library(
     srcs = ["anomalies.go"],
     importpath = "go.skia.org/infra/perf/go/anomalies",
     visibility = ["//visibility:public"],
-    deps = ["//perf/go/types"],
+    deps = ["//perf/go/chromeperf"],
 )

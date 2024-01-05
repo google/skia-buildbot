@@ -4,8 +4,7 @@ package mocks
 
 import (
 	context "context"
-
-	chromeperf "go.skia.org/infra/perf/go/chromeperf"
+	url "net/url"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -15,34 +14,40 @@ type ChromePerfClient struct {
 	mock.Mock
 }
 
-// SendRegression provides a mock function with given fields: ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter
-func (_m *ChromePerfClient) SendRegression(ctx context.Context, testPath string, startCommitPosition int32, endCommitPosition int32, projectId string, isImprovement bool, botName string, internal bool, medianBefore float32, medianAfter float32) (*chromeperf.ChromePerfResponse, error) {
-	ret := _m.Called(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
+// SendGetRequest provides a mock function with given fields: ctx, apiName, functionName, queryParams, response
+func (_m *ChromePerfClient) SendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error {
+	ret := _m.Called(ctx, apiName, functionName, queryParams, response)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SendRegression")
+		panic("no return value specified for SendGetRequest")
 	}
 
-	var r0 *chromeperf.ChromePerfResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int32, int32, string, bool, string, bool, float32, float32) (*chromeperf.ChromePerfResponse, error)); ok {
-		return rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, int32, int32, string, bool, string, bool, float32, float32) *chromeperf.ChromePerfResponse); ok {
-		r0 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, url.Values, interface{}) error); ok {
+		r0 = rf(ctx, apiName, functionName, queryParams, response)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*chromeperf.ChromePerfResponse)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, int32, int32, string, bool, string, bool, float32, float32) error); ok {
-		r1 = rf(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)
+	return r0
+}
+
+// SendPostRequest provides a mock function with given fields: ctx, apiName, functionName, requestObj, responseObj, acceptedStatusCodes
+func (_m *ChromePerfClient) SendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error {
+	ret := _m.Called(ctx, apiName, functionName, requestObj, responseObj, acceptedStatusCodes)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendPostRequest")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, interface{}, interface{}, []int) error); ok {
+		r0 = rf(ctx, apiName, functionName, requestObj, responseObj, acceptedStatusCodes)
 	} else {
-		r1 = ret.Error(1)
+		r0 = ret.Error(0)
 	}
 
-	return r0, r1
+	return r0
 }
 
 // NewChromePerfClient creates a new instance of ChromePerfClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

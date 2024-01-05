@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalies/cache"
-	anomaliesStockMock "go.skia.org/infra/perf/go/anomalies/chrome/mock"
+	"go.skia.org/infra/perf/go/chromeperf"
+	chromeperfMock "go.skia.org/infra/perf/go/chromeperf/mock"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dataframe/mocks"
@@ -50,7 +50,7 @@ const (
 	endCommitPosition   = 21
 )
 
-var anomaly1 = anomalies.Anomaly{
+var anomaly1 = chromeperf.Anomaly{
 	Id:            111,
 	TestPath:      testPath1,
 	StartRevision: startCommitPosition,
@@ -62,7 +62,7 @@ var anomaly1 = anomalies.Anomaly{
 	Unit:          "ms",
 	PValue:        1.1,
 }
-var anomaly2 = anomalies.Anomaly{
+var anomaly2 = chromeperf.Anomaly{
 	Id:            222,
 	TestPath:      testPath2,
 	StartRevision: startCommitPosition,
@@ -75,9 +75,9 @@ var anomaly2 = anomalies.Anomaly{
 	PValue:        2.2,
 }
 
-var chromePerfAnomalyMap = anomalies.AnomalyMap{
-	traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
-	traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
+var chromePerfAnomalyMap = chromeperf.AnomalyMap{
+	traceName1: map[types.CommitNumber]chromeperf.Anomaly{12: anomaly1},
+	traceName2: map[types.CommitNumber]chromeperf.Anomaly{15: anomaly2},
 }
 
 var traceSet = types.TraceSet{
@@ -487,7 +487,7 @@ func TestResponseFromDataFrame_ValidPivotRequestForPivotTable_ReturnsDisplayMode
 func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 	resp := buildResponse(t)
 
-	mockChromePerf := anomaliesStockMock.NewStore(t)
+	mockChromePerf := chromeperfMock.NewAnomalyApiClient(t)
 	mockChromePerf.On("GetAnomalies", testutils.AnyContext, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 
 	anomayStore, err := cache.New(mockChromePerf)
@@ -495,9 +495,9 @@ func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 
 	addAnomaliesToResponse(ctx, resp, anomayStore)
 
-	expectedAnomalyMap := anomalies.AnomalyMap{
-		traceName1: map[types.CommitNumber]anomalies.Anomaly{12: anomaly1},
-		traceName2: map[types.CommitNumber]anomalies.Anomaly{15: anomaly2},
+	expectedAnomalyMap := chromeperf.AnomalyMap{
+		traceName1: map[types.CommitNumber]chromeperf.Anomaly{12: anomaly1},
+		traceName2: map[types.CommitNumber]chromeperf.Anomaly{15: anomaly2},
 	}
 	assert.Equal(t, expectedAnomalyMap, resp.AnomalyMap)
 }
@@ -505,14 +505,14 @@ func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 func TestAddAnomaliesToResponse_ErrorGetAnomalies_GotEmptyAnomalyMap(t *testing.T) {
 	resp := buildResponse(t)
 
-	mockChromePerf := anomaliesStockMock.NewStore(t)
+	mockChromePerf := chromeperfMock.NewAnomalyApiClient(t)
 	mockChromePerf.On("GetAnomalies", testutils.AnyContext, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
 
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
 
 	addAnomaliesToResponse(ctx, resp, anomayStore)
-	assert.Equal(t, anomalies.AnomalyMap{}, resp.AnomalyMap)
+	assert.Equal(t, chromeperf.AnomalyMap{}, resp.AnomalyMap)
 }
 
 func buildResponse(t *testing.T) *FrameResponse {

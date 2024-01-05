@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	anomalies "go.skia.org/infra/perf/go/anomalies"
+	chromeperf "go.skia.org/infra/perf/go/chromeperf"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -16,23 +16,23 @@ type Store struct {
 }
 
 // GetAnomalies provides a mock function with given fields: ctx, traceNames, startCommitPosition, endCommitPosition
-func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
+func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (chromeperf.AnomalyMap, error) {
 	ret := _m.Called(ctx, traceNames, startCommitPosition, endCommitPosition)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAnomalies")
 	}
 
-	var r0 anomalies.AnomalyMap
+	var r0 chromeperf.AnomalyMap
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) (anomalies.AnomalyMap, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) (chromeperf.AnomalyMap, error)); ok {
 		return rf(ctx, traceNames, startCommitPosition, endCommitPosition)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) anomalies.AnomalyMap); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) chromeperf.AnomalyMap); ok {
 		r0 = rf(ctx, traceNames, startCommitPosition, endCommitPosition)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(anomalies.AnomalyMap)
+			r0 = ret.Get(0).(chromeperf.AnomalyMap)
 		}
 	}
 
@@ -46,23 +46,23 @@ func (_m *Store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 }
 
 // GetAnomaliesAroundRevision provides a mock function with given fields: ctx, revision
-func (_m *Store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]anomalies.AnomalyForRevision, error) {
+func (_m *Store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]chromeperf.AnomalyForRevision, error) {
 	ret := _m.Called(ctx, revision)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAnomaliesAroundRevision")
 	}
 
-	var r0 []anomalies.AnomalyForRevision
+	var r0 []chromeperf.AnomalyForRevision
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) ([]anomalies.AnomalyForRevision, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]chromeperf.AnomalyForRevision, error)); ok {
 		return rf(ctx, revision)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) []anomalies.AnomalyForRevision); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int) []chromeperf.AnomalyForRevision); ok {
 		r0 = rf(ctx, revision)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]anomalies.AnomalyForRevision)
+			r0 = ret.Get(0).([]chromeperf.AnomalyForRevision)
 		}
 	}
 

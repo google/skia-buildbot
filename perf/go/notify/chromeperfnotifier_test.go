@@ -46,7 +46,7 @@ func TestValidRegression_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mockChromeperfClient := mocks.NewChromePerfClient(t)
+	mockChromeperfClient := mocks.NewAnomalyApiClient(t)
 	startCommit := provider.Commit{
 		CommitNumber: 1,
 	}
@@ -54,8 +54,8 @@ func TestValidRegression_Success(t *testing.T) {
 		CommitNumber: 10,
 	}
 
-	chromePerfResponse := &chromeperf.ChromePerfResponse{AnomalyId: "123", AlertGroupId: "567"}
-	mockChromeperfClient.On("SendRegression", ctx, "m/testBot/b/t/s", int32(startCommit.CommitNumber), int32(endCommit.CommitNumber), "chromium", false, "testBot", true, mock.Anything, mock.Anything).Return(chromePerfResponse, nil)
+	chromePerfResponse := &chromeperf.ReportRegressionResponse{AnomalyId: "123", AlertGroupId: "567"}
+	mockChromeperfClient.On("ReportRegression", ctx, "m/testBot/b/t/s", int32(startCommit.CommitNumber), int32(endCommit.CommitNumber), "chromium", false, "testBot", true, mock.Anything, mock.Anything).Return(chromePerfResponse, nil)
 	notifier, _ := NewChromePerfNotifier(ctx, mockChromeperfClient)
 	key, _ := query.MakeKey(paramset)
 	frame := &frame.FrameResponse{}
@@ -83,15 +83,15 @@ func TestValidRegressionMissing_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mockChromeperfClient := mocks.NewChromePerfClient(t)
+	mockChromeperfClient := mocks.NewAnomalyApiClient(t)
 	startCommit := provider.Commit{
 		CommitNumber: 1,
 	}
 	endCommit := provider.Commit{
 		CommitNumber: 10,
 	}
-	chromePerfResponse := &chromeperf.ChromePerfResponse{AnomalyId: "123", AlertGroupId: "567"}
-	mockChromeperfClient.On("SendRegression", ctx, "m/testBot/b/t/s", int32(startCommit.CommitNumber), int32(endCommit.CommitNumber), "chromium", true, "testBot", true, mock.Anything, mock.Anything).Return(chromePerfResponse, nil)
+	chromePerfResponse := &chromeperf.ReportRegressionResponse{AnomalyId: "123", AlertGroupId: "567"}
+	mockChromeperfClient.On("ReportRegression", ctx, "m/testBot/b/t/s", int32(startCommit.CommitNumber), int32(endCommit.CommitNumber), "chromium", true, "testBot", true, mock.Anything, mock.Anything).Return(chromePerfResponse, nil)
 	notifier, _ := NewChromePerfNotifier(ctx, mockChromeperfClient)
 	key, _ := query.MakeKey(paramset)
 	frame := &frame.FrameResponse{}
@@ -124,7 +124,7 @@ func testNotifierFunctions_InvalidParams_ReturnsError(paramset map[string]string
 		Centroid: []float32{1.0, 2.0},
 		StepFit:  &stepfit.StepFit{TurningPoint: 1},
 	}
-	notifier, _ := NewChromePerfNotifier(ctx, mocks.NewChromePerfClient(t))
+	notifier, _ := NewChromePerfNotifier(ctx, mocks.NewAnomalyApiClient(t))
 	_, err := notifier.RegressionFound(ctx, provider.Commit{}, provider.Commit{}, alert, cl, frame)
 	assert.NotNil(t, err, "Error expected due to invalid query")
 

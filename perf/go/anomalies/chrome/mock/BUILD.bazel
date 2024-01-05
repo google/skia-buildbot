@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/anomalies/chrome/mock",
     visibility = ["//visibility:public"],
     deps = [
-        "//perf/go/anomalies",
+        "//perf/go/chromeperf",
         "@com_github_stretchr_testify//mock",
     ],
 )

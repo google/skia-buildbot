@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "chromeperf",
     srcs = [
+        "alertGroupApi.go",
         "anomalyApi.go",
         "chromeperfClient.go",
     ],
@@ -15,13 +16,19 @@ go_library(
         "//go/metrics2",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
+        "//perf/go/types",
+        "@org_golang_x_exp//slices",
         "@org_golang_x_oauth2//google",
     ],
 )
 
 go_test(
     name = "chromeperf_test",
-    srcs = ["chromeperfClient_test.go"],
+    srcs = [
+        "alertGroupApi_test.go",
+        "anomalyApi_test.go",
+    ],
     embed = [":chromeperf"],
     deps = [
         "@com_github_stretchr_testify//assert",

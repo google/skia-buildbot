@@ -235,6 +235,7 @@ packages:
       dir: "{{.InterfaceDir}}/mock"
     interfaces:
       ChromePerfClient:
+      AnomalyApiClient:
   go.skia.org/infra/perf/go/dataframe:
     interfaces:
       DataFrameBuilder:

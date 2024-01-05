@@ -40,13 +40,12 @@ import (
 	"go.skia.org/infra/go/sklog/sklogimpl"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
-	"go.skia.org/infra/perf/go/alertgroup"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalies/cache"
-	"go.skia.org/infra/perf/go/anomalies/chrome"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
+	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -167,7 +166,7 @@ type Frontend struct {
 
 	pinpoint *pinpoint.Client
 
-	alertGroupService alertgroup.Service
+	alertGroupClient chromeperf.AlertGroupApiClient
 
 	urlProvider *urlprovider.URLProvider
 }
@@ -451,12 +450,11 @@ func (f *Frontend) initialize() {
 
 	var urlParamsProvider urlprovider.ParamsProvider = nil
 	if config.Config.FetchChromePerfAnomalies {
-		chromeClient, err := chrome.New(ctx)
+		anomalyApiClient, err := chromeperf.NewAnomalyApiClient(ctx)
 		if err != nil {
-			sklog.Fatal("Failed to build chrome client: %s", err)
+			sklog.Fatal("Failed to build chrome anomaly api client: %s", err)
 		}
-
-		f.anomalyStore, err = cache.New(chromeClient)
+		f.anomalyStore, err = cache.New(anomalyApiClient)
 		if err != nil {
 			sklog.Fatal("Failed to build anomalies.Store: %s", err)
 		}
@@ -466,9 +464,9 @@ func (f *Frontend) initialize() {
 			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
 		}
 
-		f.alertGroupService, err = alertgroup.New(ctx)
+		f.alertGroupClient, err = chromeperf.NewAlertGroupApiClient(ctx)
 		if err != nil {
-			sklog.Fatal("Failed to build alertGroup.Store: %s", err)
+			sklog.Fatal("Failed to build alert group client: %s", err)
 		}
 
 		ignoreParams := config.Config.QueryConfig.ChromePerfIgnoreParams
@@ -734,7 +732,7 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 	defer cancel()
 
 	sklog.Info("Received alert group request")
-	if f.alertGroupService == nil {
+	if f.alertGroupClient == nil {
 		sklog.Info("Alert Grouping is not enabled")
 		httputils.ReportError(w, nil, "Alert Grouping is not enabled", http.StatusNotFound)
 		return
@@ -743,7 +741,7 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 	sklog.Infof("Group id is %s", groupId)
 	ctx, span := trace.StartSpan(ctx, "alertGroupQueryRequest")
 	defer span.End()
-	alertGroupDetails, err := f.alertGroupService.GetAlertGroupDetails(ctx, groupId)
+	alertGroupDetails, err := f.alertGroupClient.GetAlertGroupDetails(ctx, groupId)
 	if err != nil {
 		sklog.Errorf("Error in retrieving alert group details: %s", err)
 	}
@@ -1177,7 +1175,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 		sklog.Error("Error getting commit info")
 	}
 
-	revisionInfoMap := map[string]anomalies.RevisionInfo{}
+	revisionInfoMap := map[string]chromeperf.RevisionInfo{}
 	for _, anomalyData := range anomaliesForRevision {
 		key := fmt.Sprintf(
 			"%s-%s-%s-%s",
@@ -1195,7 +1193,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 			if anomalyData.Anomaly.BugId > 0 {
 				bugId = strconv.Itoa(anomalyData.Anomaly.BugId)
 			}
-			revisionInfoMap[key] = anomalies.RevisionInfo{
+			revisionInfoMap[key] = chromeperf.RevisionInfo{
 				StartRevision: anomalyData.StartRevision,
 				EndRevision:   anomalyData.EndRevision,
 				Master:        anomalyData.Params["master"][0],
@@ -1219,7 +1217,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	revisionInfos := []anomalies.RevisionInfo{}
+	revisionInfos := []chromeperf.RevisionInfo{}
 	for _, info := range revisionInfoMap {
 		revisionInfos = append(revisionInfos, info)
 	}

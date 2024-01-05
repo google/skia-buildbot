@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/anomalies"
+	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -99,11 +100,11 @@ func NewFrameRequest() *FrameRequest {
 
 // FrameResponse is serialized to JSON as the response to frame requests.
 type FrameResponse struct {
-	DataFrame   *dataframe.DataFrame `json:"dataframe"`
-	Skps        []int                `json:"skps"`
-	Msg         string               `json:"msg"`
-	DisplayMode ResponseDisplayMode  `json:"display_mode"`
-	AnomalyMap  anomalies.AnomalyMap `json:"anomalymap"`
+	DataFrame   *dataframe.DataFrame  `json:"dataframe"`
+	Skps        []int                 `json:"skps"`
+	Msg         string                `json:"msg"`
+	DisplayMode ResponseDisplayMode   `json:"display_mode"`
+	AnomalyMap  chromeperf.AnomalyMap `json:"anomalymap"`
 }
 
 // frameRequestProcess keeps track of a running Go routine that's

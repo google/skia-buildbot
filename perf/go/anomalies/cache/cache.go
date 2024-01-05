@@ -8,7 +8,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/perf/go/anomalies"
+	"go.skia.org/infra/perf/go/chromeperf"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -34,16 +34,16 @@ type store struct {
 	// metrics
 	numEntriesInCache metrics2.Int64Metric
 
-	ChromePerf anomalies.Store
+	ChromePerf chromeperf.AnomalyApiClient
 }
 
 type commitAnomalyMapCacheEntry struct {
 	addTime          time.Time // When this entry was added.
-	commitAnomalyMap anomalies.CommitNumberAnomalyMap
+	commitAnomalyMap chromeperf.CommitNumberAnomalyMap
 }
 
 // New returns a new anomalies.Store instance with LRU cache.
-func New(chromePerf anomalies.Store) (*store, error) {
+func New(chromePerf chromeperf.AnomalyApiClient) (*store, error) {
 	testsCache, err := lru.New(cacheSize)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create anomaly store tests cache.")
@@ -95,10 +95,10 @@ func cleanupCache(cache *lru.Cache) {
 
 // GetAnomalies implements anomalies.Store
 // It fetches anomalies from cache at first, then calls chrome perf API to fetch the anomlies missing from cache.
-func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (anomalies.AnomalyMap, error) {
+func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (chromeperf.AnomalyMap, error) {
 	// Get anomalies from cache
 	traceNamesMissingFromCache := make([]string, 0)
-	result := anomalies.AnomalyMap{}
+	result := chromeperf.AnomalyMap{}
 	numEntriesInCache := 0
 	for _, traceName := range traceNames {
 		iCommitAnomalyMapCacheEntry, ok := as.testsCache.Get(getAnomalyCacheKey(traceName, startCommitPosition, endCommitPosition))
@@ -138,10 +138,10 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 
 // GetAnomaliesAroundRevision implements anomalies.Store
 // It fetches anomalies that occured around the specified revision number.
-func (as *store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]anomalies.AnomalyForRevision, error) {
+func (as *store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]chromeperf.AnomalyForRevision, error) {
 	iAnomalies, ok := as.revisionCache.Get(revision)
 	if ok {
-		return iAnomalies.([]anomalies.AnomalyForRevision), nil
+		return iAnomalies.([]chromeperf.AnomalyForRevision), nil
 	} else {
 		result, err := as.ChromePerf.GetAnomaliesAroundRevision(ctx, revision)
 		if err != nil {

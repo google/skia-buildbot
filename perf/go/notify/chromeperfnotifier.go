@@ -18,24 +18,23 @@ import (
 
 // ChromeperfNotifier struct used to send regression data to chromeperf.
 type ChromePerfNotifier struct {
-	chromePerfClient chromeperf.ChromePerfClient
+	chromePerfClient chromeperf.AnomalyApiClient
 }
 
 // NewChromePerfNotifier returns a new ChromePerfNotifier instance.
-func NewChromePerfNotifier(ctx context.Context, cpClient chromeperf.ChromePerfClient) (*ChromePerfNotifier, error) {
-
+func NewChromePerfNotifier(ctx context.Context, anomalyApiClient chromeperf.AnomalyApiClient) (*ChromePerfNotifier, error) {
 	var err error
-	if cpClient == nil {
-		cpClient, err = chromeperf.NewChromePerfClient(ctx, "")
+	if anomalyApiClient == nil {
+		anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "Error creating a new chromeperf client.")
+			return nil, err
 		}
 	}
 
 	sklog.Info("Creating a new chromeperf notifier")
 
 	return &ChromePerfNotifier{
-		chromePerfClient: cpClient,
+		chromePerfClient: anomalyApiClient,
 	}, nil
 }
 
@@ -65,7 +64,7 @@ func (n *ChromePerfNotifier) RegressionFound(
 		medianBeforeAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[:cl.StepFit.TurningPoint])
 		medianAfterAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[cl.StepFit.TurningPoint:])
 		sklog.Infof("Median Before: %f, Median After: %f", medianBeforeAnomaly, medianAfterAnomaly)
-		response, err := n.chromePerfClient.SendRegression(
+		response, err := n.chromePerfClient.ReportRegression(
 			ctx,
 			getTestPath(paramset),
 			int32(previousCommit.CommitNumber),
@@ -112,7 +111,7 @@ func (n *ChromePerfNotifier) RegressionMissing(
 		medianBeforeAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[:cl.StepFit.TurningPoint])
 		medianAfterAnomaly, _, _, _ := vec32.TwoSidedStdDev(cl.Centroid[cl.StepFit.TurningPoint:])
 		sklog.Infof("Median Before: %f, Median After: %f", medianBeforeAnomaly, medianAfterAnomaly)
-		_, err = n.chromePerfClient.SendRegression(
+		_, err = n.chromePerfClient.ReportRegression(
 			ctx,
 			getTestPath(paramset),
 			int32(previousCommit.CommitNumber),
