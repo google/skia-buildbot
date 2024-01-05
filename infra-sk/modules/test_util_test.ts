@@ -421,7 +421,7 @@ describe('test utilities', () => {
 
   describe('expectQueryStringToEqual', () => {
     it('matches empty string when query is empty', () => {
-      history.pushState(
+      window.history.pushState(
         null,
         '', // these are empty as they do not affect the test.
         window.location.origin + window.location.pathname
@@ -431,13 +431,13 @@ describe('test utilities', () => {
 
     it('matches the query params when query is not emtpy', () => {
       // reset to known blank state
-      history.pushState(
+      window.history.pushState(
         null,
         '', // these are empty as they do not affect the test.
         window.location.origin + window.location.pathname
       );
       // push some query params
-      history.pushState(null, '', '?foo=bar&alpha=beta&alpha=gamma');
+      window.history.pushState(null, '', '?foo=bar&alpha=beta&alpha=gamma');
       expectQueryStringToEqual('?foo=bar&alpha=beta&alpha=gamma');
     });
   });

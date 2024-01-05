@@ -28,7 +28,7 @@ if (window.location.search.length < 4) {
   const query =
     '?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra' +
     '&changelist_id=12353&crs=gerrit';
-  history.pushState(
+  window.history.pushState(
     null,
     '',
     window.location.origin + window.location.pathname + query

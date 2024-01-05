@@ -148,7 +148,7 @@ export class SkottieTextEditorSk extends ElementSk {
           }, [] as ExtraLayerData[])
       );
     } // this creates a dictionary with all available texts
-    let reducedTextsData = textsData.reduce(
+    const reducedTextsData = textsData.reduce(
       (
         accumulator: Record<string, TextData>,
         item: ExtraLayerData,

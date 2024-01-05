@@ -1,6 +1,7 @@
 import './index';
 
 import { expect } from 'chai';
+import { assert } from 'chai';
 import { ParamSet } from '../query';
 import {
   setUpElementUnderTest,
@@ -14,7 +15,6 @@ import {
   ParamSetSkRemoveClickEventDetail,
 } from './paramset-sk';
 import { ParamSetSkPO, ParamSetKeyValueTuple } from './paramset-sk_po';
-import { assert } from 'chai';
 
 const paramSet1: ParamSet = {
   a: ['hello', 'world'],

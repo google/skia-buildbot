@@ -11,8 +11,8 @@
  * </p>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';

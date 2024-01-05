@@ -227,6 +227,7 @@ export class PatchSk extends ElementSk {
     if (this._clData && !this._clError) {
       return this._clData.url;
     }
+    // eslint-disable-next-line no-script-url
     return 'javascript:void(0);';
   }
 

@@ -988,9 +988,9 @@ export class SkottieSk extends ElementSk {
       const frameTotal = $$<HTMLInputElement>('#frameTotal', this);
       if (frameTotal) {
         if (this.state.lottie!.fr) {
-          frameTotal.textContent =
-            'of ' +
-            String(Math.round(this.duration * (this.state.lottie!.fr / 1000)));
+          frameTotal.textContent = `of ${String(
+            Math.round(this.duration * (this.state.lottie!.fr / 1000))
+          )}`;
         }
       }
       this.renderSlotManager();
@@ -1001,8 +1001,8 @@ export class SkottieSk extends ElementSk {
     return fetch(`/_/r/${this.hash}`)
       .then(jsonOrThrow)
       .then((json) => {
-        let allFileNames: string[] = json.files;
-        let additionalAssets: string[] = [];
+        const allFileNames: string[] = json.files;
+        const additionalAssets: string[] = [];
         if (allFileNames) {
           for (const fileName of allFileNames) {
             const ext: string | undefined = fileName.split('.').pop();
@@ -1714,9 +1714,11 @@ export class SkottieSk extends ElementSk {
   private isToolUnsynced(tool: ToolType): boolean {
     return ['draft', 'loaded'].includes(this.ui) && this.changingTool !== tool;
   }
+
   private areChangesUploaded(): boolean {
     return !['draft', 'unsynced'].includes(this.ui);
   }
+
   private isPlayerView(): boolean {
     return ['draft', 'unsynced', 'synced', 'loaded'].includes(this.ui);
   }

@@ -903,7 +903,7 @@ export class ARBStatusSk extends ElementSk {
     return '';
   }
 
-  private modeTooltip(mode: Mode) {
+  private modeTooltip(mode: Mode): string {
     switch (mode) {
       case Mode.RUNNING:
         return 'RUNNING is the typical operating mode of the autoroller. It will upload and land CLs as new revisions appear in the Child.';
@@ -913,10 +913,12 @@ export class ARBStatusSk extends ElementSk {
         return 'STOPPED prevents the autoroller from uploading any CLs. The roller will continue to update any local checkouts to prevent them from getting too far out of date, and any requested manual rolls will be fulfilled.';
       case Mode.OFFLINE:
         return 'OFFLINE is similar to STOPPED, but the roller does not update its checkouts and requests for manual rolls are ignored.';
+      default:
+        return '';
     }
   }
 
-  private strategyTooltip(strategy: Strategy) {
+  private strategyTooltip(strategy: Strategy): string {
     switch (strategy) {
       case Strategy.BATCH:
         return 'BATCH rolls all new revisions in a single CL';
@@ -924,6 +926,8 @@ export class ARBStatusSk extends ElementSk {
         return 'N_BATCH rolls multiple new revisions in a single CL with a limit on the number of revisions';
       case Strategy.SINGLE:
         return 'SINGLE rolls one revision per CL';
+      default:
+        return '';
     }
   }
 
@@ -961,7 +965,7 @@ export class ARBStatusSk extends ElementSk {
         this.update(resp.status!);
         this.resetTimeout();
       })
-      .catch((err: any) => {
+      .catch(() => {
         this.resetTimeout();
       });
   }
@@ -1059,19 +1063,19 @@ export class ARBStatusSk extends ElementSk {
     if (!roll) {
       return 'unknown';
     }
-    if (roll.status == ManualRoll_Status.COMPLETED) {
+    if (roll.status === ManualRoll_Status.COMPLETED) {
       return roll.result.toLowerCase();
     }
-    if (roll.status == ManualRoll_Status.STARTED) {
+    if (roll.status === ManualRoll_Status.STARTED) {
       return AutoRollCL_Result.IN_PROGRESS;
     }
-    if ((roll.status = ManualRoll_Status.PENDING)) {
+    if (roll.status === ManualRoll_Status.PENDING) {
       return roll.status.toLowerCase();
     }
     return 'unknown';
   }
 
-  private modeClass(mode: Mode) {
+  private modeClass(mode: Mode): string {
     switch (mode) {
       case Mode.RUNNING:
         return 'fg-running';
@@ -1081,6 +1085,8 @@ export class ARBStatusSk extends ElementSk {
         return 'fg-stopped';
       case Mode.OFFLINE:
         return 'fg-offline';
+      default:
+        return '';
     }
   }
 

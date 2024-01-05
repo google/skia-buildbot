@@ -13,11 +13,11 @@ import '../patch-sk';
 import '../task-repeater-sk';
 import '../task-priority-sk';
 
+import { html } from 'lit-html';
 import { $$, $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

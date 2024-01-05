@@ -34,10 +34,6 @@ const toggle = (value: string): SortDirection =>
 export class SortToggleSk<T extends Object> extends ElementSk {
   private _data: Array<T> = [];
 
-  constructor() {
-    super(); // There is no template to use for rendering.
-  }
-
   connectedCallback() {
     super.connectedCallback();
     // Attach the icons, but only once.

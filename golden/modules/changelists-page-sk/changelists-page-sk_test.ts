@@ -207,13 +207,13 @@ function goToNextPage(changelistsPageSk: ChangelistsPageSk): Promise<Event> {
 
 function goBack() {
   const event = eventPromise('end-task');
-  history.back();
+  window.history.back();
   return event;
 }
 
 function goForward() {
   const event = eventPromise('end-task');
-  history.forward();
+  window.history.forward();
   return event;
 }
 

@@ -14,11 +14,11 @@ import '../input-sk';
 import '../pageset-selector-sk';
 import '../task-repeater-sk';
 
+import { html } from 'lit-html';
 import { $$, $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

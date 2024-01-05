@@ -126,10 +126,11 @@ export class PageObjectElement {
    *
    * @param key The "key" attribute of the KeyboardEvent to be dispatched.
    */
-  async typeKey(key: string) {
+  async typeKey(key: string): Promise<void> {
     const element = await this.elementPromise;
     if (isPptrElement(element!)) {
-      return (element as ElementHandle).type(key);
+      await (element as ElementHandle).type(key);
+      return;
     }
     const ele = element as Element;
     ele.dispatchEvent(

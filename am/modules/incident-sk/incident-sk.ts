@@ -51,6 +51,8 @@
  *   </pre>
  *
  */
+import { html, render, TemplateResult } from 'lit-html';
+import { until } from 'lit-html/directives/until';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/icons/alarm-off-icon-sk';
 import '../../../elements-sk/modules/icons/delete-icon-sk';
@@ -61,8 +63,6 @@ import '../silence-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { diffDate, strDuration } from '../../../infra-sk/modules/human';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html, render, TemplateResult } from 'lit-html';
-import { until } from 'lit-html/directives/until';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { abbr, linkify, displayNotes } from '../am';
 import * as paramset from '../paramset';

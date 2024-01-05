@@ -118,6 +118,7 @@ export function clusterPageHref(
     SearchCriteriaToHintableObject(searchCriteria);
   searchCriteriaHintableObject.left_filter = '';
   const u = `${
+    // eslint-disable-next-line no-useless-concat
     '/cluster?' + `grouping=${encodeURIComponent(fromObject(grouping))}&`
   }${fromObject(searchCriteriaHintableObject as HintableObject)}`;
   if (clID) {

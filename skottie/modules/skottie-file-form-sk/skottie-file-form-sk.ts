@@ -11,8 +11,8 @@
  *      The updated state is submitted with all files attached to the form.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/visibility-icon-sk';
@@ -33,7 +33,7 @@ export interface SkottieFileState {
   soundMap?: SoundMap;
 }
 
-export interface SkottieFilesEventDetail extends SkottieFileState {}
+export type SkottieFilesEventDetail = SkottieFileState;
 
 const allowZips =
   window.location.hostname === 'skottie-internal.skia.org' ||

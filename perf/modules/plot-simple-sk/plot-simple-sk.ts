@@ -90,10 +90,10 @@
  *
  * @attr summary {Boolean} - If present then display the summary bar.
  */
-import { Anomaly } from '../json';
 import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
+import { Anomaly } from '../json';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
@@ -689,7 +689,7 @@ export class PlotSimpleSk extends ElementSk {
 
   private ANOMALY_RADIUS!: number; // px
 
-  private ANOMALY_FONT_SIZE!: number; //px
+  private ANOMALY_FONT_SIZE!: number; // px
 
   private ANOMALY_FONT!: string; // CSS font string.
 

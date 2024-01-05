@@ -19,8 +19,8 @@
  *         or the color is changed.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export interface SkottieColorEventDetail {

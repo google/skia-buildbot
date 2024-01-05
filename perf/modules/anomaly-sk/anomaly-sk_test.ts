@@ -9,28 +9,26 @@ import {
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
 import { getAnomalyDataMap } from './anomaly-sk';
 
-const dummyAnomaly = (): Anomaly => {
-  return {
-    id: 0,
-    test_path: '',
-    bug_id: -1,
-    start_revision: 0,
-    end_revision: 3,
-    is_improvement: false,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: '',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 0,
-    median_after_anomaly: 0,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-  };
-};
+const dummyAnomaly = (): Anomaly => ({
+  id: 0,
+  test_path: '',
+  bug_id: -1,
+  start_revision: 0,
+  end_revision: 3,
+  is_improvement: false,
+  recovered: true,
+  state: '',
+  statistic: '',
+  units: '',
+  degrees_of_freedom: 0,
+  median_before_anomaly: 0,
+  median_after_anomaly: 0,
+  p_value: 0,
+  segment_size_after: 0,
+  segment_size_before: 0,
+  std_dev_before_anomaly: 0,
+  t_statistic: 0,
+});
 
 describe('getAnomalyDataMap', () => {
   const header: ColumnHeader[] = [
@@ -90,7 +88,7 @@ describe('getAnomalyDataMap', () => {
   it('maps anomaly to the next commit if exact match not available', () => {
     const columnHeader: ColumnHeader = { offset: 103, timestamp: 0 };
     dataframe.header?.push(columnHeader);
-    dataframe.traceset['traceA'].push(200);
+    dataframe.traceset.traceA.push(200);
     // Add anomaly that does not have a commit in the header.
     const anomalymap = { traceA: { 102: anomalyA } };
     const dataMap = getAnomalyDataMap(

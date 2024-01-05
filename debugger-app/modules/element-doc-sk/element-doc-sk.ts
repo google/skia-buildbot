@@ -7,13 +7,9 @@
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export class ElementDocSk extends ElementSk {
-  constructor(templateFn?: (el: any) => unknown) {
-    super(templateFn);
-  }
-
   private _documentEventListeners = new Map<string, (e: Event) => void>();
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     for (const [key, val] of this._documentEventListeners.entries()) {
       document.removeEventListener(key, val);
     }
@@ -24,7 +20,7 @@ export class ElementDocSk extends ElementSk {
     name: string,
     fn: (e: any) => void,
     useCapture: boolean = false
-  ) {
+  ): void {
     this._documentEventListeners.set(name, fn);
     document.addEventListener(name, fn, useCapture);
   }

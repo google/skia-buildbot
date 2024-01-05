@@ -30,32 +30,31 @@ export class FavoritesSk extends ElementSk {
   `;
 
   private getSectionsTemplate() {
-    var sections = this.favoritesConfig?.sections;
+    const sections = this.favoritesConfig?.sections;
     if (sections == null || sections.length == 0) {
       return html`No favorites have been configured for this instance.`;
-    } else {
-      return html`${sections.map(
-        (section) =>
-          html` <div class="section">
-              <h3>${section.name}</h3>
-              <table>
-                <tr>
-                  <th>Link</th>
-                  <th>Description</th>
-                </tr>
-                ${section.links?.map(
-                  (link) => html`
-                    <tr>
-                      <td><a href=${link.href}>${link.text}</a></td>
-                      <td>${link.description}</td>
-                    </tr>
-                  `
-                )}
-              </table>
-            </div>
-            <hr />`
-      )}`;
     }
+    return html`${sections.map(
+      (section) =>
+        html` <div class="section">
+            <h3>${section.name}</h3>
+            <table>
+              <tr>
+                <th>Link</th>
+                <th>Description</th>
+              </tr>
+              ${section.links?.map(
+                (link) => html`
+                  <tr>
+                    <td><a href=${link.href}>${link.text}</a></td>
+                    <td>${link.description}</td>
+                  </tr>
+                `
+              )}
+            </table>
+          </div>
+          <hr />`
+    )}`;
   }
 
   async connectedCallback(): Promise<void> {

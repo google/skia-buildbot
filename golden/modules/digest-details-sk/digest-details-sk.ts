@@ -135,6 +135,7 @@ export class DigestDetailsSk extends ElementSk {
 
   private static detailsAndTriageTemplate = (ele: DigestDetailsSk) => {
     const disallowTriaging =
+      // eslint-disable-next-line no-prototype-builtins
       ele._details.paramset.hasOwnProperty(DISALLOW_TRIAGING_OPTIONAL_KEY) &&
       ele._details.paramset[DISALLOW_TRIAGING_OPTIONAL_KEY].includes(
         DISALLOW_TRIAGING_OPTIONAL_KEY_VALUE

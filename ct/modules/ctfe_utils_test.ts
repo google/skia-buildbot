@@ -11,9 +11,11 @@ describe('ctfe_utils', () => {
   // This makes the tests deterministic w.r.t. the computer's timezone.
   const originalDateToLocaleString = Date.prototype.toLocaleString;
   before(() => {
+    // eslint-disable-next-line no-extend-native
     Date.prototype.toLocaleString = Date.prototype.toUTCString;
   });
   after(() => {
+    // eslint-disable-next-line no-extend-native
     Date.prototype.toLocaleString = originalDateToLocaleString;
   });
 

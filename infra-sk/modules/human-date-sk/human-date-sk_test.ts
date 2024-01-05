@@ -1,8 +1,8 @@
+import { expect } from 'chai';
 import { HumanDateSk } from './human-date-sk';
 import './index';
 
 import { setUpElementUnderTest } from '../test_util';
-import { expect } from 'chai';
 import { $$ } from '../dom';
 
 describe('human-date-sk', () => {

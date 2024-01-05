@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { PageObject } from '../../../infra-sk/modules/page_object/page_object';
 import { PageObjectElement } from '../../../infra-sk/modules/page_object/page_object_element';
 import { Label } from '../rpc_types';

@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 import { ElementHandle } from 'puppeteer';
 import {
   AsyncList,
@@ -47,7 +48,7 @@ export abstract class PageObject {
 
   /** Returns true if the underlying PageObjectElement is empty. */
   async isEmpty(): Promise<boolean> {
-    return await this.element.isEmpty();
+    return this.element.isEmpty();
   }
 
   /**
@@ -89,6 +90,7 @@ export abstract class PageObject {
 
 /** Convenience wrapper around a promise of a list of page objects. */
 export class PageObjectList<T extends PageObject> extends AsyncList<T> {
+  // eslint-disable-next-line no-useless-constructor
   constructor(itemsPromise: Promise<T[]>) {
     super(itemsPromise);
   }

@@ -177,6 +177,7 @@ export class IgnoresPageSk extends ElementSk {
 
   private deleteIgnoreRule(rule: IgnoreRule) {
     this.confirmDialogSk!.open(
+      // eslint-disable-next-line no-useless-concat
       'Are you sure you want to delete ' + 'this ignore rule?'
     ).then(() => {
       sendBeginTask(this);

@@ -99,7 +99,7 @@ export class QueryCountSk extends ElementSk {
       })
       .catch((msg) => {
         this._requestInProgress = false;
-        if (msg.name == 'AbortError') {
+        if (msg.name === 'AbortError') {
           // User did something to invalidate the request, so just
           // return without updating the UI state or displaying an
           // error message.

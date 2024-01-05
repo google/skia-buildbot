@@ -119,7 +119,7 @@ export class ARBTableSk extends ElementSk {
     this.reload();
   }
 
-  private modeClass(mode: Mode) {
+  private modeClass(mode: Mode): string {
     switch (mode) {
       case Mode.RUNNING:
         return 'fg-running';
@@ -129,6 +129,8 @@ export class ARBTableSk extends ElementSk {
         return 'fg-stopped';
       case Mode.OFFLINE:
         return 'fg-offline';
+      default:
+        return '';
     }
   }
 

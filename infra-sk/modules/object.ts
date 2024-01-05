@@ -84,6 +84,7 @@ export function applyDelta(
 ): HintableObject {
   const ret: HintableObject = {};
   Object.keys(o).forEach((key) => {
+    // eslint-disable-next-line no-prototype-builtins
     if (delta.hasOwnProperty(key)) {
       ret[key] = deepCopy(delta[key]);
     } else {

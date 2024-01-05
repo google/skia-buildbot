@@ -95,9 +95,8 @@ export class AnomalySk extends ElementSk {
     super(AnomalySk.template);
   }
 
-  private static formatNumber = (num: number): string => {
-    return num.toLocaleString('en-US', { maximumFractionDigits: 4 });
-  };
+  private static formatNumber = (num: number): string =>
+    num.toLocaleString('en-US', { maximumFractionDigits: 4 });
 
   private static getPercentChange = (
     median_before: number,
@@ -109,12 +108,10 @@ export class AnomalySk extends ElementSk {
   };
 
   private static formatBug = (bugId: number): TemplateResult => {
-    if (bugId == -1) {
+    if (bugId === -1) {
       return html``;
     }
-    return html`<a href="${
-      'https://crbug.com/' + bugId
-    }" target=_blank>${bugId}</td>`;
+    return html`<a href="${`https://crbug.com/${bugId}`}" target=_blank>${bugId}</td>`;
   };
 
   private static template = (ele: AnomalySk) => {

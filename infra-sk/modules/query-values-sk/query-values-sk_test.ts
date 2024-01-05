@@ -153,7 +153,7 @@ describe('query-values-sk', () => {
     });
 
     it('checks if filtering on options is done correctly.', async () => {
-      var originalOptions = await queryValuesSkPO.getOptions();
+      const originalOptions = await queryValuesSkPO.getOptions();
       await queryValuesSkPO.setFilterInputValue('ar');
       assert.deepEqual(
         await queryValuesSkPO.getOptions(),
@@ -177,7 +177,7 @@ describe('query-values-sk', () => {
     });
 
     it('checks if the clear filter button works correctly.', async () => {
-      var originalOptions = await queryValuesSkPO.getOptions();
+      const originalOptions = await queryValuesSkPO.getOptions();
       await queryValuesSkPO.setFilterInputValue('ar');
       assert.deepEqual(
         await queryValuesSkPO.getOptions(),

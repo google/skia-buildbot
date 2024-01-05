@@ -19,28 +19,26 @@ const random = (): number => {
   return seed / MAX;
 };
 
-const dummyAnomaly = (isImprovement: boolean): Anomaly => {
-  return {
-    id: 0,
-    test_path: '',
-    bug_id: 123456,
-    start_revision: 0,
-    end_revision: 3,
-    is_improvement: isImprovement,
-    recovered: true,
-    state: '',
-    statistic: '',
-    units: '',
-    degrees_of_freedom: 0,
-    median_before_anomaly: 0,
-    median_after_anomaly: 0,
-    p_value: 0,
-    segment_size_after: 0,
-    segment_size_before: 0,
-    std_dev_before_anomaly: 0,
-    t_statistic: 0,
-  };
-};
+const dummyAnomaly = (isImprovement: boolean): Anomaly => ({
+  id: 0,
+  test_path: '',
+  bug_id: 123456,
+  start_revision: 0,
+  end_revision: 3,
+  is_improvement: isImprovement,
+  recovered: true,
+  state: '',
+  statistic: '',
+  units: '',
+  degrees_of_freedom: 0,
+  median_before_anomaly: 0,
+  median_after_anomaly: 0,
+  p_value: 0,
+  segment_size_after: 0,
+  segment_size_before: 0,
+  std_dev_before_anomaly: 0,
+  t_statistic: 0,
+});
 
 window.customElements.whenDefined('plot-simple-sk').then(() => {
   const ele = $$<PlotSimpleSk>('#plot')!;

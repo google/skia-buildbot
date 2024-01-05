@@ -24,13 +24,20 @@ export class RevisionInfoSk extends ElementSk {
   }
 
   revisionId: HTMLInputElement | null = null;
+
   revisionInfos: RevisionInfo[] | null = null;
+
   private revisionInfoContainer: HTMLDivElement | null = null;
+
   private showSpinner: boolean = false;
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   private stateHasChanged = () => {};
+
   private state: State = {
     revisionId: 0,
   };
+
   private static template = (ele: RevisionInfoSk) => html`
     <h3>Revision Information</h3>
     <input id=revision_id type=text alt="Revision Id"></input>
@@ -47,23 +54,22 @@ export class RevisionInfoSk extends ElementSk {
   private getRevInfosTemplate() {
     if (this.revisionInfos == null) {
       return html``;
-    } else {
-      return html`
-        <table class="sortable">
-          <tr>
-            <th>Bug ID</th>
-            <th>Revisions</th>
-            <th>Master</th>
-            <th>Bot</th>
-            <th>Benchmark</th>
-            <th>Test</th>
-          </tr>
-          ${this.revisionInfos.map((revInfo) =>
-            RevisionInfoSk.revInfoRowTemplate(revInfo)
-          )}
-        </table>
-      `;
     }
+    return html`
+      <table class="sortable">
+        <tr>
+          <th>Bug ID</th>
+          <th>Revisions</th>
+          <th>Master</th>
+          <th>Bot</th>
+          <th>Benchmark</th>
+          <th>Test</th>
+        </tr>
+        ${this.revisionInfos.map((revInfo) =>
+          RevisionInfoSk.revInfoRowTemplate(revInfo)
+        )}
+      </table>
+    `;
   }
 
   // Return the template for an individual row.
@@ -117,7 +123,7 @@ export class RevisionInfoSk extends ElementSk {
     this._render();
 
     // Send the request to get the revision info items to display
-    const response = await fetch('/_/revision/?rev=' + this.revisionId!.value);
+    const response = await fetch(`/_/revision/?rev=${this.revisionId!.value}`);
     const json = await jsonOrThrow(response);
     this.revisionInfos = json;
     this.revisionInfoContainer!.hidden = false;

@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 /**
  * @module skottie-player-sk
  * @description <h2><code>skottie-player-sk</code></h2>

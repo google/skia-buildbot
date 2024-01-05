@@ -5,12 +5,10 @@
 
 import { LottieAsset, LottieCompAsset, LottieBinaryAsset } from '../types';
 
-const isCompAsset = (asset: LottieAsset): asset is LottieCompAsset => {
-  return 'layers' in asset;
-};
+const isCompAsset = (asset: LottieAsset): asset is LottieCompAsset =>
+  'layers' in asset;
 
-const isBinaryAsset = (asset: LottieAsset): asset is LottieBinaryAsset => {
-  return 'p' in asset;
-};
+const isBinaryAsset = (asset: LottieAsset): asset is LottieBinaryAsset =>
+  'p' in asset;
 
 export { isCompAsset, isBinaryAsset };

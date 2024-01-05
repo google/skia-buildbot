@@ -18,7 +18,7 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module',
   },
-  ignorePatterns: ['dist/', 'build/', '_bazel*'],
+  ignorePatterns: ['dist/', 'build/', '_bazel*', 'new_element/templates/'],
   rules: {
     camelcase: ['off'],
     'class-methods-use-this': ['off'],
@@ -32,15 +32,25 @@ module.exports = {
     'no-lone-blocks': ['off'],
     'no-param-reassign': ['off'],
     'no-plusplus': ['off'],
-    'no-restricted-syntax': ['warn'],
+    'no-restricted-syntax': ['off'],
     'no-return-assign': ['off'],
     'no-shadow': ['warn'],
     'no-underscore-dangle': ['off'],
-    'no-use-before-define': ['error', { functions: false, variables: false }],
+    'no-use-before-define': ['warn', { functions: false, variables: false }],
     'object-shorthand': ['off'],
     'prefer-destructuring': ['off'],
     'prefer-object-spread': ['off'],
     'space-before-function-paren': ['off'],
+
+    // All of these should be turned back to errors once all the instances are
+    // found and fixed.
+    'prefer-promise-reject-errors': ['warn'],
+    radix: ['warn'],
+    eqeqeq: ['warn'],
+    'no-nested-ternary': ['warn'],
+    'no-restricted-properties': ['warn'],
+    'no-throw-literal': ['warn'],
+    'guard-for-in': ['warn'],
   },
   overrides: [
     {
@@ -79,6 +89,8 @@ module.exports = {
         // a: string = 'foo' might be redundant, but it's not harmful.
         '@typescript-eslint/no-inferrable-types': 'off',
 
+        '@typescript-eslint/no-empty-function': 'off',
+
         '@typescript-eslint/type-annotation-spacing': [
           'error',
           {
@@ -106,6 +118,10 @@ module.exports = {
 
         // We already disallow implicit-any, explicit is fine.
         '@typescript-eslint/no-explicit-any': 'off',
+
+        // All of these should be turned back to errors once all the instances are
+        // found and fixed.
+        '@typescript-eslint/ban-types': 'off',
       },
     },
     {

@@ -139,8 +139,8 @@ describe('buildParamSet', () => {
     };
     buildParamSet(df);
     assert.equal(2, Object.keys(df.paramset).length);
-    assert.deepEqual(df.paramset['arch'], ['x86']);
-    assert.deepEqual(df.paramset['config'], ['565', '8888', 'gpu']);
+    assert.deepEqual(df.paramset.arch, ['x86']);
+    assert.deepEqual(df.paramset.config, ['565', '8888', 'gpu']);
   });
 });
 

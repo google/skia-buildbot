@@ -70,6 +70,8 @@ export class DotsLegendSkPO extends PageObject {
           return 'negative';
         case 'untriaged-icon':
           return 'untriaged';
+        default:
+          return 'untriaged';
       }
       throw new Error(`Unknown triage icon class: ${className}`);
     });

@@ -228,13 +228,13 @@ export class SelectSk extends HTMLElement {
     const oldIndex = this._selection;
     switch (e.key) {
       case 'ArrowDown':
-        if (this.selection! < this.children.length - 1) {
+        if (this._selection < this.children.length - 1) {
           (this.selection as number) += 1;
         }
         e.preventDefault();
         break;
       case 'ArrowUp':
-        if (this.selection! > 0) {
+        if (this._selection > 0) {
           (this.selection as number) -= 1;
         }
         e.preventDefault();
@@ -246,6 +246,8 @@ export class SelectSk extends HTMLElement {
       case 'End':
         this.selection = this.children.length - 1;
         e.preventDefault();
+        break;
+      default:
         break;
     }
     if (oldIndex != this._selection) {

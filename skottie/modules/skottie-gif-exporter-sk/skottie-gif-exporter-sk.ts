@@ -9,9 +9,9 @@
  * @evt start - This event is generated when the saving process starts.
  *
  */
+import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';
-import { html } from 'lit-html';
 import { bytes, diffDate } from '../../../infra-sk/modules/human';
 import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';
 import gifStorage from '../helpers/gifStorage';

@@ -12,7 +12,7 @@ document
     );
   });
 const revId = '12345';
-let response: RevisionInfo[] = [
+const response: RevisionInfo[] = [
   {
     benchmark: 'b1',
     bot: 'bot1',
@@ -26,4 +26,4 @@ let response: RevisionInfo[] = [
   },
 ];
 
-fetchMock.get('/_/revision/?rev=' + revId, response);
+fetchMock.get(`/_/revision/?rev=${revId}`, response);

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /**
  * @module modules/debugger-page-sk
  * @description The main module of the wasm-based SKP and MSKP debugger.
@@ -50,6 +51,7 @@ import type {
   CanvasKitInitOptions,
   Paint,
   Surface,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import {

@@ -242,7 +242,7 @@ describe('Default values', () => {
       body: defaultBody,
     });
 
-    var explore =
+    const explore =
       await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await fetchMock.flush(true);
     const originalState = deepCopy(explore!.state);
@@ -266,9 +266,10 @@ describe('Default values', () => {
       body: defaultBody,
     });
 
-    var explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore =
+      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await fetchMock.flush(true);
-    var actualConfig = explore['defaults'];
+    const actualConfig = explore['defaults'];
     assert.deepEqual(
       actualConfig,
       defaultConfig,
@@ -522,7 +523,7 @@ describe('requestFrameBodyDeltaFromState', () => {
     const existingDataFrame = fakeDataFrame();
     explore['_dataframe'] = existingDataFrame;
     let currentBounds = timestampBounds(existingDataFrame);
-    let prePanZoom = explore['getCurrentZoom']();
+    const prePanZoom = explore['getCurrentZoom']();
 
     const state = deepCopy(explore.state);
     state.queries = ['name=IDK'];

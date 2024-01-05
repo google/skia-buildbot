@@ -7,8 +7,8 @@
  * </p>
  *
  */
-import { define } from '../../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../../elements-sk/modules/define';
 import { ElementSk } from '../../../../infra-sk/modules/ElementSk';
 import { $$ } from '../../../../infra-sk/modules/dom';
 import '../../skottie-dropdown-sk';
@@ -56,13 +56,11 @@ export class SkottieExporterBaseSk extends ElementSk {
     details: '',
   };
 
-  private static template = (ele: SkottieExporterBaseSk) => {
-    return html`
-      <div class="container">
-        <div class="wrapper-exporter">${ele.renderMain()}</div>
-      </div>
-    `;
-  };
+  private static template = (ele: SkottieExporterBaseSk) => html`
+    <div class="container">
+      <div class="wrapper-exporter">${ele.renderMain()}</div>
+    </div>
+  `;
 
   constructor(extension: string) {
     super(SkottieExporterBaseSk.template);
@@ -202,7 +200,7 @@ export class SkottieExporterBaseSk extends ElementSk {
   }
 
   protected handleKeyDown(ev: Event): void {
-    if ((event as KeyboardEvent).key === 'Enter') {
+    if ((ev as KeyboardEvent).key === 'Enter') {
       ev.preventDefault();
       ev.stopImmediatePropagation();
       if (document.activeElement) {
@@ -221,12 +219,12 @@ export class SkottieExporterBaseSk extends ElementSk {
     this._renderState = value;
   }
 
-  set downloadFileName(value: string) {
-    this.updateFileName(value, this._extension);
+  public get renderState(): ComponentState {
+    return this._renderState;
   }
 
-  public get renderState() {
-    return this._renderState;
+  set downloadFileName(value: string) {
+    this.updateFileName(value, this._extension);
   }
 }
 

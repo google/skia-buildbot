@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable import/no-unresolved */
 /** Defines functions and interfaces for working with a shader.
  *
  * Example:

@@ -121,6 +121,8 @@ func main() {
 	}
 	trackErrors(runPrettier(ctx, changedFiles, *repoDir, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runESLint(ctx, changedFiles, *repoDir, branchBaseCommit))
+	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(runGazelle(ctx, changedFiles, deletedFiles, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(checkTODOHasOwner(ctx, changedFiles))
@@ -694,6 +696,32 @@ func runNpmCi(ctx context.Context) bool {
 		logf(ctx, string(output))
 		return false
 	}
+	return true
+}
+
+// runESLint runs eslint on any changed files. It returns false if prettier
+// returns a non-zero error code.
+func runESLint(ctx context.Context, files []fileWithChanges, workspaceRoot, branchBaseCommit string) bool {
+	args := []string{"run", "--config=mayberemote", "//:npx", "--", "eslint", "--quiet"}
+	numFiles := 0
+	for _, f := range files {
+		if filepath.Ext(f.fileName) == ".ts" {
+			args = append(args, f.fileName)
+			numFiles++
+		}
+	}
+	if numFiles == 0 {
+		return true
+	}
+
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "eslint failed!\n")
+		return false
+	}
+
 	return true
 }
 

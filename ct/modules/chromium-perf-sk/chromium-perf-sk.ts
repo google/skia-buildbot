@@ -14,11 +14,11 @@ import '../pageset-selector-sk';
 import '../task-repeater-sk';
 import '../task-priority-sk';
 
+import { html } from 'lit-html';
 import { $$, $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';

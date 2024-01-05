@@ -226,11 +226,11 @@ export class TaskGraphSk extends HTMLElement {
     graph.forEach((deps: string[], name: TaskName) => {
       const dst = byName.get(name)!;
       if (deps) {
-        deps.forEach((dep: string) => {
+        deps.forEach((dep: string): void => {
           const src = byName.get(dep);
           if (!src) {
             console.log(`Error: task ${dst.name} has unknown parent ${dep}`);
-            return '';
+            return;
           }
           // Start and end points.
           const x1 = src.x + src.width;

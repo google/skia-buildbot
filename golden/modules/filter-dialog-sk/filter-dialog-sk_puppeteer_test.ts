@@ -86,5 +86,5 @@ describe('filter-dialog-sk', () => {
     });
   });
 
-  const openDialog = async () => await testBed.page.click('#show-dialog');
+  const openDialog = async () => testBed.page.click('#show-dialog');
 });

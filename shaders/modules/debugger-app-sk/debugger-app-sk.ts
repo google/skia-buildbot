@@ -3,11 +3,11 @@
  * @description <h2><code>debugger-app-sk</code></h2>
  *
  */
-import { $$ } from '../../../infra-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import CodeMirror, { EditorConfiguration } from 'codemirror';
 import { html, TemplateResult } from 'lit-html';
 import { classMap } from 'lit-html/directives/class-map';
+import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 
 import '../../../infra-sk/modules/theme-chooser-sk';

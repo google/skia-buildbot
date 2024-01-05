@@ -5,8 +5,8 @@
 
 import { Browser, install } from '@puppeteer/browsers';
 import { join, resolve } from 'path';
-import { CHROME_EXECUTABLE_PATH } from './chrome_executable_path';
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/lib/esm/puppeteer/revisions.js';
+import { CHROME_EXECUTABLE_PATH } from './chrome_executable_path';
 
 const INSTALL_TIMEOUT_MS = 30_000; // Chosen arbitrarily; this usually takes ~10 seconds.
 

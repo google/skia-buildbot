@@ -4,8 +4,8 @@
  *
  */
 
-import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { FFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import delay from './delay';
 
 export type FrameCollectorType = {
@@ -18,8 +18,11 @@ type Progress = (message: string) => void;
 
 class FrameCollector {
   private _player: SkottiePlayerSk | null = null;
+
   private _ffmpeg: FFmpeg | null = null;
+
   private _isRunning: boolean = false;
+
   private _onProgress: Progress = () => {};
 
   constructor(ffmpeg: FFmpeg | null = null, onProgress: Progress | null) {
@@ -59,6 +62,7 @@ class FrameCollector {
       ffmpeg.FS(
         'writeFile',
         `tmp_${String(counter).padStart(4, '0')}.png`,
+        // eslint-disable-next-line no-await-in-loop
         await fetchFile(canvasData)
       );
       currentTime += increment;
@@ -75,8 +79,6 @@ class FrameCollector {
 const frameCollectorFactory = (
   ffmpeg: FFmpeg | null,
   onProgress: Progress
-): FrameCollectorType => {
-  return new FrameCollector(ffmpeg, onProgress);
-};
+): FrameCollectorType => new FrameCollector(ffmpeg, onProgress);
 
 export default frameCollectorFactory;

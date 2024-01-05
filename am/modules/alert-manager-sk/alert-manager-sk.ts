@@ -5,6 +5,7 @@
  *   The main application element for am.skia.org.
  *
  */
+import { html, render, TemplateResult } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -28,7 +29,6 @@ import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import { html, render, TemplateResult } from 'lit-html';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';

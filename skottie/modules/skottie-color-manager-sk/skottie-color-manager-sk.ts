@@ -14,8 +14,8 @@
  *      either from applying the filter or when its properties change.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation, LottieCompAsset, LottieTintEffect } from '../types';
 import { colorToHex, hexToColor } from '../helpers/color';
@@ -228,7 +228,7 @@ export class SkottieColorManagerSk extends ElementSk {
       return;
     }
     // Making a copy of the template to avoid writing on the original one
-    let template: LottieAnimation = JSON.parse(
+    const template: LottieAnimation = JSON.parse(
       JSON.stringify(animationTemplate)
     );
     const animation = this._animation;
@@ -266,11 +266,11 @@ export class SkottieColorManagerSk extends ElementSk {
   private renderView(): TemplateResult {
     if (!this._animation) {
       return this.renderNoAnomation();
-    } else if (this.hasFontManager()) {
-      return this.renderManagedAnimation();
-    } else {
-      return this.renderUnmanagedAnimation();
     }
+    if (this.hasFontManager()) {
+      return this.renderManagedAnimation();
+    }
+    return this.renderUnmanagedAnimation();
   }
 
   private onMapBlackChange(ev: CustomEvent<SkottieColorEventDetail>): void {

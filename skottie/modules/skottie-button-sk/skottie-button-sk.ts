@@ -25,8 +25,8 @@
  * @prop disabled This mirrors the disabled attribute.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 type ButtonType = 'filled' | 'outline' | 'plain';

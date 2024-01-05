@@ -14,8 +14,8 @@
  * @attr reset - Resets the dropdown after select.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 export interface DropdownOption {
@@ -54,6 +54,7 @@ export class SkottieDropdownSk extends ElementSk {
     this._hasBorder = this.hasAttribute('border');
     this._isFull = this.hasAttribute('full');
   }
+
   _render() {
     super._render();
     if (this._reset) {
@@ -82,9 +83,7 @@ export class SkottieDropdownSk extends ElementSk {
   }
 
   buildOptions(): TemplateResult[] {
-    return this._options.map((option) => {
-      return this.buildOption(option);
-    });
+    return this._options.map((option) => this.buildOption(option));
   }
 
   connectedCallback(): void {

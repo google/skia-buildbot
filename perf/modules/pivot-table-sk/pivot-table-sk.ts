@@ -265,9 +265,8 @@ export class PivotTableSk extends ElementSk {
         <table>
           ${ele.tableHeader()} ${ele.tableRows()}
         </table>`;
-    } else {
-      return html``;
     }
+    return html``;
   };
 
   connectedCallback(): void {

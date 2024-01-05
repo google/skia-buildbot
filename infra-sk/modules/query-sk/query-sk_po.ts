@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import { ParamSet } from '../query';
 import { PageObject } from '../page_object/page_object';
 import { QueryValuesSkPO } from '../query-values-sk/query-values-sk_po';

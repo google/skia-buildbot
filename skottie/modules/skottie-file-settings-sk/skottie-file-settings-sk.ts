@@ -11,8 +11,8 @@
  *         The updated fps, width, and height is available in the event detail.
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/lock-icon-sk';
 import '../../../elements-sk/modules/icons/lock-open-icon-sk';

@@ -1,3 +1,4 @@
+/* eslint-disable no-self-assign */
 // Copyright 2018 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -181,6 +182,8 @@ export class CheckOrRadio extends HTMLElement {
         break;
       case 'label':
         this._label!.textContent = newValue;
+        break;
+      default:
         break;
     }
   }

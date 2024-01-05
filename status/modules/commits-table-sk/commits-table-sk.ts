@@ -833,7 +833,7 @@ export class CommitsTableSk extends ElementSk {
     const dialog = $$('details-dialog-sk', this) as DetailsDialogSk;
     if (target.classList.contains('task-spec')) {
       const spec = target.getAttribute('title') || '';
-      const comments = this.data.taskSpecs.get(spec)?.comments!;
+      const comments = this.data.taskSpecs.get(spec)!.comments!;
       if (spec !== '' && comments !== undefined) {
         dialog.displayTaskSpec(spec, comments);
       }
@@ -910,6 +910,8 @@ export class CommitsTableSk extends ElementSk {
         return specDetails.interesting();
       case 'Search':
         return searchRegex!.test(taskSpec);
+      default:
+        return false;
     }
   }
 
@@ -978,7 +980,8 @@ export class CommitsTableSk extends ElementSk {
     if (commit.ignoreFailure) {
       res.push(html`<block-icon-sk class="tiny"></block-icon-sk>`);
     }
-    if (this.data.comments.get(commit.hash)?.get('')?.length || 0 > 0) {
+    const atHash = this.data.comments.get(commit.hash);
+    if (atHash && (atHash.get('') || []).length > 0) {
       res.push(html`<comment-icon-sk class="tiny"></comment-icon-sk>`);
     }
     return res;
@@ -1356,14 +1359,12 @@ export class CommitsTableSk extends ElementSk {
       if (currentCommitInTask.parents!.indexOf(earlierCommit.hash) === -1) {
         // Branch leaves a gap.
         thisTaskOverCommits.push(false);
-      } else {
+      } else if (task.commits!.indexOf(earlierCommit.hash) !== -1) {
         // This is expected to be true, since this task covers at least one more commit, and the
         // next oldest commit is our current commits parent.
-        if (task.commits!.indexOf(earlierCommit.hash) !== -1) {
-          thisTaskOverCommits.push(true);
-          displayCommitsCount++;
-          currentCommitInTask = earlierCommit;
-        }
+        thisTaskOverCommits.push(true);
+        displayCommitsCount++;
+        currentCommitInTask = earlierCommit;
       }
     }
     return thisTaskOverCommits;
@@ -1504,6 +1505,7 @@ function lookupOrInsert<K, V>(
 ): V {
   let maybeValue = map.get(key);
   if (!maybeValue) {
+    // eslint-disable-next-line new-cap
     maybeValue = new valuetype();
     map.set(key, maybeValue);
   }

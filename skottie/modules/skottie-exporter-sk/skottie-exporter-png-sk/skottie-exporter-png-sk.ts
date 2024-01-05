@@ -8,8 +8,9 @@
  * </p>
  *
  */
-import { define } from '../../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import JSZip from 'jszip';
+import { define } from '../../../../elements-sk/modules/define';
 import '../../skottie-dropdown-sk';
 import {
   DropdownOption,
@@ -18,12 +19,11 @@ import {
 import { SkottiePlayerSk } from '../../skottie-player-sk/skottie-player-sk';
 import '../../../../elements-sk/modules/icons/info-icon-sk';
 import '../../skottie-button-sk';
-import JSZip from 'jszip';
 import {
   SkottieExporterBaseSk,
   Quality,
 } from '../skottie-exporter-base-sk/skottie-exporter-base-sk';
-import delay from '../../../modules/helpers/delay';
+import delay from '../../helpers/delay';
 
 interface ExportConfig {
   quality: Quality;
@@ -81,8 +81,8 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
     }
     const detail: Detail = qualityDetails[this._config.quality];
     const canvas = this.player.canvas()!;
-    let finalWidth = Math.round(canvas.width * detail.scale);
-    let finalHeight = Math.round(canvas.height * detail.scale);
+    const finalWidth = Math.round(canvas.width * detail.scale);
+    const finalHeight = Math.round(canvas.height * detail.scale);
     return html`
       <article>
         <div class="detail">
@@ -162,7 +162,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
 
   private buildRangeStartOptions(): DropdownOption[] {
     let start = 0;
-    let end = this._config.rangeEnd;
+    const end = this._config.rangeEnd;
     const options = [];
     while (start <= end) {
       const option: DropdownOption = {
@@ -206,9 +206,8 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
       return html`<div class="running__message">
         ${(this.progress.ratio * 100).toFixed(1)} % complete
       </div>`;
-    } else {
-      return html`<div class="running__message">${this.progress.message}</div>`;
     }
+    return html`<div class="running__message">${this.progress.message}</div>`;
   }
 
   protected renderRunning(): TemplateResult {
@@ -270,7 +269,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
       this._downloadFileName.lastIndexOf('.')
     );
     const detail: Detail = qualityDetails[this._config.quality];
-    let outputCanvas = this.getOutputCanvas(canvasElement);
+    const outputCanvas = this.getOutputCanvas(canvasElement);
     while (currentTime <= endTime) {
       if (this.renderState !== 'running') {
         return '';
@@ -299,6 +298,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
           outputCanvas.height
         );
       }
+      // eslint-disable-next-line no-await-in-loop
       const blob: Blob | null = await new Promise((res) =>
         outputCanvas.toBlob(res)
       );
@@ -320,10 +320,10 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
     const fps = player.fps();
     const duration = player.duration();
     const canvasElement = player.canvas()!;
-    let currentTime = (this._config.rangeStart * 1000) / fps;
+    const currentTime = (this._config.rangeStart * 1000) / fps;
     player.seek(currentTime / duration, true);
     const detail: Detail = qualityDetails[this._config.quality];
-    let outputCanvas = this.getOutputCanvas(canvasElement);
+    const outputCanvas = this.getOutputCanvas(canvasElement);
     // Only copying canvas if it has a different output size
     if (detail.scale !== 1) {
       const outputCanvasContext = outputCanvas.getContext('2d');

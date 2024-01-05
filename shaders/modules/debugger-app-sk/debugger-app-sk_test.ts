@@ -6,27 +6,40 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DebuggerAppSk } from './debugger-app-sk';
 import { exampleTraceString } from './demo_data';
 
+class FakeLocalStorage {
+  private store: Record<string, string> = {};
+
+  constructor(store: Record<string, string>) {
+    this.store = store;
+  }
+
+  getItem(key: string): string | null {
+    return key in this.store ? (this.store[key] as string) : null;
+  }
+
+  setItem(key: string, value: string) {
+    this.store[key] = `${value}`;
+  }
+
+  removeItem(key: string) {
+    delete this.store[key];
+  }
+
+  clear() {
+    this.store = {};
+  }
+
+  key(index: number): string | null {
+    return Object.keys(this.store)[index];
+  }
+
+  get length() {
+    return Object.keys(this.store).length;
+  }
+}
+
 function makeFakeLocalStorage(store: Record<string, string>): Storage {
-  const fakeLocalStorage: Storage = {
-    length: 0,
-    getItem: (key: string): string | null =>
-      key in store ? (store[key] as string) : null,
-    setItem: (key: string, value: string) => {
-      store[key] = `${value}`;
-      length = Object.keys(store).length;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-      length = Object.keys(store).length;
-    },
-    clear: () => {
-      store = {};
-    },
-    key: function (index: number): string | null {
-      return Object.keys(store)[index];
-    },
-  };
-  return fakeLocalStorage;
+  return new FakeLocalStorage(store);
 }
 
 function getLinesWithBgClass(

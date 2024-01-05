@@ -1,8 +1,10 @@
+/* eslint-disable import/no-unresolved */
 // Contains the type definitions for all the emscripten bound methods from the wasm debugger.
 // These are defined in //skia/experimental/wasm-skp-debugger/debugger_bindings.cpp
 import type {
   CanvasKit,
   Surface,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from '../wasm_libs/types/canvaskit'; // gazelle:ignore
 

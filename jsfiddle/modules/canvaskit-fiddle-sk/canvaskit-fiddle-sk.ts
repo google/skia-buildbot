@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 import '../../../elements-sk/modules/error-toast-sk';
 import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';

@@ -48,8 +48,6 @@ export class MockStatusService implements StatusService {
     | ((req: status.GetBotUsageRequest) => status.GetBotUsageResponse)
     | null = null;
 
-  constructor() {}
-
   exhausted(): boolean {
     return !(
       this.processAddComment ||

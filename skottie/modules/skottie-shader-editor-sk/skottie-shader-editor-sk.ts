@@ -119,8 +119,7 @@ export class ShaderEditorSk extends ElementSk {
     // This is a sample "shader" that can be force the shader layout by flipping
     // the conditional to true while debugging
     if (false) {
-      let mockShader: ShaderData;
-      mockShader = {
+      const mockShader: ShaderData = {
         id: 'demo id',
         name: 'demo name',
         shader: 'mainShaderFunction() {}',

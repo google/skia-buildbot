@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable dot-notation */
 import './index';
 import fetchMock, { MockRequest, MockResponse } from 'fetch-mock';

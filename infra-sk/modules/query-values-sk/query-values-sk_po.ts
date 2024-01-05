@@ -90,6 +90,7 @@ export class QueryValuesSkPO extends PageObject {
   async clickClearFilter() {
     await this.clearFiltersBtn.click();
   }
+
   getOptions() {
     return this.options.map((option) => option.innerText);
   }

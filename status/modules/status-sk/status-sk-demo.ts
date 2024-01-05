@@ -1,6 +1,6 @@
 import './index';
-import { EMail } from '../../../infra-sk/modules/json';
 import fetchMock from 'fetch-mock';
+import { EMail } from '../../../infra-sk/modules/json';
 import { defaultStatusURL } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { Status } from '../../../infra-sk/modules/json';

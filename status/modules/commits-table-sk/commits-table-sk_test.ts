@@ -48,7 +48,7 @@ describe('commits-table-sk', () => {
   beforeEach(async () => {
     mocks = SetupMocks();
     // Clear Url between tests.
-    history.replaceState(
+    window.history.replaceState(
       null,
       '',
       window.location.origin + window.location.pathname

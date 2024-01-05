@@ -1279,7 +1279,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime!.textContent = new Date(
       this._dataframe.header![e.detail.x]!.timestamp * 1000
     ).toLocaleString();
-    let formattedTrace = this.traceFormatter!.formatTrace(
+    const formattedTrace = this.traceFormatter!.formatTrace(
       fromKey(e.detail.name)
     );
     this.traceDetails!.textContent = formattedTrace;
@@ -2037,13 +2037,12 @@ export class ExploreSimpleSk extends ElementSk {
     // Check if the user has specified the params provided in the default url config.
     // If not, add them to the state object
     for (const urlKey in this.defaults?.default_url_values) {
-      if (this._userSpecifiedCustomizationParams.has(urlKey) == false) {
-        switch (urlKey) {
-          case 'summary':
-            this._state.summary = Boolean(
-              this.defaults!.default_url_values![urlKey]
-            );
-            break;
+      if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
+        if (urlKey == 'summary') {
+          this._state.summary = Boolean(
+            this.defaults!.default_url_values![urlKey]
+          );
+          break;
         }
       }
     }

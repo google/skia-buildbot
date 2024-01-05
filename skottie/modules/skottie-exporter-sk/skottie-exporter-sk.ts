@@ -7,8 +7,8 @@
  * </p>
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-dropdown-sk';
 import './skottie-exporter-gif-sk';
@@ -98,9 +98,11 @@ export class SkottieExporterSk extends ElementSk {
   private buildExporter(ele: SkottieExporterSk): TemplateResult | null {
     if (this._exportType === 'gif') {
       return this.buildGifExporter(ele);
-    } else if (this._exportType === 'webM') {
+    }
+    if (this._exportType === 'webM') {
       return this.buildWebMExporter(ele);
-    } else if (this._exportType === 'png') {
+    }
+    if (this._exportType === 'png') {
       return this.buildPNGExporter(ele);
     }
     return null;

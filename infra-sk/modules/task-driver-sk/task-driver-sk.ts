@@ -94,8 +94,9 @@ export class TaskDriverSk extends HTMLElement {
             >
           `
         );
+      default:
+        return '';
     }
-    return '';
   };
 
   private static stepError = (

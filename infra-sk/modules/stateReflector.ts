@@ -93,7 +93,7 @@ export function stateReflector(
       Object.keys(old_delta).length > 0
     ) {
       const q = query.fromObject(new_state);
-      history.pushState(
+      window.history.pushState(
         null,
         '',
         `${window.location.origin + window.location.pathname}?${q}`

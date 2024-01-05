@@ -24,9 +24,10 @@ export function mergeColumnHeaders(
   { [key: number]: number },
   { [key: number]: number },
 ] {
-  if (a === null || a.length == 0) {
+  if (a === null || a.length === 0) {
     return [b, simpleMap(0), simpleMap(b!.length)];
-  } else if (b === null || b.length == 0) {
+  }
+  if (b === null || b.length === 0) {
     return [a, simpleMap(a!.length), simpleMap(0)];
   }
   const aMap: { [key: number]: number } = {};
@@ -37,10 +38,10 @@ export function mergeColumnHeaders(
   let pB = 0;
   const ret: (ColumnHeader | null)[] = [];
   for (; true; ) {
-    if (pA == numA && pB == numB) {
+    if (pA === numA && pB === numB) {
       break;
     }
-    if (pA == numA) {
+    if (pA === numA) {
       // Copy in the rest of B.
       for (let i = 0; i < numB; i++) {
         bMap[i] = ret.length;
@@ -48,7 +49,7 @@ export function mergeColumnHeaders(
       }
       break;
     }
-    if (pB == numB) {
+    if (pB === numB) {
       // Copy in the rest of A.
       for (let i = pA; i < numA; i++) {
         aMap[i] = ret.length;
@@ -90,7 +91,7 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
     header: header,
     traceset: {} as TraceSet,
   } as DataFrame;
-  if (a.header!.length == 0) {
+  if (a.header!.length === 0) {
     a.header = b.header;
   }
   ret.skip = b.skip;
@@ -144,10 +145,10 @@ export function buildParamSet(d: DataFrame): void {
  * [NaN, NaN].
  */
 export function timestampBounds(df: DataFrame | null): [number, number] {
-  if (df === null || df.header === null || df.header.length == 0) {
+  if (df === null || df.header === null || df.header.length === 0) {
     return [NaN, NaN];
   }
-  let ret: [number, number] = [NaN, NaN];
+  const ret: [number, number] = [NaN, NaN];
   ret[0] = df.header![0]!.timestamp;
   ret[1] = df.header![df.header!.length - 1]!.timestamp;
   return ret;

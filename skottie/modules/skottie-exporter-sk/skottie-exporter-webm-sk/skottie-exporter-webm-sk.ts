@@ -13,10 +13,10 @@
  * </p>
  *
  */
-import { define } from '../../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
 import '../../skottie-dropdown-sk';
 import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
+import { define } from '../../../../elements-sk/modules/define';
 import { SkottiePlayerSk } from '../../skottie-player-sk/skottie-player-sk';
 import '../../../../elements-sk/modules/icons/info-icon-sk';
 import '../../skottie-button-sk';
@@ -27,7 +27,7 @@ import {
 } from '../skottie-exporter-base-sk/skottie-exporter-base-sk';
 import frameCollectorFactory, {
   FrameCollectorType,
-} from '../../../modules/helpers/frameCollectorFactory';
+} from '../../helpers/frameCollectorFactory';
 
 interface Detail {
   crf: number;
@@ -62,7 +62,7 @@ export class SkottieExporterWebMSk extends SkottieExporterBaseSk {
     super('webm');
     this._ffmpeg = createFFmpeg({
       log: true,
-      corePath: `${location.origin}/static/ffmpeg-core.js`,
+      corePath: `${window.location.origin}/static/ffmpeg-core.js`,
     });
     this._ffmpeg.load();
     this._frameCollector = frameCollectorFactory(this._ffmpeg, (message) =>
@@ -76,7 +76,7 @@ export class SkottieExporterWebMSk extends SkottieExporterBaseSk {
     }
     const detail: Detail = qualityDetails[this._config.quality];
     const canvas = this.player.canvas()!;
-    let maxSize = detail.scale;
+    const maxSize = detail.scale;
     let finalWidth = maxSize;
     let finalHeight = maxSize;
     if (canvas.width >= canvas.height) {
@@ -162,9 +162,8 @@ export class SkottieExporterWebMSk extends SkottieExporterBaseSk {
       return html`<div class="running__message">
         ${(this.progress.ratio * 100).toFixed(1)} % complete
       </div>`;
-    } else {
-      return html`<div class="running__message">${this.progress.message}</div>`;
     }
+    return html`<div class="running__message">${this.progress.message}</div>`;
   }
 
   protected renderRunning(): TemplateResult {

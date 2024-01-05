@@ -1,7 +1,7 @@
 import './index';
 import { assert } from 'chai';
-import { RevisionInfoSk } from './revision-info-sk';
 import fetchMock from 'fetch-mock';
+import { RevisionInfoSk } from './revision-info-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { RevisionInfo } from '../json';
@@ -22,7 +22,7 @@ describe('revision-info-sk', () => {
     it('Single RevInfo', async () => {
       const revId = '12345';
 
-      let response: RevisionInfo[] = [
+      const response: RevisionInfo[] = [
         {
           benchmark: 'b1',
           bot: 'bot1',
@@ -36,7 +36,7 @@ describe('revision-info-sk', () => {
         },
       ];
 
-      fetchMock.get('/_/revision/?rev=' + revId, response);
+      fetchMock.get(`/_/revision/?rev=${revId}`, response);
       element.revisionId!.value = revId;
       await element.getRevisionInfo();
 

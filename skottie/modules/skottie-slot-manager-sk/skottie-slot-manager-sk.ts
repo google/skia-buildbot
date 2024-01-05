@@ -9,8 +9,8 @@
  *
  */
 
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { html, TemplateResult } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottieColorEventDetail } from '../skottie-color-input-sk/skottie-color-input-sk';
 import { colorToHex, hexToColor } from '../helpers/color';
 import { ColorSlot, ScalarSlot, Vec2Slot } from './slot-info';
@@ -22,11 +22,15 @@ import './skottie-vec2-input-sk';
 
 export class SkottieSlotManagerSk extends ElementSk {
   private _player: SkottiePlayerSk | null = null;
+
   private _resourceList: string[] = [];
 
   private colorSlots: ColorSlot[] = [];
+
   private scalarSlots: ScalarSlot[] = [];
+
   private vec2Slots: Vec2Slot[] = [];
+
   private imageSlots: string[] = [];
 
   private static template = (ele: SkottieSlotManagerSk) => html`
@@ -41,9 +45,8 @@ export class SkottieSlotManagerSk extends ElementSk {
       this.imageSlots.length
     ) {
       return this.renderSlotManager(this);
-    } else {
-      return this.renderUnslotted();
     }
+    return this.renderUnslotted();
   }
 
   private colorSlot = (cs: ColorSlot) => html`

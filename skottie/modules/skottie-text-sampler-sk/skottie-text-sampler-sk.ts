@@ -9,8 +9,8 @@
  *
  *
  */
-import { define } from '../../../elements-sk/modules/define';
 import { html, TemplateResult } from 'lit-html';
+import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../skottie-button-sk';
 
@@ -83,9 +83,7 @@ export class SkottieTextSamplerSk extends ElementSk {
   }
 
   private renderSamples(): TemplateResult[] {
-    return samples.map((sample: SampleText) => {
-      return this.renderSample(this, sample);
-    });
+    return samples.map((sample: SampleText) => this.renderSample(this, sample));
   }
 
   private updateText(text: string): void {

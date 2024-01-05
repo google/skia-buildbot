@@ -19,12 +19,12 @@
  *
  */
 import { html, TemplateResult } from 'lit-html';
+import { ifDefined } from 'lit-html/directives/if-defined';
 import { define } from '../../../../elements-sk/modules/define';
 import { ElementSk } from '../../../../infra-sk/modules/ElementSk';
 import { ViewMode } from '../../types';
 import { ExtraLayerData, TextData } from '../text-replace';
 import sanitizeText from '../text-sanizite';
-import { ifDefined } from 'lit-html/directives/if-defined';
 import '../../skottie-font-selector-sk';
 import '../../skottie-text-sampler-sk';
 import {

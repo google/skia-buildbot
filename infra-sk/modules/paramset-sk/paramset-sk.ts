@@ -201,14 +201,13 @@ export class ParamSetSk extends ElementSk {
             </checkbox-sk>
           </div>
         `;
-      } else {
-        return html`<div
-          class=${ele._highlighted(key, value)}
-          data-key=${key}
-          data-value=${value}>
-          ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
-        </div> `;
       }
+      return html`<div
+        class=${ele._highlighted(key, value)}
+        data-key=${key}
+        data-value=${value}>
+        ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
+      </div> `;
     });
   };
 
@@ -223,9 +222,8 @@ export class ParamSetSk extends ElementSk {
         data-key=${key}
         data-value=${value}
         title="Negative"></cancel-icon-sk>`;
-    } else {
-      return html``;
     }
+    return html``;
   };
 
   private _titles: string[] = [];
@@ -273,7 +271,7 @@ export class ParamSetSk extends ElementSk {
   }
 
   private checkboxValueClickHandler(e: MouseEvent, key: string, value: string) {
-    let isChecked = (e.target! as HTMLInputElement).checked;
+    const isChecked = (e.target! as HTMLInputElement).checked;
     const detail: ParamSetSkCheckboxClickEventDetail = {
       selected: isChecked,
       key: key,
@@ -289,6 +287,7 @@ export class ParamSetSk extends ElementSk {
       )
     );
   }
+
   private _click(e: MouseEvent) {
     if (
       !this.clickable &&
@@ -485,10 +484,10 @@ export class ParamSetSk extends ElementSk {
 
   removeParam(key: string, value: string) {
     // Let's remove it from the current param set
-    var paramsets: ParamSet[] = [];
+    const paramsets: ParamSet[] = [];
     this.paramsets.forEach((paramset) => {
-      var values = paramset[key];
-      var valIndex = values.indexOf(value);
+      const values = paramset[key];
+      const valIndex = values.indexOf(value);
       if (valIndex > -1) {
         values.splice(valIndex, 1);
         if (values.length == 0) {

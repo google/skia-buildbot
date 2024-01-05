@@ -1,16 +1,17 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable no-use-before-define */
 /**
  * @module modules/shaders-app-sk
  * @description <h2><code>shaders-app-sk</code></h2>
  *
  */
+import CodeMirror from 'codemirror';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { html, TemplateResult } from 'lit-html';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from '../../../elements-sk/modules/define';
-import { html, TemplateResult } from 'lit-html';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import CodeMirror from 'codemirror';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import type {

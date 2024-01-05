@@ -334,7 +334,7 @@ export function expectQueryStringToEqual(expected: string) {
  * Sets the query string to be the provided value. Does *not* cause a page reload.
  */
 export function setQueryString(q: string) {
-  history.pushState(
+  window.history.pushState(
     null,
     '',
     window.location.origin + window.location.pathname + q

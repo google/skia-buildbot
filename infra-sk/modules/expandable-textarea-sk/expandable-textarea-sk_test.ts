@@ -2,11 +2,11 @@ import './index';
 
 import { expect } from 'chai';
 import chai from 'chai';
+import chaiDom from 'chai-dom';
 import { ExpandableTextareaSk } from './expandable-textarea-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { setUpElementUnderTest } from '../test_util';
 import 'chai-dom';
-import chaiDom from 'chai-dom';
 
 chai.use(chaiDom);
 

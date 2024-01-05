@@ -110,6 +110,7 @@ export function diffDate(s: number | string, now?: number): string {
   const ms = typeof s === 'number' ? s : Date.parse(s);
   let diff = (ms - now) / 1000;
   if (diff < 0) {
+    // eslint-disable-next-line operator-assignment
     diff = -1.0 * diff;
   }
   return humanize(diff, TIME_DELTAS);

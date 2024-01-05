@@ -39,6 +39,7 @@
  *
  */
 export function upgradeProperty(ele: Element, prop: string): void {
+  // eslint-disable-next-line no-prototype-builtins
   if (ele.hasOwnProperty(prop)) {
     const value = (ele as any)[prop];
     delete (ele as any)[prop];

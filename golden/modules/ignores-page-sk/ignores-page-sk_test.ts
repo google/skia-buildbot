@@ -293,13 +293,13 @@ function setIgnoreRuleProperties(
 async function goBack() {
   // Wait for /json/v1/ignores and /json/v2/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
-  history.back();
+  window.history.back();
   await events;
 }
 
 async function goForward() {
   // Wait for /json/v1/ignores and /json/v2/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
-  history.forward();
+  window.history.forward();
   await events;
 }

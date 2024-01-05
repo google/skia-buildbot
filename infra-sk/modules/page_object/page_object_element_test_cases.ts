@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import { expect } from 'chai';
 import { PageObjectElement, Serializable } from './page_object_element';
 
