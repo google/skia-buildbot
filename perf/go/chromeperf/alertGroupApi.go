@@ -46,7 +46,7 @@ func (client *alertGroupApiClientImpl) GetAlertGroupDetails(ctx context.Context,
 	client.getAlertGroupDetailsCalled.Inc(1)
 	// Call Chrome Perf API to fetch alert group details
 	alertgroupResponse := AlertGroupDetails{}
-	err := client.chromeperfClient.sendGetRequest(ctx, AlertGroupAPIName, DetailsFuncName, url.Values{"key": {groupKey}}, alertgroupResponse)
+	err := client.chromeperfClient.sendGetRequest(ctx, AlertGroupAPIName, DetailsFuncName, url.Values{"key": {groupKey}}, &alertgroupResponse)
 	if err != nil {
 		client.getAlertGroupDetailsFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
