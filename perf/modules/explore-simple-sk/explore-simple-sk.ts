@@ -1853,7 +1853,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
     // for panning.
-    if (previousZoom !== null) {
+    if (this._state._incremental && previousZoom !== null) {
       if (
         exsitingBounds[0] > newBounds[0] &&
         exsitingBounds[1] >= newBounds[1]
