@@ -17,12 +17,35 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+type flags struct {
+	local        bool
+	port         string
+	promPort     string
+	resourcesDir string
+}
+
 var (
-	Local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	Port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	PromPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	ResourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	flagStorage = flags{}
+
+	// Local is the --local flag value.
+	Local *bool = &flagStorage.local
+
+	// Port is the --port flag value.
+	Port *string = &flagStorage.port
+
+	// PromPort is the --prom_port flag value.
+	PromPort *string = &flagStorage.promPort
+
+	// ResourcesDir is the --resources_dir flag value.
+	ResourcesDir *string = &flagStorage.resourcesDir
 )
+
+func addBaseAppFlagsToFlagSet(fs *flag.FlagSet) {
+	fs.BoolVar(Local, "local", false, "Running locally if true. As opposed to in production.")
+	fs.StringVar(Port, "port", ":8000", "HTTP service address (e.g., ':8000')")
+	fs.StringVar(PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	fs.StringVar(ResourcesDir, "resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+}
 
 const (
 	SERVER_READ_TIMEOUT  = 5 * time.Minute
@@ -66,7 +89,6 @@ func cspReporter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(string(b))
-	return
 }
 
 // cspString returns a properly formatted content security policy string.
@@ -164,6 +186,43 @@ func hasDisableLoggingRequestResponse(options []Option) bool {
 	return false
 }
 
+// flagSet uses the provided flagSet for flags, as opposed to the
+// flag.CommandLine, which is used if this option is not provided. Regardless of
+// whether or not this option is used, Serve() will always define the flags
+// found in addBaseAppFlagsToFlagSet(), and adding a flag twice, like '--local',
+// will cause a panic.
+type flagSet struct {
+	flagSet *flag.FlagSet
+}
+
+// NewFlagSet creates a new FlagSet option.
+func NewFlagSet(f *flag.FlagSet) Option {
+	return flagSet{
+		flagSet: f,
+	}
+}
+
+func hasFlagSet(options []Option) *flag.FlagSet {
+	for _, opt := range options {
+		if f, ok := opt.(flagSet); ok {
+			return f.flagSet
+		}
+	}
+	return nil
+}
+
+// Testing is used during testing if multiple App servers need to be started.
+type Testing struct{}
+
+func hasTesting(options []Option) bool {
+	for _, opt := range options {
+		if _, ok := opt.(Testing); ok {
+			return true
+		}
+	}
+	return true
+}
+
 var (
 	// Whether or not this is a Serve test.
 	isServeTest bool
@@ -223,9 +282,25 @@ var (
 // '/dist/' and will serve the contents of the '/dist' directory.
 func Serve(constructor Constructor, allowedHosts []string, options ...Option) {
 	// Do common init.
+	commonOpts := []common.Opt{
+		common.PrometheusOpt(PromPort),
+	}
+	// Default to using flag.CommandLine for flags.
+	fs := flag.CommandLine
+
+	// The flagset can be overridden by an Option.
+	if providedFS := hasFlagSet(options); providedFS != nil {
+		fs = providedFS
+	}
+	commonOpts = append(commonOpts, common.FlagSetOpt(fs))
+	addBaseAppFlagsToFlagSet(fs)
+
+	if hasTesting(options) {
+		commonOpts = append(commonOpts, common.ForTesting())
+	}
 	common.InitWithMust(
 		"generic-k8s-app",
-		common.PrometheusOpt(PromPort),
+		commonOpts...,
 	)
 
 	// Fix up flag values.

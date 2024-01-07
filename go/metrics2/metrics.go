@@ -2,6 +2,7 @@
 package metrics2
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -146,13 +147,34 @@ func GetDefaultClient() Client {
 	return defaultClient
 }
 
+var server *http.Server
+
+var cleanShutdown = false
+
 // InitPrometheus initializes metrics to be reported to Prometheus.
 //
 // port - string, The port on which to serve the metrics, e.g. ":10110".
 func InitPrometheus(port string) {
+	cleanShutdown = false
 	r := chi.NewRouter()
 	r.Handle("/metrics", promhttp.Handler())
+	server = &http.Server{
+		Addr:           port,
+		Handler:        r,
+		MaxHeaderBytes: 1 << 20,
+	}
+
 	go func() {
-		sklog.Fatal(http.ListenAndServe(port, r))
+		err := server.ListenAndServe()
+		if err != nil && !cleanShutdown {
+			sklog.Fatal()
+		}
 	}()
+}
+
+// Shutdown the Prometheus server cleanly.
+func Shutdown(ctx context.Context) error {
+	cleanShutdown = true
+	err := server.Shutdown(ctx)
+	return err
 }

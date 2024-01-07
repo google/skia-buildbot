@@ -65,6 +65,27 @@ func (p optSlice) Len() int           { return len(p) }
 func (p optSlice) Less(i, j int) bool { return p[i].order() < p[j].order() }
 func (p optSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+var inTest = false
+
+type forTesting struct{}
+
+func (*forTesting) order() int {
+	return 100
+}
+
+func (*forTesting) preinit(appName string) error {
+	inTest = true
+	return nil
+}
+
+func (*forTesting) init(appName string) error {
+	return nil
+}
+
+func ForTesting() Opt {
+	return &forTesting{}
+}
+
 // baseInitOpt is an Opt that is always constructed internally, added to any
 // Opts passed into InitWith() and always runs first.
 //
@@ -198,11 +219,11 @@ func (o *promInitOpt) preinit(appName string) error {
 	return nil
 }
 
-var defaultServeMux http.ServeMux
-
 func (o *promInitOpt) init(appName string) error {
 	// App uptime.
-	_ = metrics2.NewLiveness("uptime", nil)
+	if !inTest {
+		_ = metrics2.NewLiveness("uptime", nil)
+	}
 
 	// Prometheus client loads "expvar" which automatically registers
 	// "/debug/vars" in the default http handler, which exposes potentially
@@ -211,6 +232,7 @@ func (o *promInitOpt) init(appName string) error {
 	// replace http.DefaultServeMux with a fresh handler, and since we do this
 	// after init()'s have been called, we won't get the /debug/vars handler.
 	// http://b/241539244
+	var defaultServeMux http.ServeMux
 	http.DefaultServeMux = &defaultServeMux
 	http.HandleFunc("/debug/vars", http.NotFound)
 	return nil

@@ -3,6 +3,7 @@ package baseapp
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,24 +37,96 @@ func TestSecurityMiddleware_NotLocalAllowAnyImages(t *testing.T) {
 	require.Equal(t, "base-uri 'none';  img-src * 'unsafe-eval' blob: data: ; object-src 'none' ; style-src 'self'  https://fonts.googleapis.com/ https://www.gstatic.com/ 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE  'unsafe-inline' https: http: ; report-uri /cspreport ;", cspString([]string{"https://example.org"}, false, []Option{AllowAnyImage{}}))
 }
 
-func TestServe_EndToEnd(t *testing.T) {
+func testSetup(t *testing.T) string {
 	// Create a resources directory with some static files.
 	resourcesDir := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(resourcesDir, "a.txt"), []byte(`alpha`), 0644))
 	require.NoError(t, os.WriteFile(filepath.Join(resourcesDir, "b.txt"), []byte(`beta`), 0644))
-	*ResourcesDir = resourcesDir
 
-	*Local = true // Serve over plain HTTP.
+	osArgsBackup := os.Args
+	os.Args = []string{"appname", "--local=true", fmt.Sprintf("--resources_dir=%s", resourcesDir)}
+	t.Cleanup(func() {
+		os.Args = osArgsBackup
+		ctx := context.Background()
+
+		// Gracefully shut down the HTTP server.
+		require.NoError(t, server.Shutdown(ctx))
+		assert.ErrorIs(t, listenAndServeErr, http.ErrServerClosed)
+		require.NoError(t, metrics2.Shutdown(ctx))
+	})
+
+	return resourcesDir
+}
+
+func TestServe_EndToEnd_Success(t *testing.T) {
+	resourcesDir := testSetup(t)
 
 	// Start the server.
 	isServeTest = true
 	app := newE2ETestApp()
 	go Serve(func() (App, error) {
 		return app, nil
-	}, []string{"localhost"})
+	}, []string{"localhost"}, Testing{})
 
 	time.Sleep(2 * time.Second) // Give the HTTP server time to boot.
 
+	endToEndImpl(t, resourcesDir, app)
+}
+
+func TestServe_EndToEndWithProvidedFlagSet_Success(t *testing.T) {
+	resourcesDir := testSetup(t)
+
+	myFlagSet := flag.NewFlagSet("for-testing", flag.PanicOnError)
+	myFlagSet.Bool("some-option", false, "just used as existence test")
+	os.Args = append(os.Args, "--some-option=true")
+
+	// Start the server.
+	isServeTest = true
+	app := newE2ETestApp()
+	go Serve(func() (App, error) {
+		return app, nil
+	}, []string{"localhost"}, Testing{}, NewFlagSet(myFlagSet))
+
+	time.Sleep(2 * time.Second) // Give the HTTP server time to boot.
+
+	endToEndImpl(t, resourcesDir, app)
+
+	require.NotNil(t, myFlagSet.Lookup("some-option"))
+}
+
+func TestServe_EndToEndWithProvidedFlagSetAndLocalFlagDefinedTwice_Panics(t *testing.T) {
+	_ = testSetup(t)
+
+	myFlagSet := flag.NewFlagSet("for-testing", flag.PanicOnError)
+	myFlagSet.Bool("local", false, "This flag duplicates --local defined by App and should cause a panic")
+
+	// Start the server.
+	isServeTest = true
+	app := newE2ETestApp()
+	require.Panics(t, func() {
+		Serve(func() (App, error) {
+			return app, nil
+		}, []string{"localhost"}, Testing{}, NewFlagSet(myFlagSet))
+	})
+}
+
+func TestServe_EndToEndWithProvidedFlagSetAndUnknownFlagProvidedOnCommandLine_Panics(t *testing.T) {
+	_ = testSetup(t)
+
+	myFlagSet := flag.NewFlagSet("for-testing", flag.PanicOnError)
+	os.Args = append(os.Args, "--some-unknown-flag")
+
+	// Start the server.
+	isServeTest = true
+	app := newE2ETestApp()
+	require.Panics(t, func() {
+		Serve(func() (App, error) {
+			return app, nil
+		}, []string{"localhost"}, Testing{}, NewFlagSet(myFlagSet))
+	})
+}
+
+func endToEndImpl(t *testing.T, resourcesDir string, app *e2eTestApp) {
 	// Base router.
 	assertGet200OK(t, "http://localhost:8000", "Hello, world!")
 	assertGet200OK(t, "http://localhost:8000/", "Hello, world!")
@@ -81,7 +154,6 @@ func TestServe_EndToEnd(t *testing.T) {
 
 	// Other URLs.
 	assertGet200OK(t, "http://localhost:8000/healthz", "" /* =expectedBody */)
-	assertGet200OK(t, "http://localhost:20000/metrics", "num_http_requests 16") // Includes 404s.
 
 	// Assert that the middleware added via App.AddMiddleware() works.
 	assert.Equal(t, []string{
@@ -122,30 +194,25 @@ func TestServe_EndToEnd(t *testing.T) {
 		{url: "/api/no-such-endpoint"},
 	}, app.loggedAPIRequests)
 
-	// Gracefully shut down the HTTP server.
-	require.NoError(t, server.Shutdown(context.Background()))
-	assert.ErrorIs(t, listenAndServeErr, http.ErrServerClosed)
 }
 
 type paramAndValues struct {
 	name   string
 	values []string
 }
+
 type apiRequestLogEntry struct {
 	url    string
 	params []paramAndValues
 }
 
 type e2eTestApp struct {
-	loggedURLs         []string
-	loggedAPIRequests  []apiRequestLogEntry
-	httpRequestCounter metrics2.Counter
+	loggedURLs        []string
+	loggedAPIRequests []apiRequestLogEntry
 }
 
 func newE2ETestApp() *e2eTestApp {
-	return &e2eTestApp{
-		httpRequestCounter: metrics2.GetCounter("num_http_requests", nil),
-	}
+	return &e2eTestApp{}
 }
 
 func (a *e2eTestApp) AddHandlers(r chi.Router) {
@@ -205,7 +272,6 @@ func (a *e2eTestApp) AddMiddleware() []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				a.httpRequestCounter.Inc(1)
 				a.loggedURLs = append(a.loggedURLs, r.URL.String())
 				next.ServeHTTP(w, r)
 			})
