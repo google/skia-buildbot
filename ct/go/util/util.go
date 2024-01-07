@@ -57,6 +57,8 @@ var (
 		"cipd_bin_packages/cpython3",
 		"cipd_bin_packages/cpython3/bin",
 	}
+
+	VPYTHON_VIRTUALENV_ROOT = filepath.Join(os.TempDir(), "vpython")
 )
 
 // CasSpecs for master scripts.
@@ -637,7 +639,7 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err := ExecuteCmd(ctx, BINARY_PYTHON, args, []string{fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir())}, CSV_MERGER_TIMEOUT, nil, nil)
+	err := ExecuteCmd(ctx, BINARY_PYTHON, args, []string{fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", VPYTHON_VIRTUALENV_ROOT)}, CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return outputFilePath, noOutputWorkers, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
@@ -795,7 +797,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	}
 	pythonExec := BINARY_VPYTHON3
 	// Set VPYTHON_VIRTUALENV_ROOT for vpython
-	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir()))
+	env = append(env, fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", VPYTHON_VIRTUALENV_ROOT))
 	// Append the original environment as well.
 	for _, e := range os.Environ() {
 		env = append(env, e)
@@ -922,7 +924,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	if handleStrings {
 		args = append(args, "--handle_strings")
 	}
-	err = ExecuteCmd(ctx, BINARY_PYTHON, args, []string{fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", os.TempDir())}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil, nil)
+	err = ExecuteCmd(ctx, BINARY_PYTHON, args, []string{fmt.Sprintf("VPYTHON_VIRTUALENV_ROOT=%s", VPYTHON_VIRTUALENV_ROOT)}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
