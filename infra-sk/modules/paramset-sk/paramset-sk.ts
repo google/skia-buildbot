@@ -490,7 +490,7 @@ export class ParamSetSk extends ElementSk {
       const valIndex = values.indexOf(value);
       if (valIndex > -1) {
         values.splice(valIndex, 1);
-        if (values.length == 0) {
+        if (values.length === 0) {
           delete paramset[key];
         } else {
           paramset[key] = values;

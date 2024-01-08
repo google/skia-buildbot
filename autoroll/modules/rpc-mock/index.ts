@@ -192,7 +192,7 @@ class FakeAutoRollService implements AutoRollService {
       result: ManualRoll_Result[<keyof typeof ManualRoll_Result>result],
       status: ManualRoll_Status.PENDING,
       timestamp: new Date('2017-08-28T03:51:10Z').toString(), // TODO(borenet): Is this the right format?
-      url: result == '' ? '' : 'https://fake.google.com',
+      url: result === '' ? '' : 'https://fake.google.com',
     };
     if (!this.status.manualRolls) {
       this.status.manualRolls = [];

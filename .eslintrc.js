@@ -41,12 +41,12 @@ module.exports = {
     'prefer-destructuring': ['off'],
     'prefer-object-spread': ['off'],
     'space-before-function-paren': ['off'],
+    eqeqeq: ['error'],
 
     // All of these should be turned back to errors once all the instances are
     // found and fixed.
     'prefer-promise-reject-errors': ['warn'],
     radix: ['warn'],
-    eqeqeq: ['warn'],
     'no-nested-ternary': ['warn'],
     'no-restricted-properties': ['warn'],
     'no-throw-literal': ['warn'],

@@ -324,7 +324,7 @@ export class DetailsDialogSk extends ElementSk {
     // the attempt counts so that we can retry the failed task(s).
     let job = task.name;
     const uploadPrefix = 'Upload-';
-    if (job.indexOf(uploadPrefix) == 0) {
+    if (job.indexOf(uploadPrefix) === 0) {
       job = job.substring(uploadPrefix.length);
     }
     const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${

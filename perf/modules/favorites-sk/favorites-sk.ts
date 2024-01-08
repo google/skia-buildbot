@@ -31,7 +31,7 @@ export class FavoritesSk extends ElementSk {
 
   private getSectionsTemplate() {
     const sections = this.favoritesConfig?.sections;
-    if (sections == null || sections.length == 0) {
+    if (sections == null || sections.length === 0) {
       return html`No favorites have been configured for this instance.`;
     }
     return html`${sections.map(

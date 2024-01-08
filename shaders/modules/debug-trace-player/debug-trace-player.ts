@@ -400,7 +400,7 @@ export class DebugTracePlayer {
         break;
       }
       // Each separate variable-group starts with a groupIndex of 0; stop when we detect this.
-      if (this.trace!.slots[slotIdx].groupIdx! == 0) {
+      if (this.trace!.slots[slotIdx].groupIdx! === 0) {
         break;
       }
     }

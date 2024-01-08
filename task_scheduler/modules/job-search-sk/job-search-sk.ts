@@ -89,7 +89,7 @@ export class JobSearchSk extends ElementSk {
                 </label>
               </th>
               <td>
-                ${term.key == 'status'
+                ${term.key === 'status'
                   ? html`
                       <select
                         id="${term.key}"
@@ -103,7 +103,7 @@ export class JobSearchSk extends ElementSk {
                           ([status, labelAndClass]) => html`
                             <option
                               value="${status}"
-                              ?selected="${term.value == status}">
+                              ?selected="${term.value === status}">
                               ${labelAndClass.label}
                             </option>
                           `
@@ -116,12 +116,12 @@ export class JobSearchSk extends ElementSk {
                         .type="${searchTerms[term.key]!.type}"
                         .value="${term.value}"
                         ?checked="${
-                          searchTerms[term.key]!.type == 'checkbox' &&
-                          term.value == 'true'
+                          searchTerms[term.key]!.type === 'checkbox' &&
+                          term.value === 'true'
                         }"
                         @change="${(ev: Event) => {
                           const input = (<HTMLInputElement>ev.target)!;
-                          if (searchTerms[term.key]!.type == 'checkbox') {
+                          if (searchTerms[term.key]!.type === 'checkbox') {
                             term.value = input.checked ? 'true' : 'false';
                           } else {
                             term.value = input.value;
@@ -353,7 +353,7 @@ export class JobSearchSk extends ElementSk {
 
   private cancel(job: Job) {
     this.rpc!.cancelJob({ id: job.id }).then(() => {
-      const result = this.results.find((result: Job) => result.id == job.id);
+      const result = this.results.find((result: Job) => result.id === job.id);
       if (result) {
         result.status = JobStatus.JOB_STATUS_CANCELED;
         this._render();
@@ -363,7 +363,7 @@ export class JobSearchSk extends ElementSk {
 
   private cancelAll() {
     this.results.forEach((job: Job) => {
-      if (job.status == JobStatus.JOB_STATUS_IN_PROGRESS) {
+      if (job.status === JobStatus.JOB_STATUS_IN_PROGRESS) {
         this.cancel(job);
       }
     });

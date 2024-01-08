@@ -51,14 +51,14 @@ export class ARBStrategyHistorySk extends ElementSk {
       @click="${() => {
         ele.load(ele.prevOffset);
       }}"
-      ?disabled="${ele.currentOffset == 0}">
+      ?disabled="${ele.currentOffset === 0}">
       Previous
     </button>
     <button
       @click="${() => {
         ele.load(ele.nextOffset);
       }}"
-      ?disabled="${ele.nextOffset == 0}">
+      ?disabled="${ele.nextOffset === 0}">
       Next
     </button>
   `;

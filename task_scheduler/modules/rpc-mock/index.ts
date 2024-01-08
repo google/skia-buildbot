@@ -85,28 +85,28 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
   searchJobs(req: SearchJobsRequest): Promise<SearchJobsResponse> {
     console.log(req);
     const results: Job[] = Object.values(this.jobs).filter((job: Job) => {
-      if (req.hasRepo && job.repoState?.repo != req.repo) {
+      if (req.hasRepo && job.repoState?.repo !== req.repo) {
         return false;
       }
-      if (req.hasRevision && job.repoState?.revision != req.revision) {
+      if (req.hasRevision && job.repoState?.revision !== req.revision) {
         return false;
       }
-      if (req.hasIssue && req.issue != job.repoState!.patch!.issue) {
+      if (req.hasIssue && req.issue !== job.repoState!.patch!.issue) {
         return false;
       }
-      if (req.hasPatchset && req.patchset != job.repoState?.patch?.patchset) {
+      if (req.hasPatchset && req.patchset !== job.repoState?.patch?.patchset) {
         return false;
       }
-      if (req.hasName && job.name != req.name) {
+      if (req.hasName && job.name !== req.name) {
         return false;
       }
       if (
         req.hasBuildbucketBuildId &&
-        job.buildbucketBuildId != req.buildbucketBuildId
+        job.buildbucketBuildId !== req.buildbucketBuildId
       ) {
         return false;
       }
-      if (req.hasStatus && job.status != req.status) {
+      if (req.hasStatus && job.status !== req.status) {
         return false;
       }
       if (
@@ -121,7 +121,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
       ) {
         return false;
       }
-      if (req.hasIsForce && job.isForce != req.isForce) {
+      if (req.hasIsForce && job.isForce !== req.isForce) {
         return false;
       }
       return true;
@@ -169,7 +169,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
     deleteSkipTaskRuleRequest: DeleteSkipTaskRuleRequest
   ): Promise<DeleteSkipTaskRuleResponse> {
     this.skipRules = this.skipRules.filter(
-      (rule: SkipTaskRule) => rule.name != deleteSkipTaskRuleRequest.id
+      (rule: SkipTaskRule) => rule.name !== deleteSkipTaskRuleRequest.id
     );
     return Promise.resolve({ rules: this.skipRules.slice() });
   }

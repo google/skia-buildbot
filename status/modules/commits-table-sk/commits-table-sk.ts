@@ -118,7 +118,8 @@ export class TaskSpecDetails {
 
   hasFailingNoComment(): boolean {
     return (
-      this.hasNonIgnoredFailure && (!this.comments || this.comments.length == 0)
+      this.hasNonIgnoredFailure &&
+      (!this.comments || this.comments.length === 0)
     );
   }
 
@@ -322,7 +323,7 @@ class Data {
     for (const commit of remove) {
       this.tasksByCommit.delete(commit.hash);
       for (const [id, task] of this.tasks) {
-        if (task.revision == commit.hash) {
+        if (task.revision === commit.hash) {
           this.tasks.delete(id);
         }
       }
@@ -440,17 +441,17 @@ class Data {
       }
       // Aggregate data about this spec's tasks.
       details.hasSuccess =
-        details.hasSuccess || task.status == TASK_STATUS_SUCCESS;
+        details.hasSuccess || task.status === TASK_STATUS_SUCCESS;
       // 'Interesting' looks for non-ignored failures, 'Failures' looks for any failure.
       details.hasNonIgnoredFailure =
         details.hasNonIgnoredFailure ||
         (!commit.ignoreFailure &&
-          (task.status == TASK_STATUS_FAILURE ||
-            task.status == TASK_STATUS_MISHAP));
+          (task.status === TASK_STATUS_FAILURE ||
+            task.status === TASK_STATUS_MISHAP));
       details.hasFailure =
         details.hasFailure ||
-        task.status == TASK_STATUS_FAILURE ||
-        task.status == TASK_STATUS_MISHAP;
+        task.status === TASK_STATUS_FAILURE ||
+        task.status === TASK_STATUS_MISHAP;
       details.hasTaskComment =
         details.hasTaskComment ||
         (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
@@ -811,7 +812,7 @@ export class CommitsTableSk extends ElementSk {
   }
 
   set repo(v: string) {
-    if (v != this._repo) {
+    if (v !== this._repo) {
       this._repo = v;
       ($$('#repoSelector', this) as HTMLSelectElement)!.value = v;
       this.stateHasChanged();
@@ -1038,7 +1039,7 @@ export class CommitsTableSk extends ElementSk {
                   </div>`
                 );
               });
-            if (taskSpecStartCol != subcategoryStartCol) {
+            if (taskSpecStartCol !== subcategoryStartCol) {
               // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
               const subcategoryEndCol = taskSpecStartCol;
               res.push(
@@ -1057,7 +1058,7 @@ export class CommitsTableSk extends ElementSk {
             }
           }
         );
-        if (subcategoryStartCol != categoryStartCol) {
+        if (subcategoryStartCol !== categoryStartCol) {
           // Added at least one Subcategory in this category, so add a Category header.
           const categoryEndCol = subcategoryStartCol;
           res.push(

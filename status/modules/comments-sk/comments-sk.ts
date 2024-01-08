@@ -259,7 +259,7 @@ export class CommentsSk extends ElementSk {
       .then(() => {
         // Visually get rid of the comment that was removed, and fire an event for the parent
         // element to refresh so it doesn't reappear.
-        this.commentData.comments = this.comments.filter((c) => c != comment);
+        this.commentData.comments = this.comments.filter((c) => c !== comment);
         this.dispatchEvent(
           new CustomEvent('data-update', { bubbles: true, detail: { a: 1 } })
         );
@@ -286,7 +286,7 @@ export class CommentsSk extends ElementSk {
         // If we haven't altered what's being displayed since we sent the request, add the comment
         // to our array so the UI feels snappy, even though the comment hasn't been picked up by
         // our parent yet.
-        if (this.comments == comments) {
+        if (this.comments === comments) {
           this.comments.push({
             id: resp.timestamp!,
             timestamp: resp.timestamp,

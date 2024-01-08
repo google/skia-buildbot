@@ -62,7 +62,7 @@ export class ARBTableSk extends ElementSk {
           </td>
           <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
           <td>
-            ${st.numBehind}${st.numBehind == 0
+            ${st.numBehind}${st.numBehind === 0
               ? html``
               : html`
                   (last rolled

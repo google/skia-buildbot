@@ -1006,7 +1006,7 @@ export class SkottieSk extends ElementSk {
         if (allFileNames) {
           for (const fileName of allFileNames) {
             const ext: string | undefined = fileName.split('.').pop();
-            if (ext && (ext == 'png' || ext == 'jpg')) {
+            if (ext && (ext === 'png' || ext === 'jpg')) {
               additionalAssets.push(fileName);
             }
           }

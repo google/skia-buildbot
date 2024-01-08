@@ -109,7 +109,7 @@ export class TabsSk extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-    if (oldValue == newValue) {
+    if (oldValue === newValue) {
       return;
     }
     this.select(+newValue, false);

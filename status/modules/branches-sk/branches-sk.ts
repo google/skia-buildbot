@@ -121,7 +121,7 @@ class DisplayCommit {
     const to = parent.dotCenter();
     ctx.beginPath();
     ctx.moveTo(center.x, center.y);
-    if (this.column == parent.column) {
+    if (this.column === parent.column) {
       // Draw a straight line.
       ctx.lineTo(to.x, to.y);
     } else {
@@ -149,7 +149,7 @@ class DisplayCommit {
           continue;
         }
         if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
-          if (this.column == c.column) {
+          if (this.column === c.column) {
             v1_flex = false;
             break;
           }
@@ -164,7 +164,7 @@ class DisplayCommit {
       for (const childHash of parent.children) {
         const c = allCommits.get(childHash)!;
         if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
-          if (parent.column == c.column) {
+          if (parent.column === c.column) {
             v2_flex = false;
             break;
           }
@@ -521,7 +521,7 @@ function prepareCommitsForDisplay(
   }
   for (let b = 0; b < branch_heads.length; b++) {
     const branch = branch_heads[b];
-    if (b != mainIdx && branch.name != 'HEAD') {
+    if (b !== mainIdx && branch.name !== 'HEAD') {
       branches.push(branch);
     }
   }

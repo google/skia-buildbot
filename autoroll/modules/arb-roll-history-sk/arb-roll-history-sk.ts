@@ -36,7 +36,7 @@ export class ARBRollHistorySk extends ElementSk {
         (roll: AutoRollCL) => html`
           <tr>
             <td>
-              ${ele.issueURLBase != ''
+              ${ele.issueURLBase !== ''
                 ? html`
                     <a href="${ele.issueURL(roll)}" target="_blank"
                       >${roll.subject}</a
@@ -142,7 +142,7 @@ export class ARBRollHistorySk extends ElementSk {
       this.history = resp.rolls!;
       this.cursorHistory.push(resp.cursor);
       this.canLoadNext =
-        this.cursorHistory[this.cursorHistory.length - 1] != '';
+        this.cursorHistory[this.cursorHistory.length - 1] !== '';
       this.canLoadPrevious = this.cursorHistory.length > 2;
       this._render();
     });

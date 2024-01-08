@@ -152,7 +152,7 @@ export class SelectSk extends HTMLElement {
       }
     }
     this._rationalize();
-    if (oldIndex != this._selection) {
+    if (oldIndex !== this._selection) {
       this._emitEvent();
     }
   }
@@ -250,7 +250,7 @@ export class SelectSk extends HTMLElement {
       default:
         break;
     }
-    if (oldIndex != this._selection) {
+    if (oldIndex !== this._selection) {
       this._emitEvent();
     }
   }

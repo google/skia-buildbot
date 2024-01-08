@@ -225,9 +225,9 @@ export class TaskSk extends ElementSk {
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
       if (
         rs.patch &&
-        rs.patch.issue != '' &&
-        rs.patch.patchset != '' &&
-        rs.patch.server != ''
+        rs.patch.issue !== '' &&
+        rs.patch.patchset !== '' &&
+        rs.patch.server !== ''
       ) {
         this.isTryJob = true;
         const p = rs.patch!;

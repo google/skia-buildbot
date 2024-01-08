@@ -77,7 +77,7 @@ export class TaskGraphSk extends HTMLElement {
         }
       });
       depth.set(current, myDepth);
-      if (cols.length == myDepth) {
+      if (cols.length === myDepth) {
         cols.push([]);
       } else if (myDepth > cols.length) {
         console.log('_computeTasksGraph skipped a column!');
@@ -145,7 +145,7 @@ export class TaskGraphSk extends HTMLElement {
       for (let i = 0; i < col.length; i++) {
         const oldFont = ctx.font;
         const text = col[i].name;
-        if (text == selectedTask?.taskKey?.name) {
+        if (text === selectedTask?.taskKey?.name) {
           ctx.font = `bold ${ctx.font}`;
         }
         const textWidth = ctx.measureText(text).width + 2 * textMarginX;
@@ -292,7 +292,7 @@ export class TaskGraphSk extends HTMLElement {
               width="${taskSpec.width}"
               height="${taskSpec.height}"
               class="${
-                taskSpec.name == selectedTask?.taskKey?.name ? 'emphasis' : ''
+                taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''
               }"
               >
           </rect>
@@ -300,7 +300,7 @@ export class TaskGraphSk extends HTMLElement {
               x="${taskSpec.x + textOffsetX}"
               y="${taskSpec.y + textOffsetY}"
               class="${
-                taskSpec.name == selectedTask?.taskKey?.name ? 'emphasis' : ''
+                taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''
               }"
               >
             ${taskSpec.name}
@@ -343,7 +343,7 @@ export class TaskGraphSk extends HTMLElement {
               href="${TaskGraphSk.computeTaskLink(task.task!, swarmingServer)}">
             <rect
                 class="task ${
-                  task.task.id == selectedTask?.id ? 'emphasis' : ''
+                  task.task.id === selectedTask?.id ? 'emphasis' : ''
                 } ${taskStatusToClass[task.task!.status]}"
                 rx="4"
                 ry="4"
@@ -369,7 +369,7 @@ export class TaskGraphSk extends HTMLElement {
     let link = `https://${swarmingServer}/botlist`;
     if (dims) {
       for (let i = 0; i < dims.length; i++) {
-        if (i == 0) {
+        if (i === 0) {
           link += '?';
         } else {
           link += '&';

@@ -478,7 +478,7 @@ export class ARBStatusSk extends ElementSk {
                           class="${ele.manualRollResultClass(
                             rollCandidate.roll
                           )}">
-                          ${rollCandidate.roll.result ==
+                          ${rollCandidate.roll.result ===
                           ManualRoll_Result.UNKNOWN
                             ? html``
                             : rollCandidate.roll.result}
@@ -1220,7 +1220,7 @@ export class ARBStatusSk extends ElementSk {
     link.id = 'dynamicFavicon';
     link.rel = 'shortcut icon';
     link.href = ((lastRoll: AutoRollCL | undefined, mode: Mode) => {
-      if (mode == Mode.STOPPED) {
+      if (mode === Mode.STOPPED) {
         return '/dist/img/favicon-stopped.svg';
       }
       if (!lastRoll) {

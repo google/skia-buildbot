@@ -112,7 +112,7 @@ export class DebuggerAppSk extends ElementSk {
         word.anchor,
         word.head
       );
-      if (hoveredWord != this.currentHoveredWord) {
+      if (hoveredWord !== this.currentHoveredWord) {
         this.currentHoveredWord = hoveredWord;
         this._render();
       }
@@ -176,7 +176,7 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private arrowIfCurrentFrameIs(n: number): string {
-    return this.currentStackFrame == n ? '➔ ' : '';
+    return this.currentStackFrame === n ? '➔ ' : '';
   }
 
   private stackDisplay(): TemplateResult[] {
@@ -223,10 +223,10 @@ export class DebuggerAppSk extends ElementSk {
           name + this.player.getSlotComponentSuffix(v.slotIndex);
         const nameClass = {
           'change-highlight': v.dirty,
-          'hover-highlight': name == this.currentHoveredWord,
+          'hover-highlight': name === this.currentHoveredWord,
         };
         const valueClass = {
-          'hover-highlight': name == this.currentHoveredWord,
+          'hover-highlight': name === this.currentHoveredWord,
         };
         return html` <tr>
           <td class=${classMap(nameClass)}>${componentName}</td>

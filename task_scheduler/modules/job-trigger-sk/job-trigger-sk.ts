@@ -122,7 +122,7 @@ export class JobTriggerSk extends ElementSk {
         });
 
         const submit = params.submit;
-        if (submit && submit[0] == 'true') {
+        if (submit && submit[0] === 'true') {
           if (this.rpc) {
             this.triggerJobs();
           } else {
@@ -179,7 +179,7 @@ export class JobTriggerSk extends ElementSk {
     const jobs = this.jobs.filter(
       (job: TriggerJob) => job.jobName && job.commitHash
     );
-    if (jobs.length == 0) {
+    if (jobs.length === 0) {
       return;
     }
     const req: TriggerJobsRequest = {

@@ -1556,7 +1556,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     // If there's nothing loaded in the current dataframe, go ahead and fetch the entire
     // timestamp range in this._state.begin/end.
-    if (this._dataframe === null || this._dataframe!.header!.length == 0) {
+    if (this._dataframe === null || this._dataframe!.header!.length === 0) {
       return this.requestFrameBodyFullFromState();
     }
 
@@ -1567,7 +1567,7 @@ export class ExploreSimpleSk extends ElementSk {
       .sort();
     const stateQueries = this._state.queries.sort();
     if (
-      existingQueries.length != stateQueries.length ||
+      existingQueries.length !== stateQueries.length ||
       !existingQueries.every((val, i) => stateQueries[i] === val)
     ) {
       return this.requestFrameBodyFullFromState();
@@ -1657,7 +1657,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     const body = this.requestFrameBodyDeltaFromState();
 
-    if (body.begin == body.end) {
+    if (body.begin === body.end) {
       console.log(
         'skipped fetching this dataframe because it would be empty anyways'
       );
@@ -2038,7 +2038,7 @@ export class ExploreSimpleSk extends ElementSk {
     // If not, add them to the state object
     for (const urlKey in this.defaults?.default_url_values) {
       if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
-        if (urlKey == 'summary') {
+        if (urlKey === 'summary') {
           this._state.summary = Boolean(
             this.defaults!.default_url_values![urlKey]
           );
