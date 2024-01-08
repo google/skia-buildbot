@@ -3,6 +3,7 @@ package grpclogging
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ var (
 func testSetupLogger(t *testing.T) (*now.TimeTravelCtx, *GRPCLogger, *bytes.Buffer) {
 	ttCtx := now.TimeTravelingContext(startTime)
 	buf := &bytes.Buffer{}
-	l := New(buf)
+	l := New("test-project", buf)
 
 	return ttCtx, l, buf
 }
@@ -219,6 +220,8 @@ func TestServerUnaryLoggingInterceptor_tracing(t *testing.T) {
 	assert.Equal(t, 2, len(exporter.SpanData()))
 	entry := entryFromBuf(t, buf)
 
+	assert.Contains(t, buf.String(), "logging.googleapis.com/trace")
+	assert.Contains(t, buf.String(), fmt.Sprintf("projects/%s/traces/", l.projectID))
 	assert.Equal(t, tpb.TestService_GetSomething_FullMethodName, entry.ServerUnary.FullMethod)
 	assert.Equal(t, int64(3), entry.Elapsed.Seconds)
 	assertLoggedServerUnary(t, entry, req)

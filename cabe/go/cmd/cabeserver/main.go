@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/go-chi/chi/v5"
 	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -301,6 +302,7 @@ func main() {
 	traceAttrs := map[string]interface{}{
 		"podName":       os.Getenv("POD_NAME"),
 		"containerName": os.Getenv("CONTAINER_NAME"),
+		"service.name":  "cabeserver",
 	}
 	if a.logTracing {
 		loggingtracer.Initialize()
@@ -313,7 +315,15 @@ func main() {
 	}
 
 	if !a.disableGRPCLog {
-		a.grpcLogger = grpclogging.New(os.Stdout)
+		projectID := ""
+		if metadata.OnGCE() {
+			var err error
+			projectID, err = metadata.ProjectID()
+			if err != nil {
+				sklog.Fatal(err)
+			}
+		}
+		a.grpcLogger = grpclogging.New(projectID, os.Stdout)
 	}
 	ctx := context.Background()
 

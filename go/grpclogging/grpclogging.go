@@ -29,13 +29,17 @@ import (
 // GRPCLogger provides interceptor methods for grpc clients and servers to log the request
 // and response activity going through them.
 type GRPCLogger struct {
-	out io.Writer
+	out       io.Writer
+	projectID string
 }
 
-// New returns a new GRPCLogger instance that will write json-encoded log lines to w.
-func New(w io.Writer) *GRPCLogger {
+// New returns a new GRPCLogger instance that will write json-encoded log lines to w, using
+// projectID to format the exported trace key as projects/<projectID>/traces/<traceID>, described
+// in more detail here: https://cloud.google.com/logging/docs/structured-logging#structured_logging_special_fields
+func New(projectID string, w io.Writer) *GRPCLogger {
 	return &GRPCLogger{
-		out: w,
+		out:       w,
+		projectID: projectID,
 	}
 }
 
@@ -139,10 +143,7 @@ func (l *GRPCLogger) ClientStreamLoggingInterceptor(ctx context.Context, desc *g
 func (l *GRPCLogger) log(ctx context.Context, entry *pb.Entry, err error) {
 	if span := trace.FromContext(ctx); span.IsRecordingEvents() {
 		spanContext := span.SpanContext()
-		// TODO(seanmccullough): Determine if TraceId needs to be formatted like:
-		//   	projects/<project ID>/traces/<trace ID>
-		// or if logs agent, or stackdriver, etc does that for us. GCP docs are ambiguous.
-		entry.TraceId = spanContext.TraceID.String()
+		entry.TraceId = fmt.Sprintf("projects/%s/traces/%s", l.projectID, spanContext.TraceID.String())
 		entry.SpanId = spanContext.SpanID.String()
 		entry.TraceSampled = spanContext.IsSampled()
 	}
@@ -163,7 +164,7 @@ func (l *GRPCLogger) log(ctx context.Context, entry *pb.Entry, err error) {
 		Multiline:      false,
 		Indent:         "",
 		AllowPartial:   true,
-		UseProtoNames:  true,
+		UseProtoNames:  false,
 		UseEnumNumbers: false,
 	}.Marshal(entry)
 	if err != nil {
