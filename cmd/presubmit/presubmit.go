@@ -109,6 +109,7 @@ func main() {
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
 	trackErrors(runGofmt(ctx, changedFiles, branchBaseCommit))
 	changedFiles, _ = computeDiffFiles(ctx, branchBaseCommit)
+	trackErrors(runGoVet(ctx, changedFiles, branchBaseCommit))
 	if *commit {
 		// When running the presubmit checks on CI, we must manually ensure that the node_modules
 		// directory exists because Bazel no longer manages that directory for us. Running "npm ci"
@@ -775,6 +776,20 @@ func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 		logf(ctx, "gofmt caused changes. Please inspect them (git diff) and commit if ok.\n")
 		return false
 	}
+	return true
+}
+
+// runGoVet runs `go vet` on all golang files. It returns false if go vet fails.
+func runGoVet(ctx context.Context, files []fileWithChanges, branchBaseCommit string) bool {
+	args := []string{"run", "--config=mayberemote", "//:go", "--", "vet", "./..."}
+	cmd := exec.CommandContext(ctx, "bazelisk", args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logf(ctx, string(output))
+		logf(ctx, "go vet failed!\n")
+		return false
+	}
+
 	return true
 }
 
