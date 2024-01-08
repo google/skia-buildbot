@@ -9,7 +9,7 @@ go_library(
         "internal.json",
     ],
     importpath = "go.skia.org/infra/bisection/go/bot_configs",
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 go_test(
