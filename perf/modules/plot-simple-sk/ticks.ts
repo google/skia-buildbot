@@ -106,7 +106,7 @@ export function ticks(dates: Date[]): tick[] {
   const duration = dates[dates.length - 1].valueOf() - dates[0].valueOf();
   const formatter = formatterFromDuration(duration);
   let last = formatter(dates[0]);
-  let ret = [
+  const ret = [
     {
       x: 0,
       text: last,
@@ -122,9 +122,22 @@ export function ticks(dates: Date[]): tick[] {
       last = tickValue;
     }
   }
+
+  return fixTicksLength(ret);
+}
+
+/**
+ * fixTicksLength takes a set of ticks and ensures that the length of
+ * the array is within the specified limits
+ *
+ * @param {tick[]} ticks - An array of ticks.
+ * @returns {tick[]}} An array of ticks:
+ */
+export function fixTicksLength(ticks: tick[]): tick[] {
   // Drop every other tick repeatedly until we get less than MAX_TICKS tick marks.
-  while (ret.length > MAX_TICKS) {
-    ret = ret.filter((t, i) => i % 2);
+  while (ticks.length > MAX_TICKS) {
+    ticks = ticks.filter((t, i) => i % 2);
   }
-  return ret;
+
+  return ticks;
 }

@@ -111,7 +111,7 @@ import {
   TraceFormatter,
   GetTraceFormatter,
 } from '../trace-details-formatter/traceformatter';
-import { tick, ticks } from '../plot-simple-sk/ticks';
+import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -1980,6 +1980,7 @@ export class ExploreSimpleSk extends ElementSk {
             text: header!.offset.toString(),
           });
         });
+        labels = fixTicksLength(labels);
         break;
       case LabelMode.Date:
         dataframe.header!.forEach((header) => {
