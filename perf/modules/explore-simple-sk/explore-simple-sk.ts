@@ -111,6 +111,7 @@ import {
   TraceFormatter,
   GetTraceFormatter,
 } from '../trace-details-formatter/traceformatter';
+import { tick, ticks } from '../plot-simple-sk/ticks';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -161,6 +162,11 @@ const defaultPivotRequest = (): pivot.Request => ({
 export interface PointSelected {
   commit: number;
   name: string;
+}
+
+export enum LabelMode {
+  Date = 0,
+  CommitPosition = 1,
 }
 
 /** Returns true if the PointSelected is valid. */
@@ -233,6 +239,8 @@ export class State {
   summary: boolean = false; // Whether to show the zoom/summary area.
 
   selected: PointSelected = defaultPointSelected(); // The point on a trace that was clicked on.
+
+  labelMode: LabelMode = LabelMode.Date;
 
   _incremental: boolean = false; // Enables a data fetching optimization.
 }
@@ -511,6 +519,14 @@ export class ExploreSimpleSk extends ElementSk {
           ?checked=${ele._state._incremental}
           label='Incremental data fetch'
           title='Only fetch deltas when panning left or right.'>
+        </checkbox-sk>
+        <checkbox-sk
+          name=auto
+          @change=${ele.enableCommitLabel}
+          ?checked=${ele._state.labelMode === LabelMode.CommitPosition}
+          label='Commit Label'
+          title='Show Commit Numbers on x axis.'
+          ?hidden=${!window.perf.fetch_chrome_perf_anomalies}>
         </checkbox-sk>
         <div
           id=calcButtons
@@ -1759,6 +1775,21 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
   }
 
+  private enableCommitLabel(e: MouseEvent) {
+    const isCommitLabelEnabled = (e.target! as HTMLInputElement).checked;
+    if (isCommitLabelEnabled) {
+      this._state.labelMode = LabelMode.CommitPosition;
+    } else {
+      this._state.labelMode = LabelMode.Date;
+    }
+    this.plot!.removeAll();
+    this.plot!.addLines(
+      this._dataframe.traceset,
+      this.getLabels(this._dataframe)
+    );
+    this._stateHasChanged();
+  }
+
   /**
    * Wrapper for reShortcut and addTraces. It takes in a list of trace keys, creates
    * a shortcut, and renders the traces into the display. If there's already traces
@@ -1836,11 +1867,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
     // before it called this method. Why does it do this twice? Is it a bug?
     this.plot!.removeAll();
-    const labels: Date[] = [];
-    mergedDataframe.header!.forEach((header) => {
-      labels.push(new Date(header!.timestamp * 1000));
-    });
-
+    const labels = this.getLabels(mergedDataframe);
     // TODO(seanmccullough): verify the order of addLines and setting the zoom on this.plot.
     // Turns out that with real-life dataframe sizes, this "empty the plot and add all the
     // data again" generates a lot of visual noise.  For the case of zoomed plots, this
@@ -1935,6 +1962,36 @@ export class ExploreSimpleSk extends ElementSk {
     const q = this.query!.current_query;
     const f = this.formula!.value;
     this.addFromQueryOrFormula(replace, plotType, q, f);
+  }
+
+  /**
+   * Returns the labels for the plot
+   * @param dataframe The dataframe to use for generating labels
+   * @returns a list of labels
+   */
+  private getLabels(dataframe: DataFrame): tick[] {
+    let labels: tick[] = [];
+    const dates: Date[] = [];
+    switch (this.state.labelMode) {
+      case LabelMode.CommitPosition:
+        dataframe.header!.forEach((header, i) => {
+          labels.push({
+            x: i,
+            text: header!.offset.toString(),
+          });
+        });
+        break;
+      case LabelMode.Date:
+        dataframe.header!.forEach((header) => {
+          dates.push(new Date(header!.timestamp * 1000));
+        });
+        labels = ticks(dates);
+        break;
+      default:
+        break;
+    }
+
+    return labels;
   }
 
   /**

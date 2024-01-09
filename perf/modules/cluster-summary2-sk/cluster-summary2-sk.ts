@@ -64,6 +64,7 @@ import '../window/window';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { lookupCids } from '../cid/cid';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { ticks } from '../plot-simple-sk/ticks';
 
 /** Defines a func that takes a number and formats it as a string. */
 type Formatter = (n: number) => string;
@@ -431,7 +432,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.full_summary!.frame!.dataframe!.header!.forEach((header) => {
       labels.push(new Date(header!.timestamp * 1000));
     });
-    this.graph.addLines({ centroid: this.summary.centroid! }, labels);
+    this.graph.addLines({ centroid: this.summary.centroid! }, ticks(labels));
     // Set the x-bar but only if status != uninteresting.
     if (this.summary!.step_fit!.status !== 'Uninteresting') {
       // Loop through the dataframe header to find the location we should

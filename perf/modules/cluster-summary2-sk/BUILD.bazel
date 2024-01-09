@@ -26,6 +26,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules/json:index_ts_lib",
         "//:node_modules/lit-html",
+        "//perf/modules/plot-simple-sk:ticks_ts_lib",
     ],
     ts_srcs = [
         "cluster-summary2-sk.ts",

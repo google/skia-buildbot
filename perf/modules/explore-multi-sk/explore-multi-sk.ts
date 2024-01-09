@@ -19,6 +19,7 @@ import {
   DEFAULT_RANGE_S,
   ExploreSimpleSk,
   State as ExploreState,
+  LabelMode,
 } from '../explore-simple-sk/explore-simple-sk';
 
 import { fromKey } from '../paramtools';
@@ -120,6 +121,7 @@ export class ExploreMultiSk extends ElementSk {
             sort: elem.state.sort,
             selected: elem.state.selected,
             _incremental: false,
+            labelMode: LabelMode.Date,
           };
           elem.state = newState;
         });

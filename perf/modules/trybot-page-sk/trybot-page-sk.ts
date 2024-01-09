@@ -51,6 +51,7 @@ import {
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { messagesToErrorString, startRequest } from '../progress/progress';
+import { ticks } from '../plot-simple-sk/ticks';
 
 // Number of elements of a long lists head and tail to display.
 const numHeadTail = 10;
@@ -368,8 +369,10 @@ export class TrybotPageSk extends ElementSk {
   }
 
   private getLabels() {
-    return this.results!.header!.map(
-      (colHeader) => new Date(colHeader!.timestamp * 1000)
+    return ticks(
+      this.results!.header!.map(
+        (colHeader) => new Date(colHeader!.timestamp * 1000)
+      )
     );
   }
 

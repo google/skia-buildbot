@@ -60,6 +60,7 @@ sk_page(
         "//perf/modules/const:const_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        ":ticks_ts_lib",
     ],
     ts_entry_point = "plot-simple-sk-demo.ts",
 )
@@ -80,6 +81,7 @@ karma_test(
     src = "plot-simple-sk_test.ts",
     deps = [
         ":plot-simple-sk",
+        ":ticks_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/@types/d3-scale",
         "//:node_modules/chai",

@@ -9,6 +9,7 @@ import {
 import { Anomaly } from '../json';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { ticks } from './ticks';
 
 // Create our own random number generator that's deterministic so that we get
 // consistent Gold images.
@@ -66,7 +67,7 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
     }
 
     n += num;
-    plot.addLines(traces, labels);
+    plot.addLines(traces, ticks(labels));
   }
 
   $<PlotSimpleSk>('plot-simple-sk').forEach((plot) => {

@@ -97,7 +97,7 @@ import { Anomaly } from '../json';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
-import { ticks } from './ticks';
+import { tick, ticks } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
@@ -453,8 +453,8 @@ export interface PlotSimpleSkTraceEventDetails {
 }
 
 export interface PlotSimpleSkZoomEventDetails {
-  xBegin: Date;
-  xEnd: Date;
+  xBegin: tick;
+  xEnd: tick;
 }
 
 /**
@@ -496,8 +496,8 @@ export class PlotSimpleSk extends ElementSk {
    */
   private lineData: LineData[] = [];
 
-  /** An array of Date()'s the same length as the values in lineData. */
-  private labels: Date[] = [];
+  /** An array of tick objects the same length as the values in lineData. */
+  private labels: tick[] = [];
 
   /**
    * The current zoom, either null or an array of two values in source x
@@ -914,7 +914,7 @@ export class PlotSimpleSk extends ElementSk {
    * @param {Array} labels - An array of Date objects the same length as the values.
    *
    */
-  addLines(lines: { [key: string]: number[] | null }, labels: Date[]): void {
+  addLines(lines: { [key: string]: number[] | null }, labels: tick[]): void {
     const keys = Object.keys(lines);
     if (keys.length === 0) {
       return;
@@ -1366,13 +1366,13 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   // Recalculates the x-axis info.
-  private recalcXAxis(area: Area, labels: Date[], labelOffset: number) {
+  private recalcXAxis(area: Area, labels: tick[], labelOffset: number) {
     const xAxisPath = new Path2D();
     const thinY = Math.floor(area.rect.y) + 0.5; // Make sure we get a thin line.
     xAxisPath.moveTo(area.rect.x + 0.5, thinY);
     xAxisPath.lineTo(area.rect.x + 0.5 + area.rect.width, thinY);
     area.axis.labels = [];
-    ticks(labels).forEach((tick) => {
+    labels.forEach((tick) => {
       const label = {
         x: Math.floor(area.range.x(tick.x + labelOffset)) + 0.5,
         y: area.rect.y - this.MARGIN / 2,

@@ -51,6 +51,7 @@ sk_element(
         "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
         "//:node_modules/lit-html",
         "//infra-sk/modules:object_ts_lib",
+        "//perf/modules/plot-simple-sk:ticks_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
