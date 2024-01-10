@@ -529,9 +529,9 @@ cipd_install(
     name = "cabe_replay_data",
     build_file_content = all_cipd_files(),
     cipd_package = "skia/bots/cabe",
-    # From https://chrome-infra-packages.appspot.com/p/skia/bots/cabe/+/D3RiS_D3UDI2YYBNBOETOqdxD6c0xdY34SV2A6OKEIoC
-    sha256 = "0f74624bf0f750323661804d04e1133aa7710fa734c5d637e1257603a38a108a",
-    tag = "version:4",
+    # From https://chrome-infra-packages.appspot.com/p/skia/bots/cabe/+/0NzStC-LCmQMZkOfJgFx7NcMAP129WqZ7eu8unAPCSkC
+    sha256 = "d0dcd2b42f8b0a640c66439f260171ecd70c00fd76f56a99edebbcba700f0929",
+    tag = "version:6",
 )
 
 #############################################################

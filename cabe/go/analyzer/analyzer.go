@@ -201,6 +201,8 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 		a.experimentSpec = ieSpec
 	}
 
+	transformType := cabe_stats.LogTransform
+
 	for replicaNumber, pair := range pairs {
 		// Check task result codes to identify and handle task failures (which are expected; lab hardware is inherently unreliable).
 		if pair.hasTaskFailures() {
@@ -270,7 +272,10 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 
 				cMean := stat.Mean(cValues)
 				tMean := stat.Mean(tValues)
-
+				if tMean == 0.0 || cMean == 0.0 {
+					sklog.Infof("detected zeroes in measurement data, using NomralizeResult instead of LogTransform")
+					transformType = cabe_stats.NormalizeResult
+				}
 				benchmark = append(benchmark, benchmarkSpec.GetName())
 				workload = append(workload, workloadName)
 				buildspec = append(buildspec, buildSpecName)
@@ -308,7 +313,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 			ctrls = append(ctrls, tcp.control)
 			trts = append(trts, tcp.treatment)
 		}
-		r, err := cabe_stats.BerfWilcoxonSignedRankedTest(trts, ctrls, cabe_stats.TwoSided, cabe_stats.LogTransform)
+		r, err := cabe_stats.BerfWilcoxonSignedRankedTest(trts, ctrls, cabe_stats.TwoSided, transformType)
 		if err != nil {
 			sklog.Errorf("cabe_stats.BerfWilcoxonSignedRankedTest returned an error (%q), "+
 				"printing the table of parameters passed to it below:",

@@ -441,3 +441,62 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	assert.Equal(t, 16, len(diag.IncludedSwarmingTasks))
 	assert.Equal(t, 8, len(diag.IncludedReplicas))
 }
+
+func TestRun_withReplayBackends_zerosInMeasurementData_useNormalizeResultTransofrm(t *testing.T) {
+	ctx := context.Background()
+
+	path := filepath.Join(
+		bazel.RunfilesDir(),
+		"external/cabe_replay_data",
+		// https://pinpoint-dot-chromeperf.appspot.com/job/11a4b863ce0000
+		"pinpoint_11a4b863ce0000.zip")
+
+	replayer := replaybackends.FromZipFile(
+		path,
+		fakeBenchmarkName,
+	)
+	a := New(
+		"11a4b863ce0000",
+		WithExperimentSpec(
+			&cpb.ExperimentSpec{
+				Analysis: &cpb.AnalysisSpec{
+					Benchmark: []*cpb.Benchmark{
+						{
+							Name:     fakeBenchmarkName,
+							Workload: []string{"Graphics.Smoothness.PercentDroppedFrames3.AllSequences"},
+						},
+					},
+				},
+			},
+		),
+		WithCASResultReader(replayer.CASResultReader),
+		WithSwarmingTaskReader(replayer.SwarmingTaskReader),
+	)
+
+	res, err := a.Run(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), 1)
+
+	expectedResults := &cpb.Statistic{
+		Upper:           66.664174,
+		Lower:           -99.99817,
+		PValue:          0.7322009,
+		ControlMedian:   1.5,
+		TreatmentMedian: 1.25,
+	}
+	gotAnalysisResults := a.AnalysisResults()
+	assert.Equal(t, len(gotAnalysisResults), 1)
+
+	diff := cmp.Diff(expectedResults, gotAnalysisResults[0].Statistic,
+		cmpopts.EquateEmpty(),
+		cmpopts.EquateApprox(0, 0.03),
+		protocmp.Transform())
+
+	assert.Equal(t, "", diff)
+	diag := a.Diagnostics()
+	assert.NotNil(t, diag)
+	assert.Equal(t, 0, len(diag.ExcludedSwarmingTasks))
+	assert.Equal(t, 0, len(diag.ExcludedReplicas))
+	assert.Equal(t, 60, len(diag.IncludedSwarmingTasks))
+	assert.Equal(t, 30, len(diag.IncludedReplicas))
+}
