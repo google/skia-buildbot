@@ -171,7 +171,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/go": {
 		Path:    "go",
 		Name:    "skia/bots/go",
-		Version: "version:16",
+		Version: "version:17",
 	},
 	"skia/bots/go_win": {
 		Path:    "go_win",

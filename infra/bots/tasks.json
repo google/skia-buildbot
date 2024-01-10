@@ -287,7 +287,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
         "--cipd",
-        "go:skia/bots/go@version:16",
+        "go:skia/bots/go@version:17",
         "--cipd",
         "protoc:skia/bots/protoc@version:0",
         "--cipd",
