@@ -128,7 +128,7 @@ func main() {
 			return err
 		}
 		ts = tokenSource
-		if err := cipd.Ensure(ctx, client, workdir, req.CipdPackages...); err != nil {
+		if err := cipd.Ensure(ctx, client, workdir, false, req.CipdPackages...); err != nil {
 			return err
 		}
 		if *casFlags.Instance != "" {

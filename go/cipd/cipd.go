@@ -198,12 +198,12 @@ func GetStrCIPDPkgs(pkgs []*Package) []string {
 // Run "cipd ensure" to get the correct packages in the given location. Note
 // that any previously-installed packages in the given rootDir will be removed
 // if not specified again.
-func Ensure(ctx context.Context, c *http.Client, rootDir string, packages ...*Package) error {
+func Ensure(ctx context.Context, c *http.Client, rootDir string, forceCopyInstallMode bool, packages ...*Package) error {
 	cipdClient, err := NewClient(c, rootDir, DefaultServiceURL)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to create CIPD client")
 	}
-	return cipdClient.Ensure(ctx, packages...)
+	return cipdClient.Ensure(ctx, forceCopyInstallMode, packages...)
 }
 
 // ParseEnsureFile parses a CIPD ensure file and returns a slice of Packages.
@@ -247,7 +247,7 @@ type CIPDClient interface {
 	// Ensure runs "cipd ensure" to get the correct packages in the given location. Note
 	// that any previously-installed packages in the given rootDir will be removed
 	// if not specified again.
-	Ensure(ctx context.Context, packages ...*Package) error
+	Ensure(ctx context.Context, forceCopyInstallMode bool, packages ...*Package) error
 
 	// Describe is a convenience wrapper around cipd.Client.DescribeInstance.
 	Describe(ctx context.Context, pkg, instance string) (*cipd.InstanceDescription, error)
@@ -275,7 +275,7 @@ func NewClient(c *http.Client, rootDir, serviceURL string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
+func (c *Client) Ensure(ctx context.Context, forceCopyInstallMode bool, packages ...*Package) error {
 	pkgs := common.PinSliceBySubdir{}
 	for _, pkg := range packages {
 		pkgName, err := c.expander.Expand(pkg.Name)
@@ -292,6 +292,9 @@ func (c *Client) Ensure(ctx context.Context, packages ...*Package) error {
 	opts := &cipd.EnsureOptions{
 		Paranoia: cipd.CheckPresence,
 		DryRun:   false,
+	}
+	if forceCopyInstallMode {
+		opts.OverrideInstallMode = pkg.InstallModeCopy
 	}
 	if _, err := c.EnsurePackages(ctx, pkgs, opts); err != nil {
 		return skerr.Wrapf(err, "failed to ensure packages")

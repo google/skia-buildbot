@@ -286,7 +286,7 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 	// Also install the protoc asset. Use a different CIPD root dir to
 	// prevent conflicts with the Go packages.
 	protocRoot := path.Join(os.TempDir(), "cipd_protoc")
-	if err := cipd.Ensure(ctx, client, protocRoot, cipd.PkgProtoc); err != nil {
+	if err := cipd.Ensure(ctx, client, protocRoot, true, cipd.PkgProtoc); err != nil {
 		return err
 	}
 
@@ -498,7 +498,7 @@ func GenericPreUploadStep(ctx context.Context, cfg *config.PreUploadConfig, env 
 			})
 		}
 		sklog.Info("Installing CIPD packages...")
-		if err := cipd.Ensure(ctx, client, cipdRoot, cipdPkgs...); err != nil {
+		if err := cipd.Ensure(ctx, client, cipdRoot, true, cipdPkgs...); err != nil {
 			return skerr.Wrap(err)
 		}
 	}

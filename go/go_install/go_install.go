@@ -20,7 +20,7 @@ import (
 // the go.skia.org/infra repository as of the last update of that package.
 func EnsureGo(ctx context.Context, client *http.Client, cipdRoot string) (string, map[string]string, error) {
 	pkgs := []*cipd.Package{cipd.PkgGo}
-	if err := cipd.Ensure(ctx, client, cipdRoot, pkgs...); err != nil {
+	if err := cipd.Ensure(ctx, client, cipdRoot, true, pkgs...); err != nil {
 		return "", nil, fmt.Errorf("Failed to ensure Go CIPD package: %s", err)
 	}
 	goRoot := path.Join(cipdRoot, cipd.PkgGo.Path, "go")

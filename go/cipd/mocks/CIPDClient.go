@@ -213,14 +213,14 @@ func (_m *CIPDClient) EndBatch(ctx context.Context) {
 	_m.Called(ctx)
 }
 
-// Ensure provides a mock function with given fields: ctx, packages
-func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) error {
+// Ensure provides a mock function with given fields: ctx, forceCopyInstallMode, packages
+func (_m *CIPDClient) Ensure(ctx context.Context, forceCopyInstallMode bool, packages ...*cipd.Package) error {
 	_va := make([]interface{}, len(packages))
 	for _i := range packages {
 		_va[_i] = packages[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx)
+	_ca = append(_ca, ctx, forceCopyInstallMode)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -229,8 +229,8 @@ func (_m *CIPDClient) Ensure(ctx context.Context, packages ...*cipd.Package) err
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, ...*cipd.Package) error); ok {
-		r0 = rf(ctx, packages...)
+	if rf, ok := ret.Get(0).(func(context.Context, bool, ...*cipd.Package) error); ok {
+		r0 = rf(ctx, forceCopyInstallMode, packages...)
 	} else {
 		r0 = ret.Error(0)
 	}

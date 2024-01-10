@@ -24,24 +24,24 @@ func SetupFlags(fs *flag.FlagSet) Flags {
 }
 
 // Ensure installs the given CIPD packages.
-func Ensure(ctx context.Context, c *http.Client, workdir string, pkgs ...*cipd.Package) error {
+func Ensure(ctx context.Context, c *http.Client, workdir string, forceCopyInstallMode bool, pkgs ...*cipd.Package) error {
 	return td.Do(ctx, td.Props("Download CIPD Packages").Infra(), func(ctx context.Context) error {
 		if len(pkgs) > 0 {
-			return cipd.Ensure(ctx, c, workdir, pkgs...)
+			return cipd.Ensure(ctx, c, workdir, forceCopyInstallMode, pkgs...)
 		}
 		return nil
 	})
 }
 
 // EnsureFromFlags installs the CIPD packages requested using the given flags.
-func EnsureFromFlags(ctx context.Context, c *http.Client, workdir string, f Flags) error {
+func EnsureFromFlags(ctx context.Context, c *http.Client, workdir string, f Flags, forceCopyInstallMode bool) error {
 	return td.Do(ctx, td.Props("Download CIPD Packages").Infra(), func(ctx context.Context) error {
 		pkgs, err := GetPackages(f)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
 		if len(pkgs) > 0 {
-			return cipd.Ensure(ctx, c, workdir, pkgs...)
+			return cipd.Ensure(ctx, c, workdir, forceCopyInstallMode, pkgs...)
 		}
 		return nil
 	})
