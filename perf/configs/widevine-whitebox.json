@@ -1,0 +1,42 @@
+{
+    "URL": "https://widevine-whitebox-perf.corp.goog",
+    "allowed_hosts": [],
+    "trace_sample_proportion": 1.0,
+    "contact": "browser-perf-engprod@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "notify_config": {
+        "notifications": "none"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "cockroachdb",
+        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/widevine_whitebox?sslmode=disable",
+        "tile_size": 8192,
+        "enable_follower_reads": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-widevine-whitebox",
+            "subscription": "perf-ingestion-widevine-whitebox-prod",
+            "dl_topic": "perf-ingestion-widevine-whitebox-dl",
+            "dl_subscription": "perf-ingestion-widevine-whitebox-dl-prod",
+            "sources": [
+                "gs://widevine-whitebox-perf/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://widevine-internal.googlesource.com/security/whitebox-api-intertrust-prod",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "start_commit": "ad24d3f177fc0a99fa60a192438ae4fe489bc0ed"
+    }
+}
