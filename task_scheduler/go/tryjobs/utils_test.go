@@ -271,9 +271,9 @@ func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64) {
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockTryLeaseBuildFailed(mock *mockhttpclient.URLMock, id int64, mockErr string) {
+func MockTryLeaseBuildFailed(mock *mockhttpclient.URLMock, id int64, mockErr, mockReason string) {
 	req := mockhttpclient.DONT_CARE_REQUEST
-	resp := []byte(fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", mockErr))
+	resp := []byte(fmt.Sprintf("{\"error\": {\"message\": \"%s\",\"reason\": \"%s\"}}", mockErr, mockReason))
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 

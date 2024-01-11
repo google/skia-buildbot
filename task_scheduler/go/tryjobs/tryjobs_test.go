@@ -362,7 +362,7 @@ func TestTryLeaseV1Build_Failure(t *testing.T) {
 
 	const id = int64(12345)
 	expect := "Can't lease this!"
-	MockTryLeaseBuildFailed(mock, id, expect)
+	MockTryLeaseBuildFailed(mock, id, expect, "CANNOT_LEASE_BUILD")
 	_, bbError, err := trybots.tryLeaseV1Build(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, bbError)
@@ -719,8 +719,8 @@ func TestInsertNewJobV1_LeaseFailed_BuildIsCanceled(t *testing.T) {
 	b4 := Build(t, now)
 	mockBB.On("GetBuild", ctx, b4.Id).Return(b4, nil)
 	expectErr := "Can't lease this!"
-	MockTryLeaseBuildFailed(mock, b4.Id, expectErr)
-	MockCancelBuild(mock, b4.Id, `Buildbucket refused lease with \\\"Can't lease this!\\\"`)
+	MockTryLeaseBuildFailed(mock, b4.Id, expectErr, "CANNOT_LEASE_BUILD")
+	MockCancelBuild(mock, b4.Id, `Buildbucket refused lease with \\\"Can't lease this!\\\" (CANNOT_LEASE_BUILD)`)
 	err := trybots.insertNewJobV1(ctx, b4.Id)
 	require.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	result := aj.getAddedJob(ctx, t, trybots.db)

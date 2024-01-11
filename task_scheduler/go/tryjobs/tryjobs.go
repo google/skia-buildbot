@@ -591,7 +591,7 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 		// return an error is that the Build has been canceled. While this
 		// is the most likely reason, others are possible, and we may gain
 		// some information by reading the error and behaving accordingly.
-		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Buildbucket refused lease with %q", bbError.Message))
+		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Buildbucket refused lease with %q (%s)", bbError.Message, bbError.Reason))
 	} else if leaseKey == 0 {
 		return t.remoteCancelV1Build(buildId, "Buildbucket returned zero lease key")
 	}
