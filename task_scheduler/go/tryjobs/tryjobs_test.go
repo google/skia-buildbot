@@ -728,6 +728,23 @@ func TestInsertNewJobV1_LeaseFailed_BuildIsCanceled(t *testing.T) {
 	require.True(t, mock.Empty(), mock.List())
 }
 
+func TestInsertNewJobV1_LeaseFailed_InvalidInput_BuildIsNotCanceled(t *testing.T) {
+	ctx, trybots, mock, mockBB, _ := setup(t)
+
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
+	aj := addedJobs(map[string]*types.Job{})
+
+	b4 := Build(t, now)
+	mockBB.On("GetBuild", ctx, b4.Id).Return(b4, nil)
+	expectErr := "Can't lease this!"
+	MockTryLeaseBuildFailed(mock, b4.Id, expectErr, BUILDBUCKET_API_ERROR_REASON_INVALID_INPUT)
+	err := trybots.insertNewJobV1(ctx, b4.Id)
+	require.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result := aj.getAddedJob(ctx, t, trybots.db)
+	require.Nil(t, result)
+	require.True(t, mock.Empty(), mock.List())
+}
+
 func TestStartJobV1_NormalJob_Succeeds(t *testing.T) {
 	ctx, trybots, mock, mockBB, _ := setup(t)
 

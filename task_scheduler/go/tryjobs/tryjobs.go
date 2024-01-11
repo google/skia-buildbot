@@ -76,6 +76,11 @@ const (
 	// finished.
 	BUILDBUCKET_API_ERROR_REASON_COMPLETED = "BUILD_IS_COMPLETED"
 
+	// This error reason indicates that something is wrong with the request. In
+	// particular, this is returned when we attempt to lease (a V1 behavior) a
+	// V2 build.
+	BUILDBUCKET_API_ERROR_REASON_INVALID_INPUT = "INVALID_INPUT"
+
 	// This error reason indicates that our lease on the build has expired.
 	BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED = "LEASE_EXPIRED"
 
@@ -518,15 +523,6 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 	if err != nil {
 		return skerr.Wrapf(err, "failed to retrieve build %d", buildId)
 	}
-
-	// Log the full details about the build.
-	// TODO(borenet): Remove this once we've figured out how to distinguish
-	// between Buildbucket V1 and V2 builds.
-	buildJson, err := json.Marshal(build)
-	if err == nil {
-		sklog.Infof("Build details for %d: %s", buildId, string(buildJson))
-	}
-
 	if build.Status != buildbucketpb.Status_SCHEDULED {
 		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
 		_, bbError, err := t.tryLeaseV1Build(ctx, buildId)
@@ -587,11 +583,18 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 	if err != nil {
 		return skerr.Wrapf(err, "failed to lease build %d", j.BuildbucketBuildId)
 	} else if bbError != nil {
-		// Note: we're just assuming that the only reason Buildbucket would
-		// return an error is that the Build has been canceled. While this
-		// is the most likely reason, others are possible, and we may gain
-		// some information by reading the error and behaving accordingly.
-		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Buildbucket refused lease with %q (%s)", bbError.Message, bbError.Reason))
+		if bbError.Reason == BUILDBUCKET_API_ERROR_REASON_INVALID_INPUT {
+			// INVALID_INPUT probably means that this is a Buildbucket V2 build,
+			// which follows a different flow. Don't cancel the build.
+			sklog.Warningf("Failed to lease build %d; is this a Buildbucket V2 build?", j.BuildbucketBuildId)
+			return nil
+		} else {
+			// Note: we're just assuming that the only other reason Buildbucket
+			// would return an error is that the Build has been canceled. While this
+			// is the most likely reason, others are possible, and we may gain
+			// some information by reading the error and behaving accordingly.
+			return t.remoteCancelV1Build(buildId, fmt.Sprintf("Buildbucket refused lease with %q (%s)", bbError.Message, bbError.Reason))
+		}
 	} else if leaseKey == 0 {
 		return t.remoteCancelV1Build(buildId, "Buildbucket returned zero lease key")
 	}
