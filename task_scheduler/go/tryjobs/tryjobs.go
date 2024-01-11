@@ -518,6 +518,15 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 	if err != nil {
 		return skerr.Wrapf(err, "failed to retrieve build %d", buildId)
 	}
+
+	// Log the full details about the build.
+	// TODO(borenet): Remove this once we've figured out how to distinguish
+	// between Buildbucket V1 and V2 builds.
+	buildJson, err := json.Marshal(build)
+	if err == nil {
+		sklog.Infof("Build details for %d: %s", buildId, string(buildJson))
+	}
+
 	if build.Status != buildbucketpb.Status_SCHEDULED {
 		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
 		_, bbError, err := t.tryLeaseV1Build(ctx, buildId)
