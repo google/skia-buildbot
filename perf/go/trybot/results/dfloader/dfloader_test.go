@@ -177,16 +177,16 @@ func TestLoader_OneTraceTryBotHappyPath_LoadReturnsSuccess(t *testing.T) {
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
-			{Offset: 0, Timestamp: gittest.StartTime.Unix()},
-			{Offset: 1, Timestamp: gittest.StartTime.Unix() + 1},
-			{Offset: 2, Timestamp: gittest.StartTime.Unix() + 2},
-			{Offset: 3, Timestamp: gittest.StartTime.Unix() + 3},
-			{Offset: 4, Timestamp: gittest.StartTime.Unix() + 4},
-			{Offset: 5, Timestamp: gittest.StartTime.Unix() + 5},
-			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
-			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
-			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
-			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
+			{Offset: 0, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix())},
+			{Offset: 1, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 1)},
+			{Offset: 2, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 2)},
+			{Offset: 3, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 3)},
+			{Offset: 4, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 4)},
+			{Offset: 5, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 5)},
+			{Offset: 6, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 6)},
+			{Offset: 7, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 7)},
+			{Offset: 8, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 8)},
+			{Offset: 9, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 9)},
 		},
 		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"gpu"}},
 		TraceSet: types.TraceSet{
@@ -234,14 +234,14 @@ func TestLoader_TwoTraces_LoadReturnsSuccessAndResultsAreSorted(t *testing.T) {
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
-			{Offset: 0, Timestamp: gittest.StartTime.Unix()},
-			{Offset: 1, Timestamp: gittest.StartTime.Unix() + 1},
-			{Offset: 2, Timestamp: gittest.StartTime.Unix() + 2},
-			{Offset: 3, Timestamp: gittest.StartTime.Unix() + 3},
-			{Offset: 4, Timestamp: gittest.StartTime.Unix() + 4},
-			{Offset: 5, Timestamp: gittest.StartTime.Unix() + 5},
-			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
-			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
+			{Offset: 0, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix())},
+			{Offset: 1, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 1)},
+			{Offset: 2, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 2)},
+			{Offset: 3, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 3)},
+			{Offset: 4, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 4)},
+			{Offset: 5, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 5)},
+			{Offset: 6, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 6)},
+			{Offset: 7, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 7)},
 		},
 		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"gpu", "cpu"}},
 		TraceSet: types.TraceSet{
@@ -306,16 +306,16 @@ func TestLoader_UnknownTracesAreIgnored_LoadReturnsSuccess(t *testing.T) {
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
-			{Offset: 0, Timestamp: gittest.StartTime.Unix()},
-			{Offset: 1, Timestamp: gittest.StartTime.Unix() + 1},
-			{Offset: 2, Timestamp: gittest.StartTime.Unix() + 2},
-			{Offset: 3, Timestamp: gittest.StartTime.Unix() + 3},
-			{Offset: 4, Timestamp: gittest.StartTime.Unix() + 4},
-			{Offset: 5, Timestamp: gittest.StartTime.Unix() + 5},
-			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
-			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
-			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
-			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
+			{Offset: 0, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix())},
+			{Offset: 1, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 1)},
+			{Offset: 2, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 2)},
+			{Offset: 3, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 3)},
+			{Offset: 4, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 4)},
+			{Offset: 5, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 5)},
+			{Offset: 6, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 6)},
+			{Offset: 7, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 7)},
+			{Offset: 8, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 8)},
+			{Offset: 9, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 9)},
 		},
 		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"565", "8888"}},
 		TraceSet: types.TraceSet{
@@ -368,16 +368,16 @@ func TestLoader_InsufficientNonMissingDataSentinel_ResultIsSkipped(t *testing.T)
 	dfb := &mocks.DataFrameBuilder{}
 	df := &dataframe.DataFrame{
 		Header: []*dataframe.ColumnHeader{
-			{Offset: 0, Timestamp: gittest.StartTime.Unix()},
-			{Offset: 1, Timestamp: gittest.StartTime.Unix() + 1},
-			{Offset: 2, Timestamp: gittest.StartTime.Unix() + 2},
-			{Offset: 3, Timestamp: gittest.StartTime.Unix() + 3},
-			{Offset: 4, Timestamp: gittest.StartTime.Unix() + 4},
-			{Offset: 5, Timestamp: gittest.StartTime.Unix() + 5},
-			{Offset: 6, Timestamp: gittest.StartTime.Unix() + 6},
-			{Offset: 7, Timestamp: gittest.StartTime.Unix() + 7},
-			{Offset: 8, Timestamp: gittest.StartTime.Unix() + 8},
-			{Offset: 9, Timestamp: gittest.StartTime.Unix() + 9},
+			{Offset: 0, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix())},
+			{Offset: 1, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 1)},
+			{Offset: 2, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 2)},
+			{Offset: 3, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 3)},
+			{Offset: 4, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 4)},
+			{Offset: 5, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 5)},
+			{Offset: 6, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 6)},
+			{Offset: 7, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 7)},
+			{Offset: 8, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 8)},
+			{Offset: 9, Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix() + 9)},
 		},
 		ParamSet: paramtools.ReadOnlyParamSet{"config": []string{"565", "8888"}},
 		TraceSet: types.TraceSet{

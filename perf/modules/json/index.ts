@@ -9,6 +9,7 @@ export namespace pivot {
 }
 
 export interface Go2TS {
+	GenerateNominalTypes: boolean;
 }
 
 export interface Alert {
@@ -64,7 +65,7 @@ export interface StepFit {
 
 export interface ColumnHeader {
 	offset: CommitNumber;
-	timestamp: number;
+	timestamp: TimestampSeconds;
 }
 
 export interface ClusterSummary {
@@ -394,19 +395,91 @@ export namespace ingest {
 	}
 }
 
-export type Params = { [key: string]: string };
+export type Params = { [key: string]: string } & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_paramsBrand: 'type alias for { [key: string]: string }'
+};
 
-export type ParamSet = { [key: string]: string[] };
+export function Params(v: { [key: string]: string }): Params {
+	return v as Params;
+};
 
-export type ReadOnlyParamSet = { [key: string]: string[] };
+export type ParamSet = { [key: string]: string[] } & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_paramSetBrand: 'type alias for { [key: string]: string[] }'
+};
 
-export type Trace = number[];
+export function ParamSet(v: { [key: string]: string[] }): ParamSet {
+	return v as ParamSet;
+};
 
-export type TraceSet = { [key: string]: Trace };
+export type ReadOnlyParamSet = { [key: string]: string[] } & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_readOnlyParamSetBrand: 'type alias for { [key: string]: string[] }'
+};
+
+export function ReadOnlyParamSet(v: { [key: string]: string[] }): ReadOnlyParamSet {
+	return v as ReadOnlyParamSet;
+};
+
+export type Trace = number[] & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_traceBrand: 'type alias for number[]'
+};
+
+export function Trace(v: number[]): Trace {
+	return v as Trace;
+};
+
+export type TraceSet = { [key: string]: Trace } & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_traceSetBrand: 'type alias for { [key: string]: Trace }'
+};
+
+export function TraceSet(v: { [key: string]: Trace }): TraceSet {
+	return v as TraceSet;
+};
 
 export namespace pivot { export type Operation = 'sum' | 'avg' | 'geo' | 'std' | 'count' | 'min' | 'max'; }
 
-export type SerializesToString = string;
+export type SerializesToString = string & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_serializesToStringBrand: 'type alias for string'
+};
+
+export function SerializesToString(v: string): SerializesToString {
+	return v as SerializesToString;
+};
 
 export type ClusterAlgo = 'kmeans' | 'stepfit';
 
@@ -418,7 +491,33 @@ export type Direction = 'UP' | 'DOWN' | 'BOTH';
 
 export type StepFitStatus = 'Low' | 'High' | 'Uninteresting';
 
-export type CommitNumber = number;
+export type CommitNumber = number & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_commitNumberBrand: 'type alias for number'
+};
+
+export function CommitNumber(v: number): CommitNumber {
+	return v as CommitNumber;
+};
+
+export type TimestampSeconds = number & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_timestampSecondsBrand: 'type alias for number'
+};
+
+export function TimestampSeconds(v: number): TimestampSeconds {
+	return v as TimestampSeconds;
+};
 
 export type FrameResponseDisplayMode = 'display_query_only' | 'display_plot' | 'display_pivot_table' | 'display_pivot_plot' | 'display_spinner';
 
@@ -438,7 +537,19 @@ export type TraceFormat = 'chrome' | '';
 
 export type TryBotRequestKind = 'trybot' | 'commit';
 
-export type CL = string;
+export type CL = string & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_cLBrand: 'type alias for string'
+};
+
+export function CL(v: string): CL {
+	return v as CL;
+};
 
 export type ProcessState = 'Running' | 'Success' | 'Error';
 

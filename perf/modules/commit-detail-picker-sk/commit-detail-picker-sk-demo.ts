@@ -2,13 +2,13 @@ import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
 import { CommitDetailPickerSk } from './commit-detail-picker-sk';
-import { Commit } from '../json';
+import { Commit, CommitNumber } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 
 fetchMock.post('/_/cidRange/', (): Commit[] => [
   {
-    offset: 43389,
+    offset: CommitNumber(43389),
     author: 'Avinash Parchuri (aparchur@google.com)',
     message: 'Reland "[skottie] Add onTextProperty support into ',
     url: 'https://skia.googlesource.com/skia/+show/3a543aafd4e68af182ef88572086c094cd63f0b2',
@@ -17,7 +17,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     body: 'Commit body.',
   },
   {
-    offset: 43390,
+    offset: CommitNumber(43390),
     author: 'Robert Phillips (robertphillips@google.com)',
     message: 'Use GrComputeTightCombinedBufferSize in GrMtlGpu::',
     url: 'https://skia.googlesource.com/skia/+show/bdb0919dcc6a700b41492c53ecf06b40983d13d7',
@@ -26,7 +26,7 @@ fetchMock.post('/_/cidRange/', (): Commit[] => [
     body: 'Commit body.',
   },
   {
-    offset: 43391,
+    offset: CommitNumber(43391),
     author: 'Hal Canary (halcanary@google.com)',
     message: 'experimental/editor: interface no longer uses stri',
     url: 'https://skia.googlesource.com/skia/+show/e45bf6a603b7990f418eaf19ef0e2a2e59a9f449',

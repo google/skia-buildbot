@@ -197,7 +197,7 @@ func frameRequestForTest(t *testing.T) (*mocks.DataFrameBuilder, *dataframe.Data
 	for i := 0; i < numHeaders; i++ {
 		df.Header[i] = &dataframe.ColumnHeader{
 			Offset:    types.CommitNumber(i + 1),
-			Timestamp: testTimeBegin.Unix() + int64(i),
+			Timestamp: dataframe.TimestampSeconds(testTimeBegin.Unix() + int64(i)),
 		}
 	}
 	df.BuildParamSet()

@@ -17,7 +17,11 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CountHandlerRequest, CountHandlerResponse, ParamSet } from '../json';
+import {
+  CountHandlerRequest,
+  CountHandlerResponse,
+  ReadOnlyParamSet,
+} from '../json';
 import '../../../elements-sk/modules/spinner-sk';
 
 export class QueryCountSk extends ElementSk {
@@ -91,7 +95,7 @@ export class QueryCountSk extends ElementSk {
         this._requestInProgress = false;
         this._render();
         this.dispatchEvent(
-          new CustomEvent<ParamSet>('paramset-changed', {
+          new CustomEvent<ReadOnlyParamSet>('paramset-changed', {
             detail: json.paramset,
             bubbles: true,
           })

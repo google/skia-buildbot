@@ -9,7 +9,12 @@ import {
   ReadOnlyParamSet,
   Trace,
 } from '../json';
-import { addParamSet, addParamsToParamSet, fromKey } from '../paramtools';
+import {
+  addParamSet,
+  addParamsToParamSet,
+  fromKey,
+  toReadOnlyParamSet,
+} from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 /** mergeColumnHeaders creates a merged header from the two given headers.
@@ -96,32 +101,36 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
   }
   ret.skip = b.skip;
 
-  const ps: ParamSet = {};
+  const ps = ParamSet({});
 
   addParamSet(ps, a.paramset);
   addParamSet(ps, b.paramset);
 
   normalize(ps);
-  ret.paramset = ps as ReadOnlyParamSet;
+  ret.paramset = toReadOnlyParamSet(ps);
 
   const traceLen = ret.header!.length;
 
   for (const [key, sourceTrace] of Object.entries(a.traceset)) {
     if (!ret.traceset[key]) {
-      ret.traceset[key] = new Array(traceLen).fill(MISSING_DATA_SENTINEL);
+      ret.traceset[key] = Trace(
+        new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL)
+      );
     }
     const destTrace = ret.traceset[key];
-    sourceTrace.forEach((sourceValue, sourceOffset) => {
+    (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {
       destTrace[aMap[sourceOffset]] = sourceValue;
     });
   }
 
   for (const [key, sourceTrace] of Object.entries(b.traceset)) {
     if (!ret.traceset[key]) {
-      ret.traceset[key] = new Array(traceLen).fill(MISSING_DATA_SENTINEL);
+      ret.traceset[key] = Trace(
+        new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL)
+      );
     }
     const destTrace = ret.traceset[key];
-    sourceTrace.forEach((sourceValue, sourceOffset) => {
+    (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {
       destTrace[bMap[sourceOffset]] = sourceValue;
     });
   }
@@ -131,13 +140,13 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
 
 /** buildParamSet rebuilds d.paramset from the keys of d.traceset. */
 export function buildParamSet(d: DataFrame): void {
-  const paramSet: ParamSet = {};
+  const paramSet = ParamSet({});
   for (const key of Object.keys(d.traceset)) {
     const params = fromKey(key);
     addParamsToParamSet(paramSet, params);
   }
   normalize(paramSet);
-  d.paramset = paramSet as ReadOnlyParamSet;
+  d.paramset = toReadOnlyParamSet(paramSet);
 }
 
 /** timestampBounds returns the timestamps for the first and last header values.
@@ -156,7 +165,7 @@ export function timestampBounds(df: DataFrame | null): [number, number] {
 
 function normalize(ps: ParamSet): void {
   for (const [k, v] of Object.entries(ps)) {
-    v.sort();
+    (v as string[]).sort();
   }
 }
 

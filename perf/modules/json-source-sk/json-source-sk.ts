@@ -22,7 +22,7 @@ import { validKey } from '../paramtools';
 export class JSONSourceSk extends ElementSk {
   private _json: string;
 
-  private _cid: CommitNumber = -1;
+  private _cid: CommitNumber = CommitNumber(-1);
 
   private _traceid: string;
 
@@ -56,11 +56,11 @@ export class JSONSourceSk extends ElementSk {
   }
 
   /** @prop cid - The Commit ID. */
-  get cid(): number {
+  get cid(): CommitNumber {
     return this._cid;
   }
 
-  set cid(val: number) {
+  set cid(val: CommitNumber) {
     this._cid = val;
     this._json = '';
     this._render();

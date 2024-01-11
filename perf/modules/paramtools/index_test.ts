@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { ParamSet } from '../json';
+import { ParamSet, Params } from '../json';
 import {
   addParamSet,
   addParamsToParamSet,
@@ -22,58 +22,64 @@ describe('paramtooms', () => {
 
   describe('fromKey', () => {
     it('parses a key correctly', () => {
-      assert.deepEqual({ b: '2', a: '1', c: '3' }, fromKey(',a=1,b=2,c=3,'));
+      assert.deepEqual(
+        Params({ b: '2', a: '1', c: '3' }),
+        fromKey(',a=1,b=2,c=3,')
+      );
     });
 
     it('handles empty string as key', () => {
-      assert.deepEqual({}, fromKey(''));
+      assert.deepEqual(Params({}), fromKey(''));
     });
   });
 
   describe('addParamsToParamSet', () => {
     it('works on empty values', () => {
-      const ps: ParamSet = {};
-      addParamsToParamSet(ps, {});
-      assert.deepEqual({}, ps);
+      const ps = ParamSet({});
+      addParamsToParamSet(ps, Params({}));
+      assert.deepEqual(ParamSet({}), ps);
     });
 
     it('handles duplicate keys and values', () => {
-      const ps: ParamSet = {};
-      addParamsToParamSet(ps, { a: '1' });
-      addParamsToParamSet(ps, { a: '1' });
-      assert.deepEqual({ a: ['1'] }, ps);
+      const ps = ParamSet({});
+      addParamsToParamSet(ps, Params({ a: '1' }));
+      addParamsToParamSet(ps, Params({ a: '1' }));
+      assert.deepEqual(ParamSet({ a: ['1'] }), ps);
     });
 
     it('handles distinct keys and values', () => {
-      const ps: ParamSet = {};
-      addParamsToParamSet(ps, { a: '1' });
-      addParamsToParamSet(ps, { b: '2' });
-      assert.deepEqual({ a: ['1'], b: ['2'] }, ps);
+      const ps = ParamSet({});
+      addParamsToParamSet(ps, Params({ a: '1' }));
+      addParamsToParamSet(ps, Params({ b: '2' }));
+      assert.deepEqual(ParamSet({ a: ['1'], b: ['2'] }), ps);
     });
 
     it('handles distinct keys and multiple values', () => {
-      const ps: ParamSet = {};
-      addParamsToParamSet(ps, { a: '1' });
-      addParamsToParamSet(ps, { b: '2' });
-      addParamsToParamSet(ps, { b: '3' });
-      assert.deepEqual({ a: ['1'], b: ['2', '3'] }, ps);
+      const ps = ParamSet({});
+      addParamsToParamSet(ps, Params({ a: '1' }));
+      addParamsToParamSet(ps, Params({ b: '2' }));
+      addParamsToParamSet(ps, Params({ b: '3' }));
+      assert.deepEqual(ParamSet({ a: ['1'], b: ['2', '3'] }), ps);
     });
   });
 });
 
 describe('paramsToParamSet', () => {
   it('handles empy Params', () => {
-    assert.deepEqual({}, paramsToParamSet({}));
+    assert.deepEqual(ParamSet({}), paramsToParamSet(Params({})));
   });
 
   it('handles a single Param', () => {
-    assert.deepEqual({ a: ['b'] }, paramsToParamSet({ a: 'b' }));
+    assert.deepEqual(
+      ParamSet({ a: ['b'] }),
+      paramsToParamSet(Params({ a: 'b' }))
+    );
   });
 
   it('handles multiple Params', () => {
     assert.deepEqual(
-      { a: ['1'], b: ['2'] },
-      paramsToParamSet({ a: '1', b: '2' })
+      ParamSet({ a: ['1'], b: ['2'] }),
+      paramsToParamSet(Params({ a: '1', b: '2' }))
     );
   });
 });
@@ -90,30 +96,30 @@ describe('validKey', () => {
 
 describe('addParamSet', () => {
   it('adds one param to set of two params', () => {
-    const a: ParamSet = { foo: ['a', 'b'] };
-    const b: ParamSet = { foo: ['c'] };
+    const a = ParamSet({ foo: ['a', 'b'] });
+    const b = ParamSet({ foo: ['c'] });
     addParamSet(a, b);
-    assert.deepEqual(a, { foo: ['a', 'b', 'c'] });
+    assert.deepEqual(a, ParamSet({ foo: ['a', 'b', 'c'] }));
   });
 
   it('adds one param to empty params', () => {
-    const a: ParamSet = {};
-    const b: ParamSet = { foo: ['c'] };
+    const a = ParamSet({});
+    const b = ParamSet({ foo: ['c'] });
     addParamSet(a, b);
-    assert.deepEqual(a, { foo: ['c'] });
+    assert.deepEqual(a, ParamSet({ foo: ['c'] }));
   });
 
   it('adds empty params to set of one params', () => {
-    const a: ParamSet = { foo: ['c'] };
-    const b: ParamSet = {};
+    const a = ParamSet({ foo: ['c'] });
+    const b = ParamSet({});
     addParamSet(a, b);
-    assert.deepEqual(a, { foo: ['c'] });
+    assert.deepEqual(a, ParamSet({ foo: ['c'] }));
   });
 
   it('adds params for disjoint key sets', () => {
-    const a: ParamSet = { foo: ['c'] };
-    const b: ParamSet = { bar: ['b'] };
+    const a = ParamSet({ foo: ['c'] });
+    const b = ParamSet({ bar: ['b'] });
     addParamSet(a, b);
-    assert.deepEqual(a, { foo: ['c'], bar: ['b'] });
+    assert.deepEqual(a, ParamSet({ foo: ['c'], bar: ['b'] }));
   });
 });

@@ -1,6 +1,7 @@
 import fetchMock from 'fetch-mock';
 import './index';
 import { IngestFileLinksSk } from './ingest-file-links-sk';
+import { CommitNumber } from '../json';
 
 fetchMock.post('/_/details/?results=false', () => ({
   version: 1,
@@ -18,6 +19,6 @@ window.customElements.whenDefined('ingest-file-links-sk').then(() => {
     'ingest-file-links-sk'
   )!;
   sources.forEach((source) => {
-    source.load(12, 'foo');
+    source.load(CommitNumber(12), 'foo');
   });
 });

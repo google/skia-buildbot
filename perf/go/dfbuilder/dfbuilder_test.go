@@ -216,15 +216,15 @@ func TestFromIndexRange_Success(t *testing.T) {
 	assert.Equal(t, []*dataframe.ColumnHeader{
 		{
 			Offset:    0,
-			Timestamp: gittest.StartTime.Unix(),
+			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Unix()),
 		},
 		{
 			Offset:    1,
-			Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
+			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Add(time.Minute).Unix()),
 		},
 		{
 			Offset:    2,
-			Timestamp: gittest.StartTime.Add(2 * time.Minute).Unix(),
+			Timestamp: dataframe.TimestampSeconds(gittest.StartTime.Add(2 * time.Minute).Unix()),
 		},
 	}, columnHeaders)
 	assert.Equal(t, []types.CommitNumber{0, 1, 2}, commitNumbers)

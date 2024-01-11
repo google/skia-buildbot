@@ -57,23 +57,23 @@ func TestCalcCusterSummaries(t *testing.T) {
 		Header: []*dataframe.ColumnHeader{
 			{
 				Offset:    0,
-				Timestamp: now.Unix(),
+				Timestamp: dataframe.TimestampSeconds(now.Unix()),
 			},
 			{
 				Offset:    1,
-				Timestamp: now.Add(time.Minute).Unix(),
+				Timestamp: dataframe.TimestampSeconds(now.Add(time.Minute).Unix()),
 			},
 			{
 				Offset:    2,
-				Timestamp: now.Add(2 * time.Minute).Unix(),
+				Timestamp: dataframe.TimestampSeconds(now.Add(2 * time.Minute).Unix()),
 			},
 			{
 				Offset:    3,
-				Timestamp: now.Add(3 * time.Minute).Unix(),
+				Timestamp: dataframe.TimestampSeconds(now.Add(3 * time.Minute).Unix()),
 			},
 			{
 				Offset:    4,
-				Timestamp: now.Add(4 * time.Minute).Unix(),
+				Timestamp: dataframe.TimestampSeconds(now.Add(4 * time.Minute).Unix()),
 			},
 		},
 		ParamSet: paramtools.NewReadOnlyParamSet(),

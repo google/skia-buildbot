@@ -31,6 +31,7 @@ import {
   RegressionDetectionRequest,
   AlertUpdateResponse,
   progress,
+  ReadOnlyParamSet,
 } from '../json';
 import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
@@ -52,7 +53,7 @@ export class ClusterLastNPageSk extends ElementSk {
   private writingAlert: boolean = false;
 
   // The paramsets for the alert config.
-  private paramset: ParamSet = {};
+  private paramset = ReadOnlyParamSet({});
 
   // The id of the currently running request.
   private requestId: string = '';

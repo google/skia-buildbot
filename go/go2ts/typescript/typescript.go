@@ -220,6 +220,14 @@ type TypeAliasDeclaration struct {
 	Namespace  string
 	Identifier string
 	Type       Type
+	// GenerateNominalTypes tells TypeAliasDeclaration to generate nominal TypeScript types
+	// for aliased Go types. For background on "nominal typing" in TypeScript, see
+	// https://www.typescriptlang.org/play#example/nominal-typing and
+	// https://basarat.gitbook.io/typescript/main-1/nominaltyping.
+	// The TypeScript compiler itself uses this technique to achieve
+	// a similar effect as with Go's type aliases:
+	// https://github.com/Microsoft/TypeScript/blob/7b48a182c05ea4dea81bab73ecbbe9e013a79e99/src/compiler/types.ts#L693
+	GenerateNominalTypes bool
 }
 
 // TypeReference implements the TypeDeclaration interface.
@@ -236,6 +244,55 @@ func (a *TypeAliasDeclaration) QualifiedName() string {
 
 // ToTypeScript implements the TypeDeclaration interface.
 func (a *TypeAliasDeclaration) ToTypeScript() string {
+	if _, ok := a.Type.(*UnionType); !ok && a.GenerateNominalTypes {
+		if a.Namespace == "" {
+			return fmt.Sprintf(`export type %s = %s & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_%sBrand: 'type alias for %s'
+};
+
+export function %s(v: %s): %s {
+	return v as %s;
+};`,
+				a.Identifier,
+				a.Type.ToTypeScript(),
+				strings.ToLower(string(a.Identifier[0]))+a.Identifier[1:],
+				a.Type.ToTypeScript(),
+				a.Identifier,
+				a.Type.ToTypeScript(),
+				a.Identifier,
+				a.Identifier)
+		}
+		return fmt.Sprintf(`export namespace %s {
+    export type %s = %s & {
+		/**
+		* WARNING: Do not reference this field from application code.
+		*
+		* This field exists solely to provide nominal typing. For reference, see
+		* https://www.typescriptlang.org/play#example/nominal-typing.
+		*/
+        _%sbrand: 'type alias for %s'
+    };
+
+    export function %s(v: %s): %s {
+        return v as %s;
+    };
+}`,
+			a.Namespace,
+			a.Identifier,
+			a.Type.ToTypeScript(),
+			strings.ToLower(string(a.Identifier[0]))+a.Identifier[1:],
+			a.Type.ToTypeScript(),
+			a.Identifier,
+			a.Type.ToTypeScript(),
+			a.Identifier,
+			a.Identifier)
+	}
 	if a.Namespace == "" {
 		return fmt.Sprintf("export type %s = %s;", a.Identifier, a.Type.ToTypeScript())
 	}

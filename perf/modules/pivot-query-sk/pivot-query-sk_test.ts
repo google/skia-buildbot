@@ -25,11 +25,11 @@ describe('pivot-query-sk', () => {
         summary: [],
       };
 
-      const paramSet: ParamSet = {
+      const paramSet = ParamSet({
         config: ['8888', '565'],
         arch: ['x86', 'risc-v'],
         model: ['Pixel2', 'Pixel3'],
-      };
+      });
 
       el.pivotRequest = validPivotRequest;
       el.paramset = paramSet;

@@ -1,7 +1,7 @@
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
-import { Alert } from '../json';
+import { Alert, SerializesToString } from '../json';
 
 const paramSet = {
   arch: ['WASM', 'arm', 'arm64', 'asmjs', 'wasm', 'x86', 'x86_64'],
@@ -60,7 +60,7 @@ const alert: Alert = {
   id_as_string: '-1',
   sparse: false,
   step_up_only: false,
-  issue_tracker_component: '',
+  issue_tracker_component: SerializesToString(''),
   display_name: 'A name',
   direction: 'BOTH',
   query: '',

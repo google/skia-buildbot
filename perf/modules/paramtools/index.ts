@@ -6,7 +6,7 @@
 import { Params, ParamSet, ReadOnlyParamSet } from '../json';
 
 /** Create a structured key from a Params. */
-export function makeKey(params: Params): string {
+export function makeKey(params: Params | { [key: string]: string }): string {
   if (Object.keys(params).length === 0) {
     throw new Error('Params must have at least one entry');
   }
@@ -16,7 +16,7 @@ export function makeKey(params: Params): string {
 
 /** Parse a structured key into a Params. */
 export function fromKey(structuredKey: string): Params {
-  const ret: Params = {};
+  const ret = Params({});
   structuredKey.split(',').forEach((keyValue) => {
     if (!keyValue) {
       return;
@@ -48,7 +48,7 @@ export function addParamsToParamSet(ps: ParamSet, p: Params): void {
 }
 
 export function paramsToParamSet(p: Params): ParamSet {
-  const ret: ParamSet = {};
+  const ret = ParamSet({});
 
   Object.entries(p).forEach((value: [string, string]) => {
     ret[value[0]] = [value[1]];
@@ -63,7 +63,7 @@ export function addParamSet(
 ): void {
   for (const [k, arr] of Object.entries(ps)) {
     if (!p[k]) {
-      p[k] = arr.slice(0);
+      p[k] = (arr as string[]).slice(0);
     } else {
       for (const v of arr) {
         if (!p[k].includes(v)) {
@@ -72,4 +72,8 @@ export function addParamSet(
       }
     }
   }
+}
+
+export function toReadOnlyParamSet(ps: ParamSet): ReadOnlyParamSet {
+  return ps as unknown as ReadOnlyParamSet;
 }

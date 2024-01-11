@@ -1,17 +1,17 @@
 import { $$ } from '../../../infra-sk/modules/dom';
-import { DataFrame, pivot } from '../json';
+import { DataFrame, ReadOnlyParamSet, Trace, TraceSet, pivot } from '../json';
 import './index';
 import { PivotTableSk } from './pivot-table-sk';
 
 const df: DataFrame = {
   header: [],
-  paramset: {},
-  traceset: {
-    ',arch=x86,config=8888,': [1, 1.3e27],
-    ',arch=arm,config=8888,': [2, 2.3e27],
-    ',arch=x86,config=gpu,': [3, 1.2345],
-    ',arch=arm,config=gpu,': [3, Math.PI],
-  },
+  paramset: ReadOnlyParamSet({}),
+  traceset: TraceSet({
+    ',arch=x86,config=8888,': Trace([1, 1.3e27]),
+    ',arch=arm,config=8888,': Trace([2, 2.3e27]),
+    ',arch=x86,config=gpu,': Trace([3, 1.2345]),
+    ',arch=arm,config=gpu,': Trace([3, Math.PI]),
+  }),
   skip: 0,
 };
 const req: pivot.Request = {

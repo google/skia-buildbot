@@ -1,16 +1,17 @@
 import './index';
 import { CommitDetailPanelSk } from './commit-detail-panel-sk';
+import { Commit, CommitNumber } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
 
-const commitinfo = [
+const commitinfo: Commit[] = [
   {
     ts: 1439649751,
     author: 'foo (foo@example.org)',
     url: 'skia.googlesource.com/bar',
     message: 'Commit from foo.',
     hash: 'abcdef123',
-    offset: 1,
+    offset: CommitNumber(1),
     body: 'Commit body.',
   },
   {
@@ -19,7 +20,7 @@ const commitinfo = [
     url: 'skia.googlesource.com/foo',
     message: 'Commit from bar',
     hash: 'abcdef456',
-    offset: 2,
+    offset: CommitNumber(2),
     body: 'Commit body.',
   },
   {
@@ -28,7 +29,7 @@ const commitinfo = [
     url: 'https://codereview.chromium.org/1490543002',
     message: 'Whitespace change',
     hash: 'abcdef789',
-    offset: 3,
+    offset: CommitNumber(3),
     body: 'Commit body.',
   },
   {
@@ -37,7 +38,7 @@ const commitinfo = [
     url: 'https://codereview.chromium.org/1490543002',
     message: 'Another whitespace change',
     hash: 'abcdef101112',
-    offset: 4,
+    offset: CommitNumber(4),
     body: 'Commit body.',
   },
 ];

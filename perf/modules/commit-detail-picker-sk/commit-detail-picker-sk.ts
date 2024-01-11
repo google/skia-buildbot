@@ -29,7 +29,7 @@ const initialRange = {
 export class CommitDetailPickerSk extends ElementSk {
   private range: DayRangeSkChangeDetail = initialRange;
 
-  private _selection: CommitNumber = -1;
+  private _selection: CommitNumber = CommitNumber(-1);
 
   private selected: number = -1;
 

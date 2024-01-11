@@ -28,6 +28,8 @@ import {
   TryBotRequest,
   TryBotResponse,
   Params,
+  CommitNumber,
+  CL,
 } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 
@@ -80,9 +82,9 @@ export class TrybotPageSk extends ElementSk {
 
   private state: TryBotRequest = {
     kind: 'commit',
-    cl: '',
+    cl: '' as CL,
     patch_number: -1,
-    commit_number: -1,
+    commit_number: CommitNumber(-1),
     query: '',
   };
 
@@ -241,7 +243,7 @@ export class TrybotPageSk extends ElementSk {
     // TODO(jcgregorio) Deduplicate this from here and paramKeysAsHeaders.
     keys.sort();
 
-    let lastParams: Params = {};
+    let lastParams = Params({});
     const ret: TemplateResult[] = [];
     ele.results.results!.forEach((r, i) => {
       // Only display the head and tail of the Individual results.
@@ -428,7 +430,7 @@ export class TrybotPageSk extends ElementSk {
     }
     this.byParamsPlot!.addLines(lines, this.getLabels());
 
-    const ps: ParamSet = {};
+    const ps = ParamSet({});
     this.byParamsPlot!.getLineNames().forEach((traceName) => {
       addParamsToParamSet(ps, fromKey(traceName));
     });

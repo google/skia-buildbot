@@ -31,7 +31,7 @@ export const PivotQueryChangedEventName = 'pivot-changed';
  * for the pivot.Request.group_by.
  */
 export class PivotQuerySk extends ElementSk {
-  private _paramset: ParamSet = {};
+  private _paramset = ParamSet({});
 
   private _pivotRequest: pivot.Request | null = null;
 

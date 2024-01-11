@@ -44,6 +44,7 @@ import '../query-count-sk';
 import '../window/window';
 
 import {
+  CommitNumber,
   CreateBisectRequest,
   CreateBisectResponse,
   Anomaly,
@@ -61,6 +62,9 @@ import {
   CIDHandlerResponse,
   QueryConfig,
   TraceSet,
+  Commit,
+  Trace,
+  ReadOnlyParamSet,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -135,7 +139,7 @@ const PARAMS_TAB_INDEX = 0;
 const COMMIT_TAB_INDEX = 1;
 
 // The percentage of the current zoom window to pan or zoom on a keypress.
-const ZOOM_JUMP_PERCENT = 0.1;
+const ZOOM_JUMP_PERCENT = CommitNumber(0.1);
 
 // When we are zooming around and bump into the edges of the graph, how much
 // should we widen the range of commits, as a percentage of the currently
@@ -149,6 +153,11 @@ const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
+export interface ZoomWithDelta {
+  zoom: CommitRange;
+  delta: CommitNumber;
+}
+
 // Even though pivot.Request sent to the server can be null, we don't want to
 // put use a null in state, as that won't let stateReflector figure out the
 // right types inside pivot.Request, so we default to an invalid value here.
@@ -158,9 +167,11 @@ const defaultPivotRequest = (): pivot.Request => ({
   summary: [],
 });
 
+export type CommitRange = [CommitNumber, CommitNumber];
+
 // Stores the trace name and commit number of a single point on a trace.
 export interface PointSelected {
-  commit: number;
+  commit: CommitNumber;
   name: string;
 }
 
@@ -204,7 +215,7 @@ export const selectionToEvent = (
 
 /** Returns a default value for PointSelected. */
 export const defaultPointSelected = (): PointSelected => ({
-  commit: 0,
+  commit: CommitNumber(0),
   name: '',
 });
 
@@ -258,7 +269,7 @@ interface RangeChange {
    */
   rangeChange: boolean;
 
-  newOffsets?: [number, number];
+  newOffsets?: [CommitNumber, CommitNumber];
 }
 
 // clamp ensures a number is not negative.
@@ -279,14 +290,14 @@ function clampToNonNegative(x: number): number {
  * dataframe.
  */
 export function calculateRangeChange(
-  zoom: [number, number],
-  clampedZoom: [number, number],
-  offsets: [number, number]
+  zoom: CommitRange,
+  clampedZoom: CommitRange,
+  offsets: [CommitNumber, CommitNumber]
 ): RangeChange {
   // How much we will change the offset if we zoom beyond an edge.
   const offsetDelta = Math.floor(
     (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT
-  );
+  ) as CommitNumber;
   const exceedsLeftEdge = zoom[0] !== clampedZoom[0];
   const exceedsRightEdge = zoom[1] !== clampedZoom[1];
   if (exceedsLeftEdge && exceedsRightEdge) {
@@ -294,8 +305,8 @@ export function calculateRangeChange(
     return {
       rangeChange: true,
       newOffsets: [
-        clampToNonNegative(offsets[0] - offsetDelta),
-        offsets[1] + offsetDelta,
+        clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber,
+        (offsets[1] + offsetDelta) as CommitNumber,
       ],
     };
   }
@@ -303,14 +314,17 @@ export function calculateRangeChange(
     // shift left
     return {
       rangeChange: true,
-      newOffsets: [clampToNonNegative(offsets[0] - offsetDelta), offsets[1]],
+      newOffsets: [
+        clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber,
+        offsets[1],
+      ],
     };
   }
   if (exceedsRightEdge) {
     // shift right
     return {
       rangeChange: true,
-      newOffsets: [offsets[0], offsets[1] + offsetDelta],
+      newOffsets: [offsets[0], (offsets[1] + offsetDelta) as CommitNumber],
     };
   }
   return {
@@ -320,9 +334,9 @@ export function calculateRangeChange(
 
 export class ExploreSimpleSk extends ElementSk {
   private _dataframe: DataFrame = {
-    traceset: {},
+    traceset: TraceSet({}),
     header: [],
-    paramset: {},
+    paramset: ReadOnlyParamSet({}),
     skip: 0,
   };
 
@@ -445,7 +459,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceFormatter: TraceFormatter | null = null;
 
-  private originalTraceSet: TraceSet = {};
+  private originalTraceSet: TraceSet = TraceSet({});
 
   constructor() {
     super(ExploreSimpleSk.template);
@@ -1019,7 +1033,7 @@ export class ExploreSimpleSk extends ElementSk {
    *     delta: 10.0,
    *   }
    */
-  private getCurrentZoom() {
+  private getCurrentZoom(): ZoomWithDelta {
     let zoom = this.plot!.zoom;
     if (zoom === null) {
       zoom = [0, this._dataframe.header!.length - 1];
@@ -1032,22 +1046,22 @@ export class ExploreSimpleSk extends ElementSk {
       delta = MIN_ZOOM_RANGE;
     }
     return {
-      zoom,
-      delta,
+      zoom: zoom as CommitRange,
+      delta: delta as CommitNumber,
     };
   }
 
   /**
    * Clamp a single zoom endpoint.
    */
-  private clampZoomIndexToDataFrame(z: number): number {
+  private clampZoomIndexToDataFrame(z: CommitNumber): CommitNumber {
     if (z < 0) {
-      z = 0;
+      z = CommitNumber(0);
     }
     if (z > this._dataframe.header!.length - 1) {
-      z = this._dataframe.header!.length - 1;
+      z = (this._dataframe.header!.length - 1) as CommitNumber;
     }
-    return z;
+    return z as CommitNumber;
   }
 
   /**
@@ -1056,7 +1070,7 @@ export class ExploreSimpleSk extends ElementSk {
    * @param {Array<Number>} zoom - The zoom range.
    * @returns {Array<Number>} The zoom range.
    */
-  private rationalizeZoom(zoom: [number, number]) {
+  private rationalizeZoom(zoom: CommitRange): CommitRange {
     if (zoom[0] > zoom[1]) {
       const left = zoom[0];
       zoom[0] = zoom[1];
@@ -1072,13 +1086,13 @@ export class ExploreSimpleSk extends ElementSk {
    * @param zoom is the desired zoom range. Each number is an index into the
    * dataframe.
    */
-  private zoomOrRangeChange(zoom: [number, number]) {
+  private zoomOrRangeChange(zoom: CommitRange) {
     zoom = this.rationalizeZoom(zoom);
-    const clampedZoom: [number, number] = [
+    const clampedZoom: CommitRange = [
       this.clampZoomIndexToDataFrame(zoom[0]),
       this.clampZoomIndexToDataFrame(zoom[1]),
     ];
-    const offsets: [number, number] = [
+    const offsets: [CommitNumber, CommitNumber] = [
       this._dataframe.header![0]!.offset,
       this._dataframe.header![this._dataframe.header!.length - 1]!.offset,
     ];
@@ -1130,36 +1144,36 @@ export class ExploreSimpleSk extends ElementSk {
 
   private zoomInKey() {
     const cz = this.getCurrentZoom();
-    const zoom: [number, number] = [
-      cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
-      cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
+    const zoom: CommitRange = [
+      (cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+      (cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
     ];
     this.zoomOrRangeChange(zoom);
   }
 
   private zoomOutKey() {
     const cz = this.getCurrentZoom();
-    const zoom: [number, number] = [
-      cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
-      cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
+    const zoom: CommitRange = [
+      (cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+      (cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
     ];
     this.zoomOrRangeChange(zoom);
   }
 
   private zoomLeftKey() {
     const cz = this.getCurrentZoom();
-    const zoom: [number, number] = [
-      cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
-      cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
+    const zoom: CommitRange = [
+      (cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+      (cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
     ];
     this.zoomOrRangeChange(zoom);
   }
 
   private zoomRightKey() {
     const cz = this.getCurrentZoom();
-    const zoom: [number, number] = [
-      cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
-      cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
+    const zoom: CommitRange = [
+      (cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
+      (cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta) as CommitNumber,
     ];
     this.zoomOrRangeChange(zoom);
   }
@@ -1219,8 +1233,9 @@ export class ExploreSimpleSk extends ElementSk {
   private fromParamsOKQueryDialog() {
     // This query only contains the key this.fromParamsKey and it's values, so we need
     // to construct the full query using the traceID.
-    const updatedParamValues: ParamSet = toParamSet(
-      this.fromParamsQuery!.current_query
+    // Note:  toParamSet(s: string) returns CommonSkParamSet, not ParamSet. Hence the cast.
+    const updatedParamValues = ParamSet(
+      toParamSet(this.fromParamsQuery!.current_query)
     );
     const traceIDAsQuery: ParamSet = paramsToParamSet(
       fromKey(this._state.selected.name)
@@ -1332,12 +1347,13 @@ export class ExploreSimpleSk extends ElementSk {
     }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commit = this._dataframe.header![x]?.offset;
+    const commit: CommitNumber = this._dataframe.header![x]
+      ?.offset as CommitNumber;
     if (!commit) {
       return;
     }
 
-    const commits = [commit];
+    const commits: CommitNumber[] = [commit];
 
     // Find all the commit ids between the commit that was clicked on, and the
     // previous commit on the display, inclusive of the commit that was clicked,
@@ -1349,10 +1365,10 @@ export class ExploreSimpleSk extends ElementSk {
 
     // First skip back to the next point with data.
     const trace = this._dataframe.traceset[e.detail.name];
-    let prevCommit = -1;
+    let prevCommit: CommitNumber = CommitNumber(-1);
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
-        prevCommit = this._dataframe.header![i]!.offset;
+        prevCommit = this._dataframe.header![i]!.offset as CommitNumber;
         break;
       }
     }
@@ -1364,7 +1380,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     if (prevCommit !== -1) {
       for (let c = commit - 1; c > prevCommit; c--) {
-        commits.push(c);
+        commits.push(c as CommitNumber);
       }
     }
 
@@ -1380,7 +1396,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    const paramset: ParamSet = {};
+    const paramset = ParamSet({});
     this.simpleParamset!.paramsets = [];
 
     if (validKey(e.detail.name)) {
@@ -1529,7 +1545,7 @@ export class ExploreSimpleSk extends ElementSk {
       // Adding is slightly more involved. The current dataframe may have matching traces removed,
       // so we need to look at the original trace set to find matching traces. If we find any
       // match, we add it to the current dataframe and then add the lines to the rendered plot.
-      const traceSet: TraceSet = {};
+      const traceSet = TraceSet({});
       Object.keys(this.originalTraceSet).forEach((key) => {
         if (_matches(key, e.detail.key, e.detail.value!)) {
           if (!(key in this._dataframe.traceset)) {
@@ -1853,7 +1869,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Add in the 0-trace.
     if (this._state.showZero) {
-      dataframe.traceset[ZERO_NAME] = Array(dataframe.header!.length).fill(0);
+      dataframe.traceset[ZERO_NAME] = Trace(
+        Array(dataframe.header!.length).fill(0)
+      );
     }
 
     const exsitingBounds = timestampBounds(this._dataframe);
@@ -2119,7 +2137,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.keys = '';
     this.plot!.removeAll();
     this._dataframe.header = [];
-    this._dataframe.traceset = {};
+    this._dataframe.traceset = TraceSet({});
     this.paramset!.paramsets = [];
     this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;

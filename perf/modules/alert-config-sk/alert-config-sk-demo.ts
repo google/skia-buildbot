@@ -1,6 +1,6 @@
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { AlertConfigSk } from './alert-config-sk';
-import { Alert } from '../json';
+import { Alert, ParamSet, SerializesToString } from '../json';
 import '../../../elements-sk/modules/error-toast-sk';
 
 window.perf = window.perf || {};
@@ -16,7 +16,7 @@ const refreshControls = () => {
   });
 };
 
-const paramset = {
+const paramset = ParamSet({
   config: ['565', '8888'],
   type: ['CPU', 'GPU'],
   units: ['ms', 'bytes'],
@@ -37,7 +37,7 @@ const paramset = {
     'GLVec4ScalarBench_scalar_1_stage',
     'GLVec4ScalarBench_scalar_2_stage',
   ],
-};
+});
 
 const config: Alert = {
   id_as_string: '1',
@@ -47,7 +47,7 @@ const config: Alert = {
   direction: 'BOTH',
   query: 'config=565',
   alert: 'alerts@example.com',
-  issue_tracker_component: '1113162',
+  issue_tracker_component: SerializesToString('1113162'),
   interesting: 25,
   step: 'cohen',
   bug_uri_template: 'http://example.com/{description}/{url}',
@@ -63,32 +63,32 @@ const config: Alert = {
 
 $$('#display_group_by')!.addEventListener('click', () => {
   window.perf.display_group_by = true;
-  config.issue_tracker_component = '1113162';
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 $$('#hide_group_by')!.addEventListener('click', () => {
   window.perf.display_group_by = false;
-  config.issue_tracker_component = '1113162';
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 $$('#display_email')!.addEventListener('click', () => {
   window.perf.notifications = 'html_email';
-  config.issue_tracker_component = '1113162';
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 $$('#display_issue')!.addEventListener('click', () => {
   window.perf.notifications = 'markdown_issuetracker';
-  config.issue_tracker_component = '1113162';
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 $$('#hide_notification')!.addEventListener('click', () => {
   window.perf.notifications = 'none';
-  config.issue_tracker_component = '1113162';
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 $$('#invalid_component')!.addEventListener('click', () => {
   window.perf.notifications = 'markdown_issuetracker';
-  config.issue_tracker_component = 'abcdef';
+  config.issue_tracker_component = SerializesToString('abcdef');
   refreshControls();
 });
 

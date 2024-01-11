@@ -53,6 +53,15 @@ type Go2TS struct {
 
 	// anonymousCount keeps track of the number of anonymous structs we've had to name.
 	anonymousCount int
+
+	// GenerateNominalTypes tells Go2TS to generate nominal TypeScript types for aliased Go types.
+	// For background on "nominal typing" in TypeScript, see
+	// https://www.typescriptlang.org/play#example/nominal-typing and
+	// https://basarat.gitbook.io/typescript/main-1/nominaltyping.
+	// The TypeScript compiler itself uses this technique to achieve
+	// a similar effect as with Go's type aliases:
+	// https://github.com/Microsoft/TypeScript/blob/7b48a182c05ea4dea81bab73ecbbe9e013a79e99/src/compiler/types.ts#L693
+	GenerateNominalTypes bool
 }
 
 // New returns a new *Go2TS.
@@ -279,9 +288,10 @@ func (g *Go2TS) AddUnionWithNameToNamespace(v interface{}, typeName, namespace s
 	} else {
 		// The reflect.Type hasn't been seen before, so we declare a new type alias for the union type.
 		g.getOrSaveTypeDeclaration(reflectType.Elem(), &typescript.TypeAliasDeclaration{
-			Namespace:  namespace,
-			Identifier: typeName,
-			Type:       unionType,
+			Namespace:            namespace,
+			Identifier:           typeName,
+			Type:                 unionType,
+			GenerateNominalTypes: g.GenerateNominalTypes,
 		})
 	}
 }
@@ -338,9 +348,10 @@ func (g *Go2TS) addTypeDeclaration(reflectType reflect.Type, typeName, namespace
 		typeName = reflectType.Name()
 	}
 	typeDeclaration := &typescript.TypeAliasDeclaration{
-		Namespace:  namespace,
-		Identifier: typeName,
-		Type:       g.reflectTypeToTypeScriptType(reflectType, namespace, ignoreNilPolicy, explicitlyDiscovered, doNotForceToString),
+		Namespace:            namespace,
+		Identifier:           typeName,
+		Type:                 g.reflectTypeToTypeScriptType(reflectType, namespace, ignoreNilPolicy, explicitlyDiscovered, doNotForceToString),
+		GenerateNominalTypes: g.GenerateNominalTypes,
 	}
 
 	g.getOrSaveTypeDeclaration(reflectType, typeDeclaration)
@@ -672,9 +683,10 @@ func (g *Go2TS) reflectTypeToTypeScriptType(reflectType reflect.Type, namespace 
 		// We don't want an alias for time.Time because we treat it as a string in TypeScript.
 		!isTime(reflectType) {
 		typeDeclaration := &typescript.TypeAliasDeclaration{
-			Namespace:  namespace,
-			Identifier: reflectType.Name(),
-			Type:       tsType,
+			Namespace:            namespace,
+			Identifier:           reflectType.Name(),
+			Type:                 tsType,
+			GenerateNominalTypes: g.GenerateNominalTypes,
 		}
 
 		// If we've already added a TypeScript type declaration for this Go type, we'll return a

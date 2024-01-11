@@ -6,6 +6,11 @@ import {
   TriageStatus,
   Alert,
   FrameResponse,
+  CommitNumber,
+  TimestampSeconds,
+  SerializesToString,
+  TraceSet,
+  ReadOnlyParamSet,
 } from '../json';
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
@@ -28,7 +33,7 @@ ClusterSummary2Sk.lookupCids = () =>
       commitSlice: [
         {
           hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
-          offset: 24748,
+          offset: CommitNumber(24748),
           author: 'msarett@google.com',
           message: 'Safely handle unsupported color xforms in SkCodec',
           url: 'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66',
@@ -44,7 +49,7 @@ const alert: Alert = {
   id_as_string: '-1',
   display_name: '',
   radius: 6,
-  issue_tracker_component: '',
+  issue_tracker_component: SerializesToString(''),
   query: 'config=565',
   k: 0,
   algo: 'stepfit',
@@ -83,8 +88,8 @@ const summary: ClusterSummary = {
     status: 'Low',
   },
   step_point: {
-    offset: 24745,
-    timestamp: 1476983221,
+    offset: CommitNumber(24745),
+    timestamp: TimestampSeconds(1476983221),
   },
   num: 4,
   ts: new Date().toISOString(),
@@ -93,27 +98,27 @@ const summary: ClusterSummary = {
 
 const frame: FrameResponse = {
   dataframe: {
-    traceset: {},
+    traceset: TraceSet({}),
     header: [
-      { offset: 24744, timestamp: 1476982874 },
-      { offset: 24745, timestamp: 1476983221 },
-      { offset: 24746, timestamp: 1476983487 },
-      { offset: 24747, timestamp: 1476983833 },
-      { offset: 24748, timestamp: 1476984695 },
-      { offset: 24749, timestamp: 1476985138 },
-      { offset: 24750, timestamp: 1476985844 },
-      { offset: 24751, timestamp: 1476986630 },
-      { offset: 24752, timestamp: 1476986672 },
-      { offset: 24753, timestamp: 1476986679 },
-      { offset: 24754, timestamp: 1476987166 },
+      { offset: CommitNumber(24744), timestamp: TimestampSeconds(1476982874) },
+      { offset: CommitNumber(24745), timestamp: TimestampSeconds(1476983221) },
+      { offset: CommitNumber(24746), timestamp: TimestampSeconds(1476983487) },
+      { offset: CommitNumber(24747), timestamp: TimestampSeconds(1476983833) },
+      { offset: CommitNumber(24748), timestamp: TimestampSeconds(1476984695) },
+      { offset: CommitNumber(24749), timestamp: TimestampSeconds(1476985138) },
+      { offset: CommitNumber(24750), timestamp: TimestampSeconds(1476985844) },
+      { offset: CommitNumber(24751), timestamp: TimestampSeconds(1476986630) },
+      { offset: CommitNumber(24752), timestamp: TimestampSeconds(1476986672) },
+      { offset: CommitNumber(24753), timestamp: TimestampSeconds(1476986679) },
+      { offset: CommitNumber(24754), timestamp: TimestampSeconds(1476987166) },
     ],
-    paramset: {
+    paramset: ReadOnlyParamSet({
       arch: ['arm', 'arm64', 'x86', 'x86_64'],
       bench_type: ['skandroidcodec'],
       compiler: ['Clang', 'GCC', 'MSVC'],
       config: ['nonrendering'],
       cpu_or_gpu: ['CPU'],
-    },
+    }),
     skip: 0,
   },
   skps: [],

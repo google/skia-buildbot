@@ -47,6 +47,7 @@ func main() {
 	flag.Parse()
 
 	generator := go2ts.New()
+	generator.GenerateNominalTypes = true
 	generator.AddIgnoreNil(paramtools.Params{})
 	generator.AddIgnoreNil(paramtools.ParamSet{})
 	generator.AddIgnoreNil(paramtools.ReadOnlyParamSet{})

@@ -7,7 +7,7 @@ import {
   eventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import { DataFrame, pivot, TraceSet } from '../json';
+import { DataFrame, pivot, ReadOnlyParamSet, Trace, TraceSet } from '../json';
 import {
   KeyValues,
   keyValuesFromTraceSet,
@@ -19,13 +19,13 @@ import {
 
 const df: DataFrame = {
   header: [],
-  paramset: {},
-  traceset: {
-    ',arch=x86,config=8888,': [1, 1.3e27],
-    ',arch=arm,config=8888,': [2, 2.3e27],
-    ',arch=x86,config=gpu,': [3, 1.2345],
-    ',arch=arm,config=gpu,': [3, Math.PI],
-  },
+  paramset: ReadOnlyParamSet({}),
+  traceset: TraceSet({
+    ',arch=x86,config=8888,': Trace([1, 1.3e27]),
+    ',arch=arm,config=8888,': Trace([2, 2.3e27]),
+    ',arch=x86,config=gpu,': Trace([3, 1.2345]),
+    ',arch=arm,config=gpu,': Trace([3, Math.PI]),
+  }),
   skip: 0,
 };
 
@@ -183,12 +183,12 @@ describe('SortHistory', () => {
     history.selectColumnToSortOn(1, 'summaryValues');
 
     // Sort this traceset and it should come out in this order:
-    const traceset: TraceSet = {
-      ',arch=x86,config=gpu,': [4, 2],
-      ',arch=arm,config=gpu,': [3, 2],
-      ',arch=arm,config=8888,': [2, 1],
-      ',arch=x86,config=8888,': [1, 1],
-    };
+    const traceset = TraceSet({
+      ',arch=x86,config=gpu,': Trace([4, 2]),
+      ',arch=arm,config=gpu,': Trace([3, 2]),
+      ',arch=arm,config=8888,': Trace([2, 1]),
+      ',arch=x86,config=8888,': Trace([1, 1]),
+    });
     const keyValues = keyValuesFromTraceSet(traceset, req);
     const keys = Object.keys(traceset);
     keys.sort(history.buildCompare(traceset, keyValues));
@@ -204,7 +204,7 @@ describe('SortHistory', () => {
 
 describe('keyValuesFromTraceSet', () => {
   it('returns empty keyValues for an empty TraceSet', () => {
-    assert.isEmpty(keyValuesFromTraceSet({}, req));
+    assert.isEmpty(keyValuesFromTraceSet(TraceSet({}), req));
   });
 
   it('correctly orders key values based on the request', () => {

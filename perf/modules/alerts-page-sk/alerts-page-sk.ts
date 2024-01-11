@@ -17,7 +17,13 @@ import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import { FrameResponse, ParamSet, Alert, ConfigState } from '../json';
+import {
+  FrameResponse,
+  ParamSet,
+  Alert,
+  ConfigState,
+  ReadOnlyParamSet,
+} from '../json';
 import { validate } from '../alert';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
@@ -32,7 +38,7 @@ const okOrThrow = async (resp: Response) => {
 class AlertsPageSk extends ElementSk {
   private _cfg: Alert | null = null;
 
-  private paramset: ParamSet = {};
+  private paramset = ReadOnlyParamSet({});
 
   private alerts: Alert[] = [];
 

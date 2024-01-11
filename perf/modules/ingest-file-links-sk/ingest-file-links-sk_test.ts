@@ -6,9 +6,10 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { IngestFileLinksSk } from './ingest-file-links-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { CommitNumber } from '../json';
 
 describe('ingest-file-links-sk', () => {
-  const validCommitID = 12;
+  const validCommitID = CommitNumber(12);
   const validTraceID = ',arch=x86,';
   const newInstance = setUpElementUnderTest<IngestFileLinksSk>(
     'ingest-file-links-sk'
@@ -22,7 +23,7 @@ describe('ingest-file-links-sk', () => {
 
   describe('load', () => {
     it('requires valid parameters', async () => {
-      await element.load(-1, '');
+      await element.load(CommitNumber(-1), '');
       assert.isEmpty($<HTMLLinkElement>('a', element));
     });
 

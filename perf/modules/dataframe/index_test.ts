@@ -16,6 +16,9 @@ import {
   ColumnHeader,
   TraceSet,
   ReadOnlyParamSet,
+  CommitNumber,
+  Trace,
+  TimestampSeconds,
 } from '../json';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
@@ -24,20 +27,20 @@ const e = MISSING_DATA_SENTINEL;
 describe('mergeColumnHeaders', () => {
   it('merges simple case', () => {
     const a: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     const b: ColumnHeader[] = [
-      { offset: 3, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 3, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 3 });
@@ -46,21 +49,21 @@ describe('mergeColumnHeaders', () => {
 
   it('merges skips', () => {
     const a: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     const b: ColumnHeader[] = [
-      { offset: 5, timestamp: 0 },
-      { offset: 7, timestamp: 0 },
+      { offset: CommitNumber(5), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(7), timestamp: TimestampSeconds(0) },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
-      { offset: 5, timestamp: 0 },
-      { offset: 7, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(5), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(7), timestamp: TimestampSeconds(0) },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 2 });
@@ -70,15 +73,15 @@ describe('mergeColumnHeaders', () => {
   it('merges empty b', () => {
     const a: ColumnHeader[] = [];
     const b: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, {});
@@ -87,16 +90,16 @@ describe('mergeColumnHeaders', () => {
 
   it('merges empty a', () => {
     const a: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     const b: ColumnHeader[] = [];
     const [m, aMap, bMap] = mergeColumnHeaders(a, b);
     const expected: ColumnHeader[] = [
-      { offset: 1, timestamp: 0 },
-      { offset: 2, timestamp: 0 },
-      { offset: 4, timestamp: 0 },
+      { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+      { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
     ];
     assert.deepEqual(m, expected);
     assert.deepEqual(aMap, { 0: 0, 1: 1, 2: 2 });
@@ -117,9 +120,9 @@ describe('mergeColumnHeaders', () => {
 describe('buildParamSet', () => {
   it('builds a paramset for an empty DataFrame', () => {
     const df: DataFrame = {
-      traceset: {},
+      traceset: TraceSet({}),
       header: [],
-      paramset: {},
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(df);
@@ -128,13 +131,13 @@ describe('buildParamSet', () => {
 
   it('builds a paramset for a non-empty DataFrame', () => {
     const df: DataFrame = {
-      traceset: {
-        ',arch=x86,config=565,': [1.2, 2.1],
-        ',arch=x86,config=8888,': [1.3, 3.1],
-        ',arch=x86,config=gpu,': [1.4, 4.1],
-      },
+      traceset: TraceSet({
+        ',arch=x86,config=565,': Trace([1.2, 2.1]),
+        ',arch=x86,config=8888,': Trace([1.3, 3.1]),
+        ',arch=x86,config=gpu,': Trace([1.4, 4.1]),
+      }),
       header: [],
-      paramset: {},
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(df);
@@ -147,15 +150,15 @@ describe('buildParamSet', () => {
 describe('join', () => {
   it('joins two empty dataframes', () => {
     const a: DataFrame = {
-      traceset: {},
+      traceset: TraceSet({}),
       header: [],
-      paramset: {},
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const b: DataFrame = {
-      traceset: {},
+      traceset: TraceSet({}),
       header: [],
-      paramset: {},
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const got = join(a, b);
@@ -166,27 +169,27 @@ describe('join', () => {
   it('joins two non-empty dataframes', () => {
     const a: DataFrame = {
       header: [
-        { offset: 1, timestamp: 0 },
-        { offset: 2, timestamp: 0 },
-        { offset: 4, timestamp: 0 },
+        { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
       ],
-      traceset: {
-        ',config=8888,arch=x86,': [0.1, 0.2, 0.4],
-        ',config=8888,arch=arm,': [1.1, 1.2, 1.4],
-      },
-      paramset: {},
+      traceset: TraceSet({
+        ',config=8888,arch=x86,': Trace([0.1, 0.2, 0.4]),
+        ',config=8888,arch=arm,': Trace([1.1, 1.2, 1.4]),
+      }),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const b: DataFrame = {
       header: [
-        { offset: 3, timestamp: 0 },
-        { offset: 4, timestamp: 0 },
+        { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
       ],
-      traceset: {
-        ',config=565,arch=x86,': [3.3, 3.4],
-        ',config=565,arch=arm,': [4.3, 4.4],
-      },
-      paramset: {},
+      traceset: TraceSet({
+        ',config=565,arch=x86,': Trace([3.3, 3.4]),
+        ',config=565,arch=arm,': Trace([4.3, 4.4]),
+      }),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(a);
@@ -196,18 +199,18 @@ describe('join', () => {
 
     const expected: DataFrame = {
       header: [
-        { offset: 1, timestamp: 0 },
-        { offset: 2, timestamp: 0 },
-        { offset: 3, timestamp: 0 },
-        { offset: 4, timestamp: 0 },
+        { offset: CommitNumber(1), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(2), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(3), timestamp: TimestampSeconds(0) },
+        { offset: CommitNumber(4), timestamp: TimestampSeconds(0) },
       ],
-      traceset: {
-        ',config=8888,arch=x86,': [0.1, 0.2, e, 0.4],
-        ',config=8888,arch=arm,': [1.1, 1.2, e, 1.4],
-        ',config=565,arch=x86,': [e, e, 3.3, 3.4],
-        ',config=565,arch=arm,': [e, e, 4.3, 4.4],
-      },
-      paramset: {},
+      traceset: TraceSet({
+        ',config=8888,arch=x86,': Trace([0.1, 0.2, e, 0.4]),
+        ',config=8888,arch=arm,': Trace([1.1, 1.2, e, 1.4]),
+        ',config=565,arch=x86,': Trace([e, e, 3.3, 3.4]),
+        ',config=565,arch=arm,': Trace([e, e, 4.3, 4.4]),
+      }),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(expected);
@@ -228,8 +231,8 @@ describe('timestampBounds', () => {
   it('returns NaNs for empty DataFrame', () => {
     const emptyDataFrame: DataFrame = {
       header: [],
-      traceset: {},
-      paramset: {},
+      traceset: TraceSet({}),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const emptyBounds = timestampBounds(emptyDataFrame);
@@ -238,9 +241,9 @@ describe('timestampBounds', () => {
 
   it('returns bounds for single-element DataFrame', () => {
     const singleElementDataFrame: DataFrame = {
-      header: [{ offset: 1, timestamp: 0 }],
-      traceset: {},
-      paramset: {},
+      header: [{ offset: CommitNumber(1), timestamp: TimestampSeconds(0) }],
+      traceset: TraceSet({}),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const singleElementBounds = timestampBounds(singleElementDataFrame);
@@ -250,13 +253,13 @@ describe('timestampBounds', () => {
   it('returns bounds for multiple-element DataFrame', () => {
     const multipleElementDataFrame: DataFrame = {
       header: [
-        { offset: 1, timestamp: 11 },
-        { offset: 2, timestamp: 12 },
-        { offset: 3, timestamp: 13 },
-        { offset: 4, timestamp: 14 },
+        { offset: CommitNumber(1), timestamp: TimestampSeconds(11) },
+        { offset: CommitNumber(2), timestamp: TimestampSeconds(12) },
+        { offset: CommitNumber(3), timestamp: TimestampSeconds(13) },
+        { offset: CommitNumber(4), timestamp: TimestampSeconds(14) },
       ],
-      traceset: {},
-      paramset: {},
+      traceset: TraceSet({}),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     const multipleElementBounds = timestampBounds(multipleElementDataFrame);

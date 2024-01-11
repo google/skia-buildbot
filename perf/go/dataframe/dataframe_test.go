@@ -143,11 +143,11 @@ func TestFromTimeRange_Success(t *testing.T) {
 	assert.Equal(t, []*ColumnHeader{
 		{
 			Offset:    0,
-			Timestamp: gittest.StartTime.Unix(),
+			Timestamp: TimestampSeconds(gittest.StartTime.Unix()),
 		},
 		{
 			Offset:    1,
-			Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
+			Timestamp: TimestampSeconds(gittest.StartTime.Add(time.Minute).Unix()),
 		},
 	}, columnHeaders)
 	assert.Equal(t, []types.CommitNumber{0, 1}, commitNumbers)

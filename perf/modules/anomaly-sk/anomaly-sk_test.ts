@@ -3,7 +3,11 @@ import {
   Anomaly,
   AnomalyMap,
   ColumnHeader,
+  CommitNumber,
   DataFrame,
+  ReadOnlyParamSet,
+  TimestampSeconds,
+  Trace,
   TraceSet,
 } from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
@@ -33,27 +37,27 @@ const dummyAnomaly = (): Anomaly => ({
 describe('getAnomalyDataMap', () => {
   const header: ColumnHeader[] = [
     {
-      offset: 99,
-      timestamp: 0,
+      offset: CommitNumber(99),
+      timestamp: TimestampSeconds(0),
     },
     {
-      offset: 100,
-      timestamp: 0,
+      offset: CommitNumber(100),
+      timestamp: TimestampSeconds(0),
     },
     {
-      offset: 101,
-      timestamp: 0,
+      offset: CommitNumber(101),
+      timestamp: TimestampSeconds(0),
     },
   ];
-  const traceset: TraceSet = {
-    traceA: [5, 5, 15],
-    traceB: [1, 1, 4],
-  };
+  const traceset = TraceSet({
+    traceA: Trace([5, 5, 15]),
+    traceB: Trace([1, 1, 4]),
+  });
   const dataframe: DataFrame = {
     traceset: traceset,
     header: header,
     skip: 0,
-    paramset: {},
+    paramset: ReadOnlyParamSet({}),
   };
   const anomalyA: Anomaly = dummyAnomaly();
   const anomalyB: Anomaly = dummyAnomaly();
@@ -86,7 +90,10 @@ describe('getAnomalyDataMap', () => {
     assert.deepEqual(anomalyDataMap, expectedAnomalyDataMap);
   });
   it('maps anomaly to the next commit if exact match not available', () => {
-    const columnHeader: ColumnHeader = { offset: 103, timestamp: 0 };
+    const columnHeader: ColumnHeader = {
+      offset: CommitNumber(103),
+      timestamp: TimestampSeconds(0),
+    };
     dataframe.header?.push(columnHeader);
     dataframe.traceset.traceA.push(200);
     // Add anomaly that does not have a commit in the header.

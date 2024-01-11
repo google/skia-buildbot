@@ -2,7 +2,7 @@ import './index';
 import { assert } from 'chai';
 import { CommitRangeSk } from './commit-range-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { CommitNumber } from '../json';
+import { CommitNumber, TimestampSeconds } from '../json';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 describe('commit-range-sk', () => {
@@ -32,16 +32,16 @@ describe('commit-range-sk', () => {
       el.commitIndex = 2;
       el.header = [
         {
-          offset: 64809,
-          timestamp: 0,
+          offset: CommitNumber(64809),
+          timestamp: TimestampSeconds(0),
         },
         {
-          offset: 64810,
-          timestamp: 0,
+          offset: CommitNumber(64810),
+          timestamp: TimestampSeconds(0),
         },
         {
-          offset: 64811,
-          timestamp: 0,
+          offset: CommitNumber(64811),
+          timestamp: TimestampSeconds(0),
         },
       ];
     });

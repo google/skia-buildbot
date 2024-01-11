@@ -36,6 +36,8 @@ import {
   FullSummary,
   RegressionDetectionResponse,
   progress,
+  SerializesToString,
+  ReadOnlyParamSet,
 } from '../json';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
@@ -75,7 +77,7 @@ export class ClusterPageSk extends ElementSk {
   // The state to be reflected to the URL.
   private state = new State();
 
-  private paramset: ParamSet = {};
+  private paramset = ParamSet({});
 
   // The computed clusters.
   private summaries: FullSummary[] = [];
@@ -207,7 +209,7 @@ export class ClusterPageSk extends ElementSk {
     fetch(`/_/initpage/?tz=${tz}`)
       .then(jsonOrThrow)
       .then((json: FrameResponse) => {
-        this.paramset = json.dataframe!.paramset;
+        this.paramset = ParamSet(json.dataframe!.paramset);
         this._render();
       })
       .catch(errorMessage);
@@ -306,7 +308,7 @@ export class ClusterPageSk extends ElementSk {
         k: +this.state.k,
         algo: this.state.algo,
         interesting: +this.state.interesting,
-        issue_tracker_component: '',
+        issue_tracker_component: SerializesToString(''),
         sparse: this.state.sparse,
         step: '',
         alert: '',

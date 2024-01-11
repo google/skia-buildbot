@@ -4,6 +4,7 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { CommitRangeSk } from './commit-range-sk';
 
 import './index';
+import { CommitNumber, TimestampSeconds } from '../json';
 
 window.perf = {
   commit_range_url: 'http://example.com/range/{begin}/{end}',
@@ -53,16 +54,16 @@ window.customElements.whenDefined('commit-range-sk').then(async () => {
   ele.commitIndex = 2;
   ele.header = [
     {
-      offset: 64809,
-      timestamp: 0,
+      offset: CommitNumber(64809),
+      timestamp: TimestampSeconds(0),
     },
     {
-      offset: 64810,
-      timestamp: 0,
+      offset: CommitNumber(64810),
+      timestamp: TimestampSeconds(0),
     },
     {
-      offset: 64811,
-      timestamp: 0,
+      offset: CommitNumber(64811),
+      timestamp: TimestampSeconds(0),
     },
   ];
   await ele.recalcLink();

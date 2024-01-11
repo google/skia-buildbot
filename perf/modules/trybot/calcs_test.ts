@@ -1,5 +1,6 @@
 import { assert } from 'chai';
 import { byParams } from './calcs';
+import { ParamSet, Params, ReadOnlyParamSet } from '../json';
 
 describe('trybot', () => {
   describe('byParams', () => {
@@ -9,7 +10,7 @@ describe('trybot', () => {
         byParams({
           header: [],
           results: [],
-          paramset: {},
+          paramset: {} as ReadOnlyParamSet,
         })
       );
     });
@@ -19,10 +20,10 @@ describe('trybot', () => {
         header: [],
         results: [
           {
-            params: {
+            params: Params({
               model: 'GCE',
               test: '1',
-            },
+            }),
             median: 0, // median, lower, upper, and values are ignored by byParams.
             lower: 0,
             upper: 0,
@@ -30,10 +31,10 @@ describe('trybot', () => {
             values: [],
           },
           {
-            params: {
+            params: Params({
               model: 'Nexus5x',
               test: '1',
-            },
+            }),
             median: 0, // median, lower, upper, and values are ignored by byParams.
             lower: 0,
             upper: 0,
@@ -41,10 +42,10 @@ describe('trybot', () => {
             values: [],
           },
         ],
-        paramset: {
+        paramset: ReadOnlyParamSet({
           model: ['GCE', 'Nexus5x'],
           test: ['1'],
-        },
+        }),
       });
 
       // We expect that along the test=1 axes to average the two stddevRatio values.
@@ -78,9 +79,9 @@ describe('trybot', () => {
         header: [],
         results: [
           {
-            params: {
+            params: Params({
               test: '2',
-            },
+            }),
             median: 0, // median, lower, upper, and values are ignored by byParams.
             lower: 0,
             upper: 0,
@@ -88,9 +89,9 @@ describe('trybot', () => {
             values: [],
           },
           {
-            params: {
+            params: Params({
               test: '1',
-            },
+            }),
             median: 0, // median, lower, upper, and values are ignored by byParams.
             lower: 0,
             upper: 0,
@@ -98,9 +99,9 @@ describe('trybot', () => {
             values: [],
           },
           {
-            params: {
+            params: Params({
               test: '3',
-            },
+            }),
             median: 0, // median, lower, upper, and values are ignored by byParams.
             lower: 0,
             upper: 0,
@@ -108,9 +109,9 @@ describe('trybot', () => {
             values: [],
           },
         ],
-        paramset: {
+        paramset: ReadOnlyParamSet({
           test: ['1', '2', '3'],
-        },
+        }),
       });
 
       assert.deepEqual(

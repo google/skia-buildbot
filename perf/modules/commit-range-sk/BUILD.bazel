@@ -32,6 +32,7 @@ sk_page(
         "//perf/modules/const:const_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/fetch-mock",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_entry_point = "commit-range-sk-demo.ts",
 )

@@ -113,6 +113,27 @@ func TestTypeAliasDeclaration_TypeReference_ReferenceReflectsChangesInDeclaratio
 	assert.Equal(t, "Foo.AnotherAlias", typeReference.ToTypeScript())
 }
 
+func TestTypeAliasDeclaration_GenerateNominalTypes_ToTypeScript_Success(t *testing.T) {
+	typeAliasDeclaration := TypeAliasDeclaration{
+		Identifier:           "MyAlias",
+		Type:                 String,
+		GenerateNominalTypes: true,
+	}
+	assert.Equal(t, `export type MyAlias = string & {
+	/**
+	* WARNING: Do not reference this field from application code.
+	*
+	* This field exists solely to provide nominal typing. For reference, see
+	* https://www.typescriptlang.org/play#example/nominal-typing.
+	*/
+	_myAliasBrand: 'type alias for string'
+};
+
+export function MyAlias(v: string): MyAlias {
+	return v as MyAlias;
+};`, typeAliasDeclaration.ToTypeScript())
+}
+
 func TestInterfaceDeclaration_ToTypeScript_Success(t *testing.T) {
 	interfaceDeclaration := InterfaceDeclaration{
 		Identifier: "Person",

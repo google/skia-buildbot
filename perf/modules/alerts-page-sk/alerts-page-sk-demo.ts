@@ -1,7 +1,7 @@
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
 import fetchMock from 'fetch-mock';
-import { Alert } from '../json';
+import { Alert, SerializesToString } from '../json';
 
 window.perf = window.perf || {};
 window.perf.key_order = [];
@@ -30,7 +30,7 @@ fetchMock.get('/_/alert/list/false', (): Alert[] => [
     id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '720614',
+    issue_tracker_component: SerializesToString('720614'),
     alert: '',
     step: 'cohen',
     interesting: 50,
@@ -55,7 +55,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     id_as_string: '5646874153320448',
     display_name: 'Image',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '720614',
+    issue_tracker_component: SerializesToString('720614'),
     alert: '',
     interesting: 50,
     bug_uri_template: '',
@@ -76,7 +76,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     id_as_string: '2',
     display_name: 'Foo',
     query: 'source_type=image\u0026sub_result=min_ms',
-    issue_tracker_component: '720614',
+    issue_tracker_component: SerializesToString('720614'),
     alert: '',
     interesting: 50,
     bug_uri_template: '',
@@ -153,7 +153,7 @@ fetchMock.get(
     id_as_string: '-1',
     display_name: 'Name',
     query: '',
-    issue_tracker_component: '',
+    issue_tracker_component: SerializesToString(''),
     alert: '',
     step: 'cohen',
     interesting: 0,

@@ -38,7 +38,7 @@ import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
  * {'x': 2, 'y': 623.2, 'anomaly': a3}]
  * }
  *
- * @param {Object} traceSet - A TraceSet object. We only look for anomalies
+ * @param {TraceSet} traceSet - A TraceSet object. We only look for anomalies
  * from traces in traceSet. The traces also provide y coordinate positions.
  * @param {Object} header - A ColumnHeader array. We use header to map commit positions
  * to x coordinate positions.
@@ -53,7 +53,8 @@ export const getAnomalyDataMap = (
   const anomalyDataMap: { [traceId: string]: AnomalyData[] } = {};
 
   // Iterate the traceSet and see if a trace has anomalies in the anomaly map.
-  Object.entries(traceSet).forEach(([traceId, trace]) => {
+  for (const traceId in traceSet) {
+    const trace = traceSet[traceId];
     if (traceId in anomalymap!) {
       const cidAnomalyMap = anomalymap![traceId];
       if (cidAnomalyMap !== null) {
@@ -84,7 +85,7 @@ export const getAnomalyDataMap = (
           });
       }
     }
-  });
+  }
   return anomalyDataMap;
 };
 

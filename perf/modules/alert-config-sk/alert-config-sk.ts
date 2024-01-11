@@ -29,6 +29,7 @@ import {
   ConfigState,
   TryBugRequest,
   TryBugResponse,
+  SerializesToString,
 } from '../json';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
@@ -101,7 +102,7 @@ const thresholdDescriptors: Record<StepDetection, ThresholdDescriptor> = {
 };
 
 export class AlertConfigSk extends ElementSk {
-  private _paramset: ParamSet = {};
+  private _paramset = ParamSet({});
 
   private _config: Alert;
 
@@ -117,14 +118,14 @@ export class AlertConfigSk extends ElementSk {
 
   constructor() {
     super(AlertConfigSk.template);
-    this._paramset = {};
+    this._paramset = ParamSet({});
     this.paramkeys = [];
     this._config = {
       id_as_string: '-1',
       display_name: 'Name',
       query: '',
       alert: '',
-      issue_tracker_component: '',
+      issue_tracker_component: SerializesToString(''),
       interesting: 0,
       bug_uri_template: '',
       algo: 'kmeans',
@@ -314,9 +315,9 @@ export class AlertConfigSk extends ElementSk {
                 errorMessage(valMsg, 3000);
                 return;
               }
-              ele._config.issue_tracker_component = (
-                e.target! as HTMLInputElement
-              ).value;
+              ele._config.issue_tracker_component = SerializesToString(
+                (e.target! as HTMLInputElement).value
+              );
             }} />
           <button @click=${ele.testAlert}>Test</button>
           <spinner-sk id="alertSpinner"></spinner-sk>

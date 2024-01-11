@@ -3,10 +3,15 @@ import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import {
   ColumnHeader,
+  CommitNumber,
   DataFrame,
   FrameRequest,
   FrameResponse,
   QueryConfig,
+  ReadOnlyParamSet,
+  TimestampSeconds,
+  Trace,
+  TraceSet,
   progress,
 } from '../json';
 import { deepCopy } from '../../../infra-sk/modules/object';
@@ -17,6 +22,7 @@ import {
   isValidSelection,
   PointSelected,
   selectionToEvent,
+  CommitRange,
 } from './explore-simple-sk';
 import { timestampBounds, buildParamSet } from '../dataframe';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
@@ -25,11 +31,11 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 fetchMock.config.overwriteRoutes = true;
 
 describe('calculateRangeChange', () => {
-  const offsets: [number, number] = [100, 120];
+  const offsets: CommitRange = [100, 120] as CommitRange;
 
   it('finds a left range increase', () => {
-    const zoom: [number, number] = [-1, 10];
-    const clampedZoom: [number, number] = [0, 10];
+    const zoom: CommitRange = [-1, 10] as CommitRange;
+    const clampedZoom: CommitRange = [0, 10] as CommitRange;
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isTrue(ret.rangeChange);
@@ -40,8 +46,8 @@ describe('calculateRangeChange', () => {
   });
 
   it('finds a right range increase', () => {
-    const zoom: [number, number] = [0, 12];
-    const clampedZoom: [number, number] = [0, 10];
+    const zoom: CommitRange = [0, 12] as CommitRange;
+    const clampedZoom: CommitRange = [0, 10] as CommitRange;
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isTrue(ret.rangeChange);
@@ -52,8 +58,8 @@ describe('calculateRangeChange', () => {
   });
 
   it('find an increase in the range in both directions', () => {
-    const zoom: [number, number] = [-1, 11];
-    const clampedZoom: [number, number] = [0, 10];
+    const zoom: CommitRange = [-1, 11] as CommitRange;
+    const clampedZoom: CommitRange = [0, 10] as CommitRange;
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isTrue(ret.rangeChange);
@@ -64,9 +70,9 @@ describe('calculateRangeChange', () => {
   });
 
   it('find an increase in the range in both directions and clamps the offset', () => {
-    const zoom: [number, number] = [-1, 11];
-    const clampedZoom: [number, number] = [0, 10];
-    const widerOffsets: [number, number] = [0, 100];
+    const zoom: CommitRange = [-1, 11] as CommitRange;
+    const clampedZoom: CommitRange = [0, 10] as CommitRange;
+    const widerOffsets: CommitRange = [0, 100] as CommitRange;
 
     const ret = calculateRangeChange(zoom, clampedZoom, widerOffsets);
     assert.isTrue(ret.rangeChange);
@@ -77,8 +83,8 @@ describe('calculateRangeChange', () => {
   });
 
   it('does not find a range change', () => {
-    const zoom: [number, number] = [0, 10];
-    const clampedZoom: [number, number] = [0, 10];
+    const zoom: CommitRange = [0, 10] as CommitRange;
+    const clampedZoom: CommitRange = [0, 10] as CommitRange;
 
     const ret = calculateRangeChange(zoom, clampedZoom, offsets);
     assert.isFalse(ret.rangeChange);
@@ -155,21 +161,21 @@ describe('PointSelected', () => {
   it('becomes a valid event if the commit appears in the header', () => {
     const header: ColumnHeader[] = [
       {
-        offset: 99,
-        timestamp: 0,
+        offset: CommitNumber(99),
+        timestamp: TimestampSeconds(0),
       },
       {
-        offset: 100,
-        timestamp: 0,
+        offset: CommitNumber(100),
+        timestamp: TimestampSeconds(0),
       },
       {
-        offset: 101,
-        timestamp: 0,
+        offset: CommitNumber(101),
+        timestamp: TimestampSeconds(0),
       },
     ];
 
     const p: PointSelected = {
-      commit: 100,
+      commit: CommitNumber(100),
       name: 'foo',
     };
     // selectionToEvent will look up the commit (aka offset) in header and
@@ -182,21 +188,21 @@ describe('PointSelected', () => {
   it('becomes an invalid event if the commit does not appear in the header', () => {
     const header: ColumnHeader[] = [
       {
-        offset: 99,
-        timestamp: 0,
+        offset: CommitNumber(99),
+        timestamp: TimestampSeconds(0),
       },
       {
-        offset: 100,
-        timestamp: 0,
+        offset: CommitNumber(100),
+        timestamp: TimestampSeconds(0),
       },
       {
-        offset: 101,
-        timestamp: 0,
+        offset: CommitNumber(101),
+        timestamp: TimestampSeconds(0),
       },
     ];
 
     const p: PointSelected = {
-      commit: 102,
+      commit: CommitNumber(102),
       name: 'foo',
     };
     // selectionToEvent will look up the commit (aka offset) in header and
@@ -293,18 +299,18 @@ describe('requestFrameBodyDeltaFromState', () => {
   function fakeDataFrame(): DataFrame {
     const ret: DataFrame = {
       header: [
-        { offset: 11, timestamp: 1100 },
-        { offset: 12, timestamp: 1200 },
-        { offset: 13, timestamp: 1300 },
-        { offset: 14, timestamp: 1400 },
+        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
+        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
+        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
+        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
       ],
-      traceset: {
-        ',config=8888,arch=x86,': [0.1, 0.2, 0.0, 0.4],
-        ',config=8888,arch=arm,': [1.1, 1.2, 0.0, 1.4],
-        ',config=565,arch=x86,': [0.0, 0.0, 3.3, 3.4],
-        ',config=565,arch=arm,': [0.0, 0.0, 4.3, 4.4],
-      },
-      paramset: {},
+      traceset: TraceSet({
+        ',config=8888,arch=x86,': Trace([0.1, 0.2, 0.0, 0.4]),
+        ',config=8888,arch=arm,': Trace([1.1, 1.2, 0.0, 1.4]),
+        ',config=565,arch=x86,': Trace([0.0, 0.0, 3.3, 3.4]),
+        ',config=565,arch=arm,': Trace([0.0, 0.0, 4.3, 4.4]),
+      }),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(ret);
@@ -532,10 +538,10 @@ describe('requestFrameBodyDeltaFromState', () => {
 
     const shiftedDataFrame = deepCopy(existingDataFrame);
     shiftedDataFrame.header = [
-      { offset: 9, timestamp: 900 },
-      { offset: 10, timestamp: 1000 },
-      { offset: 11, timestamp: 1100 },
-      { offset: 12, timestamp: 1200 },
+      { offset: CommitNumber(9), timestamp: TimestampSeconds(900) },
+      { offset: CommitNumber(10), timestamp: TimestampSeconds(1000) },
+      { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
+      { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
     ];
     const shiftResponse = {
       begin: shiftedDataFrame!.header[0]!.timestamp,
@@ -599,15 +605,15 @@ describe('requestFrameBodyDeltaFromState', () => {
     // run a query, test=A
     const queryTestADataFrame: DataFrame = {
       header: [
-        { offset: 11, timestamp: 1100 },
-        { offset: 12, timestamp: 1200 },
-        { offset: 13, timestamp: 1300 },
-        { offset: 14, timestamp: 1400 },
+        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
+        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
+        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
+        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
       ],
-      traceset: {
-        'test=A': [0.1, 0.2, 0.0, 0.4],
-      },
-      paramset: {},
+      traceset: TraceSet({
+        'test=A': Trace([0.1, 0.2, 0.0, 0.4]),
+      }),
+      paramset: ReadOnlyParamSet({}),
       skip: 0,
     };
     buildParamSet(queryTestADataFrame);

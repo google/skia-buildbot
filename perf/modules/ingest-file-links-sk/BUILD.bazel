@@ -32,7 +32,10 @@ sk_page(
     name = "ingest-file-links-sk-demo",
     html_file = "ingest-file-links-sk-demo.html",
     sk_element_deps = [":ingest-file-links-sk"],
-    ts_deps = ["//:node_modules/fetch-mock"],
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+        "//perf/modules/json:index_ts_lib",
+    ],
     ts_entry_point = "ingest-file-links-sk-demo.ts",
 )
 
@@ -58,5 +61,6 @@ karma_test(
         "//elements-sk/modules/spinner-sk",
         "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
 )

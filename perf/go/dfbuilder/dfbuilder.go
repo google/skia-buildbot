@@ -104,7 +104,7 @@ func fromIndexRange(ctx context.Context, git perfgit.Git, beginIndex, endIndex t
 	for i, commit := range commits {
 		colHeader[i] = &dataframe.ColumnHeader{
 			Offset:    commit.CommitNumber,
-			Timestamp: commit.Timestamp,
+			Timestamp: dataframe.TimestampSeconds(commit.Timestamp),
 		}
 		commitNumbers[i] = commit.CommitNumber
 	}

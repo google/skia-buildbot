@@ -9,11 +9,11 @@ const validPivotRequest: pivot.Request = {
   summary: [],
 };
 
-const paramSet: ParamSet = {
+const paramSet = ParamSet({
   config: ['8888', '565'],
   arch: ['x86', 'risc-v'],
   model: ['Pixel2', 'Pixel3'],
-};
+});
 
 const valid = $$<PivotQuerySk>('#valid')!;
 valid.pivotRequest = validPivotRequest;

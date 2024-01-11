@@ -57,10 +57,13 @@ type DataFrameBuilder interface {
 	PreflightQuery(ctx context.Context, q *query.Query, referenceParamSet paramtools.ReadOnlyParamSet) (int64, paramtools.ParamSet, error)
 }
 
+// TimestampSeconds represents a timestamp in seconds from the Unix epoch.
+type TimestampSeconds int64
+
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
 	Offset    types.CommitNumber `json:"offset"`
-	Timestamp int64              `json:"timestamp"` // In seconds from the Unix epoch.
+	Timestamp TimestampSeconds   `json:"timestamp"`
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -287,7 +290,6 @@ func (d *DataFrame) Compress() *DataFrame {
 // If 'downsample' is true then the number of commits returned is limited
 // to MAX_SAMPLE_SIZE.
 // TODO(jcgregorio) Remove downsample, it is currently ignored.
-//
 // The value for 'skip', the number of commits skipped, is also returned.
 func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int, error) {
 	commits, err := git.CommitSliceFromTimeRange(ctx, begin, end)
@@ -299,7 +301,7 @@ func FromTimeRange(ctx context.Context, git perfgit.Git, begin, end time.Time, d
 	for i, commit := range commits {
 		colHeader[i] = &ColumnHeader{
 			Offset:    commit.CommitNumber,
-			Timestamp: commit.Timestamp,
+			Timestamp: TimestampSeconds(commit.Timestamp),
 		}
 		commitNumbers[i] = commit.CommitNumber
 	}

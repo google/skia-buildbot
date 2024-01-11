@@ -27,6 +27,7 @@ sk_page(
     name = "commit-detail-sk-demo",
     html_file = "commit-detail-sk-demo.html",
     sk_element_deps = [":commit-detail-sk"],
+    ts_deps = ["//perf/modules/json:index_ts_lib"],
     ts_entry_point = "commit-detail-sk-demo.ts",
 )
 
