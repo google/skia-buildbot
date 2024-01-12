@@ -480,6 +480,8 @@ func AuthenticatedAs(r *http.Request) string {
 	} else {
 		if e, err := viaBearerToken(r); err == nil {
 			email = e
+		} else {
+			sklog.Errorf("Failed bearer token auth: %s", err)
 		}
 	}
 	if isAuthorized(email) {
@@ -759,7 +761,7 @@ func viaBearerToken(r *http.Request) (string, error) {
 	tok = strings.TrimPrefix(tok, "Bearer ")
 	tokenInfo, err := validateBearerToken(r.Context(), tok)
 	if err != nil {
-		return "", skerr.Wrap(err)
+		return "", skerr.Wrapf(err, "calling validateBearerToken")
 	}
 	return tokenInfo.Email, nil
 }
@@ -775,7 +777,7 @@ func validateBearerToken(ctx context.Context, token string) (*oauth2_api.Tokenin
 
 	ti, err := tokenValidatorService.Tokeninfo().AccessToken(token).Context(ctx).Do()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrapf(err, "calling tokenValidatorService.Tokeninfo().AccessToken(token).Context(ctx).Do()")
 	}
 	if ti.ExpiresIn <= 0 {
 		return nil, fmt.Errorf("token is expired")
