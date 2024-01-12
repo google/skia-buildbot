@@ -153,6 +153,10 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if !p.passive {
 		if email == "" {
+			for key, value := range r.Header {
+				sklog.Infof("%s: %q: %q", r.RemoteAddr, key, value)
+			}
+
 			http.Redirect(w, r, p.authProvider.LoginURL(w, r), http.StatusSeeOther)
 			return
 		}
