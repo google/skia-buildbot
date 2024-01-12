@@ -48,7 +48,6 @@ type BuildChrome struct {
 	Patch []*buildbucketpb.GerritChange
 }
 
-// pinpointWaterfall maps builder names from Pinpoint to Waterfall
 // Builds from waterfall can also be recycled for bisection
 //
 // As part of our anomaly detection system, Waterfall builders
@@ -61,7 +60,7 @@ type BuildChrome struct {
 // The map is maintained here:
 // https://chromium.googlesource.com/chromium/tools/build/+/986f23767a01508ad1eb39194ffdb5fec4f00d7b/recipes/recipes/pinpoint/builder.py#22
 // TODO(b/316207255): move this builder map to a more stable config file
-var pinpointWaterfall = map[string]string{
+var PinpointWaterfall = map[string]string{
 	"Android Compile Perf":                       "android-builder-perf",
 	"Android Compile Perf PGO":                   "android-builder-perf-pgo",
 	"Android arm64 Compile Perf":                 "android_arm64-builder-perf",
@@ -119,7 +118,6 @@ const (
 //
 // Although skia has their own buildbucket wrapper type, it cannot build Chrome
 // at a specific commit.
-// TODO(b/315215756): Move this client dial to a backends/ folder
 func DialBuildClient(ctx context.Context) (buildbucketpb.BuildsClient, error) {
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
@@ -221,10 +219,12 @@ func (b *BuildChrome) searchBuild(ctx context.Context, builder string) (int64, e
 	// because waterfall builders lag behind main. A user could try to
 	// request a build via Pinpoint before waterfall has the chance to
 	// build the same commit.
-	if pinpointWaterfall[builder] != "" && len(b.Patch) == 0 {
-		sklog.Debugf("SearchBuild: search waterfall builder %s for build", pinpointWaterfall[builder])
-		req = b.createSearchBuildRequest("ci", pinpointWaterfall[builder])
+	if PinpointWaterfall[builder] != "" && len(b.Patch) == 0 {
+		sklog.Debugf("SearchBuild: search waterfall builder %s for build", PinpointWaterfall[builder])
+
+		req = b.createSearchBuildRequest("ci", PinpointWaterfall[builder])
 		buildId, err := b.search(ctx, req)
+
 		if err != nil {
 			return 0, skerr.Fmt("error searching buildbucket builds with request %v\n and error: %s", req, err)
 		}
