@@ -2,17 +2,21 @@ package backends
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 
+	"go.chromium.org/luci/grpc/appstatus"
 	"go.skia.org/infra/bisection/go/build_chrome"
 	"go.skia.org/infra/go/buildbucket"
 
 	. "github.com/smartystreets/goconvey/convey"
 	bpb "go.chromium.org/luci/buildbucket/proto"
 	. "go.chromium.org/luci/common/testing/assertions"
+	spb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -58,7 +62,51 @@ func createBuild(id int64, status bpb.Status, endTime *timestamppb.Timestamp, bu
 	}
 }
 
-func TestGetBuildWithPatches(t *testing.T) {
+func TestCancelBuild(t *testing.T) {
+	ctx := context.Background()
+
+	buildID := int64(12345)
+	summary := "no longer needed"
+
+	Convey(`OK`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := &bpb.CancelBuildRequest{
+			Id:              buildID,
+			SummaryMarkdown: summary,
+		}
+
+		mbc.EXPECT().CancelBuild(ctx, req).Return(nil, nil)
+
+		err := c.CancelBuild(ctx, buildID, summary)
+		So(err, ShouldBeNil)
+	})
+
+	Convey(`Err`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := &bpb.CancelBuildRequest{
+			Id:              buildID,
+			SummaryMarkdown: summary,
+		}
+
+		resp := appstatus.BadRequest(errors.New("random error"))
+		mbc.EXPECT().CancelBuild(ctx, req).Return(nil, resp)
+
+		err := c.CancelBuild(ctx, buildID, summary)
+		So(err, ShouldErrLike, "Failed to cancel build 12345")
+	})
+}
+
+func TestGetBuildswithDeps(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -83,6 +131,8 @@ func TestGetBuildWithPatches(t *testing.T) {
 			c := NewBuildbucketClient(mbc)
 
 			req := c.createSearchBuildRequest(builder, DefaultBucket, commit, patches)
+			So(req.Predicate.Builder.Project, ShouldEqual, ChromeProject)
+
 			// response in reverse chronological order.
 			resp := &bpb.SearchBuildsResponse{
 				Builds: []*bpb.Build{
@@ -195,4 +245,195 @@ func TestGetBuildFromWaterfall(t *testing.T) {
 			So(b, ShouldBeNil)
 		})
 	})
+}
+
+func TestGetBuildStatus(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	buildID := int64(12345)
+
+	Convey(`OK`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := &bpb.GetBuildStatusRequest{
+			Id: buildID,
+		}
+		resp := createBuild(buildID, bpb.Status_STARTED, nil, "try", "builder", nil)
+		mbc.EXPECT().GetBuildStatus(ctx, req).Return(resp, nil)
+
+		status, err := c.GetBuildStatus(ctx, buildID)
+		So(err, ShouldBeNil)
+		So(status, ShouldEqual, bpb.Status_STARTED)
+	})
+
+	Convey(`Err`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := &bpb.GetBuildStatusRequest{
+			Id: buildID,
+		}
+		resp := appstatus.BadRequest(errors.New("random error"))
+		mbc.EXPECT().GetBuildStatus(ctx, req).Return(nil, resp)
+
+		status, err := c.GetBuildStatus(ctx, buildID)
+		So(err, ShouldErrLike, "random error")
+		So(status, ShouldEqual, bpb.Status_STATUS_UNSPECIFIED)
+	})
+}
+
+func createCASResponse(buildID int64, status bpb.Status, target, hash string) *bpb.Build {
+	return &bpb.Build{
+		Id:     buildID,
+		Status: status,
+		Output: &bpb.Build_Output{
+			Properties: &spb.Struct{
+				Fields: map[string]*spb.Value{
+					// ignored
+					"foo": {},
+					// parsed
+					"swarm_hashes_refs/refs/head/main/without_patch": {
+						Kind: &spb.Value_StructValue{
+							StructValue: &spb.Struct{
+								Fields: map[string]*spb.Value{
+									target: {
+										Kind: &spb.Value_StringValue{
+											StringValue: hash,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func TestGetCASReference(t *testing.T) {
+	ctx := context.Background()
+
+	buildID := int64(12345)
+	target := "performance_test_suite"
+
+	Convey(`OK`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := c.createCASReferenceRequest(buildID)
+		So(req.Mask.Fields.Paths[0], ShouldEqual, "output.properties")
+
+		resp := createCASResponse(buildID, bpb.Status_SUCCESS, target, "somehash/123")
+
+		mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
+
+		ref, err := c.GetCASReference(ctx, buildID, target)
+		So(err, ShouldBeNil)
+		So(ref.CasInstance, ShouldEqual, DefaultCASInstance)
+		So(ref.Digest.Hash, ShouldEqual, "somehash")
+		So(ref.Digest.SizeBytes, ShouldEqual, 123)
+	})
+
+	Convey(`Err`, t, func() {
+		Convey(`Non Successful Build`, func() {
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mbc := bpb.NewMockBuildsClient(ctl)
+			c := NewBuildbucketClient(mbc)
+			req := c.createCASReferenceRequest(buildID)
+			resp := &bpb.Build{
+				Id:     buildID,
+				Status: bpb.Status_STARTED,
+			}
+
+			mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
+
+			ref, err := c.GetCASReference(ctx, buildID, target)
+			So(ref, ShouldBeNil)
+			So(err, ShouldErrLike, "Cannot fetch CAS information from build 12345 with status STARTED")
+		})
+
+		Convey(`Missing Target`, func() {
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mbc := bpb.NewMockBuildsClient(ctl)
+			c := NewBuildbucketClient(mbc)
+
+			req := c.createCASReferenceRequest(buildID)
+			resp := createCASResponse(buildID, bpb.Status_SUCCESS, "other_test_suite", "somehash/123")
+
+			mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
+
+			ref, err := c.GetCASReference(ctx, buildID, target)
+			So(ref, ShouldBeNil)
+			So(err, ShouldErrLike, "The target performance_test_suite cannot be found in the output properties")
+		})
+
+		Convey(`Wrong CAS Hash Format`, func() {
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mbc := bpb.NewMockBuildsClient(ctl)
+			c := NewBuildbucketClient(mbc)
+
+			req := c.createCASReferenceRequest(buildID)
+			wrongHash := "somehash/123/456"
+			resp := createCASResponse(buildID, bpb.Status_SUCCESS, target, wrongHash)
+
+			mbc.EXPECT().GetBuild(ctx, req).Return(resp, nil)
+
+			ref, err := c.GetCASReference(ctx, buildID, target)
+			So(ref, ShouldBeNil)
+			So(err, ShouldErrLike, fmt.Sprintf("CAS hash %s has been changed to an unparsable format", wrongHash))
+		})
+	})
+}
+
+func TestStartChromeBuild(t *testing.T) {
+	ctx := context.Background()
+	builder := "Linux Builder Perf"
+	commit := "12345"
+
+	Convey(`OK`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := c.createChromeBuildRequest("1", "1", builder, commit, nil)
+
+		// Checking defaults
+		So(req.Builder.Project, ShouldEqual, ChromeProject)
+		So(req.Builder.Bucket, ShouldEqual, DefaultBucket)
+		So(req.GitilesCommit.Host, ShouldEqual, ChromiumGitilesHost)
+		So(req.GitilesCommit.Project, ShouldEqual, ChromiumGitilesProject)
+		So(req.GitilesCommit.Ref, ShouldEqual, ChromiumGitilesRefAtHead)
+
+		resp := &bpb.Build{
+			Id:     int64(12345),
+			Status: bpb.Status_SCHEDULED,
+		}
+		mbc.EXPECT().ScheduleBuild(ctx, req).Return(resp, nil)
+
+		build, err := c.StartChromeBuild(ctx, "1", "1", builder, commit, nil)
+		So(err, ShouldBeNil)
+		So(build.Status, ShouldEqual, bpb.Status_SCHEDULED)
+	})
+
 }
