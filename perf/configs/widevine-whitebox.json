@@ -37,6 +37,6 @@
         "url": "https://widevine-internal.googlesource.com/security/whitebox-api-intertrust-prod",
         "dir": "/tmp/checkout",
         "debounce_commit_url": false,
-        "start_commit": "ad24d3f177fc0a99fa60a192438ae4fe489bc0ed"
+        "start_commit": "0c7f0fcede27d2256f067be3b50ca9cbc368a8aa"
     }
 }
