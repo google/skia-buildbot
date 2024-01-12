@@ -72,6 +72,7 @@ func TestForceRole_UserIsLoggedIn_HandlerIsCalled(t *testing.T) {
 
 	login := mocks.NewLogin(t)
 	login.On("HasRole", r, roles.Editor).Return(true)
+	login.On("LoggedInAs", r).Return(email)
 
 	called := false
 	m := alogin.ForceRole(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +89,7 @@ func TestForceRole_UserIsNotLoggedIn_HandlerIsNotCalled(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	login := mocks.NewLogin(t)
-	login.On("HasRole", r, roles.Viewer).Return(false)
+	login.On("LoggedInAs", r).Return(alogin.NotLoggedIn)
 
 	called := false
 	m := alogin.ForceRole(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -22,6 +22,8 @@ var (
 	loginCtxKey = &struct{}{}
 
 	errNotLoggedIn = errors.New("not logged in")
+
+	errMissingRole = errors.New("missing role")
 )
 
 // EMail is an email address.
@@ -115,8 +117,13 @@ func FakeStatus(ctx context.Context, s *Status) context.Context {
 // role before the wrapped handler is called.
 func ForceRole(h http.Handler, login Login, role roles.Role) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if login.LoggedInAs(r) == "" {
+			httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+			return
+		}
 		if !login.HasRole(r, role) {
-			httputils.ReportError(w, errNotLoggedIn, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
+			sklog.Warningf("User: %q is missing Role: %q from Roles: %q", login.LoggedInAs(r), role, login.Roles(r))
+			httputils.ReportError(w, errMissingRole, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
 			return
 		}
 
