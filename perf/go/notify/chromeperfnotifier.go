@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
@@ -70,7 +71,7 @@ func (n *ChromePerfNotifier) RegressionFound(
 			int32(previousCommit.CommitNumber),
 			int32(commit.CommitNumber),
 			"chromium",
-			false,
+			isRegressionImprovement(paramset, cl.StepFit.Status),
 			paramset["bot"],
 			true,
 			medianBeforeAnomaly,
@@ -117,7 +118,7 @@ func (n *ChromePerfNotifier) RegressionMissing(
 			int32(previousCommit.CommitNumber),
 			int32(commit.CommitNumber),
 			"chromium",
-			true,
+			isRegressionImprovement(paramset, cl.StepFit.Status),
 			paramset["bot"],
 			true,
 			medianBeforeAnomaly,
@@ -148,6 +149,16 @@ func isParamSetValid(paramset map[string]string) bool {
 	}
 
 	return true
+}
+
+// isRegressionImprovement returns true if the metric has moved towards the improvement direction.
+func isRegressionImprovement(paramset map[string]string, stepFitStatus stepfit.StepFitStatus) bool {
+	if _, ok := paramset["improvement_direction"]; ok {
+		improvementDirection := paramset["improvement_direction"]
+		return improvementDirection == "down" && stepFitStatus == stepfit.LOW || improvementDirection == "up" && stepFitStatus == stepfit.HIGH
+	}
+
+	return false
 }
 
 // GetTestPath returns a test path based on the values found in the paramset.

@@ -38,11 +38,12 @@ func TestMissingParamInQuery(t *testing.T) {
 
 func TestValidRegression_Success(t *testing.T) {
 	paramset := map[string]string{
-		"master":    "m",
-		"bot":       "testBot",
-		"benchmark": "b",
-		"test":      "t",
-		"subtest_1": "s",
+		"master":                "m",
+		"bot":                   "testBot",
+		"benchmark":             "b",
+		"test":                  "t",
+		"subtest_1":             "s",
+		"improvement_direction": "down",
 	}
 
 	ctx := context.Background()
@@ -66,7 +67,7 @@ func TestValidRegression_Success(t *testing.T) {
 	}
 	cl := &clustering2.ClusterSummary{
 		Centroid: []float32{1.0, 2.0},
-		StepFit:  &stepfit.StepFit{TurningPoint: 1},
+		StepFit:  &stepfit.StepFit{TurningPoint: 1, Status: stepfit.HIGH},
 	}
 	anomalyId, err := notifier.RegressionFound(ctx, endCommit, startCommit, alerts.NewConfig(), cl, frame)
 	assert.Nil(t, err, "No error expected")
@@ -75,11 +76,12 @@ func TestValidRegression_Success(t *testing.T) {
 
 func TestValidRegressionMissing_Success(t *testing.T) {
 	paramset := map[string]string{
-		"master":    "m",
-		"bot":       "testBot",
-		"benchmark": "b",
-		"test":      "t",
-		"subtest_1": "s",
+		"master":                "m",
+		"bot":                   "testBot",
+		"benchmark":             "b",
+		"test":                  "t",
+		"subtest_1":             "s",
+		"improvement_direction": "down",
 	}
 
 	ctx := context.Background()
@@ -103,7 +105,7 @@ func TestValidRegressionMissing_Success(t *testing.T) {
 
 	cl := &clustering2.ClusterSummary{
 		Centroid: []float32{1.0, 2.0},
-		StepFit:  &stepfit.StepFit{TurningPoint: 1},
+		StepFit:  &stepfit.StepFit{TurningPoint: 1, Status: stepfit.LOW},
 	}
 	err := notifier.RegressionMissing(ctx, endCommit, startCommit, alerts.NewConfig(), cl, frame, "ref")
 	assert.Nil(t, err, "No error expected")
