@@ -39,6 +39,7 @@ go_library(
         "//perf/go/dryrun",
         "//perf/go/git",
         "//perf/go/git/provider",
+        "//perf/go/graphsshortcut",
         "//perf/go/ingest/format",
         "//perf/go/notify",
         "//perf/go/notifytypes",

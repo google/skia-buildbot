@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "schema",
+    srcs = ["schema.go"],
+    importpath = "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore/schema",
+    visibility = ["//visibility:public"],
+)

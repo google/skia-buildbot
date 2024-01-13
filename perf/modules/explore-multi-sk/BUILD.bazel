@@ -15,6 +15,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//:node_modules/lit-html",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",

@@ -1,13 +1,37 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "expectedschema",
-    srcs = ["embed.go"],
-    embedsrcs = ["schema.json"],
+    srcs = [
+        "embed.go",
+        "migrate.go",
+    ],
+    embedsrcs = [
+        "schema.json",
+        "schema_prev.json",
+    ],
     importpath = "go.skia.org/infra/perf/go/sql/expectedschema",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/deepequal/assertdeep",
         "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
         "//go/sql/schema",
+        "//perf/go/sql",
+    ],
+)
+
+go_test(
+    name = "expectedschema_test",
+    srcs = ["migrate_test.go"],
+    deps = [
+        ":expectedschema",
+        "//go/deepequal/assertdeep",
+        "//go/sql/schema",
+        "//perf/go/sql",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
     ],
 )

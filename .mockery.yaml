@@ -243,6 +243,9 @@ packages:
   go.skia.org/infra/perf/go/git:
     interfaces:
       Git:
+  go.skia.org/infra/perf/go/graphsshortcut:
+    interfaces:
+      Store:
   go.skia.org/infra/perf/go/notify:
     interfaces:
       Notifier:

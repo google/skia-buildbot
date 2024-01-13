@@ -53,6 +53,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/notifytypes"
@@ -136,6 +137,8 @@ type Frontend struct {
 	shortcutStore shortcut.Store
 
 	configProvider alerts.ConfigProvider
+
+	graphsShortcutStore graphsshortcut.Store
 
 	notifier notify.Notifier
 
@@ -492,6 +495,10 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	f.graphsShortcutStore, err = builders.NewGraphsShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -921,6 +928,54 @@ func (f *Frontend) keysHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := f.shortcutStore.Insert(ctx, r.Body)
 	if err != nil {
 		httputils.ReportError(w, err, "Error inserting shortcut.", http.StatusInternalServerError)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": id}); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
+type GetGraphsShortcutRequest struct {
+	ID string `json:"id"`
+}
+
+func (f *Frontend) getGraphsShortcutHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	var ggsr GetGraphsShortcutRequest
+	if err := json.NewDecoder(r.Body).Decode(&ggsr); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	sc, err := f.graphsShortcutStore.GetShortcut(ctx, ggsr.ID)
+
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get keys shortcut.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(sc); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
+func (f *Frontend) createGraphsShortcutHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	shortcut := &graphsshortcut.GraphsShortcut{}
+	if err := json.NewDecoder(r.Body).Decode(shortcut); err != nil {
+		httputils.ReportError(w, err, "Unable to read shortcut body.", http.StatusInternalServerError)
+		return
+	}
+
+	id, err := f.graphsShortcutStore.InsertShortcut(ctx, shortcut)
+	if err != nil {
+		httputils.ReportError(w, err, "Error inserting graphs shortcut.", http.StatusInternalServerError)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(map[string]string{"id": id}); err != nil {
@@ -1843,6 +1898,9 @@ func (f *Frontend) Serve() {
 	router.Post("/_/alert/notify/try", f.alertNotifyTryHandler)
 
 	router.Get("/_/login/status", f.loginStatus)
+
+	router.Post("/_/shortcut/get", f.getGraphsShortcutHandler)
+	router.Post("/_/shortcut/update", f.createGraphsShortcutHandler)
 
 	router.Post("/_/bisect/create", f.createBisectHandler)
 

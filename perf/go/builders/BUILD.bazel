@@ -21,6 +21,8 @@ go_library(
         "//perf/go/file/gcssource",
         "//perf/go/filestore/gcs",
         "//perf/go/git",
+        "//perf/go/graphsshortcut",
+        "//perf/go/graphsshortcut/graphsshortcutstore",
         "//perf/go/regression",
         "//perf/go/regression/sqlregressionstore",
         "//perf/go/shortcut",

@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "graphsshortcut",
+    srcs = ["graphsshortcut.go"],
+    importpath = "go.skia.org/infra/perf/go/graphsshortcut",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "graphsshortcut_test",
+    srcs = ["graphsshortcut_test.go"],
+    embed = [":graphsshortcut"],
+    deps = ["@com_github_stretchr_testify//assert"],
+)

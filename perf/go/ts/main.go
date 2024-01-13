@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/pinpoint"
@@ -73,6 +74,7 @@ func main() {
 		frontend.CommitDetailsRequest{},
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
+		frontend.GetGraphsShortcutRequest{},
 		frontend.RangeRequest{},
 		frontend.RegressionRangeRequest{},
 		frontend.RegressionRangeResponse{},
@@ -83,6 +85,7 @@ func main() {
 		frontend.TriageResponse{},
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
+		graphsshortcut.GraphsShortcut{},
 		pinpoint.CreateBisectRequest{},
 		pinpoint.CreateBisectResponse{},
 		provider.Commit{},

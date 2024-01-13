@@ -29,6 +29,7 @@ import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../explore-simple-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 const GRAPH_LIMIT = 50;
 
@@ -37,9 +38,7 @@ class State {
 
   end: number = Math.floor(Date.now() / 1000);
 
-  numGraphs: number = 0; // Let's state reflector know how many graphs to add.
-
-  graphConfigs: string[] = [];
+  shortcut: string = '';
 
   showZero: boolean = true;
 
@@ -84,17 +83,26 @@ export class ExploreMultiSk extends ElementSk {
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
-      (hintableState) => {
+      async (hintableState) => {
         const state = hintableState as unknown as State;
 
         const numElements = this.exploreElements.length;
 
-        for (let i = 0; i < state.numGraphs; i++) {
+        let graphConfigs: GraphConfig[] | undefined = [];
+        if (state.shortcut !== '') {
+          graphConfigs = await this.getConfigsFromShortcut(state.shortcut);
+          if (graphConfigs === undefined) {
+            graphConfigs = [];
+          }
+        }
+
+        for (let i = 0; i < graphConfigs.length; i++) {
           if (i >= numElements) {
             this.addEmptyGraph();
           }
+          this.graphConfigs[i] = graphConfigs[i];
         }
-        while (this.exploreElements.length > state.numGraphs) {
+        while (this.exploreElements.length > graphConfigs.length) {
           this.popGraph();
         }
 
@@ -168,7 +176,6 @@ export class ExploreMultiSk extends ElementSk {
 
     this.exploreElements.pop();
     this.graphConfigs.pop();
-    this._state.numGraphs -= 1;
     this.updateButtons();
     graphDiv!.removeChild(graphDiv!.lastChild!);
   }
@@ -177,7 +184,6 @@ export class ExploreMultiSk extends ElementSk {
     while (this.exploreElements.length > 0) {
       this.popGraph();
     }
-    this._state.numGraphs = 0;
   }
 
   private addEmptyGraph(): ExploreSimpleSk | null {
@@ -192,7 +198,6 @@ export class ExploreMultiSk extends ElementSk {
     explore.openQueryByDefault = false;
     explore.navOpen = false;
     this.exploreElements.push(explore);
-    this._state.numGraphs += 1;
     this.updateButtons();
     this.graphConfigs.push(new GraphConfig());
 
@@ -209,7 +214,7 @@ export class ExploreMultiSk extends ElementSk {
 
       graphConfig.keys = elemState.keys || '';
 
-      this.stateHasChanged!();
+      this.updateShortcut();
     });
 
     graphDiv!.appendChild(explore);
@@ -217,42 +222,21 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   public get state(): State {
-    const graphConfigs: string[] = [];
-
-    this.graphConfigs.forEach((config) => {
-      graphConfigs.push(query.fromObject(config as unknown as HintableObject));
-    });
-
-    return {
-      ...this._state,
-      graphConfigs: graphConfigs,
-    };
+    return this._state;
   }
 
   public set state(v: State) {
-    v.graphConfigs.forEach((config, i) => {
-      const hintConfig = this.graphConfigs[i] as unknown as HintableObject;
-      const parsedConfig = query.toObject(
-        config,
-        hintConfig
-      ) as unknown as GraphConfig;
-      this.graphConfigs[i] = {
-        ...this.graphConfigs[i],
-        ...parsedConfig,
-      };
-    });
-
     this._state = v;
   }
 
   private updateButtons() {
-    if (this._state.numGraphs === 1) {
+    if (this.exploreElements.length === 1) {
       this.splitGraphButton!.disabled = false;
     } else {
       this.splitGraphButton!.disabled = true;
     }
 
-    if (this._state.numGraphs > 1) {
+    if (this.exploreElements.length > 1) {
       this.mergeGraphsButton!.disabled = false;
     } else {
       this.mergeGraphsButton!.disabled = true;
@@ -387,7 +371,7 @@ export class ExploreMultiSk extends ElementSk {
         }
       }
     });
-    this.stateHasChanged!();
+    this.updateShortcut();
   }
 
   /**
@@ -429,7 +413,63 @@ export class ExploreMultiSk extends ElementSk {
     };
     this.graphConfigs[0].formulas = formulas;
     this.graphConfigs[0].queries = queries;
-    this.stateHasChanged!();
+    this.updateShortcut!();
+  }
+
+  /**
+   * Fetches the Graph Configs in the DB for a given shortcut ID.
+   *
+   * @param {string} shortcut - shortcut ID to look for in the GraphsShortcut table.
+   * @returns - List of Graph Configs matching the shortcut ID in the GraphsShortcut table
+   * or undefined if the ID doesn't exist.
+   */
+  private getConfigsFromShortcut(
+    shortcut: string
+  ): Promise<GraphConfig[]> | undefined {
+    const body = {
+      ID: shortcut,
+    };
+
+    return fetch('/_/shortcut/get', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => json.graphs)
+      .catch(errorMessage);
+  }
+
+  /**
+   * Creates a shortcut ID for the current Graph Configs and updates the state.
+   *
+   */
+  private updateShortcut() {
+    if (this.graphConfigs.length === 0) {
+      this.state.shortcut = '';
+      this.stateHasChanged!();
+      return;
+    }
+
+    const body = {
+      graphs: this.graphConfigs,
+    };
+
+    fetch('/_/shortcut/update', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.state.shortcut = json.id;
+        this.stateHasChanged!();
+      })
+      .catch(errorMessage);
   }
 }
 

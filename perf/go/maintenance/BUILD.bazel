@@ -9,6 +9,7 @@ go_library(
         "//go/skerr",
         "//perf/go/builders",
         "//perf/go/config",
+        "//perf/go/sql/expectedschema",
         "//perf/go/tracing",
     ],
 )

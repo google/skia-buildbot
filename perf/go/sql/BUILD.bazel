@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sql",
@@ -11,8 +12,23 @@ go_library(
     deps = [
         "//perf/go/alerts/sqlalertstore/schema",
         "//perf/go/git/schema",
+        "//perf/go/graphsshortcut/graphsshortcutstore/schema",
         "//perf/go/regression/sqlregressionstore/schema",
         "//perf/go/shortcut/sqlshortcutstore/schema",
         "//perf/go/tracestore/sqltracestore/schema",
+    ],
+)
+
+go_test(
+    name = "sql_test",
+    srcs = ["sql_test.go"],
+    deps = [
+        ":sql",
+        "//go/deepequal/assertdeep",
+        "//go/sql/pool",
+        "//go/sql/schema",
+        "//perf/go/sql/expectedschema",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -207,6 +207,10 @@ export interface CountHandlerResponse {
 	paramset: ReadOnlyParamSet;
 }
 
+export interface GetGraphsShortcutRequest {
+	id: string;
+}
+
 export interface RangeRequest {
 	offset: CommitNumber;
 	begin: number;
@@ -276,6 +280,16 @@ export interface TryBugRequest {
 
 export interface TryBugResponse {
 	url: string;
+}
+
+export interface GraphConfig {
+	queries: string[] | null;
+	formulas: string[] | null;
+	keys: string;
+}
+
+export interface GraphsShortcut {
+	graphs: GraphConfig[] | null;
 }
 
 export interface CreateBisectRequest {

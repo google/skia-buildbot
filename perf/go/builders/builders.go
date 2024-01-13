@@ -26,6 +26,8 @@ import (
 	"go.skia.org/infra/perf/go/file/gcssource"
 	"go.skia.org/infra/perf/go/filestore/gcs"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/graphsshortcut"
+	"go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -60,18 +62,18 @@ func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, da
 const maxPoolConnections = 300
 
 // singletonPool is the one and only instance of pool.Pool that an
-// application should have, used in newCockroachDBFromConfig.
+// application should have, used in NewCockroachDBFromConfig.
 var singletonPool pool.Pool
 
 // singletonPoolMutex is used to enforce the singleton nature of singletonPool,
-// used in newCockroachDBFromConfig
+// used in NewCockroachDBFromConfig
 var singletonPoolMutex sync.Mutex
 
-// newCockroachDBFromConfig opens an existing CockroachDB database.
+// NewCockroachDBFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
 // 'migrate' command line application. See COCKROACHDB.md for more details.
-func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
+func NewCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, checkSchema bool) (pool.Pool, error) {
 	singletonPoolMutex.Lock()
 	defer singletonPoolMutex.Unlock()
 
@@ -96,18 +98,20 @@ func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	// a timeout.
 	singletonPool = timeout.New(rawPool)
 
-	// Confirm the database has the right schema.
-	expectedSchema, err := expectedschema.Load()
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+	if checkSchema {
+		// Confirm the database has the right schema.
+		expectedSchema, err := expectedschema.Load()
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 
-	actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
-		return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)
+		actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{})
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if diff := assertdeep.Diff(expectedSchema, *actual); diff != "" {
+			return nil, skerr.Fmt("Schema needs to be updated: %s.", diff)
+		}
 	}
 
 	return singletonPool, err
@@ -129,7 +133,7 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	}
 
 	// Now create the appropriate db.
-	db, err := newCockroachDBFromConfig(ctx, instanceConfig)
+	db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -147,7 +151,7 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -160,7 +164,7 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -176,7 +180,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (regression.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -190,11 +194,25 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfi
 func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		return sqlshortcutstore.New(db)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+}
+
+// NewShortcutStoreFromConfig creates a new shortcut.Store from the
+// InstanceConfig.
+func NewGraphsShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (graphsshortcut.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.CockroachDBDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return graphsshortcutstore.New(db)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

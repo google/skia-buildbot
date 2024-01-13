@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "graphsshortcutstore",
+    srcs = ["graphsshortcutstore.go"],
+    importpath = "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//perf/go/graphsshortcut",
+    ],
+)
+
+go_test(
+    name = "graphsshortcutstore_test",
+    srcs = ["graphsshortcutstore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
+    embed = [":graphsshortcutstore"],
+    # Perf CockroachDB tests fail intermittently when running locally (i.e. not on RBE) due to tests
+    # running in parallel against the same CockroachDB instance:
+    #
+    #     pq: relation "schema_lock" already exists
+    #
+    # This is not an issue on RBE because each test target starts its own emulator instance.
+    #
+    # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
+    flaky = True,
+    deps = [
+        "//perf/go/graphsshortcut/graphsshortcuttest",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

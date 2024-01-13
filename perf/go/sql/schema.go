@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS Commits (
   author TEXT,
   subject TEXT
 );
+CREATE TABLE IF NOT EXISTS GraphsShortcuts (
+  id TEXT UNIQUE NOT NULL PRIMARY KEY,
+  graphs TEXT
+);
 CREATE TABLE IF NOT EXISTS ParamSets (
   tile_number INT,
   param_key STRING,
@@ -68,6 +72,11 @@ var Commits = []string{
 	"commit_time",
 	"author",
 	"subject",
+}
+
+var GraphsShortcuts = []string{
+	"id",
+	"graphs",
 }
 
 var ParamSets = []string{

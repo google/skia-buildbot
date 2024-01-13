@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/tracing"
 )
 
@@ -21,6 +22,16 @@ const (
 func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *config.InstanceConfig) error {
 	if err := tracing.Init(flags.Local, instanceConfig); err != nil {
 		return skerr.Wrapf(err, "Start tracing.")
+	}
+
+	// Migrate schema if needed.
+	db, err := builders.NewCockroachDBFromConfig(ctx, instanceConfig, false)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create CockroachDB instance.")
+	}
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to migrate schema.")
 	}
 
 	// New perfgit.Git.
