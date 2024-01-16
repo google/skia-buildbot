@@ -3,13 +3,13 @@ module go.skia.org/infra
 require (
 	cloud.google.com/go/bigtable v1.19.0
 	cloud.google.com/go/compute/metadata v0.2.3
-	cloud.google.com/go/datastore v1.13.0
-	cloud.google.com/go/firestore v1.12.0
-	cloud.google.com/go/iam v1.1.2
-	cloud.google.com/go/logging v1.8.1
-	cloud.google.com/go/monitoring v1.15.1
+	cloud.google.com/go/datastore v1.15.0
+	cloud.google.com/go/firestore v1.14.0
+	cloud.google.com/go/iam v1.1.5
+	cloud.google.com/go/logging v1.9.0
+	cloud.google.com/go/monitoring v1.17.0
 	cloud.google.com/go/pubsub v1.33.0
-	cloud.google.com/go/secretmanager v1.11.1
+	cloud.google.com/go/secretmanager v1.11.4
 	cloud.google.com/go/storage v1.31.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
 	github.com/Jeffail/gabs/v2 v2.6.0
@@ -38,7 +38,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20210816172045-3099c18c36e1
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/googleapis/gax-go/v2 v2.12.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hako/durafmt v0.0.0-20200710122514-c0fb7b4da026
@@ -83,19 +83,20 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20231204022756-276ff2f399c8
 	go.opencensus.io v0.24.0
-	golang.org/x/net v0.18.0
-	golang.org/x/oauth2 v0.11.0
-	golang.org/x/sync v0.3.0
-	golang.org/x/sys v0.14.0
-	golang.org/x/term v0.14.0
+	golang.org/x/exp v0.0.0-20231127185646-65229373498e
+	golang.org/x/net v0.19.0
+	golang.org/x/oauth2 v0.13.0
+	golang.org/x/sync v0.5.0
+	golang.org/x/sys v0.15.0
+	golang.org/x/term v0.15.0
 	golang.org/x/time v0.3.0
-	golang.org/x/tools v0.12.0
-	google.golang.org/api v0.136.0
-	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d
-	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
-	google.golang.org/grpc v1.59.0
-	google.golang.org/protobuf v1.31.0
+	golang.org/x/tools v0.16.0
+	google.golang.org/api v0.149.0
+	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917
+	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
+	google.golang.org/grpc v1.60.1
+	google.golang.org/protobuf v1.32.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
 	gopkg.in/yaml.v2 v2.4.0
@@ -108,11 +109,11 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.110.7 // indirect
-	cloud.google.com/go/compute v1.23.0 // indirect
-	cloud.google.com/go/container v1.24.0 // indirect
-	cloud.google.com/go/longrunning v0.5.1 // indirect
-	cloud.google.com/go/trace v1.10.1 // indirect
+	cloud.google.com/go v0.111.0 // indirect
+	cloud.google.com/go/compute v1.23.3 // indirect
+	cloud.google.com/go/container v1.29.0 // indirect
+	cloud.google.com/go/longrunning v0.5.4 // indirect
+	cloud.google.com/go/trace v1.10.4 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.35.18 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -126,8 +127,10 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.11.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
+	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.1.2 // indirect
@@ -135,10 +138,12 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/licenseclassifier v0.0.0-20210722185704-3043a050f148 // indirect
-	github.com/google/s2a-go v0.1.4 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
+	github.com/google/s2a-go v0.1.7 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
@@ -186,7 +191,8 @@ require (
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
-	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	github.com/robfig/cron v1.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
@@ -208,14 +214,19 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.15.0 // indirect
-	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	go.opentelemetry.io/otel v1.21.0 // indirect
+	go.opentelemetry.io/otel/metric v1.21.0 // indirect
+	go.opentelemetry.io/otel/trace v1.21.0 // indirect
+	go.temporal.io/api v1.26.2 // indirect
+	go.temporal.io/sdk v1.25.2-0.20240108215803-6244097c5aca // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools/go/vcs v0.1.0-deprecated // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/appengine v1.6.8-0.20221117013220-504804fb50de // indirect
-	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230807174057-1744710a1577 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/genproto/googleapis/bytestream v0.0.0-20231030173426-d783a09b4405 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
