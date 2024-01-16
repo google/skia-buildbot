@@ -136,8 +136,9 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclie
 	jCache, err := cache.NewJobCache(ctx, d, window, nil)
 	require.NoError(t, err)
 	pubsubClient := &pubsub_mocks.Client{}
+	pubsubClient.On("Project").Return(bbPubSubProject)
 	pubsubTopic := &pubsub_mocks.Topic{}
-	pubsubClient.On("Topic", bbPubSubTopic).Return(pubsubTopic, nil)
+	pubsubClient.On("TopicInProject", bbPubSubTopic, bbPubSubProject).Return(pubsubTopic, nil)
 	integrator, err := NewTryJobIntegrator(ctx, API_URL_TESTING, "fake-bb-target", BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g, pubsubClient)
 	require.NoError(t, err)
 	return ctx, integrator, mock, MockBuildbucket(integrator), pubsubTopic
@@ -193,7 +194,7 @@ func tryjobV2(ctx context.Context, repoName string) *types.Job {
 	job := tryjobV1(ctx, repoName)
 	job.BuildbucketLeaseKey = 0
 	job.BuildbucketToken = bbFakeStartToken
-	job.BuildbucketPubSubTopic = bbPubSubTopic
+	job.BuildbucketPubSubTopic = fmt.Sprintf("projects/%s/topics/%s", bbPubSubProject, bbPubSubTopic)
 	return job
 }
 

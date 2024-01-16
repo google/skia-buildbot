@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -91,6 +92,10 @@ const (
 	// truncated cancel reason to Buildbucket to avoid exceeding limits in
 	// Buildbucket's DB.
 	maxCancelReasonLen = 1024
+)
+
+var (
+	pubsubRegex = regexp.MustCompile(`^projects\/([a-zA-Z_-]+)\/topics\/([a-zA-Z_-]+)$`)
 )
 
 // TryJobIntegrator is responsible for communicating with Buildbucket to
@@ -405,7 +410,16 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 			if err != nil {
 				return skerr.Wrapf(err, "failed to encode BuildTaskUpdate")
 			}
-			_, err = t.pubsub.Topic(job.BuildbucketPubSubTopic).Publish(ctx, &pubsub_api.Message{
+			// Parse the project and topic names from the fully-qualified topic.
+			project := t.pubsub.Project()
+			topic := job.BuildbucketPubSubTopic
+			m := pubsubRegex.FindStringSubmatch(job.BuildbucketPubSubTopic)
+			if len(m) == 3 {
+				project = m[1]
+				topic = m[2]
+			}
+			// Publish the message.
+			_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
 				Data: b,
 			}).Get(ctx)
 			return err
