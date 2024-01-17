@@ -38,23 +38,31 @@ def sass_binary(name, srcs, entry_point, out, mode, deps = []):
     (https://www.npmjs.com/package/csso-cli). This eliminates any repeated rules that might result
     from including the same Sass file multiple times.
 
-    When the mode argument is set to "development", the resulting .css file will be unminified and
-    will include an embedded sourcemap. When the mode argument is set to "production", no sourcemap
-    will be produced, and the resulting file will be minified.
+    The mode argument takes one of the following three values:
+
+    - "development": Produces an unminified <name>.css file with an embeded sourcemap.
+    - "production_sourcemap": Produces a minified <name>.css file and a <name>.css.map sourcemap.
+    - "production": Produces a minified <name>.css file without a sourcemap.
+
+    The "production_sourcemap" and "production" modes produce virtually identical bundles; the only
+    difference is that the former includes a `/*# sourceMappingURL=<name>.css.map */` comment on
+    the last line. From a page load perspective, linked sourcemaps are only downloaded by Chrome
+    when Chrome DevTools is open. This means "production_sourcemap" strikes a good balance between
+    production performance and the ability to debug style issues in production.
 
     Args:
       name: Name of the target.
       srcs: Sass source files (either .scss or .css files).
       entry_point: A single Sass file that will be passed to the Sass compiler as the entry point.
       out: Name of the output .css file.
-      mode: Either "development" or "production".
+      mode: One of "development", "production_sourcemap" or "production".
       deps: Any sass_library dependencies.
     """
 
     if entry_point not in srcs:
         fail("The entry_point must be included in the srcs.")
 
-    if mode not in ["development", "production"]:
+    if mode not in ["development", "production_sourcemap", "production"]:
         fail("Unknown value for \"mode\" argument: \"%s\"." % mode)
 
     # Reference: https://sass-lang.com/documentation/cli/dart-sass.
@@ -68,6 +76,11 @@ def sass_binary(name, srcs, entry_point, out, mode, deps = []):
             # that we only get the .css file as output, but for some reason the embedded sourcemap
             # does not work in Chrome and makes csso crash. We work around this by omitting
             # --embed-source-map and passing the resulting .css.map file to csso.
+            "--embed-sources",
+        ]
+    elif mode == "production_sourcemap":
+        sass_args += [
+            "--style=compressed",
             "--embed-sources",
         ]
     else:
@@ -86,7 +99,10 @@ def sass_binary(name, srcs, entry_point, out, mode, deps = []):
             "$(rootpath %s)" % entry_point,
             "$(rootpath %s)" % out_unoptimized,
         ],
-        outs = [out_unoptimized] + ([out_unoptimized + ".map"] if mode == "development" else []),
+        outs = [out_unoptimized] if mode == "production" else [
+            out_unoptimized,
+            out_unoptimized + ".map",
+        ],
     )
 
     # Reference: https://github.com/css/csso-cli.
@@ -97,6 +113,13 @@ def sass_binary(name, srcs, entry_point, out, mode, deps = []):
             "$(rootpath %s.map)" % out_unoptimized,
             "--source-map",
             "inline",
+        ]
+    elif mode == "production_sourcemap":
+        csso_args = [
+            "--input-source-map",
+            "$(rootpath %s.map)" % out_unoptimized,
+            "--source-map",
+            "file",  # Causes csso to produce a <name>.css.map sourcemap file.
         ]
     else:
         csso_args = [
@@ -109,12 +132,15 @@ def sass_binary(name, srcs, entry_point, out, mode, deps = []):
     # See https://docs.aspect.build/rulesets/aspect_rules_js/docs/#using-binaries-published-to-npm.
     _csso_bin.csso(
         name = name,
-        srcs = [out_unoptimized] + ([out_unoptimized + ".map"] if mode == "development" else []),
+        srcs = [out_unoptimized] if mode == "production" else [
+            out_unoptimized,
+            out_unoptimized + ".map",
+        ],
         args = [
             "$(rootpath %s)" % out_unoptimized,
             "--output",
             "$(rootpath %s)" % out,
         ] + csso_args,
-        outs = [out],
+        outs = [out, out + ".map"] if mode == "production_sourcemap" else [out],
         visibility = ["//visibility:public"],
     )

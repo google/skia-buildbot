@@ -23,7 +23,7 @@ def esbuild_dev_bundle(
     """Builds a development JS bundle.
 
     This macro is a wrapper around the esbuild rule with common settings for development builds,
-    such as sourcemaps and no minification.
+    such as sourcemap generation and no minification.
 
     Args:
       name: The name of the rule.
@@ -51,6 +51,7 @@ def esbuild_prod_bundle(
         entry_point,
         output,
         deps = [],
+        sourcemap = False,
         visibility = ["//visibility:public"],
         **kwargs):
     """Builds a production JS bundle.
@@ -63,6 +64,7 @@ def esbuild_prod_bundle(
       entry_point: Entry-point TypeScript or JavaScript file.
       deps: Any ts_library dependencies.
       output: Name of the output JS file.
+      sourcemap: Whether or not to produce a sourcemap. The bundle will be minified regardless.
       visibility: Visibility of the rule.
       **kwargs: Any other arguments to be passed to the esbuild rule.
     """
@@ -75,7 +77,9 @@ def esbuild_prod_bundle(
         minify = True,
         output = output,
         visibility = visibility,
-        sourcemap = "",  # Defaults to "linked" (https://esbuild.github.io/api/#sourcemap).
+        # Defaults to "linked" (https://esbuild.github.io/api/#sourcemap).
+        sourcemap = "linked" if sourcemap else "",
+        sources_content = sourcemap,
         **kwargs
     )
 

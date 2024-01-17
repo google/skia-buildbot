@@ -45,8 +45,10 @@ skia_app_container(
             ]
             for ext in [
                 "css",
+                "css.map",
                 "html",
                 "js",
+                "js.map",
             ]
         ],
     },

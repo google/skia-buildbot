@@ -377,6 +377,7 @@ def sk_page(
         sk_element_deps = [],
         assets_serving_path = "",
         copy_files = None,
+        production_sourcemap = False,
         nonce = None):
     """Builds a static HTML page, and its CSS and JavaScript development and production bundles.
 
@@ -414,6 +415,9 @@ def sk_page(
       assets_serving_path: Path prefix for the inserted <script> and <link> tags.
       copy_files: Any files that should just be copied into the final build directory. These are
         assets needed by the page that are not loaded in via imports (e.g. images, WASM).
+      production_sourcemap: Whether or not to generate sourcemaps for the production bundles.
+        Production sourcemaps are linked, rather than inlined, so as not to affect bundle sizes.
+        Chrome only downloads linked sourcemaps when the Chrome DevTools are open.
       nonce: If set, its contents will be added as a "nonce" attribute to any <script> and <link>
         tags inserted into the page's HTML file.
     """
@@ -454,6 +458,7 @@ def sk_page(
         entry_point = ts_entry_point,
         deps = [":%s_ts_lib" % name],
         output = "%s/%s.js" % (PROD_OUT_DIR, name),
+        sourcemap = production_sourcemap,
     )
 
     ################
@@ -512,7 +517,7 @@ def sk_page(
         deps = [name + "_styles"],
         entry_point = scss_ghost_entry_point,
         out = "%s/%s.css" % (PROD_OUT_DIR, name),
-        mode = "production",
+        mode = "production_sourcemap" if production_sourcemap else "production",
     )
 
     #####################
