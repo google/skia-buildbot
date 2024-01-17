@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 
+	"go.skia.org/infra/bisection/go/workflows"
+	"go.skia.org/infra/bisection/go/workflows/internal"
 	"go.skia.org/infra/go/sklog"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 )
 
 var (
@@ -25,6 +28,9 @@ func main() {
 	defer c.Close()
 
 	w := worker.New(c, "perf.bisection", worker.Options{})
+
+	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)

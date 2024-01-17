@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "internal",
+    srcs = ["build_chrome.go"],
+    importpath = "go.skia.org/infra/bisection/go/workflows/internal",
+    visibility = ["//bisection/go/workflows:__subpackages__"],
+    deps = [
+        "//bisection/go/workflows:workflows_lib",
+        "@io_temporal_go_sdk//workflow",
+    ],
+)
