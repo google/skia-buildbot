@@ -10,7 +10,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"go.chromium.org/luci/grpc/appstatus"
-	"go.skia.org/infra/bisection/go/build_chrome"
 	"go.skia.org/infra/go/buildbucket"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -106,7 +105,7 @@ func TestCancelBuild(t *testing.T) {
 	})
 }
 
-func TestGetBuildswithDeps(t *testing.T) {
+func TestGetBuildWithDeps(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -191,6 +190,28 @@ func TestGetBuildswithDeps(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(build, ShouldBeNil)
 		})
+
+		Convey(`Nil patches`, func() {
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mbc := bpb.NewMockBuildsClient(ctl)
+			c := NewBuildbucketClient(mbc)
+
+			req := c.createSearchBuildRequest(builder, DefaultBucket, commit, nil)
+			// 1 day old
+			ts := timestamppb.New(time.Now().AddDate(0, 1, 0))
+			resp := &bpb.SearchBuildsResponse{
+				Builds: []*bpb.Build{
+					createBuild(1, bpb.Status_FAILURE, ts, DefaultBucket, builder, nil),
+				},
+			}
+			mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
+
+			build, err := c.GetBuildWithPatches(ctx, builder, DefaultBucket, commit, nil)
+			So(err, ShouldBeNil)
+			So(build, ShouldBeNil)
+		})
 	})
 }
 
@@ -200,7 +221,7 @@ func TestGetBuildFromWaterfall(t *testing.T) {
 	ctx := context.Background()
 
 	builder := "Linux Builder Perf"
-	mirror, _ := build_chrome.PinpointWaterfall[builder]
+	mirror, _ := PinpointWaterfall[builder]
 	commit := "12345"
 
 	// must be CI bucket, aka WaterfallBucket

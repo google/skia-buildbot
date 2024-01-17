@@ -8,11 +8,11 @@ go_library(
         "doc.go",
         "gitiles.go",
         "skia_bridge.go",
+        "waterfall_map.go",
     ],
     importpath = "go.skia.org/infra/bisection/go/backends",
     visibility = ["//visibility:public"],
     deps = [
-        "//bisection/go/build_chrome",
         "//go/auth",
         "//go/buildbucket",
         "//go/gitiles",
@@ -38,7 +38,6 @@ go_test(
     ],
     embed = [":backends"],
     deps = [
-        "//bisection/go/build_chrome",
         "//go/buildbucket",
         "//go/mockhttpclient",
         "@com_github_golang_mock//gomock",

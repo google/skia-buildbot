@@ -14,7 +14,6 @@ import (
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 
-	"go.skia.org/infra/bisection/go/build_chrome"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
 
@@ -45,6 +44,13 @@ const (
 	// DefaultTagValue is the value format for the key above.
 	DefaultBuildsetValue = "commit/gitiles/chromium.googlesource.com/chromium/src/+/%s"
 	// DefaultCASInstance is the default CAS instance used by Pinpoint builds.
+	//
+	// TODO(b/315215756): Support other swarming instances. There are three known
+	// swarming instances Pinpoint supports. The majority of Pinpoint builds are
+	// this defaultInstance. Buildbucket API does not report the swarming instance
+	// so our options are to:
+	// - include the expected instance in the build tags
+	// - try all 3 known swarming instances and brute force it
 	DefaultCASInstance = "projects/chrome-swarming/instances/default_instance"
 	// DefaultPerRPCTimeout defines the default time permitted for each RPC call.
 	DefaultPerRPCTimeout = 90 * time.Second
@@ -206,7 +212,7 @@ func (b BuildbucketClient) GetBuildWithPatches(ctx context.Context, builderName,
 // GetBuildFromWaterfall searches for an exactly matching Buildbucket build using information
 // from the builderName's CI counterpart.
 func (b BuildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderName, commit string) (*bpb.Build, error) {
-	mirror, ok := build_chrome.PinpointWaterfall[builderName]
+	mirror, ok := PinpointWaterfall[builderName]
 	if !ok {
 		return nil, skerr.Fmt("%s has no supported CI waterfall builder.", builderName)
 	}
