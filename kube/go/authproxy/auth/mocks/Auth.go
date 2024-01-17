@@ -33,7 +33,7 @@ func (_m *Auth) Init(ctx context.Context) error {
 }
 
 // LoggedInAs provides a mock function with given fields: r
-func (_m *Auth) LoggedInAs(r *http.Request) string {
+func (_m *Auth) LoggedInAs(r *http.Request) (string, error) {
 	ret := _m.Called(r)
 
 	if len(ret) == 0 {
@@ -41,13 +41,23 @@ func (_m *Auth) LoggedInAs(r *http.Request) string {
 	}
 
 	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*http.Request) (string, error)); ok {
+		return rf(r)
+	}
 	if rf, ok := ret.Get(0).(func(*http.Request) string); ok {
 		r0 = rf(r)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*http.Request) error); ok {
+		r1 = rf(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // LoginURL provides a mock function with given fields: w, r

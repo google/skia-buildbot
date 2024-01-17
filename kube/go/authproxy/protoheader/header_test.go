@@ -68,14 +68,16 @@ func TestSerialize_HappyPath(t *testing.T) {
 func TestLoggedInAs_HappyPath(t *testing.T) {
 	p, r := protoHeaderAndRequestForTest(t)
 
-	email := p.LoggedInAs(r)
+	email, err := p.LoggedInAs(r)
+	require.NoError(t, err)
 	require.Equal(t, testEmail, email)
 }
 
 func TestLoggedInAs_MissingPeriodInHash_ReturnsEmptyString(t *testing.T) {
 	p, r := protoHeaderMissingAPeriodInTheHeaderValueAndRequestForTest(t)
 
-	email := p.LoggedInAs(r)
+	email, err := p.LoggedInAs(r)
+	require.Equal(t, errDotInHeaderRequired, err)
 	require.Empty(t, email)
 }
 
@@ -85,7 +87,8 @@ func TestLoggedInAs_HeaderIsMissing_ReturnsEmptyString(t *testing.T) {
 	p := ProtoHeader{
 		headerName: testHeaderName,
 	}
-	email := p.LoggedInAs(r)
+	email, err := p.LoggedInAs(r)
+	require.Error(t, err)
 	require.Equal(t, "", email)
 }
 
@@ -96,7 +99,8 @@ func TestLoggedInAs_HeaderContainsInvalidBase64Encoding_ReturnsEmptyString(t *te
 	p := ProtoHeader{
 		headerName: testHeaderName,
 	}
-	email := p.LoggedInAs(r)
+	email, err := p.LoggedInAs(r)
+	require.Contains(t, err.Error(), "decoding base64")
 	require.Equal(t, "", email)
 }
 

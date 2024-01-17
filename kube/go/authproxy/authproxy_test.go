@@ -2,6 +2,7 @@ package authproxy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -25,6 +26,10 @@ import (
 const (
 	viewerEmail     = "nobody@example.org"
 	notAViewerEmail = "notallowed@example.org"
+)
+
+var (
+	errForTesting = errors.New("my test error")
 )
 
 var commonAllowed = map[roles.Role]allowed.Allow{
@@ -62,7 +67,7 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 		require.Equal(t, []string(nil), r.Header.Values("X-SOME-UNSET-HEADER"))
 	})
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return("")
+	authMock.On("LoggedInAs", r).Return("", errForTesting)
 
 	proxy := newProxy(u, authMock, true, false, false, false)
 	proxy.allowedRoles = commonAllowed
@@ -75,7 +80,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 	u, called, w, r := setupForTest(t, assertValidEmailAndRole(t))
 
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return(viewerEmail)
+	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
 	proxy := newProxy(u, authMock, false, false, false, false)
 	proxy.allowedRoles = commonAllowed
@@ -97,7 +102,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIs
 	})
 
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return(viewerEmail)
+	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
 	allowedRoles := map[roles.Role]allowed.Allow{
 		roles.Viewer: allowed.NewAllowedFromList([]string{viewerEmail}),
@@ -114,7 +119,7 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
 	r.Header.Add(WebAuthHeaderName, viewerEmail) // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return("")
+	authMock.On("LoggedInAs", r).Return("", errForTesting)
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
 
 	proxy := newProxy(u, authMock, false, false, false, false)
@@ -127,7 +132,7 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *testing.T) {
 	u, called, w, r := setupForTest(t, func(w http.ResponseWriter, r *http.Request) {})
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return(notAViewerEmail)
+	authMock.On("LoggedInAs", r).Return(notAViewerEmail, nil)
 
 	proxy := newProxy(u, authMock, false, false, false, false)
 	proxy.allowedRoles = commonAllowed
@@ -141,7 +146,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	u, called, w, r := setupForTest(t, assertValidEmailAndRole(t))
 	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return(viewerEmail)
+	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
 	proxy := newProxy(u, authMock, false, false, false, false)
 	proxy.allowedRoles = commonAllowed
@@ -158,7 +163,7 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 
 	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return("")
+	authMock.On("LoggedInAs", r).Return("", errForTesting)
 
 	proxy := newProxy(u, authMock, false, true, false, false)
 	proxy.allowedRoles = commonAllowed
@@ -172,7 +177,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 
 	r.Header.Add(WebAuthHeaderName, "haxor@example.org") // Try to spoof the header.
 	authMock := mocks.NewAuth(t)
-	authMock.On("LoggedInAs", r).Return(viewerEmail)
+	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
 	proxy := newProxy(u, authMock, false, true, false, false)
 	proxy.allowedRoles = commonAllowed

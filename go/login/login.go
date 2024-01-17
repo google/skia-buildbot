@@ -471,24 +471,22 @@ func getSession(r *http.Request) (*Session, error) {
 	return &s, nil
 }
 
-// AuthenticatedAs returns the user's email address, if they are logged in, and "" if
-// they are not logged in.
-func AuthenticatedAs(r *http.Request) string {
+// AuthenticatedAs returns the user's email address, if they are logged in, and
+// "" if they are not logged in. Note that if a user isn't logged in then the
+// returned error will contain details on how the login failed.
+func AuthenticatedAs(r *http.Request) (string, error) {
 	var email string
 	if s, err := getSession(r); err == nil {
 		email = s.Email
 	} else {
-		if e, err := viaBearerToken(r); err == nil {
-			email = e
-		} else {
-			sklog.Errorf("Failed bearer token auth: %s", err)
-		}
+		return viaBearerToken(r)
 	}
+	// TODO(jcgregorio) This should be able to be removed.
 	if isAuthorized(email) {
-		return email
+		return email, nil
 	}
 
-	return ""
+	return "", nil
 }
 
 // A JSON Web Token can contain much info, such as 'iss'. We don't care about

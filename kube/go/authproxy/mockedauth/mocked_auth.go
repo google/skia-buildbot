@@ -21,7 +21,7 @@ func New(loggedInAs string) mockedAuth {
 }
 
 func (m mockedAuth) Init(ctx context.Context) error                         { return nil }
-func (m mockedAuth) LoggedInAs(r *http.Request) string                      { return m.loggedInAs }
+func (m mockedAuth) LoggedInAs(r *http.Request) (string, error)             { return m.loggedInAs, nil }
 func (m mockedAuth) LoginURL(w http.ResponseWriter, r *http.Request) string { return "" }
 
 // Confirm mockedAuth implements [auth.Auth].

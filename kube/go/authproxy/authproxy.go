@@ -131,7 +131,11 @@ func (p *proxy) setAllowedRoles(allowedRoles map[roles.Role]allowed.Allow) {
 }
 
 func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	email := p.authProvider.LoggedInAs(r)
+	email, err := p.authProvider.LoggedInAs(r)
+	if err != nil && !p.passive {
+		sklog.Errorf("LoggedInAs failed: %s", err)
+	}
+	// TODO(jcgregorio) Add --verbose mode to log failures as Info.
 	r.Header.Del(WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
 

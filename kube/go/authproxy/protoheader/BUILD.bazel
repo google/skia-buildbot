@@ -13,7 +13,6 @@ go_library(
     deps = [
         "//go/secret",
         "//go/skerr",
-        "//go/sklog",
         "//kube/go/authproxy/auth",
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protoreflect",

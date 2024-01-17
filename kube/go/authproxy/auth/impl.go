@@ -18,7 +18,7 @@ func New() authImpl {
 }
 
 // LoggedInAs implements Auth.
-func (l authImpl) LoggedInAs(r *http.Request) string {
+func (l authImpl) LoggedInAs(r *http.Request) (string, error) {
 	return login.AuthenticatedAs(r)
 }
 

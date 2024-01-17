@@ -5,12 +5,12 @@ package protoheader
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"strings"
 
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/kube/go/authproxy/auth"
 	"google.golang.org/protobuf/proto"
 )
@@ -24,6 +24,10 @@ const (
 
 	// Project is the project where the above secrets are stored in.
 	Project = "skia-infra-public"
+)
+
+var (
+	errDotInHeaderRequired = errors.New("Failed to find a '.' separated header value.")
 )
 
 // ProtoHeader implements auth.Auth.
@@ -56,28 +60,25 @@ func (p ProtoHeader) Init(ctx context.Context) error {
 }
 
 // LoggedInAs implements auth.Auth.
-func (p ProtoHeader) LoggedInAs(r *http.Request) string {
+func (p ProtoHeader) LoggedInAs(r *http.Request) (string, error) {
 	// The header value contains a base64 encoded proto and then it's signed
 	// which adds a signature, separated by a period.
 	headerValue := r.Header.Get(p.headerName)
 	parts := strings.Split(headerValue, ".")
 	if len(parts) != 2 {
-		sklog.Errorf("Failed to find a '.' separated header value.")
-		return ""
+		return "", errDotInHeaderRequired
 	}
 	// Only use the base64 encoded data before the period.
 	b, err := base64.RawURLEncoding.DecodeString(parts[0])
 	if err != nil {
-		sklog.Errorf("Failed to base64 decode header: %q error: %s", p.headerName, err)
-		return ""
+		return "", skerr.Wrapf(err, "decoding base64 header: %q", p.headerName)
 	}
 	var h Header
 	err = proto.Unmarshal(b, &h)
 	if err != nil {
-		sklog.Errorf("Failed to decode proto %q: %s", p.headerName, err)
-		return ""
+		return "", skerr.Wrapf(err, "decoding proto %q", p.headerName)
 	}
-	return h.Email
+	return h.Email, nil
 }
 
 // LoginURL implements auth.Auth.

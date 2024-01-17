@@ -86,7 +86,9 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	r, err := http.NewRequest("GET", fmt.Sprintf("http://www.%s/", domain), nil)
 	require.NoError(t, err)
 
-	assert.Equal(t, AuthenticatedAs(r), "", "No skid cookie means not logged in.")
+	email, err := AuthenticatedAs(r)
+	require.Error(t, err)
+	assert.Equal(t, email, "", "No skid cookie means not logged in.")
 
 	s := Session{
 		Email:     "fred@chromium.org",
@@ -98,7 +100,10 @@ func testLoggedInAs(t *testing.T, domain DomainName) {
 	assert.NoError(t, err)
 	assert.Equal(t, string(domain), cookie.Domain)
 	r.AddCookie(cookie)
-	assert.Equal(t, AuthenticatedAs(r), "fred@chromium.org", "Correctly get logged in email.")
+
+	email, err = AuthenticatedAs(r)
+	require.NoError(t, err)
+	assert.Equal(t, email, "fred@chromium.org", "Correctly get logged in email.")
 	w := httptest.NewRecorder()
 	url := loginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")

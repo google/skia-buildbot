@@ -10,6 +10,6 @@ import (
 // package.
 type Auth interface {
 	Init(ctx context.Context) error
-	LoggedInAs(r *http.Request) string
+	LoggedInAs(r *http.Request) (string, error)
 	LoginURL(w http.ResponseWriter, r *http.Request) string
 }
