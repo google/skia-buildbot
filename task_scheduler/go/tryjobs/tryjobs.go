@@ -238,7 +238,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	insert := make([]*types.Job, 0, len(finished))
 	for _, j := range finished {
 		if err := t.jobFinished(ctx, j); err != nil {
-			errs = append(errs, err)
+			errs = append(errs, skerr.Wrapf(err, "failed to send jobFinished notification for job %s (build %d)", j.Id, j.BuildbucketBuildId))
 		} else {
 			j.BuildbucketLeaseKey = 0
 			j.BuildbucketToken = ""
@@ -412,7 +412,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 			}
 			b, err := prototext.Marshal(update)
 			if err != nil {
-				return skerr.Wrapf(err, "failed to encode BuildTaskUpdate")
+				return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 			}
 			// Parse the project and topic names from the fully-qualified topic.
 			project := t.pubsub.Project()
@@ -426,7 +426,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 			_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
 				Data: b,
 			}).Get(ctx)
-			return err
+			return skerr.Wrapf(err, "failed to send pubsub update for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 		})
 	}
 	return g.Wait().ErrorOrNil()
