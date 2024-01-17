@@ -272,8 +272,8 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 
 				cMean := stat.Mean(cValues)
 				tMean := stat.Mean(tValues)
-				if tMean == 0.0 || cMean == 0.0 {
-					sklog.Infof("detected zeroes in measurement data, using NomralizeResult instead of LogTransform")
+				if tMean <= 0.0 || cMean <= 0.0 {
+					sklog.Infof("detected values less than or equal to zero in measurement data, using NomralizeResult instead of LogTransform")
 					transformType = cabe_stats.NormalizeResult
 				}
 				benchmark = append(benchmark, benchmarkSpec.GetName())
