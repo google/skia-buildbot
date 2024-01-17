@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 /*
@@ -72,6 +73,12 @@ const (
 
 	// How often to poll Buildbucket for newly-scheduled builds.
 	POLL_INTERVAL = 10 * time.Second
+
+	// How often to run the Buildbucket cleanup loop.
+	CLEANUP_INTERVAL = 15 * time.Minute
+
+	// We'll attempt to clean up Buildbucket builds which are older than this.
+	CLEANUP_AGE_THRESHOLD = 3 * time.Hour
 
 	// This error reason indicates that we already marked the build as
 	// finished.
@@ -173,6 +180,20 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		} else {
 			lvPoll.Reset()
+		}
+	}, nil)
+	lvCleanup := metrics2.NewLiveness("last_successfull_buildbucket_cleanup")
+	cleanup.Repeat(CLEANUP_INTERVAL, func(_ context.Context) {
+		// Explicitly ignore the passed-in context; this allows us to
+		// finish leasing jobs from Buildbucket and inserting them into
+		// the DB even if the context is canceled, which helps to
+		// prevent inconsistencies between Buildbucket and the Task
+		// Scheduler DB.
+		ctx := context.Background()
+		if err := t.buildbucketCleanup(ctx); err != nil {
+			sklog.Errorf("Failed to clean up old Buildbucket builds: %s", err)
+		} else {
+			lvCleanup.Reset()
 		}
 	}, nil)
 	go t.startJobsLoop(ctx)
@@ -516,23 +537,32 @@ func (t *TryJobIntegrator) tryLeaseV1Build(ctx context.Context, id int64) (int64
 	return leaseKey, resp.Error, nil
 }
 
+// findJobForBuild retrieves the Job associated with the given build. Returns
+// nil, nil if no build is found.
+func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*types.Job, error) {
+	foundJobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
+		BuildbucketBuildID: &id,
+	})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed searching for existing Jobs for build %d", id)
+	}
+	if len(foundJobs) > 0 {
+		return foundJobs[0], nil
+	}
+	return nil, nil
+}
+
 func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) error {
 	sklog.Infof("Creating job for build %d", buildId)
 
 	// Determine whether we've already created a Job for this Build. Note that
 	// due to concurrency some Jobs may slip through, so this isn't fail-safe.
-	foundJobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
-		BuildbucketBuildID: &buildId,
-	})
+	existingJob, err := t.findJobForBuild(ctx, buildId)
 	if err != nil {
-		return skerr.Wrapf(err, "failed searching for existing Jobs for build %d", buildId)
+		return skerr.Wrap(err)
 	}
-	if len(foundJobs) > 0 {
-		ids := make([]string, 0, len(foundJobs))
-		for _, job := range foundJobs {
-			ids = append(ids, job.Id)
-		}
-		sklog.Errorf("Found %d existing Jobs for build %d; ignoring %v", len(foundJobs), buildId, ids)
+	if existingJob != nil {
+		sklog.Errorf("Found existing Job for build %d; ignoring %s", buildId, existingJob.Id)
 		return nil
 	}
 
@@ -956,6 +986,49 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 	} else {
 		return t.buildFailed(j)
 	}
+}
+
+// buildbucketCleanup looks for old Buildbucket Builds which were started but
+// not properly updated and attempts to update them.
+func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
+	builds, err := t.bb2.Search(ctx, &buildbucketpb.BuildPredicate{
+		Status: buildbucketpb.Status_STARTED,
+		CreateTime: &buildbucketpb.TimeRange{
+			EndTime: timestamppb.New(time.Now().Add(CLEANUP_AGE_THRESHOLD)),
+		},
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, build := range builds {
+		if build.Builder.Bucket != t.buildbucketBucket {
+			sklog.Infof("Cleanup: ignoring build %d; bucket %s is not %s", build.Id, build.Builder.Bucket, t.buildbucketBucket)
+			continue
+		}
+		sklog.Infof("Cleanup: found unfinished build %d", build.Id)
+		job, err := t.findJobForBuild(ctx, build.Id)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		sklog.Infof("Cleanup: found job %s for unfinished build %d", job.Id, build.Id)
+		if job.Done() {
+			if job.BuildbucketToken == "" {
+				sklog.Error("Cleanup: job %s for build %d no longer has an update token; canceling the build", job.Id, build.Id)
+				if err := t.cancelBuild(ctx, job); err != nil {
+					return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
+				}
+			} else {
+				sklog.Infof("Cleanup: attempting to update job %s for build %d", job.Id, build.Id)
+				if err := t.updateBuild(ctx, job); err != nil {
+					sklog.Errorf("Cleanup: failed to update job %s for build %d; canceling. Error: %s", job.Id, build.Id, err)
+					if err := t.cancelBuild(ctx, job); err != nil {
+						return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // skipRepoState determines whether we should skip try jobs for this RepoState,
