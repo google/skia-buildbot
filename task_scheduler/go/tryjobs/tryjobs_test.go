@@ -180,6 +180,26 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 	require.Empty(t, j1.BuildbucketToken)
 }
 
+func TestUpdateJobsV2_CancelJob_CallCancelBuilds(t *testing.T) {
+	ctx, trybots, _, mockBB, _ := setup(t)
+
+	j1 := tryjobV2(ctx, repoUrl)
+	j1.Status = types.JOB_STATUS_CANCELED
+	j1.StatusDetails = "job is canceled"
+	j1.Finished = ts
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
+	trybots.jCache.AddJobs([]*types.Job{j1})
+	require.NotEmpty(t, j1.BuildbucketToken)
+	mockBB.On("CancelBuilds", testutils.AnyContext, []int64{j1.BuildbucketBuildId}, j1.StatusDetails).Return(nil, nil)
+	require.NoError(t, trybots.updateJobs(ctx))
+	mockBB.AssertExpectations(t)
+	assertNoActiveTryJobs(t, trybots)
+	j1, err := trybots.db.GetJobById(ctx, j1.Id)
+	require.NoError(t, err)
+	require.Empty(t, j1.BuildbucketLeaseKey)
+	require.Empty(t, j1.BuildbucketToken)
+}
+
 func TestUpdateJobsV1_ManyInProgress_MultipleHeartbeatBatches(t *testing.T) {
 	ctx, trybots, mock, _, _ := setup(t)
 

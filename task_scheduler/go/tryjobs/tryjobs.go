@@ -931,13 +931,26 @@ func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error 
 	return t.bb2.UpdateBuild(ctx, jobToBuildV2(j), j.BuildbucketToken)
 }
 
+func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job) error {
+	sklog.Infof("bb2.CancelBuilds for job %s (build %d)", j.Id, j.BuildbucketBuildId)
+	_, err := t.bb2.CancelBuilds(ctx, []int64{j.BuildbucketBuildId}, j.StatusDetails)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to cancel build %d for job %s", j.BuildbucketBuildId, j.Id)
+	}
+	return nil
+}
+
 // jobFinished notifies Buildbucket that the given Job has finished.
 func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error {
 	if !j.Done() {
 		return skerr.Fmt("JobFinished called for unfinished Job!")
 	}
 	if isBBv2(j) {
-		return t.updateBuild(ctx, j)
+		if j.Status == types.JOB_STATUS_CANCELED {
+			return t.cancelBuild(ctx, j)
+		} else {
+			return t.updateBuild(ctx, j)
+		}
 	} else if j.Status == types.JOB_STATUS_SUCCESS {
 		return t.buildSucceededV1(j)
 	} else {
