@@ -7,6 +7,13 @@
  *   property value swapping.
  * </p>
  *
+ * @evt slot-manager-change - This event is generated when the user updates
+ *         a slot value.
+ *         The updated json is available in the event detail.
+ *
+ * @attr animation the animation json.
+ *         At the moment it only reads it at load time.
+ *
  */
 
 import { html, TemplateResult } from 'lit-html';
@@ -17,8 +24,17 @@ import { ColorSlot, ScalarSlot, Vec2Slot } from './slot-info';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { define } from '../../../elements-sk/modules/define';
 import { SkottieVec2EventDetail } from './skottie-vec2-input-sk';
+import { LottieAnimation } from '../types';
+import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-color-manager-sk';
+
 // without this import, the vec2 input div doesn't populate and vec 2 slots don't render
 import './skottie-vec2-input-sk';
+import {
+  replaceColorSlot,
+  replaceScalarSlot,
+  replaceVec2Slot,
+  replaceImageSlot,
+} from './slot-replace';
 
 export class SkottieSlotManagerSk extends ElementSk {
   private _player: SkottiePlayerSk | null = null;
@@ -32,6 +48,10 @@ export class SkottieSlotManagerSk extends ElementSk {
   private vec2Slots: Vec2Slot[] = [];
 
   private imageSlots: string[] = [];
+
+  private _animation: LottieAnimation | null = null;
+
+  private originalAnimation: LottieAnimation | null = null;
 
   private static template = (ele: SkottieSlotManagerSk) => html`
     <div class="wrapper">${ele.renderView()}</div>
@@ -132,38 +152,83 @@ export class SkottieSlotManagerSk extends ElementSk {
     e: CustomEvent<SkottieColorEventDetail>,
     sid: string
   ): void {
-    if (!this._player) {
+    if (!this._animation) {
       return;
     }
-    const color = hexToColor(e.detail.color);
-    this._player.managedAnimation()?.setColorSlot(sid, color);
+
+    const { color, opacity } = e.detail;
+
+    const newAnimation = replaceColorSlot(color, opacity, sid, this._animation);
+
+    this.dispatchEvent(
+      new CustomEvent<SkottieTemplateEventDetail>('slot-manager-change', {
+        detail: {
+          animation: newAnimation,
+        },
+      })
+    );
     this._render();
   }
 
   private onScalarSlotChange(e: Event, sid: string): void {
-    if (!this._player) {
+    if (!this._animation) {
       return;
     }
+
     const target = e.target as HTMLInputElement;
-    this._player.managedAnimation()?.setScalarSlot(sid, Number(target.value));
+    const newVal = Number(target.value);
+
+    const newAnimation = replaceScalarSlot(newVal, sid, this._animation);
+
+    this.dispatchEvent(
+      new CustomEvent<SkottieTemplateEventDetail>('slot-manager-change', {
+        detail: {
+          animation: newAnimation,
+        },
+      })
+    );
+
     this._render();
   }
 
   private onVec2SlotChange(e: CustomEvent<SkottieVec2EventDetail>): void {
-    if (!this._player) {
+    if (!this._animation) {
       return;
     }
-    this._player
-      .managedAnimation()
-      ?.setVec2Slot(e.detail.label, [e.detail.x, e.detail.y]);
+
+    const newAnimation = replaceVec2Slot(
+      [e.detail.x, e.detail.y],
+      e.detail.label,
+      this._animation
+    );
+
+    this.dispatchEvent(
+      new CustomEvent<SkottieTemplateEventDetail>('slot-manager-change', {
+        detail: {
+          animation: newAnimation,
+        },
+      })
+    );
+
+    this._render();
   }
 
   private onImageSlotChange(e: Event, sid: string): void {
-    if (!this._player) {
+    if (!this._animation) {
       return;
     }
+
     const target = e.target as HTMLInputElement;
-    this._player.managedAnimation()?.setImageSlot(sid, target.value);
+    const newAnimation = replaceImageSlot(target.value, sid, this._animation);
+
+    this.dispatchEvent(
+      new CustomEvent<SkottieTemplateEventDetail>('slot-manager-change', {
+        detail: {
+          animation: newAnimation,
+        },
+      })
+    );
+
     this._render();
   }
 
@@ -218,6 +283,21 @@ export class SkottieSlotManagerSk extends ElementSk {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+  }
+
+  private updateAnimation(animation: LottieAnimation): void {
+    if (animation && this.originalAnimation !== animation) {
+      const clonedAnimation = JSON.parse(
+        JSON.stringify(animation)
+      ) as LottieAnimation;
+      this._animation = clonedAnimation;
+      this.originalAnimation = animation;
+      this._render();
+    }
+  }
+
+  set animation(val: LottieAnimation) {
+    this.updateAnimation(val);
   }
 }
 

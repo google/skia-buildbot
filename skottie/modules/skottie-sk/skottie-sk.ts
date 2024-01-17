@@ -384,7 +384,10 @@ export class SkottieSk extends ElementSk {
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
         <skottie-slot-manager-sk
-          .player=${this.skottiePlayer}></skottie-slot-manager-sk>
+          .player=${this.skottiePlayer}
+          .animation=${this.state.lottie}
+          @slot-manager-change=${this.onSlotManagerUpdated}>
+        </skottie-slot-manager-sk>
       </details>
     `;
   }

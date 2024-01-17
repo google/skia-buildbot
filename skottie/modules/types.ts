@@ -97,6 +97,39 @@ export interface FontAsset extends Record<string, unknown> {
   fStyle: string;
 }
 
+export interface LottieColorSlot {
+  p: MultiDimensionalProperty;
+  t: number;
+}
+
+export interface LottieVectorSlot {
+  p: MultiDimensionalProperty;
+  t: number;
+}
+
+export interface LottieScalarSlot {
+  p: OneDimensionalProperty;
+  t: number;
+}
+
+export interface LottieImageSlot {
+  t: number;
+  p: {
+    id: string;
+    w: number;
+    h: number;
+    u: string;
+    p: string;
+    e: number;
+  };
+}
+
+export type LottieSlot =
+  | LottieColorSlot
+  | LottieVectorSlot
+  | LottieScalarSlot
+  | LottieImageSlot;
+
 export interface LottieAnimation extends Record<string, unknown> {
   assets: LottieAsset[];
   layers: LottieLayer[];
@@ -109,6 +142,7 @@ export interface LottieAnimation extends Record<string, unknown> {
   w: number;
   h: number;
   fr?: number;
+  slots?: Record<string, LottieSlot>;
 }
 
 export type ViewMode = 'presentation' | 'default';
