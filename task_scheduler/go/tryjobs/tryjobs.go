@@ -34,7 +34,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
-	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
 )
 
 /*
@@ -410,7 +410,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 					UpdateId: now.Now(ctx).UnixNano(),
 				},
 			}
-			b, err := prototext.Marshal(update)
+			b, err := proto.Marshal(update)
 			if err != nil {
 				return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 			}

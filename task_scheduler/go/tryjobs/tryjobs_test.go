@@ -26,7 +26,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/types"
-	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
 )
 
 var distantFutureTime = time.Date(3000, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -80,7 +80,7 @@ func TestUpdateJobsV2_OneUnfinished_SendsPubSub(t *testing.T) {
 		BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
 		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
 	}
-	b, err := prototext.Marshal(update)
+	b, err := proto.Marshal(update)
 	require.NoError(t, err)
 	result := &pubsub_mocks.PublishResult{}
 	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
@@ -236,7 +236,7 @@ func TestUpdateJobsV2_ManyInProgress_MultiplePubSubMessages(t *testing.T) {
 			BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
 			Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, trybots.buildbucketTarget, trybots.host),
 		}
-		b, err := prototext.Marshal(update)
+		b, err := proto.Marshal(update)
 		require.NoError(t, err)
 		result := &pubsub_mocks.PublishResult{}
 		result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)

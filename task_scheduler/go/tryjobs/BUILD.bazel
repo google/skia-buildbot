@@ -29,7 +29,7 @@ go_library(
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/buildbucket/buildbucket/v1:buildbucket",
-        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_google_protobuf//proto",
     ],
 )
 
@@ -69,6 +69,6 @@ go_test(
         "@com_google_cloud_go_pubsub//:pubsub",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/buildbucket/buildbucket/v1:buildbucket",
-        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_google_protobuf//proto",
     ],
 )
