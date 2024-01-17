@@ -89,7 +89,7 @@ func (c *Client) GetBuild(ctx context.Context, buildId int64) (*buildbucketpb.Bu
 		Id:     buildId,
 		Fields: common.GetBuildFields,
 	})
-	return b, err
+	return b, skerr.Wrap(err)
 }
 
 // ScheduleBuilds implements the BuildBucketInterface.
@@ -193,7 +193,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 		}
 		resp, err := c.bc.SearchBuilds(ctx, req)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		if resp == nil {
 			break
@@ -211,7 +211,7 @@ func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate)
 func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string, tags map[string]string) ([]*buildbucketpb.Build, error) {
 	pred, err := common.GetTrybotsForCLPredicate(issue, patchset, gerritUrl, tags)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return c.Search(ctx, pred)
 }
@@ -230,7 +230,7 @@ func (c *Client) StartBuild(ctx context.Context, buildId int64, taskId, token st
 		TaskId:    taskId,
 	})
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	return resp.UpdateBuildToken, nil
 }
