@@ -965,9 +965,9 @@ func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error 
 	return t.bb2.UpdateBuild(ctx, jobToBuildV2(j), j.BuildbucketToken)
 }
 
-func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job) error {
+func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason string) error {
 	sklog.Infof("bb2.CancelBuilds for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	_, err := t.bb2.CancelBuild(ctx, j.BuildbucketBuildId, j.StatusDetails)
+	_, err := t.bb2.CancelBuild(ctx, j.BuildbucketBuildId, reason)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to cancel build %d for job %s", j.BuildbucketBuildId, j.Id)
 	}
@@ -981,7 +981,11 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 	}
 	if isBBv2(j) {
 		if j.Status == types.JOB_STATUS_CANCELED {
-			return t.cancelBuild(ctx, j)
+			reason := j.StatusDetails
+			if reason == "" {
+				reason = "Underlying job was canceled."
+			}
+			return t.cancelBuild(ctx, j, reason)
 		} else {
 			return t.updateBuild(ctx, j)
 		}
@@ -1020,14 +1024,14 @@ func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 		if job.Done() {
 			if job.BuildbucketToken == "" {
 				sklog.Errorf("Cleanup: job %s for build %d no longer has an update token; canceling the build", job.Id, build.Id)
-				if err := t.cancelBuild(ctx, job); err != nil {
+				if err := t.cancelBuild(ctx, job, "We no longer have an update token for this build"); err != nil {
 					return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
 				}
 			} else {
 				sklog.Infof("Cleanup: attempting to update job %s for build %d", job.Id, build.Id)
 				if err := t.updateBuild(ctx, job); err != nil {
 					sklog.Errorf("Cleanup: failed to update job %s for build %d; canceling. Error: %s", job.Id, build.Id, err)
-					if err := t.cancelBuild(ctx, job); err != nil {
+					if err := t.cancelBuild(ctx, job, "Failed to UpdateBuild"); err != nil {
 						return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
 					}
 				}
