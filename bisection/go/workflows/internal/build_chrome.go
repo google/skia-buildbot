@@ -8,6 +8,6 @@ import (
 )
 
 // BuildChrome is a Workflow definition that builds Chrome.
-func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (error, string) {
-	return errors.New("BuildChrome is not implemented."), ""
+func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (string, error) {
+	return "", errors.New("BuildChrome is not implemented.")
 }
