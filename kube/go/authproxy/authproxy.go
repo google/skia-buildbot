@@ -83,6 +83,7 @@ const (
 type proxy struct {
 	allowPost    bool
 	passive      bool
+	verbose      bool
 	reverseProxy http.Handler
 	authProvider auth.Auth
 
@@ -91,7 +92,7 @@ type proxy struct {
 	allowedRoles map[roles.Role]allowed.Allow
 }
 
-func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive bool, local bool, useHTTP2 bool) *proxy {
+func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive bool, local bool, useHTTP2 bool, verbose bool) *proxy {
 	reverseProxy := httputil.NewSingleHostReverseProxy(target)
 	if useHTTP2 {
 		// [httputil.ReverseProxy] doesn't appear work out of the box for local gRPC requests. Either the
@@ -121,6 +122,7 @@ func newProxy(target *url.URL, authProvider auth.Auth, allowPost bool, passive b
 		authProvider: authProvider,
 		allowPost:    allowPost,
 		passive:      passive,
+		verbose:      verbose,
 	}
 }
 
@@ -132,10 +134,13 @@ func (p *proxy) setAllowedRoles(allowedRoles map[roles.Role]allowed.Allow) {
 
 func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	email, err := p.authProvider.LoggedInAs(r)
-	if err != nil && !p.passive {
-		sklog.Errorf("LoggedInAs failed: %s", err)
+	if err != nil {
+		if !p.passive {
+			sklog.Errorf("LoggedInAs failed: %s", err)
+		} else if p.verbose {
+			sklog.Infof("LoggedInAs failed: %s", err)
+		}
 	}
-	// TODO(jcgregorio) Add --verbose mode to log failures as Info.
 	r.Header.Del(WebAuthHeaderName)
 	r.Header.Add(WebAuthHeaderName, email)
 
@@ -155,12 +160,13 @@ func (p *proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		p.reverseProxy.ServeHTTP(w, r)
 		return
 	}
+	if p.verbose || (!p.passive && email == "") {
+		for key, value := range r.Header {
+			sklog.Infof("%s: %q: %q", r.RemoteAddr, key, value)
+		}
+	}
 	if !p.passive {
 		if email == "" {
-			for key, value := range r.Header {
-				sklog.Infof("%s: %q: %q", r.RemoteAddr, key, value)
-			}
-
 			http.Redirect(w, r, p.authProvider.LoginURL(w, r), http.StatusSeeOther)
 			return
 		}
@@ -215,6 +221,7 @@ type App struct {
 	authType             string
 	mockLoggedInAs       string
 	selfSignLocalhostTLS bool
+	verbose              bool
 
 	target       *url.URL
 	authProvider auth.Auth
@@ -236,6 +243,7 @@ func (a *App) Flagset() *flag.FlagSet {
 	fs.StringVar(&a.authType, "authtype", string(OAuth2), fmt.Sprintf("The type of authentication to do. Choose from: %q", AllValidAuthTypes))
 	fs.StringVar(&a.mockLoggedInAs, "mock_user", "", "If authtype is set to 'mocked', then always return this value for the logged in user identity")
 	fs.BoolVar(&a.selfSignLocalhostTLS, "self_sign_localhost_tls", false, "if true, serve TLS using a self-signed certificate for localhost")
+	fs.BoolVar(&a.verbose, "verbose", false, "if true, emit more logging")
 
 	return fs
 }
@@ -425,7 +433,7 @@ func (a *App) startAllowedRefresh(ctx context.Context, criaRefreshDuration time.
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
-	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local, a.selfSignLocalhostTLS)
+	a.proxy = newProxy(a.target, a.authProvider, a.allowPost, a.passive, a.local, a.selfSignLocalhostTLS, a.verbose)
 	err := a.populateAllowedRoles()
 	if err != nil {
 		return skerr.Wrap(err)

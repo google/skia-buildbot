@@ -69,7 +69,7 @@ func TestProxyServeHTTP_AllowPostAndNotAuthenticated_WebAuthHeaderValueIsEmptySt
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("", errForTesting)
 
-	proxy := newProxy(u, authMock, true, false, false, false)
+	proxy := newProxy(u, authMock, true, false, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -82,7 +82,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequest(t 
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
-	proxy := newProxy(u, authMock, false, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -108,7 +108,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndBelongsToTwoRoles_HeaderWithBothRolesIs
 		roles.Viewer: allowed.NewAllowedFromList([]string{viewerEmail}),
 		roles.Editor: allowed.NewAllowedFromList([]string{viewerEmail}),
 	}
-	proxy := newProxy(u, authMock, false, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false, false, true)
 	proxy.allowedRoles = allowedRoles
 
 	proxy.ServeHTTP(w, r)
@@ -122,7 +122,7 @@ func TestProxyServeHTTP_UserIsNotLoggedIn_HeaderWithUserEmailIsStrippedFromReque
 	authMock.On("LoggedInAs", r).Return("", errForTesting)
 	authMock.On("LoginURL", w, r).Return("http://example.org/login")
 
-	proxy := newProxy(u, authMock, false, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -134,7 +134,7 @@ func TestProxyServeHTTP_UserIsLoggedInButNotAViewer_ReturnsStatusForbidden(t *te
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(notAViewerEmail, nil)
 
-	proxy := newProxy(u, authMock, false, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -148,7 +148,7 @@ func TestProxyServeHTTP_UserIsLoggedIn_HeaderWithUserEmailIsIncludedInRequestAnd
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
-	proxy := newProxy(u, authMock, false, false, false, false)
+	proxy := newProxy(u, authMock, false, false, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -165,7 +165,7 @@ func TestProxyServeHTTP_UserIsNotLoggedInAndPassiveFlagIsSet_RequestIsPassedAlon
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return("", errForTesting)
 
-	proxy := newProxy(u, authMock, false, true, false, false)
+	proxy := newProxy(u, authMock, false, true, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
@@ -179,7 +179,7 @@ func TestProxyServeHTTP_UserIsLoggedInAndPassiveFlagIsSet_RequestIsPassedAlongWi
 	authMock := mocks.NewAuth(t)
 	authMock.On("LoggedInAs", r).Return(viewerEmail, nil)
 
-	proxy := newProxy(u, authMock, false, true, false, false)
+	proxy := newProxy(u, authMock, false, true, false, false, true)
 	proxy.allowedRoles = commonAllowed
 
 	proxy.ServeHTTP(w, r)
