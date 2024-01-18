@@ -1021,6 +1021,9 @@ func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 		if err != nil {
 			return skerr.Wrap(err)
 		}
+		if job == nil {
+			continue
+		}
 		if job.Done() {
 			if job.BuildbucketToken == "" {
 				sklog.Errorf("Cleanup: job %s for build %d no longer has an update token; canceling the build", job.Id, build.Id)
