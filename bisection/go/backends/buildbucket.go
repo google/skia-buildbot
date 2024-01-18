@@ -66,7 +66,7 @@ type Buildbucket interface {
 	// CancelBuild sends a cancellation request to Buildbucket. It's expected that
 	// Buildbucket will cancel the build, whether that's graceful termination or
 	// forced cancellation, as long as the request is received.
-	CancelBuild(ctx context.Context) error
+	CancelBuild(ctx context.Context, buildID int64, summary string) error
 
 	// GetBuilds calls Buildbucket to find existing builds for the given
 	// builder and Chromium revision.

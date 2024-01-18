@@ -154,10 +154,18 @@ func (b *BuildChrome) CheckBuildStatus(ctx context.Context, buildID int64) (buil
 }
 
 // RetrieveCAS returns the CAS location of the build given buildId
-func (b *BuildChrome) RetrieveCas(ctx context.Context, buildID int64) (*swarmingV1.SwarmingRpcsCASReference, error) {
+func (b *BuildChrome) RetrieveCAS(ctx context.Context, buildID int64) (*swarmingV1.SwarmingRpcsCASReference, error) {
 	ref, err := b.Client.GetCASReference(ctx, buildID, b.Target)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not find the CAS outputs to build %d", buildID)
 	}
 	return ref, nil
+}
+
+func (b *BuildChrome) Cancel(ctx context.Context, buildID int64, reason string) error {
+	err := b.Client.CancelBuild(ctx, buildID, reason)
+	if err != nil {
+		return err
+	}
+	return nil
 }

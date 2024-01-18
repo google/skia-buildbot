@@ -254,7 +254,7 @@ func TestNewBuild(t *testing.T) {
 	}
 }
 
-func TestRetrieveCas(t *testing.T) {
+func TestRetrieveCAS(t *testing.T) {
 	for i, test := range []struct {
 		name          string
 		mockResp      *swarmingV1.SwarmingRpcsCASReference
@@ -296,7 +296,7 @@ func TestRetrieveCas(t *testing.T) {
 				mb.On("GetCASReference", testutils.AnyContext, buildID, bc.Target).Return(test.mockResp, nil)
 			}
 
-			cas, err := bc.RetrieveCas(ctx, buildID)
+			cas, err := bc.RetrieveCAS(ctx, buildID)
 			if test.expectedError {
 				assert.Error(t, err)
 				assert.Nil(t, cas)

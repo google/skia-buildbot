@@ -17,17 +17,17 @@ type Buildbucket struct {
 	mock.Mock
 }
 
-// CancelBuild provides a mock function with given fields: ctx
-func (_m *Buildbucket) CancelBuild(ctx context.Context) error {
-	ret := _m.Called(ctx)
+// CancelBuild provides a mock function with given fields: ctx, buildID, summary
+func (_m *Buildbucket) CancelBuild(ctx context.Context, buildID int64, summary string) error {
+	ret := _m.Called(ctx, buildID, summary)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CancelBuild")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) error); ok {
+		r0 = rf(ctx, buildID, summary)
 	} else {
 		r0 = ret.Error(0)
 	}
