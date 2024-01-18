@@ -15,6 +15,36 @@ type BuildBucketInterface struct {
 	mock.Mock
 }
 
+// CancelBuild provides a mock function with given fields: ctx, buildID, summaryMarkdown
+func (_m *BuildBucketInterface) CancelBuild(ctx context.Context, buildID int64, summaryMarkdown string) (*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, buildID, summaryMarkdown)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelBuild")
+	}
+
+	var r0 *buildbucketpb.Build
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) (*buildbucketpb.Build, error)); ok {
+		return rf(ctx, buildID, summaryMarkdown)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string) *buildbucketpb.Build); ok {
+		r0 = rf(ctx, buildID, summaryMarkdown)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*buildbucketpb.Build)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
+		r1 = rf(ctx, buildID, summaryMarkdown)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CancelBuilds provides a mock function with given fields: ctx, buildIDs, summaryMarkdown
 func (_m *BuildBucketInterface) CancelBuilds(ctx context.Context, buildIDs []int64, summaryMarkdown string) ([]*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, buildIDs, summaryMarkdown)

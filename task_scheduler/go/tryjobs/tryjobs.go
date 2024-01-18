@@ -103,6 +103,9 @@ const (
 	// buildAlreadyStartedErr is a substring of the error message returned by
 	// Buildbucket when we call StartBuild more than once for the same build.
 	buildAlreadyStartedErr = "has recorded another StartBuild with request id"
+
+	// Project name used by buildbucket for all Skia builds.
+	buildbucketProject = "skia"
 )
 
 var (
@@ -964,7 +967,7 @@ func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error 
 
 func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job) error {
 	sklog.Infof("bb2.CancelBuilds for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	_, err := t.bb2.CancelBuilds(ctx, []int64{j.BuildbucketBuildId}, j.StatusDetails)
+	_, err := t.bb2.CancelBuild(ctx, j.BuildbucketBuildId, j.StatusDetails)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to cancel build %d for job %s", j.BuildbucketBuildId, j.Id)
 	}
@@ -993,6 +996,10 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 // not properly updated and attempts to update them.
 func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 	builds, err := t.bb2.Search(ctx, &buildbucketpb.BuildPredicate{
+		Builder: &buildbucketpb.BuilderID{
+			Project: buildbucketProject,
+			Bucket:  t.buildbucketBucket,
+		},
 		Status: buildbucketpb.Status_STARTED,
 		CreateTime: &buildbucketpb.TimeRange{
 			EndTime: timestamppb.New(time.Now().Add(CLEANUP_AGE_THRESHOLD)),
@@ -1006,15 +1013,13 @@ func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 			sklog.Infof("Cleanup: ignoring build %d; bucket %s is not %s", build.Id, build.Builder.Bucket, t.buildbucketBucket)
 			continue
 		}
-		sklog.Infof("Cleanup: found unfinished build %d", build.Id)
 		job, err := t.findJobForBuild(ctx, build.Id)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		sklog.Infof("Cleanup: found job %s for unfinished build %d", job.Id, build.Id)
 		if job.Done() {
 			if job.BuildbucketToken == "" {
-				sklog.Error("Cleanup: job %s for build %d no longer has an update token; canceling the build", job.Id, build.Id)
+				sklog.Errorf("Cleanup: job %s for build %d no longer has an update token; canceling the build", job.Id, build.Id)
 				if err := t.cancelBuild(ctx, job); err != nil {
 					return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
 				}

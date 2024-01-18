@@ -180,7 +180,7 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 	require.Empty(t, j1.BuildbucketToken)
 }
 
-func TestUpdateJobsV2_CancelJob_CallCancelBuilds(t *testing.T) {
+func TestUpdateJobsV2_CancelJob_CallCancelBuild(t *testing.T) {
 	ctx, trybots, _, mockBB, _ := setup(t)
 
 	j1 := tryjobV2(ctx, repoUrl)
@@ -190,7 +190,7 @@ func TestUpdateJobsV2_CancelJob_CallCancelBuilds(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
-	mockBB.On("CancelBuilds", testutils.AnyContext, []int64{j1.BuildbucketBuildId}, j1.StatusDetails).Return(nil, nil)
+	mockBB.On("CancelBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.StatusDetails).Return(nil, nil)
 	require.NoError(t, trybots.updateJobs(ctx))
 	mockBB.AssertExpectations(t)
 	assertNoActiveTryJobs(t, trybots)

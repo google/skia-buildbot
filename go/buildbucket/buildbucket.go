@@ -30,6 +30,9 @@ var (
 )
 
 type BuildBucketInterface interface {
+	// CancelBuild cancels the specified build with the specified
+	// SummaryMarkdown.
+	CancelBuild(ctx context.Context, buildID int64, summaryMarkdown string) (*buildbucketpb.Build, error)
 	// CancelBuilds cancels the specified buildIDs with the specified
 	// summaryMarkdown. Builds are cancelled with one batch request
 	// to buildbucket.
@@ -147,6 +150,18 @@ func (c *Client) ScheduleBuilds(ctx context.Context, builds []string, buildsToTa
 		respBuilds = append(respBuilds, r.GetScheduleBuild())
 	}
 	return respBuilds, nil
+}
+
+// CancelBuild implements BuildbucketInterface.
+func (c *Client) CancelBuild(ctx context.Context, buildID int64, summaryMarkdown string) (*buildbucketpb.Build, error) {
+	build, err := c.bc.CancelBuild(ctx, &buildbucketpb.CancelBuildRequest{
+		Id:              buildID,
+		SummaryMarkdown: summaryMarkdown,
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return build, nil
 }
 
 // CancelBuilds implements the BuildBucketInterface.
