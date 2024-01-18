@@ -255,42 +255,42 @@ func (c *Client) UpdateBuild(ctx context.Context, build *buildbucketpb.Build, to
 	var updatePaths []string
 	if build.Output != nil {
 		if build.Output.Properties != nil {
-			updatePaths = append(updatePaths, "output.properties")
+			updatePaths = append(updatePaths, "build.output.properties")
 		}
 		if build.Output.GitilesCommit != nil {
-			updatePaths = append(updatePaths, "output.gitiles_commit")
+			updatePaths = append(updatePaths, "build.output.gitiles_commit")
 		}
 		if build.Output.Status != buildbucketpb.Status_STATUS_UNSPECIFIED {
-			updatePaths = append(updatePaths, "output.status")
+			updatePaths = append(updatePaths, "build.output.status")
 		}
 		if build.Output.StatusDetails != nil {
-			updatePaths = append(updatePaths, "output.status_details")
+			updatePaths = append(updatePaths, "build.output.status_details")
 		}
 		if build.Output.SummaryMarkdown != "" {
-			updatePaths = append(updatePaths, "output.summary_markdown")
+			updatePaths = append(updatePaths, "build.output.summary_markdown")
 		}
 	}
 	if build.Status != buildbucketpb.Status_STATUS_UNSPECIFIED {
-		updatePaths = append(updatePaths, "status")
+		updatePaths = append(updatePaths, "build.status")
 	}
 	if build.StatusDetails != nil {
-		updatePaths = append(updatePaths, "status_details")
+		updatePaths = append(updatePaths, "build.status_details")
 	}
 	if len(build.Steps) > 0 {
-		updatePaths = append(updatePaths, "steps")
+		updatePaths = append(updatePaths, "build.steps")
 	}
 	if build.SummaryMarkdown != "" {
-		updatePaths = append(updatePaths, "summary_markdown")
+		updatePaths = append(updatePaths, "build.summary_markdown")
 	}
 	if len(build.Tags) > 0 {
-		updatePaths = append(updatePaths, "tags")
+		updatePaths = append(updatePaths, "build.tags")
 	}
 	if build.Infra != nil && build.Infra.Buildbucket != nil && build.Infra.Buildbucket.Agent != nil {
 		if build.Infra.Buildbucket.Agent.Output != nil {
-			updatePaths = append(updatePaths, "infra.buildbucket.agent.output")
+			updatePaths = append(updatePaths, "build.infra.buildbucket.agent.output")
 		}
 		if build.Infra.Buildbucket.Agent.Purposes != nil {
-			updatePaths = append(updatePaths, "infra.buildbucket.agent.purposes")
+			updatePaths = append(updatePaths, "build.infra.buildbucket.agent.purposes")
 		}
 	}
 	_, err := c.bc.UpdateBuild(contextWithTokenMetadata(ctx, token), &buildbucketpb.UpdateBuildRequest{
