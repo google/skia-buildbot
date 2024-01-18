@@ -12,17 +12,31 @@ import (
 	"time"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/bisection/go/bot_configs"
 	"go.skia.org/infra/cabe/go/backends"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test
 // to swarming.
 type RunBenchmarkRequest struct {
+	// the Swarming client
+	Client swarming.ApiClient
 	// the Pinpoint job id
 	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
-	Build swarmingV1.SwarmingRpcsCASReference
+	Build *swarmingV1.SwarmingRpcsCASReference
+	// commit hash
+	Commit string
+	// device configuration
+	Config bot_configs.BotConfig
+	// benchmark to test
+	Benchmark string
+	// story to test
+	Story string
+	// test target of the job
+	Target string
 }
 
 // swarming request to run task
@@ -31,7 +45,7 @@ var swarmingReq = swarmingV1.SwarmingRpcsNewTaskRequest{
 	BotPingToleranceSecs: 1200,
 	ExpirationSecs:       86400,
 	// EvaluateOnly omitted
-	Name: "Dummy pinpoint bisection task",
+	Name: "Pinpoint bisection run benchmark task",
 	// ParentTaskId omitted
 	// PoolTaskTemplate omitted
 	Priority: 100,
@@ -50,6 +64,7 @@ var swarmingReq = swarmingV1.SwarmingRpcsNewTaskRequest{
 }
 
 // DialSwarming dials a swarming API client.
+// TODO(sunxiaodi@) migrate swarming components to backends/ folder
 func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
 	return backends.DialSwarming(ctx)
 }
@@ -57,8 +72,13 @@ func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
 // ListPinpointTasks lists the Pinpoint swarming tasks of a given
 // job and build.
 func ListPinpointTasks(ctx context.Context, client swarming.ApiClient, req RunBenchmarkRequest) ([]string, error) {
+	if req.JobID == "" {
+		return nil, skerr.Fmt("Cannot list tasks because request is missing JobID")
+	}
+	if req.Build == nil || req.Build.Digest == nil {
+		return nil, skerr.Fmt("Cannot list tasks because request is missing cas isolate")
+	}
 	start := time.Now().Add(-24 * time.Hour)
-	// TODO(b/299675000): update swarming task tags to more appropriate tags.
 	tags := []string{
 		fmt.Sprintf("pinpoint_job_id:%s", req.JobID),
 		fmt.Sprintf("build_cas:%s/%d", req.Build.Digest.Hash, req.Build.Digest.SizeBytes),
@@ -78,7 +98,7 @@ func ListPinpointTasks(ctx context.Context, client swarming.ApiClient, req RunBe
 func GetStatus(ctx context.Context, client swarming.ApiClient, taskID string) (string, error) {
 	res, err := client.GetTask(ctx, taskID, false)
 	if err != nil {
-		return "", fmt.Errorf("failed to get swarming task ID: %s\ndue to error: %v", taskID, err)
+		return "", skerr.Fmt("failed to get swarming task ID %s due to err: %v", taskID, err)
 	}
 	return res.State, nil
 }
@@ -88,21 +108,29 @@ func GetStates(ctx context.Context, client swarming.ApiClient, taskIDs []string)
 	return client.GetStates(ctx, taskIDs)
 }
 
+func CancelTasks(ctx context.Context, client swarming.ApiClient, taskIDs []string) error {
+	for _, id := range taskIDs {
+		err := client.CancelTask(ctx, id, true)
+		if err != nil {
+			return skerr.Fmt("Could not cancel task %s due to %s", id, err)
+		}
+	}
+	return nil
+}
+
 // GetCASOutput returns the CAS output of a swarming task in the
 // form of a RBE CAS hash.
 // GetCASOutput assumes the task is finished, or it throws an error.
-func GetCASOutput(ctx context.Context, client swarming.ApiClient, taskID string) (swarmingV1.SwarmingRpcsCASReference, error) {
-	rbe := swarmingV1.SwarmingRpcsCASReference{}
-	rbe.Digest = &swarmingV1.SwarmingRpcsDigest{}
-
+func GetCASOutput(ctx context.Context, client swarming.ApiClient, taskID string) (
+	*swarmingV1.SwarmingRpcsCASReference, error) {
 	task, err := client.GetTask(ctx, taskID, false)
 	if err != nil {
-		return rbe, fmt.Errorf("error retrieving result of task %s: %s", taskID, err)
+		return nil, fmt.Errorf("error retrieving result of task %s: %s", taskID, err)
 	}
 	if task.State != "COMPLETED" {
-		return rbe, fmt.Errorf("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
+		return nil, fmt.Errorf("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
 	}
-	rbe = swarmingV1.SwarmingRpcsCASReference{
+	rbe := &swarmingV1.SwarmingRpcsCASReference{
 		CasInstance: task.CasOutputRoot.CasInstance,
 		Digest: &swarmingV1.SwarmingRpcsDigest{
 			Hash:      task.CasOutputRoot.Digest.Hash,
@@ -113,11 +141,29 @@ func GetCASOutput(ctx context.Context, client swarming.ApiClient, taskID string)
 	return rbe, nil
 }
 
-// RunTest runs the performance test as a swarming task.
-func RunTest(ctx context.Context, client swarming.ApiClient, req RunBenchmarkRequest) (string, error) {
-	// based off of Pinpoint job https://pinpoint-dot-chromeperf.appspot.com/job/1226ecbef60000
-	// and task https://chrome-swarming.appspot.com/task?id=65efa8b022be7910
-	properties := swarmingV1.SwarmingRpcsTaskProperties{
+func createSwarmingReq(req RunBenchmarkRequest) (
+	*swarmingV1.SwarmingRpcsNewTaskRequest, error) {
+	// TODO(b/318863812): add mapping from device + benchmark to the specific run test
+	// currently catapult maps the device + benchmark to the target and then
+	// the target dictates what test to run. We can map to target if that info
+	// is useful on the UI, but for this, it's not relevant.
+	// see GetIsolateTarget and _GenerateQuests here:
+	// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/handlers/new.py;drc=8fe602e47f11cfdd79225696f1f6a5556b57c58c;l=466
+	exp := telemetryExp{}
+	cmd, err := exp.createCmd(req)
+	if err != nil {
+		return nil, skerr.Fmt("Unable to create run benchmark command due to %s\n", err)
+	}
+	dim := make([]*swarmingV1.SwarmingRpcsStringPair,
+		len(req.Config.Dimensions))
+	for i, kv := range req.Config.Dimensions {
+		dim[i] = &swarmingV1.SwarmingRpcsStringPair{
+			Key:   kv["key"],
+			Value: kv["value"],
+		}
+	}
+
+	swarmingReq.Properties = &swarmingV1.SwarmingRpcsTaskProperties{
 		CasInputRoot: &swarmingV1.SwarmingRpcsCASReference{
 			CasInstance: req.Build.CasInstance,
 			Digest: &swarmingV1.SwarmingRpcsDigest{
@@ -125,68 +171,35 @@ func RunTest(ctx context.Context, client swarming.ApiClient, req RunBenchmarkReq
 				SizeBytes: req.Build.Digest.SizeBytes,
 			},
 		},
-		Command: []string{
-			"luci-auth",
-			"context",
-			"--",
-			"vpython3",
-			"../../testing/test_env.py",
-			"../../testing/scripts/run_performance_tests.py",
-			"../../tools/perf/run_benchmark",
-			"-d",
-			"--benchmarks",
-			"blink_perf.bindings",
-			"--story-filter",
-			"^node.type.html$",
-			"--pageset-repeat",
-			"1",
-			"--browser",
-			"release",
-			"-v",
-			"--upload-results",
-			"--output-format",
-			"histograms",
-			"--isolated-script-test-output",
-			"${ISOLATED_OUTDIR}/output.json",
-			"--results-label",
-			"chromium@faf089b",
-			"--run-full-story-set",
-		},
-		Dimensions: []*swarmingV1.SwarmingRpcsStringPair{
-			{
-				Key:   "mac_model",
-				Value: "Macmini9,1",
-			},
-			{
-				Key:   "os",
-				Value: "Mac",
-			},
-			{
-				Key:   "cpu",
-				Value: "arm",
-			},
-			{
-				Key:   "pool",
-				Value: "chrome.tests.pinpoint",
-			},
-		},
+		// TODO(b/318863812): support user submitted extra_args.
+		// This support is needed for pairwise executions, not bisection.
+		Command:              cmd,
+		Dimensions:           dim,
 		ExecutionTimeoutSecs: 2700,
 		IoTimeoutSecs:        2700,
 		RelativeCwd:          "out/Release",
 	}
 
-	swarmingReq.Properties = &properties
+	// TODO(b/318863812): update swarming task tags to more appropriate tags.
 	swarmingReq.Tags = []string{
 		fmt.Sprintf("pinpoint_job_id:%s", req.JobID),
 		fmt.Sprintf("build_cas:%s/%d", req.Build.Digest.Hash, req.Build.Digest.SizeBytes),
 	}
 
-	// kick off task
-	metadataResp, err := client.TriggerTask(ctx, &swarmingReq)
+	return &swarmingReq, nil
+}
+
+// Run schedules a swarming task to run the RunBenchmarkRequest.
+func Run(ctx context.Context, client swarming.ApiClient, req RunBenchmarkRequest) (string, error) {
+	swarmingReq, err := createSwarmingReq(req)
 	if err != nil {
-		return "", fmt.Errorf("trigger task %v caused error: %v", req, err)
+		return "", skerr.Wrapf(err, "Could not create run test request")
 	}
-	fmt.Printf("\nCreated swarming task: %s\n", metadataResp.TaskId)
+
+	metadataResp, err := client.TriggerTask(ctx, swarmingReq)
+	if err != nil {
+		return "", skerr.Fmt("trigger task %v\ncaused error: %s", req, err)
+	}
 
 	return metadataResp.TaskId, nil
 }

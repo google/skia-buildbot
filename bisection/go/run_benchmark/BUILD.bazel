@@ -1,13 +1,39 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "run_benchmark",
-    srcs = ["run_benchmark.go"],
+    srcs = [
+        "run_benchmark.go",
+        "telemetry_exp.go",
+    ],
     importpath = "go.skia.org/infra/bisection/go/run_benchmark",
     visibility = ["//visibility:public"],
     deps = [
+        "//bisection/go/bot_configs",
         "//cabe/go/backends",
+        "//go/skerr",
         "//go/swarming",
+        "//go/util",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "run_benchmark_test",
+    srcs = [
+        "run_benchmark_test.go",
+        "telemetry_exp_test.go",
+    ],
+    embed = [":run_benchmark"],
+    deps = [
+        "//bisection/go/bot_configs",
+        "//go/skerr",
+        "//go/swarming/mocks",
+        "@com_github_smartystreets_goconvey//convey",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//common/testing/assertions",
     ],
 )

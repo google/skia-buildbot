@@ -34,7 +34,8 @@ func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error)
 //	ctx := context.Background()
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, client, benchmark, chart, digests)
-func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []swarmingV1.SwarmingRpcsCASReference) []float64 {
+func ReadValuesByChart(ctx context.Context, client *rbeclient.Client,
+	benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference) []float64 {
 	values := []float64{}
 	for _, digest := range digests {
 		res, _ := backends.FetchBenchmarkJSON(ctx, client,

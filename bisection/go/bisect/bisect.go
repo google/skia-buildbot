@@ -35,11 +35,11 @@ func main() {
 	job := "3"
 	req := run_benchmark.RunBenchmarkRequest{
 		JobID: job,
-		Build: rbe,
+		Build: &rbe,
 	}
 
 	for i := 0; i < 10; i++ {
-		taskID, err := run_benchmark.RunTest(ctx, swarmingClient, req)
+		taskID, err := run_benchmark.Run(ctx, swarmingClient, req)
 		if err != nil {
 			fmt.Printf("error: %v", err)
 		}
@@ -74,7 +74,7 @@ func main() {
 	}
 
 	fmt.Printf("\nSwarming tasks completed. Retrieving values.\n")
-	casOutputs := make([]swarmingV1.SwarmingRpcsCASReference, len(tasks))
+	casOutputs := make([]*swarmingV1.SwarmingRpcsCASReference, len(tasks))
 	states, err := run_benchmark.GetStates(ctx, swarmingClient, tasks)
 	for i, t := range tasks {
 		if states[i] == "COMPLETED" {
