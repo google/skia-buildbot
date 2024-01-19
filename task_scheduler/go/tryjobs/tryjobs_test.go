@@ -126,6 +126,11 @@ func TestUpdateJobsV2_FinishedJob_SendSuccess(t *testing.T) {
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
+			},
+		},
 	}, j1.BuildbucketToken).Return(nil)
 	require.NoError(t, trybots.updateJobs(ctx))
 	mockBB.AssertExpectations(t)
@@ -169,6 +174,11 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 		Id: j1.BuildbucketBuildId,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
+			},
 		},
 	}, j1.BuildbucketToken).Return(nil)
 	require.NoError(t, trybots.updateJobs(ctx))
@@ -481,6 +491,11 @@ func TestJobFinishedV2_JobSucceeded_UpdateSucceeds(t *testing.T) {
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
+		},
 	}, j.BuildbucketToken).Return(nil)
 	require.NoError(t, trybots.jobFinished(ctx, j))
 	mockBB.AssertExpectations(t)
@@ -515,6 +530,11 @@ func TestJobFinishedV2_JobSucceeded_UpdateFails(t *testing.T) {
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
+		},
 	}, j.BuildbucketToken).Return(errors.New("failed"))
 	require.ErrorContains(t, trybots.jobFinished(ctx, j), "failed")
 	mockBB.AssertExpectations(t)
@@ -547,6 +567,11 @@ func TestJobFinishedV2_JobFailed_UpdateSucceeds(t *testing.T) {
 		Id: j.BuildbucketBuildId,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
 		},
 	}, j.BuildbucketToken).Return(nil)
 	require.NoError(t, trybots.jobFinished(ctx, j))
@@ -582,6 +607,11 @@ func TestJobFinishedV2_JobFailed_UpdateFails(t *testing.T) {
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
 		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
+		},
 	}, j.BuildbucketToken).Return(errors.New("failed"))
 	require.ErrorContains(t, trybots.jobFinished(ctx, j), "failed")
 	mockBB.AssertExpectations(t)
@@ -614,6 +644,11 @@ func TestJobFinishedV2_JobMishap_UpdateSucceeds(t *testing.T) {
 		Id: j.BuildbucketBuildId,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_INFRA_FAILURE,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
 		},
 	}, j.BuildbucketToken).Return(nil)
 	require.NoError(t, trybots.jobFinished(ctx, j))
@@ -648,6 +683,11 @@ func TestJobFinishedV2_JobMishap_UpdateFails(t *testing.T) {
 		Id: j.BuildbucketBuildId,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_INFRA_FAILURE,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
 		},
 	}, j.BuildbucketToken).Return(errors.New("failed"))
 	require.ErrorContains(t, trybots.jobFinished(ctx, j), "failed")

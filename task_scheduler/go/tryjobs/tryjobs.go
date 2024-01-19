@@ -424,15 +424,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 		g.Go(func() error {
 			update := &buildbucketpb.BuildTaskUpdate{
 				BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
-				Task: &buildbucketpb.Task{
-					Id: &buildbucketpb.TaskID{
-						Target: t.buildbucketTarget,
-						Id:     job.Id,
-					},
-					Link:     job.URL(t.host),
-					Status:   buildbucket_taskbackend.JobStatusToBuildbucketStatus(job.Status),
-					UpdateId: now.Now(ctx).UnixNano(),
-				},
+				Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
 			}
 			b, err := proto.Marshal(update)
 			if err != nil {
@@ -557,8 +549,6 @@ func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*type
 }
 
 func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) error {
-	sklog.Infof("Creating job for build %d", buildId)
-
 	// Determine whether we've already created a Job for this Build. Note that
 	// due to concurrency some Jobs may slip through, so this isn't fail-safe.
 	existingJob, err := t.findJobForBuild(ctx, buildId)
@@ -566,9 +556,11 @@ func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) er
 		return skerr.Wrap(err)
 	}
 	if existingJob != nil {
-		sklog.Errorf("Found existing Job for build %d; ignoring %s", buildId, existingJob.Id)
+		sklog.Infof("Found existing Job for build %d; ignoring %s", buildId, existingJob.Id)
 		return nil
 	}
+
+	sklog.Infof("Creating job for build %d", buildId)
 
 	// Get the build details from the v2 API.
 	build, err := t.bb2.GetBuild(ctx, buildId)
@@ -962,7 +954,7 @@ func (t *TryJobIntegrator) buildFailed(j *types.Job) error {
 
 func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error {
 	sklog.Infof("bb2.UpdateBuild for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	return t.bb2.UpdateBuild(ctx, jobToBuildV2(j), j.BuildbucketToken)
+	return t.bb2.UpdateBuild(ctx, t.jobToBuildV2(ctx, j), j.BuildbucketToken)
 }
 
 func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason string) error {
@@ -1056,7 +1048,7 @@ func skipRepoState(rs types.RepoState) bool {
 
 // jobToBuildV2 converts a Job to a Buildbucket V2 Build to be used with
 // UpdateBuild.
-func jobToBuildV2(job *types.Job) *buildbucketpb.Build {
+func (t *TryJobIntegrator) jobToBuildV2(ctx context.Context, job *types.Job) *buildbucketpb.Build {
 	status := buildbucket_taskbackend.JobStatusToBuildbucketStatus(job.Status)
 
 	// Note: There are other fields we could fill in, but I'm not sure they
@@ -1067,6 +1059,11 @@ func jobToBuildV2(job *types.Job) *buildbucketpb.Build {
 		Output: &buildbucketpb.Build_Output{
 			Status:          status,
 			SummaryMarkdown: job.StatusDetails,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
+			},
 		},
 	}
 }
