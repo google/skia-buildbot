@@ -23,6 +23,21 @@ import (
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
+// SwarmingBuildChrome is a swarming task that builds Chrome.
+type SwarmingBuildChrome interface {
+	// SearchOrBuild starts a new Build if it doesn't exist, or it will fetch
+	// the existing one that matches the build parameters.
+	//
+	// Note even if the build exists, it doesn't mean it is completed.
+	SearchOrBuild(ctx context.Context) (int64, error)
+
+	// GetStatus returns the Build status.
+	GetStatus(context.Context) (buildbucketpb.Status, error)
+
+	// RetrieveCAS retrieves CAS from the build.
+	RetrieveCAS(context.Context) (*swarmingV1.SwarmingRpcsCASReference, error)
+}
+
 // BuildChrome stores all of the parameters
 // used by the build Chrome workflow
 type BuildChrome struct {
@@ -53,11 +68,35 @@ const (
 	ScheduleReqStage   string = "staging"
 )
 
-// DialBuildClient returns an authenticated LUCI Buildbucket client instance.
+// TODO(haowoo):
+// New should return SwarmingBuildChrome however that requires a larger change,
+// it is done so only to break up into small changes.
+func New(client backends.Buildbucket, commit, device, builder, target string, patch []*buildbucketpb.GerritChange) (*BuildChrome, error) {
+	if client == nil {
+		buildClient, err := dialBuildbucketClient(context.Background())
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to create build client.")
+		}
+
+		client = *buildClient
+	}
+
+	// BuildChrome has not implemented SwarmingBuildChrome yet.
+	return &BuildChrome{
+		Client:  client,
+		Commit:  commit,
+		Device:  device,
+		Builder: builder,
+		Target:  target,
+		Patch:   patch,
+	}, nil
+}
+
+// dialBuildbucketClient returns an authenticated LUCI Buildbucket client instance.
 //
 // Although skia has their own buildbucket wrapper type, it cannot build Chrome
 // at a specific commit.
-func DialBuildClient(ctx context.Context) (*backends.BuildbucketClient, error) {
+func dialBuildbucketClient(ctx context.Context) (*backends.BuildbucketClient, error) {
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {
