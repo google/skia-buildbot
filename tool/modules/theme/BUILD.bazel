@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "sass_library")
+
+sass_library(
+    name = "tokens_sass_lib",
+    srcs = ["tokens.scss"],
+    visibility = ["//visibility:public"],
+)

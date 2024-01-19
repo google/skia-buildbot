@@ -72,6 +72,9 @@ module.exports = {
         // Allow ! non-null assertions.
         '@typescript-eslint/no-non-null-assertion': 'off',
 
+        // go2ts will generate empty interfaces.
+        '@typescript-eslint/no-empty-interface': 'off',
+
         // Require a consistent member declaration order
         '@typescript-eslint/member-ordering': 'off',
 

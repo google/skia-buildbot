@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://go.skia.org/infra/tool/go/tool/tool",
+  "$ref": "#/$defs/Tool",
+  "$defs": {
+    "Tool": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "teams_id": {
+          "type": "string"
+        },
+        "code_path": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "audience": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "adoption_stage": {
+          "type": "string"
+        },
+        "landing_page": {
+          "type": "string"
+        },
+        "docs": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "feedback": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "domain",
+        "display_name",
+        "description",
+        "phase",
+        "teams_id",
+        "code_path",
+        "audience",
+        "adoption_stage",
+        "landing_page",
+        "docs",
+        "feedback",
+        "resources"
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+    "id": "skiaperf",
+    "domain": "Testing",
+    "display_name": "Skia Perf",
+    "description": "Perf is a web application for analyzing, exploring, and monitoring performance metrics.",
+    "phase": "GA",
+    "teams_id": "1346063870",
+    "code_path": [
+        "https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/"
+    ],
+    "audience": [
+        "Chrome"
+    ],
+    "adoption_stage": "Conditionally",
+    "landing_page": "https://goto.google.com/skiaperf",
+    "docs": {
+        "User Manual": "https://goto.google.com/perf-user-doc",
+        "Uploading Data": "https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/FORMAT.md",
+        "Command line tool": "https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/PERFTOOL.md",
+        "Design": "https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/DESIGN.md"
+    },
+    "feedback": {
+        "Bugs": "https://issues.skia.org/issues/new?component=1389499&template=1850647",
+        "New Instance": "https://g-issues.skia.org/issues/new?component=1389499&template=1850673"
+    },
+    "resources": {
+        "Announcements": "https://groups.google.com/a/google.com/g/skia-perf-announce"
+    }
+}

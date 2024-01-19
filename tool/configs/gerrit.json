@@ -1,0 +1,22 @@
+{
+    "id": "gerrit",
+    "domain": "Source",
+    "display_name": "Gerrit",
+    "description": "Gerrit is a web-based team code collaboration tool enabling software developers to review each other's code modifications using a Web browser.",
+    "phase": "GA",
+    "teams_id": "8953724333",
+    "code_path": [],
+    "audience": [
+        "Chrome",
+        "PEEPSI"
+    ],
+    "adoption_stage": "All",
+    "landing_page": "https://goto.google.com/cider-g",
+    "docs": {
+        "Overview": "https://gerrit-review.googlesource.com/Documentation/intro-gerrit-walkthrough.html"
+    },
+    "feedback": {
+        "Help": "https://goto.google.com/git-help"
+    },
+    "resources": {}
+}

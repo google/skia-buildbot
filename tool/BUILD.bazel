@@ -1,0 +1,30 @@
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+skia_app_container(
+    name = "tools",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//tool/go/srv:srv",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/tools/dist": [
+            [
+                "//tool/pages:production/%s.%s" % (page, ext),
+                "0644",
+            ]
+            for page in [
+                "index",
+            ]
+            for ext in [
+                "css",
+                "html",
+                "js",
+            ]
+        ],
+    },
+    entrypoint = "/usr/local/bin/srv",
+    repository = "skia-public/tools",
+)

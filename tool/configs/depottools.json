@@ -1,0 +1,26 @@
+{
+    "id": "depot_tools",
+    "domain": "Source",
+    "display_name": "depot_tools",
+    "description": "A package of scripts to manage checkouts and code reviews. The depot_tools package includes gclient, gcl, git-cl, repo, and others.",
+    "phase": "GA",
+    "teams_id": "1201906511198",
+    "code_path": [
+        "https://chromium.googlesource.com/chromium/tools/depot_tools/+/refs/heads/main"
+    ],
+    "audience": [
+        "Chrome",
+        "PEEPSI"
+    ],
+    "adoption_stage": "All",
+    "landing_page": "https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.md",
+    "docs": {
+        "git cl": "https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.git-cl.md",
+        "gclient": "https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.gclient.md"
+    },
+    "feedback": {
+        "Bugs": "https://bugs.chromium.org/p/chromium/issues/entry?components=Infra%3ESDK",
+        "Forum": "https://groups.google.com/a/chromium.org/forum/#!forum/infra-dev"
+    },
+    "resources": {}
+}

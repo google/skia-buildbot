@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "ts_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/tool/go/ts",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/go2ts",
+        "//go/sklog",
+        "//go/util",
+        "//tool/go/tool",
+        "//tool/go/types",
+    ],
+)
+
+go_binary(
+    name = "ts",
+    embed = [":ts_lib"],
+    visibility = ["//visibility:public"],
+)

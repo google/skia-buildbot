@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tool",
+    srcs = ["tool.go"],
+    embedsrcs = ["schema.json"],
+    importpath = "go.skia.org/infra/tool/go/tool",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/jsonschema",
+        "//go/skerr",
+        "//go/sklog",
+    ],
+)

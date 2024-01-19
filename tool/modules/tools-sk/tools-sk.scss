@@ -1,0 +1,166 @@
+@import '../../../infra-sk/themes.scss';
+
+.body-sk.font-sk {
+  tools-sk {
+    --sidebar-width: 0px;
+
+    * {
+      font-size: 16px;
+    }
+
+    header {
+      h1 {
+        font-size: 20px;
+      }
+    }
+
+    .GA {
+      color: var(--success);
+    }
+
+    .Deprecated {
+      color: var(--failure);
+    }
+
+    .Preview {
+      color: var(--warning);
+    }
+
+    .info {
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+
+    .info * {
+      font-size: 18px;
+    }
+
+    .description {
+      font-size: 16px;
+    }
+
+    .error {
+      color: var(--failure);
+    }
+
+    app-sk > aside {
+      padding: 16px;
+    }
+
+    app-sk {
+      main {
+        padding: 16px;
+      }
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+
+      h1 {
+        font-size: 48px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      edit-icon-sk {
+        cursor: pointer;
+        padding: 12px;
+        height: 36px;
+        border-radius: 18px;
+      }
+
+      .selectAudience {
+        padding-bottom: 8px;
+        border-bottom: solid 4px var(--outline);
+
+        label {
+          font-weight: 700;
+        }
+
+        select {
+          margin-left: 0;
+        }
+      }
+
+      .instructions {
+        font-weight: 200;
+        font-style: italic;
+        opacity: 80%;
+        font-size: 12px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .intro {
+          padding: 16px;
+          border: solid 2px var(--secondary-highlight);
+          border-radius: 16px;
+          width: 800px;
+        }
+      }
+
+      form {
+        div {
+          margin-bottom: 16px;
+        }
+
+        label {
+          font-weight: 700;
+          display: block;
+          margin-bottom: 8px;
+        }
+
+        input[type='text'],
+        textarea {
+          margin-left: 8px;
+          padding: 8px;
+        }
+
+        .submit {
+          display: flex;
+          align-items: center;
+
+          input[type='submit'] {
+            height: 36px;
+          }
+        }
+      }
+    }
+
+    main > div {
+      width: 1000px;
+    }
+
+    .outline {
+      padding: 16px;
+      border: solid var(--outline) 1px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: var(--primary);
+    }
+    h3 {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    section {
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+    }
+
+    #audience {
+      display: block;
+    }
+  }
+}
