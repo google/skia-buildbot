@@ -104,6 +104,10 @@ const (
 	// Buildbucket when we call StartBuild more than once for the same build.
 	buildAlreadyStartedErr = "has recorded another StartBuild with request id"
 
+	// buildAlreadyFinishedErr is a substring of the error message returned by
+	// Buildbucket when we call UpdateBuild after the build has finished.
+	buildAlreadyFinishedErr = "cannot update an ended build"
+
 	// Project name used by buildbucket for all Skia builds.
 	buildbucketProject = "skia"
 )
@@ -701,6 +705,10 @@ func isBuildAlreadyStartedError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), buildAlreadyStartedErr)
 }
 
+func isBuildAlreadyFinishedError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), buildAlreadyFinishedErr)
+}
+
 func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 	// We might encounter this Job via periodic polling or the query snapshot
 	// iterator, or both.  We don't want to start the Job multiple times, so
@@ -977,14 +985,26 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 			if reason == "" {
 				reason = "Underlying job was canceled."
 			}
-			return t.cancelBuild(ctx, j, reason)
+			return skerr.Wrap(t.cancelBuild(ctx, j, reason))
 		} else {
-			return t.updateBuild(ctx, j)
+			if err := t.updateBuild(ctx, j); err != nil {
+				if isBuildAlreadyFinishedError(err) {
+					// Either we've already updated the build successfully, or
+					// someone else has updated it (likely canceled). Log a
+					// warning in case this persists and we need to investigate,
+					// but move on without returning an error.
+					sklog.Warningf("Tried to update already-finished job %s (build %d)", j.Id, j.BuildbucketBuildId)
+					return nil
+				}
+				return skerr.Wrap(err)
+			} else {
+				return nil
+			}
 		}
 	} else if j.Status == types.JOB_STATUS_SUCCESS {
-		return t.buildSucceededV1(j)
+		return skerr.Wrap(t.buildSucceededV1(j))
 	} else {
-		return t.buildFailed(j)
+		return skerr.Wrap(t.buildFailed(j))
 	}
 }
 
@@ -998,7 +1018,7 @@ func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 		},
 		Status: buildbucketpb.Status_STARTED,
 		CreateTime: &buildbucketpb.TimeRange{
-			EndTime: timestamppb.New(time.Now().Add(CLEANUP_AGE_THRESHOLD)),
+			EndTime: timestamppb.New(time.Now().Add(-CLEANUP_AGE_THRESHOLD)),
 		},
 	})
 	if err != nil {
@@ -1025,9 +1045,16 @@ func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 			} else {
 				sklog.Infof("Cleanup: attempting to update job %s for build %d", job.Id, build.Id)
 				if err := t.updateBuild(ctx, job); err != nil {
-					sklog.Errorf("Cleanup: failed to update job %s for build %d; canceling. Error: %s", job.Id, build.Id, err)
-					if err := t.cancelBuild(ctx, job, "Failed to UpdateBuild"); err != nil {
-						return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
+					if isBuildAlreadyFinishedError(err) {
+						// Ignore the error; the build shouldn't show up in the
+						// next round of cleanup, but log the error anyway just
+						// so that we're aware in case it does.
+						sklog.Warningf("Cleanup: tried to update already-finished job %s (build %d)", job.Id, build.Id)
+					} else {
+						sklog.Errorf("Cleanup: failed to update job %s for build %d; canceling. Error: %s", job.Id, build.Id, err)
+						if err := t.cancelBuild(ctx, job, "Failed to UpdateBuild"); err != nil {
+							return skerr.Wrapf(err, "failed to cancel build %d (job %s)", build.Id, job.Id)
+						}
 					}
 				}
 			}

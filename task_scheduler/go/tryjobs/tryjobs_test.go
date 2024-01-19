@@ -371,7 +371,7 @@ func TestRemoteCancelV1Build_Failed(t *testing.T) {
 	const id = int64(12345)
 	expectErr := "Build does not exist!"
 	MockCancelBuildFailed(mock, id, "Canceling!", expectErr)
-	require.EqualError(t, trybots.remoteCancelV1Build(id, "Canceling!"), expectErr)
+	require.ErrorContains(t, trybots.remoteCancelV1Build(id, "Canceling!"), expectErr)
 	require.True(t, mock.Empty(), mock.List())
 }
 
@@ -512,7 +512,7 @@ func TestJobFinishedV1_JobSucceeded_UpdateFails(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j})
 	expectErr := "fail"
 	MockJobSuccess_Failed(mock, j, now, false, expectErr)
-	require.EqualError(t, trybots.jobFinished(ctx, j), expectErr)
+	require.ErrorContains(t, trybots.jobFinished(ctx, j), expectErr)
 	require.True(t, mock.Empty(), mock.List())
 }
 
@@ -589,7 +589,7 @@ func TestJobFinishedV1_JobFailed_UpdateFails(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j})
 	expectErr := "fail"
 	MockJobFailure_Failed(mock, j, now, expectErr)
-	require.EqualError(t, trybots.jobFinished(ctx, j), expectErr)
+	require.ErrorContains(t, trybots.jobFinished(ctx, j), expectErr)
 	require.True(t, mock.Empty(), mock.List())
 }
 
@@ -666,7 +666,7 @@ func TestJobFinishedV1_JobMishap_UpdateFails(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j})
 	expectErr := "fail"
 	MockJobMishap_Failed(mock, j, now, expectErr)
-	require.EqualError(t, trybots.jobFinished(ctx, j), expectErr)
+	require.ErrorContains(t, trybots.jobFinished(ctx, j), expectErr)
 	require.True(t, mock.Empty(), mock.List())
 }
 
@@ -691,6 +691,30 @@ func TestJobFinishedV2_JobMishap_UpdateFails(t *testing.T) {
 		},
 	}, j.BuildbucketToken).Return(errors.New("failed"))
 	require.ErrorContains(t, trybots.jobFinished(ctx, j), "failed")
+	mockBB.AssertExpectations(t)
+}
+
+func TestJobFinishedV2_BuildAlreadyDone_NoError(t *testing.T) {
+	ctx, trybots, _, mockBB, _ := setup(t)
+
+	j := tryjobV2(ctx, repoUrl)
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
+	j.Status = types.JOB_STATUS_MISHAP
+	j.Finished = now
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
+	trybots.jCache.AddJobs([]*types.Job{j})
+	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
+		Id: j.BuildbucketBuildId,
+		Output: &buildbucketpb.Build_Output{
+			Status: buildbucketpb.Status_INFRA_FAILURE,
+		},
+		Infra: &buildbucketpb.BuildInfra{
+			Backend: &buildbucketpb.BuildInfra_Backend{
+				Task: buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+			},
+		},
+	}, j.BuildbucketToken).Return(errors.New(buildAlreadyFinishedErr))
+	require.NoError(t, trybots.jobFinished(ctx, j))
 	mockBB.AssertExpectations(t)
 }
 
