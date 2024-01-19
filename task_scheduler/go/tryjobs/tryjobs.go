@@ -540,8 +540,12 @@ func (t *TryJobIntegrator) tryLeaseV1Build(ctx context.Context, id int64) (int64
 // findJobForBuild retrieves the Job associated with the given build. Returns
 // nil, nil if no build is found.
 func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*types.Job, error) {
+	end := now.Now(ctx)
+	start := end.Add(-4 * 24 * time.Hour)
 	foundJobs, err := t.db.SearchJobs(ctx, &db.JobSearchParams{
 		BuildbucketBuildID: &id,
+		TimeStart:          &start,
+		TimeEnd:            &end,
 	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed searching for existing Jobs for build %d", id)
