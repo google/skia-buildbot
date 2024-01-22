@@ -122,7 +122,8 @@ func TestUpdateJobsV2_FinishedJob_SendSuccess(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j1.BuildbucketBuildId,
+		Id:     j1.BuildbucketBuildId,
+		Status: buildbucketpb.Status_SUCCESS,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
@@ -171,7 +172,8 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j1.BuildbucketBuildId,
+		Id:     j1.BuildbucketBuildId,
+		Status: buildbucketpb.Status_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
 		},
@@ -487,7 +489,8 @@ func TestJobFinishedV2_JobSucceeded_UpdateSucceeds(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_SUCCESS,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
@@ -526,7 +529,8 @@ func TestJobFinishedV2_JobSucceeded_UpdateFails(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_SUCCESS,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_SUCCESS,
 		},
@@ -564,7 +568,8 @@ func TestJobFinishedV2_JobFailed_UpdateSucceeds(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
 		},
@@ -603,7 +608,8 @@ func TestJobFinishedV2_JobFailed_UpdateFails(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_FAILURE,
 		},
@@ -641,7 +647,8 @@ func TestJobFinishedV2_JobMishap_UpdateSucceeds(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_INFRA_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_INFRA_FAILURE,
 		},
@@ -680,7 +687,8 @@ func TestJobFinishedV2_JobMishap_UpdateFails(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_INFRA_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_INFRA_FAILURE,
 		},
@@ -704,7 +712,8 @@ func TestJobFinishedV2_BuildAlreadyDone_NoError(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
-		Id: j.BuildbucketBuildId,
+		Id:     j.BuildbucketBuildId,
+		Status: buildbucketpb.Status_INFRA_FAILURE,
 		Output: &buildbucketpb.Build_Output{
 			Status: buildbucketpb.Status_INFRA_FAILURE,
 		},
