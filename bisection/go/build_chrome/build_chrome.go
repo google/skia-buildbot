@@ -23,19 +23,20 @@ import (
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
-// SwarmingBuildChrome is a swarming task that builds Chrome.
-type SwarmingBuildChrome interface {
+// BuildChromeClient is a buildbucket client to build Chrome.
+type BuildChromeClient interface {
 	// SearchOrBuild starts a new Build if it doesn't exist, or it will fetch
 	// the existing one that matches the build parameters.
-	//
-	// Note even if the build exists, it doesn't mean it is completed.
-	SearchOrBuild(ctx context.Context) (int64, error)
+	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patch []*buildbucketpb.GerritChange) (int64, error)
 
 	// GetStatus returns the Build status.
-	GetStatus(context.Context) (buildbucketpb.Status, error)
+	GetStatus(context.Context, int64) (buildbucketpb.Status, error)
 
 	// RetrieveCAS retrieves CAS from the build.
-	RetrieveCAS(context.Context) (*swarmingV1.SwarmingRpcsCASReference, error)
+	RetrieveCAS(context.Context, int64, string) (*swarmingV1.SwarmingRpcsCASReference, error)
+
+	// CancelBuild cancels the ongoing build.
+	CancelBuild(context.Context, int64, string) error
 }
 
 // BuildChrome stores all of the parameters
@@ -68,35 +69,16 @@ const (
 	ScheduleReqStage   string = "staging"
 )
 
-// TODO(haowoo):
-// New should return SwarmingBuildChrome however that requires a larger change,
-// it is done so only to break up into small changes.
-func New(client backends.BuildbucketClient, commit, device, builder, target string, patch []*buildbucketpb.GerritChange) (*BuildChrome, error) {
-	if client == nil {
-		buildClient, err := dialBuildbucketClient(context.Background())
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to create build client.")
-		}
-
-		client = buildClient
-	}
-
-	// BuildChrome has not implemented SwarmingBuildChrome yet.
-	return &BuildChrome{
-		Client:  client,
-		Commit:  commit,
-		Device:  device,
-		Builder: builder,
-		Target:  target,
-		Patch:   patch,
-	}, nil
+// buildChromeImpl implements BuildChromeClient to build Chrome.
+type buildChromeImpl struct {
+	client backends.BuildbucketClient
 }
 
-// dialBuildbucketClient returns an authenticated LUCI Buildbucket client instance.
+// New returns buildChromeImpl.
 //
-// Although skia has their own buildbucket wrapper type, it cannot build Chrome
-// at a specific commit.
-func dialBuildbucketClient(ctx context.Context) (backends.BuildbucketClient, error) {
+// buildChromeImpl is an authenticated LUCI Buildbucket client instance. Although skia has their
+// own buildbucket wrapper type, it cannot build Chrome at a specific commit.
+func New(ctx context.Context) (*buildChromeImpl, error) {
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {
@@ -105,7 +87,9 @@ func dialBuildbucketClient(ctx context.Context) (backends.BuildbucketClient, err
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
 
 	bc := backends.DefaultClientConfig().WithClient(c)
-	return bc, nil
+	return &buildChromeImpl{
+		client: bc,
+	}, nil
 }
 
 // searchBuild looks for an existing buildbucket build using the
@@ -150,6 +134,48 @@ func (b *BuildChrome) searchBuild(ctx context.Context, builder string) (int64, e
 
 	sklog.Debug("SearchBuild: build could not be found")
 	return 0, nil
+}
+
+// SearchOrBuild implements BuildChromeClient interface
+func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patch []*buildbucketpb.GerritChange) (int64, error) {
+	// TODO(haowoo): Remove struct fields and remove the rewire.
+	// Rewire the parameter into struct
+	bc := &BuildChrome{
+		Client: bci.client,
+		Commit: commit,
+		Device: device,
+		Target: target,
+		Patch:  patch,
+	}
+	buildID, err := bc.Run(ctx, pinpointJobID)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "Failed to build.")
+	}
+
+	return buildID, nil
+}
+
+// GetStatus implements BuildChromeClient interface
+func (bci *buildChromeImpl) GetStatus(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
+	// TODO(haowoo): Remove the rewire after fixing tests.
+	bc := &BuildChrome{
+		Client: bci.client,
+	}
+	return bc.CheckBuildStatus(ctx, buildID)
+}
+
+// RetrieveCAS implements BuildChromeClient interface
+func (bci *buildChromeImpl) RetrieveCAS(ctx context.Context, buildID int64, target string) (*swarmingV1.SwarmingRpcsCASReference, error) {
+	ref, err := bci.client.GetCASReference(ctx, buildID, target)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Could not find the CAS outputs to build %d", buildID)
+	}
+	return ref, nil
+}
+
+// CancelBuild implements BuildChromeClient interface
+func (bci *buildChromeImpl) CancelBuild(ctx context.Context, buildID int64, summary string) error {
+	return bci.client.CancelBuild(ctx, buildID, summary)
 }
 
 // Run searches buildbucket for an old Chrome build and will schedule a new
