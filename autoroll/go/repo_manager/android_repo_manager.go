@@ -377,10 +377,13 @@ func (r *androidRepoManager) abortMerge(ctx context.Context) error {
 // checkout to make sure there are no leftover untracked files/directories.
 func (r *androidRepoManager) abandonRepoBranchAndCleanup(ctx context.Context) error {
 	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "python3", r.repoToolPath, "abandon", androidRepoBranchName); err != nil {
-		return skerr.Wrap(err)
+		sklog.Errorf("Failed to abandon merge; ignoring: %s", err)
 	}
-	if _, err := r.childRepo.Git(ctx, "clean", "-d", "-f"); err != nil {
-		return skerr.Wrap(err)
+	if _, err := r.childRepo.Git(ctx, "reset", "--hard", "HEAD"); err != nil {
+		return err
+	}
+	if _, err := r.childRepo.Git(ctx, "clean", "-d", "-f", "-f"); err != nil {
+		return err
 	}
 	return nil
 }
@@ -414,7 +417,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 	squash := false
 	if strings.HasPrefix(to.Id, gerrit.ChangeRefPrefix) {
 		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
-			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
+			return 0, skerr.Wrapf(err, "Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
 		}
 		mergeTarget = "FETCH_HEAD"
 		// To avoid having Android automatically upload the unsubmitted changes of
@@ -451,7 +454,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || (modOutput == "" && conflictsOutput == "") {
 			util.LogErr(conflictsErr)
-			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, mergeErr)
+			return 0, skerr.Wrapf(mergeErr, "failed to roll to %s. Needs human investigation: %s", to, mergeErr)
 		}
 		for _, conflict := range strings.Split(conflictsOutput, "\n") {
 			if conflict == "" {
@@ -471,7 +474,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 			}
 			if !ignoreConflict {
 				util.LogErr(r.abortMerge(ctx))
-				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, mergeErr)
+				return 0, skerr.Wrapf(mergeErr, "failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, mergeErr)
 			}
 		}
 	}
@@ -502,7 +505,7 @@ third_party {
 
 		metadataFilePath := filepath.Join(r.workdir, r.projectMetadataFileConfig.FilePath)
 		if err := os.WriteFile(metadataFilePath, []byte(metadataContents), os.ModePerm); err != nil {
-			return 0, fmt.Errorf("Error when writing to %s: %s", metadataFilePath, err)
+			return 0, skerr.Wrapf(err, "Error when writing to %s: %s", metadataFilePath, err)
 		}
 		if _, addGifErr := r.childRepo.Git(ctx, "add", metadataFilePath); addGifErr != nil {
 			return 0, addGifErr
@@ -513,7 +516,7 @@ third_party {
 	for _, s := range r.preUploadSteps {
 		if err := s(ctx, nil, r.httpClient, r.workdir, from, to); err != nil {
 			util.LogErr(r.abortMerge(ctx))
-			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
+			return 0, skerr.Wrapf(err, "Failed pre-upload step: %s", err)
 		}
 	}
 
@@ -526,7 +529,7 @@ third_party {
 	// Create a new repo branch.
 	if _, repoBranchErr := exec.RunCwd(ctx, r.childDir, "python3", r.repoToolPath, "start", androidRepoBranchName, "."); repoBranchErr != nil {
 		util.LogErr(r.abortMerge(ctx))
-		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
+		return 0, skerr.Wrapf(repoBranchErr, "failed to create repo branch")
 	}
 
 	rollEmails := []string{}
@@ -548,7 +551,7 @@ third_party {
 	// Commit the change with the above message.
 	if _, commitErr := r.childRepo.Git(ctx, "commit", "-a", "-m", commitMsg); commitErr != nil {
 		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
-		return 0, fmt.Errorf("Nothing to merge; did someone already merge %s..%s?: %s", from, to, commitErr)
+		return 0, skerr.Wrapf(commitErr, "nothing to merge; did someone already merge %s..%s?", from, to)
 	}
 
 	// Bypass the repo upload prompt by setting autoupload config to true.
@@ -556,7 +559,7 @@ third_party {
 	uploadUrl := strings.Replace(r.parentRepoURL, "-review", "", 1)
 	if _, configErr := r.childRepo.Git(ctx, "config", fmt.Sprintf("review.%s/.autoupload", uploadUrl), "true"); configErr != nil {
 		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
-		return 0, fmt.Errorf("Could not set autoupload config: %s", configErr)
+		return 0, skerr.Wrapf(configErr, "could not set autoupload config")
 	}
 
 	// Upload the CL to Gerrit.
@@ -575,7 +578,7 @@ third_party {
 	}
 	if uploadOutput, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
 		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
-		return 0, fmt.Errorf("Could not upload to Gerrit: %s", uploadErr)
+		return 0, skerr.Wrapf(uploadErr, "could not upload to Gerrit")
 	} else {
 		sklog.Info(uploadOutput)
 	}
