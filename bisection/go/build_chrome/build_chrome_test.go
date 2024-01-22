@@ -74,7 +74,7 @@ func TestSearchBuild(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			ctx := context.Background()
 
-			mb := &mocks.Buildbucket{}
+			mb := &mocks.BuildbucketClient{}
 			bc := &BuildChrome{
 				Builder: test.builder,
 				Client:  mb,
@@ -133,7 +133,7 @@ func TestCheckBuildStatus(t *testing.T) {
 			ctx := context.Background()
 			buildID := int64(0)
 
-			mb := &mocks.Buildbucket{}
+			mb := &mocks.BuildbucketClient{}
 			bc := &BuildChrome{
 				Client: mb,
 			}
@@ -158,7 +158,7 @@ func TestCheckBuildStatus(t *testing.T) {
 func TestBuildNonExistentDevice(t *testing.T) {
 	ctx := context.Background()
 
-	mb := &mocks.Buildbucket{}
+	mb := &mocks.BuildbucketClient{}
 	bc := BuildChrome{
 		Client: mb,
 		Device: "non-existent device",
@@ -184,7 +184,7 @@ func TestBuildFound(t *testing.T) {
 	expected := int64(1)
 
 	ctx := context.Background()
-	mb := &mocks.Buildbucket{}
+	mb := &mocks.BuildbucketClient{}
 	bc := BuildChrome{
 		Client: mb,
 		Device: "linux-perf",
@@ -223,7 +223,7 @@ func TestNewBuild(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			ctx := context.Background()
-			mb := &mocks.Buildbucket{}
+			mb := &mocks.BuildbucketClient{}
 			bc := BuildChrome{
 				Client: mb,
 				Device: "linux-perf",
@@ -284,7 +284,7 @@ func TestRetrieveCAS(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			ctx := context.Background()
-			mb := &mocks.Buildbucket{}
+			mb := &mocks.BuildbucketClient{}
 			bc := BuildChrome{
 				Client: mb,
 				Target: "target",

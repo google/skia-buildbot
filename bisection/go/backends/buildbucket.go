@@ -62,7 +62,7 @@ const (
 	WaterfallBucket = "ci"
 )
 
-type Buildbucket interface {
+type BuildbucketClient interface {
 	// CancelBuild sends a cancellation request to Buildbucket. It's expected that
 	// Buildbucket will cancel the build, whether that's graceful termination or
 	// forced cancellation, as long as the request is received.
@@ -95,21 +95,21 @@ type Buildbucket interface {
 	StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, patches []*bpb.GerritChange) (*bpb.Build, error)
 }
 
-// BuildbucketClient is an object used to interact with a single Buildbucket instance.
+// buildbucketClient is an object used to interact with a single Buildbucket instance.
 // This extends Skia's Buildbucket wrapper as our single use-case is to create
 // builds at specific commits.
-type BuildbucketClient struct {
+type buildbucketClient struct {
 	client bpb.BuildsClient
 }
 
-func NewBuildbucketClient(bc bpb.BuildsClient) *BuildbucketClient {
-	return &BuildbucketClient{
+func NewBuildbucketClient(bc bpb.BuildsClient) *buildbucketClient {
+	return &buildbucketClient{
 		client: bc,
 	}
 }
 
 // createSearchBuildRequest generates a SearchBuildsRequest.
-func (b BuildbucketClient) createSearchBuildRequest(builderName, bucket, commit string, patches []*bpb.GerritChange) *bpb.SearchBuildsRequest {
+func (b *buildbucketClient) createSearchBuildRequest(builderName, bucket, commit string, patches []*bpb.GerritChange) *bpb.SearchBuildsRequest {
 	tags := []*bpb.StringPair{
 		{
 			Key:   DefaultBuildsetKey,
@@ -134,7 +134,7 @@ func (b BuildbucketClient) createSearchBuildRequest(builderName, bucket, commit 
 }
 
 // CancelBuild sends a request to Buildbucket to cancel a build.
-func (b BuildbucketClient) CancelBuild(ctx context.Context, buildID int64, summary string) error {
+func (b *buildbucketClient) CancelBuild(ctx context.Context, buildID int64, summary string) error {
 	req := &bpb.CancelBuildRequest{
 		Id:              buildID,
 		SummaryMarkdown: summary,
@@ -150,14 +150,14 @@ func (b BuildbucketClient) CancelBuild(ctx context.Context, buildID int64, summa
 
 // isBuildTooOld checks whether a terminated build is too old and no longer worth checking.
 // Incomplete builds have default endtime of 1970-01-01 00:00 UTC.
-func (b BuildbucketClient) isBuildTooOld(build *bpb.Build) bool {
+func (b *buildbucketClient) isBuildTooOld(build *bpb.Build) bool {
 	return (build.Status.Number() > bpb.Status_ENDED_MASK.Number() &&
 		time.Now().Sub(build.EndTime.AsTime()).Hours()/24 > float64(CasExpiration))
 }
 
 // findMatchingBuild searches the list of builds to find a build in good status (Success, Started, Scheduled)
 // with the correct number of patchsets.
-func (b BuildbucketClient) findMatchingBuild(builds []*bpb.Build, patches []*bpb.GerritChange) *bpb.Build {
+func (b *buildbucketClient) findMatchingBuild(builds []*bpb.Build, patches []*bpb.GerritChange) *bpb.Build {
 	statusOK := []bpb.Status{
 		bpb.Status_SUCCESS,
 		bpb.Status_STARTED,
@@ -184,7 +184,7 @@ func (b BuildbucketClient) findMatchingBuild(builds []*bpb.Build, patches []*bpb
 }
 
 // GetBuilds calls Buildbucket's SearchBuilds.
-func (b BuildbucketClient) GetBuilds(ctx context.Context, builderName, bucket, commit string, patches []*bpb.GerritChange) ([]*bpb.Build, error) {
+func (b *buildbucketClient) GetBuilds(ctx context.Context, builderName, bucket, commit string, patches []*bpb.GerritChange) ([]*bpb.Build, error) {
 	req := b.createSearchBuildRequest(builderName, bucket, commit, patches)
 	resp, err := b.client.SearchBuilds(ctx, req)
 	if err != nil {
@@ -200,7 +200,7 @@ func (b BuildbucketClient) GetBuilds(ctx context.Context, builderName, bucket, c
 
 // GetBuildWithPatches utilizes GetBuilds() and filters to find an exactly matching build, meaning
 // that the GerritChanges and base Chromium build commit hash are the same.
-func (b BuildbucketClient) GetBuildWithPatches(ctx context.Context, builderName, bucket, commit string, patches []*bpb.GerritChange) (*bpb.Build, error) {
+func (b *buildbucketClient) GetBuildWithPatches(ctx context.Context, builderName, bucket, commit string, patches []*bpb.GerritChange) (*bpb.Build, error) {
 	builds, err := b.GetBuilds(ctx, builderName, bucket, commit, patches)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to call Buildbucket to find a single matching build.")
@@ -211,7 +211,7 @@ func (b BuildbucketClient) GetBuildWithPatches(ctx context.Context, builderName,
 
 // GetBuildFromWaterfall searches for an exactly matching Buildbucket build using information
 // from the builderName's CI counterpart.
-func (b BuildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderName, commit string) (*bpb.Build, error) {
+func (b *buildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderName, commit string) (*bpb.Build, error) {
 	mirror, ok := PinpointWaterfall[builderName]
 	if !ok {
 		return nil, skerr.Fmt("%s has no supported CI waterfall builder.", builderName)
@@ -228,7 +228,7 @@ func (b BuildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderNam
 }
 
 // GetBuildStatus fetches the build status for a given build.
-func (b BuildbucketClient) GetBuildStatus(ctx context.Context, buildID int64) (bpb.Status, error) {
+func (b *buildbucketClient) GetBuildStatus(ctx context.Context, buildID int64) (bpb.Status, error) {
 	req := &bpb.GetBuildStatusRequest{
 		Id: buildID,
 	}
@@ -242,7 +242,7 @@ func (b BuildbucketClient) GetBuildStatus(ctx context.Context, buildID int64) (b
 }
 
 // createCASReferenceRequest creates a GetBuildRequest that focuses on just the output properties.
-func (b BuildbucketClient) createCASReferenceRequest(buildID int64) *bpb.GetBuildRequest {
+func (b *buildbucketClient) createCASReferenceRequest(buildID int64) *bpb.GetBuildRequest {
 	return &bpb.GetBuildRequest{
 		Id: buildID,
 		// To fetch the CAS reference, we just need to focus on output properties.
@@ -255,7 +255,7 @@ func (b BuildbucketClient) createCASReferenceRequest(buildID int64) *bpb.GetBuil
 }
 
 // GetCASReference parses output.properties of a successful build for a CAS hash.
-func (b BuildbucketClient) GetCASReference(ctx context.Context, buildID int64, target string) (*swarmingpb.SwarmingRpcsCASReference, error) {
+func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, target string) (*swarmingpb.SwarmingRpcsCASReference, error) {
 	req := b.createCASReferenceRequest(buildID)
 	build, err := b.client.GetBuild(ctx, req)
 	if err != nil {
@@ -295,7 +295,7 @@ func (b BuildbucketClient) GetCASReference(ctx context.Context, buildID int64, t
 }
 
 // createChromeBuildRequest creates a Chrome Buildbucket build request.
-func (b BuildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, builderName, commit string, patches []*bpb.GerritChange) *bpb.ScheduleBuildRequest {
+func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, builderName, commit string, patches []*bpb.GerritChange) *bpb.ScheduleBuildRequest {
 	builder := &bpb.BuilderID{
 		Project: ChromeProject,
 		Bucket:  DefaultBucket,
@@ -361,7 +361,7 @@ func (b BuildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, bu
 }
 
 // StartChromeBuild schedules a Chrome build through Buildbucket.
-func (b BuildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, patches []*bpb.GerritChange) (*bpb.Build, error) {
+func (b *buildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, patches []*bpb.GerritChange) (*bpb.Build, error) {
 	if pinpointJobID == "" {
 		pinpointJobID = uuid.New().String()
 	}
@@ -417,8 +417,8 @@ func DefaultClientConfig() BuildbucketClientConfig {
 }
 
 // WithClient returns a BuildbucketClient as configured by the ClientConfig
-func (bc BuildbucketClientConfig) WithClient(c *http.Client) *BuildbucketClient {
-	return &BuildbucketClient{
+func (bc BuildbucketClientConfig) WithClient(c *http.Client) *buildbucketClient {
+	return &buildbucketClient{
 		client: bpb.NewBuildsPRPCClient(
 			&prpc.Client{
 				C:    c,

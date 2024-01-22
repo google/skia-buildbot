@@ -42,7 +42,7 @@ type SwarmingBuildChrome interface {
 // used by the build Chrome workflow
 type BuildChrome struct {
 	// Client is the buildbucket client.
-	Client backends.Buildbucket
+	Client backends.BuildbucketClient
 	// Commit is the chromium commit hash.
 	Commit string
 	// Device is the name of the device, e.g. "linux-perf".
@@ -71,14 +71,14 @@ const (
 // TODO(haowoo):
 // New should return SwarmingBuildChrome however that requires a larger change,
 // it is done so only to break up into small changes.
-func New(client backends.Buildbucket, commit, device, builder, target string, patch []*buildbucketpb.GerritChange) (*BuildChrome, error) {
+func New(client backends.BuildbucketClient, commit, device, builder, target string, patch []*buildbucketpb.GerritChange) (*BuildChrome, error) {
 	if client == nil {
 		buildClient, err := dialBuildbucketClient(context.Background())
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to create build client.")
 		}
 
-		client = *buildClient
+		client = buildClient
 	}
 
 	// BuildChrome has not implemented SwarmingBuildChrome yet.
@@ -96,7 +96,7 @@ func New(client backends.Buildbucket, commit, device, builder, target string, pa
 //
 // Although skia has their own buildbucket wrapper type, it cannot build Chrome
 // at a specific commit.
-func dialBuildbucketClient(ctx context.Context) (*backends.BuildbucketClient, error) {
+func dialBuildbucketClient(ctx context.Context) (backends.BuildbucketClient, error) {
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {

@@ -31,7 +31,7 @@ packages:
       Throttle:
   go.skia.org/infra/bisection/go/backends:
     interfaces:
-      Buildbucket:
+      BuildbucketClient:
       SkiaBridge:
   go.skia.org/infra/bugs-central/go/types:
     interfaces:
