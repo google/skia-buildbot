@@ -130,7 +130,7 @@ type frameRequestProcess struct {
 // It does not return until all the work is complete.
 //
 // The finished results are stored in the FrameRequestProcess.Progress.Results.
-func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store) error {
+func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, anomalyStore anomalies.Store, searchAnomaliesTimeBased bool) error {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
@@ -154,7 +154,11 @@ func ProcessFrameRequest(ctx context.Context, req *FrameRequest, perfGit perfgit
 		return ret.reportError(err, "Failed to get skps.")
 	}
 
-	addAnomaliesToResponse(ctx, resp, anomalyStore)
+	if searchAnomaliesTimeBased {
+		addTimeBasedAnomaliesToResponse(ctx, resp, anomalyStore, ret.perfGit)
+	} else {
+		addRevisionBasedAnomaliesToResponse(ctx, resp, anomalyStore, ret.perfGit)
+	}
 
 	ret.request.Progress.Results(resp)
 	return nil
@@ -315,8 +319,47 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 	}, nil
 }
 
-// addAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
-func addAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store) {
+func addTimeBasedAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store, perfGit perfgit.Git) {
+	ctx, span := trace.StartSpan(ctx, "addAnomaliesToResponse")
+	defer span.End()
+	df := response.DataFrame
+	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
+		startCommitPosition := df.Header[0].Offset
+		endCommitPosition := df.Header[len(df.Header)-1].Offset
+		traceNames := make([]string, 0)
+		for traceName := range df.TraceSet {
+			traceNames = append(traceNames, traceName)
+		}
+
+		startCommit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(startCommitPosition))
+		if err != nil {
+			sklog.Errorf("Unable to get commit details for commit position %d", startCommitPosition)
+			return
+		}
+		endCommit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(endCommitPosition))
+		if err != nil {
+			sklog.Errorf("Unable to get commit details for commit position %d", endCommitPosition)
+			return
+		}
+
+		startTime := time.Unix(startCommit.Timestamp, 0)
+		// Add 2 days to the end time since a perf run may happen a bit later after the
+		// commit and the anomaly is generated only after a perf run is done, if at all.
+		endTime := time.Unix(endCommit.Timestamp, 0).Add(time.Duration(48) * time.Hour)
+		// Fetch Chrome Perf anomalies.
+		anomalyMap, err := anomalyStore.GetAnomaliesInTimeRange(ctx, traceNames, startTime, endTime)
+		if err != nil {
+			// Won't fail the frame request if there was error while fetching the Chrome Perf anomaly,
+			sklog.Errorf("Failed to fetch anomalies from anomaly store. %s", err)
+		}
+
+		// Attach anomaly map to DataFrame
+		response.AnomalyMap = anomalyMap
+	}
+}
+
+// addRevisionBasedAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
+func addRevisionBasedAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store, perfGit perfgit.Git) {
 	ctx, span := trace.StartSpan(ctx, "addAnomaliesToResponse")
 	defer span.End()
 	df := response.DataFrame

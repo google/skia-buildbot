@@ -136,6 +136,28 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 	return result, nil
 }
 
+// GetAnomaliesTimeBased implements anomalies.Store
+// Retrieves anomalies for each trace within the begin and end times.
+func (as *store) GetAnomaliesInTimeRange(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (chromeperf.AnomalyMap, error) {
+	result := chromeperf.AnomalyMap{}
+	if len(traceNames) == 0 {
+		return result, nil
+	}
+
+	sort.Strings(traceNames)
+
+	chromePerfAnomalies, err := as.ChromePerf.GetAnomaliesTimeBased(ctx, traceNames, startTime, endTime)
+	if err != nil {
+		sklog.Errorf("Failed to get chrome perf anomalies: %s", err)
+	} else {
+		for traceName, commitNumberAnomalyMap := range chromePerfAnomalies {
+			result[traceName] = commitNumberAnomalyMap
+		}
+	}
+
+	return result, nil
+}
+
 // GetAnomaliesAroundRevision implements anomalies.Store
 // It fetches anomalies that occured around the specified revision number.
 func (as *store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]chromeperf.AnomalyForRevision, error) {

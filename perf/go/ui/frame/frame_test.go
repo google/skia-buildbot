@@ -158,7 +158,7 @@ func TestProcessFrameRequest_InvalidQuery_ReturnsError(t *testing.T) {
 		Queries:  []string{"http://[::1]a"}, // A known query that will fail to parse.
 		Progress: progress.New(),
 	}
-	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil)
+	err := ProcessFrameRequest(context.Background(), fr, nil, nil, nil, nil, false)
 	require.Error(t, err)
 	var b bytes.Buffer
 	err = fr.Progress.JSON(&b)
@@ -493,7 +493,7 @@ func TestAddAnomaliesToResponse_GotAnomalies_Success(t *testing.T) {
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
 
-	addAnomaliesToResponse(ctx, resp, anomayStore)
+	addRevisionBasedAnomaliesToResponse(ctx, resp, anomayStore, nil)
 
 	expectedAnomalyMap := chromeperf.AnomalyMap{
 		traceName1: map[types.CommitNumber]chromeperf.Anomaly{12: anomaly1},
@@ -511,7 +511,7 @@ func TestAddAnomaliesToResponse_ErrorGetAnomalies_GotEmptyAnomalyMap(t *testing.
 	anomayStore, err := cache.New(mockChromePerf)
 	require.NoError(t, err)
 
-	addAnomaliesToResponse(ctx, resp, anomayStore)
+	addRevisionBasedAnomaliesToResponse(ctx, resp, anomayStore, nil)
 	assert.Equal(t, chromeperf.AnomalyMap{}, resp.AnomalyMap)
 }
 

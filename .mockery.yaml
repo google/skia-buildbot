@@ -228,7 +228,7 @@ packages:
       Store:
   go.skia.org/infra/perf/go/anomalies:
     config:
-      dir: "{{.InterfaceDir}}/chrome/mock"
+      dir: "{{.InterfaceDir}}/mock"
     interfaces:
       Store:
   go.skia.org/infra/perf/go/chromeperf:

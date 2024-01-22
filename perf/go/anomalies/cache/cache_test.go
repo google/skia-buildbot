@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/chromeperf"
@@ -224,6 +225,23 @@ func TestGetTracesAroundRevision_FromChromePerf_Success(t *testing.T) {
 	cachedEntries, ok := anomalyStore.revisionCache.Get(revisionNum)
 	assert.True(t, ok)
 	assert.Equal(t, anomaliesExpected, cachedEntries.([]chromeperf.AnomalyForRevision))
+}
+
+func TestGetAnomaliesTimeBased_FromChromePerf_Success(t *testing.T) {
+	mockChromePerf := anomalies_chrome_mock.NewAnomalyApiClient(t)
+	startTime := time.Now().Add(time.Duration(-1) * time.Hour)
+	endTime := time.Now()
+
+	mockChromePerf.On("GetAnomaliesTimeBased", ctx, traceNames, startTime, endTime).Return(chromePerfAnomalyMap, nil)
+	anomalyStore := getAnomalyStore(t, mockChromePerf)
+
+	expectedAnomalyMap := chromeperf.AnomalyMap{
+		traceName1: map[types.CommitNumber]chromeperf.Anomaly{12: anomaly1},
+		traceName2: map[types.CommitNumber]chromeperf.Anomaly{15: anomaly2},
+	}
+	am, err := anomalyStore.GetAnomaliesInTimeRange(ctx, traceNames, startTime, endTime)
+	require.NoError(t, err)
+	assert.Equal(t, expectedAnomalyMap, am)
 }
 
 func getAnomalyStore(t *testing.T, mockChromePerf *anomalies_chrome_mock.AnomalyApiClient) *store {

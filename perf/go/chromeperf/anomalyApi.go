@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -13,9 +14,10 @@ import (
 )
 
 const (
-	AnomalyAPIName = "anomalies"
-	AddFuncName    = "add"
-	FindFuncName   = "find"
+	AnomalyAPIName   = "anomalies"
+	AddFuncName      = "add"
+	FindFuncName     = "find"
+	FindTimeFuncName = "find_time"
 )
 
 // CommitNumberAnomalyMap is a map of Anomaly, keyed by commit number.
@@ -79,6 +81,12 @@ type GetAnomaliesRequest struct {
 	Revision    int      `json:"revision,omitempty"`
 }
 
+type GetAnomaliesTimeBasedRequest struct {
+	Tests     []string  `json:"tests,omitempty"`
+	StartTime time.Time `json:"start_time,omitempty"`
+	EndTime   time.Time `json:"end_time,omitempty"`
+}
+
 type GetAnomaliesResponse struct {
 	Anomalies map[string][]Anomaly `json:"anomalies"`
 }
@@ -111,6 +119,9 @@ type AnomalyApiClient interface {
 
 	// GetAnomalies retrieves anomalies for a given set of traces within the supplied commit positions.
 	GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (AnomalyMap, error)
+
+	// GetAnomaliesTimeBased retrieves anomalies for a given set of traces within the supplied commit positions.
+	GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error)
 
 	// GetAnomaliesAroundRevision retrieves traces with anomalies that were generated around a specific commit
 	GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]AnomalyForRevision, error)
@@ -209,6 +220,39 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 		}
 		getAnomaliesResp := &GetAnomaliesResponse{}
 		err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
+		}
+		return getAnomalyMapFromChromePerfResult(getAnomaliesResp, testPathTraceNameMap), nil
+	}
+
+	return AnomalyMap{}, nil
+}
+
+func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error) {
+	testPaths := make([]string, 0)
+	testPathTraceNameMap := make(map[string]string)
+	for _, traceName := range traceNames {
+		// Build chrome perf test_path from skia perf traceName
+		testPath, stat, err := traceNameToTestPath(traceName)
+		if err != nil {
+			sklog.Errorf("Failed to build chrome perf test path from trace name %q: %s", traceName, err)
+		} else if stat == "value" { // We will only show anomalies for the traces of the 'value' stat.
+			testPaths = append(testPaths, testPath)
+			testPathTraceNameMap[testPath] = traceName
+		}
+	}
+
+	if len(testPaths) > 0 {
+		cp.getAnomaliesCalled.Inc(1)
+		// Call Chrome Perf API to fetch anomalies.
+		request := &GetAnomaliesTimeBasedRequest{
+			Tests:     testPaths,
+			StartTime: startTime,
+			EndTime:   endTime,
+		}
+		getAnomaliesResp := &GetAnomaliesResponse{}
+		err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, FindTimeFuncName, *request, getAnomaliesResp, []int{200})
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}

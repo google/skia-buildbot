@@ -721,7 +721,7 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
-		err := frame.ProcessFrameRequest(timeoutCtx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore)
+		err := frame.ProcessFrameRequest(timeoutCtx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {
