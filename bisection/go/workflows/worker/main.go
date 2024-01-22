@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	hostPort = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	}
 	defer c.Close()
 
-	w := worker.New(c, "perf.bisection", worker.Options{})
+	w := worker.New(c, *taskQueue, worker.Options{})
 
 	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
 
