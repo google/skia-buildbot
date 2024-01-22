@@ -248,7 +248,7 @@ func (b *buildbucketClient) createCASReferenceRequest(buildID int64) *bpb.GetBui
 		// To fetch the CAS reference, we just need to focus on output properties.
 		Mask: &bpb.BuildMask{
 			Fields: &fieldmaskpb.FieldMask{
-				Paths: []string{"output.properties"},
+				Paths: []string{"output.properties", "status"},
 			},
 		},
 	}
