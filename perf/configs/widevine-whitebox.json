@@ -5,6 +5,9 @@
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
+    "filter_parent_traces": true,
+    "feedback_url": "http://go/berf-skia-feedback",
+    "chat_url": "http://go/berf-skia-chat",
     "notify_config": {
         "notifications": "none"
     },
