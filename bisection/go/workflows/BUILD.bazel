@@ -5,4 +5,5 @@ go_library(
     srcs = ["workflows.go"],
     importpath = "go.skia.org/infra/bisection/go/workflows",
     visibility = ["//visibility:public"],
+    deps = ["@org_chromium_go_luci//buildbucket/proto"],
 )

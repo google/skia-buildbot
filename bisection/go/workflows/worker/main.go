@@ -32,6 +32,9 @@ func main() {
 
 	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
 
+	bca := &internal.BuildChromeActivity{}
+	w.RegisterActivity(bca)
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)

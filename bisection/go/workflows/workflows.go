@@ -1,6 +1,9 @@
+// Package workflow contains const and types to invoke Workflows.
 package workflows
 
-// Package workflow contains const and types to invoke Workflows.
+import (
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+)
 
 // Workflow name definitions.
 //
@@ -16,5 +19,15 @@ const (
 // Each workflow defines its own struct for the params, this will ensure
 // the input parameter type safety, as well as expose them in a structured way.
 type BuildChromeParams struct {
-	Builder string
+	// PinpointJobID is the Job ID to associate with the build.
+	PinpointJobID string
+	// Commit is the chromium commit hash.
+	Commit string
+	// Device is the name of the device, e.g. "linux-perf".
+	Device string
+	// Target is name of the build isolate target
+	// e.g. "performance_test_suite".
+	Target string
+	// Patch is the Gerrit patch included in the build.
+	Patch []*buildbucketpb.GerritChange
 }

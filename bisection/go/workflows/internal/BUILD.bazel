@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "internal",
@@ -6,7 +7,26 @@ go_library(
     importpath = "go.skia.org/infra/bisection/go/workflows/internal",
     visibility = ["//bisection/go/workflows:__subpackages__"],
     deps = [
+        "//bisection/go/build_chrome",
         "//bisection/go/workflows:workflows_lib",
+        "//go/skerr",
+        "@io_temporal_go_sdk//activity",
+        "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "internal_test",
+    srcs = ["build_chrome_test.go"],
+    embed = [":internal"],
+    deps = [
+        "//bisection/go/workflows:workflows_lib",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@io_temporal_go_sdk//testsuite",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
