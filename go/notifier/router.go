@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/chatbot"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
 )
@@ -70,17 +71,21 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 	for _, n := range r.notifiers {
 		n := n
 		group.Go(func() error {
-			if n.includeMsgTypes != nil {
-				if !util.In(msg.Type, n.includeMsgTypes) {
-					return nil
-				}
-			} else if !n.filter.ShouldSend(msg.Severity) {
-				return nil
-			}
 			subject := msg.Subject
 			if n.singleThreadSubject != "" {
 				subject = n.singleThreadSubject
 			}
+			msgLog := fmt.Sprintf("(%s; %s): %s\n\n%s", msg.Severity.String(), msg.Type, subject, msg.Body)
+			if n.includeMsgTypes != nil {
+				if !util.In(msg.Type, n.includeMsgTypes) {
+					sklog.Debugf("Not sending notification (%s not in %v): %s", msg.Type, n.includeMsgTypes, msgLog)
+					return nil
+				}
+			} else if !n.filter.ShouldSend(msg.Severity) {
+				sklog.Debugf("Not sending notification (%s < %s): %s", msg.Severity.String(), n.filter.String(), msgLog)
+				return nil
+			}
+			sklog.Infof("Sending notification %s", msgLog)
 			return n.notifier.Send(ctx, subject, msg)
 		})
 	}
