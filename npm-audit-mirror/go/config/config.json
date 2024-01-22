@@ -87,7 +87,7 @@
       "git_branch": "main",
       "package_json_dir": "milo/ui",
       "packages_allow_list": [],
-      "trusted_scopes": [],
+      "trusted_scopes": ["@chopsui/"],
       "issue_tracker_config": {
         "owner": "weiweilin@google.com"
       }
@@ -134,7 +134,7 @@
           "version": "2.1.0"
         }
       ],
-      "trusted_scopes": [],
+      "trusted_scopes": ["@chopsui/"],
       "issue_tracker_config": {
         "owner": "jkusuma@google.com"
       }
