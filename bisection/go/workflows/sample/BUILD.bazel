@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "sample_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/bisection/go/workflows/sample",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//bisection/go/workflows:workflows_lib",
+        "//go/sklog",
+        "@com_github_davecgh_go_spew//spew",
+        "@com_github_google_uuid//:uuid",
+        "@io_temporal_go_sdk//client",
+        "@io_temporal_go_sdk//temporal",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_binary(
+    name = "sample",
+    embed = [":sample_lib"],
+    visibility = ["//visibility:public"],
+)
