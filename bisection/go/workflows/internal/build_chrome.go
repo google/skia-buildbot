@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
@@ -21,8 +22,10 @@ type BuildChromeActivity struct {
 // BuildChrome is a Workflow definition that builds Chrome.
 func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*swarmingV1.SwarmingRpcsCASReference, error) {
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 6 * time.Hour, // Expect longer running time
-		HeartbeatTimeout:    1 * time.Minute,
+		// Expect longer running time
+		StartToCloseTimeout: 6 * time.Hour,
+		// The default gRPC timeout is 5 minutes, longer than that so it can capture grpc errors.
+		HeartbeatTimeout: 6 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    15 * time.Second,
 			BackoffCoefficient: 2.0,
@@ -30,25 +33,26 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*swa
 			MaximumAttempts:    3,
 		},
 	}
+
 	ctx = workflow.WithActivityOptions(ctx, ao)
 	logger := workflow.GetLogger(ctx)
 
 	bca := &BuildChromeActivity{}
 	var buildID int
 	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params).Get(ctx, &buildID); err != nil {
-		logger.Error("Failed to wait for SearchOrBuildActivity: %v.", err)
+		logger.Error("Failed to wait for SearchOrBuildActivity:", err)
 		return nil, err
 	}
 
 	var completed bool
 	if err := workflow.ExecuteActivity(ctx, bca.WaitBuildCompletionActivity, buildID).Get(ctx, &completed); err != nil {
-		logger.Error("Failed to wait for WaitBuildCompletionActivity: %v.", err)
+		logger.Error("Failed to wait for WaitBuildCompletionActivity:", err)
 		return nil, err
 	}
 
 	var cas *swarmingV1.SwarmingRpcsCASReference
 	if err := workflow.ExecuteActivity(ctx, bca.RetrieveCASActivity, buildID, params.Target).Get(ctx, &cas); err != nil {
-		logger.Error("Failed to wait for RetrieveCASActivity: %v.", err)
+		logger.Error("Failed to wait for RetrieveCASActivity:", err)
 		return nil, err
 	}
 	return cas, nil
@@ -60,13 +64,14 @@ func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, param
 
 	bc, err := build_chrome.New(ctx)
 	if err != nil {
-		logger.Error("Failed to new build_chrome: %v", err)
+		logger.Error("Failed to new build_chrome:", err)
 		return 0, err
 	}
 
+	activity.RecordHeartbeat(ctx, "kicking off the build.")
 	buildID, err := bc.SearchOrBuild(ctx, params.PinpointJobID, params.Commit, params.Device, params.Target, params.Patch)
 	if err != nil {
-		logger.Error("Failed to build chrome: %v", err)
+		logger.Error("Failed to build chrome:", err)
 		return 0, err
 	}
 	return buildID, nil
@@ -78,7 +83,7 @@ func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context,
 
 	bc, err := build_chrome.New(ctx)
 	if err != nil {
-		logger.Error("Failed to new build_chrome: %v", err)
+		logger.Error("Failed to new build_chrome:", err)
 		return false, err
 	}
 	failureRetries := 10
@@ -89,7 +94,7 @@ func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context,
 		default:
 			status, err := bc.GetStatus(ctx, buildID)
 			if err != nil {
-				logger.Error("Failed to get build status: %v, remaining retries: %v", err, failureRetries)
+				logger.Error("Failed to get build status:", err, "remaining retries:", failureRetries)
 				failureRetries -= 1
 				if failureRetries <= 0 {
 					return false, skerr.Wrapf(err, "Failed to wait for build to complete")
@@ -100,6 +105,7 @@ func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context,
 			}
 		}
 		time.Sleep(5 * time.Second)
+		activity.RecordHeartbeat(ctx, fmt.Sprintf("waiting on build to complete: %v", buildID))
 	}
 }
 
@@ -109,13 +115,14 @@ func (bca *BuildChromeActivity) RetrieveCASActivity(ctx context.Context, buildID
 
 	bc, err := build_chrome.New(ctx)
 	if err != nil {
-		logger.Error("Failed to new build_chrome: %v", err)
+		logger.Error("Failed to new build_chrome:", err)
 		return nil, err
 	}
 
+	activity.RecordHeartbeat(ctx, fmt.Sprintf("start retrieving CAS for: (%v, %v)", buildID, target))
 	cas, err := bc.RetrieveCAS(ctx, buildID, target)
 	if err != nil {
-		logger.Error("Failed to retrieve CAS: %v", err)
+		logger.Error("Failed to retrieve CAS:", err)
 		return nil, err
 	}
 	return cas, nil
