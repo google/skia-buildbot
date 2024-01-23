@@ -41,6 +41,8 @@ var testData = map[string]perfresults.PerfResults{
 	},
 }
 
+var testAggData = []float64{8, 2, -9, 15, 4}
+
 func TestReadValues(t *testing.T) {
 	for i, test := range []struct {
 		name      string
@@ -70,6 +72,74 @@ func TestReadValues(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			values := ReadChart(testData, test.benchmark, test.chart)
 			assert.Equal(t, test.expected, values)
+		})
+	}
+}
+
+func TestAggData(t *testing.T) {
+	for i, test := range []struct {
+		name        string
+		method      AggDataMethodEnum
+		testData    []float64
+		expected    float64
+		expectedErr bool
+	}{
+		{
+			name:     "count",
+			method:   Count,
+			testData: testAggData,
+			expected: 5.0,
+		},
+		{
+			name:     "mean",
+			method:   Mean,
+			testData: testAggData,
+			expected: 4.0,
+		},
+		{
+			name:     "max",
+			method:   Max,
+			testData: testAggData,
+			expected: 15.0,
+		},
+		{
+			name:     "min",
+			method:   Min,
+			testData: testAggData,
+			expected: -9.0,
+		},
+		{
+			name:     "std",
+			method:   Std,
+			testData: testAggData,
+			expected: 8.80340843082,
+		},
+		{
+			name:     "sum",
+			method:   Sum,
+			testData: testAggData,
+			expected: 20.0,
+		},
+		{
+			name:        "nil data",
+			method:      Sum,
+			testData:    nil,
+			expectedErr: true,
+		},
+		{
+			name:        "length 0 data",
+			method:      Sum,
+			testData:    []float64{},
+			expectedErr: true,
+		},
+	} {
+		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
+			ans, err := aggData(test.testData, test.method)
+			if test.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.InDelta(t, test.expected, ans, 1e-6)
+			}
 		})
 	}
 }

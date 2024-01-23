@@ -91,7 +91,11 @@ func main() {
 		fmt.Printf("failed to dial rbe client: %s\n", err)
 	}
 	// based off of Pinpoint job https://pinpoint-dot-chromeperf.appspot.com/job/1226ecbef60000
-	values := read_values.ReadValuesByChart(ctx, rbeClient, "blink_perf.bindings", "node-type", casOutputs)
+	values, err := read_values.ReadValuesByChart(ctx, rbeClient, "blink_perf.bindings", "node-type", casOutputs, nil)
+	if err != nil {
+		sklog.Errorf("failed to retrieve values from cas")
+		return
+	}
 	spew.Dump(values)
 
 	fmt.Printf("\nfinished\n")
