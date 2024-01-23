@@ -75,25 +75,25 @@ func TestSearchBuild(t *testing.T) {
 			ctx := context.Background()
 
 			mb := &mocks.BuildbucketClient{}
-			bc := &BuildChrome{
-				Builder: test.builder,
-				Client:  mb,
-				Commit:  "commit",
+			fakeCommit := "fake-commit"
+			var patches []*buildbucketpb.GerritChange = nil
+			bc := &buildChromeImpl{
+				client: mb,
 			}
 
 			if test.expectedErrorDeps {
-				mb.On("GetBuildWithPatches", testutils.AnyContext, bc.Builder, backends.DefaultBucket, bc.Commit, bc.Patch).Return(nil, fmt.Errorf("random error"))
+				mb.On("GetBuildWithPatches", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, patches).Return(nil, fmt.Errorf("random error"))
 			} else {
-				mb.On("GetBuildWithPatches", testutils.AnyContext, bc.Builder, backends.DefaultBucket, bc.Commit, bc.Patch).Return(test.mockResp, nil)
+				mb.On("GetBuildWithPatches", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, patches).Return(test.mockResp, nil)
 			}
 
 			if test.expectedErrorCI {
-				mb.On("GetBuildFromWaterfall", testutils.AnyContext, bc.Builder, bc.Commit).Return(nil, fmt.Errorf("random error"))
+				mb.On("GetBuildFromWaterfall", testutils.AnyContext, test.builder, fakeCommit).Return(nil, fmt.Errorf("random error"))
 			} else {
-				mb.On("GetBuildFromWaterfall", testutils.AnyContext, bc.Builder, bc.Commit).Return(test.mockResp, nil)
+				mb.On("GetBuildFromWaterfall", testutils.AnyContext, test.builder, fakeCommit).Return(test.mockResp, nil)
 			}
 
-			id, err := bc.searchBuild(ctx, test.builder)
+			id, err := bc.searchBuild(ctx, test.builder, fakeCommit, patches)
 			if (test.expectedErrorDeps && !test.expectedErrorCI) || (test.expectedErrorDeps && test.expectedErrorCI) {
 				assert.Error(t, err)
 			} else {
@@ -134,8 +134,8 @@ func TestCheckBuildStatus(t *testing.T) {
 			buildID := int64(0)
 
 			mb := &mocks.BuildbucketClient{}
-			bc := &BuildChrome{
-				Client: mb,
+			bc := &buildChromeImpl{
+				client: mb,
 			}
 
 			if test.expectedError {
@@ -144,7 +144,7 @@ func TestCheckBuildStatus(t *testing.T) {
 				mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(test.mockResp, nil)
 			}
 
-			status, err := bc.CheckBuildStatus(ctx, buildID)
+			status, err := bc.GetStatus(ctx, buildID)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {
@@ -159,43 +159,38 @@ func TestBuildNonExistentDevice(t *testing.T) {
 	ctx := context.Background()
 
 	mb := &mocks.BuildbucketClient{}
-	bc := BuildChrome{
-		Client: mb,
-		Device: "non-existent device",
-		Target: "target",
-		Commit: "commit",
+	bc := buildChromeImpl{
+		client: mb,
 	}
 
-	jID := "1"
-	id, err := bc.Run(ctx, jID)
-	assert.Error(t, err)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", "fake-target", nil)
+	assert.ErrorContains(t, err, "was not found")
 	assert.Zero(t, id)
 }
 
 func TestBuildFound(t *testing.T) {
+	expected := int64(1)
 	mockResp := &buildbucketpb.Build{
-		Id:      1,
+		Id:      expected,
 		Status:  buildbucketpb.Status_SUCCESS,
 		EndTime: timestamppb.Now(),
 		Input: &buildbucketpb.Build_Input{
 			GerritChanges: []*buildbucketpb.GerritChange{},
 		},
 	}
-	expected := int64(1)
 
 	ctx := context.Background()
 	mb := &mocks.BuildbucketClient{}
-	bc := BuildChrome{
-		Client: mb,
-		Device: "linux-perf",
-		Target: "target",
-		Commit: "commit",
+	bc := buildChromeImpl{
+		client: mb,
 	}
+	device := "linux-perf"
+	fakeCommit := "fake-commit"
+	var patches []*buildbucketpb.GerritChange = nil
 
-	mb.On("GetBuildWithPatches", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, bc.Commit, bc.Patch).Return(mockResp, nil)
+	mb.On("GetBuildWithPatches", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", patches).Return(mockResp, nil)
 
-	jID := "1"
-	id, err := bc.Run(ctx, jID)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, "fake-target", patches)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, id)
 }
@@ -224,26 +219,26 @@ func TestNewBuild(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			ctx := context.Background()
 			mb := &mocks.BuildbucketClient{}
-			bc := BuildChrome{
-				Client: mb,
-				Device: "linux-perf",
-				Target: "target",
-				Commit: "commit",
+			bc := buildChromeImpl{
+				client: mb,
 			}
+			device := "linux-perf"
+			target := "fake-target"
+			commit := "fake-commit"
+			var patches []*buildbucketpb.GerritChange = nil
 
 			builder := "Linux Builder Perf"
 
-			mb.On("GetBuildWithPatches", testutils.AnyContext, builder, backends.DefaultBucket, bc.Commit, bc.Patch).Return(nil, nil)
-			mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, bc.Commit).Return(nil, nil)
+			mb.On("GetBuildWithPatches", testutils.AnyContext, builder, backends.DefaultBucket, commit, patches).Return(nil, nil)
+			mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, commit).Return(nil, nil)
 
 			if test.expectedError {
-				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, bc.Commit, bc.Patch).Return(nil, fmt.Errorf("some error"))
+				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, patches).Return(nil, fmt.Errorf("some error"))
 			} else {
-				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, bc.Commit, bc.Patch).Return(test.mockResp, nil)
+				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, patches).Return(test.mockResp, nil)
 			}
 
-			jID := "1"
-			id, err := bc.Run(ctx, jID)
+			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, target, patches)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {
@@ -285,18 +280,18 @@ func TestRetrieveCAS(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			ctx := context.Background()
 			mb := &mocks.BuildbucketClient{}
-			bc := BuildChrome{
-				Client: mb,
-				Target: "target",
+			bc := buildChromeImpl{
+				client: mb,
 			}
-			buildID := int64(0)
+			buildID := int64(1)
+			target := "fake-target"
 			if test.expectedError {
-				mb.On("GetCASReference", testutils.AnyContext, buildID, bc.Target).Return(nil, fmt.Errorf("some error"))
+				mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(nil, fmt.Errorf("some error"))
 			} else {
-				mb.On("GetCASReference", testutils.AnyContext, buildID, bc.Target).Return(test.mockResp, nil)
+				mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(test.mockResp, nil)
 			}
 
-			cas, err := bc.RetrieveCAS(ctx, buildID)
+			cas, err := bc.RetrieveCAS(ctx, buildID, target)
 			if test.expectedError {
 				assert.Error(t, err)
 				assert.Nil(t, cas)

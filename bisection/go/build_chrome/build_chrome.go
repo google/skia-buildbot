@@ -39,26 +39,6 @@ type BuildChromeClient interface {
 	CancelBuild(context.Context, int64, string) error
 }
 
-// BuildChrome stores all of the parameters
-// used by the build Chrome workflow
-type BuildChrome struct {
-	// Client is the buildbucket client.
-	Client backends.BuildbucketClient
-	// Commit is the chromium commit hash.
-	Commit string
-	// Device is the name of the device, e.g. "linux-perf".
-	Device string
-	// The corresponding Chrome builder associated with
-	// the device. Can get the builder from package
-	// bot_configs.
-	Builder string
-	// Target is name of the build isolate target
-	// e.g. "performance_test_suite".
-	Target string
-	// Patch is the Gerrit patch included in the build.
-	Patch []*buildbucketpb.GerritChange
-}
-
 // These constants define default fields used in a buildbucket
 // ScheduleBuildRequest for Pinpoint Chrome builds
 const (
@@ -101,11 +81,11 @@ func New(ctx context.Context) (*buildChromeImpl, error) {
 // be to fetch all the builds under the chromium buildset and hash, and then iterate
 // through each build for the correct deps_revision_overrides. A better solution
 // would be to add the non-chromium commit info to the tags and query the tags.
-func (b *BuildChrome) searchBuild(ctx context.Context, builder string) (int64, error) {
+func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, patches []*buildbucketpb.GerritChange) (int64, error) {
 	// search Pinpoint for build
-	build, err := b.Client.GetBuildWithPatches(ctx, builder, backends.DefaultBucket, b.Commit, b.Patch)
+	build, err := bci.client.GetBuildWithPatches(ctx, builder, backends.DefaultBucket, commit, patches)
 	if err != nil {
-		return 0, skerr.Wrapf(err, "Error searching buildbucket.")
+		return 0, skerr.Wrapf(err, "Error searching buildbucket")
 	}
 
 	if build != nil {
@@ -118,12 +98,12 @@ func (b *BuildChrome) searchBuild(ctx context.Context, builder string) (int64, e
 	// request a build via Pinpoint before waterfall has the chance to
 	// build the same commit.
 	sklog.Debugf("SearchBuild: search waterfall builder %s for build", backends.PinpointWaterfall[builder])
-	build, err = b.Client.GetBuildFromWaterfall(ctx, builder, b.Commit)
+	build, err = bci.client.GetBuildFromWaterfall(ctx, builder, commit)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Failed to find build with CI equivalent.")
 	}
-	if len(build.GetInput().GetGerritChanges()) > 0 {
 
+	if len(build.GetInput().GetGerritChanges()) > 0 {
 		return 0, nil
 	}
 
@@ -137,31 +117,26 @@ func (b *BuildChrome) searchBuild(ctx context.Context, builder string) (int64, e
 }
 
 // SearchOrBuild implements BuildChromeClient interface
-func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patch []*buildbucketpb.GerritChange) (int64, error) {
-	// TODO(haowoo): Remove struct fields and remove the rewire.
-	// Rewire the parameter into struct
-	bc := &BuildChrome{
-		Client: bci.client,
-		Commit: commit,
-		Device: device,
-		Target: target,
-		Patch:  patch,
-	}
-	buildID, err := bc.Run(ctx, pinpointJobID)
+func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patches []*buildbucketpb.GerritChange) (int64, error) {
+	builder, err := bot_configs.GetBotConfig(device, false)
 	if err != nil {
-		return 0, skerr.Wrapf(err, "Failed to build.")
+		return 0, err
 	}
 
-	return buildID, nil
-}
-
-// GetStatus implements BuildChromeClient interface
-func (bci *buildChromeImpl) GetStatus(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
-	// TODO(haowoo): Remove the rewire after fixing tests.
-	bc := &BuildChrome{
-		Client: bci.client,
+	buildId, err := bci.searchBuild(ctx, builder.Builder, commit, patches)
+	// We can ignore the error here since we only need to know if there is an existing build.
+	if err == nil && buildId != 0 {
+		return buildId, nil
 	}
-	return bc.CheckBuildStatus(ctx, buildID)
+
+	// if the ongoing build failed or the build was not found, start new build
+	requestID := uuid.New().String()
+	build, err := bci.client.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, commit, patches)
+	if err != nil {
+		return 0, skerr.Wrapf(err, "Failed to start a build")
+	}
+
+	return build.Id, nil
 }
 
 // RetrieveCAS implements BuildChromeClient interface
@@ -178,59 +153,8 @@ func (bci *buildChromeImpl) CancelBuild(ctx context.Context, buildID int64, summ
 	return bci.client.CancelBuild(ctx, buildID, summary)
 }
 
-// Run searches buildbucket for an old Chrome build and will schedule a new
-// Chrome build if it cannot find one.
-// Run returns the build ID of an existing, ongoing, or new build.
-func (b *BuildChrome) Run(ctx context.Context, pinpointJobID string) (int64, error) {
-	builder, err := bot_configs.GetBotConfig(b.Device, false)
-	if err != nil {
-		return 0, err
-	}
-
-	buildId, err := b.searchBuild(ctx, builder.Builder)
-	if err != nil {
-		return 0, err
-	}
-	// found a build
-	if buildId != 0 {
-		return buildId, nil
-	}
-
-	// if the ongoing build failed or the build was not found, start new build
-	requestID := uuid.New().String()
-	build, err := b.Client.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, b.Commit, b.Patch)
-	if err != nil {
-		return 0, err
-	}
-
-	return build.Id, nil
-}
-
-// CheckBuildStatus returns the builds status given a buildId
+// GetStatus implements BuildChromeClient interface
 // TODO(b/315215756): switch from polling to pub sub
-func (b *BuildChrome) CheckBuildStatus(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
-	status, err := b.Client.GetBuildStatus(ctx, buildID)
-	if err != nil {
-		return buildbucketpb.Status_STATUS_UNSPECIFIED, err
-
-	}
-
-	return status, nil
-}
-
-// RetrieveCAS returns the CAS location of the build given buildId
-func (b *BuildChrome) RetrieveCAS(ctx context.Context, buildID int64) (*swarmingV1.SwarmingRpcsCASReference, error) {
-	ref, err := b.Client.GetCASReference(ctx, buildID, b.Target)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not find the CAS outputs to build %d", buildID)
-	}
-	return ref, nil
-}
-
-func (b *BuildChrome) Cancel(ctx context.Context, buildID int64, reason string) error {
-	err := b.Client.CancelBuild(ctx, buildID, reason)
-	if err != nil {
-		return err
-	}
-	return nil
+func (bci *buildChromeImpl) GetStatus(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
+	return bci.client.GetBuildStatus(ctx, buildID)
 }
