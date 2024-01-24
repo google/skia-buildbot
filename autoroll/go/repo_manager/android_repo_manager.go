@@ -432,15 +432,8 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from *revision.R
 		mergeCmds = append(mergeCmds, "--squash")
 	}
 	_, mergeErr := r.childRepo.Git(ctx, mergeCmds...)
-
-	// If the merge failed because another merge was already active, try again.
 	if mergeErr != nil {
-		sklog.Errorf("git merge failed; attempting abort+retry")
-		if _, err := r.childRepo.Git(ctx, "merge", "--abort"); err != nil {
-			sklog.Errorf("failed `git merge --abort`: %s", err)
-		} else {
-			_, mergeErr = r.childRepo.Git(ctx, mergeCmds...)
-		}
+		sklog.Errorf("git merge failed with:\n%s", mergeErr)
 	}
 
 	// Android does not allow remote dependencies to have submodule directories (b/189557997)
