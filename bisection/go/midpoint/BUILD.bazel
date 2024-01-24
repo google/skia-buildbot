@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/bisection/go/midpoint",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/depot_tools/deps_parser",
         "//go/gitiles",
         "//go/skerr",
         "//go/sklog",
@@ -22,10 +23,9 @@ go_test(
     embed = [":midpoint"],
     deps = [
         "//go/gitiles/mocks",
-        "//go/skerr",
+        "//go/mockhttpclient",
         "//go/testutils",
         "//go/vcsinfo",
         "@com_github_smartystreets_goconvey//convey",
-        "@org_chromium_go_luci//common/testing/assertions",
     ],
 )

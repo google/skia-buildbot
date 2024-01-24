@@ -25,7 +25,7 @@ func createGitilesClient(ctx context.Context, repositoryUrl string) (*gitiles.Re
 
 	// Any non-200 response will be rejected.
 	// Note that Gitiles will return non 200 for ~1 minute if we hit the API rate limit.
-	// TODO(jeffyoon@): utilize httpNewConfiguredBackOffTransport to create a backoff transport.
+	// DefaultClientConfig implements DefaultBackOffConfig()
 	c := httputils.DefaultClientConfig().WithTokenSource(token).With2xxOnly().Client()
 	repo := gitiles.NewRepo(repositoryUrl, c)
 

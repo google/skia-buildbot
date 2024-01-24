@@ -7,7 +7,6 @@ go_library(
         "buildbucket.go",
         "doc.go",
         "gitiles.go",
-        "skia_bridge.go",
         "waterfall_map.go",
     ],
     importpath = "go.skia.org/infra/bisection/go/backends",
@@ -18,7 +17,6 @@ go_library(
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",
-        "//go/util",
         "@com_github_google_uuid//:uuid",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
@@ -32,14 +30,10 @@ go_library(
 
 go_test(
     name = "backends_test",
-    srcs = [
-        "buildbucket_test.go",
-        "skia_bridge_test.go",
-    ],
+    srcs = ["buildbucket_test.go"],
     embed = [":backends"],
     deps = [
         "//go/buildbucket",
-        "//go/mockhttpclient",
         "@com_github_golang_mock//gomock",
         "@com_github_smartystreets_goconvey//convey",
         "@org_chromium_go_luci//buildbucket/proto",

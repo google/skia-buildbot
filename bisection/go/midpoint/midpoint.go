@@ -2,8 +2,12 @@ package midpoint
 
 import (
 	"context"
+	"net/http"
+	"net/url"
 	"slices"
+	"strings"
 
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -13,61 +17,88 @@ const (
 	GITILES_EMPTY_RESP_ERROR = "Gitiles returned 0 commits, which should not happen."
 )
 
-// A RepoFork represents revision overrides in addition to the base git revision.
-// For example, if Commit is chromium/src@1, RepoFork may be V8@2 which is passed
-// along to Buildbucket as a deps_revision_overrides.
-// TODO(jeffyoon@) - Reorganize this into a types folder.
-type RepoFork struct {
-	// repositoryUrl is the url to the repository, ie/ https://chromium.googlesource.com/chromium/src
-	RepositoryUrl string
-
-	// startGitHash is the starting revision that was used to determine the next candidate.
-	StartGitHash string
-
-	// endGitHash is the ending revision that was used to determine the next candidate.
-	EndGitHash string
-
-	// nextGitHash is the next git revision that should be used to test with for the specified repository.
-	NextGitHash string
-}
-
-// A Commit represents the next git revision to build the project at.
+// A Commit represents a commit of a given repository.
 // TODO(jeffyoon@) - Reorganize this into a types folder.
 type Commit struct {
-	// gitHash is the Git SHA1 hash to build for the project.
+	// GitHash is the Git SHA1 hash to build for the project.
 	GitHash string
 
-	// repositoryUrl is the url to the repository, ie/ https://chromium.googlesource.com/chromium/src
+	// RepositoryUrl is the url to the repository, ie/ https://chromium.googlesource.com/chromium/src
 	RepositoryUrl string
-
-	// RepoFork defines any deps_revisions_overrides properties that should be passed along to the build call.
-	RepoFork *RepoFork
 }
 
-// isGitHashValid checks validity of the git hash.
-func isGitHashValid(gitHash string) error {
-	if gitHash == "" {
-		return skerr.Fmt("Git hash is a required parameter and must be defined.")
+// A CombinedCommit represents one main base commit with any dependencies that require
+// overrides as part of the build request.
+// For example, if Commit is chromium/src@1, Dependency may be V8@2 which is passed
+// along to Buildbucket as a deps_revision_overrides.
+type CombinedCommit struct {
+	// Main is the main base commit, usually a Chromium commit.
+	Main *Commit
+	// ModifiedDeps is a list of commits to provide as overrides, ie/ V8.
+	ModifiedDeps []*Commit
+}
+
+// ToBuildbucketArgs translates all args to map with Buildbucket supported parameters.
+func (cc *CombinedCommit) ToBuildbucketArgs() map[string]interface{} {
+	ret := map[string]interface{}{
+		"git_repo": cc.Main.RepositoryUrl,
+		"revision": cc.Main.GitHash,
 	}
-
-	return nil
+	overrides := map[string]string{}
+	for _, dep := range cc.ModifiedDeps {
+		overrides[dep.RepositoryUrl] = dep.GitHash
+	}
+	ret["deps_revision_overrides"] = overrides
+	return ret
 }
 
-// GetMidpoint determines the next candidate for Bisection by selecting the middle change
-// from a given range of changes for a specific project. If the two changes are
-// adjacent, a DEPS roll is assumed and we search for the next culprit in the
-// range of commits before and after the roll for that specific project.
-// See doc.go for an example.
-func GetMidpoint(ctx context.Context, gc gitiles.GitilesRepo, repositoryUrl, startGitHash, endGitHash string) (*Commit, error) {
+// CommitRange provides information about the left and right commits used to determine
+// the next commit to bisect against.
+type CommitRange struct {
+	Left  *CombinedCommit
+	Right *CombinedCommit
+}
+
+// MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
+type midpointHandler struct {
+	// repos is a map of repository url to a GitilesRepo object.
+	repos map[string]gitiles.GitilesRepo
+
+	c *http.Client
+}
+
+// New returns a new MidpointHandler.
+func New(ctx context.Context, c *http.Client) *midpointHandler {
+	return &midpointHandler{
+		repos: make(map[string]gitiles.GitilesRepo, 0),
+		c:     c,
+	}
+}
+
+// WithRepo returns a MidpointHandler with the repository url mapped to a GitilesRepo object.
+func (m *midpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *midpointHandler {
+	m.repos[url] = r
+	return m
+}
+
+// getOrCreateRepo fetches the gitiles.GitilesRepo object for the repository url.
+// If not present, it'll create an authenticated Repo client.
+func (m *midpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
+	gc, ok := m.repos[url]
+	if !ok {
+		r := gitiles.NewRepo(url, m.c)
+		m.repos[url] = r
+	}
+	return gc
+}
+
+// findMidpoint identiifes the median commit given a start and ending git hash.
+func (m *midpointHandler) findMidpoint(ctx context.Context, url, startGitHash, endGitHash string) (string, error) {
 	if startGitHash == endGitHash {
-		return nil, skerr.Fmt("Both git hashes are the same; Start: %s, End: %s", startGitHash, endGitHash)
+		return "", skerr.Fmt("Both git hashes are the same; Start: %s, End: %s", startGitHash, endGitHash)
 	}
-	if err := isGitHashValid(startGitHash); err != nil {
-		return nil, skerr.Wrapf(err, "StartGitHash: %s", startGitHash)
-	}
-	if err := isGitHashValid(endGitHash); err != nil {
-		return nil, skerr.Wrapf(err, "EndGitHash: %s", endGitHash)
-	}
+
+	gc := m.getOrCreateRepo(url)
 
 	// Find the midpoint between the provided commit hashes. Take the lower bound
 	// if the list is an odd count. If the gitiles response is == endGitHash, it
@@ -76,25 +107,17 @@ func GetMidpoint(ctx context.Context, gc gitiles.GitilesRepo, repositoryUrl, sta
 	// LogLinear will return in reverse chronological order, inclusive of the end git hash.
 	lc, err := gc.LogLinear(ctx, startGitHash, endGitHash)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// The list can only be empty if the start and end commits are the same.
 	if len(lc) == 0 {
-		return nil, skerr.Fmt("%s. Start %s and end %s hashes may be reversed.", GITILES_EMPTY_RESP_ERROR, startGitHash, endGitHash)
-	}
-
-	mid := &Commit{
-		RepositoryUrl: repositoryUrl,
-		RepoFork:      nil,
+		return "", skerr.Fmt("%s. Start %s and end %s hashes may be reversed.", GITILES_EMPTY_RESP_ERROR, startGitHash, endGitHash)
 	}
 
 	// Two adjacent commits returns one commit equivalent to the end git hash.
 	if len(lc) == 1 && lc[0].ShortCommit.Hash == endGitHash {
-		sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startGitHash, endGitHash)
-		// TODO(jeffyoon@): Add DEPS processing.
-		mid.GitHash = startGitHash
-		return mid, nil
+		return startGitHash, nil
 	}
 
 	// Pop off the first element, since it's the end hash.
@@ -107,7 +130,164 @@ func GetMidpoint(ctx context.Context, gc gitiles.GitilesRepo, repositoryUrl, sta
 	slices.Reverse(lc)
 	mlc := lc[len(lc)/2]
 
-	mid.GitHash = mlc.ShortCommit.Hash
+	return mlc.ShortCommit.Hash, nil
+}
 
-	return mid, nil
+// fetchGitDeps calls Gitiles to read the DEPS content and parses out only the git-based dependencies.
+func (m *midpointHandler) fetchGitDeps(ctx context.Context, gc gitiles.GitilesRepo, gitHash string) (map[string]string, error) {
+	denormalized := make(map[string]string, 0)
+
+	content, err := gc.ReadFileAtRef(ctx, "DEPS", gitHash)
+	if err != nil {
+		return denormalized, err
+	}
+
+	entries, err := deps_parser.ParseDeps(string(content))
+	if err != nil {
+		return denormalized, err
+	}
+
+	// We have no good way of determining whether the current DEP is a .git based
+	// DEP or a CIPD based dep using the existing deps_parser, so we filter by
+	// whether the Id has ".com" to differentiate. This likely needs refinement.
+	for id, depsEntry := range entries {
+		if !strings.Contains(id, ".com") {
+			continue
+		}
+		// We want it in https://{DepsEntry.Id} format, without the .git
+		u, _ := url.JoinPath("https://", id)
+		denormalized[u] = depsEntry.Version
+	}
+
+	return denormalized, nil
+}
+
+// findRolledDep searches for the dependency that may have been rolled.
+func (m *midpointHandler) findRolledDep(startDeps, endDeps map[string]string) string {
+	for k, v := range startDeps {
+		// If the dep doesn't exist, it couldn't have been rolled. Skip.
+		if _, ok := endDeps[k]; !ok {
+			continue
+		}
+		if v != endDeps[k] {
+			return k
+		}
+	}
+
+	return ""
+}
+
+// determineRolledDep coordinates the search to find which dep may have been rolled for adjacent commits.
+func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitHash, endGitHash string) (*Commit, *Commit, *Commit, error) {
+	gc := m.getOrCreateRepo(url)
+
+	// Fetch deps for each git hash for the project
+	startDeps, err := m.fetchGitDeps(ctx, gc, startGitHash)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	endDeps, err := m.fetchGitDeps(ctx, gc, endGitHash)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// Find the delta.
+	diff := m.findRolledDep(startDeps, endDeps)
+
+	// DEPS are the same.
+	if diff == "" {
+		return nil, nil, nil, nil
+	}
+
+	dStart := startDeps[diff]
+	left := &Commit{
+		RepositoryUrl: diff,
+		GitHash:       dStart,
+	}
+	dEnd := endDeps[diff]
+	right := &Commit{
+		RepositoryUrl: diff,
+		GitHash:       dEnd,
+	}
+
+	dNext, err := m.findMidpoint(ctx, diff, dStart, dEnd)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	next := &Commit{
+		RepositoryUrl: diff,
+		GitHash:       dNext,
+	}
+
+	return next, left, right, nil
+}
+
+// DetermineNextCandidate finds the next commit for culprit detection for the repository inbetween the provided starting and ending git hash.
+// If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
+// the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built
+// on top of the Chromium commit specified as a deps override.
+func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error) {
+	nextCommitHash, err := m.findMidpoint(ctx, baseUrl, startGitHash, endGitHash)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	base := &CombinedCommit{
+		Main: &Commit{
+			RepositoryUrl: baseUrl,
+			GitHash:       nextCommitHash,
+		},
+	}
+
+	// We use HasPrefix because nextCommitHash will always be the full SHA git hash,
+	// but the provided startGitHash may be a short SHA.
+	if nextCommitHash != "" && strings.HasPrefix(nextCommitHash, startGitHash) {
+		// The nextCommit == startHash. This means start and end are adjacent commits.
+		// Assume a DEPS roll, so we'll find the next candidate by parsing DEPS rolls.
+		sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startGitHash, endGitHash)
+
+		next, left, right, err := m.determineRolledDep(ctx, baseUrl, startGitHash, endGitHash)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if next != nil {
+			base.ModifiedDeps = []*Commit{
+				next,
+			}
+		}
+
+		if left != nil || right != nil {
+			cr := &CommitRange{}
+
+			if left != nil {
+				cr.Left = &CombinedCommit{
+					Main: &Commit{
+						RepositoryUrl: baseUrl,
+						GitHash:       nextCommitHash,
+					},
+					ModifiedDeps: []*Commit{
+						left,
+					},
+				}
+			}
+
+			if right != nil {
+				cr.Right = &CombinedCommit{
+					Main: &Commit{
+						RepositoryUrl: baseUrl,
+						GitHash:       nextCommitHash,
+					},
+					ModifiedDeps: []*Commit{
+						right,
+					},
+				}
+			}
+
+			return base, cr, nil
+		}
+	}
+
+	return base, nil, nil
 }

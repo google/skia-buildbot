@@ -32,7 +32,6 @@ packages:
   go.skia.org/infra/bisection/go/backends:
     interfaces:
       BuildbucketClient:
-      SkiaBridge:
   go.skia.org/infra/bugs-central/go/types:
     interfaces:
       BugsDB:
