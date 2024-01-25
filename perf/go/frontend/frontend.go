@@ -764,7 +764,8 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 			for _, queryParams := range queryParamsPerTrace {
 				queryString := f.urlProvider.GetQueryStringFromParameters(queryParams)
 				graphs = append(graphs, graphsshortcut.GraphConfig{
-					Queries: []string{queryString},
+					Queries:  []string{queryString},
+					Formulas: []string{},
 				})
 			}
 
