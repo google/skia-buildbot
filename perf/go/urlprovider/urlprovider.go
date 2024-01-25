@@ -19,6 +19,46 @@ type URLProvider struct {
 // Explore generates a url to the explore page for the given parameters
 func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string) string {
 	queryUrl := url.Values{}
+	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
+	// Now let's look at the parameters for the query
+
+	queryUrl["queries"] = []string{prov.GetQueryStringFromParameters(parameters)}
+
+	return "/e/?" + queryUrl.Encode()
+}
+
+func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, endCommitNumber int, shortcutId string) string {
+	queryUrl := url.Values{}
+	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
+	queryUrl["shortcut"] = []string{shortcutId}
+
+	return "/m/?" + queryUrl.Encode()
+}
+
+// New creates a new instance of the UrlProvider struct
+func New(perfgit perfgit.Git, paramsProvider ParamsProvider) *URLProvider {
+	if paramsProvider == nil {
+		paramsProvider = &DefaultParamsProvider{}
+	}
+	return &URLProvider{
+		perfGit:        perfgit,
+		paramsProvider: paramsProvider,
+	}
+}
+
+func (prov *URLProvider) GetQueryStringFromParameters(parameters map[string][]string) string {
+	query_portion := url.Values{}
+	for paramName, paramValues := range parameters {
+		paramKey := prov.paramsProvider.GetParamKey(paramName)
+		if paramKey != "" {
+			query_portion[paramKey] = paramValues
+		}
+	}
+
+	return query_portion.Encode()
+}
+
+func (prov *URLProvider) fillCommonParams(ctx context.Context, queryUrl url.Values, startCommitNumber int, endCommitNumber int) {
 	startCommit, err := prov.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(startCommitNumber))
 	if err != nil {
 		sklog.Error("Error getting commit info")
@@ -31,27 +71,4 @@ func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, end
 	queryUrl["end"] = []string{strconv.Itoa(int(endTime.Unix()))}
 
 	queryUrl["summary"] = []string{"true"}
-	// Now let's look at the parameters for the query
-	query_portion := url.Values{}
-	for paramName, paramValues := range parameters {
-		paramKey := prov.paramsProvider.GetParamKey(paramName)
-		if paramKey != "" {
-			query_portion[paramKey] = paramValues
-		}
-	}
-
-	queryUrl["queries"] = []string{query_portion.Encode()}
-
-	return "/e/?" + queryUrl.Encode()
-}
-
-// New creates a new instance of the UrlProvider struct
-func New(perfgit perfgit.Git, paramsProvider ParamsProvider) *URLProvider {
-	if paramsProvider == nil {
-		paramsProvider = &DefaultParamsProvider{}
-	}
-	return &URLProvider{
-		perfGit:        perfgit,
-		paramsProvider: paramsProvider,
-	}
 }

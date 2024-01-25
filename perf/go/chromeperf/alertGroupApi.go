@@ -14,6 +14,12 @@ import (
 const (
 	AlertGroupAPIName = "alert_group"
 	DetailsFuncName   = "details"
+	MastersKey        = "masters"
+	BotsKey           = "bots"
+	BenchmarksKey     = "benchmarks"
+	TestsKey          = "tests"
+	Subtests1Key      = "subtests_1"
+	Subtests2Key      = "subtests_2"
 )
 
 // AlertGroupDetails contains data received from the alert group api.
@@ -66,38 +72,56 @@ func (alertGroup *AlertGroupDetails) GetQueryParams(ctx context.Context) map[str
 	subtests_1_map := util.StringSet{}
 	subtests_2_map := util.StringSet{}
 
-	const masters_key = "masters"
-	const bots_key = "bots"
-	const benchmarks_key = "benchmarks"
-	const tests_key = "tests"
-	const subtests_1_key = "subtests_1"
-	const subtests_2_key = "subtests_2"
-
 	parsedInfo := map[string][]string{}
 
 	for _, test := range alertGroup.Anomalies {
 		splits := strings.Split(test, "/")
-		addToSetIfNotExists(masters_map, splits[0], parsedInfo, masters_key)
-		addToSetIfNotExists(bots_map, splits[1], parsedInfo, bots_key)
-		addToSetIfNotExists(benchmarks_map, splits[2], parsedInfo, benchmarks_key)
-		addToSetIfNotExists(tests_map, splits[3], parsedInfo, tests_key)
-		addToSetIfNotExists(subtests_1_map, splits[4], parsedInfo, subtests_1_key)
+		addToSetIfNotExists(masters_map, splits[0], parsedInfo, MastersKey)
+		addToSetIfNotExists(bots_map, splits[1], parsedInfo, BotsKey)
+		addToSetIfNotExists(benchmarks_map, splits[2], parsedInfo, BenchmarksKey)
+		addToSetIfNotExists(tests_map, splits[3], parsedInfo, TestsKey)
+		addToSetIfNotExists(subtests_1_map, splits[4], parsedInfo, Subtests1Key)
 		if len(splits) > 5 {
-			addToSetIfNotExists(subtests_2_map, splits[5], parsedInfo, subtests_2_key)
+			addToSetIfNotExists(subtests_2_map, splits[5], parsedInfo, Subtests2Key)
 		}
 	}
 
+	return getParamsMapFromParsedInfo(parsedInfo)
+}
+
+// GetQueryParamsPerTrace returns an array of query parameters where each element consists of query params for a specific anomaly
+func (alertGroup *AlertGroupDetails) GetQueryParamsPerTrace(ctx context.Context) []map[string][]string {
+	traceParamsMap := []map[string][]string{}
+	for _, test := range alertGroup.Anomalies {
+		parsedInfo := map[string][]string{}
+		splits := strings.Split(test, "/")
+		parsedInfo[MastersKey] = []string{splits[0]}
+		parsedInfo[BotsKey] = []string{splits[1]}
+		parsedInfo[BenchmarksKey] = []string{splits[2]}
+		parsedInfo[TestsKey] = []string{splits[3]}
+		parsedInfo[Subtests1Key] = []string{splits[4]}
+		if len(splits) > 5 {
+			parsedInfo[Subtests2Key] = []string{splits[5]}
+		}
+
+		traceParamsMap = append(traceParamsMap, getParamsMapFromParsedInfo(parsedInfo))
+	}
+
+	return traceParamsMap
+}
+
+func getParamsMapFromParsedInfo(parsedInfo map[string][]string) map[string][]string {
 	paramsMap := map[string][]string{}
 	paramsMap["stat"] = []string{"value"}
-	paramsMap["master"] = parsedInfo[masters_key]
-	paramsMap["bot"] = parsedInfo[bots_key]
-	paramsMap["benchmark"] = parsedInfo[benchmarks_key]
-	paramsMap["test"] = parsedInfo[tests_key]
-	paramsMap["subtest_1"] = parsedInfo[subtests_1_key]
+	paramsMap["master"] = parsedInfo[MastersKey]
+	paramsMap["bot"] = parsedInfo[BotsKey]
+	paramsMap["benchmark"] = parsedInfo[BenchmarksKey]
+	paramsMap["test"] = parsedInfo[TestsKey]
+	paramsMap["subtest_1"] = parsedInfo[Subtests1Key]
 
-	sub_2, ok := parsedInfo[subtests_2_key]
+	sub_2, ok := parsedInfo[Subtests2Key]
 	if ok && len(sub_2) > 0 {
-		paramsMap["subtest_2"] = parsedInfo[subtests_2_key]
+		paramsMap["subtest_2"] = parsedInfo[Subtests2Key]
 	}
 
 	return paramsMap

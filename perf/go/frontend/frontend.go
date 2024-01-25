@@ -755,8 +755,38 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 
 	if alertGroupDetails != nil {
 		sklog.Infof("Retrieved %d anomalies for alert group id %s", len(alertGroupDetails.Anomalies), groupId)
-		queryParams := alertGroupDetails.GetQueryParams(ctx)
-		redirectUrl := f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+
+		multiGraph := r.URL.Query().Get("m")
+		var redirectUrl string
+		if multiGraph != "" {
+			queryParamsPerTrace := alertGroupDetails.GetQueryParamsPerTrace(ctx)
+			graphs := []graphsshortcut.GraphConfig{}
+			for _, queryParams := range queryParamsPerTrace {
+				queryString := f.urlProvider.GetQueryStringFromParameters(queryParams)
+				graphs = append(graphs, graphsshortcut.GraphConfig{
+					Queries: []string{queryString},
+				})
+			}
+
+			shortcutObj := graphsshortcut.GraphsShortcut{
+				Graphs: graphs,
+			}
+
+			shortcutId, err := f.graphsShortcutStore.InsertShortcut(ctx, &shortcutObj)
+			if err != nil {
+				// Something went wrong while inserting shortcut.
+				sklog.Errorf("Error inserting shortcut %s", err)
+				// Let's redirect the user to the explore page instead.
+				queryParams := alertGroupDetails.GetQueryParams(ctx)
+				redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+			} else {
+				redirectUrl = f.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId)
+			}
+
+		} else {
+			queryParams := alertGroupDetails.GetQueryParams(ctx)
+			redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+		}
 		sklog.Infof("Generated url: %s", redirectUrl)
 		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 		return

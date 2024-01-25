@@ -94,6 +94,20 @@ func TestProvider_Chromeperf_Customization(t *testing.T) {
 	assert.Equal(t, parsed_query.Get("param3_new"), "value3")
 }
 
+func TestProvider_MultiGraph(t *testing.T) {
+	perfgit := getPerfGit(t)
+	paramsProvider := &DefaultParamsProvider{}
+	urlProvider := New(perfgit, paramsProvider)
+	shortcutId := "shortcutId"
+	queryurl := urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId)
+	assert.NotNil(t, queryurl, "Url expected to be generated")
+	multiGraphIndex := strings.Index(queryurl, "/m/?")
+	assert.NotEqual(t, -1, multiGraphIndex)
+	parsed_query, _ := url.ParseQuery(queryurl)
+
+	assert.Equal(t, parsed_query.Get("shortcut"), shortcutId)
+}
+
 func getPerfGit(t *testing.T) perfgit.Git {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	git, err := perfgit.New(ctx, true, db, instanceConfig)

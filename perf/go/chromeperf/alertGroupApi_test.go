@@ -110,3 +110,34 @@ func TestGetQueryUrl_MultipleBots(t *testing.T) {
 	assert.Equal(t, subtest_1, queryParams["subtest_1"][0])
 	assert.Empty(t, queryParams["subtest_2"])
 }
+
+func TestGetQueryParamsPerTrace(t *testing.T) {
+	const master = "test_master"
+	bots := []string{"test_bot1", "test_bot2"}
+	const benchmark = "test_benchmark"
+	const test = "test_test"
+	const subtest_1 = "test_subtest_1"
+	const subtest_2 = "test_subtest_2"
+	alertGroupData := &AlertGroupDetails{
+		GroupId:           "group_id",
+		StartCommitNumber: 123,
+		EndCommitNumber:   124,
+		Anomalies: map[string]string{
+			"anomaly1": fmt.Sprintf("%s/%s/%s/%s/%s", master, bots[0], benchmark, test, subtest_1),
+			// Add a different bot for the anomaly below
+			"anomaly2": fmt.Sprintf("%s/%s/%s/%s/%s", master, bots[1], benchmark, test, subtest_1),
+		},
+	}
+
+	queryParams := alertGroupData.GetQueryParamsPerTrace(context.Background())
+	assert.Equal(t, 2, len(queryParams))
+
+	for i := 0; i < 2; i++ {
+		assert.Equal(t, master, queryParams[i]["master"][0])
+		assert.Equal(t, bots[i], queryParams[i]["bot"][0])
+		assert.Equal(t, benchmark, queryParams[i]["benchmark"][0])
+		assert.Equal(t, test, queryParams[i]["test"][0])
+		assert.Equal(t, subtest_1, queryParams[i]["subtest_1"][0])
+		assert.Empty(t, queryParams[i]["subtest_2"])
+	}
+}
