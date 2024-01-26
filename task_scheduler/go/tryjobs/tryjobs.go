@@ -419,6 +419,32 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 	return nil
 }
 
+// sendPubSub sends an update to Buildbucket via Pub/Sub for a single Job.
+func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error {
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
+	}
+	b, err := proto.Marshal(update)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	}
+	// Parse the project and topic names from the fully-qualified topic.
+	project := t.pubsub.Project()
+	topic := job.BuildbucketPubSubTopic
+	m := pubsubRegex.FindStringSubmatch(job.BuildbucketPubSubTopic)
+	if len(m) == 3 {
+		project = m[1]
+		topic = m[2]
+	}
+	// Publish the message.
+	sklog.Infof("Sending pubsub message for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
+		Data: b,
+	}).Get(ctx)
+	return skerr.Wrapf(err, "failed to send pubsub update for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+}
+
 // sendPubsubUpdates sends updates to Buildbucket via Pub/Sub for in-progress
 // Jobs.
 func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.Job) error {
@@ -426,28 +452,7 @@ func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.
 	for _, job := range jobs {
 		job := job // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
-			update := &buildbucketpb.BuildTaskUpdate{
-				BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
-				Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
-			}
-			b, err := proto.Marshal(update)
-			if err != nil {
-				return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
-			}
-			// Parse the project and topic names from the fully-qualified topic.
-			project := t.pubsub.Project()
-			topic := job.BuildbucketPubSubTopic
-			m := pubsubRegex.FindStringSubmatch(job.BuildbucketPubSubTopic)
-			if len(m) == 3 {
-				project = m[1]
-				topic = m[2]
-			}
-			// Publish the message.
-			sklog.Infof("Sending pubsub message for job %s (build %d)", job.Id, job.BuildbucketBuildId)
-			_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
-				Data: b,
-			}).Get(ctx)
-			return skerr.Wrapf(err, "failed to send pubsub update for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+			return t.sendPubSub(ctx, job)
 		})
 	}
 	return g.Wait().ErrorOrNil()
@@ -966,7 +971,10 @@ func (t *TryJobIntegrator) buildFailed(j *types.Job) error {
 
 func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error {
 	sklog.Infof("bb2.UpdateBuild for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	return t.bb2.UpdateBuild(ctx, t.jobToBuildV2(ctx, j), j.BuildbucketToken)
+	if err := t.bb2.UpdateBuild(ctx, t.jobToBuildV2(ctx, j), j.BuildbucketToken); err != nil {
+		return skerr.Wrapf(err, "failed to UpdateBuild %d for job %s", j.BuildbucketBuildId, j.Id)
+	}
+	return skerr.Wrap(t.sendPubSub(ctx, j))
 }
 
 func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason string) error {
@@ -975,7 +983,7 @@ func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason
 	if err != nil {
 		return skerr.Wrapf(err, "failed to cancel build %d for job %s", j.BuildbucketBuildId, j.Id)
 	}
-	return nil
+	return skerr.Wrap(t.sendPubSub(ctx, j))
 }
 
 // jobFinished notifies Buildbucket that the given Job has finished.

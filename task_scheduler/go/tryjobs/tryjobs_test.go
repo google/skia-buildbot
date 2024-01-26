@@ -113,7 +113,7 @@ func TestUpdateJobsV1_FinishedJob_SendSuccess(t *testing.T) {
 }
 
 func TestUpdateJobsV2_FinishedJob_SendSuccess(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j1 := tryjobV2(ctx, repoUrl)
 	j1.Status = types.JOB_STATUS_SUCCESS
@@ -121,6 +121,8 @@ func TestUpdateJobsV2_FinishedJob_SendSuccess(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
+
+	// Mock the UpdateBuild call.
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
 		Id:     j1.BuildbucketBuildId,
 		Status: buildbucketpb.Status_SUCCESS,
@@ -133,10 +135,23 @@ func TestUpdateJobsV2_FinishedJob_SendSuccess(t *testing.T) {
 			},
 		},
 	}, j1.BuildbucketToken).Return(nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.updateJobs(ctx))
 	mockBB.AssertExpectations(t)
 	assertNoActiveTryJobs(t, trybots)
-	j1, err := trybots.db.GetJobById(ctx, j1.Id)
+	j1, err = trybots.db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	require.Empty(t, j1.BuildbucketLeaseKey)
 	require.Empty(t, j1.BuildbucketToken)
@@ -163,7 +178,7 @@ func TestUpdateJobsV1_FailedJob_SendFailure(t *testing.T) {
 }
 
 func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j1 := tryjobV2(ctx, repoUrl)
 	j1.Status = types.JOB_STATUS_FAILURE
@@ -171,6 +186,8 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j1}))
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
+
+	// Mock the UpdateBuild call.
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
 		Id:     j1.BuildbucketBuildId,
 		Status: buildbucketpb.Status_FAILURE,
@@ -183,17 +200,30 @@ func TestUpdateJobsV2_FailedJob_SendFailure(t *testing.T) {
 			},
 		},
 	}, j1.BuildbucketToken).Return(nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.updateJobs(ctx))
 	mockBB.AssertExpectations(t)
 	assertNoActiveTryJobs(t, trybots)
-	j1, err := trybots.db.GetJobById(ctx, j1.Id)
+	j1, err = trybots.db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	require.Empty(t, j1.BuildbucketLeaseKey)
 	require.Empty(t, j1.BuildbucketToken)
 }
 
 func TestUpdateJobsV2_CancelJob_CallCancelBuild(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j1 := tryjobV2(ctx, repoUrl)
 	j1.Status = types.JOB_STATUS_CANCELED
@@ -203,10 +233,23 @@ func TestUpdateJobsV2_CancelJob_CallCancelBuild(t *testing.T) {
 	trybots.jCache.AddJobs([]*types.Job{j1})
 	require.NotEmpty(t, j1.BuildbucketToken)
 	mockBB.On("CancelBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.StatusDetails).Return(nil, nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j1.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j1, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.updateJobs(ctx))
 	mockBB.AssertExpectations(t)
 	assertNoActiveTryJobs(t, trybots)
-	j1, err := trybots.db.GetJobById(ctx, j1.Id)
+	j1, err = trybots.db.GetJobById(ctx, j1.Id)
 	require.NoError(t, err)
 	require.Empty(t, j1.BuildbucketLeaseKey)
 	require.Empty(t, j1.BuildbucketToken)
@@ -480,7 +523,7 @@ func TestJobFinishedV1_JobSucceeded_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinishedV2_JobSucceeded_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j := tryjobV2(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -488,6 +531,8 @@ func TestJobFinishedV2_JobSucceeded_UpdateSucceeds(t *testing.T) {
 	j.Finished = now
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
+
+	// Mock the UpdateBuild call.
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
 		Id:     j.BuildbucketBuildId,
 		Status: buildbucketpb.Status_SUCCESS,
@@ -500,6 +545,19 @@ func TestJobFinishedV2_JobSucceeded_UpdateSucceeds(t *testing.T) {
 			},
 		},
 	}, j.BuildbucketToken).Return(nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.jobFinished(ctx, j))
 	mockBB.AssertExpectations(t)
 }
@@ -559,7 +617,7 @@ func TestJobFinishedV1_JobFailed_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinishedV2_JobFailed_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j := tryjobV2(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -567,6 +625,8 @@ func TestJobFinishedV2_JobFailed_UpdateSucceeds(t *testing.T) {
 	j.Finished = now
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
+
+	// Mock the UpdateBuild call.
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
 		Id:     j.BuildbucketBuildId,
 		Status: buildbucketpb.Status_FAILURE,
@@ -579,6 +639,19 @@ func TestJobFinishedV2_JobFailed_UpdateSucceeds(t *testing.T) {
 			},
 		},
 	}, j.BuildbucketToken).Return(nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.jobFinished(ctx, j))
 	mockBB.AssertExpectations(t)
 }
@@ -638,7 +711,7 @@ func TestJobFinishedV1_JobMishap_UpdateSucceeds(t *testing.T) {
 }
 
 func TestJobFinishedV2_JobMishap_UpdateSucceeds(t *testing.T) {
-	ctx, trybots, _, mockBB, _ := setup(t)
+	ctx, trybots, _, mockBB, topic := setup(t)
 
 	j := tryjobV2(ctx, repoUrl)
 	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
@@ -646,6 +719,8 @@ func TestJobFinishedV2_JobMishap_UpdateSucceeds(t *testing.T) {
 	j.Finished = now
 	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
 	trybots.jCache.AddJobs([]*types.Job{j})
+
+	// Mock the UpdateBuild call.
 	mockBB.On("UpdateBuild", testutils.AnyContext, &buildbucketpb.Build{
 		Id:     j.BuildbucketBuildId,
 		Status: buildbucketpb.Status_INFRA_FAILURE,
@@ -658,6 +733,19 @@ func TestJobFinishedV2_JobMishap_UpdateSucceeds(t *testing.T) {
 			},
 		},
 	}, j.BuildbucketToken).Return(nil)
+
+	// Mock the pubsub message.
+	update := &buildbucketpb.BuildTaskUpdate{
+		BuildId: strconv.FormatInt(j.BuildbucketBuildId, 10),
+		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, j, trybots.buildbucketTarget, trybots.host),
+	}
+	b, err := proto.Marshal(update)
+	require.NoError(t, err)
+	result := &pubsub_mocks.PublishResult{}
+	result.On("Get", testutils.AnyContext).Return("fake-server-id", nil)
+	topic.On("Publish", testutils.AnyContext, &pubsub.Message{Data: b}).Return(result)
+
+	// Check the result.
 	require.NoError(t, trybots.jobFinished(ctx, j))
 	mockBB.AssertExpectations(t)
 }
