@@ -845,5 +845,47 @@
     ],
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-11-perf": {
+    "browser": "release_x64",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "PowerEdge R350 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
+  "win-11-perf-pgo": {
+    "browser": "release_x64",
+    "bucket": "luci.chrome.try",
+    "builder": "Win x64 Builder Perf PGO",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "PowerEdge R350 (Dell Inc.)"
+      },
+      {
+        "key": "os",
+        "value": "Windows-11"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
   }
 }
