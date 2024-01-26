@@ -184,6 +184,11 @@ const availableFonts = [
     fFamily: 'BarlowCondensed',
   },
   {
+    fName: 'BigShouldersDisplay-Regular',
+    fStyle: 'Regular',
+    fFamily: 'BigShouldersDisplay',
+  },
+  {
     fName: 'BioRhyme-Regular',
     fStyle: 'Regular',
     fFamily: 'BioRhyme',
@@ -214,6 +219,11 @@ const availableFonts = [
     fFamily: 'BraahOne',
   },
   {
+    fName: 'BricolageGrotesque-Regular',
+    fStyle: 'Regular',
+    fFamily: 'BricolageGrotesque',
+  },
+  {
     fName: 'Bungee-Regular',
     fStyle: 'Regular',
     fFamily: 'Bungee',
@@ -222,6 +232,11 @@ const availableFonts = [
     fName: 'BungeeShade-Regular',
     fStyle: 'Regular',
     fFamily: 'BungeeShade',
+  },
+  {
+    fName: 'Caprasimo-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Caprasimo',
   },
   {
     fName: 'Cardo-Regular',
@@ -369,6 +384,16 @@ const availableFonts = [
     fFamily: 'Diphylleia',
   },
   {
+    fName: 'DMSerifDisplay-Italic',
+    fStyle: 'Italic',
+    fFamily: 'DMSerifDisplay',
+  },
+  {
+    fName: 'DMSerifDisplay-Regular',
+    fStyle: 'Regular',
+    fFamily: 'DMSerifDisplay',
+  },
+  {
     fName: 'DynaPuff-Regular',
     fStyle: 'Regular',
     fFamily: 'DynaPuff',
@@ -502,6 +527,11 @@ const availableFonts = [
     fName: 'HindMadurai-Regular',
     fStyle: 'Regular',
     fFamily: 'HindMadurai',
+  },
+  {
+    fName: 'HomemadeApple-Regular',
+    fStyle: 'Regular',
+    fFamily: 'HomemadeApple',
   },
   {
     fName: 'IBMPlexMono-Regular',
@@ -1044,6 +1074,11 @@ const availableFonts = [
     fFamily: 'SairaCondensed',
   },
   {
+    fName: 'Sarina-Regular',
+    fStyle: 'Regular',
+    fFamily: 'Sarina',
+  },
+  {
     fName: 'SedgwickAveDisplay-Regular',
     fStyle: 'Regular',
     fFamily: 'SedgwickAveDisplay',
@@ -1222,6 +1257,11 @@ const availableFonts = [
     fName: 'Yomogi-Regular',
     fStyle: 'Regular',
     fFamily: 'Yomogi',
+  },
+  {
+    fName: 'YoungSerif-Regular',
+    fStyle: 'Regular',
+    fFamily: 'YoungSerif',
   },
   {
     fName: 'YujiHentaiganaAkari-Regular',
