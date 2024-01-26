@@ -42,6 +42,9 @@ message Config {
     // roll_cooldown is a period of time after a successful roll attempt during
     // which no new roll attempts will be created. Optional.
     string roll_cooldown = 12;
+    // dry_run_cooldown specifies how long successful dry run CLs will be left
+    // open before closing in favor of a new roll.
+    string dry_run_cooldown = 35;
     // time_window in which the roller is allowed to upload roll CLs. See the
     // go/time_window package for supported format.
     string time_window = 13;

@@ -193,6 +193,10 @@ type AutoRollerImpl interface {
 	// many times within a time period.
 	SuccessThrottle() *Throttler
 
+	// Return a Throttler indicating whether we have too recently completed a
+	// dry run successfully.
+	DryRunSuccessThrottle() *Throttler
+
 	// Update the project and sub-project repos.
 	UpdateRepos(context.Context) error
 
@@ -830,7 +834,10 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
 		}
-		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
+		if err := s.a.DryRunSuccessThrottle().Inc(ctx); err != nil {
+			return "", err
+		}
+		if s.a.DryRunSuccessThrottle().IsThrottled() || s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil
@@ -853,7 +860,7 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		} else if desiredMode != modes.ModeDryRun {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
-		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
+		if s.a.DryRunSuccessThrottle().IsThrottled() || s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
 			// The current dry run is for the commit we want. Leave
 			// it open so we can land it if we want.
 			return S_DRY_RUN_SUCCESS_LEAVING_OPEN, nil

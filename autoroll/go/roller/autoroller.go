@@ -59,44 +59,45 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg                *config.Config
-	client             *http.Client
-	codereview         codereview.CodeReview
-	commitMsgBuilder   *commit_msg.Builder
-	currentRoll        codereview.RollImpl
-	emails             []string
-	emailsMtx          sync.RWMutex
-	failureThrottle    *state_machine.Throttler
-	lastRollRev        *revision.Revision
-	liveness           metrics2.Liveness
-	manualRollDB       manual.DB
-	modeHistory        modes.ModeHistory
-	nextRollRev        *revision.Revision
-	notifier           *arb_notifier.AutoRollNotifier
-	notifierConfigs    []*notifier.Config
-	notRolledRevs      []*revision.Revision
-	recent             *recent_rolls.RecentRolls
-	reg                *config_vars.Registry
-	rm                 repo_manager.RepoManager
-	roller             string
-	rollUploadAttempts metrics2.Counter
-	rollUploadFailures metrics2.Counter
-	runningMtx         sync.Mutex
-	safetyThrottle     *state_machine.Throttler
-	serverURL          string
-	reportedRevs       map[string]time.Time
-	reviewers          []string
-	reviewersBackup    []string
-	sm                 *state_machine.AutoRollStateMachine
-	status             *status.Cache
-	statusMtx          sync.RWMutex
-	strategy           strategy.NextRollStrategy
-	strategyHistory    *strategy.DatastoreStrategyHistory
-	strategyMtx        sync.RWMutex // Protects strategy
-	successThrottle    *state_machine.Throttler
-	throttle           unthrottle.Throttle
-	timeWindow         *time_window.TimeWindow
-	tipRev             *revision.Revision
+	cfg                   *config.Config
+	client                *http.Client
+	codereview            codereview.CodeReview
+	commitMsgBuilder      *commit_msg.Builder
+	currentRoll           codereview.RollImpl
+	dryRunSuccessThrottle *state_machine.Throttler
+	emails                []string
+	emailsMtx             sync.RWMutex
+	failureThrottle       *state_machine.Throttler
+	lastRollRev           *revision.Revision
+	liveness              metrics2.Liveness
+	manualRollDB          manual.DB
+	modeHistory           modes.ModeHistory
+	nextRollRev           *revision.Revision
+	notifier              *arb_notifier.AutoRollNotifier
+	notifierConfigs       []*notifier.Config
+	notRolledRevs         []*revision.Revision
+	recent                *recent_rolls.RecentRolls
+	reg                   *config_vars.Registry
+	rm                    repo_manager.RepoManager
+	roller                string
+	rollUploadAttempts    metrics2.Counter
+	rollUploadFailures    metrics2.Counter
+	runningMtx            sync.Mutex
+	safetyThrottle        *state_machine.Throttler
+	serverURL             string
+	reportedRevs          map[string]time.Time
+	reviewers             []string
+	reviewersBackup       []string
+	sm                    *state_machine.AutoRollStateMachine
+	status                *status.Cache
+	statusMtx             sync.RWMutex
+	strategy              strategy.NextRollStrategy
+	strategyHistory       *strategy.DatastoreStrategyHistory
+	strategyMtx           sync.RWMutex // Protects strategy
+	successThrottle       *state_machine.Throttler
+	throttle              unthrottle.Throttle
+	timeWindow            *time_window.TimeWindow
+	tipRev                *revision.Revision
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -206,11 +207,27 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	var rollCooldown time.Duration
 	if c.RollCooldown != "" {
 		rollCooldown, err = human.ParseDuration(c.RollCooldown)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse roll cooldown")
+		}
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", rollCooldown, 1)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
+
+	var dryRunCooldown time.Duration
+	if c.DryRunCooldown != "" {
+		dryRunCooldown, err = human.ParseDuration(c.DryRunCooldown)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to parse dry run cooldown")
+		}
+	}
+	dryRunSuccessThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/dry_run_success_counter", dryRunCooldown, 1)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to create dry run success throttler")
+	}
+
 	sklog.Info("Getting reviewers")
 	emails := GetReviewers(client, c.RollerName, c.Reviewer, c.ReviewerBackup)
 	sklog.Info("Creating notifier")
@@ -237,37 +254,38 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		return nil, skerr.Wrap(err)
 	}
 	arb := &AutoRoller{
-		cfg:                c,
-		client:             client,
-		codereview:         cr,
-		commitMsgBuilder:   commitMsgBuilder,
-		emails:             emails,
-		failureThrottle:    failureThrottle,
-		lastRollRev:        lastRollRev,
-		liveness:           metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
-		manualRollDB:       manualRollDB,
-		modeHistory:        mh,
-		nextRollRev:        nextRollRev,
-		notifier:           n,
-		notRolledRevs:      notRolledRevs,
-		recent:             recent,
-		reg:                reg,
-		rm:                 rm,
-		roller:             rollerName,
-		rollUploadAttempts: metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
-		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
-		safetyThrottle:     safetyThrottle,
-		serverURL:          serverURL,
-		reportedRevs:       reportedRevs,
-		reviewers:          c.Reviewer,
-		reviewersBackup:    c.ReviewerBackup,
-		status:             statusCache,
-		strategy:           strat,
-		strategyHistory:    sh,
-		successThrottle:    successThrottle,
-		throttle:           unthrottle.NewDatastore(ctx),
-		timeWindow:         tw,
-		tipRev:             tipRev,
+		cfg:                   c,
+		client:                client,
+		codereview:            cr,
+		commitMsgBuilder:      commitMsgBuilder,
+		dryRunSuccessThrottle: dryRunSuccessThrottle,
+		emails:                emails,
+		failureThrottle:       failureThrottle,
+		lastRollRev:           lastRollRev,
+		liveness:              metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
+		manualRollDB:          manualRollDB,
+		modeHistory:           mh,
+		nextRollRev:           nextRollRev,
+		notifier:              n,
+		notRolledRevs:         notRolledRevs,
+		recent:                recent,
+		reg:                   reg,
+		rm:                    rm,
+		roller:                rollerName,
+		rollUploadAttempts:    metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
+		rollUploadFailures:    metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
+		safetyThrottle:        safetyThrottle,
+		serverURL:             serverURL,
+		reportedRevs:          reportedRevs,
+		reviewers:             c.Reviewer,
+		reviewersBackup:       c.ReviewerBackup,
+		status:                statusCache,
+		strategy:              strat,
+		strategyHistory:       sh,
+		successThrottle:       successThrottle,
+		throttle:              unthrottle.NewDatastore(ctx),
+		timeWindow:            tw,
+		tipRev:                tipRev,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -450,6 +468,9 @@ func (r *AutoRoller) unthrottle(ctx context.Context) error {
 	if err := r.successThrottle.Reset(ctx); err != nil {
 		return err
 	}
+	if err := r.dryRunSuccessThrottle.Reset(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -608,6 +629,12 @@ func (r *AutoRoller) SuccessThrottle() *state_machine.Throttler {
 	return r.successThrottle
 }
 
+// DryRunSuccessThrottle returns a state_machine.Throttler indicating whether we
+// have successfully completed a dry run too recently.
+func (r *AutoRoller) DryRunSuccessThrottle() *state_machine.Throttler {
+	return r.dryRunSuccessThrottle
+}
+
 // UpdateRepos implements state_machine.AutoRollerImpl.
 func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 	lastRollRev, tipRev, notRolledRevs, err := r.rm.Update(ctx)
@@ -708,12 +735,16 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	failureThrottledUntil := r.failureThrottle.ThrottledUntil().Unix()
 	safetyThrottledUntil := r.safetyThrottle.ThrottledUntil().Unix()
 	successThrottledUntil := r.successThrottle.ThrottledUntil().Unix()
+	dryRunSuccessThrottledUntil := r.dryRunSuccessThrottle.ThrottledUntil().Unix()
 	throttledUntil := failureThrottledUntil
 	if safetyThrottledUntil > throttledUntil {
 		throttledUntil = safetyThrottledUntil
 	}
 	if successThrottledUntil > throttledUntil {
 		throttledUntil = successThrottledUntil
+	}
+	if dryRunSuccessThrottledUntil > throttledUntil {
+		throttledUntil = dryRunSuccessThrottledUntil
 	}
 
 	notRolledRevs := r.notRolledRevs

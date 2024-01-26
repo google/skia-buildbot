@@ -79,6 +79,7 @@ export interface Config {
   reviewer?: string[];
   reviewerBackup?: string[];
   rollCooldown: string;
+  dryRunCooldown: string;
   timeWindow: string;
   supportsManualRolls: boolean;
   commitMsg?: CommitMsgConfig;
@@ -115,6 +116,7 @@ interface ConfigJSON {
   reviewer?: string[];
   reviewer_backup?: string[];
   roll_cooldown?: string;
+  dry_run_cooldown?: string;
   time_window?: string;
   supports_manual_rolls?: boolean;
   commit_msg?: CommitMsgConfigJSON;

@@ -229,11 +229,12 @@ type TestAutoRollerImpl struct {
 	getNextRollRevResult *revision.Revision
 	getNextRollRevError  error
 
-	getModeResult   string
-	rolledPast      map[string]bool
-	safetyThrottle  *Throttler
-	successThrottle *Throttler
-	updateError     error
+	getModeResult         string
+	rolledPast            map[string]bool
+	safetyThrottle        *Throttler
+	successThrottle       *Throttler
+	dryRunSuccessThrottle *Throttler
+	updateError           error
 
 	rollWindowOpen bool
 
@@ -254,14 +255,17 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 	require.NoError(t, err)
 	successThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
 	require.NoError(t, err)
+	dryRunSuccessThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
+	require.NoError(t, err)
 	return &TestAutoRollerImpl{
-		t:               t,
-		failureThrottle: failureThrottle,
-		getModeResult:   modes.ModeRunning,
-		rolledPast:      map[string]bool{},
-		safetyThrottle:  safetyThrottle,
-		successThrottle: successThrottle,
-		rollWindowOpen:  true,
+		t:                     t,
+		failureThrottle:       failureThrottle,
+		getModeResult:         modes.ModeRunning,
+		rolledPast:            map[string]bool{},
+		safetyThrottle:        safetyThrottle,
+		successThrottle:       successThrottle,
+		dryRunSuccessThrottle: dryRunSuccessThrottle,
+		rollWindowOpen:        true,
 	}
 }
 
@@ -394,6 +398,12 @@ func (r *TestAutoRollerImpl) SafetyThrottle() *Throttler {
 // many times within a time period.
 func (r *TestAutoRollerImpl) SuccessThrottle() *Throttler {
 	return r.successThrottle
+}
+
+// Return a Throttler indicating whether we have too recently completed a
+// dry run successfully.
+func (r *TestAutoRollerImpl) DryRunSuccessThrottle() *Throttler {
+	return r.dryRunSuccessThrottle
 }
 
 // Return true if we're allowed to upload rolls.
@@ -713,6 +723,22 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
+
+	// Test dry run success throttle.
+	dryRunSuccessThrottle, err := NewThrottler(ctx, gcsClient, "dry_run_success_counter", time.Hour, 1)
+	require.NoError(t, err)
+	r.dryRunSuccessThrottle = dryRunSuccessThrottle
+	r.SetNextRollRev("HEAD+7")
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetDryRunSucceeded()
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS)
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS_LEAVING_OPEN)
+	// A new commit landed, but we don't close the CL.
+	r.SetNextRollRev("HEAD+8")
+	checkNextState(t, sm, S_DRY_RUN_SUCCESS_LEAVING_OPEN)
+	// Forcibly unthrottle.
+	require.NoError(t, gcsClient.DeleteFile(ctx, "dry_run_success_counter"))
 }
 
 func TestNormalToDryRun(t *testing.T) {

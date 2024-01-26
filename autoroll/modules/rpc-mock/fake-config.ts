@@ -22,6 +22,7 @@ export function GetFakeConfig(): Config {
     isInternal: false,
     reviewer: ['borenet@google.com'],
     rollCooldown: '',
+    dryRunCooldown: '',
     timeWindow: '',
     supportsManualRolls: true,
     maxRollCqAttempts: 0,
