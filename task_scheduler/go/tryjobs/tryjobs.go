@@ -1094,9 +1094,7 @@ func (t *TryJobIntegrator) jobToBuildV2(ctx context.Context, job *types.Job) *bu
 	// would provide any value since we don't actually use Buildbucket builds
 	// for anything.
 	return &buildbucketpb.Build{
-		Id:              job.BuildbucketBuildId,
-		Status:          status,
-		SummaryMarkdown: job.StatusDetails,
+		Id: job.BuildbucketBuildId,
 		Output: &buildbucketpb.Build_Output{
 			Status:          status,
 			SummaryMarkdown: job.StatusDetails,
