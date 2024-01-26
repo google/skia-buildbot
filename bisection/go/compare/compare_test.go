@@ -37,12 +37,14 @@ func TestCompareNoData(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			var result CompareResults
+			var result *CompareResults
+			var err error
 			if test.performance_mode {
-				result, _ = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
+				result, err = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
 			} else {
-				result, _ = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
+				result, err = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
 			}
+			assert.Nil(t, err)
 			assert.Equal(t, result.Verdict, test.expected)
 			assert.Zero(t, result.PValue)
 		})
@@ -115,12 +117,14 @@ func TestCompare(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			var result CompareResults
+			var result *CompareResults
+			var err error
 			if test.performance_mode {
-				result, _ = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
+				result, err = ComparePerformance(test.x, test.y, test.sample_size, test.normalized_magnitude)
 			} else {
-				result, _ = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
+				result, err = CompareFunctional(test.x, test.y, test.sample_size, test.normalized_magnitude)
 			}
+			assert.Nil(t, err)
 			assert.Equal(t, result.Verdict, test.expected)
 			if result.Verdict == verdict(0) {
 				// unknown

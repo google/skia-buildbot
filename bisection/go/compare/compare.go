@@ -31,9 +31,8 @@
 package compare
 
 import (
-	"fmt"
-
 	"go.skia.org/infra/bisection/go/compare/thresholds"
+	"go.skia.org/infra/go/skerr"
 )
 
 // define verdict enums
@@ -89,11 +88,11 @@ type CompareResults struct {
 // a float between 0 and 1. The attemptCount is the average number of
 // samples between valuesA and valuesB.
 func CompareFunctional(valuesA []float64, valuesB []float64, attemptCount int,
-	normalizedMagnitude float64) (CompareResults, error) {
+	normalizedMagnitude float64) (*CompareResults, error) {
 	LowThreshold := thresholds.LowThreshold
 	HighThreshold, err := thresholds.HighThresholdFunctional(normalizedMagnitude, attemptCount)
 	if err != nil {
-		return CompareResults{}, fmt.Errorf("Could not get high threshold for bisection due to error: %v", err)
+		return nil, skerr.Wrapf(err, "Could not get functional high threshold")
 	}
 	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
 }
@@ -108,11 +107,11 @@ func CompareFunctional(valuesA []float64, valuesB []float64, attemptCount int,
 // differences. The attemptCount is the average number of samples between valuesA
 // and valuesB.
 func ComparePerformance(valuesA []float64, valuesB []float64, attemptCount int,
-	normalizedMagnitude float64) (CompareResults, error) {
+	normalizedMagnitude float64) (*CompareResults, error) {
 	LowThreshold := thresholds.LowThreshold
 	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, attemptCount)
 	if err != nil {
-		return CompareResults{}, fmt.Errorf("Could not get high threshold for bisection due to error: %v", err)
+		return nil, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
 
 	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
@@ -121,10 +120,10 @@ func ComparePerformance(valuesA []float64, valuesB []float64, attemptCount int,
 // compare decides whether two samples are the same, different, or unknown
 // using the KS and MWU tests and compare their p-values against the
 // LowThreshold and HighThreshold.
-func compare(valuesA []float64, valuesB []float64, LowThreshold float64, HighThreshold float64) (CompareResults, error) {
+func compare(valuesA []float64, valuesB []float64, LowThreshold float64, HighThreshold float64) (*CompareResults, error) {
 	if len(valuesA) == 0 || len(valuesB) == 0 {
 		// A sample has no values in it. Return verdict to measure more data.
-		return CompareResults{Verdict: Unknown}, nil
+		return &CompareResults{Verdict: Unknown}, nil
 	}
 
 	// MWU is bad at detecting changes in variance, and K-S is bad with discrete
@@ -134,15 +133,15 @@ func compare(valuesA []float64, valuesB []float64, LowThreshold float64, HighThr
 	// range(10, 30)     range(10)+range(30, 40)     0.4946     0.0082
 	PValueKS, err := KolmogorovSmirnov(valuesA, valuesB)
 	if err != nil {
-		return CompareResults{}, fmt.Errorf("Failed KS test: %v", err)
+		return nil, skerr.Wrapf(err, "Failed KS test")
 	}
 	PValueMWU := MannWhitneyU(valuesA, valuesB)
 	if err != nil {
-		return CompareResults{}, fmt.Errorf("Failed MWU test: %v", err)
+		return nil, skerr.Wrapf(err, "Failed MWU test")
 	}
 	PValue := min(PValueKS, PValueMWU)
 
-	result := CompareResults{
+	result := &CompareResults{
 		PValue:        PValue,
 		PValueKS:      PValueKS,
 		PValueMWU:     PValueMWU,

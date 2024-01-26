@@ -10,7 +10,10 @@ go_library(
     ],
     importpath = "go.skia.org/infra/bisection/go/compare",
     visibility = ["//visibility:public"],
-    deps = ["//bisection/go/compare/thresholds"],
+    deps = [
+        "//bisection/go/compare/thresholds",
+        "//go/skerr",
+    ],
 )
 
 go_test(
