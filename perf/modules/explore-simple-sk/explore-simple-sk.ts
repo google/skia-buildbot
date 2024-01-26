@@ -461,8 +461,11 @@ export class ExploreSimpleSk extends ElementSk {
 
   private originalTraceSet: TraceSet = TraceSet({});
 
-  constructor() {
+  private scrollable: boolean = false;
+
+  constructor(scrollable: boolean) {
     super(ExploreSimpleSk.template);
+    this.scrollable = scrollable;
     this.traceFormatter = GetTraceFormatter();
   }
 
@@ -610,6 +613,7 @@ export class ExploreSimpleSk extends ElementSk {
         @zoom=${ele.plotZoom}
         @trace_focused=${ele.plotTraceFocused}
         class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
+        .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">

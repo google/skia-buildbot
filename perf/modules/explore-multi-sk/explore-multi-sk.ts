@@ -193,7 +193,7 @@ export class ExploreMultiSk extends ElementSk {
     }
 
     const graphDiv: Element | null = this.querySelector('#graphContainer');
-    const explore: ExploreSimpleSk = new ExploreSimpleSk();
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(true);
 
     explore.openQueryByDefault = false;
     explore.navOpen = false;

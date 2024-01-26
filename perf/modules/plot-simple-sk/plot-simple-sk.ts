@@ -711,6 +711,18 @@ export class PlotSimpleSk extends ElementSk {
 
   private BAND_COLOR!: string; // CSS color.
 
+  get scrollable(): boolean {
+    return this.hasAttribute('scrollable');
+  }
+
+  set scrollable(val: boolean) {
+    if (val) {
+      this.setAttribute('scrollable', '');
+    } else {
+      this.removeAttribute('scrollable');
+    }
+  }
+
   constructor() {
     super(PlotSimpleSk.template);
 
@@ -815,34 +827,36 @@ export class PlotSimpleSk extends ElementSk {
       this.inZoomDrag = 'no-zoom';
     });
 
-    this.addEventListener('wheel', (e: WheelEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      // If the wheel is spun while we are zoomed then move through the stack of
-      // zoom ranges.
-      if (this.detailsZoomRangesStack) {
-        // Scrolling up on the scroll wheel gives e.deltaY a negative value. Up
-        // means to scroll in, which means we want to take a rect from
-        // inactiveDetailsZoomRangesStack and make it active by pushing it on
-        // detailsZoomRangesStack. Down reverses the push/pop direction.
-        if (e.deltaY < 0) {
-          if (this.inactiveDetailsZoomRangesStack.length === 0) {
-            return;
+    if (!this.scrollable) {
+      this.addEventListener('wheel', (e: WheelEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // If the wheel is spun while we are zoomed then move through the stack of
+        // zoom ranges.
+        if (this.detailsZoomRangesStack) {
+          // Scrolling up on the scroll wheel gives e.deltaY a negative value. Up
+          // means to scroll in, which means we want to take a rect from
+          // inactiveDetailsZoomRangesStack and make it active by pushing it on
+          // detailsZoomRangesStack. Down reverses the push/pop direction.
+          if (e.deltaY < 0) {
+            if (this.inactiveDetailsZoomRangesStack.length === 0) {
+              return;
+            }
+            this.detailsZoomRangesStack.push(
+              this.inactiveDetailsZoomRangesStack.pop()!
+            );
+          } else {
+            if (this.detailsZoomRangesStack.length === 0) {
+              return;
+            }
+            this.inactiveDetailsZoomRangesStack.push(
+              this.detailsZoomRangesStack.pop()!
+            );
           }
-          this.detailsZoomRangesStack.push(
-            this.inactiveDetailsZoomRangesStack.pop()!
-          );
-        } else {
-          if (this.detailsZoomRangesStack.length === 0) {
-            return;
-          }
-          this.inactiveDetailsZoomRangesStack.push(
-            this.detailsZoomRangesStack.pop()!
-          );
+          this._zoomImpl();
         }
-        this._zoomImpl();
-      }
-    });
+      });
+    }
 
     this.addEventListener('click', (e) => {
       const pt = this.eventToCanvasPt(e);
