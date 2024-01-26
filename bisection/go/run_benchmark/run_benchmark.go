@@ -149,6 +149,8 @@ func createSwarmingReq(req RunBenchmarkRequest) (
 	// is useful on the UI, but for this, it's not relevant.
 	// see GetIsolateTarget and _GenerateQuests here:
 	// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/handlers/new.py;drc=8fe602e47f11cfdd79225696f1f6a5556b57c58c;l=466
+	// TODO(b/321299939): create an interface for different runBenchmark types
+	// and refactor telemetryExp to use that interface
 	exp := telemetryExp{}
 	cmd, err := exp.createCmd(req)
 	if err != nil {

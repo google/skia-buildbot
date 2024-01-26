@@ -70,7 +70,7 @@ func (t *telemetryExp) createCmd(req RunBenchmarkRequest) ([]string, error) {
 	}
 	cmd = append(cmd, "--story-filter", fmt.Sprintf("^%s$", req.Story))
 	cmd = append(cmd, "--pageset-repeat", "1")
-	cmd = append(cmd, "browser", req.Config.Browser)
+	cmd = append(cmd, "--browser", req.Config.Browser)
 	cmd = append(cmd, defaultExtraArgs...)
 
 	// TODO(b/318863812): Add support for non-chromium commits
