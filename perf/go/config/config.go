@@ -717,14 +717,6 @@ type QueryConfig struct {
 	// DefaultUrlValues specifies default values for url params.
 	// If the user makes a selection for any of these params, the user selected value is used.
 	DefaultUrlValues map[string]string `json:"default_url_values,omitempty"`
-
-	// ChromePerfParamsMap defines a mapping between the param names in chromeperf system
-	// and their corresponding param name in the given instance.
-	ChromePerfParamsMap map[string]string `json:"chrome_param_map,omitempty"`
-
-	// ChromePerfIgnoreParams defines a list of param names from chromeperf that are to be
-	// ignored since they are not relevant for this instance
-	ChromePerfIgnoreParams []string `json:"ignore_params,omitempty"`
 }
 
 // InstanceConfig contains all the info needed by a Perf instance.

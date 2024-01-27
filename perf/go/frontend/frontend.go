@@ -451,7 +451,6 @@ func (f *Frontend) initialize() {
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces))
 
-	var urlParamsProvider urlprovider.ParamsProvider = nil
 	if config.Config.FetchChromePerfAnomalies {
 		anomalyApiClient, err := chromeperf.NewAnomalyApiClient(ctx)
 		if err != nil {
@@ -471,18 +470,9 @@ func (f *Frontend) initialize() {
 		if err != nil {
 			sklog.Fatal("Failed to build alert group client: %s", err)
 		}
-
-		ignoreParams := config.Config.QueryConfig.ChromePerfIgnoreParams
-		paramsMap := config.Config.QueryConfig.ChromePerfParamsMap
-		urlParamsProvider = &urlprovider.ChromeParamsProvider{
-			IgnoreParams: ignoreParams,
-			ParamsMap:    paramsMap,
-		}
-	} else {
-		urlParamsProvider = &urlprovider.DefaultParamsProvider{}
 	}
 
-	f.urlProvider = urlprovider.New(f.perfGit, urlParamsProvider)
+	f.urlProvider = urlprovider.New(f.perfGit)
 
 	// TODO(jcgregorio) Implement store.TryBotStore and add a reference to it here.
 	f.trybotResultsLoader = dfloader.New(f.dfBuilder, nil, f.perfGit)

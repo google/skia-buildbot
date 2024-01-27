@@ -14,8 +14,7 @@ import (
 
 func TestProvider_Default(t *testing.T) {
 	perfgit := getPerfGit(t)
-	paramsProvider := &DefaultParamsProvider{}
-	urlProvider := New(perfgit, paramsProvider)
+	urlProvider := New(perfgit)
 	params := map[string][]string{
 		"param1": {"value1"},
 		"param2": {"value2"},
@@ -37,8 +36,7 @@ func TestProvider_Default(t *testing.T) {
 
 func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 	perfgit := getPerfGit(t)
-	paramsProvider := ChromeParamsProvider{}
-	urlProvider := New(perfgit, &paramsProvider)
+	urlProvider := New(perfgit)
 	params := map[string][]string{
 		"param1": {"value1"},
 		"param2": {"value2"},
@@ -58,46 +56,9 @@ func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 	assert.Equal(t, parsed_query.Get("param3"), "value3")
 }
 
-func TestProvider_Chromeperf_Customization(t *testing.T) {
-	perfgit := getPerfGit(t)
-	ignoreParams := []string{"param2"}
-	paramMap := map[string]string{
-		"param3": "param3_new",
-	}
-	paramsProvider := ChromeParamsProvider{
-		IgnoreParams: ignoreParams,
-		ParamsMap:    paramMap,
-	}
-	urlProvider := New(perfgit, &paramsProvider)
-	params := map[string][]string{
-		"param1": {"value1"},
-		"param2": {"value2"},
-		"param3": {"value3"},
-	}
-	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
-	assert.NotNil(t, queryurl, "Url expected to be generated")
-	queryIndex := strings.Index(queryurl, "&queries=")
-	assert.NotEqual(t, -1, queryIndex)
-	queryString := queryurl[queryIndex+9:]
-	unescaped_queryString, err := url.QueryUnescape(queryString)
-	assert.Nil(t, err)
-	parsed_query, _ := url.ParseQuery(unescaped_queryString)
-
-	// Param1 should be as is
-	assert.Equal(t, parsed_query.Get("param1"), "value1")
-
-	// Param2 is in the ignore list so it should not show up in the query
-	assert.Empty(t, parsed_query.Get("param2"))
-
-	// Param3 is to be renamed, so it should not show up in the query
-	assert.Empty(t, parsed_query.Get("param3"))
-	assert.Equal(t, parsed_query.Get("param3_new"), "value3")
-}
-
 func TestProvider_MultiGraph(t *testing.T) {
 	perfgit := getPerfGit(t)
-	paramsProvider := &DefaultParamsProvider{}
-	urlProvider := New(perfgit, paramsProvider)
+	urlProvider := New(perfgit)
 	shortcutId := "shortcutId"
 	queryurl := urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId)
 	assert.NotNil(t, queryurl, "Url expected to be generated")

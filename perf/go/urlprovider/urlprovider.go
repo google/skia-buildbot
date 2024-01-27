@@ -12,8 +12,7 @@ import (
 )
 
 type URLProvider struct {
-	perfGit        perfgit.Git
-	paramsProvider ParamsProvider
+	perfGit perfgit.Git
 }
 
 // Explore generates a url to the explore page for the given parameters
@@ -36,23 +35,16 @@ func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, 
 }
 
 // New creates a new instance of the UrlProvider struct
-func New(perfgit perfgit.Git, paramsProvider ParamsProvider) *URLProvider {
-	if paramsProvider == nil {
-		paramsProvider = &DefaultParamsProvider{}
-	}
+func New(perfgit perfgit.Git) *URLProvider {
 	return &URLProvider{
-		perfGit:        perfgit,
-		paramsProvider: paramsProvider,
+		perfGit: perfgit,
 	}
 }
 
 func (prov *URLProvider) GetQueryStringFromParameters(parameters map[string][]string) string {
 	query_portion := url.Values{}
 	for paramName, paramValues := range parameters {
-		paramKey := prov.paramsProvider.GetParamKey(paramName)
-		if paramKey != "" {
-			query_portion[paramKey] = paramValues
-		}
+		query_portion[paramName] = paramValues
 	}
 
 	return query_portion.Encode()

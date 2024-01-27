@@ -98,8 +98,6 @@ export interface QueryConfig {
 	include_params?: string[] | null;
 	default_param_selections?: { [key: string]: string[] | null } | null;
 	default_url_values?: { [key: string]: string } | null;
-	chrome_param_map?: { [key: string]: string } | null;
-	ignore_params?: string[] | null;
 }
 
 export interface Commit {

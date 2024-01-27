@@ -3,11 +3,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "urlprovider",
-    srcs = [
-        "chromeparamsprovider.go",
-        "urlparamsprovider.go",
-        "urlprovider.go",
-    ],
+    srcs = ["urlprovider.go"],
     importpath = "go.skia.org/infra/perf/go/urlprovider",
     visibility = ["//visibility:public"],
     deps = [

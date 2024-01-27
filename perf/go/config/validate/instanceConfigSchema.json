@@ -331,20 +331,6 @@
             }
           },
           "type": "object"
-        },
-        "chrome_param_map": {
-          "patternProperties": {
-            ".*": {
-              "type": "string"
-            }
-          },
-          "type": "object"
-        },
-        "ignore_params": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       },
       "additionalProperties": false,
