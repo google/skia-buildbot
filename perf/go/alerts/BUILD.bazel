@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/paramtools",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/types",
     ],
 )

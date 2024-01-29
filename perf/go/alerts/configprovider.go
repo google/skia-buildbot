@@ -6,6 +6,15 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+)
+
+type WhatToInclude bool
+
+const (
+	ReadAlertsTimeout   time.Duration = time.Minute
+	IncludeDeleted      WhatToInclude = true
+	DoNotIncludeDeleted WhatToInclude = false
 )
 
 // ConfigProvider is an interface to retrieve alert configs.
@@ -14,7 +23,7 @@ type ConfigProvider interface {
 	GetAllAlertConfigs(ctx context.Context, includeDeleted bool) ([]*Alert, error)
 
 	// Refresh resets the configs and forces a fresh update.
-	Refresh()
+	Refresh(ctx context.Context) error
 }
 
 // ConfigCache struct contains cached alert config data.
@@ -24,21 +33,13 @@ type configCache struct {
 	refreshIntervalInSeconds int
 }
 
-// isExpired returns true if the data in the config cache is older.
-// than the specified refresh interval.
-func (cc *configCache) isExpired() bool {
-	currentTime := time.Now().UTC()
-	return len(cc.Configs) == 0 ||
-		currentTime.Sub(cc.LastUpdated) > time.Duration(cc.refreshIntervalInSeconds)*time.Second
-}
-
 // ConfigProviderImpl implements ConfigProvider interface.
 type configProviderImpl struct {
 	alertStore               Store
 	cache_active             *configCache
 	cache_all                *configCache
 	refreshIntervalInSeconds int
-	mutex                    sync.Mutex
+	mutex                    sync.RWMutex
 }
 
 // newCache returns a new ConfigCache instance with the specified refresh interval.
@@ -51,33 +52,23 @@ func newCache(refreshIntervalInSeconds int) *configCache {
 }
 
 // NewConfigProvider returns a new instance of ConfigProvider interface.
-func NewConfigProvider(alertStore Store, refreshIntervalInSeconds int) ConfigProvider {
-	return &configProviderImpl{
+func NewConfigProvider(ctx context.Context, alertStore Store, refreshIntervalInSeconds int) (ConfigProvider, error) {
+	provider := &configProviderImpl{
 		alertStore:               alertStore,
 		cache_active:             newCache(refreshIntervalInSeconds),
 		cache_all:                newCache(refreshIntervalInSeconds),
 		refreshIntervalInSeconds: refreshIntervalInSeconds,
-		mutex:                    sync.Mutex{},
+		mutex:                    sync.RWMutex{},
 	}
+
+	err := provider.startRefresher(ctx)
+	return provider, err
 }
 
-// GetAllAlertConfigs returns all alert configs
+// GetAllAlertConfigs returns all alert configs.
 func (cp *configProviderImpl) GetAllAlertConfigs(ctx context.Context, includeDeleted bool) ([]*Alert, error) {
-	cp.mutex.Lock()
-	defer cp.mutex.Unlock()
-	// Check if the relevant cache is expired. If so, reload it from the alert store.
-	// There is still a chance of a race condition here where multiple threads find the
-	// cache to have expired and will attempt to update it together. This should be an
-	// acceptable tradeoff since adding a read lock above will prevent the thread from
-	// getting a write lock and adding a lock for isExpired() might be overkill considering
-	// the alert config data doesn't really change much.
-	if (includeDeleted && cp.cache_all.isExpired()) ||
-		(!includeDeleted && cp.cache_active.isExpired()) {
-		err := cp.getAlertsFromStore(ctx, includeDeleted)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
+	cp.mutex.RLock()
+	defer cp.mutex.RUnlock()
 
 	if includeDeleted {
 		return cp.cache_all.Configs, nil
@@ -86,20 +77,60 @@ func (cp *configProviderImpl) GetAllAlertConfigs(ctx context.Context, includeDel
 	}
 }
 
-// Refresh resets the cache so that the next query forces a update from store.
-func (cp *configProviderImpl) Refresh() {
-	cp.cache_active = newCache(cp.refreshIntervalInSeconds)
-	cp.cache_all = newCache(cp.refreshIntervalInSeconds)
+// Refresh resets the cache by updating data from store.
+func (cp *configProviderImpl) Refresh(ctx context.Context) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, ReadAlertsTimeout)
+	defer cancel()
+
+	cp.mutex.Lock()
+	defer cp.mutex.Unlock()
+
+	// Update the "all" configs.
+	err := cp.getAlertsFromStore(timeoutCtx, IncludeDeleted)
+	if err != nil {
+		// Log the error, but let it continue to give the active config update a chance.
+		sklog.Errorf("Error when retrieving ALL alert configs %s.", err)
+	}
+
+	// Update the "active" configs.
+	err = cp.getAlertsFromStore(timeoutCtx, DoNotIncludeDeleted)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// getAlertsFromStore returns the alert configs from the store.
-func (cp *configProviderImpl) getAlertsFromStore(ctx context.Context, includeDeleted bool) error {
-	alerts, err := cp.alertStore.List(ctx, includeDeleted)
+func (cp *configProviderImpl) startRefresher(ctx context.Context) error {
+	// Refresh it once to fill the cache upon initiation.
+	err := cp.Refresh(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Update the cache periodically.
+	go func() {
+		// Periodically run it based on the specified duration.
+		refreshDuration := time.Second * time.Duration(cp.refreshIntervalInSeconds)
+		for range time.Tick(refreshDuration) {
+			err := cp.Refresh(ctx)
+			if err != nil {
+				sklog.Errorf("Error updating alert configurations. %s", err)
+			}
+		}
+	}()
+
+	return nil
+}
+
+// getAlertsFromStore retrieves the alert configs from the store and updates the cache.
+func (cp *configProviderImpl) getAlertsFromStore(ctx context.Context, whatToInclude WhatToInclude) error {
+	alerts, err := cp.alertStore.List(ctx, bool(whatToInclude))
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	if includeDeleted {
+	if whatToInclude == IncludeDeleted {
 		cp.cache_all.Configs = alerts
 		cp.cache_all.LastUpdated = time.Now().UTC()
 	} else {

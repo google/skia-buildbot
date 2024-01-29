@@ -515,7 +515,10 @@ func (f *Frontend) initialize() {
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
-	f.configProvider = alerts.NewConfigProvider(f.alertStore, 600)
+	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
+	if err != nil {
+		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
+	}
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
 	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
@@ -1641,7 +1644,6 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (f *Frontend) alertNewHandler(w http.ResponseWriter, r *http.Request) {
-	defer f.configProvider.Refresh()
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(alerts.NewConfig()); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
@@ -1653,10 +1655,17 @@ type AlertUpdateResponse struct {
 	IDAsString string
 }
 
+func refreshConfigProvider(ctx context.Context, configProvider alerts.ConfigProvider) {
+	err := configProvider.Refresh(ctx)
+	if err != nil {
+		sklog.Errorf("Error refreshing alert configs: %s", err)
+	}
+}
+
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
-	defer f.configProvider.Refresh()
+	defer refreshConfigProvider(ctx, f.configProvider)
 	w.Header().Set("Content-Type", "application/json")
 
 	cfg := &alerts.Alert{}
@@ -1687,7 +1696,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
-	defer f.configProvider.Refresh()
+	defer refreshConfigProvider(ctx, f.configProvider)
 	w.Header().Set("Content-Type", "application/json")
 
 	sid := chi.URLParam(r, "id")
