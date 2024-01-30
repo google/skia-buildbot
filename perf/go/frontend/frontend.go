@@ -756,9 +756,9 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 	if alertGroupDetails != nil {
 		sklog.Infof("Retrieved %d anomalies for alert group id %s", len(alertGroupDetails.Anomalies), groupId)
 
-		multiGraph := r.URL.Query().Get("m")
+		explore := r.URL.Query().Get("e")
 		var redirectUrl string
-		if multiGraph != "" {
+		if explore == "" {
 			queryParamsPerTrace := alertGroupDetails.GetQueryParamsPerTrace(ctx)
 			graphs := []graphsshortcut.GraphConfig{}
 			for _, queryParams := range queryParamsPerTrace {
