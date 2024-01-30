@@ -14,19 +14,18 @@ import (
 )
 
 const (
-	MissingRequiredParamTemplate = "Missing required param %s"
+	missingRequiredParamTemplate = "Missing required param %s"
 	chromiumSrcGit               = "https://chromium.googlesource.com/chromium/src.git"
 )
 
 // PinpointHandler is an interface to run Pinpoint jobs
 type PinpointHandler interface {
-	// ScheduleRun schedules a Pinpoint job and will poll the job until it is completed.
-	// Only bisections are implemented at the moment, so the job will print out a list
-	// of culprit commits when the job is finished.
+	// Schedule schedules a Pinpoint job and validate the inputs.
 	// jobID is an optional argument for local testing. Setting the same
 	// jobID can reuse swarming results which can be helpful to triage
 	// the workflow and not wait on tasks to finish.
-	ScheduleRun(ctx context.Context, req PinpointRunRequest, jobID string) (*PinpointRunResponse, error)
+	// TODO(sunxiaodi@): implement Schedule
+	Schedule(ctx context.Context, req PinpointRunRequest, jobID string) (*PinpointRunResponse, error)
 }
 
 // PinpointRunRequest is the request arguments to run a Pinpoint job.
@@ -77,8 +76,8 @@ func New(ctx context.Context) (*pinpointHandlerImpl, error) {
 	}, nil
 }
 
-// Run implements the pinpointJobImpl interface
-func (pp *pinpointHandlerImpl) ScheduleRun(ctx context.Context, req PinpointRunRequest, jobID string) (
+// Schedule implements the pinpointJobImpl interface
+func (pp *pinpointHandlerImpl) Schedule(ctx context.Context, req PinpointRunRequest, jobID string) (
 	*PinpointRunResponse, error) {
 	if jobID == "" {
 		jobID = uuid.New().String()
@@ -95,26 +94,26 @@ func (pp *pinpointHandlerImpl) ScheduleRun(ctx context.Context, req PinpointRunR
 	return resp, nil
 }
 
-// validateInputs validates the request args and returns an error if there request is invalid
+// validateRunRequest validates the request args and returns an error if there request is invalid
 func (job *pinpointHandlerImpl) validateRunRequest(req PinpointRunRequest) error {
 	if req.StartCommit == "" {
-		return skerr.Fmt(MissingRequiredParamTemplate, "start commit")
+		return skerr.Fmt(missingRequiredParamTemplate, "start commit")
 	}
 	if req.EndCommit == "" {
-		return skerr.Fmt(MissingRequiredParamTemplate, "end commit")
+		return skerr.Fmt(missingRequiredParamTemplate, "end commit")
 	}
 	_, err := bot_configs.GetBotConfig(req.Device, false)
 	if err != nil {
 		return skerr.Wrapf(err, "Device %s not allowed in bot configurations", req.Device)
 	}
 	if req.Benchmark == "" {
-		return skerr.Fmt(MissingRequiredParamTemplate, "benchmark")
+		return skerr.Fmt(missingRequiredParamTemplate, "benchmark")
 	}
 	if req.Story == "" {
-		return skerr.Fmt(MissingRequiredParamTemplate, "story")
+		return skerr.Fmt(missingRequiredParamTemplate, "story")
 	}
 	if req.Chart == "" {
-		return skerr.Fmt(MissingRequiredParamTemplate, "chart")
+		return skerr.Fmt(missingRequiredParamTemplate, "chart")
 	}
 	return nil
 }
