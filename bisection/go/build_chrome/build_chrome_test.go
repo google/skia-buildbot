@@ -77,14 +77,15 @@ func TestSearchBuild(t *testing.T) {
 			mb := &mocks.BuildbucketClient{}
 			fakeCommit := "fake-commit"
 			var patches []*buildbucketpb.GerritChange = nil
+			deps := map[string]interface{}{}
 			bc := &buildChromeImpl{
 				client: mb,
 			}
 
 			if test.expectedErrorDeps {
-				mb.On("GetBuildWithPatches", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, patches).Return(nil, fmt.Errorf("random error"))
+				mb.On("GetSingleBuild", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, fmt.Errorf("random error"))
 			} else {
-				mb.On("GetBuildWithPatches", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, patches).Return(test.mockResp, nil)
+				mb.On("GetSingleBuild", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, deps, patches).Return(test.mockResp, nil)
 			}
 
 			if test.expectedErrorCI {
@@ -93,7 +94,7 @@ func TestSearchBuild(t *testing.T) {
 				mb.On("GetBuildFromWaterfall", testutils.AnyContext, test.builder, fakeCommit).Return(test.mockResp, nil)
 			}
 
-			id, err := bc.searchBuild(ctx, test.builder, fakeCommit, patches)
+			id, err := bc.searchBuild(ctx, test.builder, fakeCommit, deps, patches)
 			if (test.expectedErrorDeps && !test.expectedErrorCI) || (test.expectedErrorDeps && test.expectedErrorCI) {
 				assert.Error(t, err)
 			} else {
@@ -163,7 +164,7 @@ func TestBuildNonExistentDevice(t *testing.T) {
 		client: mb,
 	}
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", "fake-target", nil)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", "fake-target", nil, nil)
 	assert.ErrorContains(t, err, "was not found")
 	assert.Zero(t, id)
 }
@@ -188,9 +189,9 @@ func TestBuildFound(t *testing.T) {
 	fakeCommit := "fake-commit"
 	var patches []*buildbucketpb.GerritChange = nil
 
-	mb.On("GetBuildWithPatches", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", patches).Return(mockResp, nil)
+	mb.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", mock.Anything, patches).Return(mockResp, nil)
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, "fake-target", patches)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, "fake-target", map[string]interface{}{}, patches)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, id)
 }
@@ -229,16 +230,16 @@ func TestNewBuild(t *testing.T) {
 
 			builder := "Linux Builder Perf"
 
-			mb.On("GetBuildWithPatches", testutils.AnyContext, builder, backends.DefaultBucket, commit, patches).Return(nil, nil)
+			mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, commit, mock.Anything, patches).Return(nil, nil)
 			mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, commit).Return(nil, nil)
 
 			if test.expectedError {
-				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, patches).Return(nil, fmt.Errorf("some error"))
+				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(nil, fmt.Errorf("some error"))
 			} else {
-				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, patches).Return(test.mockResp, nil)
+				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(test.mockResp, nil)
 			}
 
-			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, target, patches)
+			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, target, map[string]interface{}{}, patches)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

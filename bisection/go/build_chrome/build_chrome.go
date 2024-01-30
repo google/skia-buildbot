@@ -27,7 +27,7 @@ import (
 type BuildChromeClient interface {
 	// SearchOrBuild starts a new Build if it doesn't exist, or it will fetch
 	// the existing one that matches the build parameters.
-	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patch []*buildbucketpb.GerritChange) (int64, error)
+	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error)
 
 	// GetStatus returns the Build status.
 	GetStatus(context.Context, int64) (buildbucketpb.Status, error)
@@ -81,9 +81,9 @@ func New(ctx context.Context) (*buildChromeImpl, error) {
 // be to fetch all the builds under the chromium buildset and hash, and then iterate
 // through each build for the correct deps_revision_overrides. A better solution
 // would be to add the non-chromium commit info to the tags and query the tags.
-func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
 	// search Pinpoint for build
-	build, err := bci.client.GetBuildWithPatches(ctx, builder, backends.DefaultBucket, commit, patches)
+	build, err := bci.client.GetSingleBuild(ctx, builder, backends.DefaultBucket, commit, deps, patches)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Error searching buildbucket")
 	}
@@ -117,13 +117,13 @@ func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit str
 }
 
 // SearchOrBuild implements BuildChromeClient interface
-func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
 	builder, err := bot_configs.GetBotConfig(device, false)
 	if err != nil {
 		return 0, err
 	}
 
-	buildId, err := bci.searchBuild(ctx, builder.Builder, commit, patches)
+	buildId, err := bci.searchBuild(ctx, builder.Builder, commit, deps, patches)
 	// We can ignore the error here since we only need to know if there is an existing build.
 	if err == nil && buildId != 0 {
 		return buildId, nil
@@ -131,7 +131,7 @@ func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, co
 
 	// if the ongoing build failed or the build was not found, start new build
 	requestID := uuid.New().String()
-	build, err := bci.client.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, commit, patches)
+	build, err := bci.client.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, commit, deps, patches)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Failed to start a build")
 	}

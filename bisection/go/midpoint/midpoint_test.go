@@ -102,12 +102,11 @@ func TestDetermineNextCandidate(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(ranges, ShouldBeNil)
 
-			args := next.ToBuildbucketArgs()
-			So(args["git_repo"], ShouldEqual, chromium)
+			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
 
 			// endGitHash is popped off, leaving [1, 2, 3, 4]
 			// and since len == 4, mid index == 2
-			So(args["revision"], ShouldEqual, "3")
+			So(next.Main.GitHash, ShouldEqual, "3")
 		})
 
 		sampleDeps := `
@@ -161,9 +160,8 @@ deps = {
 			// No DEPS roll returns nil, but next should be equal to start
 			So(ranges, ShouldBeNil)
 
-			args := next.ToBuildbucketArgs()
-			So(args["git_repo"], ShouldEqual, chromium)
-			So(args["revision"], ShouldEqual, startGitHash)
+			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
+			So(next.Main.GitHash, ShouldEqual, startGitHash)
 		})
 
 		sampleDeps2 := `
@@ -209,15 +207,14 @@ deps = {
 			So(err, ShouldBeNil)
 
 			// Base Chromium that should be built is using startGitHash.
-			args := next.ToBuildbucketArgs()
-			So(args["git_repo"], ShouldEqual, chromium)
-			So(args["revision"], ShouldEqual, startGitHash)
+			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
+			So(next.Main.GitHash, ShouldEqual, startGitHash)
 
-			overrides := args["deps_revision_overrides"].(map[string]string)
+			overrides := next.ModifiedDeps[0].GitHash
 			// // Next candidate should be 2, since LogLinear returns [3, 2, 1],
 			// // 3 is popped leaving [2, 1]. This is reversed to [1, 2]
 			// // and len()/2 = idx 1, which is commit "2"
-			So(overrides[webrtc], ShouldEqual, "2")
+			So(overrides, ShouldEqual, "2")
 
 			left := ranges.Left
 			So(left.Main.RepositoryUrl, ShouldEqual, chromium)

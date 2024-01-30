@@ -14,6 +14,7 @@ go_library(
     deps = [
         "//go/auth",
         "//go/buildbucket",
+        "//go/deepequal",
         "//go/gitiles",
         "//go/httputils",
         "//go/skerr",

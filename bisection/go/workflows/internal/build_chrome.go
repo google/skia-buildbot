@@ -69,7 +69,7 @@ func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, param
 	}
 
 	activity.RecordHeartbeat(ctx, "kicking off the build.")
-	buildID, err := bc.SearchOrBuild(ctx, params.PinpointJobID, params.Commit, params.Device, params.Target, params.Patch)
+	buildID, err := bc.SearchOrBuild(ctx, params.PinpointJobID, params.Commit, params.Device, params.Target, params.Deps, params.Patch)
 	if err != nil {
 		logger.Error("Failed to build chrome:", err)
 		return 0, err

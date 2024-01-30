@@ -105,7 +105,7 @@ func TestCancelBuild(t *testing.T) {
 	})
 }
 
-func TestGetBuildWithDeps(t *testing.T) {
+func TestGetBuildWithPatches(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -122,7 +122,7 @@ func TestGetBuildWithDeps(t *testing.T) {
 	build2 := createBuild(2, bpb.Status_STARTED, nil, DefaultBucket, builder, patches)
 
 	Convey(`OK`, t, func() {
-		Convey(`E2E`, func() {
+		Convey(`Match found`, func() {
 			ctl := gomock.NewController(t)
 			defer ctl.Finish()
 
@@ -212,6 +212,76 @@ func TestGetBuildWithDeps(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(build, ShouldBeNil)
 		})
+	})
+}
+
+func TestGetBuildWithDeps(t *testing.T) {
+	ctx := context.Background()
+
+	builder := "builder"
+	commit := "12345"
+
+	webrtc := "https://webrtc.googlesource.com/src"
+
+	Convey(`Match using Deps`, t, func() {
+		ctl := gomock.NewController(t)
+		defer ctl.Finish()
+
+		mbc := bpb.NewMockBuildsClient(ctl)
+		c := NewBuildbucketClient(mbc)
+
+		req := c.createSearchBuildRequest(builder, DefaultBucket, commit, nil)
+		So(req.Predicate.Builder.Project, ShouldEqual, ChromeProject)
+
+		depsOverride := map[string]*spb.Value{
+			// ignored
+			"foo": {},
+			// parsed
+			DepsOverrideKey: {
+				Kind: &spb.Value_StructValue{
+					StructValue: &spb.Struct{
+						Fields: map[string]*spb.Value{
+							webrtc: {
+								Kind: &spb.Value_StringValue{
+									StringValue: "1",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		resp := &bpb.SearchBuildsResponse{
+			Builds: []*bpb.Build{
+				{
+					Id:      1,
+					Status:  bpb.Status_SUCCESS,
+					EndTime: timestamppb.New(time.Now().AddDate(0, 1, 0)),
+					Builder: &bpb.BuilderID{
+						Project: ChromeProject,
+						Bucket:  DefaultBucket,
+						Builder: builder,
+					},
+					Input: &bpb.Build_Input{
+						Properties: &spb.Struct{
+							Fields: depsOverride,
+						},
+					},
+				},
+			},
+		}
+		mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
+
+		deps := map[string]interface{}{
+			webrtc: "1",
+		}
+		So(c.findMatchingBuild(resp.GetBuilds(), deps, nil), ShouldNotBeNil)
+
+		build, err := c.GetBuildWithDeps(ctx, builder, DefaultBucket, commit, deps)
+		So(err, ShouldBeNil)
+		So(build.GetId(), ShouldEqual, 1)
+		So(build.Input.GerritChanges, ShouldBeNil)
+		So(build.Input.Properties.Fields[DepsOverrideKey].GetStructValue().AsMap()[webrtc].(string), ShouldEqual, "1")
 	})
 }
 
@@ -430,14 +500,19 @@ func TestStartChromeBuild(t *testing.T) {
 	builder := "Linux Builder Perf"
 	commit := "12345"
 
-	Convey(`OK`, t, func() {
+	Convey(`Schedule Chrome Build w/ DEPS`, t, func() {
 		ctl := gomock.NewController(t)
 		defer ctl.Finish()
 
 		mbc := bpb.NewMockBuildsClient(ctl)
 		c := NewBuildbucketClient(mbc)
 
-		req := c.createChromeBuildRequest("1", "1", builder, commit, nil)
+		webrtc := "https://webrtc.googlesource.com/src"
+		depsMap := map[string]interface{}{
+			webrtc: "1",
+		}
+
+		req := c.createChromeBuildRequest("1", "1", builder, commit, depsMap, nil)
 
 		// Checking defaults
 		So(req.Builder.Project, ShouldEqual, ChromeProject)
@@ -450,9 +525,9 @@ func TestStartChromeBuild(t *testing.T) {
 			Id:     int64(12345),
 			Status: bpb.Status_SCHEDULED,
 		}
-		mbc.EXPECT().ScheduleBuild(ctx, req).Return(resp, nil)
+		mbc.EXPECT().ScheduleBuild(gomock.AssignableToTypeOf(ctx), req).Return(resp, nil)
 
-		build, err := c.StartChromeBuild(ctx, "1", "1", builder, commit, nil)
+		build, err := c.StartChromeBuild(ctx, "1", "1", builder, commit, depsMap, nil)
 		So(err, ShouldBeNil)
 		So(build.Status, ShouldEqual, bpb.Status_SCHEDULED)
 	})

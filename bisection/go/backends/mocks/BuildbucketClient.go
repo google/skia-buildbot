@@ -93,6 +93,36 @@ func (_m *BuildbucketClient) GetBuildStatus(ctx context.Context, buildID int64) 
 	return r0, r1
 }
 
+// GetBuildWithDeps provides a mock function with given fields: ctx, builderName, bucket, commit, deps
+func (_m *BuildbucketClient) GetBuildWithDeps(ctx context.Context, builderName string, bucket string, commit string, deps map[string]interface{}) (*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, builderName, bucket, commit, deps)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBuildWithDeps")
+	}
+
+	var r0 *buildbucketpb.Build
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}) (*buildbucketpb.Build, error)); ok {
+		return rf(ctx, builderName, bucket, commit, deps)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}) *buildbucketpb.Build); ok {
+		r0 = rf(ctx, builderName, bucket, commit, deps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*buildbucketpb.Build)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, map[string]interface{}) error); ok {
+		r1 = rf(ctx, builderName, bucket, commit, deps)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBuildWithPatches provides a mock function with given fields: ctx, builderName, bucket, commit, patches
 func (_m *BuildbucketClient) GetBuildWithPatches(ctx context.Context, builderName string, bucket string, commit string, patches []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, builderName, bucket, commit, patches)
@@ -111,36 +141,6 @@ func (_m *BuildbucketClient) GetBuildWithPatches(ctx context.Context, builderNam
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*buildbucketpb.Build)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, []*buildbucketpb.GerritChange) error); ok {
-		r1 = rf(ctx, builderName, bucket, commit, patches)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetBuilds provides a mock function with given fields: ctx, builderName, bucket, commit, patches
-func (_m *BuildbucketClient) GetBuilds(ctx context.Context, builderName string, bucket string, commit string, patches []*buildbucketpb.GerritChange) ([]*buildbucketpb.Build, error) {
-	ret := _m.Called(ctx, builderName, bucket, commit, patches)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBuilds")
-	}
-
-	var r0 []*buildbucketpb.Build
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, []*buildbucketpb.GerritChange) ([]*buildbucketpb.Build, error)); ok {
-		return rf(ctx, builderName, bucket, commit, patches)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, []*buildbucketpb.GerritChange) []*buildbucketpb.Build); ok {
-		r0 = rf(ctx, builderName, bucket, commit, patches)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*buildbucketpb.Build)
 		}
 	}
 
@@ -183,9 +183,39 @@ func (_m *BuildbucketClient) GetCASReference(ctx context.Context, buildID int64,
 	return r0, r1
 }
 
-// StartChromeBuild provides a mock function with given fields: ctx, pinpointJobID, requestID, builderName, commitHash, patches
-func (_m *BuildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID string, requestID string, builderName string, commitHash string, patches []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error) {
-	ret := _m.Called(ctx, pinpointJobID, requestID, builderName, commitHash, patches)
+// GetSingleBuild provides a mock function with given fields: ctx, builderName, bucket, commit, deps, patches
+func (_m *BuildbucketClient) GetSingleBuild(ctx context.Context, builderName string, bucket string, commit string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, builderName, bucket, commit, deps, patches)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSingleBuild")
+	}
+
+	var r0 *buildbucketpb.Build
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error)); ok {
+		return rf(ctx, builderName, bucket, commit, deps, patches)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) *buildbucketpb.Build); ok {
+		r0 = rf(ctx, builderName, bucket, commit, deps, patches)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*buildbucketpb.Build)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) error); ok {
+		r1 = rf(ctx, builderName, bucket, commit, deps, patches)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// StartChromeBuild provides a mock function with given fields: ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches
+func (_m *BuildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID string, requestID string, builderName string, commitHash string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StartChromeBuild")
@@ -193,19 +223,19 @@ func (_m *BuildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID
 
 	var r0 *buildbucketpb.Build
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error)); ok {
-		return rf(ctx, pinpointJobID, requestID, builderName, commitHash, patches)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error)); ok {
+		return rf(ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, []*buildbucketpb.GerritChange) *buildbucketpb.Build); ok {
-		r0 = rf(ctx, pinpointJobID, requestID, builderName, commitHash, patches)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) *buildbucketpb.Build); ok {
+		r0 = rf(ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*buildbucketpb.Build)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, []*buildbucketpb.GerritChange) error); ok {
-		r1 = rf(ctx, pinpointJobID, requestID, builderName, commitHash, patches)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) error); ok {
+		r1 = rf(ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches)
 	} else {
 		r1 = ret.Error(1)
 	}

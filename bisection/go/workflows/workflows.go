@@ -28,6 +28,9 @@ type BuildChromeParams struct {
 	// Target is name of the build isolate target
 	// e.g. "performance_test_suite".
 	Target string
+	// Deps is a map of url to git hash that's used to override dependencies
+	// defined in DEPS files.
+	Deps map[string]interface{}
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
 }

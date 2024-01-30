@@ -38,18 +38,14 @@ type CombinedCommit struct {
 	ModifiedDeps []*Commit
 }
 
-// ToBuildbucketArgs translates all args to map with Buildbucket supported parameters.
-func (cc *CombinedCommit) ToBuildbucketArgs() map[string]interface{} {
-	ret := map[string]interface{}{
-		"git_repo": cc.Main.RepositoryUrl,
-		"revision": cc.Main.GitHash,
+// TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
+// DepsToMap translates all deps into a map.
+func (cc *CombinedCommit) DepsToMap() map[string]string {
+	resp := make(map[string]string, 0)
+	for _, c := range cc.ModifiedDeps {
+		resp[c.RepositoryUrl] = c.GitHash
 	}
-	overrides := map[string]string{}
-	for _, dep := range cc.ModifiedDeps {
-		overrides[dep.RepositoryUrl] = dep.GitHash
-	}
-	ret["deps_revision_overrides"] = overrides
-	return ret
+	return resp
 }
 
 // CommitRange provides information about the left and right commits used to determine
