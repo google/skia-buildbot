@@ -8,11 +8,11 @@ go_library(
         "kolmogorov_smirnov.go",
         "mann_whitney_u.go",
     ],
-    importpath = "go.skia.org/infra/bisection/go/compare",
+    importpath = "go.skia.org/infra/pinpoint/go/compare",
     visibility = ["//visibility:public"],
     deps = [
-        "//bisection/go/compare/thresholds",
         "//go/skerr",
+        "//pinpoint/go/compare/thresholds",
     ],
 )
 

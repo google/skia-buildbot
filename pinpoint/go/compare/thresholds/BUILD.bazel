@@ -4,7 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "thresholds",
     srcs = ["thresholds.go"],
-    importpath = "go.skia.org/infra/bisection/go/compare/thresholds",
+    importpath = "go.skia.org/infra/pinpoint/go/compare/thresholds",
     visibility = ["//visibility:public"],
 )
 

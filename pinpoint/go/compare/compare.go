@@ -31,8 +31,8 @@
 package compare
 
 import (
-	"go.skia.org/infra/bisection/go/compare/thresholds"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
 // define verdict enums
