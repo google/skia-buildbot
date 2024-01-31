@@ -32,6 +32,7 @@ export interface Alert {
 	sparse: boolean;
 	minimum_num: number;
 	category: string;
+	action?: AlertAction;
 }
 
 export interface AlertsStatus {
@@ -259,6 +260,7 @@ export interface SkPerfConfig {
 	chat_url: string;
 	help_url_override: string;
 	trace_format: TraceFormat;
+	need_alert_action: boolean;
 }
 
 export interface TriageRequest {
@@ -500,6 +502,8 @@ export type StepDetection = '' | 'absolute' | 'const' | 'percent' | 'cohen' | 'm
 export type ConfigState = 'ACTIVE' | 'DELETED';
 
 export type Direction = 'UP' | 'DOWN' | 'BOTH';
+
+export type AlertAction = 'noaction' | 'report' | 'bisect';
 
 export type StepFitStatus = 'Low' | 'High' | 'Uninteresting';
 

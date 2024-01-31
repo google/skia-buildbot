@@ -108,6 +108,7 @@ describe('applyFuncToTraces', () => {
     chat_url: '',
     help_url_override: '',
     trace_format: '',
+    need_alert_action: false,
   };
 
   // Create a common element-sk to be used by all the tests.

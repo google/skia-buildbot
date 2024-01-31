@@ -320,6 +320,7 @@ export class ClusterPageSk extends ElementSk {
         group_by: '',
         minimum_num: 0,
         category: '',
+        action: 'noaction',
       },
       domain: {
         offset: +this.state.offset,

@@ -17,6 +17,7 @@ window.perf = {
   chat_url: '',
   help_url_override: '',
   trace_format: '',
+  need_alert_action: false,
 };
 
 document.querySelector('.component-goes-here')!.innerHTML = `

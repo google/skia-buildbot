@@ -29,7 +29,7 @@ describe('alert-config-sk', () => {
       await testBed.page.click('#hide_group_by');
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-no-group-by');
     });
-    it('shows email control if window.perf.notification html_email', async () => {
+    it('shows email control if window.perf.notification is html_email', async () => {
       await testBed.page.click('#display_email');
       await takeScreenshot(testBed.page, 'perf', 'alert-config-sk-email');
     });
@@ -55,6 +55,14 @@ describe('alert-config-sk', () => {
         testBed.page,
         'perf',
         'alert-config-sk-invalid-component'
+      );
+    });
+    it('shows alert action options if need_alert_action is true', async () => {
+      await testBed.page.click('#show_alert_actions');
+      await takeScreenshot(
+        testBed.page,
+        'perf',
+        'alert-config-sk-alert-actions'
       );
     });
   });

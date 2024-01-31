@@ -112,6 +112,7 @@ func main() {
 		{frame.AllResponseDisplayModes, "FrameResponseDisplayMode"},
 		{notifytypes.AllNotifierTypes, "NotifierTypes"},
 		{config.AllTraceFormats, "TraceFormat"},
+		{types.AllAlertActions, "AlertAction"},
 	})
 
 	generator.AddUnionToNamespace(progress.AllStatus, "progress")

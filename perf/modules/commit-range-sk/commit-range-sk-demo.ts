@@ -22,6 +22,7 @@ window.perf = {
   chat_url: '',
   help_url_override: '',
   trace_format: '',
+  need_alert_action: false,
 };
 
 // The response to a POST of [64809, 64811] to /_/cid/.

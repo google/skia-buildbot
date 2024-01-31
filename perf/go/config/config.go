@@ -762,6 +762,8 @@ type InstanceConfig struct {
 	// trace information for the instance.
 	TraceFormat TraceFormat `json:"trace_format,omitempty"`
 
+	NeedAlertAction bool `json:"need_alert_action,omitempty"`
+
 	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`

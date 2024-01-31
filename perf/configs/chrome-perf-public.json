@@ -85,5 +85,6 @@
             "summary": "true"
         }
     },
-    "trace_format": "chrome"
+    "trace_format": "chrome",
+    "need_alert_action": true
 }

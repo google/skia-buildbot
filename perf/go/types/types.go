@@ -175,3 +175,28 @@ type ProgressCallback func(message string)
 // CL is the identifier for a change list, or pull request in GitHub
 // lingo.
 type CL string
+
+// AlertAction defines the action to trigger.
+type AlertAction string
+
+const (
+	// NoAction means no action is needed for anomalies detected by this alert.
+	NoAction AlertAction = "noaction"
+
+	// Report means the anomalies detected by this alert should only create a
+	// new issue or update an existing one.
+	FileIssue AlertAction = "report"
+
+	// Bisect means the anomalies detected by this alert should trigger a
+	// bisection job to drill down to the culprit.
+	Bisection AlertAction = "bisect"
+)
+
+var (
+	// AllStepDetections is a list of all valid StepDetections.
+	AllAlertActions = []AlertAction{
+		NoAction,
+		FileIssue,
+		Bisection,
+	}
+)

@@ -461,6 +461,7 @@ window.perf = {
   chat_url: '',
   help_url_override: '',
   trace_format: 'chrome',
+  need_alert_action: false,
 };
 
 customElements.whenDefined('explore-sk').then(() => {

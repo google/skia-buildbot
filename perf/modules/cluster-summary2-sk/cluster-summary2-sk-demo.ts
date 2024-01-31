@@ -65,6 +65,7 @@ const alert: Alert = {
   group_by: '',
   minimum_num: 0,
   category: '',
+  action: 'noaction',
 };
 
 const summary: ClusterSummary = {

@@ -90,6 +90,9 @@ class AlertsPageSk extends ElementSk {
         <th>Name</th>
         <th>Query</th>
         <th>${AlertsPageSk.alertOrComponentHeader()}</th>
+        ${window.perf.need_alert_action === true
+          ? html` <th>Action</th> `
+          : html``}
         <th>Owner</th>
         <th></th>
         <th></th>
@@ -132,6 +135,9 @@ class AlertsPageSk extends ElementSk {
             <paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk>
           </td>
           <td>${AlertsPageSk.alertOrComponent(item)}</td>
+          ${window.perf.need_alert_action === true
+            ? html` <td>${item.action ?? 'noaction'}</td> `
+            : html``}
           <td>${item.owner}</td>
           <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
           <td>

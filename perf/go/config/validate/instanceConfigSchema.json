@@ -233,6 +233,9 @@
         "trace_format": {
           "type": "string"
         },
+        "need_alert_action": {
+          "type": "boolean"
+        },
         "auth_config": {
           "$ref": "#/$defs/AuthConfig"
         },

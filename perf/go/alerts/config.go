@@ -148,6 +148,9 @@ type Alert struct {
 	Sparse            bool      `json:"sparse"     ` // Data is sparse, so only include commits that have data.
 	MinimumNum        int       `json:"minimum_num"` // How many traces need to be found interesting before an alert is fired.
 	Category          string    `json:"category"   ` // Which category this alert falls into.
+
+	// Action to take for this alert. It could be none, report or bisect.
+	Action types.AlertAction `json:"action,omitempty"` // What action should be taken by the detected anomalies.
 }
 
 type AlertsStatus struct {

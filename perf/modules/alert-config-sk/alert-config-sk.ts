@@ -30,6 +30,7 @@ import {
   TryBugRequest,
   TryBugResponse,
   SerializesToString,
+  AlertAction,
 } from '../json';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
@@ -140,6 +141,7 @@ export class AlertConfigSk extends ElementSk {
       minimum_num: 0,
       category: 'Experimental',
       step: '',
+      action: 'noaction',
     };
   }
 
@@ -281,6 +283,34 @@ export class AlertConfigSk extends ElementSk {
         (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
       label="Data is sparse, so only include commits that have data."></checkbox-sk>
 
+    ${window.perf.need_alert_action === true
+      ? html`
+          <h3>What action to take</h3>
+          <label for="action">
+            Choose the action to take if a regression has occurred.
+          </label>
+          <select-sk
+            id="action"
+            @selection-changed=${ele.alertActionChanged}
+            .selection=${ele._config.action === 'report'
+              ? 1
+              : ele._config.action === 'bisect'
+                ? 2
+                : 0}>
+            <div
+              value="noaction"
+              ?selected=${ele._config.action === 'noaction'}>
+              No action.
+            </div>
+            <div value="report" ?selected=${ele._config.action === 'report'}>
+              File an issue and assign to corresponding component.
+            </div>
+            <div value="bisect" ?selected=${ele._config.action === 'bisect'}>
+              Run Pinpoint Bisection and file an issue if culprit CL is found.
+            </div>
+          </select-sk>
+        `
+      : html``}
     ${window.perf.notifications === 'html_email'
       ? html`
           <h3>Where are alerts sent</h3>
@@ -436,6 +466,16 @@ export class AlertConfigSk extends ElementSk {
       e.detail.selection
     ].getAttribute('value');
     this._config.step = valueAsString as StepDetection;
+    this._render();
+  }
+
+  private alertActionChanged(
+    e: CustomEvent<SelectSkSelectionChangedEventDetail>
+  ) {
+    const valueAsString = (e.target! as HTMLDivElement).children[
+      e.detail.selection
+    ].getAttribute('value');
+    this._config.action = valueAsString as AlertAction;
     this._render();
   }
 

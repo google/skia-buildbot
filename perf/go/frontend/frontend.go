@@ -260,6 +260,7 @@ type SkPerfConfig struct {
 	ChatURL                    string             `json:"chat_url"`                        // The URL for the Ask the Team link
 	HelpURLOverride            string             `json:"help_url_override"`               // If specified, this URL will override the help link
 	TraceFormat                config.TraceFormat `json:"trace_format"`                    // Trace formatter to use
+	NeedAlertAction            bool               `json:"need_alert_action"`               // Action to take for the alert.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -284,6 +285,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		ChatURL:                    config.Config.ChatURL,
 		HelpURLOverride:            config.Config.HelpURLOverride,
 		TraceFormat:                config.Config.TraceFormat,
+		NeedAlertAction:            config.Config.NeedAlertAction,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

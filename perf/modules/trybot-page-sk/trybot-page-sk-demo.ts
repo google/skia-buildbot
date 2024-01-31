@@ -23,6 +23,7 @@ window.perf = {
   chat_url: '',
   help_url_override: '',
   trace_format: '',
+  need_alert_action: false,
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

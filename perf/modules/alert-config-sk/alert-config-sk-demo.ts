@@ -7,6 +7,7 @@ window.perf = window.perf || {};
 window.perf.key_order = [];
 window.perf.display_group_by = true;
 window.perf.notifications = 'none';
+window.perf.need_alert_action = false;
 
 // Force all the alert-config-sk controls on the page to re-render.
 const refreshControls = () => {
@@ -59,6 +60,7 @@ const config: Alert = {
   group_by: 'config,units',
   radius: 7,
   k: 50,
+  action: 'bisect',
 };
 
 $$('#display_group_by')!.addEventListener('click', () => {
@@ -89,6 +91,11 @@ $$('#hide_notification')!.addEventListener('click', () => {
 $$('#invalid_component')!.addEventListener('click', () => {
   window.perf.notifications = 'markdown_issuetracker';
   config.issue_tracker_component = SerializesToString('abcdef');
+  refreshControls();
+});
+$$('#show_alert_actions')!.addEventListener('click', () => {
+  window.perf.need_alert_action = true;
+  config.issue_tracker_component = SerializesToString('1113162');
   refreshControls();
 });
 

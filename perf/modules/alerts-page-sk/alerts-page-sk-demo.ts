@@ -46,6 +46,7 @@ fetchMock.get('/_/alert/list/false', (): Alert[] => [
     sparse: false,
     minimum_num: 0,
     category: ' ',
+    action: 'noaction',
   },
 ]);
 
@@ -71,6 +72,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     sparse: false,
     minimum_num: 0,
     category: ' ',
+    action: 'noaction',
   },
   {
     id_as_string: '2',
@@ -92,6 +94,7 @@ fetchMock.get('/_/alert/list/true', (): Alert[] => [
     sparse: false,
     minimum_num: 0,
     category: 'Stuff',
+    action: 'noaction',
   },
 ]);
 
@@ -169,6 +172,7 @@ fetchMock.get(
     sparse: false,
     minimum_num: 0,
     category: 'Experimental',
+    action: 'noaction',
   })
 );
 

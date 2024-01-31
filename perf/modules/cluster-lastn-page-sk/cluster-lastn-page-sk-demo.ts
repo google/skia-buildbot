@@ -76,6 +76,7 @@ const alert: Alert = {
   group_by: '',
   radius: 7,
   k: 50,
+  action: 'noaction',
 };
 
 fetchMock.get('/_/alert/new', alert);
