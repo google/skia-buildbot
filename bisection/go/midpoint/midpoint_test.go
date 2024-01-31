@@ -217,16 +217,16 @@ deps = {
 			So(overrides, ShouldEqual, "2")
 
 			left := ranges.Left
-			So(left.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(left.Main.GitHash, ShouldEqual, startGitHash)
+			So(ranges.Left.Main.RepositoryUrl, ShouldEqual, chromium)
+			So(ranges.Left.Main.GitHash, ShouldEqual, startGitHash)
 			leftDeps := left.ModifiedDeps
 			So(len(leftDeps), ShouldEqual, 1)
 			So(leftDeps[0].RepositoryUrl, ShouldEqual, webrtc)
 			So(leftDeps[0].GitHash, ShouldEqual, wStartGitHash)
 
 			right := ranges.Right
-			So(right.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(right.Main.GitHash, ShouldEqual, startGitHash)
+			So(ranges.Right.Main.RepositoryUrl, ShouldEqual, chromium)
+			So(ranges.Right.Main.GitHash, ShouldEqual, startGitHash)
 			rightDeps := right.ModifiedDeps
 			So(len(rightDeps), ShouldEqual, 1)
 			So(rightDeps[0].RepositoryUrl, ShouldEqual, webrtc)

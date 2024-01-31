@@ -31,7 +31,7 @@ type Commit struct {
 // overrides as part of the build request.
 // For example, if Commit is chromium/src@1, Dependency may be V8@2 which is passed
 // along to Buildbucket as a deps_revision_overrides.
-type CombinedCommit struct {
+type combinedCommit struct {
 	// Main is the main base commit, usually a Chromium commit.
 	Main *Commit
 	// ModifiedDeps is a list of commits to provide as overrides, ie/ V8.
@@ -40,7 +40,7 @@ type CombinedCommit struct {
 
 // TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
 // DepsToMap translates all deps into a map.
-func (cc *CombinedCommit) DepsToMap() map[string]string {
+func (cc *combinedCommit) DepsToMap() map[string]string {
 	resp := make(map[string]string, 0)
 	for _, c := range cc.ModifiedDeps {
 		resp[c.RepositoryUrl] = c.GitHash
@@ -48,11 +48,42 @@ func (cc *CombinedCommit) DepsToMap() map[string]string {
 	return resp
 }
 
+// GetMainGitHash returns the git hash of main.
+func (cc *combinedCommit) GetMainGitHash() string {
+	if cc.Main == nil {
+		return ""
+	}
+
+	return cc.Main.GitHash
+}
+
+func NewCombinedCommit(main *Commit, deps ...*Commit) *combinedCommit {
+	return &combinedCommit{
+		Main:         main,
+		ModifiedDeps: deps,
+	}
+}
+
 // CommitRange provides information about the left and right commits used to determine
 // the next commit to bisect against.
 type CommitRange struct {
-	Left  *CombinedCommit
-	Right *CombinedCommit
+	Left  *combinedCommit
+	Right *combinedCommit
+}
+
+// HasLeftGitHash checks if left main git hash is set.
+func (cr *CommitRange) HasLeftGitHash() bool {
+	return cr.Left.Main.GitHash != ""
+}
+
+// HasRightGitHash checks if left main git hash is set
+func (cr *CommitRange) HasRightGitHash() bool {
+	return cr.Right.Main.GitHash != ""
+}
+
+type MidpointHandler interface {
+	// DetermineNextCandidate returns the next target for bisection for the provided url, inbetween the start and end git hashes.
+	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*combinedCommit, *CommitRange, error)
 }
 
 // MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
@@ -80,12 +111,12 @@ func (m *midpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *midpointH
 // getOrCreateRepo fetches the gitiles.GitilesRepo object for the repository url.
 // If not present, it'll create an authenticated Repo client.
 func (m *midpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
-	gc, ok := m.repos[url]
+	gr, ok := m.repos[url]
 	if !ok {
-		r := gitiles.NewRepo(url, m.c)
-		m.repos[url] = r
+		gr := gitiles.NewRepo(url, m.c)
+		m.repos[url] = gr
 	}
-	return gc
+	return gr
 }
 
 // findMidpoint identiifes the median commit given a start and ending git hash.
@@ -223,18 +254,18 @@ func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitH
 // If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
 // the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built
 // on top of the Chromium commit specified as a deps override.
-func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error) {
+func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*combinedCommit, *CommitRange, error) {
 	nextCommitHash, err := m.findMidpoint(ctx, baseUrl, startGitHash, endGitHash)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	base := &CombinedCommit{
-		Main: &Commit{
+	base := NewCombinedCommit(
+		&Commit{
 			RepositoryUrl: baseUrl,
 			GitHash:       nextCommitHash,
 		},
-	}
+	)
 
 	// We use HasPrefix because nextCommitHash will always be the full SHA git hash,
 	// but the provided startGitHash may be a short SHA.
@@ -258,27 +289,23 @@ func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, s
 			cr := &CommitRange{}
 
 			if left != nil {
-				cr.Left = &CombinedCommit{
-					Main: &Commit{
+				cr.Left = NewCombinedCommit(
+					&Commit{
 						RepositoryUrl: baseUrl,
 						GitHash:       nextCommitHash,
 					},
-					ModifiedDeps: []*Commit{
-						left,
-					},
-				}
+					left,
+				)
 			}
 
 			if right != nil {
-				cr.Right = &CombinedCommit{
-					Main: &Commit{
+				cr.Right = NewCombinedCommit(
+					&Commit{
 						RepositoryUrl: baseUrl,
 						GitHash:       nextCommitHash,
 					},
-					ModifiedDeps: []*Commit{
-						right,
-					},
-				}
+					right,
+				)
 			}
 
 			return base, cr, nil
