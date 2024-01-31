@@ -3,18 +3,33 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "bot_configs",
-    srcs = ["bot_configs.go"],
+    srcs = [
+        "bot_configs.go",
+        "isolate_targets.go",
+    ],
     embedsrcs = [
         "external.json",
         "internal.json",
+        "isolate_targets.yaml",
     ],
     importpath = "go.skia.org/infra/bisection/go/bot_configs",
     visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@in_gopkg_yaml_v3//:yaml_v3",
+    ],
 )
 
 go_test(
     name = "bot_configs_test",
-    srcs = ["bot_configs_test.go"],
+    srcs = [
+        "bot_configs_test.go",
+        "isolate_targets_test.go",
+    ],
     embed = [":bot_configs"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "@com_github_smartystreets_goconvey//convey",
+        "@com_github_stretchr_testify//assert",
+        "@org_chromium_go_luci//common/testing/assertions",
+    ],
 )
