@@ -130,13 +130,13 @@ http_archive(
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
 http_archive(
     name = "googleapis",
-    build_file = "BUILD.googleapis",
-    sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
-    strip_prefix = "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d",
+    build_file = "//bazel/external:googleapis.BUILD",
+    sha256 = "b28c13e99001664eac5f1fb81b44d912d19fbc041e30772263251da131f6573c",
+    strip_prefix = "googleapis-bb964feba5980ed70c9fb8f84fe6e86694df65b0",
     urls = gcs_mirror_url(
-        sha256 = "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d",
+        sha256 = "b28c13e99001664eac5f1fb81b44d912d19fbc041e30772263251da131f6573c",
         # b/267219467
-        url = "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip",
+        url = "https://github.com/googleapis/googleapis/archive/bb964feba5980ed70c9fb8f84fe6e86694df65b0.zip",
     ),
 )
 

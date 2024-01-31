@@ -3,10 +3,12 @@
 _SCRIPT_TEMPLATE = """
 # Find the directories where each of the four binaries are located.
 PROTOC_PATH=$$(realpath $$(dirname $(rootpath {protoc_label})))
-PROTOC_GEN_GO_PATH=$$(realpath $$(dirname \\
-    $(rootpath @org_golang_google_protobuf//cmd/protoc-gen-go)))
+PROTOC_GEN_GO_GRPC_GATEWAY_PATH=$$(realpath $$(dirname \\
+    $(rootpath @com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway)))
 PROTOC_GEN_GO_GRPC_PATH=$$(realpath $$(dirname \\
     $(rootpath @org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc)))
+PROTOC_GEN_GO_PATH=$$(realpath $$(dirname \\
+    $(rootpath @org_golang_google_protobuf//cmd/protoc-gen-go)))
 PROTOC_GEN_TWIRP_PATH=$$(realpath $$(dirname \\
     $(rootpath @com_github_twitchtv_twirp//protoc-gen-twirp)))
 PROTOC_GEN_TWIRP_TYPESCRIPT_PATH=$$(realpath $$(dirname \\
@@ -14,8 +16,10 @@ PROTOC_GEN_TWIRP_TYPESCRIPT_PATH=$$(realpath $$(dirname \\
 
 # Add binaries to PATH.
 export PATH=$$PROTOC_PATH:$$PATH
-export PATH=$$PROTOC_GEN_GO_PATH:$$PATH
+
+export PATH=$$PROTOC_GEN_GO_GRPC_GATEWAY_PATH:$$PATH
 export PATH=$$PROTOC_GEN_GO_GRPC_PATH:$$PATH
+export PATH=$$PROTOC_GEN_GO_PATH:$$PATH
 export PATH=$$PROTOC_GEN_TWIRP_PATH:$$PATH
 export PATH=$$PROTOC_GEN_TWIRP_TYPESCRIPT_PATH:$$PATH
 
@@ -34,10 +38,11 @@ protoc $$@
         ),
         exec_tools = [
             protoc_label,
-            "@org_golang_google_protobuf//cmd/protoc-gen-go",
-            "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
+            "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
             "@com_github_twitchtv_twirp//protoc-gen-twirp",
             "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
+            "@org_golang_google_protobuf//cmd/protoc-gen-go",
+            "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
         ],
     )
     for script_suffix, protoc_label in [
@@ -81,6 +86,7 @@ sh_binary(
     }) +
     # These Go binaries will be compiled for the correct execution platform.
     [
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
         "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
         "@com_github_twitchtv_twirp//protoc-gen-twirp",
         "@org_golang_google_protobuf//cmd/protoc-gen-go",
