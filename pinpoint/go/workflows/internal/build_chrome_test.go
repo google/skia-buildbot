@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/bisection/go/workflows"
+	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"github.com/stretchr/testify/require"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"

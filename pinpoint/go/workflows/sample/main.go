@@ -8,8 +8,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/bisection/go/workflows"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 )

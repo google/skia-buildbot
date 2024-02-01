@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	"go.skia.org/infra/bisection/go/workflows"
-	"go.skia.org/infra/bisection/go/workflows/internal"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/workflows"
+	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"

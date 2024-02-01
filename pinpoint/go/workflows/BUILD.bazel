@@ -1,9 +1,9 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "workflows_lib",
+    name = "workflows",
     srcs = ["workflows.go"],
-    importpath = "go.skia.org/infra/bisection/go/workflows",
+    importpath = "go.skia.org/infra/pinpoint/go/workflows",
     visibility = ["//visibility:public"],
     deps = ["@org_chromium_go_luci//buildbucket/proto"],
 )

@@ -4,12 +4,12 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "internal",
     srcs = ["build_chrome.go"],
-    importpath = "go.skia.org/infra/bisection/go/workflows/internal",
-    visibility = ["//bisection/go/workflows:__subpackages__"],
+    importpath = "go.skia.org/infra/pinpoint/go/workflows/internal",
+    visibility = ["//pinpoint/go/workflows:__subpackages__"],
     deps = [
         "//bisection/go/build_chrome",
-        "//bisection/go/workflows:workflows_lib",
         "//go/skerr",
+        "//pinpoint/go/workflows",
         "@io_temporal_go_sdk//activity",
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
@@ -23,7 +23,7 @@ go_test(
     srcs = ["build_chrome_test.go"],
     embed = [":internal"],
     deps = [
-        "//bisection/go/workflows:workflows_lib",
+        "//pinpoint/go/workflows",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//testsuite",
