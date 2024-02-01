@@ -6,9 +6,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/bisection/go/pinpoint"
-	"go.skia.org/infra/bisection/go/read_values"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/read_values"
 )
 
 // default flag for

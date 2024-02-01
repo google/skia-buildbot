@@ -7,9 +7,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//bisection/go/pinpoint",
-        "//bisection/go/read_values",
         "//go/skerr",
         "//go/sklog",
+        "//pinpoint/go/read_values",
         "@com_github_davecgh_go_spew//spew",
     ],
 )

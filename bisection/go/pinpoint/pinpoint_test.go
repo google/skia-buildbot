@@ -7,7 +7,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	. "go.chromium.org/luci/common/testing/assertions"
-	"go.skia.org/infra/bisection/go/read_values"
+	"go.skia.org/infra/pinpoint/go/read_values"
 )
 
 func defaultRunRequest() PinpointRunRequest {

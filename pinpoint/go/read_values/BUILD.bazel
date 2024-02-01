@@ -4,7 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "read_values",
     srcs = ["read_values.go"],
-    importpath = "go.skia.org/infra/bisection/go/read_values",
+    importpath = "go.skia.org/infra/pinpoint/go/read_values",
     visibility = ["//visibility:public"],
     deps = [
         "//cabe/go/backends",

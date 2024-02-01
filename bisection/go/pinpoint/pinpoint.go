@@ -6,10 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/bisection/go/bot_configs"
-	"go.skia.org/infra/bisection/go/read_values"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/read_values"
 	"golang.org/x/oauth2/google"
 )
 
