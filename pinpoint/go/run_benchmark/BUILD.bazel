@@ -7,7 +7,7 @@ go_library(
         "run_benchmark.go",
         "telemetry_exp.go",
     ],
-    importpath = "go.skia.org/infra/bisection/go/run_benchmark",
+    importpath = "go.skia.org/infra/pinpoint/go/run_benchmark",
     visibility = ["//visibility:public"],
     deps = [
         "//bisection/go/bot_configs",
