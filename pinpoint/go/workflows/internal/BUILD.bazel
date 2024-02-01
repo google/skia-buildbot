@@ -7,8 +7,8 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows/internal",
     visibility = ["//pinpoint/go/workflows:__subpackages__"],
     deps = [
-        "//bisection/go/build_chrome",
         "//go/skerr",
+        "//pinpoint/go/build_chrome",
         "//pinpoint/go/workflows",
         "@io_temporal_go_sdk//activity",
         "@io_temporal_go_sdk//temporal",

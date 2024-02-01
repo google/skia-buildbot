@@ -4,7 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "build_chrome",
     srcs = ["build_chrome.go"],
-    importpath = "go.skia.org/infra/bisection/go/build_chrome",
+    importpath = "go.skia.org/infra/pinpoint/go/build_chrome",
     visibility = ["//visibility:public"],
     deps = [
         "//bisection/go/bot_configs",

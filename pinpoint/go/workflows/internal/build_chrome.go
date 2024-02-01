@@ -7,8 +7,8 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/bisection/go/build_chrome"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/build_chrome"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
