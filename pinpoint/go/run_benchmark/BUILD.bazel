@@ -10,11 +10,11 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/run_benchmark",
     visibility = ["//visibility:public"],
     deps = [
-        "//bisection/go/bot_configs",
         "//cabe/go/backends",
         "//go/skerr",
         "//go/swarming",
         "//go/util",
+        "//pinpoint/go/bot_configs",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
@@ -27,9 +27,9 @@ go_test(
     ],
     embed = [":run_benchmark"],
     deps = [
-        "//bisection/go/bot_configs",
         "//go/skerr",
         "//go/swarming/mocks",
+        "//pinpoint/go/bot_configs",
         "@com_github_smartystreets_goconvey//convey",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",

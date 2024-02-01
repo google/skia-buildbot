@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	. "go.chromium.org/luci/common/testing/assertions"
-	"go.skia.org/infra/bisection/go/bot_configs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 )
 
 var req = RunBenchmarkRequest{

@@ -7,12 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/build_chrome",
     visibility = ["//visibility:public"],
     deps = [
-        "//bisection/go/bot_configs",
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//pinpoint/go/backends",
+        "//pinpoint/go/bot_configs",
         "@com_github_google_uuid//:uuid",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",

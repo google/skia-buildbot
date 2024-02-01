@@ -11,12 +11,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"go.skia.org/infra/bisection/go/bot_configs"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/backends"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"golang.org/x/oauth2/google"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"

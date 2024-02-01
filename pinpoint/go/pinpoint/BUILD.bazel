@@ -7,10 +7,10 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/pinpoint",
     visibility = ["//visibility:public"],
     deps = [
-        "//bisection/go/bot_configs",
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
+        "//pinpoint/go/bot_configs",
         "//pinpoint/go/read_values",
         "@com_github_google_uuid//:uuid",
         "@org_golang_x_oauth2//google",

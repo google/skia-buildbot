@@ -12,10 +12,10 @@ import (
 	"time"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/bisection/go/bot_configs"
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test
