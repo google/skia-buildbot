@@ -197,13 +197,22 @@ type processedExperimentTasks struct {
 }
 
 // returns a list of task pairs, where pairs are identified by botID and start time for the task.
-func (a *processedExperimentTasks) pairedTasks() ([]pairedTasks, error) {
+func (a *processedExperimentTasks) pairedTasks(excludedSwarmingTasks map[string]*SwarmingTaskDiagnostics) ([]pairedTasks, error) {
 	ret := []pairedTasks{}
 	sort.Sort(byPairingOrder(a.control.tasks))
 	sort.Sort(byPairingOrder(a.treatment.tasks))
 
 	for i, c := range a.control.tasks {
 		t := a.treatment.tasks[i]
+		if _, ok := excludedSwarmingTasks[c.taskID]; ok {
+			sklog.Warningf("Exclude swarming tasks: %s and %s, since the control task %s is in the exclude list", c.taskID, t.taskID, c.taskID)
+			continue
+		}
+		if _, ok := excludedSwarmingTasks[t.taskID]; ok {
+			sklog.Warningf("Exclude swarming tasks: %s and %s, since the treatment task %s is in the exclude list", c.taskID, t.taskID, t.taskID)
+			continue
+		}
+
 		if c.taskInfo.TaskResult.BotId != t.taskInfo.TaskResult.BotId {
 			return nil, fmt.Errorf("bot ID mismatch for pair %d: %q vs %q", i, c.taskInfo.TaskResult.BotId, t.taskInfo.TaskResult.BotId)
 		}
@@ -215,6 +224,7 @@ func (a *processedExperimentTasks) pairedTasks() ([]pairedTasks, error) {
 		}
 		ret = append(ret, pairedTasks{c, t})
 	}
+
 	return ret, nil
 }
 

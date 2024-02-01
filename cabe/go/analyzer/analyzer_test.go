@@ -416,7 +416,7 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 
 	res, err := a.Run(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), 1)
+	assert.Equal(t, 1, len(res))
 
 	expectedResults := &cpb.Statistic{
 		Upper:           54.461149,
@@ -426,7 +426,7 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 		TreatmentMedian: 7824.926500,
 	}
 	gotAnalysisResults := a.AnalysisResults()
-	assert.Equal(t, len(gotAnalysisResults), 1)
+	assert.Equal(t, 1, len(gotAnalysisResults))
 
 	diff := cmp.Diff(expectedResults, gotAnalysisResults[0].Statistic,
 		cmpopts.EquateEmpty(),
@@ -437,7 +437,7 @@ func TestRun_withReplayBackends_tasksNotComplete(t *testing.T) {
 	diag := a.Diagnostics()
 	assert.NotNil(t, diag)
 	assert.Equal(t, 4, len(diag.ExcludedSwarmingTasks))
-	assert.Equal(t, 2, len(diag.ExcludedReplicas))
+	assert.Equal(t, 0, len(diag.ExcludedReplicas))
 	assert.Equal(t, 16, len(diag.IncludedSwarmingTasks))
 	assert.Equal(t, 8, len(diag.IncludedReplicas))
 }

@@ -186,7 +186,7 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 
 	// TODO(seanmccullough): include pairing order information so we keep track of which arm executed first in
 	// every pairing.
-	pairs, err := processedArms.pairedTasks()
+	pairs, err := processedArms.pairedTasks(a.diagnostics.ExcludedSwarmingTasks)
 	if err != nil {
 		return res, err
 	}
@@ -357,7 +357,7 @@ func (a *Analyzer) RunChecker(ctx context.Context, c Checker) error {
 		return err
 	}
 
-	pairs, err := processedTasks.pairedTasks()
+	pairs, err := processedTasks.pairedTasks(a.diagnostics.ExcludedSwarmingTasks)
 	if err != nil {
 		sklog.Errorf("RunChecker: processedTasks.pairedTasks() returned %v", err)
 		return err
@@ -535,8 +535,9 @@ func (a *Analyzer) processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTask
 		// binaries for running benchmarks. So we need to keep track of it for BuildSpec details later.
 		buildInfo, err := buildInfoForTask(task)
 		if err != nil {
-			sklog.Errorf("task.buildInfo(): %v", err)
-			return nil, err
+			msg := fmt.Sprintf("task.buildInfo(): %v", err)
+			sklog.Error(msg)
+			a.diagnostics.excludeSwarmingTask(task, msg)
 		}
 		if buildInfo != nil {
 			buildTasks[task.TaskId] = buildInfo
@@ -547,8 +548,9 @@ func (a *Analyzer) processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTask
 		// err should not be nil if the task is not a run task.
 		runInfo, err := runInfoForTask(task)
 		if err != nil {
-			sklog.Errorf("runInfoForTask: %v", err)
-			return nil, err
+			msg := fmt.Sprintf("runInfoForTask: %v", err)
+			sklog.Error(msg)
+			a.diagnostics.excludeSwarmingTask(task, msg)
 		}
 
 		if task.TaskResult.State != taskCompletedState {
