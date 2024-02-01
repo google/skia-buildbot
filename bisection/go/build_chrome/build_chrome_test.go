@@ -12,9 +12,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"go.skia.org/infra/bisection/go/backends"
-	"go.skia.org/infra/bisection/go/backends/mocks"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/pinpoint/go/backends"
+	"go.skia.org/infra/pinpoint/go/backends/mocks"
 )
 
 func TestSearchBuild(t *testing.T) {

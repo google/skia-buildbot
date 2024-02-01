@@ -29,7 +29,7 @@ packages:
   go.skia.org/infra/autoroll/go/unthrottle:
     interfaces:
       Throttle:
-  go.skia.org/infra/bisection/go/backends:
+  go.skia.org/infra/pinpoint/go/backends:
     interfaces:
       BuildbucketClient:
   go.skia.org/infra/bugs-central/go/types:

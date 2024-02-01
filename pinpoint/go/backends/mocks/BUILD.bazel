@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = ["BuildbucketClient.go"],
-    importpath = "go.skia.org/infra/bisection/go/backends/mocks",
+    importpath = "go.skia.org/infra/pinpoint/go/backends/mocks",
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_stretchr_testify//mock",

@@ -9,7 +9,7 @@ go_library(
         "gitiles.go",
         "waterfall_map.go",
     ],
-    importpath = "go.skia.org/infra/bisection/go/backends",
+    importpath = "go.skia.org/infra/pinpoint/go/backends",
     visibility = ["//visibility:public"],
     deps = [
         "//go/auth",
