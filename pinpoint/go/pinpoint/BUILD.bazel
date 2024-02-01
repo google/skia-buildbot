@@ -4,7 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "pinpoint",
     srcs = ["pinpoint.go"],
-    importpath = "go.skia.org/infra/bisection/go/pinpoint",
+    importpath = "go.skia.org/infra/pinpoint/go/pinpoint",
     visibility = ["//visibility:public"],
     deps = [
         "//bisection/go/bot_configs",

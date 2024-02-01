@@ -5,9 +5,9 @@ import (
 	"flag"
 
 	"github.com/davecgh/go-spew/spew"
-	"go.skia.org/infra/bisection/go/pinpoint"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/pinpoint"
 	"go.skia.org/infra/pinpoint/go/read_values"
 )
 

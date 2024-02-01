@@ -6,9 +6,9 @@ This application is WIP and intended to locally test the Pinpoint job workflow.
 
 ## Usage
 
-- `bazelisk run //bisection/go/cmd` runs the `pinpoint.Run()` with default flags.
+- `bazelisk run //pinpoint/go/cmd` runs the `pinpoint.Run()` with default flags.
   Default flags based off of existing Pinpoint jobs are below.
-- `bazelisk run //bisection/go/cmd -- -id=<id>` sets the jobID to `<id>`.
+- `bazelisk run //pinpoint/go/cmd -- -id=<id>` sets the jobID to `<id>`.
   Pinpoint jobs can recycle the swarming tasks of a previous job with the same job ID.
   This can be useful if you want to quickly navigate through the Pinpoint job workflow
   without having to wait for new swarming tasks to run.

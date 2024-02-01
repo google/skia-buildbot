@@ -3,12 +3,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "cmd_lib",
     srcs = ["cmd.go"],
-    importpath = "go.skia.org/infra/bisection/go/cmd",
+    importpath = "go.skia.org/infra/pinpoint/go/cmd",
     visibility = ["//visibility:private"],
     deps = [
-        "//bisection/go/pinpoint",
         "//go/skerr",
         "//go/sklog",
+        "//pinpoint/go/pinpoint",
         "//pinpoint/go/read_values",
         "@com_github_davecgh_go_spew//spew",
     ],
