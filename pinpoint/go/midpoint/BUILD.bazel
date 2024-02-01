@@ -7,7 +7,7 @@ go_library(
         "doc.go",
         "midpoint.go",
     ],
-    importpath = "go.skia.org/infra/bisection/go/midpoint",
+    importpath = "go.skia.org/infra/pinpoint/go/midpoint",
     visibility = ["//visibility:public"],
     deps = [
         "//go/depot_tools/deps_parser",
