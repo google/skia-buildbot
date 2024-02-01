@@ -148,6 +148,7 @@ func (b *buildbucketClient) createSearchBuildRequest(builderName, bucket, commit
 					"input.gerrit_changes",
 					"input.properties",
 					"output.properties",
+					"end_time",
 				},
 			},
 		},
