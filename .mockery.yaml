@@ -29,9 +29,6 @@ packages:
   go.skia.org/infra/autoroll/go/unthrottle:
     interfaces:
       Throttle:
-  go.skia.org/infra/pinpoint/go/backends:
-    interfaces:
-      BuildbucketClient:
   go.skia.org/infra/bugs-central/go/types:
     interfaces:
       BugsDB:
@@ -92,6 +89,12 @@ packages:
   go.skia.org/infra/go/now:
     interfaces:
       TimeTicker:
+  go.skia.org/infra/pinpoint/go/backends:
+    interfaces:
+      BuildbucketClient:
+  go.skia.org/infra/pinpoint/go/build_chrome:
+    interfaces:
+      BuildChromeClient:
   go.skia.org/infra/go/pubsub:
     config:
       replace-type:

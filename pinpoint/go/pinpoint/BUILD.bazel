@@ -11,8 +11,12 @@ go_library(
         "//go/httputils",
         "//go/skerr",
         "//pinpoint/go/bot_configs",
+        "//pinpoint/go/build_chrome",
+        "//pinpoint/go/midpoint",
         "//pinpoint/go/read_values",
         "@com_github_google_uuid//:uuid",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_golang_x_oauth2//google",
     ],
 )
@@ -22,8 +26,13 @@ go_test(
     srcs = ["pinpoint_test.go"],
     embed = [":pinpoint"],
     deps = [
+        "//go/skerr",
+        "//pinpoint/go/build_chrome/mocks",
+        "//pinpoint/go/midpoint",
         "//pinpoint/go/read_values",
         "@com_github_smartystreets_goconvey//convey",
+        "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/testing/assertions",
     ],
 )

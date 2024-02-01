@@ -27,7 +27,7 @@ import (
 type BuildChromeClient interface {
 	// SearchOrBuild starts a new Build if it doesn't exist, or it will fetch
 	// the existing one that matches the build parameters.
-	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error)
+	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error)
 
 	// GetStatus returns the Build status.
 	GetStatus(context.Context, int64) (buildbucketpb.Status, error)
@@ -117,7 +117,7 @@ func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit str
 }
 
 // SearchOrBuild implements BuildChromeClient interface
-func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device, target string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
 	builder, err := bot_configs.GetBotConfig(device, false)
 	if err != nil {
 		return 0, err

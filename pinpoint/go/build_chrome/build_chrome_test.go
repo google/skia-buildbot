@@ -164,7 +164,7 @@ func TestBuildNonExistentDevice(t *testing.T) {
 		client: mb,
 	}
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", "fake-target", nil, nil)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", nil, nil)
 	assert.ErrorContains(t, err, "was not found")
 	assert.Zero(t, id)
 }
@@ -191,7 +191,7 @@ func TestBuildFound(t *testing.T) {
 
 	mb.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", mock.Anything, patches).Return(mockResp, nil)
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, "fake-target", map[string]interface{}{}, patches)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]interface{}{}, patches)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, id)
 }
@@ -224,7 +224,6 @@ func TestNewBuild(t *testing.T) {
 				client: mb,
 			}
 			device := "linux-perf"
-			target := "fake-target"
 			commit := "fake-commit"
 			var patches []*buildbucketpb.GerritChange = nil
 
@@ -239,7 +238,7 @@ func TestNewBuild(t *testing.T) {
 				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(test.mockResp, nil)
 			}
 
-			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, target, map[string]interface{}{}, patches)
+			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, map[string]interface{}{}, patches)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

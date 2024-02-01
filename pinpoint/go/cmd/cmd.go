@@ -78,7 +78,7 @@ func (c *cliCmd) Run() error {
 		AggregationMethod: agg,
 	}
 
-	resp, err := pp.Schedule(ctx, req, c.jobID)
+	resp, err := pp.Run(ctx, req, c.jobID)
 	if err != nil {
 		return err
 	}
