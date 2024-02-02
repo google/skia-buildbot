@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"testing"
 
+	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/mock"
 	. "go.chromium.org/luci/common/testing/assertions"
 	"go.skia.org/infra/go/skerr"
+	swarmingMocks "go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome/mocks"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/read_values"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
+	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 func defaultRunRequest() PinpointRunRequest {
@@ -28,7 +32,7 @@ func defaultRunRequest() PinpointRunRequest {
 	}
 }
 
-func TestValidateRunRequest(t *testing.T) {
+func TestValidateScheduleRequest(t *testing.T) {
 	Convey(`OK`, t, func() {
 		ctx := context.Background()
 		pp, err := New(ctx)
@@ -126,18 +130,38 @@ func TestShouldContinue(t *testing.T) {
 			cont := cdl.shouldContinue()
 			So(cont, ShouldEqual, true)
 		})
+		Convey(`When builds are finished but not tests`, func() {
+			cdl := commitDataList{
+				{
+					build: &buildMetadata{
+						buildStatus: bpb.Status_SUCCESS,
+					},
+					tests: &testMetadata{
+						isRunning: true,
+					},
+				},
+			}
+			cont := cdl.shouldContinue()
+			So(cont, ShouldEqual, true)
+		})
 	})
 
-	Convey(`Return False when builds are completed`, t, func() {
+	Convey(`Return False when builds and tests are completed`, t, func() {
 		cdl := commitDataList{
 			{
 				build: &buildMetadata{
 					buildStatus: bpb.Status_CANCELED,
 				},
+				tests: &testMetadata{
+					isRunning: false,
+				},
 			},
 			{
 				build: &buildMetadata{
 					buildStatus: bpb.Status_FAILURE,
+				},
+				tests: &testMetadata{
+					isRunning: false,
 				},
 			},
 		}
@@ -165,8 +189,8 @@ func TestPollBuild(t *testing.T) {
 			}
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_STARTED, nil).Once()
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_FAILURE, nil).Once()
-			i, err := cdl.pollBuild(ctx, mbc)
-			So(*i, ShouldEqual, 1)
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c.build.buildID, ShouldEqual, 2)
 			So(err, ShouldBeNil)
 			So(cdl[0].build.buildStatus, ShouldEqual, bpb.Status_STARTED)
 			So(cdl[1].build.buildStatus, ShouldEqual, bpb.Status_FAILURE)
@@ -188,8 +212,8 @@ func TestPollBuild(t *testing.T) {
 			}
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_SCHEDULED, nil).Once()
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_STARTED, nil).Once()
-			i, err := cdl.pollBuild(ctx, mbc)
-			So(i, ShouldBeNil)
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c, ShouldBeNil)
 			So(err, ShouldBeNil)
 		})
 		Convey(`When builds are already finished`, func() {
@@ -209,8 +233,24 @@ func TestPollBuild(t *testing.T) {
 			}
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_FAILURE, nil).Once()
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_CANCELED, nil).Once()
-			i, err := cdl.pollBuild(ctx, mbc)
-			So(i, ShouldBeNil)
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c, ShouldBeNil)
+			So(err, ShouldBeNil)
+		})
+		Convey(`When tests have started`, func() {
+			cdl := commitDataList{
+				{
+					build: &buildMetadata{
+						buildID:     1,
+						buildStatus: bpb.Status_SUCCESS,
+					},
+					tests: &testMetadata{
+						tasks: []string{"fake-task-id"},
+					},
+				},
+			}
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c, ShouldBeNil)
 			So(err, ShouldBeNil)
 		})
 
@@ -228,8 +268,8 @@ func TestPollBuild(t *testing.T) {
 				{},
 			}
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_STARTED, nil).Once()
-			i, err := cdl.pollBuild(ctx, mbc)
-			So(i, ShouldBeNil)
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c, ShouldBeNil)
 			So(err, ShouldErrLike, "Cannot poll build of non-existent build")
 		})
 		Convey(`When client fails GetStatus`, func() {
@@ -248,9 +288,294 @@ func TestPollBuild(t *testing.T) {
 				},
 			}
 			mbc.On("GetStatus", ctx, mock.Anything).Return(bpb.Status_STATUS_UNSPECIFIED, skerr.Fmt("some error")).Once()
-			i, err := cdl.pollBuild(ctx, mbc)
-			So(i, ShouldBeNil)
+			c, err := cdl.pollBuild(ctx, mbc)
+			So(c, ShouldBeNil)
 			So(err, ShouldErrLike, "Could not get build status")
+		})
+	})
+}
+
+func TestScheduleRunBenchmark(t *testing.T) {
+	ctx := context.Background()
+	msc := swarmingMocks.NewApiClient(t)
+	req := defaultRunRequest()
+
+	Convey(`OK`, t, func() {
+		c := &commitData{
+			commit: &midpoint.Commit{
+				GitHash: "commit hash",
+			},
+			build: &buildMetadata{
+				buildCAS: &swarmingV1.SwarmingRpcsCASReference{
+					Digest: &swarmingV1.SwarmingRpcsDigest{
+						Hash:      "hash",
+						SizeBytes: 123,
+					},
+				},
+			},
+		}
+		cfg, err := bot_configs.GetBotConfig(req.Device, false)
+		So(err, ShouldBeNil)
+		c.tests = &testMetadata{
+			req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
+		}
+
+		msc.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Once()
+		msc.On("TriggerTask", ctx, mock.Anything).Return(
+			&swarmingV1.SwarmingRpcsTaskRequestMetadata{
+				TaskId: "new_task",
+			}, nil).Times(interval)
+
+		tasks, err := c.scheduleRunBenchmark(ctx, msc)
+		So(err, ShouldBeNil)
+		So(tasks[0], ShouldEqual, "new_task")
+		So(len(tasks), ShouldEqual, interval)
+	})
+
+	Convey(`Error`, t, func() {
+		Convey(`When no tests started`, func() {
+			c := &commitData{}
+			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
+			So(tasks, ShouldBeNil)
+		})
+		Convey(`When no request`, func() {
+			c := &commitData{
+				tests: &testMetadata{},
+			}
+			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
+			So(tasks, ShouldBeNil)
+		})
+		Convey(`When client fails to start new tasks`, func() {
+			c := &commitData{
+				commit: &midpoint.Commit{
+					GitHash: "commit hash",
+				},
+				build: &buildMetadata{
+					buildCAS: &swarmingV1.SwarmingRpcsCASReference{
+						Digest: &swarmingV1.SwarmingRpcsDigest{
+							Hash:      "hash",
+							SizeBytes: 123,
+						},
+					},
+				},
+			}
+			cfg, err := bot_configs.GetBotConfig(req.Device, false)
+			So(err, ShouldBeNil)
+			c.tests = &testMetadata{
+				req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
+			}
+
+			errMsg := "some error"
+			msc.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Once()
+			msc.On("TriggerTask", ctx, mock.Anything).Return(nil, skerr.Fmt(errMsg)).Once()
+
+			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			So(err, ShouldErrLike, errMsg)
+			So(tasks, ShouldBeNil)
+		})
+	})
+}
+
+func TestPollTests(t *testing.T) {
+	ctx := context.Background()
+	msc := swarmingMocks.NewApiClient(t)
+	Convey(`OK`, t, func() {
+		Convey(`When no tasks to poll`, func() {
+			cdl := commitDataList{{}}
+			idx, c, err := cdl.pollTests(ctx, msc)
+			So(err, ShouldBeNil)
+			So(idx, ShouldEqual, -1)
+			So(c, ShouldBeNil)
+
+			cdl = commitDataList{
+				{
+					tests: &testMetadata{},
+				},
+			}
+			idx, c, err = cdl.pollTests(ctx, msc)
+			So(err, ShouldBeNil)
+			So(idx, ShouldEqual, -1)
+			So(c, ShouldBeNil)
+			So(cdl[0].tests.isRunning, ShouldBeFalse)
+		})
+		Convey(`When tasks are already finished`, func() {
+			cdl := commitDataList{
+				{
+					tests: &testMetadata{
+						isRunning: false,
+					},
+				},
+			}
+			idx, c, err := cdl.pollTests(ctx, msc)
+			So(err, ShouldBeNil)
+			So(idx, ShouldEqual, -1)
+			So(c, ShouldBeNil)
+			So(cdl[0].tests.isRunning, ShouldBeFalse)
+		})
+		Convey(`When running tasks are still running`, func() {
+			cdl := commitDataList{
+				{
+					commit: &midpoint.Commit{
+						GitHash: "fake-git-string",
+					},
+					tests: &testMetadata{
+						tasks:     []string{"1", "2"},
+						isRunning: true,
+					},
+				},
+			}
+			msc.On("GetStates", ctx, mock.Anything).Return(
+				[]string{
+					"RUNNING",
+					"COMPLETED",
+				}, nil).Once()
+
+			idx, c, err := cdl.pollTests(ctx, msc)
+			So(err, ShouldBeNil)
+			So(idx, ShouldEqual, -1)
+			So(c, ShouldBeNil)
+			So(cdl[0].tests.isRunning, ShouldBeTrue)
+		})
+		Convey(`When tasks just finish`, func() {
+			cdl := commitDataList{
+				{
+					commit: &midpoint.Commit{
+						GitHash: "fake-git-string",
+					},
+					tests: &testMetadata{
+						tasks:     []string{"1", "2"},
+						isRunning: true,
+					},
+				},
+			}
+			msc.On("GetStates", ctx, mock.Anything).Return(
+				[]string{
+					"FAILURE",
+					"COMPLETED",
+				}, nil).Once()
+
+			idx, c, err := cdl.pollTests(ctx, msc)
+			So(err, ShouldBeNil)
+			So(idx, ShouldEqual, 0)
+			So(c, ShouldNotBeNil)
+			So(cdl[0].tests.isRunning, ShouldBeFalse)
+		})
+	})
+	Convey(`Error when client fails`, t, func() {
+		cdl := commitDataList{
+			{
+				commit: &midpoint.Commit{
+					GitHash: "fake-git-string",
+				},
+				tests: &testMetadata{
+					tasks:     []string{"1", "2"},
+					isRunning: true,
+				},
+			},
+		}
+		msc.On("GetStates", ctx, mock.Anything).Return(nil, skerr.Fmt("some error")).Once()
+
+		idx, c, err := cdl.pollTests(ctx, msc)
+		So(err, ShouldErrLike, "failed to retrieve swarming tasks")
+		So(idx, ShouldEqual, -1)
+		So(c, ShouldBeNil)
+	})
+}
+
+func TestGetTestCAS(t *testing.T) {
+	ctx := context.Background()
+	msc := swarmingMocks.NewApiClient(t)
+	Convey(`OK`, t, func() {
+		c := &commitData{
+			tests: &testMetadata{
+				tasks:  []string{"1", "2"},
+				states: []string{"COMPLETED", "COMPLETED"},
+			},
+		}
+		msc.On("GetTask", ctx, mock.Anything, false).Return(
+			&swarmingV1.SwarmingRpcsTaskResult{
+				State: "COMPLETED",
+				CasOutputRoot: &swarmingV1.SwarmingRpcsCASReference{
+					CasInstance: "instance",
+					Digest: &swarmingV1.SwarmingRpcsDigest{
+						Hash:      "hash",
+						SizeBytes: 123,
+					},
+				},
+			}, nil,
+		).Times(len(c.tests.tasks))
+
+		cas, err := c.getTestCAS(ctx, msc)
+		So(err, ShouldBeNil)
+		So(cas, ShouldNotBeNil)
+		So(len(cas), ShouldEqual, len(c.tests.tasks))
+		So(cas[0].CasInstance, ShouldEqual, "instance")
+		So(cas[0].Digest.Hash, ShouldEqual, "hash")
+		So(cas[0].Digest.SizeBytes, ShouldEqual, 123)
+	})
+
+	Convey(`Error`, t, func() {
+		Convey(`When there are no tests`, func() {
+			c := &commitData{}
+			cas, err := c.getTestCAS(ctx, msc)
+			So(err, ShouldErrLike, "cannot get cas output of non-existent swarming tasks")
+			So(cas, ShouldBeNil)
+			So(c.tests, ShouldBeNil)
+		})
+		Convey(`When tests and states are not equal length`, func() {
+			c := &commitData{
+				tests: &testMetadata{
+					tasks:  []string{"1", "2"},
+					states: []string{"COMPLETED"},
+				},
+			}
+			cas, err := c.getTestCAS(ctx, msc)
+			So(err, ShouldErrLike, "mismatching number of swarming states")
+			So(cas, ShouldBeNil)
+			So(c.tests.casOutputs, ShouldBeNil)
+		})
+		Convey(`When client fails`, func() {
+			c := &commitData{
+				tests: &testMetadata{
+					tasks:  []string{"1", "2"},
+					states: []string{"COMPLETED", "COMPLETED"},
+				},
+			}
+			msc.On("GetTask", ctx, mock.Anything, false).Return(nil,
+				skerr.Fmt("some error"),
+			).Once()
+
+			cas, err := c.getTestCAS(ctx, msc)
+			So(err, ShouldErrLike, "error retrieving cas outputs")
+			So(cas, ShouldBeNil)
+		})
+	})
+}
+
+// TODO(sunxiaodi@): add interface to read_values to mock
+// successful scenarios
+func TestGetValues(t *testing.T) {
+	ctx := context.Background()
+	mrc := &rbeclient.Client{} // create mock client
+	Convey(`Error`, t, func() {
+		Convey(`When there are no tests`, func() {
+			c := &commitData{}
+			values, err := c.getValues(ctx, mrc, defaultRunRequest())
+			So(err, ShouldErrLike, "cannot retrieve values with no swarming tests")
+			So(values, ShouldBeNil)
+		})
+		Convey(`When there are no cas outputs`, func() {
+			c := &commitData{
+				tests: &testMetadata{
+					tasks:  []string{"1", "2"},
+					states: []string{"COMPLETED"},
+				},
+			}
+			values, err := c.getValues(ctx, mrc, defaultRunRequest())
+			So(err, ShouldErrLike, "cannot retrieve values with no swarming test cas outputs")
+			So(values, ShouldBeNil)
 		})
 	})
 }
