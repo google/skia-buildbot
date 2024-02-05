@@ -28,6 +28,19 @@ func generateCommitResponse(num int) []*vcsinfo.LongCommit {
 	return resp
 }
 
+func TestNewRepo(t *testing.T) {
+	ctx := context.Background()
+	c := mockhttpclient.NewURLMock().Client()
+	r := New(ctx, c)
+
+	Convey(`Creating a new repo`, t, func() {
+		url := "https://somerepo.com"
+		repo := r.getOrCreateRepo(url)
+		So(repo, ShouldNotBeNil)
+		So(r.repos[url], ShouldNotBeNil)
+	})
+}
+
 func TestFetchGitDeps(t *testing.T) {
 	ctx := context.Background()
 

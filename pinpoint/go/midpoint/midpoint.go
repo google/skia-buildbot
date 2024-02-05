@@ -113,7 +113,7 @@ func (m *midpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *midpointH
 func (m *midpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 	gr, ok := m.repos[url]
 	if !ok {
-		gr := gitiles.NewRepo(url, m.c)
+		gr = gitiles.NewRepo(url, m.c)
 		m.repos[url] = gr
 	}
 	return gr
