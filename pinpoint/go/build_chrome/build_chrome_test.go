@@ -79,7 +79,7 @@ func TestSearchBuild(t *testing.T) {
 			var patches []*buildbucketpb.GerritChange = nil
 			deps := map[string]interface{}{}
 			bc := &buildChromeImpl{
-				client: mb,
+				BuildbucketClient: mb,
 			}
 
 			if test.expectedErrorDeps {
@@ -136,7 +136,7 @@ func TestCheckBuildStatus(t *testing.T) {
 
 			mb := &mocks.BuildbucketClient{}
 			bc := &buildChromeImpl{
-				client: mb,
+				BuildbucketClient: mb,
 			}
 
 			if test.expectedError {
@@ -161,7 +161,7 @@ func TestBuildNonExistentDevice(t *testing.T) {
 
 	mb := &mocks.BuildbucketClient{}
 	bc := buildChromeImpl{
-		client: mb,
+		BuildbucketClient: mb,
 	}
 
 	id, err := bc.SearchOrBuild(ctx, "fake-jID", "fake-commit", "non-existent device", nil, nil)
@@ -183,7 +183,7 @@ func TestBuildFound(t *testing.T) {
 	ctx := context.Background()
 	mb := &mocks.BuildbucketClient{}
 	bc := buildChromeImpl{
-		client: mb,
+		BuildbucketClient: mb,
 	}
 	device := "linux-perf"
 	fakeCommit := "fake-commit"
@@ -221,7 +221,7 @@ func TestNewBuild(t *testing.T) {
 			ctx := context.Background()
 			mb := &mocks.BuildbucketClient{}
 			bc := buildChromeImpl{
-				client: mb,
+				BuildbucketClient: mb,
 			}
 			device := "linux-perf"
 			commit := "fake-commit"
@@ -281,7 +281,7 @@ func TestRetrieveCAS(t *testing.T) {
 			ctx := context.Background()
 			mb := &mocks.BuildbucketClient{}
 			bc := buildChromeImpl{
-				client: mb,
+				BuildbucketClient: mb,
 			}
 			buildID := int64(1)
 			target := "fake-target"

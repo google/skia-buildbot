@@ -51,7 +51,7 @@ const (
 
 // buildChromeImpl implements BuildChromeClient to build Chrome.
 type buildChromeImpl struct {
-	client backends.BuildbucketClient
+	backends.BuildbucketClient
 }
 
 // New returns buildChromeImpl.
@@ -68,7 +68,7 @@ func New(ctx context.Context) (*buildChromeImpl, error) {
 
 	bc := backends.DefaultClientConfig().WithClient(c)
 	return &buildChromeImpl{
-		client: bc,
+		BuildbucketClient: bc,
 	}, nil
 }
 
@@ -83,7 +83,7 @@ func New(ctx context.Context) (*buildChromeImpl, error) {
 // would be to add the non-chromium commit info to the tags and query the tags.
 func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
 	// search Pinpoint for build
-	build, err := bci.client.GetSingleBuild(ctx, builder, backends.DefaultBucket, commit, deps, patches)
+	build, err := bci.GetSingleBuild(ctx, builder, backends.DefaultBucket, commit, deps, patches)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Error searching buildbucket")
 	}
@@ -98,7 +98,7 @@ func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit str
 	// request a build via Pinpoint before waterfall has the chance to
 	// build the same commit.
 	sklog.Debugf("SearchBuild: search waterfall builder %s for build", backends.PinpointWaterfall[builder])
-	build, err = bci.client.GetBuildFromWaterfall(ctx, builder, commit)
+	build, err = bci.GetBuildFromWaterfall(ctx, builder, commit)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Failed to find build with CI equivalent.")
 	}
@@ -131,7 +131,7 @@ func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, co
 
 	// if the ongoing build failed or the build was not found, start new build
 	requestID := uuid.New().String()
-	build, err := bci.client.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, commit, deps, patches)
+	build, err := bci.StartChromeBuild(ctx, pinpointJobID, requestID, builder.Builder, commit, deps, patches)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Failed to start a build")
 	}
@@ -141,7 +141,7 @@ func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, co
 
 // RetrieveCAS implements BuildChromeClient interface
 func (bci *buildChromeImpl) RetrieveCAS(ctx context.Context, buildID int64, target string) (*swarmingV1.SwarmingRpcsCASReference, error) {
-	ref, err := bci.client.GetCASReference(ctx, buildID, target)
+	ref, err := bci.GetCASReference(ctx, buildID, target)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not find the CAS outputs to build %d", buildID)
 	}
@@ -150,11 +150,11 @@ func (bci *buildChromeImpl) RetrieveCAS(ctx context.Context, buildID int64, targ
 
 // CancelBuild implements BuildChromeClient interface
 func (bci *buildChromeImpl) CancelBuild(ctx context.Context, buildID int64, summary string) error {
-	return bci.client.CancelBuild(ctx, buildID, summary)
+	return bci.CancelBuild(ctx, buildID, summary)
 }
 
 // GetStatus implements BuildChromeClient interface
 // TODO(b/315215756): switch from polling to pub sub
 func (bci *buildChromeImpl) GetStatus(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
-	return bci.client.GetBuildStatus(ctx, buildID)
+	return bci.GetBuildStatus(ctx, buildID)
 }
