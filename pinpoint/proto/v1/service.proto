@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+// Working in progress protobuf and service definition.
+//
+package pinpoint.v1;
+option go_package = "go.skia.org/infra/pinpoint/go/proto";
+
+import "google/api/annotations.proto";
+
+// The direct mirror of the existing bisect request in catapult.
+// https://github.googlesource.com/catapult-project/catapult/+/09398d/dashboard/dashboard/pinpoint/models/job.py#339
+//
+// Note, some fields are only for backward-compatibility only.
+message ScheduleBisectRequest {
+	string comparison_mode = 1;
+	string start_git_hash = 2;
+	string end_git_hash = 3;
+
+	// The builder/bot configuration name, this usually specifies the builder that can trigger
+	// the build.
+	string configuration = 4;
+
+	// The Chrome perf benchmark test target.
+	// All the targets are generated from here:
+	// https://chromium.googlesource.com/chromium/src/+/52c8723/tools/perf/core/perf_data_generator.py
+	string benchmark = 5;
+
+	// https://chromium.googlesource.com/catapult.git/+/e8367e6/telemetry
+	// The story is usually a test case that runs a set of actions in a certain scenario, and
+	// collects performance histogram data to analyze.
+	string story = 6;
+	string chart = 7;
+	string statistic = 8;
+	string comparison_magnitude = 9;
+
+	// The Change (Commits + Patch) to apply to every change for all the subsequence runs.
+	string pin = 10;
+
+	// The Monorail project ID.
+	string project = 11;
+
+	// The monorail issue id number to post updates to.
+	string bug_id = 12;
+
+	// The user email who triggers the job.
+	string user = 13;
+}
+
+message QueryBisectRequest {
+	string job_id = 1;
+}
+
+message BisectExecution {
+	string job_id = 1;
+}
+
+service Pinpoint {
+  rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
+    option (google.api.http) = {
+      post: "/pinpoint/v1/schedule"
+    };
+  }
+
+  rpc QueryBisection(QueryBisectRequest) returns (BisectExecution) {
+    option (google.api.http) = {
+      post: "/pinpoint/v1/query"
+    };
+  }
+}

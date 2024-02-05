@@ -92,6 +92,7 @@ sh_binary(
         "@org_golang_google_protobuf//cmd/protoc-gen-go",
         "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
         "@com_google_googleapis//google/api:annotations_proto",
+        "@googleapis//google/api:annotations_proto",
     ],
     visibility = ["//visibility:public"],
 )
