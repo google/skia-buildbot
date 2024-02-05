@@ -97,7 +97,7 @@ func performChecks(ctx context.Context, clients map[string]*admin.IamClient, old
 			if err == iterator.Done {
 				break
 			} else if err != nil {
-				return nil, skerr.Wrap(err)
+				return nil, skerr.Wrapf(err, "failed listing service accounts in project %s", p)
 			}
 			saEmails = append(saEmails, sa.Email)
 		}
@@ -108,7 +108,7 @@ func performChecks(ctx context.Context, clients map[string]*admin.IamClient, old
 				Name: serviceAccountPath,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("Failed to list service account keys of %s: %s", sa, err)
+				return nil, skerr.Wrapf(err, "failed to list service account keys of %s in project %s", sa, p)
 			}
 			for _, k := range resp.GetKeys() {
 				processKey(k, newMetrics, sa, p)
