@@ -135,7 +135,7 @@ func (s *server) step() error {
 func (s *server) refresh() {
 	for range time.Tick(refreshInterval) {
 		if err := s.step(); err != nil {
-			sklog.Errorf("Failed to refresh token: %s")
+			sklog.Errorf("Failed to refresh token: %s", err)
 		}
 	}
 }
