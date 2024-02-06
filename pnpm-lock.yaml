@@ -3420,7 +3420,7 @@ packages:
     dependencies:
       hosted-git-info: 2.8.9
       resolve: 1.20.0
-      semver: 5.6.0
+      semver: 5.7.2
       validate-npm-package-license: 3.0.4
     dev: false
 
@@ -3961,8 +3961,8 @@ packages:
       source-map-js: 1.0.2
     dev: false
 
-  /semver@5.6.0:
-    resolution: {integrity: sha512-RS9R6R35NYgQn++fkDWaOmqGoj4Ek9gGs+DPxNUZKuwE183xjJroKvyo1IzVFeXvUrvmALy6FWD5xrdJT25gMg==}
+  /semver@5.7.2:
+    resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
     hasBin: true
     dev: false
 
