@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -37,6 +38,7 @@ const (
 	TAG_PREFIX_VERSION  = "version:"
 	TAG_PREFIX_REPO     = "git_repository:"
 	TAG_PREFIX_REVISION = "git_revision:"
+	METADATA_REPO       = "git_repo"
 )
 
 var (
@@ -190,6 +192,12 @@ func main() {
 						revs = append(revs, strings.TrimPrefix(tag.Tag, TAG_PREFIX_REVISION))
 					}
 				}
+				// The git repo might also be specified in metadata.
+				for _, meta := range desc.Metadata {
+					if meta.Key == METADATA_REPO {
+						repos = append(repos, string(meta.Value))
+					}
+				}
 				if newVersionTag == "" {
 					// If more than one repo is listed, we need to match the
 					// git_revision to the correct repo in order to obtain the
@@ -219,7 +227,7 @@ func main() {
 					}
 				}
 				if newVersionTag == "" {
-					return fmt.Errorf("Unable to find a valid version tag in %+v", tags)
+					return skerr.Fmt("unable to find a valid version tag in %+v", tags)
 				}
 				newVersions[pkg] = newVersionTag
 				return nil

@@ -126,8 +126,8 @@ def go_repositories():
     go_repository(
         name = "com_github_armon_go_radix",
         importpath = "github.com/armon/go-radix",
-        sum = "h1:BUAU3CGlLvorLI26FmByPp2eC2qla6E1Tw+scpcg/to=",
-        version = "v0.0.0-20180808171621-7fddfc383310",
+        sum = "h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=",
+        version = "v1.0.0",
     )
 
     go_repository(
@@ -3923,8 +3923,8 @@ def go_repositories():
         # go_proto_library targets.
         build_file_proto_mode = "disable",
         importpath = "go.chromium.org/luci",
-        sum = "h1:r7l82WZJwzOBsQTiY+2A2apot6r6Efk0Um0P6qG2B1A=",
-        version = "v0.0.0-20231204022756-276ff2f399c8",
+        sum = "h1:JJNTpSU1X9ClKbBtSk4dw6TH9w4hbDkQIpPhPEGp6lw=",
+        version = "v0.0.0-20240206071351-fb32c458db6e",
     )
 
     go_repository(
@@ -3990,8 +3990,8 @@ def go_repositories():
     go_repository(
         name = "org_golang_x_crypto",
         importpath = "golang.org/x/crypto",
-        sum = "h1:mMMrFzRSCF0GvB7Ne27XVtVAaXLrPmgPC7/v0tkwHaY=",
-        version = "v0.16.0",
+        sum = "h1:r8bRNjWL3GshPW3gkd+RpvzWrZAwPS49OmTGZ/uhM4k=",
+        version = "v0.17.0",
     )
 
     go_repository(
