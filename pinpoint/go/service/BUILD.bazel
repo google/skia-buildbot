@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "service",
+    srcs = ["service_impl.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/service",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//pinpoint/proto/v1:proto",
+        "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
+    ],
+)
+
+go_test(
+    name = "service_test",
+    srcs = ["service_impl_test.go"],
+    embed = [":service"],
+    deps = [
+        "//pinpoint/proto/v1:proto",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

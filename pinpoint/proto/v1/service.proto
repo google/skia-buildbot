@@ -63,7 +63,7 @@ service Pinpoint {
 
   rpc QueryBisection(QueryBisectRequest) returns (BisectExecution) {
     option (google.api.http) = {
-      post: "/pinpoint/v1/query"
+      get: "/pinpoint/v1/query"
     };
   }
 }
