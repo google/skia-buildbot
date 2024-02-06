@@ -57,15 +57,15 @@ func (cli *cliCmd) RegisterFlags() {
 	flag.Float64Var(&cli.mag, "magnitude", magDefault, "Raw magnitude expected")
 }
 
-func (c *cliCmd) Run() error {
+func (c *cliCmd) Run() (*pinpoint.PinpointRunResponse, error) {
 	ctx := context.Background()
 	pp, err := pinpoint.New(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	agg, err := c.getAggregationMethod()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req := pinpoint.PinpointRunRequest{
 		Device:            c.device,
@@ -78,12 +78,7 @@ func (c *cliCmd) Run() error {
 		AggregationMethod: agg,
 	}
 
-	resp, err := pp.Run(ctx, req, c.jobID)
-	if err != nil {
-		return err
-	}
-	spew.Dump(resp)
-	return nil
+	return pp.Run(ctx, req, c.jobID)
 }
 
 func main() {
@@ -91,10 +86,11 @@ func main() {
 	cli.RegisterFlags()
 	flag.Parse()
 
-	err := cli.Run()
+	resp, err := cli.Run()
 	if err != nil {
 		sklog.Error(err)
 	}
+	spew.Dump(resp)
 }
 
 func (c *cliCmd) getAggregationMethod() (read_values.AggDataMethodEnum, error) {

@@ -2,9 +2,12 @@ package pinpoint
 
 import (
 	"context"
+	"math"
 	"net/http"
+	"sort"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -13,6 +16,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome"
+	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
@@ -26,8 +30,8 @@ import (
 const (
 	missingRequiredParamTemplate = "Missing required param %s"
 	chromiumSrcGit               = "https://chromium.googlesource.com/chromium/src.git"
-	maxSampleSize                = 4
-	interval                     = 2
+	maxSampleSize                = 20
+	interval                     = 10
 )
 
 // PinpointHandler is an interface to run Pinpoint jobs
@@ -111,7 +115,9 @@ type commitData struct {
 // commitDataList tracks all of the commits in the Pinpoint job
 // commitDataList also ensures the order of the commits in order
 // of when they landed
-type commitDataList []*commitData
+type commitDataList struct {
+	commits []*commitData
+}
 
 func New(ctx context.Context) (*pinpointHandlerImpl, error) {
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
@@ -150,9 +156,16 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 		return nil, skerr.Wrapf(err, "Could not create swarming client")
 	}
 
+	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Problem setting up default token source")
+	}
+	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
+	mc := midpoint.New(ctx, c)
+
 	resp := &PinpointRunResponse{
 		JobID:    jobID,
-		Culprits: nil,
+		Culprits: []string{},
 	}
 
 	target, err := bot_configs.GetIsolateTarget(req.Device, req.Benchmark)
@@ -161,24 +174,27 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 	}
 
 	cdl := commitDataList{
-		{
-			commit: &midpoint.Commit{
-				GitHash:       req.StartCommit,
-				RepositoryUrl: chromiumSrcGit,
+		commits: []*commitData{
+			{
+				commit: &midpoint.Commit{
+					GitHash:       req.StartCommit,
+					RepositoryUrl: chromiumSrcGit,
+				},
 			},
-		},
-		{
-			commit: &midpoint.Commit{
-				GitHash:       req.EndCommit,
-				RepositoryUrl: chromiumSrcGit,
+			{
+				commit: &midpoint.Commit{
+					GitHash:       req.EndCommit,
+					RepositoryUrl: chromiumSrcGit,
+				},
 			},
 		},
 	}
 
 	// execute Pinpoint job
 	for cdl.shouldContinue() {
+		cdl.statusCheck()
 		// start builds that have not been scheduled
-		for _, c := range cdl {
+		for _, c := range cdl.commits {
 			if c.build == nil {
 				buildID, err := bc.SearchOrBuild(ctx, jobID, c.commit.GitHash, req.Device, nil, nil)
 				if err != nil {
@@ -214,7 +230,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 			}
 		}
 		// TODO(sunxiaodi@) deprecate polling with pubsub
-		_, c, err = cdl.pollTests(ctx, sc)
+		i, c, err := cdl.pollTests(ctx, sc)
 		if err != nil {
 			return resp, err
 		}
@@ -238,9 +254,47 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 				return resp, err
 			}
 			c.values = values
+			// must compare right before left
+			// If left compare happens first and midpoint is queued, then
+			// i would need to shift one. Doing it this way avoids any index shifting
+			left, right := i, i+1
+			sklog.Debugf("compare right [%d] vs [%d]", left, right)
+			res, err := cdl.compareNeighbor(left, right, req.Magnitude)
+			if err != nil {
+				return resp, skerr.Wrapf(err, "could not compare [%d] against right neighbor", left)
+			}
+			if res != nil {
+				spew.Dump(res)
+				culprit, err := cdl.updateCommitsByResult(ctx, sc, mc, res, left, right)
+				if err != nil {
+					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
+				}
+				if culprit != nil {
+					resp.Culprits = append(resp.Culprits, culprit.GitHash)
+				}
+			}
+			// compare left
+			left, right = i-1, i
+			sklog.Debugf("compare left [%d] vs [%d]", left, right)
+			res, err = cdl.compareNeighbor(left, right, req.Magnitude)
+			if err != nil {
+				return resp, skerr.Wrapf(err, "could not compare [%d] against left neighbor", right)
+			}
+			if res != nil {
+				spew.Dump(res)
+				culprit, err := cdl.updateCommitsByResult(ctx, sc, mc, res, left, right)
+				if err != nil {
+					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
+				}
+				if culprit != nil {
+					resp.Culprits = append(resp.Culprits, culprit.GitHash)
+				}
+			}
+			sklog.Debugf("after compares - length of cdl now is %d", len(cdl.commits))
 		}
-		resp.Commits = cdl
-		time.Sleep(5 * time.Second)
+		resp.Commits = cdl.commits
+		sklog.Debugf("current culprit list %v", resp.Culprits)
+		time.Sleep(10 * time.Second)
 	}
 	return resp, nil
 }
@@ -269,8 +323,9 @@ func (pp *pinpointHandlerImpl) validateRunRequest(req PinpointRunRequest) error 
 	return nil
 }
 
+// shouldContinue returns true if the pinpoint job should continue or not
 func (cdl commitDataList) shouldContinue() bool {
-	for _, c := range cdl {
+	for _, c := range cdl.commits {
 		if c.build == nil || c.build.buildStatus < bpb.Status_ENDED_MASK {
 			return true
 		}
@@ -281,11 +336,24 @@ func (cdl commitDataList) shouldContinue() bool {
 	return false
 }
 
+// statusCheck runs through every commit in the list and checks on their ongoing status
+func (cdl commitDataList) statusCheck() {
+	for i, c := range cdl.commits {
+		if c.build == nil || c.build.buildStatus < bpb.Status_ENDED_MASK {
+			sklog.Debugf("commit [%d] %s is building", i, c.commit.GitHash[:7])
+		} else if c.tests != nil && c.tests.isRunning {
+			sklog.Debugf("commit [%d] %s is testing", i, c.commit.GitHash[:7])
+		} else {
+			sklog.Debugf("commit [%d] %s is done", i, c.commit.GitHash[:7])
+		}
+	}
+}
+
 // pollBuild checks the build status of every commit in the commitQ
 // returns upon finding the first build that was running and finishes
 func (cdl commitDataList) pollBuild(ctx context.Context, bc build_chrome.BuildChromeClient) (
 	*commitData, error) {
-	for _, c := range cdl {
+	for _, c := range cdl.commits {
 		if c.build == nil || c.build.buildID == 0 {
 			return nil, skerr.Fmt("Cannot poll build of non-existent build")
 		}
@@ -351,7 +419,7 @@ func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc swarming.ApiCl
 // returns the index of the commit so it is easier to compare left and right neighbors
 func (cdl commitDataList) pollTests(ctx context.Context, sc swarming.ApiClient) (
 	int, *commitData, error) {
-	for i, c := range cdl {
+	for i, c := range cdl.commits {
 		if c.tests == nil {
 			continue
 		}
@@ -410,4 +478,126 @@ func (c *commitData) getValues(ctx context.Context, rc *rbeclient.Client, req Pi
 	}
 	return read_values.ReadValuesByChart(ctx, rc, req.Benchmark,
 		req.Chart, c.tests.casOutputs, req.AggregationMethod)
+}
+
+// compareNeighbor takes two commits (left and right) and compares
+// their values against each other to see if they are statistically
+// significantly different.
+func (cdl commitDataList) compareNeighbor(left, right int, rawDiff float64) (*compare.CompareResults, error) {
+	if left >= right {
+		return nil, skerr.Fmt("left index %d is >= right index %d", left, right)
+	}
+	if right < 0 {
+		return nil, skerr.Fmt("right index %d is out of bounds", right)
+	}
+	if left >= len(cdl.commits) {
+		return nil, skerr.Fmt("left index %d is out of bounds", left)
+	}
+	// it is possible for left or right to be out of bounds
+	// i.e. left = -1, right = 0 because commits will compare against
+	// left and right neighbors. In such cases, return nil
+	if left < 0 || right >= len(cdl.commits) {
+		return nil, nil
+	}
+	if cdl.commits[left].notComparable() || cdl.commits[right].notComparable() {
+		return nil, nil
+	}
+
+	// TODO(sunxiaodi@): move the normalized magnitude and attempt count arithmetic to compare
+	all_values := sort.Float64Slice(append(cdl.commits[left].values, cdl.commits[right].values...))
+	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
+	normDiff := math.Abs(rawDiff / iqr)
+	attemptCount := len(all_values) / 2
+
+	return compare.ComparePerformance(cdl.commits[left].values, cdl.commits[right].values, attemptCount, normDiff)
+}
+
+// notComparable checks if a commit is still waiting on something to finish
+// TODO(sunxiaodi@) capture case where commit A has already compared commit B
+func (c *commitData) notComparable() bool {
+	// build may not be queued up
+	if c.build == nil {
+		return true
+	}
+	// build or tests are still running
+	// more tests can be scheduled even after the
+	// commit generates values
+	// tests may never generate if build failed
+	if c.tests == nil || c.tests.isRunning {
+		return true
+	}
+	// it is possible for all tests to finish but
+	// generate no values if all tests failed
+	if c.values == nil {
+		return true
+	}
+
+	return false
+}
+
+// updateCommitsByResult takes the compare results and determines the next
+// steps in the workflow. Changes are made to CommitDataList depending
+// on what the compare verdict is.
+func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc swarming.ApiClient, mh midpoint.MidpointHandler, res *compare.CompareResults,
+	left, right int) (*midpoint.Commit, error) {
+	if left < 0 || right >= len(cdl.commits) {
+		return nil, skerr.Fmt("cannot update commitDataList with left %d and right %d index out of bounds", left, right)
+	}
+	if left >= right {
+		return nil, skerr.Fmt("cannot update commitDataList with left %d index >= right %d", left, right)
+	}
+	if res.Verdict == compare.Unknown {
+		return nil, cdl.runMoreTestsIfNeeded(ctx, sc, left, right)
+	} else if res.Verdict == compare.Different {
+		return cdl.findMidpointOrCulprit(ctx, mh, left, right)
+	}
+	return nil, nil
+}
+
+// findMidpointOrCulprit updates the commitDataList with either a new midpoint
+// or returns a culprit if the midpoint is the same as the left commit
+// TODO(sunxiaodi@) create mock for MidpointHandler and create unit tests
+func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc midpoint.MidpointHandler, left, right int) (
+	*midpoint.Commit, error) {
+	lcommit := cdl.commits[left].commit
+	rcommit := cdl.commits[right].commit
+	sklog.Debugf("commit left %s vs commit right %s", lcommit.GitHash[:7], rcommit.GitHash[:7])
+	m, _, err := mc.DetermineNextCandidate(ctx, chromiumSrcGit, lcommit.GitHash, rcommit.GitHash)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "could not get midpoint between [%d] %s and [%d] %s",
+			left, lcommit.GitHash, right, rcommit.GitHash)
+	}
+	// culprit found
+	if m.Main.GitHash == lcommit.GitHash {
+		return rcommit, nil
+	}
+	// append mid commit in between left and right
+	cdl.commits = append(cdl.commits[:right], cdl.commits[left:]...)
+	cdl.commits[right] = &commitData{
+		commit: m.Main,
+	}
+	return nil, nil
+}
+
+// runMoreTestsIfNeeded adds more run_benchmark tasks to the left and right commit
+func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc swarming.ApiClient, left, right int) error {
+	c := cdl.commits[left]
+	tasks, err := c.scheduleRunBenchmark(ctx, sc)
+	if err != nil {
+		return skerr.Wrapf(err, "could not schedule more tasks for left commit [%d] %s", left, c.commit.GitHash[:7])
+	}
+	if len(tasks) > 0 {
+		c.tests.tasks = tasks
+		c.tests.isRunning = true
+	}
+	c = cdl.commits[right]
+	tasks, err = c.scheduleRunBenchmark(ctx, sc)
+	if err != nil {
+		return skerr.Wrapf(err, "could not schedule more tasks for right commit [%d] %s", right, c.commit.GitHash[:7])
+	}
+	if len(tasks) > 0 {
+		c.tests.tasks = tasks
+		c.tests.isRunning = true
+	}
+	return nil
 }
