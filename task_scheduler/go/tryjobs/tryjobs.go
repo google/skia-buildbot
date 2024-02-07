@@ -676,7 +676,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	// jobs but hopefully long enough that any transient errors are resolved
 	// before we try again.
 	jobsCh := t.db.ModifiedJobsCh(ctx)
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(time.Minute)
 	tickCh := ticker.C
 	doneCh := ctx.Done()
 	for {
