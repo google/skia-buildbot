@@ -35,7 +35,7 @@ class TestCsvMerger(unittest.TestCase):
 
     # Compare actual with expected.
     expected_csv = os.path.join(self._test_csv_dir, 'expected_output')
-    test_utils.assertCSVs(expected_csv, self._actual_output)
+    test_utils.assertFiles(expected_csv, self._actual_output)
 
   def test_E2EMergerWithDiffColName(self):
     merger = csv_pivot_table_merger.CsvMerger(
@@ -46,7 +46,7 @@ class TestCsvMerger(unittest.TestCase):
     # Compare actual with expected.
     expected_csv = os.path.join(self._test_csv_dir,
                                    'expected_output_diff_col_name')
-    test_utils.assertCSVs(expected_csv, self._actual_output)
+    test_utils.assertFiles(expected_csv, self._actual_output)
 
   def test_E2EMergerWithStrings(self):
     merger = csv_pivot_table_merger.CsvMerger(
@@ -57,7 +57,7 @@ class TestCsvMerger(unittest.TestCase):
     # Compare actual with expected.
     expected_csv = os.path.join(self._test_csv_dir,
                                    'expected_output_with_strings')
-    test_utils.assertCSVs(expected_csv, self._actual_output)
+    test_utils.assertFiles(expected_csv, self._actual_output)
 
 
 if __name__ == '__main__':

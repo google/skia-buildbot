@@ -37,7 +37,7 @@ class CsvMerger(object):
     for csv_file in self._input_csv_files:
       with open(csv_file, 'r') as f:
         field_names.update(csv.DictReader(f).fieldnames)
-    return field_names
+    return sorted(field_names)
 
   def _GetSmallest(self, l):
     """Returns the smallest value from the specified list."""

@@ -58,7 +58,7 @@ class CsvMerger(object):
     # We use 'page_name' in the output CSV to ID the webpage.
     field_names.add(OUTPUT_PAGE_NAME_KEY);
     field_names.add(TELEMETRY_TRACE_URLS_KEY);
-    return field_names
+    return sorted(field_names)
 
   def _GetSmallest(self, l):
     """Returns the smallest value from the specified list."""

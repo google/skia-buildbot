@@ -1,4 +1,4 @@
-a,traceUrls,c,b,e,d,trace,pixels_rasterized (pixels),pixels_recorded (pixels),record_time (ms),"e,heading",page_name,"a,heading",y,x,z,rasterize_time (ms)
-,"https://console.developers.google.com/m/cloudstorage/b/traceurl1,https://console.developers.google.com/m/cloudstorage/b/traceurl2,https://console.developers.google.com/m/cloudstorage/b/traceurl3",,,,,,2.5,1.5,,,http://www.google.com,,,,,1.0
-,,,,,,,1.0,,,,http://www.gmail.com,,,,,1.0
-,,,,,,,1310720.0,1172655.0,0.7406666666666667,,http://www.facebook.com/,,,,,2.372
+a,"a,heading",b,c,d,e,"e,heading",page_name,pixels_rasterized (pixels),pixels_recorded (pixels),rasterize_time (ms),record_time (ms),trace,traceUrls,x,y,z
+,,,,,,,http://www.facebook.com/,1310720.0,1172655.0,2.372,0.7406666666666667,,,,,
+,,,,,,,http://www.google.com,2.5,1.5,1.0,,,"https://console.developers.google.com/m/cloudstorage/b/traceurl1,https://console.developers.google.com/m/cloudstorage/b/traceurl2,https://console.developers.google.com/m/cloudstorage/b/traceurl3",,,
+,,,,,,,http://www.gmail.com,1.0,,1.0,,,,,,
