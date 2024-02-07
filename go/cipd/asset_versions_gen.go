@@ -138,15 +138,10 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/swarming/${platform}",
 		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
 	},
-	"infra/tools/luci/vpython-native/${platform}": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/tools/luci/vpython-native/${platform}",
-		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
-	},
 	"infra/tools/luci/vpython/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython/${platform}",
-		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
+		Version: "git_revision:31b61178dc24ab61a24e3fbccf5debe58adbf8a5",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
