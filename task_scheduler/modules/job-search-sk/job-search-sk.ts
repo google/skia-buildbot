@@ -37,6 +37,7 @@ const searchTerms: { [key: string]: DisplaySearchTerm } = {
   patchset: { label: 'Patchset', type: 'text' },
   buildbucketBuildId: { label: 'Buildbucket Build ID', type: 'text' },
   isForce: { label: 'Manually Triggered', type: 'checkbox' },
+  server: { label: 'Server', type: 'text' },
   status: { label: 'Status', type: 'text' },
   timeStart: { label: 'Start Time', type: 'datetime-local' },
   timeEnd: { label: 'End Time', type: 'datetime-local' },
