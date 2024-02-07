@@ -6,7 +6,15 @@ installed application or cleaning up disk space.
 
 This go program, `run_on_swarming_bots`, makes that easy.
 
-First, run the program in dry run mode to make sure you have your dimensions
+First, make sure you have `isolate` and `isolated` downloaded from CIPD and on
+your $PATH somewhere. The cipd executable comes in depot_tools, so make sure
+that is set up before proceeding.
+
+    # All code examples are run from the infra repo's root
+    $ cipd ensure --root=$HOME/bin/luci --ensure-file=cipd.ensure
+    $ export PATH=$PATH:$HOME/bin/luci/cipd_bin_packages
+
+Then, run the program in dry run mode to make sure you have your dimensions
 correct and thus are running the script on the right set of bots. Protip: if you
 want a single bot, you can specify it with the id dimension
 (`id:skia-e-gce-123`).
@@ -28,6 +36,5 @@ match the specified dimensions.
         --dimension docker_installed:true --dimension gce:1 \
         --script=scripts/run_on_swarming_bots/cleanup_docker.py
 
-The program will print a link which you can use to track the status of the
-tasks. If a subset of tasks fails (eg. bots didn't become available before the
-tasks timed out), you can run the program again using the `--rerun` flag.
+Assuming things work out, check in the script you ran if would be useful in the
+future.

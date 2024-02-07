@@ -67,6 +67,7 @@ var (
 	CIPD_PKGS_GOLDCTL           = []*CipdPackage{cipd.MustGetPackage("skia/tools/goldctl/${platform}")}
 	CIPD_PKGS_ISOLATE           = []*CipdPackage{
 		cipd.MustGetPackage("infra/tools/luci/isolate/${platform}"),
+		cipd.MustGetPackage("infra/tools/luci/isolated/${platform}"),
 	}
 	CIPD_PKGS_PYTHON_LINUX_AMD64   = cipd.PkgsPython[cipd.PlatformLinuxAmd64]
 	CIPD_PKGS_PYTHON_WINDOWS_AMD64 = cipd.PkgsPython[cipd.PlatformWindowsAmd64]
