@@ -119,44 +119,19 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	}
 	bugFrameworks = append(bugFrameworks, flutterNativeGithub)
 
-	//////////////////// Chromium:Internals>Skia - Monorail ////////////////////
-	crQueryConfig1 := &monorail.MonorailQueryConfig{
-		Instance:          "chromium",
-		Query:             "is:open component=Internals>Skia",
-		Client:            types.ChromiumClient,
-		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
+	//////////////////// Chromium - IssueTracker ////////////////////
+	crQueryConfig := &issuetracker.IssueTrackerQueryConfig{
+		Query:               "componentid:1457031+ status:open",
+		Client:              types.ChromiumClient,
+		UntriagedPriorities: []string{},
+		UntriagedAliases:    []string{"none"},
+		HotlistsToExclude:   []int64{5437934, 5438642},
 	}
-	crMonorail1, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig1)
+	crIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, crQueryConfig)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to init monorail for chromium")
+		return skerr.Wrapf(err, "failed to init issuetracker for chromium")
 	}
-	bugFrameworks = append(bugFrameworks, crMonorail1)
-
-	//////////////////// Chromium:Internals>Skia>Compositing - Monorail ////////////////////
-	crQueryConfig2 := &monorail.MonorailQueryConfig{
-		Instance:          "chromium",
-		Query:             "is:open component=Internals>Skia>Compositing",
-		Client:            types.ChromiumClient,
-		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
-	}
-	crMonorail2, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig2)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to init monorail for chromium")
-	}
-	bugFrameworks = append(bugFrameworks, crMonorail2)
-
-	//////////////////// Chromium:Internals>Skia>PDF - Monorail ////////////////////
-	crQueryConfig3 := &monorail.MonorailQueryConfig{
-		Instance:          "chromium",
-		Query:             "is:open component=Internals>Skia>PDF",
-		Client:            types.ChromiumClient,
-		UntriagedStatuses: []string{"Untriaged", "Unconfirmed"},
-	}
-	crMonorail3, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, crQueryConfig3)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to init monorail for chromium")
-	}
-	bugFrameworks = append(bugFrameworks, crMonorail3)
+	bugFrameworks = append(bugFrameworks, crIssueTracker)
 
 	//////////////////// Skia - Buganizer ////////////////////
 	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
