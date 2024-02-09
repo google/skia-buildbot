@@ -118,11 +118,6 @@ var PACKAGES = map[string]*Package{
 		Name:    "infra/tools/luci/isolate/${platform}",
 		Version: "git_revision:4f585e471d9b3ba86b2ac0ec0cdefaa8fdb67024",
 	},
-	"infra/tools/luci/isolated/${platform}": {
-		Path:    "cipd_bin_packages",
-		Name:    "infra/tools/luci/isolated/${platform}",
-		Version: "git_revision:dc3a3dc4272aeef30698752d137ccd4f09526d69",
-	},
 	"infra/tools/luci/kitchen/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/kitchen/${platform}",
