@@ -121,11 +121,12 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 
 	//////////////////// Chromium - IssueTracker ////////////////////
 	crQueryConfig := &issuetracker.IssueTrackerQueryConfig{
-		Query:               "componentid:1457031+ status:open",
-		Client:              types.ChromiumClient,
-		UntriagedPriorities: []string{},
-		UntriagedAliases:    []string{"none"},
-		HotlistsToExclude:   []int64{5437934, 5438642},
+		Query:                 "componentid:1457031+ status:open",
+		Client:                types.ChromiumClient,
+		UnassignedIsUntriaged: true,
+		UntriagedPriorities:   []string{},
+		UntriagedAliases:      []string{"none"},
+		HotlistsToExclude:     []int64{5437934, 5438642},
 	}
 	crIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, crQueryConfig)
 	if err != nil {
