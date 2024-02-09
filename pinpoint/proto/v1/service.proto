@@ -8,7 +8,8 @@ option go_package = "go.skia.org/infra/pinpoint/go/proto";
 import "google/api/annotations.proto";
 
 // The direct mirror of the existing bisect request in catapult.
-// https://github.googlesource.com/catapult-project/catapult/+/09398d/dashboard/dashboard/pinpoint/models/job.py#339
+// https://chromium.googlesource.com/catapult.git/+/09398d/
+// dashboard/dashboard/pinpoint/models/job.py#339
 //
 // Note, some fields are only for backward-compatibility only.
 message ScheduleBisectRequest {
@@ -44,6 +45,10 @@ message ScheduleBisectRequest {
 
 	// The user email who triggers the job.
 	string user = 13;
+
+	// The mechanism in which benchmark measurements are aggregated by.
+	// One of sum, mean, min, max count, and std.
+	string aggregation_method = 14;
 }
 
 message QueryBisectRequest {

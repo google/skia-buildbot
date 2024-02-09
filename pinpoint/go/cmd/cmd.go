@@ -5,10 +5,10 @@ import (
 	"flag"
 
 	"github.com/davecgh/go-spew/spew"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/pinpoint"
-	"go.skia.org/infra/pinpoint/go/read_values"
+
+	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 // default flag for
@@ -24,7 +24,7 @@ var (
 	storyDefault     = "browse:social:twitter_infinite_scroll:2018"
 	chartDefault     = "v8:gc:cycle:main_thread:young:atomic"
 	aggDefault       = "mean"
-	magDefault       = 2.0
+	magDefault       = "2.0"
 )
 
 type cliCmd struct {
@@ -39,7 +39,7 @@ type cliCmd struct {
 	story      string
 	chart      string
 	agg        string
-	mag        float64
+	mag        string
 }
 
 func (cli *cliCmd) RegisterFlags() {
@@ -54,7 +54,7 @@ func (cli *cliCmd) RegisterFlags() {
 	flag.StringVar(&cli.story, "story", storyDefault, "story to test")
 	flag.StringVar(&cli.chart, "chart", chartDefault, "chart/measurement/sub-story to read")
 	flag.StringVar(&cli.agg, "dataAgg", aggDefault, "method to aggregate benchmark measurements by. Options are sum, mean, min, max, count, and std.")
-	flag.Float64Var(&cli.mag, "magnitude", magDefault, "Raw magnitude expected")
+	flag.StringVar(&cli.mag, "magnitude", magDefault, "Raw magnitude expected")
 }
 
 func (c *cliCmd) Run() (*pinpoint.PinpointRunResponse, error) {
@@ -63,19 +63,15 @@ func (c *cliCmd) Run() (*pinpoint.PinpointRunResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	agg, err := c.getAggregationMethod()
-	if err != nil {
-		return nil, err
-	}
-	req := pinpoint.PinpointRunRequest{
-		Device:            c.device,
-		Benchmark:         c.benchmark,
-		Story:             c.story,
-		Chart:             c.chart,
-		StartCommit:       c.startHash,
-		EndCommit:         c.endHash,
-		Magnitude:         c.mag,
-		AggregationMethod: agg,
+	req := &ppb.ScheduleBisectRequest{
+		Configuration:       c.device,
+		Benchmark:           c.benchmark,
+		Story:               c.story,
+		Chart:               c.chart,
+		StartGitHash:        c.startHash,
+		EndGitHash:          c.endHash,
+		ComparisonMagnitude: c.mag,
+		AggregationMethod:   c.agg,
 	}
 
 	return pp.Run(ctx, req, c.jobID)
@@ -91,22 +87,4 @@ func main() {
 		sklog.Error(err)
 	}
 	spew.Dump(resp)
-}
-
-func (c *cliCmd) getAggregationMethod() (read_values.AggDataMethodEnum, error) {
-	switch c.agg {
-	case "count":
-		return read_values.Count.AggDataMethod(), nil
-	case "max":
-		return read_values.Max.AggDataMethod(), nil
-	case "mean":
-		return read_values.Mean.AggDataMethod(), nil
-	case "min":
-		return read_values.Min.AggDataMethod(), nil
-	case "std":
-		return read_values.Std.AggDataMethod(), nil
-	case "sum":
-		return read_values.Sum.AggDataMethod(), nil
-	}
-	return nil, skerr.Fmt("Aggregation method %s is not a supported aggregation method", c.agg)
 }

@@ -6,10 +6,9 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/cmd",
     visibility = ["//visibility:private"],
     deps = [
-        "//go/skerr",
         "//go/sklog",
         "//pinpoint/go/pinpoint",
-        "//pinpoint/go/read_values",
+        "//pinpoint/proto/v1:proto",
         "@com_github_davecgh_go_spew//spew",
     ],
 )

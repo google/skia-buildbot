@@ -16,21 +16,21 @@ import (
 	"go.skia.org/infra/pinpoint/go/build_chrome/mocks"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
-	"go.skia.org/infra/pinpoint/go/read_values"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
-func defaultRunRequest() PinpointRunRequest {
-	return PinpointRunRequest{
-		Device:            "linux-perf",
+func defaultRunRequest() *ppb.ScheduleBisectRequest {
+	return &ppb.ScheduleBisectRequest{
+		Configuration:     "linux-perf",
 		Benchmark:         "benchmark",
 		Story:             "story",
 		Chart:             "chart",
-		StartCommit:       "start_commit",
-		EndCommit:         "end_commit",
-		AggregationMethod: read_values.Sum.AggDataMethod(),
+		StartGitHash:      "start_commit",
+		EndGitHash:        "end_commit",
+		AggregationMethod: "sum",
 	}
 }
 
@@ -54,23 +54,23 @@ func TestValidateScheduleRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 		Convey(`When no base or exp hash`, func() {
 			req := defaultRunRequest()
-			req.StartCommit = ""
+			req.StartGitHash = ""
 			resp, err := pp.Run(ctx, req, "")
 			So(resp, ShouldBeNil)
-			So(err, ShouldErrLike, fmt.Sprintf(missingRequiredParamTemplate, "start"))
+			So(err, ShouldErrLike, fmt.Sprintf(missingRequiredParamTemplate, "base git hash a"))
 
 			req = defaultRunRequest()
-			req.EndCommit = ""
+			req.EndGitHash = ""
 			resp, err = pp.Run(ctx, req, "")
 			So(resp, ShouldBeNil)
-			So(err, ShouldErrLike, fmt.Sprintf(missingRequiredParamTemplate, "end"))
+			So(err, ShouldErrLike, fmt.Sprintf(missingRequiredParamTemplate, "base git hash b"))
 		})
 		Convey(`When bad device in request`, func() {
 			req := defaultRunRequest()
-			req.Device = "fake-device"
+			req.Configuration = "fake-device"
 			resp, err := pp.Run(ctx, req, "")
 			So(resp, ShouldBeNil)
-			So(err, ShouldErrLike, fmt.Sprintf("Device %s not allowed", req.Device))
+			So(err, ShouldErrLike, fmt.Sprintf("Builder name %s not allowed", req.Configuration))
 		})
 		Convey(`When missing benchmark`, func() {
 			req := defaultRunRequest()
@@ -336,7 +336,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 				},
 			},
 		}
-		cfg, err := bot_configs.GetBotConfig(req.Device, false)
+		cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
 		So(err, ShouldBeNil)
 		c.tests = &testMetadata{
 			req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
@@ -383,7 +383,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 					},
 				},
 			}
-			cfg, err := bot_configs.GetBotConfig(req.Device, false)
+			cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
 			So(err, ShouldBeNil)
 			c.tests = &testMetadata{
 				req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
@@ -801,7 +801,7 @@ func TestUpdateUnknown(t *testing.T) {
 
 		lcommit := cdl.commits[left]
 		rcommit := cdl.commits[right]
-		cfg, err := bot_configs.GetBotConfig(req.Device, false)
+		cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
 		So(err, ShouldBeNil)
 		cdl.commits[left].tests = &testMetadata{
 			req: lcommit.createRunBenchmarkRequest("jobID", cfg, "target", req),

@@ -44,6 +44,24 @@ func (a aggDataMethod) AggDataMethod() aggDataMethod {
 	return a
 }
 
+func toAggDataMethod(data string) (AggDataMethodEnum, error) {
+	switch data {
+	case "count":
+		return Count.AggDataMethod(), nil
+	case "max":
+		return Max.AggDataMethod(), nil
+	case "mean":
+		return Mean.AggDataMethod(), nil
+	case "min":
+		return Min.AggDataMethod(), nil
+	case "std":
+		return Std.AggDataMethod(), nil
+	case "sum":
+		return Sum.AggDataMethod(), nil
+	}
+	return nil, skerr.Fmt("Aggregation method %s is not a supported aggregation method", data)
+}
+
 // DialRBECAS dials an RBE CAS client given a swarming instance.
 // Pinpoint uses 3 swarming instances to store CAS results
 // https://skia.googlesource.com/buildbot/+/5291743c698e/cabe/go/backends/rbecas.go#19
@@ -67,9 +85,12 @@ func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error)
 //	ctx := context.Background()
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, client, benchmark, chart, digests, nil)
-func ReadValuesByChart(ctx context.Context, client *rbeclient.Client,
-	benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference,
-	agg AggDataMethodEnum) ([]float64, error) {
+func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference, agg string) ([]float64, error) {
+	aggEnum, err := toAggDataMethod(agg)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unsuporrted agg method.")
+	}
+
 	values := []float64{}
 	for _, digest := range digests {
 		res, err := backends.FetchBenchmarkJSON(ctx, client,
@@ -81,10 +102,10 @@ func ReadValuesByChart(ctx context.Context, client *rbeclient.Client,
 			)
 		}
 		v := ReadChart(res, benchmark, chart)
-		if agg != nil {
-			s, err := aggData(v, agg)
+		if aggEnum != nil {
+			s, err := aggData(v, aggEnum)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "Could not aggregate data via %v on %v", agg.AggDataMethod(), v)
+				return nil, skerr.Wrapf(err, "Could not aggregate data via %v on %v", aggEnum.AggDataMethod(), v)
 			}
 			values = append(values, s)
 		} else {

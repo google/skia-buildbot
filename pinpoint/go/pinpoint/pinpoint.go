@@ -5,26 +5,31 @@ import (
 	"math"
 	"net/http"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
+
 	"golang.org/x/oauth2/google"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	bpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
@@ -43,31 +48,7 @@ type PinpointHandler interface {
 	// jobID can reuse swarming results which can be helpful to triage
 	// the workflow and not wait on tasks to finish.
 	// TODO(sunxiaodi@): implement Run
-	Run(ctx context.Context, req PinpointRunRequest, jobID string) (*PinpointRunResponse, error)
-}
-
-// PinpointRunRequest is the request arguments to run a Pinpoint job.
-type PinpointRunRequest struct {
-	// Device is the device to test Chrome on i.e. linux-perf
-	Device string
-	// Benchmark is the benchmark to test
-	Benchmark string
-	// Story is the benchmark's story to test
-	Story string
-	// Chart is the story's subtest to measure. Only used in bisections.
-	Chart string
-	// Magnitude is the expected absolute difference of a potential regression.
-	// Only used in bisections. Default is 1.0.
-	Magnitude float64
-	// AggregationMethod is the method to aggregate the measurements after a single
-	// benchmark runs. Some benchmarks will output multiple values in one
-	// run. Aggregation is needed to be consistent with perf measurements.
-	// Only used in bisection.
-	AggregationMethod read_values.AggDataMethodEnum
-	// StartCommit is the base or start commit hash to run
-	StartCommit string
-	// EndCommit is the experimental or end commit hash to run
-	EndCommit string
+	Run(ctx context.Context, req *ppb.ScheduleBisectRequest, jobID string) (*PinpointRunResponse, error)
 }
 
 type PinpointRunResponse struct {
@@ -132,8 +113,7 @@ func New(ctx context.Context) (*pinpointHandlerImpl, error) {
 }
 
 // Run implements the pinpointJobImpl interface
-func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, jobID string) (
-	*PinpointRunResponse, error) {
+func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectRequest, jobID string) (*PinpointRunResponse, error) {
 	if jobID == "" {
 		jobID = uuid.New().String()
 	}
@@ -141,9 +121,9 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not validate request inputs")
 	}
-	cfg, err := bot_configs.GetBotConfig(req.Device, false)
+	cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Device %s not allowed in bot configurations", req.Device)
+		return nil, skerr.Wrapf(err, "Builder name %s not allowed in bot configurations", req.Configuration)
 	}
 
 	bc, err := build_chrome.New(ctx)
@@ -168,22 +148,22 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 		Culprits: []string{},
 	}
 
-	target, err := bot_configs.GetIsolateTarget(req.Device, req.Benchmark)
+	target, err := bot_configs.GetIsolateTarget(req.Configuration, req.Benchmark)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "could not get isolate target with device %s and benchmark %s", req.Device, req.Benchmark)
+		return nil, skerr.Wrapf(err, "could not get isolate target with builder name %s and benchmark %s", req.Configuration, req.Benchmark)
 	}
 
 	cdl := commitDataList{
 		commits: []*commitData{
 			{
 				commit: &midpoint.Commit{
-					GitHash:       req.StartCommit,
+					GitHash:       req.StartGitHash,
 					RepositoryUrl: chromiumSrcGit,
 				},
 			},
 			{
 				commit: &midpoint.Commit{
-					GitHash:       req.EndCommit,
+					GitHash:       req.EndGitHash,
 					RepositoryUrl: chromiumSrcGit,
 				},
 			},
@@ -196,7 +176,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 		// start builds that have not been scheduled
 		for _, c := range cdl.commits {
 			if c.build == nil {
-				buildID, err := bc.SearchOrBuild(ctx, jobID, c.commit.GitHash, req.Device, nil, nil)
+				buildID, err := bc.SearchOrBuild(ctx, jobID, c.commit.GitHash, req.Configuration, nil, nil)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not kick off build for commit %s", c.commit.GitHash)
 				}
@@ -259,7 +239,11 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 			// i would need to shift one. Doing it this way avoids any index shifting
 			left, right := i, i+1
 			sklog.Debugf("compare right [%d] vs [%d]", left, right)
-			res, err := cdl.compareNeighbor(left, right, req.Magnitude)
+			magnitude, err := strconv.ParseFloat(req.ComparisonMagnitude, 64)
+			if err != nil {
+				return resp, err
+			}
+			res, err := cdl.compareNeighbor(left, right, magnitude)
 			if err != nil {
 				return resp, skerr.Wrapf(err, "could not compare [%d] against right neighbor", left)
 			}
@@ -276,7 +260,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 			// compare left
 			left, right = i-1, i
 			sklog.Debugf("compare left [%d] vs [%d]", left, right)
-			res, err = cdl.compareNeighbor(left, right, req.Magnitude)
+			res, err = cdl.compareNeighbor(left, right, magnitude)
 			if err != nil {
 				return resp, skerr.Wrapf(err, "could not compare [%d] against left neighbor", right)
 			}
@@ -300,16 +284,16 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req PinpointRunRequest, 
 }
 
 // validateRunRequest validates the request args and returns an error if there request is invalid
-func (pp *pinpointHandlerImpl) validateRunRequest(req PinpointRunRequest) error {
-	if req.StartCommit == "" {
-		return skerr.Fmt(missingRequiredParamTemplate, "start commit")
+func (pp *pinpointHandlerImpl) validateRunRequest(req *ppb.ScheduleBisectRequest) error {
+	if req.StartGitHash == "" {
+		return skerr.Fmt(missingRequiredParamTemplate, "base git hash a")
 	}
-	if req.EndCommit == "" {
-		return skerr.Fmt(missingRequiredParamTemplate, "end commit")
+	if req.EndGitHash == "" {
+		return skerr.Fmt(missingRequiredParamTemplate, "base git hash b")
 	}
-	_, err := bot_configs.GetBotConfig(req.Device, false)
+	_, err := bot_configs.GetBotConfig(req.Configuration, false)
 	if err != nil {
-		return skerr.Wrapf(err, "Device %s not allowed in bot configurations", req.Device)
+		return skerr.Wrapf(err, "Builder name %s not allowed in bot configurations", req.Configuration)
 	}
 	if req.Benchmark == "" {
 		return skerr.Fmt(missingRequiredParamTemplate, "benchmark")
@@ -380,7 +364,7 @@ func (cdl commitDataList) pollBuild(ctx context.Context, bc build_chrome.BuildCh
 
 // createRunBenchmarkRequest converts job run request information to a run_benchmark
 // swarming request
-func (c *commitData) createRunBenchmarkRequest(jobID string, cfg bot_configs.BotConfig, target string, req PinpointRunRequest) *run_benchmark.RunBenchmarkRequest {
+func (c *commitData) createRunBenchmarkRequest(jobID string, cfg bot_configs.BotConfig, target string, req *ppb.ScheduleBisectRequest) *run_benchmark.RunBenchmarkRequest {
 	return &run_benchmark.RunBenchmarkRequest{
 		JobID:     jobID,
 		Build:     c.build.buildCAS,
@@ -417,8 +401,7 @@ func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc swarming.ApiCl
 // pollTests checks the test status of every commit in the commitQ
 // returns upon finding the first commit with running tasks that all finished
 // returns the index of the commit so it is easier to compare left and right neighbors
-func (cdl commitDataList) pollTests(ctx context.Context, sc swarming.ApiClient) (
-	int, *commitData, error) {
+func (cdl commitDataList) pollTests(ctx context.Context, sc swarming.ApiClient) (int, *commitData, error) {
 	for i, c := range cdl.commits {
 		if c.tests == nil {
 			continue
@@ -468,8 +451,7 @@ func (c *commitData) getTestCAS(ctx context.Context, sc swarming.ApiClient) (
 }
 
 // getValues will return the values from a set of swarming test cas outputs
-func (c *commitData) getValues(ctx context.Context, rc *rbeclient.Client, req PinpointRunRequest) (
-	[]float64, error) {
+func (c *commitData) getValues(ctx context.Context, rc *rbeclient.Client, req *ppb.ScheduleBisectRequest) ([]float64, error) {
 	if c.tests == nil {
 		return nil, skerr.Fmt("cannot retrieve values with no swarming tests")
 	}
