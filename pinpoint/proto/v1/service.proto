@@ -32,6 +32,9 @@ message ScheduleBisectRequest {
 	string story = 6;
 	string chart = 7;
 	string statistic = 8;
+
+	// Comparison Magnitude is the expected absolute difference of a potential regression.
+	// Only used in bisections. Default is 1.0.
 	string comparison_magnitude = 9;
 
 	// The Change (Commits + Patch) to apply to every change for all the subsequence runs.
@@ -49,6 +52,16 @@ message ScheduleBisectRequest {
 	// The mechanism in which benchmark measurements are aggregated by.
 	// One of sum, mean, min, max count, and std.
 	string aggregation_method = 14;
+
+	// StoryTags is a comma delimited string of tags to pass for the story.
+	// For example, "all", "representative_win_desktop" or "2019,2018".
+	string story_tags = 15;
+
+	// The minimum number of test iterations run.
+	string initial_attempt_count = 16;
+
+	// A dict of key-value pairs used to filter the Jobs listings.
+	map<string,string> tags = 17;
 }
 
 message QueryBisectRequest {
