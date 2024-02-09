@@ -199,7 +199,7 @@ func cipdMockDescribe(ctx context.Context, cipdClient *mocks.CIPDClient, ver str
 	for idx, tag := range tags {
 		tagInfos[idx].Tag = tag
 	}
-	cipdClient.On("Describe", ctx, githubCIPDAssetName, ver).Return(&cipd_api.InstanceDescription{
+	cipdClient.On("Describe", ctx, githubCIPDAssetName, ver, false).Return(&cipd_api.InstanceDescription{
 		InstanceInfo: cipd_api.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: githubCIPDAssetName,

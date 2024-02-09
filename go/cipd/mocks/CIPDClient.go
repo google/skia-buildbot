@@ -118,9 +118,9 @@ func (_m *CIPDClient) Create(ctx context.Context, name string, dir string, insta
 	return r0, r1
 }
 
-// Describe provides a mock function with given fields: ctx, _a1, instance
-func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string) (*clientcipd.InstanceDescription, error) {
-	ret := _m.Called(ctx, _a1, instance)
+// Describe provides a mock function with given fields: ctx, _a1, instance, includeMetadata
+func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string, includeMetadata bool) (*clientcipd.InstanceDescription, error) {
+	ret := _m.Called(ctx, _a1, instance, includeMetadata)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Describe")
@@ -128,19 +128,19 @@ func (_m *CIPDClient) Describe(ctx context.Context, _a1 string, instance string)
 
 	var r0 *clientcipd.InstanceDescription
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*clientcipd.InstanceDescription, error)); ok {
-		return rf(ctx, _a1, instance)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) (*clientcipd.InstanceDescription, error)); ok {
+		return rf(ctx, _a1, instance, includeMetadata)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *clientcipd.InstanceDescription); ok {
-		r0 = rf(ctx, _a1, instance)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, bool) *clientcipd.InstanceDescription); ok {
+		r0 = rf(ctx, _a1, instance, includeMetadata)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*clientcipd.InstanceDescription)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, _a1, instance)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, bool) error); ok {
+		r1 = rf(ctx, _a1, instance, includeMetadata)
 	} else {
 		r1 = ret.Error(1)
 	}

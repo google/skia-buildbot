@@ -244,7 +244,7 @@ type CIPDClient interface {
 	Ensure(ctx context.Context, forceCopyInstallMode bool, packages ...*Package) error
 
 	// Describe is a convenience wrapper around cipd.Client.DescribeInstance.
-	Describe(ctx context.Context, pkg, instance string) (*cipd.InstanceDescription, error)
+	Describe(ctx context.Context, pkg, instance string, includeMetadata bool) (*cipd.InstanceDescription, error)
 }
 
 // Client is a struct used for interacting with the CIPD API.
@@ -296,14 +296,15 @@ func (c *Client) Ensure(ctx context.Context, forceCopyInstallMode bool, packages
 	return nil
 }
 
-func (c *Client) Describe(ctx context.Context, pkg, instance string) (*cipd.InstanceDescription, error) {
+func (c *Client) Describe(ctx context.Context, pkg, instance string, includeMetadata bool) (*cipd.InstanceDescription, error) {
 	pin := common.Pin{
 		PackageName: pkg,
 		InstanceID:  instance,
 	}
 	opts := &cipd.DescribeInstanceOpts{
-		DescribeRefs: true,
-		DescribeTags: true,
+		DescribeRefs:     true,
+		DescribeTags:     true,
+		DescribeMetadata: includeMetadata,
 	}
 	return c.DescribeInstance(ctx, pin, opts)
 }

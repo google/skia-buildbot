@@ -85,7 +85,7 @@ type CIPDChild struct {
 
 // GetRevision implements Child.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	instance, err := c.client.Describe(ctx, c.name, id)
+	instance, err := c.client.Describe(ctx, c.name, id, false)
 	if err != nil {
 		tag := id
 		if c.revisionIdTag != "" && c.revisionIdTagStripKey {
@@ -101,7 +101,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 		if len(pins) > 1 {
 			sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", id)
 		}
-		instance, err = c.client.Describe(ctx, c.name, pins[0].InstanceID)
+		instance, err = c.client.Describe(ctx, c.name, pins[0].InstanceID, false)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

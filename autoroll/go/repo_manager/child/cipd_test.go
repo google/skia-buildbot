@@ -192,7 +192,7 @@ func TestCIPDChild_GetRevision(t *testing.T) {
 	ctx := context.Background()
 	ts := time.Unix(1615384545, 0)
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,
@@ -267,14 +267,14 @@ func TestCIPDChild_GetRevision_HasBackingRepo(t *testing.T) {
 	}
 	mockGitiles.On("Details", testutils.AnyContext, gitRevision).Return(gitRev, nil)
 	mockGitiles.On("URL").Return(gitilesConfig.RepoUrl)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceTag).Return(nil, errors.New("No such instance"))
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceTag, false).Return(nil, errors.New("No such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
 		{
 			PackageName: c.name,
 			InstanceID:  instanceID,
 		},
 	}), nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,
@@ -325,14 +325,14 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag(t *testing.T) {
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := "version:5"
 
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag).Return(nil, errors.New("No such instance"))
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag, false).Return(nil, errors.New("No such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
 		{
 			PackageName: c.name,
 			InstanceID:  instanceID,
 		},
 	}), nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,
@@ -386,14 +386,14 @@ func TestCIPDChild_GetRevision_HasRevisionIDTag_StripKey(t *testing.T) {
 	instanceID := "8ECbL8K2HVu1GGLRMtnzdXr5IG-ky0QnA-gU44BViPYC"
 	instanceTag := "version:5"
 
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag).Return(nil, errors.New("No such instance"))
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, c.revisionIdTag, false).Return(nil, errors.New("No such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
 		{
 			PackageName: c.name,
 			InstanceID:  instanceID,
 		},
 	}), nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,
@@ -445,7 +445,7 @@ func TestCIPDChild_Update(t *testing.T) {
 		PackageName: c.name,
 		InstanceID:  instanceID,
 	}, nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,
@@ -555,14 +555,14 @@ func TestCIPDChild_Update_HasBackingRepo(t *testing.T) {
 		PackageName: c.name,
 		InstanceID:  instanceID,
 	}, nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceTag).Return(nil, errors.New("No such instance"))
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceTag, false).Return(nil, errors.New("No such instance"))
 	mockCipdClient.On("SearchInstances", testutils.AnyContext, c.name, []string{instanceTag}).Return(common.PinSlice([]common.Pin{
 		{
 			PackageName: c.name,
 			InstanceID:  instanceID,
 		},
 	}), nil)
-	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID).Return(&cipd.InstanceDescription{
+	mockCipdClient.On("Describe", testutils.AnyContext, c.name, instanceID, false).Return(&cipd.InstanceDescription{
 		InstanceInfo: cipd.InstanceInfo{
 			Pin: common.Pin{
 				PackageName: c.name,

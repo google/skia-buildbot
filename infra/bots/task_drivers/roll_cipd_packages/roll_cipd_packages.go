@@ -167,7 +167,7 @@ func main() {
 				}
 				// Retrieve details of the package instance, including the full
 				// set of refs and tags.
-				desc, err := cc.Describe(ctx, name, pin.InstanceID)
+				desc, err := cc.Describe(ctx, name, pin.InstanceID, true)
 				if err != nil {
 					return err
 				}
