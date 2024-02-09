@@ -3,7 +3,6 @@ package pinpoint
 import (
 	"context"
 	"math"
-	"net/http"
 	"sort"
 	"strconv"
 	"time"
@@ -37,6 +36,7 @@ const (
 	chromiumSrcGit               = "https://chromium.googlesource.com/chromium/src.git"
 	maxSampleSize                = 20
 	interval                     = 10
+	swarmingServiceAddress       = "chrome-swarming.appspot.com:443"
 )
 
 // PinpointHandler is an interface to run Pinpoint jobs
@@ -63,7 +63,9 @@ type PinpointRunResponse struct {
 
 // pinpointJobImpl implements the PinpointJob interface.
 type pinpointHandlerImpl struct {
-	client *http.Client
+	sc swarming.ApiClient
+	bc build_chrome.BuildChromeClient
+	mc midpoint.MidpointHandler
 }
 
 // buildMetadata tracks relevant build Chrome metadata
@@ -107,8 +109,15 @@ func New(ctx context.Context) (*pinpointHandlerImpl, error) {
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
 
+	sc, err := swarming.NewApiClient(c, swarmingServiceAddress)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Could not create swarming client")
+	}
+
 	return &pinpointHandlerImpl{
-		client: c,
+		sc: sc,
+		bc: build_chrome.NewWithClient(c),
+		mc: midpoint.New(ctx, c),
 	}, nil
 }
 
@@ -125,23 +134,6 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Builder name %s not allowed in bot configurations", req.Configuration)
 	}
-
-	bc, err := build_chrome.New(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not create buildbucket client")
-	}
-
-	sc, err := run_benchmark.DialSwarming(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not create swarming client")
-	}
-
-	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Problem setting up default token source")
-	}
-	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-	mc := midpoint.New(ctx, c)
 
 	resp := &PinpointRunResponse{
 		JobID:    jobID,
@@ -176,7 +168,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 		// start builds that have not been scheduled
 		for _, c := range cdl.commits {
 			if c.build == nil {
-				buildID, err := bc.SearchOrBuild(ctx, jobID, c.commit.GitHash, req.Configuration, nil, nil)
+				buildID, err := pp.bc.SearchOrBuild(ctx, jobID, c.commit.GitHash, req.Configuration, nil, nil)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not kick off build for commit %s", c.commit.GitHash)
 				}
@@ -186,13 +178,13 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 		}
 		// TODO(sunxiaodi@) deprecate polling with pubsub
-		c, err := cdl.pollBuild(ctx, bc)
+		c, err := cdl.pollBuild(ctx, pp.bc)
 		if err != nil {
 			return resp, err
 		}
 		// retrieve CAS of successful builds and schedule new benchmark runs
 		if c != nil && c.build.buildStatus == bpb.Status_SUCCESS {
-			cas, err := bc.RetrieveCAS(ctx, c.build.buildID, target)
+			cas, err := pp.bc.RetrieveCAS(ctx, c.build.buildID, target)
 			if err != nil {
 				return resp, skerr.Wrapf(err, "Could not retrieve CAS info")
 			}
@@ -200,7 +192,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			c.tests = &testMetadata{
 				req: c.createRunBenchmarkRequest(jobID, cfg, target, req),
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, sc)
+			tasks, err := c.scheduleRunBenchmark(ctx, pp.sc)
 			if err != nil {
 				return resp, err
 			}
@@ -210,12 +202,12 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 		}
 		// TODO(sunxiaodi@) deprecate polling with pubsub
-		i, c, err := cdl.pollTests(ctx, sc)
+		i, c, err := cdl.pollTests(ctx, pp.sc)
 		if err != nil {
 			return resp, err
 		}
 		if c != nil {
-			cas, err := c.getTestCAS(ctx, sc)
+			cas, err := c.getTestCAS(ctx, pp.sc)
 			if err != nil {
 				return resp, err
 			}
@@ -249,7 +241,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 			if res != nil {
 				spew.Dump(res)
-				culprit, err := cdl.updateCommitsByResult(ctx, sc, mc, res, left, right)
+				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
 				}
@@ -266,7 +258,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 			if res != nil {
 				spew.Dump(res)
-				culprit, err := cdl.updateCommitsByResult(ctx, sc, mc, res, left, right)
+				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
 				}

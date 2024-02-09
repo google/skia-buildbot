@@ -8,6 +8,7 @@ package build_chrome
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
 
@@ -70,6 +71,16 @@ func New(ctx context.Context) (*buildChromeImpl, error) {
 	return &buildChromeImpl{
 		BuildbucketClient: bc,
 	}, nil
+}
+
+// NewWithClient returns buildChromeImpl.
+// This is introduced for pinpoint.go, and New() is retained for compatibility to workflows/internal/build_chrome.go.
+// TODO(jeffyoon@): One should be deprecated for the other.
+func NewWithClient(c *http.Client) *buildChromeImpl {
+	bc := backends.DefaultClientConfig().WithClient(c)
+	return &buildChromeImpl{
+		BuildbucketClient: bc,
+	}
 }
 
 // searchBuild looks for an existing buildbucket build using the
