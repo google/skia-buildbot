@@ -47,6 +47,11 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return nil, skerr.Wrap(err)
 	}
 
+	gitPath, _, _, err := git_common.FindGit(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	// Set up depot tools.
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
 	if err != nil {
@@ -57,10 +62,6 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	for i, envVar := range depotToolsEnv {
 		split := strings.SplitN(envVar, "=", 2)
 		if len(split) == 2 && split[0] == "PATH" {
-			gitPath, _, _, err := git_common.FindGit(ctx)
-			if err != nil {
-				return nil, skerr.Wrap(err)
-			}
 			pathEnvVarValue := fmt.Sprintf("%s:%s", filepath.Dir(gitPath), split[1])
 			depotToolsEnv[i] = fmt.Sprintf("PATH=%s", pathEnvVarValue)
 			if err := os.Setenv("PATH", pathEnvVarValue); err != nil {
@@ -84,14 +85,17 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		return skerr.Wrap(err)
 	}
 	sync := func(ctx context.Context, extraArgs ...string) error {
-		args := []string{"sync", "--delete_unversioned_trees", "--force", "-v"}
+		args := []string{"sync", "--delete_unversioned_trees", "--force", "--reset", "-v"}
 		if !c.RunHooks {
 			args = append(args, "--nohooks")
 		}
 		if len(extraArgs) > 0 {
 			args = append(args, extraArgs...)
 		}
-		return skerr.Wrap(gclient(ctx, args...))
+		if err := gclient(ctx, args...); err != nil {
+			return skerr.Wrap(err)
+		}
+		return skerr.Wrap(gclient(ctx, "recurse", "--no-progress", "-j1", gitPath, "clean", "-d", "-f"))
 	}
 
 	// Pre-upload steps are run after setting the new dependency version and
