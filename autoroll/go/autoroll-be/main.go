@@ -244,7 +244,7 @@ func main() {
 	// The rollers use the gitcookie created by gitauth package.
 	if !*local {
 		// Prevent conflicts with other auth systems, eg. LUCI.
-		if _, err := exec.RunSimple(ctx, "git config --global --unset credential.helper"); err != nil {
+		if _, err := exec.RunSimple(ctx, "git config --global --unset-all credential.helper"); err != nil {
 			sklog.Fatalf("Failed to unset credential.helper: %s", err)
 		}
 
