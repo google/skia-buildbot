@@ -1,0 +1,29 @@
+- hosts: gce_linux
+  user: chrome-bot
+  gather_facts: true
+
+  tasks:
+    - name: Gather package facts (pre-update)
+      package_facts:
+        manager: apt
+
+    # Inspired by https://devops.stackexchange.com/a/18280.
+    - name: Check google-cloud-sdk package version (pre-update)
+      debug:
+        msg: "{{ ansible_facts.packages['google-cloud-sdk'][0].version }}"
+      when: "'google-cloud-sdk' in ansible_facts.packages"
+
+    - name: Update google-cloud-sdk package
+      become: true
+      apt:
+        name: google-cloud-sdk
+        state: latest
+
+    - name: Gather package facts (post-update)
+      package_facts:
+        manager: apt
+
+    - name: Check google-cloud-sdk package version (post-update)
+      debug:
+        msg: "{{ ansible_facts.packages['google-cloud-sdk'][0].version }}"
+      when: "'google-cloud-sdk' in ansible_facts.packages"
