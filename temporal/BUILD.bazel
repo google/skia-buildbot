@@ -37,7 +37,10 @@ container_image(
         "/etc/temporal/config/dynamicconfig/docker.yaml",
     ],
     entrypoint = "/entrypoint.sh",
-    files = glob(["docker/*.sh"]),
+    files = glob([
+        "docker/*.sh",
+        "docker/*.yaml",
+    ]),
     layers = [
         ":config",
     ],
