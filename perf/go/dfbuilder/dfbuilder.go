@@ -583,6 +583,7 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 
 	var count int64
 
+	timeBeforeGetLatestTile := time.Now()
 	tileNumber, err := b.store.GetLatestTile(ctx)
 	if err != nil {
 		return -1, nil, err
@@ -591,6 +592,8 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	if q.Empty() {
 		return -1, nil, skerr.Fmt("Can not pre-flight an empty query")
 	}
+	duration := time.Now().Sub(timeBeforeGetLatestTile)
+	sklog.Debugf("Time spent to get latest tile is %d ms", int64(duration/time.Millisecond))
 
 	// Since the query isn't empty we'll have to run a partial query
 	// to build the ParamSet. Do so over the two most recent tiles.
@@ -599,6 +602,7 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	queryContext, cancel := context.WithTimeout(ctx, time.Duration(b.numPreflightTiles)*singleTileQueryTimeout)
 	defer cancel()
 
+	timeBeforeQueryTraces := time.Now()
 	// Query traces in parallel to speed it up.
 	var wg sync.WaitGroup
 	doAddParams := func(p paramtools.Params) {
@@ -641,6 +645,8 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 		}
 	}
 	wg.Wait()
+	duration = time.Now().Sub(timeBeforeQueryTraces)
+	sklog.Debugf("Time spent to query traces is %d ms", int64(duration/time.Millisecond))
 	if queryTraceError != nil {
 		return -1, nil, fmt.Errorf("failed to query traces: %s", queryTraceError)
 	}
@@ -649,14 +655,20 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 	// key in the query we need to go back and put in all the values that
 	// appear for that key since the user can make more selections in that
 	// key.
+	timeBeforeQueryPlan := time.Now()
 	queryPlan, err := q.QueryPlan(ps.Freeze())
+	duration = time.Now().Sub(timeBeforeQueryPlan)
+	sklog.Debugf("Time spent to query plan is %d ms", int64(duration/time.Millisecond))
 	if err != nil {
 		return -1, nil, err
 	}
 	for key := range queryPlan {
 		ps[key] = referenceParamSet[key]
 	}
+	timeBeforeNormalize := time.Now()
 	ps.Normalize()
+	duration = time.Now().Sub(timeBeforeNormalize)
+	sklog.Debugf("Time spent to normalize param set is %d ms", int64(duration/time.Millisecond))
 
 	return count, ps, nil
 }
