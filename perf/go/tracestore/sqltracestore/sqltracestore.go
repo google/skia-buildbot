@@ -200,7 +200,7 @@ const (
 	// query. 30 matches the max number of cores we use on a clustering instance.
 	poolSize = 30
 
-	queryTracesIDOnlyByIndexChannelSize = 1000
+	queryTracesIDOnlyByIndexChannelSize = 10000
 
 	// defaultCacheSize is the size of the in-memory LRU caches.
 	defaultCacheSize = 40 * 1000 * 1000
