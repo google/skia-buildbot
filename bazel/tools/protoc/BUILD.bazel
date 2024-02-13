@@ -89,10 +89,9 @@ sh_binary(
         "@com_github_grpc_ecosystem_grpc_gateway_v2//protoc-gen-grpc-gateway",
         "@com_github_skia_dev_protoc_gen_twirp_typescript//:protoc-gen-twirp_typescript",
         "@com_github_twitchtv_twirp//protoc-gen-twirp",
+        "@googleapis//google/api:annotations_proto",
         "@org_golang_google_protobuf//cmd/protoc-gen-go",
         "@org_golang_google_grpc_cmd_protoc_gen_go_grpc//:protoc-gen-go-grpc",
-        "@com_google_googleapis//google/api:annotations_proto",
-        "@googleapis//google/api:annotations_proto",
     ],
     visibility = ["//visibility:public"],
 )

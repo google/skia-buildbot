@@ -31,7 +31,7 @@ proto_library(
     deps = [
         ":analysis_proto",
         ":spec_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
+        "@googleapis//google/api:annotations_proto",
     ],
 )
 
@@ -43,6 +43,6 @@ proto_descriptor_set(
     name = "cabe_descriptor_set",
     deps = [
         ":service_proto",
-        "@com_google_googleapis//google/api:annotations_proto",
+        "@googleapis//google/api:annotations_proto",
     ],
 )

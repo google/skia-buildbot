@@ -118,15 +118,6 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_proto/archive/f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip"],
 )
 
-http_archive(
-    name = "com_google_googleapis",
-    sha256 = "38701e513aff81c89f0f727e925bf04ac4883913d03a60cdebb2c2a5f10beb40",
-    strip_prefix = "googleapis-86fa44cc5ee2136e87c312f153113d4dd8e9c4de",
-    urls = [
-        "https://github.com/googleapis/googleapis/archive/86fa44cc5ee2136e87c312f153113d4dd8e9c4de.tar.gz",
-    ],
-)
-
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
 http_archive(
     name = "googleapis",
@@ -140,7 +131,7 @@ http_archive(
     ),
 )
 
-load("@com_google_googleapis//:repository_rules.bzl", googleapis_imports_switched_rules_by_language = "switched_rules_by_language")
+load("@googleapis//:repository_rules.bzl", googleapis_imports_switched_rules_by_language = "switched_rules_by_language")
 
 googleapis_imports_switched_rules_by_language(
     name = "com_google_googleapis_imports",
