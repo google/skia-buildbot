@@ -59,6 +59,7 @@ type builder struct {
 	tileSize           int32
 	numPreflightTiles  int
 	filterParentTraces Filtering
+	mux                *sync.Mutex
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -78,6 +79,7 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 		numPreflightTiles:             numPreflightTiles,
 		tileSize:                      store.TileSize(),
 		filterParentTraces:            filterParentTraces,
+		mux:                           &sync.Mutex{},
 		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
 		newFromQueryAndRangeTimer:     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
@@ -596,25 +598,51 @@ func (b *builder) PreflightQuery(ctx context.Context, q *query.Query, referenceP
 
 	queryContext, cancel := context.WithTimeout(ctx, time.Duration(b.numPreflightTiles)*singleTileQueryTimeout)
 	defer cancel()
-	for i := 0; i < b.numPreflightTiles; i++ {
-		// Count the matches and sum the params in the tile.
-		out, err := b.store.QueryTracesIDOnly(queryContext, tileNumber, q)
-		if err != nil {
-			return -1, nil, fmt.Errorf("failed to query traces: %s", err)
-		}
-		var tileOneCount int64
-		for p := range out {
-			tileOneCount++
-			ps.AddParams(p)
-		}
+
+	// Query traces in parallel to speed it up.
+	var wg sync.WaitGroup
+	doAddParams := func(p paramtools.Params) {
+		b.mux.Lock()
+		defer b.mux.Unlock()
+		ps.AddParams(p)
+	}
+	doUpdateCount := func(tileOneCount int64) {
+		b.mux.Lock()
+		defer b.mux.Unlock()
 		if tileOneCount > count {
 			count = tileOneCount
 		}
+	}
+	var queryTraceError error
+	for i := 0; i < b.numPreflightTiles; i++ {
+		wg.Add(1)
+		go func(iterateTileNumber types.TileNumber) {
+			defer wg.Done()
+
+			// Count the matches and sum the params in the tile.
+			out, err := b.store.QueryTracesIDOnly(queryContext, iterateTileNumber, q)
+			if err != nil {
+				queryTraceError = err
+				sklog.Errorf("failed to query traces at tile %d with error: %s", iterateTileNumber, err)
+				return
+			}
+			var tileOneCount int64
+			for p := range out {
+				tileOneCount++
+				doAddParams(p)
+			}
+			doUpdateCount(tileOneCount)
+		}(tileNumber)
+
 		// Now move to the previous tile.
 		tileNumber = tileNumber.Prev()
 		if tileNumber == types.BadTileNumber {
 			break
 		}
+	}
+	wg.Wait()
+	if queryTraceError != nil {
+		return -1, nil, fmt.Errorf("failed to query traces: %s", queryTraceError)
 	}
 
 	// Now we have the ParamSet that corresponds to the query, but for each
