@@ -194,7 +194,7 @@ const (
 
 	// queryTraceIDsChunkSize is the number of traceids we try to resolve into
 	// Params at one time.
-	queryTraceIDsChunkSize = 1000
+	queryTraceIDsChunkSize = 10000
 
 	// Number of parallel requests sent to the database when servicing a single
 	// query. 30 matches the max number of cores we use on a clustering instance.
