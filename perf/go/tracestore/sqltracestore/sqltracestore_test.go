@@ -675,8 +675,6 @@ func Test_ExpandConvertTraceIDs_Success(t *testing.T) {
                 ,'bar'
                 ,'baz'
                 )
-        ORDER BY
-            trace_id
     `
 	assert.Equal(t, expected, b.String())
 }

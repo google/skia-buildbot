@@ -308,8 +308,6 @@ var templates = map[statement]string{
                     '{{ $trace_id }}'
                 {{ end -}}
             )
-        ORDER BY
-            trace_id
     `,
 	queryTraceIDs: `
         {{ $key := .Key }}
@@ -327,8 +325,7 @@ var templates = map[statement]string{
                     '{{ $key }}={{ $value }}'
                 {{ end }}
             )
-            {{ .RestrictClause }}
-        ORDER BY trace_id`,
+            {{ .RestrictClause }}`,
 	readTraces: `
         SELECT
             trace_id,
@@ -1243,6 +1240,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	traceIDRestriction, skipKey, planDisposition := s.restrictByCounting(ctx, tileNumber, plan)
 	if planDisposition == skippable {
 		// We know this query won't match any traces in this tile.
+		close(outParams)
 		return outParams, nil
 	}
 
@@ -1315,6 +1313,7 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 
 	// Now AND together the results of all the unionChannels.
 	traceIDsCh := newIntersect(ctx, unionChannels)
+	sklog.Debugf("Found %d unique trace ids for the query plan: %v", len(traceIDsCh), plan)
 
 	// And then convert the results of the AND into Params, which we sent out
 	// the channel we'll return from this function.
