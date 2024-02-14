@@ -73,6 +73,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
         <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
+        ${this.revisionLinkTemplate()}
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
         </a>
@@ -91,6 +92,14 @@ export class PerfScaffoldSk extends ElementSk {
     </footer>
   </app-sk>
 `;
+
+  private static revisionLinkTemplate = () => {
+    if (window.perf.fetch_chrome_perf_anomalies) {
+      return html`<a href="/v/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info<span></a>`;
+    }
+
+    return html``;
+  };
 
   connectedCallback(): void {
     super.connectedCallback();
