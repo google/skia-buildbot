@@ -15,6 +15,7 @@ import '../../../elements-sk/modules/error-toast-sk';
 import { html, TemplateResult } from 'lit-html';
 import JSONEditor from 'jsoneditor';
 import LottiePlayer from 'lottie-web';
+import { RendererType } from 'lottie-web';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { define } from '../../../elements-sk/modules/define';
@@ -458,6 +459,27 @@ export class SkottieSk extends ElementSk {
           ?checked=${this.showLottie}
           @click=${this.toggleLottie}>
         </checkbox-sk>
+        ${this.showLottie
+          ? html`
+              <skottie-dropdown-sk
+                .name=${'lottie-renderer'}
+                .options=${[
+                  {
+                    id: 'svg',
+                    value: 'SVG',
+                    selected: this.lottiePlayerRenderer === 'svg',
+                  },
+                  {
+                    id: 'canvas',
+                    value: 'Canvas',
+                    selected: this.lottiePlayerRenderer === 'canvas',
+                  },
+                ]}
+                @select=${this.onLottieRendererSelect}
+                full>
+              </skottie-dropdown-sk>
+            `
+          : ''}
       </div>
     </details>
   `;
@@ -555,8 +577,8 @@ export class SkottieSk extends ElementSk {
       <div
         id="container"
         title="lottie-web"
-        style="width: 100%; aspect-ratio: ${this.width /
-        this.height}; background-color: ${this.backgroundColor}"></div>
+        style="width:${this.width}px;height:${this
+          .height}px;background-color:${this.backgroundColor}"></div>
       ${caption('lottie-web', this.viewMode)}
     </figure>`;
   };
@@ -643,9 +665,9 @@ export class SkottieSk extends ElementSk {
 
   private assetsPath = PRODUCTION_ASSETS_PATH; // overridable for testing
 
-  // The URL referring to the lottie JSON Blob.
-  private backgroundColor: string = 'rgba(0,0,0,0)';
+  private backgroundColor: string = 'rgba(255,255,255,1)';
 
+  // The URL referring to the lottie JSON Blob.
   private downloadURL: string = '';
 
   private duration: number = 0; // 0 is a sentinel value for "player not loaded yet"
@@ -664,6 +686,8 @@ export class SkottieSk extends ElementSk {
   private height: number = 0;
 
   private lottiePlayer: BodymovinPlayer | null = null;
+
+  private lottiePlayerRenderer: RendererType = 'svg';
 
   private performanceChart: SkottiePerformanceSk | null = null;
 
@@ -1433,7 +1457,7 @@ export class SkottieSk extends ElementSk {
       $$<HTMLDivElement>('#container')!.innerHTML = '';
       this.lottiePlayer = LottiePlayer.loadAnimation({
         container: $$('#container')!,
-        renderer: 'svg',
+        renderer: this.lottiePlayerRenderer,
         loop: true,
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
@@ -1690,6 +1714,15 @@ export class SkottieSk extends ElementSk {
       this.ui = 'loading';
       this.render();
     }
+  }
+
+  private onLottieRendererSelect(ev: CustomEvent<DropdownSelectEvent>) {
+    this.lottiePlayerRenderer = ev.detail.value as RendererType;
+
+    // Re-initialize Lottie.
+    this.lottiePlayer!.destroy();
+    this.lottiePlayer = null;
+    this.render();
   }
 
   private onColorManagerUpdated(ev: CustomEvent<SkottieTemplateEventDetail>) {
