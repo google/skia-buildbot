@@ -46,6 +46,7 @@ func TestJSONHandler_KnownEndpoints_ShouldForwardRequests(t *testing.T) {
 	// TODO(b/322047067): Return code should be 200 with actual response body.
 	expect("POST", "/pinpoint/v1/schedule", "{}", http.StatusNotImplemented)
 	expect("GET", "/pinpoint/v1/query", "", http.StatusNotImplemented)
+	expect("GET", "/pinpoint/v1/legacy-job", "", http.StatusNotImplemented)
 }
 
 func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {

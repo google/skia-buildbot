@@ -3,9 +3,10 @@ syntax = "proto3";
 // Working in progress protobuf and service definition.
 //
 package pinpoint.v1;
-option go_package = "go.skia.org/infra/pinpoint/go/proto";
+option go_package = "go.skia.org/infra/pinpoint/proto/v1;pinpointpb";
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 // The direct mirror of the existing bisect request in catapult.
 // https://chromium.googlesource.com/catapult.git/+/09398d/
@@ -72,6 +73,95 @@ message BisectExecution {
 	string job_id = 1;
 }
 
+// See LegacyJobResponse below
+message LegacyJobRequest {
+	string job_id = 1;
+}
+
+// This is a direct mapping from /api/job in catapult.
+//
+// This is backward compatible support before the service in catapult is completely shut down.
+// Note that there is not schema definition so the output structure is more or less
+// a guess from the response. Example output:
+// https://pinpoint-dot-chromeperf.appspot.com/api/job/102beaa5ee0000?o=STATE&?o=ESTIMATE
+message LegacyJobResponse {
+	string job_id = 1;
+	string configuration = 2;
+	string results_url = 3;
+	int32 improvement_direction = 4;
+
+	message Argument {
+		string comparison_mode = 1;
+		string target = 2;
+		string start_git_hash = 3;
+		string end_git_hash = 4;
+		string trace = 5;
+		map<string,string> tags = 6;
+		int32 initial_attempt_count = 7;
+		string configuration = 8;
+		string benchmark = 9;
+		string story = 10;
+		string story_tags = 11;
+		string chart = 12;
+		string statistic = 13;
+		double comparison_magnitude = 14;
+		string extra_test_args = 15;
+		string pin = 16;
+		string project = 17;
+		string bug_id = 18;
+		string batch_id = 19;
+	}
+	Argument arguments = 5;
+
+	string bug_id = 6;
+	string project = 7;
+	string comparison_mode = 8;
+	string name = 9;
+	string user = 10;
+	google.protobuf.Timestamp created = 11;
+	google.protobuf.Timestamp updated = 12;
+	google.protobuf.Timestamp started_time = 13;
+	int32 difference_count = 14;
+	string exception = 15;
+	string status = 16;
+	string cancel_reason = 17;
+	string batch_id = 18;
+	repeated string bots = 19;
+	string metric = 20;
+	repeated string quests = 21;
+
+	message State {
+		message Change {
+			// TBD: Commit details
+		}
+		repeated Change change = 1;
+
+		message Attempt {
+			message Execution {
+				bool completed = 1;
+				string exception = 2;
+
+				message Detail {
+					string key = 1;
+					string value = 2;
+					string url = 3;
+				}
+				repeated Detail details = 3;
+			}
+			repeated Execution executions = 1;
+		}
+		repeated Attempt attempts = 2;
+
+		message Comparision {
+			string next = 1;
+			string prev = 2;
+		}
+		Comparision comparisions = 3;
+		repeated double values = 4;
+	}
+	repeated State state = 22;
+}
+
 service Pinpoint {
   rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
     option (google.api.http) = {
@@ -84,4 +174,11 @@ service Pinpoint {
       get: "/pinpoint/v1/query"
     };
   }
+
+	rpc LegacyJobQuery(LegacyJobRequest) returns (LegacyJobResponse) {
+    option (google.api.http) = {
+      get: "/pinpoint/v1/legacy-job"
+    };
+  }
+
 }

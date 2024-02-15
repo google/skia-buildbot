@@ -7,7 +7,7 @@
 // Working in progress protobuf and service definition.
 //
 
-package proto
+package pinpointpb
 
 import (
 	context "context"
@@ -25,6 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Pinpoint_ScheduleBisection_FullMethodName = "/pinpoint.v1.Pinpoint/ScheduleBisection"
 	Pinpoint_QueryBisection_FullMethodName    = "/pinpoint.v1.Pinpoint/QueryBisection"
+	Pinpoint_LegacyJobQuery_FullMethodName    = "/pinpoint.v1.Pinpoint/LegacyJobQuery"
 )
 
 // PinpointClient is the client API for Pinpoint service.
@@ -33,6 +34,7 @@ const (
 type PinpointClient interface {
 	ScheduleBisection(ctx context.Context, in *ScheduleBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
 	QueryBisection(ctx context.Context, in *QueryBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
+	LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error)
 }
 
 type pinpointClient struct {
@@ -61,12 +63,22 @@ func (c *pinpointClient) QueryBisection(ctx context.Context, in *QueryBisectRequ
 	return out, nil
 }
 
+func (c *pinpointClient) LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error) {
+	out := new(LegacyJobResponse)
+	err := c.cc.Invoke(ctx, Pinpoint_LegacyJobQuery_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointServer is the server API for Pinpoint service.
 // All implementations must embed UnimplementedPinpointServer
 // for forward compatibility
 type PinpointServer interface {
 	ScheduleBisection(context.Context, *ScheduleBisectRequest) (*BisectExecution, error)
 	QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error)
+	LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error)
 	mustEmbedUnimplementedPinpointServer()
 }
 
@@ -79,6 +91,9 @@ func (UnimplementedPinpointServer) ScheduleBisection(context.Context, *ScheduleB
 }
 func (UnimplementedPinpointServer) QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryBisection not implemented")
+}
+func (UnimplementedPinpointServer) LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LegacyJobQuery not implemented")
 }
 func (UnimplementedPinpointServer) mustEmbedUnimplementedPinpointServer() {}
 
@@ -129,6 +144,24 @@ func _Pinpoint_QueryBisection_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pinpoint_LegacyJobQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LegacyJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointServer).LegacyJobQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Pinpoint_LegacyJobQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointServer).LegacyJobQuery(ctx, req.(*LegacyJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Pinpoint_ServiceDesc is the grpc.ServiceDesc for Pinpoint service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -143,6 +176,10 @@ var Pinpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "QueryBisection",
 			Handler:    _Pinpoint_QueryBisection_Handler,
+		},
+		{
+			MethodName: "LegacyJobQuery",
+			Handler:    _Pinpoint_LegacyJobQuery_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -8,6 +8,7 @@ proto_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "@com_google_protobuf//:timestamp_proto",
         "@googleapis//google/api:annotations_proto",
     ],
 )
@@ -34,5 +35,6 @@ go_library(
         "@org_golang_google_protobuf//proto",
         "@org_golang_google_protobuf//reflect/protoreflect",
         "@org_golang_google_protobuf//runtime/protoimpl",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )
