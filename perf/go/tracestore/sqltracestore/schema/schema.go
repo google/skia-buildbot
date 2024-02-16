@@ -27,9 +27,10 @@ type ParamSetsSchema struct {
 }
 
 type PostingsSchema struct {
-	TileNumber     types.TileNumber `sql:"tile_number INT"`
-	KeyValue       string           `sql:"key_value STRING NOT NULL"`
-	TraceID        []byte           `sql:"trace_id BYTES"`
-	primaryKey     struct{}         `sql:"PRIMARY KEY (tile_number, key_value, trace_id)"`
-	byTraceIDIndex struct{}         `sql:"INDEX by_trace_id (tile_number, trace_id, key_value)"`
+	TileNumber      types.TileNumber `sql:"tile_number INT"`
+	KeyValue        string           `sql:"key_value STRING NOT NULL"`
+	TraceID         []byte           `sql:"trace_id BYTES"`
+	primaryKey      struct{}         `sql:"PRIMARY KEY (tile_number, key_value, trace_id)"`
+	byTraceIDIndex  struct{}         `sql:"INDEX by_trace_id (tile_number, trace_id, key_value)"`
+	byKeyValueIndex struct{}         `sql:"INDEX by_key_value (tile_number, key_value)"`
 }

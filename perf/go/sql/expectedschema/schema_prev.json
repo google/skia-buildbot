@@ -9,6 +9,8 @@
     "commits.commit_time": "bigint def: nullable:YES",
     "commits.git_hash": "text def: nullable:NO",
     "commits.subject": "text def: nullable:YES",
+    "graphsshortcuts.graphs": "text def: nullable:YES",
+    "graphsshortcuts.id": "text def: nullable:NO",
     "paramsets.param_key": "text def: nullable:NO",
     "paramsets.param_value": "text def: nullable:NO",
     "paramsets.tile_number": "bigint def: nullable:NO",

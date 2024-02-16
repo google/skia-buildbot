@@ -43,7 +43,9 @@ CREATE TABLE IF NOT EXISTS Postings (
 	PRIMARY KEY (tile_number, key_value, trace_id),
 	-- This secondary index is used to reconstruct a trace's full name from a
 	-- given trace_id.
-	INDEX by_trace_id (tile_number, trace_id, key_value)
+	INDEX by_trace_id (tile_number, trace_id, key_value),
+	-- This  index is used to query trace_ids from a given key_value.
+	INDEX by_key_value (tile_number, key_value)
 );
 
 -- This table is used to store shortcuts. See go/shortcut/sqlshortcutstore.

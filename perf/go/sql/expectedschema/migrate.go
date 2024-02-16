@@ -27,14 +27,12 @@ import (
 
 // The two vars below should be updated everytime there's a schema change.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS GraphsShortcuts (
-		id TEXT UNIQUE NOT NULL PRIMARY KEY,
-		graphs TEXT
-	);
+	CREATE INDEX IF NOT EXISTS by_key_value
+	ON postings	(tile_number, key_value);
 `
 
 var FromNextToLive = `
-	DROP TABLE IF EXISTS GraphsShortcuts;
+	DROP INDEX IF EXISTS postings@by_key_value;
 `
 
 // This function will check whether there's a new schema checked-in,

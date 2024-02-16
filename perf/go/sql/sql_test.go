@@ -38,6 +38,10 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	author TEXT,
 	subject TEXT
   );
+  CREATE TABLE IF NOT EXISTS GraphsShortcuts (
+	id TEXT UNIQUE NOT NULL PRIMARY KEY,
+	graphs TEXT
+  );
   CREATE TABLE IF NOT EXISTS ParamSets (
 	tile_number INT,
 	param_key STRING,

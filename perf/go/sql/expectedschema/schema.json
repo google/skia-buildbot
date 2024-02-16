@@ -33,6 +33,7 @@
     "commits.commits_git_hash_key",
     "paramsets.by_tile_number",
     "postings.by_trace_id",
+    "postings.by_key_value",
     "sourcefiles.sourcefiles_source_file_key",
     "sourcefiles.by_source_file",
     "tracevalues.by_source_file_id"
