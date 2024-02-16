@@ -79,7 +79,7 @@ skia_app_container(
     dirs = {
         "/usr/local/bin": [
             [
-                "//task_scheduler/go/task-scheduler-fe:task-scheduler-fe",
+                "//task_scheduler/go/task-scheduler-bbfe:task-scheduler-bbfe",
                 "0755",
             ],
         ],
