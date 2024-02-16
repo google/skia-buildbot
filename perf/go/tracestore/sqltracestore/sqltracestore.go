@@ -271,6 +271,7 @@ const (
 	getSource
 	traceCount
 	queryTraceIDs
+	queryTraceIDsByKeyValue
 	convertTraceIDs
 	readTraces
 	getLastNSources
@@ -326,6 +327,23 @@ var templates = map[statement]string{
                 {{ end }}
             )
             {{ .RestrictClause }}`,
+	queryTraceIDsByKeyValue: `
+		{{ $key := .Key }}
+		SELECT
+			trace_id
+		FROM
+			Postings@by_key_value
+			{{ .AsOf }}
+		WHERE
+			tile_number = {{ .TileNumber }}
+			AND key_value IN
+			(
+				{{ range $index, $value :=  .Values -}}
+					{{ if $index }},{{end}}
+					'{{ $key }}={{ $value }}'
+				{{ end }}
+			)
+		`,
 	readTraces: `
         SELECT
             trace_id,
@@ -446,6 +464,14 @@ type queryTraceIDsContext struct {
 	Values         []string
 	AsOf           string
 	RestrictClause string
+}
+
+// queryTraceIDsByKeyValueContext is the context for the queryTraceIDsByKeyValueContext template.
+type queryTraceIDsByKeyValueContext struct {
+	TileNumber types.TileNumber
+	Key        string
+	Values     []string
+	AsOf       string
 }
 
 // convertTracesContext is the context for the convertTraceIDs template.
@@ -1140,7 +1166,7 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 	// Now that we know the key in the plan with the smallest number of matching
 	// trace_ids, we can go back to the database and query for all those
 	// matching trace_ids.
-	context := queryTraceIDsContext{
+	context := queryTraceIDsByKeyValueContext{
 		TileNumber: tileNumber,
 		Key:        optimal.key,
 		Values:     optimal.values,
@@ -1152,8 +1178,8 @@ func (s *SQLTraceStore) restrictByCounting(ctx context.Context, tileNumber types
 
 	// Expand the template for the SQL.
 	var b bytes.Buffer
-	if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
-		sklog.Warningf("Failed to expand queryTraceIDs template: %s", err)
+	if err := s.unpreparedStatements[queryTraceIDsByKeyValue].Execute(&b, context); err != nil {
+		sklog.Warningf("Failed to expand queryTraceIDsByKeyValue template: %s", err)
 		return "", "", runnable
 
 	}
