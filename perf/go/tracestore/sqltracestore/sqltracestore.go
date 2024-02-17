@@ -1289,21 +1289,38 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		if key == skipKey {
 			continue
 		}
-		context := queryTraceIDsContext{
-			TileNumber:     tileNumber,
-			Key:            key,
-			Values:         values,
-			AsOf:           "",
-			RestrictClause: traceIDRestriction,
-		}
-		if s.enableFollowerReads {
-			context.AsOf = followerReadsStatement
-		}
 
 		// Expand the template for the SQL.
 		var b bytes.Buffer
-		if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
-			return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+		// Query trace ids through index by_key_value if the traceIDRestriction is empty,
+		// otherwise, query trace ids through the primary key, which will reduce the SQL query statement time.
+		if len(traceIDRestriction) == 0 {
+			context := queryTraceIDsByKeyValueContext{
+				TileNumber: tileNumber,
+				Key:        key,
+				Values:     values,
+				AsOf:       "",
+			}
+			if s.enableFollowerReads {
+				context.AsOf = followerReadsStatement
+			}
+			if err := s.unpreparedStatements[queryTraceIDsByKeyValue].Execute(&b, context); err != nil {
+				return nil, skerr.Wrapf(err, "failed to expand queryTraceIDsByKeyValue template")
+			}
+		} else {
+			context := queryTraceIDsContext{
+				TileNumber:     tileNumber,
+				Key:            key,
+				Values:         values,
+				AsOf:           "",
+				RestrictClause: traceIDRestriction,
+			}
+			if s.enableFollowerReads {
+				context.AsOf = followerReadsStatement
+			}
+			if err := s.unpreparedStatements[queryTraceIDs].Execute(&b, context); err != nil {
+				return nil, skerr.Wrapf(err, "failed to expand queryTraceIDs template")
+			}
 		}
 		sql := b.String()
 		rows, err := s.db.Query(ctx, sql)
