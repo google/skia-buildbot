@@ -2,6 +2,8 @@
 *.DS_Store
 # Compiled python files.
 *.pyc
+# Backup Files
+*~
 # Files open in vi.
 *.swp
 # Compiled cfg files.

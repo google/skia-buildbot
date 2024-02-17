@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//perf/go/alerts/sqlalertstore/schema",
+        "//perf/go/culprit/sqlculpritstore/schema",
         "//perf/go/git/schema",
         "//perf/go/graphsshortcut/graphsshortcutstore/schema",
         "//perf/go/regression/sqlregressionstore/schema",

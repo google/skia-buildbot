@@ -24,6 +24,8 @@ const DropTables = `
 	DROP TABLE IF EXISTS SourceFiles;
 	DROP TABLE IF EXISTS TraceValues;
 `
+
+// LiveSchema has to reflect what's live in prod right now
 const LiveSchema = `
 CREATE TABLE IF NOT EXISTS Alerts (
 	id INT PRIMARY KEY DEFAULT unique_rowid(),
@@ -54,7 +56,8 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	key_value STRING NOT NULL,
 	trace_id BYTES,
 	PRIMARY KEY (tile_number, key_value, trace_id),
-	INDEX by_trace_id (tile_number, trace_id, key_value)
+	INDEX by_trace_id (tile_number, trace_id, key_value),
+	INDEX by_key_value (tile_number, key_value)
   );
   CREATE TABLE IF NOT EXISTS Regressions (
 	commit_number INT,

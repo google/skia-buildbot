@@ -27,12 +27,20 @@ import (
 
 // The two vars below should be updated everytime there's a schema change.
 var FromLiveToNext = `
-	CREATE INDEX IF NOT EXISTS by_key_value
-	ON postings	(tile_number, key_value);
+	CREATE TABLE IF NOT EXISTS Culprits (
+		host STRING,
+		project STRING,
+		ref STRING,
+		revision STRING,
+		last_modified INT,
+		anomaly_group_ids INT ARRAY,
+		issue_ids INT ARRAY,
+		PRIMARY KEY (host, project, ref, revision)
+	);
 `
 
 var FromNextToLive = `
-	DROP INDEX IF EXISTS postings@by_key_value;
+	DROP TABLE IF EXISTS Culprits;
 `
 
 // This function will check whether there's a new schema checked-in,

@@ -4,6 +4,7 @@ package sql
 
 import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"
+	culpritschema "go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 	gitschema "go.skia.org/infra/perf/go/git/schema"
 	graphsshortcutschema "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore/schema"
 	regressionschema "go.skia.org/infra/perf/go/regression/sqlregressionstore/schema"
@@ -15,6 +16,7 @@ import (
 type Tables struct {
 	Alerts          []alertschema.AlertSchema
 	Commits         []gitschema.Commit
+	Culprits        []culpritschema.CulpritSchema
 	GraphsShortcuts []graphsshortcutschema.GraphsShortcutSchema
 	ParamSets       []traceschema.ParamSetsSchema
 	Postings        []traceschema.PostingsSchema

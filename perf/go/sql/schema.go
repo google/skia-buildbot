@@ -16,6 +16,16 @@ CREATE TABLE IF NOT EXISTS Commits (
   author TEXT,
   subject TEXT
 );
+CREATE TABLE IF NOT EXISTS Culprits (
+  host STRING,
+  project STRING,
+  ref STRING,
+  revision STRING,
+  last_modified INT,
+  anomaly_group_ids INT ARRAY,
+  issue_ids INT ARRAY,
+  PRIMARY KEY (host, project, ref, revision)
+);
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   graphs TEXT
@@ -73,6 +83,16 @@ var Commits = []string{
 	"commit_time",
 	"author",
 	"subject",
+}
+
+var Culprits = []string{
+	"host",
+	"project",
+	"ref",
+	"revision",
+	"last_modified",
+	"anomaly_group_ids",
+	"issue_ids",
 }
 
 var GraphsShortcuts = []string{
