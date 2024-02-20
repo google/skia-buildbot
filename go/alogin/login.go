@@ -126,7 +126,7 @@ func ForceRole(h http.Handler, login Login, role roles.Role) http.Handler {
 			httputils.ReportError(w, errMissingRole, fmt.Sprintf("You must be logged in as a(n) %s to complete this action.", role), http.StatusUnauthorized)
 			return
 		}
-		sklog.Debugf("Request authenticated as user %q who has role %q", login.LoggedInAs(r), role)
+
 		h.ServeHTTP(w, r)
 	})
 }
