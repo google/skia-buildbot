@@ -40,16 +40,21 @@ func NewTaskBackend(buildbucketTarget, taskSchedulerHost string, projectRepoMapp
 
 // RunTask implements TaskBackendServer.
 func (tb *TaskBackend) RunTask(ctx context.Context, req *buildbucketpb.RunTaskRequest) (*buildbucketpb.RunTaskResponse, error) {
+	logErr := func(err error) error {
+		sklog.Error(err)
+		return err
+	}
+
 	// Validation.
 	if req.Target != tb.buildbucketTarget {
-		return nil, skerr.Fmt("incorrect target for this scheduler; expected %s", tb.buildbucketTarget)
+		return nil, logErr(skerr.Fmt("incorrect target for this scheduler; expected %s", tb.buildbucketTarget))
 	}
 	if req.Secrets == nil {
-		return nil, skerr.Fmt("secrets not set on request")
+		return nil, logErr(skerr.Fmt("secrets not set on request"))
 	}
 	buildId, err := strconv.ParseInt(req.BuildId, 10, 64)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "invalid build ID")
+		return nil, logErr(skerr.Wrapf(err, "invalid build ID"))
 	}
 
 	// Look for any Jobs which we might have already created for this Build.
@@ -57,7 +62,7 @@ func (tb *TaskBackend) RunTask(ctx context.Context, req *buildbucketpb.RunTaskRe
 		BuildbucketBuildID: &buildId,
 	})
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed looking for duplicate jobs")
+		return nil, logErr(skerr.Wrapf(err, "failed looking for duplicate jobs"))
 	}
 	if len(duplicates) > 0 {
 		return &buildbucketpb.RunTaskResponse{
@@ -71,20 +76,20 @@ func (tb *TaskBackend) RunTask(ctx context.Context, req *buildbucketpb.RunTaskRe
 	// RunTaskRequest - maybe it's already in RunTaskRequest.BackendConfig?
 	build, err := tb.bb2.GetBuild(ctx, buildId)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "failed to retrieve build %d", buildId)
+		return nil, logErr(skerr.Wrapf(err, "failed to retrieve build %d", buildId))
 	}
 	if build.Builder == nil {
-		return nil, skerr.Fmt("builder isn't set on build %d", buildId)
+		return nil, logErr(skerr.Fmt("builder isn't set on build %d", buildId))
 	}
 
 	// Obtain and validate the RepoState.
 	if build.Input == nil || build.Input.GerritChanges == nil || len(build.Input.GerritChanges) != 1 {
-		return nil, skerr.Fmt("invalid Build %d: input should have exactly one GerritChanges: %+v", buildId, build.Input)
+		return nil, logErr(skerr.Fmt("invalid Build %d: input should have exactly one GerritChanges: %+v", buildId, build.Input))
 	}
 	gerritChange := build.Input.GerritChanges[0]
 	repoUrl, ok := tb.projectRepoMapping[gerritChange.Project]
 	if !ok {
-		return nil, skerr.Fmt("unknown patch project %q", gerritChange.Project)
+		return nil, logErr(skerr.Fmt("unknown patch project %q", gerritChange.Project))
 	}
 	server := gerritChange.Host
 	if !strings.Contains(server, "://") {
@@ -121,7 +126,7 @@ func (tb *TaskBackend) RunTask(ctx context.Context, req *buildbucketpb.RunTaskRe
 
 	// Insert the Job into the DB.
 	if err := tb.db.PutJob(ctx, j); err != nil {
-		return nil, skerr.Wrapf(err, "failed to insert Job into the DB")
+		return nil, logErr(skerr.Wrapf(err, "failed to insert Job into the DB"))
 	}
 	return &buildbucketpb.RunTaskResponse{
 		Task: JobToBuildbucketTask(ctx, j, tb.buildbucketTarget, tb.taskSchedulerHost),
