@@ -344,7 +344,7 @@ var templates = map[statement]string{
 					'{{ $key }}={{ $value }}'
 				{{ end }}
 			)
-		`,
+		ORDER BY trace_id`,
 	readTraces: `
         SELECT
             trace_id,
