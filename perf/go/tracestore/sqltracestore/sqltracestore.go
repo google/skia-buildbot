@@ -326,7 +326,8 @@ var templates = map[statement]string{
                     '{{ $key }}={{ $value }}'
                 {{ end }}
             )
-            {{ .RestrictClause }}`,
+            {{ .RestrictClause }}
+		ORDER BY trace_id`,
 	queryTraceIDsByKeyValue: `
 		{{ $key := .Key }}
 		SELECT
