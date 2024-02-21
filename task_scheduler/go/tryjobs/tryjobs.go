@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/firestore"
@@ -209,6 +210,8 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 // getActiveTryJobs returns the active (started but not yet marked as finished
 // in Buildbucket) tryjobs.
 func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, error) {
+	ctx, span := trace.StartSpan(ctx, "getActiveTryJobs")
+	defer span.End()
 	if err := t.jCache.Update(ctx); err != nil {
 		return nil, err
 	}
@@ -224,6 +227,9 @@ func (t *TryJobIntegrator) getActiveTryJobs(ctx context.Context) ([]*types.Job, 
 
 // updateJobs sends updates to Buildbucket for all active try Jobs.
 func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "updateJobs")
+	defer span.End()
+
 	// Get all Jobs associated with in-progress Buildbucket builds.
 	jobs, err := t.getActiveTryJobs(ctx)
 	if err != nil {
@@ -243,6 +249,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 			unfinishedV1 = append(unfinishedV1, j)
 		}
 	}
+	sklog.Infof("Have %d active try jobs; %d finished, %d unfinished (v1), %d unfinished (v2)", len(jobs), len(finished), len(unfinishedV1), len(unfinishedV2))
 
 	// Send heartbeats for unfinished Jobs.
 	var heartbeatErr error
@@ -262,21 +269,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 
 	// Send updates for finished Jobs, empty the lease keys to mark them
 	// as inactive in the DB.
-	errs := []error{}
-	insert := make([]*types.Job, 0, len(finished))
-	for _, j := range finished {
-		if err := t.jobFinished(ctx, j); err != nil {
-			errs = append(errs, skerr.Wrapf(err, "failed to send jobFinished notification for job %s (build %d)", j.Id, j.BuildbucketBuildId))
-		} else {
-			j.BuildbucketLeaseKey = 0
-			j.BuildbucketToken = ""
-			insert = append(insert, j)
-		}
-	}
-	if err := t.db.PutJobsInChunks(ctx, insert); err != nil {
-		errs = append(errs, err)
-	}
-	t.jCache.AddJobs(insert)
+	errs := t.jobsFinished(ctx, finished)
 
 	wg.Wait()
 	if heartbeatErr != nil {
@@ -289,6 +282,7 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	if len(errs) > 0 {
 		return skerr.Fmt("Failed to update jobs; got errors: %v", errs)
 	}
+	sklog.Infof("Finished sending updates for jobs.")
 	return nil
 }
 
@@ -313,7 +307,8 @@ func isBBv2(j *types.Job) bool {
 // sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
 // Jobs.
 func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job) error {
-	defer metrics2.FuncTimer().Stop()
+	ctx, span := trace.StartSpan(ctx, "sendHeartbeats")
+	defer span.End()
 
 	// Sort the jobs by BuildbucketBuildId for consistency in testing.
 	sort.Sort(heartbeatJobSlice(jobs))
@@ -421,6 +416,9 @@ func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job
 
 // sendPubSub sends an update to Buildbucket via Pub/Sub for a single Job.
 func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error {
+	ctx, span := trace.StartSpan(ctx, "sendPubSub")
+	defer span.End()
+
 	update := &buildbucketpb.BuildTaskUpdate{
 		BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
 		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
@@ -448,6 +446,9 @@ func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error
 // sendPubsubUpdates sends updates to Buildbucket via Pub/Sub for in-progress
 // Jobs.
 func (t *TryJobIntegrator) sendPubsubUpdates(ctx context.Context, jobs []*types.Job) error {
+	ctx, span := trace.StartSpan(ctx, "sendPubsubUpdates")
+	defer span.End()
+
 	g := multierror.Group{}
 	for _, job := range jobs {
 		job := job // https://golang.org/doc/faq#closures_and_goroutines
@@ -986,8 +987,37 @@ func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason
 	return skerr.Wrap(t.sendPubSub(ctx, j))
 }
 
+// jobsFinished notifies Buildbucket that the given Jobs have finished, then
+// updates the jobs and inserts them into the DB and cache.  Returns any errors
+// which occurred.
+func (t *TryJobIntegrator) jobsFinished(ctx context.Context, finished []*types.Job) []error {
+	ctx, span := trace.StartSpan(ctx, "jobFinished")
+	span.AddAttributes(trace.Int64Attribute("count", int64(len(finished))))
+	defer span.End()
+
+	errs := []error{}
+	insert := make([]*types.Job, 0, len(finished))
+	for _, j := range finished {
+		if err := t.jobFinished(ctx, j); err != nil {
+			errs = append(errs, skerr.Wrapf(err, "failed to send jobFinished notification for job %s (build %d)", j.Id, j.BuildbucketBuildId))
+		} else {
+			j.BuildbucketLeaseKey = 0
+			j.BuildbucketToken = ""
+			insert = append(insert, j)
+		}
+	}
+	if err := t.db.PutJobsInChunks(ctx, insert); err != nil {
+		errs = append(errs, err)
+	}
+	t.jCache.AddJobs(insert)
+	return errs
+}
+
 // jobFinished notifies Buildbucket that the given Job has finished.
 func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error {
+	ctx, span := trace.StartSpan(ctx, "jobFinished")
+	defer span.End()
+
 	if !j.Done() {
 		return skerr.Fmt("JobFinished called for unfinished Job!")
 	}

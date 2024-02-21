@@ -27,6 +27,7 @@ go_library(
         "@com_github_golang_protobuf//ptypes:go_default_library_gen",
         "@com_github_hashicorp_go_multierror//:go-multierror",
         "@com_google_cloud_go_pubsub//:pubsub",
+        "@io_opencensus_go//trace",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/buildbucket/buildbucket/v1:buildbucket",
         "@org_golang_google_protobuf//proto",
