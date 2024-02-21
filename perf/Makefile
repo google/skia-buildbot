@@ -239,26 +239,6 @@ run-demo-chromeperf:
 		--fetch_chrome_perf_anomalies=true
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
-run-demo-cluster:
-	$(BAZEL) build --config=mayberemote -c dbg //perf/...
-	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
-		--local \
-		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
-
-	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver cluster \
-	    --local \
-	    --prom_port=:20000 \
-        --config_filename=./configs/demo.json \
-        --num_continuous=50 \
-        --num_paramsets_for_queries=20 \
-        --port=:7000 \
-		--resources_dir=../_bazel_bin/perf/pages/development/ \
-        --num_continuous_parallel=1 \
-        --do_clustering=true \
-        --event_driven_regression_detection=true
-
 run-auth-proxy-before-demo-instance:
 	bazelisk run //kube/cmd/auth-proxy -- \
 		--prom-port=:20003 \

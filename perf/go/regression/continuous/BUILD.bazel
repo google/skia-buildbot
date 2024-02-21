@@ -24,7 +24,6 @@ go_library(
         "//perf/go/shortcut",
         "//perf/go/stepfit",
         "//perf/go/types",
-        "//perf/go/urlprovider",
         "@com_google_cloud_go_pubsub//:pubsub",
     ],
 )

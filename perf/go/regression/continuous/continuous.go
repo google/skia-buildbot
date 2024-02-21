@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
-	"go.skia.org/infra/perf/go/urlprovider"
 )
 
 const (
@@ -52,7 +51,6 @@ type Continuous struct {
 	provider       alerts.ConfigProvider
 	notifier       notify.Notifier
 	paramsProvider regression.ParamsetProvider
-	urlProvider    urlprovider.URLProvider
 	dfBuilder      dataframe.DataFrameBuilder
 	pollingDelay   time.Duration
 	instanceConfig *config.InstanceConfig
@@ -74,7 +72,6 @@ func New(
 	store regression.Store,
 	notifier notify.Notifier,
 	paramsProvider regression.ParamsetProvider,
-	urlProvider urlprovider.URLProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
@@ -86,7 +83,6 @@ func New(
 		shortcutStore:  shortcutStore,
 		current:        &alerts.Alert{},
 		paramsProvider: paramsProvider,
-		urlProvider:    urlProvider,
 		dfBuilder:      dfBuilder,
 		pollingDelay:   pollingClusteringDelay,
 		instanceConfig: instanceConfig,
@@ -410,7 +406,7 @@ func (c *Continuous) Run(ctx context.Context) {
 		clusteringLatency.Start()
 		sklog.Infof("Clustering over %d configs.", len(cnp.configs))
 		for _, cfg := range cnp.configs {
-			c.ProcessAlertConfig(ctx, cfg, cnp.paramset)
+			c.ProcessAlertConfig(ctx, cfg)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
@@ -420,7 +416,7 @@ func (c *Continuous) Run(ctx context.Context) {
 }
 
 // ProcessAlertConfig processes the supplied alert config to detect regressions
-func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, ps paramtools.ReadOnlyParamSet) {
+func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert) {
 	c.setCurrentConfig(cfg)
 	alertConfigLatencyTimer := metrics2.NewTimer(
 		"perf_alertconfig_clustering_latency",
@@ -482,14 +478,6 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, 
 		// queries that take into account their GroupBy values and the
 		// traces they matched.
 		expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
-
-		// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
-		// we need to only query the paramset of the incoming data point instead of
-		// the entire query in the alert.
-		if cfg.Algo == types.StepFitGrouping {
-			q := c.urlProvider.GetQueryStringFromParameters(ps)
-			req.SetQuery(q)
-		}
 	}
 
 	var err error
