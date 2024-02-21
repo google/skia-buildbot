@@ -1006,18 +1006,31 @@ func (t *TryJobIntegrator) jobsFinished(ctx context.Context, finished []*types.J
 	ctx, span := trace.StartSpan(ctx, "jobFinished")
 	span.AddAttributes(trace.Int64Attribute("count", int64(len(finished))))
 	defer span.End()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
 
 	errs := []error{}
 	insert := make([]*types.Job, 0, len(finished))
+	var mtx sync.Mutex
+	var wg sync.WaitGroup
 	for _, j := range finished {
-		if err := t.jobFinished(ctx, j); err != nil {
-			errs = append(errs, skerr.Wrapf(err, "failed to send jobFinished notification for job %s (build %d)", j.Id, j.BuildbucketBuildId))
-		} else {
-			j.BuildbucketLeaseKey = 0
-			j.BuildbucketToken = ""
-			insert = append(insert, j)
-		}
+		j := j // Prevent bugs due to closure and loop variable overwriting.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := t.jobFinished(ctx, j)
+			mtx.Lock()
+			defer mtx.Unlock()
+			if err != nil {
+				errs = append(errs, skerr.Wrapf(err, "failed to send jobFinished notification for job %s (build %d)", j.Id, j.BuildbucketBuildId))
+			} else {
+				j.BuildbucketLeaseKey = 0
+				j.BuildbucketToken = ""
+				insert = append(insert, j)
+			}
+		}()
 	}
+	wg.Wait()
 	if err := t.db.PutJobsInChunks(ctx, insert); err != nil {
 		errs = append(errs, err)
 	}
