@@ -109,6 +109,11 @@ const (
 	// Buildbucket when we call UpdateBuild after the build has finished.
 	buildAlreadyFinishedErr = "cannot update an ended build"
 
+	// leaseExpiredErr is a substring of the error message returned by
+	// Buildbucket when we attempt to update the build after the lease has
+	// expired.
+	leaseExpiredErr = "Your lease might be expired"
+
 	// Project name used by buildbucket for all Skia builds.
 	buildbucketProject = "skia"
 )
@@ -719,6 +724,10 @@ func isBuildAlreadyFinishedError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), buildAlreadyFinishedErr)
 }
 
+func isLeaseKeyExpiredError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), leaseExpiredErr)
+}
+
 func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 	// We might encounter this Job via periodic polling or the query snapshot
 	// iterator, or both.  We don't want to start the Job multiple times, so
@@ -984,7 +993,10 @@ func (t *TryJobIntegrator) cancelBuild(ctx context.Context, j *types.Job, reason
 	if err != nil {
 		return skerr.Wrapf(err, "failed to cancel build %d for job %s", j.BuildbucketBuildId, j.Id)
 	}
-	return skerr.Wrap(t.sendPubSub(ctx, j))
+	if j.BuildbucketPubSubTopic != "" {
+		return skerr.Wrap(t.sendPubSub(ctx, j))
+	}
+	return nil
 }
 
 // jobsFinished notifies Buildbucket that the given Jobs have finished, then
@@ -1043,10 +1055,18 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 				return nil
 			}
 		}
-	} else if j.Status == types.JOB_STATUS_SUCCESS {
-		return skerr.Wrap(t.buildSucceededV1(j))
 	} else {
-		return skerr.Wrap(t.buildFailed(j))
+		var err error
+		if j.Status == types.JOB_STATUS_SUCCESS {
+			err = t.buildSucceededV1(j)
+		} else {
+			err = t.buildFailed(j)
+		}
+		if isLeaseKeyExpiredError(err) {
+			sklog.Warningf("Lease key for build %d (job %s) expired; canceling the build", j.BuildbucketBuildId, j.Id)
+			return t.cancelBuild(ctx, j, "lease expired")
+		}
+		return skerr.Wrap(err)
 	}
 }
 

@@ -574,6 +574,22 @@ func TestJobFinishedV1_JobSucceeded_UpdateFails(t *testing.T) {
 	require.True(t, mock.Empty(), mock.List())
 }
 
+func TestJobFinishedV1_LeaseExpired_JobIsCanceled(t *testing.T) {
+	ctx, trybots, mock, mockBB, _ := setup(t)
+
+	j := tryjobV1(ctx, repoUrl)
+	now := time.Date(2021, time.April, 27, 0, 0, 0, 0, time.UTC)
+	j.Status = types.JOB_STATUS_SUCCESS
+	j.Finished = now
+	require.NoError(t, trybots.db.PutJobs(ctx, []*types.Job{j}))
+	trybots.jCache.AddJobs([]*types.Job{j})
+	expectErr := leaseExpiredErr
+	MockJobSuccess_Failed(mock, j, now, false, expectErr)
+	mockBB.On("CancelBuild", testutils.AnyContext, j.BuildbucketBuildId, "lease expired").Return(nil, nil)
+	require.NoError(t, trybots.jobFinished(ctx, j))
+	require.True(t, mock.Empty(), mock.List())
+}
+
 func TestJobFinishedV2_JobSucceeded_UpdateFails(t *testing.T) {
 	ctx, trybots, _, mockBB, _ := setup(t)
 
