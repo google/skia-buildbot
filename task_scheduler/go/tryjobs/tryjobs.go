@@ -803,38 +803,42 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		return nil
 	}
 
-	if err := startJobHelper(); err != nil {
-		sklog.Infof("Failed to start job %s (build %d) with: %s", job.Id, job.BuildbucketBuildId, err)
+	// Run the necessary syncs, load information for the Job, etc.
+	startJobErr := startJobHelper()
+
+	// Send the StartJob notification to notify Buildbucket that the Job has
+	// started. We'll check startJobErr below.
+	bbToken, bbError, err := t.jobStarted(ctx, job)
+	if isBuildAlreadyStartedError(err) || bbError != nil {
+		var cancelReason string
+		if isBuildAlreadyStartedError(err) {
+			cancelReason = "StartBuild has already been called for this Job, but the Job was not correctly updated and cannot continue."
+		} else {
+			// Note: we're just assuming that the only reason Buildbucket would
+			// return an error is that the Build has been canceled. While this
+			// is the most likely reason, others are possible, and we may gain
+			// some information by reading the error and behaving accordingly.
+			cancelReason = fmt.Sprintf("Buildbucket rejected Start with: %s", bbError.Reason)
+		}
+		if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}, []string{cancelReason}); cancelErr != nil {
+			return skerr.Wrapf(cancelErr, "failed to start job %s (build %d) with %q and failed to cancel job", job.Id, job.BuildbucketBuildId, bbError.Message)
+		} else {
+			return skerr.Fmt("failed to start job %s (build %d) with %q", job.Id, job.BuildbucketBuildId, bbError.Message)
+		}
+	} else if err != nil {
+		return skerr.Wrapf(err, "failed to send job-started notification for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	} else if bbToken != "" {
+		job.BuildbucketToken = bbToken
+	} else {
+		sklog.Warningf("Successfully started job %s (%d) but have no Buildbucket token.", job.Id, job.BuildbucketBuildId)
+	}
+
+	// If we failed to sync, mark the Job as a mishap.
+	if startJobErr != nil {
 		job.Status = types.JOB_STATUS_MISHAP
-		job.StatusDetails = util.Truncate(fmt.Sprintf("Failed to start Job: %s", skerr.Unwrap(err)), 1024)
+		job.StatusDetails = util.Truncate(fmt.Sprintf("Failed to start Job: %s", skerr.Unwrap(startJobErr)), 1024)
 	} else {
 		job.Status = types.JOB_STATUS_IN_PROGRESS
-
-		// Notify Buildbucket that the Job has started.
-		bbToken, bbError, err := t.jobStarted(ctx, job)
-		if isBuildAlreadyStartedError(err) || bbError != nil {
-			var cancelReason string
-			if isBuildAlreadyStartedError(err) {
-				cancelReason = "StartBuild has already been called for this Job, but the Job was not correctly updated and cannot continue."
-			} else {
-				// Note: we're just assuming that the only reason Buildbucket would
-				// return an error is that the Build has been canceled. While this
-				// is the most likely reason, others are possible, and we may gain
-				// some information by reading the error and behaving accordingly.
-				cancelReason = fmt.Sprintf("Buildbucket rejected Start with: %s", bbError.Reason)
-			}
-			if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}, []string{cancelReason}); cancelErr != nil {
-				return skerr.Wrapf(cancelErr, "failed to start job %s (build %d) with %q and failed to cancel job", job.Id, job.BuildbucketBuildId, bbError.Message)
-			} else {
-				return skerr.Fmt("failed to start job %s (build %d) with %q", job.Id, job.BuildbucketBuildId, bbError.Message)
-			}
-		} else if err != nil {
-			return skerr.Wrapf(err, "failed to send job-started notification for job %s (build %d)", job.Id, job.BuildbucketBuildId)
-		} else if bbToken != "" {
-			job.BuildbucketToken = bbToken
-		} else {
-			sklog.Warningf("Successfully started job %s (%d) but have no Buildbucket token.", job.Id, job.BuildbucketBuildId)
-		}
 	}
 
 	// Update the job and insert into the DB.
@@ -842,8 +846,12 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		return skerr.Wrapf(err, "failed to insert Job %s (build %d) into the DB", job.Id, job.BuildbucketBuildId)
 	}
 	t.jCache.AddJobs([]*types.Job{job})
-	sklog.Infof("Successfully started job %s (build %d)", job.Id, job.BuildbucketBuildId)
-	return nil
+	if startJobErr != nil {
+		sklog.Infof("Failed to start job %s (build %d) with: %s", job.Id, job.BuildbucketBuildId, startJobErr)
+	} else {
+		sklog.Infof("Successfully started job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	}
+	return startJobErr
 }
 
 func (t *TryJobIntegrator) Poll(ctx context.Context) error {
