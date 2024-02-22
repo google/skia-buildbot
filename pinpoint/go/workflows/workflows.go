@@ -3,6 +3,7 @@ package workflows
 
 import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 // Workflow name definitions.
@@ -33,4 +34,27 @@ type BuildChromeParams struct {
 	Deps map[string]interface{}
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
+}
+
+// Build stores the build from Buildbucket.
+type Build struct {
+	// ID is the buildbucket ID of the Chrome build.
+	// https://github.com/luci/luci-go/blob/19a07406e/buildbucket/proto/build.proto#L138
+	ID int64
+	// Status is the status of the build, this is needed to surface the build failures.
+	Status buildbucketpb.Status
+	// CAS is the CAS address of the build isolate.
+	CAS *swarmingV1.SwarmingRpcsCASReference
+}
+
+// TestRun stores individual benchmark test run.
+type TestRun struct {
+	// TaskID is the swarming task ID.
+	TaskID string
+	// Status is the swarming task status.
+	Status string
+	// CAS is the CAS address of the test output.
+	CAS *swarmingV1.SwarmingRpcsCASReference
+	// Values is sampled values for each benchmark story.
+	Values map[string][]float64
 }

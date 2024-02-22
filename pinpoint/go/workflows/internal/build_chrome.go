@@ -19,35 +19,43 @@ import (
 type BuildChromeActivity struct {
 }
 
-// BuildChrome is a Workflow definition that builds Chrome.
-func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*swarmingV1.SwarmingRpcsCASReference, error) {
-	ao := workflow.ActivityOptions{
-		// Expect longer running time
-		StartToCloseTimeout: 6 * time.Hour,
-		// The default gRPC timeout is 5 minutes, longer than that so it can capture grpc errors.
-		HeartbeatTimeout: 6 * time.Minute,
-		RetryPolicy: &temporal.RetryPolicy{
-			InitialInterval:    15 * time.Second,
-			BackoffCoefficient: 2.0,
-			MaximumInterval:    1 * time.Minute,
-			MaximumAttempts:    3,
-		},
-	}
+var buildActivityOption = workflow.ActivityOptions{
+	// Expect longer running time
+	StartToCloseTimeout: 6 * time.Hour,
+	// The default gRPC timeout is 5 minutes, longer than that so it can capture grpc errors.
+	HeartbeatTimeout: 6 * time.Minute,
+	RetryPolicy: &temporal.RetryPolicy{
+		InitialInterval:    15 * time.Second,
+		BackoffCoefficient: 2.0,
+		MaximumInterval:    1 * time.Minute,
+		MaximumAttempts:    3,
+	},
+}
 
-	ctx = workflow.WithActivityOptions(ctx, ao)
+// BuildChrome is a Workflow definition that builds Chrome.
+func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*workflows.Build, error) {
+	ctx = workflow.WithActivityOptions(ctx, buildActivityOption)
 	logger := workflow.GetLogger(ctx)
 
 	bca := &BuildChromeActivity{}
-	var buildID int
+	var buildID int64
 	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params).Get(ctx, &buildID); err != nil {
 		logger.Error("Failed to wait for SearchOrBuildActivity:", err)
 		return nil, err
 	}
 
-	var completed bool
-	if err := workflow.ExecuteActivity(ctx, bca.WaitBuildCompletionActivity, buildID).Get(ctx, &completed); err != nil {
+	var status buildbucketpb.Status
+	if err := workflow.ExecuteActivity(ctx, bca.WaitBuildCompletionActivity, buildID).Get(ctx, &status); err != nil {
 		logger.Error("Failed to wait for WaitBuildCompletionActivity:", err)
 		return nil, err
+	}
+
+	if status != buildbucketpb.Status_SUCCESS {
+		return &workflows.Build{
+			ID:     buildID,
+			Status: status,
+			CAS:    nil,
+		}, nil
 	}
 
 	var cas *swarmingV1.SwarmingRpcsCASReference
@@ -55,7 +63,12 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*swa
 		logger.Error("Failed to wait for RetrieveCASActivity:", err)
 		return nil, err
 	}
-	return cas, nil
+
+	return &workflows.Build{
+		ID:     buildID,
+		Status: status,
+		CAS:    cas,
+	}, nil
 }
 
 // SearchOrBuildActivity wraps BuildChromeClient.SearchOrBuild
@@ -78,30 +91,30 @@ func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, param
 }
 
 // WaitBuildCompletionActivity wraps BuildChromeClient.GetStatus and waits until it is completed or errors.
-func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context, buildID int64) (bool, error) {
+func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
 	logger := activity.GetLogger(ctx)
 
 	bc, err := build_chrome.New(ctx)
 	if err != nil {
 		logger.Error("Failed to new build_chrome:", err)
-		return false, err
+		return buildbucketpb.Status_STATUS_UNSPECIFIED, err
 	}
 	failureRetries := 10
 	for {
 		select {
 		case <-ctx.Done():
-			return false, ctx.Err()
+			return buildbucketpb.Status_STATUS_UNSPECIFIED, ctx.Err()
 		default:
 			status, err := bc.GetStatus(ctx, buildID)
 			if err != nil {
 				logger.Error("Failed to get build status:", err, "remaining retries:", failureRetries)
 				failureRetries -= 1
 				if failureRetries <= 0 {
-					return false, skerr.Wrapf(err, "Failed to wait for build to complete")
+					return buildbucketpb.Status_STATUS_UNSPECIFIED, skerr.Wrapf(err, "Failed to wait for build to complete")
 				}
 			}
-			if status == buildbucketpb.Status_SUCCESS {
-				return true, nil
+			if status&buildbucketpb.Status_ENDED_MASK == buildbucketpb.Status_ENDED_MASK {
+				return status, nil
 			}
 		}
 		time.Sleep(5 * time.Second)

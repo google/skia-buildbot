@@ -27,6 +27,7 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//testsuite",
+        "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
