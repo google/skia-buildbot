@@ -835,6 +835,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 
 	// If we failed to sync, mark the Job as a mishap.
 	if startJobErr != nil {
+		job.Finished = now.Now(ctx)
 		job.Status = types.JOB_STATUS_MISHAP
 		job.StatusDetails = util.Truncate(fmt.Sprintf("Failed to start Job: %s", skerr.Unwrap(startJobErr)), 1024)
 	} else {

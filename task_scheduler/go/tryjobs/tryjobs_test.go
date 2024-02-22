@@ -1085,6 +1085,7 @@ func TestStartJobV1_InvalidJobSpec_Failed(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, types.JOB_STATUS_MISHAP, j2.Status)
 	require.Contains(t, j2.StatusDetails, "Failed to start Job: no such job: bogus-job")
+	require.NotEmpty(t, j2.Finished)
 }
 
 func TestStartJobV2_InvalidJobSpec_Failed(t *testing.T) {
@@ -1106,6 +1107,7 @@ func TestStartJobV2_InvalidJobSpec_Failed(t *testing.T) {
 	require.Equal(t, bbFakeUpdateToken, j1.BuildbucketToken)
 	require.True(t, j1.Valid())
 	require.Contains(t, j1.StatusDetails, "Failed to start Job: no such job: bogus-job")
+	require.NotEmpty(t, j1.Finished)
 	mockBB.AssertExpectations(t)
 }
 
