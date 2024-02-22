@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "backendserver_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/backend/backendserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog/sklogimpl",
+        "//go/sklog/stdlogging",
+        "//go/urfavecli",
+        "//perf/go/backend",
+        "//perf/go/config",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)
+
+go_binary(
+    name = "backendserver",
+    embed = [":backendserver_lib"],
+    visibility = ["//visibility:public"],
+)

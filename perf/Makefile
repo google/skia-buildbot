@@ -219,6 +219,14 @@ run-demo-maintenance:
 		--config_filename=./configs/demo.json \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
+run-demo-backend:
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
+	../_bazel_bin/perf/go/backend/backendserver/backendserver_/backendserver run \
+		--config_filename=./configs/demo.json \
+		--port=:8005 \
+		--prom_port=:20001 \
+
 run-demo-chromeperf:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo

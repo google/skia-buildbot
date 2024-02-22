@@ -381,6 +381,37 @@ type AnomalyConfig struct {
 	SettlingTime DurationAsString `json:"settling_time,omitempty"`
 }
 
+// BackendFlags provide commandline flags for the Backend Service.
+type BackendFlags struct {
+	ConfigFilename string
+	Port           string
+	PromPort       string
+}
+
+// AsCliFlags returns a slice of cli.Flag.
+func (flags *BackendFlags) AsCliFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{
+			Destination: &flags.ConfigFilename,
+			Name:        "config_filename",
+			Value:       "./configs/nano.json",
+			Usage:       "The name of the config file to use.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.Port,
+			Name:        "port",
+			Value:       "8000",
+			Usage:       "The port number to use.",
+		},
+		&cli.StringFlag{
+			Destination: &flags.PromPort,
+			Name:        "prom_port",
+			Value:       ":20000",
+			Usage:       "Metrics service address (e.g., ':10110')",
+		},
+	}
+}
+
 // FrontendFlags are the command-line flags for the web UI.
 type FrontendFlags struct {
 	ConfigFilename                 string
