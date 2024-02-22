@@ -39,6 +39,7 @@ var (
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	schedulerURL      = flag.String("scheduler_url", "", "URL for the task scheduler frontend, if different from --host")
 )
 
 func runServer(serverURL string, bbHandler http.Handler, plogin alogin.Login) {
@@ -94,7 +95,11 @@ func main() {
 	if *buildbucketTarget != "" {
 		httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 		bb2 := buildbucket.NewClient(httpClient)
-		bbHandler = buildbucket_taskbackend.Handler(*buildbucketTarget, serverURL, common.PROJECT_REPO_MAPPING, tsDb, bb2)
+		url := serverURL
+		if *schedulerURL != "" {
+			url = *schedulerURL
+		}
+		bbHandler = buildbucket_taskbackend.Handler(*buildbucketTarget, url, common.PROJECT_REPO_MAPPING, tsDb, bb2)
 	}
 
 	plogin := proxylogin.NewWithDefaults()
