@@ -31,7 +31,7 @@ type Commit struct {
 // overrides as part of the build request.
 // For example, if Commit is chromium/src@1, Dependency may be V8@2 which is passed
 // along to Buildbucket as a deps_revision_overrides.
-type combinedCommit struct {
+type CombinedCommit struct {
 	// Main is the main base commit, usually a Chromium commit.
 	Main *Commit
 	// ModifiedDeps is a list of commits to provide as overrides, ie/ V8.
@@ -40,7 +40,7 @@ type combinedCommit struct {
 
 // TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
 // DepsToMap translates all deps into a map.
-func (cc *combinedCommit) DepsToMap() map[string]string {
+func (cc *CombinedCommit) DepsToMap() map[string]string {
 	resp := make(map[string]string, 0)
 	for _, c := range cc.ModifiedDeps {
 		resp[c.RepositoryUrl] = c.GitHash
@@ -49,7 +49,7 @@ func (cc *combinedCommit) DepsToMap() map[string]string {
 }
 
 // GetMainGitHash returns the git hash of main.
-func (cc *combinedCommit) GetMainGitHash() string {
+func (cc *CombinedCommit) GetMainGitHash() string {
 	if cc.Main == nil {
 		return ""
 	}
@@ -57,8 +57,8 @@ func (cc *combinedCommit) GetMainGitHash() string {
 	return cc.Main.GitHash
 }
 
-func NewCombinedCommit(main *Commit, deps ...*Commit) *combinedCommit {
-	return &combinedCommit{
+func NewCombinedCommit(main *Commit, deps ...*Commit) *CombinedCommit {
+	return &CombinedCommit{
 		Main:         main,
 		ModifiedDeps: deps,
 	}
@@ -67,8 +67,8 @@ func NewCombinedCommit(main *Commit, deps ...*Commit) *combinedCommit {
 // CommitRange provides information about the left and right commits used to determine
 // the next commit to bisect against.
 type CommitRange struct {
-	Left  *combinedCommit
-	Right *combinedCommit
+	Left  *CombinedCommit
+	Right *CombinedCommit
 }
 
 // HasLeftGitHash checks if left main git hash is set.
@@ -83,7 +83,7 @@ func (cr *CommitRange) HasRightGitHash() bool {
 
 type MidpointHandler interface {
 	// DetermineNextCandidate returns the next target for bisection for the provided url, inbetween the start and end git hashes.
-	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*combinedCommit, *CommitRange, error)
+	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error)
 }
 
 // MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
@@ -205,7 +205,7 @@ func (m *midpointHandler) findRolledDep(startDeps, endDeps map[string]string) st
 }
 
 // determineRolledDep coordinates the search to find which dep may have been rolled for adjacent commits.
-func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitHash, endGitHash string) (*Commit, *Commit, *Commit, error) {
+func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitHash, endGitHash string) (*CombinedCommit, *Commit, *Commit, error) {
 	gc := m.getOrCreateRepo(url)
 
 	// Fetch deps for each git hash for the project
@@ -219,32 +219,41 @@ func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitH
 		return nil, nil, nil, err
 	}
 
-	// Find the delta.
-	diff := m.findRolledDep(startDeps, endDeps)
+	// Find the first URL.
+	diffUrl := m.findRolledDep(startDeps, endDeps)
 
 	// DEPS are the same.
-	if diff == "" {
+	if diffUrl == "" {
 		return nil, nil, nil, nil
 	}
 
-	dStart := startDeps[diff]
+	dStart := startDeps[diffUrl]
 	left := &Commit{
-		RepositoryUrl: diff,
+		RepositoryUrl: diffUrl,
 		GitHash:       dStart,
 	}
-	dEnd := endDeps[diff]
+	dEnd := endDeps[diffUrl]
 	right := &Commit{
-		RepositoryUrl: diff,
+		RepositoryUrl: diffUrl,
 		GitHash:       dEnd,
 	}
 
-	dNext, err := m.findMidpoint(ctx, diff, dStart, dEnd)
+	dNext, err := m.findMidpoint(ctx, diffUrl, dStart, dEnd)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	next := &Commit{
-		RepositoryUrl: diff,
-		GitHash:       dNext,
+	next := &CombinedCommit{
+		Main: &Commit{
+			RepositoryUrl: url,
+			// Start and End githash only diffs in DEPS, pick the lower bound
+			GitHash: startGitHash,
+		},
+		ModifiedDeps: []*Commit{
+			{
+				RepositoryUrl: diffUrl,
+				GitHash:       dNext,
+			},
+		},
 	}
 
 	return next, left, right, nil
@@ -254,63 +263,64 @@ func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitH
 // If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
 // the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built
 // on top of the Chromium commit specified as a deps override.
-func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*combinedCommit, *CommitRange, error) {
+func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error) {
 	nextCommitHash, err := m.findMidpoint(ctx, baseUrl, startGitHash, endGitHash)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	base := NewCombinedCommit(
-		&Commit{
-			RepositoryUrl: baseUrl,
-			GitHash:       nextCommitHash,
-		},
-	)
-
+	// If startGitHash and endGitHash are not adjacent, return the found commit right away.
+	//
 	// We use HasPrefix because nextCommitHash will always be the full SHA git hash,
 	// but the provided startGitHash may be a short SHA.
-	if nextCommitHash != "" && strings.HasPrefix(nextCommitHash, startGitHash) {
-		// The nextCommit == startHash. This means start and end are adjacent commits.
-		// Assume a DEPS roll, so we'll find the next candidate by parsing DEPS rolls.
-		sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startGitHash, endGitHash)
-
-		next, left, right, err := m.determineRolledDep(ctx, baseUrl, startGitHash, endGitHash)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if next != nil {
-			base.ModifiedDeps = []*Commit{
-				next,
-			}
-		}
-
-		if left != nil || right != nil {
-			cr := &CommitRange{}
-
-			if left != nil {
-				cr.Left = NewCombinedCommit(
-					&Commit{
-						RepositoryUrl: baseUrl,
-						GitHash:       nextCommitHash,
-					},
-					left,
-				)
-			}
-
-			if right != nil {
-				cr.Right = NewCombinedCommit(
-					&Commit{
-						RepositoryUrl: baseUrl,
-						GitHash:       nextCommitHash,
-					},
-					right,
-				)
-			}
-
-			return base, cr, nil
-		}
+	if !strings.HasPrefix(nextCommitHash, startGitHash) {
+		return &CombinedCommit{
+			Main: &Commit{
+				RepositoryUrl: baseUrl,
+				GitHash:       nextCommitHash,
+			},
+		}, nil, nil
 	}
 
-	return base, nil, nil
+	// The nextCommit == startHash. This means start and end are adjacent commits.
+	// Assume a DEPS roll, so we'll find the next candidate by parsing DEPS rolls.
+	sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startGitHash, endGitHash)
+
+	next, left, right, err := m.determineRolledDep(ctx, baseUrl, startGitHash, endGitHash)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// If endGitHash doesn't have DEPS rolls, return the first commit.
+	if next == nil {
+		return &CombinedCommit{
+			Main: &Commit{
+				RepositoryUrl: baseUrl,
+				GitHash:       nextCommitHash,
+			},
+		}, nil, nil
+	}
+
+	cr := CommitRange{}
+	if left != nil {
+		cr.Left = NewCombinedCommit(
+			&Commit{
+				RepositoryUrl: baseUrl,
+				GitHash:       nextCommitHash,
+			},
+			left,
+		)
+	}
+
+	if right != nil {
+		cr.Right = NewCombinedCommit(
+			&Commit{
+				RepositoryUrl: baseUrl,
+				GitHash:       nextCommitHash,
+			},
+			right,
+		)
+	}
+
+	return next, &cr, nil
 }
