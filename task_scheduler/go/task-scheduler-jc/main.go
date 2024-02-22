@@ -52,6 +52,7 @@ var (
 	btInstance               = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	buildbucketBucket        = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	buildbucketProject       = flag.String("buildbucket_project", "skia", "luci-config project in which the buildbucket bucket is defined.")
 	buildbucketTarget        = flag.String("buildbucket_target", "", "Buildbucket backend target name used to address this scheduler.")
 	buildbucketPubSubProject = flag.String("buildbucket_pubsub_project", "", "Pub/sub project used for sending messages to Buildbucket.")
 	host                     = flag.String("host", "localhost", "HTTP service host")
@@ -185,7 +186,7 @@ func main() {
 
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, tryjobs.API_URL_PROD, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, tryjobs.API_URL_PROD, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}

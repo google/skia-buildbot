@@ -63,7 +63,7 @@ type JobCreator struct {
 }
 
 // NewJobCreator returns a JobCreator instance.
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client) (*JobCreator, error) {
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketApiUrl, buildbucketProject, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -85,7 +85,7 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	sc := syncer.New(ctx, repos, depotTools, workdir, syncer.DefaultNumWorkers)
 	chr := cacher.New(sc, taskCfgCache, rbe)
 
-	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketApiUrl, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketApiUrl, buildbucketProject, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create TryJobIntegrator")
 	}

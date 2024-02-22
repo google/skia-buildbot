@@ -113,9 +113,6 @@ const (
 	// Buildbucket when we attempt to update the build after the lease has
 	// expired.
 	leaseExpiredErr = "Your lease might be expired"
-
-	// Project name used by buildbucket for all Skia builds.
-	buildbucketProject = "skia"
 )
 
 var (
@@ -128,6 +125,7 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bb2                buildbucket.BuildBucketInterface
 	buildbucketBucket  string
+	buildbucketProject string
 	buildbucketTarget  string
 	chr                cacher.Cacher
 	db                 db.JobDB
@@ -141,7 +139,7 @@ type TryJobIntegrator struct {
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(ctx context.Context, buildbucketAPIURL, buildbucketTarget, buildbucketBucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache task_cfg_cache.TaskCfgCache, chr cacher.Cacher, gerrit gerrit.GerritInterface, pubsubClient pubsub.Client) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(ctx context.Context, buildbucketAPIURL, buildbucketProject, buildbucketTarget, buildbucketBucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache task_cfg_cache.TaskCfgCache, chr cacher.Cacher, gerrit gerrit.GerritInterface, pubsubClient pubsub.Client) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -151,6 +149,7 @@ func NewTryJobIntegrator(ctx context.Context, buildbucketAPIURL, buildbucketTarg
 		bb:                 bb,
 		bb2:                buildbucket.NewClient(c),
 		buildbucketBucket:  buildbucketBucket,
+		buildbucketProject: buildbucketProject,
 		buildbucketTarget:  buildbucketTarget,
 		db:                 d,
 		chr:                chr,
@@ -1088,7 +1087,7 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 func (t *TryJobIntegrator) buildbucketCleanup(ctx context.Context) error {
 	builds, err := t.bb2.Search(ctx, &buildbucketpb.BuildPredicate{
 		Builder: &buildbucketpb.BuilderID{
-			Project: buildbucketProject,
+			Project: t.buildbucketProject,
 			Bucket:  t.buildbucketBucket,
 		},
 		Status: buildbucketpb.Status_STARTED,

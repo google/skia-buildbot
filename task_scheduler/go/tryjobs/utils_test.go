@@ -139,7 +139,7 @@ func setup(t sktest.TestingT) (context.Context, *TryJobIntegrator, *mockhttpclie
 	pubsubClient.On("Project").Return(bbPubSubProject)
 	pubsubTopic := &pubsub_mocks.Topic{}
 	pubsubClient.On("TopicInProject", bbPubSubTopic, bbPubSubProject).Return(pubsubTopic, nil)
-	integrator, err := NewTryJobIntegrator(ctx, API_URL_TESTING, "fake-bb-target", BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g, pubsubClient)
+	integrator, err := NewTryJobIntegrator(ctx, API_URL_TESTING, "skia", "fake-bb-target", BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g, pubsubClient)
 	require.NoError(t, err)
 	return ctx, integrator, mock, MockBuildbucket(integrator), pubsubTopic
 }
