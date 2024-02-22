@@ -259,6 +259,28 @@ func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitH
 	return next, left, right, nil
 }
 
+// FindDepsCommit finds the commit in the DEPS for the given repo.
+//
+// It returns a Commit that can be used to search for middle commit in the DEPS and then construct
+// a CombinedCommit to build Chrome with modified DEPS.
+func (m *midpointHandler) FindDepsCommit(ctx context.Context, c *Commit, repoUrl string) (*Commit, error) {
+	gc := m.getOrCreateRepo(c.RepositoryUrl)
+	deps, err := m.fetchGitDeps(ctx, gc, c.GitHash)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	h, ok := deps[repoUrl]
+	if !ok {
+		return nil, skerr.Fmt("%s doesn't exist in DEPS", repoUrl)
+	}
+
+	return &Commit{
+		RepositoryUrl: repoUrl,
+		GitHash:       h,
+	}, nil
+}
+
 // DetermineNextCandidate finds the next commit for culprit detection for the repository inbetween the provided starting and ending git hash.
 // If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
 // the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built

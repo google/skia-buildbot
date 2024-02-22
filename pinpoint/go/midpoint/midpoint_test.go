@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/require"
 )
 
 // generateCommitResponse will create a LongCommit slice response for gitiles.Repo.LogLinear.
@@ -246,4 +247,47 @@ deps = {
 			So(rightDeps[0].GitHash, ShouldEqual, wEndGitHash)
 		})
 	})
+}
+
+func TestFindDepsCommit_OnExistingRepo_ShouldReturnCommit(t *testing.T) {
+	ctx := context.Background()
+	c := &Commit{
+		GitHash:       "fake-hash",
+		RepositoryUrl: "fake-url",
+	}
+
+	fakeDEPS := `
+deps = {
+	'path/to/dep': {
+		'url': 'fake-dep.com@fake-dep-hash',
+	},
+}
+`
+
+	gr := &mocks.GitilesRepo{}
+	gr.On("ReadFileAtRef", testutils.AnyContext, "DEPS", "fake-hash").Return([]byte(fakeDEPS), nil)
+
+	m := New(ctx, nil).WithRepo("fake-url", gr)
+	dc, err := m.FindDepsCommit(ctx, c, "https://fake-dep.com")
+	require.Nil(t, err, err)
+	require.Equal(t, dc, &Commit{
+		GitHash:       "fake-dep-hash",
+		RepositoryUrl: "https://fake-dep.com",
+	})
+}
+
+func TestFindDepsCommit_OnNonExistingRepo_ShouldReturnError(t *testing.T) {
+	ctx := context.Background()
+	c := &Commit{
+		GitHash:       "fake-hash",
+		RepositoryUrl: "fake-url",
+	}
+
+	gr := &mocks.GitilesRepo{}
+	gr.On("ReadFileAtRef", testutils.AnyContext, "DEPS", "fake-hash").Return([]byte(""), nil)
+
+	m := New(ctx, nil).WithRepo("fake-url", gr)
+	dc, err := m.FindDepsCommit(ctx, c, "https://some-url.com")
+	require.Nil(t, dc)
+	require.ErrorContains(t, err, "https://some-url.com doesn't exist in DEPS")
 }
