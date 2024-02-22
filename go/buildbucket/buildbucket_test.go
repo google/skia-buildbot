@@ -221,3 +221,16 @@ func TestGetTrybotsForCL(t *testing.T) {
 	require.Equal(t, 1, len(b))
 	assertdeep.Equal(t, expect, b[0])
 }
+
+func TestStartBuild_ErrorForMissingUpdateToken(t *testing.T) {
+	c := bb_testutils.NewMockClient(t)
+	const buildId = int64(12345)
+	taskId := "fake-task-id"
+	token := "fake-token"
+	c.MockStartBuild(buildId, taskId, &buildbucketpb.StartBuildResponse{
+		UpdateBuildToken: "",
+	}, nil)
+	updateToken, err := c.StartBuild(context.Background(), buildId, taskId, token)
+	require.ErrorContains(t, err, "StartBuild returned an empty UpdateBuildToken")
+	require.Empty(t, updateToken)
+}

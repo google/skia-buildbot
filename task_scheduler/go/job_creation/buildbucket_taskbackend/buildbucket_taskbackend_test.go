@@ -250,6 +250,24 @@ func TestTaskBackend_RunTask_FailedDBInsert(t *testing.T) {
 	require.Nil(t, resp)
 }
 
+func TestTaskBackend_RunTask_MissingSecrets(t *testing.T) {
+	ctx, tb, _, _ := setup(t)
+	req := fakeRunTaskRequest()
+	req.Secrets = nil
+	resp, err := tb.RunTask(ctx, req)
+	require.ErrorContains(t, err, "secrets not set on request")
+	require.Nil(t, resp)
+}
+
+func TestTaskBackend_RunTask_MissingStartBuildToken(t *testing.T) {
+	ctx, tb, _, _ := setup(t)
+	req := fakeRunTaskRequest()
+	req.Secrets.StartBuildToken = ""
+	resp, err := tb.RunTask(ctx, req)
+	require.ErrorContains(t, err, "missing StartBuildToken")
+	require.Nil(t, resp)
+}
+
 func TestTaskBackend_FetchTasks_Success(t *testing.T) {
 	ctx, tb, d, _ := setup(t)
 	job := makeJob(ctx)

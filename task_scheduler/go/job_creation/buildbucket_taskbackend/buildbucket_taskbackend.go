@@ -47,6 +47,9 @@ func (tb *TaskBackend) RunTask(ctx context.Context, req *buildbucketpb.RunTaskRe
 	if req.Secrets == nil {
 		return nil, skerr.Fmt("secrets not set on request")
 	}
+	if req.Secrets.StartBuildToken == "" {
+		return nil, skerr.Fmt("missing StartBuildToken")
+	}
 	buildId, err := strconv.ParseInt(req.BuildId, 10, 64)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "invalid build ID")

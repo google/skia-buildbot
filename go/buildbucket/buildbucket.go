@@ -247,6 +247,9 @@ func (c *Client) StartBuild(ctx context.Context, buildId int64, taskId, token st
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
+	if resp.UpdateBuildToken == "" {
+		return "", skerr.Fmt("StartBuild returned an empty UpdateBuildToken")
+	}
 	return resp.UpdateBuildToken, nil
 }
 

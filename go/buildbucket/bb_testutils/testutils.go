@@ -8,11 +8,13 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/buildbucket/common"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 )
 
 var MockBBURL = "mock-buildbucket.appspot.com"
@@ -114,6 +116,13 @@ func (c *MockClient) MockGetTrybotsForCL(issueID, patchsetID int64, gerritUrl st
 	pred, err := common.GetTrybotsForCLPredicate(issueID, patchsetID, gerritUrl, nil)
 	require.NoError(c.t, err)
 	c.MockSearchBuilds(pred, rv, rvErr)
+}
+
+func (c *MockClient) MockStartBuild(buildId int64, taskId string, rv *buildbucketpb.StartBuildResponse, rvErr error) {
+	call := c.mock.EXPECT().StartBuild(testutils.AnyContext, mock.MatchedBy(func(req *buildbucketpb.StartBuildRequest) bool {
+		return req.BuildId == buildId && req.TaskId == taskId
+	}))
+	call.Return(rv, rvErr)
 }
 
 func makeSVal(s string) *structpb.Value {
