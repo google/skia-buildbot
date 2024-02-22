@@ -109,7 +109,7 @@ export class PaginationSk extends ElementSk {
   }
 
   private _canGoNext(next: number) {
-    return this.total === MANY ? true : next <= this.total;
+    return this.total === MANY ? true : next < this.total;
   }
 
   private _page(n: number) {
