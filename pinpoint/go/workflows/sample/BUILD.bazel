@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/sklog",
+        "//pinpoint/go/midpoint",
         "//pinpoint/go/workflows",
         "@com_github_davecgh_go_spew//spew",
         "@com_github_google_uuid//:uuid",

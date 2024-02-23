@@ -40,8 +40,9 @@ type CombinedCommit struct {
 
 // TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
 // DepsToMap translates all deps into a map.
-func (cc *CombinedCommit) DepsToMap() map[string]string {
-	resp := make(map[string]string, 0)
+// TODO(b/326352320): Replace the type with map[string]string
+func (cc *CombinedCommit) DepsToMap() map[string]interface{} {
+	resp := make(map[string]interface{}, 0)
 	for _, c := range cc.ModifiedDeps {
 		resp[c.RepositoryUrl] = c.GitHash
 	}

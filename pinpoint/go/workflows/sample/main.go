@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
@@ -49,9 +50,11 @@ func main() {
 
 	bcp := workflows.BuildChromeParams{
 		PinpointJobID: "123",
-		Commit:        *commit,
-		Device:        "mac-m1_mini_2020-perf",
-		Target:        "performance_test_suite",
+		Commit: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{GitHash: *commit},
+		},
+		Device: "mac-m1_mini_2020-perf",
+		Target: "performance_test_suite",
 	}
 	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.BuildChrome, bcp)
 	if err != nil {

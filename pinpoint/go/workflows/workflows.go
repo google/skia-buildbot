@@ -4,6 +4,7 @@ package workflows
 import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 )
 
 // Workflow name definitions.
@@ -23,15 +24,12 @@ type BuildChromeParams struct {
 	// PinpointJobID is the Job ID to associate with the build.
 	PinpointJobID string
 	// Commit is the chromium commit hash.
-	Commit string
+	Commit *midpoint.CombinedCommit
 	// Device is the name of the device, e.g. "linux-perf".
 	Device string
 	// Target is name of the build isolate target
 	// e.g. "performance_test_suite".
 	Target string
-	// Deps is a map of url to git hash that's used to override dependencies
-	// defined in DEPS files.
-	Deps map[string]interface{}
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
 }

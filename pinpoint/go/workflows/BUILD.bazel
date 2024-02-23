@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows",
     visibility = ["//visibility:public"],
     deps = [
+        "//pinpoint/go/midpoint",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
