@@ -5,6 +5,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 )
 
 // Workflow name definitions.
@@ -13,7 +14,8 @@ import (
 // souce code dependencies such that the client doesn't need to link with
 // the actual implementation.
 const (
-	BuildChrome = "perf.build_chrome"
+	BuildChrome  = "perf.build_chrome"
+	RunBenchmark = "perf.run_benchmark"
 )
 
 // Workflow params definitions.
@@ -32,6 +34,12 @@ type BuildChromeParams struct {
 	Target string
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
+}
+
+// RunBenchmarkParams are the Temporal Workflow params
+// for the RunBenchmarkWorkflow.
+type RunBenchmarkParams struct {
+	Request run_benchmark.RunBenchmarkRequest
 }
 
 // Build stores the build from Buildbucket.
