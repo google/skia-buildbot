@@ -536,7 +536,7 @@ func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc midpoin
 	lcommit := cdl.commits[left].commit
 	rcommit := cdl.commits[right].commit
 	sklog.Debugf("commit left %s vs commit right %s", lcommit.GitHash[:7], rcommit.GitHash[:7])
-	m, _, err := mc.DetermineNextCandidate(ctx, chromiumSrcGit, lcommit.GitHash, rcommit.GitHash)
+	m, err := mc.DetermineNextCandidate(ctx, chromiumSrcGit, lcommit.GitHash, rcommit.GitHash)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not get midpoint between [%d] %s and [%d] %s",
 			left, lcommit.GitHash, right, rcommit.GitHash)

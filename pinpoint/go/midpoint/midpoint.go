@@ -82,9 +82,10 @@ func (cr *CommitRange) HasRightGitHash() bool {
 	return cr.Right.Main.GitHash != ""
 }
 
+// TODO(b/326352320): Remove this interface and use struct directly.
 type MidpointHandler interface {
 	// DetermineNextCandidate returns the next target for bisection for the provided url, inbetween the start and end git hashes.
-	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error)
+	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, error)
 }
 
 // MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
@@ -286,10 +287,56 @@ func (m *midpointHandler) FindDepsCommit(ctx context.Context, c *Commit, repoUrl
 // If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
 // the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built
 // on top of the Chromium commit specified as a deps override.
-func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, *CommitRange, error) {
+//
+// TODO(b/326352320): Tentatively replace with FindMidCommit.
+func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, error) {
+	left := &Commit{
+		RepositoryUrl: baseUrl,
+		GitHash:       startGitHash,
+	}
+
+	right := &Commit{
+		RepositoryUrl: baseUrl,
+		GitHash:       endGitHash,
+	}
+
+	c, err := m.FindMidCommit(ctx, left, right)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// This is a middle commit from DEPS
+	if c.RepositoryUrl != baseUrl {
+		// Both right and left commits are the same except DEPS, we use the earlier commit as
+		// the baseline.
+		return &CombinedCommit{
+			Main:         left,
+			ModifiedDeps: []*Commit{c},
+		}, nil
+	}
+	return &CombinedCommit{
+		Main: c,
+	}, nil
+}
+
+// FindMidCommit finds the middle commit from the two given commits.
+//
+// It uses gitiles API to find the middle commit, and it also handles DEPS rolls when two commits
+// are adjacent. If two commits are adjacent and no DEPS roll, then the first commit is returned;
+// If two commits are adjacent and there is a DEPS roll on the second commit, then it will search
+// for rolled repositories and find the middle commit between the roll.
+//
+// Note the returned Commit can be a different repo because it looks at DEPS, but it only looks at
+// one level. If the DEPS of DEPS has rolls, it will not continue to search.
+func (m *midpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
+	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
+		return nil, skerr.Fmt("two commits are from different repos")
+	}
+
+	baseUrl := startCommit.RepositoryUrl
+	startGitHash, endGitHash := startCommit.GitHash, endCommit.GitHash
 	nextCommitHash, err := m.findMidpoint(ctx, baseUrl, startGitHash, endGitHash)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// If startGitHash and endGitHash are not adjacent, return the found commit right away.
@@ -297,53 +344,25 @@ func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, s
 	// We use HasPrefix because nextCommitHash will always be the full SHA git hash,
 	// but the provided startGitHash may be a short SHA.
 	if !strings.HasPrefix(nextCommitHash, startGitHash) {
-		return &CombinedCommit{
-			Main: &Commit{
-				RepositoryUrl: baseUrl,
-				GitHash:       nextCommitHash,
-			},
-		}, nil, nil
+		return &Commit{
+			RepositoryUrl: baseUrl,
+			GitHash:       nextCommitHash,
+		}, nil
 	}
 
 	// The nextCommit == startHash. This means start and end are adjacent commits.
 	// Assume a DEPS roll, so we'll find the next candidate by parsing DEPS rolls.
 	sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startGitHash, endGitHash)
 
-	next, left, right, err := m.determineRolledDep(ctx, baseUrl, startGitHash, endGitHash)
+	next, _, _, err := m.determineRolledDep(ctx, baseUrl, startGitHash, endGitHash)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// If endGitHash doesn't have DEPS rolls, return the first commit.
 	if next == nil {
-		return &CombinedCommit{
-			Main: &Commit{
-				RepositoryUrl: baseUrl,
-				GitHash:       nextCommitHash,
-			},
-		}, nil, nil
+		return startCommit, nil
 	}
 
-	cr := CommitRange{}
-	if left != nil {
-		cr.Left = NewCombinedCommit(
-			&Commit{
-				RepositoryUrl: baseUrl,
-				GitHash:       nextCommitHash,
-			},
-			left,
-		)
-	}
-
-	if right != nil {
-		cr.Right = NewCombinedCommit(
-			&Commit{
-				RepositoryUrl: baseUrl,
-				GitHash:       nextCommitHash,
-			},
-			right,
-		)
-	}
-
-	return next, &cr, nil
+	return next.ModifiedDeps[0], nil
 }

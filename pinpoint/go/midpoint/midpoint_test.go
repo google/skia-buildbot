@@ -112,9 +112,8 @@ func TestDetermineNextCandidate(t *testing.T) {
 			c := mockhttpclient.NewURLMock().Client()
 			r := New(ctx, c).WithRepo(chromium, gc)
 
-			next, ranges, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
 			So(err, ShouldBeNil)
-			So(ranges, ShouldBeNil)
 
 			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
 
@@ -168,11 +167,8 @@ deps = {
 
 			c := mockhttpclient.NewURLMock().Client()
 			r := New(ctx, c).WithRepo(chromium, gc)
-			next, ranges, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
 			So(err, ShouldBeNil)
-
-			// No DEPS roll returns nil, but next should be equal to start
-			So(ranges, ShouldBeNil)
 
 			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
 			So(next.Main.GitHash, ShouldEqual, startGitHash)
@@ -217,7 +213,7 @@ deps = {
 
 			c := mockhttpclient.NewURLMock().Client()
 			r := New(ctx, c).WithRepo(chromium, gc).WithRepo(webrtc, wgc)
-			next, ranges, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
 			So(err, ShouldBeNil)
 
 			// Base Chromium that should be built is using startGitHash.
@@ -229,22 +225,6 @@ deps = {
 			// // 3 is popped leaving [2, 1]. This is reversed to [1, 2]
 			// // and len()/2 = idx 1, which is commit "2"
 			So(overrides, ShouldEqual, "2")
-
-			left := ranges.Left
-			So(ranges.Left.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(ranges.Left.Main.GitHash, ShouldEqual, startGitHash)
-			leftDeps := left.ModifiedDeps
-			So(len(leftDeps), ShouldEqual, 1)
-			So(leftDeps[0].RepositoryUrl, ShouldEqual, webrtc)
-			So(leftDeps[0].GitHash, ShouldEqual, wStartGitHash)
-
-			right := ranges.Right
-			So(ranges.Right.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(ranges.Right.Main.GitHash, ShouldEqual, startGitHash)
-			rightDeps := right.ModifiedDeps
-			So(len(rightDeps), ShouldEqual, 1)
-			So(rightDeps[0].RepositoryUrl, ShouldEqual, webrtc)
-			So(rightDeps[0].GitHash, ShouldEqual, wEndGitHash)
 		})
 	})
 }
