@@ -28,6 +28,7 @@ go_test(
     embed = [":run_benchmark"],
     deps = [
         "//go/skerr",
+        "//go/swarming",
         "//go/swarming/mocks",
         "//pinpoint/go/bot_configs",
         "@com_github_smartystreets_goconvey//convey",

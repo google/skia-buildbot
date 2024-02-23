@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	. "go.chromium.org/luci/common/testing/assertions"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 )
@@ -151,4 +153,65 @@ func TestRun(t *testing.T) {
 		So(taskId, ShouldBeEmpty)
 		So(err, ShouldErrLike, expectedErr)
 	})
+}
+
+func TestIsTaskStateFinished_GivenCompleteStates_ReturnsTrue(t *testing.T) {
+	states := []string{
+		swarming.TASK_STATE_COMPLETED,
+		swarming.TASK_STATE_BOT_DIED,
+		swarming.TASK_STATE_TIMED_OUT,
+	}
+	for _, s := range states {
+		out, err := IsTaskStateFinished(s)
+		assert.True(t, out)
+		assert.NoError(t, err)
+	}
+}
+
+func TestIsTaskStateFinished_GivenRunningStates_ReturnsFalse(t *testing.T) {
+	states := []string{
+		swarming.TASK_STATE_PENDING,
+		swarming.TASK_STATE_RUNNING,
+	}
+	for _, s := range states {
+		out, err := IsTaskStateFinished(s)
+		assert.False(t, out)
+		assert.NoError(t, err)
+	}
+}
+
+func TestIsTaskStateFinished_GivenBadStates_ReturnsError(t *testing.T) {
+	states := []string{
+		"fake_state",
+		"another_fake_state",
+	}
+	for _, s := range states {
+		out, err := IsTaskStateFinished(s)
+		assert.False(t, out)
+		assert.Error(t, err)
+	}
+}
+
+func TestIsTaskStateSuccess_GivenCompleted_ReturnsTrue(t *testing.T) {
+	states := []string{
+		swarming.TASK_STATE_COMPLETED,
+	}
+	for _, s := range states {
+		out := IsTaskStateSuccess(s)
+		assert.True(t, out)
+	}
+}
+
+func TestIsTaskStateSuccess_GivenNonCompleted_ReturnsFalse(t *testing.T) {
+	states := []string{
+		swarming.TASK_STATE_PENDING,
+		swarming.TASK_STATE_RUNNING,
+		swarming.TASK_STATE_BOT_DIED,
+		swarming.TASK_STATE_CANCELED,
+		swarming.TASK_STATE_TIMED_OUT,
+	}
+	for _, s := range states {
+		out := IsTaskStateSuccess(s)
+		assert.False(t, out)
+	}
 }

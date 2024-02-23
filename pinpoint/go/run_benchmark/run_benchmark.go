@@ -9,6 +9,7 @@ package run_benchmark
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -63,6 +64,11 @@ var swarmingReq = swarmingV1.SwarmingRpcsNewTaskRequest{
 	// NullFields: omitted
 }
 
+var runningStates = []string{
+	swarming.TASK_STATE_PENDING,
+	swarming.TASK_STATE_RUNNING,
+}
+
 // DialSwarming dials a swarming API client.
 // TODO(sunxiaodi@) migrate swarming components to backends/ folder
 func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
@@ -106,6 +112,20 @@ func GetStatus(ctx context.Context, client swarming.ApiClient, taskID string) (s
 // GetStates returns the state of each task in a list of tasks.
 func GetStates(ctx context.Context, client swarming.ApiClient, taskIDs []string) ([]string, error) {
 	return client.GetStates(ctx, taskIDs)
+}
+
+// IsTaskStateFinished checks if a swarming task state is finished
+func IsTaskStateFinished(state string) (bool, error) {
+	if !slices.Contains(swarming.TASK_STATES, state) {
+		return false, skerr.Fmt("Not a valid swarming task state %s", state)
+	}
+	return !slices.Contains(runningStates, state), nil
+}
+
+// IsTaskStateSuccess checks if a swarming task is successful or not. Makes no assumptions
+// about whether it is still running
+func IsTaskStateSuccess(state string) bool {
+	return state == swarming.TASK_STATE_COMPLETED
 }
 
 func CancelTasks(ctx context.Context, client swarming.ApiClient, taskIDs []string) error {
