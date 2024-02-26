@@ -4,6 +4,26 @@ A web application for viewing lottie files as rendered by Skia, and going
 forward, other renderers. It uses [CanvasKit](https://www.npmjs.com/package/canvaskit-wasm)
 to display these.
 
+## Local development
+
+[Install buildbot dependencies](https://github.com/google/skia-buildbot?tab=readme-ov-file#install-dependencies)
+
+Follow instructions to
+[enable gcloud](https://cloud.google.com/container-registry/docs/advanced-authentication)
+
+Ask a Skia Maintainer to give view access to GCS buckets
+artifacts.skia-public.appspot.com (for downloading build images) and
+skottie-renderer (for runtime downloading/uploading of lottie assets).
+
+Run the local server.
+
+```
+make run-local-instance
+```
+
+By default, you can connect to the web server in your browesr by going to
+[localhost:8000](localhost:8000).
+
 ## Which version of CanvasKit is being used?
 
 When running tests (`bazel test ...`) or a local instance (`make run-local-instance`), the rules

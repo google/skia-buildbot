@@ -2,6 +2,12 @@
 
 This repo contains infrastructure code for Skia.
 
+# Supported Infrastucture Platforms
+
+The infrastructure code is generally built to run on x86 linux. Running on other
+platforms may be possible but is not officially supported and success will vary
+depending on the command.
+
 # Getting the Source Code
 
 The main source code repository is a Git repository hosted at
@@ -33,6 +39,12 @@ go install github.com/kisielk/errcheck@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/mikefarah/yq/v4@latest
 go install go.chromium.org/luci/client/cmd/...@latest
+```
+
+## Add bazelisk to path
+
+```
+export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
 ## Install other dependencies:
