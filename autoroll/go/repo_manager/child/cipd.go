@@ -93,13 +93,13 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 		}
 		pins, err2 := c.client.SearchInstances(ctx, c.name, []string{tag})
 		if err2 != nil {
-			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag with: %s", id, err2)
+			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and failed to search by tag %q with: %s", id, tag, err2)
 		}
 		if len(pins) == 0 {
-			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and found no matching instances by tag.", id)
+			return nil, skerr.Wrapf(err, "failed to retrieve revision ID %q and found no matching instances by tag %q.", id, tag)
 		}
 		if len(pins) > 1 {
-			sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", id)
+			sklog.Errorf("Found more than one matching instance for tag %q; arbitrarily returning the first.", tag)
 		}
 		instance, err = c.client.Describe(ctx, c.name, pins[0].InstanceID, false)
 		if err != nil {
