@@ -352,7 +352,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 		sc := &backends.SwarmingClientImpl{
 			ApiClient: msc,
 		}
-		tasks, err := c.scheduleRunBenchmark(ctx, sc)
+		tasks, err := c.scheduleRunBenchmark(ctx, sc, req)
 		So(err, ShouldBeNil)
 		So(tasks[0], ShouldEqual, "new_task")
 		So(len(tasks), ShouldEqual, interval)
@@ -364,7 +364,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 			sc := &backends.SwarmingClientImpl{
 				ApiClient: msc,
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, sc)
+			tasks, err := c.scheduleRunBenchmark(ctx, sc, req)
 			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
 			So(tasks, ShouldBeNil)
 		})
@@ -375,7 +375,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 			sc := &backends.SwarmingClientImpl{
 				ApiClient: msc,
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, sc)
+			tasks, err := c.scheduleRunBenchmark(ctx, sc, req)
 			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
 			So(tasks, ShouldBeNil)
 		})
@@ -406,7 +406,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 			sc := &backends.SwarmingClientImpl{
 				ApiClient: msc,
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, sc)
+			tasks, err := c.scheduleRunBenchmark(ctx, sc, req)
 			So(err, ShouldErrLike, errMsg)
 			So(tasks, ShouldBeNil)
 		})
@@ -776,6 +776,7 @@ func TestUpdateCommits(t *testing.T) {
 	msc := swarmingMocks.NewApiClient(t)
 	c := mockhttpclient.NewURLMock().Client()
 	mmh := midpoint.New(ctx, c)
+	req := defaultRunRequest()
 
 	Convey(`Error`, t, func() {
 		cdl := commitDataList{
@@ -790,7 +791,7 @@ func TestUpdateCommits(t *testing.T) {
 			sc := &backends.SwarmingClientImpl{
 				ApiClient: msc,
 			}
-			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right)
+			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right, req)
 			So(err, ShouldErrLike, "index out of bounds")
 			So(mid, ShouldBeNil)
 		})
@@ -800,7 +801,7 @@ func TestUpdateCommits(t *testing.T) {
 			sc := &backends.SwarmingClientImpl{
 				ApiClient: msc,
 			}
-			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right)
+			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right, req)
 			So(err, ShouldErrLike, fmt.Sprintf("left %d index >= right %d", left, right))
 			So(mid, ShouldBeNil)
 		})
@@ -885,7 +886,7 @@ func TestUpdateUnknown(t *testing.T) {
 		sc := &backends.SwarmingClientImpl{
 			ApiClient: msc,
 		}
-		err = cdl.runMoreTestsIfNeeded(ctx, sc, left, right)
+		err = cdl.runMoreTestsIfNeeded(ctx, sc, left, right, req)
 		So(err, ShouldBeNil)
 		So(len(lcommit.tests.tasks), ShouldEqual, interval+2)
 		So(lcommit.tests.tasks[0], ShouldEqual, "old_left_task_1")

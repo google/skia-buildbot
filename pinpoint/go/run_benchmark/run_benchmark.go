@@ -8,23 +8,24 @@ package run_benchmark
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
+
+	spb "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
-// A RunBenchmarkRequest defines the request arguments of the performance test
-// to swarming.
+// A RunBenchmarkRequest defines the request arguments of the performance test to swarming.
+// Note: This is being used in workflows/internal/run_benchmark.go.
 type RunBenchmarkRequest struct {
 	// the Pinpoint job id
 	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
-	Build *swarmingV1.SwarmingRpcsCASReference
+	Build *spb.SwarmingRpcsCASReference
 	// commit hash
 	Commit string
 	// device configuration
@@ -35,80 +36,6 @@ type RunBenchmarkRequest struct {
 	Story string
 	// test target of the job
 	Target string
-}
-
-// swarming request to run task
-// define static, constant fields here
-var swarmingReq = swarmingV1.SwarmingRpcsNewTaskRequest{
-	BotPingToleranceSecs: 1200,
-	ExpirationSecs:       86400,
-	// EvaluateOnly omitted
-	Name: "Pinpoint bisection run benchmark task",
-	// ParentTaskId omitted
-	// PoolTaskTemplate omitted
-	Priority: 100,
-	// define properties later
-	PubsubTopic:    "projects/chromeperf/topics/pinpoint-swarming-updates",
-	PubsubUserdata: "UNUSED", // can populate later, see example swarming call log
-	Realm:          "chrome:pinpoint",
-	// RequestUuid: omitted
-	// Resultdb: omitted
-	ServiceAccount: "chrome-tester@chops-service-accounts.iam.gserviceaccount.com",
-	// define tags later
-	// TaskSlices optional if properties defined
-	User: "Pinpoint",
-	// ForceSendFields: omitted
-	// NullFields: omitted
-}
-
-func createSwarmingReq(req RunBenchmarkRequest) (
-	*swarmingV1.SwarmingRpcsNewTaskRequest, error) {
-	// TODO(b/318863812): add mapping from device + benchmark to the specific run test
-	// currently catapult maps the device + benchmark to the target and then
-	// the target dictates what test to run. We can map to target if that info
-	// is useful on the UI, but for this, it's not relevant.
-	// see GetIsolateTarget and _GenerateQuests here:
-	// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/handlers/new.py;drc=8fe602e47f11cfdd79225696f1f6a5556b57c58c;l=466
-	// TODO(b/321299939): create an interface for different runBenchmark types
-	// and refactor telemetryExp to use that interface
-	exp := telemetryExp{}
-	cmd, err := exp.createCmd(req)
-	if err != nil {
-		return nil, skerr.Fmt("Unable to create run benchmark command due to %s\n", err)
-	}
-	dim := make([]*swarmingV1.SwarmingRpcsStringPair,
-		len(req.Config.Dimensions))
-	for i, kv := range req.Config.Dimensions {
-		dim[i] = &swarmingV1.SwarmingRpcsStringPair{
-			Key:   kv["key"],
-			Value: kv["value"],
-		}
-	}
-
-	swarmingReq.Properties = &swarmingV1.SwarmingRpcsTaskProperties{
-		CasInputRoot: &swarmingV1.SwarmingRpcsCASReference{
-			CasInstance: req.Build.CasInstance,
-			Digest: &swarmingV1.SwarmingRpcsDigest{
-				Hash:      req.Build.Digest.Hash,
-				SizeBytes: req.Build.Digest.SizeBytes,
-			},
-		},
-		// TODO(b/318863812): support user submitted extra_args.
-		// This support is needed for pairwise executions, not bisection.
-		Command:              cmd,
-		Dimensions:           dim,
-		ExecutionTimeoutSecs: 2700,
-		IoTimeoutSecs:        2700,
-		RelativeCwd:          "out/Release",
-	}
-
-	// TODO(b/318863812): update swarming task tags to more appropriate tags.
-	swarmingReq.Tags = []string{
-		fmt.Sprintf("pinpoint_job_id:%s", req.JobID),
-		fmt.Sprintf("build_cas:%s/%d", req.Build.Digest.Hash, req.Build.Digest.SizeBytes),
-	}
-
-	return &swarmingReq, nil
 }
 
 var runningStates = []string{
@@ -130,16 +57,29 @@ func IsTaskStateSuccess(state string) bool {
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, sc backends.SwarmingClient, req RunBenchmarkRequest) (string, error) {
-	swarmingReq, err := createSwarmingReq(req)
+func Run(ctx context.Context, sc backends.SwarmingClient, req *ppb.ScheduleBisectRequest, commit string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
+	test, err := NewBenchmarkTest(req, commit)
 	if err != nil {
-		return "", skerr.Wrapf(err, "Could not create run test request")
+		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
 	}
 
-	metadataResp, err := sc.TriggerTask(ctx, swarmingReq)
+	bot := req.Configuration
+	botConfig, err := bot_configs.GetBotConfig(bot, false)
 	if err != nil {
-		return "", skerr.Fmt("trigger task %v\ncaused error: %s", req, err)
+		return nil, skerr.Wrapf(err, "Failed to create benchmark test object")
 	}
 
-	return metadataResp.TaskId, nil
+	swarmingRequest := createSwarmingRequest(jobID, test.GetCommand(), buildArtifact, botConfig.Dimensions)
+
+	resp := make([]*spb.SwarmingRpcsTaskRequestMetadata, 0)
+	for i := 0; i < iter; i++ {
+		r, err := sc.TriggerTask(ctx, swarmingRequest)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "benchmark task %d with request %v failed", i, r)
+		}
+
+		resp = append(resp, r)
+	}
+
+	return resp, nil
 }

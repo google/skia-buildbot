@@ -4,8 +4,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "run_benchmark",
     srcs = [
+        "benchmark_test_factory.go",
         "run_benchmark.go",
-        "telemetry_exp.go",
+        "swarming_helpers.go",
+        "telemetry.go",
     ],
     importpath = "go.skia.org/infra/pinpoint/go/run_benchmark",
     visibility = ["//visibility:public"],
@@ -15,6 +17,7 @@ go_library(
         "//go/util",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
+        "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
@@ -22,8 +25,9 @@ go_library(
 go_test(
     name = "run_benchmark_test",
     srcs = [
+        "benchmark_test_factory_test.go",
         "run_benchmark_test.go",
-        "telemetry_exp_test.go",
+        "telemetry_test.go",
     ],
     embed = [":run_benchmark"],
     deps = [
@@ -31,11 +35,9 @@ go_test(
         "//go/swarming",
         "//go/swarming/mocks",
         "//pinpoint/go/backends",
-        "//pinpoint/go/bot_configs",
-        "@com_github_smartystreets_goconvey//convey",
+        "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
-        "@org_chromium_go_luci//common/testing/assertions",
     ],
 )

@@ -193,7 +193,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			c.tests = &testMetadata{
 				req: c.createRunBenchmarkRequest(jobID, cfg, target, req),
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, pp.sc)
+			tasks, err := c.scheduleRunBenchmark(ctx, pp.sc, req)
 			if err != nil {
 				return resp, err
 			}
@@ -242,7 +242,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 			if res != nil {
 				spew.Dump(res)
-				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right)
+				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right, req)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
 				}
@@ -259,7 +259,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 			if res != nil {
 				spew.Dump(res)
-				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right)
+				culprit, err := cdl.updateCommitsByResult(ctx, pp.sc, pp.mc, res, left, right, req)
 				if err != nil {
 					return resp, skerr.Wrapf(err, "could not update commitDataList after compare")
 				}
@@ -370,7 +370,7 @@ func (c *commitData) createRunBenchmarkRequest(jobID string, cfg bot_configs.Bot
 }
 
 // scheduleRunBenchmark schedules run benchmark tests to swarming and returns the task IDs
-func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc backends.SwarmingClient) ([]string, error) {
+func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc backends.SwarmingClient, req *ppb.ScheduleBisectRequest) ([]string, error) {
 	if c.tests == nil || c.tests.req == nil {
 		return nil, skerr.Fmt("Cannot schedule benchmark runs without request")
 	}
@@ -381,11 +381,11 @@ func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc backends.Swarm
 	}
 	if len(tasks) < maxSampleSize {
 		for i := 0; i < interval; i++ {
-			task, err := run_benchmark.Run(ctx, sc, *c.tests.req)
+			task, err := run_benchmark.Run(ctx, sc, req, c.tests.req.Commit, c.tests.req.JobID, c.tests.req.Build, 1)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Could not start run benchmark task for request %v", c.tests.req)
 			}
-			tasks = append(tasks, task)
+			tasks = append(tasks, task[0].TaskId)
 		}
 	}
 	return tasks, nil
@@ -513,8 +513,7 @@ func (c *commitData) notComparable() bool {
 // updateCommitsByResult takes the compare results and determines the next
 // steps in the workflow. Changes are made to CommitDataList depending
 // on what the compare verdict is.
-func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh midpoint.MidpointHandler, res *compare.CompareResults,
-	left, right int) (*midpoint.Commit, error) {
+func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh midpoint.MidpointHandler, res *compare.CompareResults, left, right int, req *ppb.ScheduleBisectRequest) (*midpoint.Commit, error) {
 	if left < 0 || right >= len(cdl.commits) {
 		return nil, skerr.Fmt("cannot update commitDataList with left %d and right %d index out of bounds", left, right)
 	}
@@ -522,7 +521,7 @@ func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backend
 		return nil, skerr.Fmt("cannot update commitDataList with left %d index >= right %d", left, right)
 	}
 	if res.Verdict == compare.Unknown {
-		return nil, cdl.runMoreTestsIfNeeded(ctx, sc, left, right)
+		return nil, cdl.runMoreTestsIfNeeded(ctx, sc, left, right, req)
 	} else if res.Verdict == compare.Different {
 		return cdl.findMidpointOrCulprit(ctx, mh, left, right)
 	}
@@ -555,9 +554,9 @@ func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc midpoin
 }
 
 // runMoreTestsIfNeeded adds more run_benchmark tasks to the left and right commit
-func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc backends.SwarmingClient, left, right int) error {
+func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc backends.SwarmingClient, left, right int, req *ppb.ScheduleBisectRequest) error {
 	c := cdl.commits[left]
-	tasks, err := c.scheduleRunBenchmark(ctx, sc)
+	tasks, err := c.scheduleRunBenchmark(ctx, sc, req)
 	if err != nil {
 		return skerr.Wrapf(err, "could not schedule more tasks for left commit [%d] %s", left, c.commit.GitHash[:7])
 	}
@@ -566,7 +565,7 @@ func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc backends
 		c.tests.isRunning = true
 	}
 	c = cdl.commits[right]
-	tasks, err = c.scheduleRunBenchmark(ctx, sc)
+	tasks, err = c.scheduleRunBenchmark(ctx, sc, req)
 	if err != nil {
 		return skerr.Wrapf(err, "could not schedule more tasks for right commit [%d] %s", right, c.commit.GitHash[:7])
 	}

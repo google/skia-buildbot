@@ -40,12 +40,6 @@ func TestGetBotConfig(t *testing.T) {
 			externalOnly:  false,
 			expectedError: true,
 		},
-		{
-			name:          "check alias",
-			bot:           "Android Go",
-			externalOnly:  true,
-			expectedError: false,
-		},
 	} {
 		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
 			bot, err := GetBotConfig(test.bot, test.externalOnly)
@@ -61,4 +55,10 @@ func TestGetBotConfig(t *testing.T) {
 
 func TestValidateBotConfigs(t *testing.T) {
 	assert.NoError(t, validate())
+}
+
+func TestGetBotConfig_AliasedBuilder_CorrectReference(t *testing.T) {
+	cfg, err := GetBotConfig("Android Go", true)
+	assert.NoError(t, err)
+	assert.Equal(t, "android-go-perf", cfg.Bot)
 }

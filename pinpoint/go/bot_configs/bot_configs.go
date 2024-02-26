@@ -38,8 +38,11 @@ type BotConfig struct {
 	// Browser is the name of the Chrome browser to run
 	// when testing benchmarks
 	Browser string `json:"browser"`
-	// Builder refers to the LUCI pool to build Chrome,
+	// Bucket refers to the LUCI pool to build Chrome,
 	// typically luci.chrome.try
+	Bucket string `json:"bucket"`
+	// Builder refers to the LUCI builder used to build Chrome,
+	// usually a compile builder.
 	Builder string `json:"builder"`
 	// Dimensions are used by Swarming to find the
 	// device pool to test benchmarks
@@ -50,6 +53,8 @@ type BotConfig struct {
 	// SwarmingServer is almost always
 	// https://chrome-swarming.appspot.com
 	SwarmingServer string `json:"swarming_server"`
+	// Bot is the original key used for this config.
+	Bot string
 }
 
 // GetBotConfig gets the config for a bot. Will only check internal
@@ -77,9 +82,14 @@ func GetBotConfig(bot string, externalOnly bool) (BotConfig, error) {
 		}
 		return BotConfig{}, fmt.Errorf(errMsg)
 	}
-	if cfg.Alias != "" {
-		return botConfigs[cfg.Alias], nil
+	alias := cfg.Alias
+	if alias != "" {
+		cfg = botConfigs[cfg.Alias]
+		cfg.Bot = alias
+		return cfg, nil
 	}
+
+	cfg.Bot = bot
 	return cfg, nil
 }
 
