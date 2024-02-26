@@ -108,7 +108,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel4-perf": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 Compile Perf",
     "dimensions": [
@@ -129,7 +129,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel4-perf-pgo": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 Compile Perf PGO",
     "dimensions": [
@@ -171,7 +171,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-perf": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -192,7 +192,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-perf-pgo": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf PGO",
     "dimensions": [
@@ -213,7 +213,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-pro-perf": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf",
     "dimensions": [
@@ -234,7 +234,7 @@
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel6-pro-perf-pgo": {
-    "browser": "android-trichrome-bundle",
+    "browser": "android-trichrome-chrome-google-64-32-bundle",
     "bucket": "luci.chrome.try",
     "builder": "Android arm64 High End Compile Perf PGO",
     "dimensions": [
