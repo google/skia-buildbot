@@ -15,7 +15,6 @@ go_library(
         "//pinpoint/go/build_chrome",
         "//pinpoint/go/run_benchmark",
         "//pinpoint/go/workflows",
-        "//pinpoint/proto/v1:proto",
         "@io_temporal_go_sdk//activity",
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",

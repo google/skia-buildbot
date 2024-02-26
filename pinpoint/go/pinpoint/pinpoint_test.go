@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	swarmingMocks "go.skia.org/infra/go/swarming/mocks"
 	"go.skia.org/infra/pinpoint/go/backends"
-	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome/mocks"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -337,10 +336,8 @@ func TestScheduleRunBenchmark(t *testing.T) {
 				},
 			},
 		}
-		cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
-		So(err, ShouldBeNil)
 		c.tests = &testMetadata{
-			req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
+			req: c.createRunBenchmarkRequest("jobID", req.Configuration, "target", req),
 		}
 
 		msc.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Once()
@@ -393,10 +390,8 @@ func TestScheduleRunBenchmark(t *testing.T) {
 					},
 				},
 			}
-			cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
-			So(err, ShouldBeNil)
 			c.tests = &testMetadata{
-				req: c.createRunBenchmarkRequest("jobID", cfg, "target", req),
+				req: c.createRunBenchmarkRequest("jobID", req.Configuration, "target", req),
 			}
 
 			errMsg := "some error"
@@ -850,13 +845,11 @@ func TestUpdateUnknown(t *testing.T) {
 
 		lcommit := cdl.commits[left]
 		rcommit := cdl.commits[right]
-		cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
-		So(err, ShouldBeNil)
 		cdl.commits[left].tests = &testMetadata{
-			req: lcommit.createRunBenchmarkRequest("jobID", cfg, "target", req),
+			req: lcommit.createRunBenchmarkRequest("jobID", req.Configuration, "target", req),
 		}
 		cdl.commits[right].tests = &testMetadata{
-			req: rcommit.createRunBenchmarkRequest("jobID", cfg, "target", req),
+			req: rcommit.createRunBenchmarkRequest("jobID", req.Configuration, "target", req),
 		}
 
 		msc.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(
@@ -886,7 +879,7 @@ func TestUpdateUnknown(t *testing.T) {
 		sc := &backends.SwarmingClientImpl{
 			ApiClient: msc,
 		}
-		err = cdl.runMoreTestsIfNeeded(ctx, sc, left, right, req)
+		err := cdl.runMoreTestsIfNeeded(ctx, sc, left, right, req)
 		So(err, ShouldBeNil)
 		So(len(lcommit.tests.tasks), ShouldEqual, interval+2)
 		So(lcommit.tests.tasks[0], ShouldEqual, "old_left_task_1")

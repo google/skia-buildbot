@@ -4,19 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
-	commit := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "android-go-perf", "", "components_perftests", "", "")
 
-	req := &ppb.ScheduleBisectRequest{
-		Configuration: "android-go-perf",
-		Benchmark:     "components_perftests",
-	}
-
-	b, err := NewBenchmarkTest(req, commit)
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -30,16 +23,8 @@ func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 }
 
 func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
-	commit := "01bfa421eee3c76bbbf32510343e074060051c9f"
-
-	req := &ppb.ScheduleBisectRequest{
-		Story:         "story",
-		StoryTags:     "all",
-		Configuration: "android-pixel2_webview-perf",
-		Benchmark:     "performance_browser_tests",
-	}
-
-	b, err := NewBenchmarkTest(req, commit)
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "android-pixel2_webview-perf", "", "performance_browser_tests", "story", "all")
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()
@@ -52,14 +37,8 @@ func TestGetCommand_PerfBrowserTestWithStory_StoryTestCommand(t *testing.T) {
 }
 
 func TestGetCommand_NonWaterfallEnabledGTest_TestCommand(t *testing.T) {
-	commit := "01bfa421eee3c76bbbf32510343e074060051c9f"
-
-	req := &ppb.ScheduleBisectRequest{
-		Configuration: "android-pixel2_webview-perf",
-		Benchmark:     "random_test",
-	}
-
-	b, err := NewBenchmarkTest(req, commit)
+	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
+	b, err := NewBenchmarkTest(c, "android-pixel2_webview-perf", "", "random_test", "", "")
 	assert.NoError(t, err)
 
 	cmd := b.GetCommand()

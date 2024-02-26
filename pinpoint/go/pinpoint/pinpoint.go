@@ -131,10 +131,6 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not validate request inputs")
 	}
-	cfg, err := bot_configs.GetBotConfig(req.Configuration, false)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Builder name %s not allowed in bot configurations", req.Configuration)
-	}
 
 	resp := &PinpointRunResponse{
 		JobID:    jobID,
@@ -191,7 +187,7 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 			}
 			c.build.buildCAS = cas
 			c.tests = &testMetadata{
-				req: c.createRunBenchmarkRequest(jobID, cfg, target, req),
+				req: c.createRunBenchmarkRequest(jobID, req.Configuration, target, req),
 			}
 			tasks, err := c.scheduleRunBenchmark(ctx, pp.sc, req)
 			if err != nil {
@@ -357,12 +353,12 @@ func (cdl commitDataList) pollBuild(ctx context.Context, bc build_chrome.BuildCh
 
 // createRunBenchmarkRequest converts job run request information to a run_benchmark
 // swarming request
-func (c *commitData) createRunBenchmarkRequest(jobID string, cfg bot_configs.BotConfig, target string, req *ppb.ScheduleBisectRequest) *run_benchmark.RunBenchmarkRequest {
+func (c *commitData) createRunBenchmarkRequest(jobID string, cfg string, target string, req *ppb.ScheduleBisectRequest) *run_benchmark.RunBenchmarkRequest {
 	return &run_benchmark.RunBenchmarkRequest{
 		JobID:     jobID,
 		Build:     c.build.buildCAS,
 		Commit:    c.commit.GitHash,
-		Config:    cfg,
+		BotConfig: cfg,
 		Benchmark: req.Benchmark,
 		Story:     req.Story,
 		Target:    target,
@@ -381,7 +377,7 @@ func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc backends.Swarm
 	}
 	if len(tasks) < maxSampleSize {
 		for i := 0; i < interval; i++ {
-			task, err := run_benchmark.Run(ctx, sc, req, c.tests.req.Commit, c.tests.req.JobID, c.tests.req.Build, 1)
+			task, err := run_benchmark.Run(ctx, sc, c.tests.req.Commit, req.Configuration, req.Benchmark, req.Story, req.StoryTags, c.tests.req.JobID, c.tests.req.Build, 1)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Could not start run benchmark task for request %v", c.tests.req)
 			}

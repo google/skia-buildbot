@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 
 	spb "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	ppb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test to swarming.
@@ -29,11 +28,13 @@ type RunBenchmarkRequest struct {
 	// commit hash
 	Commit string
 	// device configuration
-	Config bot_configs.BotConfig
+	BotConfig string
 	// benchmark to test
 	Benchmark string
 	// story to test
 	Story string
+	// story tags for the test
+	StoryTags string
 	// test target of the job
 	Target string
 }
@@ -57,19 +58,18 @@ func IsTaskStateSuccess(state string) bool {
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, sc backends.SwarmingClient, req *ppb.ScheduleBisectRequest, commit string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
-	test, err := NewBenchmarkTest(req, commit)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
-	}
-
-	bot := req.Configuration
+func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
 	botConfig, err := bot_configs.GetBotConfig(bot, false)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create benchmark test object")
 	}
 
-	swarmingRequest := createSwarmingRequest(jobID, test.GetCommand(), buildArtifact, botConfig.Dimensions)
+	bt, err := NewBenchmarkTest(commit, botConfig.Bot, botConfig.Browser, benchmark, story, storyTag)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
+	}
+
+	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, botConfig.Dimensions)
 
 	resp := make([]*spb.SwarmingRpcsTaskRequestMetadata, 0)
 	for i := 0; i < iter; i++ {

@@ -17,7 +17,6 @@ go_library(
         "//go/util",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
-        "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],
 )
@@ -35,7 +34,6 @@ go_test(
         "//go/swarming",
         "//go/swarming/mocks",
         "//pinpoint/go/backends",
-        "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",

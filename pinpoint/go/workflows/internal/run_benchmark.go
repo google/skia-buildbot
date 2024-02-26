@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
-	ppb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -82,19 +81,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, param
 		return "", skerr.Wrap(err)
 	}
 
-	// TODO(jeffyoon@) - this is a workaround to generate the request object s.t. the refactor
-	// does not obstruct the current run_benchmark workflow. Once the request spec defined
-	// by the proto is in full use, this can be deprecated.
-	//
-	// This only fills in the minimum set required to run the benchmark.
-	req := &ppb.ScheduleBisectRequest{
-		// run_benchmark.RunBenchmarkRequest doesn't support story tags
-		Configuration: params.Request.Config.Bot,
-		Benchmark:     params.Request.Benchmark,
-		Story:         params.Request.Story,
-	}
-
-	taskIds, err := run_benchmark.Run(ctx, sc, req, params.Request.Commit, params.Request.JobID, params.Request.Build, 1)
+	taskIds, err := run_benchmark.Run(ctx, sc, params.Request.Commit, params.Request.BotConfig, params.Request.Benchmark, params.Request.Story, params.Request.StoryTags, params.Request.JobID, params.Request.Build, 1)
 	if err != nil {
 		return "", err
 	}
