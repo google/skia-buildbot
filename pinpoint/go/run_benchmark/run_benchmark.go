@@ -10,20 +10,17 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"time"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test
 // to swarming.
 type RunBenchmarkRequest struct {
-	// the Swarming client
-	Client swarming.ApiClient
 	// the Pinpoint job id
 	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
@@ -62,103 +59,6 @@ var swarmingReq = swarmingV1.SwarmingRpcsNewTaskRequest{
 	User: "Pinpoint",
 	// ForceSendFields: omitted
 	// NullFields: omitted
-}
-
-var runningStates = []string{
-	swarming.TASK_STATE_PENDING,
-	swarming.TASK_STATE_RUNNING,
-}
-
-// DialSwarming dials a swarming API client.
-// TODO(sunxiaodi@) migrate swarming components to backends/ folder
-func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
-	return backends.DialSwarming(ctx)
-}
-
-// ListPinpointTasks lists the Pinpoint swarming tasks of a given
-// job and build.
-func ListPinpointTasks(ctx context.Context, client swarming.ApiClient, req RunBenchmarkRequest) ([]string, error) {
-	if req.JobID == "" {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing JobID")
-	}
-	if req.Build == nil || req.Build.Digest == nil {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing cas isolate")
-	}
-	start := time.Now().Add(-24 * time.Hour)
-	tags := []string{
-		fmt.Sprintf("pinpoint_job_id:%s", req.JobID),
-		fmt.Sprintf("build_cas:%s/%d", req.Build.Digest.Hash, req.Build.Digest.SizeBytes),
-	}
-	tasks, err := client.ListTasks(ctx, start, time.Now(), tags, "")
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving tasks %s", err)
-	}
-	taskIDs := make([]string, len(tasks))
-	for i, t := range tasks {
-		taskIDs[i] = t.TaskId
-	}
-	return taskIDs, nil
-}
-
-// GetStatus gets the current status of a swarming task.
-func GetStatus(ctx context.Context, client swarming.ApiClient, taskID string) (string, error) {
-	res, err := client.GetTask(ctx, taskID, false)
-	if err != nil {
-		return "", skerr.Fmt("failed to get swarming task ID %s due to err: %v", taskID, err)
-	}
-	return res.State, nil
-}
-
-// GetStates returns the state of each task in a list of tasks.
-func GetStates(ctx context.Context, client swarming.ApiClient, taskIDs []string) ([]string, error) {
-	return client.GetStates(ctx, taskIDs)
-}
-
-// IsTaskStateFinished checks if a swarming task state is finished
-func IsTaskStateFinished(state string) (bool, error) {
-	if !slices.Contains(swarming.TASK_STATES, state) {
-		return false, skerr.Fmt("Not a valid swarming task state %s", state)
-	}
-	return !slices.Contains(runningStates, state), nil
-}
-
-// IsTaskStateSuccess checks if a swarming task is successful or not. Makes no assumptions
-// about whether it is still running
-func IsTaskStateSuccess(state string) bool {
-	return state == swarming.TASK_STATE_COMPLETED
-}
-
-func CancelTasks(ctx context.Context, client swarming.ApiClient, taskIDs []string) error {
-	for _, id := range taskIDs {
-		err := client.CancelTask(ctx, id, true)
-		if err != nil {
-			return skerr.Fmt("Could not cancel task %s due to %s", id, err)
-		}
-	}
-	return nil
-}
-
-// GetCASOutput returns the CAS output of a swarming task in the
-// form of a RBE CAS hash.
-// GetCASOutput assumes the task is finished, or it throws an error.
-func GetCASOutput(ctx context.Context, client swarming.ApiClient, taskID string) (
-	*swarmingV1.SwarmingRpcsCASReference, error) {
-	task, err := client.GetTask(ctx, taskID, false)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving result of task %s: %s", taskID, err)
-	}
-	if task.State != "COMPLETED" {
-		return nil, fmt.Errorf("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
-	}
-	rbe := &swarmingV1.SwarmingRpcsCASReference{
-		CasInstance: task.CasOutputRoot.CasInstance,
-		Digest: &swarmingV1.SwarmingRpcsDigest{
-			Hash:      task.CasOutputRoot.Digest.Hash,
-			SizeBytes: task.CasOutputRoot.Digest.SizeBytes,
-		},
-	}
-
-	return rbe, nil
 }
 
 func createSwarmingReq(req RunBenchmarkRequest) (
@@ -211,14 +111,32 @@ func createSwarmingReq(req RunBenchmarkRequest) (
 	return &swarmingReq, nil
 }
 
+var runningStates = []string{
+	swarming.TASK_STATE_PENDING,
+	swarming.TASK_STATE_RUNNING,
+}
+
+// IsTaskStateFinished checks if a swarming task state is finished
+func IsTaskStateFinished(state string) (bool, error) {
+	if !slices.Contains(swarming.TASK_STATES, state) {
+		return false, skerr.Fmt("Not a valid swarming task state %s", state)
+	}
+	return !slices.Contains(runningStates, state), nil
+}
+
+// IsTaskStateSuccess checks if a swarming task state is finished
+func IsTaskStateSuccess(state string) bool {
+	return state == swarming.TASK_STATE_COMPLETED
+}
+
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, client swarming.ApiClient, req RunBenchmarkRequest) (string, error) {
+func Run(ctx context.Context, sc backends.SwarmingClient, req RunBenchmarkRequest) (string, error) {
 	swarmingReq, err := createSwarmingReq(req)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not create run test request")
 	}
 
-	metadataResp, err := client.TriggerTask(ctx, swarmingReq)
+	metadataResp, err := sc.TriggerTask(ctx, swarmingReq)
 	if err != nil {
 		return "", skerr.Fmt("trigger task %v\ncaused error: %s", req, err)
 	}

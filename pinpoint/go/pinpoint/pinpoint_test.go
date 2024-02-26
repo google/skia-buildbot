@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/skerr"
 	swarmingMocks "go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome/mocks"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -348,7 +349,10 @@ func TestScheduleRunBenchmark(t *testing.T) {
 				TaskId: "new_task",
 			}, nil).Times(interval)
 
-		tasks, err := c.scheduleRunBenchmark(ctx, msc)
+		sc := &backends.SwarmingClientImpl{
+			ApiClient: msc,
+		}
+		tasks, err := c.scheduleRunBenchmark(ctx, sc)
 		So(err, ShouldBeNil)
 		So(tasks[0], ShouldEqual, "new_task")
 		So(len(tasks), ShouldEqual, interval)
@@ -357,7 +361,10 @@ func TestScheduleRunBenchmark(t *testing.T) {
 	Convey(`Error`, t, func() {
 		Convey(`When no tests started`, func() {
 			c := &commitData{}
-			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			tasks, err := c.scheduleRunBenchmark(ctx, sc)
 			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
 			So(tasks, ShouldBeNil)
 		})
@@ -365,7 +372,10 @@ func TestScheduleRunBenchmark(t *testing.T) {
 			c := &commitData{
 				tests: &testMetadata{},
 			}
-			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			tasks, err := c.scheduleRunBenchmark(ctx, sc)
 			So(err, ShouldErrLike, "Cannot schedule benchmark runs without request")
 			So(tasks, ShouldBeNil)
 		})
@@ -393,7 +403,10 @@ func TestScheduleRunBenchmark(t *testing.T) {
 			msc.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, nil).Once()
 			msc.On("TriggerTask", ctx, mock.Anything).Return(nil, skerr.Fmt(errMsg)).Once()
 
-			tasks, err := c.scheduleRunBenchmark(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			tasks, err := c.scheduleRunBenchmark(ctx, sc)
 			So(err, ShouldErrLike, errMsg)
 			So(tasks, ShouldBeNil)
 		})
@@ -403,12 +416,16 @@ func TestScheduleRunBenchmark(t *testing.T) {
 func TestPollTests(t *testing.T) {
 	ctx := context.Background()
 	msc := swarmingMocks.NewApiClient(t)
+
 	Convey(`OK`, t, func() {
 		Convey(`When no tasks to poll`, func() {
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
 			cdl := commitDataList{
 				commits: []*commitData{},
 			}
-			idx, c, err := cdl.pollTests(ctx, msc)
+			idx, c, err := cdl.pollTests(ctx, sc)
 			So(err, ShouldBeNil)
 			So(idx, ShouldEqual, -1)
 			So(c, ShouldBeNil)
@@ -420,7 +437,7 @@ func TestPollTests(t *testing.T) {
 					},
 				},
 			}
-			idx, c, err = cdl.pollTests(ctx, msc)
+			idx, c, err = cdl.pollTests(ctx, sc)
 			So(err, ShouldBeNil)
 			So(idx, ShouldEqual, -1)
 			So(c, ShouldBeNil)
@@ -436,7 +453,10 @@ func TestPollTests(t *testing.T) {
 					},
 				},
 			}
-			idx, c, err := cdl.pollTests(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			idx, c, err := cdl.pollTests(ctx, sc)
 			So(err, ShouldBeNil)
 			So(idx, ShouldEqual, -1)
 			So(c, ShouldBeNil)
@@ -462,7 +482,10 @@ func TestPollTests(t *testing.T) {
 					"COMPLETED",
 				}, nil).Once()
 
-			idx, c, err := cdl.pollTests(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			idx, c, err := cdl.pollTests(ctx, sc)
 			So(err, ShouldBeNil)
 			So(idx, ShouldEqual, -1)
 			So(c, ShouldBeNil)
@@ -488,7 +511,10 @@ func TestPollTests(t *testing.T) {
 					"COMPLETED",
 				}, nil).Once()
 
-			idx, c, err := cdl.pollTests(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			idx, c, err := cdl.pollTests(ctx, sc)
 			So(err, ShouldBeNil)
 			So(idx, ShouldEqual, 0)
 			So(c, ShouldNotBeNil)
@@ -511,7 +537,10 @@ func TestPollTests(t *testing.T) {
 		}
 		msc.On("GetStates", ctx, mock.Anything).Return(nil, skerr.Fmt("some error")).Once()
 
-		idx, c, err := cdl.pollTests(ctx, msc)
+		sc := &backends.SwarmingClientImpl{
+			ApiClient: msc,
+		}
+		idx, c, err := cdl.pollTests(ctx, sc)
 		So(err, ShouldErrLike, "failed to retrieve swarming tasks")
 		So(idx, ShouldEqual, -1)
 		So(c, ShouldBeNil)
@@ -521,6 +550,7 @@ func TestPollTests(t *testing.T) {
 func TestGetTestCAS(t *testing.T) {
 	ctx := context.Background()
 	msc := swarmingMocks.NewApiClient(t)
+
 	Convey(`OK`, t, func() {
 		c := &commitData{
 			tests: &testMetadata{
@@ -541,7 +571,10 @@ func TestGetTestCAS(t *testing.T) {
 			}, nil,
 		).Times(len(c.tests.tasks))
 
-		cas, err := c.getTestCAS(ctx, msc)
+		sc := &backends.SwarmingClientImpl{
+			ApiClient: msc,
+		}
+		cas, err := c.getTestCAS(ctx, sc)
 		So(err, ShouldBeNil)
 		So(cas, ShouldNotBeNil)
 		So(len(cas), ShouldEqual, len(c.tests.tasks))
@@ -553,7 +586,10 @@ func TestGetTestCAS(t *testing.T) {
 	Convey(`Error`, t, func() {
 		Convey(`When there are no tests`, func() {
 			c := &commitData{}
-			cas, err := c.getTestCAS(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			cas, err := c.getTestCAS(ctx, sc)
 			So(err, ShouldErrLike, "cannot get cas output of non-existent swarming tasks")
 			So(cas, ShouldBeNil)
 			So(c.tests, ShouldBeNil)
@@ -565,7 +601,10 @@ func TestGetTestCAS(t *testing.T) {
 					states: []string{"COMPLETED"},
 				},
 			}
-			cas, err := c.getTestCAS(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			cas, err := c.getTestCAS(ctx, sc)
 			So(err, ShouldErrLike, "mismatching number of swarming states")
 			So(cas, ShouldBeNil)
 			So(c.tests.casOutputs, ShouldBeNil)
@@ -581,7 +620,10 @@ func TestGetTestCAS(t *testing.T) {
 				skerr.Fmt("some error"),
 			).Once()
 
-			cas, err := c.getTestCAS(ctx, msc)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			cas, err := c.getTestCAS(ctx, sc)
 			So(err, ShouldErrLike, "error retrieving cas outputs")
 			So(cas, ShouldBeNil)
 		})
@@ -745,14 +787,20 @@ func TestUpdateCommits(t *testing.T) {
 		Convey(`When index out of bounds`, func() {
 			left, right := -1, 0
 			res := &compare.CompareResults{}
-			mid, err := cdl.updateCommitsByResult(ctx, msc, mmh, res, left, right)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right)
 			So(err, ShouldErrLike, "index out of bounds")
 			So(mid, ShouldBeNil)
 		})
 		Convey(`When left >= right`, func() {
 			left, right := 1, 0
 			res := &compare.CompareResults{}
-			mid, err := cdl.updateCommitsByResult(ctx, msc, mmh, res, left, right)
+			sc := &backends.SwarmingClientImpl{
+				ApiClient: msc,
+			}
+			mid, err := cdl.updateCommitsByResult(ctx, sc, mmh, res, left, right)
 			So(err, ShouldErrLike, fmt.Sprintf("left %d index >= right %d", left, right))
 			So(mid, ShouldBeNil)
 		})
@@ -834,7 +882,10 @@ func TestUpdateUnknown(t *testing.T) {
 				TaskId: "new_right_task",
 			}, nil).Times(interval)
 
-		err = cdl.runMoreTestsIfNeeded(ctx, msc, left, right)
+		sc := &backends.SwarmingClientImpl{
+			ApiClient: msc,
+		}
+		err = cdl.runMoreTestsIfNeeded(ctx, sc, left, right)
 		So(err, ShouldBeNil)
 		So(len(lcommit.tests.tasks), ShouldEqual, interval+2)
 		So(lcommit.tests.tasks[0], ShouldEqual, "old_left_task_1")

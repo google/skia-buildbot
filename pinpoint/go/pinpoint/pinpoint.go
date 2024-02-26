@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/build_chrome"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -63,7 +64,7 @@ type PinpointRunResponse struct {
 
 // pinpointJobImpl implements the PinpointJob interface.
 type pinpointHandlerImpl struct {
-	sc swarming.ApiClient
+	sc backends.SwarmingClient
 	bc build_chrome.BuildChromeClient
 	mc midpoint.MidpointHandler
 }
@@ -109,7 +110,7 @@ func New(ctx context.Context) (*pinpointHandlerImpl, error) {
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
 
-	sc, err := swarming.NewApiClient(c, swarmingServiceAddress)
+	sc, err := backends.NewSwarmingClient(ctx, swarmingServiceAddress)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not create swarming client")
 	}
@@ -369,12 +370,12 @@ func (c *commitData) createRunBenchmarkRequest(jobID string, cfg bot_configs.Bot
 }
 
 // scheduleRunBenchmark schedules run benchmark tests to swarming and returns the task IDs
-func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc swarming.ApiClient) ([]string, error) {
+func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc backends.SwarmingClient) ([]string, error) {
 	if c.tests == nil || c.tests.req == nil {
 		return nil, skerr.Fmt("Cannot schedule benchmark runs without request")
 	}
 	// Fetching Pinpoint tasks here can skip scheduling new tasks for faster testing
-	tasks, err := run_benchmark.ListPinpointTasks(ctx, sc, *c.tests.req)
+	tasks, err := sc.ListPinpointTasks(ctx, c.tests.req.JobID, c.tests.req.Build)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not list tasks prior to run benchmark for request %v", *c.tests.req)
 	}
@@ -393,14 +394,14 @@ func (c *commitData) scheduleRunBenchmark(ctx context.Context, sc swarming.ApiCl
 // pollTests checks the test status of every commit in the commitQ
 // returns upon finding the first commit with running tasks that all finished
 // returns the index of the commit so it is easier to compare left and right neighbors
-func (cdl commitDataList) pollTests(ctx context.Context, sc swarming.ApiClient) (int, *commitData, error) {
+func (cdl commitDataList) pollTests(ctx context.Context, sc backends.SwarmingClient) (int, *commitData, error) {
 	for i, c := range cdl.commits {
 		if c.tests == nil {
 			continue
 		}
 		if c.tests.isRunning {
 			c.tests.isRunning = false
-			states, err := run_benchmark.GetStates(ctx, sc, c.tests.tasks)
+			states, err := sc.GetStates(ctx, c.tests.tasks)
 			if err != nil {
 				return -1, nil, skerr.Wrapf(err, "failed to retrieve swarming tasks %v", c.tests.tasks)
 			}
@@ -420,7 +421,7 @@ func (cdl commitDataList) pollTests(ctx context.Context, sc swarming.ApiClient) 
 }
 
 // getTestCAS returns the CAS output addresses from a set of swarming tests
-func (c *commitData) getTestCAS(ctx context.Context, sc swarming.ApiClient) (
+func (c *commitData) getTestCAS(ctx context.Context, sc backends.SwarmingClient) (
 	[]*swarmingV1.SwarmingRpcsCASReference, error) {
 	casOutputs := []*swarmingV1.SwarmingRpcsCASReference{}
 	if c.tests == nil {
@@ -432,7 +433,7 @@ func (c *commitData) getTestCAS(ctx context.Context, sc swarming.ApiClient) (
 	}
 	for i, s := range c.tests.states {
 		if s == "COMPLETED" {
-			cas, err := run_benchmark.GetCASOutput(ctx, sc, c.tests.tasks[i])
+			cas, err := sc.GetCASOutput(ctx, c.tests.tasks[i])
 			if err != nil {
 				return nil, skerr.Wrapf(err, "error retrieving cas outputs")
 			}
@@ -512,7 +513,7 @@ func (c *commitData) notComparable() bool {
 // updateCommitsByResult takes the compare results and determines the next
 // steps in the workflow. Changes are made to CommitDataList depending
 // on what the compare verdict is.
-func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc swarming.ApiClient, mh midpoint.MidpointHandler, res *compare.CompareResults,
+func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh midpoint.MidpointHandler, res *compare.CompareResults,
 	left, right int) (*midpoint.Commit, error) {
 	if left < 0 || right >= len(cdl.commits) {
 		return nil, skerr.Fmt("cannot update commitDataList with left %d and right %d index out of bounds", left, right)
@@ -554,7 +555,7 @@ func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc midpoin
 }
 
 // runMoreTestsIfNeeded adds more run_benchmark tasks to the left and right commit
-func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc swarming.ApiClient, left, right int) error {
+func (cdl *commitDataList) runMoreTestsIfNeeded(ctx context.Context, sc backends.SwarmingClient, left, right int) error {
 	c := cdl.commits[left]
 	tasks, err := c.scheduleRunBenchmark(ctx, sc)
 	if err != nil {

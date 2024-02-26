@@ -7,6 +7,7 @@ import (
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
@@ -75,7 +76,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, params workflows.RunBenchmarkPar
 func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, params workflows.RunBenchmarkParams) (string, error) {
 	logger := activity.GetLogger(ctx)
 
-	sc, err := run_benchmark.DialSwarming(ctx)
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
 	if err != nil {
 		logger.Error("Failed to connect to swarming client:", err)
 		return "", skerr.Wrap(err)
@@ -89,7 +90,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, param
 func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, taskID string) (string, error) {
 	logger := activity.GetLogger(ctx)
 
-	sc, err := run_benchmark.DialSwarming(ctx)
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
 	if err != nil {
 		logger.Error("Failed to connect to swarming client:", err)
 		return "", skerr.Wrap(err)
@@ -102,7 +103,7 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 		case <-ctx.Done():
 			return "", ctx.Err()
 		default:
-			state, err := run_benchmark.GetStatus(ctx, sc, taskID)
+			state, err := sc.GetStatus(ctx, taskID)
 			if err != nil {
 				logger.Error("Failed to get task status:", err, "remaining retries:", failureRetries)
 				failureRetries -= 1
@@ -127,13 +128,13 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 func (rba *RunBenchmarkActivity) RetrieveCASActivity(ctx context.Context, taskID string) (*swarmingV1.SwarmingRpcsCASReference, error) {
 	logger := activity.GetLogger(ctx)
 
-	sc, err := run_benchmark.DialSwarming(ctx)
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
 	if err != nil {
 		logger.Error("Failed to connect to swarming client:", err)
 		return nil, skerr.Wrap(err)
 	}
 
-	cas, err := run_benchmark.GetCASOutput(ctx, sc, taskID)
+	cas, err := sc.GetCASOutput(ctx, taskID)
 	if err != nil {
 		logger.Error("Failed to retrieve CAS:", err)
 		return nil, err

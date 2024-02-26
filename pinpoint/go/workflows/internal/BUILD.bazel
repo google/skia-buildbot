@@ -11,6 +11,7 @@ go_library(
     visibility = ["//pinpoint/go/workflows:__subpackages__"],
     deps = [
         "//go/skerr",
+        "//pinpoint/go/backends",
         "//pinpoint/go/build_chrome",
         "//pinpoint/go/run_benchmark",
         "//pinpoint/go/workflows",
