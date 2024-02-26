@@ -101,6 +101,9 @@ func (c *Checkout) Update(ctx context.Context) (*revision.Revision, string, erro
 	if err := c.UpdateBranch(ctx, branch); err != nil {
 		return nil, "", skerr.Wrap(err)
 	}
+	if _, err := c.Git(ctx, "gc"); err != nil {
+		return nil, "", skerr.Wrap(err)
+	}
 	tipRev, err := c.GetRevision(ctx, "HEAD")
 	if err != nil {
 		return nil, "", skerr.Wrap(err)

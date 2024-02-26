@@ -95,7 +95,10 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		if err := gclient(ctx, args...); err != nil {
 			return skerr.Wrap(err)
 		}
-		return skerr.Wrap(gclient(ctx, "recurse", "--no-progress", "-j1", gitPath, "clean", "-d", "-f"))
+		if err := gclient(ctx, "recurse", "--no-progress", "-j1", gitPath, "clean", "-d", "-f"); err != nil {
+			return skerr.Wrap(err)
+		}
+		return skerr.Wrap(gclient(ctx, "recurse", "--no-progress", "-j1", gitPath, "gc"))
 	}
 
 	// Pre-upload steps are run after setting the new dependency version and
@@ -152,15 +155,6 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 			)
 		}
 		if err := sync(ctx, syncExtraArgs...); err != nil {
-			return "", skerr.Wrap(err)
-		}
-
-		// Sometimes DEPS are added without an associated .gitignore entry,
-		// which results in untracked files after `gclient sync`.  If there are
-		// any untracked files when this function finishes, the roller will fail
-		// to create a CL.  Remove any untracked files immediately after syncing
-		// to prevent any errors which aren't our fault.
-		if _, err := co.Git(ctx, "clean", "-d", "-f"); err != nil {
 			return "", skerr.Wrap(err)
 		}
 
