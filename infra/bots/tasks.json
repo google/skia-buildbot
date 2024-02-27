@@ -56,7 +56,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -76,7 +76,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:31b61178dc24ab61a24e3fbccf5debe58adbf8a5",
         "--cipd",
-        "task_drivers:skia/tools/presubmit/${platform}@git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0",
+        "task_drivers:skia/tools/presubmit/${platform}@git_revision:34f90064787912c7d6e6e97527de856087568aab",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -128,7 +128,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -171,7 +171,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -214,7 +214,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -267,7 +267,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -347,7 +347,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -421,7 +421,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -494,7 +494,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
@@ -570,7 +570,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:dd4b27ecbb538221be5fd7f0c6888dc61d3af6e0"
+          "version": "git_revision:34f90064787912c7d6e6e97527de856087568aab"
         }
       ],
       "command": [
