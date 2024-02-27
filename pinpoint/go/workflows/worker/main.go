@@ -30,10 +30,16 @@ func main() {
 
 	w := worker.New(c, *taskQueue, worker.Options{})
 
-	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
-
 	bca := &internal.BuildChromeActivity{}
 	w.RegisterActivity(bca)
+	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+
+	rba := &internal.RunBenchmarkActivity{}
+	w.RegisterActivity(rba)
+	w.RegisterWorkflowWithOptions(internal.RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+
+	w.RegisterActivity(internal.CollectValuesActivity)
+	w.RegisterWorkflowWithOptions(internal.SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

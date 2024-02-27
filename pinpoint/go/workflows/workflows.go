@@ -13,8 +13,9 @@ import (
 // souce code dependencies such that the client doesn't need to link with
 // the actual implementation.
 const (
-	BuildChrome  = "perf.build_chrome"
-	RunBenchmark = "perf.run_benchmark"
+	BuildChrome        = "perf.build_chrome"
+	RunBenchmark       = "perf.run_benchmark"
+	SingleCommitRunner = "perf.single_commit_runner"
 )
 
 // Workflow params definitions.
