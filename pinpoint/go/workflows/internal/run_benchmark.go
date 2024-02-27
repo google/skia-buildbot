@@ -8,12 +8,32 @@ import (
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
+
+// RunBenchmarkParams are the Temporal Workflow params
+// for the RunBenchmarkWorkflow.
+type RunBenchmarkParams struct {
+	// the Pinpoint job id
+	JobID string
+	// the swarming instance and cas digest hash and bytes location for the build
+	BuildCAS *swarmingV1.SwarmingRpcsCASReference
+	// commit hash
+	Commit *midpoint.CombinedCommit
+	// device configuration
+	BotConfig string
+	// benchmark to test
+	Benchmark string
+	// story to test
+	Story string
+	// story tags for the test
+	StoryTags string
+}
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities
 type RunBenchmarkActivity struct {
@@ -33,13 +53,13 @@ var runBenchmarkActivityOption = workflow.ActivityOptions{
 
 // RunBenchmarkWorkflow is a Workflow definition that schedules a single task,
 // polls and retrieves the CAS for the RunBenchmarkParams defined.
-func RunBenchmarkWorkflow(ctx workflow.Context, params workflows.RunBenchmarkParams) (*workflows.TestRun, error) {
+func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflows.TestRun, error) {
 	ctx = workflow.WithActivityOptions(ctx, runBenchmarkActivityOption)
 	logger := workflow.GetLogger(ctx)
 
 	var rba RunBenchmarkActivity
 	var taskID string
-	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, params).Get(ctx, &taskID); err != nil {
+	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
 		logger.Error("Failed to schedule task:", err)
 		return nil, skerr.Wrap(err)
 	}
@@ -62,7 +82,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, params workflows.RunBenchmarkPar
 		return &resp, nil
 	}
 
-	if err := workflow.ExecuteActivity(ctx, rba.RetrieveCASActivity, taskID).Get(ctx, &cas); err != nil {
+	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, taskID).Get(ctx, &cas); err != nil {
 		logger.Error("Failed to retrieve CAS reference:", err)
 		return nil, skerr.Wrap(err)
 	}
@@ -72,7 +92,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, params workflows.RunBenchmarkPar
 }
 
 // ScheduleTaskActivity wraps BuildChromeClient.SearchOrBuild
-func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, params workflows.RunBenchmarkParams) (string, error) {
+func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *RunBenchmarkParams) (string, error) {
 	logger := activity.GetLogger(ctx)
 
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
@@ -81,7 +101,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, param
 		return "", skerr.Wrap(err)
 	}
 
-	taskIds, err := run_benchmark.Run(ctx, sc, params.Request.Commit, params.Request.BotConfig, params.Request.Benchmark, params.Request.Story, params.Request.StoryTags, params.Request.JobID, params.Request.Build, 1)
+	taskIds, err := run_benchmark.Run(ctx, sc, rbp.Commit.GetMainGitHash(), rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1)
 	if err != nil {
 		return "", err
 	}
@@ -127,8 +147,8 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 	}
 }
 
-// RetrieveCASActivity wraps retrieves task artifacts from CAS
-func (rba *RunBenchmarkActivity) RetrieveCASActivity(ctx context.Context, taskID string) (*swarmingV1.SwarmingRpcsCASReference, error) {
+// RetrieveTestCASActivity wraps retrieves task artifacts from CAS
+func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, taskID string) (*swarmingV1.SwarmingRpcsCASReference, error) {
 	logger := activity.GetLogger(ctx)
 
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)

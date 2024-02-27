@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"github.com/stretchr/testify/require"
@@ -26,11 +25,9 @@ func TestRunBenchmark_GivenSuccessfulRun_ShouldReturnCas(t *testing.T) {
 
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
 	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
-	env.OnActivity(rba.RetrieveCASActivity, mock.Anything, fakeTaskID).Return(cas, nil).Once()
+	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, fakeTaskID).Return(cas, nil).Once()
 
-	env.ExecuteWorkflow(RunBenchmarkWorkflow, workflows.RunBenchmarkParams{
-		Request: run_benchmark.RunBenchmarkRequest{},
-	})
+	env.ExecuteWorkflow(RunBenchmarkWorkflow, &RunBenchmarkParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -55,9 +52,7 @@ func TestRunBenchmark_GivenUnsuccessfulRun_ShouldNotReturnCas(t *testing.T) {
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
 	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
 
-	env.ExecuteWorkflow(RunBenchmarkWorkflow, workflows.RunBenchmarkParams{
-		Request: run_benchmark.RunBenchmarkRequest{},
-	})
+	env.ExecuteWorkflow(RunBenchmarkWorkflow, &RunBenchmarkParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
