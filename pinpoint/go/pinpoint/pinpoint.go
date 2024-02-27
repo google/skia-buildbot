@@ -2,8 +2,6 @@ package pinpoint
 
 import (
 	"context"
-	"math"
-	"sort"
 	"strconv"
 	"time"
 
@@ -474,13 +472,7 @@ func (cdl commitDataList) compareNeighbor(left, right int, rawDiff float64) (*co
 		return nil, nil
 	}
 
-	// TODO(sunxiaodi@): move the normalized magnitude and attempt count arithmetic to compare
-	all_values := sort.Float64Slice(append(cdl.commits[left].values, cdl.commits[right].values...))
-	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
-	normDiff := math.Abs(rawDiff / iqr)
-	attemptCount := len(all_values) / 2
-
-	return compare.ComparePerformance(cdl.commits[left].values, cdl.commits[right].values, attemptCount, normDiff)
+	return compare.ComparePerformance(cdl.commits[left].values, cdl.commits[right].values, rawDiff)
 }
 
 // notComparable checks if a commit is still waiting on something to finish

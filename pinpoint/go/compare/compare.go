@@ -31,7 +31,11 @@
 package compare
 
 import (
+	"math"
+	"sort"
+
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
@@ -59,6 +63,11 @@ func (v verdict) Verdict() verdict {
 	return v
 }
 
+// Based on https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/job_state.py;drc=94f2bff5159bf660910b35c39426102c5982c4a4;l=356
+// the default functional analysis error rate expected is 1.0 for all bisections
+// pivoting to functional analysis.
+const DefaultFunctionalErrRate = 1.0
+
 // CompareResults contains the results of a comparison between two samples.
 // TODO(b/299537769): update verdict to use protos
 type CompareResults struct {
@@ -80,17 +89,24 @@ type CompareResults struct {
 }
 
 // CompareFunctional determines if valuesA and valuesB are statistically different,
-// statistically same or unknown from each other based on the perceived
-// normalizedMagnitude difference between valuesA and valuesB using the functional
-// low and high thresholds.
-//
-// The normalizedMagnitude is the failure rate,
-// a float between 0 and 1. The attemptCount is the average number of
-// samples between valuesA and valuesB.
-func CompareFunctional(valuesA []float64, valuesB []float64, attemptCount int,
-	normalizedMagnitude float64) (*CompareResults, error) {
+// statistically same or unknown from each other using the functional low and high thresholds.
+// Functional analysis compares failure rates between A and B.
+// The expectedErrRate expresses how much the culprit CL is responsible for flakiness
+// in a benchmark measurement. i.e. expectedErrRate = 0.5 means the culprit is
+// causing the benchmark to fail 50% of the time more often.
+func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*CompareResults, error) {
+	all_values := append(valuesA, valuesB...)
+	// avgSampleSize refers to the average number of samples between A and B.
+	// The samples may be imbalanced depending on the success of individual runs
+	avgSampleSize := len(all_values) / 2
+
+	if expectedErrRate < 0.0 || expectedErrRate > 1.0 {
+		sklog.Warning("Magnitude used in functional analysis was outside of the range of 0 and 1. Switching to default magnitude of 1.0")
+		expectedErrRate = DefaultFunctionalErrRate
+	}
+
 	LowThreshold := thresholds.LowThreshold
-	HighThreshold, err := thresholds.HighThresholdFunctional(normalizedMagnitude, attemptCount)
+	HighThreshold, err := thresholds.HighThresholdFunctional(expectedErrRate, avgSampleSize)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not get functional high threshold")
 	}
@@ -99,17 +115,18 @@ func CompareFunctional(valuesA []float64, valuesB []float64, attemptCount int,
 
 // ComparePerformance determines if valuesA and valuesB are statistically different,
 // statistically same or unknown from each other based on the perceived
-// normalizedMagnitude difference between valuesA and valuesB using the performance
+// rawMagnitude difference between valuesA and valuesB using the performance
 // low and high thresholds.
-//
-// The normalizedMagnitude is the perceived difference
-// normalized by the interquartile range (IQR). We need more values to find smaller
-// differences. The attemptCount is the average number of samples between valuesA
-// and valuesB.
-func ComparePerformance(valuesA []float64, valuesB []float64, attemptCount int,
-	normalizedMagnitude float64) (*CompareResults, error) {
+func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*CompareResults, error) {
+	all_values := sort.Float64Slice(append(valuesA, valuesB...))
+	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
+	normalizedMagnitude := math.Abs(rawMagnitude / iqr)
+	// avgSampleSize refers to the average number of samples between A and B.
+	// The samples may be imbalanced depending on the success of individual runs
+	avgSampleSize := len(all_values) / 2
+
 	LowThreshold := thresholds.LowThreshold
-	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, attemptCount)
+	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, avgSampleSize)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
@@ -120,7 +137,7 @@ func ComparePerformance(valuesA []float64, valuesB []float64, attemptCount int,
 // compare decides whether two samples are the same, different, or unknown
 // using the KS and MWU tests and compare their p-values against the
 // LowThreshold and HighThreshold.
-func compare(valuesA []float64, valuesB []float64, LowThreshold float64, HighThreshold float64) (*CompareResults, error) {
+func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64) (*CompareResults, error) {
 	if len(valuesA) == 0 || len(valuesB) == 0 {
 		// A sample has no values in it. Return verdict to measure more data.
 		return &CompareResults{Verdict: Unknown}, nil

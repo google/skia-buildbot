@@ -12,6 +12,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//pinpoint/go/compare/thresholds",
     ],
 )
