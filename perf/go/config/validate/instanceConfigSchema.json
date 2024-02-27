@@ -221,6 +221,9 @@
         "help_url_override": {
           "type": "string"
         },
+        "bug_host_url": {
+          "type": "string"
+        },
         "favorites": {
           "$ref": "#/$defs/Favorites"
         },

@@ -462,6 +462,7 @@ window.perf = {
   help_url_override: '',
   trace_format: 'chrome',
   need_alert_action: false,
+  bug_host_url: '',
 };
 
 customElements.whenDefined('explore-sk').then(() => {

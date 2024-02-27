@@ -92,6 +92,8 @@ export const getAnomalyDataMap = (
 export class AnomalySk extends ElementSk {
   private _anomaly: Anomaly | null = null;
 
+  private _bugHostUrl: string = 'https://bugs.chromium.org';
+
   constructor() {
     super(AnomalySk.template);
   }
@@ -108,12 +110,12 @@ export class AnomalySk extends ElementSk {
     return (100 * difference) / median_before;
   };
 
-  private static formatBug = (bugId: number): TemplateResult => {
+  private formatBug(bugId: number): TemplateResult {
     if (bugId === -1) {
       return html``;
     }
-    return html`<a href="${`https://crbug.com/${bugId}`}" target=_blank>${bugId}</td>`;
-  };
+    return html`<a href="${`${this.bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
+  }
 
   private static template = (ele: AnomalySk) => {
     if (ele._anomaly === null) {
@@ -158,7 +160,7 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Bug Id</th>
-              <td>${AnomalySk.formatBug(anomaly.bug_id)}</td>
+              <td>${ele.formatBug(anomaly.bug_id)}</td>
             </tr>
           </tbody>
         </table>
@@ -179,6 +181,20 @@ export class AnomalySk extends ElementSk {
   set anomaly(anomaly: Anomaly | null) {
     this._anomaly = anomaly;
     this._render();
+  }
+
+  get bugHostUrl(): string {
+    return this._bugHostUrl;
+  }
+
+  set bugHostUrl(url: string) {
+    if (url !== '') {
+      // Trim the trailing '/' since we are adding it in the format.
+      if (url.endsWith('/')) {
+        url = url.substring(0, url.length - 1);
+      }
+      this._bugHostUrl = url;
+    }
   }
 }
 

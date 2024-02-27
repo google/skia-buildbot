@@ -261,6 +261,7 @@ type SkPerfConfig struct {
 	HelpURLOverride            string             `json:"help_url_override"`               // If specified, this URL will override the help link
 	TraceFormat                config.TraceFormat `json:"trace_format"`                    // Trace formatter to use
 	NeedAlertAction            bool               `json:"need_alert_action"`               // Action to take for the alert.
+	BugHostURL                 string             `json:"bug_host_url"`                    // The URL for the bug host for the instance.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -286,6 +287,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		HelpURLOverride:            config.Config.HelpURLOverride,
 		TraceFormat:                config.Config.TraceFormat,
 		NeedAlertAction:            config.Config.NeedAlertAction,
+		BugHostURL:                 config.Config.BugHostUrl,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

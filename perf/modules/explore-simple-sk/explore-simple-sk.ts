@@ -1434,6 +1434,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.logEntry!.innerHTML = escapeAndLinkifyToString(json.logEntry);
         this.anomalyTable!.anomaly = selected_anomaly;
+        this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
         const traceid = e.detail.name;

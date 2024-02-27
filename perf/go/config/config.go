@@ -779,6 +779,9 @@ type InstanceConfig struct {
 	// To be used for instance specific help documentation.
 	HelpURLOverride string `json:"help_url_override,omitempty"`
 
+	// URL for the bug host for the instance. Eg: https://bugs.chromium.org/
+	BugHostUrl string `json:"bug_host_url,omitempty"`
+
 	// Favorites configuration for the instance
 	Favorites Favorites `json:"favorites,omitempty"`
 

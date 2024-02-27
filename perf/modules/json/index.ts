@@ -261,6 +261,7 @@ export interface SkPerfConfig {
 	help_url_override: string;
 	trace_format: TraceFormat;
 	need_alert_action: boolean;
+	bug_host_url: string;
 }
 
 export interface TriageRequest {
