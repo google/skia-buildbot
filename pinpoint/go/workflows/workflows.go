@@ -5,6 +5,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/pinpoint/go/midpoint"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 // Workflow name definitions.
@@ -57,4 +58,9 @@ type TestRun struct {
 	CAS *swarmingV1.SwarmingRpcsCASReference
 	// Values is sampled values for each benchmark story.
 	Values map[string][]float64
+}
+
+type BisectParams struct {
+	// BisectWorkflow reuses BisectRequest message
+	Request *pb.ScheduleBisectRequest
 }

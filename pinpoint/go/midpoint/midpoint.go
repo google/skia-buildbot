@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	GITILES_EMPTY_RESP_ERROR = "Gitiles returned 0 commits, which should not happen."
+	GitilesEmptyResponseErr = "Gitiles returned 0 commits, which should not happen."
+	chromiumSrcGit          = "https://chromium.googlesource.com/chromium/src.git"
 )
 
 // A Commit represents a commit of a given repository.
@@ -25,6 +26,13 @@ type Commit struct {
 
 	// RepositoryUrl is the url to the repository, ie/ https://chromium.googlesource.com/chromium/src
 	RepositoryUrl string
+}
+
+func NewCommit(h string) *Commit {
+	return &Commit{
+		GitHash:       h,
+		RepositoryUrl: chromiumSrcGit,
+	}
 }
 
 // A CombinedCommit represents one main base commit with any dependencies that require
@@ -141,7 +149,7 @@ func (m *midpointHandler) findMidpoint(ctx context.Context, url, startGitHash, e
 
 	// The list can only be empty if the start and end commits are the same.
 	if len(lc) == 0 {
-		return "", skerr.Fmt("%s. Start %s and end %s hashes may be reversed.", GITILES_EMPTY_RESP_ERROR, startGitHash, endGitHash)
+		return "", skerr.Fmt("%s. Start %s and end %s hashes may be reversed.", GitilesEmptyResponseErr, startGitHash, endGitHash)
 	}
 
 	// Two adjacent commits returns one commit equivalent to the end git hash.

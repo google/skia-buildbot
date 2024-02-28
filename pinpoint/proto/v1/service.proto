@@ -71,6 +71,7 @@ message QueryBisectRequest {
 
 message BisectExecution {
 	string job_id = 1;
+	string commit = 2;
 }
 
 // See LegacyJobResponse below

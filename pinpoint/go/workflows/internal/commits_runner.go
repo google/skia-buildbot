@@ -78,6 +78,16 @@ type CommitRun struct {
 	Runs []*workflows.TestRun
 }
 
+func (cr *CommitRun) AllValues(chart string) []float64 {
+	vs := []float64{}
+	for _, r := range cr.Runs {
+		if v, ok := r.Values[chart]; ok {
+			vs = append(vs, v...)
+		}
+	}
+	return vs
+}
+
 // SingleCommitRunner is a Workflow definition.
 //
 // SingleCommitRunner builds, runs and collects benchmark sampled values from one single commit.
