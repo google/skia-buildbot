@@ -40,13 +40,13 @@ import (
 )
 
 // define verdict enums
-type verdict int
+type Verdict int
 
 // These verdicts are the possible results of the statistical analysis.
 const (
 	// Unknown means that there is not enough evidence to reject
 	// either hypothesis. Collect more data before making a final decision.
-	Unknown verdict = iota
+	Unknown Verdict = iota
 	// Same means that the sample likely come from the same distribution.
 	// Cannot reject the null hypothesis.
 	Same
@@ -55,12 +55,20 @@ const (
 	Different
 )
 
-type VerdictEnum interface {
-	Verdict() verdict
+func (v Verdict) Value() int {
+	return int(v)
 }
 
-func (v verdict) Verdict() verdict {
-	return v
+func (v Verdict) Name() string {
+	switch v {
+	case Unknown:
+		return "Unknown"
+	case Same:
+		return "Same"
+	case Different:
+		return "Different"
+	}
+	return ""
 }
 
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/job_state.py;drc=94f2bff5159bf660910b35c39426102c5982c4a4;l=356
@@ -73,7 +81,7 @@ const DefaultFunctionalErrRate = 1.0
 type CompareResults struct {
 	// Verdict is the outcome of the statistical analysis which is either
 	// Unknown, Same, or Different.
-	Verdict VerdictEnum
+	Verdict Verdict
 	// PValue is the consolidated p-value for the statistical tests used.
 	PValue float64
 	// PValueKS is the p-value estimate from the KS test

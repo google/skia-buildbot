@@ -25,7 +25,7 @@ func TestCompareFunctional_GivenNoData_ReturnsError(t *testing.T) {
 }
 
 func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
-	test := func(name string, x, y []float64, expectedErrRate float64, expected VerdictEnum) {
+	test := func(name string, x, y []float64, expectedErrRate float64, expected Verdict) {
 		t.Run(name, func(t *testing.T) {
 			result, err := CompareFunctional(x, y, expectedErrRate)
 			assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestComparePerformance_GivenNoData_ReturnsError(t *testing.T) {
 }
 
 func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
-	test := func(name string, x, y []float64, magnitude float64, expected VerdictEnum) {
+	test := func(name string, x, y []float64, magnitude float64, expected Verdict) {
 		t.Run(name, func(t *testing.T) {
 			result, err := ComparePerformance(x, y, magnitude)
 			assert.NoError(t, err)

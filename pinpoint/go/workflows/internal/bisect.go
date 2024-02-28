@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	localAcitivityOptions = workflow.LocalActivityOptions{
+	localActivityOptions = workflow.LocalActivityOptions{
 		ScheduleToCloseTimeout: 15 * time.Second,
 	}
 	activityOptions = workflow.ActivityOptions{
@@ -45,7 +45,7 @@ func CompareResults(ctx context.Context, tr1, tr2 *CommitRun, chart string, magn
 	}
 
 	// TODO(b/326352320): We need to handle compare.Unknown case where we will need to run more tests
-	return result.Verdict.Verdict() == compare.Different, nil
+	return result.Verdict == compare.Different, nil
 }
 
 // FindMidCommit is an Acitivty that finds the middle point of two commits.
@@ -77,7 +77,7 @@ func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midp
 func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.BisectExecution, error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
-	ctx = workflow.WithLocalActivityOptions(ctx, localAcitivityOptions)
+	ctx = workflow.WithLocalActivityOptions(ctx, localActivityOptions)
 
 	jobID := uuid.New().String()
 	e := &pb.BisectExecution{
