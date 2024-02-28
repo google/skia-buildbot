@@ -17,14 +17,15 @@ CREATE TABLE IF NOT EXISTS Commits (
   subject TEXT
 );
 CREATE TABLE IF NOT EXISTS Culprits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   host STRING,
   project STRING,
   ref STRING,
   revision STRING,
   last_modified INT,
-  anomaly_group_ids INT ARRAY,
+  anomaly_group_ids STRING ARRAY,
   issue_ids INT ARRAY,
-  PRIMARY KEY (host, project, ref, revision)
+  UNIQUE INDEX by_revision (revision, host, project, ref)
 );
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
@@ -86,6 +87,7 @@ var Commits = []string{
 }
 
 var Culprits = []string{
+	"id",
 	"host",
 	"project",
 	"ref",
@@ -93,6 +95,7 @@ var Culprits = []string{
 	"last_modified",
 	"anomaly_group_ids",
 	"issue_ids",
+	"UNIQUE",
 }
 
 var GraphsShortcuts = []string{

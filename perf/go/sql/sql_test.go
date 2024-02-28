@@ -16,6 +16,7 @@ import (
 const DropTables = `
 	DROP TABLE IF EXISTS Alerts;
 	DROP TABLE IF EXISTS Commits;
+	DROP TABLE IF EXISTS Culprits;
 	DROP TABLE IF EXISTS GraphsShortcuts;
 	DROP TABLE IF EXISTS ParamSets;
 	DROP TABLE IF EXISTS Postings;
@@ -40,6 +41,16 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	author TEXT,
 	subject TEXT
   );
+  CREATE TABLE IF NOT EXISTS Culprits (
+	host STRING,
+	project STRING,
+	ref STRING,
+	revision STRING,
+	last_modified INT,
+	anomaly_group_ids INT ARRAY,
+	issue_ids INT ARRAY,
+	PRIMARY KEY (host, project, ref, revision)
+);
   CREATE TABLE IF NOT EXISTS GraphsShortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	graphs TEXT

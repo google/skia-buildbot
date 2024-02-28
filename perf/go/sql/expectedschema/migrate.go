@@ -27,6 +27,22 @@ import (
 
 // The two vars below should be updated everytime there's a schema change.
 var FromLiveToNext = `
+	DROP TABLE IF EXISTS Culprits;
+	CREATE TABLE IF NOT EXISTS Culprits (
+		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+		host STRING,
+		project STRING,
+		ref STRING,
+		revision STRING,
+		last_modified INT,
+		anomaly_group_ids STRING ARRAY,
+		issue_ids INT ARRAY,
+		UNIQUE INDEX by_revision (revision, host, project, ref)
+	);
+`
+
+var FromNextToLive = `
+	DROP TABLE IF EXISTS Culprits;
 	CREATE TABLE IF NOT EXISTS Culprits (
 		host STRING,
 		project STRING,
@@ -37,10 +53,6 @@ var FromLiveToNext = `
 		issue_ids INT ARRAY,
 		PRIMARY KEY (host, project, ref, revision)
 	);
-`
-
-var FromNextToLive = `
-	DROP TABLE IF EXISTS Culprits;
 `
 
 // This function will check whether there's a new schema checked-in,

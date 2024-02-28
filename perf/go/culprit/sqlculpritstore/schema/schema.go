@@ -2,6 +2,8 @@ package schema
 
 // CulpritSchema represents the SQL schema of the Culprits table.
 type CulpritSchema struct {
+	Id string `sql:"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
+
 	// Repo this change belongs to e.g. chromium.googlesource.com
 	Host string `sql:"host STRING"`
 
@@ -15,14 +17,16 @@ type CulpritSchema struct {
 	Revision string `sql:"revision STRING"`
 
 	// Stored as a Unit timestamp.
-	LastModified int `sql:"last_modified INT"`
+	LastModified int64 `sql:"last_modified INT"`
 
 	// List of Anomaly Group IDs  where this commit has been identified
 	// as a culprit.
-	AnomalyGroupIDs []int `sql:"anomaly_group_ids INT ARRAY"`
+	AnomalyGroupIDs []string `sql:"anomaly_group_ids STRING ARRAY"`
 
 	// List of Issue Ids associated with this culprit
-	IssueIds []int `sql:"issue_ids INT ARRAY"`
+	IssueIds []int64 `sql:"issue_ids INT ARRAY"`
 
-	primaryKey struct{} `sql:"PRIMARY KEY (host, project, ref, revision)"`
+	// Index by (host, project, ref, revision). Revision is kept first to
+	// reduce hotspots
+	byRevisionIndex struct{} `sql:"UNIQUE INDEX by_revision (revision, host, project, ref)"`
 }
