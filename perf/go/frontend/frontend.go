@@ -70,7 +70,6 @@ import (
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 	"go.skia.org/infra/perf/go/urlprovider"
-	pp_service "go.skia.org/infra/pinpoint/go/service"
 )
 
 const (
@@ -1903,12 +1902,6 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/help/", f.helpHandler)
 
 	// JSON handlers.
-	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New()); err != nil {
-		// Only log the error, the service should continue to run.
-		sklog.Error("Fail to initalize pinpoint service %s.", err)
-	} else {
-		router.Mount("/pinpoint/*", ph)
-	}
 
 	// Common endpoint for all long-running requests.
 	router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
