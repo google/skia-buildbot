@@ -35,6 +35,7 @@ cat > config.json5 <<EOF
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",
   ready_port: ":8000",
+  debug_port: ":8001",
   resources_path: "$$web_assets_dir",
   is_public_view: {is_public_view},
   publicly_allowed_params: {publicly_allowed_params},

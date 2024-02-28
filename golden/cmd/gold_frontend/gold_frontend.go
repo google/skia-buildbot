@@ -9,7 +9,6 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -201,23 +200,12 @@ func mustLoadFrontendServerConfig(commonInstanceConfig *string, thisConfig *stri
 
 // mustStartDebugServer starts an internal HTTP server for debugging purposes if requested.
 func mustStartDebugServer(fsc *frontendServerConfig) {
-	// Start the internal server on the internal port if requested.
 	if fsc.DebugPort != "" {
-		// Add the profiling endpoints to the internal router.
-		internalRouter := chi.NewRouter()
-
-		// Set up the health check endpoint.
-		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-
-		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
-
 		go func() {
+			// Sample usage:
+			//     $ kubectl port-forward --address 0.0.0.0 gold-skia-infra-frontend-xxxxxxxxxx-yyyyy 8000:7001
 			sklog.Infof("Internal server on http://127.0.0.1" + fsc.DebugPort)
-			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, internalRouter))
+			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, web.MakeDebugRouter()))
 		}()
 	}
 }

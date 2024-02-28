@@ -164,6 +164,16 @@ func main() {
 	router.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	router.Handle("/*", httputils.LoggingGzipRequestResponse(appRouter))
 
+	// Start the internal server on the internal port if requested.
+	if bsc.DebugPort != "" {
+		go func() {
+			// Sample usage:
+			//     $ kubectl port-forward --address 0.0.0.0 gold-skia-infra-baselineserver-xxxxxxxxxx-yyyyy 8000:8001
+			sklog.Infof("Internal server on http://127.0.0.1" + bsc.DebugPort)
+			sklog.Fatal(http.ListenAndServe(bsc.DebugPort, web.MakeDebugRouter()))
+		}()
+	}
+
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + bsc.ReadyPort)
 	sklog.Fatal(http.ListenAndServe(bsc.ReadyPort, router))
