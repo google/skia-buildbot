@@ -118,7 +118,8 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 // rawMagnitude difference between valuesA and valuesB using the performance
 // low and high thresholds.
 func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*CompareResults, error) {
-	all_values := sort.Float64Slice(append(valuesA, valuesB...))
+	all_values := append(valuesA, valuesB...)
+	sort.Float64s(all_values)
 	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
 	normalizedMagnitude := math.Abs(rawMagnitude / iqr)
 	// avgSampleSize refers to the average number of samples between A and B.

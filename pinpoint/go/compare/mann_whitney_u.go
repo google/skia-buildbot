@@ -17,7 +17,7 @@ import (
 )
 
 // MannWhitneyU computes the Mann-Whitney rank test on samples x and y.
-func MannWhitneyU(x []float64, y []float64) float64 {
+func MannWhitneyU(a []float64, b []float64) float64 {
 	// The distribution of U is approximately normal for large samples. This
 	// implementation uses the normal approximation, so it's recommended to have
 	// sample sizes > 20. This version assumes the method = 'asymptotic'.
@@ -28,6 +28,13 @@ func MannWhitneyU(x []float64, y []float64) float64 {
 	// is possible given that there are benchmarks that measure bimodal values or in the case
 	// of bisection error analysis. The scipy equivalent is method = 'exact'
 	// https://pkg.go.dev/github.com/aclements/go-moremath/stats#MannWhitneyUTest
+
+	// copy a and b so that the original arrays are not affected by
+	// future manipulations
+	x := make([]float64, len(a))
+	y := make([]float64, len(b))
+	copy(x, a)
+	copy(y, b)
 
 	n1 := float64(len(x))
 	n2 := float64(len(y))

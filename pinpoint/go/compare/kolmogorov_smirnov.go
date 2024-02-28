@@ -17,9 +17,16 @@ import (
 
 // KolmogorovSmirnov computes the 2-sample Kolmogorov-Smirnov test on
 // samples x and y.
-func KolmogorovSmirnov(x []float64, y []float64) (float64, error) {
+func KolmogorovSmirnov(a []float64, b []float64) (float64, error) {
 	// This is a two-sided test for the null hypothesis that 2 independent samples
 	// are drawn from the same continuous distribution.
+
+	// copy a and b so that the original arrays are not affected by
+	// future manipulations
+	x := make([]float64, len(a))
+	y := make([]float64, len(b))
+	copy(x, a)
+	copy(y, b)
 
 	n1 := len(x)
 	n2 := len(y)
