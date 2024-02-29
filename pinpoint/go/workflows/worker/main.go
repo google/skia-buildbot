@@ -41,6 +41,9 @@ func main() {
 	w.RegisterActivity(internal.CollectValuesActivity)
 	w.RegisterWorkflowWithOptions(internal.SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
+	w.RegisterActivity(internal.ComparePerformanceActivity)
+	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)

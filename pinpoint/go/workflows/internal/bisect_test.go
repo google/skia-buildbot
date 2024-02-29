@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 
@@ -22,7 +23,8 @@ func Test_Bisect_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T) {
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(&CommitRun{}, nil).Times(2)
-	env.OnActivity(CompareResults, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(false, nil).Once()
+	env.OnActivity(GetAllValues, mock.Anything, mock.Anything, mock.Anything).Return([]float64{}, nil).Twice()
+	env.OnActivity(ComparePerformanceActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
 
 	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{

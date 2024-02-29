@@ -29,23 +29,11 @@ var (
 		WorkflowExecutionTimeout: 12 * time.Hour,
 	}
 
-	bencharkRunIterations = []int32{10, 20, 40, 60, 120}
+	benchmarkRunIterations = []int32{10, 20, 40, 60, 120}
 )
 
-// CompareResults checks if the two runs are statistically different from their benchmark samples.
-//
-// It returns true if they are different.
-func CompareResults(ctx context.Context, tr1, tr2 *CommitRun, chart string, magnititude float64) (bool, error) {
-	v1 := tr1.AllValues(chart)
-	v2 := tr2.AllValues(chart)
-
-	result, err := compare.ComparePerformance(v1, v2, magnititude)
-	if err != nil {
-		return false, skerr.Wrap(err)
-	}
-
-	// TODO(b/326352320): We need to handle compare.Unknown case where we will need to run more tests
-	return result.Verdict == compare.Different, nil
+func GetAllValues(cr *CommitRun, chart string) ([]float64, error) {
+	return cr.AllValues(chart), nil
 }
 
 // FindMidCommit is an Acitivty that finds the middle point of two commits.
@@ -92,8 +80,8 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	}
 
 	var lRun, hRun *CommitRun
-	lf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, bencharkRunIterations[0], &midpoint.CombinedCommit{Main: lower}))
-	hf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, bencharkRunIterations[0], &midpoint.CombinedCommit{Main: higher}))
+	lf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, benchmarkRunIterations[0], &midpoint.CombinedCommit{Main: lower}))
+	hf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, benchmarkRunIterations[0], &midpoint.CombinedCommit{Main: higher}))
 	if err := lf.Get(ctx, &lRun); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -101,12 +89,20 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		return nil, skerr.Wrap(err)
 	}
 
-	var diff bool
-	if err := workflow.ExecuteLocalActivity(ctx, CompareResults, lRun, hRun, p.Request.Chart, magnitude).Get(ctx, &diff); err != nil {
+	var lValues, hValues []float64
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, lRun, p.Request.Chart).Get(ctx, &lValues); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, hRun, p.Request.Chart).Get(ctx, &hValues); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
-	if !diff {
+	var result *compare.CompareResults
+	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues, hValues, magnitude).Get(ctx, &result); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	if result.Verdict == compare.Same {
 		return e, nil
 	}
 
@@ -130,25 +126,36 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		}
 
 		var mRun *CommitRun
-		mf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, bencharkRunIterations[0], &midpoint.CombinedCommit{Main: mid}))
+		mf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, benchmarkRunIterations[0], &midpoint.CombinedCommit{Main: mid}))
 		if err := mf.Get(ctx, &mRun); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 
-		if err := workflow.ExecuteLocalActivity(ctx, CompareResults, lRun, mRun, p.Request.Chart, magnitude).Get(ctx, &diff); err != nil {
+		var lValues, mValues []float64
+		if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, lRun, p.Request.Chart).Get(ctx, &lValues); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, mRun, p.Request.Chart).Get(ctx, &mValues); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues, mValues, magnitude).Get(ctx, &result); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 
-		if diff {
+		if result.Verdict == compare.Different {
 			higher = mid
 			hRun = mRun
 			continue
 		}
 
-		if err := workflow.ExecuteLocalActivity(ctx, CompareResults, mRun, hRun, p.Request.Chart, magnitude).Get(ctx, &diff); err != nil {
+		var hValues []float64
+		if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, hRun, p.Request.Chart).Get(ctx, &hValues); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		if diff {
+		if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, mValues, hValues, magnitude).Get(ctx, &result); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if result.Verdict == compare.Different {
 			lower = mid
 			lRun = mRun
 			continue
