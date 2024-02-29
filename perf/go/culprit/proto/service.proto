@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "go.skia.org/infra/perf/go/culprit/proto";
+
+
+// Handles all culprit related actions.
+service CulpritService {
+  // Stores commits identified as culprits in persistent storage.
+  rpc PersistCulprit(PersistCulpritRequest) returns (PersistCulpritResponse) {
+  }
+  // Takes necessary actions to inform users about the regression.
+  rpc NotifyUser(NotifyUserRequest) returns (NotifyUserResponse) {
+  }
+}
+
+
+// Request object for PersistCulprit rpc.
+message PersistCulpritRequest {
+  // List of commits identified as culprits.
+  repeated Culprit culprits = 1;
+  // ID of the anomaly group corresponding to the bisection.
+  string anomaly_group_id = 2;
+}
+
+
+// Response object for PersistCulprit rpc.
+message PersistCulpritResponse {
+  // List of issue ids created
+  repeated string culprit_ids = 1;
+  int64 issue_id = 2;
+}
+
+
+// Request object for NotifyUser rpc.
+message NotifyUserRequest {
+  // List of commits identified as culprits.
+  repeated Culprit culprits = 1;
+  // ID of the anomaly group corresponding to the bisection.
+  string anomaly_group_id = 2;
+}
+
+
+// Response object for NotifyUser rpc.
+message NotifyUserResponse {
+  // List of issue ids created
+  int64 issue_id = 1;
+}
+
+
+
+// Represents the change which has been identified as a culprit.
+message Culprit {
+  Commit commit = 1;
+}
+
+
+// Represents a commit which has been identified as a culprit.
+message Commit {
+  // Repo host e.g. chromium.googlesource.com
+  string host  = 1;
+  // Project inside the repo e.g. chromium/src
+  string project = 2;
+  // Repo ref e.g. "refs/heads/main
+  string ref = 3;
+  // Commit Hash
+  string revision = 4;
+}
