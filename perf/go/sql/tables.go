@@ -4,6 +4,7 @@ package sql
 
 import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"
+	anomalygroupschema "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore/schema"
 	culpritschema "go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 	gitschema "go.skia.org/infra/perf/go/git/schema"
 	graphsshortcutschema "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore/schema"
@@ -15,6 +16,7 @@ import (
 // Tables represents the full schema of the SQL database.
 type Tables struct {
 	Alerts          []alertschema.AlertSchema
+	AnomalyGroups   []anomalygroupschema.AnomalyGroupSchema
 	Commits         []gitschema.Commit
 	Culprits        []culpritschema.CulpritSchema
 	GraphsShortcuts []graphsshortcutschema.GraphsShortcutSchema

@@ -15,6 +15,7 @@ import (
 
 const DropTables = `
 	DROP TABLE IF EXISTS Alerts;
+	DROP TABLE IF EXISTS AnomalyGroups;
 	DROP TABLE IF EXISTS Commits;
 	DROP TABLE IF EXISTS Culprits;
 	DROP TABLE IF EXISTS GraphsShortcuts;
@@ -28,7 +29,7 @@ const DropTables = `
 
 // LiveSchema has to reflect what's live in prod right now
 const LiveSchema = `
-CREATE TABLE IF NOT EXISTS Alerts (
+  CREATE TABLE IF NOT EXISTS Alerts (
 	id INT PRIMARY KEY DEFAULT unique_rowid(),
 	alert TEXT,
 	config_state INT DEFAULT 0,
@@ -42,15 +43,16 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	subject TEXT
   );
   CREATE TABLE IF NOT EXISTS Culprits (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	host STRING,
 	project STRING,
 	ref STRING,
 	revision STRING,
 	last_modified INT,
-	anomaly_group_ids INT ARRAY,
+	anomaly_group_ids STRING ARRAY,
 	issue_ids INT ARRAY,
-	PRIMARY KEY (host, project, ref, revision)
-);
+	UNIQUE INDEX by_revision (revision, host, project, ref)
+  );
   CREATE TABLE IF NOT EXISTS GraphsShortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	graphs TEXT

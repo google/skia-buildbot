@@ -9,6 +9,20 @@ const Schema = `CREATE TABLE IF NOT EXISTS Alerts (
   config_state INT DEFAULT 0,
   last_modified INT
 );
+CREATE TABLE IF NOT EXISTS AnomalyGroups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  action TEXT,
+  action_time TIMESTAMPTZ,
+  bisection_id TEXT,
+  reported_issue_id TEXT,
+  anomalies JSONB,
+  creation_time TIMESTAMPTZ DEFAULT now(),
+  culprit_ids UUID ARRAY,
+  common_rev_start INT,
+  common_rev_end INT,
+  last_modified_time TIMESTAMPTZ,
+  subscription_name TEXT
+);
 CREATE TABLE IF NOT EXISTS Commits (
   commit_number INT PRIMARY KEY,
   git_hash TEXT UNIQUE NOT NULL,
@@ -76,6 +90,21 @@ var Alerts = []string{
 	"alert",
 	"config_state",
 	"last_modified",
+}
+
+var AnomalyGroups = []string{
+	"id",
+	"action",
+	"action_time",
+	"bisection_id",
+	"reported_issue_id",
+	"anomalies",
+	"creation_time",
+	"culprit_ids",
+	"common_rev_start",
+	"common_rev_end",
+	"last_modified_time",
+	"subscription_name",
 }
 
 var Commits = []string{

@@ -25,34 +25,32 @@ import (
 	"go.skia.org/infra/perf/go/sql"
 )
 
-// The two vars below should be updated everytime there's a schema change.
+// The two vars below should be updated everytime there's a schema change:
+//   - FromLiveToNext tells the SQL to execute to apply the change
+//   - FromNextToLive tells the SQL to revert the change
+//
+// Also we need to update LiveSchema schema and DropTables in sql_test.go:
+//   - DropTables deletes all tables *including* the new one in the change.
+//   - LiveSchema create all existing tables *without* the new one the change.
 var FromLiveToNext = `
-	DROP TABLE IF EXISTS Culprits;
-	CREATE TABLE IF NOT EXISTS Culprits (
+	CREATE TABLE IF NOT EXISTS AnomalyGroups (
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		host STRING,
-		project STRING,
-		ref STRING,
-		revision STRING,
-		last_modified INT,
-		anomaly_group_ids STRING ARRAY,
-		issue_ids INT ARRAY,
-		UNIQUE INDEX by_revision (revision, host, project, ref)
+		action TEXT,
+		action_time TIMESTAMPTZ,
+		bisection_id TEXT,
+		reported_issue_id TEXT,
+		anomalies JSONB,
+		creation_time TIMESTAMPTZ DEFAULT now(),
+		culprit_ids UUID ARRAY,
+		common_rev_start INT,
+		common_rev_end INT,
+		last_modified_time TIMESTAMPTZ,
+		subscription_name TEXT
 	);
 `
 
 var FromNextToLive = `
-	DROP TABLE IF EXISTS Culprits;
-	CREATE TABLE IF NOT EXISTS Culprits (
-		host STRING,
-		project STRING,
-		ref STRING,
-		revision STRING,
-		last_modified INT,
-		anomaly_group_ids INT ARRAY,
-		issue_ids INT ARRAY,
-		PRIMARY KEY (host, project, ref, revision)
-	);
+	DROP TABLE IF EXISTS AnomalyGroups;
 `
 
 // This function will check whether there's a new schema checked-in,
