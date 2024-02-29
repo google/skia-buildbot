@@ -28,7 +28,7 @@ import (
 type BuildChromeClient interface {
 	// SearchOrBuild starts a new Build if it doesn't exist, or it will fetch
 	// the existing one that matches the build parameters.
-	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error)
+	SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]string, patches []*buildbucketpb.GerritChange) (int64, error)
 
 	// GetStatus returns the Build status.
 	GetStatus(context.Context, int64) (buildbucketpb.Status, error)
@@ -92,7 +92,7 @@ func NewWithClient(c *http.Client) *buildChromeImpl {
 // be to fetch all the builds under the chromium buildset and hash, and then iterate
 // through each build for the correct deps_revision_overrides. A better solution
 // would be to add the non-chromium commit info to the tags and query the tags.
-func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit string, deps map[string]string, patches []*buildbucketpb.GerritChange) (int64, error) {
 	// search Pinpoint for build
 	build, err := bci.GetSingleBuild(ctx, builder, backends.DefaultBucket, commit, deps, patches)
 	if err != nil {
@@ -128,7 +128,7 @@ func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit str
 }
 
 // SearchOrBuild implements BuildChromeClient interface
-func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, commit, device string, deps map[string]string, patches []*buildbucketpb.GerritChange) (int64, error) {
 	builder, err := bot_configs.GetBotConfig(device, false)
 	if err != nil {
 		return 0, err

@@ -15,7 +15,6 @@ import (
 	"go.chromium.org/luci/grpc/prpc"
 
 	"go.skia.org/infra/go/buildbucket"
-	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/skerr"
 
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -78,11 +77,11 @@ type BuildbucketClient interface {
 	// tags, so that we aren't operating on O(len(builds) * len(deps_overrides))
 	// to find the exact builds. This will require tagging scheduled builds with
 	// new tags before it can be utilized.
-	GetSingleBuild(ctx context.Context, builderName, bucket, commit string, deps map[string]interface{}, patches []*bpb.GerritChange) (*bpb.Build, error)
+	GetSingleBuild(ctx context.Context, builderName, bucket, commit string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error)
 
 	// GetBuildWithDeps search for a build with matching deps.
 	// Overloaded method of GetSingleBuild().
-	GetBuildWithDeps(ctx context.Context, builderName, bucket, commit string, deps map[string]interface{}) (*bpb.Build, error)
+	GetBuildWithDeps(ctx context.Context, builderName, bucket, commit string, deps map[string]string) (*bpb.Build, error)
 
 	// GetBuildWithPatches searches for a build with matching patches.
 	// Overloaded method of GetSingleBuild().
@@ -99,7 +98,7 @@ type BuildbucketClient interface {
 	GetCASReference(ctx context.Context, buildID int64, target string) (*swarmingpb.SwarmingRpcsCASReference, error)
 
 	// StartChromeBuild triggers a Chrome build.
-	StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]interface{}, patches []*bpb.GerritChange) (*bpb.Build, error)
+	StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error)
 }
 
 // buildbucketClient is an object used to interact with a single Buildbucket instance.
@@ -178,20 +177,32 @@ func (b *buildbucketClient) isBuildTooOld(build *bpb.Build) bool {
 		time.Now().Sub(build.EndTime.AsTime()).Hours()/24 > float64(CasExpiration))
 }
 
-func (b *buildbucketClient) checkMatchingDeps(input *bpb.Build_Input, deps map[string]interface{}) bool {
-	depsOverrides, ok := input.GetProperties().GetFields()[DepsOverrideKey]
+// checkMatchingDeps returns whether the deps overrides from a build input match the deps provided.
+func (b *buildbucketClient) checkMatchingDeps(input *bpb.Build_Input, deps map[string]string) bool {
+	do, ok := input.GetProperties().GetFields()[DepsOverrideKey]
 	if !ok {
 		return len(deps) == 0
 	}
 
-	mapOverrides := depsOverrides.GetStructValue().AsMap()
+	mo := do.GetStructValue().GetFields()
+	if len(deps) != len(mo) {
+		return false
+	}
 
-	return deepequal.DeepEqual(mapOverrides, deps)
+	// GetStructValue().AsMap() returns a map[string]interface{}, which fails
+	// DeepEqual when compared against a map[string]string.
+	for k, f := range mo {
+		if v, ok := deps[k]; !ok || v != f.GetStringValue() {
+			return false
+		}
+	}
+
+	return true
 }
 
 // findMatchingBuild searches the list of builds to find a build in good status (Success, Started, Scheduled)
 // with the correct number of patchsets.
-func (b *buildbucketClient) findMatchingBuild(builds []*bpb.Build, deps map[string]interface{}, patches []*bpb.GerritChange) *bpb.Build {
+func (b *buildbucketClient) findMatchingBuild(builds []*bpb.Build, deps map[string]string, patches []*bpb.GerritChange) *bpb.Build {
 	statusOK := []bpb.Status{
 		bpb.Status_SUCCESS,
 		bpb.Status_STARTED,
@@ -238,7 +249,7 @@ func (b *buildbucketClient) getBuilds(ctx context.Context, builderName, bucket, 
 
 // GetSingleBuild filters to find an exactly matching build, meaning
 // that the GerritChanges and base Chromium build commit hash are the same.
-func (b *buildbucketClient) GetSingleBuild(ctx context.Context, builderName, bucket, commit string, deps map[string]interface{}, patches []*bpb.GerritChange) (*bpb.Build, error) {
+func (b *buildbucketClient) GetSingleBuild(ctx context.Context, builderName, bucket, commit string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error) {
 	builds, err := b.getBuilds(ctx, builderName, bucket, commit, patches)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to call Buildbucket to find a single matching build.")
@@ -249,11 +260,11 @@ func (b *buildbucketClient) GetSingleBuild(ctx context.Context, builderName, buc
 
 // GetBuildWithPatches searches for a build with matching patches.
 func (b *buildbucketClient) GetBuildWithPatches(ctx context.Context, builderName, bucket, commit string, patches []*bpb.GerritChange) (*bpb.Build, error) {
-	return b.GetSingleBuild(ctx, builderName, bucket, commit, make(map[string]interface{}, 0), patches)
+	return b.GetSingleBuild(ctx, builderName, bucket, commit, make(map[string]string, 0), patches)
 }
 
 // GetBuildWithDeps search for a build with matching deps.
-func (b *buildbucketClient) GetBuildWithDeps(ctx context.Context, builderName, bucket, commit string, deps map[string]interface{}) (*bpb.Build, error) {
+func (b *buildbucketClient) GetBuildWithDeps(ctx context.Context, builderName, bucket, commit string, deps map[string]string) (*bpb.Build, error) {
 	return b.GetSingleBuild(ctx, builderName, bucket, commit, deps, nil)
 }
 
@@ -272,7 +283,7 @@ func (b *buildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderNa
 
 	// We pass an empty list of len == 0 so that Builds with GerritChanges specified
 	// are ignored.
-	return b.findMatchingBuild(builds, make(map[string]interface{}, 0), nil), nil
+	return b.findMatchingBuild(builds, make(map[string]string, 0), nil), nil
 }
 
 // GetBuildStatus fetches the build status for a given build.
@@ -343,7 +354,7 @@ func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, 
 }
 
 // createChromeBuildRequest creates a Chrome Buildbucket build request.
-func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, builderName, commit string, deps map[string]interface{}, patches []*bpb.GerritChange) *bpb.ScheduleBuildRequest {
+func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, builderName, commit string, deps map[string]string, patches []*bpb.GerritChange) *bpb.ScheduleBuildRequest {
 	builder := &bpb.BuilderID{
 		Project: ChromeProject,
 		Bucket:  DefaultBucket,
@@ -380,7 +391,7 @@ func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, b
 		for url, rev := range deps {
 			fields[url] = &spb.Value{
 				Kind: &spb.Value_StringValue{
-					StringValue: rev.(string),
+					StringValue: rev,
 				},
 			}
 		}
@@ -432,7 +443,7 @@ func (b *buildbucketClient) createChromeBuildRequest(pinpointJobID, requestID, b
 // To build other projects (or deps), use repo.Details(ctx, "HEAD") to get the git commit hash of Chromium,
 // and provide that hash as an input to this method to keep chromium/src static.
 // Provide revisions of other projects (ie/ v8/v8, webrtc/src) and their revisions through deps.
-func (b *buildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]interface{}, patches []*bpb.GerritChange) (*bpb.Build, error) {
+func (b *buildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error) {
 	if pinpointJobID == "" {
 		pinpointJobID = uuid.New().String()
 	}

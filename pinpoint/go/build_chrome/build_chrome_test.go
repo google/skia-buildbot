@@ -77,7 +77,7 @@ func TestSearchBuild(t *testing.T) {
 			mb := &mocks.BuildbucketClient{}
 			fakeCommit := "fake-commit"
 			var patches []*buildbucketpb.GerritChange = nil
-			deps := map[string]interface{}{}
+			deps := map[string]string{}
 			bc := &buildChromeImpl{
 				BuildbucketClient: mb,
 			}
@@ -191,7 +191,7 @@ func TestBuildFound(t *testing.T) {
 
 	mb.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", mock.Anything, patches).Return(mockResp, nil)
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]interface{}{}, patches)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]string{}, patches)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, id)
 }
@@ -238,7 +238,7 @@ func TestNewBuild(t *testing.T) {
 				mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(test.mockResp, nil)
 			}
 
-			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, map[string]interface{}{}, patches)
+			id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, map[string]string{}, patches)
 			if test.expectedError {
 				assert.Error(t, err)
 			} else {

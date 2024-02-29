@@ -94,7 +94,7 @@ func (_m *BuildChromeClient) RetrieveCAS(_a0 context.Context, _a1 int64, _a2 str
 }
 
 // SearchOrBuild provides a mock function with given fields: ctx, pinpointJobID, commit, device, deps, patches
-func (_m *BuildChromeClient) SearchOrBuild(ctx context.Context, pinpointJobID string, commit string, device string, deps map[string]interface{}, patches []*buildbucketpb.GerritChange) (int64, error) {
+func (_m *BuildChromeClient) SearchOrBuild(ctx context.Context, pinpointJobID string, commit string, device string, deps map[string]string, patches []*buildbucketpb.GerritChange) (int64, error) {
 	ret := _m.Called(ctx, pinpointJobID, commit, device, deps, patches)
 
 	if len(ret) == 0 {
@@ -103,16 +103,16 @@ func (_m *BuildChromeClient) SearchOrBuild(ctx context.Context, pinpointJobID st
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) (int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]string, []*buildbucketpb.GerritChange) (int64, error)); ok {
 		return rf(ctx, pinpointJobID, commit, device, deps, patches)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) int64); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, map[string]string, []*buildbucketpb.GerritChange) int64); ok {
 		r0 = rf(ctx, pinpointJobID, commit, device, deps, patches)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, map[string]interface{}, []*buildbucketpb.GerritChange) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, map[string]string, []*buildbucketpb.GerritChange) error); ok {
 		r1 = rf(ctx, pinpointJobID, commit, device, deps, patches)
 	} else {
 		r1 = ret.Error(1)

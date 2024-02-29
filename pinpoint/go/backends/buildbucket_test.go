@@ -14,6 +14,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 	bpb "go.chromium.org/luci/buildbucket/proto"
+
 	. "go.chromium.org/luci/common/testing/assertions"
 	spb "google.golang.org/protobuf/types/known/structpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -272,7 +273,7 @@ func TestGetBuildWithDeps(t *testing.T) {
 		}
 		mbc.EXPECT().SearchBuilds(ctx, req).Return(resp, nil)
 
-		deps := map[string]interface{}{
+		deps := map[string]string{
 			webrtc: "1",
 		}
 		So(c.findMatchingBuild(resp.GetBuilds(), deps, nil), ShouldNotBeNil)
@@ -508,7 +509,7 @@ func TestStartChromeBuild(t *testing.T) {
 		c := NewBuildbucketClient(mbc)
 
 		webrtc := "https://webrtc.googlesource.com/src"
-		depsMap := map[string]interface{}{
+		depsMap := map[string]string{
 			webrtc: "1",
 		}
 
