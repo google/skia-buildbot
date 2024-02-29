@@ -21,7 +21,6 @@ var waterfallEnabledGtests = util.NewStringSet([]string{
 	"base_perftests",
 	"components_perftests",
 	"dawn_perf_tests",
-	"gpu_perftests",
 	"load_library_perf_tests",
 	"performance_browser_tests",
 	"sync_performance_tests",
