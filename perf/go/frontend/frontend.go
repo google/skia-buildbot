@@ -70,6 +70,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 	"go.skia.org/infra/perf/go/urlprovider"
+	pp_service "go.skia.org/infra/pinpoint/go/service"
 )
 
 const (
@@ -1848,38 +1849,21 @@ func (f *Frontend) defaultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Serve content on the configured endpoints.Serve.
-//
-// This method does not return.
-func (f *Frontend) Serve() {
-	// Start the internal server on the internal port if requested.
-	if f.flags.InternalPort != "" {
-		// Add the profiling endpoints to the internal router.
-		internalRouter := chi.NewRouter()
-
-		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
-
-		go func() {
-			sklog.Infof("Internal server on %q", f.flags.InternalPort)
-			sklog.Info(http.ListenAndServe(f.flags.InternalPort, internalRouter))
-		}()
-	}
-
+// GetHandler creates the http.Handler for all supported endpoints.
+func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	// Resources are served directly.
 	router := chi.NewRouter()
 
-	allowedHosts := []string{f.host}
-	if len(config.Config.AllowedHosts) > 0 {
-		allowedHosts = append(allowedHosts, config.Config.AllowedHosts...)
+	ah := []string{f.host}
+	if len(allowedHosts) > 0 {
+		ah = append(ah, allowedHosts...)
 	}
 
-	router.Use(baseapp.SecurityMiddleware(allowedHosts, f.flags.Local, nil))
+	local := true
+	if f.flags != nil {
+		local = f.flags.Local
+	}
+	router.Use(baseapp.SecurityMiddleware(ah, local, nil))
 
 	router.HandleFunc("/dist/*", f.makeDistHandler())
 
@@ -1902,9 +1886,17 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/help/", f.helpHandler)
 
 	// JSON handlers.
+	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New()); err != nil {
+		// Only log the error, the service should continue to run.
+		sklog.Error("Fail to initalize pinpoint service %s.", err)
+	} else {
+		router.Mount("/pinpoint/v1/[a-zA-Z0-9-]+", ph)
+	}
 
 	// Common endpoint for all long-running requests.
-	router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
+	if f.progressTracker != nil {
+		router.Get("/_/status/{id:[a-zA-Z0-9-]+}", f.progressTracker.Handler)
+	}
 
 	router.Get("/_/alertgroup", f.alertGroupQueryHandler)
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
@@ -1941,7 +1933,33 @@ func (f *Frontend) Serve() {
 	router.Get("/_/favorites/", f.favoritesHandler)
 	router.Get("/_/defaults/", f.defaultsHandler)
 	router.Get("/_/revision/", f.revisionHandler)
-	var h http.Handler = router
+	return router
+}
+
+// Serve content on the configured endpoints.Serve.
+//
+// This method does not return.
+func (f *Frontend) Serve() {
+	// Start the internal server on the internal port if requested.
+	if f.flags.InternalPort != "" {
+		// Add the profiling endpoints to the internal router.
+		internalRouter := chi.NewRouter()
+
+		// Register pprof handlers
+		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
+		internalRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
+		internalRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
+		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
+
+		go func() {
+			sklog.Infof("Internal server on %q", f.flags.InternalPort)
+			sklog.Info(http.ListenAndServe(f.flags.InternalPort, internalRouter))
+		}()
+	}
+
+	var h http.Handler = f.GetHandler(config.Config.AllowedHosts)
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {
 		h = httputils.HealthzAndHTTPS(h)

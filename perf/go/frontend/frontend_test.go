@@ -26,6 +26,16 @@ func setupForTest(t *testing.T, userIsEditor bool) (*httptest.ResponseRecorder, 
 	return w, r, f
 }
 
+func TestFrontend_ShouldInitAllHandlers(t *testing.T) {
+	f := &Frontend{
+		loginProvider: mocks.NewLogin(t),
+	}
+	// Check if there is a conflict or misuse in the http/chi handler API
+	require.NotPanics(t, func() {
+		f.GetHandler([]string{})
+	})
+}
+
 func TestFrontendIsEditor_UserIsEditor_ReportsStatusOK(t *testing.T) {
 	w, r, f := setupForTest(t, true)
 	f.isEditor(w, r, "my-test-action", nil)
