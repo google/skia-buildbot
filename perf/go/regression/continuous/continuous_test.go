@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe/mocks"
 	gitmocks "go.skia.org/infra/perf/go/git/mocks"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/ingestevents"
 	notifymocks "go.skia.org/infra/perf/go/notify/mocks"
 	"go.skia.org/infra/perf/go/regression"
 	regressionmocks "go.skia.org/infra/perf/go/regression/mocks"
@@ -129,8 +130,10 @@ func TestMatchingConfigsFromTraceIDs_GroupByMatchesTrace_ReturnsConfigWithRestri
 	}
 	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config1})
 	require.Len(t, matchingConfigs, 1)
-	require.Equal(t, "arch=x86&config=8888", matchingConfigs[0].Query)
-	_, err := url.ParseQuery(matchingConfigs[0].Query)
+
+	configs := matchingConfigs[traceIDs[0]]
+	require.Equal(t, "arch=x86&config=8888", configs[0].Query)
+	_, err := url.ParseQuery(configs[0].Query)
 	require.NoError(t, err)
 }
 
@@ -144,8 +147,9 @@ func TestMatchingConfigsFromTraceIDs_MultipleGroupByPartsMatchTrace_ReturnsConfi
 	}
 	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config})
 	require.Len(t, matchingConfigs, 1)
-	require.Equal(t, "arch=x86&config=8888&device=Pixel4", matchingConfigs[0].Query)
-	_, err := url.ParseQuery(matchingConfigs[0].Query)
+	configs := matchingConfigs[traceIDs[0]]
+	require.Equal(t, "arch=x86&config=8888&device=Pixel4", configs[0].Query)
+	_, err := url.ParseQuery(configs[0].Query)
 	require.NoError(t, err)
 }
 
@@ -155,6 +159,7 @@ type allMocks struct {
 	regressionStore  *regressionmocks.Store
 	notifier         *notifymocks.Notifier
 	dataFrameBuilder *mocks.DataFrameBuilder
+	configProvider   *alertconfigmocks.ConfigProvider
 }
 
 func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.RegressionDetectionRequest, []*regression.RegressionDetectionResponse, *alerts.Alert, allMocks) {
@@ -194,6 +199,7 @@ func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.Regr
 		regressionStore:  rs,
 		notifier:         n,
 		dataFrameBuilder: dfb,
+		configProvider:   cp,
 	}
 
 	return c, req, resp, cfg, allMocks
@@ -269,4 +275,55 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 	c.reportRegressions(ctx, req, resp, cfg)
 
 	require.Equal(t, notificationID, resp[0].Summary.Clusters[0].NotificationID)
+}
+
+func TestTraceIdForIngestEvent_Matching(t *testing.T) {
+	c, _, _, _, allMocks := createArgsForReportRegressions(t)
+
+	allConfigs := []*alerts.Alert{
+		{
+			IDAsString: "1",
+			Query:      "&id=trace1&id=trace3",
+		},
+		{
+			IDAsString: "3",
+			Query:      "&id=trace3",
+		},
+	}
+	allMocks.configProvider.On("GetAllAlertConfigs", testutils.AnyContext, false).Return(
+		allConfigs, nil)
+	ctx := context.Background()
+	ie := &ingestevents.IngestEvent{
+		TraceIDs: []string{",id=trace1,", ",id=trace2,"},
+	}
+	traceConfigsMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
+	assert.Nil(t, err)
+	assert.NotNil(t, traceConfigsMap)
+	assert.Equal(t, allConfigs[0], traceConfigsMap[ie.TraceIDs[0]][0], "Expect the first trace to match first config.")
+	assert.Nil(t, traceConfigsMap[ie.TraceIDs[1]], "No match expected for second trace.")
+}
+
+func TestTraceIdForIngestEvent_MultipleConfigs_Matching(t *testing.T) {
+	c, _, _, _, allMocks := createArgsForReportRegressions(t)
+
+	allConfigs := []*alerts.Alert{
+		{
+			IDAsString: "1",
+			Query:      "&id=trace1&id=trace3",
+		},
+		{
+			IDAsString: "3",
+			Query:      "&id=trace3",
+		},
+	}
+	allMocks.configProvider.On("GetAllAlertConfigs", testutils.AnyContext, false).Return(
+		allConfigs, nil)
+	ctx := context.Background()
+	ie := &ingestevents.IngestEvent{
+		TraceIDs: []string{",id=trace3,"},
+	}
+	traceConfigsMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
+	assert.Nil(t, err)
+	assert.NotNil(t, traceConfigsMap)
+	assert.Equal(t, allConfigs, traceConfigsMap[ie.TraceIDs[0]])
 }

@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/urlprovider"
 )
 
 const (
@@ -40,6 +41,8 @@ const (
 	pollingClusteringDelay = 5 * time.Second
 
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
+
+	doNotOverrideQuery = ""
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -51,6 +54,7 @@ type Continuous struct {
 	provider       alerts.ConfigProvider
 	notifier       notify.Notifier
 	paramsProvider regression.ParamsetProvider
+	urlProvider    urlprovider.URLProvider
 	dfBuilder      dataframe.DataFrameBuilder
 	pollingDelay   time.Duration
 	instanceConfig *config.InstanceConfig
@@ -72,6 +76,7 @@ func New(
 	store regression.Store,
 	notifier notify.Notifier,
 	paramsProvider regression.ParamsetProvider,
+	urlProvider urlprovider.URLProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
@@ -83,6 +88,7 @@ func New(
 		shortcutStore:  shortcutStore,
 		current:        &alerts.Alert{},
 		paramsProvider: paramsProvider,
+		urlProvider:    urlProvider,
 		dfBuilder:      dfBuilder,
 		pollingDelay:   pollingClusteringDelay,
 		instanceConfig: instanceConfig,
@@ -194,6 +200,8 @@ type configsAndParamSet struct {
 	paramset paramtools.ReadOnlyParamSet
 }
 
+type traceConfigsMap map[string][]*alerts.Alert
+
 // getPubSubSubscription returns a pubsub.Subscription or an error if the
 // subscription can't be established.
 func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
@@ -211,89 +219,92 @@ func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) 
 	return c.provider.GetAllAlertConfigs(timeoutCtx, false)
 }
 
+func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context) <-chan traceConfigsMap {
+	ret := make(chan traceConfigsMap)
+	sub, err := c.getPubSubSubscription()
+	if err != nil {
+		sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
+	} else {
+
+		// nackCounter is the number files we weren't able to ingest.
+		nackCounter := metrics2.GetCounter("nack", nil)
+		// ackCounter is the number files we were able to ingest.
+		ackCounter := metrics2.GetCounter("ack", nil)
+		go func() {
+			for {
+				if err := ctx.Err(); err != nil {
+					sklog.Info("Channel context error %s", err)
+					return
+				}
+				// Wait for PubSub events.
+				err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+					sklog.Info("Received incoming Ingestion event.")
+					// Set success to true if we should Ack the PubSub
+					// message, otherwise the message will be Nack'd, and
+					// PubSub will try to send the message again.
+					success := false
+					defer func() {
+						if success {
+							ackCounter.Inc(1)
+							msg.Ack()
+						} else {
+							nackCounter.Inc(1)
+							msg.Nack()
+						}
+					}()
+
+					// Decode the event body.
+					ie, err := ingestevents.DecodePubSubBody(msg.Data)
+					if err != nil {
+						sklog.Errorf("Failed to decode ingestion PubSub event: %s", err)
+						// Data is malformed, ack it so we don't see it again.
+						success = true
+						return
+					}
+
+					sklog.Infof("IngestEvent received for : %q", ie.Filename)
+
+					matchingConfigs, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
+					if err != nil {
+						sklog.Errorf("Failed retrieving relevant configs for incoming event.")
+						success = false
+						return
+					}
+					// If any configs match then emit the configsAndParamSet.
+					if len(matchingConfigs) > 0 {
+						ret <- matchingConfigs
+					}
+					success = true
+				})
+				if err != nil {
+					sklog.Errorf("Failed receiving pubsub message: %s", err)
+				}
+			}
+		}()
+		sklog.Info("Started event driven clustering.")
+	}
+
+	return ret
+}
+
+func (c *Continuous) getTraceIdConfigsForIngestEvent(ctx context.Context, ie *ingestevents.IngestEvent) (traceConfigsMap, error) {
+	// Filter all the configs down to just those that match
+	// the incoming traces.
+	configs, err := c.callProvider(ctx)
+	if err != nil {
+		sklog.Errorf("Failed to get list of configs: %s", err)
+		return nil, err
+	}
+
+	return matchingConfigsFromTraceIDs(ie.TraceIDs, configs), nil
+}
+
 // buildConfigAndParamsetChannel returns a channel that will feed the configs
 // and paramset that continuous regression detection should run over. In the
 // future when Continuous.eventDriven is true this will be driven by PubSub
 // events.
 func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan configsAndParamSet {
 	ret := make(chan configsAndParamSet)
-
-	if c.flags.EventDrivenRegressionDetection {
-		sub, err := c.getPubSubSubscription()
-		if err != nil {
-			sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
-			// Just fall through and look for regressions over all the Alerts continuously.
-		} else {
-
-			// nackCounter is the number files we weren't able to ingest.
-			nackCounter := metrics2.GetCounter("nack", nil)
-			// ackCounter is the number files we were able to ingest.
-			ackCounter := metrics2.GetCounter("ack", nil)
-			go func() {
-				for {
-					if err := ctx.Err(); err != nil {
-						sklog.Info("Channel context error %s", err)
-						return
-					}
-					// Wait for PubSub events.
-					err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-						sklog.Info("Received incoming Ingestion event.")
-						// Set success to true if we should Ack the PubSub
-						// message, otherwise the message will be Nack'd, and
-						// PubSub will try to send the message again.
-						success := false
-						defer func() {
-							if success {
-								ackCounter.Inc(1)
-								msg.Ack()
-							} else {
-								nackCounter.Inc(1)
-								msg.Nack()
-							}
-						}()
-
-						// Decode the event body.
-						ie, err := ingestevents.DecodePubSubBody(msg.Data)
-						if err != nil {
-							sklog.Errorf("Failed to decode ingestion PubSub event: %s", err)
-							// Data is malformed, ack it so we don't see it again.
-							success = true
-							return
-						}
-
-						sklog.Infof("IngestEvent received for : %q", ie.Filename)
-						// Filter all the configs down to just those that match
-						// the incoming traces.
-						configs, err := c.callProvider(ctx)
-						if err != nil {
-							sklog.Errorf("Failed to get list of configs: %s", err)
-							// An error not related to the event, nack so we try again later.
-							success = false
-							return
-						}
-
-						matchingConfigs := matchingConfigsFromTraceIDs(ie.TraceIDs, configs)
-
-						// If any configs match then emit the configsAndParamSet.
-						if len(matchingConfigs) > 0 {
-							ret <- configsAndParamSet{
-								configs:  matchingConfigs,
-								paramset: ie.ParamSet,
-							}
-						}
-						success = true
-					})
-					if err != nil {
-						sklog.Errorf("Failed receiving pubsub message: %s", err)
-					}
-				}
-			}()
-			sklog.Info("Started event driven clustering.")
-			return ret
-		}
-	} else {
-		sklog.Info("Not event driven clustering.")
-	}
 	go func() {
 		for range time.Tick(c.pollingDelay) {
 			if err := ctx.Err(); err != nil {
@@ -334,8 +345,8 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 // Note that the Alerts returned may contain more restrictive Query values if
 // the original Alert contains GroupBy parameters, while the original Alert
 // remains unchanged.
-func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) []*alerts.Alert {
-	matchingConfigs := []*alerts.Alert{}
+func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) map[string][]*alerts.Alert {
+	matchingConfigs := map[string][]*alerts.Alert{}
 	if len(traceIDs) == 0 {
 		return matchingConfigs
 	}
@@ -348,31 +359,43 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) []*
 		// If any traceID matches the query in the alert then it's an alert we should run.
 		for _, key := range traceIDs {
 			if q.Matches(key) {
-				parsed, err := query.ParseKey(key)
+				_, ok := matchingConfigs[key]
+				if !ok {
+					// Encountered this traceID for the first time.
+					matchingConfigs[key] = []*alerts.Alert{}
+				}
+				query, err := getConfigQueryForTrace(config, key)
 				if err != nil {
 					continue
 				}
-				if config.GroupBy == "" {
-					matchingConfigs = append(matchingConfigs, config)
-				} else {
-					// If we are in a GroupBy Alert then we should be able to
-					// restrict the number of traces we look at by making the
-					// Query more precise.
-					query := config.Query
-					for _, key := range config.GroupedBy() {
-						if value, ok := parsed[key]; ok {
-							query += fmt.Sprintf("&%s=%s", key, value)
-						}
-					}
-					configCopy := *config
-					configCopy.Query = query
-					matchingConfigs = append(matchingConfigs, &configCopy)
-				}
-				break
+
+				configCopy := *config
+				configCopy.Query = query
+				matchingConfigs[key] = append(matchingConfigs[key], &configCopy)
 			}
 		}
 	}
 	return matchingConfigs
+}
+
+func getConfigQueryForTrace(config *alerts.Alert, traceID string) (string, error) {
+	parsed, err := query.ParseKey(traceID)
+	if err != nil {
+		return "", err
+	}
+	query := config.Query
+	if config.GroupBy != "" {
+		// If we are in a GroupBy Alert then we should be able to
+		// restrict the number of traces we look at by making the
+		// Query more precise.
+		for _, key := range config.GroupedBy() {
+			if value, ok := parsed[key]; ok {
+				query += fmt.Sprintf("&%s=%s", key, value)
+			}
+		}
+	}
+
+	return query, nil
 }
 
 // Run starts the continuous running of clustering over the last numCommits
@@ -380,33 +403,62 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) []*
 //
 // Note that it never returns so it should be called as a Go routine.
 func (c *Continuous) Run(ctx context.Context) {
+	// TODO(jcgregorio) Add liveness metrics.
+	sklog.Infof("Continuous starting.")
+
+	if c.flags.EventDrivenRegressionDetection {
+		c.RunEventDrivenClustering(ctx)
+	} else {
+		c.RunContinuousClustering(ctx)
+	}
+}
+
+// RunEventDrivenClustering executes the regression detection based on events
+// received from data ingestion.
+func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
+	// Range over a channel that returns a map containing the traceId as the key
+	// and a list of matching alert configs as the value. These are processed
+	// from the file that was just ingested and notification received over pubsub.
+	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(ctx) {
+		for traceId, configs := range traceConfigMap {
+			c.ProcessAlertConfigForTrace(ctx, traceId, configs)
+		}
+	}
+}
+
+// ProcessAlertConfigForTrace runs the alert config on a specific trace id
+func (c *Continuous) ProcessAlertConfigForTrace(ctx context.Context, traceId string, configs []*alerts.Alert) {
+	sklog.Infof("Clustering over %d configs for trace %s", traceId, len(configs))
+	paramset := paramtools.NewParamSet()
+	paramset.AddParamsFromKey(traceId)
+
+	for _, cfg := range configs {
+		queryOverride := doNotOverrideQuery
+		// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
+		// we need to only query the paramset of the incoming data point instead of
+		// the entire query in the alert.
+		if cfg.Algo == types.StepFitGrouping {
+			queryOverride = c.urlProvider.GetQueryStringFromParameters(paramset)
+		}
+
+		c.ProcessAlertConfig(ctx, cfg, queryOverride)
+	}
+}
+
+// RunContinuousClustering runs the regression detection on a continuous basis.
+func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
 	configsCounter := metrics2.GetCounter("perf_clustering_configs", nil)
 
-	// TODO(jcgregorio) Add liveness metrics.
-	sklog.Infof("Continuous starting.")
-
-	// Instead of ranging over time, we should be ranging over PubSub events
-	// that list the ids of the last file that was ingested. Then we should loop
-	// over each config and see if that list of trace ids matches any configs,
-	// and if so at that point we start running the regresions. But we also want
-	// to preserve continuous regression detection for the cases where it makes
-	// sense, e.g. Skia.
-	//
-	// So we can actually range over a channel here that supplies a slice of
-	// configs and a paramset representing all the traceids we should be running
-	// over. If this is just a timer then the paramset is the full paramset and
-	// the slice of configs is just the full slice of configs. If it is PubSub
-	// driven then the paramset is built from the list of trace ids we received
-	// and the list of configs is built by matching the full list of configs
-	// against the list of incoming trace ids.
-	//
+	// Range over a channel here that supplies a slice of configs and a paramset
+	// representing all the traceids we should be running over. The paramset is
+	// the full paramset and the slice of configs is the full slice of configs in
+	// the database.
 	for cnp := range c.buildConfigAndParamsetChannel(ctx) {
 		clusteringLatency.Start()
-		sklog.Infof("Clustering over %d configs.", len(cnp.configs))
 		for _, cfg := range cnp.configs {
-			c.ProcessAlertConfig(ctx, cfg)
+			c.ProcessAlertConfig(ctx, cfg, doNotOverrideQuery)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
@@ -416,7 +468,7 @@ func (c *Continuous) Run(ctx context.Context) {
 }
 
 // ProcessAlertConfig processes the supplied alert config to detect regressions
-func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert) {
+func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string) {
 	c.setCurrentConfig(cfg)
 	alertConfigLatencyTimer := metrics2.NewTimer(
 		"perf_alertconfig_clustering_latency",
@@ -478,6 +530,10 @@ func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert) 
 		// queries that take into account their GroupBy values and the
 		// traces they matched.
 		expandBaseRequest = regression.DoNotExpandBaseAlertByGroupBy
+	}
+
+	if queryOverride != doNotOverrideQuery {
+		req.SetQuery(queryOverride)
 	}
 
 	var err error
