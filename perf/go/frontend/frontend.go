@@ -1886,11 +1886,12 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/help/", f.helpHandler)
 
 	// JSON handlers.
+	// Pinpoint JSON API handlers - /pinpoint/v1/...
 	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New()); err != nil {
 		// Only log the error, the service should continue to run.
 		sklog.Error("Fail to initalize pinpoint service %s.", err)
 	} else {
-		router.Mount("/pinpoint/v1/[a-zA-Z0-9-]+", ph)
+		router.Mount("/pinpoint", ph)
 	}
 
 	// Common endpoint for all long-running requests.
