@@ -20,6 +20,7 @@ var (
 	// Run the following command to portforward Temporal service so the client can connect to it.
 	// kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 	commit    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
 )
@@ -96,7 +97,8 @@ func main() {
 
 	// The client is a heavyweight object that should be created once per process.
 	c, err := client.Dial(client.Options{
-		HostPort: *hostPort,
+		HostPort:  *hostPort,
+		Namespace: *namespace,
 	})
 	if err != nil {
 		sklog.Errorf("Unable to create client", err)

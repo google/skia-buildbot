@@ -13,6 +13,7 @@ import (
 
 var (
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 )
 
@@ -21,7 +22,8 @@ func main() {
 
 	// The client and worker are heavyweight objects that should be created once per process.
 	c, err := client.Dial(client.Options{
-		HostPort: *hostPort,
+		HostPort:  *hostPort,
+		Namespace: *namespace,
 	})
 	if err != nil {
 		sklog.Fatalf("Unable to create client: %s", err)
