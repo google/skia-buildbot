@@ -401,10 +401,10 @@ func WilcoxonSignedRankedTest(x, y []float64, alt Hypothesis) (*WilcoxonSignedRa
 	}
 
 	if exact && hasTies {
-		sklog.Warning("cannot compute exact p-value and confidence interval with ties")
+		sklog.Warning("cannot compute exact p-value and confidence interval with ties, x is: %v, y is: %v", x, y)
 	}
 	if exact && zeroes {
-		sklog.Warning("cannot compute exact p-value and confidence interval with zeroes")
+		sklog.Warning("cannot compute exact p-value and confidence interval with zeroes, x is: %v, y is: %v", x, y)
 	}
 
 	return &WilcoxonSignedRankedTestResult{Estimate: estimate, LowerCi: lowerCi, UpperCi: upperCi, PValue: pVal}, nil
