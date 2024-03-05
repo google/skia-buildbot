@@ -33,3 +33,36 @@ func ValuesPlaceholders(valuesPerRow, numRows int) string {
 	}
 	return values.String()
 }
+
+// Returns a where clause with placeholders where each column value
+// is ANDed and each row is ORed
+// Args:
+//
+//	cols: List of column names
+//	numRows: Number of rows
+//
+// For example, if cols = ["name", "city"] and numRows = 2, return value
+// would be (name=$1 AND city=$2) OR (name=$3 AND city=$4)
+func WherePlaceholders(cols []string, numRows int) string {
+	if len(cols) <= 0 || numRows <= 0 {
+		panic("Cannot make WherePlaceHolders with 0 cols or 0 rows")
+	}
+	response := strings.Builder{}
+	for rowIdx := 1; rowIdx <= numRows; rowIdx += 1 {
+		response.WriteString("(")
+		for colIdx := 1; colIdx <= len(cols); colIdx++ {
+			response.WriteString(cols[colIdx-1])
+			response.WriteString("=")
+			response.WriteString("$")
+			response.WriteString(strconv.Itoa((rowIdx-1)*len(cols) + colIdx))
+			if colIdx != len(cols) {
+				response.WriteString(" AND ")
+			}
+		}
+		response.WriteString(")")
+		if rowIdx < numRows {
+			response.WriteString(" OR ")
+		}
+	}
+	return response.String()
+}

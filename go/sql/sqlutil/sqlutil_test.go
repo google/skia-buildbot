@@ -33,3 +33,29 @@ func TestValuesPlaceholders_InvalidInputs_Panics(t *testing.T) {
 		ValuesPlaceholders(0, 0)
 	})
 }
+
+func TestWherePlaceholders_ValdInputs_Success(t *testing.T) {
+	w := WherePlaceholders([]string{"col1"}, 1)
+	assert.Equal(t, "(col1=$1)", w)
+
+	w = WherePlaceholders([]string{"col1"}, 2)
+	assert.Equal(t, "(col1=$1) OR (col1=$2)", w)
+
+	w = WherePlaceholders([]string{"col1", "col2"}, 1)
+	assert.Equal(t, "(col1=$1 AND col2=$2)", w)
+
+	w = WherePlaceholders([]string{"col1", "col2"}, 2)
+	assert.Equal(t, "(col1=$1 AND col2=$2) OR (col1=$3 AND col2=$4)", w)
+}
+
+func TestWherePlaceholders_InvalidInputs_Panics(t *testing.T) {
+	assert.Panics(t, func() {
+		WherePlaceholders([]string{}, 2)
+	})
+	assert.Panics(t, func() {
+		WherePlaceholders([]string{"col1"}, 0)
+	})
+	assert.Panics(t, func() {
+		WherePlaceholders([]string{"col1"}, -2)
+	})
+}

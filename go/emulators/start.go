@@ -29,6 +29,7 @@ func RequireEmulator(t sktest.TestingT, emulator Emulator, fn StartEmulator) {
 		t.Fatalf(`This test requires the %s emulator, which you can start with
 
     $ ./scripts/run_emulators/run_emulators start
+	(in the skia-perf/buildbot directory)
 
 and then set the environment variables it prints out.`, emulator)
 	}

@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlculpritstore",
+    srcs = ["sqlculpritstore.go"],
+    importpath = "go.skia.org/infra/perf/go/culprit/sqlculpritstore",
+    visibility = ["//visibility:public"],
+    # Look why we need this? Something related to pgx
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//go/sql/sqlutil",
+        "//perf/go/culprit/proto",
+        "//perf/go/culprit/sqlculpritstore/schema",
+    ],
+)
+
+go_test(
+    name = "sqlculpritstore_test",
+    srcs = ["sqlculpritstore_test.go"],
+    # data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqlculpritstore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/culprit:store",
+        "//perf/go/culprit/proto",
+        "//perf/go/culprit/sqlculpritstore/schema",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
