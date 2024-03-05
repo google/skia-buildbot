@@ -31,8 +31,28 @@ import (
 //
 // Also we need to update LiveSchema schema and DropTables in sql_test.go:
 //   - DropTables deletes all tables *including* the new one in the change.
-//   - LiveSchema create all existing tables *without* the new one the change.
+//   - LiveSchema creates all existing tables *without* the new one in the
+//     change.
 var FromLiveToNext = `
+	DROP TABLE IF EXISTS AnomalyGroups;
+	CREATE TABLE IF NOT EXISTS AnomalyGroups (
+	  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	  creation_time TIMESTAMPTZ DEFAULT now(),
+	  anomalies JSONB,
+	  group_meta_data JSONB,
+	  common_rev_start INT,
+	  common_rev_end INT,
+	  action TEXT,
+	  action_time TIMESTAMPTZ,
+	  bisection_id TEXT,
+	  reported_issue_id TEXT,
+	  culprit_ids UUID ARRAY,
+	  last_modified_time TIMESTAMPTZ
+	);
+`
+
+var FromNextToLive = `
+	DROP TABLE IF EXISTS AnomalyGroups;
 	CREATE TABLE IF NOT EXISTS AnomalyGroups (
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 		action TEXT,
@@ -47,10 +67,6 @@ var FromLiveToNext = `
 		last_modified_time TIMESTAMPTZ,
 		subscription_name TEXT
 	);
-`
-
-var FromNextToLive = `
-	DROP TABLE IF EXISTS AnomalyGroups;
 `
 
 // This function will check whether there's a new schema checked-in,
