@@ -1789,6 +1789,21 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
+func (f *Frontend) RoleEnforcedHandler(role roles.Role, handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if f.loginProvider.Status(r).EMail.String() == "" {
+			http.Error(w, "User is not logged in or is not authorized.", http.StatusUnauthorized)
+			return
+		}
+
+		if !f.loginProvider.HasRole(r, role) {
+			http.Error(w, "User is not authenticated.", http.StatusForbidden)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
+}
+
 // createBisectHandler takes the POST'd create bisect request
 // then it calls Pinpoint Service API to create bisect job and returns the job id and job url.
 func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
@@ -1891,7 +1906,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 		// Only log the error, the service should continue to run.
 		sklog.Error("Fail to initalize pinpoint service %s.", err)
 	} else {
-		router.Mount("/pinpoint", ph)
+		router.Mount("/pinpoint", f.RoleEnforcedHandler(roles.Bisecter, ph))
 	}
 
 	// Common endpoint for all long-running requests.

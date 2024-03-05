@@ -36,6 +36,49 @@ func TestFrontend_ShouldInitAllHandlers(t *testing.T) {
 	})
 }
 
+func TestFrontend_RoleEnforced_ReportsError(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	login := mocks.NewLogin(t)
+	login.On("Status", r).Return(alogin.Status{
+		EMail: "nobody@example.org",
+	})
+	login.On("HasRole", r, roles.Admin).Return(false)
+
+	f := &Frontend{
+		loginProvider: login,
+	}
+	h := f.RoleEnforcedHandler(roles.Admin, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("hello"))
+	}))
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	require.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+	require.Contains(t, w.Body.String(), "not authenticated")
+}
+
+func TestFrontend_RoleEnforced_ReportsOK(t *testing.T) {
+	r := httptest.NewRequest("GET", "/", nil)
+	login := mocks.NewLogin(t)
+	login.On("Status", r).Return(alogin.Status{
+		EMail: "nobody@example.org",
+	})
+	login.On("HasRole", r, roles.Admin).Return(true)
+	const expected_body = "hello"
+
+	f := &Frontend{
+		loginProvider: login,
+	}
+	h := f.RoleEnforcedHandler(roles.Admin, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(expected_body))
+	}))
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.Equal(t, expected_body, w.Body.String())
+}
+
 func TestFrontendIsEditor_UserIsEditor_ReportsStatusOK(t *testing.T) {
 	w, r, f := setupForTest(t, true)
 	f.isEditor(w, r, "my-test-action", nil)
