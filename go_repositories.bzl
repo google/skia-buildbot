@@ -2292,6 +2292,12 @@ def go_repositories():
         sum = "h1:nn5Wsu0esKSJiIVhscUtVbo7ada43DJhG55ua/hjS5I=",
         version = "v0.0.0-20170313163322-e2103e2c3529",
     )
+    go_repository(
+        name = "com_github_segmentio_fasthash",
+        importpath = "github.com/segmentio/fasthash",
+        sum = "h1:EI9+KE1EwvMLBWwjpRDc+fEM+prwxDYbslddQGtrmhM=",
+        version = "v1.0.3",
+    )
 
     go_repository(
         name = "com_github_sendgrid_rest",
@@ -2711,6 +2717,12 @@ def go_repositories():
         importpath = "github.com/zenazn/goji",
         sum = "h1:RSQQAbXGArQ0dIDEq+PI6WqN6if+5KHu6x2Cx/GXLTQ=",
         version = "v0.9.0",
+    )
+    go_repository(
+        name = "com_github_zyedidia_generic",
+        importpath = "github.com/zyedidia/generic",
+        sum = "h1:Zv5KS/N2m0XZZiuLS82qheRG4X1o5gsWreGb0hR7XDc=",
+        version = "v1.2.1",
     )
 
     go_repository(

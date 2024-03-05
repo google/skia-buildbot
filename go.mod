@@ -197,6 +197,7 @@ require (
 	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
+	github.com/segmentio/fasthash v1.0.3 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
@@ -215,6 +216,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	github.com/zyedidia/generic v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
