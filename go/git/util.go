@@ -134,7 +134,7 @@ func NormalizeURL(inputURL string) (string, error) {
 // DeleteLockFiles finds and deletes Git lock files within the given workdir.
 func DeleteLockFiles(ctx context.Context, workdir string) error {
 	sklog.Infof("Looking for git lockfiles in %s", workdir)
-	knownLockFiles := []string{"index.lock", "HEAD.lock"}
+	knownLockFiles := []string{"index.lock", "HEAD.lock", "commit-graph.lock"}
 	foundLockFiles := []string{}
 	for _, lockFile := range knownLockFiles {
 		output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", lockFile)
