@@ -3,19 +3,31 @@ package service
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 type server struct {
 	pb.UnimplementedPinpointServer
+
+	// Local rate limiter to only limit the traffic for migration temporarilly.
+	limiter *rate.Limiter
 }
 
-func New() pb.PinpointServer {
-	return &server{}
+func New(l *rate.Limiter) pb.PinpointServer {
+	if l == nil {
+		// 1 token every 30 minutes, this allow some buffer to drain the hot spots in the bots pool.
+		l = rate.NewLimiter(rate.Every(30*time.Minute), 1)
+	}
+	return &server{
+		limiter: l,
+	}
 }
 
 func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, error) {
@@ -27,10 +39,17 @@ func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, e
 }
 
 // TODO(b/322047067)
-// embbed pb.UnimplementedPinpointServer will throw errors if those are not implemented.
-// Uncomment to implememt
-// func (s *server) ScheduleBisection(ctx context.Context, in *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
-// }
+//
+//	embbed pb.UnimplementedPinpointServer will throw errors if those are not implemented.
+func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
+	// Those logs are used to test traffic from existing services in catapult, shall be removed.
+	sklog.Infof("Receiving bisection request: %v", req)
+	if !s.limiter.Allow() {
+		sklog.Infof("The request is dropped due to rate limiting.")
+		return nil, skerr.Fmt("unable to fulfill the request due to rate limiting, dropping")
+	}
+	return s.UnimplementedPinpointServer.ScheduleBisection(ctx, req)
+}
 
 // func (s *server) QueryBisection(ctx context.Context, in *pb.QueryBisectRequest) (*pb.BisectExecution, error) {
 // }

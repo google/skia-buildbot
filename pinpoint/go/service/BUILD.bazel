@@ -8,8 +8,10 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//pinpoint/proto/v1:proto",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
+        "@org_golang_x_time//rate",
     ],
 )
 
@@ -21,5 +23,6 @@ go_test(
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_x_time//rate",
     ],
 )

@@ -6,15 +6,17 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	"golang.org/x/time/rate"
 )
 
 func TestJSONHandler_UnknownEndpoints_ShouldReturn404(t *testing.T) {
 	ctx := context.Background()
-	svc := New()
+	svc := New(rate.NewLimiter(rate.Inf, 0))
 
 	jh, err := NewJSONHandler(ctx, svc)
 	require.Nil(t, err)
@@ -30,7 +32,7 @@ func TestJSONHandler_UnknownEndpoints_ShouldReturn404(t *testing.T) {
 // TODO(b/322047067): Fix this and improve test coverage.
 func TestJSONHandler_KnownEndpoints_ShouldForwardRequests(t *testing.T) {
 	ctx := context.Background()
-	svc := New()
+	svc := New(rate.NewLimiter(rate.Inf, 0))
 
 	jh, err := NewJSONHandler(ctx, svc)
 	require.Nil(t, err)
@@ -49,9 +51,22 @@ func TestJSONHandler_KnownEndpoints_ShouldForwardRequests(t *testing.T) {
 	expect("GET", "/v1/legacy-job", "", http.StatusNotImplemented)
 }
 
+func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
+	ctx := context.Background()
+	svc := New(rate.NewLimiter(rate.Every(time.Hour), 1))
+
+	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
+	// TODO(b/322047067): empty requests should return a response with reasons.
+	assert.ErrorContains(t, err, "not implemented")
+
+	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "unable to fulfill")
+}
+
 func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 	ctx := context.Background()
-	svc := New()
+	svc := New(rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	assert.Nil(t, resp)
@@ -63,7 +78,7 @@ func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 	ctx := context.Background()
-	svc := New()
+	svc := New(rate.NewLimiter(rate.Inf, 0))
 
 	expect := func(req *pb.QueryBisectRequest, want *pb.BisectExecution, desc string) {
 		resp, err := svc.QueryBisection(ctx, req)
@@ -83,7 +98,7 @@ func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 
 func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
 	ctx := context.Background()
-	svc := New()
+	svc := New(rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.QueryBisection(ctx, &pb.QueryBisectRequest{
 		JobId: "non-exist ID",
