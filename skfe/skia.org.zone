@@ -45,15 +45,16 @@ _validate_domain 3600 IN CNAME _validate_domain.pki.goog.
 
 ;;; These apps have been migrated to the skia-infra-public project.
 autoroll                 300      IN A 34.110.212.89
-status                   300      IN A 34.110.212.89
 cabe                     300      IN A 34.110.212.89
-perf-infra-public-cdb    300      IN A 34.110.212.89
-envoy-admin-panel-public 300      IN A 34.110.212.89
+codesize                 300      IN A 34.110.212.89
 debugger                 300      IN A 34.110.212.89
+envoy-admin-panel-public 300      IN A 34.110.212.89
 jsfiddle                 300      IN A 34.110.212.89
+perf-infra-public-cdb    300      IN A 34.110.212.89
 scrap                    300      IN A 34.110.212.89
 shaders                  300      IN A 34.110.212.89
 skottie                  300      IN A 34.110.212.89
+status                   300      IN A 34.110.212.89
 task-scheduler-internal  300      IN A 34.110.212.89
 temporal-ui              300      IN A 34.110.212.89
 
