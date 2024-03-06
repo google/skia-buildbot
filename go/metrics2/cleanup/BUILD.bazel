@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "cleanup",
+    srcs = ["cleanup.go"],
+    importpath = "go.skia.org/infra/go/metrics2/cleanup",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "//go/sklog",
+        "//go/util",
+    ],
+)

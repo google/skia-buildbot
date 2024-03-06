@@ -23,6 +23,7 @@ var (
 			"created_by",
 			"end_time",
 			"id",
+			"infra.backend.task.id.id",
 			"input.gerrit_changes",
 			"input.properties",
 			"start_time",

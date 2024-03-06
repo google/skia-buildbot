@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "buildbucket",
+    srcs = ["buildbucket.go"],
+    importpath = "go.skia.org/infra/datahopper/go/buildbucket",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/buildbucket",
+        "//go/metrics2",
+        "//go/metrics2/cleanup",
+        "//go/skerr",
+        "//go/sklog",
+        "//task_scheduler/go/db",
+        "@org_chromium_go_luci//buildbucket/proto",
+    ],
+)
+
+go_test(
+    name = "buildbucket_test",
+    srcs = ["buildbucket_test.go"],
+    embed = [":buildbucket"],
+    deps = [
+        "//go/buildbucket/mocks",
+        "//go/metrics2/testutils",
+        "//go/testutils",
+        "//task_scheduler/go/mocks",
+        "//task_scheduler/go/types",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+    ],
+)

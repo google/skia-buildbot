@@ -15,11 +15,13 @@ import (
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
+	buildbucket_metrics "go.skia.org/infra/datahopper/go/buildbucket"
 	"go.skia.org/infra/datahopper/go/cd_metrics"
 	"go.skia.org/infra/datahopper/go/gcloud_metrics"
 	"go.skia.org/infra/datahopper/go/supported_branches"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/git"
@@ -46,6 +48,8 @@ var (
 	// TODO(borenet): Combine btInstance and firestoreInstance.
 	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	buildbucketProject = flag.String("buildbucket_project", "skia", "Buildbucket project to analyze")
+	buildbucketBucket  = flag.String("buildbucket_bucket", "skia.primary", "Buildbucket bucket to analyze")
 	dockerImageNames   = common.NewMultiStringFlag("docker_image", nil, "Docker images to watch for Continuous Deployment metrics.")
 	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gcloudProjects     = common.NewMultiStringFlag("gcloud_project", nil, "GCloud projects from which to ingest data")
@@ -220,6 +224,10 @@ func main() {
 			sklog.Fatal(err)
 		}
 	}
+
+	// Metrics for Buildbucket builds.
+	bb2 := buildbucket.NewClient(httpClient)
+	buildbucket_metrics.Start(ctx, d, bb2, *buildbucketProject, *buildbucketBucket)
 
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)

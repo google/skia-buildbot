@@ -14,11 +14,13 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//datahopper/go/bot_metrics",
+        "//datahopper/go/buildbucket",
         "//datahopper/go/cd_metrics",
         "//datahopper/go/gcloud_metrics",
         "//datahopper/go/supported_branches",
         "//datahopper/go/swarming_metrics",
         "//go/auth",
+        "//go/buildbucket",
         "//go/common",
         "//go/gcs/gcsclient",
         "//go/git",
