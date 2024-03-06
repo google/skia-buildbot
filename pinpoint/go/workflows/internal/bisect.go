@@ -30,12 +30,61 @@ var (
 		WorkflowExecutionTimeout: 12 * time.Hour,
 	}
 
-	benchmarkRunIterations = []int32{10, 20, 40, 60, 120}
+	benchmarkRunIterations = []int32{10, 20, 40, 80, 160}
 )
 
 type commitRange struct {
 	lower  *midpoint.CombinedCommit
 	higher *midpoint.CombinedCommit
+}
+
+type commitMap map[string]*CommitRun
+
+func (cm *commitMap) get(commit *midpoint.CombinedCommit) (*CommitRun, bool) {
+	cr, ok := (*cm)[commit.Key()]
+	return cr, ok
+}
+
+func (cm *commitMap) set(commit *midpoint.CombinedCommit, cr *CommitRun) {
+	(*cm)[commit.Key()] = cr
+}
+
+func (cm *commitMap) calcNewRuns(lower, higher *midpoint.CombinedCommit) (int32, int32) {
+	lRunCount, hRunCount := int32(0), int32(0)
+	lr, ok := cm.get(lower)
+	if ok {
+		lRunCount = int32(len(lr.Runs))
+	}
+	hr, ok := cm.get(higher)
+	if ok {
+		hRunCount = int32(len(hr.Runs))
+	}
+	lRunsToSchedule, hRunsToSchedule := int32(0), int32(0)
+	if lRunCount == hRunCount {
+		for _, iter := range benchmarkRunIterations {
+			if iter > int32(lRunCount) {
+				lRunsToSchedule = iter - int32(lRunCount)
+				hRunsToSchedule = iter - int32(hRunCount)
+				break
+			}
+		}
+	} else if lRunCount > hRunCount {
+		// balance number of runs between the two commits
+		hRunsToSchedule = lRunCount - hRunCount
+	} else {
+		lRunsToSchedule = hRunCount - lRunCount
+	}
+	return lRunsToSchedule, hRunsToSchedule
+}
+
+func (cm *commitMap) updateRuns(commit *midpoint.CombinedCommit, cRun *CommitRun) {
+	cr, ok := cm.get(commit)
+	if !ok {
+		cr = cRun
+	} else {
+		cr.Runs = append(cr.Runs, cRun.Runs...)
+	}
+	cm.set(commit, cr)
 }
 
 func GetAllValues(ctx context.Context, cr *CommitRun, chart string) ([]float64, error) {
@@ -71,24 +120,12 @@ func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midp
 	}
 }
 
-// TODO(b/326352319): convert this to a workflow so that it can be
-// separately mocked and tested
-func runAndCompare(ctx workflow.Context, p *workflows.BisectParams, jobID string, lower, higher *midpoint.CombinedCommit, mag float64) (*compare.CompareResults, error) {
-	var lRun, hRun *CommitRun
-	lf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, benchmarkRunIterations[0], lower))
-	hf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, benchmarkRunIterations[0], higher))
-	if err := lf.Get(ctx, &lRun); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := hf.Get(ctx, &hRun); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
+func compareRuns(ctx workflow.Context, lRun, hRun *CommitRun, chart string, mag float64) (*compare.CompareResults, error) {
 	var lValues, hValues []float64
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, lRun, p.Request.Chart).Get(ctx, &lValues); err != nil {
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, lRun, chart).Get(ctx, &lValues); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, hRun, p.Request.Chart).Get(ctx, &hValues); err != nil {
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, hRun, chart).Get(ctx, &hValues); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
@@ -113,6 +150,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		JobId: jobID,
 	}
 
+	commitMap := &commitMap{}
 	commitStack := stack.New[*commitRange]()
 
 	commitStack.Push(&commitRange{
@@ -130,15 +168,34 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		logger.Debug("current commitStack: ", commitStack)
 		cr := commitStack.Pop()
 		logger.Debug("popped commitRange: ", cr)
-		result, err := runAndCompare(ctx, p, jobID, cr.lower, cr.higher, magnitude)
+		lRunsToSchedule, hRunsToSchedule := commitMap.calcNewRuns(cr.lower, cr.higher)
+		var lRun, hRun *CommitRun
+		if lRunsToSchedule > 0 {
+			lf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.lower))
+			if err := lf.Get(ctx, &lRun); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			commitMap.updateRuns(cr.lower, lRun)
+		}
+		if hRunsToSchedule > 0 {
+			hf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.higher))
+			if err := hf.Get(ctx, &hRun); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			commitMap.updateRuns(cr.higher, hRun)
+		}
+		result, err := compareRuns(ctx, lRun, hRun, p.Request.Chart, magnitude)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		// TODO(b/327662506): Support commits that have already been run. For different and unknown
-		// verdicts, commits that have already run will be requeued. However, commit_runner will
-		// run new tasks for those commits and not recycle old tasks. Without this feature,
-		// Unknown verdicts will cause bisection to run indefinitely.
-		if result.Verdict == compare.Different {
+		switch result.Verdict {
+		case compare.Unknown:
+			commitStack.Push(&commitRange{
+				lower:  cr.lower,
+				higher: cr.higher,
+			})
+			logger.Debug("pushed commitRange: ", commitStack.Peek())
+		case compare.Different:
 			// TODO(b/326352320): If the middle point has a different repo, it means that it looks into
 			//	the autoroll and there are changes in DEPS. We need to construct a CombinedCommit so it
 			//	can currently build with modified deps.

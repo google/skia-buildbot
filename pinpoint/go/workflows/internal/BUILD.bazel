@@ -49,8 +49,10 @@ go_test(
     deps = [
         "//go/swarming",
         "//pinpoint/go/compare",
+        "//pinpoint/go/midpoint",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//testsuite",

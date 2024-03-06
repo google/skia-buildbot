@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -270,4 +271,21 @@ func TestFindDepsCommit_OnNonExistingRepo_ShouldReturnError(t *testing.T) {
 	dc, err := m.FindDepsCommit(ctx, c, "https://some-url.com")
 	require.Nil(t, dc)
 	require.ErrorContains(t, err, "https://some-url.com doesn't exist in DEPS")
+}
+
+func TestCombinedCommitKey_MainNil_ReturnsEmptyString(t *testing.T) {
+	cc := &CombinedCommit{}
+	assert.Empty(t, cc.Key())
+}
+
+func TestCombinedCommitKey_GivenDEPS_ReturnsCombinedString(t *testing.T) {
+	cc := &CombinedCommit{
+		Main: &Commit{
+			GitHash: "hash1",
+		},
+		ModifiedDeps: []*Commit{
+			{GitHash: "hash2"}, {GitHash: "hash3"},
+		},
+	}
+	assert.Equal(t, cc.Key(), "hash1+hash2+hash3")
 }

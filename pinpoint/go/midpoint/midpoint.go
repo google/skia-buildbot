@@ -2,6 +2,7 @@ package midpoint
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
@@ -63,6 +64,20 @@ func (cc *CombinedCommit) GetMainGitHash() string {
 	}
 
 	return cc.Main.GitHash
+}
+
+// Key returns all git hashes combined to use for map indexing
+func (cc *CombinedCommit) Key() string {
+	if cc.Main == nil {
+		return ""
+	}
+	key := cc.Main.GitHash
+	for _, d := range cc.ModifiedDeps {
+		if d != nil {
+			key = fmt.Sprintf("%s+%s", key, d.GitHash)
+		}
+	}
+	return key
 }
 
 func NewCombinedCommit(main *Commit, deps ...*Commit) *CombinedCommit {
