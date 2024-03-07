@@ -26,7 +26,6 @@ go_test(
         "//go/mockhttpclient",
         "//go/testutils",
         "//go/vcsinfo",
-        "@com_github_smartystreets_goconvey//convey",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,24 +29,22 @@ func generateCommitResponse(num int) []*vcsinfo.LongCommit {
 	return resp
 }
 
-func TestNewRepo(t *testing.T) {
+func TestNewRepo_WithUrl_CreateNewRepo(t *testing.T) {
 	ctx := context.Background()
 	c := mockhttpclient.NewURLMock().Client()
 	r := New(ctx, c)
 
-	Convey(`Creating a new repo`, t, func() {
-		url := "https://somerepo.com"
-		repo := r.getOrCreateRepo(url)
-		So(repo, ShouldNotBeNil)
-		So(r.repos[url], ShouldNotBeNil)
-	})
+	const url = "https://somerepo.com"
+	repo := r.getOrCreateRepo(url)
+	assert.NotNil(t, repo)
+	assert.NotNil(t, r.repos[url])
 }
 
-func TestFetchGitDeps(t *testing.T) {
+func TestFetchGitDeps_ExcludingCIPDBasedDEP_ShouldReturnDEPS(t *testing.T) {
 	ctx := context.Background()
 
-	chromium := "https://chromium.org/chromium/src"
-	gitHash := "1"
+	const chromium = "https://chromium.org/chromium/src"
+	const gitHash = "1"
 
 	sampleDeps := `
 vars = {
@@ -74,56 +71,111 @@ deps = {
   },
 }
     `
+	gc := &mocks.GitilesRepo{}
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", gitHash).Return([]byte(sampleDeps), nil)
 
-	Convey(`Ensure CIPD based DEP not present`, t, func() {
-		gc := &mocks.GitilesRepo{}
-		gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", gitHash).Return([]byte(sampleDeps), nil)
+	c := mockhttpclient.NewURLMock().Client()
+	r := New(ctx, c).WithRepo(chromium, gc)
 
-		c := mockhttpclient.NewURLMock().Client()
-		r := New(ctx, c).WithRepo(chromium, gc)
-
-		res, err := r.fetchGitDeps(ctx, gc, gitHash)
-		So(err, ShouldBeNil)
-		// intellij should be missing
-		So(len(res), ShouldEqual, 3)
-		So(res["https://chromium.googlesource.com/v8/v8"], ShouldEqual, "1")
-		So(res["https://chromium.googlesource.com/deps/lighttpd"], ShouldEqual, "9dfa55d")
-		So(res["https://webrtc.googlesource.com/src"], ShouldEqual, "deadbeef")
-	})
+	res, err := r.fetchGitDeps(ctx, gc, gitHash)
+	require.NoError(t, err)
+	// intellij should be missing
+	assert.Equal(t, 3, len(res))
+	assert.Equal(t, "1", res["https://chromium.googlesource.com/v8/v8"])
+	assert.Equal(t, "9dfa55d", res["https://chromium.googlesource.com/deps/lighttpd"])
+	assert.Equal(t, "deadbeef", res["https://webrtc.googlesource.com/src"])
 }
 
-func TestDetermineNextCandidate(t *testing.T) {
-	t.Parallel()
+func TestDetermineNextCandidate_EvenNumberedCommits_ReturnsCandidateCommit(t *testing.T) {
 
 	ctx := context.Background()
 
-	chromium := "https://chromium.org/chromium/src"
-	webrtc := "https://webrtc.googlesource.com/src"
+	const chromium = "https://chromium.org/chromium/src"
 
-	Convey(`OK`, t, func() {
-		Convey(`Midpoint in Chromium from even number of commits`, func() {
-			startGitHash := "1"
-			endGitHash := "5"
+	const startGitHash = "1"
+	const endGitHash = "5"
 
-			gc := &mocks.GitilesRepo{}
-			validResp := generateCommitResponse(5)
+	gc := &mocks.GitilesRepo{}
+	validResp := generateCommitResponse(5)
 
-			gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(validResp, nil)
+	gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(validResp, nil)
 
-			c := mockhttpclient.NewURLMock().Client()
-			r := New(ctx, c).WithRepo(chromium, gc)
+	c := mockhttpclient.NewURLMock().Client()
+	r := New(ctx, c).WithRepo(chromium, gc)
 
-			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
-			So(err, ShouldBeNil)
+	next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+	assert.Nil(t, err)
+	assert.Equal(t, chromium, next.Main.RepositoryUrl)
 
-			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
+	// endGitHash is popped off, leaving [1, 2, 3, 4]
+	// and since len == 4, mid index == 2
+	assert.Equal(t, "3", next.Main.GitHash)
+}
 
-			// endGitHash is popped off, leaving [1, 2, 3, 4]
-			// and since len == 4, mid index == 2
-			So(next.Main.GitHash, ShouldEqual, "3")
-		})
+func TestDetermineNextCandidate_AdjacentChangesNoDepsRoll_ReturnsCandidateCommit(t *testing.T) {
 
-		sampleDeps := `
+	ctx := context.Background()
+
+	const chromium = "https://chromium.org/chromium/src"
+
+	sampleDeps := `
+vars = {
+  'chromium_git': 'https://chromium.googlesource.com',
+  'webrtc_git': 'https://webrtc.googlesource.com',
+  'webrtc_rev': '1',
+}
+deps = {
+  'src/v8': Var('chromium_git') + '/v8/v8.git' + '@' + '1',
+  'src/third_party/lighttpd': {
+	'url': Var('chromium_git') + '/deps/lighttpd.git' + '@' + '9dfa55d',
+	'condition': 'checkout_mac or checkout_win',
+  },
+  'src/third_party/webrtc': {
+    'url': '{webrtc_git}/src.git@{webrtc_rev}',
+  },
+  'src/third_party/intellij': {
+    'packages': [{
+      'package': 'chromium/third_party/intellij',
+      'version': 'version:12.0-cr0',
+	}],
+	'condition': 'checkout_android',
+	'dep_type': 'cipd',
+  },
+}
+	`
+	const startGitHash = "1"
+	const endGitHash = "2"
+	resp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
+
+	gc := &mocks.GitilesRepo{}
+	gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(resp, nil)
+
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", startGitHash).Return([]byte(sampleDeps), nil)
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", endGitHash).Return([]byte(sampleDeps), nil)
+
+	c := mockhttpclient.NewURLMock().Client()
+	r := New(ctx, c).WithRepo(chromium, gc)
+	next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+
+	require.NoError(t, err)
+	assert.Equal(t, chromium, next.Main.RepositoryUrl)
+	assert.Equal(t, startGitHash, next.Main.GitHash)
+}
+
+func TestDetermineNextCandidate_DepsRoll_ReturnsCandidateCommit(t *testing.T) {
+
+	ctx := context.Background()
+
+	const chromium = "https://chromium.org/chromium/src"
+	const webrtc = "https://webrtc.googlesource.com/src"
+
+	sampleDeps := `
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
   'webrtc_git': 'https://webrtc.googlesource.com',
@@ -147,35 +199,9 @@ deps = {
     'dep_type': 'cipd',
   },
 }
-		`
+	`
 
-		Convey(`Adjacent changes, but not a DEPS roll`, func() {
-			startGitHash := "1"
-			endGitHash := "2"
-			resp := []*vcsinfo.LongCommit{
-				{
-					ShortCommit: &vcsinfo.ShortCommit{
-						Hash: "2",
-					},
-				},
-			}
-
-			gc := &mocks.GitilesRepo{}
-			gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(resp, nil)
-
-			gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", startGitHash).Return([]byte(sampleDeps), nil)
-			gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", endGitHash).Return([]byte(sampleDeps), nil)
-
-			c := mockhttpclient.NewURLMock().Client()
-			r := New(ctx, c).WithRepo(chromium, gc)
-			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
-			So(err, ShouldBeNil)
-
-			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(next.Main.GitHash, ShouldEqual, startGitHash)
-		})
-
-		sampleDeps2 := `
+	sampleDeps2 := `
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
   'webrtc_git': 'https://webrtc.googlesource.com',
@@ -188,46 +214,44 @@ deps = {
 }
 	`
 
-		Convey(`DEPS roll`, func() {
-			startGitHash := "1"
-			endGitHash := "2"
-			resp := []*vcsinfo.LongCommit{
-				{
-					ShortCommit: &vcsinfo.ShortCommit{
-						Hash: "2",
-					},
-				},
-			}
+	const startGitHash = "1"
+	const endGitHash = "2"
+	resp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
 
-			gc := &mocks.GitilesRepo{}
-			gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(resp, nil)
+	gc := &mocks.GitilesRepo{}
+	gc.On("LogLinear", testutils.AnyContext, startGitHash, endGitHash).Return(resp, nil)
 
-			gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", startGitHash).Return([]byte(sampleDeps), nil)
-			gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", endGitHash).Return([]byte(sampleDeps2), nil)
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", startGitHash).Return([]byte(sampleDeps), nil)
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", endGitHash).Return([]byte(sampleDeps2), nil)
 
-			wStartGitHash := "1"
-			wEndGitHash := "3"
-			wResp := generateCommitResponse(3)
+	const wStartGitHash = "1"
+	const wEndGitHash = "3"
+	wResp := generateCommitResponse(3)
 
-			wgc := &mocks.GitilesRepo{}
-			wgc.On("LogLinear", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
+	wgc := &mocks.GitilesRepo{}
+	wgc.On("LogLinear", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
 
-			c := mockhttpclient.NewURLMock().Client()
-			r := New(ctx, c).WithRepo(chromium, gc).WithRepo(webrtc, wgc)
-			next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
-			So(err, ShouldBeNil)
+	c := mockhttpclient.NewURLMock().Client()
+	r := New(ctx, c).WithRepo(chromium, gc).WithRepo(webrtc, wgc)
+	next, err := r.DetermineNextCandidate(ctx, chromium, startGitHash, endGitHash)
+	assert.Nil(t, err)
 
-			// Base Chromium that should be built is using startGitHash.
-			So(next.Main.RepositoryUrl, ShouldEqual, chromium)
-			So(next.Main.GitHash, ShouldEqual, startGitHash)
+	// Base Chromium that should be built is using startGitHash.
+	assert.Equal(t, chromium, next.Main.RepositoryUrl)
 
-			overrides := next.ModifiedDeps[0].GitHash
-			// // Next candidate should be 2, since LogLinear returns [3, 2, 1],
-			// // 3 is popped leaving [2, 1]. This is reversed to [1, 2]
-			// // and len()/2 = idx 1, which is commit "2"
-			So(overrides, ShouldEqual, "2")
-		})
-	})
+	assert.Equal(t, startGitHash, next.Main.GitHash)
+
+	overrides := next.ModifiedDeps[0].GitHash
+	// Next candidate should be 2, since LogLinear returns [3, 2, 1],
+	// 3 is popped leaving [2, 1]. This is reversed to [1, 2]
+	// and len()/2 = idx 1, which is commit "2"
+	assert.Equal(t, "2", overrides)
 }
 
 func TestFindDepsCommit_OnExistingRepo_ShouldReturnCommit(t *testing.T) {
