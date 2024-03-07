@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ephemeral_storage"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
@@ -112,6 +113,10 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
+	// Periodically log disk usage of the working directory.
+	ctx := context.Background()
+	ephemeral_storage.StartCustom(ctx, *workdir)
+
 	// Decode the config.
 	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
 		sklog.Fatal("Exactly one of --config or --config_file is required.")
@@ -139,7 +144,6 @@ func main() {
 	if *validateConfig {
 		return
 	}
-	ctx := context.Background()
 	if *genK8sConfig != "" {
 		split := strings.Split(*genK8sConfig, ":")
 		if len(split) != 2 {

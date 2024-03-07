@@ -35,7 +35,7 @@ type report struct {
 	Files      []file
 }
 
-// UsageViaStructuredLogging emits JSON to stdout describing the usage of /tmp.
+// usageViaStructuredLogging emits JSON to stdout describing the usage of /tmp.
 //
 // The JSON emitted on a single line will be picked up by StackDriver as a structured log.
 func UsageViaStructuredLogging(ctx context.Context) error {
@@ -52,10 +52,16 @@ func UsageViaStructuredLogging(ctx context.Context) error {
 	if fileInfo, err := os.Stat(tempDir); err != nil || !fileInfo.IsDir() {
 		tempDir = os.TempDir()
 	}
+	return CustomUsageViaStructuredLogging(ctx, tempDir)
+}
 
+// CustomUsageViaStructuredLogging emits JSON to stdout describing the usage of a directory.
+//
+// The JSON emitted on a single line will be picked up by StackDriver as a structured log.
+func CustomUsageViaStructuredLogging(ctx context.Context, dir string) error {
 	report := report{
 		Type:    typeTag,
-		TempDir: tempDir,
+		TempDir: dir,
 		Files:   []file{}, // Serialize to at least [] in JSON.
 	}
 
@@ -66,7 +72,7 @@ func UsageViaStructuredLogging(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
-	err := filepath.Walk(tempDir, func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			// Skip directories we don't have permission to read.
 			if errors.Is(skerr.Unwrap(err), fs.ErrPermission) {
@@ -121,6 +127,28 @@ func Start(ctx context.Context) {
 		case <-ticker.C:
 			if err := UsageViaStructuredLogging(ctx); err != nil {
 				sklog.Errorf("UsageViaStructuredLogging failed with %s", err)
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+// StartCustom does a period call to UsageViaStructuredLogging(). It does not
+// return, so it should be run as a Go routine.
+//
+// If the context is cancelled then Start will return.
+func StartCustom(ctx context.Context, dir string) {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer func() {
+		ticker.Stop()
+	}()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := CustomUsageViaStructuredLogging(ctx, dir); err != nil {
+				sklog.Errorf("CustomUsageViaStructuredLogging failed with %s", err)
 			}
 		case <-ctx.Done():
 			return
