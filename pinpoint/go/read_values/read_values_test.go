@@ -1,7 +1,6 @@
 package read_values
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,103 +42,48 @@ var testData = map[string]perfresults.PerfResults{
 
 var testAggData = []float64{8, 2, -9, 15, 4}
 
-func TestReadValues(t *testing.T) {
-	for i, test := range []struct {
-		name      string
-		benchmark string
-		chart     string
-		expected  []float64
-	}{
-		{
-			name:      "basic chart test",
-			benchmark: "rendering.desktop",
-			chart:     "thread_total_rendering_cpu_time_per_frame",
-			expected:  []float64{12.9322},
-		},
-		{
-			name:      "multiple value test",
-			benchmark: "rendering.desktop",
-			chart:     "Compositing.Display.DrawToSwapUs",
-			expected:  []float64{169.9406, 169.9406, 206.3219, 654.8641},
-		},
-		{
-			name:      "null case",
-			benchmark: "fake benchmark",
-			chart:     "fake chart",
-			expected:  []float64{},
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			values := ReadChart(testData, test.benchmark, test.chart)
-			assert.Equal(t, test.expected, values)
+func TestReadChart_ChartData_ReadValues(t *testing.T) {
+	test := func(name, benchmark, chart string, expected ...float64) {
+		t.Run(name, func(t *testing.T) {
+			values := ReadChart(testData, benchmark, chart)
+			// We need to consolidate variadic arg expected into []float64
+			// to make assert.Equal work. The value returned from the ReadChart
+			// function is of type []float64
+			exp := append([]float64{}, expected...)
+			assert.Equal(t, exp, values)
 		})
 	}
+
+	test("basic chart test", "rendering.desktop", "thread_total_rendering_cpu_time_per_frame", 12.9322)
+	test("multiple value test", "rendering.desktop", "Compositing.Display.DrawToSwapUs", 169.9406, 169.9406, 206.3219, 654.8641)
+	test("null case", "fake benchmark", "fake chart")
 }
 
-func TestAggData(t *testing.T) {
-	for i, test := range []struct {
-		name        string
-		method      AggDataMethodEnum
-		testData    []float64
-		expected    float64
-		expectedErr bool
-	}{
-		{
-			name:     "count",
-			method:   Count,
-			testData: testAggData,
-			expected: 5.0,
-		},
-		{
-			name:     "mean",
-			method:   Mean,
-			testData: testAggData,
-			expected: 4.0,
-		},
-		{
-			name:     "max",
-			method:   Max,
-			testData: testAggData,
-			expected: 15.0,
-		},
-		{
-			name:     "min",
-			method:   Min,
-			testData: testAggData,
-			expected: -9.0,
-		},
-		{
-			name:     "std",
-			method:   Std,
-			testData: testAggData,
-			expected: 8.80340843082,
-		},
-		{
-			name:     "sum",
-			method:   Sum,
-			testData: testAggData,
-			expected: 20.0,
-		},
-		{
-			name:        "nil data",
-			method:      Sum,
-			testData:    nil,
-			expectedErr: true,
-		},
-		{
-			name:        "length 0 data",
-			method:      Sum,
-			testData:    []float64{},
-			expectedErr: true,
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			ans, err := aggData(test.testData, test.method)
-			if test.expectedErr {
-				assert.Error(t, err)
-			} else {
-				assert.InDelta(t, test.expected, ans, 1e-6)
-			}
+func TestAggData_NonBlankData_AggData(t *testing.T) {
+	test := func(name string, testData []float64, method AggDataMethodEnum, expected float64) {
+		t.Run(name, func(t *testing.T) {
+			ans, err := aggData(testData, method)
+			assert.NoError(t, err)
+			assert.InDelta(t, expected, ans, 1e-6)
 		})
 	}
+
+	test("count", testAggData, Count, 5.0)
+	test("mean", testAggData, Mean, 4.0)
+	test("max", testAggData, Max, 15.0)
+	test("min", testAggData, Min, -9.0)
+	test("std", testAggData, Std, 8.803408)
+	test("sum", testAggData, Sum, 20.0)
+}
+
+func TestAggData_BlankData_Error(t *testing.T) {
+	test := func(name string, testData []float64, method AggDataMethodEnum) {
+		t.Run(name, func(t *testing.T) {
+			_, err := aggData(testData, method)
+			assert.Error(t, err)
+		})
+	}
+
+	test("nil data", nil, Sum)
+	test("length 0 data", []float64{}, Sum)
 }
