@@ -104,14 +104,8 @@ func (cr *CommitRange) HasRightGitHash() bool {
 	return cr.Right.Main.GitHash != ""
 }
 
-// TODO(b/326352320): Remove this interface and use struct directly.
-type MidpointHandler interface {
-	// DetermineNextCandidate returns the next target for bisection for the provided url, inbetween the start and end git hashes.
-	DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, error)
-}
-
 // MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
-type midpointHandler struct {
+type MidpointHandler struct {
 	// repos is a map of repository url to a GitilesRepo object.
 	repos map[string]gitiles.GitilesRepo
 
@@ -119,22 +113,22 @@ type midpointHandler struct {
 }
 
 // New returns a new MidpointHandler.
-func New(ctx context.Context, c *http.Client) *midpointHandler {
-	return &midpointHandler{
+func New(ctx context.Context, c *http.Client) *MidpointHandler {
+	return &MidpointHandler{
 		repos: make(map[string]gitiles.GitilesRepo, 0),
 		c:     c,
 	}
 }
 
 // WithRepo returns a MidpointHandler with the repository url mapped to a GitilesRepo object.
-func (m *midpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *midpointHandler {
+func (m *MidpointHandler) WithRepo(url string, r gitiles.GitilesRepo) *MidpointHandler {
 	m.repos[url] = r
 	return m
 }
 
 // getOrCreateRepo fetches the gitiles.GitilesRepo object for the repository url.
 // If not present, it'll create an authenticated Repo client.
-func (m *midpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
+func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 	gr, ok := m.repos[url]
 	if !ok {
 		gr = gitiles.NewRepo(url, m.c)
@@ -144,7 +138,7 @@ func (m *midpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 }
 
 // findMidpoint identiifes the median commit given a start and ending git hash.
-func (m *midpointHandler) findMidpoint(ctx context.Context, url, startGitHash, endGitHash string) (string, error) {
+func (m *MidpointHandler) findMidpoint(ctx context.Context, url, startGitHash, endGitHash string) (string, error) {
 	if startGitHash == endGitHash {
 		return "", skerr.Fmt("Both git hashes are the same; Start: %s, End: %s", startGitHash, endGitHash)
 	}
@@ -185,7 +179,7 @@ func (m *midpointHandler) findMidpoint(ctx context.Context, url, startGitHash, e
 }
 
 // fetchGitDeps calls Gitiles to read the DEPS content and parses out only the git-based dependencies.
-func (m *midpointHandler) fetchGitDeps(ctx context.Context, gc gitiles.GitilesRepo, gitHash string) (map[string]string, error) {
+func (m *MidpointHandler) fetchGitDeps(ctx context.Context, gc gitiles.GitilesRepo, gitHash string) (map[string]string, error) {
 	denormalized := make(map[string]string, 0)
 
 	content, err := gc.ReadFileAtRef(ctx, "DEPS", gitHash)
@@ -214,7 +208,7 @@ func (m *midpointHandler) fetchGitDeps(ctx context.Context, gc gitiles.GitilesRe
 }
 
 // findRolledDep searches for the dependency that may have been rolled.
-func (m *midpointHandler) findRolledDep(startDeps, endDeps map[string]string) string {
+func (m *MidpointHandler) findRolledDep(startDeps, endDeps map[string]string) string {
 	for k, v := range startDeps {
 		// If the dep doesn't exist, it couldn't have been rolled. Skip.
 		if _, ok := endDeps[k]; !ok {
@@ -229,7 +223,7 @@ func (m *midpointHandler) findRolledDep(startDeps, endDeps map[string]string) st
 }
 
 // determineRolledDep coordinates the search to find which dep may have been rolled for adjacent commits.
-func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitHash, endGitHash string) (*CombinedCommit, *Commit, *Commit, error) {
+func (m *MidpointHandler) determineRolledDep(ctx context.Context, url, startGitHash, endGitHash string) (*CombinedCommit, *Commit, *Commit, error) {
 	gc := m.getOrCreateRepo(url)
 
 	// Fetch deps for each git hash for the project
@@ -287,7 +281,7 @@ func (m *midpointHandler) determineRolledDep(ctx context.Context, url, startGitH
 //
 // It returns a Commit that can be used to search for middle commit in the DEPS and then construct
 // a CombinedCommit to build Chrome with modified DEPS.
-func (m *midpointHandler) FindDepsCommit(ctx context.Context, c *Commit, repoUrl string) (*Commit, error) {
+func (m *MidpointHandler) FindDepsCommit(ctx context.Context, c *Commit, repoUrl string) (*Commit, error) {
 	gc := m.getOrCreateRepo(c.RepositoryUrl)
 	deps, err := m.fetchGitDeps(ctx, gc, c.GitHash)
 	if err != nil {
@@ -305,41 +299,6 @@ func (m *midpointHandler) FindDepsCommit(ctx context.Context, c *Commit, repoUrl
 	}, nil
 }
 
-// DetermineNextCandidate finds the next commit for culprit detection for the repository inbetween the provided starting and ending git hash.
-// If the starting and ending git hashes are adjacent to each other, and if a DEPS roll has taken place, DetermineNextCandidate will search
-// the rolled repository for the next culprit and return information about the roll and the next commit in the Dependency, which should be built
-// on top of the Chromium commit specified as a deps override.
-//
-// TODO(b/326352320): Tentatively replace with FindMidCommit.
-func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, startGitHash, endGitHash string) (*CombinedCommit, error) {
-	left := &Commit{
-		RepositoryUrl: baseUrl,
-		GitHash:       startGitHash,
-	}
-
-	right := &Commit{
-		RepositoryUrl: baseUrl,
-		GitHash:       endGitHash,
-	}
-
-	c, err := m.FindMidCommit(ctx, left, right)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	// This is a middle commit from DEPS
-	if c.RepositoryUrl != baseUrl {
-		// Both right and left commits are the same except DEPS, we use the earlier commit as
-		// the baseline.
-		return &CombinedCommit{
-			Main:         left,
-			ModifiedDeps: []*Commit{c},
-		}, nil
-	}
-	return &CombinedCommit{
-		Main: c,
-	}, nil
-}
-
 // FindMidCommit finds the middle commit from the two given commits.
 //
 // It uses gitiles API to find the middle commit, and it also handles DEPS rolls when two commits
@@ -349,7 +308,7 @@ func (m *midpointHandler) DetermineNextCandidate(ctx context.Context, baseUrl, s
 //
 // Note the returned Commit can be a different repo because it looks at DEPS, but it only looks at
 // one level. If the DEPS of DEPS has rolls, it will not continue to search.
-func (m *midpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
+func (m *MidpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
 	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
 		return nil, skerr.Fmt("two commits are from different repos")
 	}

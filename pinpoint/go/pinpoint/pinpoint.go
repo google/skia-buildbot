@@ -64,7 +64,7 @@ type PinpointRunResponse struct {
 type pinpointHandlerImpl struct {
 	sc backends.SwarmingClient
 	bc build_chrome.BuildChromeClient
-	mc midpoint.MidpointHandler
+	mc *midpoint.MidpointHandler
 }
 
 // buildMetadata tracks relevant build Chrome metadata
@@ -501,7 +501,7 @@ func (c *commitData) notComparable() bool {
 // updateCommitsByResult takes the compare results and determines the next
 // steps in the workflow. Changes are made to CommitDataList depending
 // on what the compare verdict is.
-func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh midpoint.MidpointHandler, res *compare.CompareResults, left, right int, req *ppb.ScheduleBisectRequest) (*midpoint.Commit, error) {
+func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh *midpoint.MidpointHandler, res *compare.CompareResults, left, right int, req *ppb.ScheduleBisectRequest) (*midpoint.Commit, error) {
 	if left < 0 || right >= len(cdl.commits) {
 		return nil, skerr.Fmt("cannot update commitDataList with left %d and right %d index out of bounds", left, right)
 	}
@@ -519,24 +519,24 @@ func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backend
 // findMidpointOrCulprit updates the commitDataList with either a new midpoint
 // or returns a culprit if the midpoint is the same as the left commit
 // TODO(sunxiaodi@) create mock for MidpointHandler and create unit tests
-func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc midpoint.MidpointHandler, left, right int) (
+func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc *midpoint.MidpointHandler, left, right int) (
 	*midpoint.Commit, error) {
 	lcommit := cdl.commits[left].commit
 	rcommit := cdl.commits[right].commit
 	sklog.Debugf("commit left %s vs commit right %s", lcommit.GitHash[:7], rcommit.GitHash[:7])
-	m, err := mc.DetermineNextCandidate(ctx, chromiumSrcGit, lcommit.GitHash, rcommit.GitHash)
+	m, err := mc.FindMidCommit(ctx, lcommit, rcommit)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not get midpoint between [%d] %s and [%d] %s",
 			left, lcommit.GitHash, right, rcommit.GitHash)
 	}
 	// culprit found
-	if m.Main.GitHash == lcommit.GitHash {
+	if m.GitHash == lcommit.GitHash {
 		return rcommit, nil
 	}
 	// append mid commit in between left and right
 	cdl.commits = append(cdl.commits[:right], cdl.commits[left:]...)
 	cdl.commits[right] = &commitData{
-		commit: m.Main,
+		commit: m,
 	}
 	return nil, nil
 }
