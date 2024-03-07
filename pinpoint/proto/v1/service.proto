@@ -61,8 +61,8 @@ message ScheduleBisectRequest {
 	// The minimum number of test iterations run.
 	string initial_attempt_count = 16;
 
-	// A dict of key-value pairs used to filter the Jobs listings.
-	map<string,string> tags = 17;
+	// A JSON string encoded key-value pairs used to filter the Jobs listings.
+	string tags = 17;
 }
 
 message QueryBisectRequest {
