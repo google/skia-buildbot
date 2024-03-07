@@ -153,7 +153,7 @@ func RegisterPinpointHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleBisection", runtime.WithHTTPPathPattern("/v1/schedule"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleBisection", runtime.WithHTTPPathPattern("/pinpoint/v1/schedule"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -178,7 +178,7 @@ func RegisterPinpointHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/QueryBisection", runtime.WithHTTPPathPattern("/v1/query"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/QueryBisection", runtime.WithHTTPPathPattern("/pinpoint/v1/query"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -203,7 +203,7 @@ func RegisterPinpointHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/LegacyJobQuery", runtime.WithHTTPPathPattern("/v1/legacy-job"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/LegacyJobQuery", runtime.WithHTTPPathPattern("/pinpoint/v1/legacy-job"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -267,7 +267,7 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleBisection", runtime.WithHTTPPathPattern("/v1/schedule"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleBisection", runtime.WithHTTPPathPattern("/pinpoint/v1/schedule"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -289,7 +289,7 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/QueryBisection", runtime.WithHTTPPathPattern("/v1/query"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/QueryBisection", runtime.WithHTTPPathPattern("/pinpoint/v1/query"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -311,7 +311,7 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/LegacyJobQuery", runtime.WithHTTPPathPattern("/v1/legacy-job"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/LegacyJobQuery", runtime.WithHTTPPathPattern("/pinpoint/v1/legacy-job"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -331,11 +331,11 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_Pinpoint_ScheduleBisection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "schedule"}, ""))
+	pattern_Pinpoint_ScheduleBisection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "schedule"}, ""))
 
-	pattern_Pinpoint_QueryBisection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "query"}, ""))
+	pattern_Pinpoint_QueryBisection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "query"}, ""))
 
-	pattern_Pinpoint_LegacyJobQuery_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "legacy-job"}, ""))
+	pattern_Pinpoint_LegacyJobQuery_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "legacy-job"}, ""))
 )
 
 var (

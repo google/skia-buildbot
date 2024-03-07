@@ -166,19 +166,19 @@ message LegacyJobResponse {
 service Pinpoint {
   rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
     option (google.api.http) = {
-      post: "/v1/schedule"
+      post: "/pinpoint/v1/schedule"
     };
   }
 
   rpc QueryBisection(QueryBisectRequest) returns (BisectExecution) {
     option (google.api.http) = {
-      get: "/v1/query"
+      get: "/pinpoint/v1/query"
     };
   }
 
 	rpc LegacyJobQuery(LegacyJobRequest) returns (LegacyJobResponse) {
     option (google.api.http) = {
-      get: "/v1/legacy-job"
+      get: "/pinpoint/v1/legacy-job"
     };
   }
 
