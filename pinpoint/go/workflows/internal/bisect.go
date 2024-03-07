@@ -77,14 +77,15 @@ func (cm *commitMap) calcNewRuns(lower, higher *midpoint.CombinedCommit) (int32,
 	return lRunsToSchedule, hRunsToSchedule
 }
 
-func (cm *commitMap) updateRuns(commit *midpoint.CombinedCommit, cRun *CommitRun) {
+func (cm *commitMap) updateRuns(commit *midpoint.CombinedCommit, newRun *CommitRun) *CommitRun {
 	cr, ok := cm.get(commit)
 	if !ok {
-		cr = cRun
+		cr = newRun
 	} else {
-		cr.Runs = append(cr.Runs, cRun.Runs...)
+		cr.Runs = append(cr.Runs, newRun.Runs...)
 	}
 	cm.set(commit, cr)
+	return cr
 }
 
 func GetAllValues(ctx context.Context, cr *CommitRun, chart string) ([]float64, error) {
@@ -169,21 +170,24 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		cr := commitStack.Pop()
 		logger.Debug("popped commitRange: ", cr)
 		lRunsToSchedule, hRunsToSchedule := commitMap.calcNewRuns(cr.lower, cr.higher)
-		var lRun, hRun *CommitRun
+		var lf, hf workflow.ChildWorkflowFuture = nil, nil
 		if lRunsToSchedule > 0 {
-			lf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.lower))
-			if err := lf.Get(ctx, &lRun); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			commitMap.updateRuns(cr.lower, lRun)
+			lf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.lower))
 		}
 		if hRunsToSchedule > 0 {
-			hf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.higher))
-			if err := hf.Get(ctx, &hRun); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			commitMap.updateRuns(cr.higher, hRun)
+			hf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.higher))
 		}
+
+		var lRun, hRun *CommitRun
+		if err := lf.Get(ctx, &lRun); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err := hf.Get(ctx, &hRun); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		hRun = commitMap.updateRuns(cr.higher, hRun)
+		lRun = commitMap.updateRuns(cr.lower, lRun)
+
 		result, err := compareRuns(ctx, lRun, hRun, p.Request.Chart, magnitude)
 		if err != nil {
 			return nil, skerr.Wrap(err)
