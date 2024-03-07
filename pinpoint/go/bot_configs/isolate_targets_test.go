@@ -3,36 +3,35 @@ package bot_configs
 import (
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
-	. "go.chromium.org/luci/common/testing/assertions"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestGetIsolateTarget(t *testing.T) {
-	Convey(`OK`, t, func() {
-		Convey(`With configuration defined bot`, func() {
-			target, err := GetIsolateTarget("android-go-perf", "benchmark")
-			So(target, ShouldEqual, "performance_test_suite_android_clank_monochrome")
-			So(err, ShouldBeNil)
-		})
-		Convey(`With regex matching`, func() {
-			target, err := GetIsolateTarget("android-go_webview-perf", "benchmark")
-			So(target, ShouldEqual, "performance_webview_test_suite")
-			So(err, ShouldBeNil)
-		})
-		Convey(`With configuration unlisted bot`, func() {
-			target, err := GetIsolateTarget("linux-perf", "benchmark")
-			So(target, ShouldEqual, "performance_test_suite")
-			So(err, ShouldBeNil)
-		})
-		Convey(`With webrtc benchmark`, func() {
-			target, err := GetIsolateTarget("linux-perf", "webrtc_perf_tests")
-			So(target, ShouldEqual, "webrtc_perf_tests")
-			So(err, ShouldBeNil)
-		})
-	})
-	Convey(`Error with bot not listed in bot_configs`, t, func() {
-		target, err := GetIsolateTarget("fake device", "benchmark")
-		So(target, ShouldBeBlank)
-		So(err, ShouldErrLike, "Cannot get isolate target of bot")
-	})
+func TestGetIsolateTarget_WithConfigDefinedBot_ReturnsTarget(t *testing.T) {
+	target, err := GetIsolateTarget("android-go-perf", "benchmark")
+	assert.Equal(t, target, "performance_test_suite_android_clank_monochrome")
+	assert.NoError(t, err)
+}
+
+func TestGetIsolateTarget_WithRegexMatching_ReturnsTarget(t *testing.T) {
+	target, err := GetIsolateTarget("android-go_webview-perf", "benchmark")
+	assert.Equal(t, target, "performance_webview_test_suite")
+	assert.NoError(t, err)
+}
+
+func TestGetIsolateTarget_WithConfigUnlistedBot_ReturnsTarget(t *testing.T) {
+	target, err := GetIsolateTarget("linux-perf", "benchmark")
+	assert.Equal(t, target, "performance_test_suite")
+	assert.NoError(t, err)
+}
+
+func TestGetIsolateTarget_WithWebRTCBenchmark_ReturnsTarget(t *testing.T) {
+	target, err := GetIsolateTarget("linux-perf", "webrtc_perf_tests")
+	assert.Equal(t, target, "webrtc_perf_tests")
+	assert.NoError(t, err)
+}
+
+func TestGetIsolateTarget_BotNotListedInBotConfigs_ReturnsError(t *testing.T) {
+	_, err := GetIsolateTarget("fake device", "benchmark")
+	require.Error(t, err)
 }
