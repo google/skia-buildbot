@@ -12,4 +12,5 @@ go_test(
     name = "thresholds_test",
     srcs = ["thresholds_test.go"],
     embed = [":thresholds"],
+    deps = ["@com_github_stretchr_testify//assert"],
 )

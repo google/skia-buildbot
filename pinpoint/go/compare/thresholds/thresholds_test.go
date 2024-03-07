@@ -3,12 +3,12 @@ package thresholds
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLowThreshold(t *testing.T) {
-	if LowThreshold != 0.01 {
-		t.Errorf("Expected Low Threshold to be 0.01 but got %v", LowThreshold)
-	}
+	assert.Equal(t, 0.05, LowThreshold)
 }
 
 func TestHighThresholds(t *testing.T) {

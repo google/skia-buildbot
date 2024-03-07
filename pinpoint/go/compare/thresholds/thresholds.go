@@ -38,7 +38,7 @@ package thresholds
 // p-value is less than this value. It can happen that because we're generating
 // the table of "high" thresholds with randomised permutations, that this value
 // is actually higher than the "high" thresholds.
-const LowThreshold = 0.01
+const LowThreshold = 0.05
 
 type thresholds [][]float64
 
