@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
+	"golang.org/x/exp/slices"
 )
 
 func TestBuildConfigsAndParamSet(t *testing.T) {
@@ -123,6 +124,7 @@ func TestMatchingConfigsFromTraceIDs_TwoConfigsThatMatchesOneTrace_ReturnsBothCo
 func TestMatchingConfigsFromTraceIDs_GroupByMatchesTrace_ReturnsConfigWithRestrictedQuery(t *testing.T) {
 	config1 := alerts.NewConfig()
 	config1.Query = "arch=x86"
+	config1.SetIDFromInt64(123)
 	config1.GroupBy = "config"
 	traceIDs := []string{
 		",arch=x86,config=8888,",
@@ -131,10 +133,16 @@ func TestMatchingConfigsFromTraceIDs_GroupByMatchesTrace_ReturnsConfigWithRestri
 	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config1})
 	require.Len(t, matchingConfigs, 1)
 
-	configs := matchingConfigs[traceIDs[0]]
-	require.Equal(t, "arch=x86&config=8888", configs[0].Query)
-	_, err := url.ParseQuery(configs[0].Query)
-	require.NoError(t, err)
+	for config, traces := range matchingConfigs {
+		assert.Equal(t, config1.IDAsString, config.IDAsString)
+		assert.Equal(t, config1.GroupBy, config.GroupBy)
+
+		// Ensure that the query is updated inside the alert config
+		assert.NotEqual(t, config1.Query, config.Query)
+		assert.Equal(t, "arch=x86&config=8888", config.Query)
+
+		assert.Equal(t, traceIDs[0], traces[0])
+	}
 }
 
 func TestMatchingConfigsFromTraceIDs_MultipleGroupByPartsMatchTrace_ReturnsConfigWithRestrictedQueryUsingAllMatchingGroupByKeys(t *testing.T) {
@@ -147,10 +155,11 @@ func TestMatchingConfigsFromTraceIDs_MultipleGroupByPartsMatchTrace_ReturnsConfi
 	}
 	matchingConfigs := matchingConfigsFromTraceIDs(traceIDs, []*alerts.Alert{config})
 	require.Len(t, matchingConfigs, 1)
-	configs := matchingConfigs[traceIDs[0]]
-	require.Equal(t, "arch=x86&config=8888&device=Pixel4", configs[0].Query)
-	_, err := url.ParseQuery(configs[0].Query)
-	require.NoError(t, err)
+	for config := range matchingConfigs {
+		assert.Equal(t, "arch=x86&config=8888&device=Pixel4", config.Query)
+		_, err := url.ParseQuery(config.Query)
+		require.NoError(t, err)
+	}
 }
 
 type allMocks struct {
@@ -296,11 +305,14 @@ func TestTraceIdForIngestEvent_Matching(t *testing.T) {
 	ie := &ingestevents.IngestEvent{
 		TraceIDs: []string{",id=trace1,", ",id=trace2,"},
 	}
-	traceConfigsMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
+	configTracesMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
 	assert.Nil(t, err)
-	assert.NotNil(t, traceConfigsMap)
-	assert.Equal(t, allConfigs[0], traceConfigsMap[ie.TraceIDs[0]][0], "Expect the first trace to match first config.")
-	assert.Nil(t, traceConfigsMap[ie.TraceIDs[1]], "No match expected for second trace.")
+	assert.NotNil(t, configTracesMap)
+	for _, traces := range configTracesMap {
+		assert.Equal(t, ie.TraceIDs[0], traces[0], "Expect the first config to match first trace.")
+		assert.False(t, slices.Contains(traces, ie.TraceIDs[1]), "No match expected for second trace.")
+	}
+
 }
 
 func TestTraceIdForIngestEvent_MultipleConfigs_Matching(t *testing.T) {
@@ -322,8 +334,8 @@ func TestTraceIdForIngestEvent_MultipleConfigs_Matching(t *testing.T) {
 	ie := &ingestevents.IngestEvent{
 		TraceIDs: []string{",id=trace3,"},
 	}
-	traceConfigsMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
+	configTracesMap, err := c.getTraceIdConfigsForIngestEvent(ctx, ie)
 	assert.Nil(t, err)
-	assert.NotNil(t, traceConfigsMap)
-	assert.Equal(t, allConfigs, traceConfigsMap[ie.TraceIDs[0]])
+	assert.NotNil(t, configTracesMap)
+	assert.Equal(t, 2, len(configTracesMap))
 }

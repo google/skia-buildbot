@@ -43,6 +43,10 @@ const (
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 
 	doNotOverrideQuery = ""
+
+	// Max no of matching traces allowed to configure filtered querying when
+	// processing an alert config running in Individual mode.
+	maxTraceIdCountForIndividualQuery = 10000
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -200,7 +204,9 @@ type configsAndParamSet struct {
 	paramset paramtools.ReadOnlyParamSet
 }
 
-type traceConfigsMap map[string][]*alerts.Alert
+// configTracesMap provides a map of all the matching traces for a given
+// alert config.
+type configTracesMap map[alerts.Alert][]string
 
 // getPubSubSubscription returns a pubsub.Subscription or an error if the
 // subscription can't be established.
@@ -219,8 +225,8 @@ func (c *Continuous) callProvider(ctx context.Context) ([]*alerts.Alert, error) 
 	return c.provider.GetAllAlertConfigs(timeoutCtx, false)
 }
 
-func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context) <-chan traceConfigsMap {
-	ret := make(chan traceConfigsMap)
+func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context) <-chan configTracesMap {
+	ret := make(chan configTracesMap)
 	sub, err := c.getPubSubSubscription()
 	if err != nil {
 		sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
@@ -287,7 +293,7 @@ func (c *Continuous) buildTraceConfigsMapChannelEventDriven(ctx context.Context)
 	return ret
 }
 
-func (c *Continuous) getTraceIdConfigsForIngestEvent(ctx context.Context, ie *ingestevents.IngestEvent) (traceConfigsMap, error) {
+func (c *Continuous) getTraceIdConfigsForIngestEvent(ctx context.Context, ie *ingestevents.IngestEvent) (configTracesMap, error) {
 	// Filter all the configs down to just those that match
 	// the incoming traces.
 	configs, err := c.callProvider(ctx)
@@ -345,8 +351,8 @@ func (c *Continuous) buildConfigAndParamsetChannel(ctx context.Context) <-chan c
 // Note that the Alerts returned may contain more restrictive Query values if
 // the original Alert contains GroupBy parameters, while the original Alert
 // remains unchanged.
-func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) map[string][]*alerts.Alert {
-	matchingConfigs := map[string][]*alerts.Alert{}
+func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) configTracesMap {
+	matchingConfigs := map[alerts.Alert][]string{}
 	if len(traceIDs) == 0 {
 		return matchingConfigs
 	}
@@ -359,11 +365,6 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) map
 		// If any traceID matches the query in the alert then it's an alert we should run.
 		for _, key := range traceIDs {
 			if q.Matches(key) {
-				_, ok := matchingConfigs[key]
-				if !ok {
-					// Encountered this traceID for the first time.
-					matchingConfigs[key] = []*alerts.Alert{}
-				}
 				query, err := getConfigQueryForTrace(config, key)
 				if err != nil {
 					continue
@@ -371,7 +372,12 @@ func matchingConfigsFromTraceIDs(traceIDs []string, configs []*alerts.Alert) map
 
 				configCopy := *config
 				configCopy.Query = query
-				matchingConfigs[key] = append(matchingConfigs[key], &configCopy)
+				_, ok := matchingConfigs[configCopy]
+				if !ok {
+					// Encountered this traceID for the first time.
+					matchingConfigs[configCopy] = []string{}
+				}
+				matchingConfigs[configCopy] = append(matchingConfigs[configCopy], key)
 			}
 		}
 	}
@@ -420,29 +426,35 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 	// and a list of matching alert configs as the value. These are processed
 	// from the file that was just ingested and notification received over pubsub.
 	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(ctx) {
-		for traceId, configs := range traceConfigMap {
-			c.ProcessAlertConfigForTrace(ctx, traceId, configs)
+		for config, traces := range traceConfigMap {
+			c.ProcessAlertConfigForTraces(ctx, config, traces)
 		}
 	}
 }
 
 // ProcessAlertConfigForTrace runs the alert config on a specific trace id
-func (c *Continuous) ProcessAlertConfigForTrace(ctx context.Context, traceId string, configs []*alerts.Alert) {
-	sklog.Infof("Clustering over %d configs for trace %s", traceId, len(configs))
-	paramset := paramtools.NewParamSet()
-	paramset.AddParamsFromKey(traceId)
+func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
+	sklog.Infof("Clustering over %d traces for config %s", len(traceIds), config.IDAsString)
 
-	for _, cfg := range configs {
-		queryOverride := doNotOverrideQuery
-		// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
-		// we need to only query the paramset of the incoming data point instead of
-		// the entire query in the alert.
-		if cfg.Algo == types.StepFitGrouping {
+	queryOverride := doNotOverrideQuery
+	// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
+	// we need to only query the paramset of the incoming data point instead of
+	// the entire query in the alert.
+	if config.Algo == types.StepFitGrouping {
+		// If the no of traceids for this alert config is above the limit,
+		// we will simply run the entire query in the alert config
+		if len(traceIds) <= maxTraceIdCountForIndividualQuery {
+			paramset := paramtools.NewParamSet()
+
+			// Merge all the traceIds into a paramset
+			for _, traceId := range traceIds {
+				paramset.AddParamsFromKey(traceId)
+			}
 			queryOverride = c.urlProvider.GetQueryStringFromParameters(paramset)
 		}
-
-		c.ProcessAlertConfig(ctx, cfg, queryOverride)
 	}
+
+	c.ProcessAlertConfig(ctx, &config, queryOverride)
 }
 
 // RunContinuousClustering runs the regression detection on a continuous basis.

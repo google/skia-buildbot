@@ -54,5 +54,6 @@ go_test(
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_x_exp//slices",
     ],
 )
