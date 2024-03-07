@@ -7,16 +7,13 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//demos/go/frontend",
-        "//go/auth",
         "//go/common",
         "//go/git",
-        "//go/gitauth",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
         "@com_github_go_chi_chi_v5//:chi",
-        "@org_golang_x_oauth2//google",
     ],
 )
 

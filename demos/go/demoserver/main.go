@@ -14,13 +14,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/demos/go/frontend"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -34,7 +31,6 @@ const (
 func main() {
 	var (
 		port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-		local        = flag.Bool("local", false, "Is this running locally for development (use gcloud for auth)")
 		resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank ./dist will be used.")
 		repoURL      = flag.String("repo_url", "https://skia.googlesource.com/infra-internal", "The repo from where to fetch the demos. Defaults to https://skia.googlesource.com/infra-internal")
 		demosDir     = flag.String("demos_dir", "demos/internal", "The top level directory in the repo that holds the demos.")
@@ -47,9 +43,6 @@ func main() {
 	)
 
 	ctx := context.Background()
-	if err := setupGit(ctx, *local); err != nil {
-		sklog.Fatalf("Failed to setup git: %s", err)
-	}
 	// Create a threadsafe checkout to serve from.
 	checkoutDir, err := os.MkdirTemp("", "demos_repo")
 	if err != nil {
@@ -186,19 +179,4 @@ func (s *syncedDemos) demoHandler() func(http.ResponseWriter, *http.Request) {
 		defer s.RUnlock()
 		h.ServeHTTP(w, r)
 	}
-}
-
-// setupGit acquires necessary credentials to clone the repo.
-func setupGit(ctx context.Context, local bool) error {
-	// Start the gitauth package because we will need to read from infra-internal.
-	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit)
-	if err != nil {
-		return err
-	}
-	if !local {
-		if _, err := gitauth.New(ctx, ts, filepath.Join(os.TempDir(), "gitcookies"), true, ""); err != nil {
-			return skerr.Wrapf(err, "Failed to create git cookie updater")
-		}
-	}
-	return nil
 }
