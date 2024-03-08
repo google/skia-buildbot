@@ -161,7 +161,7 @@ func main() {
 	}
 
 	// Periodically log disk usage of the working directory.
-	ephemeral_storage.StartCustom(ctx, *workdir)
+	go ephemeral_storage.StartCustom(ctx, *workdir)
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
