@@ -80,7 +80,7 @@ func (cc *CombinedCommit) Key() string {
 	return key
 }
 
-func NewCombinedCommit(main *Commit, deps ...*Commit) *CombinedCommit {
+func NewCombinedCommit(main *Commit, deps []*Commit) *CombinedCommit {
 	return &CombinedCommit{
 		Main:         main,
 		ModifiedDeps: deps,

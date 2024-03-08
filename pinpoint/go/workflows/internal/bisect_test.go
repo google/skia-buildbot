@@ -60,7 +60,7 @@ func TestUpdateRuns_NewCommit_SetsNewRun(t *testing.T) {
 		},
 	}
 
-	cm := commitMap{}
+	cm := CommitMap{}
 	cm.updateRuns(commit, cRun)
 	actual, ok := cm.get(commit)
 	require.True(t, ok)
@@ -93,7 +93,7 @@ func TestUpdateRuns_ExistingCommit_AppendsNewRuns(t *testing.T) {
 	}
 	expected := append(cRuns.Runs, moreRuns.Runs...)
 
-	cm := commitMap{}
+	cm := CommitMap{}
 	cm.set(commit, cRuns)
 	cm.updateRuns(commit, moreRuns)
 	actual, ok := cm.get(commit)
@@ -119,7 +119,7 @@ func TestCalcNewRuns_BothEqual_MoreRunsForBoth(t *testing.T) {
 		hRuns := &CommitRun{
 			Runs: make([]*workflows.TestRun, runs),
 		}
-		cm := commitMap{}
+		cm := CommitMap{}
 		cm.set(lCommit, lRuns)
 		cm.set(hCommit, hRuns)
 		lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
@@ -153,7 +153,7 @@ func TestCalcNewRuns_160Runs_NoMoreNewRuns(t *testing.T) {
 		Runs: make([]*workflows.TestRun, runs),
 	}
 
-	cm := commitMap{}
+	cm := CommitMap{}
 	cm.set(lCommit, lRuns)
 	cm.set(hCommit, hRuns)
 	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
@@ -178,7 +178,7 @@ func TestCalcNewRuns_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t 
 	hRuns := &CommitRun{
 		Runs: make([]*workflows.TestRun, 0),
 	}
-	cm := commitMap{}
+	cm := CommitMap{}
 	cm.set(lCommit, lRuns)
 	cm.set(hCommit, hRuns)
 	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
@@ -203,7 +203,7 @@ func TestCalcNewRuns_HigherCommitMoreRuns_OnlySchedulesMoreRunsForLowerCommit(t 
 	hRuns := &CommitRun{
 		Runs: make([]*workflows.TestRun, 25),
 	}
-	cm := commitMap{}
+	cm := CommitMap{}
 	cm.set(lCommit, lRuns)
 	cm.set(hCommit, hRuns)
 	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)

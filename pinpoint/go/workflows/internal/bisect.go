@@ -33,23 +33,23 @@ var (
 	benchmarkRunIterations = []int32{10, 20, 40, 80, 160}
 )
 
-type commitRange struct {
-	lower  *midpoint.CombinedCommit
-	higher *midpoint.CombinedCommit
+type CommitRange struct {
+	Lower  *midpoint.CombinedCommit
+	Higher *midpoint.CombinedCommit
 }
 
-type commitMap map[string]*CommitRun
+type CommitMap map[string]*CommitRun
 
-func (cm *commitMap) get(commit *midpoint.CombinedCommit) (*CommitRun, bool) {
+func (cm *CommitMap) get(commit *midpoint.CombinedCommit) (*CommitRun, bool) {
 	cr, ok := (*cm)[commit.Key()]
 	return cr, ok
 }
 
-func (cm *commitMap) set(commit *midpoint.CombinedCommit, cr *CommitRun) {
+func (cm *CommitMap) set(commit *midpoint.CombinedCommit, cr *CommitRun) {
 	(*cm)[commit.Key()] = cr
 }
 
-func (cm *commitMap) calcNewRuns(lower, higher *midpoint.CombinedCommit) (int32, int32) {
+func (cm *CommitMap) calcNewRuns(lower, higher *midpoint.CombinedCommit) (int32, int32) {
 	lRunCount, hRunCount := int32(0), int32(0)
 	lr, ok := cm.get(lower)
 	if ok {
@@ -77,7 +77,7 @@ func (cm *commitMap) calcNewRuns(lower, higher *midpoint.CombinedCommit) (int32,
 	return lRunsToSchedule, hRunsToSchedule
 }
 
-func (cm *commitMap) updateRuns(commit *midpoint.CombinedCommit, newRun *CommitRun) *CommitRun {
+func (cm *CommitMap) updateRuns(commit *midpoint.CombinedCommit, newRun *CommitRun) *CommitRun {
 	cr, ok := cm.get(commit)
 	if !ok {
 		cr = newRun
@@ -92,20 +92,20 @@ func GetAllValues(ctx context.Context, cr *CommitRun, chart string) ([]float64, 
 	return cr.AllValues(chart), nil
 }
 
-// FindMidCommit is an Activity that finds the middle point of two commits.
+// FindMidCommitActivity is an Activity that finds the middle point of two commits.
 //
 // TODO(b/326352320): Move this into its own file.
-func FindMidCommit(ctx context.Context, cr commitRange) (*midpoint.CombinedCommit, error) {
+func FindMidCommitActivity(ctx context.Context, cr *CommitRange) (*midpoint.CombinedCommit, error) {
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-	m, err := midpoint.New(ctx, c).FindMidCommit(ctx, cr.lower.Main, cr.higher.Main)
+	m, err := midpoint.New(ctx, c).FindMidCommit(ctx, cr.Lower.Main, cr.Higher.Main)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return midpoint.NewCombinedCommit(m), nil
+	return midpoint.NewCombinedCommit(m, nil), nil
 }
 
 func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
@@ -146,18 +146,23 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 
 	logger := workflow.GetLogger(ctx)
 
+	// TODO(sunxiaodi@) Add the job ID to the bisection request
+	// so that tasks can be recycled to assist with debugging
+	// This task also requires edits to single commit runner.
 	jobID := uuid.New().String()
 	e := &pb.BisectExecution{
 		JobId: jobID,
 	}
 
-	commitMap := &commitMap{}
-	commitStack := stack.New[*commitRange]()
+	CommitMap := &CommitMap{}
+	commitStack := stack.New[*CommitRange]()
 
-	commitStack.Push(&commitRange{
-		lower:  midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.StartGitHash), nil),
-		higher: midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
+	commitStack.Push(&CommitRange{
+		Lower:  midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.StartGitHash), nil),
+		Higher: midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
 	})
+	// TODO(sunxiaodi@) allow for optional comparison magnitude. If nil
+	// assume the normalized magnitude = 1.0
 	magnitude, err := strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -166,27 +171,36 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	// TODO(b/322203189): Store and order the new commits so that the data can be relayed
 	// to the UI
 	for commitStack.Size() > 0 {
-		logger.Debug("current commitStack: ", commitStack)
+		logger.Debug("current commitStack: ", *commitStack)
 		cr := commitStack.Pop()
-		logger.Debug("popped commitRange: ", cr)
-		lRunsToSchedule, hRunsToSchedule := commitMap.calcNewRuns(cr.lower, cr.higher)
+		logger.Debug("popped CommitRange: ", *cr)
+		lRunsToSchedule, hRunsToSchedule := CommitMap.calcNewRuns(cr.Lower, cr.Higher)
 		var lf, hf workflow.ChildWorkflowFuture = nil, nil
 		if lRunsToSchedule > 0 {
-			lf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.lower))
+			lf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.Lower))
 		}
 		if hRunsToSchedule > 0 {
-			hf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.higher))
+			hf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.Higher))
 		}
 
 		var lRun, hRun *CommitRun
-		if err := lf.Get(ctx, &lRun); err != nil {
-			return nil, skerr.Wrap(err)
+		if lf != nil {
+			if err := lf.Get(ctx, &lRun); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			lRun = CommitMap.updateRuns(cr.Lower, lRun)
+		} else {
+			lRun, _ = CommitMap.get(cr.Lower)
 		}
-		if err := hf.Get(ctx, &hRun); err != nil {
-			return nil, skerr.Wrap(err)
+
+		if hf != nil {
+			if err := hf.Get(ctx, &hRun); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			hRun = CommitMap.updateRuns(cr.Higher, hRun)
+		} else {
+			hRun, _ = CommitMap.get(cr.Higher)
 		}
-		hRun = commitMap.updateRuns(cr.higher, hRun)
-		lRun = commitMap.updateRuns(cr.lower, lRun)
 
 		result, err := compareRuns(ctx, lRun, hRun, p.Request.Chart, magnitude)
 		if err != nil {
@@ -194,35 +208,45 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		}
 		switch result.Verdict {
 		case compare.Unknown:
-			commitStack.Push(&commitRange{
-				lower:  cr.lower,
-				higher: cr.higher,
+			commitStack.Push(&CommitRange{
+				Lower:  cr.Lower,
+				Higher: cr.Higher,
 			})
-			logger.Debug("pushed commitRange: ", commitStack.Peek())
+			logger.Debug("pushed CommitRange: ", *commitStack.Peek())
 		case compare.Different:
 			// TODO(b/326352320): If the middle point has a different repo, it means that it looks into
 			//	the autoroll and there are changes in DEPS. We need to construct a CombinedCommit so it
 			//	can currently build with modified deps.
 			var mid *midpoint.CombinedCommit
-			if err := workflow.ExecuteActivity(ctx, FindMidCommit, cr.lower, cr.higher).Get(ctx, &mid); err != nil {
+			if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, cr).Get(ctx, &mid); err != nil {
 				return nil, skerr.Wrap(err)
 			}
 			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
 			// TODO(b/327019543): Create midpoint equality function to compare two CombinedCommits
-			if mid.GetMainGitHash() == cr.lower.GetMainGitHash() {
-				e.Commit = cr.higher.GetMainGitHash()
+			if mid.GetMainGitHash() == cr.Lower.GetMainGitHash() {
+				e.Commit = cr.Higher.GetMainGitHash()
 				break
 			}
-			commitStack.Push(&commitRange{
-				lower:  cr.lower,
-				higher: mid,
+			// TODO(sunxiaodi@): When adding commits, the number of runs needed for individual
+			// commits need to be included. Without it, the following can happen:
+			// Compare A & C, get midpoint B.
+			// Push A & B
+			// Push B & C
+			// Pop B & C
+			// Run B 10 times so that it equals number of runs of C
+			// Pop A & B
+			// Run A & B 10 times because both A & B have 10 runs already.
+			// What should happen instead is after A & B pop, neither runs more tests.
+			commitStack.Push(&CommitRange{
+				Lower:  cr.Lower,
+				Higher: mid,
 			})
-			logger.Debug("pushed commitRange: ", commitStack.Peek())
-			commitStack.Push(&commitRange{
-				lower:  mid,
-				higher: cr.higher,
+			logger.Debug("pushed CommitRange: ", commitStack.Peek())
+			commitStack.Push(&CommitRange{
+				Lower:  mid,
+				Higher: cr.Higher,
 			})
-			logger.Debug("pushed commitRange: ", commitStack.Peek())
+			logger.Debug("pushed CommitRange: ", commitStack.Peek())
 		}
 	}
 	return e, nil

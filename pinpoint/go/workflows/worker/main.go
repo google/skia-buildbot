@@ -44,6 +44,7 @@ func main() {
 	w.RegisterWorkflowWithOptions(internal.SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	w.RegisterActivity(internal.ComparePerformanceActivity)
+	w.RegisterActivity(internal.FindMidCommitActivity)
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
 
 	err = w.Run(worker.InterruptCh())

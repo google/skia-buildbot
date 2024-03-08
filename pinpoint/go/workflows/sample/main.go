@@ -14,15 +14,19 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
+
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 var (
 	// Run the following command to portforward Temporal service so the client can connect to it.
 	// kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233
-	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
-	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
-	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
-	commit    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
+	hostPort                = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	namespace               = flag.String("namespace", "default", "The namespace the worker registered to.")
+	taskQueue               = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
+	commit                  = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
+	triggerBisectFlag       = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
+	triggerSingleCommitFlag = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
 )
 
 var workflowOptions = client.StartWorkflowOptions{
@@ -34,6 +38,39 @@ var workflowOptions = client.StartWorkflowOptions{
 		MaximumInterval:    5 * time.Minute,
 		MaximumAttempts:    1,
 	},
+}
+
+func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
+	ctx := context.Background()
+	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/17ab3cfa9e0000
+	p := &workflows.BisectParams{
+		Request: &pb.ScheduleBisectRequest{
+			ComparisonMode:      "performance",
+			StartGitHash:        "8f2037564966f83e53701d157622dd42b931a13f", // 1266617
+			EndGitHash:          "049ab03450dd980d3afc27f13edfef9f510ed819", // 1266622
+			Configuration:       "win-11-perf",
+			Benchmark:           "system_health.memory_desktop",
+			Story:               "load:chrome:blank",
+			Chart:               "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
+			ComparisonMagnitude: "786432.0",
+			// TODO(@sunxiaodi): support optional aggregation method
+			AggregationMethod: "mean",
+			Project:           "chromium",
+		},
+	}
+	var be *pb.BisectExecution
+	we, err := c.ExecuteWorkflow(ctx, workflowOptions, internal.BisectWorkflow, p)
+	if err != nil {
+		sklog.Fatalf("Unable to execute workflow: %v", err)
+		return nil
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &be); err != nil {
+		sklog.Fatalf("Unable to get result: %v", err)
+		return nil
+	}
+	return be
 }
 
 func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
@@ -106,6 +143,12 @@ func main() {
 	}
 	defer c.Close()
 
-	result := triggerSingleCommitRunner(c)
-	sklog.Infof("Workflow result: %v", spew.Sdump(result))
+	if *triggerBisectFlag {
+		result := triggerBisectWorkflow(c)
+		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+	}
+	if *triggerSingleCommitFlag {
+		result := triggerSingleCommitRunner(c)
+		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+	}
 }
