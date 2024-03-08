@@ -91,14 +91,10 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 				if err != nil {
 					return err
 				}
-				// Update instances of "image/path@sha256:digest"
-				imageRegexes = append(imageRegexes, regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image)))
-				imageReplace = append(imageReplace, fmt.Sprintf("%s@%s", image.Image, manifest.Digest))
 
-				// Replace Bazel container_pull specifications.
-				bazelRegex, bazelReplace := bazelRegexAndReplaceForImage(image, manifest.Digest)
-				imageRegexes = append(imageRegexes, bazelRegex)
-				imageReplace = append(imageReplace, bazelReplace)
+				newReg, newRepl := findRegexesAndReplaces(image, manifest.Digest)
+				imageRegexes = append(imageRegexes, newReg...)
+				imageReplace = append(imageReplace, newRepl...)
 			}
 		}
 		return filepath.WalkDir(checkoutDir, func(path string, d fs.DirEntry, err error) error {
@@ -147,7 +143,17 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 	return cd.MaybeUploadCL(ctx, checkoutDir, commitSubject, srcRepo, srcCommit, louhiPubsubProject, executionID)
 }
 
-func bazelRegexAndReplaceForImage(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {
+func findRegexesAndReplaces(image *SingleImageInfo, digest string) ([]*regexp.Regexp, []string) {
+	// Update instances of "image/path@sha256:digest"
+	ymlRegex := regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image))
+	ymlReplace := fmt.Sprintf("%s@%s", image.Image, digest)
+
+	// Replace Bazel container_pull specifications.
+	cpRegex, cpReplace := bazelRegexAndReplaceForContainerPull(image, digest)
+	return []*regexp.Regexp{ymlRegex, cpRegex}, []string{ymlReplace, cpReplace}
+}
+
+func bazelRegexAndReplaceForContainerPull(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {
 	const regexTmpl = `(container_pull\(\s*name\s*=\s*"%s",\s*digest\s*=\s*)"sha256:[a-f0-9]+",`
 	regex := regexp.MustCompile(fmt.Sprintf(regexTmpl, path.Base(image.Image)))
 

@@ -23,8 +23,25 @@ import (
 	"go.skia.org/infra/task_driver/go/td"
 )
 
-func TestBazelRegexAndReplaceForImage(t *testing.T) {
-	const fileContents = `# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
+func TestFindRegexesAndReplaces_ReplacesTargetImageOnly(t *testing.T) {
+	test := func(name, imageName, newImageID, beforeContents, expectedContents string) {
+		t.Run(name, func(t *testing.T) {
+			image := &SingleImageInfo{
+				Image: imageName,
+				Tag:   "unused",
+			}
+			regexes, replaces := findRegexesAndReplaces(image, newImageID)
+			require.Len(t, regexes, len(replaces))
+			updatedContents := beforeContents
+			for i := 0; i < len(replaces); i++ {
+				updatedContents = regexes[i].ReplaceAllString(updatedContents, replaces[i])
+			}
+			assert.Equal(t, expectedContents, updatedContents)
+		})
+	}
+
+	test("container_pull one affected", "gcr.io/skia-public/cd-base", "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71",
+		`# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
 # skia_app_container macro.
 container_pull(
     name = "base-cipd",
@@ -40,8 +57,8 @@ container_pull(
     digest = "sha256:17e18164238a4162ce2c30b7328a7e44fbe569e56cab212ada424dc7378c1f5f",
     registry = "gcr.io",
     repository = "skia-public/cd-base",
-)`
-	const expectedContents = `# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
+)`,
+		`# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
 # skia_app_container macro.
 container_pull(
     name = "base-cipd",
@@ -57,14 +74,63 @@ container_pull(
     digest = "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71",
     registry = "gcr.io",
     repository = "skia-public/cd-base",
-)`
-	image := &SingleImageInfo{
-		Image: "gcr.io/skia-public/cd-base",
-		Tag:   "unused",
-	}
-	regex, replace := bazelRegexAndReplaceForImage(image, "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71")
-	updatedContents := regex.ReplaceAllString(fileContents, replace)
-	require.Equal(t, expectedContents, updatedContents)
+)`)
+
+	// This is a snippet of a yaml file used to configure an app. It should be changed because
+	// it matches the target image.
+	test("yaml_file matches", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+		`
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000 # aka skia
+      containers:
+        - name: ctfe
+          image: gcr.io/skia-public/ctfe@sha256:01b3fbdff648bb45020da10ab2ddecd7665a15e24b45ccc1fcacc06cbef1648c
+          args:
+            - '--namespace=cluster-telemetry'
+            - '--project_name=skia-public'
+            - '--host=ct.skia.org'
+            - '--port=:7000'
+            - '--internal_port=:9000'
+            - '--prom_port=:20000'
+            - '--resources_dir=/usr/local/share/ctfe/dist/'
+            - '--enable_autoscaler'`,
+		`
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000 # aka skia
+      containers:
+        - name: ctfe
+          image: gcr.io/skia-public/ctfe@sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+          args:
+            - '--namespace=cluster-telemetry'
+            - '--project_name=skia-public'
+            - '--host=ct.skia.org'
+            - '--port=:7000'
+            - '--internal_port=:9000'
+            - '--prom_port=:20000'
+            - '--resources_dir=/usr/local/share/ctfe/dist/'
+            - '--enable_autoscaler'`)
+
+	// Another snippet of yaml, but this is not the correct image, so it should be unchanged.
+	const shouldBeUnchanged = `
+      serviceAccountName: codesize
+      containers:
+        - name: codesizeserver
+          image: gcr.io/skia-public/codesizeserver@sha256:36d79c285dacc304d031c7a7cfaef4660c9e114a709c51adfb88d3cb357d9b74
+          args:
+            - '--resources_dir=/usr/local/share/codesizeserver/dist'
+            - '--port=:8000'
+            - '--prom_port=:20000'
+          ports:
+            - containerPort: 20000`
+	test("yaml_file no match", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+		shouldBeUnchanged, shouldBeUnchanged)
+
 }
 
 const fakeBuildImageJSON = `{"images":[{"image":"gcr.io/skia-public/envoy_skia_org","tag":"2023-07-01T02_03_04Z-louhi-aabbccd-clean"}]}
