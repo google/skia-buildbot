@@ -83,3 +83,18 @@ skia_app_container(
     entrypoint = "/backup.sh",
     repository = "skia-public/perf-cockroachdb-backup",
 )
+
+skia_app_container(
+    name = "backendserver",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin/backendserver": [
+            [
+                "//perf/go/backend/backendserver:backendserver",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/backendserver",
+    repository = "skia-public/backendserver",
+)
