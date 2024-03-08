@@ -113,10 +113,6 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	// Periodically log disk usage of the working directory.
-	ctx := context.Background()
-	ephemeral_storage.StartCustom(ctx, *workdir)
-
 	// Decode the config.
 	if (*configContents == "" && *configFile == "") || (*configContents != "" && *configFile != "") {
 		sklog.Fatal("Exactly one of --config or --config_file is required.")
@@ -144,6 +140,7 @@ func main() {
 	if *validateConfig {
 		return
 	}
+	ctx := context.Background()
 	if *genK8sConfig != "" {
 		split := strings.Split(*genK8sConfig, ":")
 		if len(split) != 2 {
@@ -162,6 +159,9 @@ func main() {
 			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
 		}
 	}
+
+	// Periodically log disk usage of the working directory.
+	ephemeral_storage.StartCustom(ctx, *workdir)
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
