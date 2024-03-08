@@ -1,13 +1,14 @@
 # Does the absolute minimum for a jumphost.
 #
 # Once this is run then the 'jumphost.yml' playbook can be run to finish/update the
-# machine.
+# machine. For easier setup, you may want to copy *your* public SSH key into
+# /home/root/.ssh/authorized_keys, as the --ask-pass option can be a bit... touchy.
 - hosts: jumphosts
   user: root
   gather_facts: false
 
   pre_tasks:
-    # First install python3 and sudo so we can use more issue more than 'raw' commands.
+    # First install python3 and sudo so we can issue more than 'raw' commands.
     - name: install python3 and sudo
       raw: 'apt update && apt -y install sudo python3'
 
