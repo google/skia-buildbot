@@ -14,6 +14,6 @@ func TestGetBenchmark_TelemetryTestBuilder_TelemetryTests(t *testing.T) {
 	}
 
 	c, b := "fake-commit", "fake-browser"
-	expect(c, "android-go-perf", b, "components_perftests", "", "", "*run_benchmark.telemetryTest")
+	expect(c, "android-pixel6-perf", b, "components_perftests", "", "", "*run_benchmark.telemetryTest")
 	expect(c, "android-pixel2_webview-perf", b, "performance_browser_tests", "story", "all", "*run_benchmark.telemetryTest")
 }

@@ -8,13 +8,13 @@ import (
 )
 
 func TestGetIsolateTarget_WithConfigDefinedBot_ReturnsTarget(t *testing.T) {
-	target, err := GetIsolateTarget("android-go-perf", "benchmark")
-	assert.Equal(t, target, "performance_test_suite_android_clank_monochrome")
+	target, err := GetIsolateTarget("android-pixel4-perf", "benchmark")
+	assert.Equal(t, target, "performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle")
 	assert.NoError(t, err)
 }
 
 func TestGetIsolateTarget_WithRegexMatching_ReturnsTarget(t *testing.T) {
-	target, err := GetIsolateTarget("android-go_webview-perf", "benchmark")
+	target, err := GetIsolateTarget("android-pixel4_webview-perf", "benchmark")
 	assert.Equal(t, target, "performance_webview_test_suite")
 	assert.NoError(t, err)
 }

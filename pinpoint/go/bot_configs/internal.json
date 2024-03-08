@@ -11,27 +11,6 @@
   "linux-release": {
     "alias": "linux-perf"
   },
-  "android-go-perf-pgo": {
-    "browser": "android-chrome",
-    "bucket": "luci.chrome.try",
-    "builder": "Android Compile Perf PGO",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "gobo"
-      },
-      {
-        "key": "device_os",
-        "value": "OMB1.180119.001"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
   "android-go-wembley-perf": {
     "browser": "android-trichrome-bundle",
     "bucket": "luci.chrome.try",

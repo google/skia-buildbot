@@ -8,7 +8,7 @@ import (
 
 func TestGetCommand_WaterfallGTest_TestCommand(t *testing.T) {
 	c := "01bfa421eee3c76bbbf32510343e074060051c9f"
-	b, err := NewBenchmarkTest(c, "android-go-perf", "", "components_perftests", "", "")
+	b, err := NewBenchmarkTest(c, "android-pixel6-perf", "", "components_perftests", "", "")
 
 	assert.NoError(t, err)
 

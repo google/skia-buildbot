@@ -1,7 +1,4 @@
 {
-  "Android Go": {
-    "alias": "android-go-perf"
-  },
   "Win10 FYI Release XR Perf (NVIDIA)": {
     "browser": "release",
     "bucket": "luci.chromium.try",
@@ -22,48 +19,6 @@
     ],
     "repository": "chromium",
     "swarming_server": "https://chromium-swarm.appspot.com"
-  },
-  "android-go-perf": {
-    "browser": "android-chrome",
-    "bucket": "luci.chrome.try",
-    "builder": "Android Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "gobo"
-      },
-      {
-        "key": "device_os",
-        "value": "OMB1.180119.001"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "android-go_webview-perf": {
-    "browser": "android-webview-google",
-    "bucket": "luci.chrome.try",
-    "builder": "Android Compile Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "gobo"
-      },
-      {
-        "key": "device_os",
-        "value": "OMB1.180119.001"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
   },
   "android-pixel2-perf": {
     "browser": "android-chrome-64-bundle",

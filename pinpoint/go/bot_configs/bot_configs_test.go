@@ -24,13 +24,13 @@ func TestGetBotConfig(t *testing.T) {
 		},
 		{
 			name:          "internal bot not found with external only data",
-			bot:           "android-go-perf-pgo",
+			bot:           "mac-laptop_high_end-perf-pgo",
 			externalOnly:  true,
 			expectedError: true,
 		},
 		{
 			name:          "internal bot found with internal data",
-			bot:           "android-go-perf-pgo",
+			bot:           "mac-laptop_high_end-perf-pgo",
 			externalOnly:  false,
 			expectedError: false,
 		},
@@ -58,7 +58,7 @@ func TestValidateBotConfigs(t *testing.T) {
 }
 
 func TestGetBotConfig_AliasedBuilder_CorrectReference(t *testing.T) {
-	cfg, err := GetBotConfig("Android Go", true)
+	cfg, err := GetBotConfig("mojo-linux-perf", true)
 	assert.NoError(t, err)
-	assert.Equal(t, "android-go-perf", cfg.Bot)
+	assert.Equal(t, "linux-perf-fyi", cfg.Bot)
 }
