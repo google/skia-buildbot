@@ -95,6 +95,6 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "/usr/local/bin/backendserver",
+    entrypoint = "/usr/local/bin/backendserver/backendserver",
     repository = "skia-public/backendserver",
 )
