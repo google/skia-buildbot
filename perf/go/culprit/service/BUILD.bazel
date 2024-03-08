@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "service",
+    srcs = ["service.go"],
+    importpath = "go.skia.org/infra/perf/go/culprit/service",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/backend/shared",
+        "//perf/go/culprit:store",
+        "//perf/go/culprit/proto",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "service_test",
+    srcs = ["service_test.go"],
+    embed = [":service"],
+    deps = [
+        "//perf/go/culprit/mocks",
+        "//perf/go/culprit/proto",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
