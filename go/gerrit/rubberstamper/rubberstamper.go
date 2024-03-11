@@ -65,22 +65,12 @@ func RandomChangeID(ctx context.Context) string {
 
 type contextKeyType string
 
-// ContextKey is used by tests to make the time deterministic.
+// contextKey is used by tests to make the ChangeId deterministic.
 //
 // That is, in a test, you can write a value into a context to use as the return
-// value of Now().
+// value of RandomChangeID().
 //
-//	var mockTime = time.Unix(0, 12).UTC()
-//	ctx = context.WithValue(ctx, now.ContextKey, mockTime)
-//
-// The value set can also be a function that returns a time.Time.
-//
-//	   var monotonicTime int64 = 0
-//	   var mockTimeProvider = func() time.Time {
-//	     monotonicTime += 1
-//		    return time.Unix(monotonicTime, 0).UTC()
-//	   }
-//	   ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(mockTimeProvider))
+//	ctx = rubberstamper.WithDeterministicChangeID(ctx, "I00112233445566778899aabbccddeeff00112233")
 const contextKey contextKeyType = "deterministicChangeID"
 
 func WithDeterministicChangeID(ctx context.Context, changeID string) context.Context {
