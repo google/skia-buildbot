@@ -1,0 +1,37 @@
+{
+  "URL": "https://emscripten-perf.skia.org",
+  "contact": "https://github.com/emscripten-core/emscripten/issues",
+  "trace_sample_proportion": 0.01,
+  "bug_host_url": "",
+  "filter_parent_traces": true,
+  "notify_config": {
+    "notifications": "none"
+  },
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER"
+  },
+  "data_store_config": {
+    "datastore_type": "cockroachdb",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/emscripten_int?sslmode=disable",
+    "tile_size": 256
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-emscripten-perf",
+      "subscription": "perf-ingestion-emscripten-perf-prod",
+      "sources": [
+        "gs://emscripten-perf-prod/ingest"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "provider": "gitiles",
+    "url": "https://chromium.googlesource.com/emscripten-releases/",
+    "dir": "/tmp/emscripten",
+    "debounce_commit_url": false
+  }
+}
