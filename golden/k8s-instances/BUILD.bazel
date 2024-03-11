@@ -1,0 +1,21 @@
+load(":config_files.bzl", "config_files")
+
+FULL_INSTANCES = [
+    "angle",
+    "chrome",
+    "cros-tast",
+    "eskia",
+    "flutter",
+    "flutter-engine",
+    "lottie",
+    "lottie-spec",
+    "pdfium",
+    "skia",
+    "skia-infra",
+]
+
+filegroup(
+    name = "baseline_configs",
+    srcs = config_files("baselineserver", FULL_INSTANCES),
+    visibility = ["//golden:__pkg__"],
+)

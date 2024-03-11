@@ -42,6 +42,12 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:baseline_configs",
+                "0444",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/baseline_server",
     repository = "skia-public/gold-baseline-server",
