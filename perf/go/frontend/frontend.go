@@ -1902,7 +1902,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 
 	// JSON handlers.
 	// Pinpoint JSON API handlers - /pinpoint/v1/...
-	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New(nil)); err != nil {
+	if ph, err := pp_service.NewJSONHandler(context.Background(), pp_service.New(nil, nil)); err != nil {
 		// Only log the error, the service should continue to run.
 		sklog.Error("Fail to initalize pinpoint service %s.", err)
 	} else {

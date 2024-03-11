@@ -2,62 +2,66 @@ package service
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
+	"go.skia.org/infra/pinpoint/go/service/mocks"
+	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	temporal_mocks "go.temporal.io/sdk/mocks"
 	"golang.org/x/time/rate"
 )
 
-func TestJSONHandler_UnknownEndpoints_ShouldReturn404(t *testing.T) {
-	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Inf, 0))
+func newTemporalMock(t *testing.T) (*mocks.TemporalProvider, *temporal_mocks.Client) {
+	tcm := &temporal_mocks.Client{}
+	tcm.Mock.Test(t)
 
-	jh, err := NewJSONHandler(ctx, svc)
-	require.Nil(t, err)
-
-	rr := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/pinpoint/v1/fake-endpoint", nil)
-	require.Nil(t, err)
-
-	jh.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusNotFound, rr.Code)
+	tpm := mocks.NewTemporalProvider(t)
+	t.Cleanup(func() { tcm.AssertExpectations(t) })
+	return tpm, tcm
 }
 
-// TODO(b/322047067): Fix this and improve test coverage.
-func TestJSONHandler_KnownEndpoints_ShouldForwardRequests(t *testing.T) {
+func newWorkflowRunMock(t *testing.T, wid string) *temporal_mocks.WorkflowRun {
+	wfm := &temporal_mocks.WorkflowRun{}
+	wfm.Test(t)
+	wfm.On("GetID").Return(wid)
+	t.Cleanup(func() { wfm.AssertExpectations(t) })
+	return wfm
+}
+
+func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
+	counter := int32(0)
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient").Return(tcm, func() {
+		counter += 1
+	}, nil)
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.Bisect, mock.Anything).Return(wfm, nil)
+
 	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
-	jh, err := NewJSONHandler(ctx, svc)
-	require.Nil(t, err)
-
-	expect := func(method, endpoint, body string, want int) {
-		rr := httptest.NewRecorder()
-		req, err := http.NewRequest(method, endpoint, strings.NewReader(body))
-		assert.Nil(t, err)
-		jh.ServeHTTP(rr, req)
-		assert.Equal(t, want, rr.Code)
-	}
-
-	// TODO(b/322047067): Return code should be 200 with actual response body.
-	expect("POST", "/pinpoint/v1/schedule", "{}", http.StatusNotImplemented)
-	expect("GET", "/pinpoint/v1/query", "", http.StatusNotImplemented)
-	expect("GET", "/pinpoint/v1/legacy-job", "", http.StatusNotImplemented)
+	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{
+		StartGitHash: "fake-start",
+		EndGitHash:   "fake-end",
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, counter, "CleanUp should be called exactly once.")
 }
 
 func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
 
 	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
-	// TODO(b/322047067): empty requests should return a response with reasons.
-	assert.ErrorContains(t, err, "not implemented")
+	// invalid request should be rate limited.
+	assert.ErrorContains(t, err, "git hash is empty")
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	assert.Nil(t, resp)
@@ -65,20 +69,22 @@ func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
 }
 
 func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
+
 	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	assert.Nil(t, resp)
-	// TODO(b/322047067): empty requests should return a response with reasons.
-	assert.ErrorContains(t, err, "not implemented")
+	assert.ErrorContains(t, err, "git hash is empty")
 
 	// TODO(b/322047067): Add requests with invalid fields
 }
 
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
 	expect := func(req *pb.QueryBisectRequest, want *pb.BisectExecution, desc string) {
 		resp, err := svc.QueryBisection(ctx, req)
@@ -97,8 +103,9 @@ func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
 }
 
 func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(rate.NewLimiter(rate.Inf, 0))
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.QueryBisection(ctx, &pb.QueryBisectRequest{
 		JobId: "non-exist ID",
