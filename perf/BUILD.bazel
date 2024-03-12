@@ -94,6 +94,12 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/usr/local/share/skiaperf/configs": [
+            [
+                ":configs",
+                "0644",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/backendserver/backendserver",
     repository = "skia-public/backendserver",
