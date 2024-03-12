@@ -28,6 +28,12 @@ skia_app_container(
                 "css",
             ]
         ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:frontend_configs",
+                "0444",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/gold_frontend",
     repository = "skia-public/gold-frontend",
@@ -62,6 +68,12 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:diffcalculator_configs",
+                "0444",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/diffcalculator",
     repository = "skia-public/gold-diffcalculator",
@@ -74,6 +86,12 @@ skia_app_container(
             [
                 "//golden/cmd/gitilesfollower:gitilesfollower",
                 "0755",
+            ],
+        ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:gitilesfollower_configs",
+                "0444",
             ],
         ],
     },
@@ -90,6 +108,12 @@ skia_app_container(
                 "0755",
             ],
         ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:ingestion_configs",
+                "0444",
+            ],
+        ],
     },
     entrypoint = "/usr/local/bin/gold_ingestion",
     repository = "skia-public/gold-ingestion",
@@ -102,6 +126,12 @@ skia_app_container(
             [
                 "//golden/cmd/periodictasks:periodictasks",
                 "0755",
+            ],
+        ],
+        "/etc/golden": [
+            [
+                "//golden/k8s-instances:periodictasks_configs",
+                "0444",
             ],
         ],
     },
