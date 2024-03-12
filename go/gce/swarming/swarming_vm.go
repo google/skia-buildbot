@@ -18,14 +18,19 @@ package main
 */
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/swarming/instance_types"
 	"go.skia.org/infra/go/skerr"
@@ -203,16 +208,18 @@ func makeVMsToCreate(ctx context.Context, kind, instanceType string, forceInstan
 func main() {
 	var (
 		// Flags.
-		instances         = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
-		create            = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
-		delete            = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
-		deleteDataDisk    = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
-		dev               = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
-		dumpJson          = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
-		ignoreExists      = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
-		instanceType      = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", validInstanceTypes))
-		forceInstanceType = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
-		internal          = flag.Bool("internal", false, "Whether or not the bots are internal.")
+		instances              = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
+		create                 = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
+		delete                 = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
+		deleteDataDisk         = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
+		dev                    = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
+		dumpJson               = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
+		ignoreExists           = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+		instanceType           = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", validInstanceTypes))
+		forceInstanceType      = flag.Bool("force-type", false, "Skip validation of instance types by machine number.")
+		internal               = flag.Bool("internal", false, "Whether or not the bots are internal.")
+		skipUpdateSSHGCEConfig = flag.Bool("skip-update-ssh-gce-config", false, "Do not update //skolo/ansible/ssh.cfg after creating or deleting GCE machines.")
+		skipAnsiblePlaybook    = flag.Bool("skip-ansible-playbook", false, "Do not run the corresponding Ansible playbook to finish setting up the newly created machines.")
 	)
 
 	common.Init()
@@ -276,6 +283,40 @@ func main() {
 		return
 	}
 
+	// Compute absolute path to the Ansible directory.
+	_, filename, _, _ := runtime.Caller(0)
+	repoRoot := filepath.Join(path.Dir(filename), "..", "..", "..")
+	absAnsibleDir := filepath.Join(repoRoot, ansibleDirectory)
+
+	// If the machines are configured via Ansible, ensure they are included in the hosts.yml file.
+	if *create && vmsToCreate.configuredViaAnsible && !*skipAnsiblePlaybook {
+		sklog.Info("Querying Ansible inventory file.")
+		inventoryFile := filepath.Join(absAnsibleDir, "hosts.yml")
+		stdout := &bytes.Buffer{}
+		if err := exec.Run(
+			ctx,
+			&exec.Command{
+				Name:   "ansible",
+				Args:   []string{"--inventory", inventoryFile, "--list-hosts", "all"},
+				Dir:    absAnsibleDir,
+				Stdout: stdout,
+			},
+		); err != nil {
+			sklog.Fatal(err)
+		}
+
+		// Contains one line per machine in //skolo/ansible/hosts.yml. Host ranges are expanded into
+		// individual hosts, e.g. "skia-e-gce-[100:199]" is expanded into "skia-e-gce-100",
+		// "skia-e-gce-101", "skia-e-gce-102", ...
+		inventory := stdout.String()
+
+		for _, vm := range vmsToCreate.vms {
+			if !strings.Contains(inventory, vm.Name+"\n") {
+				sklog.Fatalf("Ansible inventory file %s does not contain an entry for machine %q. Please update the inventory file, then re-run this command.", inventoryFile, vm.Name)
+			}
+		}
+	}
+
 	// Perform the requested operation.
 	verb := "Creating"
 	if *delete {
@@ -300,28 +341,51 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Print out ansible-playbook command if necessary.
-	//
-	// TODO(lovisolo): Run Ansible playbook unless --skip-ansible-playbook is provided.
-	if *create && vmsToCreate.configuredViaAnsible {
+	// Update //skolo/ansible/ssh.cfg with the public IPs of all GCE machines.
+	if *create && vmsToCreate.configuredViaAnsible && !*skipUpdateSSHGCEConfig {
+		sklog.Info("Updating //skolo/ansible/ssh.cfg")
+		if err := exec.Run(
+			ctx,
+			&exec.Command{
+				Name:   "make",
+				Args:   []string{"update_ssh_gce_config"},
+				Dir:    absAnsibleDir,
+				Stdout: os.Stdout,
+				Stderr: os.Stderr,
+			},
+		); err != nil {
+			sklog.Fatal(err)
+		}
+	}
+
+	// Run Ansible playbook if necessary.
+	if *create && vmsToCreate.configuredViaAnsible && !*skipAnsiblePlaybook {
 		playbook := linuxAnsiblePlaybook
 		if util.In(*instanceType, winInstanceTypes) {
 			playbook = winAnsiblePlaybook
 		}
+		absPlaybookPath := filepath.Join(absAnsibleDir, playbook)
+
 		var machines []string
 		for _, n := range instanceNums {
 			machines = append(machines, fmt.Sprintf("skia-e-gce-%03d", n))
 		}
 		commaSeparatedMachines := strings.Join(machines, ",")
-		command := fmt.Sprintf("$ ansible-playbook %s --limit %s", playbook, commaSeparatedMachines)
+
+		sklog.Infof("Running %s Ansible playbook...", absPlaybookPath)
+		cmd := &exec.Command{
+			Name:   "ansible-playbook",
+			Args:   []string{absPlaybookPath, "--limit", commaSeparatedMachines},
+			Dir:    absAnsibleDir,
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+		}
 		if util.In(*instanceType, winInstanceTypes) {
 			// For some reason, sometimes passwordless auth does not work on Windows machines.
-			command += " --ask-pass"
+			cmd.Args = append(cmd.Args, "--ask-pass")
 		}
-
-		sklog.Infof("To finish setting up these machines, cd into %s, then run the following commands:", ansibleDirectory)
-		sklog.Infof("$ make update_ssh_gce_config")
-		sklog.Infof(command)
-		sklog.Infof("Then update hosts.yml to inclue the new machines.")
+		if err := exec.Run(ctx, cmd); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 }
