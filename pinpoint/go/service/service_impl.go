@@ -19,7 +19,7 @@ import (
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
-type server struct {
+type Server struct {
 	pb.UnimplementedPinpointServer
 
 	// Local rate limiter to only limit the traffic for migration temporarilly.
@@ -58,7 +58,7 @@ func (defaultTemporalProvider) NewClient() (client.Client, func(), error) {
 	}, nil
 }
 
-func New(t TemporalProvider, l *rate.Limiter) pb.PinpointServer {
+func New(t TemporalProvider, l *rate.Limiter) *Server {
 	if l == nil {
 		// 1 token every 30 minutes, this allow some buffer to drain the hot spots in the bots pool.
 		l = rate.NewLimiter(rate.Every(30*time.Minute), 1)
@@ -66,7 +66,7 @@ func New(t TemporalProvider, l *rate.Limiter) pb.PinpointServer {
 	if t == nil {
 		t = defaultTemporalProvider{}
 	}
-	return &server{
+	return &Server{
 		limiter:  l,
 		temporal: t,
 	}
@@ -89,7 +89,7 @@ func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, e
 	return m, nil
 }
 
-func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
+func (s *Server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
 	// Those logs are used to test traffic from existing services in catapult, shall be removed.
 	sklog.Infof("Receiving bisection request: %v", req)
 	if !s.limiter.Allow() {
@@ -130,7 +130,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 // func (s *server) QueryBisection(ctx context.Context, in *pb.QueryBisectRequest) (*pb.BisectExecution, error) {
 // }
 
-func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (*pb.LegacyJobResponse, error) {
+func (s *Server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (*pb.LegacyJobResponse, error) {
 	qresp, err := s.QueryBisection(ctx, &pb.QueryBisectRequest{
 		JobId: req.GetJobId(),
 	})
