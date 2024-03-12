@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"context"
 	"net"
 
 	"go.skia.org/infra/go/cleanup"
@@ -9,11 +8,7 @@ import (
 	"go.skia.org/infra/go/grpcsp"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/backend/shared"
-	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/config/validate"
-	"go.skia.org/infra/perf/go/culprit"
-	culprit_service "go.skia.org/infra/perf/go/culprit/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -22,7 +17,6 @@ const appName = "backend"
 
 // Backend provides a struct for the application.
 type Backend struct {
-	configFileName   string
 	promPort         string
 	grpcPort         string
 	grpcServer       *grpc.Server
@@ -43,44 +37,24 @@ type BackendService interface {
 }
 
 // initialize initializes the Backend application.
-func (b *Backend) initialize(culpritStore culprit.Store) error {
+func (b *Backend) initialize() error {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(&b.promPort),
 	)
 
-	var err error
-	ctx := context.Background()
 	sklog.Infof("Registering grpc reflection server.")
 	reflection.Register(b.grpcServer)
-
-	// Load the config file.
-	sklog.Infof("Loading configs from %s", b.configFileName)
-	if err = validate.LoadAndValidate(b.configFileName); err != nil {
-		sklog.Fatal(err)
-	}
-
-	sklog.Info("Creating entity stores.")
-	if culpritStore == nil {
-		culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, config.Config)
-		if err != nil {
-			sklog.Errorf("Error creating culprit store. %s", err)
-			return err
-		}
-	}
 
 	sklog.Info("Registering grpc services.")
 
 	// Add all the services that will be hosted here.
-	services := []BackendService{
-		NewPinpointService(nil, nil),
-		culprit_service.New(culpritStore),
-	}
-	err = b.registerServices(services)
+	services := []BackendService{}
+	err := b.registerServices(services)
 	if err != nil {
 		return err
 	}
-	b.lisGRPC, _ = net.Listen("tcp4", b.grpcPort)
+	b.lisGRPC, _ = net.Listen("tcp", b.grpcPort)
 
 	sklog.Infof("Backend server listening at %v", b.lisGRPC.Addr())
 
@@ -145,17 +119,16 @@ func (b *Backend) ServeGRPC() error {
 }
 
 // New creates a new instance of Backend application.
-func New(flags *config.BackendFlags, culpritStore culprit.Store) (*Backend, error) {
+func New(flags *config.BackendFlags) (*Backend, error) {
 	opts := []grpc.ServerOption{}
 	b := &Backend{
-		configFileName:   flags.ConfigFilename,
 		grpcServer:       grpc.NewServer(opts...),
 		grpcPort:         flags.Port,
 		promPort:         flags.PromPort,
 		serverAuthPolicy: grpcsp.Server(),
 	}
 
-	err := b.initialize(culpritStore)
+	err := b.initialize()
 	return b, err
 }
 

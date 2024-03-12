@@ -3,10 +3,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "backend",
-    srcs = [
-        "backend.go",
-        "pinpoint.go",
-    ],
+    srcs = ["backend.go"],
     importpath = "go.skia.org/infra/perf/go/backend",
     visibility = ["//visibility:public"],
     deps = [
@@ -15,30 +12,18 @@ go_library(
         "//go/grpcsp",
         "//go/sklog",
         "//perf/go/backend/shared",
-        "//perf/go/builders",
         "//perf/go/config",
-        "//perf/go/config/validate",
-        "//perf/go/culprit:store",
-        "//perf/go/culprit/service",
-        "//pinpoint/go/service",
-        "//pinpoint/proto/v1:proto",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//reflection",
-        "@org_golang_x_time//rate",
     ],
 )
 
 go_test(
     name = "backend_test",
     srcs = ["backend_test.go"],
-    data = glob(["testdata/**"]),
     embed = [":backend"],
     deps = [
-        "//go/sklog",
-        "//go/testutils",
         "//perf/go/config",
-        "//perf/go/culprit/sqlculpritstore",
-        "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
         "@org_golang_google_grpc//:go_default_library",

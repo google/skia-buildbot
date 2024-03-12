@@ -16,8 +16,6 @@ go_library(
         "//perf/go/alerts",
         "//perf/go/alerts/sqlalertstore",
         "//perf/go/config",
-        "//perf/go/culprit:store",
-        "//perf/go/culprit/sqlculpritstore",
         "//perf/go/file",
         "//perf/go/file/dirsource",
         "//perf/go/file/gcssource",

@@ -197,9 +197,6 @@
         "URL": {
           "type": "string"
         },
-        "backend_host_url": {
-          "type": "string"
-        },
         "allowed_hosts": {
           "items": {
             "type": "string"

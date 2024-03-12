@@ -21,8 +21,6 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/culprit"
-	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/file/gcssource"
@@ -245,18 +243,4 @@ func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, loca
 	// We currently default to Google Cloud Storage, but Config options could be
 	// added to use other systems, such as S3.
 	return gcs.New(ctx, local)
-}
-
-// NewCulpritStoreFromConfig creates a new culprit.Store from the
-// InstanceConfig which provides access to the culprit data.
-func NewCulpritStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (culprit.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return culprit_store.New(db)
-	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

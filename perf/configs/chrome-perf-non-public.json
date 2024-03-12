@@ -2,7 +2,6 @@
     "URL": "https://chrome-perf.corp.goog",
     "ga_measurement_id": "G-LEQSJH1GXP",
     "allowed_hosts": [],
-    "backend_host_url": "perf-be-chrome-non-public.perf.svc.cluster.local:8000",
     "contact": "browser-perf-engprod@google.com",
     "trace_sample_proportion": 1.0,
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
