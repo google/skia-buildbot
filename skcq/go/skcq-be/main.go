@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/allowed"
@@ -30,13 +31,10 @@ import (
 
 var (
 	// Flags
-	host        = flag.String("host", "skcq.skia.org", "HTTP service host")
-	fsNamespace = flag.String("fs_namespace", "", "The namespace this instance should operate in. e.g. staging or prod")
-	fsProjectID = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-
-	// TODO(rmistry): Remove after it is removed from k8s-config.
-	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-
+	host                  = flag.String("host", "skcq.skia.org", "HTTP service host")
+	fsNamespace           = flag.String("fs_namespace", "", "The namespace this instance should operate in. e.g. staging or prod")
+	fsProjectID           = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+	chromeInfraAuthJWT    = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	canModifyCfgsOnTheFly = flag.String("can_modify_cfgs_on_the_fly", "project-skia-committers", "Which go/cria group is allowed to modify skcq.json and tasks.json on the fly.")
 	pollInterval          = flag.Duration("poll_interval", 3*time.Second, "How often the server will poll Gerrit for CR+1 and CQ+1/CQ+2 changes.")
 
@@ -112,7 +110,16 @@ func main() {
 	sklog.Infof("CurrentChangesCache: %+v", currentChangesCache.Get())
 
 	// Instantiate client for go/cria.
-	criaClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	var criaTs oauth2.TokenSource
+	if *baseapp.Local {
+		criaTs = ts
+	} else {
+		criaTs, err = auth.NewJWTServiceAccountTokenSource(ctx, "", *chromeInfraAuthJWT, "", "", auth.ScopeUserinfoEmail)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+	criaClient := httputils.DefaultClientConfig().WithTokenSource(criaTs).With2xxOnly().Client()
 	cfgModifyAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, *canModifyCfgsOnTheFly)
 	if err != nil {
 		sklog.Fatalf("Could not create allowed for go/cria: %s", err)
