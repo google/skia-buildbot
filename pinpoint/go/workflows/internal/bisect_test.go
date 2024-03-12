@@ -101,16 +101,18 @@ func TestUpdateRuns_ExistingCommit_AppendsNewRuns(t *testing.T) {
 	assert.Equal(t, expected, actual.Runs)
 }
 
-func TestCalcNewRuns_BothEqual_MoreRunsForBoth(t *testing.T) {
+func TestCalcSampleSize_BothEqual_MoreRunsForBoth(t *testing.T) {
 	test := func(name string, runs, expected int32) {
-		var lCommit = &midpoint.CombinedCommit{
-			Main: &midpoint.Commit{
-				GitHash: "lower",
+		cr := &CommitRangeTracker{
+			Lower: &midpoint.CombinedCommit{
+				Main: &midpoint.Commit{
+					GitHash: "lower",
+				},
 			},
-		}
-		var hCommit = &midpoint.CombinedCommit{
-			Main: &midpoint.Commit{
-				GitHash: "higher",
+			Higher: &midpoint.CombinedCommit{
+				Main: &midpoint.Commit{
+					GitHash: "higher",
+				},
 			},
 		}
 		lRuns := &CommitRun{
@@ -119,31 +121,32 @@ func TestCalcNewRuns_BothEqual_MoreRunsForBoth(t *testing.T) {
 		hRuns := &CommitRun{
 			Runs: make([]*workflows.TestRun, runs),
 		}
-		cm := CommitMap{}
-		cm.set(lCommit, lRuns)
-		cm.set(hCommit, hRuns)
-		lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
-		assert.Equal(t, lMoreRuns, hMoreRuns)
-		assert.Equal(t, expected, lMoreRuns)
+		cm := &CommitMap{}
+		cm.set(cr.Lower, lRuns)
+		cm.set(cr.Higher, hRuns)
+		actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+		assert.Equal(t, expected, actual)
 	}
 	// see benchmarkRunIterations for how these run iterations are calculated
-	test("0 runs each should schedule 10 runs each", 0, 10)
-	test("5 runs each should schedule 5 runs each", 5, 5)
-	test("10 runs each should schedule 10 runs each", 10, 10)
-	test("20 runs each should schedule 20 runs each", 20, 20)
+	test("0 runs each should expect 10 runs", 0, 10)
+	test("5 runs each should expect 10 runs", 5, 10)
+	test("10 runs each should expect 20 runs", 10, 20)
+	test("20 runs each should expect 40 runs", 20, 40)
 }
 
-func TestCalcNewRuns_160Runs_NoMoreNewRuns(t *testing.T) {
-	const runs = 160
+func TestCalcSampleSize_160Runs_NoMoreNewRuns(t *testing.T) {
+	const runs = int32(160)
 
-	var lCommit = &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "lower",
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
 		},
-	}
-	var hCommit = &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "higher",
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
 		},
 	}
 	lRuns := &CommitRun{
@@ -153,23 +156,24 @@ func TestCalcNewRuns_160Runs_NoMoreNewRuns(t *testing.T) {
 		Runs: make([]*workflows.TestRun, runs),
 	}
 
-	cm := CommitMap{}
-	cm.set(lCommit, lRuns)
-	cm.set(hCommit, hRuns)
-	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
-	assert.Zero(t, lMoreRuns)
-	assert.Zero(t, hMoreRuns)
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+	assert.Equal(t, runs, actual)
 }
 
-func TestCalcNewRuns_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t *testing.T) {
-	lCommit := &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "lower",
+func TestCalcSampleSize_UnevenRuns_ExpectMaxOfCurrentRuns(t *testing.T) {
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
 		},
-	}
-	hCommit := &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "higher",
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
 		},
 	}
 	lRuns := &CommitRun{
@@ -178,23 +182,24 @@ func TestCalcNewRuns_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t 
 	hRuns := &CommitRun{
 		Runs: make([]*workflows.TestRun, 0),
 	}
-	cm := CommitMap{}
-	cm.set(lCommit, lRuns)
-	cm.set(hCommit, hRuns)
-	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
-	assert.Zero(t, lMoreRuns)
-	assert.Equal(t, int32(10), hMoreRuns)
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+	assert.Equal(t, int32(10), actual)
 }
 
 func TestCalcNewRuns_HigherCommitMoreRuns_OnlySchedulesMoreRunsForLowerCommit(t *testing.T) {
-	lCommit := &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "lower",
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
 		},
-	}
-	hCommit := &midpoint.CombinedCommit{
-		Main: &midpoint.Commit{
-			GitHash: "higher",
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
 		},
 	}
 	lRuns := &CommitRun{
@@ -203,10 +208,98 @@ func TestCalcNewRuns_HigherCommitMoreRuns_OnlySchedulesMoreRunsForLowerCommit(t 
 	hRuns := &CommitRun{
 		Runs: make([]*workflows.TestRun, 25),
 	}
-	cm := CommitMap{}
-	cm.set(lCommit, lRuns)
-	cm.set(hCommit, hRuns)
-	lMoreRuns, hMoreRuns := cm.calcNewRuns(lCommit, hCommit)
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher)
+	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
+	require.NoError(t, err)
 	assert.Zero(t, hMoreRuns)
 	assert.Equal(t, int32(20), lMoreRuns)
+}
+
+func TestCalcNewRuns_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t *testing.T) {
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
+		},
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
+		},
+	}
+	lRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 5),
+	}
+	hRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 0),
+	}
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher)
+	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
+	require.NoError(t, err)
+	assert.Zero(t, lMoreRuns)
+	assert.Equal(t, int32(5), hMoreRuns)
+}
+
+func TestCalcNewRuns_NoExpectedSampleSize_ReturnsError(t *testing.T) {
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
+		},
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
+		},
+	}
+	lRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 5),
+	}
+	hRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 0),
+	}
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
+	require.Error(t, err)
+	assert.Zero(t, lMoreRuns)
+	assert.Zero(t, hMoreRuns)
+}
+
+func TestCalcNewRuns_NegativeRunsToSchedule_ReturnsError(t *testing.T) {
+	cr := &CommitRangeTracker{
+		Lower: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "lower",
+			},
+		},
+		Higher: &midpoint.CombinedCommit{
+			Main: &midpoint.Commit{
+				GitHash: "higher",
+			},
+		},
+		ExpectedSampleSize: 5,
+	}
+	lRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 25),
+	}
+	hRuns := &CommitRun{
+		Runs: make([]*workflows.TestRun, 30),
+	}
+	cm := &CommitMap{}
+	cm.set(cr.Lower, lRuns)
+	cm.set(cr.Higher, hRuns)
+	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
+	require.Error(t, err)
+	assert.Zero(t, lMoreRuns)
+	assert.Zero(t, hMoreRuns)
 }
