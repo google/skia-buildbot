@@ -178,11 +178,16 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		Higher:             midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
 		ExpectedSampleSize: benchmarkRunIterations[0],
 	})
-	// TODO(sunxiaodi@) allow for optional comparison magnitude. If nil
-	// assume the normalized magnitude = 1.0
-	magnitude, err := strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+
+	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
+	// when the rawMagnitude is 0.0
+	magnitude := float64(0.0)
+	var err error
+	if p.Request.ComparisonMode != "" {
+		magnitude, err = strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMode)
+		}
 	}
 
 	// TODO(b/322203189): Store and order the new commits so that the data can be relayed

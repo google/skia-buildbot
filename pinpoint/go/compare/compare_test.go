@@ -91,11 +91,9 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 
 	x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	y = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	mag = convertNormalizedToRawMagnitude(x, y, 1.0)
-	test("arrays are the same, return same", x, y, mag, Same)
+	test("arrays are the same, return same", x, y, 0.0, Same)
 
 	x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-	mag = convertNormalizedToRawMagnitude(x, y, 1.0)
-	test("arrays are significantly different, return different", x, y, mag, Different)
+	test("arrays are significantly different, return different", x, y, 0.0, Different)
 }

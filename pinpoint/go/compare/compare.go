@@ -71,6 +71,12 @@ func (v Verdict) Name() string {
 	return ""
 }
 
+const float64EqualityThreshold = 1e-9
+
+func almostEqual(a, b float64) bool {
+	return math.Abs(a-b) <= float64EqualityThreshold
+}
+
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/job_state.py;drc=94f2bff5159bf660910b35c39426102c5982c4a4;l=356
 // the default functional analysis error rate expected is 1.0 for all bisections
 // pivoting to functional analysis.
@@ -129,7 +135,10 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*Comp
 	all_values := append(valuesA, valuesB...)
 	sort.Float64s(all_values)
 	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
-	normalizedMagnitude := math.Abs(rawMagnitude / iqr)
+	normalizedMagnitude := float64(1.0)
+	if !almostEqual(rawMagnitude, 0.0) {
+		normalizedMagnitude = math.Abs(rawMagnitude / iqr)
+	}
 	// avgSampleSize refers to the average number of samples between A and B.
 	// The samples may be imbalanced depending on the success of individual runs
 	avgSampleSize := len(all_values) / 2
