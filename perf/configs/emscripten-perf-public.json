@@ -19,10 +19,10 @@
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-emscripten-perf",
-      "subscription": "perf-ingestion-emscripten-perf-prod",
+      "topic": "perf-ingestion-emscripten-public-perf",
+      "subscription": "perf-ingestion-emscripten-public-perf-prod",
       "sources": [
-        "gs://emscripten-perf-prod/ingest"
+        "gs://emscripten-perf-public/ingest"
       ]
     },
     "branches": [],
@@ -30,7 +30,7 @@
   },
   "git_repo_config": {
     "provider": "gitiles",
-    "url": "https://chromium.googlesource.com/emscripten-releases/",
+    "url": "https://chromium.googlesource.com/emscripten-releases",
     "dir": "/tmp/emscripten",
     "debounce_commit_url": false
   }
