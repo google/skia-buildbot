@@ -1,5 +1,5 @@
 {
-  "URL": "https://emscripten-perf.skia.org",
+  "URL": "https://emscripten-perf.luci.app",
   "contact": "https://github.com/emscripten-core/emscripten/issues",
   "trace_sample_proportion": 0.01,
   "bug_host_url": "",
