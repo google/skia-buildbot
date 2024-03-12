@@ -182,11 +182,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
 	// when the rawMagnitude is 0.0
 	magnitude := float64(0.0)
-	var err error
-	if p.Request.ComparisonMode != "" {
+	if p.Request.ComparisonMagnitude != "" {
+		var err error
 		magnitude, err = strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMode)
+			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMagnitude)
 		}
 	}
 
@@ -256,13 +256,13 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			commitStack.Push(&CommitRangeTracker{
 				Lower:              cr.Lower,
 				Higher:             mid,
-				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher),
+				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, mid),
 			})
 			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 			commitStack.Push(&CommitRangeTracker{
 				Lower:              mid,
 				Higher:             cr.Higher,
-				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher),
+				ExpectedSampleSize: cm.calcSampleSize(mid, cr.Higher),
 			})
 			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 		}
