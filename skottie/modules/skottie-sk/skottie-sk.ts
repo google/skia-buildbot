@@ -1025,6 +1025,10 @@ export class SkottieSk extends ElementSk {
   }
 
   private fetchAdditionalAssets(): Promise<string[]> {
+    if (!this.hash) {
+      return Promise.resolve([]);
+    }
+
     return fetch(`/_/r/${this.hash}`)
       .then(jsonOrThrow)
       .then((json) => {
@@ -1144,7 +1148,9 @@ export class SkottieSk extends ElementSk {
       // Also try using uploaded assets.
       // We may end up with two different blobs for the same font name, in which case
       // the user-provided one takes precedence.
-      fetchFont(`${this.assetsPath}/${this.hash}/${font.fName}.ttf`);
+      if (this.hash) {
+        fetchFont(`${this.assetsPath}/${this.hash}/${font.fName}.ttf`);
+      }
     }
     return promises;
   }

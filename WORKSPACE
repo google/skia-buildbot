@@ -358,7 +358,7 @@ rbe_exec_properties(
 # for a recent commit to use.
 container_pull(
     name = "pinned_jsfiddle",
-    digest = "sha256:2d601a86398166b7d87b1cbe69005ac1b0302d22c72dca5a8d7d4340d79c33b8",
+    digest = "sha256:7f475cd67216c17d9930795b20c602de6c4f8f95f0e1fdec34497da98afdac6f",
     registry = "gcr.io",
     repository = "skia-public/jsfiddle-final",
 )
