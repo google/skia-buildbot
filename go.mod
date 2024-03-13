@@ -82,6 +82,7 @@ require (
 	github.com/yannh/kubeconform v0.6.3
 	github.com/yusufpapurcu/wmi v1.2.2
 	github.com/zeebo/bencode v1.0.0
+	github.com/zyedidia/generic v1.2.1
 	go.chromium.org/luci v0.0.0-20240206071351-fb32c458db6e
 	go.opencensus.io v0.24.0
 	go.temporal.io/sdk v1.25.2-0.20240108215803-6244097c5aca
@@ -98,7 +99,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/olivere/elastic.v5 v5.0.86
 	gopkg.in/yaml.v2 v2.4.0
@@ -197,7 +198,6 @@ require (
 	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.1.1 // indirect
-	github.com/segmentio/fasthash v1.0.3 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
@@ -216,7 +216,6 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	github.com/zyedidia/generic v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
