@@ -49,7 +49,7 @@ type NpmProjectAudit struct {
 
 // NewNpmProjectAudit periodically downloads package.json/package-lock.json from gitiles
 // and runs audit on it.
-func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir, serviceAccountFilePath string, httpClient *http.Client, dbClient types.NpmDB, issueTrackerConfig *config.IssueTrackerConfig) (types.ProjectAudit, error) {
+func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir string, httpClient *http.Client, dbClient types.NpmDB, issueTrackerConfig *config.IssueTrackerConfig) (types.ProjectAudit, error) {
 	gitilesRepo := gitiles.NewRepo(repoURL, httpClient)
 
 	// Instantiate issueTrackerService only if we have a issueTrackerConfig.

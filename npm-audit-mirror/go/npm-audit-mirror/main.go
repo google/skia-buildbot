@@ -43,14 +43,13 @@ import (
 
 var (
 	// Flags
-	host               = flag.String("host", "npm.skia.org", "HTTP service host")
-	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
-	fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'npm-audit-mirror-staging'")
-	fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-	serviceAccountFile = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
-	hang               = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
-	auditsInterval     = flag.Duration("audits_interval", 2*time.Hour, "How often the server checks for audit issues.")
-	examineInterval    = flag.Duration("examine_interval", 20*time.Hour, "How often the server examines downloaded packages on each mirror.")
+	host            = flag.String("host", "npm.skia.org", "HTTP service host")
+	workdir         = flag.String("workdir", ".", "Directory to use for scratch work.")
+	fsNamespace     = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'npm-audit-mirror-staging'")
+	fsProjectID     = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
+	hang            = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
+	auditsInterval  = flag.Duration("audits_interval", 2*time.Hour, "How often the server checks for audit issues.")
+	examineInterval = flag.Duration("examine_interval", 20*time.Hour, "How often the server examines downloaded packages on each mirror.")
 )
 
 // See baseapp.Constructor.
@@ -104,7 +103,7 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			sklog.Fatalf("Could not init audit DB: %s", err)
 		}
-		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, *serviceAccountFile, httpClient, auditDbClient, projectCfg.IssueTrackerConfig)
+		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, httpClient, auditDbClient, projectCfg.IssueTrackerConfig)
 		if err != nil {
 			sklog.Fatalf("Could not instantiate audit: %s", err)
 		}
@@ -135,7 +134,7 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			sklog.Fatalf("Could not init examiner DB: %s", err)
 		}
-		dpe, err := examiner.NewDownloadedPackagesExaminer(ctx, projectCfg.TrustedScopes, httpClient, examinerDbClient, m, projectCfg.IssueTrackerConfig, *serviceAccountFile)
+		dpe, err := examiner.NewDownloadedPackagesExaminer(ctx, projectCfg.TrustedScopes, httpClient, examinerDbClient, m, projectCfg.IssueTrackerConfig)
 		if err != nil {
 			sklog.Fatalf("Could not init downloaded packages examiner: %s", err)
 		}

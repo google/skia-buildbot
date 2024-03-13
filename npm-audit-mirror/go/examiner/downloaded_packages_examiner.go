@@ -44,7 +44,7 @@ type DownloadedPackagesExaminer struct {
 }
 
 // NewDownloadedPackagesExaminer returns an instance of DownloadedPackagesExaminer.
-func NewDownloadedPackagesExaminer(ctx context.Context, trustedScopes []string, httpClient *http.Client, dbClient types.NpmDB, projectMirror types.ProjectMirror, issueTrackerConfig *config.IssueTrackerConfig, serviceAccountFilePath string) (types.DownloadedPackagesExaminer, error) {
+func NewDownloadedPackagesExaminer(ctx context.Context, trustedScopes []string, httpClient *http.Client, dbClient types.NpmDB, projectMirror types.ProjectMirror, issueTrackerConfig *config.IssueTrackerConfig) (types.DownloadedPackagesExaminer, error) {
 	// Instantiate issueTrackerService only if we have a issueTrackerConfig.
 	var issueTrackerService *issues.IssueTrackerService
 	var err error
