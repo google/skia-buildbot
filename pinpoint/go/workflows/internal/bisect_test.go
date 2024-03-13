@@ -102,7 +102,7 @@ func TestUpdateRuns_ExistingCommit_AppendsNewRuns(t *testing.T) {
 }
 
 func TestCalcSampleSize_BothEqual_MoreRunsForBoth(t *testing.T) {
-	test := func(name string, runs, expected int32) {
+	test := func(name string, runs, minSampleSize, expected int32) {
 		cr := &CommitRangeTracker{
 			Lower: &midpoint.CombinedCommit{
 				Main: &midpoint.Commit{
@@ -124,14 +124,15 @@ func TestCalcSampleSize_BothEqual_MoreRunsForBoth(t *testing.T) {
 		cm := &CommitMap{}
 		cm.set(cr.Lower, lRuns)
 		cm.set(cr.Higher, hRuns)
-		actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+		actual := cm.calcSampleSize(cr.Lower, cr.Higher, minSampleSize)
 		assert.Equal(t, expected, actual)
 	}
 	// see benchmarkRunIterations for how these run iterations are calculated
-	test("0 runs each should expect 10 runs", 0, 10)
-	test("5 runs each should expect 10 runs", 5, 10)
-	test("10 runs each should expect 20 runs", 10, 20)
-	test("20 runs each should expect 40 runs", 20, 40)
+	test("0 runs each should expect 10 runs", 0, 10, 10)
+	test("0 runs each with minSampleSize 20 should expect 20 runs", 0, 20, 20)
+	test("15 runs each with minSampleSize 15 should expect 20 runs", 15, 15, 20)
+	test("10 runs each should expect 20 runs", 10, 10, 20)
+	test("20 runs each should expect 40 runs", 20, 10, 40)
 }
 
 func TestCalcSampleSize_160Runs_NoMoreNewRuns(t *testing.T) {
@@ -159,7 +160,7 @@ func TestCalcSampleSize_160Runs_NoMoreNewRuns(t *testing.T) {
 	cm := &CommitMap{}
 	cm.set(cr.Lower, lRuns)
 	cm.set(cr.Higher, hRuns)
-	actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+	actual := cm.calcSampleSize(cr.Lower, cr.Higher, 10)
 	assert.Equal(t, runs, actual)
 }
 
@@ -185,7 +186,7 @@ func TestCalcSampleSize_UnevenRuns_ExpectMaxOfCurrentRuns(t *testing.T) {
 	cm := &CommitMap{}
 	cm.set(cr.Lower, lRuns)
 	cm.set(cr.Higher, hRuns)
-	actual := cm.calcSampleSize(cr.Lower, cr.Higher)
+	actual := cm.calcSampleSize(cr.Lower, cr.Higher, 5)
 	assert.Equal(t, int32(10), actual)
 }
 
@@ -211,7 +212,7 @@ func TestCalcNewRuns_HigherCommitMoreRuns_OnlySchedulesMoreRunsForLowerCommit(t 
 	cm := &CommitMap{}
 	cm.set(cr.Lower, lRuns)
 	cm.set(cr.Higher, hRuns)
-	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher)
+	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher, 10)
 	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
 	require.NoError(t, err)
 	assert.Zero(t, hMoreRuns)
@@ -240,7 +241,7 @@ func TestCalcNewRuns_LowerCommitMoreRuns_OnlySchedulesMoreRunsForHigherCommit(t 
 	cm := &CommitMap{}
 	cm.set(cr.Lower, lRuns)
 	cm.set(cr.Higher, hRuns)
-	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher)
+	cr.ExpectedSampleSize = cm.calcSampleSize(cr.Lower, cr.Higher, 10)
 	lMoreRuns, hMoreRuns, err := cr.calcNewRuns(cm)
 	require.NoError(t, err)
 	assert.Zero(t, lMoreRuns)

@@ -33,6 +33,10 @@ var (
 	benchmarkRunIterations = []int32{10, 20, 40, 80, 160}
 )
 
+func getMaxSampleSize() int32 {
+	return benchmarkRunIterations[len(benchmarkRunIterations)-1]
+}
+
 // CommitRangeTracker stores a commit range as [Lower, Higher]
 // and tracks the expected sample size required for comparison.
 type CommitRangeTracker struct {
@@ -63,7 +67,7 @@ func (cm *CommitMap) updateRuns(commit *midpoint.CombinedCommit, newRun *CommitR
 	return cr
 }
 
-func (cm *CommitMap) calcSampleSize(lower, higher *midpoint.CombinedCommit) int32 {
+func (cm *CommitMap) calcSampleSize(lower, higher *midpoint.CombinedCommit, minSampleSize int32) int32 {
 	lRunCount, hRunCount := int32(0), int32(0)
 	lr, ok := cm.get(lower)
 	if ok {
@@ -73,15 +77,19 @@ func (cm *CommitMap) calcSampleSize(lower, higher *midpoint.CombinedCommit) int3
 	if ok {
 		hRunCount = int32(len(hr.Runs))
 	}
-	if lRunCount == hRunCount {
-		for _, iter := range benchmarkRunIterations {
-			if iter > lRunCount {
-				return iter
-			}
+	// balance number of runs between the two commits
+	if lRunCount != hRunCount {
+		return max(lRunCount, hRunCount)
+	}
+	if lRunCount == 0 {
+		return minSampleSize
+	}
+	for _, iter := range benchmarkRunIterations {
+		if iter > lRunCount {
+			return iter
 		}
 	}
-	// balance number of runs between the two commits
-	return max(lRunCount, hRunCount)
+	return getMaxSampleSize()
 }
 
 func (cr *CommitRangeTracker) calcNewRuns(cm *CommitMap) (int32, int32, error) {
@@ -170,15 +178,6 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		JobId: jobID,
 	}
 
-	cm := &CommitMap{}
-	commitStack := stack.New[*CommitRangeTracker]()
-
-	commitStack.Push(&CommitRangeTracker{
-		Lower:              midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.StartGitHash), nil),
-		Higher:             midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
-		ExpectedSampleSize: benchmarkRunIterations[0],
-	})
-
 	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
 	// when the rawMagnitude is 0.0
 	magnitude := float64(0.0)
@@ -189,6 +188,31 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMagnitude)
 		}
 	}
+
+	// minSampleSize is the minimum number of benchmark runs for each attempt
+	// Default is 10.
+	minSampleSize := benchmarkRunIterations[0]
+	if p.Request.InitialAttemptCount != "" {
+		ss, err := strconv.ParseInt(p.Request.InitialAttemptCount, 10, 32)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "initial attempt count %s cannot be converted to int", p.Request.ComparisonMagnitude)
+		}
+		if ss < 10 {
+			logger.Warn("Initial attempt count %s is less than the default 10. Setting minSampleSize to 10.", p.Request.InitialAttemptCount)
+		} else {
+			minSampleSize = int32(ss)
+		}
+
+	}
+
+	cm := &CommitMap{}
+	commitStack := stack.New[*CommitRangeTracker]()
+
+	commitStack.Push(&CommitRangeTracker{
+		Lower:              midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.StartGitHash), nil),
+		Higher:             midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
+		ExpectedSampleSize: minSampleSize,
+	})
 
 	// TODO(b/322203189): Store and order the new commits so that the data can be relayed
 	// to the UI
@@ -233,12 +257,23 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		}
 		switch result.Verdict {
 		case compare.Unknown:
-			commitStack.Push(&CommitRangeTracker{
-				Lower:              cr.Lower,
-				Higher:             cr.Higher,
-				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher),
-			})
-			logger.Debug("pushed CommitRangeTracker: ", *commitStack.Peek())
+			lr, ok := cm.get(cr.Lower)
+			if !ok {
+				return nil, skerr.Fmt("Unknown verdict reached on commit without run data. Commit %v", *cr.Lower)
+			}
+			// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
+			// < 0.4, it is possible to get to the max sample size and still reach an unknown
+			// verdict. Running more samples is too expensive. Instead, assume the two samples
+			// are the statistically similar.
+			// assumes that cr.Lower and cr.Higher will have the same number of runs
+			if len(lr.Runs) < int(getMaxSampleSize()) {
+				commitStack.Push(&CommitRangeTracker{
+					Lower:              cr.Lower,
+					Higher:             cr.Higher,
+					ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher, minSampleSize),
+				})
+				logger.Debug("pushed CommitRangeTracker: ", *commitStack.Peek())
+			}
 		case compare.Different:
 			// TODO(b/326352320): If the middle point has a different repo, it means that it looks into
 			//	the autoroll and there are changes in DEPS. We need to construct a CombinedCommit so it
@@ -256,13 +291,13 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			commitStack.Push(&CommitRangeTracker{
 				Lower:              cr.Lower,
 				Higher:             mid,
-				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, mid),
+				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, mid, minSampleSize),
 			})
 			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 			commitStack.Push(&CommitRangeTracker{
 				Lower:              mid,
 				Higher:             cr.Higher,
-				ExpectedSampleSize: cm.calcSampleSize(mid, cr.Higher),
+				ExpectedSampleSize: cm.calcSampleSize(mid, cr.Higher, minSampleSize),
 			})
 			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 		}
