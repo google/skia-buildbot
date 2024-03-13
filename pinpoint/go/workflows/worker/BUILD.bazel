@@ -7,9 +7,11 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows/worker",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/common",
         "//go/sklog",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/internal",
+        "//temporal/go/metrics",
         "@io_temporal_go_sdk//client",
         "@io_temporal_go_sdk//worker",
         "@io_temporal_go_sdk//workflow",

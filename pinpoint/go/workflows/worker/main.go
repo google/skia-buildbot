@@ -3,16 +3,21 @@ package main
 import (
 	"flag"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
+	"go.skia.org/infra/temporal/go/metrics"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
 
+const appName = "pinpoint-worker"
+
 var (
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	promPort  = flag.String("promPort", "8000", "Prometheus port that it listens on.")
 	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 )
@@ -20,10 +25,16 @@ var (
 func main() {
 	flag.Parse()
 
+	common.InitWithMust(
+		appName,
+		common.PrometheusOpt(promPort),
+	)
+
 	// The client and worker are heavyweight objects that should be created once per process.
 	c, err := client.Dial(client.Options{
-		HostPort:  *hostPort,
-		Namespace: *namespace,
+		MetricsHandler: metrics.NewMetricsHandler(map[string]string{}, nil),
+		HostPort:       *hostPort,
+		Namespace:      *namespace,
 	})
 	if err != nil {
 		sklog.Fatalf("Unable to create client: %s", err)
