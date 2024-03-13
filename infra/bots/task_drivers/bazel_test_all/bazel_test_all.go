@@ -205,7 +205,10 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 // testOnRBE is only called for the Infra-PerCommit-Test-Bazel-RBE task.
 func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
 	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--test_output=errors"); err != nil {
+	//
+	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
+	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
+	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--remote_download_minimal", "--test_output=errors"); err != nil {
 		return err
 	}
 
