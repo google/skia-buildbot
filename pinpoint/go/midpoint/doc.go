@@ -9,34 +9,66 @@
 // ending commits are adjacent to each other), the system assumes a DEPS roll and searches for the
 // culprit in the range of commits rolled in.
 //
-// For example, if we have C1 and C5:
+// Each iterative call to midpoint means that the bisection workflow is continuing to search for the culprit.
+//
+// EXAMPLE:
+//
+// Let's assume the most basic: Chromium @ commit hash 1 (C1) and C2.
 // Gitiles Logs would return [C5, C4, C3, C2]. C5 is popped off, and we're left with
 // [C4, C3, C2]. Because the ordering is from latest -> earliest, this is reversed, and
 // thus becomes [C2, C3, C4]. The calculated midpoint would be at index 1, or C3.
 //
-// The next iterations would be as follows: C1 - C3 and C3 - C5.
-// Gitiles Logs would return [C3, C2] and removing C3 leaves C2, which would be the next
-// midpoint for that pair. Following the same logic, C4 would be the midpoint for C3 - C5.
+// The next set of iterations would be as follows: C1 - C3 and C3 - C5.
+// For the range C1 - C3, Gitiles Logs would return [C3, C2] and removing C3 leaves C2,
+// which would be the next midpoint for that pair.
+// Following the same logic, C4 would be the midpoint for C3 - C5.
+// This presents the bisection workflow with the following set of iterations to compare:
+// (C1 - C2 | C2 - C3 | C3 - C4 | C4 - C5)
 //
-// In the final iteration, we are left with adjacent pairs ie/ C1 - C2 // C2 - C3 ...
-// It's assumed that there's been a DEPS roll between C1 and C2. DEPS file for each commit
-// is unpacked.
+// In this example, let's say C3 was a DEPS roll. A DEPS roll usually modifies the git hash
+// for _one_ repository per roll in the DEPS file. That means if C2's DEPS file had V8 @ commit 1,
+// a DEPS roll for the V8 repository would change C3 to V8 @ commit, say 3.
 //
-// If there indeed was a DEPS roll, and thus the revision for a project (ie/ V8) has been rolled,
-// the "dependency" field of the response will be non-nil, denoting the start, mid and end for the
-// roll.
+// As bisection continues to search for the culprit, the start and end commits may be C2 and C3.
+// In this case, Gitiles Logs would return [C3], which is our indicator that the two commits
+// are adjacent. For adjacent changes, FindMidCombinedCommit assumes C3 to be a DEPS roll.
 //
-// For example, if between C1 and C2 there's a V8 roll, and if V8 is rolled from V1 to V3,
-// the expected response would be:
+// Note: FindMidCombinedCommit only supports git-based dependencies (no CIPD).
 //
-//	Commit {
-//	  gitHash: C1,
-//	  repoisitoryUrl: "https://chromium.org/chromium/src"
-//	  dependency: Dependency {
-//	    repositoryUrl: V8,
-//	    startGitHash: V1,
-//	    endGitHash: V3,
-//	    midGitHash: V2,
-//	  }
-//	}
+// When a DEPS roll is assumed, FindMidCombinedCommit fetches the DEPS content for each of the files
+// and finds the first different repository (different = git hash is different for the same repository url,
+// which would indicate "the roll" happened. Following the example above, if V8 was rolled
+// from V8@1 to V8@3, FindMidCombinedCommit would determine V8@2 as midpoint because Gitiles logs
+// for V8 would return [V8@3, V8@2], popping off V8@3 and leaving V8@2.
+//
+// If the two DEPS contents had been equal (meaning the DEPS roll assumption was wrong),
+// FindMidCombinedCommit returns the former commit (C2), which is its indicator that there's nothing
+// else to parse through.
+//
+// All git-based dependencies need to build on some Chromium base. For when V8@2 is determined as midpoint,
+// FindMidCombinedCommit would return a CombinedCommit with C2 as Main, and [V8@2] as its ModifiedDeps.
+//
+// Continuing the example, let's assume bisect is still searching for the culprit. Since the last midpoint
+// was C2 + V8@2, the comparisons then become (C2 - C2+V8@2 | C2+V8@2 - C3).
+// On either arm of the comparison, ModifiedDeps is present, which is the indicator that the search is happening
+// in some git-based dep repository (in this case V8).
+//
+// To determine the range of commits to send to Gitiles, the implementation requires the start/end to be present
+// for that git-based dep repository. So, for C2 - C2+V8@2, it'll fill the left CombinedCommit by searching DEP
+// at Chromium@2, find V8 and fill it. So C2 becomes C2+V8@1, and now it can compare V8@1 to V8@2.
+//
+// If V8@2 is a DEP roll as well, say rolled WebRTC (W for short in example) from commit 1 to 3,
+// following the logic above, FindMidCombinedCommit would return a Combined Commit:
+// Main: C2, Modified Deps: [V8@1, W@2].
+//
+// CAVEATS:
+//   - The implementation does not support a DEPS roll that rolls more than 1 git-base dependency.
+//     The implementation today will start digging the first one it finds, even though the actual culprit could
+//     be in one of the other git-based dependencies that it rolls.
+//   - From the example above, let's say V8@2 rolled W8 from 1 to 2 (meaning that's also adjacent).
+//     It is possible that the W8 roll is also a DEPS roll, but the implementation today does not dig further.
+//     It instead terminates that they're adjancent and is unable detemrine midpoint.
+//   - FindMidCombinedCommit also does not support the scenario where there are more than 1 modified deps
+//     in the two commits provided. FindMidCombinedCommit was implemented expecting linear growth of modified
+//     dependencies, following the assumption that a DEPS roll only rolls one dependency at a time.
 package midpoint

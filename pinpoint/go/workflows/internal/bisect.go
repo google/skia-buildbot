@@ -45,7 +45,7 @@ type CommitRangeTracker struct {
 	ExpectedSampleSize int32
 }
 
-type CommitMap map[string]*CommitRun
+type CommitMap map[uint32]*CommitRun
 
 func (cm *CommitMap) get(commit *midpoint.CombinedCommit) (*CommitRun, bool) {
 	cr, ok := (*cm)[commit.Key()]
@@ -125,11 +125,11 @@ func FindMidCommitActivity(ctx context.Context, cr *CommitRangeTracker) (*midpoi
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-	m, err := midpoint.New(ctx, c).FindMidCommit(ctx, cr.Lower.Main, cr.Higher.Main)
+	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, cr.Lower, cr.Higher)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return midpoint.NewCombinedCommit(m, nil), nil
+	return m, nil
 }
 
 func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
@@ -209,8 +209,8 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	commitStack := stack.New[*CommitRangeTracker]()
 
 	commitStack.Push(&CommitRangeTracker{
-		Lower:              midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.StartGitHash), nil),
-		Higher:             midpoint.NewCombinedCommit(midpoint.NewCommit(p.Request.EndGitHash), nil),
+		Lower:              midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.StartGitHash)),
+		Higher:             midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.EndGitHash)),
 		ExpectedSampleSize: minSampleSize,
 	})
 
@@ -284,7 +284,8 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			}
 			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
 			// TODO(b/327019543): Create midpoint equality function to compare two CombinedCommits
-			if mid.GetMainGitHash() == cr.Lower.GetMainGitHash() {
+			if mid == nil {
+				logger.Debug("No more midpoints to parse through.")
 				e.Commit = cr.Higher.GetMainGitHash()
 				break
 			}
