@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "metrics",
+    srcs = ["handler.go"],
+    importpath = "go.skia.org/infra/temporal/go/metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2",
+        "@io_temporal_go_sdk//client",
+    ],
+)
+
+go_test(
+    name = "metrics_test",
+    srcs = ["handler_test.go"],
+    embed = [":metrics"],
+    deps = [
+        "//go/metrics2",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@com_github_stretchr_testify//require",
+    ],
+)
