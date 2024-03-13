@@ -25,5 +25,8 @@ go_test(
         "mann_whitney_u_test.go",
     ],
     embed = [":compare"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )

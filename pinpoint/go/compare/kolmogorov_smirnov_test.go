@@ -1,75 +1,54 @@
 package compare
 
 import (
-	"fmt"
-	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestKolmogorovSmirnov(t *testing.T) {
-	for i, test := range []struct {
-		name     string
-		xdata    []float64
-		ydata    []float64
-		expected float64
-		// if True, use almostEquals criteria, which is numerical difference
-		// rounded to the 7th difference
-		// https://docs.python.org/3/library/unittest.html#unittest.TestCase.assertAlmostEqual
-		// else, use exact equals
-		almostEquals bool
-	}{
-		{
-			name:         "small samples",
-			xdata:        []float64{0},
-			ydata:        []float64{1},
-			expected:     0.2890414283708268,
-			almostEquals: false,
-		},
-		{
-			name:         "basic test 1",
-			xdata:        []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-			ydata:        []float64{20, 21, 22, 23, 24, 25, 26, 27, 28, 29},
-			expected:     1.8879793657162556e-05,
-			almostEquals: true,
-		},
-		{
-			name:         "basic test 2",
-			xdata:        []float64{0, 1, 2, 3, 4},
-			ydata:        []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-			expected:     0.26680230985258474,
-			almostEquals: true,
-		},
-		{
-			name:         "duplicate values",
-			xdata:        []float64{0, 0, 0, 0, 0},
-			ydata:        []float64{1, 1, 1, 1, 1},
-			expected:     0.0037813540593701006,
-			almostEquals: true,
-		},
-		{
-			name:         "identical values",
-			xdata:        []float64{0, 0, 0, 0, 0},
-			ydata:        []float64{0, 0, 0, 0, 0},
-			expected:     1.0,
-			almostEquals: false,
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			result, _ := KolmogorovSmirnov(test.xdata, test.ydata)
-			if test.almostEquals {
-				if math.Abs(result-test.expected) > 1e-7 {
-					t.Errorf("Expected %v, but got %v", test.expected, result)
-				}
+func TestKolmogorovSmirnov_Samples_ReturnsExpectedOutput(t *testing.T) {
+	test := func(name string, xData, yData []float64, expected float64, exact bool) {
+		t.Run(name, func(t *testing.T) {
+			result, err := KolmogorovSmirnov(xData, yData)
+			require.NoError(t, err)
+			if exact {
+				assert.Equal(t, result, expected)
 			} else {
-				if result != test.expected {
-					t.Errorf("Expected %v, but got %v", test.expected, result)
-				}
+				// almostExpected criteria is numerical difference
+				// rounded to the 5th difference
+				assert.InDelta(t, expected, result, 1e-5)
 			}
 		})
 	}
-	// test no data case
+
+	// The expected value for these unit tests are taken from:
+	// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/compare/kolmogorov_smirnov_test.py;drc=960c656c2fe229173bf8b0a10c45f28447d594f5;l=14
+	x := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{20, 21, 22, 23, 24, 25, 26, 27, 28, 29}
+	test("basic test 1", x, y, 1.8879794e-05, false)
+
+	x = []float64{0, 1, 2, 3, 4}
+	y = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	test("basic test 2", x, y, 0.26680, false)
+
+	x = []float64{0, 0, 0, 0, 0}
+	y = []float64{1, 1, 1, 1, 1}
+	test("duplicate values", x, y, 0.00378, false)
+
+	x = []float64{0}
+	y = []float64{1}
+	test("small samples", x, y, 0.28904, false)
+
+	x = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	y = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	test("identical values", x, y, 1.0, true)
+}
+
+func TestKolmogorovSmirnov_EmptyData_ReturnsError(t *testing.T) {
 	_, err := KolmogorovSmirnov([]float64{}, []float64{})
-	if err == nil {
-		t.Errorf("Expected error but got nil")
-	}
+	assert.Error(t, err)
+
+	_, err = KolmogorovSmirnov(nil, nil)
+	assert.Error(t, err)
 }
