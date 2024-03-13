@@ -199,30 +199,41 @@ type processedExperimentTasks struct {
 // returns a list of task pairs, where pairs are identified by botID and start time for the task.
 func (a *processedExperimentTasks) pairedTasks(excludedSwarmingTasks map[string]*SwarmingTaskDiagnostics) ([]pairedTasks, error) {
 	ret := []pairedTasks{}
+	// Sort tasks based on bot id + task start time.
 	sort.Sort(byPairingOrder(a.control.tasks))
 	sort.Sort(byPairingOrder(a.treatment.tasks))
 
-	for i, c := range a.control.tasks {
-		t := a.treatment.tasks[i]
-		if _, ok := excludedSwarmingTasks[c.taskID]; ok {
-			sklog.Warningf("Exclude swarming tasks: %s and %s, since the control task %s is in the exclude list", c.taskID, t.taskID, c.taskID)
-			continue
-		}
-		if _, ok := excludedSwarmingTasks[t.taskID]; ok {
-			sklog.Warningf("Exclude swarming tasks: %s and %s, since the treatment task %s is in the exclude list", c.taskID, t.taskID, t.taskID)
-			continue
-		}
+	cPointer := 0
+	tPointer := 0
+	for cPointer < len(a.control.tasks) && tPointer < len(a.treatment.tasks) {
+		c := a.control.tasks[cPointer]
+		t := a.treatment.tasks[tPointer]
 
-		if c.taskInfo.TaskResult.BotId != t.taskInfo.TaskResult.BotId {
-			return nil, fmt.Errorf("bot ID mismatch for pair %d: %q vs %q", i, c.taskInfo.TaskResult.BotId, t.taskInfo.TaskResult.BotId)
+		if c.taskInfo.TaskResult.BotId == t.taskInfo.TaskResult.BotId && c.runConfig == t.runConfig && c.buildConfig == t.buildConfig {
+			if _, ok := excludedSwarmingTasks[c.taskID]; ok {
+				sklog.Warningf("Exclude swarming tasks: %s and %s, since the control task %s is in the exclude list", c.taskID, t.taskID, c.taskID)
+			} else if _, ok := excludedSwarmingTasks[t.taskID]; ok {
+				sklog.Warningf("Exclude swarming tasks: %s and %s, since the treatment task %s is in the exclude list", c.taskID, t.taskID, t.taskID)
+			} else {
+				ret = append(ret, pairedTasks{c, t})
+			}
+			cPointer++
+			tPointer++
+		} else if c.taskInfo.TaskResult.BotId != t.taskInfo.TaskResult.BotId {
+			// if bot id don't match, skip the smaller bot id
+			if c.taskInfo.TaskResult.BotId < t.taskInfo.TaskResult.BotId {
+				sklog.Warningf("Exclude control swarming tasks: %s, since the bot id don't match. c.BotId = %s, t.BotId = %s", c.taskID, c.taskInfo.TaskResult.BotId, t.taskInfo.TaskResult.BotId)
+				cPointer++
+			} else {
+				sklog.Warningf("Exclude treatment swarming tasks: %s, since the bot id don't match. c.BotId = %s, t.BotId = %s", t.taskID, c.taskInfo.TaskResult.BotId, t.taskInfo.TaskResult.BotId)
+				tPointer++
+			}
+		} else {
+			// if bot id match but the config doesn't match, skip both tasks.
+			sklog.Warningf("Exclude swarming tasks: %s and %s, since the config don't match. c.runConfig = %s, t.runConfig = %s, c.buildConfig = %s, t.buildConfig = %s", c.taskID, t.taskID, c.runConfig, t.runConfig, c.buildConfig, t.buildConfig)
+			cPointer++
+			tPointer++
 		}
-		if c.runConfig != t.runConfig {
-			return nil, fmt.Errorf("control/treatment runConfig mismatch: %q vs %q", c.runConfig, t.runConfig)
-		}
-		if c.buildConfig != t.buildConfig {
-			return nil, fmt.Errorf("control/treatment buildConfig mismatch: %q vs %q", c.buildConfig, t.buildConfig)
-		}
-		ret = append(ret, pairedTasks{c, t})
 	}
 
 	return ret, nil
