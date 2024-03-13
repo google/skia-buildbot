@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -72,7 +73,20 @@ func New(t TemporalProvider, l *rate.Limiter) pb.PinpointServer {
 	}
 }
 
+// updateFieldsForCatapult converts specific catapult Pinpoint arguments
+// to their skia Pinpoint counterparts
+func updateFieldsForCatapult(req *pb.ScheduleBisectRequest) *pb.ScheduleBisectRequest {
+	if req.Statistic != "" {
+		req.AggregationMethod = req.Statistic
+	}
+	return req
+}
+
 func validate(req *pb.ScheduleBisectRequest) error {
+	_, err := read_values.ToAggDataMethod(req.AggregationMethod)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	switch {
 	case req.StartGitHash == "" || req.EndGitHash == "":
 		return skerr.Fmt("git hash is empty")
@@ -96,6 +110,9 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 		sklog.Infof("The request is dropped due to rate limiting.")
 		return nil, skerr.Fmt("unable to fulfill the request due to rate limiting, dropping")
 	}
+
+	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
+	req = updateFieldsForCatapult(req)
 
 	if err := validate(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())

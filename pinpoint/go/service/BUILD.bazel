@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
+        "//pinpoint/go/read_values",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
         "@com_github_google_uuid//:uuid",

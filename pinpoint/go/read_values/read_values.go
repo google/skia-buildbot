@@ -44,7 +44,7 @@ func (a aggDataMethod) AggDataMethod() aggDataMethod {
 	return a
 }
 
-func toAggDataMethod(data string) (AggDataMethodEnum, error) {
+func ToAggDataMethod(data string) (AggDataMethodEnum, error) {
 	switch data {
 	case "count":
 		return Count.AggDataMethod(), nil
@@ -58,6 +58,8 @@ func toAggDataMethod(data string) (AggDataMethodEnum, error) {
 		return Std.AggDataMethod(), nil
 	case "sum":
 		return Sum.AggDataMethod(), nil
+	case "":
+		return nil, nil
 	}
 	return nil, skerr.Fmt("Aggregation method %s is not a supported aggregation method", data)
 }
@@ -86,7 +88,7 @@ func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error)
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, client, benchmark, chart, digests, nil)
 func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference, agg string) ([]float64, error) {
-	aggEnum, err := toAggDataMethod(agg)
+	aggEnum, err := ToAggDataMethod(agg)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Unsuporrted agg method.")
 	}
