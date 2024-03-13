@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "du",
+    srcs = ["du.go"],
+    importpath = "go.skia.org/infra/go/du",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_dustin_go_humanize//:go-humanize",
+    ],
+)
+
+go_test(
+    name = "du_test",
+    srcs = ["du_test.go"],
+    embed = [":du"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

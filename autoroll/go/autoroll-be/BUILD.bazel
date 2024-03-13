@@ -19,7 +19,7 @@ go_library(
         "//go/chatbot",
         "//go/common",
         "//go/ds",
-        "//go/ephemeral_storage",
+        "//go/du",
         "//go/exec",
         "//go/fileutil",
         "//go/firestore",

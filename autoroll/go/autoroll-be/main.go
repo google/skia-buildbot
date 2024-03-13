@@ -30,7 +30,7 @@ import (
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/ephemeral_storage"
+	"go.skia.org/infra/go/du"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
@@ -161,7 +161,11 @@ func main() {
 	}
 
 	// Periodically log disk usage of the working directory.
-	go ephemeral_storage.StartCustom(ctx, *workdir)
+	go util.RepeatCtx(ctx, 5*time.Minute, func(ctx context.Context) {
+		if err := du.PrintJSONReport(ctx, *workdir, 2, true); err != nil {
+			sklog.Errorf("Failed to generate disk usage report: %s", err)
+		}
+	})
 
 	ts, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail, auth.ScopeGerrit, datastore.ScopeDatastore, "https://www.googleapis.com/auth/devstorage.read_only")
 	if err != nil {
