@@ -143,7 +143,7 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 		Ref:             "refs/head/main",
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"111"},
-		IssueIds:        []int64{111},
+		IssueIds:        []string{"111"},
 	}
 	populateDb(t, ctx, db, existingCulprit)
 	culprit := &pb.Culprit{

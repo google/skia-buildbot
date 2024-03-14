@@ -37,17 +37,17 @@ const LiveSchema = `
   );
   CREATE TABLE IF NOT EXISTS AnomalyGroups (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	creation_time TIMESTAMPTZ DEFAULT now(),
+	anomalies JSONB,
+	group_meta_data JSONB,
+	common_rev_start INT,
+	common_rev_end INT,
 	action TEXT,
 	action_time TIMESTAMPTZ,
 	bisection_id TEXT,
 	reported_issue_id TEXT,
-	anomalies JSONB,
-	creation_time TIMESTAMPTZ DEFAULT now(),
 	culprit_ids UUID ARRAY,
-	common_rev_start INT,
-	common_rev_end INT,
-	last_modified_time TIMESTAMPTZ,
-	subscription_name TEXT
+	last_modified_time TIMESTAMPTZ
   );
   CREATE TABLE IF NOT EXISTS Commits (
 	commit_number INT PRIMARY KEY,
@@ -109,7 +109,7 @@ const LiveSchema = `
 	PRIMARY KEY (trace_id, commit_number),
 	INDEX by_source_file_id (source_file_id, trace_id)
   );
-`
+  `
 
 func getSchema(t *testing.T, db pool.Pool) *schema.Description {
 	ret, err := schema.GetDescription(context.Background(), db, sql.Tables{})

@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS Culprits (
   revision STRING,
   last_modified INT,
   anomaly_group_ids STRING ARRAY,
-  issue_ids INT ARRAY,
+  issue_ids STRING ARRAY,
   UNIQUE INDEX by_revision (revision, host, project, ref)
 );
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (

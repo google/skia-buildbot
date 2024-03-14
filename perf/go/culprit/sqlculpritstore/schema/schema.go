@@ -24,7 +24,7 @@ type CulpritSchema struct {
 	AnomalyGroupIDs []string `sql:"anomaly_group_ids STRING ARRAY"`
 
 	// List of Issue Ids associated with this culprit
-	IssueIds []int64 `sql:"issue_ids INT ARRAY"`
+	IssueIds []string `sql:"issue_ids STRING ARRAY"`
 
 	// Index by (host, project, ref, revision). Revision is kept first to
 	// reduce hotspots
