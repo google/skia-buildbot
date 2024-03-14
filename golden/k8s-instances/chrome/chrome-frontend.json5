@@ -19,6 +19,7 @@
   },
   prom_port: ":20000",
   ready_port: ":7000",
+  debug_port: ":7001",
   public_site_url: "https://chrome-public-gold.skia.org",
   resources_path: "/usr/local/share/frontend/dist",
 

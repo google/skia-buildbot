@@ -16,6 +16,7 @@
   materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   prom_port: ":20000",
   ready_port: ":7000",
+  debug_port: ":7001",
   resources_path: "/usr/local/share/frontend/dist",
   site_url: "https://public-gold.skia.org",
 
