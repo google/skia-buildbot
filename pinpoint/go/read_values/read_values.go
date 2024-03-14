@@ -87,10 +87,13 @@ func DialRBECAS(ctx context.Context, instance string) (*rbeclient.Client, error)
 //	ctx := context.Background()
 //	client, err := DialRBECAS(ctx)
 //	values := client.ReadValuesByChart(ctx, client, benchmark, chart, digests, nil)
+//
+// TODO(sunxiaodi@): Migrate CABE backends into pinpoint/go/backends/
+// TODO(sunxiaodi@): add unit tests for ReadValuesByChart
 func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference, agg string) ([]float64, error) {
 	aggEnum, err := ToAggDataMethod(agg)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Unsuporrted agg method.")
+		return nil, skerr.Wrapf(err, "Unsupported aggregation method.")
 	}
 
 	values := []float64{}
@@ -104,7 +107,7 @@ func ReadValuesByChart(ctx context.Context, client *rbeclient.Client, benchmark 
 			)
 		}
 		v := ReadChart(res, benchmark, chart)
-		if aggEnum != nil {
+		if aggEnum != nil && len(v) > 0 {
 			s, err := aggData(v, aggEnum)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Could not aggregate data via %v on %v", aggEnum.AggDataMethod(), v)
@@ -134,24 +137,18 @@ func ReadChart(data map[string]perfresults.PerfResults, benchmark string, chart 
 }
 
 func aggData(data []float64, agg AggDataMethodEnum) (float64, error) {
-	if data == nil {
-		return 0.0, skerr.Fmt("Cannot aggregate nil data set")
-	}
-	if agg.AggDataMethod() == Count.AggDataMethod() {
+	switch agg.AggDataMethod() {
+	case Count.AggDataMethod():
 		return float64(len(data)), nil
-	}
-	if len(data) == 0 {
-		return 0.0, skerr.Fmt("Empty data set cannot be aggregated by %v", agg.AggDataMethod())
-	}
-	if agg.AggDataMethod() == Max.AggDataMethod() {
+	case Max.AggDataMethod():
 		return slices.Max(data), nil
-	} else if agg.AggDataMethod() == Mean.AggDataMethod() {
+	case Mean.AggDataMethod():
 		return sum(data) / float64(len(data)), nil
-	} else if agg.AggDataMethod() == Min.AggDataMethod() {
+	case Min.AggDataMethod():
 		return slices.Min(data), nil
-	} else if agg.AggDataMethod() == Std.AggDataMethod() {
+	case Std.AggDataMethod():
 		return stdDev(data), nil
-	} else if agg.AggDataMethod() == Sum.AggDataMethod() {
+	case Sum.AggDataMethod():
 		return sum(data), nil
 	}
 	return 0.0, skerr.Fmt("Aggregation method %v is not implemented", agg.AggDataMethod())

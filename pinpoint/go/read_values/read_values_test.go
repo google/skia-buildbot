@@ -75,15 +75,3 @@ func TestAggData_NonBlankData_AggData(t *testing.T) {
 	test("std", testAggData, Std, 8.803408)
 	test("sum", testAggData, Sum, 20.0)
 }
-
-func TestAggData_BlankData_Error(t *testing.T) {
-	test := func(name string, testData []float64, method AggDataMethodEnum) {
-		t.Run(name, func(t *testing.T) {
-			_, err := aggData(testData, method)
-			assert.Error(t, err)
-		})
-	}
-
-	test("nil data", nil, Sum)
-	test("length 0 data", []float64{}, Sum)
-}

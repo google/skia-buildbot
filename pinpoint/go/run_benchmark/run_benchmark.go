@@ -53,6 +53,8 @@ func IsTaskStateFinished(state string) (bool, error) {
 }
 
 // IsTaskStateSuccess checks if a swarming task state is finished
+// TODO(b/327224992): Do not return true when status = COMPLETED (FAILURE)
+// example: https://chrome-swarming.appspot.com/task?id=6856dd42f2638510
 func IsTaskStateSuccess(state string) bool {
 	return state == swarming.TASK_STATE_COMPLETED
 }
