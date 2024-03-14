@@ -297,7 +297,8 @@ func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, 
 		}
 	}
 	if diffUrl == "" {
-		return nil, skerr.Fmt("A DEPS roll was not identifiable from %v to %v", startCommit, endCommit)
+		sklog.Debugf("A DEPS roll was not identifiable from %v to %v", startCommit, endCommit)
+		return nil, nil
 	}
 
 	dStart := startDeps[diffUrl]
@@ -413,6 +414,11 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 	midCommitFromDEPS, err := m.findMidCommitInDEPS(ctx, startCommit, endCommit)
 	if err != nil {
 		return nil, err
+	}
+
+	if midCommitFromDEPS == nil {
+		// DEPS were equal.
+		return nil, nil
 	}
 
 	if strings.HasPrefix(midCommitFromDEPS.GitHash, startCommit.GitHash) {

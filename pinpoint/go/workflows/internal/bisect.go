@@ -284,7 +284,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			}
 			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
 			// TODO(b/327019543): Create midpoint equality function to compare two CombinedCommits
-			if mid == nil {
+			if mid.Key() == cr.Lower.Key() {
 				logger.Debug("No more midpoints to parse through.")
 				e.Commit = cr.Higher.GetMainGitHash()
 				break
