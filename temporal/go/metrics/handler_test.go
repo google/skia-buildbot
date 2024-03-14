@@ -16,6 +16,25 @@ func newClient() metrics2.Client {
 	return metrics2.GetDefaultClient()
 }
 
+func TestHandler_NewHandler_AppendTags(t *testing.T) {
+	tag1 := map[string]string{
+		"some-key1": "some-value1",
+	}
+	tag2 := map[string]string{
+		"some-key2": "some-value2",
+	}
+	all := map[string]string{
+		"some-key1": "some-value1",
+		"some-key2": "some-value2",
+	}
+
+	c := newClient()
+	h1 := NewMetricsHandler(tag1, c)
+	h2 := h1.WithTags(tag2)
+	require.EqualValues(t, tag1, h1.tags)
+	require.EqualValues(t, all, h2.(*metricsHandler).tags)
+}
+
 func TestHandler_WithSameCounter_ReturnSameCounter(t *testing.T) {
 	const cn = "some_counter"
 	h := NewMetricsHandler(map[string]string{}, newClient())

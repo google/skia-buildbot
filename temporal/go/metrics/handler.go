@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"maps"
 	"sync"
 	"time"
 
@@ -43,6 +44,7 @@ func (t *timer) Record(v time.Duration) {
 }
 
 func (m *metricsHandler) WithTags(tags map[string]string) client.MetricsHandler {
+	maps.Copy(tags, m.tags)
 	return NewMetricsHandler(tags, m.client)
 }
 
