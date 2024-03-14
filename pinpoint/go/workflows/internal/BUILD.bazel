@@ -8,6 +8,7 @@ go_library(
         "build_chrome.go",
         "commits_runner.go",
         "compare.go",
+        "options.go",
         "run_benchmark.go",
     ],
     importpath = "go.skia.org/infra/pinpoint/go/workflows/internal",

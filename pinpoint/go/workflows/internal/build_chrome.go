@@ -11,25 +11,11 @@ import (
 	"go.skia.org/infra/pinpoint/go/build_chrome"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
 // BuildChromeActivity wraps BuildChrome in Activities.
 type BuildChromeActivity struct {
-}
-
-var buildActivityOption = workflow.ActivityOptions{
-	// Expect longer running time
-	StartToCloseTimeout: 6 * time.Hour,
-	// The default gRPC timeout is 5 minutes, longer than that so it can capture grpc errors.
-	HeartbeatTimeout: 6 * time.Minute,
-	RetryPolicy: &temporal.RetryPolicy{
-		InitialInterval:    15 * time.Second,
-		BackoffCoefficient: 2.0,
-		MaximumInterval:    1 * time.Minute,
-		MaximumAttempts:    3,
-	},
 }
 
 // BuildChrome is a Workflow definition that builds Chrome.

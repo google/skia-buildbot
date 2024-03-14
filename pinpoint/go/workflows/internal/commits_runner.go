@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"errors"
-	"time"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -14,22 +13,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/workflow"
-)
-
-var (
-	buildWorkflowOptions = workflow.ChildWorkflowOptions{
-		WorkflowExecutionTimeout: 4 * time.Hour,
-	}
-
-	// Two hours pending timeouts + six hours running timeouts
-	// Those are defined here:
-	// https://chromium.googlesource.com/chromium/src/+/3b293fe/testing/buildbot/chromium.perf.json#499
-	runBenchmarkWorkflowOptions = workflow.ChildWorkflowOptions{
-		WorkflowExecutionTimeout: 8 * time.Hour,
-	}
-	collectValuesActivityOptions = workflow.ActivityOptions{
-		StartToCloseTimeout: 30 * time.Second,
-	}
 )
 
 // SingleCommitRunnerParams defines the parameters for SingleCommitRunner workflow.
@@ -124,7 +107,7 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 			defer wg.Done()
 
 			gCtx = workflow.WithChildOptions(gCtx, runBenchmarkWorkflowOptions)
-			gCtx = workflow.WithActivityOptions(gCtx, collectValuesActivityOptions)
+			gCtx = workflow.WithActivityOptions(gCtx, regularActivityOptions)
 
 			var tr *workflows.TestRun
 			if err := workflow.ExecuteChildWorkflow(gCtx, workflows.RunBenchmark, &RunBenchmarkParams{

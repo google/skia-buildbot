@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/zyedidia/generic/stack"
@@ -18,20 +17,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-var (
-	localActivityOptions = workflow.LocalActivityOptions{
-		ScheduleToCloseTimeout: 15 * time.Second,
-	}
-	activityOptions = workflow.ActivityOptions{
-		StartToCloseTimeout: 30 * time.Second,
-	}
-	childWorkflowOptions = workflow.ChildWorkflowOptions{
-		// 4 hours of compile time + 8 hours of test run time
-		WorkflowExecutionTimeout: 12 * time.Hour,
-	}
-
-	benchmarkRunIterations = []int32{10, 20, 40, 80, 160}
-)
+var benchmarkRunIterations = [...]int32{10, 20, 40, 80, 160}
 
 func getMaxSampleSize() int32 {
 	return benchmarkRunIterations[len(benchmarkRunIterations)-1]
@@ -165,7 +151,7 @@ func compareRuns(ctx workflow.Context, lRun, hRun *CommitRun, chart string, mag 
 // BisectWorkflow is a Workflow definition that takes a range of git hashes and finds the culprit.
 func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.BisectExecution, error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	ctx = workflow.WithActivityOptions(ctx, activityOptions)
+	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithLocalActivityOptions(ctx, localActivityOptions)
 
 	logger := workflow.GetLogger(ctx)
