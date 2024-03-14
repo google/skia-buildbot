@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os/user"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -19,7 +21,7 @@ var (
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
 	promPort  = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
 	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
-	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
+	taskQueue = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 )
 
 func main() {
@@ -29,6 +31,14 @@ func main() {
 		appName,
 		common.PrometheusOpt(promPort),
 	)
+
+	if *taskQueue == "" {
+		if u, err := user.Current(); err != nil {
+			sklog.Fatalf("Unable to get the current user: %s", err)
+		} else {
+			*taskQueue = fmt.Sprintf("localhost.%s", u.Username)
+		}
+	}
 
 	// The client and worker are heavyweight objects that should be created once per process.
 	c, err := client.Dial(client.Options{

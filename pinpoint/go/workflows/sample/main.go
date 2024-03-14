@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"os/user"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -23,21 +25,23 @@ var (
 	// kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233
 	hostPort                = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
 	namespace               = flag.String("namespace", "default", "The namespace the worker registered to.")
-	taskQueue               = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
+	taskQueue               = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	commit                  = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
 	triggerBisectFlag       = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
 	triggerSingleCommitFlag = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
 )
 
-var workflowOptions = client.StartWorkflowOptions{
-	ID:        uuid.New().String(),
-	TaskQueue: *taskQueue,
-	RetryPolicy: &temporal.RetryPolicy{
-		InitialInterval:    30 * time.Second,
-		BackoffCoefficient: 2.0,
-		MaximumInterval:    5 * time.Minute,
-		MaximumAttempts:    1,
-	},
+func defaultWorkflowOptions() client.StartWorkflowOptions {
+	return client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
+		TaskQueue: *taskQueue,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    30 * time.Second,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    5 * time.Minute,
+			MaximumAttempts:    1,
+		},
+	}
 }
 
 func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
@@ -59,7 +63,7 @@ func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
 		},
 	}
 	var be *pb.BisectExecution
-	we, err := c.ExecuteWorkflow(ctx, workflowOptions, internal.BisectWorkflow, p)
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), internal.BisectWorkflow, p)
 	if err != nil {
 		sklog.Fatalf("Unable to execute workflow: %v", err)
 		return nil
@@ -88,7 +92,7 @@ func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
 		Iterations: 3,
 	}
 	var cr *internal.CommitRun
-	we, err := c.ExecuteWorkflow(ctx, workflowOptions, workflows.SingleCommitRunner, p)
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.SingleCommitRunner, p)
 	if err != nil {
 		sklog.Fatalf("Unable to execute workflow: %v", err)
 		return nil
@@ -111,7 +115,7 @@ func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 		Device: "mac-m1_mini_2020-perf",
 		Target: "performance_test_suite",
 	}
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, workflows.BuildChrome, bcp)
+	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, bcp)
 	if err != nil {
 		sklog.Fatalf("Unable to execute workflow: %v", err)
 		return nil
@@ -131,6 +135,14 @@ func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
+
+	if *taskQueue == "" {
+		if u, err := user.Current(); err != nil {
+			sklog.Fatalf("Unable to get the current user: %s", err)
+		} else {
+			*taskQueue = fmt.Sprintf("localhost.%s", u.Username)
+		}
+	}
 
 	// The client is a heavyweight object that should be created once per process.
 	c, err := client.Dial(client.Options{
