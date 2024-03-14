@@ -98,8 +98,14 @@ func (cr *CommitRangeTracker) calcNewRuns(cm *CommitMap) (int32, int32, error) {
 	return lRunsToSchedule, hRunsToSchedule, nil
 }
 
-func GetAllValues(ctx context.Context, cr *CommitRun, chart string) ([]float64, error) {
-	return cr.AllValues(chart), nil
+type CommitValues struct {
+	Commit *midpoint.CombinedCommit
+	Values []float64
+}
+
+// GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
+func GetAllValuesLocalActivity(ctx context.Context, cr *CommitRun, chart string) (*CommitValues, error) {
+	return &CommitValues{cr.Commit, cr.AllValues(chart)}, nil
 }
 
 // FindMidCommitActivity is an Activity that finds the middle point of two commits.
@@ -132,16 +138,16 @@ func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midp
 }
 
 func compareRuns(ctx workflow.Context, lRun, hRun *CommitRun, chart string, mag float64) (*compare.CompareResults, error) {
-	var lValues, hValues []float64
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, lRun, chart).Get(ctx, &lValues); err != nil {
+	var lValues, hValues *CommitValues
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValuesLocalActivity, lRun, chart).Get(ctx, &lValues); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValues, hRun, chart).Get(ctx, &hValues); err != nil {
+	if err := workflow.ExecuteLocalActivity(ctx, GetAllValuesLocalActivity, hRun, chart).Get(ctx, &hValues); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	var result *compare.CompareResults
-	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues, hValues, mag).Get(ctx, &result); err != nil {
+	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues.Values, hValues.Values, mag).Get(ctx, &result); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
