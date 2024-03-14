@@ -274,7 +274,9 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, cr).Get(ctx, &mid); err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			if mid == nil {
+
+			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
+			if mid.Key() == cr.Lower.Key() {
 				logger.Debug("No more midpoints to parse through.")
 				// TODO(b/329502712): Append additional info to bisectionExecution
 				// such as p-values, average difference

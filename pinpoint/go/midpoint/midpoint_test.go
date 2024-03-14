@@ -468,8 +468,9 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(webrtc, wgc).WithRepo(v8, v8gc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
-	assert.ErrorContains(t, err, "There are no more commits to parse through in the DEP between")
-	assert.Nil(t, res)
+	assert.NoError(t, err)
+	// equality check through key
+	assert.Equal(t, start.Key(), res.Key())
 }
 
 func TestFindMidCombinedCommit_ComparisonWithUnbalancedModifiedDeps_ValidNextCandidate(t *testing.T) {

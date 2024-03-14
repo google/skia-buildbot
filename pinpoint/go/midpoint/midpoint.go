@@ -297,7 +297,8 @@ func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, 
 		}
 	}
 	if diffUrl == "" {
-		return nil, skerr.Fmt("A DEPS roll was not identifiable from %v to %v", startCommit, endCommit)
+		sklog.Debugf("A DEPS roll was not identifiable from %v to %v", startCommit, endCommit)
+		return nil, nil
 	}
 
 	dStart := startDeps[diffUrl]
@@ -315,9 +316,12 @@ func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, 
 		return nil, skerr.Fmt("The two commits %v and %v were the same while comparing deps files between %v and %v", dStart, dEnd, startCommit, endCommit)
 	}
 
+	// Note: This should assume another DEPS roll and look for the next midpoint there,
+	// but it currently terminate at layer - 1 and returns startCommit as the midpoint
+	// for two adjancet changes.
 	if strings.HasPrefix(dMid.GitHash, dStart.GitHash) {
 		sklog.Debugf("Returning startCommit because the two commits %v and %v, parsed from DEPS files at %v and %v respectively, are adjacent.", dStart, dEnd, startCommit, endCommit)
-		return startCommit, nil
+		return nil, nil
 	}
 
 	sklog.Debugf("Next modified dep: %v", dMid)
@@ -415,8 +419,17 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 		return nil, err
 	}
 
-	if strings.HasPrefix(midCommitFromDEPS.GitHash, startCommit.GitHash) {
-		return nil, skerr.Fmt("There are no more commits to parse through in the DEP between %v and %v", startCommit, endCommit)
+	// If there was no DEPS roll, the midpoint between two adjacent commits
+	// is the start commit.
+	//
+	// Note: when findMidCommitInDEPS() finds two adjacent git-based dependencies from
+	// DEPS files, it should traverse deeper also assuming a DEPS roll. As of right now,
+	// it terminates by returning nil, meaning that it only goes in layer - 1.
+	// And because we aren't traversing any further, this is being treated as a termination
+	// clause saying there's no midpoint.
+	if midCommitFromDEPS == nil {
+		sklog.Debugf("There are no more commits to parse through in the DEP between %v and %v", startCommit, endCommit)
+		return startCommit, nil
 	}
 
 	sklog.Debugf("Next midpoint found through DEPS: %v", midCommitFromDEPS)
@@ -526,8 +539,7 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 			return nil, err
 		}
 
-		// If startDep is returned, indicator that all options have been exhausted,
-		// so return the start commit.
+		// There is no mid to proceed on.
 		if strings.HasPrefix(midDepCommit.GitHash, startDep.GitHash) {
 			return startCommit, nil
 		}
@@ -544,6 +556,7 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 		return nil, err
 	}
 
+	// There is no mid.
 	if strings.HasPrefix(midCommit.GitHash, startCommit.Main.GitHash) {
 		return startCommit, nil
 	}
