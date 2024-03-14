@@ -29,7 +29,7 @@ message PersistCulpritRequest {
 message PersistCulpritResponse {
   // List of issue ids created
   repeated string culprit_ids = 1;
-  int64 issue_id = 2;
+  repeated int64 issue_ids = 2;
 }
 
 
@@ -45,7 +45,7 @@ message NotifyUserRequest {
 // Response object for NotifyUser rpc.
 message NotifyUserResponse {
   // List of issue ids created
-  int64 issue_id = 1;
+  repeated int64 issue_ids = 1;
 }
 
 
