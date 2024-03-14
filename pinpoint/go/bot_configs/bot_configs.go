@@ -20,13 +20,43 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"maps"
+	"sync"
+
+	"go.skia.org/infra/go/sklog"
 )
 
 //go:embed external.json
-var externalBotConfigs []byte
+var externalBotConfigsJSON []byte
+var externalBotConfigs map[string]BotConfig
+var onceExternal sync.Once
+
+func getExternalBotConfigs() map[string]BotConfig {
+	onceExternal.Do(func() {
+		err := json.Unmarshal(externalBotConfigsJSON, &externalBotConfigs)
+		if err != nil {
+			externalBotConfigs = make(map[string]BotConfig)
+			sklog.Errorf("Fail to load external bot config file: %s", err)
+		}
+	})
+	return externalBotConfigs
+}
 
 //go:embed internal.json
-var internalBotConfigs []byte
+var internalBotConfigsJSON []byte
+var allBotConfigs map[string]BotConfig
+var onceAll sync.Once
+
+func getAllBotConfigs() map[string]BotConfig {
+	onceAll.Do(func() {
+		allBotConfigs = maps.Clone(getExternalBotConfigs())
+		err := json.Unmarshal(internalBotConfigsJSON, &allBotConfigs)
+		if err != nil {
+			sklog.Errorf("Fail to load internal bot config file: %s", err)
+		}
+	})
+	return allBotConfigs
+}
 
 // A BotConfig contains the parameters that make up
 // the configuration. Configurations should either
@@ -62,16 +92,12 @@ type BotConfig struct {
 func GetBotConfig(bot string, externalOnly bool) (BotConfig, error) {
 	var botConfigs map[string]BotConfig
 
-	err := json.Unmarshal(externalBotConfigs, &botConfigs)
-	if err != nil {
-		return BotConfig{}, err
+	if externalOnly {
+		botConfigs = getExternalBotConfigs()
+	} else {
+		botConfigs = getAllBotConfigs()
 	}
-	if !externalOnly {
-		err = json.Unmarshal(internalBotConfigs, &botConfigs)
-		if err != nil {
-			return BotConfig{}, err
-		}
-	}
+
 	cfg, ok := botConfigs[bot]
 	if !ok {
 		var errMsg string
@@ -108,11 +134,11 @@ func validate() error {
 	var internal map[string]BotConfig
 	var botConfigs map[string]BotConfig
 
-	err := json.Unmarshal(externalBotConfigs, &external)
+	err := json.Unmarshal(externalBotConfigsJSON, &external)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(internalBotConfigs, &internal)
+	err = json.Unmarshal(internalBotConfigsJSON, &internal)
 	if err != nil {
 		return err
 	}
@@ -139,11 +165,11 @@ func validate() error {
 	}
 
 	// combine maps and validate each device
-	err = json.Unmarshal(externalBotConfigs, &botConfigs)
+	err = json.Unmarshal(externalBotConfigsJSON, &botConfigs)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(internalBotConfigs, &botConfigs)
+	err = json.Unmarshal(internalBotConfigsJSON, &botConfigs)
 	if err != nil {
 		return err
 	}
