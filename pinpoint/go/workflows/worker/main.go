@@ -17,7 +17,7 @@ const appName = "pinpoint-worker"
 
 var (
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
-	promPort  = flag.String("promPort", "8000", "Prometheus port that it listens on.")
+	promPort  = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
 	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 )
