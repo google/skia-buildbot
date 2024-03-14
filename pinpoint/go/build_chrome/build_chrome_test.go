@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 
@@ -249,57 +250,41 @@ func TestNewBuild(t *testing.T) {
 	}
 }
 
-func TestRetrieveCAS(t *testing.T) {
-	for i, test := range []struct {
-		name          string
-		mockResp      *swarmingV1.SwarmingRpcsCASReference
-		expected      *swarmingV1.SwarmingRpcsDigest
-		expectedError bool
-	}{
-		{
-			name:          "build failed or ongoing",
-			expected:      nil,
-			expectedError: true,
-		},
-		{
-			name: "retrieve cas success",
-			mockResp: &swarmingV1.SwarmingRpcsCASReference{
-				CasInstance: backends.DefaultCASInstance,
-				Digest: &swarmingV1.SwarmingRpcsDigest{
-					Hash:      "hash",
-					SizeBytes: 123,
-				},
-			},
-			expected: &swarmingV1.SwarmingRpcsDigest{
-				Hash:      "hash",
-				SizeBytes: 123,
-			},
-			expectedError: false,
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			ctx := context.Background()
-			mb := &mocks.BuildbucketClient{}
-			bc := buildChromeImpl{
-				BuildbucketClient: mb,
-			}
-			buildID := int64(1)
-			target := "fake-target"
-			if test.expectedError {
-				mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(nil, fmt.Errorf("some error"))
-			} else {
-				mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(test.mockResp, nil)
-			}
-
-			cas, err := bc.RetrieveCAS(ctx, buildID, target)
-			if test.expectedError {
-				assert.Error(t, err)
-				assert.Nil(t, cas)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, test.expected.Hash, cas.Digest.Hash)
-				assert.Equal(t, test.expected.SizeBytes, cas.Digest.SizeBytes)
-			}
-		})
+func TestRetrieveCAS_BuildIdAndTarget_ReturnsCasReference(t *testing.T) {
+	ctx := context.Background()
+	mb := &mocks.BuildbucketClient{}
+	bc := buildChromeImpl{
+		BuildbucketClient: mb,
 	}
+	const buildID = int64(1)
+	const target = "fake-target"
+
+	mockResp := &swarmingV1.SwarmingRpcsCASReference{
+		CasInstance: backends.DefaultCASInstance,
+		Digest: &swarmingV1.SwarmingRpcsDigest{
+			Hash:      "6e75b9064d8ce9a16c3815af13709f05556da586460587a5155e599aafea4a93",
+			SizeBytes: 1294,
+		},
+	}
+	mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(mockResp, nil)
+
+	cas, err := bc.RetrieveCAS(ctx, buildID, target)
+	require.NoError(t, err)
+	assert.Equal(t, "6e75b9064d8ce9a16c3815af13709f05556da586460587a5155e599aafea4a93", cas.Digest.Hash)
+	assert.Equal(t, int64(1294), cas.Digest.SizeBytes)
+}
+
+func TestRetrieveCAS_InvalidBuildIdAndTarget_ReturnsError(t *testing.T) {
+	ctx := context.Background()
+	mb := &mocks.BuildbucketClient{}
+	bc := buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	const buildID = int64(1)
+	const target = "fake-target"
+	mb.On("GetCASReference", testutils.AnyContext, buildID, target).Return(nil, fmt.Errorf("some error"))
+
+	_, err := bc.RetrieveCAS(ctx, buildID, target)
+	assert.Error(t, err)
 }
