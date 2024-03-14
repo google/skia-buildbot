@@ -161,15 +161,18 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	// This task also requires edits to single commit runner.
 	jobID := uuid.New().String()
 	e := &pb.BisectExecution{
-		JobId: jobID,
+		JobId:    jobID,
+		Culprits: []string{},
 	}
 
+	// TODO(sunxiaodi@): migrate these default params to service/service_impl/validate
 	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
 	// when the rawMagnitude is 0.0
 	magnitude := float64(0.0)
 	if p.Request.ComparisonMagnitude != "" {
 		var err error
 		magnitude, err = strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
+		// TODO(sunxiaodi@): Can use default comparison magnitude rather than throw error
 		if err != nil {
 			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMagnitude)
 		}
@@ -188,7 +191,6 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		} else {
 			minSampleSize = int32(ss)
 		}
-
 	}
 
 	cm := &CommitMap{}
@@ -259,7 +261,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 					ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher, minSampleSize),
 				})
 				logger.Debug("pushed CommitRangeTracker: ", *commitStack.Peek())
+			} else {
+				// TODO(haowoo@): add metric to measure this occurrence
+				logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lr.Runs))
 			}
+
 		case compare.Different:
 			// TODO(b/326352320): If the middle point has a different repo, it means that it looks into
 			//	the autoroll and there are changes in DEPS. We need to construct a CombinedCommit so it
@@ -268,11 +274,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, cr).Get(ctx, &mid); err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
-			// TODO(b/327019543): Create midpoint equality function to compare two CombinedCommits
 			if mid == nil {
 				logger.Debug("No more midpoints to parse through.")
-				e.Commit = cr.Higher.GetMainGitHash()
+				// TODO(b/329502712): Append additional info to bisectionExecution
+				// such as p-values, average difference
+				e.Culprits = append(e.Culprits, cr.Higher.GetMainGitHash())
 				break
 			}
 			commitStack.Push(&CommitRangeTracker{

@@ -40,7 +40,7 @@ func TestBisect_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T) {
 	require.NoError(t, env.GetWorkflowResult(&be))
 	require.NotNil(t, be)
 	require.NotEmpty(t, be.JobId)
-	require.Empty(t, be.Commit)
+	require.Empty(t, be.Culprits)
 	env.AssertExpectations(t)
 }
 
