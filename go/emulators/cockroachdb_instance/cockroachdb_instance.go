@@ -57,7 +57,7 @@ func StartCockroachDBIfNotRunning() (bool, error) {
 		"--store="+cockroachDBStoreDir,
 		"--http-addr=0", // Web UI not needed for tests
 	)
-	if err := emulators.StartForRBE(cmd); err != nil {
+	if err := emulators.StartEmulatorCmd(cmd); err != nil {
 		return false, skerr.Wrap(err)
 	}
 	isRunning = true

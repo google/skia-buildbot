@@ -14,7 +14,7 @@ import (
 // Calling this function from any Go package will automatically establish a Bazel dependency on the
 // corresponding external Bazel repository.
 func FindGcloud() (string, error) {
-	if !bazel.InBazelTest() {
+	if !bazel.InBazel() {
 		return exec.LookPath("gcloud")
 	}
 	if runtime.GOOS == "linux" {

@@ -16,7 +16,7 @@ import (
 // Calling this function from any Go package will automatically establish a Bazel dependency on the
 // corresponding CIPD package, which Bazel will download as needed.
 func FindGit() (string, error) {
-	if !bazel.InBazelTest() {
+	if !bazel.InBazel() {
 		return exec.LookPath("git")
 	}
 	if runtime.GOOS == "windows" {

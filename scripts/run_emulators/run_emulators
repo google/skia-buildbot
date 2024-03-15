@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TMPDIR="${TMPDIR:-/tmp}"
-nohup go run $DIR/run_emulators.go "$@" > ${TMPDIR}/cloud_emulators.log &
+nohup bazelisk run --config=mayberemote //scripts/run_emulators "$@" > ${TMPDIR}/cloud_emulators.log &
 
 cmd="$1"
 shift

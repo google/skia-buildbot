@@ -128,7 +128,7 @@ func runGCloudCmd(args ...string) error {
 	// We intentionally do not take a context parameter because we want this instance to
 	// outlive this test invocation (and be re-used by future tests).
 	cmd := exec.CommandContext(context.Background(), gcloud, args...)
-	if err := emulators.StartForRBE(cmd); err != nil {
+	if err := emulators.StartEmulatorCmd(cmd); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
