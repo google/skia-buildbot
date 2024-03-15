@@ -189,9 +189,9 @@ func TestFindMidCombinedCommit_NoModifiedDeps_ValidMidpointFromMain(t *testing.T
 	}
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	require.NoError(t, err)
-	// endGitHash is popped off, leaving [1, 2, 3, 4]
+	// endGitHash is popped off, leaving [4, 3, 2, 1]
 	// and since len == 4, mid index == 2
-	assert.Equal(t, "3", res.Main.GitHash)
+	assert.Equal(t, "2", res.Main.GitHash)
 }
 
 func TestFindMidCombinedCommit_AdjacentChangesWithNoDeps_ValidMidpointFromDeps(t *testing.T) {
@@ -257,7 +257,18 @@ deps = {
 	webrtc := "https://webrtc.googlesource.com/src"
 	wStartGitHash := "1"
 	wEndGitHash := "3"
-	wResp := generateCommitResponse(3)
+	wResp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "3",
+			},
+		},
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
 
 	wgc := &mocks.GitilesRepo{}
 	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
@@ -276,9 +287,8 @@ deps = {
 	// for midpoint in chromium.
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	assert.NoError(t, err)
-	// Next candidate should be 2, since LogFirstParent returns [3, 2, 1],
-	// 3 is popped leaving [2, 1]. This is reversed to [1, 2]
-	// and len()/2 = idx 1, which is commit "2"
+	// Next candidate should be 2, since LogFirstParent returns [3, 2],
+	// 3 is popped leaving [2].
 	nextCommit := res.ModifiedDeps.GetLatest()
 	assert.Equal(t, "2", nextCommit.GitHash)
 }
@@ -316,10 +326,10 @@ func TestFindMidCombinedCommit_WithModifiedDeps_NextCandidateInModifiedDeps(t *t
 	m := New(ctx, c).WithRepo(webrtc, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	assert.NoError(t, err)
-	// endGitHash is popped off, leaving [2, 3, 4]
+	// endGitHash is popped off, leaving [4, 3, 2, 1]
 	// and since len == 4, mid index == 2
 	nextCommit := res.ModifiedDeps.GetLatest()
-	assert.Equal(t, "3", nextCommit.GitHash)
+	assert.Equal(t, "2", nextCommit.GitHash)
 }
 
 func TestFindMidCombinedCommit_AdjacentModifiedDeps_NextCandidateWithinDeps(t *testing.T) {
@@ -361,7 +371,18 @@ deps = {
 	// Test prep for v8 mock, which should be invoked after webrtc deps are parsed.
 	v8 := "https://chromium.googlesource.com/v8/v8"
 	v8gc := &mocks.GitilesRepo{}
-	v8resp := generateCommitResponse(3)
+	v8resp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "3",
+			},
+		},
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
 	v8gc.On("LogFirstParent", testutils.AnyContext, "1", "3").Return(v8resp, nil)
 
 	c := mockhttpclient.NewURLMock().Client()
@@ -390,7 +411,7 @@ deps = {
 	assert.NoError(t, err)
 
 	// The next candidate should be in v8/v8 with commit "2", because the midpoint
-	// from 1 to 3 would be 2.
+	// from [3, 2] would be 2.
 	nextCommit := res.ModifiedDeps.GetLatest()
 	assert.Equal(t, v8, nextCommit.RepositoryUrl)
 	assert.Equal(t, "2", nextCommit.GitHash)
@@ -515,9 +536,9 @@ deps = {
 	m := New(ctx, c).WithRepo(chromiumSrcGit, gc).WithRepo(webrtc, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	assert.NoError(t, err)
-	// endGitHash is popped off, leaving [2, 3, 4]
+	// endGitHash is popped off, leaving [4, 3, 2, 1]
 	nextCommit := res.ModifiedDeps.GetLatest()
-	assert.Equal(t, "3", nextCommit.GitHash)
+	assert.Equal(t, "2", nextCommit.GitHash)
 }
 
 func TestFindMidCombinedCommit_ComparisonWithMultipleModifiedDepsAdjacent_DepsWithinDepsMidpoint(t *testing.T) {
@@ -608,12 +629,10 @@ deps = {
 	}
 
 	c := mockhttpclient.NewURLMock().Client()
-	// m := New(ctx, c).WithRepo(v8, v8gc)
 	m := New(ctx, c).WithRepo(v8, v8gc).WithRepo(webrtc, wgc).WithRepo(randomUrl, randomGc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	assert.NoError(t, err)
-	// assert.Nil(t, res)
-	// endGitHash is popped off, leaving [2, 3, 4]
+	// [5, 4], top is popped off so midpoint = 4
 	nextCommit := res.ModifiedDeps.GetLatest()
 	assert.Equal(t, "4", nextCommit.GitHash)
 }

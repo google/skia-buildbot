@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 
 	"go.skia.org/infra/go/depot_tools/deps_parser"
@@ -220,10 +219,8 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 	// Golang divide will return lower bound when odd.
 	lc = lc[1:]
 
-	// Sort to chronological order before taking the midpoint. This means for even
-	// lists, we opt to the higher index (ie/ in [1,2,3,4] len == 4 and midpoint
-	// becomes index 2 (which = 3))
-	slices.Reverse(lc)
+	// For even lists, we opt to the higher index (ie/ in [4, 3, 2, 1] len == 4 and midpoint
+	// becomes index 2 (which = 2))
 	mlc := lc[len(lc)/2]
 
 	nextHash := mlc.ShortCommit.Hash
