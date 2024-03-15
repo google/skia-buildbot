@@ -171,6 +171,19 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		Culprits: []string{},
 	}
 
+	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
+		"job_id":    jobID,
+		"benchmark": p.Request.Benchmark,
+		"config":    p.Request.Configuration,
+		"story":     p.Request.Story,
+	})
+	mh.Counter("bisect_count").Inc(1)
+	defer func() {
+		if len(e.Culprits) > 0 {
+			mh.Counter("bisect_found_culprit_count").Inc(1)
+		}
+	}()
+
 	// TODO(sunxiaodi@): migrate these default params to service/service_impl/validate
 	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
 	// when the rawMagnitude is 0.0
