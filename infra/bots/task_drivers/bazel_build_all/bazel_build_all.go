@@ -16,7 +16,6 @@ var (
 	taskID            = flag.String("task_id", "", "ID of this task.")
 	taskName          = flag.String("task_name", "", "Name of the task.")
 	workDirFlag       = flag.String("workdir", ".", "Working directory.")
-	rbe               = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 	rbeKey            = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 	ramdiskSizeGb     = flag.Int("ramdisk_gb", 40, "Size of ramdisk to use, in GB.")
 	bazelCacheDir     = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
@@ -75,37 +74,37 @@ func main() {
 	}
 
 	// Run "go generate" and fail it there are any diffs.
-	if _, err := bzl.Do(ctx, "run", "//:go", "--", "generate", "./..."); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:go", "--", "generate", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
 
 	// Run "errcheck" and fail it there are any findings.
-	if _, err := bzl.Do(ctx, "run", "//:errcheck", "--", "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:errcheck", "--", "-ignore", ":Close", "go.skia.org/infra/..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 
 	// Run "gofmt" and fail it there are any diffs.
-	if _, err := bzl.Do(ctx, "run", "//:gofmt", "--", "-s", "-w", "."); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:gofmt", "--", "-s", "-w", "."); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
 
 	// Buildifier formats all BUILD.bazel and .bzl files. We enforce formatting by making the tryjob
 	// fail if this step produces any diffs.
-	if _, err := bzl.Do(ctx, "run", "//:buildifier"); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:buildifier"); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
 
 	// Regenerate //go_repositories.bzl from //go.mod with Gazelle, and fail if there are any diffs.
-	if _, err := bzl.Do(ctx, "run", "//:gazelle", "--", "update-repos", "-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories"); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:gazelle", "--", "update-repos", "-from_file=go.mod", "-to_macro=go_repositories.bzl%go_repositories"); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
 
 	// Update all Go BUILD targets with Gazelle, and fail if there are any diffs.
-	if _, err := bzl.Do(ctx, "run", "//:gazelle", "--", "update", "."); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "run", "//:gazelle", "--", "update", "."); err != nil {
 		td.Fatal(ctx, err)
 	}
 	failIfNonEmptyGitDiff()
@@ -114,11 +113,7 @@ func main() {
 	//
 	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
 	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
-	doFunc := bzl.Do
-	if *rbe {
-		doFunc = bzl.DoOnRBE
-	}
-	if _, err := doFunc(ctx, "build", "//...", "--remote_download_minimal"); err != nil {
+	if _, err := bzl.DoOnRBE(ctx, "build", "//...", "--remote_download_minimal"); err != nil {
 		td.Fatal(ctx, err)
 	}
 }

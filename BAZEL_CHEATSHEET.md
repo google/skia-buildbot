@@ -100,14 +100,6 @@ Our Bazel build is tested on RBE via the following tasks:
 
 We regard the above tasks as the source of truth for build and test correctness.
 
-As an insurance policy against RBE outages, we also have the following tasks:
-
-- Infra-PerCommit-Build-Bazel-Local (roughly equivalent to `bazel build //...`)
-- Infra-PerCommit-Test-Bazel-Local (roughly equivalent to `bazel test //...`)
-
-The non-RBE tasks tend to be a bit more brittle than the RBE ones, which is why they are excluded
-from the CQ.
-
 ## Building and testing
 
 Use commands `bazel build` and `bazel test` to build and test Bazel targets, respectively.

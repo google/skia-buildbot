@@ -3,20 +3,13 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/emulators"
-	"go.skia.org/infra/go/emulators/cockroachdb_instance"
-	"go.skia.org/infra/go/emulators/gcp_emulator"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/task_driver/go/lib/bazel"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
-	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -28,7 +21,6 @@ var (
 	taskName           = flag.String("task_name", "", "Name of the task.")
 	workDirFlag        = flag.String("workdir", ".", "Working directory.")
 	buildbucketBuildID = flag.String("buildbucket_build_id", "", "ID of the Buildbucket build.")
-	rbe                = flag.Bool("rbe", false, "Whether to run Bazel on RBE or locally.")
 	rbeKey             = flag.String("rbe_key", "", "Path to the service account key to use for RBE.")
 	ramdiskSizeGb      = flag.Int("ramdisk_gb", 40, "Size of ramdisk to use, in GB.")
 	bazelCacheDir      = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
@@ -69,41 +61,31 @@ func main() {
 	}
 
 	// Set up Bazel.
-	var (
-		bzl        *bazel.Bazel
-		bzlCleanup func()
-	)
-	if !*rbe && !*local {
-		// Infra-PerCommit-Test-Bazel-Local uses a ramdisk as the Bazel cache in order to prevent
-		// CockroachDB "disk stall detected" errors on GCE VMs due to slow I/O.
-		bzl, bzlCleanup, err = bazel.NewWithRamdisk(ctx, gitDir.Dir(), *rbeKey, *ramdiskSizeGb)
-	} else {
-		opts := bazel.BazelOptions{
-			CachePath:           *bazelCacheDir,
-			RepositoryCachePath: *bazelRepoCacheDir,
-		}
-		bzl, err = bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
-		bzlCleanup = func() {}
+	opts := bazel.BazelOptions{
+		CachePath:           *bazelCacheDir,
+		RepositoryCachePath: *bazelRepoCacheDir,
 	}
+	bzl, err := bazel.New(ctx, gitDir.Dir(), *rbeKey, opts)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	defer bzlCleanup()
 
 	// Print out the Bazel version for debugging purposes.
 	if _, err := bzl.Do(ctx, "version"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
-	// Run the tests.
-	if *rbe {
-		if err := testOnRBE(ctx, bzl); err != nil {
-			td.Fatal(ctx, err)
-		}
-	} else {
-		if err := testLocally(ctx, bzl); err != nil {
-			td.Fatal(ctx, err)
-		}
+	// Run all tests in the repository. The tryjob will fail upon any failing tests.
+	//
+	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
+	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
+	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--remote_download_minimal", "--test_output=errors"); err != nil {
+		td.Fatal(ctx, err)
+	}
+
+	// Upload to Gold all screenshots produced by Puppeteer tests in the previous step.
+	if err := uploadPuppeteerScreenshotsToGold(ctx, bzl); err != nil {
+		td.Fatal(ctx, err)
 	}
 }
 
@@ -200,95 +182,4 @@ func uploadPuppeteerScreenshotsToGold(ctx context.Context, bzl *bazel.Bazel) err
 
 	// Finalize and upload screenshots to Gold.
 	return goldctl(ctx, bzl, "imgtest", "finalize", "--work-dir", goldctlWorkDir)
-}
-
-// testOnRBE is only called for the Infra-PerCommit-Test-Bazel-RBE task.
-func testOnRBE(ctx context.Context, bzl *bazel.Bazel) error {
-	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	//
-	// We invoke Bazel with --remote_download_minimal to avoid "no space left on device errors". See
-	// https://bazel.build/reference/command-line-reference#flag--remote_download_minimal.
-	if _, err := bzl.DoOnRBE(ctx, "test", "//...", "--remote_download_minimal", "--test_output=errors"); err != nil {
-		return err
-	}
-
-	// Upload to Gold all screenshots produced by Puppeteer tests in the previous step.
-	return uploadPuppeteerScreenshotsToGold(ctx, bzl)
-}
-
-// testLocally is only called for the Infra-PerCommit-Test-Bazel-Local task.
-func testLocally(ctx context.Context, bzl *bazel.Bazel) (rvErr error) {
-	// We skip the following steps when running on a developer's workstation because we assume that
-	// the environment already has everything we need to run this task driver (the repository checkout
-	// has a .git directory, the Go environment variables are properly set, etc.).
-	if !*local {
-		// Set up go.
-		ctx = golang.WithEnv(ctx, workDir)
-
-		// Check out depot_tools at the exact revision expected by tests (defined in recipes.cfg), and
-		// make it available to tests by by adding it to the PATH.
-		var depotToolsDir string
-		err := td.Do(ctx, td.Props("Check out depot_tools"), func(ctx context.Context) error {
-			var err error
-			depotToolsDir, err = depot_tools.Sync(ctx, workDir, filepath.Join(gitDir.Dir(), recipe_cfg.RECIPE_CFG_PATH))
-			return err
-		})
-		if err != nil {
-			return err
-		}
-		ctx = td.WithEnv(ctx, []string{"PATH=%(PATH)s:" + depotToolsDir})
-
-		// If the emulators are already running for any reason, kill them first. This prevents "Address
-		// already in use" errors on GCE bots.
-		if err = emulators.ForceStopAllEmulators(); err != nil {
-			return err
-		}
-	}
-
-	// Start the emulators.
-	if _, err := cockroachdb_instance.StartCockroachDBIfNotRunning(); err != nil {
-		return err
-	}
-	if err := gcp_emulator.StartAllIfNotRunning(); err != nil {
-		return err
-	}
-	defer func() {
-		if err := emulators.StopAllEmulators(); err != nil {
-			rvErr = err
-		}
-	}()
-
-	// Set *_EMULATOR_HOST environment variables.
-	var emulatorHostEnvVars []string
-	for _, emulator := range emulators.AllEmulators {
-		name := emulators.GetEmulatorHostEnvVarName(emulator)
-		value := emulators.GetEmulatorHostEnvVar(emulator)
-		if value == "" {
-			return fmt.Errorf("ENV VAR %s is empty", name)
-		}
-		emulatorHostEnvVars = append(emulatorHostEnvVars, fmt.Sprintf("%s=%s", name, value))
-	}
-
-	ctx = td.WithEnv(ctx, emulatorHostEnvVars)
-
-	// Run all tests in the repository. The tryjob will fail upon any failing tests.
-	//
-	// We specify an explicit location for the vpython VirtualEnv root directory by piping through
-	// the VPYTHON_VIRTUALENV_ROOT environment variable, which points to the cache/vpython Swarming
-	// cache. The rationale is that some of our Go tests perform steps such as the following:
-	//
-	//   1. Create a temporary directory.
-	//   2. Invoke a Python script, with $HOME pointing to said temporary directory.
-	//   3. Delete the temporary directory before exiting.
-	//
-	// vpython creates its VirtualEnv root at the path specified by the VPYTHON_VIRTUALENV_ROOT
-	// environment variable, defaulting to $HOME/.vpython-root if unset, and populates this
-	// directory with read-only files. If we leave VPYTHON_VIRTUALENV_ROOT unset, step 3 above
-	// will try to delete said read-only files and fail with "permission denied".
-	//
-	// Note that this isn't necessary in Infra-PerCommit-Test-Bazel-RBE because the "python" binary
-	// is provided by the RBE toolchain container image, and not by the vpython CIPD package, as is
-	// the case with Infra-PerCommit-Test-Bazel-Local.
-	_, err := bzl.Do(ctx, "test", "//...", "--test_output=errors", "--test_env=VPYTHON_VIRTUALENV_ROOT")
-	return err
 }

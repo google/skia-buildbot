@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"path"
 	"strings"
-	"time"
 
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/cipd"
@@ -49,8 +48,6 @@ var (
 		"Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64":   noCQ,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64":   noCQ,
 		"Housekeeper-Weekly-UpdateCIPDPackages":               noCQ,
-		"Infra-PerCommit-Build-Bazel-Local":                   noCQ,
-		"Infra-PerCommit-Test-Bazel-Local":                    noCQ,
 	}
 
 	// cqWithDefaults means this is a non-experimental CQ job (if it fails, the submission will
@@ -275,15 +272,10 @@ func usesWrapperTaskDriver(b *specs.TasksCfgBuilder, name string, isTaskDriver b
 	}
 }
 
-func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
+func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 
 	bazelCacheDir := "/dev/shm/bazel_cache"
-	if !rbe {
-		// The Local flavor of this task (i.e. non-RBE) runs out of /dev/shm space, so we write the
-		// Bazel cache to disk.
-		bazelCacheDir = "/mnt/pd0/bazel_cache"
-	}
 
 	cmd := []string{
 		"./bazel_build_all",
@@ -299,9 +291,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--bazel_cache_dir", bazelCacheDir,
 		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
 	}
-	if rbe {
-		cmd = append(cmd, "--rbe")
-	}
 
 	t := &specs.TaskSpec{
 		CasSpec:      casEmpty,
@@ -315,17 +304,6 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		ServiceAccount: compileServiceAccount,
 	}
 
-	if !rbe {
-		// The Local flavor of this task (i.e. non-RBE) writes the Bazel cache to /mnt/pd0, which can
-		// be slow. Based on
-		// https://skia.googlesource.com/skia/+/a635920030271e1e34d93a4b49e5692aa7bd50f1/infra/bots/gen_tasks_logic/task_builder.go#136.
-		//
-		// This task seems to take around 1 hour to complete, see e.g.
-		// https://task-scheduler.skia.org/job/KKH5hadgOWSRpjH0OOf3.
-		t.ExecutionTimeout = 2 * time.Hour
-		t.IoTimeout = t.ExecutionTimeout
-	}
-
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
 	// TODO(kjlubick) Replace after this bakes in
@@ -336,7 +314,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 	return name
 }
 
-func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
+func bazelTest(b *specs.TasksCfgBuilder, name string) string {
 	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
 	pkgs = append(pkgs, specs.CIPD_PKGS_ISOLATE...)
 
@@ -354,9 +332,6 @@ func bazelTest(b *specs.TasksCfgBuilder, name string, rbe bool) string {
 		"--buildbucket_build_id", specs.PLACEHOLDER_BUILDBUCKET_BUILD_ID,
 		"--bazel_cache_dir", "/dev/shm/bazel_cache",
 		"--bazel_repo_cache_dir", "/mnt/pd0/bazel_repo_cache",
-	}
-	if rbe {
-		cmd = append(cmd, "--rbe")
 	}
 
 	t := &specs.TaskSpec{
@@ -390,14 +365,10 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	if strings.Contains(name, "UpdateCIPDPackages") {
 		// Update CIPD packages bot.
 		deps = append(deps, updateCIPDPackages(b, name))
-	} else if strings.Contains(name, "Build-Bazel-Local") {
-		deps = append(deps, bazelBuild(b, name, false /* =rbe */))
 	} else if strings.Contains(name, "Build-Bazel-RBE") {
-		deps = append(deps, bazelBuild(b, name, true /* =rbe */))
-	} else if strings.Contains(name, "Test-Bazel-Local") {
-		deps = append(deps, bazelTest(b, name, false /* =rbe */))
+		deps = append(deps, bazelBuild(b, name))
 	} else if strings.Contains(name, "Test-Bazel-RBE") {
-		deps = append(deps, bazelTest(b, name, true /* =rbe */))
+		deps = append(deps, bazelTest(b, name))
 	} else if strings.Contains(name, "Presubmit") {
 		priority = 1
 		deps = append(deps, presubmit(b, name))

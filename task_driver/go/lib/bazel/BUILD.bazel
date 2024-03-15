@@ -9,6 +9,5 @@ go_library(
         "//go/exec",
         "//go/skerr",
         "//task_driver/go/lib/os_steps",
-        "//task_driver/go/td",
     ],
 )
