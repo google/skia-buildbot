@@ -6,5 +6,7 @@ import (
 )
 
 func main() {
-	sklog.Fatal(authproxy.Main())
+	if err := authproxy.Main(); err != nil {
+		sklog.Fatal(err)
+	}
 }
