@@ -41,6 +41,12 @@ filegroup(
 )
 
 filegroup(
+    name = "gitilesfollower_configs",
+    srcs = config_files("gitilesfollower", FULL_INSTANCES),
+    visibility = ["//golden:__pkg__"],
+)
+
+filegroup(
     name = "ingestion_configs",
     srcs = config_files("ingestion", FULL_INSTANCES),
     visibility = ["//golden:__pkg__"],
