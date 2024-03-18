@@ -10,10 +10,6 @@ frontend:
 	# Makes sure all the frontend pages and tests compile.
 	bazel build modules/...
 
-.PHONY: goldpushk
-goldpushk: kube-conf-gen
-	go install ./cmd/goldpushk/...
-
 # Build the gold-frontend container with Bazel and push it to GCR.
 .PHONY: release_frontend_container
 release_frontend_container:
