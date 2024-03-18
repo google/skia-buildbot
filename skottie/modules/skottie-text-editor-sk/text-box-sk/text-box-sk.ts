@@ -249,6 +249,17 @@ export class SkottieTextEditorBoxSk extends ElementSk {
 
   private onTextSelected(ev: CustomEvent<SkTextSampleEventDetail>): void {
     if (this._textData) {
+      if (ev.detail.font) {
+        this.dispatchEvent(
+          new CustomEvent<SkottieFontChangeEventDetail>('font-change', {
+            detail: {
+              font: ev.detail.font,
+              fontName: this._textData?.fontName || '',
+            },
+          })
+        );
+      }
+
       this._textData.text = ev.detail.text;
       this._textData.items.forEach((item: ExtraLayerData) => {
         // this property is the text string of a text layer.

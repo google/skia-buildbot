@@ -814,6 +814,11 @@ const availableFonts = [
     fFamily: 'NotoSansJP',
   },
   {
+    fName: 'NotoSansKR-Regular',
+    fStyle: 'Regular',
+    fFamily: 'NotoSansKR',
+  },
+  {
     fName: 'NotoSansKhmer-Regular',
     fStyle: 'Regular',
     fFamily: 'NotoSansKhmer',
