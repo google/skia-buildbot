@@ -89,6 +89,7 @@ var (
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	tracingProject    = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
@@ -336,8 +337,10 @@ func main() {
 
 	reloadTemplates()
 
-	if err := tracing.Initialize(0.1, *btProject, nil); err != nil {
-		sklog.Fatalf("Could not set up tracing: %s", err)
+	if *tracingProject != "" {
+		if err := tracing.Initialize(0.1, *tracingProject, nil); err != nil {
+			sklog.Fatalf("Could not set up tracing: %s", err)
+		}
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)

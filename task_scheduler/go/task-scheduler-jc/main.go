@@ -65,6 +65,7 @@ var (
 	repoUrls                 = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	recipesCfgFile           = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	timePeriod               = flag.String("timeWindow", "4d", "Time period to use.")
+	tracingProject           = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
 	commitWindow             = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	workdir                  = flag.String("workdir", "workdir", "Working directory to use.")
 	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -84,8 +85,10 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
-	if err := tracing.Initialize(0.1, *btProject, nil); err != nil {
-		sklog.Fatalf("Could not set up tracing: %s", err)
+	if *tracingProject != "" {
+		if err := tracing.Initialize(0.1, *tracingProject, nil); err != nil {
+			sklog.Fatalf("Could not set up tracing: %s", err)
+		}
 	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
