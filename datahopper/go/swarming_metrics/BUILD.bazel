@@ -13,6 +13,7 @@ go_library(
         "//go/common",
         "//go/metrics2",
         "//go/metrics2/events",
+        "//go/skerr",
         "//go/sklog",
         "//go/swarming",
         "//go/taskname",

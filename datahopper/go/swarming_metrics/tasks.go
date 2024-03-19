@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/taskname"
@@ -157,8 +158,10 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	}
 	parsed["failure"] = strconv.FormatBool(t.TaskResult.Failure)
 
+	botOverhead := float64(0.0)
 	casOverhead := float64(0.0)
 	if t.TaskResult.PerformanceStats != nil {
+		botOverhead = t.TaskResult.PerformanceStats.BotOverhead
 		if t.TaskResult.PerformanceStats.IsolatedDownload != nil {
 			casOverhead += t.TaskResult.PerformanceStats.IsolatedDownload.Duration
 		}
@@ -171,9 +174,9 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	durations := format.BenchResults{
 		"task_duration": {
 			"task_step_s":    t.TaskResult.Duration,
-			"all_overhead_s": t.TaskResult.PerformanceStats.BotOverhead,
+			"all_overhead_s": botOverhead,
 			"cas_overhead_s": casOverhead,
-			"total_s":        t.TaskResult.Duration + t.TaskResult.PerformanceStats.BotOverhead,
+			"total_s":        t.TaskResult.Duration + botOverhead,
 		},
 	}
 	toReport := format.BenchData{
@@ -191,7 +194,7 @@ func reportDurationToPerf(t *swarming_api.SwarmingRpcsTaskRequestMetadata, perfC
 	sklog.Debugf("Reporting that %s had these durations: %#v ms", taskName, durations)
 
 	if err := perfClient.PushToPerf(now, taskName, "task_duration", toReport); err != nil {
-		return fmt.Errorf("Ran into error while pushing task duration to perf: %s", err)
+		return skerr.Wrapf(err, "ran into error while pushing task duration to perf")
 	}
 	return nil
 
