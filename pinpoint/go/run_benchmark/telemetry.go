@@ -64,6 +64,13 @@ func (t *telemetryTest) GetCommand() []string {
 		cmd = append(cmd, "../../tools/perf/run_benchmark")
 	}
 
+	cmd = append(cmd, t.GetTelemetryExtraArgs()...)
+
+	return cmd
+}
+
+func (t *telemetryTest) GetTelemetryExtraArgs() []string {
+	cmd := []string{}
 	if t.storyTags == "" {
 		cmd = append(cmd, "-d")
 	}
@@ -111,5 +118,6 @@ func (t *telemetryTest) GetCommand() []string {
 	// argument order. This is always appended in catapult regardless of whether
 	// a story is defined or not.
 	cmd = append(cmd, "--run-full-story-set")
+
 	return cmd
 }

@@ -29,9 +29,7 @@ func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags st
 	switch {
 	// The following targets are specific to lacros telemetry test
 	case slices.Contains([]string{"performance_test_suite_eve", "performance_test_suite_octopus"}, target):
-		return &lacrosTelemetryTest{
-			target: target,
-		}, nil
+		return NewLacrosTest(target, benchmark, config.Browser, commit, story, storyTags), nil
 	// Few targets could have suffixes, especially for Android.
 	// For example, 'performance_test_suite_android_clank_monochrome_64_32_bundle'
 	case strings.Contains(target, "performance_test_suite") || strings.Contains(target, "telemetry_perf_tests") || target == "performance_webview_test_suite":

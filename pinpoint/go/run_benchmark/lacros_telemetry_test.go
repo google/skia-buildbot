@@ -15,6 +15,7 @@ func TestGetCommand_TargetLacrosX86Perf_ReturnsTestSuiteOctopus(t *testing.T) {
 	cmd := b.GetCommand()
 	assert.Contains(t, cmd, "bin/run_performance_test_suite_octopus")
 	assert.NotContains(t, cmd, "bin/run_performance_test_suite_eve")
+	assert.Contains(t, cmd, "--isolated-script-test-output")
 }
 
 func TestGetCommand_TargetLacrosEvePerf_ReturnsTestSuiteEve(t *testing.T) {
@@ -26,4 +27,5 @@ func TestGetCommand_TargetLacrosEvePerf_ReturnsTestSuiteEve(t *testing.T) {
 	cmd := b.GetCommand()
 	assert.Contains(t, cmd, "bin/run_performance_test_suite_eve")
 	assert.NotContains(t, cmd, "bin/run_performance_test_suite_octopus")
+	assert.Contains(t, cmd, "--isolated-script-test-output")
 }
