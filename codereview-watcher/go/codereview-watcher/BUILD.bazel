@@ -13,6 +13,7 @@ go_library(
         "//go/github",
         "//go/httputils",
         "//go/metrics2",
+        "//go/secret",
         "//go/sklog",
         "//go/util",
         "@com_google_cloud_go_datastore//:datastore",

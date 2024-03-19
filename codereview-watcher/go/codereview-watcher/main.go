@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -56,6 +57,9 @@ Note:
 * Once the code is ready to be merged, a maintainer will submit the change on Gerrit and skia-codereview-bot will close this PR.
 * Similarly, if a change is abandoned on Gerrit, the corresponding PR will be closed with a note.
 `
+
+	secretProject     = "skia-infra-public"
+	secretGithubToken = "codereview-watcher-github-token"
 )
 
 type prCommentVars struct {
@@ -244,19 +248,30 @@ func main() {
 	}
 
 	// Instantiate github client for the different repos.
-	pathToGithubToken := filepath.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+	secretClient, err := secret.NewClient(ctx)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	var gToken string
 	if *local {
 		usr, err := user.Current()
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		pathToGithubToken = filepath.Join(usr.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		pathToGithubToken := filepath.Join(usr.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		gBody, err := os.ReadFile(pathToGithubToken)
+		if err != nil {
+			sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
+		}
+		gToken = strings.TrimSpace(string(gBody))
+	} else {
+		gBody, err := secretClient.Get(ctx, secretProject, secretGithubToken, secret.VersionLatest)
+		if err != nil {
+			sklog.Fatalf("Failed to retrieve secret %s: %s", secretGithubToken, err)
+		}
+		gToken = strings.TrimSpace(gBody)
 	}
-	gBody, err := os.ReadFile(pathToGithubToken)
-	if err != nil {
-		sklog.Fatalf("Could not find githubToken in %s: %s", pathToGithubToken, err)
-	}
-	gToken := strings.TrimSpace(string(gBody))
 	githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
 	githubHttpClient := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
 
