@@ -6,7 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/swarming/mocks"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -17,6 +19,60 @@ func TestNewSwarmingClient_Default_SwarmingClient(t *testing.T) {
 	sc, err := NewSwarmingClient(ctx, DefaultSwarmingServiceAddress)
 	assert.NoError(t, err)
 	assert.NotNil(t, sc)
+}
+
+func TestGetStatus_CompletedAndSuccess_ReturnsCompleted(t *testing.T) {
+	ctx := context.Background()
+	mockClient := mocks.NewApiClient(t)
+
+	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
+		Return(&swarmingV1.SwarmingRpcsTaskResult{
+			State:   swarming.TASK_STATE_COMPLETED,
+			Failure: false,
+		}, nil).Once()
+
+	sc := &SwarmingClientImpl{
+		ApiClient: mockClient,
+	}
+	status, err := sc.GetStatus(ctx, "task")
+	require.NoError(t, err)
+	assert.Equal(t, swarming.TASK_STATE_COMPLETED, status)
+}
+
+func TestGetStatus_CompletedAndFailure_ReturnsFailureState(t *testing.T) {
+	ctx := context.Background()
+	mockClient := mocks.NewApiClient(t)
+
+	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
+		Return(&swarmingV1.SwarmingRpcsTaskResult{
+			State:   swarming.TASK_STATE_COMPLETED,
+			Failure: true,
+		}, nil).Once()
+
+	sc := &SwarmingClientImpl{
+		ApiClient: mockClient,
+	}
+	status, err := sc.GetStatus(ctx, "task")
+	require.NoError(t, err)
+	assert.Equal(t, TaskStateFailure, status)
+}
+
+func TestGetStatus_NotCompleted_ReturnsState(t *testing.T) {
+	ctx := context.Background()
+	mockClient := mocks.NewApiClient(t)
+
+	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
+		Return(&swarmingV1.SwarmingRpcsTaskResult{
+			State:   swarming.TASK_STATE_BOT_DIED,
+			Failure: true,
+		}, nil).Once()
+
+	sc := &SwarmingClientImpl{
+		ApiClient: mockClient,
+	}
+	status, err := sc.GetStatus(ctx, "task")
+	require.NoError(t, err)
+	assert.Equal(t, swarming.TASK_STATE_BOT_DIED, status)
 }
 
 func TestListPinpointTasks_ValidInput_TasksFound(t *testing.T) {

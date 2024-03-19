@@ -46,15 +46,14 @@ var runningStates = []string{
 
 // IsTaskStateFinished checks if a swarming task state is finished
 func IsTaskStateFinished(state string) (bool, error) {
-	if !slices.Contains(swarming.TASK_STATES, state) {
+	// TODO(sunxiaodi@) remove if statement and just return boolean
+	if !slices.Contains(swarming.TASK_STATES, state) && state != backends.TaskStateFailure {
 		return false, skerr.Fmt("Not a valid swarming task state %s", state)
 	}
 	return !slices.Contains(runningStates, state), nil
 }
 
 // IsTaskStateSuccess checks if a swarming task state is finished
-// TODO(b/327224992): Do not return true when status = COMPLETED (FAILURE)
-// example: https://chrome-swarming.appspot.com/task?id=6856dd42f2638510
 func IsTaskStateSuccess(state string) bool {
 	return state == swarming.TASK_STATE_COMPLETED
 }

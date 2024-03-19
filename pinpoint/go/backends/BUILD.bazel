@@ -39,10 +39,12 @@ go_test(
     embed = [":backends"],
     deps = [
         "//go/buildbucket",
+        "//go/swarming",
         "//go/swarming/mocks",
         "@com_github_golang_mock//gomock",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
         "@org_chromium_go_luci//grpc/appstatus",

@@ -17,6 +17,7 @@ import (
 
 const (
 	DefaultSwarmingServiceAddress = "chrome-swarming.appspot.com:443"
+	TaskStateFailure              = "FAILURE"
 )
 
 // SwarmingClient
@@ -80,10 +81,10 @@ func (s *SwarmingClientImpl) CancelTasks(ctx context.Context, taskIDs []string) 
 func (s *SwarmingClientImpl) GetCASOutput(ctx context.Context, taskID string) (*swarmingV1.SwarmingRpcsCASReference, error) {
 	task, err := s.GetTask(ctx, taskID, false)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving result of task %s: %s", taskID, err)
+		return nil, skerr.Wrapf(err, "could not retrieve CAS of task %s", taskID)
 	}
-	if task.State != "COMPLETED" {
-		return nil, fmt.Errorf("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
+	if task.State != swarming.TASK_STATE_COMPLETED {
+		return nil, skerr.Fmt("cannot get result of task %s because it is %s and not COMPLETED", taskID, task.State)
 	}
 	rbe := &swarmingV1.SwarmingRpcsCASReference{
 		CasInstance: task.CasOutputRoot.CasInstance,
@@ -105,6 +106,11 @@ func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (stri
 	res, err := s.GetTask(ctx, taskID, false)
 	if err != nil {
 		return "", skerr.Fmt("failed to get swarming task ID %s due to err: %v", taskID, err)
+	}
+	// Swarming tasks can COMPLETE but fail. In this case, we need to
+	// differentiate a successful task from an unsuccessful task.
+	if res.State == swarming.TASK_STATE_COMPLETED && res.Failure {
+		return TaskStateFailure, nil
 	}
 	return res.State, nil
 }
