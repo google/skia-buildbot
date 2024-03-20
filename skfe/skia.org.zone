@@ -51,6 +51,7 @@ debugger                 300      IN A 34.110.212.89
 demos                    300      IN A 34.110.212.89
 envoy-admin-panel-public 300      IN A 34.110.212.89
 jsfiddle                 300      IN A 34.110.212.89
+leasing                  300      IN A 34.110.212.89
 npm                      300      IN A 34.110.212.89
 perf-infra-public-cdb    300      IN A 34.110.212.89
 scrap                    300      IN A 34.110.212.89
