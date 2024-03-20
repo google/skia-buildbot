@@ -243,7 +243,6 @@ packages:
   go.skia.org/infra/perf/go/culprit:
     config:
       dir: "{{.InterfaceDir}}/mocks"
-      filename: "store.go"
     interfaces:
       Store:
   go.skia.org/infra/perf/go/dataframe:
