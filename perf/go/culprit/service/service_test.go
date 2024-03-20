@@ -10,7 +10,7 @@ import (
 	pb "go.skia.org/infra/perf/go/culprit/proto"
 )
 
-func setUp(t *testing.T) (*culpritService, *mocks.Store) {
+func setUp(_ *testing.T) (*culpritService, *mocks.Store) {
 	mockstore := new(mocks.Store)
 	service := New(mockstore)
 	return service, mockstore

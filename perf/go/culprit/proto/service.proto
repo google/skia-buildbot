@@ -27,16 +27,15 @@ message PersistCulpritRequest {
 
 // Response object for PersistCulprit rpc.
 message PersistCulpritResponse {
-  // List of issue ids created
+  // List of culprit ids created.
   repeated string culprit_ids = 1;
-  repeated string issue_ids = 2;
 }
 
 
 // Request object for NotifyUser rpc.
 message NotifyUserRequest {
-  // List of commits identified as culprits.
-  repeated Culprit culprits = 1;
+  // List of culprit ids.
+  repeated string culprit_ids = 1;
   // ID of the anomaly group corresponding to the bisection.
   string anomaly_group_id = 2;
 }
