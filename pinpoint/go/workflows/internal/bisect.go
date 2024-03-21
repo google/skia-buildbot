@@ -26,76 +26,17 @@ func getMaxSampleSize() int32 {
 // CommitRangeTracker stores a commit range as [Lower, Higher]
 // and tracks the expected sample size required for comparison.
 type CommitRangeTracker struct {
-	Lower              *midpoint.CombinedCommit
-	Higher             *midpoint.CombinedCommit
+	Lower              *BisectRun
+	Higher             *BisectRun
 	ExpectedSampleSize int32
 }
 
-type CommitMap map[uint32]*CommitRun
-
-func (cm *CommitMap) get(commit *midpoint.CombinedCommit) (*CommitRun, bool) {
-	cr, ok := (*cm)[commit.Key()]
-	return cr, ok
-}
-
-func (cm *CommitMap) set(commit *midpoint.CombinedCommit, cr *CommitRun) {
-	(*cm)[commit.Key()] = cr
-}
-
-func (cm *CommitMap) updateRuns(commit *midpoint.CombinedCommit, newRun *CommitRun) *CommitRun {
-	cr, ok := cm.get(commit)
-	if !ok {
-		cr = newRun
-	} else {
-		cr.Runs = append(cr.Runs, newRun.Runs...)
+func newTrackerWithHashes(lowerHash, higherHash string, expectedSize int32) *CommitRangeTracker {
+	return &CommitRangeTracker{
+		Lower:              newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(lowerHash))),
+		Higher:             newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(higherHash))),
+		ExpectedSampleSize: expectedSize,
 	}
-	cm.set(commit, cr)
-	return cr
-}
-
-func (cm *CommitMap) calcSampleSize(lower, higher *midpoint.CombinedCommit, minSampleSize int32) int32 {
-	lRunCount, hRunCount := int32(0), int32(0)
-	lr, ok := cm.get(lower)
-	if ok {
-		lRunCount = int32(len(lr.Runs))
-	}
-	hr, ok := cm.get(higher)
-	if ok {
-		hRunCount = int32(len(hr.Runs))
-	}
-	// balance number of runs between the two commits
-	if lRunCount != hRunCount {
-		return max(lRunCount, hRunCount)
-	}
-	if lRunCount == 0 {
-		return minSampleSize
-	}
-	for _, iter := range benchmarkRunIterations {
-		if iter > lRunCount {
-			return iter
-		}
-	}
-	return getMaxSampleSize()
-}
-
-func (cr *CommitRangeTracker) calcNewRuns(cm *CommitMap) (int32, int32, error) {
-	if cr.ExpectedSampleSize == 0 {
-		return 0, 0, skerr.Fmt("ExpectedSampleSize is 0 for commits %v and %v", *cr.Lower, *cr.Higher)
-	}
-	lRunCount, hRunCount := int32(0), int32(0)
-	lr, ok := cm.get(cr.Lower)
-	if ok {
-		lRunCount = int32(len(lr.Runs))
-	}
-	hr, ok := cm.get(cr.Higher)
-	if ok {
-		hRunCount = int32(len(hr.Runs))
-	}
-	lRunsToSchedule, hRunsToSchedule := cr.ExpectedSampleSize-lRunCount, cr.ExpectedSampleSize-hRunCount
-	if lRunsToSchedule < 0 || hRunsToSchedule < 0 {
-		return 0, 0, skerr.Fmt("Number of runs to schedule is less than 0 for CommitRangeTracker %v", *cr)
-	}
-	return lRunsToSchedule, hRunsToSchedule, nil
 }
 
 type CommitValues struct {
@@ -117,14 +58,14 @@ func FindMidCommitActivity(ctx context.Context, cr *CommitRangeTracker) (*midpoi
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, cr.Lower, cr.Higher)
+	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, cr.Lower.Commit, cr.Higher.Commit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return m, nil
 }
 
-func newRunnerParams(jobID string, p *workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
+func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
 	return &SingleCommitRunnerParams{
 		CombinedCommit:    cc,
 		PinpointJobID:     jobID,
@@ -212,77 +153,50 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		}
 	}
 
-	cm := &CommitMap{}
 	commitStack := stack.New[*CommitRangeTracker]()
-
-	commitStack.Push(&CommitRangeTracker{
-		Lower:              midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.StartGitHash)),
-		Higher:             midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.EndGitHash)),
-		ExpectedSampleSize: minSampleSize,
-	})
+	commitStack.Push(newTrackerWithHashes(p.Request.StartGitHash, p.Request.EndGitHash, minSampleSize))
 
 	// TODO(b/322203189): Store and order the new commits so that the data can be relayed
 	// to the UI
 	for commitStack.Size() > 0 {
-		logger.Debug("current commitStack: ", *commitStack)
 		cr := commitStack.Pop()
-		logger.Debug("popped CommitRangeTracker: ", *cr)
-		lRunsToSchedule, hRunsToSchedule, err := cr.calcNewRuns(cm)
+		lf, err := cr.Lower.scheduleRuns(ctx, jobID, *p, cr.ExpectedSampleSize-cr.Lower.totalRuns())
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		var lf, hf workflow.ChildWorkflowFuture = nil, nil
-		if lRunsToSchedule > 0 {
-			lf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, lRunsToSchedule, cr.Lower))
-		}
-		if hRunsToSchedule > 0 {
-			hf = workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, hRunsToSchedule, cr.Higher))
+		hf, err := cr.Higher.scheduleRuns(ctx, jobID, *p, cr.ExpectedSampleSize-cr.Higher.totalRuns())
+		if err != nil {
+			return nil, skerr.Wrap(err)
 		}
 
-		var lRun, hRun *CommitRun
-		if lf != nil {
-			if err := lf.Get(ctx, &lRun); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			lRun = cm.updateRuns(cr.Lower, lRun)
-		} else {
-			lRun, _ = cm.get(cr.Lower)
+		if err := cr.Lower.updateRuns(ctx, lf); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 
-		if hf != nil {
-			if err := hf.Get(ctx, &hRun); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			hRun = cm.updateRuns(cr.Higher, hRun)
-		} else {
-			hRun, _ = cm.get(cr.Higher)
+		if err := cr.Higher.updateRuns(ctx, hf); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 
-		result, err := compareRuns(ctx, lRun, hRun, p.Request.Chart, magnitude)
+		result, err := compareRuns(ctx, &cr.Higher.CommitRun, &cr.Lower.CommitRun, p.Request.Chart, magnitude)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		switch result.Verdict {
 		case compare.Unknown:
-			lr, ok := cm.get(cr.Lower)
-			if !ok {
-				return nil, skerr.Fmt("Unknown verdict reached on commit without run data. Commit %v", *cr.Lower)
-			}
 			// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
 			// < 0.4, it is possible to get to the max sample size and still reach an unknown
 			// verdict. Running more samples is too expensive. Instead, assume the two samples
 			// are the statistically similar.
 			// assumes that cr.Lower and cr.Higher will have the same number of runs
-			if len(lr.Runs) < int(getMaxSampleSize()) {
+			if len(cr.Lower.Runs) < int(getMaxSampleSize()) {
 				commitStack.Push(&CommitRangeTracker{
 					Lower:              cr.Lower,
 					Higher:             cr.Higher,
-					ExpectedSampleSize: cm.calcSampleSize(cr.Lower, cr.Higher, minSampleSize),
+					ExpectedSampleSize: nextRunSize(cr.Lower, cr.Higher, minSampleSize),
 				})
-				logger.Debug("pushed CommitRangeTracker: ", *commitStack.Peek())
 			} else {
 				// TODO(haowoo@): add metric to measure this occurrence
-				logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lr.Runs))
+				logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(cr.Lower.Runs))
 			}
 
 		case compare.Different:
@@ -295,25 +209,27 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 			}
 
 			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
-			if mid.Key() == cr.Lower.Key() {
-				logger.Debug("No more midpoints to parse through.")
+			if mid.Key() == cr.Lower.Commit.Key() {
 				// TODO(b/329502712): Append additional info to bisectionExecution
 				// such as p-values, average difference
-				e.Culprits = append(e.Culprits, cr.Higher.GetMainGitHash())
+				e.Culprits = append(e.Culprits, cr.Higher.Commit.GetMainGitHash())
 				break
 			}
+			midRun := newBisectRun(mid)
+
+			// Both higher and lower should contain the same number runs so we would expect the same
+			// number of runs for both sides (lower, mid) and (mid, higher)
+			sampleSize := nextRunSize(cr.Lower, midRun, minSampleSize)
 			commitStack.Push(&CommitRangeTracker{
 				Lower:              cr.Lower,
-				Higher:             mid,
-				ExpectedSampleSize: cm.calcSampleSize(cr.Lower, mid, minSampleSize),
+				Higher:             midRun,
+				ExpectedSampleSize: sampleSize,
 			})
-			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 			commitStack.Push(&CommitRangeTracker{
-				Lower:              mid,
+				Lower:              midRun,
 				Higher:             cr.Higher,
-				ExpectedSampleSize: cm.calcSampleSize(mid, cr.Higher, minSampleSize),
+				ExpectedSampleSize: sampleSize,
 			})
-			logger.Debug("pushed CommitRangeTracker: ", commitStack.Peek())
 		}
 	}
 	return e, nil

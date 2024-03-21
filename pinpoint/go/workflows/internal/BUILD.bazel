@@ -5,6 +5,7 @@ go_library(
     name = "internal",
     srcs = [
         "bisect.go",
+        "bisect_run.go",
         "build_chrome.go",
         "commits_runner.go",
         "compare.go",
@@ -40,6 +41,7 @@ go_library(
 go_test(
     name = "internal_test",
     srcs = [
+        "bisect_run_test.go",
         "bisect_test.go",
         "build_chrome_test.go",
         "commits_runner_test.go",
