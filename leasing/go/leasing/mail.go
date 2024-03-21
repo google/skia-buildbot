@@ -20,8 +20,6 @@ const (
 
 	leasingEmailAddress = "leasing@skia.org"
 
-	gmailCachedToken = "leasing_gmail_cached_token"
-
 	connectionInstructionsPage = "https://skia.org/dev/testing/swarmingbots#connecting-to-swarming-bots"
 )
 
@@ -32,7 +30,7 @@ var (
 )
 
 func MailInit() {
-	mail = emailclient.New()
+	mail = emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
 }
 
 func getRecipients(taskOwner string) []string {
