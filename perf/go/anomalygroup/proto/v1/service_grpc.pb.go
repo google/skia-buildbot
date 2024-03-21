@@ -22,10 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	AnomalyGroupService_CreateAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/CreateAnomalyGroup"
 	AnomalyGroupService_ReadAnomalyGroup_FullMethodName   = "/anomalygroup.v1.AnomalyGroupService/ReadAnomalyGroup"
-	AnomalyGroupService_AddIssueIdToGroup_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/AddIssueIdToGroup"
-	AnomalyGroupService_AddBisectIdToGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/AddBisectIdToGroup"
-	AnomalyGroupService_AddAnomalyToGroup_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/AddAnomalyToGroup"
-	AnomalyGroupService_AddCulpritsToGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/AddCulpritsToGroup"
+	AnomalyGroupService_UpdateAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/UpdateAnomalyGroup"
 	AnomalyGroupService_FindExistingGroups_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/FindExistingGroups"
 )
 
@@ -38,15 +35,8 @@ type AnomalyGroupServiceClient interface {
 	CreateAnomalyGroup(ctx context.Context, in *CreateAnomalyGroupRequest, opts ...grpc.CallOption) (*CreateAnomalyGroupResponse, error)
 	// Read info for an anomaly group.
 	ReadAnomalyGroup(ctx context.Context, in *ReadAnomalyGroupRequest, opts ...grpc.CallOption) (*ReadAnomalyGroupResponse, error)
-	// Add the filed issue ID for the anomaly group which has action as 'report'.
-	AddIssueIdToGroup(ctx context.Context, in *AddIssueIdToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error)
-	// Add the launched bisection ID for the anomaly group which has action as 'bisect'.
-	AddBisectIdToGroup(ctx context.Context, in *AddBisectIdToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error)
-	// Add a new anomaly to the group.
-	AddAnomalyToGroup(ctx context.Context, in *AddAnomalyToGroupRequest, opts ...grpc.CallOption) (*AddAnomalyToGroupResponse, error)
-	// Add culprits found by a bisection to the group.
-	// (Invoked during persisting culprits)
-	AddCulpritsToGroup(ctx context.Context, in *AddCulpritsToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error)
+	// Update a given anomaly group.
+	UpdateAnomalyGroup(ctx context.Context, in *UpdateAnomalyGroupRequest, opts ...grpc.CallOption) (*UpdateAnomalyGroupResponse, error)
 	// Find matching anomaly groups based on the criterias.
 	// (e.g., from a newly found anomaly).
 	FindExistingGroups(ctx context.Context, in *FindExistingGroupsRequest, opts ...grpc.CallOption) (*FindExistingGroupsResponse, error)
@@ -78,36 +68,9 @@ func (c *anomalyGroupServiceClient) ReadAnomalyGroup(ctx context.Context, in *Re
 	return out, nil
 }
 
-func (c *anomalyGroupServiceClient) AddIssueIdToGroup(ctx context.Context, in *AddIssueIdToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error) {
-	out := new(SimpleGroupUpdateResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_AddIssueIdToGroup_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *anomalyGroupServiceClient) AddBisectIdToGroup(ctx context.Context, in *AddBisectIdToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error) {
-	out := new(SimpleGroupUpdateResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_AddBisectIdToGroup_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *anomalyGroupServiceClient) AddAnomalyToGroup(ctx context.Context, in *AddAnomalyToGroupRequest, opts ...grpc.CallOption) (*AddAnomalyToGroupResponse, error) {
-	out := new(AddAnomalyToGroupResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_AddAnomalyToGroup_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *anomalyGroupServiceClient) AddCulpritsToGroup(ctx context.Context, in *AddCulpritsToGroupRequest, opts ...grpc.CallOption) (*SimpleGroupUpdateResponse, error) {
-	out := new(SimpleGroupUpdateResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_AddCulpritsToGroup_FullMethodName, in, out, opts...)
+func (c *anomalyGroupServiceClient) UpdateAnomalyGroup(ctx context.Context, in *UpdateAnomalyGroupRequest, opts ...grpc.CallOption) (*UpdateAnomalyGroupResponse, error) {
+	out := new(UpdateAnomalyGroupResponse)
+	err := c.cc.Invoke(ctx, AnomalyGroupService_UpdateAnomalyGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,15 +95,8 @@ type AnomalyGroupServiceServer interface {
 	CreateAnomalyGroup(context.Context, *CreateAnomalyGroupRequest) (*CreateAnomalyGroupResponse, error)
 	// Read info for an anomaly group.
 	ReadAnomalyGroup(context.Context, *ReadAnomalyGroupRequest) (*ReadAnomalyGroupResponse, error)
-	// Add the filed issue ID for the anomaly group which has action as 'report'.
-	AddIssueIdToGroup(context.Context, *AddIssueIdToGroupRequest) (*SimpleGroupUpdateResponse, error)
-	// Add the launched bisection ID for the anomaly group which has action as 'bisect'.
-	AddBisectIdToGroup(context.Context, *AddBisectIdToGroupRequest) (*SimpleGroupUpdateResponse, error)
-	// Add a new anomaly to the group.
-	AddAnomalyToGroup(context.Context, *AddAnomalyToGroupRequest) (*AddAnomalyToGroupResponse, error)
-	// Add culprits found by a bisection to the group.
-	// (Invoked during persisting culprits)
-	AddCulpritsToGroup(context.Context, *AddCulpritsToGroupRequest) (*SimpleGroupUpdateResponse, error)
+	// Update a given anomaly group.
+	UpdateAnomalyGroup(context.Context, *UpdateAnomalyGroupRequest) (*UpdateAnomalyGroupResponse, error)
 	// Find matching anomaly groups based on the criterias.
 	// (e.g., from a newly found anomaly).
 	FindExistingGroups(context.Context, *FindExistingGroupsRequest) (*FindExistingGroupsResponse, error)
@@ -157,17 +113,8 @@ func (UnimplementedAnomalyGroupServiceServer) CreateAnomalyGroup(context.Context
 func (UnimplementedAnomalyGroupServiceServer) ReadAnomalyGroup(context.Context, *ReadAnomalyGroupRequest) (*ReadAnomalyGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadAnomalyGroup not implemented")
 }
-func (UnimplementedAnomalyGroupServiceServer) AddIssueIdToGroup(context.Context, *AddIssueIdToGroupRequest) (*SimpleGroupUpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddIssueIdToGroup not implemented")
-}
-func (UnimplementedAnomalyGroupServiceServer) AddBisectIdToGroup(context.Context, *AddBisectIdToGroupRequest) (*SimpleGroupUpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddBisectIdToGroup not implemented")
-}
-func (UnimplementedAnomalyGroupServiceServer) AddAnomalyToGroup(context.Context, *AddAnomalyToGroupRequest) (*AddAnomalyToGroupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddAnomalyToGroup not implemented")
-}
-func (UnimplementedAnomalyGroupServiceServer) AddCulpritsToGroup(context.Context, *AddCulpritsToGroupRequest) (*SimpleGroupUpdateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddCulpritsToGroup not implemented")
+func (UnimplementedAnomalyGroupServiceServer) UpdateAnomalyGroup(context.Context, *UpdateAnomalyGroupRequest) (*UpdateAnomalyGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAnomalyGroup not implemented")
 }
 func (UnimplementedAnomalyGroupServiceServer) FindExistingGroups(context.Context, *FindExistingGroupsRequest) (*FindExistingGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindExistingGroups not implemented")
@@ -221,74 +168,20 @@ func _AnomalyGroupService_ReadAnomalyGroup_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AnomalyGroupService_AddIssueIdToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddIssueIdToGroupRequest)
+func _AnomalyGroupService_UpdateAnomalyGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAnomalyGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).AddIssueIdToGroup(ctx, in)
+		return srv.(AnomalyGroupServiceServer).UpdateAnomalyGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AnomalyGroupService_AddIssueIdToGroup_FullMethodName,
+		FullMethod: AnomalyGroupService_UpdateAnomalyGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).AddIssueIdToGroup(ctx, req.(*AddIssueIdToGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AnomalyGroupService_AddBisectIdToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddBisectIdToGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).AddBisectIdToGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AnomalyGroupService_AddBisectIdToGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).AddBisectIdToGroup(ctx, req.(*AddBisectIdToGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AnomalyGroupService_AddAnomalyToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddAnomalyToGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).AddAnomalyToGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AnomalyGroupService_AddAnomalyToGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).AddAnomalyToGroup(ctx, req.(*AddAnomalyToGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AnomalyGroupService_AddCulpritsToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddCulpritsToGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).AddCulpritsToGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AnomalyGroupService_AddCulpritsToGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).AddCulpritsToGroup(ctx, req.(*AddCulpritsToGroupRequest))
+		return srv.(AnomalyGroupServiceServer).UpdateAnomalyGroup(ctx, req.(*UpdateAnomalyGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -327,20 +220,8 @@ var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AnomalyGroupService_ReadAnomalyGroup_Handler,
 		},
 		{
-			MethodName: "AddIssueIdToGroup",
-			Handler:    _AnomalyGroupService_AddIssueIdToGroup_Handler,
-		},
-		{
-			MethodName: "AddBisectIdToGroup",
-			Handler:    _AnomalyGroupService_AddBisectIdToGroup_Handler,
-		},
-		{
-			MethodName: "AddAnomalyToGroup",
-			Handler:    _AnomalyGroupService_AddAnomalyToGroup_Handler,
-		},
-		{
-			MethodName: "AddCulpritsToGroup",
-			Handler:    _AnomalyGroupService_AddCulpritsToGroup_Handler,
+			MethodName: "UpdateAnomalyGroup",
+			Handler:    _AnomalyGroupService_UpdateAnomalyGroup_Handler,
 		},
 		{
 			MethodName: "FindExistingGroups",

@@ -15,21 +15,8 @@ service AnomalyGroupService {
     rpc ReadAnomalyGroup(ReadAnomalyGroupRequest) returns (ReadAnomalyGroupResponse) {
     }
 
-    // Add the filed issue ID for the anomaly group which has action as 'report'.
-    rpc AddIssueIdToGroup(AddIssueIdToGroupRequest) returns (SimpleGroupUpdateResponse) {
-    }
-
-    // Add the launched bisection ID for the anomaly group which has action as 'bisect'.
-    rpc AddBisectIdToGroup(AddBisectIdToGroupRequest) returns (SimpleGroupUpdateResponse) {
-    }
-
-    // Add a new anomaly to the group.
-    rpc AddAnomalyToGroup(AddAnomalyToGroupRequest) returns (AddAnomalyToGroupResponse) {
-    }
-
-    // Add culprits found by a bisection to the group.
-    // (Invoked during persisting culprits)
-    rpc AddCulpritsToGroup(AddCulpritsToGroupRequest) returns (SimpleGroupUpdateResponse) {
+    // Update a given anomaly group.
+    rpc UpdateAnomalyGroup(UpdateAnomalyGroupRequest) returns (UpdateAnomalyGroupResponse) {
     }
 
     // Find matching anomaly groups based on the criterias.
@@ -72,70 +59,30 @@ message ReadAnomalyGroupResponse {
     AnomalyGroup anomaly_group = 1;
 }
 
-// Request object for AddIssueIdToGroup
-message AddIssueIdToGroupRequest {
+// Request object for UpdateAnomalyGroup
+message UpdateAnomalyGroupRequest {
     // The ID of the anomaly group to update
     string anomaly_group_id = 1;
-    // The issue ID to add to the anomaly group.
-    // This should be populated only when the action value is REPORT.
-    int64 issue_id = 2;
-}
 
-// Request object for AddBisectIdToGroup
-message AddBisectIdToGroupRequest {
-    // The ID of the anomaly group to update
-    string anomaly_group_id = 1;
+    // The anomaly ID to append to the anomaly list.
+    string anomaly_id = 2;
+
     // The biesction ID to add to the anomaly group.
     // This should be populated only when the action value is BISECT.
-    string bisection_id = 2;
-}
+    string bisection_id = 3;
 
-// Request object for AddAnomalyToGroup
-message AddAnomalyToGroupRequest {
-    // The ID of the anomaly group to update
-    string anomaly_group_id = 1;
-    // The anomaly to append to the anomaly list.
-    Anomaly anomaly = 2;
-}
+    // The issue ID to add to the anomaly group.
+    // This should be populated only when the action value is REPORT.
+    string issue_id = 4;
 
-// Response object for AddAnomalyToGroup
-message AddAnomalyToGroupResponse {
-    // The ID of the anomaly group which is updated
-    string anomaly_group_id = 1;
-    // The updated start commit of the group.
-    // The start and end commit position is the intersection of all
-    // the anomalies in the group. This value will be updated if needed
-    // when a anomaly is added to the group. Same to the new_end_commit.
-    int64 new_start_commit = 2;
-    // The updated end commit of the group.
-    int64 new_end_commit = 3;
-}
-
-// Request object for AddCulpritsToGroup
-message AddCulpritsToGroupRequest {
-    // The ID of the anomaly group to update
-    string anomaly_group_id = 1;
     // The culprit IDs correlated to the group.
     // Culprits are found by a bisection job. This should be populated
     // only when the action value is BISECT and the bisection_id exists.
-    repeated string culprit_ids = 2;
+    repeated string culprit_ids = 5;
 }
 
-// A common response object for the simple update requests on the anomaly
-// group table which:
-//  - only updates a single column
-//  - has no side effect on other columns
-// It returns the followings:
-//  - the update anomaly group ID
-//  - the updated column name
-//  - optional error message
-message SimpleGroupUpdateResponse {
-    // The id of the updated anomaly group.
-    string anomaly_group_id = 1;
-    // The name of the updated column of the anomaly group.
-    string updated_column = 2;
-    // The error message of the update request.
-    string error_message = 3;
+// Response object for UpdateAnomalyGroup
+message UpdateAnomalyGroupResponse {
 }
 
 // Request object for FindExistingGroups
@@ -171,16 +118,11 @@ message AnomalyGroup {
     // The action to take for the anomaly group.
     string group_action = 2;
     // The anomalies added to this group.
-    repeated Anomaly anomalies = 3;
+    repeated string anomaly_ids = 3;
     // The culprits associated to this group.
     repeated string culprit_ids = 4;
 }
 
-// placeholder for Anomaly
-message Anomaly {
-    // The ID of the anomaly, which is not available yet.
-    string anomaly_id = 1;
-}
 
 // The action to take on a certain group. It is defined in the Alert config.
 enum GroupActionType {
