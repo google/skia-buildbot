@@ -218,6 +218,10 @@ nodejs_register_toolchains(
 
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 
+# See https://docs.aspect.build/rulesets/aspect_rules_js/docs/pnpm to learn about how the rules_js
+# ruleset uses the //pnpm-lock.yaml, //package.json and //package-lock.json files.
+#
+# See also: https://docs.aspect.build/rulesets/aspect_rules_js/docs/npm_translate_lock/.
 npm_translate_lock(
     name = "npm",
     data = [

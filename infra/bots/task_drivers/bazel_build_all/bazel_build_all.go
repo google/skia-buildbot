@@ -73,6 +73,31 @@ func main() {
 		td.Fatal(ctx, err)
 	}
 
+	// Regenerate "//:pnpm-lock.yaml" and fail if there are any diffs.
+	//
+	// This is an experimental attempt at preventing spurious //pnpm-lock.yaml diffs such as:
+	//
+	//     ...
+	//         /puppeteer@19.2.2:
+	//           resolution: {integrity: sha512-m1T5Mog5qu5+dMBptWYTn6pXRdnFbydbVUCthqwbfd8/kOiMlzZBR9ywjX79LpvI1Sj+/z8+FKeIsjnMul8ZYA==}
+	//           engines: {node: '>=14.1.0'}
+	//     -     deprecated: < 21.5.0 is no longer supported
+	//     +     deprecated: < 21.3.7 is no longer supported
+	//           requiresBuild: true
+	//     ...
+	//
+	// The below command should regenerate //pnpm-lock.yaml based on the contents of //package.json
+	// and //package-lock.json. It is basead on the sample pnpm invocations in
+	// https://docs.aspect.build/rulesets/aspect_rules_js/docs/pnpm/#update_pnpm_lock.
+	//
+	// If we still see spurious diffs, another thing we could try is to empty the contents of
+	// //pnpm-lock.yaml (e.g. with "echo > pnpm-lock.yaml"). This should cause said file to be
+	// regenerated upon the next Bazel build, and was tested empirically by lovisolo@.
+	if _, err := bzl.DoOnRBE(ctx, "run", "@pnpm//:pnpm", "--", "--dir", gitDir.Dir(), "install", "--lockfile-only"); err != nil {
+		td.Fatal(ctx, err)
+	}
+	failIfNonEmptyGitDiff()
+
 	// Run "go generate" and fail it there are any diffs.
 	if _, err := bzl.DoOnRBE(ctx, "run", "//:go", "--", "generate", "./..."); err != nil {
 		td.Fatal(ctx, err)
