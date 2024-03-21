@@ -16,7 +16,7 @@ const (
 
 type ProcessCulpritParam struct {
 	CulpritServiceUrl string
-	Culprits          []*pb.Culprit
+	Commits           []*pb.Commit
 	AnomalyGroupId    string
 }
 

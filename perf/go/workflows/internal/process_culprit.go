@@ -66,7 +66,7 @@ func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpri
 	var err error
 	var csa CulpritServiceActivity
 	err = workflow.ExecuteActivity(ctx, csa.InvokePeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
-		Culprits:       input.Culprits,
+		Commits:        input.Commits,
 		AnomalyGroupId: input.AnomalyGroupId,
 	}).Get(ctx, &resp1)
 	if err != nil {

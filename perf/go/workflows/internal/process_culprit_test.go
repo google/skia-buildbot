@@ -34,26 +34,25 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 	csa := &CulpritServiceActivity{}
 	env.RegisterActivity(csa)
-	culprits := []*pb.Culprit{{
-		Commit: &pb.Commit{
+	commits := []*pb.Commit{
+		{
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
 			Ref:      "refs/head/main",
 			Revision: "123",
-		},
-	}, {
-		Commit: &pb.Commit{
+		}, {
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
 			Ref:      "refs/head/main1",
 			Revision: "456",
 		},
-	}}
+	}
+
 	anomalyGroupId := "111"
 	mockCulpritIds := []string{"c1", "c2"}
 	mockIssueIds := []string{"b1", "b2"}
 	server.On("PersistCulprit", mock.Anything, &pb.PersistCulpritRequest{
-		Culprits:       culprits,
+		Commits:        commits,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
 			&pb.PersistCulpritResponse{
@@ -67,7 +66,7 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 
 	env.ExecuteWorkflow(ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{
 		CulpritServiceUrl: addr,
-		Culprits:          culprits,
+		Commits:           commits,
 		AnomalyGroupId:    anomalyGroupId,
 	})
 
