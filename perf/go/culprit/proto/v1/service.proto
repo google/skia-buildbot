@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package proto;
+package culprit.v1;
 
-option go_package = "go.skia.org/infra/perf/go/culprit/proto";
+option go_package = "go.skia.org/infra/perf/go/culprit/proto/v1";
 
 
 // Handles all culprit related actions.

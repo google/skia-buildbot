@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: proto/service.proto
+// source: service.proto
 
-package proto
+package v1
 
 import (
 	context "context"
@@ -20,8 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	CulpritService_PersistCulprit_FullMethodName = "/proto.CulpritService/PersistCulprit"
-	CulpritService_NotifyUser_FullMethodName     = "/proto.CulpritService/NotifyUser"
+	CulpritService_PersistCulprit_FullMethodName = "/culprit.v1.CulpritService/PersistCulprit"
+	CulpritService_NotifyUser_FullMethodName     = "/culprit.v1.CulpritService/NotifyUser"
 )
 
 // CulpritServiceClient is the client API for CulpritService service.
@@ -134,7 +134,7 @@ func _CulpritService_NotifyUser_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CulpritService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.CulpritService",
+	ServiceName: "culprit.v1.CulpritService",
 	HandlerType: (*CulpritServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -147,5 +147,5 @@ var CulpritService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/service.proto",
+	Metadata: "service.proto",
 }

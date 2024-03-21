@@ -5,7 +5,7 @@ import (
 
 	"go.skia.org/infra/perf/go/backend/shared"
 	"go.skia.org/infra/perf/go/culprit"
-	pb "go.skia.org/infra/perf/go/culprit/proto"
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"google.golang.org/grpc"
 )
 

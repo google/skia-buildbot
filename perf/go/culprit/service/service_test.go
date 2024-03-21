@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/perf/go/culprit/mocks"
-	pb "go.skia.org/infra/perf/go/culprit/proto"
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 )
 
 func setUp(_ *testing.T) (*culpritService, *mocks.Store) {

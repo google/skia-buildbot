@@ -3,7 +3,7 @@ package culprit
 import (
 	"context"
 
-	pb "go.skia.org/infra/perf/go/culprit/proto"
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 )
 
 // Data Access layer for Culprit

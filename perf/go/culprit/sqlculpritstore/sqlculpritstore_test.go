@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/culprit"
-	pb "go.skia.org/infra/perf/go/culprit/proto"
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )

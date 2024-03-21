@@ -9,7 +9,7 @@ go_library(
     deps = [
         "//perf/go/backend/shared",
         "//perf/go/culprit:store",
-        "//perf/go/culprit/proto",
+        "//perf/go/culprit/proto/v1",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -20,7 +20,7 @@ go_test(
     embed = [":service"],
     deps = [
         "//perf/go/culprit/mocks",
-        "//perf/go/culprit/proto",
+        "//perf/go/culprit/proto/v1",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
     ],

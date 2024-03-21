@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/sqlutil"
 
-	pb "go.skia.org/infra/perf/go/culprit/proto"
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 )
 

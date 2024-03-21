@@ -11,7 +11,7 @@ go_library(
         "//go/skerr",
         "//go/sql/pool",
         "//go/sql/sqlutil",
-        "//perf/go/culprit/proto",
+        "//perf/go/culprit/proto/v1",
         "//perf/go/culprit/sqlculpritstore/schema",
     ],
 )
@@ -24,7 +24,7 @@ go_test(
     deps = [
         "//go/sql/pool",
         "//perf/go/culprit:store",
-        "//perf/go/culprit/proto",
+        "//perf/go/culprit/proto/v1",
         "//perf/go/culprit/sqlculpritstore/schema",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
