@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: anomalygroup/proto/v1/service.proto
+// source: service.proto
 
-package proto
+package v1
 
 import (
 	context "context"
@@ -20,13 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AnomalyGroupService_CreateAnomalyGroup_FullMethodName = "/proto.AnomalyGroupService/CreateAnomalyGroup"
-	AnomalyGroupService_ReadAnomalyGroup_FullMethodName   = "/proto.AnomalyGroupService/ReadAnomalyGroup"
-	AnomalyGroupService_AddIssueIdToGroup_FullMethodName  = "/proto.AnomalyGroupService/AddIssueIdToGroup"
-	AnomalyGroupService_AddBisectIdToGroup_FullMethodName = "/proto.AnomalyGroupService/AddBisectIdToGroup"
-	AnomalyGroupService_AddAnomalyToGroup_FullMethodName  = "/proto.AnomalyGroupService/AddAnomalyToGroup"
-	AnomalyGroupService_AddCulpritsToGroup_FullMethodName = "/proto.AnomalyGroupService/AddCulpritsToGroup"
-	AnomalyGroupService_FindExistingGroups_FullMethodName = "/proto.AnomalyGroupService/FindExistingGroups"
+	AnomalyGroupService_CreateAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/CreateAnomalyGroup"
+	AnomalyGroupService_ReadAnomalyGroup_FullMethodName   = "/anomalygroup.v1.AnomalyGroupService/ReadAnomalyGroup"
+	AnomalyGroupService_AddIssueIdToGroup_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/AddIssueIdToGroup"
+	AnomalyGroupService_AddBisectIdToGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/AddBisectIdToGroup"
+	AnomalyGroupService_AddAnomalyToGroup_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/AddAnomalyToGroup"
+	AnomalyGroupService_AddCulpritsToGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/AddCulpritsToGroup"
+	AnomalyGroupService_FindExistingGroups_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/FindExistingGroups"
 )
 
 // AnomalyGroupServiceClient is the client API for AnomalyGroupService service.
@@ -315,7 +315,7 @@ func _AnomalyGroupService_FindExistingGroups_Handler(srv interface{}, ctx contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.AnomalyGroupService",
+	ServiceName: "anomalygroup.v1.AnomalyGroupService",
 	HandlerType: (*AnomalyGroupServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -348,5 +348,5 @@ var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "anomalygroup/proto/v1/service.proto",
+	Metadata: "service.proto",
 }
