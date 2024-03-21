@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	CulpritService_PersistCulprit_FullMethodName = "/culprit.v1.CulpritService/PersistCulprit"
+	CulpritService_GetCulprit_FullMethodName     = "/culprit.v1.CulpritService/GetCulprit"
 	CulpritService_NotifyUser_FullMethodName     = "/culprit.v1.CulpritService/NotifyUser"
 )
 
@@ -30,6 +31,8 @@ const (
 type CulpritServiceClient interface {
 	// Stores commits identified as culprits in persistent storage.
 	PersistCulprit(ctx context.Context, in *PersistCulpritRequest, opts ...grpc.CallOption) (*PersistCulpritResponse, error)
+	// Fetches a given culprit by id
+	GetCulprit(ctx context.Context, in *GetCulpritRequest, opts ...grpc.CallOption) (*GetCulpritResponse, error)
 	// Takes necessary actions to inform users about the regression.
 	NotifyUser(ctx context.Context, in *NotifyUserRequest, opts ...grpc.CallOption) (*NotifyUserResponse, error)
 }
@@ -51,6 +54,15 @@ func (c *culpritServiceClient) PersistCulprit(ctx context.Context, in *PersistCu
 	return out, nil
 }
 
+func (c *culpritServiceClient) GetCulprit(ctx context.Context, in *GetCulpritRequest, opts ...grpc.CallOption) (*GetCulpritResponse, error) {
+	out := new(GetCulpritResponse)
+	err := c.cc.Invoke(ctx, CulpritService_GetCulprit_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *culpritServiceClient) NotifyUser(ctx context.Context, in *NotifyUserRequest, opts ...grpc.CallOption) (*NotifyUserResponse, error) {
 	out := new(NotifyUserResponse)
 	err := c.cc.Invoke(ctx, CulpritService_NotifyUser_FullMethodName, in, out, opts...)
@@ -66,6 +78,8 @@ func (c *culpritServiceClient) NotifyUser(ctx context.Context, in *NotifyUserReq
 type CulpritServiceServer interface {
 	// Stores commits identified as culprits in persistent storage.
 	PersistCulprit(context.Context, *PersistCulpritRequest) (*PersistCulpritResponse, error)
+	// Fetches a given culprit by id
+	GetCulprit(context.Context, *GetCulpritRequest) (*GetCulpritResponse, error)
 	// Takes necessary actions to inform users about the regression.
 	NotifyUser(context.Context, *NotifyUserRequest) (*NotifyUserResponse, error)
 	mustEmbedUnimplementedCulpritServiceServer()
@@ -77,6 +91,9 @@ type UnimplementedCulpritServiceServer struct {
 
 func (UnimplementedCulpritServiceServer) PersistCulprit(context.Context, *PersistCulpritRequest) (*PersistCulpritResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PersistCulprit not implemented")
+}
+func (UnimplementedCulpritServiceServer) GetCulprit(context.Context, *GetCulpritRequest) (*GetCulpritResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCulprit not implemented")
 }
 func (UnimplementedCulpritServiceServer) NotifyUser(context.Context, *NotifyUserRequest) (*NotifyUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NotifyUser not implemented")
@@ -112,6 +129,24 @@ func _CulpritService_PersistCulprit_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CulpritService_GetCulprit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCulpritRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CulpritServiceServer).GetCulprit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CulpritService_GetCulprit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CulpritServiceServer).GetCulprit(ctx, req.(*GetCulpritRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CulpritService_NotifyUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(NotifyUserRequest)
 	if err := dec(in); err != nil {
@@ -140,6 +175,10 @@ var CulpritService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PersistCulprit",
 			Handler:    _CulpritService_PersistCulprit_Handler,
+		},
+		{
+			MethodName: "GetCulprit",
+			Handler:    _CulpritService_GetCulprit_Handler,
 		},
 		{
 			MethodName: "NotifyUser",

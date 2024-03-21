@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
@@ -18,6 +19,37 @@ func setUp(t *testing.T) (culprit.Store, pool.Pool) {
 	store, err := New(db)
 	require.NoError(t, err)
 	return store, db
+}
+
+func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	id := uuid.NewString()
+	existingCulprit := schema.CulpritSchema{
+		Id:              id,
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"a1"},
+		IssueIds:        []string{"b1"},
+	}
+	populateDb(t, ctx, db, existingCulprit)
+
+	actual, err := store.Get(ctx, []string{id})
+
+	require.NoError(t, err)
+	expected := []*pb.Culprit{{
+		Commit: &pb.Commit{
+			Host:     "chromium.googlesource.com",
+			Project:  "chromium/src",
+			Ref:      "refs/head/main",
+			Revision: "123",
+		},
+		AnomalyGroupIds: []string{"a1"},
+		IssueIds:        []string{"b1"},
+	}}
+	assert.ElementsMatch(t, actual, expected)
 }
 
 func TestUpsert_MissingAnomlayGroupId_ReturnErr(t *testing.T) {
@@ -138,6 +170,7 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
 	existingCulprit := schema.CulpritSchema{
+		Id:              uuid.NewString(),
 		Host:            "chromium.googlesource.com",
 		Project:         "chromium/src",
 		Ref:             "refs/head/main",
@@ -171,9 +204,9 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 
 func populateDb(t *testing.T, ctx context.Context, db pool.Pool, culprit schema.CulpritSchema) {
 	const query = `INSERT INTO Culprits
-		(host, project, ref, revision, anomaly_group_ids, issue_ids)
-		VALUES ($1,$2,$3,$4,$5,$6)`
-	if _, err := db.Exec(ctx, query, culprit.Host, culprit.Project, culprit.Ref, culprit.Revision, culprit.AnomalyGroupIDs, culprit.IssueIds); err != nil {
+		(id, host, project, ref, revision, anomaly_group_ids, issue_ids)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)`
+	if _, err := db.Exec(ctx, query, culprit.Id, culprit.Host, culprit.Project, culprit.Ref, culprit.Revision, culprit.AnomalyGroupIDs, culprit.IssueIds); err != nil {
 		require.NoError(t, err)
 	}
 }

@@ -16,6 +16,21 @@ func setUp(_ *testing.T) (*culpritService, *mocks.Store) {
 	return service, mockstore
 }
 
+func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
+	c, store := setUp(t)
+	ctx := context.Background()
+	req := &pb.GetCulpritRequest{
+		CulpritIds: []string{"cid"},
+	}
+	store.On("Get", mock.Anything, []string{"cid"}).Return(nil, nil)
+
+	_, err := c.GetCulprit(ctx, req)
+
+	// assert that the expectations were met
+	store.AssertExpectations(t)
+	assert.Nil(t, err)
+}
+
 func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
 	c, store := setUp(t)
 	ctx := context.Background()

@@ -10,6 +10,9 @@ service CulpritService {
   // Stores commits identified as culprits in persistent storage.
   rpc PersistCulprit(PersistCulpritRequest) returns (PersistCulpritResponse) {
   }
+  // Fetches a given culprit by id
+  rpc GetCulprit(GetCulpritRequest) returns (GetCulpritResponse) {
+  }
   // Takes necessary actions to inform users about the regression.
   rpc NotifyUser(NotifyUserRequest) returns (NotifyUserResponse) {
   }
@@ -31,6 +34,15 @@ message PersistCulpritResponse {
   repeated string culprit_ids = 1;
 }
 
+// Request object for GetCulprit rpc.
+message GetCulpritRequest {
+  repeated string culprit_ids = 1;
+}
+
+// Response object for GetCulprit rpc.
+message GetCulpritResponse {
+  repeated Culprit culprits = 1;
+}
 
 // Request object for NotifyUser rpc.
 message NotifyUserRequest {
@@ -48,10 +60,12 @@ message NotifyUserResponse {
 }
 
 
-
 // Represents the change which has been identified as a culprit.
 message Culprit {
-  Commit commit = 1;
+  string id = 1;
+  Commit commit = 2;
+  repeated string anomaly_group_ids = 3;
+  repeated string issue_ids = 4;
 }
 
 

@@ -6,6 +6,8 @@ package sqlculpritstore
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
@@ -27,6 +29,36 @@ func New(db pool.Pool) (*CulpritStore, error) {
 	return &CulpritStore{
 		db: db,
 	}, nil
+}
+
+// Returns Culprit objects corresponding to given set of ids.
+func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, error) {
+	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids FROM Culprits where id IN (%s)"
+	query := fmt.Sprintf(statement, quotedSlice(ids))
+	fmt.Println(query)
+	rows, err := s.db.Query(ctx, query)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to query Culprit")
+	}
+	var resp []*pb.Culprit
+	for rows.Next() {
+		var id string
+		var host string
+		var project string
+		var ref string
+		var revision string
+		var anomaly_group_ids []string
+		var issue_ids []string
+		if err := rows.Scan(&id, &host, &project, &ref, &revision, &anomaly_group_ids, &issue_ids); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read Culprit results")
+		}
+		resp = append(resp, &pb.Culprit{
+			Commit:          &pb.Commit{Host: host, Project: project, Ref: ref, Revision: revision},
+			AnomalyGroupIds: anomaly_group_ids,
+			IssueIds:        issue_ids,
+		})
+	}
+	return resp, nil
 }
 
 // Upsert implements the culprit.Store interface.
@@ -109,6 +141,16 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 		}
 	}
 	return nil
+}
+
+// Takes a string array as input, and returns a comma joined string where each element
+// is single quoted.
+func quotedSlice(a []string) string {
+	q := make([]string, len(a))
+	for i, s := range a {
+		q[i] = fmt.Sprintf("'%s'", s)
+	}
+	return strings.Join(q, ", ")
 }
 
 // Takes culprit protos and anomaly_group_id as input, and returns a culprit schema struct where

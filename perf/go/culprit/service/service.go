@@ -61,3 +61,13 @@ func (s *culpritService) PersistCulprit(context context.Context, req *pb.Persist
 	// }
 	// return response, nil
 }
+
+func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritRequest) (*pb.GetCulpritResponse, error) {
+	culprits, err := s.store.Get(context, req.CulpritIds)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetCulpritResponse{
+		Culprits: culprits,
+	}, nil
+}
