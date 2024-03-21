@@ -22,7 +22,7 @@ service CulpritService {
 // Request object for PersistCulprit rpc.
 message PersistCulpritRequest {
   // List of commits identified as culprits.
-  repeated Culprit culprits = 1;
+  repeated Commit commits = 1;
   // ID of the anomaly group corresponding to the bisection.
   string anomaly_group_id = 2;
 }

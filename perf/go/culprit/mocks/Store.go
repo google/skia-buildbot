@@ -45,22 +45,34 @@ func (_m *Store) Get(ctx context.Context, ids []string) ([]*v1.Culprit, error) {
 	return r0, r1
 }
 
-// Upsert provides a mock function with given fields: ctx, anomaly_group_id, _a2
-func (_m *Store) Upsert(ctx context.Context, anomaly_group_id string, _a2 []*v1.Culprit) error {
-	ret := _m.Called(ctx, anomaly_group_id, _a2)
+// Upsert provides a mock function with given fields: ctx, anomaly_group_id, commits
+func (_m *Store) Upsert(ctx context.Context, anomaly_group_id string, commits []*v1.Commit) ([]string, error) {
+	ret := _m.Called(ctx, anomaly_group_id, commits)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Upsert")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []*v1.Culprit) error); ok {
-		r0 = rf(ctx, anomaly_group_id, _a2)
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []*v1.Commit) ([]string, error)); ok {
+		return rf(ctx, anomaly_group_id, commits)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, []*v1.Commit) []string); ok {
+		r0 = rf(ctx, anomaly_group_id, commits)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, []*v1.Commit) error); ok {
+		r1 = rf(ctx, anomaly_group_id, commits)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

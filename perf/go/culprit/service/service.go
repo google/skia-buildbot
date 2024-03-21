@@ -41,11 +41,11 @@ func (s *culpritService) GetServiceDescriptor() grpc.ServiceDesc {
 }
 
 func (s *culpritService) PersistCulprit(context context.Context, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	err := s.store.Upsert(context, req.AnomalyGroupId, req.Culprits)
+	ids, err := s.store.Upsert(context, req.AnomalyGroupId, req.Commits)
 	if err != nil {
 		return nil, err
 	} else {
-		return nil, nil
+		return &pb.PersistCulpritResponse{CulpritIds: ids}, nil
 	}
 	// TODO(pasthana): Update anomaly group once anomaly table is available in production
 	// notifyReq := &pb.NotifyUserRequest{

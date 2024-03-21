@@ -11,5 +11,5 @@ type Store interface {
 	// Get fetches stored culprits by ids
 	Get(ctx context.Context, ids []string) ([]*pb.Culprit, error)
 	// Upsert can write a new, or update an existing Culprit
-	Upsert(ctx context.Context, anomaly_group_id string, culprit []*pb.Culprit) error
+	Upsert(ctx context.Context, anomaly_group_id string, commits []*pb.Commit) ([]string, error)
 }

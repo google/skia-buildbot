@@ -34,25 +34,23 @@ func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
 func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
 	c, store := setUp(t)
 	ctx := context.Background()
-	culprits := []*pb.Culprit{{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
-	}, {
-		Commit: &pb.Commit{
+	commits := []*pb.Commit{{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
+	},
+		{
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
 			Ref:      "refs/head/main1",
 			Revision: "456",
 		},
-	}}
-	req := &pb.PersistCulpritRequest{
-		Culprits: culprits, AnomalyGroupId: "111",
 	}
-	store.On("Upsert", mock.Anything, "111", culprits).Return(nil)
+	req := &pb.PersistCulpritRequest{
+		Commits: commits, AnomalyGroupId: "111",
+	}
+	store.On("Upsert", mock.Anything, "111", commits).Return(nil, nil)
 
 	_, err := c.PersistCulprit(ctx, req)
 

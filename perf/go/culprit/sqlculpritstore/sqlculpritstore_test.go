@@ -25,7 +25,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
 	id := uuid.NewString()
-	existingCulprit := schema.CulpritSchema{
+	existingCommit := schema.CulpritSchema{
 		Id:              id,
 		Host:            "chromium.googlesource.com",
 		Project:         "chromium/src",
@@ -34,7 +34,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 		AnomalyGroupIDs: []string{"a1"},
 		IssueIds:        []string{"b1"},
 	}
-	populateDb(t, ctx, db, existingCulprit)
+	populateDb(t, ctx, db, existingCommit)
 
 	actual, err := store.Get(ctx, []string{id})
 
@@ -55,104 +55,88 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 func TestUpsert_MissingAnomlayGroupId_ReturnErr(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
-	culprit := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	commit := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprits := []*pb.Culprit{culprit}
-	err := store.Upsert(ctx, "", culprits)
+	commits := []*pb.Commit{commit}
+	_, err := store.Upsert(ctx, "", commits)
 	assert.Error(t, err)
 }
 
 func TestUpsert_DifferentHost_ReturnErr(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
-	culprit1 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	commit1 := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprit2 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium1.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "456",
-		},
+	commit2 := &pb.Commit{
+		Host:     "chromium1.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "456",
 	}
-	culprits := []*pb.Culprit{culprit1, culprit2}
-	err := store.Upsert(ctx, "111", culprits)
+	commits := []*pb.Commit{commit1, commit2}
+	_, err := store.Upsert(ctx, "111", commits)
 	assert.Error(t, err)
 }
 
 func TestUpsert_DifferentProject_ReturnErr(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
-	culprit1 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	commit1 := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprit2 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium1/src",
-			Ref:      "refs/head/main",
-			Revision: "456",
-		},
+	commit2 := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium1/src",
+		Ref:      "refs/head/main",
+		Revision: "456",
 	}
-	culprits := []*pb.Culprit{culprit1, culprit2}
-	err := store.Upsert(ctx, "111", culprits)
+	commits := []*pb.Commit{commit1, commit2}
+	_, err := store.Upsert(ctx, "111", commits)
 	assert.Error(t, err)
 }
 
 func TestUpsert_DifferentRef_ReturnErr(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
-	culprit1 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	commit1 := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprit2 := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main1",
-			Revision: "456",
-		},
+	commit2 := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main1",
+		Revision: "456",
 	}
-	culprits := []*pb.Culprit{culprit1, culprit2}
-	err := store.Upsert(ctx, "111", culprits)
+	commits := []*pb.Commit{commit1, commit2}
+	_, err := store.Upsert(ctx, "111", commits)
 	assert.Error(t, err)
 }
 
 func TestUpsert_InsertNewCulprit_UpdateDbAndReturnNil(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
-	culprit := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	commit := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprits := []*pb.Culprit{culprit}
-	err := store.Upsert(ctx, "111", culprits)
+	commits := []*pb.Commit{commit}
+	_, err := store.Upsert(ctx, "111", commits)
 	require.NoError(t, err)
 
 	expected := []schema.CulpritSchema{{
@@ -169,7 +153,7 @@ func TestUpsert_InsertNewCulprit_UpdateDbAndReturnNil(t *testing.T) {
 func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
-	existingCulprit := schema.CulpritSchema{
+	existingCommit := schema.CulpritSchema{
 		Id:              uuid.NewString(),
 		Host:            "chromium.googlesource.com",
 		Project:         "chromium/src",
@@ -178,17 +162,15 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 		AnomalyGroupIDs: []string{"111"},
 		IssueIds:        []string{"111"},
 	}
-	populateDb(t, ctx, db, existingCulprit)
-	culprit := &pb.Culprit{
-		Commit: &pb.Commit{
-			Host:     "chromium.googlesource.com",
-			Project:  "chromium/src",
-			Ref:      "refs/head/main",
-			Revision: "123",
-		},
+	populateDb(t, ctx, db, existingCommit)
+	commit := &pb.Commit{
+		Host:     "chromium.googlesource.com",
+		Project:  "chromium/src",
+		Ref:      "refs/head/main",
+		Revision: "123",
 	}
-	culprits := []*pb.Culprit{culprit}
-	err := store.Upsert(ctx, "222", culprits) // anomlay_group_id is different
+	commits := []*pb.Commit{commit}
+	_, err := store.Upsert(ctx, "222", commits) // anomlay_group_id is different
 	require.NoError(t, err)
 
 	expected := []schema.CulpritSchema{{
