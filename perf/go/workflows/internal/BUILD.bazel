@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "internal",
+    srcs = ["process_culprit.go"],
+    importpath = "go.skia.org/infra/perf/go/workflows/internal",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/workflows",
+        "@io_temporal_go_sdk//temporal",
+        "@io_temporal_go_sdk//workflow",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//credentials/insecure",
+    ],
+)
+
+go_test(
+    name = "internal_test",
+    srcs = ["process_culprit_test.go"],
+    embed = [":internal"],
+    deps = [
+        "//perf/go/culprit/proto/mocks",
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/workflows",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@io_temporal_go_sdk//testsuite",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)

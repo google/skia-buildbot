@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "worker_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/workflows/worker",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/workflows",
+        "//perf/go/workflows/internal",
+        "//temporal/go/metrics",
+        "@io_temporal_go_sdk//client",
+        "@io_temporal_go_sdk//worker",
+        "@io_temporal_go_sdk//workflow",
+    ],
+)
+
+go_binary(
+    name = "worker",
+    embed = [":worker_lib"],
+    visibility = ["//visibility:public"],
+)

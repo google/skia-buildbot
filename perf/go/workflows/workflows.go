@@ -1,0 +1,26 @@
+package workflows
+
+import (
+	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+)
+
+// Workflow name definitions.
+//
+// Those are used to invoke the workflows. This is meant to decouple the
+// souce code dependencies such that the client doesn't need to link with
+// the actual implementation.
+// TODO(b/326352379): introduce a specific type to encapsulate these workflow names
+const (
+	ProcessCulprit = "perf.process_culprit"
+)
+
+type ProcessCulpritParam struct {
+	CulpritServiceUrl string
+	Culprits          []*pb.Culprit
+	AnomalyGroupId    string
+}
+
+type ProcessCulpritResult struct {
+	CulpritIds []string
+	IssueIds   []string
+}
