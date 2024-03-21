@@ -34,6 +34,25 @@ Firestore related functions:
 If you find something problematic, then `timer_func_timer_ns{appgroup=~"gold.+"}/1000000000` is
 how to see how many milliseconds a given timer actually took.
 
+# Debug HTTP server
+
+The gold_frontend and baselineserver services expose profiling data via HTTP using endpoints from
+the [`net/http/pprof`](https://pkg.go.dev/net/http/pprof) package. These endpoints are useful for debugging TooManyGoRoutines alerts, among other use cases.
+
+Note that gold_frontend and baselineserver use different HTTP ports.
+
+Example for gold_frontend (available via http://localhost:8000).
+
+```
+$ kubectl port-forward --address 0.0.0.0 gold-skia-infra-frontend-xxxxxxxxxx-yyyyy 8000:7001
+```
+
+Example for baselineserver (available via http://localhost:8000).
+
+```
+$ kubectl port-forward --address 0.0.0.0 gold-skia-infra-baselineserver-xxxxxxxxxx-yyyyy 8000:8001
+```
+
 # General Logs
 
 Logs for Gold instances in skia-public/skia-corp are in the usual
@@ -54,7 +73,7 @@ The most reliable way to have open and use a connection to the SQL database is t
 ephemeral k8s pod that runs the CockroachDB SQL CLI.
 
 ```
-kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v20.2.0 \
+kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v22.2.3 \
   -- sql --insecure --host gold-cockroachdb:26234 --database [instance_name]
 ```
 
@@ -98,7 +117,7 @@ we want to replace.
 First, let's decommission node 2, that is, we tell other nodes to stop using node 2.
 
 ```
-kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v20.2.0 \
+kubectl run -it --rm gold-cockroachdb-temp-0 --restart=Never --image=cockroachdb/cockroach:v22.2.3 \
   -- node decommission 2 --insecure --host gold-cockroachdb:26234
 ```
 
