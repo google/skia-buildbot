@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/pinpoint/go/compare"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
@@ -47,4 +48,35 @@ func TestBisect_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T) {
 	require.NotEmpty(t, be.JobId)
 	require.Empty(t, be.Culprits)
 	env.AssertExpectations(t)
+}
+
+func TestBisectRunTracker_NewIdx_ReturnSameRun(t *testing.T) {
+	tracker := bisectRunTracker{}
+	idx, run := tracker.newRun(&midpoint.CombinedCommit{})
+	require.Same(t, run, tracker.get(idx), "should be exact same addresses")
+}
+
+func TestBisectRunTracker_TwoRuns_ReturnDiffIndex(t *testing.T) {
+	tracker := bisectRunTracker{}
+	idx1, run1 := tracker.newRun(&midpoint.CombinedCommit{})
+	idx2, run2 := tracker.newRun(&midpoint.CombinedCommit{})
+	require.NotEqualValues(t, idx1, idx2)
+	require.NotSame(t, run1, run2, "pointers should be different")
+	require.NotSame(t, tracker.get(idx1), tracker.get(idx2), "pointers should be different")
+}
+
+func TestBisectRunTracker_NonExistIndex_ReturnNil(t *testing.T) {
+	nonExist := BisectRunIndex(1000)
+	tracker := bisectRunTracker{}
+	require.Nil(t, tracker.get(nonExist))
+	_, _ = tracker.newRun(&midpoint.CombinedCommit{})
+	require.Nil(t, tracker.get(nonExist))
+}
+
+func TestBisectRunTracker_ManyRuns_ReturnIndex(t *testing.T) {
+	tracker := bisectRunTracker{}
+	for i := 0; i < 100; i++ {
+		idx, run := tracker.newRun(&midpoint.CombinedCommit{})
+		require.Same(t, run, tracker.get(idx), "should be exact same addresses")
+	}
 }
