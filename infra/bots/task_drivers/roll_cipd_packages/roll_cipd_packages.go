@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
@@ -24,7 +25,6 @@ import (
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/gerrit_steps"
-	"go.skia.org/infra/task_driver/go/lib/golang"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/lib/rotations"
 	"go.skia.org/infra/task_driver/go/td"
@@ -101,9 +101,6 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-
-	// Setup go.
-	ctx = golang.WithEnv(ctx, wd)
 
 	// Read packages from cipd.ensure.
 	ensureFile := filepath.Join(co.Dir(), "cipd.ensure")
@@ -262,15 +259,12 @@ func main() {
 	}
 
 	// Run "go generate".
-	if err := golang.InstallCommonDeps(ctx, co.Dir()); err != nil {
-		td.Fatal(ctx, err)
-	}
-	if _, err := golang.Go(ctx, co.Dir(), "generate", "./..."); err != nil {
+	if _, err := exec.RunCwd(ctx, co.Dir(), "bazelisk", "run", "//:go", "generate", "./..."); err != nil {
 		td.Fatal(ctx, err)
 	}
 
 	// Regenerate tasks.json.
-	if _, err := golang.Go(ctx, co.Dir(), "run", "./infra/bots/gen_tasks.go"); err != nil {
+	if _, err := exec.RunCwd(ctx, co.Dir(), "bazelisk", "run", "//:go", "run", "./infra/bots/gen_tasks.go"); err != nil {
 		td.Fatal(ctx, err)
 	}
 
