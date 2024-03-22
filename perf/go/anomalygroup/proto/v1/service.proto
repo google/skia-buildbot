@@ -29,16 +29,18 @@ service AnomalyGroupService {
 message CreateAnomalyGroupRequest {
     // The name of the subscription in sheriff config
     string subscription_name = 1;
+    // The revision of the subscription
+    string subscription_revision = 2;
     // The domain of the test to group (The value of 'master' in alert config.)
-    string domain = 2;
+    string domain = 3;
     // The benchmark of the test to group
-    string benchmark = 3;
+    string benchmark = 4;
     // The current start commit position of the group
-    int64 start_commit = 4;
+    int64 start_commit = 5;
     // The current end commit position of the group
-    int64 end_commit = 5;
+    int64 end_commit = 6;
     // The action of the group to take.
-    GroupActionType action = 6;
+    GroupActionType action = 7;
 }
 
 // Response object for CreateAnomalyGroup
