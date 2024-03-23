@@ -71,30 +71,77 @@ func (cr *CommitRun) AllValues(chart string) []float64 {
 	return vs
 }
 
+func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *midpoint.CombinedCommit) (*workflows.Build, error) {
+	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "no target found for (%s, %s)", bot, benchmark)
+	}
+
+	var b *workflows.Build
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildChromeParams{
+		PinpointJobID: jobID,
+		Device:        bot,
+		Target:        t,
+		Commit:        commit,
+	}).Get(ctx, &b); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	if b.Status != buildbucketpb.Status_SUCCESS {
+		return nil, skerr.Fmt("build fails at commit %v", commit)
+	}
+
+	return b, nil
+}
+
+func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel) []T {
+	ln := rc.Len()
+	runs := make([]T, ln)
+	for i := 0; i < ln; i++ {
+		rc.Receive(ctx, &runs[i])
+	}
+	return runs
+}
+
+func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams) (*workflows.TestRun, error) {
+	var tr *workflows.TestRun
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.RunBenchmark, &RunBenchmarkParams{
+		JobID:     scrp.PinpointJobID,
+		Commit:    cc,
+		BotConfig: scrp.BotConfig,
+		BuildCAS:  cas,
+		Benchmark: scrp.Benchmark,
+		Story:     scrp.Story,
+		StoryTags: scrp.StoryTags,
+	}).Get(ctx, &tr); err != nil {
+		return nil, err
+	}
+
+	if !run_benchmark.IsTaskStateSuccess(tr.Status) {
+		return nil, skerr.Fmt("test run (%v) failed with status (%v)", tr.TaskID, tr.Status)
+	}
+
+	// TODO(b/327224992): Should surface CAS errors here in case the test results don't exist.
+	var lv []float64
+	if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, tr, scrp.Benchmark, scrp.Chart, scrp.AggregationMethod).Get(ctx, &lv); err != nil {
+		return nil, err
+	}
+
+	tr.Values = map[string][]float64{
+		scrp.Chart: lv,
+	}
+	return tr, nil
+}
+
 // SingleCommitRunner is a Workflow definition.
 //
 // SingleCommitRunner builds, runs and collects benchmark sampled values from one single commit.
 func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*CommitRun, error) {
 	bctx := workflow.WithChildOptions(ctx, buildWorkflowOptions)
 
-	// TODO(b/327222369): Move this into an activity to be mocked and tracked.
-	t, err := bot_configs.GetIsolateTarget(sc.BotConfig, sc.Benchmark)
+	b, err := buildChrome(bctx, sc.PinpointJobID, sc.BotConfig, sc.Benchmark, sc.CombinedCommit)
 	if err != nil {
-		return nil, skerr.Fmt("no target found for (%s, %s)", sc.BotConfig, sc.Benchmark)
-	}
-
-	var b *workflows.Build
-	if err := workflow.ExecuteChildWorkflow(bctx, workflows.BuildChrome, workflows.BuildChromeParams{
-		PinpointJobID: sc.PinpointJobID,
-		Device:        sc.BotConfig,
-		Target:        t,
-		Commit:        sc.CombinedCommit,
-	}).Get(bctx, &b); err != nil {
 		return nil, skerr.Wrap(err)
-	}
-
-	if b.Status != buildbucketpb.Status_SUCCESS {
-		return nil, skerr.Fmt("build fails at commit %v", sc.CombinedCommit)
 	}
 
 	rc := workflow.NewBufferedChannel(ctx, int(sc.Iterations))
@@ -102,41 +149,17 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	wg := workflow.NewWaitGroup(ctx)
 	wg.Add(int(sc.Iterations))
 
+	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
+	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	for i := 0; i < int(sc.Iterations); i++ {
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
-			gCtx = workflow.WithChildOptions(gCtx, runBenchmarkWorkflowOptions)
-			gCtx = workflow.WithActivityOptions(gCtx, regularActivityOptions)
+			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc)
 
-			var tr *workflows.TestRun
-			if err := workflow.ExecuteChildWorkflow(gCtx, workflows.RunBenchmark, &RunBenchmarkParams{
-				JobID:     sc.PinpointJobID,
-				Commit:    sc.CombinedCommit,
-				BotConfig: sc.BotConfig,
-				BuildCAS:  b.CAS,
-				Benchmark: sc.Benchmark,
-				Story:     sc.Story,
-				StoryTags: sc.StoryTags,
-			}).Get(gCtx, &tr); err != nil {
+			if err != nil {
 				ec.Send(gCtx, err)
 				return
-			}
-
-			if !run_benchmark.IsTaskStateSuccess(tr.Status) {
-				ec.Send(gCtx, skerr.Fmt("test run (%v) failed with status (%v)", tr.TaskID, tr.Status))
-				return
-			}
-
-			// TODO(b/327224992): Should surface CAS errors here in case the test results don't exist.
-			var v []float64
-			if err := workflow.ExecuteActivity(gCtx, CollectValuesActivity, tr, sc.Benchmark, sc.Chart, sc.AggregationMethod).Get(gCtx, &v); err != nil {
-				ec.Send(gCtx, err)
-				return
-			}
-
-			tr.Values = map[string][]float64{
-				sc.Chart: v,
 			}
 			rc.Send(gCtx, tr)
 		})
@@ -146,28 +169,13 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	rc.Close()
 	ec.Close()
 
-	errs := make([]error, ec.Len())
-	l := ec.Len()
-	for i := 0; i < l; i++ {
-		var err error
-		ec.Receive(ctx, &err)
-		errs[i] = err
-	}
-
 	// TODO(b/326480795): We can tolerate a certain number of errors but should also report
 	//	test errors.
-	if len(errs) != 0 {
+	if errs := fetchAllFromChannel[error](ctx, ec); len(errs) != 0 {
 		return nil, skerr.Wrapf(errors.Join(errs...), "not all iterations are successful")
 	}
 
-	runs := make([]*workflows.TestRun, rc.Len())
-	l = rc.Len()
-	for i := 0; i < l; i++ {
-		var r *workflows.TestRun
-		rc.Receive(ctx, &r)
-		runs[i] = r
-	}
-
+	runs := fetchAllFromChannel[*workflows.TestRun](ctx, rc)
 	return &CommitRun{
 		Commit: sc.CombinedCommit,
 		Build:  b,
