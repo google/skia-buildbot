@@ -112,7 +112,7 @@ func FindGit(ctx context.Context) (string, int, int, error) {
 // IsFromCIPD returns a bool indicating whether or not the given version of Git
 // appears to be obtained via CIPD.
 func IsFromCIPD(git string) bool {
-	return strings.Contains(git, "cipd_bin_packages") || strings.Contains(git, bazel.RunfilesDir())
+	return strings.Contains(git, "cipd_bin_packages") || (bazel.InBazel() && strings.Contains(git, bazel.RunfilesDir()))
 }
 
 // EnsureGitIsFromCIPD returns an error if the version of Git in PATH does not
