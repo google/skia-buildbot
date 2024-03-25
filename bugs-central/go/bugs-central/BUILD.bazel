@@ -17,6 +17,7 @@ go_library(
         "//go/cleanup",
         "//go/httputils",
         "//go/roles",
+        "//go/secret",
         "//go/skerr",
         "//go/sklog",
         "@com_github_go_chi_chi_v5//:chi",
