@@ -13,5 +13,6 @@ go_library(
         "//email/go/emailclient",
         "//go/email",
         "//go/httputils",
+        "//go/skerr",
     ],
 )

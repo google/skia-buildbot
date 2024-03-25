@@ -9,6 +9,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -29,9 +30,9 @@ func ParseEmails(emails string) []string {
 
 // SendEmail sends an email with the specified header and body to the recipients.
 func SendEmail(recipients []string, subject, body string) error {
-	email := emailclient.New()
+	email := emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
 	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, "", ""); err != nil {
-		return fmt.Errorf("Could not send email: %s", err)
+		return skerr.Wrapf(err, "could not send email")
 	}
 
 	return nil
@@ -42,9 +43,9 @@ func SendEmail(recipients []string, subject, body string) error {
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
 func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
-	email := emailclient.New()
+	email := emailclient.NewAt(emailclient.NamespacedEmailServiceURL)
 	if _, err := email.SendWithMarkup(emailDisplayName, emailFromAddress, recipients, subject, body, markup, ""); err != nil {
-		return fmt.Errorf("Could not send email with markup: %s", err)
+		return skerr.Wrapf(err, "could not send email with markup")
 	}
 
 	return nil
@@ -81,7 +82,7 @@ func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runD
 
 	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
 	if err != nil {
-		return fmt.Errorf("Failed to get view action markup: %s", err)
+		return skerr.Wrapf(err, "failed to get view action markup")
 	}
 	descriptionHtml := ""
 	if runDescription != "" {
@@ -98,7 +99,7 @@ func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runD
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, swarmingLogsLink)
 	if err := SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
-		return fmt.Errorf("Error while sending task start email: %s", err)
+		return skerr.Wrapf(err, "error while sending task start email")
 	}
 	return nil
 }
@@ -115,7 +116,7 @@ func SendTasksTerminatedEmail(recipients []string) error {
 	`
 
 	if err := SendEmail(recipients, emailSubject, body); err != nil {
-		return fmt.Errorf("Error while sending tasks termination email: %s", err)
+		return skerr.Wrapf(err, "error while sending tasks termination email")
 	}
 	return nil
 }
