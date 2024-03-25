@@ -7,7 +7,7 @@ import (
 	culprit "go.skia.org/infra/perf/go/culprit/proto/v1"
 	pinpoint "go.skia.org/infra/pinpoint/proto/v1"
 	grpc "google.golang.org/grpc"
-	localCreds "google.golang.org/grpc/credentials/local"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // getBackendHostUrl returns the host url for the backend service.
@@ -26,7 +26,9 @@ func getGrpcConnection() (*grpc.ClientConn, error) {
 	backendServiceUrl := getBackendHostUrl()
 	// TODO(ashwinpv): Explore the use of opentracing with something
 	// like https://github.com/grpc-ecosystem/grpc-opentracing/tree/master/go/otgrpc
-	conn, err := grpc.Dial(backendServiceUrl, grpc.WithTransportCredentials(localCreds.NewCredentials()))
+
+	// TODO(ashwinpv): Once connection is validated, update this to use token based auth.
+	conn, err := grpc.Dial(backendServiceUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		sklog.Errorf("Error connecting to Backend service at %s: %s", backendServiceUrl, err)
 		return nil, err

@@ -12,6 +12,6 @@ go_library(
         "//perf/go/culprit/proto/v1",
         "//pinpoint/proto/v1:proto",
         "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//credentials/local",
+        "@org_golang_google_grpc//credentials/insecure",
     ],
 )
