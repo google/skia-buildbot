@@ -228,70 +228,54 @@ func resolveDepsEntries(vars map[string]ast.Expr, key, value ast.Expr) ([]*DepsE
 		return nil, nil, skerr.Wrap(err)
 	}
 
-	// Entries may take one of a few formats.
+	// If the entry is a dictionary, it may be a Git, CIPD, or GCS dependency.
 	if valueExpr.Type().Name == ast.DictType.Name {
+		// Find the type for the entry.
 		dict := valueExpr.(*ast.Dict)
-		// This entry has more detail, either a CIPD package list or a
-		// git dep with a conditional.
-		found := false
 		for idx, key := range dict.Keys {
 			if key.Type().Name != ast.StrType.Name {
 				return nil, nil, skerr.Fmt("Invalid type for deps entry dict key %q for %q", key.Type().Name, path)
 			}
 			strKey := key.(*ast.Str).S
 			val := dict.Values[idx]
-			if strKey == "url" {
-				// This is a git dependency; we'll decode the
-				// URL below.
-				valueExpr = val
-				found = true
-			} else if strKey == "packages" {
-				// This is a CIPD entry, which represents at
-				// least one dependency.
-				if val.Type().Name != ast.ListType.Name {
-					return nil, nil, skerr.Fmt("Invalid type for %q at %q; expected %q but got %q", strKey, path, ast.ListType.Name, val.Type().Name)
+			if strKey == "dep_type" {
+				if val.Type().Name != ast.StrType.Name {
+					return nil, nil, skerr.Fmt("invalid type for key `dep_type` %q", key.Type().Name)
 				}
-				var entries []*DepsEntry
-				var poss []*ast.Pos
-				for _, pkgExpr := range val.(*ast.List).Elts {
-					if pkgExpr.Type().Name != ast.DictType.Name {
-						return nil, nil, skerr.Fmt("Invalid type for CIPD package list entry at %q; expected %q but got %q", path, ast.DictType.Name, pkgExpr.Type().Name)
-					}
-					pkgDict := pkgExpr.(*ast.Dict)
-					entry := &DepsEntry{
-						Path: path,
-					}
-					var pos *ast.Pos
-					for idx, key := range pkgDict.Keys {
-						if key.Type().Name != ast.StrType.Name {
-							return nil, nil, skerr.Fmt("Invalid type for CIPD package dict key at %q; expected %q but got %q", path, ast.StrType.Name, key.Type().Name)
-						}
-						strKey := key.(*ast.Str).S
-						var strVal string
-						strVal, pos, err = exprToString(pkgDict.Values[idx])
-						if err != nil {
-							return nil, nil, skerr.Wrap(err)
-						}
-						if strKey == "package" {
-							entry.Id = strVal
-						} else if strKey == "version" {
-							entry.Version = strVal
-						}
-					}
-					if entry.Id == "" || entry.Version == "" {
-						return nil, nil, skerr.Fmt("CIPD package dict for %q is incomplete", path)
-					}
-					entries = append(entries, entry)
-					poss = append(poss, pos)
+				depType := string(val.(*ast.Str).S)
+				if depType == "git" {
+					return parseGitDep(path, dict)
+				} else if depType == "cipd" {
+					return parseCIPDDeps(path, dict)
+				} else if depType == "gcs" {
+					return parseGCSDep(path, dict)
 				}
-				return entries, poss, nil
+			} else if strKey == "url" {
+				// `url` indicates that this is a git dep, and `dep_type` may
+				// not be set.
+				return parseGitDep(path, dict)
 			}
 		}
-		if !found {
-			return nil, nil, skerr.Fmt("Unable to find dependency in deps entry dict for %q", path)
+		return nil, nil, skerr.Fmt("unable to find dependency type in deps entry dict for %q", path)
+	}
+
+	// Otherwise, we assume it's a Git dependency.
+	return parseGitDep(path, valueExpr)
+}
+
+func parseGitDep(path string, valueExpr ast.Expr) ([]*DepsEntry, []*ast.Pos, error) {
+	if valueExpr.Type().Name == ast.DictType.Name {
+		// If this is a dictionary, just grab the "url" key.
+		dict := valueExpr.(*ast.Dict)
+		for idx, key := range dict.Keys {
+			strKey := key.(*ast.Str).S
+			val := dict.Values[idx]
+			if strKey == "url" {
+				valueExpr = val
+			}
 		}
 	}
-	// This is a git dependency.
+
 	t := valueExpr.Type().Name
 	if t == ast.StrType.Name || t == ast.BinOpType.Name {
 		// This could be either a single string, in "<repo>@<revision>"
@@ -314,8 +298,102 @@ func resolveDepsEntries(vars map[string]ast.Expr, key, value ast.Expr) ([]*DepsE
 			entry.Version = split[1]
 		}
 		return []*DepsEntry{entry}, []*ast.Pos{pos}, nil
+	} else {
+		return nil, nil, skerr.Fmt("invalid type %q for Git dependency at %q", t, path)
 	}
-	return nil, nil, skerr.Fmt("Invalid value type %q", t)
+}
+
+func parseCIPDDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error) {
+	// This is a CIPD entry, which represents at least one package.
+	for idx, key := range dict.Keys {
+		strKey := key.(*ast.Str).S
+		val := dict.Values[idx]
+		if strKey == "packages" {
+			if val.Type().Name != ast.ListType.Name {
+				return nil, nil, skerr.Fmt("Invalid type for %q at %q; expected %q but got %q", strKey, path, ast.ListType.Name, val.Type().Name)
+			}
+			var entries []*DepsEntry
+			var poss []*ast.Pos
+			for _, pkgExpr := range val.(*ast.List).Elts {
+				if pkgExpr.Type().Name != ast.DictType.Name {
+					return nil, nil, skerr.Fmt("Invalid type for CIPD package list entry at %q; expected %q but got %q", path, ast.DictType.Name, pkgExpr.Type().Name)
+				}
+				pkgDict := pkgExpr.(*ast.Dict)
+				entry := &DepsEntry{
+					Path: path,
+				}
+				var pos *ast.Pos
+				for idx, key := range pkgDict.Keys {
+					if key.Type().Name != ast.StrType.Name {
+						return nil, nil, skerr.Fmt("Invalid type for CIPD package dict key at %q; expected %q but got %q", path, ast.StrType.Name, key.Type().Name)
+					}
+					strKey := key.(*ast.Str).S
+					var strVal string
+					var err error
+					strVal, pos, err = exprToString(pkgDict.Values[idx])
+					if err != nil {
+						return nil, nil, skerr.Wrap(err)
+					}
+					if strKey == "package" {
+						entry.Id = strVal
+					} else if strKey == "version" {
+						entry.Version = strVal
+					}
+				}
+				if entry.Id == "" || entry.Version == "" {
+					return nil, nil, skerr.Fmt("CIPD package dict for %q is incomplete", path)
+				}
+				entries = append(entries, entry)
+				poss = append(poss, pos)
+			}
+			return entries, poss, nil
+		}
+	}
+	return nil, nil, skerr.Fmt("missing `packages` key for CIPD dependency %q", path)
+}
+
+func parseGCSDep(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error) {
+	// This is a GCS dependency.
+	var bucket string
+	var object string
+	var sha256sum string
+	var pos *ast.Pos
+	for idx, key := range dict.Keys {
+		strKey := key.(*ast.Str).S
+		val := dict.Values[idx]
+		var err error
+		if strKey == "bucket" {
+			bucket, _, err = exprToString(val)
+			if err != nil {
+				return nil, nil, skerr.Wrapf(err, "failed to parse bucket as string")
+			}
+		} else if strKey == "object_name" {
+			object, _, err = exprToString(val)
+			if err != nil {
+				return nil, nil, skerr.Wrapf(err, "failed to parse object_name as string")
+			}
+		} else if strKey == "sha256sum" {
+			sha256sum, pos, err = exprToString(val)
+			if err != nil {
+				return nil, nil, skerr.Wrapf(err, "failed to parse sha256sum as string")
+			}
+		}
+	}
+	if bucket == "" {
+		return nil, nil, skerr.Fmt("missing key `bucket` for gcs entry %q", path)
+	}
+	if object == "" {
+		return nil, nil, skerr.Fmt("missing key `object_name` for gcs entry %q", path)
+	}
+	if sha256sum == "" {
+		return nil, nil, skerr.Fmt("missing key `sha256sum` for gcs entry %q", path)
+	}
+	entry := &DepsEntry{
+		Id:      fmt.Sprintf("%s/%s", bucket, object),
+		Version: sha256sum,
+		Path:    path,
+	}
+	return []*DepsEntry{entry}, []*ast.Pos{pos}, nil
 }
 
 // resolveVars recursively replaces calls to Var() with the ast.Expr for the

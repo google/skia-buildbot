@@ -110,12 +110,14 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	parent.Add(ctx, "DEPS", fmt.Sprintf(`
 deps = {
   "%s": {
+    "dep_type": "cipd",
     "packages": [
-	  {
-	    "package": "%s",
-	    "version": "%s"
-	  }
-	],
+      {
+        "package": "%s",
+        "version": "%s"
+      }
+    ],
+    "condition": "False",
   },
 }`, githubCIPDDEPSChildPath, githubCIPDAssetName, githubCIPDLastRolled))
 	parent.Commit(ctx)

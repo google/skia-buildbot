@@ -48,6 +48,13 @@ deps = {
     ],
     'dep_type': 'cipd',
   },
+  'gcs/example-gcs-dep': {
+	'bucket': 'my-gcs-bucket',
+	'object_name': 'some/gcs/object',
+	'dep_type': 'gcs',
+	'sha256sum': 'abc123',
+	'output_file': 'gcs-dep-output-file',
+  },
   Var('expr_prefix')+'dep': 'https://my-host/expr-dep.git@version',
 }
 `
@@ -99,6 +106,11 @@ func TestParseDeps(t *testing.T) {
 			Id:      "my-host/expr-dep",
 			Version: "version",
 			Path:    "expr/dep",
+		},
+		"my-gcs-bucket/some/gcs/object": {
+			Id:      "my-gcs-bucket/some/gcs/object",
+			Version: "abc123",
+			Path:    "gcs/example-gcs-dep",
 		},
 	}, deps)
 

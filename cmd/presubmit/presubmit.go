@@ -543,6 +543,8 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 				// executable for all devs, and we do not want our presubmit code to
 				// depend on the code it is checking.
 				regexp.MustCompile(`cmd/presubmit/.*`),
+				// This doesn't shell out to git.
+				regexp.MustCompile(`go/depot_tools/deps_parser/.*\.go`),
 				// This is the one place where we are allowed to shell out to git; all
 				// others should go through here.
 				regexp.MustCompile(`go/git/git_common/.*\.go`),
