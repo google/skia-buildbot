@@ -98,7 +98,7 @@ func New() (baseapp.App, error) {
 	}
 
 	// Instantiate poller and turn it on.
-	pollerClient, err := poller.New(ctx, ts, filepath.Join(os.TempDir(), monorailKeyFile.Name()), dbClient)
+	pollerClient, err := poller.New(ctx, ts, monorailKeyFile.Name(), dbClient)
 	if err != nil {
 		sklog.Fatalf("Could not init poller: %s", err)
 	}
