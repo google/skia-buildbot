@@ -40,6 +40,14 @@ func (br *BisectRun) totalScheduledRuns() int32 {
 	return t
 }
 
+func (br *BisectRun) totalPendings() []workflow.Future {
+	pendings := make([]workflow.Future, len(br.ScheduledRuns))
+	for i, v := range br.ScheduledRuns {
+		pendings[i] = v.childWorkflow
+	}
+	return pendings
+}
+
 // totalRuns returns the total number of existing runs and pending runs
 func (br *BisectRun) totalRuns() int32 {
 	return int32(len(br.Runs)) + br.totalScheduledRuns()

@@ -2,10 +2,10 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/zyedidia/generic/stack"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	"go.skia.org/infra/temporal/go/common"
 	"go.temporal.io/sdk/workflow"
 	"golang.org/x/oauth2/google"
 )
@@ -48,50 +49,28 @@ func (t bisectRunTracker) get(r BisectRunIndex) *BisectRun {
 	return t.runs[int(r)]
 }
 
-// CommitRangeTracker stores a commit range as [Lower, Higher] and expected sample size.
+// CommitRangeTracker stores a commit range as [Lower, Higher].
 //
 // It stores bisect run as indexes as it needs to be serialized. The indexes
 // are stable within the workflow thru bisectRunTracker.
 type CommitRangeTracker struct {
-	Lower              BisectRunIndex
-	Higher             BisectRunIndex
-	ExpectedSampleSize int32
+	Lower  BisectRunIndex
+	Higher BisectRunIndex
 }
 
+// CloneWithHigher clones itself with the overriden higher index.
 func (t CommitRangeTracker) CloneWithHigher(higher BisectRunIndex) CommitRangeTracker {
 	return CommitRangeTracker{
-		Lower:              t.Lower,
-		Higher:             higher,
-		ExpectedSampleSize: t.ExpectedSampleSize,
+		Lower:  t.Lower,
+		Higher: higher,
 	}
 }
 
+// CloneWithHigher clones itself with the overriden lower index.
 func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTracker {
 	return CommitRangeTracker{
-		Lower:              lower,
-		Higher:             t.Higher,
-		ExpectedSampleSize: t.ExpectedSampleSize,
-	}
-}
-
-func (t CommitRangeTracker) CloneWithExpectedSampleSize(expectedSampleSize int32) CommitRangeTracker {
-	return CommitRangeTracker{
-		Lower:              t.Lower,
-		Higher:             t.Higher,
-		ExpectedSampleSize: expectedSampleSize,
-	}
-}
-
-// newTrackerWithHashes returns a CommitRangeTracker containing two new BisectRun.
-//
-// This is a helper function to make the code slightly cleaner, this function will eventually retire.
-func (t *bisectRunTracker) newTrackerWithHashes(lowerHash, higherHash string, expectedSize int32) CommitRangeTracker {
-	lower, _ := t.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(lowerHash)))
-	higher, _ := t.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(higherHash)))
-	return CommitRangeTracker{
-		Lower:              lower,
-		Higher:             higher,
-		ExpectedSampleSize: expectedSize,
+		Lower:  lower,
+		Higher: t.Higher,
 	}
 }
 
@@ -101,7 +80,7 @@ type CommitValues struct {
 }
 
 // GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
-func GetAllValuesLocalActivity(ctx context.Context, cr *CommitRun, chart string) (*CommitValues, error) {
+func GetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
 	return &CommitValues{cr.Commit, cr.AllValues(chart)}, nil
 }
 
@@ -134,7 +113,7 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpo
 	}
 }
 
-func compareRuns(ctx workflow.Context, lRun, hRun *CommitRun, chart string, mag float64) (*compare.CompareResults, error) {
+func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64) (*compare.CompareResults, error) {
 	var lValues, hValues *CommitValues
 	if err := workflow.ExecuteLocalActivity(ctx, GetAllValuesLocalActivity, lRun, chart).Get(ctx, &lValues); err != nil {
 		return nil, skerr.Wrap(err)
@@ -228,72 +207,159 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		return lf, hf, nil
 	}
 
+	// The buffer size should be big enough to process incoming comparisons.
+	// The comparision is usually handled right away in the next Select().
+	// Also, comparisons.Send happens in a goroutine because the receiving happens
+	// in the same thread as Select(), and it needs to be non-blocking.
+	comparisons := workflow.NewBufferedChannel(ctx, 100)
 	tracker := bisectRunTracker{}
-	commitStack := stack.New[CommitRangeTracker]()
-	commitStack.Push(tracker.newTrackerWithHashes(p.Request.StartGitHash, p.Request.EndGitHash, minSampleSize))
+
+	// pendings keeps track of all the ongoing benchmarks and comparisons.
+	// It counts the number of messages in the comparisons channel and the number of
+	// all the futures that are in flight. Because we generate new comparison and new
+	// futures as we go, this number is dynamic and has to be computed when it is
+	// running.
+	// There will be two cases when we increase this counter:
+	//	1) a new future is added to the selector so we need to wait for its fulfillment;
+	//	2) a new comparison is sent to the channel so we need to wait for its process.
+	// The counter will be decresed when either of the above is processed.
+	pendings := 0
+
+	// selector is used to implement the concurrent bisections in a non-blocking manner.
+	// the single commit runner is tracked by the future and it inserts a message into
+	// the channel to be processed after the runner completes. The channel receives the
+	// message to bisect commits. selector continues to run to process all the messages
+	// and futures, until the pendings is decreased to 0, in which case, there is no
+	// further messages or future to wait for.
+	// selector's callback is run in the same thread so we don't need to worry about
+	// race conditions here.
+	selector := workflow.NewSelector(ctx)
+
+	// TODO(b/326352379): The errors are not handled here because they are running concurently.
+	//	Each error may interrupt the other or may continue the rest.
+	selector.AddReceive(comparisons, func(c workflow.ReceiveChannel, more bool) {
+		for {
+			// cr needs to be created every time in the for-loop as the code below captures this
+			// variable in Go-routines.
+			var cr CommitRangeTracker
+			if !c.ReceiveAsync(&cr) {
+				break
+			}
+			pendings--
+			lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
+			result, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude)
+
+			// The compare fails but we continue to bisect for the remainings.
+			// TODO(haowoo@): Failures in the middle may not block the entire bisection, but need to be
+			//	logged. We need to diff between the retry-able and non-retry-able failures so that we can
+			//	decide if we can continue or not.
+			if err != nil {
+				logger.Warn(fmt.Sprintf("Failed to compare runs: %v", err))
+				continue
+			}
+
+			switch result.Verdict {
+			case compare.Unknown:
+				// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
+				// < 0.4, it is possible to get to the max sample size and still reach an unknown
+				// verdict. Running more samples is too expensive. Instead, assume the two samples
+				// are the statistically similar.
+				// assumes that cr.Lower and cr.Higher will have the same number of runs
+				if len(lower.Runs) >= int(getMaxSampleSize()) {
+					// TODO(haowoo@): add metric to measure this occurrence
+					logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lower.Runs))
+					break
+				}
+
+				lf, hf, err := schedulePairRuns(lower, higher)
+				if err != nil {
+					logger.Warn(fmt.Sprintf("Failed to schedule more runs (%v)", err))
+					break
+				}
+
+				pendings++
+				futures := append(lower.totalPendings(), higher.totalPendings()...)
+				selector.AddFuture(common.NewFutureWithFutures(ctx, futures...), func(f workflow.Future) {
+					pendings--
+					err := lower.updateRuns(ctx, lf)
+					if err != nil {
+						logger.Warn(fmt.Sprintf("Failed to update lower runs for (%v): %v", *lower.Commit, err))
+					}
+
+					err = higher.updateRuns(ctx, hf)
+					if err != nil {
+						logger.Warn(fmt.Sprintf("Failed to update higher runs for (%v): %v", *higher.Commit, err))
+					}
+					workflow.Go(ctx, func(gCtx workflow.Context) {
+						comparisons.Send(gCtx, cr)
+					})
+					pendings++
+				})
+
+			case compare.Different:
+				var mid *midpoint.CombinedCommit
+				if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, lower.Commit, higher.Commit).Get(ctx, &mid); err != nil {
+					logger.Warn(fmt.Sprintf("Failed to find middle commit: %v", err))
+					break
+				}
+
+				// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
+				if mid.Key() == lower.Commit.Key() {
+					// TODO(b/329502712): Append additional info to bisectionExecution
+					// such as p-values, average difference
+					e.Culprits = append(e.Culprits, higher.Commit.GetMainGitHash())
+					break
+				}
+
+				midRunIdx, midRun := tracker.newRun(mid)
+				mf, err := midRun.scheduleRuns(ctx, e.JobId, *p, nextRunSize(lower, midRun, minSampleSize))
+				if err != nil {
+					logger.Warn(fmt.Sprintf("Failed to schedule more runs for (%v): %v", *mid, err))
+					break
+				}
+
+				pendings++
+				selector.AddFuture(mf, func(f workflow.Future) {
+					pendings--
+					err := midRun.updateRuns(ctx, mf)
+					if err != nil {
+						logger.Warn(fmt.Sprintf("Failed to update runs for (%v): %v", *mid, err))
+						return
+					}
+					workflow.Go(ctx, func(gCtx workflow.Context) {
+						comparisons.Send(gCtx, cr.CloneWithHigher(midRunIdx))
+						comparisons.Send(gCtx, cr.CloneWithLower(midRunIdx))
+					})
+					pendings = pendings + 2
+				})
+			}
+		}
+	})
+
+	// Schedule the first pair and wait for all to finish before continuing.
+	lowerIdx, lower := tracker.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.StartGitHash)))
+	higherIdx, higher := tracker.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.EndGitHash)))
+	lf, hf, err := schedulePairRuns(lower, higher)
+	if err != nil {
+		// If we are able to schedule in the beginning, there is less chance we will fail in the middle.
+		return nil, skerr.Wrapf(err, "failed to schedule initial runs")
+	}
+
+	if err := lower.updateRuns(ctx, lf); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := higher.updateRuns(ctx, hf); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Send the first pair to the channel to process.
+	pendings++
+	comparisons.SendAsync(CommitRangeTracker{Lower: lowerIdx, Higher: higherIdx})
 
 	// TODO(b/322203189): Store and order the new commits so that the data can be relayed
 	// to the UI
-	for commitStack.Size() > 0 {
-		cr := commitStack.Pop()
-
-		lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
-		lf, hf, err := schedulePairRuns(lower, higher)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		if err := lower.updateRuns(ctx, lf); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		if err := higher.updateRuns(ctx, hf); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		result, err := compareRuns(ctx, &higher.CommitRun, &lower.CommitRun, p.Request.Chart, magnitude)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		switch result.Verdict {
-		case compare.Unknown:
-			// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
-			// < 0.4, it is possible to get to the max sample size and still reach an unknown
-			// verdict. Running more samples is too expensive. Instead, assume the two samples
-			// are the statistically similar.
-			// assumes that cr.Lower and cr.Higher will have the same number of runs
-			if len(lower.Runs) >= int(getMaxSampleSize()) {
-				// TODO(haowoo@): add metric to measure this occurrence
-				logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lower.Runs))
-				break
-			}
-			commitStack.Push(cr.CloneWithExpectedSampleSize(nextRunSize(lower, higher, minSampleSize)))
-
-		case compare.Different:
-			// TODO(b/326352320): If the middle point has a different repo, it means that it looks into
-			//	the autoroll and there are changes in DEPS. We need to construct a CombinedCommit so it
-			//	can currently build with modified deps.
-			var mid *midpoint.CombinedCommit
-			if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, lower.Commit, higher.Commit).Get(ctx, &mid); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-
-			// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
-			if mid.Key() == lower.Commit.Key() {
-				// TODO(b/329502712): Append additional info to bisectionExecution
-				// such as p-values, average difference
-				e.Culprits = append(e.Culprits, higher.Commit.GetMainGitHash())
-				break
-			}
-
-			midIdx, midRun := tracker.newRun(mid)
-
-			// Both higher and lower should contain the same number runs so we would expect the same
-			// number of runs for both sides (lower, mid) and (mid, higher)
-			cr = cr.CloneWithExpectedSampleSize(nextRunSize(lower, midRun, minSampleSize))
-			commitStack.Push(cr.CloneWithHigher(midIdx))
-			commitStack.Push(cr.CloneWithLower(midIdx))
-		}
+	for pendings > 0 {
+		selector.Select(ctx)
 	}
 	return e, nil
 }
