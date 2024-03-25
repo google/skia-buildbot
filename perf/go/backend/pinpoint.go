@@ -11,13 +11,13 @@ import (
 // pinpointService implements backend.BackendService, provides a wrapper struct
 // for the pinpoint service implementation.
 type pinpointService struct {
-	server *pinpoint_service.Server
+	pb.PinpointServer
 }
 
 // NewPinpointService returns a new instance of the pinpoint service.
 func NewPinpointService(t pinpoint_service.TemporalProvider, l *rate.Limiter) *pinpointService {
 	return &pinpointService{
-		server: pinpoint_service.New(t, l),
+		PinpointServer: pinpoint_service.New(t, l),
 	}
 }
 
@@ -31,7 +31,7 @@ func (service *pinpointService) GetAuthorizationPolicy() shared.AuthorizationPol
 
 // RegisterGrpc registers the grpc service with the server instance.
 func (service *pinpointService) RegisterGrpc(grpcServer *grpc.Server) {
-	pb.RegisterPinpointServer(grpcServer, service.server)
+	pb.RegisterPinpointServer(grpcServer, service.PinpointServer)
 }
 
 // GetServiceDescriptor returns the service descriptor for the service.
