@@ -28,14 +28,14 @@
       ],
       "trigger": "weekly"
     },
-    "Infra-PerCommit-Build-Bazel-RBE": {
+    "Infra-PerCommit-Build": {
       "tasks": [
-        "Infra-PerCommit-Build-Bazel-RBE"
+        "Infra-PerCommit-Build"
       ]
     },
-    "Infra-PerCommit-Test-Bazel-RBE": {
+    "Infra-PerCommit-Test": {
       "tasks": [
-        "Infra-PerCommit-Test-Bazel-RBE"
+        "Infra-PerCommit-Test"
       ]
     }
   },
@@ -331,7 +331,7 @@
       },
       "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Infra-PerCommit-Build-Bazel-RBE": {
+    "Infra-PerCommit-Build": {
       "casSpec": "empty",
       "cipd_packages": [
         {
@@ -347,7 +347,7 @@
         "--task_id",
         "<(TASK_ID)",
         "--task_name",
-        "Infra-PerCommit-Build-Bazel-RBE",
+        "Infra-PerCommit-Build",
         "--workdir",
         ".",
         "--cipd",
@@ -366,7 +366,7 @@
         "--task_id",
         "<(TASK_ID)",
         "--task_name",
-        "Infra-PerCommit-Build-Bazel-RBE",
+        "Infra-PerCommit-Build",
         "--workdir",
         ".",
         "--repo",
@@ -403,7 +403,7 @@
       },
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Infra-PerCommit-Test-Bazel-RBE": {
+    "Infra-PerCommit-Test": {
       "casSpec": "empty",
       "cipd_packages": [
         {
@@ -419,7 +419,7 @@
         "--task_id",
         "<(TASK_ID)",
         "--task_name",
-        "Infra-PerCommit-Test-Bazel-RBE",
+        "Infra-PerCommit-Test",
         "--workdir",
         ".",
         "--cipd",
@@ -440,7 +440,7 @@
         "--task_id",
         "<(TASK_ID)",
         "--task_name",
-        "Infra-PerCommit-Test-Bazel-RBE",
+        "Infra-PerCommit-Test",
         "--workdir",
         ".",
         "--repo",
@@ -503,7 +503,7 @@
   "commit_queue": {
     "Housekeeper-OnDemand-Presubmit": {},
     "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": {},
-    "Infra-PerCommit-Build-Bazel-RBE": {},
-    "Infra-PerCommit-Test-Bazel-RBE": {}
+    "Infra-PerCommit-Build": {},
+    "Infra-PerCommit-Test": {}
   }
 }

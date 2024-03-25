@@ -93,10 +93,10 @@ Run `bazel run //:buildifier`.
 
 ## Bazel CI tasks
 
-Our Bazel build is tested on RBE via the following tasks:
+Our repository is built is tested on RBE with the following CI tasks:
 
-- Infra-PerCommit-Build-Bazel-RBE (roughly equivalent to `bazel build //... --config=remote`)
-- Infra-PerCommit-Test-Bazel-RBE (roughly equivalent to `bazel test //... --config=remote`)
+- Infra-PerCommit-Build (roughly equivalent to `bazel build //... --config=remote`)
+- Infra-PerCommit-Test (roughly equivalent to `bazel test //... --config=remote`)
 
 We regard the above tasks as the source of truth for build and test correctness.
 
