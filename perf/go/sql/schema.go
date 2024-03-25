@@ -12,7 +12,7 @@ const Schema = `CREATE TABLE IF NOT EXISTS Alerts (
 CREATE TABLE IF NOT EXISTS AnomalyGroups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creation_time TIMESTAMPTZ DEFAULT now(),
-  anomalies JSONB,
+  anomaly_ids UUID ARRAY,
   group_meta_data JSONB,
   common_rev_start INT,
   common_rev_end INT,
@@ -95,7 +95,7 @@ var Alerts = []string{
 var AnomalyGroups = []string{
 	"id",
 	"creation_time",
-	"anomalies",
+	"anomaly_ids",
 	"group_meta_data",
 	"common_rev_start",
 	"common_rev_end",

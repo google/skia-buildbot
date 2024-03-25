@@ -10,7 +10,7 @@ type AnomalyGroupSchema struct {
 	CreationTime time.Time `sql:"creation_time TIMESTAMPTZ DEFAULT now()"`
 
 	// The LIST of metadata for each anomaly
-	Anomalies interface{} `sql:"anomalies JSONB"`
+	AnomalyIDs []string `sql:"anomaly_ids UUID ARRAY"`
 
 	// The meta data from the first grouped anomaly.
 	// Currently we should expect the followings:

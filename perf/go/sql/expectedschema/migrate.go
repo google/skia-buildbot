@@ -34,33 +34,39 @@ import (
 //   - LiveSchema creates all existing tables *without* the new one in the
 //     change.
 var FromLiveToNext = `
-	DROP TABLE IF EXISTS Culprits;
-	CREATE TABLE IF NOT EXISTS Culprits (
+	DROP TABLE IF EXISTS AnomalyGroups;
+	CREATE TABLE IF NOT EXISTS AnomalyGroups (
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		host STRING,
-		project STRING,
-		ref STRING,
-		revision STRING,
-		last_modified INT,
-		anomaly_group_ids STRING ARRAY,
-		issue_ids STRING ARRAY,
-		UNIQUE INDEX by_revision (revision, host, project, ref)
+		creation_time TIMESTAMPTZ DEFAULT now(),
+		anomaly_ids UUID ARRAY,
+		group_meta_data JSONB,
+		common_rev_start INT,
+		common_rev_end INT,
+		action TEXT,
+		action_time TIMESTAMPTZ,
+		bisection_id TEXT,
+		reported_issue_id TEXT,
+		culprit_ids UUID ARRAY,
+		last_modified_time TIMESTAMPTZ
 	  );
 `
 
 var FromNextToLive = `
-	DROP TABLE IF EXISTS Culprits;
-	CREATE TABLE IF NOT EXISTS Culprits (
+	DROP TABLE IF EXISTS AnomalyGroups;
+	CREATE TABLE IF NOT EXISTS AnomalyGroups (
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		host STRING,
-		project STRING,
-		ref STRING,
-		revision STRING,
-		last_modified INT,
-		anomaly_group_ids STRING ARRAY,
-		issue_ids INT ARRAY,
-		UNIQUE INDEX by_revision (revision, host, project, ref)
-	);
+		creation_time TIMESTAMPTZ DEFAULT now(),
+		anomalies JSONB,
+		group_meta_data JSONB,
+		common_rev_start INT,
+		common_rev_end INT,
+		action TEXT,
+		action_time TIMESTAMPTZ,
+		bisection_id TEXT,
+		reported_issue_id TEXT,
+		culprit_ids UUID ARRAY,
+		last_modified_time TIMESTAMPTZ
+	  );
 `
 
 // This function will check whether there's a new schema checked-in,
