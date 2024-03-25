@@ -755,6 +755,8 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	BackendServiceHostUrl string `json:"backend_host_url,omitempty"`
+
 	// Other domain names that are allowed to make cross-site requests to this instance.
 	AllowedHosts []string `json:"allowed_hosts,omitempty"`
 

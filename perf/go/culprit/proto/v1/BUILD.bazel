@@ -3,9 +3,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "v1",
     srcs = [
+        "culprit_service.pb.go",
+        "culprit_service_grpc.pb.go",
         "generate.go",
-        "service.pb.go",
-        "service_grpc.pb.go",
     ],
     importpath = "go.skia.org/infra/perf/go/culprit/proto/v1",
     visibility = ["//visibility:public"],

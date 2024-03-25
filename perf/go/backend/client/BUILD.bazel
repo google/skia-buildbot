@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "client",
+    srcs = ["backendclientutil.go"],
+    importpath = "go.skia.org/infra/perf/go/backend/client",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/config",
+        "//perf/go/culprit/proto/v1",
+        "//pinpoint/proto/v1:proto",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//credentials/local",
+    ],
+)

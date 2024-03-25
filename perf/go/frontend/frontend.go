@@ -43,6 +43,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalies/cache"
+	backendClient "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/chromeperf"
@@ -71,6 +72,7 @@ import (
 	"go.skia.org/infra/perf/go/ui/frame"
 	"go.skia.org/infra/perf/go/urlprovider"
 	pp_service "go.skia.org/infra/pinpoint/go/service"
+	pinpoint_pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
@@ -1236,6 +1238,28 @@ func (f *Frontend) regressionCountHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (f *Frontend) pinpointBisectionHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	ctx, span := trace.StartSpan(ctx, "schedulePinpointBisectionRequest")
+	defer span.End()
+
+	pinpointClient, err := backendClient.NewPinpointClient()
+	if err != nil {
+		httputils.ReportError(w, err, "Error scheduling bisection.", 500)
+	}
+
+	// TODO(ashwinpv) Get the request data from incoming request.
+	resp, err := pinpointClient.QueryBisection(ctx, &pinpoint_pb.QueryBisectRequest{})
+	if err != nil {
+		httputils.ReportError(w, err, "Error scheduling bisection.", 500)
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
@@ -1899,6 +1923,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
+	router.HandleFunc("/p/", f.pinpointBisectionHandler)
 
 	// JSON handlers.
 	// Pinpoint JSON API handlers - /pinpoint/v1/...
