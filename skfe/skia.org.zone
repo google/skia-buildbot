@@ -63,6 +63,7 @@ skottie                  300      IN A 34.110.212.89
 status                   300      IN A 34.110.212.89
 task-scheduler           300      IN A 34.110.212.89
 task-scheduler-internal  300      IN A 34.110.212.89
+task-scheduler-staging   300      IN A 34.110.212.89
 temporal-ui              300      IN A 34.110.212.89
 
 ;;; Master A record. Hosted in the GCP project skia-public.
