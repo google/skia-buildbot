@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/read_values"
-	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/workflow"
 )
@@ -64,6 +63,10 @@ type CommitRun struct {
 func (cr *CommitRun) AllValues(chart string) []float64 {
 	vs := []float64{}
 	for _, r := range cr.Runs {
+		// Task succeeded but benchmark run failed
+		if r.Values == nil {
+			continue
+		}
 		if v, ok := r.Values[chart]; ok {
 			vs = append(vs, v...)
 		}
@@ -117,8 +120,13 @@ func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmi
 		return nil, err
 	}
 
-	if !run_benchmark.IsTaskStateSuccess(tr.Status) {
-		return nil, skerr.Fmt("test run (%v) failed with status (%v)", tr.TaskID, tr.Status)
+	switch s := tr.Status; {
+	case s.IsTaskTerminalFailure():
+		// TODO(b/327224992): Handle retry logic for non-terminal benchmark failures
+		// For now, assume all retryable errors are terminal
+		return nil, skerr.Fmt("test run (%v) terminally failed with status (%v)", tr.TaskID, tr.Status)
+	case s.IsTaskBenchmarkFailure():
+		return tr, nil
 	}
 
 	// TODO(b/327224992): Should surface CAS errors here in case the test results don't exist.
@@ -169,10 +177,9 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	rc.Close()
 	ec.Close()
 
-	// TODO(b/326480795): We can tolerate a certain number of errors but should also report
-	//	test errors.
+	// TODO(b/326480795): Implement functional analysis
 	if errs := fetchAllFromChannel[error](ctx, ec); len(errs) != 0 {
-		return nil, skerr.Wrapf(errors.Join(errs...), "not all iterations are successful")
+		return nil, skerr.Wrapf(errors.Join(errs...), "terminal errors found")
 	}
 
 	runs := fetchAllFromChannel[*workflows.TestRun](ctx, rc)

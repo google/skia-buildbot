@@ -5,6 +5,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -55,7 +56,7 @@ type TestRun struct {
 	// TaskID is the swarming task ID.
 	TaskID string
 	// Status is the swarming task status.
-	Status string
+	Status run_benchmark.State
 	// CAS is the CAS address of the test output.
 	CAS *swarmingV1.SwarmingRpcsCASReference
 	// Values is sampled values for each benchmark story.

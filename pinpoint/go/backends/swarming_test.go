@@ -39,7 +39,7 @@ func TestGetStatus_CompletedAndSuccess_ReturnsCompleted(t *testing.T) {
 	assert.Equal(t, swarming.TASK_STATE_COMPLETED, status)
 }
 
-func TestGetStatus_CompletedAndFailure_ReturnsFailureState(t *testing.T) {
+func TestGetStatus_CompletedAndFailure_ReturnsRunBenchmarkFailure(t *testing.T) {
 	ctx := context.Background()
 	mockClient := mocks.NewApiClient(t)
 
@@ -54,7 +54,7 @@ func TestGetStatus_CompletedAndFailure_ReturnsFailureState(t *testing.T) {
 	}
 	status, err := sc.GetStatus(ctx, "task")
 	require.NoError(t, err)
-	assert.Equal(t, TaskStateFailure, status)
+	assert.Equal(t, RunBenchmarkFailure, status)
 }
 
 func TestGetStatus_NotCompleted_ReturnsState(t *testing.T) {

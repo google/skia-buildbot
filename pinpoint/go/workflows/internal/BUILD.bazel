@@ -51,8 +51,10 @@ go_test(
     embed = [":internal"],
     deps = [
         "//go/swarming",
+        "//pinpoint/go/backends",
         "//pinpoint/go/compare",
         "//pinpoint/go/midpoint",
+        "//pinpoint/go/run_benchmark",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",

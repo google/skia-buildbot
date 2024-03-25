@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pinpoint/go/midpoint",
+        "//pinpoint/go/run_benchmark",
         "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",

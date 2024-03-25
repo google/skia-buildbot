@@ -18,7 +18,7 @@ import (
 
 const (
 	DefaultSwarmingServiceAddress = "chrome-swarming.appspot.com:443"
-	TaskStateFailure              = "FAILURE"
+	RunBenchmarkFailure           = "BENCHMARK_FAILURE" // the task completed but benchmark run failed
 )
 
 // SwarmingClient
@@ -114,7 +114,7 @@ func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (stri
 	// Swarming tasks can COMPLETE but fail. In this case, we need to
 	// differentiate a successful task from an unsuccessful task.
 	if res.State == swarming.TASK_STATE_COMPLETED && res.Failure {
-		return TaskStateFailure, nil
+		return RunBenchmarkFailure, nil
 	}
 	return res.State, nil
 }

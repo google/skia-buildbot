@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ func TestRunBenchmark_GivenSuccessfulRun_ShouldReturnCas(t *testing.T) {
 
 	var rba *RunBenchmarkActivity
 	const fakeTaskID = "fake-task"
-	const state = swarming.TASK_STATE_COMPLETED
+	const state = run_benchmark.State(swarming.TASK_STATE_COMPLETED)
 	cas := &swarmingV1.SwarmingRpcsCASReference{
 		CasInstance: "fake-instance",
 	}
@@ -47,7 +48,7 @@ func TestRunBenchmark_GivenUnsuccessfulRun_ShouldNotReturnCas(t *testing.T) {
 
 	var rba *RunBenchmarkActivity
 	const fakeTaskID = "fake-task"
-	const state = swarming.TASK_STATE_BOT_DIED
+	const state = run_benchmark.State(swarming.TASK_STATE_BOT_DIED)
 
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
 	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()

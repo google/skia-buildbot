@@ -5,8 +5,12 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/backends"
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
@@ -18,21 +22,28 @@ import (
 func generateTestRuns(chart string, c int) ([]*workflows.TestRun, chan *workflows.TestRun) {
 	rc := make(chan *workflows.TestRun, c)
 	trs := make([]*workflows.TestRun, c)
-	for i := 0; i < c; i++ {
+	trs[0] = &workflows.TestRun{
+		Status: run_benchmark.State(backends.RunBenchmarkFailure),
+	}
+	rc <- &workflows.TestRun{
+		Status: run_benchmark.State(backends.RunBenchmarkFailure),
+	}
+	for i := 1; i < c; i++ {
 		trs[i] = &workflows.TestRun{
-			Status: "COMPLETED",
+			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			Values: map[string][]float64{
 				chart: {},
 			},
 		}
 		rc <- &workflows.TestRun{
-			Status: "COMPLETED",
+			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 		}
 	}
+
 	return trs, rc
 }
 
-func Test_SingleCommitRunner_ShouldReturnValues(t *testing.T) {
+func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
@@ -50,7 +61,8 @@ func Test_SingleCommitRunner_ShouldReturnValues(t *testing.T) {
 	env.OnWorkflow(workflows.RunBenchmark, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, b *RunBenchmarkParams) (*workflows.TestRun, error) {
 		return <-rc, nil
 	}).Times(iterations)
-	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]float64{}, nil).Times(iterations)
+	// TestRun with RunBenchmarkFailure status will not collect data
+	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]float64{}, nil).Times(iterations - 1)
 
 	env.ExecuteWorkflow(SingleCommitRunner, &SingleCommitRunnerParams{
 		BotConfig:  "linux-perf",
@@ -66,4 +78,25 @@ func Test_SingleCommitRunner_ShouldReturnValues(t *testing.T) {
 	require.Equal(t, *b, *cr.Build)
 	require.EqualValues(t, trs, cr.Runs)
 	env.AssertExpectations(t)
+}
+
+func TestAllValues_GivenNilValues_ReturnsNonNilValues(t *testing.T) {
+	const chart = "chart"
+	cr := &CommitRun{
+		Runs: []*workflows.TestRun{
+			{
+				Values: map[string][]float64{
+					chart: {1.0, 2.0, 3.0},
+				},
+			},
+			{},
+			{
+				Values: map[string][]float64{
+					chart: {4.0, 5.0, 6.0},
+				},
+			},
+		},
+	}
+	actual := cr.AllValues(chart)
+	assert.Equal(t, []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}, actual)
 }

@@ -57,54 +57,43 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 	assert.Equal(t, "123", taskIds[0].TaskId)
 }
 
-func TestIsTaskStateFinished_GivenCompleteStates_ReturnsTrue(t *testing.T) {
+func TestIsTaskFinished_GivenCompleteStates_ReturnsTrue(t *testing.T) {
 	states := []string{
 		swarming.TASK_STATE_COMPLETED,
 		swarming.TASK_STATE_BOT_DIED,
 		swarming.TASK_STATE_TIMED_OUT,
 	}
 	for _, s := range states {
-		out, err := IsTaskStateFinished(s)
+		state := State(s)
+		out := state.IsTaskFinished()
 		assert.True(t, out)
-		assert.NoError(t, err)
 	}
 }
 
-func TestIsTaskStateFinished_GivenRunningStates_ReturnsFalse(t *testing.T) {
+func TestIsTaskFinished_GivenRunningStates_ReturnsFalse(t *testing.T) {
 	states := []string{
 		swarming.TASK_STATE_PENDING,
 		swarming.TASK_STATE_RUNNING,
 	}
 	for _, s := range states {
-		out, err := IsTaskStateFinished(s)
+		state := State(s)
+		out := state.IsTaskFinished()
 		assert.False(t, out)
-		assert.NoError(t, err)
 	}
 }
 
-func TestIsTaskStateFinished_GivenBadStates_ReturnsError(t *testing.T) {
-	states := []string{
-		"fake_state",
-		"another_fake_state",
-	}
-	for _, s := range states {
-		out, err := IsTaskStateFinished(s)
-		assert.False(t, out)
-		assert.Error(t, err)
-	}
-}
-
-func TestIsTaskStateSuccess_GivenCompleted_ReturnsTrue(t *testing.T) {
+func TestIsTaskSuccessful_GivenCompleted_ReturnsTrue(t *testing.T) {
 	states := []string{
 		swarming.TASK_STATE_COMPLETED,
 	}
 	for _, s := range states {
-		out := IsTaskStateSuccess(s)
+		state := State(s)
+		out := state.IsTaskSuccessful()
 		assert.True(t, out)
 	}
 }
 
-func TestIsTaskStateSuccess_GivenNonCompleted_ReturnsFalse(t *testing.T) {
+func TestIsTaskSuccessful_GivenNonCompleted_ReturnsFalse(t *testing.T) {
 	states := []string{
 		swarming.TASK_STATE_PENDING,
 		swarming.TASK_STATE_RUNNING,
@@ -113,7 +102,32 @@ func TestIsTaskStateSuccess_GivenNonCompleted_ReturnsFalse(t *testing.T) {
 		swarming.TASK_STATE_TIMED_OUT,
 	}
 	for _, s := range states {
-		out := IsTaskStateSuccess(s)
+		state := State(s)
+		out := state.IsTaskSuccessful()
+		assert.False(t, out)
+	}
+}
+
+func TestIsTaskTerminalFailure_GivenTerminalState_ReturnsTrue(t *testing.T) {
+	states := []State{
+		swarming.TASK_STATE_BOT_DIED,
+		swarming.TASK_STATE_CANCELED,
+		swarming.TASK_STATE_TIMED_OUT,
+	}
+	for _, s := range states {
+		out := s.IsTaskTerminalFailure()
+		assert.True(t, out)
+	}
+}
+
+func TestIsTaskTerminalFailure_GivenNonTerminalState_ReturnsFalse(t *testing.T) {
+	states := []State{
+		swarming.TASK_STATE_RUNNING,
+		backends.RunBenchmarkFailure,
+		swarming.TASK_STATE_COMPLETED,
+	}
+	for _, s := range states {
+		out := s.IsTaskTerminalFailure()
 		assert.False(t, out)
 	}
 }

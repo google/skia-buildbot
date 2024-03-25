@@ -44,18 +44,29 @@ var runningStates = []string{
 	swarming.TASK_STATE_RUNNING,
 }
 
-// IsTaskStateFinished checks if a swarming task state is finished
-func IsTaskStateFinished(state string) (bool, error) {
-	// TODO(sunxiaodi@) remove if statement and just return boolean
-	if !slices.Contains(swarming.TASK_STATES, state) && state != backends.TaskStateFailure {
-		return false, skerr.Fmt("Not a valid swarming task state %s", state)
-	}
-	return !slices.Contains(runningStates, state), nil
+type State string
+
+// IsTaskFinished checks if a swarming task state is finished
+func (s State) IsTaskFinished() bool {
+	return !slices.Contains(runningStates, string(s))
 }
 
-// IsTaskStateSuccess checks if a swarming task state is finished
-func IsTaskStateSuccess(state string) bool {
-	return state == swarming.TASK_STATE_COMPLETED
+// IsTaskTerminalFailure checks if a swarming task state is a
+// terminal failure - swarming task did not complete benchmark
+// execution due to a failure
+func (s State) IsTaskTerminalFailure() bool {
+	return s.IsTaskFinished() && !s.IsTaskBenchmarkFailure() && !s.IsTaskSuccessful()
+}
+
+// IsTaskBenchmarkFailure checks if a swarming task state
+// is a completed run benchmark failure
+func (s State) IsTaskBenchmarkFailure() bool {
+	return string(s) == backends.RunBenchmarkFailure
+}
+
+// IsTaskSuccessful checks if a swarming task state is successful
+func (s State) IsTaskSuccessful() bool {
+	return string(s) == swarming.TASK_STATE_COMPLETED
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.

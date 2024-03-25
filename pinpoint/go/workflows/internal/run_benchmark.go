@@ -51,31 +51,30 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		return nil, skerr.Wrap(err)
 	}
 
-	var state string
+	var state run_benchmark.State
 	if err := workflow.ExecuteActivity(ctx, rba.WaitTaskFinishedActivity, taskID).Get(ctx, &state); err != nil {
 		logger.Error("Failed to poll task ID:", err)
 		return nil, skerr.Wrap(err)
 	}
 
-	success := run_benchmark.IsTaskStateSuccess(state)
-
-	resp := workflows.TestRun{
-		TaskID: taskID,
-		Status: state,
+	if !state.IsTaskSuccessful() {
+		return &workflows.TestRun{
+			TaskID: taskID,
+			Status: state,
+		}, nil
 	}
 
 	var cas *swarmingV1.SwarmingRpcsCASReference
-	if !success {
-		return &resp, nil
-	}
-
 	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, taskID).Get(ctx, &cas); err != nil {
 		logger.Error("Failed to retrieve CAS reference:", err)
 		return nil, skerr.Wrap(err)
 	}
 
-	resp.CAS = cas
-	return &resp, nil
+	return &workflows.TestRun{
+		TaskID: taskID,
+		Status: state,
+		CAS:    cas,
+	}, nil
 }
 
 // ScheduleTaskActivity wraps BuildChromeClient.SearchOrBuild
@@ -97,7 +96,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 
 // WaitTaskFinishedActivity polls the task until it finishes or errors. Returns the status
 // if the task finishes regardless of task success
-func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, taskID string) (string, error) {
+func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, taskID string) (run_benchmark.State, error) {
 	logger := activity.GetLogger(ctx)
 
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
@@ -113,7 +112,8 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 		case <-ctx.Done():
 			return "", ctx.Err()
 		default:
-			state, err := sc.GetStatus(ctx, taskID)
+			s, err := sc.GetStatus(ctx, taskID)
+			state := run_benchmark.State(s)
 			if err != nil {
 				logger.Error("Failed to get task status:", err, "remaining retries:", failureRetries)
 				failureRetries -= 1
@@ -121,11 +121,7 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 					return "", skerr.Wrapf(err, "Failed to wait for task to complete")
 				}
 			}
-			fin, err := run_benchmark.IsTaskStateFinished(state)
-			if err != nil {
-				return "", skerr.Wrapf(err, "Failed to check task state")
-			}
-			if fin {
+			if state.IsTaskFinished() {
 				return state, nil
 			}
 			time.Sleep(15 * time.Second)
