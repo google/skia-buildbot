@@ -115,6 +115,10 @@ func (c *TestClient) ListBotsForPool(ctx context.Context, pool string) ([]*swarm
 	})
 }
 
+func (c *TestClient) ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+	return nil, nil
+}
+
 func (c *TestClient) GetStdoutOfTask(ctx context.Context, id string) (*swarming_api.SwarmingRpcsTaskOutput, error) {
 	return nil, nil
 }

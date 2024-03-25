@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 
 	"golang.org/x/oauth2/google"
 
@@ -40,6 +41,9 @@ type SwarmingClient interface {
 	// TriggerTask is a literal wrapper around swarming.ApiClient TriggerTask
 	// TODO(jeffyoon@) remove once run_benchmark is refactored if no longer needed.
 	TriggerTask(ctx context.Context, req *swarmingV1.SwarmingRpcsNewTaskRequest) (*swarmingV1.SwarmingRpcsTaskRequestMetadata, error)
+
+	//FetchFreeBots gets a list of available bots per specified builder configuration.
+	FetchFreeBots(ctx context.Context, builder string) ([]*swarmingV1.SwarmingRpcsBotInfo, error)
 }
 
 // SwarmingClientImpl
@@ -130,7 +134,7 @@ func (s *SwarmingClientImpl) ListPinpointTasks(ctx context.Context, jobID string
 	}
 	tasks, err := s.ListTasks(ctx, start, time.Now(), tags, "")
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving tasks %s", err)
+		return nil, skerr.Wrapf(err, "error retrieving tasks")
 	}
 	taskIDs := make([]string, len(tasks))
 	for i, t := range tasks {
@@ -142,3 +146,21 @@ func (s *SwarmingClientImpl) ListPinpointTasks(ctx context.Context, jobID string
 // func (s *SwarmingClientImpl) TriggerTask(ctx context.Context, req *swarmingV1.SwarmingRpcsNewTaskRequest) (*swarmingV1.SwarmingRpcsTaskRequestMetadata, error) {
 // 	return s.TriggerTask(ctx, req)
 // }
+
+// FetchFreeBots gets a list of available bots per specified builder configuration.
+func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) ([]*swarmingV1.SwarmingRpcsBotInfo, error) {
+	var botConfig bot_configs.BotConfig
+	botConfig, err := bot_configs.GetBotConfig(builder, false)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "error retrieving bots")
+	}
+
+	dims := map[string]string{}
+	for _, d := range botConfig.Dimensions {
+		dims[d["key"]] = d["value"]
+	}
+
+	bots, err := s.ApiClient.ListBotsForDimensions(ctx, dims)
+
+	return bots, skerr.Wrap(err)
+}

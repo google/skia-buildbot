@@ -32,6 +32,36 @@ func (_m *SwarmingClient) CancelTasks(ctx context.Context, taskIDs []string) err
 	return r0
 }
 
+// FetchFreeBots provides a mock function with given fields: ctx, builder
+func (_m *SwarmingClient) FetchFreeBots(ctx context.Context, builder string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	ret := _m.Called(ctx, builder)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FetchFreeBots")
+	}
+
+	var r0 []*swarming.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*swarming.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, builder)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*swarming.SwarmingRpcsBotInfo); ok {
+		r0 = rf(ctx, builder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*swarming.SwarmingRpcsBotInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, builder)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCASOutput provides a mock function with given fields: ctx, taskID
 func (_m *SwarmingClient) GetCASOutput(ctx context.Context, taskID string) (*swarming.SwarmingRpcsCASReference, error) {
 	ret := _m.Called(ctx, taskID)

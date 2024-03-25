@@ -263,6 +263,36 @@ func (_m *ApiClient) ListBots(ctx context.Context, dimensions map[string]string)
 	return r0, r1
 }
 
+// ListBotsForDimensions provides a mock function with given fields: ctx, dimensions
+func (_m *ApiClient) ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*v1.SwarmingRpcsBotInfo, error) {
+	ret := _m.Called(ctx, dimensions)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListBotsForDimensions")
+	}
+
+	var r0 []*v1.SwarmingRpcsBotInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) ([]*v1.SwarmingRpcsBotInfo, error)); ok {
+		return rf(ctx, dimensions)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, map[string]string) []*v1.SwarmingRpcsBotInfo); ok {
+		r0 = rf(ctx, dimensions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*v1.SwarmingRpcsBotInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
+		r1 = rf(ctx, dimensions)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListBotsForPool provides a mock function with given fields: ctx, pool
 func (_m *ApiClient) ListBotsForPool(ctx context.Context, pool string) ([]*v1.SwarmingRpcsBotInfo, error) {
 	ret := _m.Called(ctx, pool)

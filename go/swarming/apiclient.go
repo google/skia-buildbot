@@ -91,6 +91,10 @@ type ApiClient interface {
 	// instances corresponding to the Swarming bots in the given pool.
 	ListBotsForPool(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
+	// ListBotsForDimensions returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the free, alive and not quarantined bots per given dimensions
+	ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
+
 	// GetStates returns a slice of states corresponding to the given task
 	// IDs.
 	GetStates(ctx context.Context, ids []string) ([]string, error)
@@ -164,6 +168,20 @@ func (c *apiClient) ListBotsForPool(ctx context.Context, pool string) ([]*swarmi
 	return c.ListBots(ctx, map[string]string{
 		DIMENSION_POOL_KEY: pool,
 	})
+}
+
+func (c *apiClient) ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+	call := c.s.Bots.List()
+	dimensionStrs := make([]string, 0, len(dimensions))
+	for k, v := range dimensions {
+		dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
+	}
+	call.Dimensions(dimensionStrs...)
+	call.IsBusy("FALSE")
+	call.IsDead("FALSE")
+	call.Quarantined("FALSE")
+
+	return ProcessBotsListCall(ctx, call)
 }
 
 func (c *apiClient) ListFreeBots(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error) {

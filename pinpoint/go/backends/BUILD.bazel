@@ -19,6 +19,7 @@ go_library(
         "//go/httputils",
         "//go/skerr",
         "//go/swarming",
+        "//pinpoint/go/bot_configs",
         "@com_github_google_uuid//:uuid",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",

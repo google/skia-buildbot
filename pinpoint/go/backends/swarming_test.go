@@ -187,3 +187,45 @@ func TestGasCASOutput_IncompleteTask_Error(t *testing.T) {
 	assert.Nil(t, rbe)
 	assert.ErrorContains(t, err, "cannot get result of task")
 }
+
+func TestFetchFreeBots_NoBuildConfig_ReturnsError(t *testing.T) {
+	const fakeBuilder = "fake_builder"
+
+	ctx := context.Background()
+	mockClient := mocks.NewApiClient(t)
+	sc := &SwarmingClientImpl{
+		ApiClient: mockClient,
+	}
+	_, err := sc.FetchFreeBots(ctx, fakeBuilder)
+	require.Error(t, err)
+}
+
+func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
+	const builder = "android-pixel2-perf"
+
+	ctx := context.Background()
+	mockClient := mocks.NewApiClient(t)
+	sc := &SwarmingClientImpl{
+		ApiClient: mockClient,
+	}
+
+	mockClient.On("ListBotsForDimensions", ctx, mock.Anything).Return(
+		func(_ context.Context, dims map[string]string) ([]*swarmingV1.SwarmingRpcsBotInfo, error) {
+			assert.Len(t, dims, 3)
+			// The expected dimensions asserted below are from bot_configs
+			// For the builder in question, these dimensions will
+			// be fetched from here: https://source.corp.google.com/h/skia/buildbot/+/main:pinpoint/go/bot_configs/external.json;l=23#:~:text=%22-,android,-%2Dpixel2%2Dperf%22
+			assert.Equal(t, "chrome.tests.pinpoint", dims["pool"])
+			assert.Equal(t, "walleye", dims["device_type"])
+			assert.Equal(t, "OPM1.171019.021", dims["device_os"])
+
+			return []*swarmingV1.SwarmingRpcsBotInfo{{BotId: "b1"}, {BotId: "b2"}}, nil
+		},
+	)
+
+	resp, err := sc.FetchFreeBots(ctx, builder)
+	require.NoError(t, err)
+	assert.Len(t, resp, 2)
+	assert.Equal(t, "b1", resp[0].BotId)
+	assert.Equal(t, "b2", resp[1].BotId)
+}
