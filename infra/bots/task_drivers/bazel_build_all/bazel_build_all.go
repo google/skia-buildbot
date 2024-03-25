@@ -87,7 +87,7 @@ func main() {
 	//     ...
 	//
 	// The below command should regenerate //pnpm-lock.yaml based on the contents of //package.json
-	// and //package-lock.json. It is basead on the sample pnpm invocations in
+	// and //package-lock.json. It is based on the sample pnpm invocations in
 	// https://docs.aspect.build/rulesets/aspect_rules_js/docs/pnpm/#update_pnpm_lock.
 	//
 	// If we still see spurious diffs, another thing we could try is to empty the contents of
