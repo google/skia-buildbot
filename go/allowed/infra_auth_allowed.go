@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -61,9 +62,13 @@ func NewAllowedFromChromeInfraAuth(client *http.Client, group string) (*AllowedF
 		return nil, fmt.Errorf("Failed to initially load allowed list for group %q: %s", group, err)
 	}
 	go func() {
+		failedMetric := metrics2.GetCounter("cria_refresh_failed")
 		for range time.Tick(REFRESH_PERIOD) {
 			if err := ret.reload(); err != nil {
+				failedMetric.Inc(1)
 				sklog.Errorf("Failed to reload allowed list for group %q: %s", group, err)
+			} else {
+				failedMetric.Reset()
 			}
 		}
 	}()

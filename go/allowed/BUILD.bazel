@@ -10,6 +10,7 @@ go_library(
     importpath = "go.skia.org/infra/go/allowed",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/metrics2",
         "//go/sklog",
         "//go/util",
     ],

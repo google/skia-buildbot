@@ -45,7 +45,6 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
@@ -404,32 +403,6 @@ func genLocalhostCert() (tls.Certificate, error) {
 	return outCert, nil
 }
 
-// startAllowedRefresh periodically refreshes the definitions of CRIA groups.
-//
-// If the passed in context is cancelled then the Go routine will exit.
-func (a *App) startAllowedRefresh(ctx context.Context, criaRefreshDuration time.Duration) {
-	// Start refreshing the allowed roles from CRIA.
-	go func() {
-		failedMetric := metrics2.GetCounter("auth_proxy_cria_refresh_failed")
-		ticker := time.NewTicker(criaRefreshDuration)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ticker.C:
-				err := a.populateAllowedRoles()
-				if err != nil {
-					sklog.Errorf("Refreshing allowed roles: %s", err)
-					failedMetric.Inc(1)
-				} else {
-					failedMetric.Reset()
-				}
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-}
-
 // Run starts the application serving, it does not return unless there is an
 // error or the passed in context is cancelled.
 func (a *App) Run(ctx context.Context) error {
@@ -438,8 +411,6 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
-	a.startAllowedRefresh(ctx, criaRefreshDuration)
 
 	var h http.Handler = a.proxy
 	h = httputils.HealthzAndHTTPS(h)

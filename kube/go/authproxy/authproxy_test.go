@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/kube/go/authproxy/auth/mocks"
@@ -374,22 +373,4 @@ func TestParseTargetPort_FullURLIsSupplied_LocalhostInNotAddedToDomain(t *testin
 	got, err := parseTargetPort("http://foo:8000")
 	require.NoError(t, err)
 	require.Equal(t, "http://foo:8000", got.String())
-}
-
-func TestAppStartAllowedRefresh_InvalidCriaGroup_FailedMetricIncrements(t *testing.T) {
-	a := newEmptyApp()
-	a.criaClient = mockCriaClient(t)
-	a.roleFlags = []string{
-		"editor=cria_group:this-is-not-a-valid-group",
-		"admin=google.com",
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	a.startAllowedRefresh(ctx, time.Microsecond)
-
-	failedMetric := metrics2.GetCounter("auth_proxy_cria_refresh_failed")
-	for failedMetric.Get() == 0 {
-		time.Sleep(time.Millisecond)
-	}
-	cancel()
 }
