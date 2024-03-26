@@ -55,7 +55,8 @@ var (
 
 const (
 	secretProject     = "skia-infra-public"
-	secretGithubToken = "bugs-central-monorail-sa-key"
+	secretMonorailKey = "bugs-central-monorail-sa-key"
+	secretGithubToken = "bugs-central-github-token"
 )
 
 // See baseapp.Constructor.
@@ -82,9 +83,9 @@ func New() (baseapp.App, error) {
 	if err != nil {
 		sklog.Fatalf("Could not init secrets manager: %s", err)
 	}
-	monorailKey, err := secretClient.Get(ctx, secretProject, secretGithubToken, secret.VersionLatest)
+	monorailKey, err := secretClient.Get(ctx, secretProject, secretMonorailKey, secret.VersionLatest)
 	if err != nil {
-		sklog.Fatalf("Failed to retrieve secret %s: %s", secretGithubToken, err)
+		sklog.Fatalf("Failed to retrieve secret %s: %s", secretMonorailKey, err)
 	}
 	monorailKey = strings.TrimSpace(monorailKey)
 	// Put the key into a file for bugs/monorail/monorail.go to read from.
@@ -97,8 +98,23 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Could not write monorail key to tmp file: %s", err)
 	}
 
+	// Get github token from secrets to send to poller.
+	githubToken, err := secretClient.Get(ctx, secretProject, secretGithubToken, secret.VersionLatest)
+	if err != nil {
+		sklog.Fatalf("Failed to retrieve secret %s: %s", secretGithubToken, err)
+	}
+	githubToken = strings.TrimSpace(githubToken)
+	githubTokenFile, err := os.CreateTemp("", "github-token-")
+	if err != nil {
+		sklog.Fatalf("Could not create tmp file for github token: %s", err)
+	}
+	defer githubTokenFile.Close()
+	if _, err := githubTokenFile.Write([]byte(githubToken)); err != nil {
+		sklog.Fatalf("Could not write github token to tmp file: %s", err)
+	}
+
 	// Instantiate poller and turn it on.
-	pollerClient, err := poller.New(ctx, ts, monorailKeyFile.Name(), dbClient)
+	pollerClient, err := poller.New(ctx, ts, monorailKeyFile.Name(), githubTokenFile.Name(), dbClient)
 	if err != nil {
 		sklog.Fatalf("Could not init poller: %s", err)
 	}

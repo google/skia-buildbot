@@ -36,14 +36,13 @@ type IssuesPoller struct {
 }
 
 // New returns an instance of IssuesPoller.
-func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile string, dbClient types.BugsDB) (*IssuesPoller, error) {
+func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to init storage client")
 	}
 
-	pathToGithubToken := filepath.Join(github_lib.GITHUB_TOKEN_SERVER_PATH, github_lib.GITHUB_TOKEN_FILENAME)
 	if *baseapp.Local {
 		usr, err := user.Current()
 		if err != nil {
