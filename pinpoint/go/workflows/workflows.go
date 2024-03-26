@@ -2,6 +2,8 @@
 package workflows
 
 import (
+	"strconv"
+
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -70,4 +72,33 @@ type TestRun struct {
 type BisectParams struct {
 	// BisectWorkflow reuses BisectRequest message
 	Request *pb.ScheduleBisectRequest
+}
+
+// GetMagnitude returns the magnitude as float64.
+//
+// If the given string value is invalid or unable to parse, it returns the default 1.0.
+func (bp *BisectParams) GetMagnitude() float64 {
+	if bp.Request.ComparisonMagnitude == "" {
+		return 1.0
+	}
+
+	magnitude, err := strconv.ParseFloat(bp.Request.ComparisonMagnitude, 64)
+	if err != nil {
+		return 1.0
+	}
+	return magnitude
+}
+
+// GetInitialAttempt returns the initial attempt as int32.
+//
+// If the given string value is invalid or unable to parse, it returns the default 0.
+func (bp *BisectParams) GetInitialAttempt() int32 {
+	if bp.Request.InitialAttemptCount == "" {
+		return 0
+	}
+	attempt, err := strconv.ParseInt(bp.Request.InitialAttemptCount, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return int32(attempt)
 }

@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
@@ -160,32 +159,14 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		}
 	}()
 
-	// TODO(sunxiaodi@): migrate these default params to service/service_impl/validate
-	// compare.ComparePerformance will assume the normalizedMagnitude is 1.0
-	// when the rawMagnitude is 0.0
-	magnitude := float64(0.0)
-	if p.Request.ComparisonMagnitude != "" {
-		var err error
-		magnitude, err = strconv.ParseFloat(p.Request.ComparisonMagnitude, 64)
-		// TODO(sunxiaodi@): Can use default comparison magnitude rather than throw error
-		if err != nil {
-			return nil, skerr.Wrapf(err, "comparison magnitude %s cannot be converted to float", p.Request.ComparisonMagnitude)
-		}
-	}
+	magnitude := p.GetMagnitude()
 
 	// minSampleSize is the minimum number of benchmark runs for each attempt
 	// Default is 10.
-	minSampleSize := benchmarkRunIterations[0]
-	if p.Request.InitialAttemptCount != "" {
-		ss, err := strconv.ParseInt(p.Request.InitialAttemptCount, 10, 32)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "initial attempt count %s cannot be converted to int", p.Request.ComparisonMagnitude)
-		}
-		if ss < 10 {
-			logger.Warn("Initial attempt count %s is less than the default 10. Setting minSampleSize to 10.", p.Request.InitialAttemptCount)
-		} else {
-			minSampleSize = int32(ss)
-		}
+	minSampleSize := p.GetInitialAttempt()
+	if minSampleSize < benchmarkRunIterations[0] {
+		logger.Warn("Initial attempt count %d is less than the default %d. Setting to default.", minSampleSize, benchmarkRunIterations[0])
+		minSampleSize = benchmarkRunIterations[0]
 	}
 
 	// schedulePairRuns is a helper function to schedule new benchmark runs from two BisectRun.

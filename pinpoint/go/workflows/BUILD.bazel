@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "workflows",
@@ -11,5 +12,15 @@ go_library(
         "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+    ],
+)
+
+go_test(
+    name = "workflows_test",
+    srcs = ["workflows_test.go"],
+    embed = [":workflows"],
+    deps = [
+        "//pinpoint/proto/v1:proto",
+        "@com_github_stretchr_testify//assert",
     ],
 )
