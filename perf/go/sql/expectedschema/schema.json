@@ -44,6 +44,13 @@
     "shortcuts.trace_ids": "text def: nullable:YES",
     "sourcefiles.source_file": "text def: nullable:NO",
     "sourcefiles.source_file_id": "bigint def:unique_rowid() nullable:NO",
+    "subscriptions.bug_cc_emails": "ARRAY def: nullable:YES",
+    "subscriptions.bug_component": "text def: nullable:YES",
+    "subscriptions.bug_labels": "ARRAY def: nullable:YES",
+    "subscriptions.contact_email": "text def: nullable:YES",
+    "subscriptions.hotlists": "ARRAY def: nullable:YES",
+    "subscriptions.name": "text def: nullable:NO",
+    "subscriptions.revision": "text def: nullable:NO",
     "tracevalues.commit_number": "bigint def: nullable:NO",
     "tracevalues.source_file_id": "bigint def: nullable:YES",
     "tracevalues.trace_id": "bytea def: nullable:NO",
@@ -57,6 +64,7 @@
     "postings.by_key_value",
     "sourcefiles.sourcefiles_source_file_key",
     "sourcefiles.by_source_file",
+    "subscriptions.subscriptions_name_key",
     "tracevalues.by_source_file_id"
   ]
 }

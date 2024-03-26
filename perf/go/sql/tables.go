@@ -10,6 +10,7 @@ import (
 	graphsshortcutschema "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore/schema"
 	regressionschema "go.skia.org/infra/perf/go/regression/sqlregressionstore/schema"
 	shortcutschema "go.skia.org/infra/perf/go/shortcut/sqlshortcutstore/schema"
+	subscriptionschema "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore/schema"
 	traceschema "go.skia.org/infra/perf/go/tracestore/sqltracestore/schema"
 )
 
@@ -25,5 +26,6 @@ type Tables struct {
 	Regressions     []regressionschema.RegressionSchema
 	Shortcuts       []shortcutschema.ShortcutSchema
 	SourceFiles     []traceschema.SourceFilesSchema
+	Subscriptions   []subscriptionschema.SubscriptionSchema
 	TraceValues     []traceschema.TraceValuesSchema
 }

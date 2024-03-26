@@ -6,7 +6,7 @@
     "alerts.last_modified": "bigint def: nullable:YES",
     "anomalygroups.action": "text def: nullable:YES",
     "anomalygroups.action_time": "timestamp with time zone def: nullable:YES",
-    "anomalygroups.anomalies": "jsonb def: nullable:YES",
+    "anomalygroups.anomaly_ids": "ARRAY def: nullable:YES",
     "anomalygroups.bisection_id": "text def: nullable:YES",
     "anomalygroups.common_rev_end": "bigint def: nullable:YES",
     "anomalygroups.common_rev_start": "bigint def: nullable:YES",

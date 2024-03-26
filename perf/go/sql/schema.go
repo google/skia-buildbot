@@ -75,6 +75,16 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
   source_file STRING UNIQUE NOT NULL,
   INDEX by_source_file (source_file, source_file_id)
 );
+CREATE TABLE IF NOT EXISTS Subscriptions (
+  name STRING UNIQUE NOT NULL,
+  revision STRING NOT NULL,
+  bug_labels STRING ARRAY,
+  hotlists STRING ARRAY,
+  bug_component STRING,
+  bug_cc_emails STRING ARRAY,
+  contact_email STRING,
+  PRIMARY KEY(name, revision)
+);
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTES,
   commit_number INT,
@@ -158,6 +168,16 @@ var Shortcuts = []string{
 var SourceFiles = []string{
 	"source_file_id",
 	"source_file",
+}
+
+var Subscriptions = []string{
+	"name",
+	"revision",
+	"bug_labels",
+	"hotlists",
+	"bug_component",
+	"bug_cc_emails",
+	"contact_email",
 }
 
 var TraceValues = []string{

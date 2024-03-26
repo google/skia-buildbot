@@ -34,39 +34,20 @@ import (
 //   - LiveSchema creates all existing tables *without* the new one in the
 //     change.
 var FromLiveToNext = `
-	DROP TABLE IF EXISTS AnomalyGroups;
-	CREATE TABLE IF NOT EXISTS AnomalyGroups (
-		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		creation_time TIMESTAMPTZ DEFAULT now(),
-		anomaly_ids UUID ARRAY,
-		group_meta_data JSONB,
-		common_rev_start INT,
-		common_rev_end INT,
-		action TEXT,
-		action_time TIMESTAMPTZ,
-		bisection_id TEXT,
-		reported_issue_id TEXT,
-		culprit_ids UUID ARRAY,
-		last_modified_time TIMESTAMPTZ
-	  );
+	CREATE TABLE IF NOT EXISTS Subscriptions (
+		name STRING UNIQUE NOT NULL,
+		revision STRING NOT NULL,
+		bug_labels STRING ARRAY,
+		hotlists STRING ARRAY,
+		bug_component STRING,
+		bug_cc_emails STRING ARRAY,
+		contact_email STRING,
+		PRIMARY KEY(name, revision)
+	);
 `
 
 var FromNextToLive = `
-	DROP TABLE IF EXISTS AnomalyGroups;
-	CREATE TABLE IF NOT EXISTS AnomalyGroups (
-		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		creation_time TIMESTAMPTZ DEFAULT now(),
-		anomalies JSONB,
-		group_meta_data JSONB,
-		common_rev_start INT,
-		common_rev_end INT,
-		action TEXT,
-		action_time TIMESTAMPTZ,
-		bisection_id TEXT,
-		reported_issue_id TEXT,
-		culprit_ids UUID ARRAY,
-		last_modified_time TIMESTAMPTZ
-	  );
+	DROP TABLE IF EXISTS Subscriptions;
 `
 
 // This function will check whether there's a new schema checked-in,

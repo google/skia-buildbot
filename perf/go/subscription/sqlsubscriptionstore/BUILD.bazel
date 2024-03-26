@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlsubscriptionstore",
+    srcs = ["sqlsubscriptionstore.go"],
+    importpath = "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
+        "//perf/go/subscription",
+    ],
+)
+
+go_test(
+    name = "sqlsubscriptionstore_test",
+    srcs = ["sqlsubscriptionstore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqlsubscriptionstore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/sql/sqltest",
+        "//perf/go/subscription",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

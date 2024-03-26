@@ -24,6 +24,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS Regressions;
 	DROP TABLE IF EXISTS Shortcuts;
 	DROP TABLE IF EXISTS SourceFiles;
+	DROP TABLE IF EXISTS Subscriptions;
 	DROP TABLE IF EXISTS TraceValues;
 `
 
@@ -38,7 +39,7 @@ const LiveSchema = `
   CREATE TABLE IF NOT EXISTS AnomalyGroups (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	creation_time TIMESTAMPTZ DEFAULT now(),
-	anomalies JSONB,
+	anomaly_ids UUID ARRAY,
 	group_meta_data JSONB,
 	common_rev_start INT,
 	common_rev_end INT,
