@@ -87,6 +87,7 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 
 	testSkiaOrgZoneEntry(t, dns.TypeCNAME, "_validate_domain.skia.org.", "_validate_domain.pki.goog.")
 
+	testSkiaOrgZoneEntry(t, dns.TypeA, "androidx2-perf.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "autoroll.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "status.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "cabe.skia.org.", "34.110.212.89")
