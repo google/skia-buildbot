@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
@@ -130,7 +132,7 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 }
 
 // BisectWorkflow is a Workflow definition that takes a range of git hashes and finds the culprit.
-func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.BisectExecution, error) {
+func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.BisectExecution, wkErr error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithLocalActivityOptions(ctx, localActivityOptions)
@@ -141,20 +143,33 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	// so that tasks can be recycled to assist with debugging
 	// This task also requires edits to single commit runner.
 	jobID := uuid.New().String()
-	e := &pb.BisectExecution{
+	be = &pb.BisectExecution{
 		JobId:    jobID,
 		Culprits: []string{},
 	}
 
 	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
 		"job_id":    jobID,
+		"user":      p.Request.User,
 		"benchmark": p.Request.Benchmark,
 		"config":    p.Request.Configuration,
 		"story":     p.Request.Story,
 	})
-	mh.Counter("bisect_count").Inc(1)
+	mh.Counter("bisect_start_count").Inc(1)
+	wkStartTime := time.Now().UnixNano()
 	defer func() {
-		if len(e.Culprits) > 0 {
+		duration := time.Now().UnixNano() - wkStartTime
+		mh.Timer("bisect_duration").Record(time.Duration(duration))
+		mh.Counter("bisect_complete_count").Inc(1)
+
+		if wkErr != nil {
+			mh.Counter("bisect_err_count").Inc(1)
+		}
+		if errors.Is(ctx.Err(), workflow.ErrCanceled) || errors.Is(ctx.Err(), workflow.ErrDeadlineExceeded) {
+			mh.Counter("bisect_timeout_count").Inc(1)
+		}
+
+		if be != nil && len(be.Culprits) > 0 {
 			mh.Counter("bisect_found_culprit_count").Inc(1)
 		}
 	}()
@@ -288,12 +303,12 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 				if mid.Key() == lower.Build.Commit.Key() {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference
-					e.Culprits = append(e.Culprits, higher.Build.Commit.GetMainGitHash())
+					be.Culprits = append(be.Culprits, higher.Build.Commit.GetMainGitHash())
 					break
 				}
 
 				midRunIdx, midRun := tracker.newRun(mid)
-				mf, err := midRun.scheduleRuns(ctx, e.JobId, *p, nextRunSize(lower, midRun, minSampleSize))
+				mf, err := midRun.scheduleRuns(ctx, be.JobId, *p, nextRunSize(lower, midRun, minSampleSize))
 				if err != nil {
 					logger.Warn(fmt.Sprintf("Failed to schedule more runs for (%v): %v", *mid, err))
 					break
@@ -342,5 +357,5 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 	for pendings > 0 {
 		selector.Select(ctx)
 	}
-	return e, nil
+	return be, nil
 }
