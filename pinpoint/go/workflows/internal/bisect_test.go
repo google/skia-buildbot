@@ -17,14 +17,18 @@ import (
 
 func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*CommitRun, error) {
 	return &CommitRun{
-		Commit: p.CombinedCommit,
-		Runs:   make([]*workflows.TestRun, p.Iterations),
+		Build: &workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: *p.CombinedCommit,
+			},
+		},
+		Runs: make([]*workflows.TestRun, p.Iterations),
 	}, nil
 }
 
 func mockedGetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
 	return &CommitValues{
-		Commit: cr.Commit,
+		Commit: cr.Build.Commit,
 		Values: make([]float64, 0),
 	}, nil
 }

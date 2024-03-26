@@ -24,8 +24,12 @@ type BisectRun struct {
 func newBisectRun(cc *midpoint.CombinedCommit) *BisectRun {
 	return &BisectRun{
 		CommitRun: CommitRun{
-			Commit: cc,
-			Runs:   make([]*workflows.TestRun, 0, benchmarkRunIterations[1]),
+			Build: &workflows.Build{
+				BuildChromeParams: workflows.BuildChromeParams{
+					Commit: *cc,
+				},
+			},
+			Runs: make([]*workflows.TestRun, 0, benchmarkRunIterations[1]),
 		},
 		// typically two runs at most at the same time.
 		ScheduledRuns: make([]scheduledRun, 0, 2),
@@ -61,7 +65,7 @@ func (br *BisectRun) scheduleRuns(ctx workflow.Context, jobID string, p workflow
 		// nothing to schedule, safely return
 		return nil, nil
 	}
-	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, br.Commit))
+	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, &br.Build.Commit))
 	br.ScheduledRuns = append(br.ScheduledRuns, scheduledRun{
 		childWorkflow:  cf,
 		scheduledCount: uint32(newRuns),
@@ -101,7 +105,7 @@ func (br *BisectRun) updateRuns(ctx workflow.Context, cf workflow.ChildWorkflowF
 
 	f := br.popRun(cf)
 	if f == nil {
-		return skerr.Fmt("updating runs (%v) from a different or already updated run (%v)", *br.Commit, cf)
+		return skerr.Fmt("updating runs (%v) from a different or already updated run (%v)", br.Build.Commit, cf)
 	}
 
 	var r *CommitRun
@@ -109,9 +113,9 @@ func (br *BisectRun) updateRuns(ctx workflow.Context, cf workflow.ChildWorkflowF
 		return skerr.Wrap(err)
 	}
 
-	if br.Commit.Key() != r.Commit.Key() {
+	if br.Build.Commit.Key() != r.Build.Commit.Key() {
 		// This shouldn't happen as we only tracks the future for this commit.
-		return skerr.Fmt("updating runs (%v) from a different commit(%v)", *br.Commit, *r.Commit)
+		return skerr.Fmt("updating runs (%v) from a different commit(%v)", br.Build.Commit, r.Build.Commit)
 	}
 
 	var childWE workflow.Execution

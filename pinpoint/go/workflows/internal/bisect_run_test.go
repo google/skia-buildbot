@@ -15,8 +15,12 @@ import (
 
 func generateSingleCommitRuns(hash string, count int) *CommitRun {
 	return &CommitRun{
-		Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash)),
-		Runs:   make([]*workflows.TestRun, count),
+		Build: &workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: *midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash)),
+			},
+		},
+		Runs: make([]*workflows.TestRun, count),
 	}
 }
 

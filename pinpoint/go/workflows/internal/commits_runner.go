@@ -50,9 +50,6 @@ type SingleCommitRunnerParams struct {
 
 // CommitRun stores benchmark tests runs for a single commit
 type CommitRun struct {
-	// The commit in the chromium repo.
-	Commit *midpoint.CombinedCommit
-
 	// The Chrome build associated with the commit.
 	Build *workflows.Build
 
@@ -74,7 +71,7 @@ func (cr *CommitRun) AllValues(chart string) []float64 {
 	return vs
 }
 
-func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *midpoint.CombinedCommit) (*workflows.Build, error) {
+func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit midpoint.CombinedCommit) (*workflows.Build, error) {
 	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "no target found for (%s, %s)", bot, benchmark)
@@ -82,10 +79,10 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *mid
 
 	var b *workflows.Build
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildChromeParams{
-		PinpointJobID: jobID,
-		Device:        bot,
-		Target:        t,
-		Commit:        commit,
+		WorkflowID: jobID,
+		Device:     bot,
+		Target:     t,
+		Commit:     commit,
 	}).Get(ctx, &b); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -147,7 +144,7 @@ func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmi
 func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*CommitRun, error) {
 	bctx := workflow.WithChildOptions(ctx, buildWorkflowOptions)
 
-	b, err := buildChrome(bctx, sc.PinpointJobID, sc.BotConfig, sc.Benchmark, sc.CombinedCommit)
+	b, err := buildChrome(bctx, sc.PinpointJobID, sc.BotConfig, sc.Benchmark, *sc.CombinedCommit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -184,9 +181,8 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 
 	runs := fetchAllFromChannel[*workflows.TestRun](ctx, rc)
 	return &CommitRun{
-		Commit: sc.CombinedCommit,
-		Build:  b,
-		Runs:   runs,
+		Build: b,
+		Runs:  runs,
 	}, nil
 }
 

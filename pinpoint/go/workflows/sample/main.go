@@ -108,8 +108,8 @@ func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
 
 func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 	bcp := workflows.BuildChromeParams{
-		PinpointJobID: "123",
-		Commit: &midpoint.CombinedCommit{
+		WorkflowID: "123",
+		Commit: midpoint.CombinedCommit{
 			Main: &midpoint.Commit{GitHash: *commit},
 		},
 		Device: "mac-m1_mini_2020-perf",

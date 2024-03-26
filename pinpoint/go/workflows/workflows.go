@@ -27,10 +27,12 @@ const (
 // Each workflow defines its own struct for the params, this will ensure
 // the input parameter type safety, as well as expose them in a structured way.
 type BuildChromeParams struct {
-	// PinpointJobID is the Job ID to associate with the build.
-	PinpointJobID string
+	// WorkflowID is arbitrary string that tags the build.
+	// This is used to connect the downstream and know which build is used.
+	// This is usually the pinpoint job ID.
+	WorkflowID string
 	// Commit is the chromium commit hash.
-	Commit *midpoint.CombinedCommit
+	Commit midpoint.CombinedCommit
 	// Device is the name of the device, e.g. "linux-perf".
 	Device string
 	// Target is name of the build isolate target
@@ -42,6 +44,8 @@ type BuildChromeParams struct {
 
 // Build stores the build from Buildbucket.
 type Build struct {
+	// The parameters used to make this build.
+	BuildChromeParams
 	// ID is the buildbucket ID of the Chrome build.
 	// https://github.com/luci/luci-go/blob/19a07406e/buildbucket/proto/build.proto#L138
 	ID int64

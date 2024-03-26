@@ -38,9 +38,10 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 
 	if status != buildbucketpb.Status_SUCCESS {
 		return &workflows.Build{
-			ID:     buildID,
-			Status: status,
-			CAS:    nil,
+			BuildChromeParams: params,
+			ID:                buildID,
+			Status:            status,
+			CAS:               nil,
 		}, nil
 	}
 
@@ -51,9 +52,10 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 	}
 
 	return &workflows.Build{
-		ID:     buildID,
-		Status: status,
-		CAS:    cas,
+		BuildChromeParams: params,
+		ID:                buildID,
+		Status:            status,
+		CAS:               cas,
 	}, nil
 }
 
@@ -68,7 +70,7 @@ func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, param
 	}
 
 	activity.RecordHeartbeat(ctx, "kicking off the build.")
-	buildID, err := bc.SearchOrBuild(ctx, params.PinpointJobID, params.Commit.GetMainGitHash(), params.Device, params.Commit.DepsToMap(), params.Patch)
+	buildID, err := bc.SearchOrBuild(ctx, params.WorkflowID, params.Commit.GetMainGitHash(), params.Device, params.Commit.DepsToMap(), params.Patch)
 	if err != nil {
 		logger.Error("Failed to build chrome:", err)
 		return 0, err

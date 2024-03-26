@@ -75,25 +75,25 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 }
 
 type CommitValues struct {
-	Commit *midpoint.CombinedCommit
+	Commit midpoint.CombinedCommit
 	Values []float64
 }
 
 // GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
 func GetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{cr.Commit, cr.AllValues(chart)}, nil
+	return &CommitValues{cr.Build.Commit, cr.AllValues(chart)}, nil
 }
 
 // FindMidCommitActivity is an Activity that finds the middle point of two commits.
 //
 // TODO(b/326352320): Move this into its own file.
-func FindMidCommitActivity(ctx context.Context, lower, higher *midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
+func FindMidCommitActivity(ctx context.Context, lower, higher midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, lower, higher)
+	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, &lower, &higher)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -194,13 +194,13 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 		expected := nextRunSize(lower, higher, minSampleSize)
 		lf, err := lower.scheduleRuns(ctx, jobID, *p, expected-lower.totalRuns())
 		if err != nil {
-			logger.Warn("Failed to schedule more runs.", "commit", *lower.Commit, "error", err)
+			logger.Warn("Failed to schedule more runs.", "commit", lower.Build.Commit, "error", err)
 			return nil, nil, skerr.Wrap(err)
 		}
 
 		hf, err := higher.scheduleRuns(ctx, jobID, *p, expected-higher.totalRuns())
 		if err != nil {
-			logger.Warn("Failed to schedule more runs.", "commit", *higher.Commit, "error", err)
+			logger.Warn("Failed to schedule more runs.", "commit", higher.Build.Commit, "error", err)
 			return nil, nil, err
 		}
 
@@ -283,12 +283,12 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 					pendings--
 					err := lower.updateRuns(ctx, lf)
 					if err != nil {
-						logger.Warn(fmt.Sprintf("Failed to update lower runs for (%v): %v", *lower.Commit, err))
+						logger.Warn(fmt.Sprintf("Failed to update lower runs for (%v): %v", lower.Build.Commit, err))
 					}
 
 					err = higher.updateRuns(ctx, hf)
 					if err != nil {
-						logger.Warn(fmt.Sprintf("Failed to update higher runs for (%v): %v", *higher.Commit, err))
+						logger.Warn(fmt.Sprintf("Failed to update higher runs for (%v): %v", higher.Build.Commit, err))
 					}
 					workflow.Go(ctx, func(gCtx workflow.Context) {
 						comparisons.Send(gCtx, cr)
@@ -298,16 +298,16 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pb.Bisect
 
 			case compare.Different:
 				var mid *midpoint.CombinedCommit
-				if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, lower.Commit, higher.Commit).Get(ctx, &mid); err != nil {
+				if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, lower.Build.Commit, higher.Build.Commit).Get(ctx, &mid); err != nil {
 					logger.Warn(fmt.Sprintf("Failed to find middle commit: %v", err))
 					break
 				}
 
 				// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
-				if mid.Key() == lower.Commit.Key() {
+				if mid.Key() == lower.Build.Commit.Key() {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference
-					e.Culprits = append(e.Culprits, higher.Commit.GetMainGitHash())
+					e.Culprits = append(e.Culprits, higher.Build.Commit.GetMainGitHash())
 					break
 				}
 
