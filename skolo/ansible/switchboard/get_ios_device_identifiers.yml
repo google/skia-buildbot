@@ -1,0 +1,14 @@
+# This playbook reports the device IDs of iOS devices attached to Skolo Raspberry Pis.
+#
+# Typical use case: Retrieve device IDs in preparation to updating iOS certificates.
+#
+# Sample usage:
+#
+#     $ ansible-playbook switchboard/get_ios_device_identifiers.yml \
+#           --limit skia-rpi2-rack1-shelf1-003
+- hosts: all
+  gather_facts: no
+  tasks:
+    - shell: ideviceinfo | grep UniqueDeviceID
+      register: out
+    - debug: var=out.stdout_lines
