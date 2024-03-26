@@ -186,14 +186,6 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	}, nil
 }
 
-// PairwiseCommitsRunner is a Workflow definition.
-//
-// PairwiseCommitsRunner builds, runs and collects benchmark sampled values from several commits.
-// It runs the tests in pairs to reduces sample noises.
-func PairwiseCommitsRunner(ctx workflow.Context) (*[]CommitRun, error) {
-	return nil, skerr.Fmt("not implemented.")
-}
-
 // CollectValuesActivity is an activity to collect sampled values from a single test run.
 func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmark, chart, aggMethod string) ([]float64, error) {
 	client, err := read_values.DialRBECAS(ctx, run.CAS.CasInstance)
