@@ -163,6 +163,16 @@
       "issue_tracker_config": {
         "owner": "chrome-secure-shell-devel+npm@google.com"
       }
+    },
+    "chrome-devtools": {
+      "repo_url": "https://chromium.googlesource.com/devtools/devtools-frontend",
+      "git_branch": "main",
+      "package_json_dir": "",
+      "packages_allow_list": [],
+      "trusted_scopes": [],
+      "issue_tracker_config": {
+        "owner": "alexrudenko@google.com"
+      }
     }
   }
 }
