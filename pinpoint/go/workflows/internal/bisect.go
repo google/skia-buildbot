@@ -92,7 +92,7 @@ func FindMidCommitActivity(ctx context.Context, lower, higher midpoint.CombinedC
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
-	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
+	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).Client()
 	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, &lower, &higher)
 	if err != nil {
 		return nil, skerr.Wrap(err)

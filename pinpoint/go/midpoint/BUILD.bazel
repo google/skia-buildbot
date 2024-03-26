@@ -24,6 +24,7 @@ go_test(
     deps = [
         "//go/gitiles/mocks",
         "//go/mockhttpclient",
+        "//go/skerr",
         "//go/testutils",
         "//go/vcsinfo",
         "@com_github_stretchr_testify//assert",

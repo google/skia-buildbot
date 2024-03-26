@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/gitiles/mocks"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 
@@ -635,4 +636,58 @@ deps = {
 	// [5, 4], top is popped off so midpoint = 4
 	nextCommit := res.ModifiedDeps.GetLatest()
 	assert.Equal(t, "4", nextCommit.GitHash)
+}
+
+func TestFindMidCombinedCommit_DEPSFileDoesNotExist_NoMidpoint(t *testing.T) {
+	ctx := context.Background()
+	webrtc := "https://webrtc.googlesource.com/src"
+	wStartGitHash := "1"
+	wEndGitHash := "2"
+
+	// Test prep for webrtc mock.
+	wgc := &mocks.GitilesRepo{}
+	wResp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
+	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
+
+	sampleDeps := `
+vars = {
+  'chromium_git': 'https://chromium.googlesource.com',
+}
+deps = {
+  'src/v8': Var('chromium_git') + '/v8/v8.git' + '@' + '1',
+}
+  `
+	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wStartGitHash).Return([]byte(sampleDeps), nil)
+	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return(nil, skerr.Fmt("Request got status 404"))
+
+	start := &CombinedCommit{
+		Main: NewChromiumCommit(wStartGitHash),
+		ModifiedDeps: []*Commit{
+			{
+				RepositoryUrl: webrtc,
+				GitHash:       wStartGitHash,
+			},
+		},
+	}
+	end := &CombinedCommit{
+		Main: NewChromiumCommit(wStartGitHash),
+		ModifiedDeps: []*Commit{
+			{
+				RepositoryUrl: webrtc,
+				GitHash:       wEndGitHash,
+			},
+		},
+	}
+
+	c := mockhttpclient.NewURLMock().Client()
+	m := New(ctx, c).WithRepo(webrtc, wgc)
+	res, err := m.FindMidCombinedCommit(ctx, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, start.Key(), res.Key())
 }

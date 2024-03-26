@@ -238,6 +238,13 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *Commit) (map
 	gc := m.getOrCreateRepo(commit.RepositoryUrl)
 	content, err := gc.ReadFileAtRef(ctx, "DEPS", commit.GitHash)
 	if err != nil {
+		// Even if the provided http client is provided without With2xxOnly,
+		// gitiles.go get() enforces http.StatusOK and returns a nil response
+		// with this error.
+		if strings.Contains(err.Error(), "Request got status 404") {
+			sklog.Debugf("gitiles.ReadFileAtRef returned 404 for DEPS file %s@%s", commit.RepositoryUrl, commit.GitHash)
+			return denormalized, nil
+		}
 		return denormalized, err
 	}
 
@@ -277,6 +284,10 @@ func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, 
 	endDeps, err := m.fetchGitDeps(ctx, endCommit)
 	if err != nil {
 		return nil, err
+	}
+	if len(startDeps) < 1 || len(endDeps) < 1 {
+		sklog.Debugf("DEPS does not exist at both %v and %v so no midpoint is identifiable", startCommit, endCommit)
+		return nil, nil
 	}
 
 	// As part of a roll, some git-based dependencies can be removed.
