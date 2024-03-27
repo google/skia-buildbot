@@ -15,6 +15,7 @@ type AnomalyGroupSchema struct {
 	// The meta data from the first grouped anomaly.
 	// Currently we should expect the followings:
 	//   subscription_name;
+	//   subscription_revision;
 	//   master_name;
 	//   benchmark_name.
 	GroupMetaData interface{} `sql:"group_meta_data JSONB"`

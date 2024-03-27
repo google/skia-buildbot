@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlanomalygroupstore",
+    srcs = ["sqlanomalygroupstore.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore",
+    visibility = ["//visibility:public"],
+    # Look why we need this? Something related to pgx
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//perf/go/anomalygroup/proto/v1",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "sqlanomalygroupstore_test",
+    srcs = ["sqlanomalygroupstore_test.go"],
+    # data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqlanomalygroupstore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/anomalygroup:store",
+        "//perf/go/sql/sqltest",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

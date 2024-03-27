@@ -234,6 +234,11 @@ packages:
       dir: "{{.InterfaceDir}}/mock"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/anomalygroup:
+    config:
+      dir: "{{.InterfaceDir}}/mock"
+    interfaces:
+      Store:
   go.skia.org/infra/perf/go/chromeperf:
     config:
       dir: "{{.InterfaceDir}}/mock"
