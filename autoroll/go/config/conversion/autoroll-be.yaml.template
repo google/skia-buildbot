@@ -26,26 +26,6 @@ spec:
       securityContext:
         runAsUser: 2000 # aka skia
         fsGroup: 2000 # aka skia
-{{- if .kubernetes.disk }}
-      initContainers:
-        - name: init-autoroll-be-{{.rollerName}}
-          image: {{.kubernetes.image}}
-          command: ['mkdir', '-p', '$(TMPDIR)']
-          env:
-            - name: TMPDIR
-              value: {{if .kubernetes.disk}}/data{{end}}/tmp
-          volumeMounts:
-            - name: autoroll-be-{{.rollerName}}-storage
-              mountPath: /data
-          securityContext:
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-{{- end}}
       containers:
         - name: autoroll-be-{{.rollerName}}
           image: {{.kubernetes.image}}
@@ -71,16 +51,11 @@ spec:
           volumeMounts:{{if .kubernetes.disk}}
             - name: autoroll-be-{{.rollerName}}-storage
               mountPath: /data{{end}}
-          env:
-            - name: TMPDIR
-              value: {{if .kubernetes.disk}}/data{{end}}/tmp
           resources:
             requests:
               memory: "{{.kubernetes.memory}}"
               cpu: {{.kubernetes.cpu}}
-              # TODO(borenet): Some rollers already use close to 1G of ephemeral
-              # storage. We should probably make this configurable per-roller.
-              ephemeral-storage: '500M'
+              ephemeral-storage: '1G'
           readinessProbe:
             httpGet:
               path: /healthz
