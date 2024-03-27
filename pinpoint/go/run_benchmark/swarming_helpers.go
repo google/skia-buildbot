@@ -6,6 +6,9 @@ import (
 	spb "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
+const ExecutionTimeoutSecs = 2700 // 45 min
+const PendingTimeoutSecs = 86400  // 1 day
+
 func convertDimensions(dimensions []map[string]string) []*spb.SwarmingRpcsStringPair {
 	// TODO(b/318863812): add mapping from device + benchmark to the specific run test
 	// currently catapult maps the device + benchmark to the target and then
@@ -30,8 +33,8 @@ func generateProperties(command []string, casRef *spb.SwarmingRpcsCASReference, 
 		CasInputRoot:         casRef,
 		Command:              command,
 		Dimensions:           dim,
-		ExecutionTimeoutSecs: 2700,
-		IoTimeoutSecs:        2700,
+		ExecutionTimeoutSecs: ExecutionTimeoutSecs,
+		IoTimeoutSecs:        ExecutionTimeoutSecs,
 		RelativeCwd:          "out/Release",
 	}
 }
@@ -47,7 +50,7 @@ func generateTags(jobID string, hash string, sizeBytes int64) []string {
 func createSwarmingRequest(jobID string, command []string, casRef *spb.SwarmingRpcsCASReference, dimensions []map[string]string) *spb.SwarmingRpcsNewTaskRequest {
 	return &spb.SwarmingRpcsNewTaskRequest{
 		BotPingToleranceSecs: 1200,
-		ExpirationSecs:       86400,
+		ExpirationSecs:       PendingTimeoutSecs,
 		// EvaluateOnly omitted
 		Name: "Pinpoint bisection run benchmark task",
 		// ParentTaskId omitted

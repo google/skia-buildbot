@@ -25,6 +25,7 @@ func TestRunBenchmark_GivenSuccessfulRun_ShouldReturnCas(t *testing.T) {
 	}
 
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
 	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
 	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, fakeTaskID).Return(cas, nil).Once()
 
@@ -51,6 +52,7 @@ func TestRunBenchmark_GivenUnsuccessfulRun_ShouldNotReturnCas(t *testing.T) {
 	const state = run_benchmark.State(swarming.TASK_STATE_BOT_DIED)
 
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(fakeTaskID, nil).Once()
+	env.OnActivity(rba.WaitTaskPendingActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
 	env.OnActivity(rba.WaitTaskFinishedActivity, mock.Anything, fakeTaskID).Return(state, nil).Once()
 
 	env.ExecuteWorkflow(RunBenchmarkWorkflow, &RunBenchmarkParams{})

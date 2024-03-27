@@ -46,6 +46,11 @@ var runningStates = []string{
 
 type State string
 
+// IsTaskPending checks if a swarming task state is still pending
+func (s State) IsTaskPending() bool {
+	return string(s) == swarming.TASK_STATE_PENDING
+}
+
 // IsTaskFinished checks if a swarming task state is finished
 func (s State) IsTaskFinished() bool {
 	return !slices.Contains(runningStates, string(s))

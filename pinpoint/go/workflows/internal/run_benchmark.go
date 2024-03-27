@@ -42,6 +42,7 @@ type RunBenchmarkActivity struct {
 // polls and retrieves the CAS for the RunBenchmarkParams defined.
 func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflows.TestRun, error) {
 	ctx = workflow.WithActivityOptions(ctx, runBenchmarkActivityOption)
+	pendingCtx := workflow.WithActivityOptions(ctx, runBenchmarkPendingActivityOption)
 	logger := workflow.GetLogger(ctx)
 
 	var rba RunBenchmarkActivity
@@ -51,9 +52,18 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		return nil, skerr.Wrap(err)
 	}
 
+	// polling pending and polling running are two different activities
+	// because swarming tasks can be pending for hours while swarming tasks
+	// generally finish in ~10 min
+	// TODO(sunxiaodi@): handle NO_RESOURCE retry case in WaitTaskPendingActivity
 	var state run_benchmark.State
+	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, taskID).Get(pendingCtx, &state); err != nil {
+		logger.Error("Failed to poll pending task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
 	if err := workflow.ExecuteActivity(ctx, rba.WaitTaskFinishedActivity, taskID).Get(ctx, &state); err != nil {
-		logger.Error("Failed to poll task ID:", err)
+		logger.Error("Failed to poll running task ID:", err)
 		return nil, skerr.Wrap(err)
 	}
 
@@ -94,6 +104,42 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 	return taskIds[0].TaskId, nil
 }
 
+// WaitTaskPendingActivity polls the task until it is not longer pending. Returns the status
+// if the task stops pending regardless of task success
+func (rba *RunBenchmarkActivity) WaitTaskPendingActivity(ctx context.Context, taskID string) (run_benchmark.State, error) {
+	logger := activity.GetLogger(ctx)
+
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		logger.Error("Failed to connect to swarming client:", err)
+		return "", skerr.Wrap(err)
+	}
+
+	activity.RecordHeartbeat(ctx, "begin pending run_benchmark task polling")
+	failureRetries := 5
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+			s, err := sc.GetStatus(ctx, taskID)
+			state := run_benchmark.State(s)
+			if err != nil {
+				logger.Error("Failed to get task status:", err, "remaining retries:", failureRetries)
+				failureRetries -= 1
+				if failureRetries <= 0 {
+					return "", skerr.Wrapf(err, "Failed to wait for task to start")
+				}
+			}
+			if !state.IsTaskPending() {
+				return state, nil
+			}
+			time.Sleep(15 * time.Second)
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("waiting on test %v with state %s", taskID, state))
+		}
+	}
+}
+
 // WaitTaskFinishedActivity polls the task until it finishes or errors. Returns the status
 // if the task finishes regardless of task success
 func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, taskID string) (run_benchmark.State, error) {
@@ -105,7 +151,7 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 		return "", skerr.Wrap(err)
 	}
 
-	activity.RecordHeartbeat(ctx, "begin run_benchmark task polling")
+	activity.RecordHeartbeat(ctx, "begin run_benchmark task running polling")
 	failureRetries := 5
 	for {
 		select {

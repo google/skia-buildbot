@@ -3,6 +3,7 @@ package internal
 import (
 	"time"
 
+	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -83,9 +84,19 @@ var (
 	}
 
 	runBenchmarkActivityOption = workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 2 * time.Hour, // swarming tasks can be pending for a long time
-		// The default gRPC timeout is 5 minutes, longer than that so it can capture grpc errors.
-		HeartbeatTimeout: 6 * time.Minute,
+		ScheduleToCloseTimeout: run_benchmark.ExecutionTimeoutSecs * time.Second,
+		HeartbeatTimeout:       6 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    15 * time.Second,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    1 * time.Minute,
+			MaximumAttempts:    3,
+		},
+	}
+
+	runBenchmarkPendingActivityOption = workflow.ActivityOptions{
+		ScheduleToCloseTimeout: run_benchmark.PendingTimeoutSecs * time.Second,
+		HeartbeatTimeout:       6 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			InitialInterval:    15 * time.Second,
 			BackoffCoefficient: 2.0,
