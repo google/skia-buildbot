@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ const (
 
 	syncTimeout       = 15 * time.Minute
 	metricSyncTimeout = "task_scheduler_sync_timeout"
+	metricWorkerBusy  = "task_scheduler_jc_worker_busy"
 
 	// This is the key used in context.Value to determine whether
 	// "--download-topcs" should not be added to "gclient sync".
@@ -54,9 +56,14 @@ func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string
 		workdir:       workdir,
 	}
 	for i := 0; i < numWorkers; i++ {
+		m := metrics2.GetInt64Metric(metricWorkerBusy, map[string]string{
+			"worker": strconv.Itoa(i),
+		})
 		go func(i int) {
 			for f := range queue {
+				m.Update(1)
 				f(i)
+				m.Update(0)
 			}
 		}(i)
 	}
