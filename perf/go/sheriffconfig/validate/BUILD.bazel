@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "validate",
+    srcs = ["validate.go"],
+    importpath = "go.skia.org/infra/perf/go/sheriffconfig/validate",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//perf/go/sheriffconfig/proto/v1",
+    ],
+)
+
+go_test(
+    name = "validate_test",
+    srcs = ["validate_test.go"],
+    embed = [":validate"],
+    deps = [
+        "//perf/go/sheriffconfig/proto/v1",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

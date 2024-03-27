@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package sheriff_config.v1;
+
+option go_package = "go.skia.org/infra/perf/go/sheriffconfig/proto/v1";
+
+// A Pattern message defines regular expression patterns for capturing
+// a group of metrics. A metric is uniquely identified by the
+// combination of all the keys specified within a Pattern.
+// To specify that a value is a Regex, a "~" must be added at the beginning
+// of the string.
+message Pattern {
+    string main = 1;        // e.g. "ChromiumPerf", "Chromium*"
+    string bot = 2;         // e.g. "linux-perf", "~lacros-.*"
+    string benchmark = 3;   // e.g. "Speedometer2"
+    string test = 4;        // e.g. "speedometer2"
+    string subtest1 = 5;
+    string subtest2 = 6;
+    string subtest3 = 7;
+}
+
+// We can use patterns to specify which metrics we want to include or exclude.
+//
+// For matching, if a Pattern field is not specified, the default is wildcard "*",
+// meaning match to any value.
+// For excluding, only filter on specified Pattern fields. Exclude patterns are
+// only allowed to have one field specified.
+//
+// Consider the example below:
+// {
+//   match: [
+//     {main:"ChromiumPerf",bot:"~lacros-.*-perf",benchmark:"Speedometer2"},
+//     {main:"ChromiumPerf",benchmark:"Jetstream2"},
+//   ],
+//   exclude: [
+//     {bot:"lacros-eve-perf"},
+//     {bot:"lacros-x86-perf"},
+//   ]
+// }
+//
+// In SQL grammar, this would translate to:
+// ...
+// SELECT * FROM Metrics
+// WHERE
+// (main='ChromiumPerf' AND bot REGEXP 'lacros-.*-perf' AND benchmark='Speedometer2'
+// AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
+// OR
+// (main='ChromiumPerf' AND benchmark='Jetstream')
+// AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
+message Rules {
+  repeated Pattern match = 1;
+  repeated Pattern exclude = 2;
+}
+
+// An AnomalyConfig defines the bounds for which a change in a matching metric
+// can be considered "anomalous". For metrics that are matched, we apply the
+// anomaly config to determine whether we should create an alert.
+//
+// The configuration settings defined for an anomaly configuration override
+// defaults that are defined by the anomaly detection algorithm.
+//
+// TODO(eduardoyap): Figure out default values and document them here.
+message AnomalyConfig {
+
+  enum Step {
+    // Step detection algorithm.
+    ORIGINAL_STEP = 0;
+
+    // Step detection using absolute magnitude as threshold.
+    ABSOLUTE_STEP = 1;
+
+    // Step detection using a constant as threshold.
+    CONST_STEP = 2;
+
+    // Step detection that checks if step size is greater than some
+    // percentage of the mean of the first half of the trace.
+    PERCENT_STEP = 3;
+
+    // CohenStep uses Cohen's d method to detect a change.
+    // https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
+    COHEN_STEP = 4;
+
+    // MannWhitneyU uses the Mann-Whitney U test to detect a change.
+    // https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+    MANN_WHITNEY_U = 5;
+  }
+
+  // Anomaly detection algorithm.
+  Step step = 1;
+
+  // How many commits to each side of a commit to consider when looking for a step.
+  int32 radius = 2;
+
+  // The threshold value beyond which values become interesting
+  // (indicates a real regression). Range of this value depends on algorithm used.
+  float threshold = 3;
+
+  // What actions should be taken for detected anomalies.
+  // - NOACTION: Only show anomaly in UI. Don't triage or bisect.
+  // - TRIAGE: File Buganizer issue for anomalies found. Don't bisect.
+  // - BISECT: Triage and bisect anomaly groups.
+  enum Action {
+    NOACTION = 0;
+    TRIAGE = 1;
+    BISECT = 2;
+  }
+  Action action = 4;
+
+  // Which metrics should be captured by this AnomalyConfig.
+  Rules rules = 5;
+}
+
+// A Subscription describes a configuration through which we determine:
+// - A set of metrics a group of users are interested in alert monitoring.
+//   These anomalies are grouped together into anomaly groups if they
+//   overlap.
+// - Anomaly detection settings.
+// - Alerting settings.
+message Subscription {
+
+  // A name is a free-form name for human readability purposes. Also
+  // serves as a unique key for the subscription and should be unique from
+  // all other subscription names.
+  string name = 1;
+
+  // The contact email address who owns this subscription. This is a required
+  // field. There must be an owner we can contact for each subscription.
+  string contact_email = 2;
+
+  // A list of labels applied to the Buganizer issues associated with
+  // this subscription.
+  repeated string bug_labels = 3;
+
+  // A list of Hotlist labels applied to the Buganizer issues associated with
+  // this subscription.
+  repeated string hotlist_labels = 4;
+
+  // A Buganizer component in which to file issues for this subscription.
+  string bug_component = 6;
+
+  // A list of e-mails to add to Buganizer issue CC list.
+  repeated string bug_cc_emails = 7;
+
+  // Here we specify the subset of metrics we are interested in and what anomaly
+  // detection algorithms to apply. This field can be repeated so that
+  // different algorithms can be applied depending on the metrics captured.
+  //
+  // Anomaly configs in the same subscription should not have
+  // overlapping metrics.
+  repeated AnomalyConfig anomaly_configs = 8;
+}
+
+// A SheriffConfig lists the subscriptions for a Skia Perf instance.
+// Subscriptions may only capture metrics which are uploaded to the Skia Perf
+// instance specified.
+message SheriffConfig {
+  repeated Subscription subscriptions = 1;
+
+  enum Instance {
+    UNKNOWN = 0; // Default value. Validation will fail if it's set to this to enforce explicitness.
+    CHROMIUM = 1;
+    WEBRTC = 2;
+    V8 = 3;
+    WIDEVINE_WHITEBOX = 4;
+    WIDEVINE_CDM = 5;
+    DEVTOOLS = 6;
+  }
+  Instance instance = 2;
+}
