@@ -1244,7 +1244,7 @@ func (f *Frontend) pinpointBisectionHandler(w http.ResponseWriter, r *http.Reque
 	ctx, span := trace.StartSpan(ctx, "schedulePinpointBisectionRequest")
 	defer span.End()
 
-	pinpointClient, err := backendClient.NewPinpointClient()
+	pinpointClient, err := backendClient.NewPinpointClient("")
 	if err != nil {
 		httputils.ReportError(w, err, "Error scheduling bisection.", 500)
 	}

@@ -7,12 +7,11 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/workflows/internal",
     visibility = ["//visibility:public"],
     deps = [
+        "//perf/go/backend/client",
         "//perf/go/culprit/proto/v1",
         "//perf/go/workflows",
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
-        "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_grpc//credentials/insecure",
     ],
 )
 

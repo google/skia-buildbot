@@ -4,12 +4,11 @@ import (
 	"context"
 	"time"
 
+	backend "go.skia.org/infra/perf/go/backend/client"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -32,11 +31,10 @@ type CulpritServiceActivity struct {
 }
 
 func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	conn, err := grpc.Dial(culpritServiceUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl)
 	if err != nil {
 		return nil, err
 	}
-	client := pb.NewCulpritServiceClient(conn)
 	resp, err := client.PersistCulprit(ctx, req)
 	if err != nil {
 		return nil, err
@@ -45,11 +43,10 @@ func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culp
 }
 
 func (csa *CulpritServiceActivity) InvokeNotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
-	conn, err := grpc.Dial(culpritServiceUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl)
 	if err != nil {
 		return nil, err
 	}
-	client := pb.NewCulpritServiceClient(conn)
 	resp, err := client.NotifyUser(ctx, req)
 	if err != nil {
 		return nil, err

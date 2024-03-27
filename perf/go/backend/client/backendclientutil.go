@@ -16,14 +16,20 @@ func getBackendHostUrl() string {
 }
 
 // isBackendEnabled returns true if a backend service is enabled for the current instance.
-func isBackendEnabled() bool {
-	return config.Config.BackendServiceHostUrl != ""
+func isBackendEnabled(urlOverride string) bool {
+	return urlOverride != "" || config.Config.BackendServiceHostUrl != ""
 }
 
 // getGrpcConnection returns a ClientConn object that can be used to create individual
 // service clients for the BE service.
-func getGrpcConnection() (*grpc.ClientConn, error) {
-	backendServiceUrl := getBackendHostUrl()
+func getGrpcConnection(backendServiceUrlOverride string) (*grpc.ClientConn, error) {
+	var backendServiceUrl string
+	if backendServiceUrlOverride != "" {
+		backendServiceUrl = backendServiceUrlOverride
+	} else {
+		backendServiceUrl = getBackendHostUrl()
+	}
+
 	// TODO(ashwinpv): Explore the use of opentracing with something
 	// like https://github.com/grpc-ecosystem/grpc-opentracing/tree/master/go/otgrpc
 
@@ -38,12 +44,12 @@ func getGrpcConnection() (*grpc.ClientConn, error) {
 }
 
 // NewPinpointClient returns a new instance of a client for the pinpoint service.
-func NewPinpointClient() (pinpoint.PinpointClient, error) {
-	if !isBackendEnabled() {
+func NewPinpointClient(backendServiceUrlOverride string) (pinpoint.PinpointClient, error) {
+	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection()
+	conn, err := getGrpcConnection(backendServiceUrlOverride)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +58,12 @@ func NewPinpointClient() (pinpoint.PinpointClient, error) {
 }
 
 // NewCulpritServiceClient returns a new instance of a client for the culprit service.
-func NewCulpritServiceClient() (culprit.CulpritServiceClient, error) {
-	if !isBackendEnabled() {
+func NewCulpritServiceClient(backendServiceUrlOverride string) (culprit.CulpritServiceClient, error) {
+	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection()
+	conn, err := getGrpcConnection(backendServiceUrlOverride)
 	if err != nil {
 		return nil, err
 	}
