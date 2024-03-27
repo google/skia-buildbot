@@ -11,9 +11,9 @@ import (
 
 type metricsHandler struct {
 	client   metrics2.Client
-	cm       sync.Mutex
-	gm       sync.Mutex
-	tm       sync.Mutex
+	cm       sync.RWMutex
+	gm       sync.RWMutex
+	tm       sync.RWMutex
 	tags     map[string]string
 	counters map[string]client.MetricsCounter
 	gauges   map[string]client.MetricsGauge
@@ -49,22 +49,29 @@ func (m *metricsHandler) WithTags(tags map[string]string) client.MetricsHandler 
 }
 
 func (m *metricsHandler) Counter(name string) client.MetricsCounter {
-	if c, ok := m.counters[name]; ok {
+	m.cm.RLock()
+	c, ok := m.counters[name]
+	m.cm.RUnlock()
+	if ok {
 		return c
 	}
+
 	m.cm.Lock()
 	defer m.cm.Unlock()
 
 	if c, ok := m.counters[name]; ok {
 		return c
 	}
-	c := m.client.GetCounter(name, m.tags)
+	c = m.client.GetCounter(name, m.tags)
 	m.counters[name] = c
 	return c
 }
 
 func (m *metricsHandler) Gauge(name string) client.MetricsGauge {
-	if g, ok := m.gauges[name]; ok {
+	m.gm.RLock()
+	g, ok := m.gauges[name]
+	m.gm.RUnlock()
+	if ok {
 		return g
 	}
 
@@ -74,13 +81,16 @@ func (m *metricsHandler) Gauge(name string) client.MetricsGauge {
 	if g, ok := m.gauges[name]; ok {
 		return g
 	}
-	g := m.client.GetFloat64Metric(name, m.tags)
+	g = m.client.GetFloat64Metric(name, m.tags)
 	m.gauges[name] = g
 	return g
 }
 
 func (m *metricsHandler) Timer(name string) client.MetricsTimer {
-	if t, ok := m.timers[name]; ok {
+	m.tm.RLock()
+	t, ok := m.timers[name]
+	m.tm.RUnlock()
+	if ok {
 		return t
 	}
 
@@ -90,7 +100,7 @@ func (m *metricsHandler) Timer(name string) client.MetricsTimer {
 	if t, ok := m.timers[name]; ok {
 		return t
 	}
-	t := &timer{
+	t = &timer{
 		Float64SummaryMetric: m.client.GetFloat64SummaryMetric(name, m.tags),
 	}
 	m.timers[name] = t

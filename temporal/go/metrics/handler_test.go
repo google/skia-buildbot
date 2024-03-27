@@ -1,11 +1,13 @@
 package metrics
 
 import (
+	"fmt"
 	"math"
 	"sync"
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
 )
@@ -76,34 +78,40 @@ func TestHanlder_RecordMetrics_InParallel(t *testing.T) {
 	var wg sync.WaitGroup
 	const count = 500
 
-	const ct1, ct2 = "some_counter1", "some_counter2"
-	const gg1, gg2 = "some_gauge1", "some_gauge2"
-
-	// Spawn many goroutines for 4 different metrics
+	// Spawn many goroutines for 4 different transactions
 	wg.Add(count * 4)
 
 	h := NewMetricsHandler(map[string]string{}, newClient())
+	// Read & Updates the metrics forward and backward.
 	for i := 0; i < count; i++ {
+		counter_forward := fmt.Sprintf("counter_%d", i)
+		counter_backward := fmt.Sprintf("counter_%d", count-i-1)
+		gauge_forward := fmt.Sprintf("gauge_%d", i)
+		gauge_backward := fmt.Sprintf("gauge_%d", count-i-1)
 		go func() {
-			h.Counter(ct1).Inc(1)
+			h.Counter(counter_forward).Inc(1)
 			wg.Done()
 		}()
 		go func() {
-			h.Counter(ct2).Inc(1)
+			h.Counter(counter_backward).Inc(1)
 			wg.Done()
 		}()
 		go func() {
-			h.Gauge(gg1).Update(2.0)
+			h.Gauge(gauge_forward).Update(2.0)
 			wg.Done()
 		}()
 		go func() {
-			h.Gauge(gg2).Update(4.0)
+			h.Gauge(gauge_backward).Update(2.0)
 			wg.Done()
 		}()
 	}
 	wg.Wait()
-	require.EqualValues(t, count, h.Counter(ct1).(metrics2.Counter).Get())
-	require.EqualValues(t, count, h.Counter(ct2).(metrics2.Counter).Get())
-	require.InDelta(t, 2.0, h.Gauge(gg1).(metrics2.Float64Metric).Get(), 1e-9)
-	require.InDelta(t, 4.0, h.Gauge(gg2).(metrics2.Float64Metric).Get(), 1e-9)
+
+	for i := 0; i < count; i++ {
+		counter := fmt.Sprintf("counter_%d", i)
+		gauge := fmt.Sprintf("gauge_%d", i)
+		// Each counter gets increased twice.
+		assert.EqualValues(t, 2, h.Counter(counter).(metrics2.Counter).Get(), "counter %d", i)
+		assert.InDelta(t, 2.0, h.Gauge(gauge).(metrics2.Float64Metric).Get(), 1e-9, "gauge %d", i)
+	}
 }
