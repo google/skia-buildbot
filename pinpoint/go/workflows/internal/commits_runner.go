@@ -71,6 +71,42 @@ func (cr *CommitRun) AllValues(chart string) []float64 {
 	return vs
 }
 
+func (cr *CommitRun) AllErrorValues(chart string) []float64 {
+	vs := []float64{}
+	for _, r := range cr.Runs {
+		var v float64
+		// Task succeeded but benchmark run failed
+		if r.Values == nil {
+			v = 1.0
+		}
+		// Benchmark run succeeded but failed to produce CAS could
+		// also be attributed to code changes
+		if _, ok := r.Values[chart]; !ok {
+			v = 1.0
+		}
+		vs = append(vs, v) // default append 0.0
+	}
+	return vs
+}
+
+// TODO(sunxiaodi@): consolidate CommitValues, GetAllValuesLocalActivity,
+// GetErrorValuesLocalActivity, and CollectValuesActivity into a read_values.go
+// Refactoring will depend on how pairwise invokes these functions, if at all.
+type CommitValues struct {
+	Commit midpoint.CombinedCommit
+	Values []float64
+}
+
+// GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
+func GetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
+	return &CommitValues{cr.Build.Commit, cr.AllValues(chart)}, nil
+}
+
+// GetErrorValuesLocalActivity wraps CommitRun's AllErrorValues as a local activity
+func GetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
+	return &CommitValues{cr.Build.Commit, cr.AllErrorValues(chart)}, nil
+}
+
 func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit midpoint.CombinedCommit) (*workflows.Build, error) {
 	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
 	if err != nil {

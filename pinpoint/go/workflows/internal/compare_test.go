@@ -45,3 +45,34 @@ func TestComparePerformance_AsActivity_ShouldEqualComparePerformance(t *testing.
 	test("CompareResults verdict unknown", valuesA, valuesB, magnitude)
 
 }
+
+func TestCompareFunctional_AsActivity_ShouldEqualCompareFunctional(t *testing.T) {
+	test := func(name string, valuesA, valuesB []float64, errRate float64) {
+		t.Run(name, func(t *testing.T) {
+			expected, err := compare.CompareFunctional(valuesA, valuesB, errRate)
+			require.NoError(t, err)
+
+			testSuite := &testsuite.WorkflowTestSuite{}
+			env := testSuite.NewTestActivityEnvironment()
+			env.RegisterActivity(CompareFunctionalActivity)
+			res, err := env.ExecuteActivity(CompareFunctionalActivity, valuesA, valuesB, errRate)
+			require.NoError(t, err)
+
+			var actual *compare.CompareResults
+			err = res.Get(&actual)
+			require.NoError(t, err)
+			require.Equal(t, expected, actual)
+		})
+	}
+	x := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
+	y := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	test("arrays are slightly different, return unknown", x, y, 0.5)
+
+	x = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	y = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	test("arrays are the same, return same", x, y, 1.0)
+
+	x = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	y = []float64{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	test("arrays are significantly different, return different", x, y, 1.0)
+}

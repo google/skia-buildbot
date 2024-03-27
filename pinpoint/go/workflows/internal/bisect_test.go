@@ -33,6 +33,13 @@ func mockedGetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart s
 	}, nil
 }
 
+func mockedGetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
+	return &CommitValues{
+		Commit: cr.Build.Commit,
+		Values: make([]float64, 0),
+	}, nil
+}
+
 // TODO(b/327019543): More tests and test data should be added here
 //
 //	This is only to validate the dependent workflow signature and the workflow can connect.
@@ -43,6 +50,8 @@ func TestBisectWorkflow_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun).Times(2)
+	env.OnActivity(GetErrorValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetErrorValuesLocalActivity).Twice()
+	env.OnActivity(CompareFunctionalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
 	env.OnActivity(GetAllValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllValuesLocalActivity).Twice()
 	env.OnActivity(ComparePerformanceActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
 

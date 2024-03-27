@@ -75,16 +75,6 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 	}
 }
 
-type CommitValues struct {
-	Commit midpoint.CombinedCommit
-	Values []float64
-}
-
-// GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
-func GetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{cr.Build.Commit, cr.AllValues(chart)}, nil
-}
-
 // FindMidCommitActivity is an Activity that finds the middle point of two commits.
 //
 // TODO(b/326352320): Move this into its own file.
@@ -112,23 +102,6 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpo
 		AggregationMethod: p.Request.AggregationMethod,
 		Iterations:        it,
 	}
-}
-
-func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64) (*compare.CompareResults, error) {
-	var lValues, hValues *CommitValues
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValuesLocalActivity, lRun, chart).Get(ctx, &lValues); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := workflow.ExecuteLocalActivity(ctx, GetAllValuesLocalActivity, hRun, chart).Get(ctx, &hValues); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	var result *compare.CompareResults
-	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues.Values, hValues.Values, mag).Get(ctx, &result); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	return result, nil
 }
 
 // BisectWorkflow is a Workflow definition that takes a range of git hashes and finds the culprit.
@@ -244,17 +217,17 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 			pendings--
 			lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
 			result, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude)
-
 			// The compare fails but we continue to bisect for the remainings.
-			// TODO(haowoo@): Failures in the middle may not block the entire bisection, but need to be
-			//	logged. We need to diff between the retry-able and non-retry-able failures so that we can
-			//	decide if we can continue or not.
+			// TODO(sunxiaodi@): Revisit compare runs error handling. compare.ComparePerformance
+			// and compare.CompareFunctional should not return error but are written to return error.
+			// GetAllValues also does not return error, so that means there are no errors passed around
+			// these functions.
 			if err != nil {
 				logger.Warn(fmt.Sprintf("Failed to compare runs: %v", err))
 				continue
 			}
 
-			switch result.Verdict {
+			switch result.Result.Verdict {
 			case compare.Unknown:
 				// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
 				// < 0.4, it is possible to get to the max sample size and still reach an unknown
@@ -263,7 +236,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 				// assumes that cr.Lower and cr.Higher will have the same number of runs
 				if len(lower.Runs) >= int(getMaxSampleSize()) {
 					// TODO(haowoo@): add metric to measure this occurrence
-					logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lower.Runs))
+					logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.Result.PValue, len(lower.Runs))
 					break
 				}
 

@@ -64,6 +64,7 @@ func main() {
 	w.RegisterActivity(internal.CollectValuesActivity)
 	w.RegisterWorkflowWithOptions(internal.SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
+	w.RegisterActivity(internal.CompareFunctionalActivity)
 	w.RegisterActivity(internal.ComparePerformanceActivity)
 	w.RegisterActivity(internal.FindMidCommitActivity)
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
