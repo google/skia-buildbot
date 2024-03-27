@@ -361,7 +361,15 @@ func isSyncError(err error) bool {
 // Start initiates the AutoRoller's loop.
 func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 	sklog.Infof("Starting autoroller.")
-	lv := metrics2.NewLiveness("last_successful_autoroll_tick", map[string]string{"roller": r.roller})
+	localCheckout := "false"
+	if r.cfg.Kubernetes != nil && r.cfg.Kubernetes.Disk != "" {
+		localCheckout = "true"
+	}
+	tags := map[string]string{
+		"roller":         r.roller,
+		"local_checkout": localCheckout,
+	}
+	lv := metrics2.NewLiveness("last_successful_autoroll_tick", tags)
 	cleanup.Repeat(tickFrequency, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
 		// continue running even if the context is canceled, which helps
