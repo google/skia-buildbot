@@ -664,7 +664,7 @@ deps = {
 }
   `
 	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wStartGitHash).Return([]byte(sampleDeps), nil)
-	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return(nil, skerr.Fmt("Request got status 404"))
+	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return(nil, skerr.Fmt("Request got status \"404 Not Found\""))
 
 	start := &CombinedCommit{
 		Main: NewChromiumCommit(wStartGitHash),

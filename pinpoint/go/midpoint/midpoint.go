@@ -241,7 +241,7 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *Commit) (map
 		// Even if the provided http client is provided without With2xxOnly,
 		// gitiles.go get() enforces http.StatusOK and returns a nil response
 		// with this error.
-		if strings.Contains(err.Error(), "Request got status 404") {
+		if strings.Contains(err.Error(), "404 Not Found") {
 			sklog.Debugf("gitiles.ReadFileAtRef returned 404 for DEPS file %s@%s", commit.RepositoryUrl, commit.GitHash)
 			return denormalized, nil
 		}
