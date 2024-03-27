@@ -92,14 +92,16 @@ message FindExistingGroupsRequest {
     // The subscription name from the alert config, from which the
     // anomaly is detected.
     string subscription_name = 1;
+    // The revision of the subscription
+    string subscription_revision = 2;
     // The action value from the alert config.
-    string action = 2;
+    string action = 3;
     // The previous commit position before the anomaly's data point.
-    int64 start_commit = 3;
+    int64 start_commit = 4;
     // The commit position before the anomaly's data point.
-    int64 end_commit = 4;
+    int64 end_commit = 5;
     // The test path from the anomaly.
-    string test_path = 5;
+    string test_path = 6;
 }
 
 // Response object for FindExistingGroups
