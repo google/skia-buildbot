@@ -39,10 +39,29 @@ import (
 	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
+// ImprovementDir is the improvement direction of the measurement
+// being measured. The directions are either up, down, or unknown.
+type ImprovementDir string
+
+// These ImprovementDirs are the possible improvement directions.
+const (
+	// UnknownDir means the job request did not send an improvement
+	// direction. Rather than infer it, we assume the direction
+	// is unknown and drill deeper on all statistically significant
+	// changes.
+	UnknownDir ImprovementDir = "Unknown"
+	// Up means the improvement direction is increasing.
+	Up ImprovementDir = "Up"
+	// Down means the improvement direction is decreasing.
+	Down ImprovementDir = "Down"
+)
+
 // define verdict enums
 type Verdict int
 
 // These verdicts are the possible results of the statistical analysis.
+// TODO(sunxiaodi@): convert these enums to string so the results are more
+// easily translatable
 const (
 	// Unknown means that there is not enough evidence to reject
 	// either hypothesis. Collect more data before making a final decision.
@@ -77,6 +96,17 @@ func almostEqual(a, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
+func mean(arr []float64) float64 {
+	if len(arr) == 0 {
+		return 0
+	}
+	var sum float64
+	for _, v := range arr {
+		sum += v
+	}
+	return sum / float64(len(arr))
+}
+
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/job_state.py;drc=94f2bff5159bf660910b35c39426102c5982c4a4;l=356
 // the default functional analysis error rate expected is 1.0 for all bisections
 // pivoting to functional analysis.
@@ -100,6 +130,10 @@ type CompareResults struct {
 	// 	HighThreshold is the `alpha` where if the p-value is lower means we need
 	// 											more information to make a definitive judgement.
 	HighThreshold float64
+	// MeanDiff is the difference between the mean of B and the mean of A.
+	// MeanDiff > 0 means the mean of B > mean of A.
+	// MeanDiff is used to decide if a difference is a regression or not.
+	MeanDiff float64
 }
 
 // CompareFunctional determines if valuesA and valuesB are statistically different,
@@ -124,7 +158,9 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not get functional high threshold")
 	}
-	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
+	// functional analysis always assumes the improvement direction is down
+	// i.e. we want future commits to be less flaky and less error prone.
+	return compare(valuesA, valuesB, LowThreshold, HighThreshold, Down)
 }
 
 // ComparePerformance determines if valuesA and valuesB are statistically different,
@@ -149,16 +185,27 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*Comp
 		return nil, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
 
-	return compare(valuesA, valuesB, LowThreshold, HighThreshold)
+	// TODO(sunxiaodi@): after updating protos to accept improvement direction
+	// update this function to include the real improvement direction.
+	return compare(valuesA, valuesB, LowThreshold, HighThreshold, UnknownDir)
 }
 
 // compare decides whether two samples are the same, different, or unknown
 // using the KS and MWU tests and compare their p-values against the
 // LowThreshold and HighThreshold.
-func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64) (*CompareResults, error) {
+func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, dir ImprovementDir) (*CompareResults, error) {
 	if len(valuesA) == 0 || len(valuesB) == 0 {
 		// A sample has no values in it. Return verdict to measure more data.
 		return &CompareResults{Verdict: Unknown}, nil
+	}
+
+	// verify a change is a regression
+	meanDiff := mean(valuesB) - mean(valuesA)
+	if (dir == Up && meanDiff > 0) || (dir == Down && meanDiff < 0) {
+		return &CompareResults{
+			Verdict:  Same,
+			MeanDiff: meanDiff,
+		}, nil
 	}
 
 	// MWU is bad at detecting changes in variance, and K-S is bad with discrete
@@ -176,27 +223,28 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64) (*
 	}
 	PValue := min(PValueKS, PValueMWU)
 
-	result := &CompareResults{
+	var verdict Verdict
+	if PValue <= LowThreshold {
+		// The p-value is less than the significance level. Reject the null
+		// hypothesis.
+		verdict = Different
+	} else if PValue <= HighThreshold {
+		// The p-value is not less than the significance level, but it's small
+		// enough to be suspicious. We'd like to investigate more closely.
+		verdict = Unknown
+	} else {
+		// The p-value is quite large. We're not suspicious that the two samples might
+		// come from different distributions, and we don't care to investigate more.
+		verdict = Same
+	}
+
+	return &CompareResults{
+		Verdict:       verdict,
 		PValue:        PValue,
 		PValueKS:      PValueKS,
 		PValueMWU:     PValueMWU,
 		LowThreshold:  LowThreshold,
 		HighThreshold: HighThreshold,
-	}
-
-	if PValue <= LowThreshold {
-		// The p-value is less than the significance level. Reject the null
-		// hypothesis.
-		result.Verdict = Different
-	} else if PValue <= HighThreshold {
-		// The p-value is not less than the significance level, but it's small
-		// enough to be suspicious. We'd like to investigate more closely.
-		result.Verdict = Unknown
-	} else {
-		// The p-value is quite large. We're not suspicious that the two samples might
-		// come from different distributions, and we don't care to investigate more.
-		result.Verdict = Same
-	}
-
-	return result, nil
+		MeanDiff:      meanDiff,
+	}, nil
 }

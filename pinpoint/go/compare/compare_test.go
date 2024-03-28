@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func convertNormalizedToRawMagnitude(a, b []float64, normMagnitude float64) float64 {
@@ -42,8 +43,8 @@ func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
 			}
 		})
 	}
-	x := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
-	y := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	x := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	y := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
 	test("arrays are slightly different, return unknown", x, y, 0.5, Unknown)
 
 	x = []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -96,4 +97,51 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 	x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	test("arrays are significantly different, return different", x, y, 0.0, Different)
+}
+
+func TestCompare_GivenImprovement_ReturnsSameAndNoPValue(t *testing.T) {
+	test := func(name string, x, y []float64, dir ImprovementDir) {
+		t.Run(name, func(t *testing.T) {
+			result, err := compare(x, y, 0.0, 0.0, dir)
+			require.NoError(t, err)
+			assert.Equal(t, Same, result.Verdict)
+			assert.Zero(t, result.PValue)
+			switch dir {
+			case Up:
+				assert.Positive(t, result.MeanDiff)
+			case Down:
+				assert.Negative(t, result.MeanDiff)
+			}
+		})
+	}
+	var x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	test("x < y, ImprovementDir = Up, return same", x, y, Up)
+
+	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	y = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	test("x > y, ImprovementDir = Down, return same", x, y, Down)
+}
+
+func TestCompare_GivenRegression_ReturnsPValue(t *testing.T) {
+	test := func(name string, x, y []float64, dir ImprovementDir) {
+		t.Run(name, func(t *testing.T) {
+			result, err := compare(x, y, 0.0, 0.0, dir)
+			require.NoError(t, err)
+			assert.NotZero(t, result.PValue)
+			switch dir {
+			case Up:
+				assert.Negative(t, result.MeanDiff)
+			case Down:
+				assert.Positive(t, result.MeanDiff)
+			}
+		})
+	}
+	var x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	test("x < y, ImprovementDir = Down", x, y, Down)
+
+	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	y = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	test("x > y, ImprovementDir = Up", x, y, Up)
 }
