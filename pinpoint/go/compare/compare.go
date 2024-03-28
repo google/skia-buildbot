@@ -57,38 +57,20 @@ const (
 )
 
 // define verdict enums
-type Verdict int
+type Verdict string
 
 // These verdicts are the possible results of the statistical analysis.
-// TODO(sunxiaodi@): convert these enums to string so the results are more
-// easily translatable
 const (
 	// Unknown means that there is not enough evidence to reject
 	// either hypothesis. Collect more data before making a final decision.
-	Unknown Verdict = iota
+	Unknown Verdict = "Unknown"
 	// Same means that the sample likely come from the same distribution.
 	// Cannot reject the null hypothesis.
-	Same
+	Same Verdict = "Same"
 	// Different means that the samples are unlikely to come
 	// from the same distribution. Reject the null hypothesis.
-	Different
+	Different Verdict = "Different"
 )
-
-func (v Verdict) Value() int {
-	return int(v)
-}
-
-func (v Verdict) Name() string {
-	switch v {
-	case Unknown:
-		return "Unknown"
-	case Same:
-		return "Same"
-	case Different:
-		return "Different"
-	}
-	return ""
-}
 
 const float64EqualityThreshold = 1e-9
 

@@ -39,7 +39,7 @@ func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
 			} else if result.Verdict == Different {
 				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
 			} else {
-				t.Errorf("Obtained non-existent verdict %d", result.Verdict)
+				t.Errorf("Obtained non-existent verdict %s", result.Verdict)
 			}
 		})
 	}
@@ -81,7 +81,7 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 			} else if result.Verdict == Different {
 				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
 			} else {
-				t.Errorf("Obtained non-existent verdict %d", result.Verdict)
+				t.Errorf("Obtained non-existent verdict %s", result.Verdict)
 			}
 		})
 	}
