@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "stats",
+    srcs = ["sign_rank.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/compare/stats",
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = ["//go/skerr"],
+)
+
+go_test(
+    name = "stats_test",
+    srcs = ["sign_rank_test.go"],
+    embed = [":stats"],
+    race = "on",
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
