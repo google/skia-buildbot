@@ -5,4 +5,7 @@ go_library(
     srcs = ["store.go"],
     importpath = "go.skia.org/infra/perf/go/subscription",
     visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/subscription/proto/v1",
+    ],
 )

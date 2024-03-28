@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
-	"go.skia.org/infra/perf/go/subscription"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
 
 // statement is an SQL statement identifier.
@@ -60,31 +60,31 @@ func New(db pool.Pool) (*SubscriptionStore, error) {
 }
 
 // GetSubscription implements the subscription.Store interface.
-func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, revision string) (*subscription.Subscription, error) {
-	var sub subscription.Subscription
+func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, revision string) (*pb.Subscription, error) {
+	sub := &pb.Subscription{}
 	if err := s.db.QueryRow(ctx, statements[getSubscription], name, revision).Scan(
 		&sub.Name,
 		&sub.Revision,
 		&sub.BugLabels,
 		&sub.Hotlists,
 		&sub.BugComponent,
-		&sub.BugCCEmails,
+		&sub.BugCcEmails,
 		&sub.ContactEmail,
 	); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to load subscription.")
 	}
-	return &sub, nil
+	return sub, nil
 }
 
 // InsertSubscriptions implements the subscription.Store interface.
-func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*subscription.Subscription) error {
+func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.Subscription) error {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
 	for _, sub := range subs {
-		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugCCEmails, sub.ContactEmail); err != nil {
+		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugCcEmails, sub.ContactEmail); err != nil {
 			if err := tx.Rollback(ctx); err != nil {
 				sklog.Errorf("Failed on rollback: %s", err)
 			}

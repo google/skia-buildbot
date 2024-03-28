@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/subscription"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
 
 func setUp(t *testing.T) (subscription.Store, pool.Pool) {
@@ -24,14 +25,14 @@ func TestInsert_ValidSubscriptions(t *testing.T) {
 	ctx := context.Background()
 	store, db := setUp(t)
 
-	s := []*subscription.Subscription{
+	s := []*pb.Subscription{
 		{
 			Name:         "Test Subscription 1",
 			Revision:     "abcd",
 			BugLabels:    []string{"A", "B"},
 			Hotlists:     []string{"C", "D"},
 			BugComponent: "Component1>Subcomponent1",
-			BugCCEmails: []string{
+			BugCcEmails: []string{
 				"abcd@efg.com",
 				"1234@567.com",
 			},
@@ -43,7 +44,7 @@ func TestInsert_ValidSubscriptions(t *testing.T) {
 			BugLabels:    []string{"1", "2"},
 			Hotlists:     []string{"3", "4"},
 			BugComponent: "Component2>Subcomponent2",
-			BugCCEmails: []string{
+			BugCcEmails: []string{
 				"abcd@efg.com",
 				"1234@567.com",
 			},
@@ -65,14 +66,14 @@ func TestInsert_DuplicateSubscriptionKeys(t *testing.T) {
 	ctx := context.Background()
 	store, db := setUp(t)
 
-	s := []*subscription.Subscription{
+	s := []*pb.Subscription{
 		{
 			Name:         "Test Subscription 1",
 			Revision:     "abcd",
 			BugLabels:    []string{"A", "B"},
 			Hotlists:     []string{"C", "D"},
 			BugComponent: "Component1>Subcomponent1",
-			BugCCEmails: []string{
+			BugCcEmails: []string{
 				"abcd@efg.com",
 				"1234@567.com",
 			},
@@ -84,7 +85,7 @@ func TestInsert_DuplicateSubscriptionKeys(t *testing.T) {
 			BugLabels:    []string{"1", "2"},
 			Hotlists:     []string{"3", "4"},
 			BugComponent: "Component2>Subcomponent2",
-			BugCCEmails: []string{
+			BugCcEmails: []string{
 				"abcd@efg.com",
 				"1234@567.com",
 			},
@@ -103,7 +104,7 @@ func TestInsert_EmptyList(t *testing.T) {
 	ctx := context.Background()
 	store, db := setUp(t)
 
-	s := []*subscription.Subscription{}
+	s := []*pb.Subscription{}
 
 	err := store.InsertSubscriptions(ctx, s)
 	require.NoError(t, err)
@@ -116,18 +117,19 @@ func TestGet_ValidSubscription(t *testing.T) {
 	ctx := context.Background()
 	store, db := setUp(t)
 
-	s := &subscription.Subscription{
+	s := &pb.Subscription{
 		Name:         "Test Subscription 1",
 		Revision:     "abcd",
 		BugLabels:    []string{"A", "B"},
 		Hotlists:     []string{"C", "D"},
 		BugComponent: "Component1>Subcomponent1",
-		BugCCEmails: []string{
+		BugCcEmails: []string{
 			"abcd@efg.com",
 			"1234@567.com",
 		},
 		ContactEmail: "test@owner.com",
 	}
+
 	insertSubscriptionToDb(t, ctx, db, s)
 	actual, err := store.GetSubscription(ctx, "Test Subscription 1", "abcd")
 	require.NoError(t, err)
@@ -144,21 +146,21 @@ func TestGet_NonExistent(t *testing.T) {
 	require.Error(t, err)
 }
 
-func insertSubscriptionToDb(t *testing.T, ctx context.Context, db pool.Pool, subscription *subscription.Subscription) {
+func insertSubscriptionToDb(t *testing.T, ctx context.Context, db pool.Pool, subscription *pb.Subscription) {
 	const query = `INSERT INTO Subscriptions
         (name, revision, bug_labels, hotlists, bug_component, bug_cc_emails, contact_email)
         VALUES ($1,$2,$3,$4,$5,$6,$7)`
-	if _, err := db.Exec(ctx, query, subscription.Name, subscription.Revision, subscription.BugLabels, subscription.Hotlists, subscription.BugComponent, subscription.BugCCEmails, subscription.ContactEmail); err != nil {
+	if _, err := db.Exec(ctx, query, subscription.Name, subscription.Revision, subscription.BugLabels, subscription.Hotlists, subscription.BugComponent, subscription.BugCcEmails, subscription.ContactEmail); err != nil {
 		require.NoError(t, err)
 	}
 }
 
-func getSubscriptionsFromDb(t *testing.T, ctx context.Context, db pool.Pool) []*subscription.Subscription {
-	actual := []*subscription.Subscription{}
+func getSubscriptionsFromDb(t *testing.T, ctx context.Context, db pool.Pool) []*pb.Subscription {
+	actual := []*pb.Subscription{}
 	rows, _ := db.Query(ctx, "SELECT name, revision, bug_labels, hotlists, bug_component, bug_cc_emails, contact_email FROM Subscriptions")
 	for rows.Next() {
-		subscriptionInDb := new(subscription.Subscription)
-		if err := rows.Scan(&subscriptionInDb.Name, &subscriptionInDb.Revision, &subscriptionInDb.BugLabels, &subscriptionInDb.Hotlists, &subscriptionInDb.BugComponent, &subscriptionInDb.BugCCEmails, &subscriptionInDb.ContactEmail); err != nil {
+		subscriptionInDb := &pb.Subscription{}
+		if err := rows.Scan(&subscriptionInDb.Name, &subscriptionInDb.Revision, &subscriptionInDb.BugLabels, &subscriptionInDb.Hotlists, &subscriptionInDb.BugComponent, &subscriptionInDb.BugCcEmails, &subscriptionInDb.ContactEmail); err != nil {
 			require.NoError(t, err)
 		}
 		actual = append(actual, subscriptionInDb)

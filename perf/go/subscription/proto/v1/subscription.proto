@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package culprit.v1;
+
+option go_package = "go.skia.org/infra/perf/go/subscription/proto/v1";
+
+// A subscription defines alerting configurations for anomalies detected.
+message Subscription {
+    // Unique name identifying subscription.
+    string name = 1;
+    // infra_internal Git hash on which a subscription is based on.
+    string revision = 2;
+    // Labels to attach to bugs associated with a subscription.
+    repeated string bug_labels = 3;
+    // Hotlists to add to bugs associated with a subscription.
+    repeated string hotlists = 4;
+    // Component in which to file bugs associated with a subscription.
+    string bug_component = 5;
+    // Emails to CC in bugs associated with a subscription.
+    repeated string bug_cc_emails = 6;
+    // Owner of subscription. Used for contact purposes.
+    string contact_email = 7;
+}

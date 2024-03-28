@@ -10,7 +10,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",
-        "//perf/go/subscription",
+        "//perf/go/subscription/proto/v1",
     ],
 )
 
@@ -23,6 +23,7 @@ go_test(
         "//go/sql/pool",
         "//perf/go/sql/sqltest",
         "//perf/go/subscription",
+        "//perf/go/subscription/proto/v1",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
