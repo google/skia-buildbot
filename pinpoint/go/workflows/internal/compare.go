@@ -19,7 +19,10 @@ type Result struct {
 }
 
 // ComparePerformanceActivity wraps compare.ComparePerformance as activity
-func ComparePerformanceActivity(ctx context.Context, valuesA, valuesB []float64, magnitude float64) (*compare.CompareResults, error) {
+func ComparePerformanceActivity(ctx context.Context, valuesA, valuesB []float64, magnitude float64, _ compare.ImprovementDir) (*compare.CompareResults, error) {
+	// TODO(sunxiaodi@): integrate the improvement direction with ComparePerformance
+	// Record the improvement direction for now to ensure the argument is passed into
+	// the activity correctly.
 	return compare.ComparePerformance(valuesA, valuesB, magnitude)
 }
 
@@ -30,7 +33,7 @@ func CompareFunctionalActivity(ctx context.Context, valuesA, valuesB []float64, 
 
 // TODO(sunxiaodi@): consolidate compareRuns to minimize noise generated in temporal
 // workflow event history
-func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64) (*Result, error) {
+func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64, dir compare.ImprovementDir) (*Result, error) {
 	// conduct functional analysis
 	var lValues, hValues *CommitValues
 	if err := workflow.ExecuteLocalActivity(ctx, GetErrorValuesLocalActivity, lRun, chart).Get(ctx, &lValues); err != nil {
@@ -62,7 +65,7 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 	}
 
 	var result *compare.CompareResults
-	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues.Values, hValues.Values, mag).Get(ctx, &result); err != nil {
+	if err := workflow.ExecuteActivity(ctx, ComparePerformanceActivity, lValues.Values, hValues.Values, mag, dir).Get(ctx, &result); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

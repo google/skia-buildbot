@@ -53,7 +53,7 @@ func TestBisectWorkflow_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T
 	env.OnActivity(GetErrorValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetErrorValuesLocalActivity).Twice()
 	env.OnActivity(CompareFunctionalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
 	env.OnActivity(GetAllValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllValuesLocalActivity).Twice()
-	env.OnActivity(ComparePerformanceActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
+	env.OnActivity(ComparePerformanceActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
 
 	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{

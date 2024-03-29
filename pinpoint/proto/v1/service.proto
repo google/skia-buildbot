@@ -63,6 +63,10 @@ message ScheduleBisectRequest {
 
 	// A JSON string encoded key-value pairs used to filter the Jobs listings.
 	string tags = 17;
+
+	// The improvement direction of the measurement.
+	// Is either Up, Down, or Unknown.
+	string improvement_direction = 18;
 }
 
 message QueryBisectRequest {

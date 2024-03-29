@@ -148,6 +148,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 	}()
 
 	magnitude := p.GetMagnitude()
+	improvementDir := p.GetImprovementDirection()
 
 	// minSampleSize is the minimum number of benchmark runs for each attempt
 	// Default is 10.
@@ -216,7 +217,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 			}
 			pendings--
 			lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
-			result, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude)
+			result, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude, improvementDir)
 			// The compare fails but we continue to bisect for the remainings.
 			// TODO(sunxiaodi@): Revisit compare runs error handling. compare.ComparePerformance
 			// and compare.CompareFunctional should not return error but are written to return error.

@@ -17,7 +17,7 @@ func TestComparePerformance_AsActivity_ShouldEqualComparePerformance(t *testing.
 			testSuite := &testsuite.WorkflowTestSuite{}
 			env := testSuite.NewTestActivityEnvironment()
 			env.RegisterActivity(ComparePerformanceActivity)
-			res, err := env.ExecuteActivity(ComparePerformanceActivity, valuesA, valuesB, magnitude)
+			res, err := env.ExecuteActivity(ComparePerformanceActivity, valuesA, valuesB, magnitude, compare.UnknownDir)
 			require.NoError(t, err)
 
 			var actual *compare.CompareResults

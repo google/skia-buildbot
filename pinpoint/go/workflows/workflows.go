@@ -6,6 +6,7 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -101,4 +102,17 @@ func (bp *BisectParams) GetInitialAttempt() int32 {
 		return 0
 	}
 	return int32(attempt)
+}
+
+// GetImprovementDirection returns the improvement direction.
+//
+// Returns Unknown by default regardless of input.
+func (bp *BisectParams) GetImprovementDirection() compare.ImprovementDir {
+	switch bp.Request.ImprovementDirection {
+	case string(compare.Up):
+		return compare.Up
+	case string(compare.Down):
+		return compare.Down
+	}
+	return compare.UnknownDir
 }
