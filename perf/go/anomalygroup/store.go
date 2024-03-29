@@ -25,7 +25,15 @@ type Store interface {
 	//   group, it will load the group for the info needed.
 	LoadById(ctx context.Context, group_id string) (*pb.AnomalyGroup, error)
 
-	// Query(ctx context.Context, kvp map[string]interface{}) []service.AnomalyGroup
+	FindExistingGroup(
+		ctx context.Context,
+		subscription_name string,
+		subscription_revision string,
+		domain_name string,
+		benchmark_name string,
+		start_commit int64,
+		end_commit int64,
+		action string) ([]*pb.AnomalyGroup, error)
 
 	// Update the bisection id for an anomaly group.
 	// Example use case: if the group's action is BISECT, we will launch

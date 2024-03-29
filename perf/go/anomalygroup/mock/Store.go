@@ -78,6 +78,36 @@ func (_m *Store) Create(ctx context.Context, subscription_name string, subscript
 	return r0, r1
 }
 
+// FindExistingGroup provides a mock function with given fields: ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action
+func (_m *Store) FindExistingGroup(ctx context.Context, subscription_name string, subscription_revision string, domain_name string, benchmark_name string, start_commit int64, end_commit int64, action string) ([]*v1.AnomalyGroup, error) {
+	ret := _m.Called(ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindExistingGroup")
+	}
+
+	var r0 []*v1.AnomalyGroup
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, int64, int64, string) ([]*v1.AnomalyGroup, error)); ok {
+		return rf(ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string, int64, int64, string) []*v1.AnomalyGroup); ok {
+		r0 = rf(ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*v1.AnomalyGroup)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string, int64, int64, string) error); ok {
+		r1 = rf(ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // LoadById provides a mock function with given fields: ctx, group_id
 func (_m *Store) LoadById(ctx context.Context, group_id string) (*v1.AnomalyGroup, error) {
 	ret := _m.Called(ctx, group_id)

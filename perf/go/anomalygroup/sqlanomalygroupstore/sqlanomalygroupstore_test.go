@@ -101,6 +101,22 @@ func TestLoadByID_NoRow(t *testing.T) {
 	assert.Contains(t, err.Error(), "no rows")
 }
 
+func TestFindGroup(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "report")
+	require.NoError(t, err)
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-b", "benchmark-a", 200, 300, "report")
+	require.NoError(t, err)
+
+	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 300, "report")
+	require.NoError(t, err2)
+	assert.Equal(t, 2, len(groups))
+}
+
 func TestUpdateBisectID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
@@ -273,4 +289,42 @@ func TestAddIDs_DuplicateIDs(t *testing.T) {
 	assert.Equal(t, []string{
 		"ffd48105-ce5a-425e-982a-fb4221c46f21",
 		"ffd48105-ce5a-425e-982a-fb4221c46f21"}, group.CulpritIds)
+}
+
+func TestFindGroup_RangeDiff(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "report")
+	require.NoError(t, err)
+
+	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 150, "report")
+	require.NoError(t, err2)
+	assert.Equal(t, 1, len(groups))
+}
+
+func TestFindGroup_EmptyString(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+
+	_, err = store.FindExistingGroup(ctx, "", "rev-abc", "domain-a", "benchmark-a", 100, 150, "report")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid params")
+}
+
+func TestFindGroup_InvalidCommit(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+
+	_, err = store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 0, 150, "report")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid params")
 }
