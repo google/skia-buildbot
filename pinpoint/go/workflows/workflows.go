@@ -19,10 +19,11 @@ import (
 // the actual implementation.
 // TODO(b/326352379): introduce a specific type to encapsulate these workflow names
 const (
-	Bisect             = "perf.bisect"
-	BuildChrome        = "perf.build_chrome"
-	RunBenchmark       = "perf.run_benchmark"
-	SingleCommitRunner = "perf.single_commit_runner"
+	Bisect                = "perf.bisect"
+	BuildChrome           = "perf.build_chrome"
+	RunBenchmark          = "perf.run_benchmark"
+	SingleCommitRunner    = "perf.single_commit_runner"
+	PairwiseCommitsRunner = "perf.pairwise_commits_runner"
 )
 
 // Workflow params definitions.

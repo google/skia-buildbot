@@ -6,9 +6,12 @@ import (
 	"math/rand"
 
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
+
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -27,9 +30,28 @@ type PairwiseRun struct {
 	Left, Right CommitRun
 }
 
-func FindAvailableBots(ctx context.Context, botConfig string) ([]string, error) {
-	// TODO(viditchitkara@): Fetch the bots and return their ids.
-	return nil, nil
+// FindAvailableBotsActivity fetches a list of free, alive and non quarantined bots per provided bot
+// configuration for eg: android-go-wembley-perf
+//
+// The function makes a swarming API call internally to fetch the desired bots. If successful, a slice
+// of bot ids is returned
+func FindAvailableBotsActivity(ctx context.Context, botConfig string) ([]string, error) {
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to initialize swarming client")
+	}
+
+	bots, err := sc.FetchFreeBots(ctx, botConfig)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error fetching bots for given bot configuration")
+	}
+
+	botIds := make([]string, len(bots))
+	for i, b := range bots {
+		botIds[i] = b.BotId
+	}
+
+	return botIds, nil
 }
 
 // generatePairIndices generates a randomized list of [0,1,0,1,0,...]
@@ -53,6 +75,9 @@ func generatePairIndices(seed int64, count int) []int {
 //
 // PairwiseCommitsRunner builds, runs and collects benchmark sampled values from several commits.
 // It runs the tests in pairs to reduces sample noises.
+//
+// TODO(b/331856095): viditchitkara@ handle odd number of iterations for pairwise execution
+// workflow.
 func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunnerParams) (*PairwiseRun, error) {
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
@@ -60,7 +85,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	// TODO(viditchitkara@): Build Chrome if they are not available
 	//	using pc.LeftBuild/RightBuild.BuildChromeParams
 	var botIds []string
-	if err := workflow.ExecuteActivity(ctx, FindAvailableBots, pc.BotConfig).Get(ctx, &botIds); err != nil {
+	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, pc.BotConfig).Get(ctx, &botIds); err != nil {
 		return nil, err
 	}
 

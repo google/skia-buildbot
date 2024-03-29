@@ -69,6 +69,9 @@ func main() {
 	w.RegisterActivity(internal.FindMidCommitActivity)
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
 
+	w.RegisterActivity(internal.FindAvailableBotsActivity)
+	w.RegisterWorkflowWithOptions(internal.PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)
