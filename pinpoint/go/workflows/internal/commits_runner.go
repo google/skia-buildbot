@@ -93,7 +93,7 @@ func (cr *CommitRun) AllErrorValues(chart string) []float64 {
 // GetErrorValuesLocalActivity, and CollectValuesActivity into a read_values.go
 // Refactoring will depend on how pairwise invokes these functions, if at all.
 type CommitValues struct {
-	Commit midpoint.CombinedCommit
+	Commit *midpoint.CombinedCommit
 	Values []float64
 }
 
@@ -107,7 +107,7 @@ func GetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart strin
 	return &CommitValues{cr.Build.Commit, cr.AllErrorValues(chart)}, nil
 }
 
-func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit midpoint.CombinedCommit) (*workflows.Build, error) {
+func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *midpoint.CombinedCommit) (*workflows.Build, error) {
 	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "no target found for (%s, %s)", bot, benchmark)
@@ -180,7 +180,7 @@ func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmi
 func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*CommitRun, error) {
 	bctx := workflow.WithChildOptions(ctx, buildWorkflowOptions)
 
-	b, err := buildChrome(bctx, sc.PinpointJobID, sc.BotConfig, sc.Benchmark, *sc.CombinedCommit)
+	b, err := buildChrome(bctx, sc.PinpointJobID, sc.BotConfig, sc.Benchmark, sc.CombinedCommit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

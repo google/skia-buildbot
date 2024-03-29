@@ -88,7 +88,7 @@ type testMetadata struct {
 
 // commitData stores relevant metadata pertaining to the specific commit
 type commitData struct {
-	commit *midpoint.Commit
+	commit *ppb.Commit
 	build  *buildMetadata
 	tests  *testMetadata
 	values []float64
@@ -143,13 +143,13 @@ func (pp *pinpointHandlerImpl) Run(ctx context.Context, req *ppb.ScheduleBisectR
 	cdl := commitDataList{
 		commits: []*commitData{
 			{
-				commit: &midpoint.Commit{
+				commit: &ppb.Commit{
 					GitHash:       req.StartGitHash,
 					RepositoryUrl: chromiumSrcGit,
 				},
 			},
 			{
-				commit: &midpoint.Commit{
+				commit: &ppb.Commit{
 					GitHash:       req.EndGitHash,
 					RepositoryUrl: chromiumSrcGit,
 				},
@@ -501,7 +501,7 @@ func (c *commitData) notComparable() bool {
 // updateCommitsByResult takes the compare results and determines the next
 // steps in the workflow. Changes are made to CommitDataList depending
 // on what the compare verdict is.
-func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh *midpoint.MidpointHandler, res *compare.CompareResults, left, right int, req *ppb.ScheduleBisectRequest) (*midpoint.Commit, error) {
+func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backends.SwarmingClient, mh *midpoint.MidpointHandler, res *compare.CompareResults, left, right int, req *ppb.ScheduleBisectRequest) (*ppb.Commit, error) {
 	if left < 0 || right >= len(cdl.commits) {
 		return nil, skerr.Fmt("cannot update commitDataList with left %d and right %d index out of bounds", left, right)
 	}
@@ -519,8 +519,7 @@ func (cdl *commitDataList) updateCommitsByResult(ctx context.Context, sc backend
 // findMidpointOrCulprit updates the commitDataList with either a new midpoint
 // or returns a culprit if the midpoint is the same as the left commit
 // TODO(sunxiaodi@) create mock for MidpointHandler and create unit tests
-func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc *midpoint.MidpointHandler, left, right int) (
-	*midpoint.Commit, error) {
+func (cdl *commitDataList) findMidpointOrCulprit(ctx context.Context, mc *midpoint.MidpointHandler, left, right int) (*ppb.Commit, error) {
 	lcommit := cdl.commits[left].commit
 	rcommit := cdl.commits[right].commit
 	sklog.Debugf("commit left %s vs commit right %s", lcommit.GitHash[:7], rcommit.GitHash[:7])

@@ -34,7 +34,7 @@ type BuildChromeParams struct {
 	// This is usually the pinpoint job ID.
 	WorkflowID string
 	// Commit is the chromium commit hash.
-	Commit midpoint.CombinedCommit
+	Commit *midpoint.CombinedCommit
 	// Device is the name of the device, e.g. "linux-perf".
 	Device string
 	// Target is name of the build isolate target

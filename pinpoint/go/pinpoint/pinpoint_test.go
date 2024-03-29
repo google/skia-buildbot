@@ -102,13 +102,13 @@ func TestShouldContinue(t *testing.T) {
 			cdl := commitDataList{
 				commits: []*commitData{
 					{
-						commit: &midpoint.Commit{
+						commit: &ppb.Commit{
 							GitHash:       "start commit",
 							RepositoryUrl: chromiumSrcGit,
 						},
 					},
 					{
-						commit: &midpoint.Commit{
+						commit: &ppb.Commit{
 							GitHash:       "end commit",
 							RepositoryUrl: chromiumSrcGit,
 						},
@@ -324,7 +324,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 
 	Convey(`OK`, t, func() {
 		c := &commitData{
-			commit: &midpoint.Commit{
+			commit: &ppb.Commit{
 				GitHash: "commit hash",
 			},
 			build: &buildMetadata{
@@ -378,7 +378,7 @@ func TestScheduleRunBenchmark(t *testing.T) {
 		})
 		Convey(`When client fails to start new tasks`, func() {
 			c := &commitData{
-				commit: &midpoint.Commit{
+				commit: &ppb.Commit{
 					GitHash: "commit hash",
 				},
 				build: &buildMetadata{
@@ -461,7 +461,7 @@ func TestPollTests(t *testing.T) {
 			cdl := commitDataList{
 				commits: []*commitData{
 					{
-						commit: &midpoint.Commit{
+						commit: &ppb.Commit{
 							GitHash: "fake-git-string",
 						},
 						tests: &testMetadata{
@@ -490,7 +490,7 @@ func TestPollTests(t *testing.T) {
 			cdl := commitDataList{
 				commits: []*commitData{
 					{
-						commit: &midpoint.Commit{
+						commit: &ppb.Commit{
 							GitHash: "fake-git-string",
 						},
 						tests: &testMetadata{
@@ -520,7 +520,7 @@ func TestPollTests(t *testing.T) {
 		cdl := commitDataList{
 			commits: []*commitData{
 				{
-					commit: &midpoint.Commit{
+					commit: &ppb.Commit{
 						GitHash: "fake-git-string",
 					},
 					tests: &testMetadata{
@@ -813,7 +813,7 @@ func TestUpdateUnknown(t *testing.T) {
 		cdl := commitDataList{
 			commits: []*commitData{
 				{
-					commit: &midpoint.Commit{
+					commit: &ppb.Commit{
 						GitHash: "left-hash",
 					},
 					build: &buildMetadata{
@@ -827,7 +827,7 @@ func TestUpdateUnknown(t *testing.T) {
 					tests: &testMetadata{},
 				},
 				{
-					commit: &midpoint.Commit{
+					commit: &ppb.Commit{
 						GitHash: "right-hash",
 					},
 					build: &buildMetadata{

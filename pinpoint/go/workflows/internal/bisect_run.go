@@ -26,7 +26,7 @@ func newBisectRun(cc *midpoint.CombinedCommit) *BisectRun {
 		CommitRun: CommitRun{
 			Build: &workflows.Build{
 				BuildChromeParams: workflows.BuildChromeParams{
-					Commit: *cc,
+					Commit: cc,
 				},
 			},
 			Runs: make([]*workflows.TestRun, 0, benchmarkRunIterations[1]),
@@ -65,7 +65,7 @@ func (br *BisectRun) scheduleRuns(ctx workflow.Context, jobID string, p workflow
 		// nothing to schedule, safely return
 		return nil, nil
 	}
-	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, &br.Build.Commit))
+	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, br.Build.Commit))
 	br.ScheduledRuns = append(br.ScheduledRuns, scheduledRun{
 		childWorkflow:  cf,
 		scheduledCount: uint32(newRuns),

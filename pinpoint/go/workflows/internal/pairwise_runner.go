@@ -72,7 +72,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
 	runs := []struct {
-		cc  midpoint.CombinedCommit
+		cc  *midpoint.CombinedCommit
 		cas *swarmingV1.SwarmingRpcsCASReference
 		ch  workflow.Channel
 	}{
@@ -98,7 +98,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 			for _, idx := range orders[pairIdx] {
 				// TODO(viditchitkara@): append bot id to the dimension so they only run on the given bot.
-				tr, err := runBenchmark(gCtx, &runs[idx].cc, runs[idx].cas, &pc.SingleCommitRunnerParams)
+				tr, err := runBenchmark(gCtx, runs[idx].cc, runs[idx].cas, &pc.SingleCommitRunnerParams)
 				if err != nil {
 					ec.Send(gCtx, err)
 					continue

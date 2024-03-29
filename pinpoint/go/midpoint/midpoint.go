@@ -12,6 +12,8 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
@@ -19,18 +21,8 @@ const (
 	chromiumSrcGit          = "https://chromium.googlesource.com/chromium/src.git"
 )
 
-// A Commit represents a commit of a given repository.
-// TODO(jeffyoon@) - Reorganize this into a types folder.
-type Commit struct {
-	// GitHash is the Git SHA1 hash to build for the project.
-	GitHash string
-
-	// RepositoryUrl is the url to the repository, ie/ https://chromium.googlesource.com/chromium/src
-	RepositoryUrl string
-}
-
-func NewChromiumCommit(h string) *Commit {
-	return &Commit{
+func NewChromiumCommit(h string) *pb.Commit {
+	return &pb.Commit{
 		GitHash:       h,
 		RepositoryUrl: chromiumSrcGit,
 	}
@@ -40,19 +32,7 @@ func NewChromiumCommit(h string) *Commit {
 // overrides as part of the build request.
 // For example, if Commit is chromium/src@1, Dependency may be V8@2 which is passed
 // along to Buildbucket as a deps_revision_overrides.
-type CombinedCommit struct {
-	// Main is the main base commit, usually a Chromium commit.
-	Main *Commit
-	// ModifiedDeps is a list of commits by repository url to provide as overrides, ie/ V8.
-	ModifiedDeps ModifiedDeps
-}
-
-type ModifiedDeps []*Commit
-
-// GetLatest returns the most recently added commit.
-func (m ModifiedDeps) GetLatest() *Commit {
-	return m[len(m)-1]
-}
+type CombinedCommit pb.CombinedCommit
 
 // TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
 // DepsToMap translates all deps into a map.
@@ -99,14 +79,14 @@ func (cc *CombinedCommit) Clone() *CombinedCommit {
 		return &CombinedCommit{}
 	}
 	newCombinedCommit := &CombinedCommit{
-		Main: &Commit{
+		Main: &pb.Commit{
 			RepositoryUrl: cc.Main.RepositoryUrl,
 			GitHash:       cc.Main.GitHash,
 		},
 	}
 
 	if cc.ModifiedDeps != nil {
-		newModDeps := make([]*Commit, len(cc.ModifiedDeps))
+		newModDeps := make([]*pb.Commit, len(cc.ModifiedDeps))
 		copy(newModDeps, cc.ModifiedDeps)
 		newCombinedCommit.ModifiedDeps = newModDeps
 	}
@@ -115,14 +95,14 @@ func (cc *CombinedCommit) Clone() *CombinedCommit {
 }
 
 // UpsertModifiedDep inserts or updates a commit to ModifiedDeps
-func (cc *CombinedCommit) UpsertModifiedDep(commit *Commit) {
+func (cc *CombinedCommit) UpsertModifiedDep(commit *pb.Commit) {
 	// This operation is O(n) but is bound worst case by min(the number of
 	// git-based dependencies a repository supports, bisection iterations)
 	// so this should be okay. At the time of implementation, there are ~250
 	// git-based repositories, and Catapult supports 30 bisection iterations,
 	// so O(30).
 	if cc.ModifiedDeps == nil {
-		cc.ModifiedDeps = []*Commit{commit}
+		cc.ModifiedDeps = []*pb.Commit{commit}
 		return
 	}
 	for _, mc := range cc.ModifiedDeps {
@@ -136,8 +116,16 @@ func (cc *CombinedCommit) UpsertModifiedDep(commit *Commit) {
 	return
 }
 
+// GetLatestModifiedDep returns the most recently added commit.
+func (cc *CombinedCommit) GetLatestModifiedDep() *pb.Commit {
+	if cc.ModifiedDeps == nil || len(cc.ModifiedDeps) == 0 {
+		return nil
+	}
+	return cc.ModifiedDeps[len(cc.ModifiedDeps)-1]
+}
+
 // NewCombinedCommit returns a new CombinedCommit object.
-func NewCombinedCommit(main *Commit, deps ...*Commit) *CombinedCommit {
+func NewCombinedCommit(main *pb.Commit, deps ...*pb.Commit) *CombinedCommit {
 	return &CombinedCommit{
 		Main:         main,
 		ModifiedDeps: deps,
@@ -185,8 +173,8 @@ func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 }
 
 // findMidpoint finds the median commit between two commits.
-func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
-	startGitHash, endGitHash := startCommit.GitHash, endCommit.GitHash
+func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
+	startGitHash, endGitHash := startCommit.GetGitHash(), endCommit.GetGitHash()
 	url := startCommit.RepositoryUrl
 
 	if startGitHash == endGitHash {
@@ -225,15 +213,15 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 
 	nextHash := mlc.ShortCommit.Hash
 	sklog.Debugf("Next midpoint commit: %s", nextHash)
-	return &Commit{
+	return &pb.Commit{
 		RepositoryUrl: url,
 		GitHash:       nextHash,
 	}, nil
 }
 
 // fetchGitDeps fetches all the git-based dependencies as a repo-Commit map.
-func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *Commit) (map[string]*Commit, error) {
-	denormalized := make(map[string]*Commit, 0)
+func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *pb.Commit) (map[string]*pb.Commit, error) {
+	denormalized := make(map[string]*pb.Commit, 0)
 
 	gc := m.getOrCreateRepo(commit.RepositoryUrl)
 	content, err := gc.ReadFileAtRef(ctx, "DEPS", commit.GitHash)
@@ -262,7 +250,7 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *Commit) (map
 		}
 		// We want it in https://{DepsEntry.Id} format, without the .git
 		u, _ := url.JoinPath("https://", id)
-		denormalized[u] = &Commit{
+		denormalized[u] = &pb.Commit{
 			RepositoryUrl: u,
 			GitHash:       depsEntry.Version,
 		}
@@ -272,7 +260,7 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *Commit) (map
 }
 
 // findMidCommitInDEPS finds the median git hash from the delta of the DEPS contents at both commits.
-func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
+func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
 		return nil, skerr.Fmt("two commits are from different repos and deps cannot be compared")
 	}
@@ -341,7 +329,7 @@ func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, 
 // In other words, it fetches the DEPS file at baseCommit, and finds the git hash for targetRepoUrl.
 // It returns a Commit that can be used to search for middle commit in the DEPS and then construct
 // a CombinedCommit to build Chrome with modified DEPS.
-func (m *MidpointHandler) findDepsCommit(ctx context.Context, baseCommit *Commit, targetRepoUrl string) (*Commit, error) {
+func (m *MidpointHandler) findDepsCommit(ctx context.Context, baseCommit *pb.Commit, targetRepoUrl string) (*pb.Commit, error) {
 	deps, err := m.fetchGitDeps(ctx, baseCommit)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -367,12 +355,14 @@ func (m *MidpointHandler) findDepsCommit(ctx context.Context, baseCommit *Commit
 //	  * Blink would be filled from WRT above.
 //	... and so on.
 func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *CombinedCommit) error {
+	// TODO(jeffyoon@) potential for nil pointer here if len() == 0. Unlikely with current usage.
+	// Likely will be reworked with the logic change outlined in comment above.
 	if len(end.ModifiedDeps) > len(start.ModifiedDeps) {
-		targetDepRepoUrl := end.ModifiedDeps.GetLatest().RepositoryUrl
+		targetDepRepoUrl := end.GetLatestModifiedDep().RepositoryUrl
 
 		refCommit := start.Main
 		if len(start.ModifiedDeps) > 0 {
-			refCommit = start.ModifiedDeps.GetLatest()
+			refCommit = start.GetLatestModifiedDep()
 		}
 		smd, err := m.findDepsCommit(ctx, refCommit, targetDepRepoUrl)
 		if err != nil {
@@ -381,11 +371,11 @@ func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *Comb
 
 		start.ModifiedDeps = append(start.ModifiedDeps, smd)
 	} else if len(start.ModifiedDeps) > len(end.ModifiedDeps) {
-		targetDepRepoUrl := start.ModifiedDeps.GetLatest().RepositoryUrl
+		targetDepRepoUrl := start.GetLatestModifiedDep().RepositoryUrl
 
 		refCommit := end.Main
 		if len(end.ModifiedDeps) > 0 {
-			refCommit = end.ModifiedDeps.GetLatest()
+			refCommit = end.GetLatestModifiedDep()
 			sklog.Errorf("ref commit modified to %v", refCommit)
 		}
 		emd, err := m.findDepsCommit(ctx, refCommit, targetDepRepoUrl)
@@ -400,7 +390,7 @@ func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *Comb
 }
 
 // findMidCommit coordinates the search for finding the midpoint between the two commits.
-func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
+func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	midCommit, err := m.findMidpoint(ctx, startCommit, endCommit)
 	if err != nil {
 		return nil, err
@@ -455,7 +445,7 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 // one level. If the DEPS of DEPS has rolls, it will not continue to search.
 //
 // TODO(b/326352320) remove this once it's usage is updated in pinpoint/pinpoint.go
-func (m *MidpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *Commit) (*Commit, error) {
+func (m *MidpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
 		return nil, skerr.Fmt("two commits are from different repos")
 	}
@@ -539,8 +529,8 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 			return nil, skerr.Fmt("Failed to sync modified deps for both commits.")
 		}
 
-		startDep := startCommit.ModifiedDeps.GetLatest()
-		endDep := endCommit.ModifiedDeps.GetLatest()
+		startDep := startCommit.GetLatestModifiedDep()
+		endDep := endCommit.GetLatestModifiedDep()
 
 		midDepCommit, err := m.findMidCommit(ctx, startDep, endDep)
 		if err != nil {

@@ -78,13 +78,13 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 // FindMidCommitActivity is an Activity that finds the middle point of two commits.
 //
 // TODO(b/326352320): Move this into its own file.
-func FindMidCommitActivity(ctx context.Context, lower, higher midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
+func FindMidCommitActivity(ctx context.Context, lower, higher *midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Problem setting up default token source")
 	}
 	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).Client()
-	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, &lower, &higher)
+	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, lower, higher)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -118,7 +118,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 	jobID := uuid.New().String()
 	be = &pb.BisectExecution{
 		JobId:    jobID,
-		Culprits: []string{},
+		Culprits: []*pb.CombinedCommit{},
 	}
 
 	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
@@ -276,14 +276,14 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 				if mid.Key() == lower.Build.Commit.Key() {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference
-					be.Culprits = append(be.Culprits, higher.Build.Commit.GetMainGitHash())
+					be.Culprits = append(be.Culprits, (*pb.CombinedCommit)(higher.Build.Commit))
 					break
 				}
 
 				midRunIdx, midRun := tracker.newRun(mid)
 				mf, err := midRun.scheduleRuns(ctx, be.JobId, *p, nextRunSize(lower, midRun, minSampleSize))
 				if err != nil {
-					logger.Warn(fmt.Sprintf("Failed to schedule more runs for (%v): %v", *mid, err))
+					logger.Warn(fmt.Sprintf("Failed to schedule more runs for (%v): %v", mid, err))
 					break
 				}
 
@@ -292,7 +292,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 					pendings--
 					err := midRun.updateRuns(ctx, mf)
 					if err != nil {
-						logger.Warn(fmt.Sprintf("Failed to update runs for (%v): %v", *mid, err))
+						logger.Warn(fmt.Sprintf("Failed to update runs for (%v): %v", mid, err))
 						return
 					}
 					workflow.Go(ctx, func(gCtx workflow.Context) {

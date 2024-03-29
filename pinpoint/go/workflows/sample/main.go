@@ -86,10 +86,8 @@ func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
 		Story:             "browse:social:twitter_infinite_scroll:2018",
 		Chart:             "v8:gc:cycle:main_thread:young:atomic",
 		AggregationMethod: "mean",
-		CombinedCommit: &midpoint.CombinedCommit{
-			Main: &midpoint.Commit{GitHash: *commit},
-		},
-		Iterations: 3,
+		CombinedCommit:    midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
+		Iterations:        3,
 	}
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.SingleCommitRunner, p)
@@ -109,11 +107,9 @@ func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
 func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 	bcp := workflows.BuildChromeParams{
 		WorkflowID: "123",
-		Commit: midpoint.CombinedCommit{
-			Main: &midpoint.Commit{GitHash: *commit},
-		},
-		Device: "mac-m1_mini_2020-perf",
-		Target: "performance_test_suite",
+		Commit:     midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
+		Device:     "mac-m1_mini_2020-perf",
+		Target:     "performance_test_suite",
 	}
 	we, err := c.ExecuteWorkflow(context.Background(), defaultWorkflowOptions(), workflows.BuildChrome, bcp)
 	if err != nil {

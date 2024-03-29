@@ -19,7 +19,7 @@ func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*
 	return &CommitRun{
 		Build: &workflows.Build{
 			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: *p.CombinedCommit,
+				Commit: p.CombinedCommit,
 			},
 		},
 		Runs: make([]*workflows.TestRun, p.Iterations),

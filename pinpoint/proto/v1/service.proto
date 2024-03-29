@@ -69,9 +69,19 @@ message QueryBisectRequest {
 	string job_id = 1;
 }
 
+message Commit {
+	string git_hash = 1;
+	string repository_url = 2;
+}
+
+message CombinedCommit {
+	Commit main = 1;
+	repeated Commit modified_deps = 2;
+}
+
 message BisectExecution {
 	string job_id = 1;
-	repeated string culprits = 2;
+	repeated CombinedCommit culprits = 2;
 }
 
 // See LegacyJobResponse below
