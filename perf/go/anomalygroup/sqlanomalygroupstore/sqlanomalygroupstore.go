@@ -133,3 +133,89 @@ func (s *AnomalyGroupStore) LoadById(
 		CulpritIds:  culprit_ids,
 	}, nil
 }
+
+func (s *AnomalyGroupStore) UpdateBisectID(ctx context.Context, group_id string, bisection_id string) error {
+	if len(bisection_id) > 0 {
+		if _, err := uuid.Parse(bisection_id); err != nil {
+			err_msg := fmt.Sprintf("invalid UUID value for updating bisection_id column with value %s ", bisection_id)
+			return errors.New(err_msg)
+		}
+	}
+	statement := `
+		UPDATE
+			AnomalyGroups
+		SET
+			bisection_id=$1
+		WHERE
+			id=$2
+	`
+	if _, err := s.db.Exec(ctx, statement, bisection_id, group_id); err != nil {
+		return fmt.Errorf(
+			"error updating bisection id for anomaly group: %s. group_id: %s, bisect_id: %s",
+			err, group_id, bisection_id)
+	}
+	return nil
+}
+
+func (s *AnomalyGroupStore) UpdateReportedIssueID(ctx context.Context, group_id string, reported_issue_id string) error {
+	if len(reported_issue_id) > 0 {
+		if _, err := uuid.Parse(reported_issue_id); err != nil {
+			err_msg := fmt.Sprintf("invalid UUID value for updating reported_issue_id column with value %s ", reported_issue_id)
+			return errors.New(err_msg)
+		}
+	}
+	statement := `
+		UPDATE
+			AnomalyGroups
+		SET
+			reported_issue_id=$1
+		WHERE
+			id=$2
+	`
+	if _, err := s.db.Exec(ctx, statement, reported_issue_id, group_id); err != nil {
+		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
+	}
+	return nil
+}
+
+func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string) error {
+	if len(anomaly_id) > 0 {
+		if _, err := uuid.Parse(anomaly_id); err != nil {
+			err_msg := fmt.Sprintf("invalid UUID value for updating anomaly_id column with value %s ", anomaly_id)
+			return errors.New(err_msg)
+		}
+	}
+	statement := `
+		UPDATE
+			AnomalyGroups
+		SET
+			anomaly_ids=array_append(anomaly_ids, $1)
+		WHERE
+			id=$2
+	`
+	if _, err := s.db.Exec(ctx, statement, anomaly_id, group_id); err != nil {
+		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
+	}
+	return nil
+}
+
+func (s *AnomalyGroupStore) AddCulpritIDs(ctx context.Context, group_id string, culprit_ids []string) error {
+	for _, v := range culprit_ids {
+		if _, err := uuid.Parse(v); err != nil {
+			err_msg := fmt.Sprintf("invalid UUID value for updating culprit_ids column with value %s ", culprit_ids)
+			return errors.New(err_msg)
+		}
+	}
+	statement := `
+		UPDATE
+			AnomalyGroups
+		SET
+			culprit_ids=array_cat(culprit_ids, $1)
+		WHERE
+			id=$2
+	`
+	if _, err := s.db.Exec(ctx, statement, culprit_ids, group_id); err != nil {
+		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
+	}
+	return nil
+}

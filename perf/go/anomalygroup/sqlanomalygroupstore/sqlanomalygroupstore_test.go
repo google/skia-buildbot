@@ -100,3 +100,177 @@ func TestLoadByID_NoRow(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no rows")
 }
+
+func TestUpdateBisectID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.UpdateBisectID(ctx, new_group_id,
+		"3cb85993-d0a8-452e-86ec-cb5154aada9c")
+	require.NoError(t, err)
+
+	group, err2 := store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, "report", group.GroupAction)
+}
+
+func TestUpdateBisectID_InvalidID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.UpdateBisectID(ctx, new_group_id,
+		"3cb85993-d0a8-452e-86ec-cb5154aada=")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid UUID value")
+}
+
+func TestUpdateReportedIssueID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.UpdateReportedIssueID(ctx, new_group_id,
+		"24fa5591-946b-44e4-bf09-3fd271588ee5")
+	require.NoError(t, err)
+
+	group, err2 := store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, "report", group.GroupAction)
+}
+
+func TestUpdateReportedIssueID_InvalidID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.UpdateReportedIssueID(ctx, new_group_id,
+		"24fa5591-946b-44e4-bf09-3fd271588e=")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid UUID value")
+}
+
+func TestAddAnomalyID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.AddAnomalyID(ctx, new_group_id,
+		"b1fb4036-1883-4d9e-85d4-ed607629017a")
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id,
+		"a60414c6-2495-4ef7-834a-829b1a929100")
+	require.NoError(t, err)
+
+	group, err2 := store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, []string{
+		"b1fb4036-1883-4d9e-85d4-ed607629017a",
+		"a60414c6-2495-4ef7-834a-829b1a929100"}, group.AnomalyIds)
+}
+
+func TestAddAnomalyID_InvalidID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.AddAnomalyID(ctx, new_group_id,
+		"b1fb4036-1883-4d9e-85d4-ed60762901=")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid UUID value")
+}
+
+func TestAddCulpitIDs(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.AddCulpritIDs(ctx, new_group_id,
+		[]string{"ffd48105-ce5a-425e-982a-fb4221c46f21"})
+	require.NoError(t, err)
+	err = store.AddCulpritIDs(ctx, new_group_id,
+		[]string{
+			"8b4b1f1a-0c26-4c1c-a1c5-e938da8ab072",
+			"9e828fc2-063b-40b8-947f-412883b0c82e"})
+	require.NoError(t, err)
+
+	group, err2 := store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, []string{
+		"ffd48105-ce5a-425e-982a-fb4221c46f21",
+		"8b4b1f1a-0c26-4c1c-a1c5-e938da8ab072",
+		"9e828fc2-063b-40b8-947f-412883b0c82e"}, group.CulpritIds)
+}
+
+func TestAddCulpitIDs_InvalidID(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.AddCulpritIDs(ctx, new_group_id,
+		[]string{
+			"8b4b1f1a-0c26-4c1c-a1c5-e938da8ab0=",
+			"9e828fc2-063b-40b8-947f-412883b0c82e"})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid UUID value")
+}
+
+// This is the placeholder for the deduplicate work in the future.
+// Currently we do not check existing IDs before merging.
+func TestAddIDs_DuplicateIDs(t *testing.T) {
+	store, _ := setUp(t)
+	ctx := context.Background()
+
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	require.NoError(t, err)
+	assert.NotEmpty(t, new_group_id)
+
+	err = store.AddAnomalyID(ctx, new_group_id,
+		"b1fb4036-1883-4d9e-85d4-ed607629017a")
+	require.NoError(t, err)
+	err = store.AddAnomalyID(ctx, new_group_id,
+		"b1fb4036-1883-4d9e-85d4-ed607629017a")
+	require.NoError(t, err)
+	group, err2 := store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, []string{
+		"b1fb4036-1883-4d9e-85d4-ed607629017a",
+		"b1fb4036-1883-4d9e-85d4-ed607629017a"}, group.AnomalyIds)
+
+	err = store.AddCulpritIDs(ctx, new_group_id,
+		[]string{"ffd48105-ce5a-425e-982a-fb4221c46f21"})
+	require.NoError(t, err)
+	err = store.AddCulpritIDs(ctx, new_group_id,
+		[]string{"ffd48105-ce5a-425e-982a-fb4221c46f21"})
+	require.NoError(t, err)
+	group, err2 = store.LoadById(ctx, new_group_id)
+	require.NoError(t, err2)
+	assert.Equal(t, []string{
+		"ffd48105-ce5a-425e-982a-fb4221c46f21",
+		"ffd48105-ce5a-425e-982a-fb4221c46f21"}, group.CulpritIds)
+}

@@ -14,6 +14,42 @@ type Store struct {
 	mock.Mock
 }
 
+// AddAnomalyID provides a mock function with given fields: ctx, group_id, anomaly_id
+func (_m *Store) AddAnomalyID(ctx context.Context, group_id string, anomaly_id string) error {
+	ret := _m.Called(ctx, group_id, anomaly_id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddAnomalyID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, group_id, anomaly_id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// AddCulpritIDs provides a mock function with given fields: ctx, group_id, culprit_ids
+func (_m *Store) AddCulpritIDs(ctx context.Context, group_id string, culprit_ids []string) error {
+	ret := _m.Called(ctx, group_id, culprit_ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddCulpritIDs")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
+		r0 = rf(ctx, group_id, culprit_ids)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Create provides a mock function with given fields: ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action
 func (_m *Store) Create(ctx context.Context, subscription_name string, subscription_revision string, domain_name string, benchmark_name string, start_commit int64, end_commit int64, action string) (string, error) {
 	ret := _m.Called(ctx, subscription_name, subscription_revision, domain_name, benchmark_name, start_commit, end_commit, action)
@@ -70,6 +106,42 @@ func (_m *Store) LoadById(ctx context.Context, group_id string) (*v1.AnomalyGrou
 	}
 
 	return r0, r1
+}
+
+// UpdateBisectID provides a mock function with given fields: ctx, group_id, bisection_id
+func (_m *Store) UpdateBisectID(ctx context.Context, group_id string, bisection_id string) error {
+	ret := _m.Called(ctx, group_id, bisection_id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateBisectID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, group_id, bisection_id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateReportedIssueID provides a mock function with given fields: ctx, group_id, reported_issue_id
+func (_m *Store) UpdateReportedIssueID(ctx context.Context, group_id string, reported_issue_id string) error {
+	ret := _m.Called(ctx, group_id, reported_issue_id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateReportedIssueID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, group_id, reported_issue_id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
