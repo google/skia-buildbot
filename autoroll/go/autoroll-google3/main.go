@@ -22,6 +22,11 @@ import (
 	"google.golang.org/api/option"
 )
 
+const (
+	webhookSecretProject = "skia-infra-public"
+	webhookSecretName    = "autoroll-google3-webhook-salt"
+)
+
 // flags
 var (
 	rollerName        = flag.String("roller_name", "", "Name of the roller.")
@@ -41,10 +46,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 	defer common.Defer()
-
-	if *webhookSalt == "" {
-		sklog.Fatal("--webhook_request_salt is required.")
-	}
 
 	// Create the config. A lot of functionality requires an actual config
 	// struct, so we fake most of it here.
@@ -106,8 +107,10 @@ func main() {
 	}
 
 	r := chi.NewRouter()
-	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
-		sklog.Fatal(err)
+	if *webhookSalt == "" {
+		webhook.MustInitRequestSaltFromFile(*webhookSalt)
+	} else {
+		webhook.MustInitRequestSaltFromSecret(webhookSecretProject, webhookSecretName)
 	}
 	statusDB, err := status.NewDB(ctx, firestore.FIRESTORE_PROJECT, namespace, *firestoreInstance, ts)
 	if err != nil {

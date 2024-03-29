@@ -7,6 +7,7 @@ package webhook
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"os"
 
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -86,6 +88,32 @@ func InitRequestSaltFromFile(filename string) error {
 // Should be called once at startup.
 func MustInitRequestSaltFromFile(filename string) {
 	if err := InitRequestSaltFromFile(filename); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+// InitRequestSaltFromSecret reads requestSalt from the specified GCP secret
+// and returns any error encountered. Should be called once at startup.
+func InitRequestSaltFromSecret(project, secretName string) error {
+	ctx := context.Background()
+	secretClient, err := secret.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	saltBase64, err := secretClient.Get(ctx, project, secretName, secret.VersionLatest)
+	if err != nil {
+		return err
+	}
+	if err := setRequestSaltFromBase64([]byte(saltBase64)); err != nil {
+		return fmt.Errorf("Could not decode salt from %s: %s", secretName, err)
+	}
+	return nil
+}
+
+// MustInitRequestSaltFromSecret reads requestSalt from the specified GCP
+// secret. Exits the program on error. Should be called once at startup.
+func MustInitRequestSaltFromSecret(project, secret string) {
+	if err := InitRequestSaltFromSecret(project, secret); err != nil {
 		sklog.Fatal(err)
 	}
 }
