@@ -20,6 +20,8 @@ import (
 	"go.skia.org/infra/go/sql/schema"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
+	"go.skia.org/infra/perf/go/anomalygroup"
+	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
@@ -245,6 +247,20 @@ func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, loca
 	// We currently default to Google Cloud Storage, but Config options could be
 	// added to use other systems, such as S3.
 	return gcs.New(ctx, local)
+}
+
+// NewAnomalyGroupStoreFromConfig creates a new anomalygroup.Store from the
+// InstanceConfig which provides access to the anomalygroup data.
+func NewAnomalyGroupStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (anomalygroup.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.CockroachDBDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return ag_store.New(db)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewCulpritStoreFromConfig creates a new culprit.Store from the

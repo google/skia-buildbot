@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: service.proto
+// source: anomalygroup_service.proto
 
 package v1
 
@@ -229,5 +229,5 @@ var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "service.proto",
+	Metadata: "anomalygroup_service.proto",
 }

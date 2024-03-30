@@ -8,6 +8,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/grpcsp"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/anomalygroup"
+	ag_service "go.skia.org/infra/perf/go/anomalygroup/service"
 	"go.skia.org/infra/perf/go/backend/shared"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
@@ -43,7 +45,7 @@ type BackendService interface {
 }
 
 // initialize initializes the Backend application.
-func (b *Backend) initialize(culpritStore culprit.Store) error {
+func (b *Backend) initialize(anomalgroupStore anomalygroup.Store, culpritStore culprit.Store) error {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(&b.promPort),
@@ -61,6 +63,13 @@ func (b *Backend) initialize(culpritStore culprit.Store) error {
 	}
 
 	sklog.Info("Creating entity stores.")
+	if anomalgroupStore == nil {
+		anomalgroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
+		if err != nil {
+			sklog.Errorf("Error creating anomalgroup store. %s", err)
+			return err
+		}
+	}
 	if culpritStore == nil {
 		culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -74,6 +83,7 @@ func (b *Backend) initialize(culpritStore culprit.Store) error {
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
+		ag_service.New(anomalgroupStore),
 		culprit_service.New(culpritStore),
 	}
 	err = b.registerServices(services)
@@ -145,7 +155,10 @@ func (b *Backend) ServeGRPC() error {
 }
 
 // New creates a new instance of Backend application.
-func New(flags *config.BackendFlags, culpritStore culprit.Store) (*Backend, error) {
+func New(flags *config.BackendFlags,
+	anomalygroupStore anomalygroup.Store,
+	culpritStore culprit.Store,
+) (*Backend, error) {
 	opts := []grpc.ServerOption{}
 	b := &Backend{
 		configFileName:   flags.ConfigFilename,
@@ -155,7 +168,7 @@ func New(flags *config.BackendFlags, culpritStore culprit.Store) (*Backend, erro
 		serverAuthPolicy: grpcsp.Server(),
 	}
 
-	err := b.initialize(culpritStore)
+	err := b.initialize(anomalygroupStore, culpritStore)
 	return b, err
 }
 
