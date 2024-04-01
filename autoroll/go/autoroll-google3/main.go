@@ -107,7 +107,7 @@ func main() {
 	}
 
 	r := chi.NewRouter()
-	if *webhookSalt == "" {
+	if *webhookSalt != "" {
 		webhook.MustInitRequestSaltFromFile(*webhookSalt)
 	} else {
 		webhook.MustInitRequestSaltFromSecret(webhookSecretProject, webhookSecretName)
