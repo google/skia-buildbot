@@ -159,9 +159,6 @@ func (srv *Server) exampleStep(ctx context.Context) {
 			return true
 		})
 		status := errorsInResults(runResults)
-		if status == "" {
-			return nil
-		}
 		if !success {
 			sklog.Errorf("Failed to run https://fiddle.skia.org/c/@%s: %s", name, status)
 			srv.errorsInExamplesRun.Inc(1)
