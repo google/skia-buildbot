@@ -349,7 +349,7 @@ func main() {
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, *recipesCfgFile)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "fake-bb-url", "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.

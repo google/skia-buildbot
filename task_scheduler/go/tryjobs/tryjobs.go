@@ -2,25 +2,20 @@ package tryjobs
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	pubsub_api "cloud.google.com/go/pubsub"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/hashicorp/go-multierror"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
@@ -44,10 +39,6 @@ import (
 */
 
 const (
-	// API URLs
-	API_URL_PROD    = "https://cr-buildbucket.appspot.com/api/buildbucket/v1/"
-	API_URL_TESTING = "http://localhost:8008/api/buildbucket/v1/"
-
 	// Buildbucket buckets used for try jobs.
 	BUCKET_PRIMARY  = "skia.primary"
 	BUCKET_INTERNAL = "skia.internal"
@@ -81,26 +72,6 @@ const (
 	// We'll attempt to clean up Buildbucket builds which are older than this.
 	CLEANUP_AGE_THRESHOLD = 3 * time.Hour
 
-	// This error reason indicates that we already marked the build as
-	// finished.
-	BUILDBUCKET_API_ERROR_REASON_COMPLETED = "BUILD_IS_COMPLETED"
-
-	// This error reason indicates that something is wrong with the request. In
-	// particular, this is returned when we attempt to lease (a V1 behavior) a
-	// V2 build.
-	BUILDBUCKET_API_ERROR_REASON_INVALID_INPUT = "INVALID_INPUT"
-
-	// This error reason indicates that our lease on the build has expired.
-	BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED = "LEASE_EXPIRED"
-
-	secondsToMicros = 1000000
-	microsToNanos   = 1000
-
-	// In case the error is very verbose (e.g. bot_update output), only send a
-	// truncated cancel reason to Buildbucket to avoid exceeding limits in
-	// Buildbucket's DB.
-	maxCancelReasonLen = 1024
-
 	// buildAlreadyStartedErr is a substring of the error message returned by
 	// Buildbucket when we call StartBuild more than once for the same build.
 	buildAlreadyStartedErr = "has recorded another StartBuild with request id"
@@ -108,11 +79,6 @@ const (
 	// buildAlreadyFinishedErr is a substring of the error message returned by
 	// Buildbucket when we call UpdateBuild after the build has finished.
 	buildAlreadyFinishedErr = "cannot update an ended build"
-
-	// leaseExpiredErr is a substring of the error message returned by
-	// Buildbucket when we attempt to update the build after the lease has
-	// expired.
-	leaseExpiredErr = "Your lease might be expired"
 )
 
 var (
@@ -122,7 +88,6 @@ var (
 // TryJobIntegrator is responsible for communicating with Buildbucket to
 // trigger try jobs and report their results.
 type TryJobIntegrator struct {
-	bb                 *buildbucket_api.Service
 	bb2                buildbucket.BuildBucketInterface
 	buildbucketBucket  string
 	buildbucketProject string
@@ -139,14 +104,8 @@ type TryJobIntegrator struct {
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(ctx context.Context, buildbucketAPIURL, buildbucketProject, buildbucketTarget, buildbucketBucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache task_cfg_cache.TaskCfgCache, chr cacher.Cacher, gerrit gerrit.GerritInterface, pubsubClient pubsub.Client) (*TryJobIntegrator, error) {
-	bb, err := buildbucket_api.New(c)
-	if err != nil {
-		return nil, err
-	}
-	bb.BasePath = buildbucketAPIURL
+func NewTryJobIntegrator(ctx context.Context, buildbucketProject, buildbucketTarget, buildbucketBucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache task_cfg_cache.TaskCfgCache, chr cacher.Cacher, gerrit gerrit.GerritInterface, pubsubClient pubsub.Client) (*TryJobIntegrator, error) {
 	rv := &TryJobIntegrator{
-		bb:                 bb,
 		bb2:                buildbucket.NewClient(c),
 		buildbucketBucket:  buildbucketBucket,
 		buildbucketProject: buildbucketProject,
@@ -178,20 +137,6 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 			sklog.Error(err)
 		} else {
 			lvUpdate.Reset()
-		}
-	}, nil)
-	lvPoll := metrics2.NewLiveness("last_successful_poll_buildbucket_for_new_tryjobs")
-	cleanup.Repeat(POLL_INTERVAL, func(_ context.Context) {
-		// Explicitly ignore the passed-in context; this allows us to
-		// finish leasing jobs from Buildbucket and inserting them into
-		// the DB even if the context is canceled, which helps to
-		// prevent inconsistencies between Buildbucket and the Task
-		// Scheduler DB.
-		ctx := context.Background()
-		if err := t.Poll(ctx); err != nil {
-			sklog.Errorf("Failed to poll for new try jobs: %s", err)
-		} else {
-			lvPoll.Reset()
 		}
 	}, nil)
 	lvCleanup := metrics2.NewLiveness("last_successfull_buildbucket_cleanup")
@@ -242,7 +187,6 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 
 	// Divide up finished and unfinished Jobs.
 	finished := make([]*types.Job, 0, len(jobs))
-	unfinishedV1 := make([]*types.Job, 0, len(jobs))
 	unfinishedV2 := make([]*types.Job, 0, len(jobs))
 	for _, j := range jobs {
 		if j.Done() {
@@ -250,20 +194,13 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 		} else if isBBv2(j) {
 			unfinishedV2 = append(unfinishedV2, j)
 		} else {
-			unfinishedV1 = append(unfinishedV1, j)
+			sklog.Errorf("Build %d (job %s) looks like a Buildbucket V1 build, which is no longer supported.", j.BuildbucketBuildId, j.Id)
 		}
 	}
-	sklog.Infof("Have %d active try jobs; %d finished, %d unfinished (v1), %d unfinished (v2)", len(jobs), len(finished), len(unfinishedV1), len(unfinishedV2))
+	sklog.Infof("Have %d active try jobs; %d finished, %d unfinished (v2)", len(jobs), len(finished), len(unfinishedV2))
 
 	// Send heartbeats for unfinished Jobs.
-	var heartbeatErr error
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		heartbeatErr = t.sendHeartbeats(ctx, unfinishedV1)
-	}()
-
 	var pubsubErr error
 	wg.Add(1)
 	go func() {
@@ -276,9 +213,6 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	errs := t.jobsFinished(ctx, finished)
 
 	wg.Wait()
-	if heartbeatErr != nil {
-		errs = append(errs, heartbeatErr)
-	}
 	if pubsubErr != nil {
 		errs = append(errs, pubsubErr)
 	}
@@ -290,132 +224,9 @@ func (t *TryJobIntegrator) updateJobs(ctx context.Context) error {
 	return nil
 }
 
-// heartbeatJobSlice implements sort.Interface to sort Jobs by BuildbucketBuildId.
-type heartbeatJobSlice []*types.Job
-
-func (s heartbeatJobSlice) Len() int { return len(s) }
-
-func (s heartbeatJobSlice) Less(i, j int) bool {
-	return s[i].BuildbucketBuildId < s[j].BuildbucketBuildId
-}
-
-func (s heartbeatJobSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
 // isBBv2 returns true iff the Job was triggered using Buildbucket V2.
 func isBBv2(j *types.Job) bool {
 	return j.BuildbucketPubSubTopic != ""
-}
-
-// sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
-// Jobs.
-func (t *TryJobIntegrator) sendHeartbeats(ctx context.Context, jobs []*types.Job) error {
-	ctx, span := trace.StartSpan(ctx, "sendHeartbeats")
-	defer span.End()
-
-	// Sort the jobs by BuildbucketBuildId for consistency in testing.
-	sort.Sort(heartbeatJobSlice(jobs))
-
-	expiration := now.Now(ctx).Add(LEASE_DURATION).Unix() * secondsToMicros
-
-	errs := []error{}
-
-	// Send heartbeats for all leases.
-	sklog.Infof("Sending heartbeats for %d jobs...", len(jobs))
-	send := func(jobs []*types.Job) {
-		heartbeats := make([]*buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
-		for _, j := range jobs {
-			heartbeats = append(heartbeats, &buildbucket_api.LegacyApiHeartbeatBatchRequestMessageOneHeartbeat{
-				BuildId:           j.BuildbucketBuildId,
-				LeaseKey:          j.BuildbucketLeaseKey,
-				LeaseExpirationTs: expiration,
-			})
-		}
-		sklog.Infof("Sending heartbeat batch of %d jobs...", len(jobs))
-		resp, err := t.bb.HeartbeatBatch(&buildbucket_api.LegacyApiHeartbeatBatchRequestMessage{
-			Heartbeats: heartbeats,
-		}).Do()
-		if err != nil {
-			errs = append(errs, skerr.Wrapf(err, "failed to send heartbeat request"))
-			return
-		}
-		// Results should follow the same ordering as the jobs we sent.
-		if len(resp.Results) != len(jobs) {
-			errs = append(errs, skerr.Fmt("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
-			return
-		}
-		var retryLeaseJobs []*types.Job
-		var cancelJobs []*types.Job
-		var cancelReasons []string
-		for i, result := range resp.Results {
-			if result.Error != nil {
-				// Cancel the job.
-				if result.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
-					// This indicates that the build was canceled, eg. because
-					// a newer patchset was uploaded. This isn't an error, so we
-					// cancel the job but don't log an error.
-				} else if result.Error.Reason == BUILDBUCKET_API_ERROR_REASON_LEASE_EXPIRED {
-					retryLeaseJobs = append(retryLeaseJobs, jobs[i])
-				} else {
-					sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
-					cancelJobs = append(cancelJobs, jobs[i])
-					cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat with: %s", result.Error.Reason))
-				}
-			}
-		}
-		var cancelBuilds []int64
-		if len(retryLeaseJobs) > 0 {
-			sklog.Infof("Attempting to re-lease %d builds", len(retryLeaseJobs))
-			for _, job := range retryLeaseJobs {
-				leaseKey, bbError, err := t.tryLeaseV1Build(ctx, job.BuildbucketBuildId)
-				if err != nil && bbError != nil {
-					var errMsg string
-					if err != nil {
-						errMsg = err.Error()
-					} else if bbError != nil {
-						errMsg = bbError.Message
-					}
-					sklog.Errorf("Attempted to retry leasing job %s for build %d but failed; canceling: %s", job.Id, job.BuildbucketBuildId, errMsg)
-					cancelJobs = append(cancelJobs, job)
-					cancelReasons = append(cancelReasons, fmt.Sprintf("Buildbucket rejected heartbeat and failed to re-lease with: %s", errMsg))
-					cancelBuilds = append(cancelBuilds, job.BuildbucketBuildId)
-				} else {
-					sklog.Infof("Successfully re-leased job %s for build %d", job.Id, job.BuildbucketBuildId)
-					job.BuildbucketLeaseKey = leaseKey
-				}
-			}
-		}
-		if len(cancelJobs) > 0 {
-			sklog.Infof("Canceling %d jobs", len(cancelJobs))
-			if err := t.localCancelJobs(ctx, cancelJobs, cancelReasons); err != nil {
-				errs = append(errs, err)
-			}
-		}
-		if len(cancelBuilds) > 0 {
-			sklog.Infof("Canceling %d buildbucket builds", len(cancelBuilds))
-			for _, id := range cancelBuilds {
-				if err := t.remoteCancelV1Build(id, "failed to renew lease"); err != nil {
-					errs = append(errs, skerr.Wrapf(err, "failed to cancel build %d", id))
-				}
-			}
-		}
-	}
-
-	// Send heartbeats in batches.
-	for len(jobs) > 0 {
-		j := LEASE_BATCH_SIZE
-		if j > len(jobs) {
-			j = len(jobs)
-		}
-		send(jobs[:j])
-		jobs = jobs[j:]
-	}
-	sklog.Infof("Finished sending heartbeats.")
-	if len(errs) > 0 {
-		return skerr.Fmt("got errors sending heartbeats: %v", errs)
-	}
-	return nil
 }
 
 // sendPubSub sends an update to Buildbucket via Pub/Sub for a single Job.
@@ -508,45 +319,6 @@ func (t *TryJobIntegrator) localCancelJobs(ctx context.Context, jobs []*types.Jo
 	return nil
 }
 
-func (t *TryJobIntegrator) remoteCancelV1Build(buildId int64, msg string) error {
-	sklog.Warningf("Canceling Buildbucket build %d. Reason: %s", buildId, msg)
-	message := struct {
-		Message string `json:"message"`
-	}{
-		Message: util.Truncate(msg, maxCancelReasonLen),
-	}
-	b, err := json.Marshal(&message)
-	if err != nil {
-		return err
-	}
-	resp, err := t.bb.Cancel(buildId, &buildbucket_api.LegacyApiCancelRequestBodyMessage{
-		ResultDetailsJson: string(b),
-	}).Do()
-	if err != nil {
-		return err
-	}
-	if resp.Error != nil {
-		return fmt.Errorf(resp.Error.Message)
-	}
-	return nil
-}
-
-func (t *TryJobIntegrator) tryLeaseV1Build(ctx context.Context, id int64) (int64, *buildbucket_api.LegacyApiErrorMessage, error) {
-	expiration := now.Now(ctx).Add(LEASE_DURATION_INITIAL).Unix() * secondsToMicros
-	sklog.Infof("Attempting to lease build %d", id)
-	resp, err := t.bb.Lease(id, &buildbucket_api.LegacyApiLeaseRequestBodyMessage{
-		LeaseExpirationTs: expiration,
-	}).Do()
-	if err != nil {
-		return 0, nil, skerr.Wrapf(err, "failed request to lease buildbucket build %d", id)
-	}
-	leaseKey := int64(0)
-	if resp.Build != nil {
-		leaseKey = resp.Build.LeaseKey
-	}
-	return leaseKey, resp.Error, nil
-}
-
 // findJobForBuild retrieves the Job associated with the given build. Returns
 // nil, nil if no build is found.
 func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*types.Job, error) {
@@ -564,111 +336,6 @@ func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*type
 		return foundJobs[0], nil
 	}
 	return nil, nil
-}
-
-func (t *TryJobIntegrator) insertNewJobV1(ctx context.Context, buildId int64) error {
-	// Determine whether we've already created a Job for this Build. Note that
-	// due to concurrency some Jobs may slip through, so this isn't fail-safe.
-	existingJob, err := t.findJobForBuild(ctx, buildId)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	if existingJob != nil {
-		sklog.Infof("Found existing Job for build %d; ignoring %s", buildId, existingJob.Id)
-		return nil
-	}
-
-	sklog.Infof("Creating job for build %d", buildId)
-
-	// Get the build details from the v2 API.
-	build, err := t.bb2.GetBuild(ctx, buildId)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to retrieve build %d", buildId)
-	}
-	if build.Status != buildbucketpb.Status_SCHEDULED {
-		sklog.Warningf("Found build %d with status: %s; attempting to lease anyway, to trigger the fix in Buildbucket.", build.Id, build.Status)
-		_, bbError, err := t.tryLeaseV1Build(ctx, buildId)
-		if err != nil || bbError != nil {
-			// This is expected.
-			return nil
-		}
-		sklog.Warningf("Unexpectedly able to lease build %d with status %s; canceling it.", buildId, build.Status)
-		if err := t.remoteCancelV1Build(buildId, fmt.Sprintf("Unexpected status %s", build.Status)); err != nil {
-			sklog.Warningf("Failed to cancel errant build %d", buildId)
-			return nil
-		}
-	}
-
-	// Obtain and validate the RepoState.
-	if build.Input.GerritChanges == nil || len(build.Input.GerritChanges) != 1 {
-		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Invalid Build %d: input should have exactly one GerritChanges: %+v", buildId, build.Input))
-	}
-	gerritChange := build.Input.GerritChanges[0]
-	repoUrl, ok := t.projectRepoMapping[gerritChange.Project]
-	if !ok {
-		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Unknown patch project %q", gerritChange.Project))
-	}
-	server := gerritChange.Host
-	if !strings.Contains(server, "://") {
-		server = fmt.Sprintf("https://%s", server)
-	}
-	rs := types.RepoState{
-		Patch: types.Patch{
-			Server:    server,
-			Issue:     strconv.FormatInt(gerritChange.Change, 10),
-			PatchRepo: repoUrl,
-			Patchset:  strconv.FormatInt(gerritChange.Patchset, 10),
-		},
-		Repo: repoUrl,
-		// We can't fill this out without retrieving the Gerrit ChangeInfo and
-		// resolving the branch to a commit hash. Defer that work until later.
-		Revision: "",
-	}
-	requested, err := ptypes.Timestamp(build.CreateTime)
-	if err != nil {
-		return t.remoteCancelV1Build(buildId, fmt.Sprintf("Failed to convert timestamp for %d: %s", build.Id, err))
-	}
-	j := &types.Job{
-		Name:               build.Builder.Builder,
-		BuildbucketBuildId: buildId,
-		Requested:          firestore.FixTimestamp(requested.UTC()),
-		Created:            firestore.FixTimestamp(now.Now(ctx)),
-		RepoState:          rs,
-		Status:             types.JOB_STATUS_REQUESTED,
-	}
-	if !j.Requested.Before(j.Created) {
-		sklog.Errorf("Try job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
-		j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)
-	}
-	// Attempt to lease the build.
-	leaseKey, bbError, err := t.tryLeaseV1Build(ctx, j.BuildbucketBuildId)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to lease build %d", j.BuildbucketBuildId)
-	} else if bbError != nil {
-		if bbError.Reason == BUILDBUCKET_API_ERROR_REASON_INVALID_INPUT {
-			// INVALID_INPUT probably means that this is a Buildbucket V2 build,
-			// which follows a different flow. Don't cancel the build.
-			sklog.Warningf("Failed to lease build %d; is this a Buildbucket V2 build?", j.BuildbucketBuildId)
-			return nil
-		} else {
-			// Note: we're just assuming that the only other reason Buildbucket
-			// would return an error is that the Build has been canceled. While this
-			// is the most likely reason, others are possible, and we may gain
-			// some information by reading the error and behaving accordingly.
-			return t.remoteCancelV1Build(buildId, fmt.Sprintf("Buildbucket refused lease with %q (%s)", bbError.Message, bbError.Reason))
-		}
-	} else if leaseKey == 0 {
-		return t.remoteCancelV1Build(buildId, "Buildbucket returned zero lease key")
-	}
-	j.BuildbucketLeaseKey = leaseKey
-
-	sklog.Infof("Inserting new job for build %d", buildId)
-	if err := t.db.PutJob(ctx, j); err != nil {
-		return t.remoteCancelV1Build(j.BuildbucketBuildId, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
-	}
-	t.jCache.AddJobs([]*types.Job{j})
-	sklog.Infof("Successfully created job %s for build %d", j.Id, buildId)
-	return nil
 }
 
 func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
@@ -721,10 +388,6 @@ func isBuildAlreadyStartedError(err error) bool {
 
 func isBuildAlreadyFinishedError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), buildAlreadyFinishedErr)
-}
-
-func isLeaseKeyExpiredError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), leaseExpiredErr)
 }
 
 func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
@@ -808,22 +471,13 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 
 	// Send the StartJob notification to notify Buildbucket that the Job has
 	// started. We'll check startJobErr below.
-	bbToken, bbError, err := t.jobStarted(ctx, job)
-	if isBuildAlreadyStartedError(err) || bbError != nil {
-		var cancelReason string
-		if isBuildAlreadyStartedError(err) {
-			cancelReason = "StartBuild has already been called for this Job, but the Job was not correctly updated and cannot continue."
-		} else {
-			// Note: we're just assuming that the only reason Buildbucket would
-			// return an error is that the Build has been canceled. While this
-			// is the most likely reason, others are possible, and we may gain
-			// some information by reading the error and behaving accordingly.
-			cancelReason = fmt.Sprintf("Buildbucket rejected Start with: %s", bbError.Reason)
-		}
+	bbToken, err := t.jobStarted(ctx, job)
+	if isBuildAlreadyStartedError(err) {
+		cancelReason := "StartBuild has already been called for this Job, but the Job was not correctly updated and cannot continue."
 		if cancelErr := t.localCancelJobs(ctx, []*types.Job{job}, []string{cancelReason}); cancelErr != nil {
-			return skerr.Wrapf(cancelErr, "failed to start job %s (build %d) with %q and failed to cancel job", job.Id, job.BuildbucketBuildId, bbError.Message)
+			return skerr.Wrapf(cancelErr, "failed to start job %s (build %d) with %q and failed to cancel job", job.Id, job.BuildbucketBuildId, err)
 		} else {
-			return skerr.Fmt("failed to start job %s (build %d) with %q", job.Id, job.BuildbucketBuildId, bbError.Message)
+			return skerr.Fmt("failed to start job %s (build %d) with %q", job.Id, job.BuildbucketBuildId, err)
 		}
 	} else if err != nil {
 		return skerr.Wrapf(err, "failed to send job-started notification for job %s (build %d)", job.Id, job.BuildbucketBuildId)
@@ -855,136 +509,18 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 	return startJobErr
 }
 
-func (t *TryJobIntegrator) Poll(ctx context.Context) error {
-	if err := t.jCache.Update(ctx); err != nil {
-		return skerr.Wrapf(err, "failed to update job cache")
-	}
-
-	// Grab all of the pending Builds from Buildbucket.
-	cursor := ""
-	errs := []error{}
-	var mtx sync.Mutex
-	for {
-		sklog.Infof("Running 'peek' on %s", t.buildbucketBucket)
-		resp, err := t.bb.Peek().Bucket(t.buildbucketBucket).MaxBuilds(PEEK_MAX_BUILDS).StartCursor(cursor).Do()
-		if err != nil {
-			errs = append(errs, err)
-			break
-		}
-		if resp.Error != nil {
-			errs = append(errs, fmt.Errorf(resp.Error.Message))
-			break
-		}
-		var wg sync.WaitGroup
-		for _, b := range resp.Builds {
-			wg.Add(1)
-			go func(b *buildbucket_api.LegacyApiCommonBuildMessage) {
-				defer wg.Done()
-				if err := t.insertNewJobV1(ctx, b.Id); err != nil {
-					mtx.Lock()
-					errs = append(errs, err)
-					mtx.Unlock()
-				}
-			}(b)
-		}
-		wg.Wait()
-		cursor = resp.NextCursor
-		if cursor == "" {
-			break
-		}
-	}
-
-	// Report any errors.
-	if len(errs) > 0 {
-		return skerr.Fmt("got errors loading builds from Buildbucket: %v", errs)
-	}
-
-	return nil
-}
-
 // jobStarted notifies Buildbucket that the given Job has started. Returns the
 // Buildbucket token returned by Buildbucket, any error object returned by
 // Buildbucket (eg. if the Build has been canceled), or any error which occurred
 // when attempting the request.
-func (t *TryJobIntegrator) jobStarted(ctx context.Context, j *types.Job) (string, *buildbucket_api.LegacyApiErrorMessage, error) {
+func (t *TryJobIntegrator) jobStarted(ctx context.Context, j *types.Job) (string, error) {
 	if isBBv2(j) {
 		sklog.Infof("bb2.Start for job %s (build %d)", j.Id, j.BuildbucketBuildId)
 		updateToken, err := t.bb2.StartBuild(ctx, j.BuildbucketBuildId, j.Id, j.BuildbucketToken)
-		return updateToken, nil, skerr.Wrap(err)
+		return updateToken, skerr.Wrap(err)
 	} else {
-		sklog.Infof("bb.Start for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-		resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.LegacyApiStartRequestBodyMessage{
-			LeaseKey: j.BuildbucketLeaseKey,
-			Url:      j.URL(t.host),
-		}).Do()
-		if err != nil {
-			return "", nil, skerr.Wrap(err)
-		}
-		return "", resp.Error, nil
+		return "", skerr.Fmt("Build %d (job %s) looks like a Buildbucket V1 build, which is no longer supported.", j.BuildbucketBuildId, j.Id)
 	}
-}
-
-// buildSucceededV1 sends a success notification to Buildbucket.
-func (t *TryJobIntegrator) buildSucceededV1(j *types.Job) error {
-	sklog.Infof("bb.Succeed for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	b, err := json.Marshal(struct {
-		Job *types.Job `json:"job"`
-	}{
-		Job: j,
-	})
-	if err != nil {
-		return err
-	}
-	resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.LegacyApiSucceedRequestBodyMessage{
-		LeaseKey:          j.BuildbucketLeaseKey,
-		ResultDetailsJson: string(b),
-		Url:               j.URL(t.host),
-	}).Do()
-	if err != nil {
-		return err
-	}
-	if resp.Error != nil {
-		if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
-			sklog.Warningf("Sent success status for build %d after completion.", j.BuildbucketBuildId)
-		} else {
-			return fmt.Errorf(resp.Error.Message)
-		}
-	}
-	return nil
-}
-
-// buildFailed sends a failure notification to Buildbucket.
-func (t *TryJobIntegrator) buildFailed(j *types.Job) error {
-	b, err := json.Marshal(struct {
-		Job *types.Job `json:"job"`
-	}{
-		Job: j,
-	})
-	if err != nil {
-		return err
-	}
-	failureReason := "BUILD_FAILURE"
-	if j.Status == types.JOB_STATUS_MISHAP {
-		failureReason = "INFRA_FAILURE"
-	}
-	sklog.Infof("bb.Fail for job %s (build %d)", j.Id, j.BuildbucketBuildId)
-	resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.LegacyApiFailRequestBodyMessage{
-		FailureReason:     failureReason,
-		LeaseKey:          j.BuildbucketLeaseKey,
-		ResultDetailsJson: string(b),
-		Url:               j.URL(t.host),
-	}).Do()
-	if err != nil {
-		return err
-	}
-	if resp.Error != nil {
-		if resp.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
-			sklog.Warningf("Sent failure status for build %d after completion.", j.BuildbucketBuildId)
-		} else {
-			return fmt.Errorf(resp.Error.Message)
-		}
-	}
-	return nil
 }
 
 func (t *TryJobIntegrator) updateBuild(ctx context.Context, j *types.Job) error {
@@ -1077,17 +613,7 @@ func (t *TryJobIntegrator) jobFinished(ctx context.Context, j *types.Job) error 
 			}
 		}
 	} else {
-		var err error
-		if j.Status == types.JOB_STATUS_SUCCESS {
-			err = t.buildSucceededV1(j)
-		} else {
-			err = t.buildFailed(j)
-		}
-		if isLeaseKeyExpiredError(err) {
-			sklog.Warningf("Lease key for build %d (job %s) expired; canceling the build", j.BuildbucketBuildId, j.Id)
-			return t.cancelBuild(ctx, j, "lease expired")
-		}
-		return skerr.Wrap(err)
+		return skerr.Fmt("Build %d (job %s) looks like a Buildbucket V1 build, which is no longer supported.", j.BuildbucketBuildId, j.Id)
 	}
 }
 
