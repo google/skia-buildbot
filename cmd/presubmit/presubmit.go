@@ -60,7 +60,8 @@ func main() {
 
 	filesWithDiffs := findUncommittedChanges(ctx)
 	if len(filesWithDiffs) > 0 {
-		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n", len(filesWithDiffs))
+		filesStr := strings.Join(filesWithDiffs, "\n")
+		logf(ctx, "Found uncommitted changes in %d files. Aborting.\n:%s", len(filesWithDiffs), filesStr)
 		os.Exit(1)
 	}
 	untrackedFiles := findUntrackedFiles(ctx)
