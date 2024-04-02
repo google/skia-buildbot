@@ -46,6 +46,7 @@ _validate_domain 3600 IN CNAME _validate_domain.pki.goog.
 ;;; These apps have been migrated to the skia-infra-public project.
 androidx2-perf           300      IN A 34.110.212.89
 autoroll                 300      IN A 34.110.212.89
+autoroll-google3         300      IN A 34.110.212.89
 bugs-central             300      IN A 34.110.212.89
 cabe                     300      IN A 34.110.212.89
 codesize                 300      IN A 34.110.212.89
