@@ -82,8 +82,6 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
-	// TODO(viditchitkara@): Build Chrome if they are not available
-	//	using pc.LeftBuild/RightBuild.BuildChromeParams
 	var botIds []string
 	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, pc.BotConfig).Get(ctx, &botIds); err != nil {
 		return nil, err
@@ -94,6 +92,20 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	ec := workflow.NewBufferedChannel(ctx, int(pc.Iterations))
 	wg := workflow.NewWaitGroup(ctx)
 	wg.Add(int(pc.Iterations))
+
+	// TODO(b/332391612): viditchitkara@ Build chrome for leftBuild and rightBuild in parallel
+	// to save time.
+	leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftBuild.Commit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftBuild.Commit.Main.GitHash)
+	}
+	pc.LeftBuild = *leftBuild
+
+	rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightBuild.Commit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightBuild.Commit.Main.GitHash)
+	}
+	pc.RightBuild = *rightBuild
 
 	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
 	runs := []struct {
