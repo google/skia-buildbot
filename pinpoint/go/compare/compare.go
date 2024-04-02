@@ -49,7 +49,7 @@ const (
 	// direction. Rather than infer it, we assume the direction
 	// is unknown and drill deeper on all statistically significant
 	// changes.
-	UnknownDir ImprovementDir = "Unknown"
+	UnknownDir ImprovementDir = "UnknownDir"
 	// Up means the improvement direction is increasing.
 	Up ImprovementDir = "Up"
 	// Down means the improvement direction is decreasing.
@@ -149,7 +149,7 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 // statistically same or unknown from each other based on the perceived
 // rawMagnitude difference between valuesA and valuesB using the performance
 // low and high thresholds.
-func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*CompareResults, error) {
+func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direction ImprovementDir) (*CompareResults, error) {
 	all_values := append(valuesA, valuesB...)
 	sort.Float64s(all_values)
 	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
@@ -167,9 +167,7 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64) (*Comp
 		return nil, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
 
-	// TODO(sunxiaodi@): after updating protos to accept improvement direction
-	// update this function to include the real improvement direction.
-	return compare(valuesA, valuesB, LowThreshold, HighThreshold, UnknownDir)
+	return compare(valuesA, valuesB, LowThreshold, HighThreshold, direction)
 }
 
 // compare decides whether two samples are the same, different, or unknown

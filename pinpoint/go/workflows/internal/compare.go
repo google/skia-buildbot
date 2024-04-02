@@ -19,11 +19,8 @@ type Result struct {
 }
 
 // ComparePerformanceActivity wraps compare.ComparePerformance as activity
-func ComparePerformanceActivity(ctx context.Context, valuesA, valuesB []float64, magnitude float64, _ compare.ImprovementDir) (*compare.CompareResults, error) {
-	// TODO(sunxiaodi@): integrate the improvement direction with ComparePerformance
-	// Record the improvement direction for now to ensure the argument is passed into
-	// the activity correctly.
-	return compare.ComparePerformance(valuesA, valuesB, magnitude)
+func ComparePerformanceActivity(ctx context.Context, valuesA, valuesB []float64, magnitude float64, direction compare.ImprovementDir) (*compare.CompareResults, error) {
+	return compare.ComparePerformance(valuesA, valuesB, magnitude, direction)
 }
 
 // CompareFunctionalActivity wraps compare.CompareFunctional as activity

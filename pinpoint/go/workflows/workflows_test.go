@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/pinpoint/go/compare"
 	pinpointpb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -36,4 +37,20 @@ func TestBisectParams_GetInitialAttempt(t *testing.T) {
 	assert.Zero(t, makeParam("string").GetInitialAttempt())
 	assert.Zero(t, makeParam("0").GetInitialAttempt())
 	assert.EqualValues(t, 50, makeParam("50").GetInitialAttempt())
+}
+
+func TestGetImprovementDirection_GivenDirection_ReturnsCorrectDirection(t *testing.T) {
+	test := func(direction string, expected compare.ImprovementDir) {
+		params := &BisectParams{
+			Request: &pinpointpb.ScheduleBisectRequest{
+				ImprovementDirection: direction,
+			},
+		}
+		assert.Equal(t, params.GetImprovementDirection(), expected)
+	}
+
+	test("UP", compare.Up)
+	test("Down", compare.Down)
+	test("UNKNOWN", compare.UnknownDir)
+	test("fake-dir", compare.UnknownDir)
 }

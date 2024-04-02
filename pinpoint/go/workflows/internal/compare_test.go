@@ -11,7 +11,7 @@ import (
 func TestComparePerformance_AsActivity_ShouldEqualComparePerformance(t *testing.T) {
 	test := func(name string, valuesA, valuesB []float64, magnitude float64) {
 		t.Run(name, func(t *testing.T) {
-			expected, err := compare.ComparePerformance(valuesA, valuesB, magnitude)
+			expected, err := compare.ComparePerformance(valuesA, valuesB, magnitude, compare.UnknownDir)
 			require.NoError(t, err)
 
 			testSuite := &testsuite.WorkflowTestSuite{}

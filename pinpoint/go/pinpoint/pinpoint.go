@@ -472,7 +472,7 @@ func (cdl commitDataList) compareNeighbor(left, right int, rawDiff float64) (*co
 		return nil, nil
 	}
 
-	return compare.ComparePerformance(cdl.commits[left].values, cdl.commits[right].values, rawDiff)
+	return compare.ComparePerformance(cdl.commits[left].values, cdl.commits[right].values, rawDiff, compare.UnknownDir)
 }
 
 // notComparable checks if a commit is still waiting on something to finish

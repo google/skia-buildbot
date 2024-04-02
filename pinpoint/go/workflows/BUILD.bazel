@@ -21,6 +21,7 @@ go_test(
     srcs = ["workflows_test.go"],
     embed = [":workflows"],
     deps = [
+        "//pinpoint/go/compare",
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//assert",
     ],

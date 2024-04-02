@@ -58,8 +58,9 @@ func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
 			Chart:               "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
 			ComparisonMagnitude: "786432.0",
 			// TODO(@sunxiaodi): support optional aggregation method
-			AggregationMethod: "mean",
-			Project:           "chromium",
+			AggregationMethod:    "mean",
+			Project:              "chromium",
+			ImprovementDirection: "DOWN",
 		},
 	}
 	var be *pb.BisectExecution

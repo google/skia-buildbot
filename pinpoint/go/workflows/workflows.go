@@ -3,6 +3,7 @@ package workflows
 
 import (
 	"strconv"
+	"strings"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -109,10 +110,10 @@ func (bp *BisectParams) GetInitialAttempt() int32 {
 //
 // Returns Unknown by default regardless of input.
 func (bp *BisectParams) GetImprovementDirection() compare.ImprovementDir {
-	switch bp.Request.ImprovementDirection {
-	case string(compare.Up):
+	switch strings.ToLower(bp.Request.ImprovementDirection) {
+	case strings.ToLower(string(compare.Up)):
 		return compare.Up
-	case string(compare.Down):
+	case strings.ToLower(string(compare.Down)):
 		return compare.Down
 	}
 	return compare.UnknownDir

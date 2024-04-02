@@ -61,7 +61,7 @@ func TestComparePerformance_GivenNoData_ReturnsError(t *testing.T) {
 	y := []float64{}
 	const magnitude = 1.0
 	const expected = Unknown
-	result, err := ComparePerformance(x, y, magnitude)
+	result, err := ComparePerformance(x, y, magnitude, UnknownDir)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result.Verdict)
 	assert.Zero(t, result.PValue)
@@ -70,18 +70,19 @@ func TestComparePerformance_GivenNoData_ReturnsError(t *testing.T) {
 func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
 	test := func(name string, x, y []float64, magnitude float64, expected Verdict) {
 		t.Run(name, func(t *testing.T) {
-			result, err := ComparePerformance(x, y, magnitude)
+			result, err := ComparePerformance(x, y, magnitude, UnknownDir)
 			assert.NoError(t, err)
 			assert.Equal(t, expected, result.Verdict)
-			if result.Verdict == Unknown {
+			switch result.Verdict {
+			case Unknown:
 				assert.LessOrEqual(t, result.PValue, result.HighThreshold)
 				assert.Greater(t, result.PValue, result.LowThreshold)
-			} else if result.Verdict == Same {
+			case Same:
 				assert.Greater(t, result.PValue, result.HighThreshold)
-			} else if result.Verdict == Different {
+			case Different:
 				assert.LessOrEqual(t, result.PValue, result.LowThreshold)
-			} else {
-				t.Errorf("Obtained non-existent verdict %s", result.Verdict)
+			default:
+				assert.Fail(t, "Unsupported verdict found %s", result.Verdict)
 			}
 		})
 	}
