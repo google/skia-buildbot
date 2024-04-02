@@ -22,6 +22,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS ParamSets;
 	DROP TABLE IF EXISTS Postings;
 	DROP TABLE IF EXISTS Regressions;
+	DROP TABLE IF EXISTS Regressions2;
 	DROP TABLE IF EXISTS Shortcuts;
 	DROP TABLE IF EXISTS SourceFiles;
 	DROP TABLE IF EXISTS Subscriptions;
@@ -93,6 +94,23 @@ const LiveSchema = `
 	regression TEXT,
 	PRIMARY KEY (commit_number, alert_id)
   );
+  CREATE TABLE IF NOT EXISTS Regressions2 (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	commit_number INT,
+	prev_commit_number INT,
+	alert_id INT,
+	creation_time TIMESTAMPTZ DEFAULT now(),
+	median_before REAL,
+	median_after REAL,
+	is_improvement BOOL,
+	cluster_type TEXT,
+	cluster_summary JSONB,
+	frame JSONB,
+	triage_status TEXT,
+	triage_message TEXT,
+	INDEX by_alert_id (alert_id),
+	INDEX by_commit_alert (commit_number, alert_id)
+  );
   CREATE TABLE IF NOT EXISTS Shortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	trace_ids TEXT
@@ -101,6 +119,16 @@ const LiveSchema = `
 	source_file_id INT PRIMARY KEY DEFAULT unique_rowid(),
 	source_file STRING UNIQUE NOT NULL,
 	INDEX by_source_file (source_file, source_file_id)
+  );
+  CREATE TABLE IF NOT EXISTS Subscriptions (
+	name STRING UNIQUE NOT NULL,
+	revision STRING NOT NULL,
+	bug_labels STRING ARRAY,
+	hotlists STRING ARRAY,
+	bug_component STRING,
+	bug_cc_emails STRING ARRAY,
+	contact_email STRING,
+	PRIMARY KEY(name, revision)
   );
   CREATE TABLE IF NOT EXISTS TraceValues (
 	trace_id BYTES,

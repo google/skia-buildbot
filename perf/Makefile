@@ -6,7 +6,11 @@ build: ./modules/json/index.ts
 
 # Requires the CockroachDB emulator to be running.
 generate_sql_schema:
+	cd ./go/sql; go run ./tosql
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
+
+run_cockroachdb_emulators:
+	../scripts/run_emulators/run_emulators start
 
 .PHONY: docs
 docs:

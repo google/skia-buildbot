@@ -66,6 +66,23 @@ CREATE TABLE IF NOT EXISTS Regressions (
   regression TEXT,
   PRIMARY KEY (commit_number, alert_id)
 );
+CREATE TABLE IF NOT EXISTS Regressions2 (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  commit_number INT,
+  prev_commit_number INT,
+  alert_id INT,
+  creation_time TIMESTAMPTZ DEFAULT now(),
+  median_before REAL,
+  median_after REAL,
+  is_improvement BOOL,
+  cluster_type TEXT,
+  cluster_summary JSONB,
+  frame JSONB,
+  triage_status TEXT,
+  triage_message TEXT,
+  INDEX by_alert_id (alert_id),
+  INDEX by_commit_alert (commit_number, alert_id)
+);
 CREATE TABLE IF NOT EXISTS Shortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   trace_ids TEXT
@@ -158,6 +175,22 @@ var Regressions = []string{
 	"commit_number",
 	"alert_id",
 	"regression",
+}
+
+var Regressions2 = []string{
+	"id",
+	"commit_number",
+	"prev_commit_number",
+	"alert_id",
+	"creation_time",
+	"median_before",
+	"median_after",
+	"is_improvement",
+	"cluster_type",
+	"cluster_summary",
+	"frame",
+	"triage_status",
+	"triage_message",
 }
 
 var Shortcuts = []string{

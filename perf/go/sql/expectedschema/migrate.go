@@ -34,20 +34,27 @@ import (
 //   - LiveSchema creates all existing tables *without* the new one in the
 //     change.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS Subscriptions (
-		name STRING UNIQUE NOT NULL,
-		revision STRING NOT NULL,
-		bug_labels STRING ARRAY,
-		hotlists STRING ARRAY,
-		bug_component STRING,
-		bug_cc_emails STRING ARRAY,
-		contact_email STRING,
-		PRIMARY KEY(name, revision)
+	CREATE TABLE IF NOT EXISTS Regressions2 (
+		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+		commit_number INT,
+		prev_commit_number INT,
+		alert_id INT,
+		creation_time TIMESTAMPTZ DEFAULT now(),
+		median_before REAL,
+		median_after REAL,
+		is_improvement BOOL,
+		cluster_type TEXT,
+		cluster_summary JSONB,
+		frame JSONB,
+		triage_status TEXT,
+		triage_message TEXT,
+		INDEX by_alert_id (alert_id),
+		INDEX by_commit_alert (commit_number, alert_id)
 	);
 `
 
 var FromNextToLive = `
-	DROP TABLE IF EXISTS Subscriptions;
+	DROP TABLE IF EXISTS Regressions2;
 `
 
 // This function will check whether there's a new schema checked-in,

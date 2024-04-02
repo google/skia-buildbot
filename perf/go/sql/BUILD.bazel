@@ -15,6 +15,7 @@ go_library(
         "//perf/go/culprit/sqlculpritstore/schema",
         "//perf/go/git/schema",
         "//perf/go/graphsshortcut/graphsshortcutstore/schema",
+        "//perf/go/regression/sqlregression2store/schema",
         "//perf/go/regression/sqlregressionstore/schema",
         "//perf/go/shortcut/sqlshortcutstore/schema",
         "//perf/go/subscription/sqlsubscriptionstore/schema",
