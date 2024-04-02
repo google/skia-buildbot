@@ -108,7 +108,7 @@ func New() (baseapp.App, error) {
 	}
 
 	srv := &server{
-		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash"}),
+		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash", "pod", "exported_pod", "uid"}),
 		silenceStore:  silence.NewStore(ds.DS),
 		assign:        assign,
 		alogin:        proxylogin.NewWithDefaults(),
