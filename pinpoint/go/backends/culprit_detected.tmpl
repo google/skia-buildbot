@@ -1,0 +1,15 @@
+[BETA] Skia-Pinpoint Results:
+*Please ignore the results printed from this comment as this is in BETA mode*
+
+Found significant difference(s) at {{ len  . }} commit(s).
+
+Understanding performance regressions: http://g.co/ChromePerformanceRegressions
+
+Culprits:
+{{- range . }}
+* {{ toString . }}
+{{- end }}
+
+If you think Pinpoint blamed the wrong commit, please add issue to
+"Chromeperf-CulpritDetection-NeedsAttention" hotlist and unassign
+yourself so that a sheriff can help diagnose.
