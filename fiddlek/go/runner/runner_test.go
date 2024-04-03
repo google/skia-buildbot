@@ -3,26 +3,45 @@ package runner
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/fiddlek/go/types"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestPrep(t *testing.T) {
-	unittest.LinuxOnlyTest(t)
-	opts := &types.Options{
-		Width:  128,
-		Height: 256,
-		Source: 2,
+const fakeNamespace = "fake_namespace"
+
+func TestPrepCodeToCompile_OptionsInjectedIntoString(t *testing.T) {
+	const fakePath = "/etc/fiddle/source"
+	const codeToPrep = "void draw(SkCanvas* canvas) {\n}"
+
+	test := func(name string, opts types.Options, expectedOutput string) {
+		t.Run(name, func(t *testing.T) {
+			// This path does not have to exist on disk (but it should show up in the outputs)
+			r, err := New(true, fakePath, fakeNamespace)
+			require.NoError(t, err)
+			assert.Equal(t, r.prepCodeToCompile(codeToPrep, opts), expectedOutput)
+		})
 	}
-	r, err := New(true, "/etc/fiddle/source")
-	assert.NoError(t, err)
-	want := `#include "fiddle_main.h"
+
+	test("default source", types.Options{Width: 128, Height: 256},
+		`#include "fiddle_main.h"
+DrawOptions GetDrawOptions() {
+  static const char *path = 0; // Either a string, or 0.
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
+}
+
+#line 1
+void draw(SkCanvas* canvas) {
+}
+`)
+
+	test("uses png 2 as source", types.Options{Width: 128, Height: 256, Source: 2},
+		`#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/etc/fiddle/source/2.png"; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
@@ -31,38 +50,10 @@ DrawOptions GetDrawOptions() {
 #line 1
 void draw(SkCanvas* canvas) {
 }
-`
-	got := r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
-	assert.Equal(t, want, got)
+`)
 
-	opts = &types.Options{
-		Width:  128,
-		Height: 256,
-		Source: 0,
-	}
-	want = `#include "fiddle_main.h"
-DrawOptions GetDrawOptions() {
-  static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
-}
-
-#line 1
-void draw(SkCanvas* canvas) {
-}
-`
-	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
-	assert.Equal(t, want, got)
-
-	opts = &types.Options{
-		Width:        128,
-		Height:       256,
-		Source:       0,
-		SourceMipMap: true,
-		SRGB:         true,
-		F16:          false,
-		TextOnly:     true,
-	}
-	want = `#include "fiddle_main.h"
+	test("some options set", types.Options{Width: 128, Height: 256, SourceMipMap: true, SRGB: true, TextOnly: true},
+		`#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kNo);
@@ -71,11 +62,9 @@ DrawOptions GetDrawOptions() {
 #line 1
 void draw(SkCanvas* canvas) {
 }
-`
-	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
-	assert.Equal(t, want, got)
+`)
 
-	opts = &types.Options{
+	test("bells and whistles", types.Options{
 		Width:                128,
 		Height:               256,
 		Source:               0,
@@ -87,8 +76,7 @@ void draw(SkCanvas* canvas) {
 		OffScreenHeight:      256,
 		OffScreenSampleCount: 2,
 		OffScreenMipMap:      true,
-	}
-	want = `#include "fiddle_main.h"
+	}, `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 128, 256, 2, GrMipMapped::kYes);
@@ -97,104 +85,91 @@ DrawOptions GetDrawOptions() {
 #line 1
 void draw(SkCanvas* canvas) {
 }
-`
-	got = r.prepCodeToCompile("void draw(SkCanvas* canvas) {\n}", opts)
-	assert.Equal(t, want, got)
-
+`)
 }
 
-// execStrings are the command lines that would have been run through exec.
-var execStrings []string = []string{}
+func TestRun_CompileFailed_ErrorShowsUpInResults(t *testing.T) {
+	const codeSample = "This is invalid C++ code"
 
-// testRun is a 'exec.Run' function to use for testing.
-func testRun(cmd *exec.Command) error {
-	_, err := cmd.Stdout.Write([]byte("{}"))
-	if err != nil {
-		return fmt.Errorf("Internal error writing: %s", err)
-	}
-	execStrings = append(execStrings, exec.DebugString(cmd))
-	return nil
-}
-
-func TestRun(t *testing.T) {
-
+	// This is a fake fiddler that our runner will try to talk to.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprintln(w, `{"Errors": "Compile Failed."}`)
-		assert.NoError(t, err)
+		assert.Equal(t, r.Method, http.MethodPost)
+		defer r.Body.Close()
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		// The full body is a JSON blob. Let's spot check that it contains the code we sent in.
+		assert.Contains(t, string(body), codeSample)
+		_, err = fmt.Fprintln(w, `{"Errors": "Compile Failed."}`)
+		require.NoError(t, err)
 	}))
 	defer ts.Close()
 
-	r, err := New(true, "/etc/fiddle/source")
+	r, err := New(true, "/etc/fiddle/source", fakeNamespace)
 	assert.NoError(t, err)
-	LOCALRUN_URL = ts.URL
-	req := &types.FiddleContext{}
-	res, err := r.Run(context.Background(), true, req)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = withLocalRunURL(ctx, ts.URL)
+
+	require.NoError(t, r.Start(ctx))
+
+	req := &types.FiddleContext{
+		Code: codeSample,
+	}
+	res, err := r.Run(ctx, true, req)
 	assert.NoError(t, err)
 	assert.Equal(t, "Compile Failed.", res.Errors)
 }
 
-func TestValidateOptions(t *testing.T) {
-	testCases := []struct {
-		value         *types.Options
-		errorExpected bool
-		message       string
-	}{
-		{
-			value: &types.Options{
-				Animated: true,
-				Duration: -1,
-			},
-			errorExpected: true,
-			message:       "negative duration",
-		},
-		{
-			value: &types.Options{
-				OffScreen:           true,
-				OffScreenTexturable: true,
-				OffScreenMipMap:     true,
-				OffScreenWidth:      64,
-				OffScreenHeight:     64,
-			},
-			errorExpected: false,
-			message:       "offscreen texturable can be mipmap",
-		},
-		{
-			value: &types.Options{
-				OffScreen:           true,
-				OffScreenTexturable: false,
-				OffScreenMipMap:     true,
-				OffScreenWidth:      64,
-				OffScreenHeight:     64,
-			},
-			errorExpected: true,
-			message:       "no offscreen texturable, so can't be mipmap",
-		},
-		{
-			value: &types.Options{
-				OffScreen:       true,
-				OffScreenWidth:  0,
-				OffScreenHeight: 64,
-			},
-			errorExpected: true,
-			message:       "width and height > 0",
-		},
-		{
-			value: &types.Options{
-				OffScreen:            true,
-				OffScreenSampleCount: -1,
-				OffScreenWidth:       64,
-				OffScreenHeight:      64,
-			},
-			errorExpected: true,
-			message:       "No negative int",
-		},
+func TestValidateOptions_ValidOptions_Success(t *testing.T) {
+	test := func(name string, opts types.Options) {
+		t.Run(name, func(t *testing.T) {
+			assert.NoError(t, ValidateOptions(opts))
+		})
 	}
 
-	r, err := New(true, "/etc/fiddle/source")
-	assert.NoError(t, err)
-	for _, tc := range testCases {
-		if got, want := r.ValidateOptions(tc.value) != nil, tc.errorExpected; got != want {
-			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
-		}
+	test("empty", types.Options{})
+
+	test("happy case", types.Options{Width: 10, Height: 20})
+
+	test("offscreen texturable can be mipmap", types.Options{
+		OffScreen:           true,
+		OffScreenTexturable: true,
+		OffScreenMipMap:     true,
+		OffScreenWidth:      64,
+		OffScreenHeight:     64,
+	})
+}
+
+func TestValidateOptions_InValidOptionsReturnError(t *testing.T) {
+	test := func(name string, opts types.Options) {
+		t.Run(name, func(t *testing.T) {
+			assert.Error(t, ValidateOptions(opts))
+		})
 	}
+
+	test("negative duration", types.Options{
+		Animated: true,
+		Duration: -1,
+	})
+
+	test("no offscreen texturable, so can't be mipmap", types.Options{
+		OffScreen:           true,
+		OffScreenTexturable: false,
+		OffScreenMipMap:     true,
+		OffScreenWidth:      64,
+		OffScreenHeight:     64,
+	})
+
+	test("offscreen width and height must be > 0", types.Options{
+		OffScreen:       true,
+		OffScreenWidth:  0,
+		OffScreenHeight: 64,
+	})
+
+	test("negative sample count", types.Options{
+		OffScreen:            true,
+		OffScreenSampleCount: -1,
+		OffScreenWidth:       64,
+		OffScreenHeight:      64,
+	})
 }

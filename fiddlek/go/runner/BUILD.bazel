@@ -11,6 +11,7 @@ go_library(
         "//fiddlek/go/types",
         "//go/httputils",
         "//go/metrics2",
+        "//go/skerr",
         "//go/sklog",
         "//go/util",
         "//go/util/limitwriter",
@@ -28,8 +29,7 @@ go_test(
     embed = [":runner"],
     deps = [
         "//fiddlek/go/types",
-        "//go/exec",
-        "//go/testutils/unittest",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
     ],
 )

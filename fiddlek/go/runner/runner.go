@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
@@ -31,8 +32,8 @@ import (
 )
 
 const (
-	// PREFIX is a format string for the code that makes it compilable.
-	PREFIX = `#include "fiddle_main.h"
+	// cppPrefix is a format string for the code that makes it compilable.
+	cppPrefix = `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
   return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path, %s, %d, %d, %d, %s);
@@ -40,14 +41,12 @@ DrawOptions GetDrawOptions() {
 
 %s
 `
-	// NUM_RETRIES is the number of time to try to find a pod to run the fiddle
+	// numRetries is the number of time to try to find a pod to run the fiddle
 	// on before giving up.
-	NUM_RETRIES = 8
-)
+	numRetries = 8
 
-var (
-	// LOCALRUN_URL stands in for a fiddler pods URL when running locally.
-	LOCALRUN_URL = "http://localhost:8000/run"
+	// localrunURL stands in for a fiddler pods URL when running locally.
+	defaultLocalRunURL = "http://localhost:8000/run"
 )
 
 var (
@@ -75,49 +74,56 @@ type Runner struct {
 	clientset *kubernetes.Clientset
 	rand      *rand.Rand
 
-	mutex       sync.Mutex // mutex protects the members below.
-	skiaGitHash string
-	fiddlerIPs  []string
+	mutex        sync.Mutex // mutex protects the members below.
+	skiaGitHash  string
+	fiddlerIPs   []string
+	k8sNamespace string
 }
 
-func New(local bool, sourceDir string) (*Runner, error) {
+func New(local bool, sourceDir, k8sNamespace string) (*Runner, error) {
 	ret := &Runner{
-		sourceDir:  sourceDir,
-		local:      local,
-		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
-		fiddlerIPs: []string{},
+		sourceDir:    sourceDir,
+		local:        local,
+		rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		fiddlerIPs:   []string{},
+		k8sNamespace: k8sNamespace,
 	}
 	if !local {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get in-cluster config: %s", err)
+			return nil, skerr.Wrapf(err, "Failed to get in-cluster config")
 		}
 		sklog.Infof("Auth username: %s", config.Username)
 		clientset, err := kubernetes.NewForConfig(config)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get in-cluster clientset: %s", err)
+			return nil, skerr.Wrapf(err, "Failed to get in-cluster clientset")
 		}
 		ret.clientset = clientset
 	}
-	// Start the IP refresher.
-	if err := ret.fiddlerIPsOneStep(); err != nil {
-		return nil, fmt.Errorf("Failed initial population of fiddlerIPs: %s", err)
-	}
-	go ret.fiddlerIPsRefresher()
 	return ret, nil
 }
 
+// Start loads the fiddler IPs and then starts a goroutine to update the IPs in the background.
+func (r *Runner) Start(ctx context.Context) error {
+	// Start the IP refresher.
+	if err := r.fiddlerIPsOneStep(ctx); err != nil {
+		return skerr.Wrapf(err, "Failed initial population of fiddlerIPs")
+	}
+	go r.fiddlerIPsRefresher(ctx)
+	return nil
+}
+
 // fiddlerIPsOneStep refreshes a list of fiddler pod IP addresses just once.
-func (r *Runner) fiddlerIPsOneStep() error {
-	ips := []string{}
+func (r *Runner) fiddlerIPsOneStep(ctx context.Context) error {
+	var ips []string
 	if r.local {
 		ips = []string{"127.0.0.1"}
 	} else {
-		pods, err := r.clientset.CoreV1().Pods("default").List(context.TODO(), metav1.ListOptions{
+		pods, err := r.clientset.CoreV1().Pods(r.k8sNamespace).List(ctx, metav1.ListOptions{
 			LabelSelector: "app=fiddler",
 		})
 		if err != nil {
-			return fmt.Errorf("Could not list fiddler pods: %s", err)
+			return skerr.Wrapf(err, "Could not list fiddler pods")
 		}
 		ips = make([]string, 0, len(pods.Items))
 		for _, p := range pods.Items {
@@ -133,16 +139,17 @@ func (r *Runner) fiddlerIPsOneStep() error {
 	return nil
 }
 
-// fiddlerIPsRefresher refreshes a list of fiddler pod IP addresses.
-func (r *Runner) fiddlerIPsRefresher() {
+// fiddlerIPsRefresher will repeatedly refresh the list of fiddler pod IP addresses
+// until the passed in context is cancelled.
+func (r *Runner) fiddlerIPsRefresher(ctx context.Context) {
 	fiddlerIPLiveness := metrics2.NewLiveness("fiddler_ips")
-	for range time.Tick(5 * time.Second) {
-		if err := r.fiddlerIPsOneStep(); err != nil {
+	util.RepeatCtx(ctx, 5*time.Second, func(ctx context.Context) {
+		if err := r.fiddlerIPsOneStep(ctx); err != nil {
 			sklog.Warningf("Failed to refresh fiddler IPs: %s", err)
 		} else {
 			fiddlerIPLiveness.Reset()
 		}
-	}
+	})
 }
 
 // prepCodeToCompile adds the line numbers and the right prefix code
@@ -152,7 +159,7 @@ func (r *Runner) fiddlerIPsRefresher() {
 //	opts - The user's options about how to run that code.
 //
 // Returns the prepped code.
-func (r *Runner) prepCodeToCompile(code string, opts *types.Options) string {
+func (r *Runner) prepCodeToCompile(code string, opts types.Options) string {
 	code = linenumbers.LineNumbers(code)
 	sourceImage := "0"
 	if opts.Source != 0 {
@@ -175,17 +182,17 @@ func (r *Runner) prepCodeToCompile(code string, opts *types.Options) string {
 	if offscreen_height == 0 {
 		offscreen_height = 64
 	}
-	return fmt.Sprintf(PREFIX, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, source_mipmap, offscreen_width, offscreen_height, opts.OffScreenSampleCount, offscreen_mipmap, code)
+	return fmt.Sprintf(cppPrefix, sourceImage, opts.Width, opts.Height, pdf, skp, opts.SRGB, opts.F16, opts.TextOnly, source_mipmap, offscreen_width, offscreen_height, opts.OffScreenSampleCount, offscreen_mipmap, code)
 }
 
 // ValidateOptions validates that the options make sense.
-func (r *Runner) ValidateOptions(opts *types.Options) error {
+func ValidateOptions(opts types.Options) error {
 	if opts.Animated {
 		if opts.Duration <= 0 {
-			return fmt.Errorf("Animation duration must be > 0.")
+			return skerr.Fmt("Animation duration must be > 0.")
 		}
 		if opts.Duration > 60 {
-			return fmt.Errorf("Animation duration must be < 60s.")
+			return skerr.Fmt("Animation duration must be < 60s.")
 		}
 	} else {
 		opts.Duration = 0
@@ -193,14 +200,14 @@ func (r *Runner) ValidateOptions(opts *types.Options) error {
 	if opts.OffScreen {
 		if opts.OffScreenMipMap {
 			if opts.OffScreenTexturable == false {
-				return fmt.Errorf("OffScreenMipMap can only be true if OffScreenTexturable is true.")
+				return skerr.Fmt("OffScreenMipMap can only be true if OffScreenTexturable is true.")
 			}
 		}
 		if opts.OffScreenWidth <= 0 || opts.OffScreenHeight <= 0 {
-			return fmt.Errorf("OffScreen Width and Height must be > 0.")
+			return skerr.Fmt("OffScreen Width and Height must be > 0.")
 		}
 		if opts.OffScreenSampleCount < 0 {
-			return fmt.Errorf("OffScreen SampleCount must be >= 0.")
+			return skerr.Fmt("OffScreen SampleCount must be >= 0.")
 		}
 	}
 	return nil
@@ -237,18 +244,18 @@ func (r *Runner) singleRun(ctx context.Context, url string, body io.Reader) (*ty
 	}
 	n, err := io.Copy(limitwriter.New(&output, types.MAX_JSON_SIZE), resp.Body)
 	if n == types.MAX_JSON_SIZE {
-		return nil, fmt.Errorf("Response too large, truncated at %d bytes.", n)
+		return nil, skerr.Fmt("Response too large, truncated at %d bytes.", n)
 	}
 	truncOutput := util.Truncate(output.String(), 20)
 	sklog.Infof("Got response: %q", truncOutput)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read response: %s", err)
+		return nil, skerr.Fmt("Failed to read response: %s", err)
 	}
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", truncOutput)
-		return nil, fmt.Errorf("Failed to decode results from run at %q: %s, %q", url, err, truncOutput)
+		return nil, skerr.Fmt("Failed to decode results from run at %q: %s, %q", url, err, truncOutput)
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
 		sklog.Errorf("Failed to send valid JSON: res.Execute.Errors : %s", err)
@@ -265,26 +272,26 @@ func (r *Runner) Run(ctx context.Context, local bool, req *types.FiddleContext) 
 	defer span.End()
 
 	if len(req.Code) > types.MAX_CODE_SIZE {
-		return nil, fmt.Errorf("Code size is too large.")
+		return nil, skerr.Fmt("Code size is too large.")
 	}
 	reqToSend := *req
-	reqToSend.Code = r.prepCodeToCompile(req.Code, &req.Options)
+	reqToSend.Code = r.prepCodeToCompile(req.Code, req.Options)
 	runTotal.Inc(1)
 	sklog.Infof("%q Sending: %q", req.Hash, reqToSend.Code)
 
 	b, err := json.Marshal(reqToSend)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to encode request: %s", err)
+		return nil, skerr.Wrapf(err, "Failed to encode request")
 	}
 
 	// If not local then use the k8s api to pick an open fiddler pod to send
 	// the request to. Send a GET / to each one until you find an idle instance.
 	if local {
-		return r.singleRun(ctx, LOCALRUN_URL, bytes.NewReader(b))
+		return r.singleRun(ctx, getLocalURL(ctx), bytes.NewReader(b))
 	} else {
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
-		for tries := 0; tries < NUM_RETRIES; tries++ {
+		for tries := 0; tries < numRetries; tries++ {
 			ips := r.randPodIPs()
 			for _, p := range ips {
 				rootURL := fmt.Sprintf("http://%s:8000", p)
@@ -302,7 +309,7 @@ func (r *Runner) Run(ctx context.Context, local bool, req *types.FiddleContext) 
 			time.Sleep((1 << uint64(tries)) * time.Millisecond)
 		}
 		runExhaustion.Inc(1)
-		return nil, fmt.Errorf("%q Failed to find an available server to run the fiddle.", req.Hash)
+		return nil, skerr.Fmt("%q Failed to find an available server to run the fiddle.", req.Hash)
 	}
 }
 
@@ -401,4 +408,24 @@ func (r *Runner) Version() string {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	return r.skiaGitHash
+}
+
+type contextKeyType string
+
+const localRunKey contextKeyType = "overwriteLocalRunURL"
+
+func withLocalRunURL(ctx context.Context, localURL string) context.Context {
+	return context.WithValue(ctx, localRunKey, localURL)
+}
+
+func getLocalURL(ctx context.Context) string {
+	if u := ctx.Value(localRunKey); u != nil {
+		switch v := u.(type) {
+		case string:
+			return v
+		default:
+			panic(fmt.Sprintf("Unknown value for localRunKey: %v", v))
+		}
+	}
+	return defaultLocalRunURL
 }

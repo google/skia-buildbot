@@ -39,13 +39,14 @@ import (
 
 // flags
 var (
-	distDir        = flag.String("dist_dir", ".", "The directory to find dist/, which contains templates, JS, and CSS files as producted by Bazel.")
-	fiddleRoot     = flag.String("fiddle_root", "", "Directory location where all the work is done.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	scrapExchange  = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
-	sourceImageDir = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
+	distDir          = flag.String("dist_dir", ".", "The directory to find dist/, which contains templates, JS, and CSS files as producted by Bazel.")
+	fiddleRoot       = flag.String("fiddle_root", "", "Directory location where all the work is done.")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	port             = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	scrapExchange    = flag.String("scrapexchange", "http://scrapexchange:9000", "Scrap exchange service HTTP address.")
+	sourceImageDir   = flag.String("source_image_dir", "./source", "The directory to load the source images from.")
+	fiddlerNamespace = flag.String("fiddler_namespace", "default", "The k8s namespace that the fiddlers live in. ")
 )
 
 var (
@@ -219,14 +220,14 @@ func loadContext(w http.ResponseWriter, r *http.Request) (*types.FiddleContext, 
 	id := chi.URLParam(r, "id")
 	fiddleHash, err := names.DereferenceID(id)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid id: %s", err)
+		return nil, skerr.Wrapf(err, "Invalid id")
 	}
 	if *local {
 		loadTemplates()
 	}
 	code, options, err := fiddleStore.GetCode(fiddleHash)
 	if err != nil {
-		return nil, fmt.Errorf("Fiddle not found.")
+		return nil, skerr.Fmt("Fiddle %s not found.", fiddleHash)
 	}
 	return &types.FiddleContext{
 		Version: run.Version(),
@@ -415,14 +416,14 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 		CompileErrors: []types.CompileError{},
 		FiddleHash:    "",
 	}
-	if err := run.ValidateOptions(&req.Options); err != nil {
-		return resp, fmt.Errorf("Invalid Options: %s", err), "Invalid options."
+	if err := runner.ValidateOptions(req.Options); err != nil {
+		return resp, skerr.Wrapf(err, "Invalid Options"), "Invalid options."
 	}
 	sklog.Infof("Request: %#v", *req)
 	fiddleHash, err := req.Options.ComputeHash(req.Code)
 	if err != nil {
 		sklog.Infof("Failed to compute hash: %s", err)
-		return resp, fmt.Errorf("Failed to compute hash: %s", err), "Invalid request."
+		return resp, skerr.Wrapf(err, "Failed to compute hash"), "Invalid request."
 	}
 
 	// The fast path returns quickly if the fiddle already exists.
@@ -448,7 +449,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 
 	res, err := run.Run(ctx, *local, req)
 	if err != nil {
-		return resp, fmt.Errorf("Failed to run the fiddle: %s", err), "Failed to run the fiddle."
+		return resp, skerr.Wrapf(err, "Failed to run the fiddle"), "Failed to run the fiddle."
 	}
 	maybeSecViolation := false
 	if res.Execute.Errors != "" {
@@ -503,7 +504,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 	if !(res == nil && req.Fast) {
 		fiddleHash, err = fiddleStore.Put(req.Code, req.Options, res)
 		if err != nil {
-			return resp, fmt.Errorf("Failed to store the fiddle: %s", err), "Failed to store the fiddle."
+			return resp, skerr.Wrapf(err, "Failed to store the fiddle"), "Failed to store the fiddle."
 		}
 	}
 	if maybeSecViolation {
@@ -517,7 +518,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 		// decode
 		decodedText, err := base64.StdEncoding.DecodeString(res.Execute.Output.Text)
 		if err != nil {
-			return resp, fmt.Errorf("Text wasn't properly encoded base64: %s", err), "Failed to base64 decode text result."
+			return resp, skerr.Wrapf(err, "Text wasn't properly encoded base64"), "Failed to base64 decode text result."
 		}
 		resp.Text = string(decodedText)
 	}
@@ -598,9 +599,12 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create scrap exchange client: %s", err)
 	}
-	run, err = runner.New(*local, *sourceImageDir)
+	run, err = runner.New(*local, *sourceImageDir, *fiddlerNamespace)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize runner: %s", err)
+	}
+	if err := run.Start(ctx); err != nil {
+		sklog.Fatalf("Failed to start runner: %s", err)
 	}
 	go run.Metrics()
 	src, err = source.New(*sourceImageDir)
