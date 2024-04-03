@@ -133,7 +133,7 @@ func TestFindExistingGroups(t *testing.T) {
 	req := &pb.FindExistingGroupsRequest{
 		SubscriptionName:     "sub",
 		SubscriptionRevision: "rev",
-		Action:               pb.GroupActionType_BISECT.String(),
+		Action:               pb.GroupActionType_BISECT,
 		StartCommit:          int64(100),
 		EndCommit:            int64(300),
 		TestPath:             "domain-name/bot-x/benchmark-a/measurement-x/test-1",
@@ -155,7 +155,7 @@ func TestFindExistingGroups_BadTestPath(t *testing.T) {
 	req := &pb.FindExistingGroupsRequest{
 		SubscriptionName:     "sub",
 		SubscriptionRevision: "rev",
-		Action:               pb.GroupActionType_BISECT.String(),
+		Action:               pb.GroupActionType_BISECT,
 		StartCommit:          int64(100),
 		EndCommit:            int64(300),
 		TestPath:             "domain-name/bot-x/benchmark-a/measurement-x",

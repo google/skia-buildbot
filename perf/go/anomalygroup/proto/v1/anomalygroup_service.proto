@@ -95,7 +95,7 @@ message FindExistingGroupsRequest {
     // The revision of the subscription
     string subscription_revision = 2;
     // The action value from the alert config.
-    string action = 3;
+    GroupActionType action = 3;
     // The previous commit position before the anomaly's data point.
     int64 start_commit = 4;
     // The commit position before the anomaly's data point.
@@ -120,7 +120,7 @@ message AnomalyGroup {
     // The ID of the anomaly group.
     string group_id = 1;
     // The action to take for the anomaly group.
-    string group_action = 2;
+    GroupActionType group_action = 2;
     // The anomalies added to this group.
     repeated string anomaly_ids = 3;
     // The culprits associated to this group.

@@ -128,7 +128,7 @@ func (s *AnomalyGroupStore) LoadById(
 
 	return &pb.AnomalyGroup{
 		GroupId:     loaded_group_id,
-		GroupAction: action,
+		GroupAction: pb.GroupActionType(pb.GroupActionType_value[action]),
 		AnomalyIds:  anomaly_ids,
 		CulpritIds:  culprit_ids,
 	}, nil
@@ -277,7 +277,7 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 		} else {
 			groups = append(groups, &pb.AnomalyGroup{
 				GroupId:     loaded_group_id,
-				GroupAction: loaded_action,
+				GroupAction: pb.GroupActionType(pb.GroupActionType_value[action]),
 				AnomalyIds:  anomaly_ids,
 				CulpritIds:  culprit_ids,
 			})

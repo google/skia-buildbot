@@ -23,7 +23,7 @@ func TestCreate(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -38,7 +38,7 @@ func TestCreate_EmptyStrings(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	_, err := store.Create(ctx, "", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "empty strings")
 }
@@ -47,7 +47,7 @@ func TestCreate_InvalidCommits(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 300, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 300, 200, "REPORT")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "smaller than the start")
 }
@@ -56,7 +56,7 @@ func TestCreate_NegativeCommits(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", -100, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", -100, 200, "REPORT")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "negative commit")
 }
@@ -65,20 +65,20 @@ func TestLoadByID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
 	group, err2 := store.LoadById(ctx, new_group_id)
 	require.NoError(t, err2)
-	assert.Equal(t, "report", group.GroupAction)
+	assert.Equal(t, "REPORT", group.GroupAction.String())
 }
 
 func TestLoadByID_BadID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -92,7 +92,7 @@ func TestLoadByID_NoRow(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -105,14 +105,14 @@ func TestFindGroup(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
-	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "report")
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "REPORT")
 	require.NoError(t, err)
-	_, err = store.Create(ctx, "sub", "rev-abc", "domain-b", "benchmark-a", 200, 300, "report")
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-b", "benchmark-a", 200, 300, "REPORT")
 	require.NoError(t, err)
 
-	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 300, "report")
+	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 300, "REPORT")
 	require.NoError(t, err2)
 	assert.Equal(t, 2, len(groups))
 }
@@ -121,7 +121,7 @@ func TestUpdateBisectID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -131,14 +131,14 @@ func TestUpdateBisectID(t *testing.T) {
 
 	group, err2 := store.LoadById(ctx, new_group_id)
 	require.NoError(t, err2)
-	assert.Equal(t, "report", group.GroupAction)
+	assert.Equal(t, "REPORT", group.GroupAction.String())
 }
 
 func TestUpdateBisectID_InvalidID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -152,7 +152,7 @@ func TestUpdateReportedIssueID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -162,14 +162,14 @@ func TestUpdateReportedIssueID(t *testing.T) {
 
 	group, err2 := store.LoadById(ctx, new_group_id)
 	require.NoError(t, err2)
-	assert.Equal(t, "report", group.GroupAction)
+	assert.Equal(t, "REPORT", group.GroupAction.String())
 }
 
 func TestUpdateReportedIssueID_InvalidID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -183,7 +183,7 @@ func TestAddAnomalyID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -205,7 +205,7 @@ func TestAddAnomalyID_InvalidID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -219,7 +219,7 @@ func TestAddCulpitIDs(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -244,7 +244,7 @@ func TestAddCulpitIDs_InvalidID(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -262,7 +262,7 @@ func TestAddIDs_DuplicateIDs(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	new_group_id, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 	assert.NotEmpty(t, new_group_id)
 
@@ -295,12 +295,12 @@ func TestFindGroup_RangeDiff(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
-	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "report")
+	_, err = store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 200, 300, "REPORT")
 	require.NoError(t, err)
 
-	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 150, "report")
+	groups, err2 := store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 150, "REPORT")
 	require.NoError(t, err2)
 	assert.Equal(t, 1, len(groups))
 }
@@ -309,10 +309,10 @@ func TestFindGroup_EmptyString(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 
-	_, err = store.FindExistingGroup(ctx, "", "rev-abc", "domain-a", "benchmark-a", 100, 150, "report")
+	_, err = store.FindExistingGroup(ctx, "", "rev-abc", "domain-a", "benchmark-a", 100, 150, "REPORT")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid params")
 }
@@ -321,10 +321,10 @@ func TestFindGroup_InvalidCommit(t *testing.T) {
 	store, _ := setUp(t)
 	ctx := context.Background()
 
-	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "report")
+	_, err := store.Create(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 100, 200, "REPORT")
 	require.NoError(t, err)
 
-	_, err = store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 0, 150, "report")
+	_, err = store.FindExistingGroup(ctx, "sub", "rev-abc", "domain-a", "benchmark-a", 0, 150, "REPORT")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid params")
 }

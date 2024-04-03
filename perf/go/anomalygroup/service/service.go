@@ -122,7 +122,7 @@ func (s *anomalygroupService) FindExistingGroups(
 	benchmark_name := test_path_pieces[2]
 	anomaly_groups, err := s.store.FindExistingGroup(ctx,
 		req.SubscriptionName, req.SubscriptionRevision, domain_name,
-		benchmark_name, req.StartCommit, req.EndCommit, req.Action)
+		benchmark_name, req.StartCommit, req.EndCommit, req.Action.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed on finding existing groups. Request: %s", req)
 	}
