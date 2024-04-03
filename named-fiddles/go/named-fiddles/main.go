@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -117,6 +118,7 @@ func (srv *Server) exampleStep(ctx context.Context) {
 		return
 	}
 
+	var recentFiddles []string
 	var numInvalid int64
 	// Get a list of all examples.
 	dir := filepath.Join(srv.repoDir, "docs", "examples")
@@ -136,6 +138,7 @@ func (srv *Server) exampleStep(ctx context.Context) {
 		b, err := os.ReadFile(filename)
 		if err != nil {
 			sklog.Warningf("Failed to load file: %q", filename)
+			return nil
 		}
 		fc, err := parse.ParseCpp(string(b))
 		if err == parse.ErrorInactiveExample {
@@ -154,6 +157,7 @@ func (srv *Server) exampleStep(ctx context.Context) {
 			sklog.Errorf("Failed to encode example to JSON: %s", err)
 			return nil
 		}
+		recentFiddles = append(recentFiddles, name)
 
 		runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
 			return true
@@ -172,6 +176,22 @@ func (srv *Server) exampleStep(ctx context.Context) {
 	if err != nil {
 		sklog.Errorf("Error walking the path %q: %v\n", dir, err)
 		return
+	}
+
+	sklog.Infof("Updated %d fiddles", len(recentFiddles))
+	storedFiddles, err := srv.store.ListAllNames()
+	if err != nil {
+		sklog.Errorf("Error getting existing fiddles to clean out old ones: %v\n", err)
+		return
+	}
+	sklog.Infof("There are now %d fiddles in the store. Going to delete %d of them that don't exist anymore.", len(storedFiddles), len(storedFiddles)-len(recentFiddles))
+	for _, nf := range storedFiddles {
+		if slices.Index(recentFiddles, nf.Name) == -1 {
+			sklog.Infof("Deleting sample %q because it's not in version control anymore", nf.Name)
+			if err := srv.store.DeleteName(nf.Name); err != nil {
+				sklog.Warningf("Could not delete sample %q: %v", nf.Name, err)
+			}
+		}
 	}
 
 	srv.numInvalidExamples.Update(numInvalid)
