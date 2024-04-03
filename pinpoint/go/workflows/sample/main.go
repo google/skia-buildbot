@@ -49,15 +49,14 @@ func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/17ab3cfa9e0000
 	p := &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{
-			ComparisonMode:      "performance",
-			StartGitHash:        "8f2037564966f83e53701d157622dd42b931a13f", // 1266617
-			EndGitHash:          "049ab03450dd980d3afc27f13edfef9f510ed819", // 1266622
-			Configuration:       "win-11-perf",
-			Benchmark:           "system_health.memory_desktop",
-			Story:               "load:chrome:blank",
-			Chart:               "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
-			ComparisonMagnitude: "786432.0",
-			// TODO(@sunxiaodi): support optional aggregation method
+			ComparisonMode:       "performance",
+			StartGitHash:         "8f2037564966f83e53701d157622dd42b931a13f", // 1266617
+			EndGitHash:           "049ab03450dd980d3afc27f13edfef9f510ed819", // 1266622
+			Configuration:        "win-11-perf",
+			Benchmark:            "system_health.memory_desktop",
+			Story:                "load:chrome:blank",
+			Chart:                "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
+			ComparisonMagnitude:  "786432.0",
 			AggregationMethod:    "mean",
 			Project:              "chromium",
 			ImprovementDirection: "DOWN",

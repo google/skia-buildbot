@@ -112,9 +112,6 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 
 	logger := workflow.GetLogger(ctx)
 
-	// TODO(sunxiaodi@) Add the job ID to the bisection request
-	// so that tasks can be recycled to assist with debugging
-	// This task also requires edits to single commit runner.
 	jobID := uuid.New().String()
 	be = &pb.BisectExecution{
 		JobId:    jobID,
@@ -273,7 +270,6 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pb.Bis
 					break
 				}
 
-				// TODO(b/326352319): Update protos so that pb.BisectionExecution can track multiple culprits.
 				if mid.Key() == lower.Build.Commit.Key() {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference

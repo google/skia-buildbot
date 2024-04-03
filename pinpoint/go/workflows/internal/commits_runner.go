@@ -210,7 +210,6 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	rc.Close()
 	ec.Close()
 
-	// TODO(b/326480795): Implement functional analysis
 	if errs := fetchAllFromChannel[error](ctx, ec); len(errs) != 0 {
 		return nil, skerr.Wrapf(errors.Join(errs...), "terminal errors found")
 	}
