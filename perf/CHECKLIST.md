@@ -105,7 +105,7 @@ the `skia-public` project (for an hour) and have them run the above command.
 
 ## 7. Create a GCP Service account for your instance
 
-Create a CL like [this one](go/sample-sa-cl) to create a service
+Create a CL like [this one](http://go/sample-sa-cl) to create a service
 account. Make sure it's in the correct project.
 
 Give this service account read access to the bucket created in step 1 and Pub/Sub Editor role to
@@ -113,7 +113,7 @@ both the topic and subscription created in step 5.
 
 If you are creating a Googlers-only instance, the service accounts needs to be added to the
 auth-proxy roster so that it can access secrets in the GCP project. Create a CL like
-[this one](go/sample-auth-proxy-roster-cl) to do the same.
+[this one](http://go/sample-auth-proxy-roster-cl) to do the same.
 
 ## 8. Bind the GCP service account to a Kubernetes service account in the cluster
 
