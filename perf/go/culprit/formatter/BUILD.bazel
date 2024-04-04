@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "formatter",
+    srcs = ["formatter.go"],
+    importpath = "go.skia.org/infra/perf/go/culprit/formatter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//perf/go/config",
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/subscription/proto/v1",
+    ],
+)
+
+go_test(
+    name = "formatter_test",
+    srcs = ["formatter_test.go"],
+    embed = [":formatter"],
+    deps = [
+        "//perf/go/config",
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/subscription/proto/v1",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

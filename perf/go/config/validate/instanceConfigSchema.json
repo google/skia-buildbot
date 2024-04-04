@@ -306,6 +306,15 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "culprit_subject": {
+          "type": "string"
+        },
+        "culprit_body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

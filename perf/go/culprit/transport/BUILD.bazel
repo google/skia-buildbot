@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "transport",
+    srcs = ["transport.go"],
+    importpath = "go.skia.org/infra/perf/go/culprit/transport",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/issuetracker/v1:issuetracker",
+        "//go/metrics2",
+        "//go/secret",
+        "//go/skerr",
+        "//perf/go/config",
+        "//perf/go/subscription/proto/v1",
+        "@org_golang_google_api//option",
+        "@org_golang_x_oauth2//google",
+    ],
+)

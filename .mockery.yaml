@@ -251,6 +251,16 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/culprit/formatter:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      Formatter:
+  go.skia.org/infra/perf/go/culprit/transport:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      Transport:
   go.skia.org/infra/perf/go/dataframe:
     interfaces:
       DataFrameBuilder:

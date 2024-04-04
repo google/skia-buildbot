@@ -83,6 +83,14 @@ type NotifyConfig struct {
 	// formatted as Markdow. Sent when a detected regression is no longer
 	// detectable.
 	MissingBody []string `json:"missing_body,omitempty"`
+
+	// CulpritSubject is a template for the subject of the notfication sent when
+	// a culprit is detected.
+	CulpritSubject string `json:"culprit_subject,omitempty"`
+
+	// CulpritBody is a template for the body of the notfication sent when
+	// a culprit is detected.
+	CulpritBody []string `json:"culprit_body,omitempty"`
 }
 
 // DataStoreType determines what type of datastore to build. Applies to

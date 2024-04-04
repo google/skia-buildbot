@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "notify",
+    srcs = ["notify.go"],
+    importpath = "go.skia.org/infra/perf/go/culprit/notify",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//perf/go/config",
+        "//perf/go/culprit/formatter",
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/culprit/transport",
+        "//perf/go/notifytypes",
+        "//perf/go/subscription/proto/v1",
+    ],
+)
+
+go_test(
+    name = "notify_test",
+    srcs = ["notify_test.go"],
+    embed = [":notify"],
+    deps = [
+        "//perf/go/culprit/formatter/mocks",
+        "//perf/go/culprit/proto/v1",
+        "//perf/go/culprit/transport/mocks",
+        "//perf/go/subscription/proto/v1",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+    ],
+)
