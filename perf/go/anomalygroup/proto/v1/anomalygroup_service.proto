@@ -125,6 +125,8 @@ message AnomalyGroup {
     repeated string anomaly_ids = 3;
     // The culprits associated to this group.
     repeated string culprit_ids = 4;
+    // The reported issue associated to this group.
+    int64 reported_issue_id = 5;
 }
 
 
