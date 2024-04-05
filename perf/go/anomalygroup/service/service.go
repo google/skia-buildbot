@@ -43,7 +43,7 @@ func (s *anomalygroupService) GetServiceDescriptor() grpc.ServiceDesc {
 
 func (s *anomalygroupService) CreateNewAnomalyGroup(
 	ctx context.Context,
-	req *pb.CreateAnomalyGroupRequest) (*pb.CreateAnomalyGroupResponse, error) {
+	req *pb.CreateNewAnomalyGroupRequest) (*pb.CreateNewAnomalyGroupResponse, error) {
 
 	new_group_id, err := s.store.Create(
 		ctx,
@@ -58,20 +58,20 @@ func (s *anomalygroupService) CreateNewAnomalyGroup(
 		return nil, fmt.Errorf(
 			"error when calling CreateNewAnomalyGroup. Params: %s", req)
 	}
-	return &pb.CreateAnomalyGroupResponse{
+	return &pb.CreateNewAnomalyGroupResponse{
 		AnomalyGroupId: new_group_id,
 	}, nil
 }
 
 func (s *anomalygroupService) LoadAnomalyGroupByID(
 	ctx context.Context,
-	req *pb.ReadAnomalyGroupRequest) (*pb.ReadAnomalyGroupResponse, error) {
+	req *pb.LoadAnomalyGroupByIDRequest) (*pb.LoadAnomalyGroupByIDResponse, error) {
 	anomaly_group, err := s.store.LoadById(ctx, req.AnomalyGroupId)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"error when calling LoadAnomalyGroupByID. Params: %s", req)
+			"error when calling LoadAnomalyGroupByID: %s. Params: %s", err.Error(), req)
 	}
-	return &pb.ReadAnomalyGroupResponse{
+	return &pb.LoadAnomalyGroupByIDResponse{
 		AnomalyGroup: anomaly_group,
 	}, nil
 }

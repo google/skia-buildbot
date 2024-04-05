@@ -8,25 +8,29 @@ option go_package = "go.skia.org/infra/perf/go/anomalygroup/proto/v1";
 service AnomalyGroupService {
     // Create a new anomaly group based on a set of criterias.
     // Avoid binding it to a specific regression.
-    rpc CreateAnomalyGroup(CreateAnomalyGroupRequest) returns (CreateAnomalyGroupResponse) {
+    rpc CreateNewAnomalyGroup(
+        CreateNewAnomalyGroupRequest) returns (CreateNewAnomalyGroupResponse) {
     }
 
     // Read info for an anomaly group.
-    rpc ReadAnomalyGroup(ReadAnomalyGroupRequest) returns (ReadAnomalyGroupResponse) {
+    rpc LoadAnomalyGroupByID(
+        LoadAnomalyGroupByIDRequest) returns (LoadAnomalyGroupByIDResponse) {
     }
 
     // Update a given anomaly group.
-    rpc UpdateAnomalyGroup(UpdateAnomalyGroupRequest) returns (UpdateAnomalyGroupResponse) {
+    rpc UpdateAnomalyGroup(
+        UpdateAnomalyGroupRequest) returns (UpdateAnomalyGroupResponse) {
     }
 
     // Find matching anomaly groups based on the criterias.
     // (e.g., from a newly found anomaly).
-    rpc FindExistingGroups(FindExistingGroupsRequest) returns (FindExistingGroupsResponse) {
+    rpc FindExistingGroups(
+        FindExistingGroupsRequest) returns (FindExistingGroupsResponse) {
     }
 }
 
-// Request object for CreateAnomalyGroup
-message CreateAnomalyGroupRequest {
+// Request object for CreateNewAnomalyGroup
+message CreateNewAnomalyGroupRequest {
     // The name of the subscription in sheriff config
     string subscription_name = 1;
     // The revision of the subscription
@@ -43,20 +47,20 @@ message CreateAnomalyGroupRequest {
     GroupActionType action = 7;
 }
 
-// Response object for CreateAnomalyGroup
-message CreateAnomalyGroupResponse {
+// Response object for CreateNewAnomalyGroup
+message CreateNewAnomalyGroupResponse {
     // The newly created anomaly group ID.
     string anomaly_group_id = 1;
 }
 
-// Request object for ReadAnomalyGroup
-message ReadAnomalyGroupRequest {
+// Request object for LoadAnomalyGroupByID
+message LoadAnomalyGroupByIDRequest {
     // The ID of the anomaly group to read from
     string anomaly_group_id = 1;
 }
 
-// Response object for ReadAnomalyGroup
-message ReadAnomalyGroupResponse {
+// Response object for LoadAnomalyGroupByID
+message LoadAnomalyGroupByIDResponse {
     // The anomaly group object
     AnomalyGroup anomaly_group = 1;
 }

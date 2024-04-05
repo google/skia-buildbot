@@ -20,10 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AnomalyGroupService_CreateAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/CreateAnomalyGroup"
-	AnomalyGroupService_ReadAnomalyGroup_FullMethodName   = "/anomalygroup.v1.AnomalyGroupService/ReadAnomalyGroup"
-	AnomalyGroupService_UpdateAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/UpdateAnomalyGroup"
-	AnomalyGroupService_FindExistingGroups_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/FindExistingGroups"
+	AnomalyGroupService_CreateNewAnomalyGroup_FullMethodName = "/anomalygroup.v1.AnomalyGroupService/CreateNewAnomalyGroup"
+	AnomalyGroupService_LoadAnomalyGroupByID_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/LoadAnomalyGroupByID"
+	AnomalyGroupService_UpdateAnomalyGroup_FullMethodName    = "/anomalygroup.v1.AnomalyGroupService/UpdateAnomalyGroup"
+	AnomalyGroupService_FindExistingGroups_FullMethodName    = "/anomalygroup.v1.AnomalyGroupService/FindExistingGroups"
 )
 
 // AnomalyGroupServiceClient is the client API for AnomalyGroupService service.
@@ -32,9 +32,9 @@ const (
 type AnomalyGroupServiceClient interface {
 	// Create a new anomaly group based on a set of criterias.
 	// Avoid binding it to a specific regression.
-	CreateAnomalyGroup(ctx context.Context, in *CreateAnomalyGroupRequest, opts ...grpc.CallOption) (*CreateAnomalyGroupResponse, error)
+	CreateNewAnomalyGroup(ctx context.Context, in *CreateNewAnomalyGroupRequest, opts ...grpc.CallOption) (*CreateNewAnomalyGroupResponse, error)
 	// Read info for an anomaly group.
-	ReadAnomalyGroup(ctx context.Context, in *ReadAnomalyGroupRequest, opts ...grpc.CallOption) (*ReadAnomalyGroupResponse, error)
+	LoadAnomalyGroupByID(ctx context.Context, in *LoadAnomalyGroupByIDRequest, opts ...grpc.CallOption) (*LoadAnomalyGroupByIDResponse, error)
 	// Update a given anomaly group.
 	UpdateAnomalyGroup(ctx context.Context, in *UpdateAnomalyGroupRequest, opts ...grpc.CallOption) (*UpdateAnomalyGroupResponse, error)
 	// Find matching anomaly groups based on the criterias.
@@ -50,18 +50,18 @@ func NewAnomalyGroupServiceClient(cc grpc.ClientConnInterface) AnomalyGroupServi
 	return &anomalyGroupServiceClient{cc}
 }
 
-func (c *anomalyGroupServiceClient) CreateAnomalyGroup(ctx context.Context, in *CreateAnomalyGroupRequest, opts ...grpc.CallOption) (*CreateAnomalyGroupResponse, error) {
-	out := new(CreateAnomalyGroupResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_CreateAnomalyGroup_FullMethodName, in, out, opts...)
+func (c *anomalyGroupServiceClient) CreateNewAnomalyGroup(ctx context.Context, in *CreateNewAnomalyGroupRequest, opts ...grpc.CallOption) (*CreateNewAnomalyGroupResponse, error) {
+	out := new(CreateNewAnomalyGroupResponse)
+	err := c.cc.Invoke(ctx, AnomalyGroupService_CreateNewAnomalyGroup_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *anomalyGroupServiceClient) ReadAnomalyGroup(ctx context.Context, in *ReadAnomalyGroupRequest, opts ...grpc.CallOption) (*ReadAnomalyGroupResponse, error) {
-	out := new(ReadAnomalyGroupResponse)
-	err := c.cc.Invoke(ctx, AnomalyGroupService_ReadAnomalyGroup_FullMethodName, in, out, opts...)
+func (c *anomalyGroupServiceClient) LoadAnomalyGroupByID(ctx context.Context, in *LoadAnomalyGroupByIDRequest, opts ...grpc.CallOption) (*LoadAnomalyGroupByIDResponse, error) {
+	out := new(LoadAnomalyGroupByIDResponse)
+	err := c.cc.Invoke(ctx, AnomalyGroupService_LoadAnomalyGroupByID_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +92,9 @@ func (c *anomalyGroupServiceClient) FindExistingGroups(ctx context.Context, in *
 type AnomalyGroupServiceServer interface {
 	// Create a new anomaly group based on a set of criterias.
 	// Avoid binding it to a specific regression.
-	CreateAnomalyGroup(context.Context, *CreateAnomalyGroupRequest) (*CreateAnomalyGroupResponse, error)
+	CreateNewAnomalyGroup(context.Context, *CreateNewAnomalyGroupRequest) (*CreateNewAnomalyGroupResponse, error)
 	// Read info for an anomaly group.
-	ReadAnomalyGroup(context.Context, *ReadAnomalyGroupRequest) (*ReadAnomalyGroupResponse, error)
+	LoadAnomalyGroupByID(context.Context, *LoadAnomalyGroupByIDRequest) (*LoadAnomalyGroupByIDResponse, error)
 	// Update a given anomaly group.
 	UpdateAnomalyGroup(context.Context, *UpdateAnomalyGroupRequest) (*UpdateAnomalyGroupResponse, error)
 	// Find matching anomaly groups based on the criterias.
@@ -107,11 +107,11 @@ type AnomalyGroupServiceServer interface {
 type UnimplementedAnomalyGroupServiceServer struct {
 }
 
-func (UnimplementedAnomalyGroupServiceServer) CreateAnomalyGroup(context.Context, *CreateAnomalyGroupRequest) (*CreateAnomalyGroupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAnomalyGroup not implemented")
+func (UnimplementedAnomalyGroupServiceServer) CreateNewAnomalyGroup(context.Context, *CreateNewAnomalyGroupRequest) (*CreateNewAnomalyGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNewAnomalyGroup not implemented")
 }
-func (UnimplementedAnomalyGroupServiceServer) ReadAnomalyGroup(context.Context, *ReadAnomalyGroupRequest) (*ReadAnomalyGroupResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReadAnomalyGroup not implemented")
+func (UnimplementedAnomalyGroupServiceServer) LoadAnomalyGroupByID(context.Context, *LoadAnomalyGroupByIDRequest) (*LoadAnomalyGroupByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadAnomalyGroupByID not implemented")
 }
 func (UnimplementedAnomalyGroupServiceServer) UpdateAnomalyGroup(context.Context, *UpdateAnomalyGroupRequest) (*UpdateAnomalyGroupResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAnomalyGroup not implemented")
@@ -132,38 +132,38 @@ func RegisterAnomalyGroupServiceServer(s grpc.ServiceRegistrar, srv AnomalyGroup
 	s.RegisterService(&AnomalyGroupService_ServiceDesc, srv)
 }
 
-func _AnomalyGroupService_CreateAnomalyGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAnomalyGroupRequest)
+func _AnomalyGroupService_CreateNewAnomalyGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNewAnomalyGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).CreateAnomalyGroup(ctx, in)
+		return srv.(AnomalyGroupServiceServer).CreateNewAnomalyGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AnomalyGroupService_CreateAnomalyGroup_FullMethodName,
+		FullMethod: AnomalyGroupService_CreateNewAnomalyGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).CreateAnomalyGroup(ctx, req.(*CreateAnomalyGroupRequest))
+		return srv.(AnomalyGroupServiceServer).CreateNewAnomalyGroup(ctx, req.(*CreateNewAnomalyGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AnomalyGroupService_ReadAnomalyGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadAnomalyGroupRequest)
+func _AnomalyGroupService_LoadAnomalyGroupByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoadAnomalyGroupByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AnomalyGroupServiceServer).ReadAnomalyGroup(ctx, in)
+		return srv.(AnomalyGroupServiceServer).LoadAnomalyGroupByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AnomalyGroupService_ReadAnomalyGroup_FullMethodName,
+		FullMethod: AnomalyGroupService_LoadAnomalyGroupByID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AnomalyGroupServiceServer).ReadAnomalyGroup(ctx, req.(*ReadAnomalyGroupRequest))
+		return srv.(AnomalyGroupServiceServer).LoadAnomalyGroupByID(ctx, req.(*LoadAnomalyGroupByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -212,12 +212,12 @@ var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AnomalyGroupServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateAnomalyGroup",
-			Handler:    _AnomalyGroupService_CreateAnomalyGroup_Handler,
+			MethodName: "CreateNewAnomalyGroup",
+			Handler:    _AnomalyGroupService_CreateNewAnomalyGroup_Handler,
 		},
 		{
-			MethodName: "ReadAnomalyGroup",
-			Handler:    _AnomalyGroupService_ReadAnomalyGroup_Handler,
+			MethodName: "LoadAnomalyGroupByID",
+			Handler:    _AnomalyGroupService_LoadAnomalyGroupByID_Handler,
 		},
 		{
 			MethodName: "UpdateAnomalyGroup",

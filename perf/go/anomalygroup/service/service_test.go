@@ -19,7 +19,7 @@ func setUp(_ *testing.T) (*anomalygroupService, *mocks.Store) {
 func TestCreateNewAnomalyGroup(t *testing.T) {
 	service, store := setUp(t)
 	ctx := context.Background()
-	req := &pb.CreateAnomalyGroupRequest{
+	req := &pb.CreateNewAnomalyGroupRequest{
 		SubscriptionName:     "sub",
 		SubscriptionRevision: "rev",
 		Domain:               "domain-name",
@@ -42,7 +42,7 @@ func TestCreateNewAnomalyGroup(t *testing.T) {
 func TestLoadAnomalyGroupByID(t *testing.T) {
 	service, store := setUp(t)
 	ctx := context.Background()
-	req := &pb.ReadAnomalyGroupRequest{
+	req := &pb.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: "ce7107ae-3552-49e9-bd89-120ff97c3cea",
 	}
 	store.On("LoadById", mock.Anything,
