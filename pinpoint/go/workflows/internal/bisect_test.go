@@ -9,10 +9,9 @@ import (
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
-
-	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*CommitRun, error) {
@@ -26,17 +25,10 @@ func mockedSingleCommitRun(ctx workflow.Context, p *SingleCommitRunnerParams) (*
 	}, nil
 }
 
-func mockedGetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{
-		Commit: cr.Build.Commit,
-		Values: make([]float64, 0),
-	}, nil
-}
-
-func mockedGetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{
-		Commit: cr.Build.Commit,
-		Values: make([]float64, 0),
+func mockedGetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr *BisectRun, chart string) (*CommitPairValues, error) {
+	return &CommitPairValues{
+		Lower:  CommitValues{lbr.Build.Commit, make([]float64, 0), make([]float64, 0)},
+		Higher: CommitValues{hbr.Build.Commit, make([]float64, 0), make([]float64, 0)},
 	}, nil
 }
 
@@ -44,16 +36,19 @@ func mockedGetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart
 //
 //	This is only to validate the dependent workflow signature and the workflow can connect.
 func TestBisectWorkflow_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T) {
+	mockResult := &CombinedResults{
+		Result: &compare.CompareResults{
+			Verdict: compare.Different,
+		},
+	}
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun).Times(2)
-	env.OnActivity(GetErrorValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetErrorValuesLocalActivity).Twice()
-	env.OnActivity(CompareFunctionalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
-	env.OnActivity(GetAllValuesLocalActivity, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllValuesLocalActivity).Twice()
-	env.OnActivity(ComparePerformanceActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&compare.CompareResults{Verdict: compare.Same}, nil).Once()
+	env.OnActivity(GetAllDataForCompareLocalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllDataForCompareLocalActivity).Once()
+	env.OnActivity(CompareActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockResult, nil).Once()
 
 	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{

@@ -242,7 +242,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 				continue
 			}
 
-			switch result.Result.Verdict {
+			switch result.Verdict {
 			case compare.Unknown:
 				// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
 				// < 0.4, it is possible to get to the max sample size and still reach an unknown
@@ -251,7 +251,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 				// assumes that cr.Lower and cr.Higher will have the same number of runs
 				if len(lower.Runs) >= int(getMaxSampleSize()) {
 					// TODO(haowoo@): add metric to measure this occurrence
-					logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.Result.PValue, len(lower.Runs))
+					logger.Warn("reached unknown verdict with p-value %d and sample size of %d", result.PValue, len(lower.Runs))
 					break
 				}
 

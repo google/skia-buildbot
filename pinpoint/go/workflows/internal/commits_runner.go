@@ -89,24 +89,6 @@ func (cr *CommitRun) AllErrorValues(chart string) []float64 {
 	return vs
 }
 
-// TODO(sunxiaodi@): consolidate CommitValues, GetAllValuesLocalActivity,
-// GetErrorValuesLocalActivity, and CollectValuesActivity into a read_values.go
-// Refactoring will depend on how pairwise invokes these functions, if at all.
-type CommitValues struct {
-	Commit *midpoint.CombinedCommit
-	Values []float64
-}
-
-// GetAllValuesLocalActivity wraps CommitRun's AllValues as a local activity
-func GetAllValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{cr.Build.Commit, cr.AllValues(chart)}, nil
-}
-
-// GetErrorValuesLocalActivity wraps CommitRun's AllErrorValues as a local activity
-func GetErrorValuesLocalActivity(ctx context.Context, cr *BisectRun, chart string) (*CommitValues, error) {
-	return &CommitValues{cr.Build.Commit, cr.AllErrorValues(chart)}, nil
-}
-
 func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *midpoint.CombinedCommit) (*workflows.Build, error) {
 	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
 	if err != nil {
