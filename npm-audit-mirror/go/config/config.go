@@ -28,6 +28,8 @@ type SupportedProject struct {
 	TrustedScopes []string `json:"trusted_scopes,omitempty"`
 	// The issue tracker config used for filing audit and downloaded packages bugs.
 	IssueTrackerConfig *IssueTrackerConfig `json:"issue_tracker_config,omitempty"`
+	// Whether to audit devDependencies for the project.
+	AuditDevDependencies bool `json:"audit_dev_dependencies"`
 }
 
 type IssueTrackerConfig struct {

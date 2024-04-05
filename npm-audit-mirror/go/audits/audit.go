@@ -36,20 +36,21 @@ var fileAuditIssueAfterThreshold = time.Hour
 
 // NpmProjectAudit implements the types.ProjectAudit interface.
 type NpmProjectAudit struct {
-	projectName         string
-	repoURL             string
-	gitBranch           string
-	packageFilesDir     string
-	workDir             string
-	gitilesRepo         gitiles.GitilesRepo
-	dbClient            types.NpmDB
-	issueTrackerConfig  *config.IssueTrackerConfig
-	issueTrackerService types.IIssueTrackerService
+	projectName          string
+	repoURL              string
+	gitBranch            string
+	packageFilesDir      string
+	workDir              string
+	gitilesRepo          gitiles.GitilesRepo
+	dbClient             types.NpmDB
+	issueTrackerConfig   *config.IssueTrackerConfig
+	issueTrackerService  types.IIssueTrackerService
+	auditDevDependencies bool
 }
 
 // NewNpmProjectAudit periodically downloads package.json/package-lock.json from gitiles
 // and runs audit on it.
-func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir string, httpClient *http.Client, dbClient types.NpmDB, issueTrackerConfig *config.IssueTrackerConfig) (types.ProjectAudit, error) {
+func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, packageFilesDir, workDir string, httpClient *http.Client, dbClient types.NpmDB, issueTrackerConfig *config.IssueTrackerConfig, auditDevDependencies bool) (types.ProjectAudit, error) {
 	gitilesRepo := gitiles.NewRepo(repoURL, httpClient)
 
 	// Instantiate issueTrackerService only if we have a issueTrackerConfig.
@@ -63,15 +64,16 @@ func NewNpmProjectAudit(ctx context.Context, projectName, repoURL, gitBranch, pa
 	}
 
 	return &NpmProjectAudit{
-		projectName:         projectName,
-		repoURL:             repoURL,
-		gitBranch:           gitBranch,
-		packageFilesDir:     packageFilesDir,
-		workDir:             workDir,
-		gitilesRepo:         gitilesRepo,
-		dbClient:            dbClient,
-		issueTrackerConfig:  issueTrackerConfig,
-		issueTrackerService: issueTrackerService,
+		projectName:          projectName,
+		repoURL:              repoURL,
+		gitBranch:            gitBranch,
+		packageFilesDir:      packageFilesDir,
+		workDir:              workDir,
+		gitilesRepo:          gitilesRepo,
+		dbClient:             dbClient,
+		issueTrackerConfig:   issueTrackerConfig,
+		issueTrackerService:  issueTrackerService,
+		auditDevDependencies: auditDevDependencies,
 	}, nil
 }
 
@@ -115,7 +117,10 @@ func (a *NpmProjectAudit) oneAuditCycle(ctx context.Context, liveness metrics2.L
 		}
 	}
 
-	auditCmd := executil.CommandContext(ctx, "npm", "audit", "--json", "--audit-level=high", "--omit=dev")
+	auditCmd := executil.CommandContext(ctx, "npm", "audit", "--json", "--audit-level=high")
+	if !a.auditDevDependencies {
+		auditCmd.Args = append(auditCmd.Args, "--omit=dev")
+	}
 	auditCmd.Dir = a.workDir
 	sklog.Info(auditCmd.String())
 	b, err := auditCmd.Output()

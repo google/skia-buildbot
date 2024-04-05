@@ -23,7 +23,7 @@ import (
 	npm_mocks "go.skia.org/infra/npm-audit-mirror/go/types/mocks"
 )
 
-func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFiledYet, auditIssueClosedLessThanThreshold bool) {
+func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFiledYet, auditIssueClosedLessThanThreshold bool, auditDevDependencies bool) {
 	projectName := "test_project"
 	repoURL := "https://skia.googlesource.com/buildbot.git"
 	gitBranch := "main"
@@ -84,44 +84,52 @@ func testOneAuditCycle(t *testing.T, noHighSeverityIssuesFound, auditIssueNotFil
 
 	// Mock executil calls.
 	var ctx context.Context
-	if noHighSeverityIssuesFound {
+	if auditDevDependencies {
+		ctx = executil.FakeTestsContext("Test_FakeExe_NPM_Audit_ReturnsTwoHighDevIssues")
+	} else if noHighSeverityIssuesFound {
 		ctx = executil.FakeTestsContext("Test_FakeExe_NPM_Audit_ReturnsNoHighIssues")
 	} else {
 		ctx = executil.FakeTestsContext("Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues")
 	}
 
 	a := &NpmProjectAudit{
-		projectName:         projectName,
-		repoURL:             repoURL,
-		gitBranch:           gitBranch,
-		packageFilesDir:     packageFilesDir,
-		workDir:             workDir,
-		gitilesRepo:         mockGitilesRepo,
-		dbClient:            mockDBClient,
-		issueTrackerConfig:  issueTrackerConfig,
-		issueTrackerService: issueTrackerServiceMock,
+		projectName:          projectName,
+		repoURL:              repoURL,
+		gitBranch:            gitBranch,
+		packageFilesDir:      packageFilesDir,
+		workDir:              workDir,
+		gitilesRepo:          mockGitilesRepo,
+		dbClient:             mockDBClient,
+		issueTrackerConfig:   issueTrackerConfig,
+		issueTrackerService:  issueTrackerServiceMock,
+		auditDevDependencies: auditDevDependencies,
 	}
 	a.oneAuditCycle(ctx, metrics2.NewLiveness("test_npm_audit"))
 }
 
 func TestStartAudit_NoHighSeverityIssuesFound_DoNotFileBugs(t *testing.T) {
 
-	testOneAuditCycle(t, true, false, false)
+	testOneAuditCycle(t, true, false, false, false)
 }
 
 func TestStartAudit_HighSeverityIssues_NoAuditIssueFiledYet_NoErrors(t *testing.T) {
 
-	testOneAuditCycle(t, false, true, false)
+	testOneAuditCycle(t, false, true, false, false)
 }
 
 func TestStartAudit_HighSeverityIssues_AuditIssueClosedLessThanThreshold_NoErrors(t *testing.T) {
 
-	testOneAuditCycle(t, false, false, true)
+	testOneAuditCycle(t, false, false, true, false)
 }
 
 func TestStartAudit_FullEndToEndFlow_NoErrors(t *testing.T) {
 
-	testOneAuditCycle(t, false, false, false)
+	testOneAuditCycle(t, false, false, false, false)
+}
+
+func TestStartAudit_HighSeverityIssues_AuditDevDependencies_NoErrors(t *testing.T) {
+
+	testOneAuditCycle(t, false, false, false, true)
 }
 
 // This is not a real test, but a fake implementation of the executable in question.
@@ -136,6 +144,35 @@ func Test_FakeExe_NPM_Audit_ReturnsTwoHighIssues(t *testing.T) {
 	// Check the input arguments to make sure they were as expected.
 	args := executil.OriginalArgs()
 	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high", "--omit=dev"}, args)
+
+	auditResp, err := json.Marshal(&types.NpmAuditOutput{
+		Metadata: types.NpmAuditMetadata{
+			Vulnerabilities: map[string]int{
+				"low":      10,
+				"moderate": 20,
+				"high":     1,
+				"critical": 1,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	fmt.Printf(string(auditResp))
+	os.Exit(0) // exit 0 prevents golang from outputting test stuff like "=== RUN", "---Fail".
+}
+
+// This is not a real test, but a fake implementation of the executable in question.
+// By convention, we prefix these with FakeExe to make that clear.
+func Test_FakeExe_NPM_Audit_ReturnsTwoHighDevIssues(t *testing.T) {
+	// Since this is a normal go test, it will get run on the usual test suite. We check for the
+	// special environment variable and if it is not set, we do nothing.
+	if !executil.IsCallingFakeCommand() {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"npm", "audit", "--json", "--audit-level=high"}, args)
 
 	auditResp, err := json.Marshal(&types.NpmAuditOutput{
 		Metadata: types.NpmAuditMetadata{

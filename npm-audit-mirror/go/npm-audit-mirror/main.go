@@ -103,7 +103,7 @@ func New() (baseapp.App, error) {
 		if err != nil {
 			sklog.Fatalf("Could not init audit DB: %s", err)
 		}
-		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, httpClient, auditDbClient, projectCfg.IssueTrackerConfig)
+		a, err := audit.NewNpmProjectAudit(ctx, projectName, projectCfg.RepoURL, projectCfg.GitBranch, projectCfg.PackageJSONDir, projectWorkdir, httpClient, auditDbClient, projectCfg.IssueTrackerConfig, projectCfg.AuditDevDependencies)
 		if err != nil {
 			sklog.Fatalf("Could not instantiate audit: %s", err)
 		}
