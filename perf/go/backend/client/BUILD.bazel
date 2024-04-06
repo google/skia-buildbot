@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//pinpoint/proto/v1:proto",

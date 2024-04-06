@@ -3,6 +3,7 @@ package client
 import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	anomalygroup "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/config"
 	culprit "go.skia.org/infra/perf/go/culprit/proto/v1"
 	pinpoint "go.skia.org/infra/pinpoint/proto/v1"
@@ -55,6 +56,20 @@ func NewPinpointClient(backendServiceUrlOverride string) (pinpoint.PinpointClien
 	}
 
 	return pinpoint.NewPinpointClient(conn), nil
+}
+
+// NewAnomalyGroupClient returns a new instance of a client for the anomalygroup service.
+func NewAnomalyGroupClient(backendServiceUrlOverride string) (anomalygroup.AnomalyGroupServiceClient, error) {
+	if !isBackendEnabled(backendServiceUrlOverride) {
+		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
+	}
+
+	conn, err := getGrpcConnection(backendServiceUrlOverride)
+	if err != nil {
+		return nil, err
+	}
+
+	return anomalygroup.NewAnomalyGroupServiceClient(conn), nil
 }
 
 // NewCulpritServiceClient returns a new instance of a client for the culprit service.
