@@ -72,6 +72,8 @@ func TestLoadByID(t *testing.T) {
 	group, err2 := store.LoadById(ctx, new_group_id)
 	require.NoError(t, err2)
 	assert.Equal(t, "REPORT", group.GroupAction.String())
+	assert.Equal(t, "sub", group.SubsciptionName)
+	assert.Equal(t, "rev-abc", group.SubscriptionRevision)
 }
 
 func TestLoadByID_BadID(t *testing.T) {

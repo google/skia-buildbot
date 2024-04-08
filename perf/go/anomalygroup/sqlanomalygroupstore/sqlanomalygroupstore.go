@@ -110,7 +110,7 @@ func (s *AnomalyGroupStore) LoadById(
 
 	statement := `
 		SELECT
-			id, action, anomaly_ids, culprit_ids
+			id, action, anomaly_ids, culprit_ids, group_meta_data->>'subscription_name', group_meta_data->>'subscription_revision'
 		FROM
 			AnomalyGroups
 		WHERE
@@ -121,16 +121,20 @@ func (s *AnomalyGroupStore) LoadById(
 	var action string
 	var anomaly_ids []string
 	var culprit_ids []string
-	if err := s.db.QueryRow(ctx, statement, group_id).Scan(&loaded_group_id, &action, &anomaly_ids, &culprit_ids); err != nil {
+	var subscription_name string
+	var subscription_revision string
+	if err := s.db.QueryRow(ctx, statement, group_id).Scan(&loaded_group_id, &action, &anomaly_ids, &culprit_ids, &subscription_name, &subscription_revision); err != nil {
 		err_msg := fmt.Sprintf("failed to load the anomaly group: %s", group_id)
 		return nil, skerr.Wrapf(err, err_msg)
 	}
 
 	return &pb.AnomalyGroup{
-		GroupId:     loaded_group_id,
-		GroupAction: pb.GroupActionType(pb.GroupActionType_value[action]),
-		AnomalyIds:  anomaly_ids,
-		CulpritIds:  culprit_ids,
+		GroupId:              loaded_group_id,
+		GroupAction:          pb.GroupActionType(pb.GroupActionType_value[action]),
+		AnomalyIds:           anomaly_ids,
+		CulpritIds:           culprit_ids,
+		SubsciptionName:      subscription_name,
+		SubscriptionRevision: subscription_revision,
 	}, nil
 }
 
