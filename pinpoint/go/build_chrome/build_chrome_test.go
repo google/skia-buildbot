@@ -18,143 +18,156 @@ import (
 	"go.skia.org/infra/pinpoint/go/backends/mocks"
 )
 
-func TestSearchBuild(t *testing.T) {
-	for i, test := range []struct {
-		name              string
-		builder           string
-		mockResp          interface{}
-		expected          int64
-		expectedErrorDeps bool
-		expectedErrorCI   bool
-	}{
-		{
-			name:              "buildbucket search error",
-			builder:           "builder",
-			expected:          0,
-			expectedErrorDeps: true,
-			expectedErrorCI:   false,
-		},
-		{
-			name:    "build found",
-			builder: "builder",
-			mockResp: &buildbucketpb.Build{
-				Id:      1,
-				Status:  buildbucketpb.Status_SUCCESS,
-				EndTime: timestamppb.Now(),
-				Input: &buildbucketpb.Build_Input{
-					GerritChanges: []*buildbucketpb.GerritChange{},
-				},
-			},
-			expected:          1,
-			expectedErrorDeps: false,
-			expectedErrorCI:   false,
-		},
-		{
-			name:    "build found through CI counterpart",
-			builder: "builder",
-			mockResp: &buildbucketpb.Build{
-				Id:      1,
-				Status:  buildbucketpb.Status_FAILURE,
-				EndTime: timestamppb.Now(),
-				Input: &buildbucketpb.Build_Input{
-					GerritChanges: []*buildbucketpb.GerritChange{},
-				},
-			},
-			expected:          1,
-			expectedErrorDeps: true,
-			expectedErrorCI:   false,
-		},
-		{
-			name:              "build not found",
-			builder:           "builder",
-			expected:          0,
-			expectedErrorDeps: false,
-			expectedErrorCI:   false,
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			ctx := context.Background()
+const (
+	fakeCommit  = "fake-commit"
+	fakeBuilder = "builder"
+)
 
-			mb := &mocks.BuildbucketClient{}
-			fakeCommit := "fake-commit"
-			var patches []*buildbucketpb.GerritChange = nil
-			deps := map[string]string{}
-			bc := &buildChromeImpl{
-				BuildbucketClient: mb,
-			}
+func TestSearchBuild_BuildbucketError_ReturnsError(t *testing.T) {
+	var patches []*buildbucketpb.GerritChange
 
-			if test.expectedErrorDeps {
-				mb.On("GetSingleBuild", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, fmt.Errorf("random error"))
-			} else {
-				mb.On("GetSingleBuild", testutils.AnyContext, test.builder, backends.DefaultBucket, fakeCommit, deps, patches).Return(test.mockResp, nil)
-			}
+	ctx := context.Background()
 
-			if test.expectedErrorCI {
-				mb.On("GetBuildFromWaterfall", testutils.AnyContext, test.builder, fakeCommit).Return(nil, fmt.Errorf("random error"))
-			} else {
-				mb.On("GetBuildFromWaterfall", testutils.AnyContext, test.builder, fakeCommit).Return(test.mockResp, nil)
-			}
-
-			id, err := bc.searchBuild(ctx, test.builder, fakeCommit, deps, patches)
-			if (test.expectedErrorDeps && !test.expectedErrorCI) || (test.expectedErrorDeps && test.expectedErrorCI) {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, test.expected, id)
-			}
-		})
+	mb := &mocks.BuildbucketClient{}
+	deps := map[string]string{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
 	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, fmt.Errorf("random error"))
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, fakeBuilder, fakeCommit).Return(nil, nil)
+	_, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	require.Error(t, err)
 }
 
-func TestCheckBuildStatus(t *testing.T) {
-	for i, test := range []struct {
-		name          string
-		mockResp      buildbucketpb.Status
-		expected      buildbucketpb.Status
-		expectedError bool
-	}{
-		{
-			name:          "build success",
-			mockResp:      buildbucketpb.Status_SUCCESS,
-			expected:      buildbucketpb.Status_SUCCESS,
-			expectedError: false,
-		},
-		{
-			name:          "build failed",
-			mockResp:      buildbucketpb.Status_FAILURE,
-			expected:      buildbucketpb.Status_FAILURE,
-			expectedError: false,
-		},
-		{
-			name:          "GetBuildStatus error",
-			expected:      buildbucketpb.Status_STATUS_UNSPECIFIED,
-			expectedError: true,
-		},
-	} {
-		t.Run(fmt.Sprintf("[%d] %s", i, test.name), func(t *testing.T) {
-			ctx := context.Background()
-			buildID := int64(0)
+func TestSearchBuild_PinpointBuild_ReturnsBuildId(t *testing.T) {
+	const expectedBuildId = int64(1)
+	const successBuild = buildbucketpb.Status_SUCCESS
+	var patches []*buildbucketpb.GerritChange
 
-			mb := &mocks.BuildbucketClient{}
-			bc := &buildChromeImpl{
-				BuildbucketClient: mb,
-			}
+	ctx := context.Background()
 
-			if test.expectedError {
-				mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(buildbucketpb.Status_STATUS_UNSPECIFIED, fmt.Errorf("some error"))
-			} else {
-				mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(test.mockResp, nil)
-			}
-
-			status, err := bc.GetStatus(ctx, buildID)
-			if test.expectedError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-			assert.Equal(t, test.expected, status)
-		})
+	mb := &mocks.BuildbucketClient{}
+	deps := map[string]string{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
 	}
+	mockResp := &buildbucketpb.Build{
+		Id:      expectedBuildId,
+		Status:  successBuild,
+		EndTime: timestamppb.Now(),
+		Input: &buildbucketpb.Build_Input{
+			GerritChanges: []*buildbucketpb.GerritChange{},
+		},
+	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(mockResp, nil)
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, fakeBuilder, fakeCommit).Return(mockResp, nil)
+
+	id, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedBuildId, id)
+}
+
+func TestSearchBuild_WaterfallBuild_ReturnsBuildIdCICounterpart(t *testing.T) {
+	var patches []*buildbucketpb.GerritChange
+
+	ctx := context.Background()
+
+	mb := &mocks.BuildbucketClient{}
+	deps := map[string]string{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+	mockResp := &buildbucketpb.Build{
+		Id:      1,
+		Status:  buildbucketpb.Status_FAILURE,
+		EndTime: timestamppb.Now(),
+		Input: &buildbucketpb.Build_Input{
+			GerritChanges: []*buildbucketpb.GerritChange{},
+		},
+	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, fmt.Errorf("random error"))
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, fakeBuilder, fakeCommit).Return(mockResp, nil)
+
+	_, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	assert.Error(t, err)
+}
+
+func TestSearchBuild_GivenCommitWithNoPriorBuild_ReturnsZero(t *testing.T) {
+	// TODO(b/332984841): viditchitkara@ make int64(0) a module level constant that
+	// represents unknown build id.
+	const expectedBuildId = int64(0)
+	var patches []*buildbucketpb.GerritChange
+
+	ctx := context.Background()
+
+	mb := &mocks.BuildbucketClient{}
+	deps := map[string]string{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, nil)
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, fakeBuilder, fakeCommit).Return(nil, nil)
+
+	id, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	require.NoError(t, err)
+	assert.Equal(t, expectedBuildId, id)
+}
+
+func TestCheckBuildStatus_SuccessfulBuild_ReturnsSuccessStatus(t *testing.T) {
+	const buildID = int64(0)
+	const buildSuccess = buildbucketpb.Status_SUCCESS
+
+	ctx := context.Background()
+
+	mb := &mocks.BuildbucketClient{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(buildSuccess, nil)
+
+	status, err := bc.GetStatus(ctx, buildID)
+	require.NoError(t, err)
+	assert.Equal(t, buildSuccess, status)
+}
+
+func TestCheckBuildStatus_FailedBuild_ReturnsFailureStatus(t *testing.T) {
+	const buildID = int64(0)
+	const buildFailure = buildbucketpb.Status_FAILURE
+
+	ctx := context.Background()
+
+	mb := &mocks.BuildbucketClient{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(buildFailure, nil)
+
+	status, err := bc.GetStatus(ctx, buildID)
+	require.NoError(t, err)
+	assert.Equal(t, buildFailure, status)
+}
+
+func TestCheckBuildStatus_BuildbucketThrowsError_ReturnsError(t *testing.T) {
+	const buildID = int64(0)
+
+	ctx := context.Background()
+
+	mb := &mocks.BuildbucketClient{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetBuildStatus", testutils.AnyContext, buildID).Return(buildbucketpb.Status_STATUS_UNSPECIFIED, fmt.Errorf("some error"))
+
+	_, err := bc.GetStatus(ctx, buildID)
+
+	assert.Error(t, err)
 }
 
 func TestBuild_WithNonExistentDevice_ReturnsError(t *testing.T) {
@@ -186,10 +199,10 @@ func TestBuildFound_WithValidParams_ReturnsBuildId(t *testing.T) {
 		BuildbucketClient: mb,
 	}
 	const device = "linux-perf"
-	const fakeCommit = "fake-commit"
-	var patches []*buildbucketpb.GerritChange = nil
+	const builder = "Linux Builder Perf"
+	var patches []*buildbucketpb.GerritChange
 
-	mb.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", backends.DefaultBucket, "fake-commit", mock.Anything, patches).Return(mockResp, nil)
+	mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, fakeCommit, mock.Anything, patches).Return(mockResp, nil)
 
 	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]string{}, patches)
 	require.NoError(t, err)
@@ -203,19 +216,18 @@ func TestNewBuild_WithValidBuildParams_ReturnsBuildId(t *testing.T) {
 		BuildbucketClient: mb,
 	}
 	const device = "linux-perf"
-	const commit = "fake-commit"
-	var patches []*buildbucketpb.GerritChange
 	const builder = "Linux Builder Perf"
+	var patches []*buildbucketpb.GerritChange
 	const expectedId = int64(8757340904619224433)
 	mockResp := &buildbucketpb.Build{
 		Id: expectedId,
 	}
 
-	mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, commit, mock.Anything, patches).Return(nil, nil)
-	mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, commit).Return(nil, nil)
-	mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(mockResp, nil)
+	mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, fakeCommit, mock.Anything, patches).Return(nil, nil)
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, fakeCommit).Return(nil, nil)
+	mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, fakeCommit, mock.Anything, patches).Return(mockResp, nil)
 
-	id, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, map[string]string{}, patches)
+	id, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]string{}, patches)
 	require.NoError(t, err)
 	assert.Equal(t, expectedId, id)
 }
@@ -227,16 +239,14 @@ func TestNewBuild_WithInvalidBuildParams_ReturnsError(t *testing.T) {
 		BuildbucketClient: mb,
 	}
 	const device = "linux-perf"
-	const commit = "fake-commit"
-	var patches []*buildbucketpb.GerritChange = nil
-
 	const builder = "Linux Builder Perf"
+	var patches []*buildbucketpb.GerritChange
 
-	mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, commit, mock.Anything, patches).Return(nil, nil)
-	mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, commit).Return(nil, nil)
-	mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, commit, mock.Anything, patches).Return(nil, fmt.Errorf("some error"))
+	mb.On("GetSingleBuild", testutils.AnyContext, builder, backends.DefaultBucket, fakeCommit, mock.Anything, patches).Return(nil, nil)
+	mb.On("GetBuildFromWaterfall", testutils.AnyContext, builder, fakeCommit).Return(nil, nil)
+	mb.On("StartChromeBuild", testutils.AnyContext, mock.Anything, mock.Anything, builder, fakeCommit, mock.Anything, patches).Return(nil, fmt.Errorf("some error"))
 
-	_, err := bc.SearchOrBuild(ctx, "fake-jID", commit, device, map[string]string{}, patches)
+	_, err := bc.SearchOrBuild(ctx, "fake-jID", fakeCommit, device, map[string]string{}, patches)
 	require.Error(t, err)
 }
 
