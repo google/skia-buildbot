@@ -119,7 +119,7 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 			}
 		}
 
-		if len(it.queryConfig.HotlistsToIncludeForUntriaged) > 0 && len(i.Hotlists) > 0 && !ignoreForUntriagedCount {
+		if len(it.queryConfig.HotlistsToIncludeForUntriaged) > 0 && !ignoreForUntriagedCount {
 			foundHotlistToInclude := false
 			for _, hotlistToInclude := range it.queryConfig.HotlistsToIncludeForUntriaged {
 				for _, hotlist := range i.Hotlists {
@@ -128,7 +128,6 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 						break
 					}
 				}
-
 			}
 			ignoreForUntriagedCount = !foundHotlistToInclude
 		}
