@@ -11,7 +11,6 @@ import (
 
 func TestValidateConfig_ValidConfig(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub A",
@@ -60,19 +59,8 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestValidateConfig_NoInstance(t *testing.T) {
-	config := &pb.SheriffConfig{
-		Instance: 0,
-	}
-
-	err := ValidateConfig(config)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Instance field must be specified for config.")
-}
-
 func TestValidateConfig_NoSubscriptions(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance:      1,
 		Subscriptions: []*pb.Subscription{},
 	}
 
@@ -83,7 +71,6 @@ func TestValidateConfig_NoSubscriptions(t *testing.T) {
 
 func TestValidateConfig_NoName(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{},
 		},
@@ -96,7 +83,6 @@ func TestValidateConfig_NoName(t *testing.T) {
 
 func TestValidateConfig_NoContactEmail(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{Name: "Sub Test"},
 		},
@@ -109,7 +95,6 @@ func TestValidateConfig_NoContactEmail(t *testing.T) {
 
 func TestValidateConfig_NoBugComponent(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -125,7 +110,6 @@ func TestValidateConfig_NoBugComponent(t *testing.T) {
 
 func TestValidateConfig_NoAnomalyConfigs(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -142,7 +126,6 @@ func TestValidateConfig_NoAnomalyConfigs(t *testing.T) {
 
 func TestValidateConfig_NoMatchPatterns(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -164,7 +147,6 @@ func TestValidateConfig_NoMatchPatterns(t *testing.T) {
 
 func TestValidateConfig_PatternWithAllEmptyFields(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -190,7 +172,6 @@ func TestValidateConfig_PatternWithAllEmptyFields(t *testing.T) {
 
 func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -220,7 +201,6 @@ func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 
 func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",
@@ -256,7 +236,6 @@ func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 
 func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 	config := &pb.SheriffConfig{
-		Instance: 1,
 		Subscriptions: []*pb.Subscription{
 			{
 				Name:         "Sub Test",

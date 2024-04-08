@@ -16,6 +16,12 @@ type SubscriptionSchema struct {
 	// Component in which to file bugs associated with a subscription.
 	BugComponent string `sql:"bug_component STRING"`
 
+	// Priority of bugs associated with a subscription. Must be between 0-4.
+	BugPriority int `sql:"bug_priority INT"`
+
+	// Severity of bugs associated with a subscription. Must be between 0-4.
+	BugSeverity int `sql:"bug_severity INT"`
+
 	// Emails to CC in bugs associated with a subscription.
 	BugCCEmails []string `sql:"bug_cc_emails STRING ARRAY"`
 

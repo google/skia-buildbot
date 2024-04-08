@@ -29,6 +29,8 @@ var statements = map[statement]string{
 			bug_labels,
 			hotlists,
 			bug_component,
+			bug_priority,
+			bug_severity,
 			bug_cc_emails,
 			contact_email
 		FROM
@@ -40,9 +42,9 @@ var statements = map[statement]string{
 		`,
 	insertSubscription: `
 		INSERT INTO
-			Subscriptions (name, revision, bug_labels, hotlists, bug_component, bug_cc_emails, contact_email)
+			Subscriptions (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email)
 		VALUES
-			($1, $2, $3, $4, $5, $6, $7)
+			($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`,
 }
 
@@ -68,6 +70,8 @@ func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, re
 		&sub.BugLabels,
 		&sub.Hotlists,
 		&sub.BugComponent,
+		&sub.BugPriority,
+		&sub.BugSeverity,
 		&sub.BugCcEmails,
 		&sub.ContactEmail,
 	); err != nil {
@@ -84,7 +88,7 @@ func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.
 	}
 
 	for _, sub := range subs {
-		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugCcEmails, sub.ContactEmail); err != nil {
+		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugPriority, sub.BugSeverity, sub.BugCcEmails, sub.ContactEmail); err != nil {
 			if err := tx.Rollback(ctx); err != nil {
 				sklog.Errorf("Failed on rollback: %s", err)
 			}

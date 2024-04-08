@@ -104,13 +104,9 @@ func validateSubscription(sub *sheriff_configpb.Subscription) error {
 }
 
 // Does the following checks at config level:
-// - Instance field is explicitly defined.
 // - There's at least 1 subscription defined.
 // - All subscriptions have unique names.
 func ValidateConfig(config *sheriff_configpb.SheriffConfig) error {
-	if config.Instance == 0 {
-		return skerr.Fmt("Instance field must be specified for config.")
-	}
 	if len(config.Subscriptions) == 0 {
 		return skerr.Fmt("Config must have at least one Subscription.")
 	}

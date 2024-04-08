@@ -16,6 +16,10 @@ message Subscription {
     repeated string hotlists = 4;
     // Component in which to file bugs associated with a subscription.
     string bug_component = 5;
+    // Priority of bugs associated with a subscription. Must be between 0-4.
+    int32 bug_priority = 8;
+    // Severity of bugs associated with a subscription. Must be between 0-4.
+    int32 bug_severity = 9;
     // Emails to CC in bugs associated with a subscription.
     repeated string bug_cc_emails = 6;
     // Owner of subscription. Used for contact purposes.

@@ -98,6 +98,8 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   bug_labels STRING ARRAY,
   hotlists STRING ARRAY,
   bug_component STRING,
+  bug_priority INT,
+  bug_severity INT,
   bug_cc_emails STRING ARRAY,
   contact_email STRING,
   PRIMARY KEY(name, revision)
@@ -209,6 +211,8 @@ var Subscriptions = []string{
 	"bug_labels",
 	"hotlists",
 	"bug_component",
+	"bug_priority",
+	"bug_severity",
 	"bug_cc_emails",
 	"contact_email",
 }

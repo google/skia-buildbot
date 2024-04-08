@@ -33,28 +33,21 @@ import (
 //   - DropTables deletes all tables *including* the new one in the change.
 //   - LiveSchema creates all existing tables *without* the new one in the
 //     change.
+//
+// DO NOT DROP TABLES IN VAR BELOW.
+// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS Regressions2 (
-		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		commit_number INT,
-		prev_commit_number INT,
-		alert_id INT,
-		creation_time TIMESTAMPTZ DEFAULT now(),
-		median_before REAL,
-		median_after REAL,
-		is_improvement BOOL,
-		cluster_type TEXT,
-		cluster_summary JSONB,
-		frame JSONB,
-		triage_status TEXT,
-		triage_message TEXT,
-		INDEX by_alert_id (alert_id),
-		INDEX by_commit_alert (commit_number, alert_id)
-	);
+	ALTER TABLE Subscriptions
+	ADD COLUMN bug_priority INT,
+	ADD COLUMN bug_severity INT;
 `
 
+// ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
+// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	DROP TABLE IF EXISTS Regressions2;
+	ALTER TABLE Subscriptions
+	DROP COLUMN bug_priority,
+	DROP COLUMN bug_severity;
 `
 
 // This function will check whether there's a new schema checked-in,

@@ -138,6 +138,32 @@ message Subscription {
   // A Buganizer component in which to file issues for this subscription.
   string bug_component = 6;
 
+  enum Priority {
+    // If unspecified, default is P2.
+    P_UNSPECIFIED = 0;
+    P0 = 1;
+    P1 = 2;
+    P2 = 3;
+    P3 = 4;
+    P4 = 5;
+  }
+
+  // Priority to set in Buganizer issue. Default is P2.
+  Priority bug_priority = 9;
+
+  enum Severity {
+    // If unspecified, default is S2.
+    S_UNSPECIFIED = 0;
+    S0 = 1;
+    S1 = 2;
+    S2 = 3;
+    S3 = 4;
+    S4 = 5;
+  }
+
+  // Severity to set in Buganizer issue. Default is S2.
+  Severity bug_severity = 10;
+
   // A list of e-mails to add to Buganizer issue CC list.
   repeated string bug_cc_emails = 7;
 
@@ -155,15 +181,4 @@ message Subscription {
 // instance specified.
 message SheriffConfig {
   repeated Subscription subscriptions = 1;
-
-  enum Instance {
-    UNKNOWN = 0; // Default value. Validation will fail if it's set to this to enforce explicitness.
-    CHROMIUM = 1;
-    WEBRTC = 2;
-    V8 = 3;
-    WIDEVINE_WHITEBOX = 4;
-    WIDEVINE_CDM = 5;
-    DEVTOOLS = 6;
-  }
-  Instance instance = 2;
 }
