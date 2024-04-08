@@ -79,11 +79,11 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 
 	//////////////////// Android - IssueTracker ////////////////////
 	androidQueryConfig := &issuetracker.IssueTrackerQueryConfig{
-		Query:               "componentid:1346 status:open",
-		Client:              types.AndroidClient,
-		UntriagedPriorities: []string{},
-		UntriagedAliases:    []string{"skia-android-triage@google.com", "none"},
-		HotlistsToExclude:   []int64{4595112},
+		Query:                         "componentid:1346 status:open",
+		Client:                        types.AndroidClient,
+		UntriagedPriorities:           []string{},
+		UntriagedAliases:              []string{"skia-android-triage@google.com", "none"},
+		HotlistsToExcludeForUntriaged: []int64{4595112},
 	}
 	androidIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, androidQueryConfig)
 	if err != nil {
@@ -120,12 +120,12 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 
 	//////////////////// Chromium - IssueTracker ////////////////////
 	crQueryConfig := &issuetracker.IssueTrackerQueryConfig{
-		Query:                 "componentid:1457031+ status:open",
-		Client:                types.ChromiumClient,
-		UnassignedIsUntriaged: true,
-		UntriagedPriorities:   []string{},
-		UntriagedAliases:      []string{"none"},
-		HotlistsToExclude:     []int64{5437934, 5438642},
+		Query:                         "componentid:1457031+ status:open",
+		Client:                        types.ChromiumClient,
+		UnassignedIsUntriaged:         true,
+		UntriagedPriorities:           []string{},
+		UntriagedAliases:              []string{"none"},
+		HotlistsToExcludeForUntriaged: []int64{5438642},
 	}
 	crIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, crQueryConfig)
 	if err != nil {
@@ -135,11 +135,12 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 
 	//////////////////// Skia - Buganizer ////////////////////
 	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
-		Query:                 "componentid:1363359+ status:open -componentid:1389238+ -componentid:1399322+ created>2023-10-01",
-		Client:                types.SkiaClient,
-		UntriagedPriorities:   []string{},
-		UntriagedAliases:      []string{"none"},
-		UnassignedIsUntriaged: true,
+		Query:                         "componentid:1363359+ status:open -componentid:1389238+ -componentid:1399322+",
+		Client:                        types.SkiaClient,
+		UntriagedPriorities:           []string{},
+		UntriagedAliases:              []string{"none"},
+		UnassignedIsUntriaged:         true,
+		HotlistsToIncludeForUntriaged: []int64{5437934},
 	}
 	skiaIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, skiaIssueTrackerQueryConfig)
 	if err != nil {

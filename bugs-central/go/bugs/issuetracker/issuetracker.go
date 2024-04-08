@@ -65,8 +65,10 @@ type IssueTrackerQueryConfig struct {
 	UntriagedAliases []string
 	// Whether unassigned issues should be considered as untriaged.
 	UnassignedIsUntriaged bool
-	// Which hotlists should be excluded.
-	HotlistsToExclude []int64
+	// Which hotlists should be excluded when calculating untriaged issues.
+	HotlistsToExcludeForUntriaged []int64
+	// Which hotlists should be included when calculating untriaged issues.
+	HotlistsToIncludeForUntriaged []int64
 }
 
 // See documentation for bugs.Search interface.
@@ -105,18 +107,33 @@ func (it *issueTracker) Search(ctx context.Context) ([]*types.Issue, *types.Issu
 		sloViolation, reason, d := types.IsPrioritySLOViolation(time.Now(), created, modified, priority)
 		countsData.IncSLOViolation(sloViolation, priority)
 
-		foundHotlistToIgnore := false
-		if len(it.queryConfig.HotlistsToExclude) > 0 && len(i.Hotlists) > 0 {
-			for _, hotlistToIgnore := range it.queryConfig.HotlistsToExclude {
+		ignoreForUntriagedCount := false
+		if len(it.queryConfig.HotlistsToExcludeForUntriaged) > 0 && len(i.Hotlists) > 0 {
+			for _, hotlistToIgnore := range it.queryConfig.HotlistsToExcludeForUntriaged {
 				for _, hotlist := range i.Hotlists {
 					if hotlistToIgnore == hotlist {
-						foundHotlistToIgnore = true
+						ignoreForUntriagedCount = true
 						break
 					}
 				}
 			}
 		}
-		if foundHotlistToIgnore {
+
+		if len(it.queryConfig.HotlistsToIncludeForUntriaged) > 0 && len(i.Hotlists) > 0 && !ignoreForUntriagedCount {
+			foundHotlistToInclude := false
+			for _, hotlistToInclude := range it.queryConfig.HotlistsToIncludeForUntriaged {
+				for _, hotlist := range i.Hotlists {
+					if hotlistToInclude == hotlist {
+						foundHotlistToInclude = true
+						break
+					}
+				}
+
+			}
+			ignoreForUntriagedCount = !foundHotlistToInclude
+		}
+
+		if ignoreForUntriagedCount {
 			// Do not count as untriaged.
 		} else if i.Assignee == "" && it.queryConfig.UnassignedIsUntriaged {
 			countsData.UntriagedCount++
@@ -166,10 +183,14 @@ func (it *issueTracker) SearchClientAndPersist(ctx context.Context, dbClient typ
 			untriagedTokens = append(untriagedTokens, fmt.Sprintf("assignee:%s", a))
 		}
 		hotlistsToExclude := []string{}
-		for _, a := range qc.HotlistsToExclude {
+		for _, a := range qc.HotlistsToExcludeForUntriaged {
 			hotlistsToExclude = append(hotlistsToExclude, fmt.Sprintf("-hotlistid:%d", a))
 		}
-		countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s) %s", countsData.QueryLink, strings.Join(untriagedTokens, "|"), strings.Join(hotlistsToExclude, " "))
+		hotlistsToInclude := []string{}
+		for _, a := range qc.HotlistsToIncludeForUntriaged {
+			hotlistsToInclude = append(hotlistsToInclude, fmt.Sprintf("hotlistid:%d", a))
+		}
+		countsData.UntriagedQueryLink = fmt.Sprintf("%s (%s) %s %s", countsData.QueryLink, strings.Join(untriagedTokens, "|"), strings.Join(hotlistsToExclude, " "), strings.Join(hotlistsToInclude, " "))
 		// Calculate priority links.
 		countsData.P0Link = fmt.Sprintf("%s P:P0", countsData.QueryLink)
 		countsData.P1Link = fmt.Sprintf("%s P:P1", countsData.QueryLink)
