@@ -35,8 +35,14 @@ sk_page(
     name = "paramset-sk-demo",
     html_file = "paramset-sk-demo.html",
     scss_entry_point = "paramset-sk-demo.scss",
-    sk_element_deps = [":paramset-sk"],
-    ts_deps = ["//infra-sk/modules:query_ts_lib"],
+    sk_element_deps = [
+        ":paramset-sk",
+        "//elements-sk/modules/checkbox-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules:query_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
     ts_entry_point = "paramset-sk-demo.ts",
 )
 

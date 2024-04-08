@@ -182,15 +182,34 @@ export class ParamSetSk extends ElementSk {
     key: string,
     params: string[]
   ) => {
-    let disabled = true;
-    if (params.length > 1) {
-      disabled = false;
+    // Figure out if we are down to just one checkbox being checked. If so we'll
+    // want to disable that checkbox so that it can't be unchecked, otherwise
+    // all the data will disappear from the display.
+    let downToJustOneCheckedCheckboxForThisKey = false;
+
+    // Count the number of unchecked values for this key.
+    let numUnchecked = 0;
+    const uncheckedSet = ele.unchecked.get(key);
+    if (uncheckedSet !== undefined) {
+      numUnchecked = uncheckedSet.size;
+    }
+
+    if (params.length - numUnchecked <= 1) {
+      downToJustOneCheckedCheckboxForThisKey = true;
     }
     return params.map((value) => {
       if (ele.checkbox_values) {
+        let disabled = false;
+        const currentCheckboxChecked =
+          uncheckedSet === undefined || !uncheckedSet.has(value);
+        if (downToJustOneCheckedCheckboxForThisKey && currentCheckboxChecked) {
+          disabled = true;
+        }
+
         return html`
           <div class=${ele._highlighted(key, value)}>
             <checkbox-sk
+              id="checkbox-${key}-${value}"
               name=${value}
               @change=${(e: MouseEvent) =>
                 ele.checkboxValueClickHandler(e, key, value)}
@@ -234,13 +253,18 @@ export class ParamSetSk extends ElementSk {
 
   private _highlight: { [key: string]: string } = {};
 
+  // unchecked maps the param keys to the values that are unchecked. Note we use
+  // the unchecked state because the checkboxes start off as all checked by
+  // default.
+  private unchecked: Map<string, Set<string>> = new Map();
+
   private toast: ToastSk | null = null;
 
   constructor() {
     super(ParamSetSk.template);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     this._upgradeProperty('paramsets');
     this._upgradeProperty('highlight');
@@ -270,6 +294,23 @@ export class ParamSetSk extends ElementSk {
     this.toast!.show();
   }
 
+  private fixUpDisabledStateOnRemainingCheckboxes(
+    isChecked: boolean,
+    key: string,
+    value: string
+  ) {
+    // Update the unchecked status and then re-render.
+    const set = this.unchecked.get(key) || new Set();
+    if (isChecked) {
+      set.delete(value);
+    } else {
+      set.add(value);
+    }
+    this.unchecked.set(key, set);
+
+    this._render();
+  }
+
   private checkboxValueClickHandler(e: MouseEvent, key: string, value: string) {
     const isChecked = (e.target! as HTMLInputElement).checked;
     const detail: ParamSetSkCheckboxClickEventDetail = {
@@ -286,6 +327,8 @@ export class ParamSetSk extends ElementSk {
         }
       )
     );
+
+    this.fixUpDisabledStateOnRemainingCheckboxes(isChecked, key, value);
   }
 
   private _click(e: MouseEvent) {
@@ -348,7 +391,13 @@ export class ParamSetSk extends ElementSk {
   }
 
   static get observedAttributes() {
-    return ['clickable', 'clickable_values', 'clickable_plus', 'copy-content'];
+    return [
+      'clickable',
+      'clickable_values',
+      'clickable_plus',
+      'copy-content',
+      'checkbox_values',
+    ];
   }
 
   /** Mirrors the clickable attribute.  */
@@ -469,6 +518,7 @@ export class ParamSetSk extends ElementSk {
       });
     });
     this._sortedKeys = Array.from(allKeys).sort();
+    this.unchecked = new Map();
     this._render();
   }
 

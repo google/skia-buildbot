@@ -4,7 +4,10 @@ import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
   ParamSetSkRemoveClickEventDetail,
+  ParamSetSkCheckboxClickEventDetail,
 } from './paramset-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import { $$ } from '../dom';
 
 const paramSet1: ParamSet = {
   arch: ['Arm7', 'Arm64', 'x86_64', 'x86'],
@@ -26,7 +29,7 @@ const title2 = 'ParamSet 2';
 
 const allParamSetSks: ParamSetSk[] = [];
 
-const findParamSetSk = (selector: string) => {
+const findParamSetSk = (selector: string): ParamSetSk => {
   const paramSetSk = document.querySelector<ParamSetSk>(selector)!;
   allParamSetSks.push(paramSetSk);
   return paramSetSk;
@@ -75,6 +78,7 @@ paramSetSk.paramsets = [paramSet1];
 
 paramSetSk = findParamSetSk('#checkbox-values');
 paramSetSk.paramsets = [paramSet1];
+$$<CheckOrRadio>('#checkbox-cpu_or_gpu-GPU', paramSetSk)!.click();
 
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
@@ -100,6 +104,14 @@ allParamSetSks.forEach((paramSetSk) => {
     const detail = (e as CustomEvent<ParamSetSkRemoveClickEventDetail>).detail;
     document.querySelector<HTMLPreElement>('#remove-click-event')!.textContent =
       JSON.stringify(detail, null, '  ');
+  });
+
+  paramSetSk.addEventListener('paramset-checkbox-click', (e) => {
+    const detail = (e as CustomEvent<ParamSetSkCheckboxClickEventDetail>)
+      .detail;
+    document.querySelector<HTMLPreElement>(
+      '#paramset-checkbox-click'
+    )!.textContent = JSON.stringify(detail, null, '  ');
   });
 });
 
