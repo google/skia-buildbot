@@ -237,7 +237,7 @@ packages:
       Store:
   go.skia.org/infra/perf/go/anomalygroup:
     config:
-      dir: "{{.InterfaceDir}}/mock"
+      dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
   go.skia.org/infra/perf/go/chromeperf:
@@ -256,6 +256,11 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Formatter:
+  go.skia.org/infra/perf/go/culprit/notify:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      CulpritNotifier:
   go.skia.org/infra/perf/go/culprit/transport:
     config:
       dir: "{{.InterfaceDir}}/mocks"
@@ -285,6 +290,11 @@ packages:
     interfaces:
       Store:
   go.skia.org/infra/perf/go/shortcut:
+    interfaces:
+      Store:
+  go.skia.org/infra/perf/go/subscription:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
   go.skia.org/infra/perf/go/tracestore:

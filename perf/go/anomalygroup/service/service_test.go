@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	mocks "go.skia.org/infra/perf/go/anomalygroup/mock"
+	mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 )
 
