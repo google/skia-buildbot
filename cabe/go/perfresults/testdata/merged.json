@@ -1,0 +1,34 @@
+[
+  {
+    "name": "memory:chrome:gpu_process:process_count",
+    "unit": "count_smallerIsBetter",
+    "sampleValues": [
+      1
+    ],
+    "running": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+    ]
+  },
+  {
+    "name": "memory:chrome:gpu_process:process_count",
+    "unit": "count_smallerIsBetter",
+    "sampleValues": [
+      2
+    ],
+    "running": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+    ]
+  }
+]

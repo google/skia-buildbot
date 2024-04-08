@@ -243,26 +243,17 @@ func (a *Analyzer) Run(ctx context.Context) ([]Results, error) {
 			cRes := controlTask.parsedResults[benchmarkSpec.GetName()]
 			tRes := treatmentTask.parsedResults[benchmarkSpec.GetName()]
 
-			cSamples := map[string][]float64{}
-			for _, cHist := range cRes.Histograms {
-				cSamples[cHist.Name] = cHist.SampleValues
-			}
-
-			tSamples := map[string][]float64{}
-			for _, tHist := range tRes.Histograms {
-				tSamples[tHist.Name] = tHist.SampleValues
-			}
 			for _, workloadName := range benchmarkSpec.GetWorkload() {
 
-				cValues, ok := cSamples[workloadName]
-				if !ok || len(cValues) == 0 {
+				cValues := cRes.GetSampleValues(workloadName)
+				if len(cValues) == 0 {
 					msg := fmt.Sprintf("control task %s is missing %q/%q or reported an empty list of samples", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
 					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
 					continue
 				}
 
-				tValues, ok := tSamples[workloadName]
-				if !ok || len(tValues) == 0 {
+				tValues := tRes.GetSampleValues(workloadName)
+				if len(tValues) == 0 {
 					msg := fmt.Sprintf("treatment task %s is missing %q/%q or reported an empty list of samples", pair.control.taskID, benchmarkSpec.GetName(), workloadName)
 					a.diagnostics.excludeReplica(replicaNumber, pair, msg)
 					continue

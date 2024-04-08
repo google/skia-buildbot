@@ -1,0 +1,1862 @@
+[
+  {
+    "type": "GenericSet",
+    "guid": "8c7f2287-d9b6-45a8-95c1-832859902913",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "b1aa0c79-7652-496b-9c9b-90aa7a355916",
+    "min": 1712174368648.715
+  },
+  {
+    "type": "GenericSet",
+    "guid": "afe59ed1-9974-4273-b4d5-3a3224286d8e",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "708a2396-75a1-4c16-a350-a8e86af530dd",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "0d317f40-e152-4d93-a511-e6f5697b43d6",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "f8023d38-7fe7-45e4-8d67-d14e60f3aac4",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "26ce3954-5dae-4dd9-8bea-d3b5b6eb61ac",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "3c30585b-d747-4e44-bdcd-508a4b331777",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "f8101e8a-eff2-4498-b160-18169365fd35",
+    "values": [
+      "win-76-g580"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+    "values": [
+      "bsheedy@chromium.org",
+      "tiborg@chromium.org"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+    "values": [
+      "win"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+    "values": [
+      "win10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9",
+    "values": [
+      "10.0.18363"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "3c250655-5180-4f86-92af-4740ebc549a8",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2944381f-f611-4b9a-bd07-779d2533771c",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "4a1b94fa-951e-4db2-bfcf-7ba272eea572",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "3b0cb6ac-6637-4dee-b959-c7f0dc4a3634",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "8f92fdb7-9fb6-442e-946a-a8d4f8fa637a",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "0fea3715-f1ce-4594-a66d-033936032b8d",
+    "min": 1712174368648.715
+  },
+  {
+    "type": "GenericSet",
+    "guid": "5062a96c-b4c0-4d14-959e-618a00d1d2cc",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "9c51d676-d4bd-48ee-99f3-115f1b562628",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.4"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "4a350346-dbbf-4237-9873-19126ec145a1",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "a7539ac5-9af9-4d70-98ce-201626563ee1",
+    "min": 1712174391771.448
+  },
+  {
+    "type": "GenericSet",
+    "guid": "dae41664-267a-46d7-ba07-8c49154d4e03",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.4/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "ab1baeb0-d514-4d90-93a8-c349bf76c603",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "4c09c969-eb58-4112-b6f0-1d71afe0dc6e",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "6e79c263-7aa1-4929-86ff-1ca63f8ef1d0",
+    "values": [
+      "win-76-g580"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "9e818997-82b9-4d6e-b553-93203aa18d76",
+    "values": [
+      "bsheedy@chromium.org",
+      "tiborg@chromium.org"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "1906098f-ebe2-48aa-8e36-b608f759bfc0",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "aa8ba070-9639-446d-8396-7794a605ee65",
+    "values": [
+      "win"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "5e8eacdf-a5ac-4556-948f-709c2e2cb587",
+    "values": [
+      "win10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "7f0b8a96-3983-413f-a9d6-387247d39b96",
+    "values": [
+      "10.0.18363"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "25e82945-6ced-4aed-add1-940f98f7f61c",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "95fac77a-80ad-4938-b285-843e8de10b94",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.4"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "4b6b6f33-4807-4373-8107-48ff4811bf74",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "e81c5cd6-c1c4-4a72-8fa6-01963f2cba90",
+    "min": 1712174391771.449
+  },
+  {
+    "type": "GenericSet",
+    "guid": "89727681-f0c4-4d28-bf89-467296ab73b0",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.4/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "6b025b27-bcd5-4cfc-861f-9c6031a96887",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "65a60e99-fd7c-4db1-8a32-f3de92bf829c",
+    "min": 1712174368648.715
+  },
+  {
+    "type": "GenericSet",
+    "guid": "81c9c239-b074-46d8-aad4-366d1b88a53f",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "fda1ea12-f703-4d1b-b387-996539971156",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.2_workTime_5"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "f6f64d53-31e8-4ef3-acd0-bfdd5dcc91e1",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "c66693ed-ab97-474d-a0da-6daa462a69de",
+    "min": 1712174406868.083
+  },
+  {
+    "type": "GenericSet",
+    "guid": "65219fa0-158c-42c4-9ed7-85ccc2aefa5e",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0_heavyGpu_1_cubeScale_0.2_workTime_5/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "3eef7b01-70ed-46c9-a2b2-fca3dc3799fc",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "7687bbc9-9fd0-4f73-91db-2880058a1fd3",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "a30b814d-7351-4878-ab39-cefaa9dfa763",
+    "values": [
+      "win-76-g580"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2a11b134-31b4-45db-b693-02cd90a2a59b",
+    "values": [
+      "bsheedy@chromium.org",
+      "tiborg@chromium.org"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "02d043a9-1cc2-4185-b093-8cc0aa32934f",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "595efce8-8f7c-4fa6-9c50-fecdc6cea111",
+    "values": [
+      "win"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "23bfe89b-ab9a-4580-95e8-419de5b9401b",
+    "values": [
+      "win10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "c2feab06-3465-47d3-9ab6-1eb532782dde",
+    "values": [
+      "10.0.18363"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2b73396e-7d75-4bd8-a405-7b18d7361a13",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7d9a9c06-d0cb-4dda-9669-d9ccd517f970",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "a8441fd2-d0eb-4a12-b845-be9902a2202e",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.2_workTime_5"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "0b9cb176-99cc-4208-98e4-268b2a337430",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "ae83b6af-83bc-4296-8df4-806c8a93d833",
+    "min": 1712174406868.083
+  },
+  {
+    "type": "GenericSet",
+    "guid": "e34ea70f-807d-4f6b-8b1e-8b40cae9b7b2",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0_heavyGpu_1_cubeScale_0.2_workTime_5/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2d8de787-ec6a-4dfb-b005-6383817d7a3b",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "05a76143-348e-4375-81a1-1aa1cfdadb22",
+    "min": 1712174368648.715
+  },
+  {
+    "type": "GenericSet",
+    "guid": "ed3fd202-9607-4410-8d6e-12038d662951",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "f4519ecd-d616-4f68-8f04-b724b7cfe91b",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.3_workTime_10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "141a7cd5-be13-4eb8-b8a0-f952b760fd9a",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "00d8207e-284d-44c8-986e-f45b7a64e3d8",
+    "min": 1712174474322.009
+  },
+  {
+    "type": "GenericSet",
+    "guid": "ad9115d9-9689-49f3-9fac-ae93457211b1",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0_heavyGpu_1_cubeScale_0.3_workTime_10/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "08359f42-caa0-45ff-8c4d-ef05e7dbb905",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "9b83badc-ecd8-44c1-8757-e35bf36b5758",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "791ecfe7-4508-401e-904b-3068bd8a7b88",
+    "values": [
+      "win-76-g580"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "57633a22-9ecf-4626-aab5-aabab71d1857",
+    "values": [
+      "bsheedy@chromium.org",
+      "tiborg@chromium.org"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "cb0c9886-a32f-42bf-9c0d-cd1a1d61527e",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "2084933c-0856-44a5-ae62-4c601a7b6c3c",
+    "values": [
+      "win"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "5e921936-1366-4145-b08a-ca6c93aebcf0",
+    "values": [
+      "win10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "eb8891b3-afb1-4fc5-894d-3bb1664c5736",
+    "values": [
+      "10.0.18363"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "429c2054-7010-4b31-a249-88d93805950e",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "863afa92-c621-40f6-9466-f7927115c64d",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "1ed3b0d9-27ce-4a9f-a8c0-c116bccd1e0c",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.3_workTime_10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "e4ec20f5-8d91-4daf-a9b9-10ead85e4a74",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "492a90f2-7348-4c17-ac02-bee8246d3b5b",
+    "min": 1712174474322.01
+  },
+  {
+    "type": "GenericSet",
+    "guid": "c08146f9-40ab-4b01-ab3d-fc303c6eabcb",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_framebufferScale_1.0_heavyGpu_1_cubeScale_0.3_workTime_10/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "113ba2e8-fef3-4908-a5c5-100d285cac3b",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "92eb2449-5211-427d-bb70-3fe086e619a3",
+    "min": 1712174368648.715
+  },
+  {
+    "type": "GenericSet",
+    "guid": "72bbc8e2-0fc4-4e98-b107-9eb508884b81",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "268e124b-4fd2-47b6-83e3-3094abd5efa1",
+    "values": [
+      "tests_cube-sea?frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "b95a41fa-1985-4e5c-8b3e-a64c8faa9832",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7083ecfd-aa91-4ff3-8f29-1aae6ee49ce1",
+    "min": 1712174541900.69
+  },
+  {
+    "type": "GenericSet",
+    "guid": "53bf1004-89a6-4e6a-bddf-ec869fc97fd7",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "adb2099a-7571-45cf-93ba-949bcfcfb642",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "b4865270-c915-4d2b-a164-793c1514b652",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "08ec6654-ea06-4475-9826-abfcfb2793c8",
+    "values": [
+      "win-76-g580"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "d033a159-f54b-41a5-94b5-ea1c7bc5990f",
+    "values": [
+      "bsheedy@chromium.org",
+      "tiborg@chromium.org"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "faf0da58-d2df-4091-ae2a-8b8b36511c42",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "da8c866e-06e4-4f91-b346-cd1649f3c87a",
+    "values": [
+      "win"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "6862436f-b5a7-4e5f-b3a1-3bf40304a9f5",
+    "values": [
+      "win10"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "bdf51baa-1cc2-4027-b235-700a9e6c7b86",
+    "values": [
+      "10.0.18363"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "cb88ffff-3d43-45bc-92e6-0d9a69308e01",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7724ede0-d645-4de6-ac7c-67c03a8e331f",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "213521ae-df97-420b-a16b-df3ee51c9b19",
+    "values": [
+      "tests_cube-sea?frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "77ab2601-743d-4b58-a49e-d68bb7955149",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "db91e08e-86c6-42f7-b97e-ebcd20732401",
+    "min": 1712174541900.691
+  },
+  {
+    "type": "GenericSet",
+    "guid": "8d43abf8-3d08-431f-a4a5-1167ec77f89b",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6e2309b2-739f-49ee-bbda-1f82dc251e57",
+    "names": {
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:locked_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "d2645c49-34d3-489c-91e0-aba6833f2082",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c65ca18a-22cd-49c8-8faa-72a14c452484",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:skia:effective_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:skia:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:skia:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0913f6e0-2bda-4186-a6e4-35b9322f5e46",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "aff20ca2-e387-4069-9ac7-659027b4fca5",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_large_object_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "a95d907a-075e-478b-acfd-835a94e76e21",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:shared_memory:effective_size",
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:shared_memory:effective_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:shared_memory:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:shared_memory:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "fdcfa46e-47d6-4540-9951-cee0b8bc844d",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:stack:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:stack:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:stack:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "27dee01d-8466-446f-82a2-5b77e9a1b8c9",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c3b0f943-83e4-4302-abc0-a45eddbccf43",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "55a26254-5986-434c-96dd-6afb1feb8466",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "54e0dfdd-d9af-4f64-88f1-90e1678901e1",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "2259e975-9d40-462b-b140-1c1099e5a108",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "fca4107c-2cfc-4036-932e-22afe8874adc",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:gpu:effective_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:gpu:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:gpu:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "203dbfcd-aab1-45d8-939c-0078165f47e4",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:leveldatabase:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:leveldatabase:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "83101fa2-d3be-400a-9ba0-e06f4192346a",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:stack:private_dirty_size",
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:stack:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:stack:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e3e01e2d-2b97-4a70-8598-a30c7c5a152f",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "23bf16d3-8c4a-4bbd-9c19-100479cb29a0",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "093abea1-b3e2-47a4-b365-4de137033cab",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "bdc6748e-2c19-43d2-a973-135fd5303aee",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:cc:effective_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:cc:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:cc:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "53312a8e-1bd1-4778-a80d-5a905f387590",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6cdff02e-88fd-43cc-8627-863e54233029",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:web_cache:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e19b0829-6ae2-4373-b74f-c03bcb22b0e6",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:allocated_objects_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:allocated_objects_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:allocated_objects_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "68f92260-83f6-4e79-b921-4fb198588d42",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "968da7a6-b733-411b-a7b1-ed2b0b7b39cf",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8c1c63d2-2b75-4296-a68b-d341c9f77a4b",
+    "names": {
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:discardable:locked_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "05a4491a-62bb-4244-8273-bffafc019721",
+    "names": {
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:discardable:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3680d40c-a25b-4937-952d-ea902d413b1d",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "4a2ac5f0-9fff-4aac-962d-2fc8b55089fa",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c30605c4-4509-40a7-b1a6-49bdf7bbb60a",
+    "names": {
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:extensions:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "761b6dc5-6439-4a85-a2e2-59e5daab963e",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_large_object_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "cd74d7e1-782d-4151-875b-34f37f7ba152",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "85e76751-c196-4c1f-af95-cdaffdbaf90e",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:malloc:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:malloc:effective_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:malloc:effective_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:malloc:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "bebaa978-1a6c-48ec-84e3-e28e1426c7df",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "7632d8ae-552d-45f0-9166-65045a5441d9",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:process_count",
+      "browser_process": "memory:chrome:browser_process:process_count",
+      "gpu_process": "memory:chrome:gpu_process:process_count",
+      "renderer_processes": "memory:chrome:renderer_processes:process_count"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0a2f92eb-20ee-4c0d-97dc-ea5f7c09550a",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:shared:read_only_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "228b0c2a-86f4-4d85-b063-dc493360cd03",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:sqlite:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:sqlite:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "9e08b6ed-d4a0-43a9-9880-012db3af05fb",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "b2985600-8dc5-4e20-a4eb-35e6d14d5f91",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:effective_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:effective_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "67c7ffcd-bc86-4c80-ba01-5d327b014923",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_footprint_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:private_footprint_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:private_footprint_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "f6b9636a-8694-434f-a911-d72b621fdcd1",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:malloc:max_allocated_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:malloc:max_allocated_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:malloc:max_allocated_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:malloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "fb0fa665-6de2-4540-95ea-18e88eac19ca",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0d39cfcb-3dad-45e2-add7-db07b4dee3fd",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8cd4e1c8-e28e-4b45-99d4-58c789d89756",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "97936785-85f9-4633-b3fa-11de0e0ab5b8",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_large_object_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "336ba871-4603-40bb-b0a2-baeba65d0165",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e098b9ae-1af4-4b9b-8c42-b4a7fdf9a486",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_large_object_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6618457c-2c53-4c85-ad06-6f267cb70f83",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:max_allocated_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:max_allocated_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:max_allocated_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "045e9d2d-9baa-4b8a-872f-ef0d8f9d9e95",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "06b46c28-16b5-4cd2-a822-03b0287750a2",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8ff8e15f-6480-49fa-bedc-872c900e617d",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8c51d40e-6b6b-4dd8-b741-f8be6cd47f70",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "71d2fa27-0ff1-4ab4-8c69-3472765c0097",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:read_only_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "dc3b46a3-357c-4645-bb36-df9260adf966",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e693dce6-771a-4d39-945a-ac94cafd0842",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:max_committed_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:max_committed_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:max_committed_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "b7aef3bf-10f7-4884-864e-a4b88fd61c34",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "42ad4056-1d9e-4376-88a5-a6bd3743e033",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8bc12201-bd44-474f-abe5-411bed97bf5c",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:global:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "72fd40ce-c2ef-4035-a181-068cd4c05d27",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "92214d0e-b74d-4593-9b46-a0f8eb4f04be",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "f9b995fd-0146-4886-b339-894e5b1e5d54",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "53d44657-5d1e-42ee-b569-d20418c9e852",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:malloc:max_committed_size",
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:malloc:max_committed_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:malloc:max_committed_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:malloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "eaf9f702-e8eb-404d-bb60-069cd0e8e2c0",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "804a7552-2dbb-4bb3-ab2a-8c41abb2606c",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:tracing:effective_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:tracing:effective_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:tracing:effective_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:tracing:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6654435e-ec98-4e8f-851f-3351f338ef71",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:site_storage:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "1aa95e39-4cfc-42af-a909-e51e93c70f6f",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "4ccddbb5-61e8-4015-afb3-4cfa88aef873",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_chrome:malloc:allocated_objects_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:malloc:allocated_objects_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:malloc:allocated_objects_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:malloc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "1c772d68-6a77-4437-b640-c58f79979545",
+    "names": {
+      "browser_process": "memory:chrome:browser_process:reported_by_chrome:omnibox:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "66ffad52-1128-4532-9913-ffe716e914f7",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:private_footprint_size",
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:private_footprint_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:private_footprint_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "45a80daa-d20e-42f7-aebe-eb74a116d981",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "8e317b5d-5b98-458b-9770-39f901d8d653",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6cd8e6b2-5b91-454a-a4a8-d0bf5e881ad3",
+    "names": {
+      "gpu_process": "memory:chrome:gpu_process:reported_by_chrome:global:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "5a0cc9b4-86c1-4279-a635-0445c9d61a9f",
+    "names": {
+      "system_memory": "memory:chrome:renderer_processes:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "aa484fe6-4235-4b91-820c-b1b8799d39d9",
+    "names": {
+      "allocated_by_malloc": "memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "a6957379-98a9-49c6-9f89-c8a9b3ec139b",
+    "names": {
+      "malloc": "memory:chrome:browser_process:reported_by_chrome:malloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "f5468281-4adc-41af-be2d-790d89cbbadf",
+    "names": {
+      "discardable": "memory:chrome:browser_process:reported_by_chrome:discardable:locked_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0ce52f9d-65b5-4f7b-9077-8c2607c67bce",
+    "names": {
+      "java_heap": "memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "ashmem": "memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "native_heap": "memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "stack": "memory:chrome:renderer_processes:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "aa702376-10ec-41cb-a1cb-31452a78c94d",
+    "names": {
+      "system_memory": "memory:chrome:renderer_processes:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "7aff770a-319a-4300-b460-31800fbca8c9",
+    "names": {
+      "system_memory": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3d25a20c-fe0b-424d-8e60-d3b39b568672",
+    "names": {
+      "code_large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:code_large_object_space:allocated_objects_size",
+      "code_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size",
+      "large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size",
+      "new_large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:new_large_object_space:allocated_objects_size",
+      "new_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size",
+      "old_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size",
+      "read_only_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:read_only_space:allocated_objects_size",
+      "shared_large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:shared_large_object_space:allocated_objects_size",
+      "shared_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:shared_space:allocated_objects_size",
+      "trusted_large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:trusted_large_object_space:allocated_objects_size",
+      "trusted_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:trusted_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0057d55d-4b77-4b28-b624-39654cfb4e0c",
+    "names": {
+      "shared": "memory:chrome:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size",
+      "heap": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3976186e-31e1-47ac-8d80-50741704d74d",
+    "names": {
+      "java_heap": "memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "ashmem": "memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "native_heap": "memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "stack": "memory:chrome:renderer_processes:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "637137eb-976d-4da3-a7d5-e2e947523591",
+    "names": {
+      "read_only_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:shared:read_only_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "cca0c473-4c7c-4b3b-8c26-adb0da6b9a98",
+    "names": {
+      "malloc": "memory:chrome:all_processes:reported_by_chrome:malloc:max_committed_size",
+      "partition_alloc": "memory:chrome:all_processes:reported_by_chrome:partition_alloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "00fbded8-9d71-480f-a352-aed3aeec9369",
+    "names": {
+      "code_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_large_object_space:allocated_objects_size",
+      "code_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size",
+      "large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size",
+      "new_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_large_object_space:allocated_objects_size",
+      "new_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size",
+      "old_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size",
+      "read_only_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:read_only_space:allocated_objects_size",
+      "shared_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_large_object_space:allocated_objects_size",
+      "shared_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_space:allocated_objects_size",
+      "trusted_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_large_object_space:allocated_objects_size",
+      "trusted_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "ac4a432f-3ff3-4aa7-a377-a3c153c1980d",
+    "names": {
+      "new_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:effective_size",
+      "old_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:effective_size",
+      "trusted_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:trusted_space:effective_size",
+      "code_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:effective_size",
+      "large_object_space": "memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "1912ee4d-988a-4d23-9582-12c3bf268ace",
+    "names": {
+      "global": "memory:chrome:all_processes:reported_by_chrome:global:effective_size",
+      "malloc": "memory:chrome:all_processes:reported_by_chrome:malloc:effective_size",
+      "shared_memory": "memory:chrome:all_processes:reported_by_chrome:shared_memory:effective_size",
+      "tracing": "memory:chrome:all_processes:reported_by_chrome:tracing:effective_size",
+      "sqlite": "memory:chrome:all_processes:reported_by_chrome:sqlite:effective_size",
+      "leveldatabase": "memory:chrome:all_processes:reported_by_chrome:leveldatabase:effective_size",
+      "site_storage": "memory:chrome:all_processes:reported_by_chrome:site_storage:effective_size",
+      "blink_gc": "memory:chrome:all_processes:reported_by_chrome:blink_gc:effective_size",
+      "partition_alloc": "memory:chrome:all_processes:reported_by_chrome:partition_alloc:effective_size",
+      "v8": "memory:chrome:all_processes:reported_by_chrome:v8:effective_size",
+      "cc": "memory:chrome:all_processes:reported_by_chrome:cc:effective_size",
+      "gpu": "memory:chrome:all_processes:reported_by_chrome:gpu:effective_size",
+      "skia": "memory:chrome:all_processes:reported_by_chrome:skia:effective_size",
+      "web_cache": "memory:chrome:all_processes:reported_by_chrome:web_cache:effective_size",
+      "discardable": "memory:chrome:all_processes:reported_by_chrome:discardable:effective_size",
+      "extensions": "memory:chrome:all_processes:reported_by_chrome:extensions:effective_size",
+      "omnibox": "memory:chrome:all_processes:reported_by_chrome:omnibox:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "9d8877b3-d6cd-4b8f-88d9-ab4cd28e025a",
+    "names": {
+      "java_heap": "memory:chrome:unknown_processes:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "ashmem": "memory:chrome:unknown_processes:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "native_heap": "memory:chrome:unknown_processes:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "stack": "memory:chrome:unknown_processes:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "d8bb8efa-986b-43b7-829d-6fd070bd3630",
+    "names": {
+      "system_memory": "memory:chrome:gpu_process:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "a757be3c-e6fe-4192-9255-e5adff400a3e",
+    "names": {
+      "malloc": "memory:chrome:all_processes:reported_by_chrome:malloc:max_allocated_size",
+      "partition_alloc": "memory:chrome:all_processes:reported_by_chrome:partition_alloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0450d76e-fc14-4f34-8acb-30615ce2915b",
+    "names": {
+      "system_memory": "memory:chrome:all_processes:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "b3473ac6-34f6-48d1-82d1-733bc6389423",
+    "names": {
+      "java_heap": "memory:chrome:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "ashmem": "memory:chrome:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "native_heap": "memory:chrome:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "stack": "memory:chrome:all_processes:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "9ec8e81c-8287-49b0-a86a-3836f09db56c",
+    "names": {
+      "global": "memory:chrome:unknown_processes:reported_by_chrome:global:effective_size",
+      "malloc": "memory:chrome:unknown_processes:reported_by_chrome:malloc:effective_size",
+      "shared_memory": "memory:chrome:unknown_processes:reported_by_chrome:shared_memory:effective_size",
+      "sqlite": "memory:chrome:unknown_processes:reported_by_chrome:sqlite:effective_size",
+      "tracing": "memory:chrome:unknown_processes:reported_by_chrome:tracing:effective_size",
+      "leveldatabase": "memory:chrome:unknown_processes:reported_by_chrome:leveldatabase:effective_size",
+      "site_storage": "memory:chrome:unknown_processes:reported_by_chrome:site_storage:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "159f87cd-1e31-4bf4-b519-89e17b99dfaa",
+    "names": {
+      "system_memory": "memory:chrome:gpu_process:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "f5342713-c802-4492-81e1-9296b454708e",
+    "names": {
+      "v8": "memory:chrome:all_processes:reported_by_chrome:v8:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "07074c5b-1ee2-490a-a5a3-88770e1c09c5",
+    "names": {
+      "malloc": "memory:chrome:browser_process:reported_by_chrome:malloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "dec04f21-65dd-4990-a06b-2b54fca37402",
+    "names": {
+      "allocated_by_malloc": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "913e5e50-da18-498f-8f7c-e811db02f960",
+    "names": {
+      "allocated_by_malloc": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size",
+      "heap": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "7f32461d-a3cf-416c-a782-5980a49e3c58",
+    "names": {
+      "java_heap": "memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "ashmem": "memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "native_heap": "memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "stack": "memory:chrome:gpu_process:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e9c0769b-a63f-4c23-a163-73c5995e806c",
+    "names": {
+      "malloc": "memory:chrome:browser_process:reported_by_chrome:malloc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3279987a-dd59-4ca4-870d-c46bfa39dc95",
+    "names": {
+      "system_memory": "memory:chrome:all_processes:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "87d0eb5d-f3c8-4e35-82d7-fb66ca7136fd",
+    "names": {
+      "malloc": "memory:chrome:unknown_processes:reported_by_chrome:malloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "27441232-d3f7-4625-8b6e-2244763effea",
+    "names": {
+      "malloc": "memory:chrome:unknown_processes:reported_by_chrome:malloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c3c5d7da-55a5-49ff-a900-f5e651dbac5f",
+    "names": {
+      "system_memory": "memory:chrome:renderer_processes:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "4fcbd9f1-864e-4346-b56d-5442011aef4a",
+    "names": {
+      "allocated_by_malloc": "memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size",
+      "heap": "memory:chrome:all_processes:reported_by_chrome:v8:heap:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3484d600-e661-4cd9-8f91-16caed093350",
+    "names": {
+      "malloc": "memory:chrome:unknown_processes:reported_by_chrome:malloc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "86f3a107-6f89-45c1-a8d8-fd4125d89f63",
+    "names": {
+      "malloc": "memory:chrome:gpu_process:reported_by_chrome:malloc:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "d942dddf-e675-4e0e-a496-1bf3b542f82e",
+    "names": {
+      "cc": "memory:chrome:gpu_process:reported_by_chrome:cc:effective_size",
+      "gpu": "memory:chrome:gpu_process:reported_by_chrome:gpu:effective_size",
+      "malloc": "memory:chrome:gpu_process:reported_by_chrome:malloc:effective_size",
+      "shared_memory": "memory:chrome:gpu_process:reported_by_chrome:shared_memory:effective_size",
+      "skia": "memory:chrome:gpu_process:reported_by_chrome:skia:effective_size",
+      "tracing": "memory:chrome:gpu_process:reported_by_chrome:tracing:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "19aa72d3-f933-4b7b-b048-abba98393ead",
+    "names": {
+      "shared": "memory:chrome:all_processes:reported_by_chrome:v8:shared:allocated_objects_size",
+      "heap": "memory:chrome:all_processes:reported_by_chrome:v8:heap:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c1ff6885-4176-4772-81a4-40e067761824",
+    "names": {
+      "cc": "memory:chrome:browser_process:reported_by_chrome:cc:effective_size",
+      "discardable": "memory:chrome:browser_process:reported_by_chrome:discardable:effective_size",
+      "extensions": "memory:chrome:browser_process:reported_by_chrome:extensions:effective_size",
+      "gpu": "memory:chrome:browser_process:reported_by_chrome:gpu:effective_size",
+      "leveldatabase": "memory:chrome:browser_process:reported_by_chrome:leveldatabase:effective_size",
+      "malloc": "memory:chrome:browser_process:reported_by_chrome:malloc:effective_size",
+      "omnibox": "memory:chrome:browser_process:reported_by_chrome:omnibox:effective_size",
+      "shared_memory": "memory:chrome:browser_process:reported_by_chrome:shared_memory:effective_size",
+      "skia": "memory:chrome:browser_process:reported_by_chrome:skia:effective_size",
+      "sqlite": "memory:chrome:browser_process:reported_by_chrome:sqlite:effective_size",
+      "tracing": "memory:chrome:browser_process:reported_by_chrome:tracing:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "ae4f812f-1205-4270-96ed-9f8e21292fd5",
+    "names": {
+      "java_heap": "memory:chrome:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "ashmem": "memory:chrome:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "native_heap": "memory:chrome:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "stack": "memory:chrome:browser_process:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "a2646926-2970-4e10-82cf-f57f1cba93ec",
+    "names": {
+      "malloc": "memory:chrome:renderer_processes:reported_by_chrome:malloc:max_committed_size",
+      "partition_alloc": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "5a355336-bc9b-412d-9729-e46100145b66",
+    "names": {
+      "system_memory": "memory:chrome:gpu_process:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "12706e8d-ebdd-450e-834d-ea1e62b2671f",
+    "names": {
+      "read_only_space": "memory:chrome:all_processes:reported_by_chrome:v8:shared:read_only_space:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3b68a11e-7d23-4edf-be83-64acddfea275",
+    "names": {
+      "java_heap": "memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "ashmem": "memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "native_heap": "memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "stack": "memory:chrome:gpu_process:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "abfd49e4-b35c-4a20-8892-a7108167a3e8",
+    "names": {
+      "java_heap": "memory:chrome:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "ashmem": "memory:chrome:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "native_heap": "memory:chrome:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "stack": "memory:chrome:browser_process:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "de189ebd-1d5a-4d5b-8221-89966e2d5bc4",
+    "names": {
+      "blink_gc": "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:allocated_objects_size",
+      "malloc": "memory:chrome:renderer_processes:reported_by_chrome:malloc:allocated_objects_size",
+      "partition_alloc": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:allocated_objects_size",
+      "v8": "memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0fc4a4e4-4c68-4152-b30b-9b27facf3591",
+    "names": {
+      "system_memory": "memory:chrome:all_processes:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "d7109b0d-3bcd-410e-a688-d094ab70b82c",
+    "names": {
+      "malloc": "memory:chrome:renderer_processes:reported_by_chrome:malloc:max_allocated_size",
+      "partition_alloc": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "abfc5f17-d728-42bd-8589-055164d29c77",
+    "names": {
+      "malloc": "memory:chrome:all_processes:reported_by_chrome:malloc:allocated_objects_size",
+      "blink_gc": "memory:chrome:all_processes:reported_by_chrome:blink_gc:allocated_objects_size",
+      "partition_alloc": "memory:chrome:all_processes:reported_by_chrome:partition_alloc:allocated_objects_size",
+      "v8": "memory:chrome:all_processes:reported_by_chrome:v8:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "80c53c18-7025-4dfc-8f8d-1a6c630e1a54",
+    "names": {
+      "code_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size",
+      "large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:effective_size",
+      "new_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:effective_size",
+      "old_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:effective_size",
+      "trusted_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_space:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "07b8fb22-8a83-40c6-b37c-88364b4f13df",
+    "names": {
+      "blink_gc": "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:effective_size",
+      "cc": "memory:chrome:renderer_processes:reported_by_chrome:cc:effective_size",
+      "gpu": "memory:chrome:renderer_processes:reported_by_chrome:gpu:effective_size",
+      "malloc": "memory:chrome:renderer_processes:reported_by_chrome:malloc:effective_size",
+      "partition_alloc": "memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:effective_size",
+      "shared_memory": "memory:chrome:renderer_processes:reported_by_chrome:shared_memory:effective_size",
+      "skia": "memory:chrome:renderer_processes:reported_by_chrome:skia:effective_size",
+      "tracing": "memory:chrome:renderer_processes:reported_by_chrome:tracing:effective_size",
+      "v8": "memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size",
+      "web_cache": "memory:chrome:renderer_processes:reported_by_chrome:web_cache:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0a14a4c1-7198-4a51-8822-e8592dc0f85f",
+    "names": {
+      "system_memory": "memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "80744d73-a5bf-42d0-858d-498a2fe14447",
+    "names": {
+      "malloc": "memory:chrome:gpu_process:reported_by_chrome:malloc:max_allocated_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "0c3554c0-2638-4b24-83a3-ff960401a075",
+    "names": {
+      "malloc": "memory:chrome:gpu_process:reported_by_chrome:malloc:max_committed_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "e2245a00-9793-4ac7-991b-c1155a640a71",
+    "names": {
+      "system_memory": "memory:chrome:browser_process:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "112feee3-1ffe-45cf-ab46-e030e7ffd464",
+    "names": {
+      "java_heap": "memory:chrome:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size",
+      "ashmem": "memory:chrome:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size",
+      "native_heap": "memory:chrome:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size",
+      "stack": "memory:chrome:all_processes:reported_by_os:system_memory:stack:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "af81dbc8-e04e-4f32-ba14-c294b1a64501",
+    "names": {
+      "java_heap": "memory:chrome:unknown_processes:reported_by_os:system_memory:java_heap:proportional_resident_size",
+      "ashmem": "memory:chrome:unknown_processes:reported_by_os:system_memory:ashmem:proportional_resident_size",
+      "native_heap": "memory:chrome:unknown_processes:reported_by_os:system_memory:native_heap:proportional_resident_size",
+      "stack": "memory:chrome:unknown_processes:reported_by_os:system_memory:stack:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "7ded605e-fdc7-4969-96d0-94f1455348a1",
+    "names": {
+      "system_memory": "memory:chrome:unknown_processes:reported_by_os:system_memory:proportional_resident_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "efd9dbc3-cf0d-4a13-8180-cf579da094e8",
+    "names": {
+      "malloc": "memory:chrome:unknown_processes:reported_by_chrome:malloc:effective_size",
+      "shared_memory": "memory:chrome:unknown_processes:reported_by_chrome:shared_memory:effective_size",
+      "tracing": "memory:chrome:unknown_processes:reported_by_chrome:tracing:effective_size",
+      "leveldatabase": "memory:chrome:unknown_processes:reported_by_chrome:leveldatabase:effective_size",
+      "site_storage": "memory:chrome:unknown_processes:reported_by_chrome:site_storage:effective_size",
+      "sqlite": "memory:chrome:unknown_processes:reported_by_chrome:sqlite:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "d5536e4c-c030-41f1-9b98-bf4a0985c289",
+    "names": {
+      "discardable": "memory:chrome:all_processes:reported_by_chrome:discardable:locked_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "7d5c5d34-0f12-4163-803d-0010d8856f2b",
+    "names": {
+      "cc": "memory:chrome:gpu_process:reported_by_chrome:cc:effective_size",
+      "global": "memory:chrome:gpu_process:reported_by_chrome:global:effective_size",
+      "gpu": "memory:chrome:gpu_process:reported_by_chrome:gpu:effective_size",
+      "malloc": "memory:chrome:gpu_process:reported_by_chrome:malloc:effective_size",
+      "shared_memory": "memory:chrome:gpu_process:reported_by_chrome:shared_memory:effective_size",
+      "skia": "memory:chrome:gpu_process:reported_by_chrome:skia:effective_size",
+      "tracing": "memory:chrome:gpu_process:reported_by_chrome:tracing:effective_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "6e0d0473-065e-4053-8e26-79e4b0e94616",
+    "names": {
+      "system_memory": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "de3d2fac-83ff-446b-8f2a-0dcbbf7dc111",
+    "names": {
+      "system_memory": "memory:chrome:browser_process:reported_by_os:system_memory:private_footprint_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "c0dd9edd-db8a-480f-afea-7a8d8d04d8c2",
+    "names": {
+      "v8": "memory:chrome:renderer_processes:reported_by_chrome:v8:peak_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "ae151c2a-be35-4f5a-a2e4-57c0720eb2d2",
+    "names": {
+      "memoryMetric": "memoryMetric_duration",
+      "webvrMetric": "webvrMetric_duration",
+      "webxrMetric": "webxrMetric_duration",
+      "traceImport": "trace_import_duration"
+    }
+  }
+]

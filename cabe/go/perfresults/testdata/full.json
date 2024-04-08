@@ -1,0 +1,653 @@
+[
+  {
+    "type": "GenericSet",
+    "guid": "8c7f2287-d9b6-45a8-95c1-832859902913",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "53bf1004-89a6-4e6a-bddf-ec869fc97fd7",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "adb2099a-7571-45cf-93ba-949bcfcfb642",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "b4865270-c915-4d2b-a164-793c1514b652",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "cb88ffff-3d43-45bc-92e6-0d9a69308e01",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7724ede0-d645-4de6-ac7c-67c03a8e331f",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
+    "guid": "213521ae-df97-420b-a16b-df3ee51c9b19",
+    "values": [
+      "tests_cube-sea?frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "77ab2601-743d-4b58-a49e-d68bb7955149",
+    "values": [
+      0
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "db91e08e-86c6-42f7-b97e-ebcd20732401",
+    "min": 1712174541900.691
+  },
+  {
+    "type": "GenericSet",
+    "guid": "8d43abf8-3d08-431f-a4a5-1167ec77f89b",
+    "values": [
+      "https://storage.cloud.google.com/chrome-telemetry-output/20240403T195932_79913/xr.webxr.static/tests_cube-sea_frameBufferScale_1.4_heavyGpu_1_cubeScale_0.4_workTime_4_halfOnly_1_autorotate_1/retry_0/trace.html"
+    ]
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "3680d40c-a25b-4937-952d-ea902d413b1d",
+    "names": {
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_chrome:v8:shared:allocated_objects_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "4a2ac5f0-9fff-4aac-962d-2fc8b55089fa",
+    "names": {
+      "unknown_processes": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_dirty_size",
+      "browser_process": "memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size",
+      "gpu_process": "memory:chrome:gpu_process:reported_by_os:system_memory:private_dirty_size",
+      "renderer_processes": "memory:chrome:renderer_processes:reported_by_os:system_memory:private_dirty_size"
+    }
+  },
+  {
+    "type": "RelatedNameMap",
+    "guid": "00fbded8-9d71-480f-a352-aed3aeec9369",
+    "names": {
+      "code_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_large_object_space:allocated_objects_size",
+      "code_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size",
+      "large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size",
+      "new_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_large_object_space:allocated_objects_size",
+      "new_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size",
+      "old_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size",
+      "read_only_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:read_only_space:allocated_objects_size",
+      "shared_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_large_object_space:allocated_objects_size",
+      "shared_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_space:allocated_objects_size",
+      "trusted_large_object_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_large_object_space:allocated_objects_size",
+      "trusted_space": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:trusted_space:allocated_objects_size"
+    }
+  },
+  {
+    "name": "memory:chrome:gpu_process:process_count",
+    "unit": "count_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      [
+        0,
+        20,
+        20
+      ]
+    ],
+    "description": "total number of GPU processes in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "2944381f-f611-4b9a-bd07-779d2533771c",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "4a1b94fa-951e-4db2-bfcf-7ba272eea572",
+      "traceUrls": "3b0cb6ac-6637-4dee-b959-c7f0dc4a3634",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      1
+    ],
+    "running": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    "allBins": {
+      "2": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:unknown_processes:reported_by_os:system_memory:private_footprint_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "total private footprint size of system memory (RAM) used by unknown processes in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "2944381f-f611-4b9a-bd07-779d2533771c",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "4a1b94fa-951e-4db2-bfcf-7ba272eea572",
+      "traceUrls": "3b0cb6ac-6637-4dee-b959-c7f0dc4a3634",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      74407936
+    ],
+    "running": [
+      1,
+      74407936,
+      18.125,
+      74407936,
+      74407936,
+      74407936,
+      0
+    ],
+    "allBins": {
+      "66": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "webxrMetric_duration",
+    "unit": "ms_smallerIsBetter",
+    "binBoundaries": [
+      0.001,
+      [
+        1,
+        1000000,
+        100
+      ]
+    ],
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "95fac77a-80ad-4938-b285-843e8de10b94",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "e81c5cd6-c1c4-4a72-8fa6-01963f2cba90",
+      "traceUrls": "89727681-f0c4-4d28-bf89-467296ab73b0",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      1
+    ],
+    "running": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    "allBins": {
+      "34": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:proportional_resident_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "proportional resident size (PSS) of the native heap in the GPU process in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "a8441fd2-d0eb-4a12-b845-be9902a2202e",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "ae83b6af-83bc-4296-8df4-806c8a93d833",
+      "traceUrls": "e34ea70f-807d-4f6b-8b1e-8b40cae9b7b2",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      0
+    ],
+    "running": [
+      1,
+      0,
+      null,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allBins": {
+      "1": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_large_object_space:allocated_objects_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "size of all objects allocated by v8:heap:shared_large_object_space in renderer processes in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "1ed3b0d9-27ce-4a9f-a8c0-c116bccd1e0c",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "492a90f2-7348-4c17-ac02-bee8246d3b5b",
+      "traceUrls": "c08146f9-40ab-4b01-ab3d-fc303c6eabcb",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      0
+    ],
+    "running": [
+      1,
+      0,
+      null,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allBins": {
+      "1": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:effective_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "effective size of v8:heap:code_space in all processes in Chrome",
+    "diagnostics": {
+      "processes": "27dee01d-8466-446f-82a2-5b77e9a1b8c9",
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "213521ae-df97-420b-a16b-df3ee51c9b19",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "db91e08e-86c6-42f7-b97e-ebcd20732401",
+      "traceUrls": "8d43abf8-3d08-431f-a4a5-1167ec77f89b",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      524288
+    ],
+    "running": [
+      1,
+      524288,
+      13.1698,
+      524288,
+      524288,
+      524288,
+      0
+    ],
+    "allBins": {
+      "38": [
+        1,
+        [
+          {
+            "processes": {
+              "type": "Breakdown",
+              "values": {
+                "renderer_processes": 524288
+              },
+              "colorScheme": "ChromeProcessNames"
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:unknown_processes:reported_by_os:private_footprint_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "total private footprint size reported by the OS for unknown processes in Chrome",
+    "diagnostics": {
+      "components": "7aff770a-319a-4300-b460-31800fbca8c9",
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "2944381f-f611-4b9a-bd07-779d2533771c",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "4a1b94fa-951e-4db2-bfcf-7ba272eea572",
+      "traceUrls": "3b0cb6ac-6637-4dee-b959-c7f0dc4a3634",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      74407936
+    ],
+    "running": [
+      1,
+      74407936,
+      18.125,
+      74407936,
+      74407936,
+      74407936,
+      0
+    ],
+    "allBins": {
+      "66": [
+        1,
+        [
+          {
+            "components": {
+              "type": "Breakdown",
+              "values": {
+                "system_memory": 74407936
+              }
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "name": "metrics_duration",
+    "unit": "ms_smallerIsBetter",
+    "binBoundaries": [
+      0.001,
+      [
+        1,
+        1000000,
+        100
+      ]
+    ],
+    "diagnostics": {
+      "breakdown": "ae151c2a-be35-4f5a-a2e4-57c0720eb2d2",
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "95fac77a-80ad-4938-b285-843e8de10b94",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "e81c5cd6-c1c4-4a72-8fa6-01963f2cba90",
+      "traceUrls": "89727681-f0c4-4d28-bf89-467296ab73b0",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      3072.647
+    ],
+    "running": [
+      1,
+      3072.647,
+      8.0302947,
+      3072.647,
+      3072.647,
+      3072.647,
+      0
+    ],
+    "allBins": {
+      "73": [
+        1,
+        [
+          {
+            "breakdown": {
+              "type": "Breakdown",
+              "values": {
+                "memoryMetric": 13,
+                "webvrMetric": 0,
+                "webxrMetric": 1,
+                "traceImport": 3056.647,
+                "other": 2
+              }
+            }
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:gpu_process:reported_by_os:system_memory:stack:proportional_resident_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "proportional resident size (PSS) of the thread stacks in the GPU process in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "a8441fd2-d0eb-4a12-b845-be9902a2202e",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "ae83b6af-83bc-4296-8df4-806c8a93d833",
+      "traceUrls": "e34ea70f-807d-4f6b-8b1e-8b40cae9b7b2",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      0
+    ],
+    "running": [
+      1,
+      0,
+      null,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allBins": {
+      "1": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:renderer_processes:reported_by_chrome:v8:heap:shared_space:allocated_objects_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "size of all objects allocated by v8:heap:shared_space in renderer processes in Chrome",
+    "diagnostics": {
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "1ed3b0d9-27ce-4a9f-a8c0-c116bccd1e0c",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "492a90f2-7348-4c17-ac02-bee8246d3b5b",
+      "traceUrls": "c08146f9-40ab-4b01-ab3d-fc303c6eabcb",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      0
+    ],
+    "running": [
+      1,
+      0,
+      null,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allBins": {
+      "1": [
+        1
+      ]
+    }
+  },
+  {
+    "name": "memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:effective_size",
+    "unit": "sizeInBytes_smallerIsBetter",
+    "binBoundaries": [
+      0,
+      1024,
+      [
+        1,
+        17179869184,
+        96
+      ]
+    ],
+    "description": "effective size of v8:heap:large_object_space in all processes in Chrome",
+    "diagnostics": {
+      "processes": "c3b0f943-83e4-4302-abc0-a45eddbccf43",
+      "benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+      "benchmarkStart": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+      "benchmarks": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+      "stories": "213521ae-df97-420b-a16b-df3ee51c9b19",
+      "storysetRepeats": "2dc7ec5f-fdd9-4290-b648-cdda9b072281",
+      "traceStart": "db91e08e-86c6-42f7-b97e-ebcd20732401",
+      "traceUrls": "8d43abf8-3d08-431f-a4a5-1167ec77f89b",
+      "botId": "f8101e8a-eff2-4498-b160-18169365fd35",
+      "owners": "13202b76-3b10-40b3-b8eb-91d8ec03e86e",
+      "architectures": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+      "osNames": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
+      "osVersions": "4e6632db-47c3-4764-96d7-8b05f64eba78",
+      "osDetailedVersions": "90498cfc-b202-4d2c-8f3f-28e2f3343eb9"
+    },
+    "sampleValues": [
+      135168
+    ],
+    "running": [
+      1,
+      135168,
+      11.814,
+      135168,
+      135168,
+      135168,
+      0
+    ],
+    "allBins": {
+      "30": [
+        1,
+        [
+          {
+            "processes": {
+              "type": "Breakdown",
+              "values": {
+                "renderer_processes": 135168
+              },
+              "colorScheme": "ChromeProcessNames"
+            }
+          }
+        ]
+      ]
+    }
+  }
+]
