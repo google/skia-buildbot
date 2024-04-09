@@ -43,9 +43,9 @@ type issueTrackerTransport struct {
 func configureTemplates() (*template.Template, error) {
 	funcMap := template.FuncMap{
 		"toString": func(c *pinpoint_proto.CombinedCommit) string {
-			str := fmt.Sprintf("%s/+/%s", c.Main.RepositoryUrl, c.Main.GitHash)
+			str := fmt.Sprintf("%s/+/%s", c.Main.Repository, c.Main.GitHash)
 			for _, md := range c.ModifiedDeps {
-				str += fmt.Sprintf(" %s/+/%s", md.RepositoryUrl, md.GitHash)
+				str += fmt.Sprintf(" %s/+/%s", md.Repository, md.GitHash)
 			}
 			return str
 		},

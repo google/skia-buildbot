@@ -44,8 +44,8 @@ func TestFillTemplate_MultiCulprit_TemplateFilled(t *testing.T) {
 			Main: midpoint.NewChromiumCommit("1a9897ca56513579444c0411ffe910b4d26b894c"),
 			ModifiedDeps: []*pinpoint_proto.Commit{
 				{
-					RepositoryUrl: "https://chromium.googlesource.com/v8/v8.git",
-					GitHash:       "2c06a2a008c123b4f33ffcad2cf4a3c9bcc2970f",
+					Repository: "https://chromium.googlesource.com/v8/v8.git",
+					GitHash:    "2c06a2a008c123b4f33ffcad2cf4a3c9bcc2970f",
 				},
 			},
 		},

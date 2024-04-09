@@ -75,7 +75,16 @@ message QueryBisectRequest {
 
 message Commit {
 	string git_hash = 1;
-	string repository_url = 2;
+	string repository = 2;
+	string url = 3;
+	string author = 4;
+	google.protobuf.Timestamp created = 5;
+	string subject = 6;
+	string message = 7;
+	string commit_branch = 8;
+	int32 commit_position = 9;
+	string review_url = 10;
+	string change_id = 11;
 }
 
 message CombinedCommit {
@@ -147,7 +156,7 @@ message LegacyJobResponse {
 
 	message State {
 		message Change {
-			// TBD: Commit details
+			repeated Commit commits = 1;
 		}
 		repeated Change change = 1;
 

@@ -22,8 +22,8 @@ const (
 
 func NewChromiumCommit(h string) *pb.Commit {
 	return &pb.Commit{
-		GitHash:       h,
-		RepositoryUrl: chromiumSrcGit,
+		GitHash:    h,
+		Repository: chromiumSrcGit,
 	}
 }
 
@@ -38,7 +38,7 @@ type CombinedCommit pb.CombinedCommit
 func (cc *CombinedCommit) DepsToMap() map[string]string {
 	resp := make(map[string]string, 0)
 	for _, c := range cc.ModifiedDeps {
-		resp[c.RepositoryUrl] = c.GitHash
+		resp[c.Repository] = c.GitHash
 	}
 	return resp
 }
@@ -79,8 +79,8 @@ func (cc *CombinedCommit) Clone() *CombinedCommit {
 	}
 	newCombinedCommit := &CombinedCommit{
 		Main: &pb.Commit{
-			RepositoryUrl: cc.Main.RepositoryUrl,
-			GitHash:       cc.Main.GitHash,
+			Repository: cc.Main.Repository,
+			GitHash:    cc.Main.GitHash,
 		},
 	}
 
@@ -105,7 +105,7 @@ func (cc *CombinedCommit) UpsertModifiedDep(commit *pb.Commit) {
 		return
 	}
 	for _, mc := range cc.ModifiedDeps {
-		if mc.RepositoryUrl == commit.RepositoryUrl {
+		if mc.Repository == commit.Repository {
 			mc.GitHash = commit.GitHash
 			return
 		}
@@ -174,7 +174,7 @@ func (m *MidpointHandler) getOrCreateRepo(url string) gitiles.GitilesRepo {
 // findMidpoint finds the median commit between two commits.
 func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	startGitHash, endGitHash := startCommit.GetGitHash(), endCommit.GetGitHash()
-	url := startCommit.RepositoryUrl
+	url := startCommit.Repository
 
 	if startGitHash == endGitHash {
 		return nil, skerr.Fmt("Both git hashes are the same; Start: %s, End: %s", startGitHash, endGitHash)
@@ -213,8 +213,8 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 	nextHash := mlc.ShortCommit.Hash
 	sklog.Debugf("Next midpoint commit: %s", nextHash)
 	return &pb.Commit{
-		RepositoryUrl: url,
-		GitHash:       nextHash,
+		Repository: url,
+		GitHash:    nextHash,
 	}, nil
 }
 
@@ -222,14 +222,14 @@ func (m *MidpointHandler) findMidpoint(ctx context.Context, startCommit, endComm
 func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *pb.Commit) (map[string]*pb.Commit, error) {
 	denormalized := make(map[string]*pb.Commit, 0)
 
-	gc := m.getOrCreateRepo(commit.RepositoryUrl)
+	gc := m.getOrCreateRepo(commit.Repository)
 	content, err := gc.ReadFileAtRef(ctx, "DEPS", commit.GitHash)
 	if err != nil {
 		// Even if the provided http client is provided without With2xxOnly,
 		// gitiles.go get() enforces http.StatusOK and returns a nil response
 		// with this error.
 		if strings.Contains(err.Error(), "404 Not Found") {
-			sklog.Debugf("gitiles.ReadFileAtRef returned 404 for DEPS file %s@%s", commit.RepositoryUrl, commit.GitHash)
+			sklog.Debugf("gitiles.ReadFileAtRef returned 404 for DEPS file %s@%s", commit.Repository, commit.GitHash)
 			return denormalized, nil
 		}
 		return denormalized, err
@@ -250,8 +250,8 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *pb.Commit) (
 		// We want it in https://{DepsEntry.Id} format, without the .git
 		u, _ := url.JoinPath("https://", id)
 		denormalized[u] = &pb.Commit{
-			RepositoryUrl: u,
-			GitHash:       depsEntry.Version,
+			Repository: u,
+			GitHash:    depsEntry.Version,
 		}
 	}
 
@@ -260,7 +260,7 @@ func (m *MidpointHandler) fetchGitDeps(ctx context.Context, commit *pb.Commit) (
 
 // findMidCommitInDEPS finds the median git hash from the delta of the DEPS contents at both commits.
 func (m *MidpointHandler) findMidCommitInDEPS(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
-	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
+	if startCommit.Repository != endCommit.Repository {
 		return nil, skerr.Fmt("two commits are from different repos and deps cannot be compared")
 	}
 	// Fetch deps for each git hash for the project
@@ -362,7 +362,7 @@ func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *Comb
 		// compared against, we want to fetch WRT's commit hash from V8@1
 		// start.ModifiedDeps == [V8@2, WRT@3, WebRTC@4] and end.ModifiedDeps == [V8@1]
 		// the target dependency is WRT, index == 1 == len(end.ModifiedDeps)
-		targetDepRepoUrl := start.ModifiedDeps[len(end.ModifiedDeps)].RepositoryUrl
+		targetDepRepoUrl := start.ModifiedDeps[len(end.ModifiedDeps)].Repository
 
 		// if we are comparing two combined commits, where one has modified deps and the other
 		// does not, we need to start filling modified deps using the base commit (or main),
@@ -441,7 +441,7 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 //
 // See midpoint/doc.go for examples and details.
 func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit, endCommit *CombinedCommit) (*CombinedCommit, error) {
-	if startCommit.Main.RepositoryUrl != endCommit.Main.RepositoryUrl {
+	if startCommit.Main.Repository != endCommit.Main.Repository {
 		return nil, skerr.Fmt("Unable to find midpoint between two commits with different main repositories.")
 	}
 
@@ -502,7 +502,7 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	}
 
 	// Mid commit is through Main, so update that.
-	if midCommit.RepositoryUrl == startCommit.Main.RepositoryUrl {
+	if midCommit.Repository == startCommit.Main.Repository {
 		return NewCombinedCommit(midCommit), nil
 	}
 

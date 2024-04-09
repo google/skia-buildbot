@@ -45,7 +45,7 @@ func assertModifiedDepsEqual(t *testing.T, expected, target []*pb.Commit) {
 	for i, firstDep := range expected {
 		secondDep := target[i]
 
-		assert.Equal(t, firstDep.RepositoryUrl, secondDep.RepositoryUrl)
+		assert.Equal(t, firstDep.Repository, secondDep.Repository)
 		assert.Equal(t, firstDep.GitHash, secondDep.GitHash)
 	}
 }
@@ -53,12 +53,12 @@ func assertModifiedDepsEqual(t *testing.T, expected, target []*pb.Commit) {
 func TestNewCombinedCommit_WithDeps_ReturnCombinedCommit(t *testing.T) {
 	main := NewChromiumCommit("1")
 	webrtc := &pb.Commit{
-		RepositoryUrl: webrtcUrl,
-		GitHash:       "2",
+		Repository: "webrtc",
+		GitHash:    "2",
 	}
 	v8 := &pb.Commit{
-		RepositoryUrl: v8Url,
-		GitHash:       "3",
+		Repository: "v8",
+		GitHash:    "3",
 	}
 
 	cc := NewCombinedCommit(main, webrtc, v8)
@@ -112,7 +112,7 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	r := New(ctx, c).WithRepo(chromiumSrcGit, gc)
 
-	res, err := r.fetchGitDeps(ctx, &pb.Commit{RepositoryUrl: chromiumSrcGit, GitHash: gitHash})
+	res, err := r.fetchGitDeps(ctx, &pb.Commit{Repository: chromiumSrcGit, GitHash: gitHash})
 	require.NoError(t, err)
 	// intellij should be missing
 	assert.Equal(t, 3, len(res))
@@ -124,8 +124,8 @@ deps = {
 func TestFindDepsCommit_OnExistingRepo_ShouldReturnCommit(t *testing.T) {
 	ctx := context.Background()
 	c := &pb.Commit{
-		GitHash:       "fake-hash",
-		RepositoryUrl: "fake-url",
+		GitHash:    "fake-hash",
+		Repository: "fake-url",
 	}
 
 	fakeDEPS := `
@@ -143,16 +143,16 @@ deps = {
 	dc, err := m.findDepsCommit(ctx, c, "https://fake-dep.com")
 	require.Nil(t, err, err)
 	require.Equal(t, dc, &pb.Commit{
-		GitHash:       "fake-dep-hash",
-		RepositoryUrl: "https://fake-dep.com",
+		GitHash:    "fake-dep-hash",
+		Repository: "https://fake-dep.com",
 	})
 }
 
 func TestFindDepsCommit_OnNonExistingRepo_ShouldReturnError(t *testing.T) {
 	ctx := context.Background()
 	c := &pb.Commit{
-		GitHash:       "fake-hash",
-		RepositoryUrl: "fake-url",
+		GitHash:    "fake-hash",
+		Repository: "fake-url",
 	}
 
 	gr := &mocks.GitilesRepo{}
@@ -306,13 +306,13 @@ func TestFindMidCombinedCommit_WithModifiedDeps_NextCandidateInModifiedDeps(t *t
 
 	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wStartGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wStartGitHash,
+			Repository: webrtcUrl,
 		})
 	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wEndGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
 		})
 
 	c := mockhttpclient.NewURLMock().Client()
@@ -381,13 +381,13 @@ deps = {
 
 	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wStartGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wStartGitHash,
+			Repository: webrtcUrl,
 		})
 	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wEndGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
 		})
 
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
@@ -396,7 +396,7 @@ deps = {
 	// The next candidate should be in v8/v8 with commit "2", because the midpoint
 	// from [3, 2] would be 2.
 	nextCommit := res.GetLatestModifiedDep()
-	assert.Equal(t, v8Url, nextCommit.RepositoryUrl)
+	assert.Equal(t, v8Url, nextCommit.Repository)
 	assert.Equal(t, "2", nextCommit.GitHash)
 }
 
@@ -450,13 +450,13 @@ deps = {
 
 	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wStartGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wStartGitHash,
+			Repository: webrtcUrl,
 		})
 	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wEndGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
 		})
 
 	c := mockhttpclient.NewURLMock().Client()
@@ -494,8 +494,8 @@ deps = {
 	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash))
 	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wEndGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
 		})
 
 	c := mockhttpclient.NewURLMock().Client()
@@ -571,18 +571,18 @@ deps = {
 	randomGc.On("LogFirstParent", testutils.AnyContext, "3", "5").Return(randomGcResp, nil)
 	start := NewCombinedCommit(NewChromiumCommit(chromiumStartGitHash),
 		&pb.Commit{
-			GitHash:       "1",
-			RepositoryUrl: webrtcUrl,
+			GitHash:    "1",
+			Repository: webrtcUrl,
 		},
 		&pb.Commit{
-			GitHash:       "1",
-			RepositoryUrl: v8Url,
+			GitHash:    "1",
+			Repository: v8Url,
 		},
 	)
 	end := NewCombinedCommit(NewChromiumCommit(chromiumStartGitHash),
 		&pb.Commit{
-			GitHash:       "2",
-			RepositoryUrl: webrtcUrl,
+			GitHash:    "2",
+			Repository: webrtcUrl,
 		},
 	)
 
@@ -624,14 +624,14 @@ deps = {
 
 	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wStartGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wStartGitHash,
+			Repository: webrtcUrl,
 		},
 	)
 	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
-			GitHash:       wEndGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
 		},
 	)
 
@@ -646,12 +646,12 @@ func TestFillModifiedDeps_EmptyEndCommitModifiedDeps(t *testing.T) {
 	startGitHash := "1"
 	start := NewCombinedCommit(NewChromiumCommit(startGitHash),
 		&pb.Commit{
-			GitHash:       startGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    startGitHash,
+			Repository: webrtcUrl,
 		},
 		&pb.Commit{
-			GitHash:       startGitHash,
-			RepositoryUrl: v8Url,
+			GitHash:    startGitHash,
+			Repository: v8Url,
 		},
 	)
 
@@ -684,12 +684,12 @@ deps = {
 	require.NoError(t, err)
 	expected := []*pb.Commit{
 		{
-			RepositoryUrl: webrtcUrl,
-			GitHash:       "2",
+			Repository: webrtcUrl,
+			GitHash:    "2",
 		},
 		{
-			RepositoryUrl: v8Url,
-			GitHash:       "2",
+			Repository: v8Url,
+			GitHash:    "2",
 		},
 	}
 	assertModifiedDepsEqual(t, expected, end.ModifiedDeps)
@@ -714,12 +714,12 @@ deps = {
 
 	end := NewCombinedCommit(NewChromiumCommit(startGitHash),
 		&pb.Commit{
-			GitHash:       startGitHash,
-			RepositoryUrl: webrtcUrl,
+			GitHash:    startGitHash,
+			Repository: webrtcUrl,
 		},
 		&pb.Commit{
-			GitHash:       startGitHash,
-			RepositoryUrl: v8Url,
+			GitHash:    startGitHash,
+			Repository: v8Url,
 		},
 	)
 
@@ -737,12 +737,12 @@ deps = {
 	require.NoError(t, err)
 	expected := []*pb.Commit{
 		{
-			RepositoryUrl: webrtcUrl,
-			GitHash:       "2",
+			Repository: webrtcUrl,
+			GitHash:    "2",
 		},
 		{
-			RepositoryUrl: v8Url,
-			GitHash:       "2",
+			Repository: v8Url,
+			GitHash:    "2",
 		},
 	}
 	assertModifiedDepsEqual(t, expected, start.ModifiedDeps)
