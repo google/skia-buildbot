@@ -170,6 +170,7 @@
       "package_json_dir": "",
       "packages_allow_list": [],
       "trusted_scopes": [],
+      "audit_dev_dependencies": true,
       "issue_tracker_config": {
         "owner": "alexrudenko@google.com"
       }
