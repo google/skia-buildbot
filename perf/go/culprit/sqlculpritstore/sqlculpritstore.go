@@ -154,9 +154,45 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 }
 
 // Adds issue id to a Culprit row.
-func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issueId string) error {
-	// TODO(pasthana): Implement this
+func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id string) error {
+	// Fetch existing anomaly_group_ids
+	culprits, err := s.Get(ctx, []string{id})
+	if err != nil {
+		return skerr.Wrapf(err, "Error fetching Culprit id")
+	}
+	if len(culprits) == 0 {
+		return skerr.Fmt("No culprit found for id %s", id)
+	} else if len(culprits) > 1 {
+		panic(fmt.Sprintf("Database invariant broken. More than one culprits found for id : %s", id))
+	}
+	issue_ids := culprits[0].IssueIds
+	issue_ids = append(issue_ids, issue_id)
+	issue_ids = removeDuplicateStr(issue_ids)
+
+	statement := `
+		UPDATE
+			Culprits
+		SET
+			issue_ids=$1
+		WHERE
+			id=$2
+	`
+	if _, err := s.db.Exec(ctx, statement, issue_ids, id); err != nil {
+		return fmt.Errorf("error adding issue_id %s to culprit %s: %s ", issue_id, id, err)
+	}
 	return nil
+}
+
+func removeDuplicateStr(strSlice []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range strSlice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 // Takes a string array as input, and returns a comma joined string where each element

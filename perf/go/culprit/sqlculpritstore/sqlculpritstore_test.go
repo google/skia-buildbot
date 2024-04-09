@@ -160,7 +160,6 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 		Ref:             "refs/head/main",
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"111"},
-		IssueIds:        []string{"111"},
 	}
 	populateDb(t, ctx, db, existingCommit)
 	commit := &pb.Commit{
@@ -184,6 +183,49 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 	assert.ElementsMatch(t, actual, expected)
 }
 
+func TestAddIssueId_NoIssueId_UpdateDbAndReturnNil(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	existingCommit := schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"111"},
+	}
+	populateDb(t, ctx, db, existingCommit)
+
+	err := store.AddIssueId(ctx, existingCommit.Id, "bugid")
+	require.NoError(t, err)
+
+	actual := getCulpritsFromDb(t, ctx, db)
+	assert.Equal(t, len(actual), 1)
+	assert.ElementsMatch(t, actual[0].IssueIds, []string{"bugid"})
+}
+
+func TestAddIssueId_ExistingIssueId_UpdateDbAndReturnNil(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	existingCommit := schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"111"},
+		IssueIds:        []string{"bugid1"},
+	}
+	populateDb(t, ctx, db, existingCommit)
+
+	err := store.AddIssueId(ctx, existingCommit.Id, "bugid2")
+	require.NoError(t, err)
+
+	actual := getCulpritsFromDb(t, ctx, db)
+	assert.Equal(t, len(actual), 1)
+	assert.ElementsMatch(t, actual[0].IssueIds, []string{"bugid1", "bugid2"})
+}
+
 func populateDb(t *testing.T, ctx context.Context, db pool.Pool, culprit schema.CulpritSchema) {
 	const query = `INSERT INTO Culprits
 		(id, host, project, ref, revision, anomaly_group_ids, issue_ids)
@@ -195,10 +237,10 @@ func populateDb(t *testing.T, ctx context.Context, db pool.Pool, culprit schema.
 
 func getCulpritsFromDb(t *testing.T, ctx context.Context, db pool.Pool) []schema.CulpritSchema {
 	actual := []schema.CulpritSchema{}
-	rows, _ := db.Query(ctx, "SELECT host, project, ref, revision, anomaly_group_ids FROM Culprits")
+	rows, _ := db.Query(ctx, "SELECT host, project, ref, revision, anomaly_group_ids, issue_ids FROM Culprits")
 	for rows.Next() {
 		var culpritInDb schema.CulpritSchema
-		if err := rows.Scan(&culpritInDb.Host, &culpritInDb.Project, &culpritInDb.Ref, &culpritInDb.Revision, &culpritInDb.AnomalyGroupIDs); err != nil {
+		if err := rows.Scan(&culpritInDb.Host, &culpritInDb.Project, &culpritInDb.Ref, &culpritInDb.Revision, &culpritInDb.AnomalyGroupIDs, &culpritInDb.IssueIds); err != nil {
 			require.NoError(t, err)
 		}
 		actual = append(actual, culpritInDb)
