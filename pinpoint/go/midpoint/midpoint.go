@@ -3,7 +3,6 @@ package midpoint
 import (
 	"context"
 	"hash/fnv"
-	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -347,43 +346,39 @@ func (m *MidpointHandler) findDepsCommit(ctx context.Context, baseCommit *pb.Com
 // This function will modify ModifiedDeps for both start and end.
 //
 // Note: See comment in FindMidCombinedCommit().
+// For example:
 //
-//	This method will need to be updated to fill all missing modified deps.
-//	{C@1} vs {C@1, V8@2, WRT@3, Blink@4 ..., devtools@5} we would actually need to backfill as such:
+//	{C@1} vs {C@1, V8@2, WRT@3, Blink@4 ..., devtools@5} would backfill as such:
 //	  * V8 info would be filled from C1
 //	  * WRT would be filled from V8 above
 //	  * Blink would be filled from WRT above.
 //	... and so on.
 func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *CombinedCommit) error {
-	// TODO(jeffyoon@) potential for nil pointer here if len() == 0. Unlikely with current usage.
-	// Likely will be reworked with the logic change outlined in comment above.
 	if len(end.ModifiedDeps) > len(start.ModifiedDeps) {
-		targetDepRepoUrl := end.GetLatestModifiedDep().RepositoryUrl
+		start, end = end, start
+	}
+	for len(start.ModifiedDeps) > len(end.ModifiedDeps) {
+		// if we are at start=(C@1, V8@2, WRT@3) and end=(C@1, V8@1)
+		// compared against, we want to fetch WRT's commit hash from V8@1
+		// start.ModifiedDeps == [V8@2, WRT@3, WebRTC@4] and end.ModifiedDeps == [V8@1]
+		// the target dependency is WRT, index == 1 == len(end.ModifiedDeps)
+		targetDepRepoUrl := start.ModifiedDeps[len(end.ModifiedDeps)].RepositoryUrl
 
-		refCommit := start.Main
-		if len(start.ModifiedDeps) > 0 {
-			refCommit = start.GetLatestModifiedDep()
-		}
-		smd, err := m.findDepsCommit(ctx, refCommit, targetDepRepoUrl)
-		if err != nil {
-			return err
-		}
-
-		start.ModifiedDeps = append(start.ModifiedDeps, smd)
-	} else if len(start.ModifiedDeps) > len(end.ModifiedDeps) {
-		targetDepRepoUrl := start.GetLatestModifiedDep().RepositoryUrl
-
+		// if we are comparing two combined commits, where one has modified deps and the other
+		// does not, we need to start filling modified deps using the base commit (or main),
+		// which in most cases is chromium/src. for example, following the example above,
+		// if we have start=(Main:C@1, Deps:V8@2, WRT@3) and end=(Main:C@1), we need to
+		// fill end's deps starting from C@1 (which is main).
 		refCommit := end.Main
 		if len(end.ModifiedDeps) > 0 {
 			refCommit = end.GetLatestModifiedDep()
-			sklog.Errorf("ref commit modified to %v", refCommit)
 		}
-		emd, err := m.findDepsCommit(ctx, refCommit, targetDepRepoUrl)
+		endDepCommit, err := m.findDepsCommit(ctx, refCommit, targetDepRepoUrl)
 		if err != nil {
 			return err
 		}
 
-		end.ModifiedDeps = append(end.ModifiedDeps, emd)
+		end.ModifiedDeps = append(end.ModifiedDeps, endDepCommit)
 	}
 
 	return nil
@@ -501,13 +496,6 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	// commits have been compared (where DEPS is analyzed). We search for the
 	// midpoint from modified dep where commits for it differ.
 	if len(startCommit.ModifiedDeps) > 0 || len(endCommit.ModifiedDeps) > 0 {
-		// Note: This will not support the scenario where we have dove into several deps and that
-		// commit needs to be compared against the original starting commit.
-		// For example, if we started with C@1 vs C@3, and through iteration hit
-		// C@1 vs. (C@1, V8@1, WebRTC@1), this clause will hit and backfill won't happen.
-		if math.Abs(float64(len(startCommit.ModifiedDeps)-len(endCommit.ModifiedDeps))) > 1 {
-			return nil, skerr.Fmt("The implementation assumes one repo change per roll, and this backfill doesn't fill iteratively.")
-		}
 		// During bisection, either one of start or end combined commits may be missing
 		// a modified deps definition.
 		//
