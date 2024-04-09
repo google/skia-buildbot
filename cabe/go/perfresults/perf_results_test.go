@@ -1,19 +1,19 @@
 package perfresults
 
 import (
-	"encoding/json"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func loadTestdata(t *testing.T, filename string) PerfResults {
-	data, err := os.ReadFile(filename)
+func loadTestdata(t *testing.T, filename string) *PerfResults {
+	var r io.Reader
+	r, err := os.Open(filename)
 	assert.NoError(t, err)
 
-	var pr PerfResults
-	err = json.Unmarshal(data, &pr)
+	pr, err := NewResults(r)
 	assert.NoError(t, err)
 	return pr
 }
@@ -23,7 +23,7 @@ func Test_LoadValidJSON_ReturnsPerfResult(t *testing.T) {
 		Name:        "memory:chrome:gpu_process:process_count",
 		Unit:        "count_smallerIsBetter",
 		Description: "total number of GPU processes in Chrome",
-		Diagnostics: map[string]string{
+		Diagnostics: map[string]any{
 			"benchmarkDescriptions": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
 			"benchmarkStart":        "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
 			"benchmarks":            "8517d434-8402-43e1-89ba-e6de3dea6af7",
@@ -40,17 +40,11 @@ func Test_LoadValidJSON_ReturnsPerfResult(t *testing.T) {
 		},
 		SampleValues: []float64{1},
 	}
-	generic_set := GenericSet{
-		GUID:   "b4865270-c915-4d2b-a164-793c1514b652",
-		Values: []any{"Measures WebXR performance with synthetic sample pages."},
-	}
 
 	pr := loadTestdata(t, "testdata/empty.json")
 	assert.Empty(t, pr.Histograms)
 
 	pr = loadTestdata(t, "testdata/full.json")
-	assert.NotContains(t, pr.GenericSets, GenericSet{})
-	assert.Contains(t, pr.GenericSets, generic_set)
 	assert.Len(t, pr.Histograms, 11)
 	assert.Contains(t, pr.Histograms, histogram.Name)
 	assert.Equal(t, pr.Histograms[histogram.Name], histogram)
@@ -59,8 +53,9 @@ func Test_LoadValidJSON_ReturnsPerfResult(t *testing.T) {
 	assert.Contains(t, pr.Histograms, histogram.Name)
 	assert.Equal(t, pr.Histograms[histogram.Name], histogram)
 
-	pr = loadTestdata(t, "testdata/valid_metadata.json")
-	assert.Contains(t, pr.GenericSets, generic_set)
+	assert.NotPanics(t, func() {
+		_ = loadTestdata(t, "testdata/valid_metadata.json")
+	})
 }
 
 func Test_PerfResult_MergeHistogram(t *testing.T) {

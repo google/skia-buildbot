@@ -1,12 +1,13 @@
 package backends
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"go.skia.org/infra/cabe/go/perfresults"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
@@ -27,12 +28,11 @@ func FetchBenchmarkJSON(ctx context.Context, c *rbeclient.Client, rootDigest str
 	}
 	ret := make(map[string]perfresults.PerfResults)
 	for benchmark, blob := range raw {
-		res := perfresults.PerfResults{}
-		if err := json.Unmarshal(blob, &res); err != nil {
-			sklog.Errorf("unmarshaling benchmark json: %v", err)
-			return nil, err
+		res, err := perfresults.NewResults(bytes.NewReader(blob))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unmarshaling benchmark json")
 		}
-		ret[benchmark] = res
+		ret[benchmark] = *res
 	}
 	return ret, nil
 }
@@ -85,21 +85,6 @@ func FetchBenchmarkJSONRaw(ctx context.Context, c *rbeclient.Client, rootDigest 
 			ret[benchmark] = blob
 		}
 	}
-
-	return ret, nil
-}
-
-// ParseBenchmarkJSON parse the content of perf_results.json
-// It returns a map of benchmark name to perfresults.PerfResults parsed from the json bytes.
-func ParseBenchmarkJSON(benchmark string, perfResultJSON string) (map[string]perfresults.PerfResults, error) {
-	ret := make(map[string]perfresults.PerfResults)
-
-	res := perfresults.PerfResults{}
-	if err := json.Unmarshal([]byte(perfResultJSON), &res); err != nil {
-		sklog.Errorf("unmarshaling benchmark json: %v", err)
-		return nil, err
-	}
-	ret[benchmark] = res
 
 	return ret, nil
 }

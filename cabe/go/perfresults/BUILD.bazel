@@ -6,6 +6,7 @@ go_library(
     srcs = ["perf_results_parser.go"],
     importpath = "go.skia.org/infra/cabe/go/perfresults",
     visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
 )
 
 go_test(

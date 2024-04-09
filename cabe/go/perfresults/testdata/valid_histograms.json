@@ -1,5 +1,19 @@
 [
   {
+    "type": "GenericSet",
+    "guid": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "8517d434-8402-43e1-89ba-e6de3dea6af7",
+    "values": [
+      "xr.webxr.static"
+    ]
+  },
+  {
     "name": "memory:chrome:gpu_process:process_count",
     "unit": "count_smallerIsBetter",
     "binBoundaries": [

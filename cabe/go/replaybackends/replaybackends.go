@@ -15,7 +15,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +24,7 @@ import (
 
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/cabe/go/perfresults"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
@@ -103,25 +103,12 @@ func FromZipFile(replayZipFile string, benchmarkName string) *ReplayBackends {
 			}
 			defer fileReader.Close()
 
-			fileBytes := make([]byte, file.UncompressedSize64)
-			if _, err = io.ReadFull(fileReader, fileBytes); err != nil {
+			res, err := perfresults.NewResults(fileReader)
+			if err != nil {
+				fmt.Printf("failed to parse %q", file.Name)
 				panic(err)
 			}
-			res := perfresults.PerfResults{}
-
-			// if a task had no CAS output (e.g. task failed entirely) then the json can be zero length.
-			if len(fileBytes) > 0 {
-				// But if there are bytes, they need to actually parse or it's fatal for the test setup.
-				err = json.Unmarshal(fileBytes, &res)
-				if err != nil {
-					fmt.Printf("failed to parse %q of type %v",
-						file.Name,
-						reflect.TypeOf(fileBytes))
-					panic(err)
-				}
-			}
-
-			ret.ParsedPerfResults[fileName] = res
+			ret.ParsedPerfResults[fileName] = *res
 		}
 	}
 
@@ -198,12 +185,11 @@ func ToZipFile(replayZipFile string,
 		}
 		ret := make(map[string]perfresults.PerfResults)
 		for benchmark, blob := range res {
-			res := perfresults.PerfResults{}
-			if err := json.Unmarshal(blob, &res); err != nil {
-				sklog.Errorf("unmarshaling benchmark json: %v", err)
-				return nil, err
+			res, err := perfresults.NewResults(bytes.NewReader(blob))
+			if err != nil {
+				return nil, skerr.Wrapf(err, "unmarshaling benchmark json")
 			}
-			ret[benchmark] = res
+			ret[benchmark] = *res
 		}
 		return ret, nil
 	}

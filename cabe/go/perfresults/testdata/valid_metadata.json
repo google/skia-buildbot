@@ -53,13 +53,6 @@
   },
   {
     "type": "GenericSet",
-    "guid": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
-    "values": [
-      "Measures WebXR performance with synthetic sample pages."
-    ]
-  },
-  {
-    "type": "GenericSet",
     "guid": "f8101e8a-eff2-4498-b160-18169365fd35",
     "values": [
       "win-76-g580"

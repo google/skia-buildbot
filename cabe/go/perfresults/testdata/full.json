@@ -1,6 +1,18 @@
 [
   {
     "type": "GenericSet",
+    "guid": "b6f9e674-f14d-4dc7-9491-bd9b9186f6b6",
+    "values": [
+      "Measures WebXR performance with synthetic sample pages."
+    ]
+  },
+  {
+    "type": "DateRange",
+    "guid": "7dcf34a5-76fd-4e45-8c14-3bc7b158dff9",
+    "min": 1712174372690.725
+  },
+  {
+    "type": "GenericSet",
     "guid": "8c7f2287-d9b6-45a8-95c1-832859902913",
     "values": [
       "Measures WebXR performance with synthetic sample pages."
