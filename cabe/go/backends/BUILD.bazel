@@ -12,12 +12,12 @@ go_library(
     importpath = "go.skia.org/infra/cabe/go/backends",
     visibility = ["//visibility:public"],
     deps = [
-        "//cabe/go/perfresults",
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
         "//go/sklog",
         "//go/swarming",
+        "//perf/go/perfresults",
         "@com_github_bazelbuild_remote_apis//build/bazel/remote/execution/v2:go_default_library",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest",

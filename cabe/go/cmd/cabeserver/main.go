@@ -32,9 +32,9 @@ import (
 
 	"go.skia.org/infra/cabe/go/analysisserver"
 	"go.skia.org/infra/cabe/go/backends"
-	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/grpclogging"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 const (

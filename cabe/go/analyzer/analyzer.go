@@ -19,9 +19,9 @@ import (
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/cabe/go/backends"
-	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	cabe_stats "go.skia.org/infra/cabe/go/stats"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 const maxReadCASPoolWorkers = 100

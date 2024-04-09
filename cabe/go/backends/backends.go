@@ -12,7 +12,7 @@ import (
 	compute "google.golang.org/api/compute/v0.beta"
 	grpc_oauth "google.golang.org/grpc/credentials/oauth"
 
-	"go.skia.org/infra/cabe/go/perfresults"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 var (

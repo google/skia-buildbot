@@ -209,5 +209,5 @@ func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmar
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")
 	}
-	return read_values.ReadValuesByChart(ctx, client, benchmark, chart, []*swarmingV1.SwarmingRpcsCASReference{run.CAS}, aggMethod)
+	return client.ReadValuesByChart(ctx, benchmark, chart, []*swarmingV1.SwarmingRpcsCASReference{run.CAS}, aggMethod)
 }

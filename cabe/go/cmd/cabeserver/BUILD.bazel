@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//cabe/go/analysisserver",
         "//cabe/go/backends",
-        "//cabe/go/perfresults",
         "//cabe/go/proto:go_proto_lib",
         "//go/cleanup",
         "//go/common",
@@ -21,6 +20,7 @@ go_library(
         "//go/swarming",
         "//go/tracing",
         "//go/tracing/loggingtracer",
+        "//perf/go/perfresults",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_google_cloud_go_compute_metadata//:metadata",

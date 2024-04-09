@@ -7,10 +7,10 @@ import (
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 
-	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 // Returns an ArmSpec proto containing field values that are common between a and b.

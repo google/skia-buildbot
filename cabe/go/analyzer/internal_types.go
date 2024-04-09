@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/cabe/go/perfresults"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 // helper function for extracting buildInfo from swarming tasks.

@@ -3,6 +3,8 @@ package perfresults
 import (
 	"encoding/json"
 	"io"
+	"math"
+	"slices"
 
 	"go.skia.org/infra/go/skerr"
 )
@@ -180,4 +182,39 @@ func (pr *PerfResults) Merge(other Histogram) {
 		other.SampleValues = append(h.SampleValues, other.SampleValues...)
 	}
 	pr.Histograms[other.Name] = other
+}
+
+func (h Histogram) Min() float64 {
+	return slices.Min(h.SampleValues)
+}
+
+func (h Histogram) Max() float64 {
+	return slices.Max(h.SampleValues)
+}
+
+func (h Histogram) Count() int {
+	return len(h.SampleValues)
+}
+
+func (h Histogram) Mean() float64 {
+	return h.Sum() / float64(h.Count())
+}
+
+func (h Histogram) Stddev() float64 {
+	sum := h.Sum()
+	mean := sum / float64(h.Count())
+	vr := 0.0
+	for _, x := range h.SampleValues {
+		vr += (x - mean) * (x - mean)
+	}
+	stddev := math.Sqrt(float64(vr / float64(h.Count()-1)))
+	return stddev
+}
+
+func (h Histogram) Sum() float64 {
+	s := 0.0
+	for i := range h.SampleValues {
+		s += h.SampleValues[i]
+	}
+	return s
 }

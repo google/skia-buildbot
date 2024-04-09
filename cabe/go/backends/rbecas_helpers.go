@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"go.skia.org/infra/cabe/go/perfresults"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/perfresults"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/digest"

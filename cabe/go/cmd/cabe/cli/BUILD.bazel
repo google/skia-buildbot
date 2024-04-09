@@ -15,11 +15,11 @@ go_library(
     deps = [
         "//cabe/go/analyzer",
         "//cabe/go/backends",
-        "//cabe/go/perfresults",
         "//cabe/go/proto:go_proto_lib",
         "//cabe/go/replaybackends",
         "//go/sklog",
         "//go/swarming",
+        "//perf/go/perfresults",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_olekukonko_tablewriter//:tablewriter",
         "@com_github_urfave_cli_v2//:cli",

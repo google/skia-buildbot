@@ -7,9 +7,9 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"go.skia.org/infra/cabe/go/perfresults"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/perfresults"
 )
 
 func TestBuildSpecForChangeString(t *testing.T) {

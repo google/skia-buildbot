@@ -83,13 +83,11 @@ func updateFieldsForCatapult(req *pb.ScheduleBisectRequest) *pb.ScheduleBisectRe
 }
 
 func validate(req *pb.ScheduleBisectRequest) error {
-	_, err := read_values.ToAggDataMethod(req.AggregationMethod)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
 	switch {
 	case req.StartGitHash == "" || req.EndGitHash == "":
 		return skerr.Fmt("git hash is empty")
+	case !read_values.IsSupportedAggregation(req.AggregationMethod):
+		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
 	default:
 		return nil
 	}
