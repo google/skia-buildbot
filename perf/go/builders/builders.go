@@ -38,6 +38,8 @@ import (
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
 	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
+	"go.skia.org/infra/perf/go/subscription"
+	subscription_store "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 )
@@ -273,6 +275,20 @@ func NewCulpritStoreFromConfig(ctx context.Context, instanceConfig *config.Insta
 			return nil, skerr.Wrap(err)
 		}
 		return culprit_store.New(db)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+}
+
+// NewSubscriptionStoreFromConfig creates a new subscription.Store from the
+// InstanceConfig which provides access to the subscription data.
+func NewSubscriptionStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (subscription.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.CockroachDBDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return subscription_store.New(db)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

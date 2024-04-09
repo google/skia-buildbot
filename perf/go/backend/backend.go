@@ -15,7 +15,9 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/config/validate"
 	"go.skia.org/infra/perf/go/culprit"
+	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_service "go.skia.org/infra/perf/go/culprit/service"
+	"go.skia.org/infra/perf/go/subscription"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -30,6 +32,7 @@ type Backend struct {
 	grpcServer       *grpc.Server
 	serverAuthPolicy *grpcsp.ServerPolicy
 	lisGRPC          net.Listener
+	flags            *config.BackendFlags
 }
 
 // BackendService provides an interface for a service to be hosted on Backend application.
@@ -45,7 +48,9 @@ type BackendService interface {
 }
 
 // initialize initializes the Backend application.
-func (b *Backend) initialize(anomalgroupStore anomalygroup.Store, culpritStore culprit.Store) error {
+func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store,
+	subscriptionStore subscription.Store,
+	notifier notify.CulpritNotifier) error {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(&b.promPort),
@@ -62,14 +67,23 @@ func (b *Backend) initialize(anomalgroupStore anomalygroup.Store, culpritStore c
 		sklog.Fatal(err)
 	}
 
-	sklog.Info("Creating entity stores.")
-	if anomalgroupStore == nil {
-		anomalgroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
+	sklog.Info("Creating anomalygroup stores.")
+	if anomalygroupStore == nil {
+		anomalygroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
 		if err != nil {
 			sklog.Errorf("Error creating anomalgroup store. %s", err)
 			return err
 		}
 	}
+	sklog.Info("Creating culprit notifier.")
+	if notifier == nil {
+		notifier, err = notify.GetDefaultNotifier(ctx, config.Config, b.flags.CommitRangeURL)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
+
+	sklog.Info("Creating culprit stores.")
 	if culpritStore == nil {
 		culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -78,13 +92,21 @@ func (b *Backend) initialize(anomalgroupStore anomalygroup.Store, culpritStore c
 		}
 	}
 
-	sklog.Info("Registering grpc services.")
+	sklog.Info("Creating subscription stores.")
+	if subscriptionStore == nil {
+		subscriptionStore, err = builders.NewSubscriptionStoreFromConfig(ctx, config.Config)
+		if err != nil {
+			sklog.Errorf("Error creating culprit store. %s", err)
+			return err
+		}
+	}
 
+	sklog.Info("Registering grpc services.")
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
-		ag_service.New(anomalgroupStore),
-		culprit_service.New(nil, culpritStore, nil, nil),
+		ag_service.New(anomalygroupStore),
+		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier),
 	}
 	err = b.registerServices(services)
 	if err != nil {
@@ -158,6 +180,8 @@ func (b *Backend) ServeGRPC() error {
 func New(flags *config.BackendFlags,
 	anomalygroupStore anomalygroup.Store,
 	culpritStore culprit.Store,
+	subscriptionStore subscription.Store,
+	notifier notify.CulpritNotifier,
 ) (*Backend, error) {
 	opts := []grpc.ServerOption{}
 	b := &Backend{
@@ -168,7 +192,7 @@ func New(flags *config.BackendFlags,
 		serverAuthPolicy: grpcsp.Server(),
 	}
 
-	err := b.initialize(anomalygroupStore, culpritStore)
+	err := b.initialize(anomalygroupStore, culpritStore, subscriptionStore, notifier)
 	return b, err
 }
 

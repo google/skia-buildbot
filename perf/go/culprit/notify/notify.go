@@ -24,14 +24,14 @@ type DefaultCulpritNotifier struct {
 }
 
 // newNotifier returns a newNotifier Notifier.
-func GetDefaultNotifier(ctx context.Context, cfg *config.NotifyConfig, commitURLTemplate string) (CulpritNotifier, error) {
-	switch cfg.Notifications {
+func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
+	switch cfg.NotifyConfig.Notifications {
 	case notifytypes.MarkdownIssueTracker:
-		transport, err := transport.NewIssueTrackerTransport(ctx, cfg)
+		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.NotifyConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, cfg)
+		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, &cfg.NotifyConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -40,7 +40,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.NotifyConfig, commitURL
 			transport: transport,
 		}, nil
 	default:
-		return nil, skerr.Fmt("invalid Notifier type: %s, must be of type MarkdownIssueTracker", cfg.Notifications)
+		return nil, skerr.Fmt("invalid Notifier type: %s, must be of type MarkdownIssueTracker", cfg.NotifyConfig.Notifications)
 	}
 }
 

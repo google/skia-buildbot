@@ -9,8 +9,10 @@ import (
 	"go.skia.org/infra/go/testutils"
 	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
 	"go.skia.org/infra/perf/go/sql/sqltest"
+	subscription_store "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,6 +21,7 @@ func setupTestApp(t *testing.T) *Backend {
 	db := sqltest.NewCockroachDBForTests(t, "backend")
 	anomalygroupStore, _ := ag_store.New(db)
 	culpritStore, _ := culprit_store.New(db)
+	subscriptionStore, _ := subscription_store.New(db)
 	configFile := testutils.TestDataFilename(t, "demo.json")
 	sklog.Infof("Config file: %s", configFile)
 	flags := &config.BackendFlags{
@@ -26,7 +29,7 @@ func setupTestApp(t *testing.T) *Backend {
 		PromPort:       ":0",
 		ConfigFilename: configFile,
 	}
-	b, err := New(flags, anomalygroupStore, culpritStore)
+	b, err := New(flags, anomalygroupStore, culpritStore, subscriptionStore, &notify.DefaultCulpritNotifier{})
 	require.NoError(t, err)
 	ch := make(chan interface{})
 	go func() {

@@ -394,6 +394,7 @@ type BackendFlags struct {
 	ConfigFilename string
 	Port           string
 	PromPort       string
+	CommitRangeURL string
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -416,6 +417,12 @@ func (flags *BackendFlags) AsCliFlags() []cli.Flag {
 			Name:        "prom_port",
 			Value:       ":20000",
 			Usage:       "Metrics service address (e.g., ':10110')",
+		},
+		&cli.StringFlag{
+			Destination: &flags.CommitRangeURL,
+			Name:        "commit_range_url",
+			Value:       "",
+			Usage:       "A URI Usage: Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. e.g. https://skia.googlesource.com/skia/+log/{begin}..{end}.",
 		},
 	}
 }
