@@ -185,7 +185,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 	}()
 
 	sklog.Info("Running flutter license scripts.")
-	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
+	binariesPath := filepath.Join(parentRepoDir, "..", "flutter", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
 	licenseToolsDir := filepath.Join(parentRepoDir, "tools", "licenses")
