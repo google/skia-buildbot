@@ -61,7 +61,6 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 	return resp, nil
 }
 
-// Upsert implements the culprit.Store interface.
 // Inserts the given culprit elements in the persistant storage. If a culprit already exists,
 // appends the anomaly_group_id into its corresponding field.
 func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_commits []*pb.Commit) ([]string, error) {
@@ -152,6 +151,12 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 		}
 	}
 	return return_ids, nil
+}
+
+// Adds issue id to a Culprit row.
+func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issueId string) error {
+	// TODO(pasthana): Implement this
+	return nil
 }
 
 // Takes a string array as input, and returns a comma joined string where each element

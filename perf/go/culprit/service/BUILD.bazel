@@ -7,9 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/culprit/service",
     visibility = ["//visibility:public"],
     deps = [
+        "//perf/go/anomalygroup:store",
         "//perf/go/backend/shared",
         "//perf/go/culprit:store",
+        "//perf/go/culprit/notify",
         "//perf/go/culprit/proto/v1",
+        "//perf/go/subscription:store",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -19,8 +22,13 @@ go_test(
     srcs = ["service_test.go"],
     embed = [":service"],
     deps = [
+        "//perf/go/anomalygroup/mocks",
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/culprit/mocks",
+        "//perf/go/culprit/notify/mocks",
         "//perf/go/culprit/proto/v1",
+        "//perf/go/subscription/mocks",
+        "//perf/go/subscription/proto/v1",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
     ],

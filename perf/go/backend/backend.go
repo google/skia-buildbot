@@ -84,7 +84,7 @@ func (b *Backend) initialize(anomalgroupStore anomalygroup.Store, culpritStore c
 	services := []BackendService{
 		NewPinpointService(nil, nil),
 		ag_service.New(anomalgroupStore),
-		culprit_service.New(culpritStore),
+		culprit_service.New(nil, culpritStore, nil, nil),
 	}
 	err = b.registerServices(services)
 	if err != nil {

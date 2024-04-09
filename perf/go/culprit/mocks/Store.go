@@ -15,6 +15,24 @@ type Store struct {
 	mock.Mock
 }
 
+// AddIssueId provides a mock function with given fields: ctx, id, issueId
+func (_m *Store) AddIssueId(ctx context.Context, id string, issueId string) error {
+	ret := _m.Called(ctx, id, issueId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddIssueId")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, issueId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: ctx, ids
 func (_m *Store) Get(ctx context.Context, ids []string) ([]*v1.Culprit, error) {
 	ret := _m.Called(ctx, ids)

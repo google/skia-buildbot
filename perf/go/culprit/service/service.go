@@ -3,22 +3,32 @@ package service
 import (
 	"context"
 
+	"go.skia.org/infra/perf/go/anomalygroup"
 	"go.skia.org/infra/perf/go/backend/shared"
 	"go.skia.org/infra/perf/go/culprit"
+	"go.skia.org/infra/perf/go/culprit/notify"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	"go.skia.org/infra/perf/go/subscription"
 	"google.golang.org/grpc"
 )
 
 // culpritService implements CulpritService
 type culpritService struct {
 	pb.UnimplementedCulpritServiceServer
-	store culprit.Store
+	anomalygroupStore anomalygroup.Store
+	culpritStore      culprit.Store
+	subscriptionStore subscription.Store
+	notifier          notify.CulpritNotifier
 }
 
 // New returns a new instance of culpritService.
-func New(store culprit.Store) *culpritService {
+func New(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store, subscriptionStore subscription.Store,
+	notifier notify.CulpritNotifier) *culpritService {
 	return &culpritService{
-		store: store,
+		anomalygroupStore: anomalygroupStore,
+		culpritStore:      culpritStore,
+		subscriptionStore: subscriptionStore,
+		notifier:          notifier,
 	}
 }
 
@@ -40,8 +50,8 @@ func (s *culpritService) GetServiceDescriptor() grpc.ServiceDesc {
 	return pb.CulpritService_ServiceDesc
 }
 
-func (s *culpritService) PersistCulprit(context context.Context, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	ids, err := s.store.Upsert(context, req.AnomalyGroupId, req.Commits)
+func (s *culpritService) PersistCulprit(ctx context.Context, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
+	ids, err := s.culpritStore.Upsert(ctx, req.AnomalyGroupId, req.Commits)
 	if err != nil {
 		return nil, err
 	} else {
@@ -63,11 +73,40 @@ func (s *culpritService) PersistCulprit(context context.Context, req *pb.Persist
 }
 
 func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritRequest) (*pb.GetCulpritResponse, error) {
-	culprits, err := s.store.Get(context, req.CulpritIds)
+	culprits, err := s.culpritStore.Get(context, req.CulpritIds)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.GetCulpritResponse{
 		Culprits: culprits,
 	}, nil
+}
+
+func (s *culpritService) NotifyUser(ctx context.Context, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
+	var err error
+	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
+	if err != nil {
+		return nil, err
+	}
+	anomalygroup, err := s.anomalygroupStore.LoadById(ctx, req.AnomalyGroupId)
+	if err != nil {
+		return nil, err
+	}
+	subscription, err := s.subscriptionStore.GetSubscription(ctx, anomalygroup.SubsciptionName, anomalygroup.SubscriptionRevision)
+	if err != nil {
+		return nil, err
+	}
+	issueIds := make([]string, 0)
+	for _, culprit := range culprits {
+		issueId, err := s.notifier.NotifyCulpritFound(ctx, culprit, subscription)
+		if err != nil {
+			return nil, err
+		}
+		err = s.culpritStore.AddIssueId(ctx, culprit.Id, issueId)
+		if err != nil {
+			return nil, err
+		}
+		issueIds = append(issueIds, issueId)
+	}
+	return &pb.NotifyUserResponse{IssueIds: issueIds}, nil
 }
