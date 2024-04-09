@@ -429,52 +429,6 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 	return midCommitFromDEPS, nil
 }
 
-// FindMidCommit finds the middle commit from the two given commits.
-//
-// It uses gitiles API to find the middle commit, and it also handles DEPS rolls when two commits
-// are adjacent. If two commits are adjacent and no DEPS roll, then the first commit is returned;
-// If two commits are adjacent and there is a DEPS roll on the second commit, then it will search
-// for rolled repositories and find the middle commit between the roll.
-//
-// Note the returned Commit can be a different repo because it looks at DEPS, but it only looks at
-// one level. If the DEPS of DEPS has rolls, it will not continue to search.
-//
-// TODO(b/326352320) remove this once it's usage is updated in pinpoint/pinpoint.go
-func (m *MidpointHandler) FindMidCommit(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
-	if startCommit.RepositoryUrl != endCommit.RepositoryUrl {
-		return nil, skerr.Fmt("two commits are from different repos")
-	}
-
-	nextCommit, err := m.findMidpoint(ctx, startCommit, endCommit)
-	if err != nil {
-		return nil, err
-	}
-
-	// If startGitHash and endGitHash are not adjacent, return the found commit right away.
-	//
-	// We use HasPrefix because nextCommitHash will always be the full SHA git hash,
-	// but the provided startGitHash may be a short SHA.
-	if !strings.HasPrefix(nextCommit.GitHash, startCommit.GitHash) {
-		return nextCommit, nil
-	}
-
-	// The nextCommit == startHash. This means start and end are adjacent commits.
-	// Assume a DEPS roll, so we'll find the next candidate by parsing DEPS rolls.
-	sklog.Debugf("Start hash %s and end hash %s are adjacent to each other. Assuming a DEPS roll.", startCommit.GitHash, endCommit.GitHash)
-
-	midDepCommit, err := m.findMidCommitInDEPS(ctx, startCommit, endCommit)
-	if err != nil {
-		return nil, err
-	}
-
-	// If endGitHash doesn't have DEPS rolls, return the first commit.
-	if midDepCommit == nil {
-		return startCommit, nil
-	}
-
-	return midDepCommit, nil
-}
-
 // FindMidCombinedCommit searches for the median commit between two combined commits.
 //
 // The search takes place through Main if no ModifiedDeps are present.
