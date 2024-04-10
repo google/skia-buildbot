@@ -20,9 +20,8 @@ func TestCompareFunctional_GivenNoData_ReturnsError(t *testing.T) {
 	y := []float64{0, 0, 0, 0, 0}
 	const expected = Unknown
 	result, err := CompareFunctional(x, y, DefaultFunctionalErrRate)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, result.Verdict)
-	assert.Zero(t, result.PValue)
+	assert.Error(t, err)
+	assert.Equal(t, ErrorVerdict, result.Verdict)
 }
 
 func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
@@ -56,15 +55,14 @@ func TestCompareFunctional_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {
 	test("arrays are significantly different, return different", x, y, 1.0, Different)
 }
 
-func TestComparePerformance_GivenNoData_ReturnsError(t *testing.T) {
+func TestComparePerformance_GivenNoData_ReturnsNil(t *testing.T) {
 	x := []float64{0, 0, 0, 0, 0}
 	y := []float64{}
 	const magnitude = 1.0
 	const expected = Unknown
 	result, err := ComparePerformance(x, y, magnitude, UnknownDir)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, result.Verdict)
-	assert.Zero(t, result.PValue)
+	assert.Equal(t, NilVerdict, result.Verdict)
 }
 
 func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) {

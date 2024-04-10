@@ -70,6 +70,13 @@ const (
 	// Different means that the samples are unlikely to come
 	// from the same distribution. Reject the null hypothesis.
 	Different Verdict = "Different"
+	// NilVerdict means there was no analysis to be done.
+	// This can happen in performance comparisons when all
+	// benchmark runs fail and there is no data to analyze.
+	NilVerdict Verdict = "Nil"
+	// ErrorVerdict means something went wrong with the analysis.
+	// Returning this verdict is better than returning a nil struct.
+	ErrorVerdict Verdict = "Error"
 )
 
 const float64EqualityThreshold = 1e-9
@@ -125,6 +132,11 @@ type CompareResults struct {
 // in a benchmark measurement. i.e. expectedErrRate = 0.5 means the culprit is
 // causing the benchmark to fail 50% of the time more often.
 func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*CompareResults, error) {
+	// This is technically not possible. It would imply that there were no benchmark runs scheduled
+	// or all scheduled runs terminally errored out.
+	if len(valuesA) == 0 || len(valuesB) == 0 {
+		return &CompareResults{Verdict: ErrorVerdict}, skerr.Fmt("cannot do functional comparison without data. len A %d and len B %d", len(valuesA), len(valuesB))
+	}
 	all_values := append(valuesA, valuesB...)
 	// avgSampleSize refers to the average number of samples between A and B.
 	// The samples may be imbalanced depending on the success of individual runs
@@ -138,7 +150,7 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 	LowThreshold := thresholds.LowThreshold
 	HighThreshold, err := thresholds.HighThresholdFunctional(expectedErrRate, avgSampleSize)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not get functional high threshold")
+		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Could not get functional high threshold")
 	}
 	// functional analysis always assumes the improvement direction is down
 	// i.e. we want future commits to be less flaky and less error prone.
@@ -150,6 +162,10 @@ func CompareFunctional(valuesA, valuesB []float64, expectedErrRate float64) (*Co
 // rawMagnitude difference between valuesA and valuesB using the performance
 // low and high thresholds.
 func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direction ImprovementDir) (*CompareResults, error) {
+	// This situation happens if all benchmark runs fail.
+	if len(valuesA) == 0 || len(valuesB) == 0 {
+		return &CompareResults{Verdict: NilVerdict}, nil
+	}
 	all_values := append(valuesA, valuesB...)
 	sort.Float64s(all_values)
 	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
@@ -164,7 +180,7 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direct
 	LowThreshold := thresholds.LowThreshold
 	HighThreshold, err := thresholds.HighThresholdPerformance(normalizedMagnitude, avgSampleSize)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Could not get high threshold for bisection")
+		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Could not get high threshold for bisection")
 	}
 
 	return compare(valuesA, valuesB, LowThreshold, HighThreshold, direction)
@@ -174,11 +190,6 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direct
 // using the KS and MWU tests and compare their p-values against the
 // LowThreshold and HighThreshold.
 func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, dir ImprovementDir) (*CompareResults, error) {
-	if len(valuesA) == 0 || len(valuesB) == 0 {
-		// A sample has no values in it. Return verdict to measure more data.
-		return &CompareResults{Verdict: Unknown}, nil
-	}
-
 	// verify a change is a regression
 	meanDiff := mean(valuesB) - mean(valuesA)
 	if (dir == Up && meanDiff > 0) || (dir == Down && meanDiff < 0) {
@@ -195,11 +206,11 @@ func compare(valuesA, valuesB []float64, LowThreshold, HighThreshold float64, di
 	// range(10, 30)     range(10)+range(30, 40)     0.4946     0.0082
 	PValueKS, err := KolmogorovSmirnov(valuesA, valuesB)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed KS test")
+		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Failed KS test")
 	}
 	PValueMWU := MannWhitneyU(valuesA, valuesB)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed MWU test")
+		return &CompareResults{Verdict: ErrorVerdict}, skerr.Wrapf(err, "Failed MWU test")
 	}
 	PValue := min(PValueKS, PValueMWU)
 

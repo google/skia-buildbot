@@ -42,12 +42,13 @@ func GetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr 
 // CompareActivity wraps compare.ComparePerformance and compare.CompareFunctional as activity
 //
 // commitA and commitB are passed in to make it easier to see on the Temporal
-// UI what two commits are being tested
+// UI what two commits are being tested. Errors are recorded in the activity but
+// the ErrorVerdict is not passed back to the main workflow.
 func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude, errRate float64, direction compare.ImprovementDir) (*CombinedResults, error) {
 	// TODO(sunxiaodi@): skip functional analysis if there are no errors
 	funcResult, err := compare.CompareFunctional(allValues.Lower.ErrorValues, allValues.Higher.ErrorValues, errRate)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return &CombinedResults{Result: funcResult, ResultType: functional}, skerr.Wrap(err)
 	}
 	// always return different verdicts
 	if funcResult.Verdict == compare.Different {
@@ -59,10 +60,22 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 
 	perfResult, err := compare.ComparePerformance(allValues.Lower.Values, allValues.Higher.Values, magnitude, direction)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return &CombinedResults{
+			Result:      funcResult,
+			OtherResult: perfResult,
+			ResultType:  functional,
+		}, skerr.Wrap(err)
 	}
 
 	// decide which verdict to return
+	// occurs if all benchmark runs fail and we are relying on functional analysis results
+	if perfResult.Verdict == compare.NilVerdict {
+		return &CombinedResults{
+			Result:      funcResult,
+			OtherResult: perfResult,
+			ResultType:  functional,
+		}, nil
+	}
 	if funcResult.Verdict == compare.Unknown && perfResult.Verdict == compare.Same {
 		return &CombinedResults{
 			Result:      funcResult,
