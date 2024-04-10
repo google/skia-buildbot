@@ -13,6 +13,9 @@ paramset-sk {
   div {
     display: inline-block;
     padding: 0.2em;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
   }
 
   .clickable tr:not(:nth-child(1)) th,
@@ -53,6 +56,10 @@ paramset-sk {
 
   .clickable_values div:hover {
     text-decoration: underline;
+  }
+
+  checkbox-sk {
+    display: inline-block;
   }
 
   @keyframes flash {

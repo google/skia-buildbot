@@ -207,17 +207,21 @@ export class ParamSetSk extends ElementSk {
         }
 
         return html`
-          <div class=${ele._highlighted(key, value)}>
+          <div
+            class=${ele._highlighted(key, value)}
+            data-key=${key}
+            data-value=${value}>
             <checkbox-sk
               id="checkbox-${key}-${value}"
-              name=${value}
+              name=""
               @change=${(e: MouseEvent) =>
                 ele.checkboxValueClickHandler(e, key, value)}
-              label=${value}
+              label=""
               checked
               ?disabled=${disabled}
               title="Select/Unselect this value from the graph.">
             </checkbox-sk>
+            ${value}
           </div>
         `;
       }

@@ -804,8 +804,14 @@ export class ExploreSimpleSk extends ElementSk {
               id=paramset
               clickable_values
               checkbox_values
-              @paramset-checkbox-click=${ele.paramsetCheckboxClick}>
-              </paramset-sk>
+              @paramset-key-value-click=${(
+                e: CustomEvent<ParamSetSkClickEventDetail>
+              ) => {
+                ele.paramsetKeyValueClick(e);
+              }}
+              @paramset-checkbox-click=${ele.paramsetCheckboxClick}
+            >
+            </paramset-sk>
           </div>
           <div id=details>
             <div id=params_and_logentry>
@@ -814,7 +820,11 @@ export class ExploreSimpleSk extends ElementSk {
                 clickable_plus
                 clickable_values
                 copy_content
-                @paramset-key-value-click=${ele.paramsetKeyValueClick}
+                @paramset-key-value-click=${(
+                  e: CustomEvent<ParamSetSkClickEventDetail>
+                ) => {
+                  ele.paramsetKeyValueClick(e);
+                }}
                 @plus-click=${ele.plusClick}
                 >
               </paramset-sk>

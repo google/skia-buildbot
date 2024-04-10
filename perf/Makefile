@@ -167,6 +167,7 @@ run-local-instance:
 		--config_filename=./configs/cdb-nano.json \
 		--num_continuous_parallel=1 \
 		--display_group_by=true \
+		--disable_metrics_update \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:25000/skia?sslmode=disable \
 		--commit_range_url=https://skia.googlesource.com/skia/+log/{begin}..{end}

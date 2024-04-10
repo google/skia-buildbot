@@ -212,7 +212,7 @@ describe('paramset-sk', () => {
         );
 
         // Let's click a value to unselect the checkbox
-        await testBed.page.click('checkbox-sk[label="x86"]');
+        await testBed.page.click('#checkbox-arch-x86');
 
         const expectedUselected: ParamSetSkCheckboxClickEventDetail = {
           key: 'arch',
@@ -225,7 +225,7 @@ describe('paramset-sk', () => {
         const event2 = eventPromise<ParamSetSkRemoveClickEventDetail>(
           'paramset-checkbox-click'
         );
-        await testBed.page.click('checkbox-sk[label="x86"]');
+        await testBed.page.click('#checkbox-arch-x86');
 
         const expectedSelected: ParamSetSkCheckboxClickEventDetail = {
           key: 'arch',
