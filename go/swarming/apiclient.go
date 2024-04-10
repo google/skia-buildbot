@@ -92,7 +92,7 @@ type ApiClient interface {
 	ListBotsForPool(ctx context.Context, pool string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// ListBotsForDimensions returns a slice of swarming.SwarmingRpcsBotInfo instances
-	// corresponding to the free, alive and not quarantined bots per given dimensions
+	// corresponding to alive and unquarantined bots given a set of dimensions
 	ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
 
 	// GetStates returns a slice of states corresponding to the given task
@@ -177,7 +177,6 @@ func (c *apiClient) ListBotsForDimensions(ctx context.Context, dimensions map[st
 		dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
 	}
 	call.Dimensions(dimensionStrs...)
-	call.IsBusy("FALSE")
 	call.IsDead("FALSE")
 	call.Quarantined("FALSE")
 
