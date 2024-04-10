@@ -110,9 +110,9 @@ deps = {
 	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", gitHash).Return([]byte(sampleDeps), nil)
 
 	c := mockhttpclient.NewURLMock().Client()
-	r := New(ctx, c).WithRepo(chromiumSrcGit, gc)
+	r := New(ctx, c).WithRepo(ChromiumSrcGit, gc)
 
-	res, err := r.fetchGitDeps(ctx, &pb.Commit{Repository: chromiumSrcGit, GitHash: gitHash})
+	res, err := r.fetchGitDeps(ctx, &pb.Commit{Repository: ChromiumSrcGit, GitHash: gitHash})
 	require.NoError(t, err)
 	// intellij should be missing
 	assert.Equal(t, 3, len(res))
@@ -189,7 +189,7 @@ func TestFindMidCombinedCommit_NoModifiedDeps_ValidMidpointFromMain(t *testing.T
 	gc.On("LogFirstParent", testutils.AnyContext, startGitHash, endGitHash).Return(resp, nil)
 
 	c := mockhttpclient.NewURLMock().Client()
-	m := New(ctx, c).WithRepo(chromiumSrcGit, gc)
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc)
 
 	start := NewCombinedCommit(NewChromiumCommit(startGitHash))
 	end := NewCombinedCommit(NewChromiumCommit(endGitHash))
@@ -280,7 +280,7 @@ deps = {
 	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
 
 	c := mockhttpclient.NewURLMock().Client()
-	m := New(ctx, c).WithRepo(chromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 
 	start := NewCombinedCommit(NewChromiumCommit(startGitHash))
 	end := NewCombinedCommit(NewChromiumCommit(endGitHash))
@@ -499,7 +499,7 @@ deps = {
 		})
 
 	c := mockhttpclient.NewURLMock().Client()
-	m := New(ctx, c).WithRepo(chromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	assert.NoError(t, err)
 	// endGitHash is popped off, leaving [4, 3, 2, 1]
@@ -678,7 +678,7 @@ deps = {
 
 	ctx := context.Background()
 	c := mockhttpclient.NewURLMock().Client()
-	m := New(ctx, c).WithRepo(chromiumSrcGit, chromiumClient).WithRepo(webrtcUrl, webrtcClient)
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, chromiumClient).WithRepo(webrtcUrl, webrtcClient)
 
 	err := m.fillModifiedDeps(ctx, start, end)
 	require.NoError(t, err)
@@ -731,7 +731,7 @@ deps = {
 
 	ctx := context.Background()
 	c := mockhttpclient.NewURLMock().Client()
-	m := New(ctx, c).WithRepo(chromiumSrcGit, chromiumClient).WithRepo(webrtcUrl, webrtcClient)
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, chromiumClient).WithRepo(webrtcUrl, webrtcClient)
 
 	err := m.fillModifiedDeps(ctx, start, end)
 	require.NoError(t, err)

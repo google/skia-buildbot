@@ -1,0 +1,5 @@
+# DEPS file with reference to Skia commit 14dd552, which in midpoint_test is
+# the latest Skia git hash.
+deps = {
+  'src/third_party/skia': 'https://skia.googlesource.com/skia.git' + '@' +  '14dd552',
+}

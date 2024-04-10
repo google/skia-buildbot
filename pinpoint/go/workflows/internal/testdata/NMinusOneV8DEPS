@@ -1,0 +1,5 @@
+# DEPS file with reference to Skia commit 3e3f28d, which in midpoint_test is
+# the n-2 commit hash of Skia so that there's 0335263 remaining in the middle.
+deps = {
+  'src/third_party/skia': 'https://skia.googlesource.com/skia.git' + '@' +  '3e3f28d',
+}

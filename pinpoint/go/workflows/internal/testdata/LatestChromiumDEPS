@@ -1,0 +1,5 @@
+# DEPS file with reference to V8 commit 21b24dd, which in midpoint_test is
+# the latest V8 git hash.
+deps = {
+  'src/v8': 'https://chromium.googlesource.com/v8/v8.git' + '@' + '21b24dd',
+}

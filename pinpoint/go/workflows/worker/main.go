@@ -66,6 +66,7 @@ func main() {
 
 	w.RegisterActivity(internal.CompareActivity)
 	w.RegisterActivity(internal.FindMidCommitActivity)
+	w.RegisterActivity(internal.CheckCombinedCommitEqualActivity)
 	w.RegisterActivity(internal.ReportStatusActivity)
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
 

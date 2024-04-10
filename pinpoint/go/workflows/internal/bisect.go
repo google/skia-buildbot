@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -16,7 +14,6 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/temporal/go/common"
 	"go.temporal.io/sdk/workflow"
-	"golang.org/x/oauth2/google"
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -75,22 +72,6 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 		Lower:  lower,
 		Higher: t.Higher,
 	}
-}
-
-// FindMidCommitActivity is an Activity that finds the middle point of two commits.
-//
-// TODO(b/326352320): Move this into its own file.
-func FindMidCommitActivity(ctx context.Context, lower, higher *midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
-	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Problem setting up default token source")
-	}
-	c := httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).Client()
-	m, err := midpoint.New(ctx, c).FindMidCombinedCommit(ctx, lower, higher)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return m, nil
 }
 
 // ReportStatusActivity wraps the call to IssueTracker to report culprits.
@@ -287,7 +268,12 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 					break
 				}
 
-				if mid.Key() == lower.Build.Commit.Key() {
+				var equal bool
+				if err := workflow.ExecuteActivity(ctx, CheckCombinedCommitEqualActivity, lower.Build.Commit, mid).Get(ctx, &equal); err != nil {
+					logger.Warn("Failed to determine equality between two combined commits")
+					break
+				}
+				if equal {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference
 					be.Culprits = append(be.Culprits, (*pinpoint_proto.CombinedCommit)(higher.Build.Commit))

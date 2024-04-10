@@ -17,13 +17,17 @@ import (
 
 const (
 	GitilesEmptyResponseErr = "Gitiles returned 0 commits, which should not happen."
-	chromiumSrcGit          = "https://chromium.googlesource.com/chromium/src.git"
+	ChromiumSrcGit          = "https://chromium.googlesource.com/chromium/src.git"
 )
 
-func NewChromiumCommit(h string) *pb.Commit {
+func NewChromiumCommit(gitHash string) *pb.Commit {
+	return NewCommit(ChromiumSrcGit, gitHash)
+}
+
+func NewCommit(repository, gitHash string) *pb.Commit {
 	return &pb.Commit{
-		GitHash:    h,
-		Repository: chromiumSrcGit,
+		GitHash:    gitHash,
+		Repository: repository,
 	}
 }
 
@@ -427,6 +431,21 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 
 	sklog.Debugf("Next midpoint found through DEPS: %v", midCommitFromDEPS)
 	return midCommitFromDEPS, nil
+}
+
+// Equal takes two combined commits and returns whether they are equal.
+//
+// Modified deps affects the equality of two combined commits. If the length of
+// both modified deps are not equal between first and second, this check will
+// backfill modified deps information from DEPS files such that they are equal
+// before calculating and comparing the key.
+func (m *MidpointHandler) Equal(ctx context.Context, first, second *CombinedCommit) (bool, error) {
+	err := m.fillModifiedDeps(ctx, first, second)
+	if err != nil {
+		return false, skerr.Fmt("Failed to sync modified deps for both commits.")
+	}
+
+	return first.Key() == second.Key(), nil
 }
 
 // FindMidCombinedCommit searches for the median commit between two combined commits.
