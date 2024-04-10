@@ -75,7 +75,7 @@ func (s State) IsTaskSuccessful() bool {
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
+func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int, dimensions []map[string]string) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
 	botConfig, err := bot_configs.GetBotConfig(bot, false)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create benchmark test object")
@@ -86,7 +86,11 @@ func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark
 		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
 	}
 
-	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, botConfig.Dimensions)
+	dims := botConfig.Dimensions
+	if dimensions != nil {
+		dims = append(dims, dimensions...)
+	}
+	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, dims)
 
 	resp := make([]*spb.SwarmingRpcsTaskRequestMetadata, 0)
 	for i := 0; i < iter; i++ {

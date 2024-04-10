@@ -121,17 +121,21 @@ func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel
 	return runs
 }
 
-func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams) (*workflows.TestRun, error) {
+func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions []map[string]string, iteration int64) (*workflows.TestRun, error) {
 	var tr *workflows.TestRun
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.RunBenchmark, &RunBenchmarkParams{
-		JobID:     scrp.PinpointJobID,
-		Commit:    cc,
-		BotConfig: scrp.BotConfig,
-		BuildCAS:  cas,
-		Benchmark: scrp.Benchmark,
-		Story:     scrp.Story,
-		StoryTags: scrp.StoryTags,
-	}).Get(ctx, &tr); err != nil {
+	rbp := &RunBenchmarkParams{
+		JobID:        scrp.PinpointJobID,
+		Commit:       cc,
+		BotConfig:    scrp.BotConfig,
+		BuildCAS:     cas,
+		Benchmark:    scrp.Benchmark,
+		Story:        scrp.Story,
+		StoryTags:    scrp.StoryTags,
+		Dimensions:   dimensions,
+		IterationIdx: iteration,
+	}
+
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.RunBenchmark, rbp).Get(ctx, &tr); err != nil {
 		return nil, err
 	}
 
@@ -175,10 +179,14 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	for i := 0; i < int(sc.Iterations); i++ {
+		// We need to make a copy of i since the following is a closure. By making a
+		// copy every closure will point to it's own copy of i rather than pointing to
+		// the same variable.
+		iteration := int64(i)
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
-			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc)
+			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc, nil, iteration)
 
 			if err != nil {
 				ec.Send(gCtx, err)

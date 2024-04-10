@@ -35,7 +35,7 @@ type PairwiseRun struct {
 //
 // The function makes a swarming API call internally to fetch the desired bots. If successful, a slice
 // of bot ids is returned
-func FindAvailableBotsActivity(ctx context.Context, botConfig string) ([]string, error) {
+func FindAvailableBotsActivity(ctx context.Context, botConfig string, seed int64) ([]string, error) {
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize swarming client")
@@ -50,6 +50,13 @@ func FindAvailableBotsActivity(ctx context.Context, botConfig string) ([]string,
 	for i, b := range bots {
 		botIds[i] = b.BotId
 	}
+
+	// The list of bot ids is randomized to make sure that the tasks
+	// do not everytime pick the same set of bots and leave the remaining
+	// unused almost the entire time.
+	rand.New(rand.NewSource(seed)).Shuffle(len(botIds), func(i, j int) {
+		botIds[i], botIds[j] = botIds[j], botIds[i]
+	})
 
 	return botIds, nil
 }
@@ -83,7 +90,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
 
 	var botIds []string
-	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, pc.BotConfig).Get(ctx, &botIds); err != nil {
+	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, pc.BotConfig, pc.Seed).Get(ctx, &botIds); err != nil {
 		return nil, err
 	}
 
@@ -95,17 +102,22 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 	// TODO(b/332391612): viditchitkara@ Build chrome for leftBuild and rightBuild in parallel
 	// to save time.
-	leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftBuild.Commit)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftBuild.Commit.Main.GitHash)
-	}
-	pc.LeftBuild = *leftBuild
 
-	rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightBuild.Commit)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightBuild.Commit.Main.GitHash)
+	if pc.LeftBuild.CAS == nil {
+		leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftBuild.Commit)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftBuild.Commit.Main.GitHash)
+		}
+		pc.LeftBuild = *leftBuild
 	}
-	pc.RightBuild = *rightBuild
+
+	if pc.RightBuild.CAS == nil {
+		rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightBuild.Commit)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightBuild.Commit.Main.GitHash)
+		}
+		pc.RightBuild = *rightBuild
+	}
 
 	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
 	runs := []struct {
@@ -130,12 +142,22 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	orders := [][2]int{{0, 1}, {1, 0}}
 	for i := 0; i < int(pc.Iterations); i++ {
 		pairIdx := pairs[i]
+		botDimension := []map[string]string{
+			{
+				"key":   "id",
+				"value": botIds[i%len(botIds)],
+			},
+		}
+
+		// We need to make a copy of i since the following is a closure. By making a
+		// copy every closure will point to it's own copy of i rather than pointing to
+		// the same variable.
+		iteration := int64(i)
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
 			for _, idx := range orders[pairIdx] {
-				// TODO(viditchitkara@): append bot id to the dimension so they only run on the given bot.
-				tr, err := runBenchmark(gCtx, runs[idx].cc, runs[idx].cas, &pc.SingleCommitRunnerParams)
+				tr, err := runBenchmark(gCtx, runs[idx].cc, runs[idx].cas, &pc.SingleCommitRunnerParams, botDimension, iteration)
 				if err != nil {
 					ec.Send(gCtx, err)
 					continue

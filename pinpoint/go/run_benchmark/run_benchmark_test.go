@@ -51,7 +51,7 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 		Return(&swarmingV1.SwarmingRpcsTaskRequestMetadata{
 			TaskId: "123",
 		}, nil).Once()
-	taskIds, err := Run(ctx, sc, c, "android-pixel2_webview-perf", "performance_browser_tests", "story", "all", fakeID, buildArtifact, 1)
+	taskIds, err := Run(ctx, sc, c, "android-pixel2_webview-perf", "performance_browser_tests", "story", "all", fakeID, buildArtifact, 1, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(taskIds))
 	assert.Equal(t, "123", taskIds[0].TaskId)

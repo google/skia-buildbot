@@ -29,6 +29,7 @@ var (
 	commit                  = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
 	triggerBisectFlag       = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
 	triggerSingleCommitFlag = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
+	triggerPairwiseFlag     = flag.Bool("pairwise", false, "toggle true to trigger pairwise commit runner workflow")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -75,6 +76,62 @@ func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
 		return nil
 	}
 	return be
+}
+
+func triggerPairwiseRunner(c client.Client) *internal.PairwiseRun {
+	ctx := context.Background()
+	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/179a34b2be0000
+	p := &internal.PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: internal.SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "android-pixel4-perf",
+			Benchmark:         "blink_perf.bindings",
+			Story:             "gc-mini-tree.html",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			CombinedCommit:    midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
+			Iterations:        6,
+		},
+		Seed: 54321,
+		LeftBuild: workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "573a50658f4301465569c3faf00a145093a1fe9b"}), // 1284448
+			},
+			CAS: &swarmingV1.SwarmingRpcsCASReference{
+				CasInstance: "projects/chrome-swarming/instances/default_instance",
+				Digest: &swarmingV1.SwarmingRpcsDigest{
+					Hash:      "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb",
+					SizeBytes: 810,
+				},
+			},
+		},
+		RightBuild: workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "a633e198b79b2e0c83c72a3006cdffe642871e22"}), // 1284449
+			},
+			CAS: &swarmingV1.SwarmingRpcsCASReference{
+				CasInstance: "projects/chrome-swarming/instances/default_instance",
+				Digest: &swarmingV1.SwarmingRpcsDigest{
+					Hash:      "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6",
+					SizeBytes: 810,
+				},
+			},
+		},
+	}
+
+	var pr *internal.PairwiseRun
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.PairwiseCommitsRunner, p)
+	if err != nil {
+		sklog.Fatalf("Unable to execute workflow: %v", err)
+		return nil
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &pr); err != nil {
+		sklog.Fatalf("Unable to get result: %v", err)
+		return nil
+	}
+	return pr
 }
 
 func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
@@ -157,6 +214,10 @@ func main() {
 	}
 	if *triggerSingleCommitFlag {
 		result := triggerSingleCommitRunner(c)
+		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+	}
+	if *triggerPairwiseFlag {
+		result := triggerPairwiseRunner(c)
 		sklog.Infof("Workflow result: %v", spew.Sdump(result))
 	}
 }

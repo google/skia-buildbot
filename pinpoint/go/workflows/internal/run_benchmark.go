@@ -32,6 +32,12 @@ type RunBenchmarkParams struct {
 	Story string
 	// story tags for the test
 	StoryTags string
+	// additional dimensions for bot selection
+	Dimensions []map[string]string
+	// iteration for the benchmark run. A few workflows have multiple iterations of
+	// benchmark runs and this param comes in handy to get additional info of a specific run.
+	// This is for debugging/informational purposes only.
+	IterationIdx int64
 }
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities
@@ -97,7 +103,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 		return "", skerr.Wrap(err)
 	}
 
-	taskIds, err := run_benchmark.Run(ctx, sc, rbp.Commit.GetMainGitHash(), rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1)
+	taskIds, err := run_benchmark.Run(ctx, sc, rbp.Commit.GetMainGitHash(), rbp.BotConfig, rbp.Benchmark, rbp.Story, rbp.StoryTags, rbp.JobID, rbp.BuildCAS, 1, rbp.Dimensions)
 	if err != nil {
 		return "", err
 	}
