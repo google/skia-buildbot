@@ -773,7 +773,7 @@ export class PlotSimpleSk extends ElementSk {
     );
     resizeObserver.observe(this);
 
-    this.addEventListener('mousemove', (e) => {
+    this.addEventListener('mousemove', (e: MouseEvent) => {
       // Do as little as possible here. The raf() function will periodically
       // check if the mouse has moved and trigger the appropriate redraws.
       this.mouseMoveRaw = {
@@ -783,7 +783,8 @@ export class PlotSimpleSk extends ElementSk {
       };
     });
 
-    this.addEventListener('mousedown', (e) => {
+    this.addEventListener('mousedown', (e: MouseEvent) => {
+      e.preventDefault();
       const pt = this.eventToCanvasPt(e);
       // If you click in the summary area then begin zooming via drag.
       if (inRect(pt, this.summaryArea.rect!)) {
@@ -807,7 +808,8 @@ export class PlotSimpleSk extends ElementSk {
       }
     });
 
-    this.addEventListener('mouseup', () => {
+    this.addEventListener('mouseup', (e: MouseEvent) => {
+      e.preventDefault();
       if (this.inZoomDrag !== 'no-zoom') {
         this.dispatchZoomEvent();
       }
@@ -817,7 +819,8 @@ export class PlotSimpleSk extends ElementSk {
       this.inZoomDrag = 'no-zoom';
     });
 
-    this.addEventListener('mouseleave', () => {
+    this.addEventListener('mouseleave', (e: MouseEvent) => {
+      e.preventDefault();
       if (this.inZoomDrag !== 'no-zoom') {
         this.dispatchZoomEvent();
       }
