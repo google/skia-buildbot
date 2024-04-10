@@ -547,13 +547,15 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		calcContext := calc.NewContext(nil, nil)
 		templateContext := struct {
-			Nonce   string
-			Funcs   map[string]calc.Func
-			Context template.JS
+			Nonce                        string
+			Funcs                        map[string]calc.Func
+			GoogleAnalyticsMeasurementID string
+			Context                      template.JS
 		}{
-			Nonce:   secure.CSPNonce(r.Context()),
-			Funcs:   calcContext.Funcs,
-			Context: context,
+			Nonce:                        secure.CSPNonce(r.Context()),
+			Funcs:                        calcContext.Funcs,
+			GoogleAnalyticsMeasurementID: config.Config.GoogleAnalyticsMeasurementID,
+			Context:                      context,
 		}
 		if err := f.templates.ExecuteTemplate(w, "help.html", templateContext); err != nil {
 			sklog.Error("Failed to expand template:", err)
