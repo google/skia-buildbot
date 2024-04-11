@@ -74,7 +74,7 @@ func main() {
 	w.RegisterWorkflowWithOptions(internal.PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
 
 	w.RegisterActivity(internal.PostBugCommentActivity)
-	w.RegisterWorkflow(internal.PostBugCommentWorkflow)
+	w.RegisterWorkflowWithOptions(internal.PostBugCommentWorkflow, workflow.RegisterOptions{Name: workflows.BugUpdate})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {

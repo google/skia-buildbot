@@ -10,6 +10,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -30,6 +31,7 @@ var (
 	triggerBisectFlag       = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
 	triggerSingleCommitFlag = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
 	triggerPairwiseFlag     = flag.Bool("pairwise", false, "toggle true to trigger pairwise commit runner workflow")
+	triggerBugUpdateFlag    = flag.Bool("update-bug", false, "toggle true to trigger post bug comment workflow")
 )
 
 func defaultWorkflowOptions() client.StartWorkflowOptions {
@@ -45,7 +47,7 @@ func defaultWorkflowOptions() client.StartWorkflowOptions {
 	}
 }
 
-func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
+func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 	ctx := context.Background()
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/17ab3cfa9e0000
 	p := &workflows.BisectParams{
@@ -66,19 +68,17 @@ func triggerBisectWorkflow(c client.Client) *pb.BisectExecution {
 	var be *pb.BisectExecution
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), internal.BisectWorkflow, p)
 	if err != nil {
-		sklog.Fatalf("Unable to execute workflow: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
 
 	if err := we.Get(ctx, &be); err != nil {
-		sklog.Fatalf("Unable to get result: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to get result")
 	}
-	return be
+	return be, nil
 }
 
-func triggerPairwiseRunner(c client.Client) *internal.PairwiseRun {
+func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 	ctx := context.Background()
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/179a34b2be0000
 	p := &internal.PairwiseCommitsRunnerParams{
@@ -122,19 +122,17 @@ func triggerPairwiseRunner(c client.Client) *internal.PairwiseRun {
 	var pr *internal.PairwiseRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.PairwiseCommitsRunner, p)
 	if err != nil {
-		sklog.Fatalf("Unable to execute workflow: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
 
 	if err := we.Get(ctx, &pr); err != nil {
-		sklog.Fatalf("Unable to get result: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to get result")
 	}
-	return pr
+	return pr, nil
 }
 
-func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
+func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	ctx := context.Background()
 	p := &internal.SingleCommitRunnerParams{
 		PinpointJobID:     "123",
@@ -149,16 +147,14 @@ func triggerSingleCommitRunner(c client.Client) *internal.CommitRun {
 	var cr *internal.CommitRun
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.SingleCommitRunner, p)
 	if err != nil {
-		sklog.Fatalf("Unable to execute workflow: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
 
 	if err := we.Get(ctx, &cr); err != nil {
-		sklog.Fatalf("Unable to get result: %v", err)
-		return nil
+		return nil, skerr.Wrapf(err, "Unable to get result")
 	}
-	return cr
+	return cr, nil
 }
 
 func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
@@ -185,6 +181,22 @@ func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 	return result
 }
 
+func triggerBugUpdateWorkflow(c client.Client) (bool, error) {
+	ctx := context.Background()
+
+	var success bool
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.BugUpdate, 333705433, "hello world")
+	if err != nil {
+		return false, skerr.Wrapf(err, "Unable to execute the workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &success); err != nil {
+		return false, skerr.Wrapf(err, "Unable to write to buganizer")
+	}
+	return success, nil
+}
+
 // Sample client to trigger a BuildChrome workflow.
 func main() {
 	flag.Parse()
@@ -208,16 +220,22 @@ func main() {
 	}
 	defer c.Close()
 
+	var result interface{}
 	if *triggerBisectFlag {
-		result := triggerBisectWorkflow(c)
-		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+		result, err = triggerBisectWorkflow(c)
 	}
 	if *triggerSingleCommitFlag {
-		result := triggerSingleCommitRunner(c)
-		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+		result, err = triggerSingleCommitRunner(c)
 	}
 	if *triggerPairwiseFlag {
-		result := triggerPairwiseRunner(c)
-		sklog.Infof("Workflow result: %v", spew.Sdump(result))
+		result, err = triggerPairwiseRunner(c)
 	}
+	if *triggerBugUpdateFlag {
+		result, err = triggerBugUpdateWorkflow(c)
+	}
+	if err != nil {
+		sklog.Errorf("Workflow failed:", err)
+		return
+	}
+	sklog.Infof("Workflow result: %v", spew.Sdump(result))
 }
