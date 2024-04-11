@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "bisect.go",
         "bisect_run.go",
+        "bug_update.go",
         "build_chrome.go",
         "commits_runner.go",
         "compare.go",

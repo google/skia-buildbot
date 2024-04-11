@@ -25,6 +25,7 @@ const (
 	RunBenchmark          = "perf.run_benchmark"
 	SingleCommitRunner    = "perf.single_commit_runner"
 	PairwiseCommitsRunner = "perf.pairwise_commits_runner"
+	BugUpdate             = "perf.bug_update"
 )
 
 // Workflow params definitions.

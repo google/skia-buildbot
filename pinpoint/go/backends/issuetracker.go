@@ -128,3 +128,21 @@ func (t *issueTrackerTransport) ReportCulprit(issueID int64, culprits []*pinpoin
 
 	return nil
 }
+
+// PostComment posts a comment to the b/issueID.
+//
+// The service account must have write permissions (i.e. reporter or collaborator roles)
+// to successfully write.
+func (t *issueTrackerTransport) PostComment(issueID int64, comment string) error {
+	_, err := t.client.Issues.Modify(issueID, &issuetracker.ModifyIssueRequest{
+		IssueComment: &issuetracker.IssueComment{
+			Comment:        comment,
+			FormattingMode: "MARKDOWN",
+		},
+	}).Do()
+	if err != nil {
+		return skerr.Wrapf(err, "failed to comment for %d", issueID)
+	}
+
+	return nil
+}

@@ -1,14 +1,12 @@
 package internal
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -72,21 +70,6 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 		Lower:  lower,
 		Higher: t.Higher,
 	}
-}
-
-// ReportStatusActivity wraps the call to IssueTracker to report culprits.
-func ReportStatusActivity(ctx context.Context, issueID int, culprits []*pinpoint_proto.CombinedCommit) error {
-	transport, err := backends.NewIssueTrackerTransport(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to create issue tracker client")
-	}
-
-	err = transport.ReportCulprit(int64(issueID), culprits)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to report culprits for %d", issueID)
-	}
-
-	return nil
 }
 
 func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
@@ -331,13 +314,5 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 		selector.Select(ctx)
 	}
 
-	if p.Request.GetBugId() != "" && len(be.Culprits) > 0 {
-		// The pinpoint-worker SA needs to be added as a collaborator, or needs "issue-editor" permissions on the component
-		// for it to write comments / provide updates.
-		// Log the failure but prevent the bisection from failing for now to track any issues.
-		if err := workflow.ExecuteActivity(ctx, ReportStatusActivity, p.Request.GetBugId(), be.Culprits).Get(ctx, nil); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to update bug %s with culprits %v", p.Request.GetBugId(), be.Culprits))
-		}
-	}
 	return be, nil
 }
