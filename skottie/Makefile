@@ -59,3 +59,7 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 
 ./modules/json/index.ts: $(tsDependentFiles) Makefile
 	go generate ./go/ts
+
+.PHONY: watch-modules
+watch-modules:
+	while true; do inotifywait --event create,delete,move,modify modules/* && $(BAZEL) build --config=mayberemote //skottie/pages:index; done;

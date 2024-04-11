@@ -24,6 +24,15 @@ make run-local-instance
 By default, you can connect to the web server in your browesr by going to
 [localhost:8000](localhost:8000).
 
+If you want see any module changes you make without restarting the whole server,
+open another terminal and run:
+
+```
+make watch-modules
+```
+
+When the changes finish building you can now reload the page to see them.
+
 ## Which version of CanvasKit is being used?
 
 When running tests (`bazel test ...`) or a local instance (`make run-local-instance`), the rules
