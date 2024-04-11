@@ -158,6 +158,14 @@ export interface Regression {
 	frame: FrameResponse | null;
 	low_status: TriageStatus;
 	high_status: TriageStatus;
+	id: string;
+	commit_number: CommitNumber;
+	prev_commit_number: CommitNumber;
+	alert_id: number;
+	creation_time: string;
+	median_before: number;
+	median_after: number;
+	is_improvement: boolean;
 }
 
 export interface RegressionAtCommit {

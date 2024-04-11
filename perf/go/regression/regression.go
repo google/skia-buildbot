@@ -4,8 +4,10 @@ package regression
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
@@ -13,6 +15,9 @@ var ErrNoClusterFound = errors.New("No Cluster.")
 
 // Status is used in TriageStatus.
 type Status string
+
+// ClusterType is used to denote type of cluster in regression2 schema.
+type ClusterType string
 
 // Status constants.
 const (
@@ -27,6 +32,11 @@ const (
 
 	// Untriaged means the regression has not been triaged.
 	Untriaged Status = "untriaged"
+
+	// Available cluster types in regression2
+	HighClusterType ClusterType = "high"
+	LowClusterType  ClusterType = "low"
+	NoneClusterType ClusterType = "none"
 )
 
 // AllStatus is a slice of all values of type Status.
@@ -58,6 +68,16 @@ type Regression struct {
 	Frame      *frame.FrameResponse        `json:"frame"` // Describes the Low and High ClusterSummary's.
 	LowStatus  TriageStatus                `json:"low_status"`
 	HighStatus TriageStatus                `json:"high_status"`
+
+	// The fields below are only to be used with the regression2 schema.
+	Id               string             `json:"id"`
+	CommitNumber     types.CommitNumber `json:"commit_number"`
+	PrevCommitNumber types.CommitNumber `json:"prev_commit_number"`
+	AlertId          int64              `json:"alert_id"`
+	CreationTime     time.Time          `json:"creation_time"`
+	MedianBefore     float32            `json:"median_before"`
+	MedianAfter      float32            `json:"median_after"`
+	IsImprovement    bool               `json:"is_improvement"`
 }
 
 // NewRegression returns a new *Regression.
@@ -112,4 +132,16 @@ func (r *Regression) Triaged() bool {
 	ret = ret && (r.HighStatus.Status != Untriaged)
 	ret = ret && (r.LowStatus.Status != Untriaged)
 	return ret
+}
+
+// GetClusterTypeAndSummaryAndTriageStatus returns the cluster type, cluster summary
+// and triage status objects for the regression.
+func (r *Regression) GetClusterTypeAndSummaryAndTriageStatus() (ClusterType, *clustering2.ClusterSummary, TriageStatus) {
+	if r.High != nil {
+		return HighClusterType, r.High, r.HighStatus
+	} else if r.Low != nil {
+		return LowClusterType, r.Low, r.LowStatus
+	} else {
+		return NoneClusterType, nil, TriageStatus{}
+	}
 }
