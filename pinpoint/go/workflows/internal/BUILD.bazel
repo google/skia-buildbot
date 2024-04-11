@@ -46,6 +46,7 @@ go_test(
     srcs = [
         "bisect_run_test.go",
         "bisect_test.go",
+        "bug_update_test.go",
         "build_chrome_test.go",
         "commits_runner_test.go",
         "compare_test.go",
