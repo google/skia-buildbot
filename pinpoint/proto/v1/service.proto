@@ -97,6 +97,62 @@ message BisectExecution {
 	repeated CombinedCommit culprits = 2;
 }
 
+// SchedulePairwiseRequest contains the input to schedule a pairwise job used
+// in regression and culprit verification. This request uses a subset of the params
+// used in Pinpoint try jobs.
+//
+// The params used are defined here:
+// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/
+// dashboard/services/workflow_service.py;drc=2b42d43ff4989182d28de40ad4ed0dc82356c0f7;l=35
+// The params are defined based off of the keys used in catapult.
+// TODO(sunxiaodi@): Deprecate this once sandwich verification is fully enabled.
+message SchedulePairwiseRequest {
+	string start_git_hash = 1;
+	string end_git_hash = 2;
+
+	// The builder/bot configuration name, this usually specifies the builder that can trigger
+	// the build.
+	string configuration = 3 [json_name = "bot_name"];
+
+	// The Chrome perf benchmark test target.
+	string benchmark = 4;
+
+	// https://chromium.googlesource.com/catapult.git/+/e8367e6/telemetry
+	// The story is usually a test case that runs a set of actions in a certain scenario, and
+	// collects performance histogram data to analyze.
+	string story = 5;
+	string chart = 6 [json_name = "measurement"];
+	string statistic = 7; // not included in the catapult request, which might be a mistake
+	string target = 8; // probably unnecessary, we can infer this
+
+	// The Monorail project ID.
+	string project = 9;
+
+	// The buganizer issue id number to post updates to.
+	string bug_id = 10;
+
+	// The minimum number of test iterations run. Default is 30
+	string initial_attempt_count = 11;
+
+	// The improvement direction of the measurement.
+	// Is either Up, Down, or Unknown.
+	string improvement_direction = 12 [json_name = "improvement_dir"];
+}
+
+message PairwiseExecution {
+	// significant regression / culprit if true
+	bool significant = 1;
+	string job_id = 2;
+	message WilcoxonResult {
+		double p_value = 1;
+		double confidence_interval_lower = 2;
+		double confidence_interval_higher = 3;
+		double control_median = 4;
+		double treatment_median = 5;
+	}
+	WilcoxonResult statistic = 3;
+}
+
 // See LegacyJobResponse below
 message LegacyJobRequest {
 	string job_id = 1;
@@ -189,7 +245,10 @@ message LegacyJobResponse {
 service Pinpoint {
   rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
     option (google.api.http) = {
-      post: "/pinpoint/v1/schedule"
+      post: "/pinpoint/v1/bisection"
+			additional_bindings {
+				post: "/pinpoint/v1/schedule"
+			}
     };
   }
 
@@ -205,4 +264,9 @@ service Pinpoint {
     };
   }
 
+	rpc SchedulePairwise(SchedulePairwiseRequest) returns (PairwiseExecution) {
+		option (google.api.http) = {
+			post: "/pinpoint/v1/pairwise"
+		};
+	}
 }
