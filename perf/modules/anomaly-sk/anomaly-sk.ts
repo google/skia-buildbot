@@ -6,8 +6,16 @@
 import { html, TemplateResult } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { Anomaly, AnomalyMap, ColumnHeader, TraceSet } from '../json';
+import {
+  Anomaly,
+  AnomalyMap,
+  ColumnHeader,
+  CommitNumber,
+  TraceSet,
+} from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import { lookupCids } from '../cid/cid';
+import '../window/window';
 
 /**
  * Use DataFrame and AnomalyMap to construct an AnomalyDataMap object. This
@@ -89,17 +97,34 @@ export const getAnomalyDataMap = (
   return anomalyDataMap;
 };
 
+const commitNumberToHashes = async (
+  cids: CommitNumber[]
+): Promise<string[]> => {
+  const json = await lookupCids(cids);
+  return [json.commitSlice![0].hash, json.commitSlice![1].hash];
+};
+
 export class AnomalySk extends ElementSk {
   private _anomaly: Anomaly | null = null;
 
   private _bugHostUrl: string = 'https://bugs.chromium.org';
+
+  private _revision: TemplateResult = html``;
 
   constructor() {
     super(AnomalySk.template);
   }
 
   private static formatNumber = (num: number): string =>
-    num.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    num.toLocaleString('en-US', {
+      maximumFractionDigits: 4,
+    });
+
+  static formatPercentage = (num: number): string =>
+    num.toLocaleString('en-US', {
+      maximumFractionDigits: 4,
+      signDisplay: 'exceptZero',
+    });
 
   private static getPercentChange = (
     median_before: number,
@@ -108,6 +133,32 @@ export class AnomalySk extends ElementSk {
     const difference = median_after - median_before;
     // Division by zero is represented by infinity symbol.
     return (100 * difference) / median_before;
+  };
+
+  formatRevisionRange = async (): Promise<void> => {
+    if (this.anomaly == null) return;
+
+    const start_rev = this.anomaly.start_revision;
+    const end_rev = this.anomaly.end_revision;
+
+    const cids: CommitNumber[] = [
+      CommitNumber(start_rev),
+      CommitNumber(end_rev),
+    ];
+
+    const hashes = await commitNumberToHashes(cids);
+
+    let url = window.perf.commit_range_url;
+    if ([null, undefined, ''].includes(url)) {
+      this._revision = html`${start_rev} - ${end_rev}`;
+      return;
+    }
+
+    url = url.replace('{begin}', hashes[0]);
+    url = url.replace('{end}', hashes[1]);
+
+    this._revision = html`<a href="${url}" target=_blank>${start_rev} - ${end_rev}</td>`;
+    this._render();
   };
 
   private formatBug(bugId: number): TemplateResult {
@@ -142,7 +193,7 @@ export class AnomalySk extends ElementSk {
             <tr>
               <th>Percent Change</th>
               <td>
-                ${AnomalySk.formatNumber(
+                ${AnomalySk.formatPercentage(
                   AnomalySk.getPercentChange(
                     anomaly.median_before_anomaly,
                     anomaly.median_after_anomaly
@@ -152,7 +203,7 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Revision Range</th>
-              <td>${anomaly.start_revision} - ${anomaly.end_revision}</td>
+              <td>${ele.revision}</td>
             </tr>
             <tr>
               <th>Improvement</th>
@@ -180,6 +231,7 @@ export class AnomalySk extends ElementSk {
 
   set anomaly(anomaly: Anomaly | null) {
     this._anomaly = anomaly;
+    this.formatRevisionRange();
     this._render();
   }
 
@@ -195,6 +247,10 @@ export class AnomalySk extends ElementSk {
       }
       this._bugHostUrl = url;
     }
+  }
+
+  get revision(): TemplateResult {
+    return this._revision;
   }
 }
 
