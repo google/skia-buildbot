@@ -1,0 +1,18 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "skottie-compatibility-sk",
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/ajv",
+        "//:node_modules/lit-html",
+        "//skottie/modules:types_ts_lib",
+        "//skottie/modules/skottie-compatibility-sk/schemas:lottie.schema_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "skottie-compatibility-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

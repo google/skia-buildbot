@@ -1,0 +1,7 @@
+load("//infra-sk:index.bzl", "ts_library")
+
+ts_library(
+    name = "lottie.schema_ts_lib",
+    srcs = ["lottie.schema.ts"],
+    visibility = ["//visibility:public"],
+)

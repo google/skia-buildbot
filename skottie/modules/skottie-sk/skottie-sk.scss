@@ -234,6 +234,7 @@ body.body-sk.font-sk {
 
       dialog.export,
       dialog.perf-chart,
+      dialog.compatibility-report,
       dialog.editor {
         position: absolute;
         top: 50%;
@@ -250,6 +251,10 @@ body.body-sk.font-sk {
           align-items: center;
           margin: 0 8px;
         }
+      }
+
+      dialog.compatibility-report {
+        width: fit-content;
       }
     }
 

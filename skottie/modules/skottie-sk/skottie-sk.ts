@@ -28,6 +28,7 @@ import '../skottie-text-editor-sk';
 import '../skottie-library-sk';
 import { SoundMap, AudioPlayer } from '../audio';
 import '../skottie-performance-sk';
+import '../skottie-compatibility-sk';
 import { renderByDomain } from '../helpers/templates';
 import { isDomain } from '../helpers/domains';
 import '../skottie-audio-sk';
@@ -215,6 +216,7 @@ export class SkottieSk extends ElementSk {
               .content=${'Performance chart'}
               .classes=${['header__button']}>
             </skottie-button-sk>
+            ${ele.compatibilityReportOpen()}
             <skottie-button-sk
               id="view-json-layers"
               @select=${ele.toggleEditor}
@@ -343,6 +345,7 @@ export class SkottieSk extends ElementSk {
 
     <div @click=${this.onChartClick}>${this.performanceChartTemplate()}</div>
     ${this.jsonEditor()} ${this.gifExporter()}
+    ${this.compatibilityReportTemplate()}
 
     <collapse-sk id="volume" closed>
       <p>Volume:</p>
@@ -390,6 +393,34 @@ export class SkottieSk extends ElementSk {
           @slot-manager-change=${this.onSlotManagerUpdated}>
         </skottie-slot-manager-sk>
       </details>
+    `;
+  }
+
+  private compatibilityReportOpen() {
+    if (!this.enableCompatibilityReport) {
+      return null;
+    }
+    return html` <skottie-button-sk
+      id="view-compatibility-report"
+      @select=${this.toggleCompatibilityReport}
+      type="outline"
+      .content=${'Compatibility Report'}
+      .classes=${['header__button']}>
+    </skottie-button-sk>`;
+  }
+
+  private compatibilityReportTemplate() {
+    return html`
+      <dialog
+        class="compatibility-report"
+        ?open=${this.showCompatibilityReport}>
+        <div class="top-ribbon">
+          <span>Compatibility Report</span>
+          <button @click=${this.toggleCompatibilityReport}>Close</button>
+        </div>
+        <skottie-compatibility-sk .animation=${this.state.lottie}>
+        </skottie-compatibility-sk>
+      </dialog>
     `;
   }
 
@@ -703,6 +734,10 @@ export class SkottieSk extends ElementSk {
 
   private showAudio: boolean = false;
 
+  private enableCompatibilityReport: boolean = false;
+
+  private showCompatibilityReport: boolean = false;
+
   private showGifExporter: boolean = false;
 
   private showJSONEditor: boolean = false;
@@ -760,6 +795,8 @@ export class SkottieSk extends ElementSk {
         t: this.showTextEditor,
         s: this.showShaderEditor,
         p: this.showPerformanceChart,
+        ec: this.enableCompatibilityReport,
+        c: this.showCompatibilityReport,
         i: this.showLibrary,
         a: this.showAudio,
         w: this.width,
@@ -777,6 +814,8 @@ export class SkottieSk extends ElementSk {
         this.showTextEditor = !!newState.t;
         this.showShaderEditor = !!newState.s;
         this.showPerformanceChart = !!newState.p;
+        this.enableCompatibilityReport = !!newState.ec;
+        this.showCompatibilityReport = !!newState.c;
         this.showLibrary = !!newState.i;
         this.showAudio = !!newState.a;
         this.width = +newState.w;
@@ -1626,6 +1665,14 @@ export class SkottieSk extends ElementSk {
     // avoid double toggles
     e.preventDefault();
     this.showPerformanceChart = !this.showPerformanceChart;
+    this.stateChanged();
+    this.render();
+  }
+
+  private toggleCompatibilityReport(e: Event): void {
+    // avoid double toggles
+    e.preventDefault();
+    this.showCompatibilityReport = !this.showCompatibilityReport;
     this.stateChanged();
     this.render();
   }

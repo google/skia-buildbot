@@ -49,6 +49,7 @@ sk_element(
     ],
     sk_element_deps = [
         "//skottie/modules/skottie-audio-sk",
+        "//skottie/modules/skottie-compatibility-sk",
         "//skottie/modules/skottie-config-sk",
         "//skottie/modules/skottie-gif-exporter-sk",
         "//skottie/modules/skottie-library-sk",

@@ -1,0 +1,1 @@
+import './skottie-compatibility-sk';
