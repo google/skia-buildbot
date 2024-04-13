@@ -267,6 +267,25 @@ describe('query-sk', () => {
     assert.deepEqual('', querySk.current_query);
     assert.deepEqual({}, await querySkPO.getCurrentQuery());
   });
+
+  it('clears query-value-sk search input when param selection changes', async () => {
+    const query: ParamSet = {
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
+    };
+
+    querySk.current_query = fromParamSet(query);
+
+    await querySkPO.queryValuesSkPO.setFilterInputValue('test');
+    const initialInputVal =
+      await querySkPO.queryValuesSkPO.getFilterInputValue();
+    assert.equal(initialInputVal, 'test');
+
+    await querySkPO.clickKey('compiler');
+    const newInputVal = await querySkPO.queryValuesSkPO.getFilterInputValue();
+    assert.equal(newInputVal, '');
+  });
 });
 
 describe('removePrefix', () => {

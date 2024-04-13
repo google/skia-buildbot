@@ -89,6 +89,10 @@ export class QueryValuesSk extends ElementSk {
     this._render();
   }
 
+  public clearFilter(): void {
+    this._clearFilter();
+  }
+
   private _options: string[] = [];
 
   private _filteredOptions: string[] = [];

@@ -224,6 +224,7 @@ export class QuerySk extends ElementSk {
     const key = this._keys[this._keySelect!.selection as number];
     this._values!.options = this._paramset[key] || [];
     this._values!.selected = this._query[key] || [];
+    this._values!.clearFilter();
     this._render();
   }
 
