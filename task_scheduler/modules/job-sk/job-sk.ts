@@ -192,8 +192,15 @@ export class JobSk extends ElementSk {
         ${ele.job!.buildbucketBuildId
           ? html`
               <tr>
-                <td>Buildbucket Build ID</td>
-                <td>${ele.job!.buildbucketBuildId}</td>
+                <td>Buildbucket Build</td>
+                <td>
+                  <a
+                    href="https://ci.chromium.org/b/${ele.job!
+                      .buildbucketBuildId}"
+                    target="_blank">
+                    ${ele.job!.buildbucketBuildId}
+                  </a>
+                </td>
                 <td></td>
               </tr>
             `
