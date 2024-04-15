@@ -1,0 +1,97 @@
+{
+  "Initial": null,
+  "Version": "0.2",
+  "Converter": {
+    "ClearHeaders": [
+      "^X-Goog-.*Encryption-Key$"
+    ],
+    "RemoveRequestHeaders": [
+      "^Authorization$",
+      "^Proxy-Authorization$",
+      "^Connection$",
+      "^Content-Type$",
+      "^Date$",
+      "^Host$",
+      "^Transfer-Encoding$",
+      "^Via$",
+      "^X-Forwarded-.*$",
+      "^X-Cloud-Trace-Context$",
+      "^X-Goog-Api-Client$",
+      "^X-Goog-Gcs-Idempotency-Token$",
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "RemoveResponseHeaders": [
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "ClearParams": null,
+    "RemoveParams": null
+  },
+  "Entries": [
+    {
+      "ID": "71202ddc54c201e2",
+      "Request": {
+        "Method": "POST",
+        "URL": "https://chrome-swarming.appspot.com/prpc/swarming.v2.Tasks/GetResult",
+        "Header": {
+          "Accept": [
+            "application/prpc; encoding=binary"
+          ],
+          "Accept-Encoding": [
+            "gzip"
+          ],
+          "Content-Length": [
+            "22"
+          ],
+          "User-Agent": [
+            "pRPC Client 1.4"
+          ],
+          "X-Prpc-Grpc-Timeout": [
+            "90000000u"
+          ]
+        },
+        "MediaType": "application/prpc",
+        "BodyParts": [
+          "ChRub3QtZXhpc3RpbmctdGFzay1pZA=="
+        ]
+      },
+      "Response": {
+        "StatusCode": 400,
+        "Proto": "HTTP/1.1",
+        "ProtoMajor": 1,
+        "ProtoMinor": 1,
+        "Header": {
+          "Access-Control-Expose-Headers": [
+            "X-Prpc-Grpc-Code"
+          ],
+          "Cache-Control": [
+            "no-cache"
+          ],
+          "Content-Length": [
+            "72"
+          ],
+          "Content-Type": [
+            "text/plain; charset=utf-8"
+          ],
+          "Date": [
+            "Mon, 15 Apr 2024 23:02:45 GMT"
+          ],
+          "Server": [
+            "Google Frontend"
+          ],
+          "X-Cloud-Trace-Context": [
+            "c3c4e45ce563678cc1827e2650566dc1"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Prpc-Grpc-Code": [
+            "3"
+          ]
+        },
+        "Body": "aW52YWxpZCB0YXNrX2lkIG5vdC1leGlzdGluZy10YXNrLWlkOiBJbnZhbGlkIGtleSB1J25vdC1leGlzdGluZy10YXNrLWkn"
+      }
+    }
+  ]
+}

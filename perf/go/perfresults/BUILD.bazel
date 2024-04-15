@@ -3,16 +3,35 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "perfresults",
-    srcs = ["perf_results_parser.go"],
+    srcs = [
+        "perf_results_parser.go",
+        "swarming.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/perfresults",
     visibility = ["//visibility:public"],
-    deps = ["//go/skerr"],
+    deps = [
+        "//go/httputils",
+        "//go/skerr",
+        "@org_chromium_go_luci//common/retry",
+        "@org_chromium_go_luci//grpc/prpc",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_x_oauth2//google",
+    ],
 )
 
 go_test(
     name = "perfresults_test",
-    srcs = ["perf_results_test.go"],
+    srcs = [
+        "perf_results_test.go",
+        "swarming_test.go",
+    ],
     data = glob(["testdata/**"]),
     embed = [":perfresults"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    env_inherit = ["HOME"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_google_cloud_go//httpreplay",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+    ],
 )

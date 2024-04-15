@@ -942,6 +942,18 @@ def go_repositories():
         sum = "h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASuANWTrk=",
         version = "v1.0.0",
     )
+    go_repository(
+        name = "com_github_google_go_replayers_grpcreplay",
+        importpath = "github.com/google/go-replayers/grpcreplay",
+        sum = "h1:S5+I3zYyZ+GQz68OfbURDdt/+cSMqCK1wrvNx7WBzTE=",
+        version = "v1.1.0",
+    )
+    go_repository(
+        name = "com_github_google_go_replayers_httpreplay",
+        importpath = "github.com/google/go-replayers/httpreplay",
+        sum = "h1:VM1wEyyjaoU53BwrOnaf9VhAyQQEEioJvFYxYcLRKzk=",
+        version = "v1.2.0",
+    )
 
     go_repository(
         name = "com_github_google_gofuzz",

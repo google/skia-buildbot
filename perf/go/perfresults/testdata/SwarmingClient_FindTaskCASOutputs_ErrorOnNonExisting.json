@@ -1,0 +1,225 @@
+{
+  "Initial": null,
+  "Version": "0.2",
+  "Converter": {
+    "ClearHeaders": [
+      "^X-Goog-.*Encryption-Key$"
+    ],
+    "RemoveRequestHeaders": [
+      "^Authorization$",
+      "^Proxy-Authorization$",
+      "^Connection$",
+      "^Content-Type$",
+      "^Date$",
+      "^Host$",
+      "^Transfer-Encoding$",
+      "^Via$",
+      "^X-Forwarded-.*$",
+      "^X-Cloud-Trace-Context$",
+      "^X-Goog-Api-Client$",
+      "^X-Goog-Gcs-Idempotency-Token$",
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "RemoveResponseHeaders": [
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "ClearParams": null,
+    "RemoveParams": null
+  },
+  "Entries": [
+    {
+      "ID": "012d175ee4b7890c",
+      "Request": {
+        "Method": "POST",
+        "URL": "https://chrome-swarming.appspot.com/prpc/swarming.v2.Tasks/GetResult",
+        "Header": {
+          "Accept": [
+            "application/prpc; encoding=binary"
+          ],
+          "Accept-Encoding": [
+            "gzip"
+          ],
+          "Content-Length": [
+            "19"
+          ],
+          "User-Agent": [
+            "pRPC Client 1.4"
+          ],
+          "X-Prpc-Grpc-Timeout": [
+            "90000000u"
+          ]
+        },
+        "MediaType": "application/prpc",
+        "BodyParts": [
+          "ChFub24tZXhpc3RpbmctdGFzaw=="
+        ]
+      },
+      "Response": {
+        "StatusCode": 400,
+        "Proto": "HTTP/1.1",
+        "ProtoMajor": 1,
+        "ProtoMinor": 1,
+        "Header": {
+          "Access-Control-Expose-Headers": [
+            "X-Prpc-Grpc-Code"
+          ],
+          "Cache-Control": [
+            "no-cache"
+          ],
+          "Content-Length": [
+            "66"
+          ],
+          "Content-Type": [
+            "text/plain; charset=utf-8"
+          ],
+          "Date": [
+            "Mon, 15 Apr 2024 23:02:47 GMT"
+          ],
+          "Server": [
+            "Google Frontend"
+          ],
+          "X-Cloud-Trace-Context": [
+            "45ec228f677b2ec51c0037fc31fb084d"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Prpc-Grpc-Code": [
+            "3"
+          ]
+        },
+        "Body": "aW52YWxpZCB0YXNrX2lkIG5vbi1leGlzdGluZy10YXNrOiBJbnZhbGlkIGtleSB1J25vbi1leGlzdGluZy10YXMn"
+      }
+    },
+    {
+      "ID": "0832b6e217f85778",
+      "Request": {
+        "Method": "POST",
+        "URL": "https://chrome-swarming.appspot.com/prpc/swarming.v2.Tasks/GetResult",
+        "Header": {
+          "Accept": [
+            "application/prpc; encoding=binary"
+          ],
+          "Accept-Encoding": [
+            "gzip"
+          ],
+          "Content-Length": [
+            "18"
+          ],
+          "User-Agent": [
+            "pRPC Client 1.4"
+          ],
+          "X-Prpc-Grpc-Timeout": [
+            "90000000u"
+          ]
+        },
+        "MediaType": "application/prpc",
+        "BodyParts": [
+          "ChA2OGY2YzU3OGI4YzE1MTEw"
+        ]
+      },
+      "Response": {
+        "StatusCode": 200,
+        "Proto": "HTTP/1.1",
+        "ProtoMajor": 1,
+        "ProtoMinor": 1,
+        "Header": {
+          "Access-Control-Expose-Headers": [
+            "X-Prpc-Grpc-Code"
+          ],
+          "Cache-Control": [
+            "no-cache"
+          ],
+          "Content-Length": [
+            "3349"
+          ],
+          "Content-Type": [
+            "application/prpc; encoding=binary"
+          ],
+          "Date": [
+            "Mon, 15 Apr 2024 23:02:47 GMT"
+          ],
+          "Server": [
+            "Google Frontend"
+          ],
+          "X-Cloud-Trace-Context": [
+            "e685f507d60fa706b21f6bc7d12ea2f2"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Prpc-Grpc-Code": [
+            "0"
+          ]
+        },
+        "Body": "ChA2OGY2YzU3OGI4YzE1MTEwEhQKD2FuZHJvaWRfZGV2aWNlcxIBMRIYCgpib3RfY29uZmlnEgphbmRyb2lkLnB5EiUKBmNhY2hlcxIbdGFza190ZW1wbGF0ZV92cHl0aG9uX2NhY2hlEhwKDWNpcGRfcGxhdGZvcm0SC2xpbnV4LWFtZDY0EhcKCmRldmljZV9hYmkSCWFybTY0LXY4YRIjChdkZXZpY2VfZ21zX2NvcmVfdmVyc2lvbhIIMjIuMTguMjESGQoOZGV2aWNlX21heF91aWQSBzw9MTgwMDASHwoJZGV2aWNlX29zEgFUEg9UUDFBLjIyMDYyNC4wMjESGgoQZGV2aWNlX29zX2ZsYXZvchIGZ29vZ2xlEhsKDmRldmljZV9vc190eXBlEgl1c2VyZGVidWcSJgoYZGV2aWNlX3BsYXlzdG9yZV92ZXJzaW9uEgozMC40LjE3LTIxEhUKC2RldmljZV90eXBlEgZvcmlvbGUSFQoQZGlzcGxheV9hdHRhY2hlZBIBMBIICgNnY2USATASGgoCaWQSFGxpbi0yNy1lNTA0LS1kZXZpY2UzEhkKDWluc2lkZV9kb2NrZXISATESBXN0b2NrEhsKBmtlcm5lbBIRNS40LjAtMTM1LWdlbmVyaWMSFQoGbG9jYWxlEgtlbl9VUy5VVEYtOBINCgJvcxIHQW5kcm9pZBIdCgRwb29sEhVjaHJvbWUudGVzdHMucGVyZi1wZ28SGQoGcHl0aG9uEgEzEgQzLjEwEgYzLjEwLjYSHgoOc2VydmVyX3ZlcnNpb24SDDc2MTEtMGU2MTRiOBIQCgl0ZW1wX2JhbmQSAzwzMBIxCgR6b25lEgJ1cxIGdXMtc2ZvEgt1cy1zZm8tZ29sbxIQdXMtc2ZvLWdvbG8tZTUwNBoUbGluLTI3LWU1MDQtLWRldmljZTMiDAj5xPCwBhDYqfnhASpAYTVjYjA3ZTBkNDBmYTE5MWMwMTU1YjU5ZTA1OWQ2NmUxMjc4YjZiNTdmYmUyMjM0OGJmNGNjZTZlYThhZTVmNjIRY2hyb21lLWluZnJhLWxvZ3NCDAjk1/CwBhDoq+/RAVIMCN/L8LAGEMiJr70BZRXor0SCAQwI5NfwsAYQ6Kvv0QGKAXwKM3Byb2plY3RzL2Nocm9tZS1zd2FybWluZy9pbnN0YW5jZXMvZGVmYXVsdF9pbnN0YW5jZRJFCkA0YWM1ZjFkYmVlNzE3ZGEyMDFlN2E2MzRkNzg1NzE3OTJmYjQ4ZDc4MWFkYTc1NGQ4YTFlMzlhZTU4YTU0MzRjEMQDkgEMNzYxMS0wZTYxNGI4mgEMCODL8LAGEJDf/twBoAFwsgEEYgVzProBkwFwZXJmb3JtYW5jZV90ZXN0X3N1aXRlX2FuZHJvaWRfY2xhbmtfdHJpY2hyb21lX2Nocm9tZV9nb29nbGVfNjRfMzJfYnVuZGxlIG9uIEFuZHJvaWQgZGV2aWNlIFBpeGVsIDYvQW5kcm9pZC8wY2JhYjAxMjJjL2FuZHJvaWQtcGl4ZWw2LXBlcmYtcGdvLzIwMTXCAVNhdXRoZW50aWNhdGVkOnVzZXI6Y2hyb21lLWNpLWJ1aWxkZXJAY2hvcHMtc2VydmljZS1hY2NvdW50cy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbcIBNWJvdG5hbWU6bHVjaS1jaHJvbWUtY2ktYW5kcm9pZC1waXhlbDYtcGdvLXBlcmYtMC1vM3QywgEJYnVja2V0OmNpwgEbYnVpbGRfaXNfZXhwZXJpbWVudGFsOmZhbHNlwgEbYnVpbGRlcl9ncm91cDpjaHJvbWl1bS5wZXJmwgEjYnVpbGRlcm5hbWU6YW5kcm9pZC1waXhlbDYtcGVyZi1wZ2/CARBidWlsZG51bWJlcjoyMDE1wgFJZGF0YTowY2JhYjAxMjJjZGQ4YTFhMDMwOWE5YWVhNGE5OWFjOWFhYTliYzZhNTU0Zjk3ZWY5ZTZkZmU4ZWJlZjA1NGIzLzgxMMIBGWRldmljZV9vczpUUDFBLjIyMDYyNC4wMjHCARdkZXZpY2Vfb3NfZmxhdm9yOmdvb2dsZcIBEmRldmljZV90eXBlOm9yaW9sZcIBF2lkOmxpbi0yNy1lNTA0LS1kZXZpY2UzwgFObmFtZTpwZXJmb3JtYW5jZV90ZXN0X3N1aXRlX2FuZHJvaWRfY2xhbmtfdHJpY2hyb21lX2Nocm9tZV9nb29nbGVfNjRfMzJfYnVuZGxlwgENbmluamFfdGFyZ2V0OsIBCm9zOkFuZHJvaWTCAR9wYXJlbnRfdGFza19pZDo2OGY2YmYxNjZjYTU4ODExwgEacG9vbDpjaHJvbWUudGVzdHMucGVyZi1wZ2/CAQtwcmlvcml0eToyNcIBEHByb2plY3Q6Y2hyb21pdW3CAQpwdXJwb3NlOkNJwgETcHVycG9zZTpwb3N0LWNvbW1pdMIBN3JiZTpwcm9qZWN0cy9jaHJvbWUtc3dhcm1pbmcvaW5zdGFuY2VzL2RlZmF1bHRfaW5zdGFuY2XCAQ9yZWFsbTpjaHJvbWU6Y2nCAUxzZXJ2aWNlX2FjY291bnQ6Y2hyb21lLXRlc3RlckBjaG9wcy1zZXJ2aWNlLWFjY291bnRzLmlhbS5nc2VydmljZWFjY291bnQuY29twgEIc2hhcmQ6MTDCAStzcGVjX25hbWU6Y2hyb21lLmNpOmFuZHJvaWQtcGl4ZWw2LXBlcmYtcGdvwgFsc3RlcG5hbWU6cGVyZm9ybWFuY2VfdGVzdF9zdWl0ZV9hbmRyb2lkX2NsYW5rX3RyaWNocm9tZV9jaHJvbWVfZ29vZ2xlXzY0XzMyX2J1bmRsZSBvbiBBbmRyb2lkIGRldmljZSBQaXhlbCA2wgEbc3dhcm1pbmcucG9vbC50ZW1wbGF0ZTpwcm9kwgE+c3dhcm1pbmcucG9vbC52ZXJzaW9uOjExNGZjNWIzMjc2MTc1MmFlMTZkYWI4OTcwMDFjYmQyZmY5NjIxNzbCAQ90ZXN0X2lkX3ByZWZpeDrCAVR0ZXN0X3N1aXRlOnBlcmZvcm1hbmNlX3Rlc3Rfc3VpdGVfYW5kcm9pZF9jbGFua190cmljaHJvbWVfY2hyb21lX2dvb2dsZV82NF8zMl9idW5kbGXCAQl1c2VyOm5vbmXCASV3YXRlcmZhbGxfYnVpbGRlcl9ncm91cDpjaHJvbWl1bS5wZXJmwgEtd2F0ZXJmYWxsX2J1aWxkZXJuYW1lOmFuZHJvaWQtcGl4ZWw2LXBlcmYtcGdv2gHuBQpMChxpbmZyYS90b29scy9jaXBkL2xpbnV4LWFtZDY0EixQam1RLW5pdTVIeW1qRFBXdklmUTJqdHlJT1NkSHNJSjYzUFU3R2w0TUxrQxJqCiFpbmZyYS90b29scy9sdWNpLWF1dGgvbGludXgtYW1kNjQSLFhYM0UtQ2lBUXVBX0pRU0s0Vm5kQTNDSE5YOS1haEtRU0x5STF2MmNIUVFDGhcudGFza190ZW1wbGF0ZV9wYWNrYWdlcxJzCippbmZyYS90b29scy9sdWNpL2xvZ2RvZy9idXRsZXIvbGludXgtYW1kNjQSLE5MRWFXcnlKQzlCQk5ZZmN4MUp0RnNPQ0lmZ1pGTmtNLTExc29hVXp1ZGdDGhcudGFza190ZW1wbGF0ZV9wYWNrYWdlcxJuCiVpbmZyYS90b29scy9sdWNpL3ZweXRob24zL2xpbnV4LWFtZDY0EixUcjBSUnA5eVRVSEtYRDU2WnJpMVlYLTdWUUFGallRaEEyZzVrSUxlRTl3QxoXLnRhc2tfdGVtcGxhdGVfcGFja2FnZXMSZAobaW5mcmEvdG9vbHMvcmRiL2xpbnV4LWFtZDY0EixlaEJTcWYtSHQ2bXRRbXF6bUx5Q3hKVDA4ZHdmOGdaamZ6eTBSbHhCODI4QxoXLnRhc2tfdGVtcGxhdGVfcGFja2FnZXMSbwomaW5mcmEvdG9vbHMvcmVzdWx0X2FkYXB0ZXIvbGludXgtYW1kNjQSLGFkYW41WG9kUld2TncwbGZWelJXVzh1WTM5SlFLdkpGTzhjSG1mSE03WTRDGhcudGFza190ZW1wbGF0ZV9wYWNrYWdlcxJ2CiRpbmZyYS8zcHAvdG9vbHMvY3B5dGhvbjMvbGludXgtYW1kNjQSLDNwLWMyTnBaRUpXeXY0S2lISm9wVFIxU2NhSHhES0JSTWZYbHpwcmUtSXdDGiAudGFza190ZW1wbGF0ZV9wYWNrYWdlcy9jcHl0aG9uM+IBEDY4ZjZjNTc4YjhjMTUxMTHyAVMKEnJlc3VsdHMuYXBpLmNyLmRldhI9aW52b2NhdGlvbnMvdGFzay1jaHJvbWUtc3dhcm1pbmcuYXBwc3BvdC5jb20tNjhmNmM1NzhiOGMxNTExMQ=="
+      }
+    },
+    {
+      "ID": "74524488a38ce3a5",
+      "Request": {
+        "Method": "POST",
+        "URL": "https://chrome-swarming.appspot.com/prpc/swarming.v2.Tasks/GetResult",
+        "Header": {
+          "Accept": [
+            "application/prpc; encoding=binary"
+          ],
+          "Accept-Encoding": [
+            "gzip"
+          ],
+          "Content-Length": [
+            "19"
+          ],
+          "User-Agent": [
+            "pRPC Client 1.4"
+          ],
+          "X-Prpc-Grpc-Timeout": [
+            "90000000u"
+          ]
+        },
+        "MediaType": "application/prpc",
+        "BodyParts": [
+          "ChFub24tZXhpc3RpbmctdGFzaw=="
+        ]
+      },
+      "Response": {
+        "StatusCode": 400,
+        "Proto": "HTTP/1.1",
+        "ProtoMajor": 1,
+        "ProtoMinor": 1,
+        "Header": {
+          "Access-Control-Expose-Headers": [
+            "X-Prpc-Grpc-Code"
+          ],
+          "Cache-Control": [
+            "no-cache"
+          ],
+          "Content-Length": [
+            "66"
+          ],
+          "Content-Type": [
+            "text/plain; charset=utf-8"
+          ],
+          "Date": [
+            "Mon, 15 Apr 2024 23:02:47 GMT"
+          ],
+          "Server": [
+            "Google Frontend"
+          ],
+          "X-Cloud-Trace-Context": [
+            "bb383244d342502340a3d9b3ea43bd08"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Prpc-Grpc-Code": [
+            "3"
+          ]
+        },
+        "Body": "aW52YWxpZCB0YXNrX2lkIG5vbi1leGlzdGluZy10YXNrOiBJbnZhbGlkIGtleSB1J25vbi1leGlzdGluZy10YXMn"
+      }
+    }
+  ]
+}
