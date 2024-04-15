@@ -440,7 +440,7 @@ func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error
 		topic = m[2]
 	}
 	// Publish the message.
-	sklog.Infof("Sending pubsub message for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	sklog.Infof("Sending pubsub message for job %s (build %d): %s", job.Id, job.BuildbucketBuildId, string(b))
 	_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
 		Data: b,
 	}).Get(ctx)
