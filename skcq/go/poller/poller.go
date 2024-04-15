@@ -229,22 +229,6 @@ func processCL(ctx context.Context, vm types.VerifiersManager, ci *gerrit.Change
 		sklog.Infof("[%d] from %s successfully ran verifiers: %s", ci.Issue, repoBranch, stripNewLinesFromLog(strings.Join(successMsgsFromVerifiers, ", ")))
 		if !cr.IsCQ(ctx, ci) {
 			removeFromCQMsg := "Dry run: This CL passed the SkCQ dry run."
-			if ci.WorkInProgress {
-				// If the change is WIP and a reviewer has been added, then
-				// automatically remove the change from WIP by publishing it.
-				for _, r := range ci.Reviewers.Reviewer {
-					// Owner shows up as a reviewer. No idea why Gerrit does this.
-					if r.AccountID != ci.Owner.AccountID {
-						// Publish and break out.
-						if err := cr.SetReadyForReview(ctx, ci); err != nil {
-							sklog.Errorf("[%d] Could not set ready for review: %s", ci.Issue, err)
-						}
-						removeFromCQMsg += "\nAutomatically published the CL because it was WIP with reviewers specified."
-						break
-					}
-				}
-			}
-			// Say everything was succesful and we are done.
 			cr.RemoveFromCQ(ctx, ci, removeFromCQMsg, "SkCQ dry run succeeded.")
 		} else {
 			if err := cr.Submit(ctx, ci); err != nil {
