@@ -1,0 +1,8 @@
+# Re-enables the ability for a Win machine to run scripts.
+- hosts: all_win
+  gather_facts: false
+
+  pre_tasks:
+    - name: allow running scripts
+      raw:
+        'Set-ExecutionPolicy -Scope LocalMachine Unrestricted'

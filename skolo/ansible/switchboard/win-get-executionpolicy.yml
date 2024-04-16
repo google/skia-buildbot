@@ -1,0 +1,12 @@
+# Gets the current ExecutionPolicy for all machines.
+- hosts: all_win
+  gather_facts: false
+
+  pre_tasks:
+    - name: get running scripts policy
+      raw:
+        'Get-ExecutionPolicy -List'
+      register: policy
+    - name: print
+      debug:
+        var: policy.stdout_lines
