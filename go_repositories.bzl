@@ -979,8 +979,8 @@ def go_repositories():
     go_repository(
         name = "com_github_google_martian_v3",
         importpath = "github.com/google/martian/v3",
-        sum = "h1:IqNFLAmvJOgVlpdEBiQbDc2EwKW77amAycfTuWKdfvw=",
-        version = "v3.3.2",
+        sum = "h1:h4YaJSE986q8iYHs6xbfHJ2tIq+TRwcM/DAl/yML2ic=",
+        version = "v3.3.3-0.20220816151257-0f7e6797a04d",
     )
     go_repository(
         name = "com_github_google_pprof",
