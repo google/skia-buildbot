@@ -13,6 +13,7 @@ go_library(
         "//go/cleanup",
         "//go/common",
         "//go/grpcsp",
+        "//go/roles",
         "//go/sklog",
         "//perf/go/anomalygroup:store",
         "//perf/go/anomalygroup/service",

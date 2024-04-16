@@ -28,10 +28,11 @@ var (
 )
 
 type CulpritServiceActivity struct {
+	insecure_conn bool
 }
 
 func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl)
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,7 @@ func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culp
 }
 
 func (csa *CulpritServiceActivity) InvokeNotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl)
+	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
 	if err != nil {
 		return nil, err
 	}

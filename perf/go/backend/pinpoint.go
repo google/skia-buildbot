@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/perf/go/backend/shared"
 	pinpoint_service "go.skia.org/infra/pinpoint/go/service"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -23,9 +24,11 @@ func NewPinpointService(t pinpoint_service.TemporalProvider, l *rate.Limiter) *p
 
 // GetAuthorizationPolicy returns the authorization policy for the service.
 func (service *pinpointService) GetAuthorizationPolicy() shared.AuthorizationPolicy {
-	// TODO(ashwinpv) Once validation is done, update this to only allow the FE service account role.
 	return shared.AuthorizationPolicy{
-		AllowUnauthenticated: true,
+		AllowUnauthenticated: false,
+		AuthorizedRoles: []roles.Role{
+			roles.Editor,
+		},
 	}
 }
 

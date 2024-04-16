@@ -230,7 +230,8 @@ run-demo-backend:
 	../_bazel_bin/perf/go/backend/backendserver/backendserver_/backendserver run \
 		--config_filename=./configs/demo.json \
 		--port=:8005 \
-		--prom_port=:20001 \
+		--prom_port=:20002 \
+		--commit_range_url=https://chromium.googlesource.com/chromium/src/+log/{begin}..{end}
 
 run-demo-chromeperf:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
@@ -281,6 +282,17 @@ run-auth-proxy-before-demo-instance:
 		--port=:8003 \
 		--target_port=http://127.0.0.1:8002 \
 		--local
+
+run-auth-proxy-before-backend:
+	bazelisk run //kube/cmd/auth-proxy -- \
+		--prom-port=:20003 \
+		--role=editor=google.com \
+		--authtype=mocked \
+		--mock_user=$(USER)@google.com \
+		--port=:8003 \
+		--target_port=:8005 \
+		--local \
+		--self_sign_localhost_tls
 
 # Used to test chrome-perf-public ingestion into a local CDB instance.
 #

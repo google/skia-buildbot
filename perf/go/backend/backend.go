@@ -48,9 +48,7 @@ type BackendService interface {
 }
 
 // initialize initializes the Backend application.
-func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store,
-	subscriptionStore subscription.Store,
-	notifier notify.CulpritNotifier) error {
+func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store, subscriptionStore subscription.Store, notifier notify.CulpritNotifier) error {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(&b.promPort),
@@ -58,8 +56,6 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 
 	var err error
 	ctx := context.Background()
-	sklog.Infof("Registering grpc reflection server.")
-	reflection.Register(b.grpcServer)
 
 	// Load the config file.
 	sklog.Infof("Loading configs from %s", b.configFileName)
@@ -67,7 +63,7 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 		sklog.Fatal(err)
 	}
 
-	sklog.Info("Creating anomalygroup stores.")
+	sklog.Info("Creating anomalygroup store.")
 	if anomalygroupStore == nil {
 		anomalygroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -83,7 +79,7 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 		}
 	}
 
-	sklog.Info("Creating culprit stores.")
+	sklog.Info("Creating culprit store.")
 	if culpritStore == nil {
 		culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -92,26 +88,33 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 		}
 	}
 
-	sklog.Info("Creating subscription stores.")
+	sklog.Info("Creating subscription store.")
 	if subscriptionStore == nil {
 		subscriptionStore, err = builders.NewSubscriptionStoreFromConfig(ctx, config.Config)
 		if err != nil {
-			sklog.Errorf("Error creating culprit store. %s", err)
+			sklog.Errorf("Error creating subscription store. %s", err)
 			return err
 		}
 	}
 
-	sklog.Info("Registering grpc services.")
+	sklog.Info("Configuring grpc services.")
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
 		ag_service.New(anomalygroupStore),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier),
 	}
-	err = b.registerServices(services)
+	err = b.configureServices(services)
 	if err != nil {
 		return err
 	}
+	opts := []grpc.ServerOption{grpc.UnaryInterceptor(b.serverAuthPolicy.UnaryInterceptor())}
+	b.grpcServer = grpc.NewServer(opts...)
+	sklog.Infof("Registering grpc reflection server.")
+	reflection.Register(b.grpcServer)
+	sklog.Info("Registering individual services.")
+	b.registerServices(services)
+
 	b.lisGRPC, _ = net.Listen("tcp4", b.grpcPort)
 
 	sklog.Infof("Backend server listening at %v", b.lisGRPC.Addr())
@@ -120,10 +123,9 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 	return nil
 }
 
-// registerServices registers all available services for Backend.
-func (b *Backend) registerServices(services []BackendService) error {
+// configureServices configures all available services for Backend.
+func (b *Backend) configureServices(services []BackendService) error {
 	for _, service := range services {
-		service.RegisterGrpc(b.grpcServer)
 		err := b.configureAuthorizationForService(service)
 		if err != nil {
 			return err
@@ -131,6 +133,13 @@ func (b *Backend) registerServices(services []BackendService) error {
 	}
 
 	return nil
+}
+
+// registerServices registers all available services with the grpc server.
+func (b *Backend) registerServices(services []BackendService) {
+	for _, service := range services {
+		service.RegisterGrpc(b.grpcServer)
+	}
 }
 
 // configureAuthorizationForService configures authorization rules for the given BackendService.
@@ -183,13 +192,12 @@ func New(flags *config.BackendFlags,
 	subscriptionStore subscription.Store,
 	notifier notify.CulpritNotifier,
 ) (*Backend, error) {
-	opts := []grpc.ServerOption{}
 	b := &Backend{
 		configFileName:   flags.ConfigFilename,
-		grpcServer:       grpc.NewServer(opts...),
 		grpcPort:         flags.Port,
 		promPort:         flags.PromPort,
 		serverAuthPolicy: grpcsp.Server(),
+		flags:            flags,
 	}
 
 	err := b.initialize(anomalygroupStore, culpritStore, subscriptionStore, notifier)

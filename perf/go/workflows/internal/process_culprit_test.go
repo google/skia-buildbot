@@ -32,7 +32,9 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	csa := &CulpritServiceActivity{}
+	csa := &CulpritServiceActivity{
+		insecure_conn: true,
+	}
 	env.RegisterActivity(csa)
 	commits := []*pb.Commit{
 		{
