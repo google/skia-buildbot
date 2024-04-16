@@ -205,6 +205,9 @@ func exprToString(expr ast.Expr) (string, *ast.Pos, error) {
 		// Just assume that the version is always the part of the
 		// expression furthest to the right.
 		return left + right, pos, nil
+	} else if t == ast.NumType.Name {
+		num := expr.(*ast.Num)
+		return fmt.Sprintf("%d", num.N), &num.Pos, nil
 	} else {
 		return "", nil, skerr.Fmt("Invalid value type %q", t)
 	}
@@ -248,12 +251,16 @@ func resolveDepsEntries(vars map[string]ast.Expr, key, value ast.Expr) ([]*DepsE
 				} else if depType == "cipd" {
 					return parseCIPDDeps(path, dict)
 				} else if depType == "gcs" {
-					return parseGCSDep(path, dict)
+					return parseGCSDeps(path, dict)
 				}
 			} else if strKey == "url" {
 				// `url` indicates that this is a git dep, and `dep_type` may
 				// not be set.
 				return parseGitDep(path, dict)
+			} else if strKey == "bucket" {
+				// `bucket` indicates that this is a GCS dep, and `dep_type` may
+				// not be set.
+				return parseGCSDeps(path, dict)
 			}
 		}
 		return nil, nil, skerr.Fmt("unable to find dependency type in deps entry dict for %q", path)
@@ -330,7 +337,7 @@ func parseCIPDDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error
 					strKey := key.(*ast.Str).S
 					var strVal string
 					var err error
-					strVal, pos, err = exprToString(pkgDict.Values[idx])
+					strVal, exprPos, err := exprToString(pkgDict.Values[idx])
 					if err != nil {
 						return nil, nil, skerr.Wrap(err)
 					}
@@ -338,6 +345,7 @@ func parseCIPDDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error
 						entry.Id = strVal
 					} else if strKey == "version" {
 						entry.Version = strVal
+						pos = exprPos
 					}
 				}
 				if entry.Id == "" || entry.Version == "" {
@@ -352,12 +360,13 @@ func parseCIPDDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error
 	return nil, nil, skerr.Fmt("missing `packages` key for CIPD dependency %q", path)
 }
 
-func parseGCSDep(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error) {
-	// This is a GCS dependency.
+func parseGCSDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error) {
+	// This is a GCS dependency, which represents at least one object.
 	var bucket string
-	var object string
-	var sha256sum string
-	var pos *ast.Pos
+	var objects []string
+	var sha256sums []string
+	var poss []*ast.Pos
+
 	for idx, key := range dict.Keys {
 		strKey := key.(*ast.Str).S
 		val := dict.Values[idx]
@@ -367,33 +376,58 @@ func parseGCSDep(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error) 
 			if err != nil {
 				return nil, nil, skerr.Wrapf(err, "failed to parse bucket as string")
 			}
-		} else if strKey == "object_name" {
-			object, _, err = exprToString(val)
-			if err != nil {
-				return nil, nil, skerr.Wrapf(err, "failed to parse object_name as string")
+		} else if strKey == "objects" {
+			if val.Type().Name != ast.ListType.Name {
+				return nil, nil, skerr.Fmt("Invalid type for %q at %q; expected %q but got %q", strKey, path, ast.ListType.Name, val.Type().Name)
 			}
-		} else if strKey == "sha256sum" {
-			sha256sum, pos, err = exprToString(val)
-			if err != nil {
-				return nil, nil, skerr.Wrapf(err, "failed to parse sha256sum as string")
+			for _, objectExpr := range val.(*ast.List).Elts {
+				if objectExpr.Type().Name != ast.DictType.Name {
+					return nil, nil, skerr.Fmt("Invalid type for GCS object list entry at %q; expected %q but got %q", path, ast.DictType.Name, objectExpr.Type().Name)
+				}
+				objectDict := objectExpr.(*ast.Dict)
+				var object string
+				var sha256sum string
+				var pos *ast.Pos
+				for idx, key := range objectDict.Keys {
+					if key.Type().Name != ast.StrType.Name {
+						return nil, nil, skerr.Fmt("Invalid type for GCS object dict key at %q; expected %q but got %q", path, ast.StrType.Name, key.Type().Name)
+					}
+					strKey := key.(*ast.Str).S
+					var strVal string
+					var err error
+					strVal, exprPos, err := exprToString(objectDict.Values[idx])
+					if err != nil {
+						return nil, nil, skerr.Wrap(err)
+					}
+					if strKey == "object_name" {
+						object = strVal
+					} else if strKey == "sha256sum" {
+						sha256sum = strVal
+						pos = exprPos
+					}
+				}
+				if object == "" || sha256sum == "" {
+					return nil, nil, skerr.Fmt("GCS object dict for %q is incomplete", path)
+				}
+				objects = append(objects, object)
+				sha256sums = append(sha256sums, sha256sum)
+				poss = append(poss, pos)
 			}
 		}
 	}
 	if bucket == "" {
 		return nil, nil, skerr.Fmt("missing key `bucket` for gcs entry %q", path)
 	}
-	if object == "" {
-		return nil, nil, skerr.Fmt("missing key `object_name` for gcs entry %q", path)
+	entries := make([]*DepsEntry, 0, len(objects))
+	for idx, object := range objects {
+		entries = append(entries, &DepsEntry{
+			Id:      fmt.Sprintf("%s/%s", bucket, object),
+			Version: sha256sums[idx],
+			Path:    path,
+		})
 	}
-	if sha256sum == "" {
-		return nil, nil, skerr.Fmt("missing key `sha256sum` for gcs entry %q", path)
-	}
-	entry := &DepsEntry{
-		Id:      fmt.Sprintf("%s/%s", bucket, object),
-		Version: sha256sum,
-		Path:    path,
-	}
-	return []*DepsEntry{entry}, []*ast.Pos{pos}, nil
+
+	return entries, poss, nil
 }
 
 // resolveVars recursively replaces calls to Var() with the ast.Expr for the

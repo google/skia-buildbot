@@ -49,11 +49,23 @@ deps = {
     'dep_type': 'cipd',
   },
   'gcs/example-gcs-dep': {
-	'bucket': 'my-gcs-bucket',
-	'object_name': 'some/gcs/object',
-	'dep_type': 'gcs',
-	'sha256sum': 'abc123',
-	'output_file': 'gcs-dep-output-file',
+    'bucket': 'my-gcs-bucket',
+    'objects': [
+      {
+        'object_name': 'some/gcs/object',
+        'sha256sum': 'abc123',
+        'size_bytes': 3203922,
+        'generation': 1664794206824773,
+        'output_file': 'gcs-dep-output-file1',
+      },
+      {
+        'object_name': 'another/gcs/object',
+        'sha256sum': 'def456',
+        'size_bytes': 55555,
+        'generation': 1664794206824382,
+        'output_file': 'gcs-dep-output-file2',
+      },
+    ],
   },
   Var('expr_prefix')+'dep': 'https://my-host/expr-dep.git@version',
 }
@@ -110,6 +122,11 @@ func TestParseDeps(t *testing.T) {
 		"my-gcs-bucket/some/gcs/object": {
 			Id:      "my-gcs-bucket/some/gcs/object",
 			Version: "abc123",
+			Path:    "gcs/example-gcs-dep",
+		},
+		"my-gcs-bucket/another/gcs/object": {
+			Id:      "my-gcs-bucket/another/gcs/object",
+			Version: "def456",
 			Path:    "gcs/example-gcs-dep",
 		},
 	}, deps)
