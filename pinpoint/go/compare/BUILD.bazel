@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
+        "//pinpoint/go/compare/stats",
         "//pinpoint/go/compare/thresholds",
     ],
 )
@@ -26,6 +27,7 @@ go_test(
     ],
     embed = [":compare"],
     deps = [
+        "//pinpoint/go/compare/thresholds",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

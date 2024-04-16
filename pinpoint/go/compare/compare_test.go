@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
 func convertNormalizedToRawMagnitude(a, b []float64, normMagnitude float64) float64 {
@@ -143,4 +144,70 @@ func TestCompare_GivenRegression_ReturnsPValue(t *testing.T) {
 	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	y = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 	test("x > y, ImprovementDir = Up", x, y, Up)
+}
+
+func TestComparePairwise_GivenImprovement_ReturnsSame(t *testing.T) {
+	test := func(name string, x, y []float64, dir ImprovementDir) {
+		t.Run(name, func(t *testing.T) {
+			result, err := ComparePairwise(x, y, dir)
+			require.NoError(t, err)
+			require.LessOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			assert.Equal(t, Same, result.Verdict)
+			switch dir {
+			case Up:
+				assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+			case Down:
+				assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi)
+			}
+		})
+	}
+	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	test("x < y, ImprovementDir = Up", x, y, Up)
+
+	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	y = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	test("x > y, ImprovementDir = Down", x, y, Down)
+}
+
+func TestComparePairwise_GivenRegression_ReturnsDifferent(t *testing.T) {
+	test := func(name string, x, y []float64, dir ImprovementDir) {
+		t.Run(name, func(t *testing.T) {
+			result, err := ComparePairwise(x, y, dir)
+			require.NoError(t, err)
+			require.LessOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			assert.Equal(t, Different, result.Verdict)
+			assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi*result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+			switch dir {
+			case Up:
+				assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+			case Down:
+				assert.Positive(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi)
+			}
+		})
+	}
+	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	test("x < y, ImprovementDir = Down", x, y, Down)
+	test("x < y, ImprovementDir = Unknown", x, y, UnknownDir)
+
+	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	y = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	test("x > y, ImprovementDir = Up", x, y, Up)
+}
+
+func TestComparePairwise_GivenNoRegression_ReturnsSame(t *testing.T) {
+	test := func(name string, x, y []float64, dir ImprovementDir) {
+		t.Run(name, func(t *testing.T) {
+			result, err := ComparePairwise(x, y, dir)
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, result.PairwiseWilcoxonSignedRankedTestResult.PValue, thresholds.LowThreshold)
+			assert.Equal(t, Same, result.Verdict)
+			assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi*result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
+		})
+	}
+	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	var y = []float64{1.1, 1.9, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
+	test("ImprovementDir = Down", x, y, Down)
+	test("ImprovementDir = Unknown", x, y, UnknownDir)
 }

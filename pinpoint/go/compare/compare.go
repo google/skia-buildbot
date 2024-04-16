@@ -36,6 +36,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/compare/stats"
 	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
@@ -94,6 +95,47 @@ func mean(arr []float64) float64 {
 		sum += v
 	}
 	return sum / float64(len(arr))
+}
+
+// ComparePairwiseResult contains the results of a pairwise comparison
+// between two samples
+type ComparePairwiseResult struct {
+	// Verdict is the outcome of the statistical analysis which is Same or Different.
+	// Note that pairwise does not have an Unknown verdict.
+	Verdict Verdict
+	// stats.PairwiseWilcoxonSignedRankedTestResult is the result of the Pairwise
+	// statistical analysis.
+	stats.PairwiseWilcoxonSignedRankedTestResult
+}
+
+// ComparePairwise wraps PairwiseWilcoxonSignedRankedTest.
+// TODO(sunxiaodi@): Add additional data manipulation CABE does to ensure
+// data is valid prior to analysis.
+func ComparePairwise(valuesA, valuesB []float64, dir ImprovementDir) (*ComparePairwiseResult, error) {
+	// The pairwise test is intentionally designed to receive the input backwards.
+	result, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, stats.LogTransform)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// return same if improvement
+	if (dir == Up && result.LowerCi > 0) || (dir == Down && result.UpperCi < 0) {
+		return &ComparePairwiseResult{
+			Verdict:                                Same,
+			PairwiseWilcoxonSignedRankedTestResult: result,
+		}, nil
+	}
+	// at p-value < 0.05, it is unlikely for the 95% confidence interval to encompass 0,
+	// but we enforce a check just in case.
+	if result.PValue < thresholds.LowThreshold && result.LowerCi*result.UpperCi > 0 {
+		return &ComparePairwiseResult{
+			Verdict:                                Different,
+			PairwiseWilcoxonSignedRankedTestResult: result,
+		}, nil
+	}
+	return &ComparePairwiseResult{
+		Verdict:                                Same,
+		PairwiseWilcoxonSignedRankedTestResult: result,
+	}, nil
 }
 
 // Based on https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/job_state.py;drc=94f2bff5159bf660910b35c39426102c5982c4a4;l=356
