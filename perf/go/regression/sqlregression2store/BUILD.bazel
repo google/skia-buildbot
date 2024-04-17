@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
+        "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",
@@ -28,6 +29,7 @@ go_test(
     embed = [":sqlregression2store"],
     deps = [
         "//perf/go/alerts",
+        "//perf/go/alerts/mock",
         "//perf/go/clustering2",
         "//perf/go/regression",
         "//perf/go/sql/sqltest",

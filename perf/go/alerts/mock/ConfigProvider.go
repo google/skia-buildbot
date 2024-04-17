@@ -15,6 +15,36 @@ type ConfigProvider struct {
 	mock.Mock
 }
 
+// GetAlertConfig provides a mock function with given fields: alertId
+func (_m *ConfigProvider) GetAlertConfig(alertId int64) (*alerts.Alert, error) {
+	ret := _m.Called(alertId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAlertConfig")
+	}
+
+	var r0 *alerts.Alert
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64) (*alerts.Alert, error)); ok {
+		return rf(alertId)
+	}
+	if rf, ok := ret.Get(0).(func(int64) *alerts.Alert); ok {
+		r0 = rf(alertId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*alerts.Alert)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(alertId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllAlertConfigs provides a mock function with given fields: ctx, includeDeleted
 func (_m *ConfigProvider) GetAllAlertConfigs(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	ret := _m.Called(ctx, includeDeleted)

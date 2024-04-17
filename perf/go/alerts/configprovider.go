@@ -22,6 +22,9 @@ type ConfigProvider interface {
 	// GetAllAlertConfigs returns all alert configs.
 	GetAllAlertConfigs(ctx context.Context, includeDeleted bool) ([]*Alert, error)
 
+	// GetAlertConfig returns a specific alert config.
+	GetAlertConfig(alertId int64) (*Alert, error)
+
 	// Refresh resets the configs and forces a fresh update.
 	Refresh(ctx context.Context) error
 }
@@ -29,6 +32,7 @@ type ConfigProvider interface {
 // ConfigCache struct contains cached alert config data.
 type configCache struct {
 	Configs                  []*Alert
+	ConfigMap                map[int64]*Alert
 	LastUpdated              time.Time
 	refreshIntervalInSeconds int
 }
@@ -75,6 +79,19 @@ func (cp *configProviderImpl) GetAllAlertConfigs(ctx context.Context, includeDel
 	} else {
 		return cp.cache_active.Configs, nil
 	}
+}
+
+// GetAlertConfig returns the config with the specified alertId.
+func (cp *configProviderImpl) GetAlertConfig(alertId int64) (*Alert, error) {
+	cp.mutex.RLock()
+	defer cp.mutex.RUnlock()
+
+	alertConfig, ok := cp.cache_all.ConfigMap[alertId]
+	if ok {
+		return alertConfig, nil
+	}
+
+	return nil, skerr.Fmt("Alert config with ID %d not found.", alertId)
 }
 
 // Refresh resets the cache by updating data from store.
@@ -130,11 +147,17 @@ func (cp *configProviderImpl) getAlertsFromStore(ctx context.Context, whatToIncl
 		return skerr.Wrap(err)
 	}
 
+	configMap := map[int64]*Alert{}
+	for _, alert := range alerts {
+		configMap[alert.IDAsStringToInt()] = alert
+	}
 	if whatToInclude == IncludeDeleted {
 		cp.cache_all.Configs = alerts
+		cp.cache_all.ConfigMap = configMap
 		cp.cache_all.LastUpdated = time.Now().UTC()
 	} else {
 		cp.cache_active.Configs = alerts
+		cp.cache_active.ConfigMap = configMap
 		cp.cache_active.LastUpdated = time.Now().UTC()
 	}
 

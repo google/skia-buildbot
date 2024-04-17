@@ -3,11 +3,14 @@ package sqlregression2store
 import (
 	"bytes"
 	"context"
+	"slices"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -25,6 +28,7 @@ type SQLRegression2Store struct {
 	// db is the underlying database.
 	db                         pool.Pool
 	statements                 map[statementFormat]string
+	alertConfigProvider        alerts.ConfigProvider
 	regressionFoundCounterLow  metrics2.Counter
 	regressionFoundCounterHigh metrics2.Counter
 }
@@ -76,7 +80,7 @@ var statementFormats = map[statementFormat]string{
 }
 
 // New returns a new instance of SQLRegression2Store
-func New(db pool.Pool) (*SQLRegression2Store, error) {
+func New(db pool.Pool, alertConfigProvider alerts.ConfigProvider) (*SQLRegression2Store, error) {
 	templates := map[statementFormat]string{}
 	context := statementContext{
 		Columns:            strings.Join(sql.Regressions2, ","),
@@ -97,6 +101,7 @@ func New(db pool.Pool) (*SQLRegression2Store, error) {
 	return &SQLRegression2Store{
 		db:                         db,
 		statements:                 templates,
+		alertConfigProvider:        alertConfigProvider,
 		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression2_store_found", map[string]string{"direction": "low"}),
 		regressionFoundCounterHigh: metrics2.GetCounter("perf_regression2_store_found", map[string]string{"direction": "high"}),
 	}, nil
@@ -128,7 +133,7 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 // SetHigh implements the regression.Store interface.
 func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	ret := false
-	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
+	err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -145,7 +150,7 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 // SetLow implements the regression.Store interface.
 func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	ret := false
-	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
+	err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -161,15 +166,23 @@ func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.Com
 
 // TriageLow implements the regression.Store interface.
 func (s *SQLRegression2Store) TriageLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus) error {
-	return s.readModifyWrite(ctx, commitNumber, alertID, true, func(r *regression.Regression) {
+	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
+	// Once we move all the data to the new db, this will need to be updated to take in a specific
+	// regression id and update only that.
+	return s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
 		r.LowStatus = tr
+		return true
 	})
 }
 
 // TriageHigh implements the regression.Store interface.
 func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus) error {
-	return s.readModifyWrite(ctx, commitNumber, alertID, true, func(r *regression.Regression) {
+	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
+	// Once we move all the data to the new db, this will need to be updated to take in a specific
+	// regression id and update only that.
+	return s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
 		r.HighStatus = tr
+		return true
 	})
 }
 
@@ -239,14 +252,64 @@ func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regr
 	return nil
 }
 
-// readModifyWrite reads the Regression at the given commitNumber and alert id
+// updateBasedOnAlertAlgo updates the regression based on the Algo specified in the
+// alert config. This is to handle the difference in creating/updating regressions in
+// KMeans v/s Individual mode.
+// TODO(ashwinpv): Once we are fully on to the regression2 schema, move this logic out
+// of the Store (since ideally store should only care about reading and writing data instead
+// of the feature semantics)
+func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, mustExist bool, updateFunc func(r *regression.Regression)) error {
+	// If KMeans the expectation is that as we get more incoming data,
+	// the regression becomes more accurate. This means we need to check
+	// if there is a regression for the same <commit_id, alert_id> pair
+	// and update it.
+	var err error
+	alertConfig, err := s.alertConfigProvider.GetAlertConfig(alerts.IDAsStringToInt(alertID))
+	if err != nil {
+		return err
+	}
+	if alertConfig.Algo == types.KMeansGrouping {
+		err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+			updateFunc(r)
+			return true
+		})
+	} else {
+		err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+			// Existing regressions with a frame. Lets see if it matches the current trace.
+			if r.Frame != nil {
+				existingRegressionParamset := r.Frame.DataFrame.ParamSet
+				// There should be only one trace in the trace set since this is individual?
+				isSameParams := areParamsetsEqual(existingRegressionParamset, df.DataFrame.ParamSet)
+
+				// Only update the regression if it matches the paramset.
+				if !isSameParams {
+					return false
+				}
+			}
+
+			// At this point r is either a newly created regression or an existing regression
+			// that matches the paramset. This should get updated in the database.
+			updateFunc(r)
+			return true
+		})
+	}
+
+	if err != nil {
+		sklog.Errorf("Error while updating database %s", err)
+		return err
+	}
+
+	return nil
+}
+
+// readModifyWriteCompat reads the Regression at the given commitNumber and alert id
 // and then calls the given callback, giving the caller a chance to modify the
 // struct, before writing it back to the database.
 //
 // If mustExist is true then the read must be successful, otherwise a new
 // default Regression will be used and stored back to the database after the
 // callback is called.
-func (s *SQLRegression2Store) readModifyWrite(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression)) error {
+func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression) bool) error {
 	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
 		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
@@ -258,35 +321,78 @@ func (s *SQLRegression2Store) readModifyWrite(ctx context.Context, commitNumber 
 		return skerr.Wrapf(err, "Can't start transaction")
 	}
 
-	row := tx.QueryRow(ctx, s.statements[readCompat], commitNumber, alertID)
-	r, err := convertRowToRegression(row)
+	var r *regression.Regression
+
+	rows, err := tx.Query(ctx, s.statements[readCompat], commitNumber, alertID)
 	if err != nil {
-		if mustExist {
-			var errorMsg string
-			if err == pgx.ErrNoRows {
-				errorMsg = "Regression does not exist"
+		rollbackTransaction(ctx, tx)
+		return err
+	}
+
+	regressionsToWrite := []*regression.Regression{}
+	for rows.Next() {
+		r, err = convertRowToRegression(rows)
+		if err != nil {
+			if mustExist {
+				var errorMsg string
+				if err == pgx.ErrNoRows {
+					errorMsg = "Regression does not exist"
+				} else {
+					errorMsg = "Failed reading regression data."
+				}
+				rollbackTransaction(ctx, tx)
+				return skerr.Wrapf(err, errorMsg)
 			} else {
-				errorMsg = "Failed reading regression data."
+				r = regression.NewRegression()
+				r.AlertId = alertID
+				r.CommitNumber = commitNumber
+				r.CreationTime = time.Now().UTC()
 			}
-			if err := tx.Rollback(ctx); err != nil {
-				sklog.Errorf("Failed on rollback: %s", err)
-			}
-			return skerr.Wrapf(err, errorMsg)
-		} else {
-			r = regression.NewRegression()
+		}
+
+		shouldUpdate := cb(r)
+
+		if shouldUpdate {
+			regressionsToWrite = append(regressionsToWrite, r)
 		}
 	}
 
-	cb(r)
-
-	if err := s.writeSingleRegression(ctx, r, tx); err != nil {
-		if err := tx.Rollback(ctx); err != nil {
-			sklog.Errorf("Failed on rollback: %s", err)
+	// Update all the regressions marked for writing into the db.
+	for _, reg := range regressionsToWrite {
+		if err = s.writeSingleRegression(ctx, reg, tx); err != nil {
+			rollbackTransaction(ctx, tx)
+			return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 		}
-		return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-
 	return tx.Commit(ctx)
+}
+
+func rollbackTransaction(ctx context.Context, tx pgx.Tx) {
+	if err := tx.Rollback(ctx); err != nil {
+		sklog.Errorf("Failed on rollback: %s", err)
+	}
+}
+
+func areParamsetsEqual(p1 paramtools.ReadOnlyParamSet, p2 paramtools.ReadOnlyParamSet) bool {
+	if len(p1) != len(p2) {
+		return false
+	}
+	for key, val1 := range p1 {
+		val2, ok := p2[key]
+		if ok {
+			if len(val1) == len(val2) {
+				slices.Sort(val1)
+				slices.Sort(val2)
+				for i := 0; i < len(val1); i++ {
+					if val1[i] != val2[i] {
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	return true
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

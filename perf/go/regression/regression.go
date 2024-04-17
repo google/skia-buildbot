@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -89,6 +90,7 @@ func NewRegression() *Regression {
 		HighStatus: TriageStatus{
 			Status: None,
 		},
+		Id: uuid.NewString(),
 	}
 }
 

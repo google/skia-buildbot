@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/perf/go/alerts"
+	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -16,9 +17,11 @@ import (
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
-func setupStore(t *testing.T) *SQLRegression2Store {
+const alertId int64 = 1111
+
+func setupStore(t *testing.T, alertsProvider alerts.ConfigProvider) *SQLRegression2Store {
 	db := sqltest.NewCockroachDBForTests(t, "regstore")
-	store, _ := New(db)
+	store, _ := New(db, alertsProvider)
 	return store
 }
 
@@ -33,7 +36,7 @@ func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQL
 	r := regression.NewRegression()
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
-	r.AlertId = 1111
+	r.AlertId = alertId
 	r.CreationTime = time.Now()
 	r.IsImprovement = false
 	r.MedianBefore = 1.0
@@ -65,7 +68,9 @@ func assertRegression(t *testing.T, expected *regression.Regression, actual *reg
 // TestWriteRead_Success writes a regression to the database
 // and verifies if it is read back correctly.
 func TestWriteRead_Success(t *testing.T) {
-	store := setupStore(t)
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
 	r := generateAndStoreNewRegression(ctx, t, store)
 
@@ -81,7 +86,9 @@ func TestWriteRead_Success(t *testing.T) {
 
 // TestRead_Empty reads the database when it is empty
 func TestRead_Empty(t *testing.T) {
-	store := setupStore(t)
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
 
 	// Try reading items when db is empty.
@@ -97,20 +104,58 @@ func TestRead_Empty(t *testing.T) {
 	assert.Empty(t, regressionsFromDb)
 }
 
-// TestHighRegression_Triage sets a High regression into the database, triages it
-// and verifies that the data was updated correctly.
-func TestHighRegression_Triage(t *testing.T) {
-	runClusterSummaryAndTriageTest(t, true)
+// TestHighRegression_KMeans_Triage sets a High regression into the database, triages it
+// and verifies that the data was updated correctly. The alert Algo is set to be KMeans.
+func TestHighRegression_KMeans_Triage(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:  "1111",
+		DisplayName: "Test Alert Config",
+		Algo:        types.KMeansGrouping,
+	}, nil)
+	runClusterSummaryAndTriageTest(t, true, alertsProvider)
 }
 
-// TestLowRegression_Triage sets a Low regression into the database, triages it
-// and verifies that the data was updated correctly.
-func TestLowRegression_Triage(t *testing.T) {
-	runClusterSummaryAndTriageTest(t, false)
+// TestLowRegression_KMeans_Triage sets a Low regression into the database, triages it
+// and verifies that the data was updated correctly. The alert Algo is set to be KMeans.
+func TestLowRegression_KMeans_Triage(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:  "1111",
+		DisplayName: "Test Alert Config",
+		Algo:        types.KMeansGrouping,
+	}, nil)
+	runClusterSummaryAndTriageTest(t, false, alertsProvider)
 }
 
-func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool) {
-	store := setupStore(t)
+// TestHighRegression_Ind_Triage sets a High regression into the database, triages it
+// and verifies that the data was updated correctly. The alert Algo is set to be
+// StepFitGrouping (i.e Individual)
+func TestHighRegression_Ind_Triage(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:  "1111",
+		DisplayName: "Test Alert Config",
+		Algo:        types.StepFitGrouping,
+	}, nil)
+	runClusterSummaryAndTriageTest(t, true, alertsProvider)
+}
+
+// TestLowRegression_Ind_Triage sets a Low regression into the database, triages it
+// and verifies that the data was updated correctly. The alert Algo is set to be
+// StepFitGrouping (i.e Individual)
+func TestLowRegression_Ind_Triage(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertsProvider.On("GetAlertConfig", alertId).Return(&alerts.Alert{
+		IDAsString:  "1111",
+		DisplayName: "Test Alert Config",
+		Algo:        types.StepFitGrouping,
+	}, nil)
+	runClusterSummaryAndTriageTest(t, false, alertsProvider)
+}
+
+func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {
+	store := setupStore(t, alertsProvider)
 	ctx := context.Background()
 
 	// Add an item to the database.
