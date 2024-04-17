@@ -250,7 +250,7 @@ export class SkottieSlotManagerSk extends ElementSk {
       }
       for (const sid of slotInfo.scalarSlotIDs) {
         const scalar = managedAnimation.getScalarSlot(sid);
-        if (scalar) {
+        if (scalar !== null && scalar !== undefined) {
           this.scalarSlots.push({ id: sid, scalar: scalar });
         }
       }
