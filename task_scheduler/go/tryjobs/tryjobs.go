@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -238,10 +239,15 @@ func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error
 		BuildId: strconv.FormatInt(job.BuildbucketBuildId, 10),
 		Task:    buildbucket_taskbackend.JobToBuildbucketTask(ctx, job, t.buildbucketTarget, t.host),
 	}
-	b, err := proto.Marshal(update)
+	msgBinary, err := proto.Marshal(update)
 	if err != nil {
 		return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 	}
+	msgText, err := prototext.Marshal(update)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to encode BuildTaskUpdate for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	}
+
 	// Parse the project and topic names from the fully-qualified topic.
 	project := t.pubsub.Project()
 	topic := job.BuildbucketPubSubTopic
@@ -251,9 +257,9 @@ func (t *TryJobIntegrator) sendPubSub(ctx context.Context, job *types.Job) error
 		topic = m[2]
 	}
 	// Publish the message.
-	sklog.Infof("Sending pubsub message for job %s (build %d): %s", job.Id, job.BuildbucketBuildId, string(b))
+	sklog.Infof("Sending pubsub message for job %s (build %d): %s", job.Id, job.BuildbucketBuildId, string(msgText))
 	_, err = t.pubsub.TopicInProject(topic, project).Publish(ctx, &pubsub_api.Message{
-		Data: b,
+		Data: msgBinary,
 	}).Get(ctx)
 	return skerr.Wrapf(err, "failed to send pubsub update for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 }
