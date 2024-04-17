@@ -23,7 +23,6 @@ Tbr: {{ stringsJoin .Reviewers "," }}
 {{ end -}}
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
-Flag: EXEMPT Skia autoroll b/186777432
 {{ if .BugProject -}}
 {{ range .Bugs }}Bug: {{ . }}
 {{ end }}
@@ -53,7 +52,6 @@ Tbr: {{ stringsJoin .Reviewers "," }}
 {{ end -}}
 Test: Presubmit checks will test this change.
 Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
-Flag: EXEMPT Skia autoroll b/186777432
 {{ if .BugProject -}}
 {{ range .Bugs }}Bug: {{ . }}
 {{ end }}
