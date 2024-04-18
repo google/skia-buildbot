@@ -147,7 +147,7 @@ func (srv *server) loadConfigs(ctx context.Context) error {
 	} else {
 		configDir = *configs
 	}
-	allTools, messages, err := tool.LoadAndValidateFromFS(ctx, os.DirFS(configDir))
+	allTools, messages, err := tool.LoadAndValidateFromFS(os.DirFS(configDir))
 	if err != nil {
 		return skerr.Wrapf(err, "Validation messages: %v", messages)
 	}

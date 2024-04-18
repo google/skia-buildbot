@@ -780,7 +780,7 @@ func (app) IngestForceReingest(local bool, instanceConfig *config.InstanceConfig
 func (app) IngestValidate(inputFile string, verbose bool) error {
 	ctx := context.Background()
 	err := util.WithReadFile(inputFile, func(r io.Reader) error {
-		schemaViolations, err := format.Validate(ctx, r)
+		schemaViolations, err := format.Validate(r)
 		for i, violation := range schemaViolations {
 			fmt.Printf("%d - %s\n", i, violation)
 		}

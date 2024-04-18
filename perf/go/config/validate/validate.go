@@ -37,7 +37,6 @@ var schema []byte
 // If there was an error loading the file a list of schema violations may be
 // returned also.
 func InstanceConfigFromFile(filename string) (*config.InstanceConfig, []string, error) {
-	ctx := context.Background()
 	var instanceConfig config.InstanceConfig
 	var schemaViolations []string = nil
 
@@ -47,7 +46,7 @@ func InstanceConfigFromFile(filename string) (*config.InstanceConfig, []string, 
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
 		}
-		schemaViolations, err = jsonschema.Validate(ctx, b, schema)
+		schemaViolations, err = jsonschema.Validate(b, schema)
 		if err != nil {
 			return skerr.Wrapf(err, "file does not conform to schema")
 		}

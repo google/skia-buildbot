@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -63,14 +62,14 @@ type Probes map[string]*Probe
 
 // LoadFromJSONFile loads the configuration of the probers from the given JSON
 // file.
-func LoadFromJSONFile(ctx context.Context, filename string) (Probes, error) {
+func LoadFromJSONFile(filename string) (Probes, error) {
 	var probes Probes
 	err := util.WithReadFile(filename, func(r io.Reader) error {
 		document, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		validationErrors, err := jsonschema.Validate(ctx, document, schema)
+		validationErrors, err := jsonschema.Validate(document, schema)
 		if err != nil {
 			for _, v := range validationErrors {
 				sklog.Error(v)

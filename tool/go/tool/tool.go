@@ -1,7 +1,6 @@
 package tool
 
 import (
-	"context"
 	_ "embed" // For embed functionality.
 	"encoding/json"
 	"io/fs"
@@ -160,12 +159,12 @@ var schema []byte
 //
 // If the JSON did not conform to the schema then a list of schema violations
 // may be returned also.
-func FromJSON(ctx context.Context, jsonBody []byte) (*Tool, []string, error) {
+func FromJSON(jsonBody []byte) (*Tool, []string, error) {
 	var tool Tool
 	var schemaViolations []string = nil
 
 	// Validate config here.
-	schemaViolations, err := jsonschema.Validate(ctx, jsonBody, schema)
+	schemaViolations, err := jsonschema.Validate(jsonBody, schema)
 	if err != nil {
 		return nil, schemaViolations, skerr.Wrapf(err, "validate Tool JSON")
 	}
@@ -179,7 +178,7 @@ func FromJSON(ctx context.Context, jsonBody []byte) (*Tool, []string, error) {
 
 // LoadAndValidateFromFS loads the files from the given FS and also validates
 // them at the same time.
-func LoadAndValidateFromFS(ctx context.Context, fsys fs.FS) ([]*Tool, []string, error) {
+func LoadAndValidateFromFS(fsys fs.FS) ([]*Tool, []string, error) {
 	ret := []*Tool{}
 	files, err := fs.Glob(fsys, "*.json")
 	if err != nil {
@@ -193,7 +192,7 @@ func LoadAndValidateFromFS(ctx context.Context, fsys fs.FS) ([]*Tool, []string, 
 		if err != nil {
 			return nil, nil, skerr.Wrapf(err, "Filename: %s", filename)
 		}
-		t, messages, err := FromJSON(ctx, b)
+		t, messages, err := FromJSON(b)
 		if err != nil {
 			return nil, messages, skerr.Wrapf(err, "Validation messages: %v", messages)
 		}

@@ -2,7 +2,6 @@ package format
 
 import (
 	"bytes"
-	"context"
 	"strings"
 	"testing"
 
@@ -32,13 +31,13 @@ func TestParse_BadVersionNotNumber(t *testing.T) {
 
 func TestValidate_EmptyObject_ReturnsError(t *testing.T) {
 	r := strings.NewReader("{}")
-	_, err := Validate(context.Background(), r)
+	_, err := Validate(r)
 	require.Error(t, err)
 }
 
 func TestValidate_VersionOnlyIsCorrect_ReturnsError(t *testing.T) {
 	r := strings.NewReader(`{"version" : 1}`)
-	schemaViolations, err := Validate(context.Background(), r)
+	schemaViolations, err := Validate(r)
 	require.Error(t, err)
 	require.NotEmpty(t, schemaViolations)
 }
@@ -49,7 +48,7 @@ func TestValidate_MinimumValidVersion_Success(t *testing.T) {
 		"git_hash": "1234567890",
 		"results" : []
 		}`)
-	schemaViolations, err := Validate(context.Background(), r)
+	schemaViolations, err := Validate(r)
 	require.NoError(t, err)
 	require.Empty(t, schemaViolations)
 }
@@ -86,7 +85,7 @@ func TestValidate_ExampleWithData_Success(t *testing.T) {
 			}
 		]
 	}`)
-	schemaViolations, err := Validate(context.Background(), r)
+	schemaViolations, err := Validate(r)
 	require.NoError(t, err)
 	require.Empty(t, schemaViolations)
 }

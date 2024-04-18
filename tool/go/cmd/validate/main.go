@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -15,9 +14,8 @@ var (
 )
 
 func main() {
-	ctx := context.Background()
 	flag.Parse()
-	_, messages, err := tool.LoadAndValidateFromFS(ctx, os.DirFS(*directory))
+	_, messages, err := tool.LoadAndValidateFromFS(os.DirFS(*directory))
 	if err != nil {
 		fmt.Printf("Failed to validate configs: %s", err)
 		if len(messages) > 0 {

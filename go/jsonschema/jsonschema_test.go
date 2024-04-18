@@ -1,7 +1,6 @@
 package jsonschema
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,13 +47,13 @@ func TestGenerateSchema_ValidStruct_WritesSchemaFile(t *testing.T) {
 }
 
 func TestValidate_JSONConformsToSchema_Success(t *testing.T) {
-	schemaViolations, err := Validate(context.Background(), []byte(`{"A": 12}`), []byte(testStructSchema))
+	schemaViolations, err := Validate([]byte(`{"A": 12}`), []byte(testStructSchema))
 	require.NoError(t, err)
 	require.Empty(t, schemaViolations)
 }
 
 func TestValidate_JSONDoesNotConformsToSchema_Success(t *testing.T) {
-	schemaViolations, err := Validate(context.Background(), []byte(`{"B": 12}`), []byte(testStructSchema))
+	schemaViolations, err := Validate([]byte(`{"B": 12}`), []byte(testStructSchema))
 	require.Error(t, err)
 	require.Len(t, schemaViolations, 2)
 	require.Contains(t, schemaViolations[0], "A is required")

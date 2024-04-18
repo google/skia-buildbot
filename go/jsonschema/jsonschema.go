@@ -39,7 +39,6 @@
 package jsonschema
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -59,7 +58,7 @@ var ErrSchemaViolation = errors.New("schema violation")
 // Validate returns null if the document represents a JSON body that conforms to
 // the schema. If err is not nil then the slice of strings will contain a list
 // of schema violations.
-func Validate(ctx context.Context, document, schema []byte) ([]string, error) {
+func Validate(document, schema []byte) ([]string, error) {
 	schemaLoader := gojsonschema.NewBytesLoader(schema)
 	documentLoader := gojsonschema.NewBytesLoader(document)
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)

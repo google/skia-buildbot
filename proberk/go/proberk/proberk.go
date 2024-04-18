@@ -61,8 +61,8 @@ const (
 	defaultSSLValidDuration = 10 * 24 * time.Hour // cert should be valid for at least 10 days
 )
 
-func readConfigFile(ctx context.Context, filename string) (types.Probes, error) {
-	p, err := types.LoadFromJSONFile(ctx, filename)
+func readConfigFile(filename string) (types.Probes, error) {
+	p, err := types.LoadFromJSONFile(filename)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read config file: %s", filename)
 	}
@@ -315,7 +315,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal("Failed to calculate hash of config file: ", err)
 	}
-	cfg, err := readConfigFile(ctx, *config)
+	cfg, err := readConfigFile(*config)
 	if *validate {
 		if err != nil {
 			fmt.Printf("Validation Failed:\n  %s\n", err)

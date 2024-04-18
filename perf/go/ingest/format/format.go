@@ -3,7 +3,6 @@ package format
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -207,7 +206,7 @@ func Parse(r io.Reader) (Format, error) {
 //
 // If there was an error loading the file a list of schema violations may be
 // returned also.
-func Validate(ctx context.Context, r io.Reader) ([]string, error) {
+func Validate(r io.Reader) ([]string, error) {
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to read bytes")
@@ -217,5 +216,5 @@ func Validate(ctx context.Context, r io.Reader) ([]string, error) {
 		return nil, skerr.Wrapf(err, "failed to parse")
 	}
 
-	return jsonschema.Validate(ctx, b, schema)
+	return jsonschema.Validate(b, schema)
 }

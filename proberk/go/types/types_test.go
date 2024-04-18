@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	_ "embed"
 	"testing"
 
@@ -9,12 +8,12 @@ import (
 )
 
 func TestLoadFromJSONFile_FileViolatesSchema_ReturnsError(t *testing.T) {
-	_, err := LoadFromJSONFile(context.Background(), "./testdata/invalid.json")
+	_, err := LoadFromJSONFile("./testdata/invalid.json")
 	require.Error(t, err)
 }
 
 func TestLoadFromJSONFile_ValidFile_Success(t *testing.T) {
-	probers, err := LoadFromJSONFile(context.Background(), "./testdata/probersk.json")
+	probers, err := LoadFromJSONFile("./testdata/probersk.json")
 	require.NoError(t, err)
 	require.Len(t, probers, 1)
 }
