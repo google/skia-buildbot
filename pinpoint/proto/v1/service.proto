@@ -214,7 +214,7 @@ message LegacyJobResponse {
 		message Change {
 			repeated Commit commits = 1;
 		}
-		repeated Change change = 1;
+		Change change = 1;
 
 		message Attempt {
 			message Execution {
@@ -232,11 +232,11 @@ message LegacyJobResponse {
 		}
 		repeated Attempt attempts = 2;
 
-		message Comparision {
+		message Comparison {
 			string next = 1;
 			string prev = 2;
 		}
-		Comparision comparisions = 3;
+		Comparison comparisons = 3;
 		repeated double values = 4;
 	}
 	repeated State state = 22;
