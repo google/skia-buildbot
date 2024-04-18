@@ -104,6 +104,18 @@ export class JobSk extends ElementSk {
           </td>
           <td></td>
         </tr>
+        ${ele.job!.startedAt && new Date(ele.job!.startedAt).getTime() > 0
+          ? html`
+              <tr>
+                <td>Started</td>
+                <td>
+                  <human-date-sk .date="${ele.job!.startedAt!}">
+                  </human-date-sk>
+                </td>
+                <td></td>
+              </tr>
+            `
+          : html``}
         ${ele.job!.finishedAt && new Date(ele.job!.finishedAt).getTime() > 0
           ? html`
               <tr>

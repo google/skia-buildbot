@@ -279,7 +279,7 @@ export const job2: Job = {
   buildbucketBuildId: '8855126827389415264',
   buildbucketLeaseKey: '',
   createdAt: new Date('2019-10-10T13:56:44.572122663Z').toUTCString(),
-  dbModifiedAt: new Date('2019-10-10T19:56:44.572122663Z').toUTCString(),
+  dbModifiedAt: new Date('2019-10-10T19:57:44.572122663Z').toUTCString(),
   dependencies: [
     {
       task: 'F',
@@ -313,6 +313,7 @@ export const job2: Job = {
   priority: '0.8',
   repoState: repoState,
   requestedAt: new Date('2019-10-10T13:55:44.572122663Z').toUTCString(),
+  startedAt: new Date('2019-10-10T13:57:44.572122663Z').toUTCString(),
   status: JobStatus.JOB_STATUS_IN_PROGRESS,
   statusDetails: 'job not finished',
   tasks: [

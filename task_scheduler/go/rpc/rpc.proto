@@ -431,6 +431,10 @@ message Job {
 	// the server received a force trigger job request, etc.
 	google.protobuf.Timestamp requested_at = 12;
 
+	// started_at is the timestamp at which the Job first entered
+	// JOB_STATUS_IN_PROGRESS.
+	google.protobuf.Timestamp started_at = 17;
+
 	// status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	JobStatus status = 13;
 

@@ -259,6 +259,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 						sklog.Errorf("Job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
 						j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)
 					}
+					j.Started = j.Created
 					newJobs = append(newJobs, j)
 				}
 			}

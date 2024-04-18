@@ -56,6 +56,7 @@ func MakeFullJob(now time.Time) *Job {
 			Repo: DEFAULT_TEST_REPO,
 		},
 		Requested:     now,
+		Started:       now.Add(5 * time.Nanosecond),
 		Status:        JOB_STATUS_SUCCESS,
 		StatusDetails: "All tasks succeeded!",
 		Tasks: map[string][]*TaskSummary{

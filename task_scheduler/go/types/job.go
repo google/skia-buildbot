@@ -160,6 +160,10 @@ type Job struct {
 	// the server received a force trigger job request, etc.
 	Requested time.Time `json:"requested"`
 
+	// Started is the timestamp at which the Job first entered
+	// JOB_STATUS_IN_PROGRESS.
+	Started time.Time `json:"started"`
+
 	// Status is the current Job status, default JOB_STATUS_IN_PROGRESS.
 	Status JobStatus `json:"status"`
 
@@ -212,6 +216,7 @@ func (j *Job) Copy() *Job {
 		Priority:               j.Priority,
 		RepoState:              j.RepoState.Copy(),
 		Requested:              j.Requested,
+		Started:                j.Started,
 		Status:                 j.Status,
 		StatusDetails:          j.StatusDetails,
 		Tasks:                  tasks,

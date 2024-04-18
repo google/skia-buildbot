@@ -500,6 +500,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		job.StatusDetails = util.Truncate(fmt.Sprintf("Failed to start Job: %s", skerr.Unwrap(startJobErr)), 1024)
 	} else {
 		job.Status = types.JOB_STATUS_IN_PROGRESS
+		job.Started = now.Now(ctx)
 	}
 
 	// Update the job and insert into the DB.

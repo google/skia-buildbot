@@ -675,6 +675,7 @@ export interface Job {
   priority: string;
   repoState?: RepoState;
   requestedAt?: string;
+  startedAt?: string;
   status: JobStatus;
   statusDetails: string;
   tasks?: TaskSummaries[];
@@ -694,6 +695,7 @@ interface JobJSON {
   priority?: string;
   repo_state?: RepoStateJSON;
   requested_at?: string;
+  started_at?: string;
   status?: string;
   status_details?: string;
   tasks?: TaskSummariesJSON[];
@@ -714,6 +716,7 @@ const JSONToJob = (m: JobJSON): Job => {
     priority: m.priority || "",
     repoState: m.repo_state && JSONToRepoState(m.repo_state),
     requestedAt: m.requested_at,
+    startedAt: m.started_at,
     status: (m.status || Object.keys(JobStatus)[0]) as JobStatus,
     statusDetails: m.status_details || "",
     tasks: m.tasks && m.tasks.map(JSONToTaskSummaries),
