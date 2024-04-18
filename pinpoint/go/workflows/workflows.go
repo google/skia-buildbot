@@ -22,6 +22,7 @@ import (
 const (
 	Bisect                = "perf.bisect"
 	BuildChrome           = "perf.build_chrome"
+	CatapultBisect        = "perf.catapult.bisect"
 	RunBenchmark          = "perf.run_benchmark"
 	SingleCommitRunner    = "perf.single_commit_runner"
 	PairwiseCommitsRunner = "perf.pairwise_commits_runner"

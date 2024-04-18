@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/workflows"
+	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.skia.org/infra/temporal/go/metrics"
 	"go.temporal.io/sdk/client"
@@ -75,6 +76,8 @@ func main() {
 
 	w.RegisterActivity(internal.PostBugCommentActivity)
 	w.RegisterWorkflowWithOptions(internal.PostBugCommentWorkflow, workflow.RegisterOptions{Name: workflows.BugUpdate})
+
+	w.RegisterWorkflowWithOptions(catapult.CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
