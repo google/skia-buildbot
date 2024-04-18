@@ -1,0 +1,65 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "notifier",
+    srcs = ["anomalygroupnotifier.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalygroup/notifier",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/query",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/vec32",
+        "//perf/go/alerts",
+        "//perf/go/anomalygroup/utils",
+        "//perf/go/clustering2",
+        "//perf/go/git/provider",
+        "//perf/go/ui/frame",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "notify_test",
+    srcs = ["anomalygroupnotifier_test.go"],
+    embed = [":notifier"],
+    deps = [
+        "//go/query",
+        "//go/testutils",
+        "//perf/go/alerts",
+        "//perf/go/anomalygroup/utils/mocks",
+        "//perf/go/chromeperf",
+        "//perf/go/chromeperf/mock",
+        "//perf/go/clustering2",
+        "//perf/go/config",
+        "//perf/go/dataframe",
+        "//perf/go/git/provider",
+        "//perf/go/notify/mocks",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+go_test(
+    name = "notifier_test",
+    srcs = ["anomalygroupnotifier_test.go"],
+    embed = [":notifier"],
+    deps = [
+        "//go/query",
+        "//perf/go/alerts",
+        "//perf/go/anomalygroup/utils/mocks",
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/git/provider",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

@@ -27,6 +27,7 @@ go_library(
         "//go/sklog",
         "//go/vec32",
         "//perf/go/alerts",
+        "//perf/go/anomalygroup/notifier",
         "//perf/go/chromeperf",
         "//perf/go/clustering2",
         "//perf/go/config",

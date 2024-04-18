@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "utils",
+    srcs = ["anomalygrouputils.go"],
+    importpath = "go.skia.org/infra/perf/go/anomalygroup/utils",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//perf/go/alerts",
+        "//perf/go/anomalygroup/proto/v1",
+        "//perf/go/backend/client",
+    ],
+)

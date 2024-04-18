@@ -15,6 +15,9 @@ const (
 	// alerting system
 	ChromeperfAlerting Type = "chromeperf"
 
+	// AnomalyGrouper means send the regression to grouping logic and take action as needed
+	AnomalyGrouper Type = "anomalygroup"
+
 	// None means do not send any notification.
 	None Type = "none"
 )

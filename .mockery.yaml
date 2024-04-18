@@ -240,6 +240,11 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/anomalygroup/utils:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      AnomalyGrouper:
   go.skia.org/infra/perf/go/chromeperf:
     config:
       dir: "{{.InterfaceDir}}/mock"

@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
+	ag "go.skia.org/infra/perf/go/anomalygroup/notifier"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -197,6 +198,8 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 		return newNotifier(f, tracker, URL), nil
 	case notifytypes.ChromeperfAlerting:
 		return NewChromePerfNotifier(ctx, nil)
+	case notifytypes.AnomalyGrouper:
+		return ag.NewAnomalyGroupNotifier(ctx, nil), nil
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)
 	}
