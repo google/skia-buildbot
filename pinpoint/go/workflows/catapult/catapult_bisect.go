@@ -1,6 +1,8 @@
 package catapult
 
 import (
+	"fmt"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
@@ -9,6 +11,44 @@ import (
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
+
+const (
+	BisectJobNameTemplate = "[Skia] Performance bisect on %s/%s"
+)
+
+// ConvertToCatapultResponseWorkflow converts raw data from a Skia bisection into a Catapult-supported format.
+func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.BisectParams, be *internal.BisectExecution) (*pinpoint_proto.LegacyJobResponse, error) {
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+
+	// Updated is not set because it has auto_now_add=True
+	// Non required fields that are not set:
+	//   - StartedTime
+	//   - Status: This property is derived from one of (failed, cancelled, completed or running), which
+	//      are all computed properties.
+	//   - Exception: TODO() Update this to also add exception details if we want to propagate jobs with
+	//      issues back to the UI
+	//   - CancelReason
+	//   - BatchID: Unsupported field from Skia Bisect
+	resp := &pinpoint_proto.LegacyJobResponse{
+		JobId:                be.JobId,
+		Configuration:        p.Request.GetConfiguration(),
+		ImprovementDirection: parseImprovementDir(p.GetImprovementDirection()),
+		BugId:                p.Request.GetBugId(),
+		Project:              p.Request.GetProject(),
+		ComparisonMode:       p.Request.GetComparisonMode(),
+		Name:                 fmt.Sprintf(BisectJobNameTemplate, p.Request.GetConfiguration(), p.Request.GetBenchmark()),
+		User:                 p.Request.GetUser(),
+		Created:              be.CreateTime,
+		DifferenceCount:      int32(len(be.Culprits)),
+		Metric:               p.Request.GetChart(),
+		Quests:               []string{"Build", "Test", "Get values"},
+	}
+
+	// TODO(jeffyoon@) - add parsers to translate raw data to state (attempts, comparisons, values, commits) and bots.
+
+	return resp, nil
+}
 
 // CatapultBisectWorkflow is a Skia-based bisect workflow that's backwards compatible to Catapult.
 //
@@ -24,6 +64,13 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be
 	if err := workflow.ExecuteChildWorkflow(ctx, internal.BisectWorkflow, p).Get(ctx, &bisectExecution); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
+	var resp *pinpoint_proto.LegacyJobResponse
+	if err := workflow.ExecuteChildWorkflow(ctx, ConvertToCatapultResponseWorkflow, p, bisectExecution).Get(ctx, &resp); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// TODO(jeffyoon@) - integrate with skia bridge call
 
 	return bisectExecution, nil
 }

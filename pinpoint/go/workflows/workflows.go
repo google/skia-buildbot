@@ -20,13 +20,14 @@ import (
 // the actual implementation.
 // TODO(b/326352379): introduce a specific type to encapsulate these workflow names
 const (
-	Bisect                = "perf.bisect"
-	BuildChrome           = "perf.build_chrome"
-	CatapultBisect        = "perf.catapult.bisect"
-	RunBenchmark          = "perf.run_benchmark"
-	SingleCommitRunner    = "perf.single_commit_runner"
-	PairwiseCommitsRunner = "perf.pairwise_commits_runner"
-	BugUpdate             = "perf.bug_update"
+	Bisect                            = "perf.bisect"
+	BuildChrome                       = "perf.build_chrome"
+	CatapultBisect                    = "perf.catapult.bisect"
+	ConvertToCatapultResponseWorkflow = "perf.catapult.response"
+	RunBenchmark                      = "perf.run_benchmark"
+	SingleCommitRunner                = "perf.single_commit_runner"
+	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
+	BugUpdate                         = "perf.bug_update"
 )
 
 // Workflow params definitions.
