@@ -110,7 +110,7 @@ func NewResults(r io.Reader) (*PerfResults, error) {
 		// If Name is not empty, it is a histogram
 		if entry.Name != "" {
 			entry.populateDiagnostics(md)
-			pr.Merge(entry.Histogram)
+			pr.merge(entry.Histogram)
 			continue
 		}
 		switch entry.Type {
@@ -153,7 +153,7 @@ func (pr *PerfResults) UnmarshalJSON(data []byte) error {
 		// If Name is not empty, it is a histogram
 		if entry.Name != "" {
 			entry.populateDiagnostics(md)
-			pr.Merge(entry.Histogram)
+			pr.merge(entry.Histogram)
 			continue
 		}
 		switch entry.Type {
@@ -176,8 +176,18 @@ func (pr *PerfResults) GetSampleValues(chart string) []float64 {
 	}
 }
 
-// Merge takes the given histogram and merges sample values.
-func (pr *PerfResults) Merge(other Histogram) {
+// MergeResults merges the given PerfResults histograms.
+//
+// This is used to merge all the results from multiple shards running from the same commit,
+// assuming all the rest metadata are the same.
+func (pr *PerfResults) MergeResults(other *PerfResults) {
+	for _, hist := range other.Histograms {
+		pr.merge(hist)
+	}
+}
+
+// merge takes the given histogram and merges sample values.
+func (pr *PerfResults) merge(other Histogram) {
 	if h, ok := pr.Histograms[other.Name]; ok {
 		other.SampleValues = append(h.SampleValues, other.SampleValues...)
 	}

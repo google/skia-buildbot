@@ -2,50 +2,12 @@ package perfresults
 
 import (
 	"context"
-	"flag"
-	"net/http"
-	"path"
 	"testing"
 
-	"cloud.google.com/go/httpreplay"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	swarmingv2 "go.chromium.org/luci/swarming/proto/api_v2"
 )
-
-var recordPath = flag.String("record_path", "", "The path the replayer writes real backend responses.")
-
-func setupReplay(t *testing.T, replayName string) *http.Client {
-	// if the recordPath is not given, then we will replay from the testdata;
-	// otherwise we will record the traffic and save to the given path;
-	if *recordPath == "" {
-		replayFile := path.Join("testdata", replayName)
-		hr, err := httpreplay.NewReplayer(replayFile)
-		require.NoError(t, err)
-
-		ctx, cancel := context.WithCancel(context.Background())
-		c, err := hr.Client(ctx)
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			hr.Close()
-			cancel()
-		})
-		return c
-	}
-
-	replayFile := path.Join(*recordPath, replayName)
-	hr, err := httpreplay.NewRecorder(replayFile, nil)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	c, err := hr.Client(ctx)
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		hr.Close()
-		cancel()
-	})
-	return c
-}
 
 func makeCAS(hash string, size int64) *swarmingv2.CASReference {
 	return &swarmingv2.CASReference{
