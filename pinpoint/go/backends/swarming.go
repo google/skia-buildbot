@@ -42,7 +42,7 @@ type SwarmingClient interface {
 	// TODO(jeffyoon@) remove once run_benchmark is refactored if no longer needed.
 	TriggerTask(ctx context.Context, req *swarmingV1.SwarmingRpcsNewTaskRequest) (*swarmingV1.SwarmingRpcsTaskRequestMetadata, error)
 
-	//FetchFreeBots gets a list of available bots per specified builder configuration.
+	// FetchFreeBots gets a list of available bots per specified builder configuration.
 	FetchFreeBots(ctx context.Context, builder string) ([]*swarmingV1.SwarmingRpcsBotInfo, error)
 }
 
