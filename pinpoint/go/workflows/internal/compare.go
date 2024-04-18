@@ -26,9 +26,10 @@ type CommitValues struct {
 }
 
 type CombinedResults struct {
-	Result      *compare.CompareResults
-	OtherResult *compare.CompareResults // record the other comparison
-	ResultType  string                  // either Functional or Performance
+	Result           *compare.CompareResults
+	OtherResult      *compare.CompareResults // record the other comparison
+	ResultType       string                  // either Functional or Performance
+	CommitPairValues CommitPairValues
 }
 
 // TODO(sunxiaodi@): Change GetAllDataForCompareLocalActivity to a regular function
@@ -84,13 +85,14 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 		}, nil
 	}
 	return &CombinedResults{
-		Result:      perfResult,
-		OtherResult: funcResult,
-		ResultType:  performance,
+		Result:           perfResult,
+		OtherResult:      funcResult,
+		ResultType:       performance,
+		CommitPairValues: allValues,
 	}, nil
 }
 
-func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64, dir compare.ImprovementDir) (*compare.CompareResults, error) {
+func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag float64, dir compare.ImprovementDir) (*CombinedResults, error) {
 	var commitPairAllValues CommitPairValues
 	if err := workflow.ExecuteLocalActivity(ctx, GetAllDataForCompareLocalActivity, lRun, hRun, chart).Get(ctx, &commitPairAllValues); err != nil {
 		return nil, skerr.Wrap(err)
@@ -101,7 +103,7 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 		return nil, skerr.Wrap(err)
 	}
 
-	return result.Result, nil
+	return result, nil
 }
 
 // ComparePairwiseActivity wraps compare.ComparePairwise as a temporal activity

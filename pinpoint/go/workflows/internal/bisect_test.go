@@ -58,7 +58,7 @@ func TestBisectWorkflow_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
-	var be *pb.BisectExecution
+	var be *BisectExecution
 	require.NoError(t, env.GetWorkflowResult(&be))
 	require.NotNil(t, be)
 	require.NotEmpty(t, be.JobId)

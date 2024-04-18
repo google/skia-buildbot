@@ -47,7 +47,7 @@ func defaultWorkflowOptions() client.StartWorkflowOptions {
 	}
 }
 
-func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
+func triggerBisectWorkflow(c client.Client) (*internal.BisectExecution, error) {
 	ctx := context.Background()
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/17ab3cfa9e0000
 	p := &workflows.BisectParams{
@@ -65,7 +65,7 @@ func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 			ImprovementDirection: "DOWN",
 		},
 	}
-	var be *pb.BisectExecution
+	var be *internal.BisectExecution
 	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), internal.BisectWorkflow, p)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Unable to execute workflow")

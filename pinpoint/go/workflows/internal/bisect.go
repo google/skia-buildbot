@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var benchmarkRunIterations = [...]int32{10, 20, 40, 80, 160}
@@ -85,8 +86,23 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpo
 	}
 }
 
+// BisectExecution is a mirror of pinpoint_proto.BisectExecution, with additional raw data.
+//
+// When this BisectExecution embeds pinpoint_proto.BisectExecution, it fails to store
+// CommitPairValues and BisectRuns, which are used to curate the information for Catapult
+// Pinpoint.
+// TODO(b/322203189) - This is a temporary solution for backwards compatibilty to the
+// Catapult UI and should be removed when the catapult package is deprecated.
+type BisectExecution struct {
+	JobId       string
+	Culprits    []*pinpoint_proto.CombinedCommit
+	CreateTime  *timestamppb.Timestamp
+	Comparisons []*CombinedResults
+	RunData     []*BisectRun
+}
+
 // BisectWorkflow is a Workflow definition that takes a range of git hashes and finds the culprit.
-func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoint_proto.BisectExecution, wkErr error) {
+func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *BisectExecution, wkErr error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithLocalActivityOptions(ctx, localActivityOptions)
@@ -94,9 +110,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 	logger := workflow.GetLogger(ctx)
 
 	jobID := uuid.New().String()
-	be = &pinpoint_proto.BisectExecution{
-		JobId:    jobID,
-		Culprits: []*pinpoint_proto.CombinedCommit{},
+	be = &BisectExecution{
+		JobId:       jobID,
+		Culprits:    []*pinpoint_proto.CombinedCommit{},
+		CreateTime:  timestamppb.Now(),
+		Comparisons: []*CombinedResults{},
 	}
 
 	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
@@ -195,7 +213,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 			}
 			pendings--
 			lower, higher := tracker.get(cr.Lower), tracker.get(cr.Higher)
-			result, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude, improvementDir)
+			compareResult, err := compareRuns(ctx, lower, higher, p.Request.Chart, magnitude, improvementDir)
 			// The compare fails but we continue to bisect for the remainings.
 			// TODO(sunxiaodi@): Revisit compare runs error handling. compare.ComparePerformance
 			// and compare.CompareFunctional should not return error but are written to return error.
@@ -205,7 +223,9 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 				logger.Warn(fmt.Sprintf("Failed to compare runs: %v", err))
 				continue
 			}
+			be.Comparisons = append(be.Comparisons, compareResult)
 
+			result := compareResult.Result
 			switch result.Verdict {
 			case compare.Unknown:
 				// Only push to stack if less than getMaxSampleSize(). At normalized magnitudes
@@ -313,6 +333,9 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoi
 	for pendings > 0 {
 		selector.Select(ctx)
 	}
+
+	be.RunData = make([]*BisectRun, len(tracker.runs))
+	copy(be.RunData, tracker.runs)
 
 	return be, nil
 }
