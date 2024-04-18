@@ -5,9 +5,7 @@ package android_skia_checkout
 import (
 	"context"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
 
 	"go.skia.org/infra/go/exec"
 )
@@ -43,15 +41,11 @@ func RunGnToBp(ctx context.Context, skiaCheckout string) error {
 	}
 
 	// Generate and add files created by gn/gn_to_bp.py
-	gnEnv := []string{
-		fmt.Sprintf("PATH=%s/:%s", path.Join(skiaCheckout, "bin"), os.Getenv("PATH")),
-		fmt.Sprintf("PYTHONPATH=%s", filepath.Join(skiaCheckout, "gn")),
-	}
+	gnPath := fmt.Sprintf("%s/bin/gn", skiaCheckout)
 	if _, gnToBpErr := exec.RunCommand(ctx, &exec.Command{
-		Env:  gnEnv,
 		Dir:  skiaCheckout,
-		Name: "python",
-		Args: []string{"-c", "from gn import gn_to_bp"},
+		Name: "python3",
+		Args: []string{"gn/gn_to_bp.py", "--gn", gnPath},
 	}); gnToBpErr != nil {
 		return fmt.Errorf("Failed to run gn_to_bp: %s", gnToBpErr)
 	}
