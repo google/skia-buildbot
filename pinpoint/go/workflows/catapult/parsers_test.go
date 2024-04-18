@@ -99,3 +99,44 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	assert.Equal(t, 1, len(actual.Bots))
 	assert.Equal(t, botID, actual.Bots[0])
 }
+
+// createCombinedResults a helper function to generate combinedresults
+func createCombinedResults(lower string, lowerValues []float64, higher string, higherValues []float64) *internal.CombinedResults {
+	return &internal.CombinedResults{
+		CommitPairValues: internal.CommitPairValues{
+			Lower: internal.CommitValues{
+				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(lower)),
+				Values: lowerValues,
+			},
+			Higher: internal.CommitValues{
+				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(higher)),
+				Values: higherValues,
+			},
+		},
+	}
+}
+
+func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *testing.T) {
+	// commit order from oldest to newest: 493a946, 2887740, 93dd3db, 836476df, f8e1800
+	comparisons := []*internal.CombinedResults{
+		// initial range
+		createCombinedResults("493a946", []float64{0.0}, "f8e1800", []float64{5.0}),
+		// midpoint comparisons with 93dd3db
+		createCombinedResults("93dd3db", []float64{3.0}, "f8e1800", []float64{5.0}),
+		createCombinedResults("493a946", []float64{0.0}, "93dd3db", []float64{3.0}),
+		// lower side midpoint 2887740 comparisons
+		createCombinedResults("493a946", []float64{0.0}, "2887740", []float64{1.0}),
+		createCombinedResults("2887740", []float64{1.0}, "93dd3db", []float64{3.0}),
+		// higher side midpoint 8d36476df comparisons
+		createCombinedResults("93dd3db", []float64{3.0}, "836476df", []float64{4.0}),
+		createCombinedResults("836476df", []float64{4.0}, "f8e1800", []float64{5.0}),
+	}
+	res := parseResultValuesPerCommit(comparisons)
+	require.NotNil(t, res)
+	assert.Equal(t, 5, len(res))
+	// spot checking a few
+	baseCommit := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946"))
+	assert.Equal(t, 0.0, res[baseCommit.Key()][0])
+	fourthCommit := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("836476df"))
+	assert.Equal(t, 4.0, res[fourthCommit.Key()][0])
+}

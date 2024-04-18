@@ -119,6 +119,19 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun) (map[uint
 	return commitToAttempts, bots, nil
 }
 
+// parseResultValuesPerCommit converts combinedresults into an accessible map of combinedcommit's keys to its values.
+//
+// This assumes that result values are re-used, so for Combined Commits that appear multiple times in comparisons
+// the values should be the same.
+func parseResultValuesPerCommit(comparisons []*internal.CombinedResults) map[uint32][]float64 {
+	resp := map[uint32][]float64{}
+	for _, comparison := range comparisons {
+		resp[comparison.CommitPairValues.Lower.Commit.Key()] = comparison.CommitPairValues.Lower.Values
+		resp[comparison.CommitPairValues.Higher.Commit.Key()] = comparison.CommitPairValues.Higher.Values
+	}
+	return resp
+}
+
 // parseRawDataToLegacyObject does the heavy lifting of converting all the raw run data to objects needed for the LegacyJobResponse.
 func parseRawDataToLegacyObject(ctx workflow.Context, comparisons []*internal.CombinedResults, runData []*internal.BisectRun) ([]*pinpoint_proto.LegacyJobResponse_State, []string, error) {
 	states := []*pinpoint_proto.LegacyJobResponse_State{}
