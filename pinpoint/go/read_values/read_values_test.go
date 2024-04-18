@@ -11,38 +11,33 @@ import (
 
 var testData = map[string]perfresults.PerfResults{
 	"rendering.desktop": {
-		Histograms: map[string]perfresults.Histogram{
-			"thread_total_rendering_cpu_time_per_frame": {
-				Name:         "thread_total_rendering_cpu_time_per_frame",
-				Unit:         "unitless_smallerIsBetter",
-				SampleValues: []float64{12.9322},
-			},
-			"tasks_per_frame_browser": {
-				Name:         "tasks_per_frame_browser",
-				Unit:         "unitless_smallerIsBetter",
-				SampleValues: []float64{0.3917, 0.34},
-			},
-			"empty_samples": {
-				Name:         "empty_samples",
-				Unit:         "unitless_smallerIsBetter",
-				SampleValues: nil,
-			},
-			"Compositing.Display.DrawToSwapUs": {
-				Name:         "Compositing.Display.DrawToSwapUs",
-				Unit:         "unitless_smallerIsBetter",
-				SampleValues: []float64{169.9406, 169.9406, 206.3219, 654.8641},
-			},
+		Histograms: map[perfresults.TraceKey]perfresults.Histogram{
+			{
+				ChartName: "thread_total_rendering_cpu_time_per_frame",
+				Unit:      "unitless_smallerIsBetter",
+			}: {SampleValues: []float64{12.9322}},
+			{
+				ChartName: "tasks_per_frame_browser",
+				Unit:      "unitless_smallerIsBetter",
+			}: {SampleValues: []float64{0.3917, 0.34}},
+			{
+				ChartName: "empty_samples",
+				Unit:      "unitless_smallerIsBetter",
+			}: {},
+			{
+				ChartName: "Compositing.Display.DrawToSwapUs",
+				Unit:      "unitless_smallerIsBetter",
+			}: {SampleValues: []float64{169.9406, 169.9406, 206.3219, 654.8641}},
 		},
 	},
 	// the possibility of two benchmarks in one results dataset
 	// is very unlikely. We test for it out of an abundance of caution.
 	"rendering.desktop.notracing": {
-		Histograms: map[string]perfresults.Histogram{
-			"thread_total_rendering_cpu_time_per_frame": {
-				Name:         "thread_total_rendering_cpu_time_per_frame",
-				Unit:         "unitless_smallerIsBetter",
-				SampleValues: []float64{0.78},
-			},
+		Histograms: map[perfresults.TraceKey]perfresults.Histogram{
+			{
+				ChartName: "thread_total_rendering_cpu_time_per_frame.Display.DrawToSwapUs",
+				Unit:      "unitless_smallerIsBetter",
+			}: {SampleValues: []float64{0.78}},
 		},
 	},
 }

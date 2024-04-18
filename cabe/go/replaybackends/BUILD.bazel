@@ -25,6 +25,7 @@ go_test(
     race = "on",
     deps = [
         "//bazel/go/bazel",
+        "//perf/go/perfresults",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -95,12 +95,13 @@ func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string,
 			return nil, skerr.Wrapf(err, "could not fetch results from CAS (%v)", digest)
 		}
 
-		if h, ok := res[benchmark].Histograms[chart]; ok {
-			if aggMethod != nil && h.SampleValues != nil {
-				values = append(values, aggMethod(h))
-			} else {
-				values = append(values, h.SampleValues...)
-			}
+		// res should be map[string]*PerfResults, right now we work around with the pointer.
+		pr := res[benchmark]
+		samples := (&pr).GetSampleValues(chart)
+		if aggMethod != nil && samples != nil {
+			values = append(values, aggMethod(perfresults.Histogram{SampleValues: samples}))
+		} else {
+			values = append(values, samples...)
 		}
 	}
 	return values, nil

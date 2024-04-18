@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/bazel/go/bazel"
+	"go.skia.org/infra/perf/go/perfresults"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,13 @@ func TestFromZipFile(t *testing.T) {
 	pr := casRes[benchmarkName]
 	require.NotNil(t, pr)
 	assert.Equal(t, 42, len(pr.Histograms))
-	assert.Contains(t, pr.Histograms, "blink_decode_time_gpu_rasterization")
+	assert.Contains(t, pr.Histograms, perfresults.TraceKey{
+		ChartName:    "blink_decode_time_gpu_rasterization",
+		Unit:         "ms_smallerIsBetter",
+		Story:        "motionmark_ramp_design",
+		Architecture: "arm64",
+		OSName:       "mac",
+	})
 	assert.Empty(t, pr.GetSampleValues("blink_decode_time_gpu_rasterization"))
 
 	swarmingRes, err := replayers.SwarmingTaskReader(ctx, "16f46f1c260000")
