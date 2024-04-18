@@ -12,6 +12,19 @@
         "skia-e-linux-600": 7,
         "skia-e-win-600": 8
       }
+    },
+    "PDU2": {
+      "address": "http://pdu2",
+      "ports": {
+        "skia-e-linux-618": 1,
+        "skia-e-linux-619": 2,
+        "skia-e-linux-620": 3,
+        "skia-e-linux-621": 4,
+        "skia-e-linux-622": 5,
+        "skia-e-linux-623": 6,
+        "skia-e-linux-610": 7,
+        "skia-e-linux-611": 8
+      }
     }
   }
 }
