@@ -583,6 +583,7 @@ func convertJob(job *types.Job) (*Job, error) {
 		Priority:            float32(job.Priority),
 		RepoState:           convertRepoState(job.RepoState),
 		RequestedAt:         timestamppb.New(job.Requested),
+		StartedAt:           timestamppb.New(job.Started),
 		Status:              status,
 		Tasks:               tasks,
 	}, nil

@@ -607,6 +607,7 @@ func TestConvertJob(t *testing.T) {
 			},
 		},
 		Requested: time.Unix(1600180000, 0),
+		Started:   time.Unix(1600183000, 0),
 		Status:    types.JOB_STATUS_FAILURE,
 		Tasks: map[string][]*types.TaskSummary{
 			"taskA": {
@@ -668,6 +669,7 @@ func TestConvertJob(t *testing.T) {
 			},
 		},
 		RequestedAt: timestamppb.New(time.Unix(1600180000, 0)),
+		StartedAt:   timestamppb.New(time.Unix(1600183000, 0)),
 		Status:      JobStatus_JOB_STATUS_FAILURE,
 		Tasks: []*TaskSummaries{
 			{
@@ -740,6 +742,7 @@ func TestConvertJob_NotStarted(t *testing.T) {
 			},
 		},
 		RequestedAt: timestamppb.New(time.Unix(1600180000, 0)),
+		StartedAt:   timestamppb.New(time.Time{}),
 		Status:      JobStatus_JOB_STATUS_REQUESTED,
 	}, actual)
 }
