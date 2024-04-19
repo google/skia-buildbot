@@ -73,7 +73,7 @@ bazel-test-rbe-nocache:
 
 .PHONY: eslint
 eslint:
-	-npx eslint --fix .
+	-npx eslint --quiet --fix .
 
 .PHONY: errcheck
 errcheck:

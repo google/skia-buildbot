@@ -1,18 +1,27 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_element", "ts_library")
 
 sk_element(
     name = "skottie-compatibility-sk",
+    sass_srcs = ["skottie-compatibility-sk.scss"],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/ajv",
         "//:node_modules/lit-html",
         "//skottie/modules:types_ts_lib",
         "//skottie/modules/skottie-compatibility-sk/schemas:lottie.schema_ts_lib",
+        "//skottie/modules/skottie-compatibility-sk/schemas:low-power-lottie-profile.schema_ts_lib",
+        ":profile-validator_ts_lib",
     ],
     ts_srcs = [
         "index.ts",
         "skottie-compatibility-sk.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "profile-validator_ts_lib",
+    srcs = ["profile-validator.ts"],
+    visibility = ["//visibility:public"],
+    deps = ["//:node_modules/ajv"],
 )

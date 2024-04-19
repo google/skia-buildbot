@@ -62,4 +62,4 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 
 .PHONY: watch-modules
 watch-modules:
-	while true; do inotifywait --event create,delete,move,modify modules/* && $(BAZEL) build --config=mayberemote //skottie/pages:index; done;
+	while true; do inotifywait -r --event create,delete,move,modify modules/* && $(BAZEL) build --config=mayberemote //skottie/pages:index; done;

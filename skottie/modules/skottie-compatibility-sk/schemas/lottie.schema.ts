@@ -1,7 +1,7 @@
 // Copied from https://lottie.github.io/lottie-spec/specs/schema/
 
 // prettier-ignore
-export const schema = {
+export const lottieSchema = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://lottie.github.io/lottie-spec/specs/schema/",
     "$ref": "#/$defs/composition/animation",
