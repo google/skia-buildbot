@@ -5,6 +5,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/workflows"
+	pb "go.skia.org/infra/pinpoint/proto/v1"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
 )
 
 func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
@@ -41,5 +50,100 @@ func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
 }
 
 func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
-	// TODO(viditchitkara@): Fill the simple case for the happy path
+	const leftCommit = "573a50658f4301465569c3faf00a145093a1fe9b"
+	const rightCommit = "a633e198b79b2e0c83c72a3006cdffe642871e22"
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	freeBots := []string{
+		"lin-1-h516--device1",
+		"build60-h7--device2",
+		"lin-2-h516--device1",
+		"build65-h7--device4",
+		"build59-h7--device2",
+	}
+
+	leftBuild := &workflows.Build{
+		BuildChromeParams: workflows.BuildChromeParams{
+			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+		},
+		Status: buildbucketpb.Status_SUCCESS,
+		CAS:    &swarmingV1.SwarmingRpcsCASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &swarmingV1.SwarmingRpcsDigest{Hash: "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb", SizeBytes: 810}},
+	}
+
+	rightBuild := &workflows.Build{
+		BuildChromeParams: workflows.BuildChromeParams{
+			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+		},
+		Status: buildbucketpb.Status_SUCCESS,
+		CAS:    &swarmingV1.SwarmingRpcsCASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &swarmingV1.SwarmingRpcsDigest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
+	}
+
+	p := PairwiseCommitsRunnerParams{
+		SingleCommitRunnerParams: SingleCommitRunnerParams{
+			PinpointJobID:     "179a34b2be0000",
+			BotConfig:         "linux-perf",
+			Benchmark:         "b1",
+			Story:             "gc-mini-tree.html",
+			Chart:             "gc-mini-tree",
+			AggregationMethod: "mean",
+			Iterations:        4,
+		},
+		Seed: 12312,
+		LeftBuild: workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+			},
+		},
+		RightBuild: workflows.Build{
+			BuildChromeParams: workflows.BuildChromeParams{
+				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+			},
+		},
+	}
+
+	fakeChartValues := []float64{1, 2, 3, 4}
+	left_trs, left_rc := generateTestRuns(p.Chart, int(p.Iterations), fakeChartValues)
+	right_trs, right_rc := generateTestRuns(p.Chart, int(p.Iterations), fakeChartValues)
+
+	env.RegisterWorkflowWithOptions(BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+
+	leftBuildChromeParams := p.LeftBuild.BuildChromeParams
+	leftBuildChromeParams.WorkflowID = p.PinpointJobID
+	leftBuildChromeParams.Device = p.BotConfig
+	leftBuildChromeParams.Target = "performance_test_suite"
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(leftBuild, nil).Once()
+
+	rightBuildChromeParams := p.RightBuild.BuildChromeParams
+	rightBuildChromeParams.WorkflowID = p.PinpointJobID
+	rightBuildChromeParams.Device = p.BotConfig
+	rightBuildChromeParams.Target = "performance_test_suite"
+	env.OnWorkflow(workflows.BuildChrome, mock.Anything, rightBuildChromeParams).Return(rightBuild, nil).Once()
+
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()
+
+	// The following 2 mock calls have arguments that vary which each iteration. Hence to make this
+	// test simpler we have accepted mock.Anything for those varying arguments.
+	env.OnWorkflow(workflows.RunBenchmark, mock.Anything, mock.Anything).Return(func(ctx workflow.Context, b *RunBenchmarkParams) (*workflows.TestRun, error) {
+		if b.Commit.Main.GitHash == leftCommit {
+			return <-left_rc, nil
+		}
+
+		return <-right_rc, nil
+	}).Times(2 * int(p.Iterations))
+	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, p.Benchmark, p.Chart, p.AggregationMethod).Return([]float64{1, 2, 3, 4}, nil).Times(2 * (int(p.Iterations) - 1))
+
+	env.ExecuteWorkflow(PairwiseCommitsRunnerWorkflow, p)
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var pr *PairwiseRun
+	require.NoError(t, env.GetWorkflowResult(&pr))
+	require.NotNil(t, pr)
+	require.Equal(t, *leftBuild, *pr.Left.Build)
+	require.Equal(t, *rightBuild, *pr.Right.Build)
+	require.EqualValues(t, left_trs, pr.Left.Runs)
+	require.EqualValues(t, right_trs, pr.Right.Runs)
+	env.AssertExpectations(t)
 }

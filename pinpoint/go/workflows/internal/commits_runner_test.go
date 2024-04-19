@@ -20,7 +20,7 @@ import (
 // generateTestRuns generates a test runs data
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generateTestRuns(chart string, c int) ([]*workflows.TestRun, chan *workflows.TestRun) {
+func generateTestRuns(chart string, c int, chartExpectedValues []float64) ([]*workflows.TestRun, chan *workflows.TestRun) {
 	rc := make(chan *workflows.TestRun, c)
 	trs := make([]*workflows.TestRun, c)
 	trs[0] = &workflows.TestRun{
@@ -33,7 +33,7 @@ func generateTestRuns(chart string, c int) ([]*workflows.TestRun, chan *workflow
 		trs[i] = &workflows.TestRun{
 			Status: run_benchmark.State(swarming.TASK_STATE_COMPLETED),
 			Values: map[string][]float64{
-				chart: {},
+				chart: chartExpectedValues,
 			},
 		}
 		rc <- &workflows.TestRun{
@@ -53,7 +53,8 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		Status: buildbucketpb.Status_SUCCESS,
 	}
 	const iterations, chart = 5, "fake-chart"
-	trs, rc := generateTestRuns(chart, iterations)
+	fakeChartValues := []float64{1, 2, 3, 4}
+	trs, rc := generateTestRuns(chart, iterations, fakeChartValues)
 
 	env.RegisterWorkflowWithOptions(BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
 	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
@@ -63,7 +64,7 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		return <-rc, nil
 	}).Times(iterations)
 	// TestRun with RunBenchmarkFailure status will not collect data
-	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]float64{}, nil).Times(iterations - 1)
+	env.OnActivity(CollectValuesActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(fakeChartValues, nil).Times(iterations - 1)
 
 	env.ExecuteWorkflow(SingleCommitRunner, &SingleCommitRunnerParams{
 		BotConfig:      "linux-perf",
