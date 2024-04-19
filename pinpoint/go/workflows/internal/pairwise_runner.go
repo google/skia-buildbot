@@ -142,11 +142,11 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	orders := [][2]int{{0, 1}, {1, 0}}
 	for i := 0; i < int(pc.Iterations); i++ {
 		pairIdx := pairs[i]
-		botDimension := []map[string]string{
-			{
-				"key":   "id",
-				"value": botIds[i%len(botIds)],
-			},
+		// TODO(sunxiaodi@): Consider defining these maps directly using the key/value
+		// pair rather than separate entries. See convertDimensions in swarming_helpers.go
+		botDimension := map[string]string{
+			"key":   "id",
+			"value": botIds[i%len(botIds)],
 		}
 
 		// We need to make a copy of i since the following is a closure. By making a

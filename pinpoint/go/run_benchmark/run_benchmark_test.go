@@ -15,6 +15,10 @@ import (
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
+var fakeBotID = map[string]string{
+	"key":   "id",
+	"value": "fake-botid-h7",
+}
 var req = RunBenchmarkRequest{
 	JobID:     "id",
 	Benchmark: "benchmark",
@@ -51,7 +55,7 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 		Return(&swarmingV1.SwarmingRpcsTaskRequestMetadata{
 			TaskId: "123",
 		}, nil).Once()
-	taskIds, err := Run(ctx, sc, c, "android-pixel2_webview-perf", "performance_browser_tests", "story", "all", fakeID, buildArtifact, 1, nil)
+	taskIds, err := Run(ctx, sc, c, "android-pixel2_webview-perf", "performance_browser_tests", "story", "all", fakeID, buildArtifact, 1, fakeBotID)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(taskIds))
 	assert.Equal(t, "123", taskIds[0].TaskId)

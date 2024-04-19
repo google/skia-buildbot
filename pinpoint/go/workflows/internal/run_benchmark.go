@@ -33,7 +33,7 @@ type RunBenchmarkParams struct {
 	// story tags for the test
 	StoryTags string
 	// additional dimensions for bot selection
-	Dimensions []map[string]string
+	Dimensions map[string]string
 	// iteration for the benchmark run. A few workflows have multiple iterations of
 	// benchmark runs and this param comes in handy to get additional info of a specific run.
 	// This is for debugging/informational purposes only.
@@ -93,7 +93,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 	}, nil
 }
 
-// ScheduleTaskActivity wraps BuildChromeClient.SearchOrBuild
+// ScheduleTaskActivity wraps run_benchmark.Run
 func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *RunBenchmarkParams) (string, error) {
 	logger := activity.GetLogger(ctx)
 

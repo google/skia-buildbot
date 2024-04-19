@@ -121,7 +121,7 @@ func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel
 	return runs
 }
 
-func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions []map[string]string, iteration int64) (*workflows.TestRun, error) {
+func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int64) (*workflows.TestRun, error) {
 	var tr *workflows.TestRun
 	rbp := &RunBenchmarkParams{
 		JobID:        scrp.PinpointJobID,
