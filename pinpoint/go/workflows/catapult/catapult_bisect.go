@@ -45,7 +45,13 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		Quests:               []string{"Build", "Test", "Get values"},
 	}
 
-	// TODO(jeffyoon@) - add parsers to translate raw data to state (attempts, comparisons, values, commits) and bots.
+	state, bots, err := parseRawDataToLegacyObject(ctx, be.Comparisons, be.RunData)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	resp.State = state
+	resp.Bots = bots
 
 	return resp, nil
 }
