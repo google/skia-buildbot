@@ -140,3 +140,26 @@ func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *t
 	fourthCommit := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("836476df"))
 	assert.Equal(t, 4.0, res[fourthCommit.Key()][0])
 }
+
+func TestParseArguments(t *testing.T) {
+	request := &pinpoint_proto.ScheduleBisectRequest{
+		ComparisonMode:       "performance",
+		StartGitHash:         "d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1",
+		EndGitHash:           "81a6a08061d9a2da7413021bce961d125dc40ca2",
+		Configuration:        "win-10_laptop_low_end-perf",
+		Benchmark:            "blink_perf.owp_storage",
+		Story:                "blob-perf-shm.html",
+		Chart:                "blob-perf-shm",
+		ComparisonMagnitude:  "21.9925",
+		Project:              "chromium",
+		InitialAttemptCount:  "20",
+		ImprovementDirection: "DOWN",
+	}
+
+	arguments, err := parseArguments(request)
+	require.NoError(t, err)
+	assert.Equal(t, "performance_test_suite", arguments.Target)
+	assert.Equal(t, float64(21.9925), arguments.ComparisonMagnitude)
+	assert.Equal(t, int32(20), arguments.InitialAttemptCount)
+	assert.Nil(t, arguments.Tags)
+}

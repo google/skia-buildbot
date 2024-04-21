@@ -15,6 +15,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//pinpoint/go/backends",
+        "//pinpoint/go/bot_configs",
         "//pinpoint/go/compare",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/internal",

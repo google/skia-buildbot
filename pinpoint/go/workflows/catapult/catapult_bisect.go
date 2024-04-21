@@ -45,6 +45,12 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		Quests:               []string{"Build", "Test", "Get values"},
 	}
 
+	arguments, err := parseArguments(p.Request)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	resp.Arguments = arguments
+
 	state, bots, err := parseRawDataToLegacyObject(ctx, be.Comparisons, be.RunData)
 	if err != nil {
 		return nil, skerr.Wrap(err)

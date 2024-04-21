@@ -1,10 +1,13 @@
 package catapult
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
@@ -150,4 +153,57 @@ func parseRawDataToLegacyObject(ctx workflow.Context, comparisons []*internal.Co
 	// TODO(jeffyoon@) - create state objects and append to states list.
 
 	return states, bots, nil
+}
+
+func parseArguments(request *pinpoint_proto.ScheduleBisectRequest) (*pinpoint_proto.LegacyJobResponse_Argument, error) {
+	// Unsupported: ExtraTestArgs, Pin, BatchId
+	args := &pinpoint_proto.LegacyJobResponse_Argument{
+		ComparisonMode: request.GetComparisonMode(),
+		StartGitHash:   request.GetStartGitHash(),
+		EndGitHash:     request.GetEndGitHash(),
+		Trace:          request.GetChart(),
+		Configuration:  request.GetConfiguration(),
+		Benchmark:      request.GetBenchmark(),
+		Story:          request.GetStory(),
+		StoryTags:      request.GetStoryTags(),
+		Chart:          request.GetChart(),
+		Statistic:      request.GetStatistic(),
+		Project:        request.GetProject(),
+		BugId:          request.GetBugId(),
+	}
+
+	if request.GetBenchmark() != "" && request.GetConfiguration() != "" {
+		target, err := bot_configs.GetIsolateTarget(request.GetConfiguration(), request.GetBenchmark())
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		args.Target = target
+	}
+
+	if request.GetInitialAttemptCount() != "" {
+		initAttemptCount, err := strconv.ParseInt(request.GetInitialAttemptCount(), 10, 32)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		args.InitialAttemptCount = int32(initAttemptCount)
+	}
+
+	if request.GetComparisonMagnitude() != "" {
+		comparisonMagnitude, err := strconv.ParseFloat(request.GetComparisonMagnitude(), 64)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		args.ComparisonMagnitude = comparisonMagnitude
+	}
+
+	if request.GetTags() != "" {
+		var tags map[string]string
+		if err := json.Unmarshal([]byte(request.GetTags()), &tags); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		args.Tags = tags
+	}
+
+	return args, nil
 }
