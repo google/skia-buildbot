@@ -9,24 +9,24 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
 # This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
+infra/tools/cipd/${os}-${arch}  git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
 
 @Subdir cipd_bin_packages
-infra/3pp/tools/git/linux-amd64                  version:2@2.44.0.chromium.11
-infra/3pp/tools/git/linux-arm64                  version:2@2.44.0.chromium.11
-infra/3pp/tools/git/linux-armv6l                 version:2@2.44.0.chromium.11
-infra/3pp/tools/git/mac-amd64                    version:2@2.44.0.chromium.11
+infra/3pp/tools/git/linux-amd64                  version:2@2.45.0-rc0.chromium.11
+infra/3pp/tools/git/linux-arm64                  version:2@2.45.0-rc0.chromium.11
+infra/3pp/tools/git/linux-armv6l                 version:2@2.45.0-rc0.chromium.11
+infra/3pp/tools/git/mac-amd64                    version:2@2.45.0-rc0.chromium.11
 infra/3pp/tools/git/windows-386                  version:2@2.44.0.chromium.11
 infra/3pp/tools/git/windows-amd64                version:2@2.44.0.chromium.11
-infra/tools/git/${platform}                      git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci-auth/${platform}                git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci/git-credential-luci/${platform} git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci/isolate/${platform}             git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci/lucicfg/${platform}             git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci/swarming/${platform}            git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
-infra/tools/luci/vpython/${platform}             git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
+infra/tools/git/${platform}                      git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci-auth/${platform}                git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci/git-credential-luci/${platform} git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci/isolate/${platform}             git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci/lucicfg/${platform}             git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci/swarming/${platform}            git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+infra/tools/luci/vpython/${platform}             git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
 skia/bots/gsutil                                 version:6
-skia/tools/goldctl/${platform}                   git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
+skia/tools/goldctl/${platform}                   git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
 
 @subdir cipd_bin_packages/cpython
 infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.47
@@ -45,10 +45,10 @@ infra/3pp/tools/cpython3/windows-386             version:2@3.11.7.chromium.31
 infra/3pp/tools/cpython3/windows-amd64           version:2@3.11.7.chromium.31
 
 @subdir task_drivers
-skia/tools/bazel_build_all/${platform}           git_revision:dcb627bc133f61cf6204136be4f74288ca13ac92
-skia/tools/bazel_test_all/${platform}            git_revision:dcb627bc133f61cf6204136be4f74288ca13ac92
-skia/tools/command_wrapper/${platform}           git_revision:dcb627bc133f61cf6204136be4f74288ca13ac92
-skia/tools/presubmit/${platform}                 git_revision:dcb627bc133f61cf6204136be4f74288ca13ac92
+skia/tools/bazel_build_all/${platform}           git_revision:e8d0ea559f946a41ad3ccd5fb308b5eb21a469ec
+skia/tools/bazel_test_all/${platform}            git_revision:e8d0ea559f946a41ad3ccd5fb308b5eb21a469ec
+skia/tools/command_wrapper/${platform}           git_revision:e8d0ea559f946a41ad3ccd5fb308b5eb21a469ec
+skia/tools/presubmit/${platform}                 git_revision:e8d0ea559f946a41ad3ccd5fb308b5eb21a469ec
 
 @Subdir
-infra/tools/luci/kitchen/${platform}             git_revision:31ae26ee1b53fdc1b50b3bc4393b8468630dbc36
+infra/tools/luci/kitchen/${platform}             git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
