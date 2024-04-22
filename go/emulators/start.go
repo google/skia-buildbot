@@ -18,7 +18,10 @@ type EmulatorLauncherFn func() (bool, error)
 // environment variable wasn't set, or starts a new emulator instance under RBE if necessary.
 // This should not be called by unit tests directly, but rather by the subpackages of this module.
 func RequireEmulator(t sktest.TestingT, emulator Emulator, fn EmulatorLauncherFn) {
-	setUpEmulatorBazelRBEOnly(t, emulator, fn)
+	if bazel.InBazelTestOnRBE() {
+		setUpEmulatorBazelRBEOnly(t, emulator, fn)
+		return
+	}
 
 	// When running locally, the developer is responsible for running any necessary emulators.
 	host := GetEmulatorHostEnvVar(emulator)
