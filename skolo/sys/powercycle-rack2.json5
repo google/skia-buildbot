@@ -18,6 +18,18 @@
         "skia-e-win-271": 15,
         "skia-e-win-270": 16,
       }
+    },
+    "PDU3": {
+      address: "http://pdu3",
+      ports: {
+        "skia-e-win-205": 1,
+        "skia-e-win-204": 2,
+        "skia-e-win-203": 3,
+        "skia-e-win-202": 4,
+        "skia-e-win-201": 5,
+        "skia-e-linux-207": 6,
+        "skia-e-win-206": 7
+      }
     }
   }
 }
