@@ -37,7 +37,7 @@ type RunBenchmarkParams struct {
 	// iteration for the benchmark run. A few workflows have multiple iterations of
 	// benchmark runs and this param comes in handy to get additional info of a specific run.
 	// This is for debugging/informational purposes only.
-	IterationIdx int64
+	IterationIdx int32
 }
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities

@@ -65,7 +65,8 @@ func (br *BisectRun) scheduleRuns(ctx workflow.Context, jobID string, p workflow
 		// nothing to schedule, safely return
 		return nil, nil
 	}
-	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, br.Build.Commit))
+	finishedIteration := int32(len(br.CommitRun.Runs))
+	cf := workflow.ExecuteChildWorkflow(ctx, workflows.SingleCommitRunner, newRunnerParams(jobID, p, newRuns, br.Build.Commit, finishedIteration))
 	br.ScheduledRuns = append(br.ScheduledRuns, scheduledRun{
 		childWorkflow:  cf,
 		scheduledCount: uint32(newRuns),

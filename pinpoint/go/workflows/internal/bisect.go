@@ -73,7 +73,7 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 	}
 }
 
-func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpoint.CombinedCommit) *SingleCommitRunnerParams {
+func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpoint.CombinedCommit, finishedIteration int32) *SingleCommitRunnerParams {
 	return &SingleCommitRunnerParams{
 		CombinedCommit:    cc,
 		PinpointJobID:     jobID,
@@ -83,6 +83,8 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpo
 		Chart:             p.Request.Chart,
 		AggregationMethod: p.Request.AggregationMethod,
 		Iterations:        it,
+		FinishedIteration: finishedIteration,
+		BotIds:            p.BotIds,
 	}
 }
 
@@ -142,6 +144,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 			mh.Counter("bisect_found_culprit_count").Inc(1)
 		}
 	}()
+
+	// Find the available bot list
+	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, p.Request.Configuration, time.Now().UnixNano()).Get(ctx, &p.BotIds); err != nil {
+		return nil, skerr.Wrapf(err, "failed to find available bots")
+	}
 
 	magnitude := p.GetMagnitude()
 	improvementDir := p.GetImprovementDirection()

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -102,4 +103,71 @@ func TestAllValues_GivenNilValues_ReturnsNonNilValues(t *testing.T) {
 	}
 	actual := cr.AllValues(chart)
 	assert.Equal(t, []float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0}, actual)
+}
+
+func TestGetBotDimensions_GivenValidInput_ShouldReturnBotDimensions(t *testing.T) {
+	freeBots := []string{
+		"build-h1-device0",
+		"build-h1-device1",
+		"build-h1-device2",
+		"build-h1-device3",
+		"build-h1-device4",
+	}
+
+	type args struct {
+		finishedIteration int32
+		iteration         int32
+	}
+
+	wantDevice1 := map[string]string{
+		"key":   "id",
+		"value": "build-h1-device1",
+	}
+
+	wantDevice2 := map[string]string{
+		"key":   "id",
+		"value": "build-h1-device2",
+	}
+
+	wantDevice4 := map[string]string{
+		"key":   "id",
+		"value": "build-h1-device4",
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want map[string]string
+	}{
+		{
+			name: "The first round of commit run with no finished iteration",
+			args: args{0, 1},
+			want: wantDevice1,
+		},
+		{
+			name: "Commit run total iteration number smaller than bot number",
+			args: args{1, 3},
+			want: wantDevice4,
+		},
+		{
+			name: "Commit run total iteration number larger than bot number",
+			args: args{4, 8},
+			want: wantDevice2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := getBotDimension(tt.args.finishedIteration, tt.args.iteration, freeBots)
+			assert.Equal(t, tt.want, got, fmt.Sprintf("Test case %s failed!", tt.name))
+		})
+	}
+}
+
+func TestGetBotDimensions_GivenInValidInput_ShouldNotReturnBotDimensions(t *testing.T) {
+	gotBotDimensionsWithNilBotList := getBotDimension(1, 2, nil)
+	assert.Equal(t, (map[string]string)(nil), gotBotDimensionsWithNilBotList)
+
+	gotBotDimensionsWithEmptyBotList := getBotDimension(1, 2, make([]string, 0))
+	assert.Equal(t, (map[string]string)(nil), gotBotDimensionsWithEmptyBotList)
 }

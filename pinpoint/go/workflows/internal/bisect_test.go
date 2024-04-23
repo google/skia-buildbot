@@ -43,12 +43,20 @@ func TestBisectWorkflow_SimpleNoDiffCommits_ShouldReturnEmptyCommit(t *testing.T
 	}
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+	freeBots := []string{
+		"lin-1-h516--device1",
+		"build60-h7--device2",
+		"lin-2-h516--device1",
+		"build65-h7--device4",
+		"build59-h7--device2",
+	}
 
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun).Times(2)
 	env.OnActivity(GetAllDataForCompareLocalActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockedGetAllDataForCompareLocalActivity).Once()
 	env.OnActivity(CompareActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mockResult, nil).Once()
+	env.OnActivity(FindAvailableBotsActivity, mock.Anything, mock.Anything, mock.Anything).Return(freeBots, nil).Once()
 
 	env.ExecuteWorkflow(BisectWorkflow, &workflows.BisectParams{
 		Request: &pb.ScheduleBisectRequest{

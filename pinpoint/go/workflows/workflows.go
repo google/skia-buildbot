@@ -78,6 +78,8 @@ type TestRun struct {
 type BisectParams struct {
 	// BisectWorkflow reuses BisectRequest message
 	Request *pb.ScheduleBisectRequest
+	// Available bot list
+	BotIds []string
 }
 
 // GetMagnitude returns the magnitude as float64.

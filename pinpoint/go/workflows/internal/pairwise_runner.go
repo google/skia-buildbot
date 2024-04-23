@@ -152,7 +152,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		// We need to make a copy of i since the following is a closure. By making a
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
-		iteration := int64(i)
+		iteration := int32(i)
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 

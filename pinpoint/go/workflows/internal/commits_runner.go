@@ -46,6 +46,15 @@ type SingleCommitRunnerParams struct {
 	// Note the collected sampled values can be more than iterations as each iteration produce
 	// more than one samples.
 	Iterations int32
+
+	// Finished number of iterations of benchmark test
+	// In the bisect jobs, one commit run will start with an initial number of iteration
+	// If the compare result is not significant enough, then extra number of iteration will be added to that commit
+	// We need this attribute to record the finished number of iterations
+	FinishedIteration int32
+
+	// Available bot list
+	BotIds []string
 }
 
 // CommitRun stores benchmark tests runs for a single commit
@@ -121,7 +130,7 @@ func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel
 	return runs
 }
 
-func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int64) (*workflows.TestRun, error) {
+func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int32) (*workflows.TestRun, error) {
 	var tr *workflows.TestRun
 	rbp := &RunBenchmarkParams{
 		JobID:        scrp.PinpointJobID,
@@ -182,11 +191,12 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 		// We need to make a copy of i since the following is a closure. By making a
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
-		iteration := int64(i)
+		iteration := int32(i)
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
-			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc, nil, iteration)
+			botDimensions := getBotDimension(sc.FinishedIteration, iteration, sc.BotIds)
+			tr, err := runBenchmark(gCtx, sc.CombinedCommit, b.CAS, sc, botDimensions, iteration)
 
 			if err != nil {
 				ec.Send(gCtx, err)
@@ -209,6 +219,18 @@ func SingleCommitRunner(ctx workflow.Context, sc *SingleCommitRunnerParams) (*Co
 		Build: b,
 		Runs:  runs,
 	}, nil
+}
+
+func getBotDimension(finishedIteration int32, iteration int32, botIds []string) map[string]string {
+	if len(botIds) == 0 {
+		return nil
+	}
+
+	botDimension := map[string]string{
+		"key":   "id",
+		"value": (botIds)[(finishedIteration+iteration)%int32(len(botIds))],
+	}
+	return botDimension
 }
 
 // CollectValuesActivity is an activity to collect sampled values from a single test run.
