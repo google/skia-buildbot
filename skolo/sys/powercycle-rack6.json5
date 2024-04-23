@@ -7,10 +7,10 @@
         "switch1": 2,
         "switch2": 3,
         "jumphost": 4,
-        "switch3": 5,
-        "switch4": 6,
+        "skie-e-win-601": 6,
         "skia-e-linux-600": 7,
-        "skia-e-win-600": 8
+        "skia-e-win-600": 8,
+        "skia-e-linux-601": 9
       }
     },
     "PDU2": {
@@ -23,7 +23,14 @@
         "skia-e-linux-622": 5,
         "skia-e-linux-623": 6,
         "skia-e-linux-610": 7,
-        "skia-e-linux-611": 8
+        "skia-e-linux-611": 8,
+        "skia-e-linux-612": 9,
+        "skia-e-linux-614": 10,
+        "skia-e-linux-615": 11,
+        "skia-e-linux-616": 12,
+        "skia-e-linux-617": 13,
+        "skia-e-linux-613": 14,
+        "skia-e-win-610": 16
       }
     }
   }
