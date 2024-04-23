@@ -302,7 +302,7 @@ func (r *Runner) Run(ctx context.Context, local bool, req *types.FiddleContext) 
 					sklog.Warningf("%q Couldn't run on pod: %s", req.Hash, err)
 					continue
 				} else {
-					return ret, err
+					return ret, skerr.Wrapf(err, "Problem running fiddle %s", req.Hash)
 				}
 			}
 			// Let the pods run and see of any new ones open up.
