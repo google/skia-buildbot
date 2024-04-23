@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	pb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestValidateConfig_ValidConfig(t *testing.T) {
@@ -279,4 +279,50 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 	err := ValidateConfig(config)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Found duplicated subscription name: Sub Test. Names must be unique.")
+}
+
+func TestDeerializeProto_BadEncoding(t *testing.T) {
+	// Pass non-encoded string
+	content := "abcdef1234"
+	_, err := DeserializeProto(content)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to decode Base64 string")
+
+}
+
+func TestDeserializeProto_InvalidPrototext(t *testing.T) {
+	// Decoded translates to invalid sheriff config:
+	// 	subscriptions {
+	// 		invalidfield: "a"
+	//	}
+	content := "c3Vic2NyaXB0aW9ucyB7CglpbnZhbGlkZmllbGQ6ICJhIgp9"
+	_, err := DeserializeProto(content)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Failed to unmarshal prototext")
+}
+
+func TestDeserializeProto_ValidPrototext(t *testing.T) {
+	// Decoded translates to invalid sheriff config:
+	//  subscriptions {
+	//      name: "a"
+	//  }
+	content := "c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKfQ=="
+	config, err := DeserializeProto(content)
+
+	require.NoError(t, err)
+
+	expectedconfig := &pb.SheriffConfig{
+		Subscriptions: []*pb.Subscription{
+			{
+				Name: "a",
+			},
+		},
+	}
+
+	// Use proto.Equal for comparison
+	if !proto.Equal(config, expectedconfig) {
+		t.Errorf("Protos are not equal")
+	}
 }

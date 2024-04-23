@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//perf/go/sheriffconfig/proto/v1",
+        "@org_golang_google_protobuf//encoding/prototext",
     ],
 )
 
@@ -20,5 +21,6 @@ go_test(
         "//perf/go/sheriffconfig/proto/v1",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
+        "@org_golang_google_protobuf//proto",
     ],
 )
