@@ -28,7 +28,9 @@
         "skia-e-win-202": 4,
         "skia-e-win-201": 5,
         "skia-e-linux-207": 6,
-        "skia-e-win-206": 7
+        "skia-e-win-206": 7,
+        "skia-e-linux-218": 8,
+        "skia-e-linux-215": 9
       }
     }
   }
