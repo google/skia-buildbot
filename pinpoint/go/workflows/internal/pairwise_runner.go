@@ -19,13 +19,15 @@ import (
 type PairwiseCommitsRunnerParams struct {
 	SingleCommitRunnerParams
 
+	// LeftCommit and RightCommit specify the two commits the pairwise runner will compare.
+	// SingleCommitRunnerParams includes a field for only one commit.
+	LeftCommit, RightCommit *midpoint.CombinedCommit
+
 	// The random seed used to generate pairs.
 	Seed int64
-
-	// LeftBuild and RightBuild to run in pair.
-	LeftBuild, RightBuild workflows.Build
 }
 
+// PairwiseRun is the output of the PairwiseCommitsRunnerWorkflow
 type PairwiseRun struct {
 	Left, Right CommitRun
 }
@@ -103,20 +105,14 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	// TODO(b/332391612): viditchitkara@ Build chrome for leftBuild and rightBuild in parallel
 	// to save time.
 
-	if pc.LeftBuild.CAS == nil {
-		leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftBuild.Commit)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftBuild.Commit.Main.GitHash)
-		}
-		pc.LeftBuild = *leftBuild
+	leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
 	}
 
-	if pc.RightBuild.CAS == nil {
-		rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightBuild.Commit)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightBuild.Commit.Main.GitHash)
-		}
-		pc.RightBuild = *rightBuild
+	rightBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.RightCommit)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
 	}
 
 	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
@@ -126,13 +122,13 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		ch  workflow.Channel
 	}{
 		{
-			cc:  pc.LeftBuild.Commit,
-			cas: pc.LeftBuild.CAS,
+			cc:  leftBuild.Commit,
+			cas: leftBuild.CAS,
 			ch:  leftRunCh,
 		},
 		{
-			cc:  pc.RightBuild.Commit,
-			cas: pc.RightBuild.CAS,
+			cc:  rightBuild.Commit,
+			cas: rightBuild.CAS,
 			ch:  rightRunCh,
 		},
 	}
@@ -183,11 +179,11 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 	return &PairwiseRun{
 		Left: CommitRun{
-			Build: &pc.LeftBuild,
+			Build: leftBuild,
 			Runs:  leftRuns,
 		},
 		Right: CommitRun{
-			Build: &pc.RightBuild,
+			Build: rightBuild,
 			Runs:  rightRuns,
 		},
 	}, nil

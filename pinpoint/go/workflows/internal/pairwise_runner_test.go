@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -83,23 +84,15 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		SingleCommitRunnerParams: SingleCommitRunnerParams{
 			PinpointJobID:     "179a34b2be0000",
 			BotConfig:         "linux-perf",
-			Benchmark:         "b1",
+			Benchmark:         "blink-perf.css",
 			Story:             "gc-mini-tree.html",
 			Chart:             "gc-mini-tree",
 			AggregationMethod: "mean",
 			Iterations:        4,
 		},
-		Seed: 12312,
-		LeftBuild: workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
-			},
-		},
-		RightBuild: workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
-			},
-		},
+		Seed:        12312,
+		LeftCommit:  midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+		RightCommit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
 	}
 
 	fakeChartValues := []float64{1, 2, 3, 4}
@@ -108,17 +101,23 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 
 	env.RegisterWorkflowWithOptions(BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
 	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+	target, err := bot_configs.GetIsolateTarget(p.BotConfig, p.Benchmark)
+	require.NoError(t, err)
 
-	leftBuildChromeParams := p.LeftBuild.BuildChromeParams
-	leftBuildChromeParams.WorkflowID = p.PinpointJobID
-	leftBuildChromeParams.Device = p.BotConfig
-	leftBuildChromeParams.Target = "performance_test_suite"
+	leftBuildChromeParams := workflows.BuildChromeParams{
+		WorkflowID: p.PinpointJobID,
+		Device:     p.BotConfig,
+		Target:     target,
+		Commit:     p.LeftCommit,
+	}
 	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(leftBuild, nil).Once()
 
-	rightBuildChromeParams := p.RightBuild.BuildChromeParams
-	rightBuildChromeParams.WorkflowID = p.PinpointJobID
-	rightBuildChromeParams.Device = p.BotConfig
-	rightBuildChromeParams.Target = "performance_test_suite"
+	rightBuildChromeParams := workflows.BuildChromeParams{
+		WorkflowID: p.PinpointJobID,
+		Device:     p.BotConfig,
+		Target:     target,
+		Commit:     p.RightCommit,
+	}
 	env.OnWorkflow(workflows.BuildChrome, mock.Anything, rightBuildChromeParams).Return(rightBuild, nil).Once()
 
 	env.OnActivity(FindAvailableBotsActivity, mock.Anything, p.BotConfig, p.Seed).Return(freeBots, nil).Once()

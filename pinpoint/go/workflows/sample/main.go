@@ -92,31 +92,9 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 			CombinedCommit:    midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
 			Iterations:        6,
 		},
-		Seed: 54321,
-		LeftBuild: workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "573a50658f4301465569c3faf00a145093a1fe9b"}), // 1284448
-			},
-			CAS: &swarmingV1.SwarmingRpcsCASReference{
-				CasInstance: "projects/chrome-swarming/instances/default_instance",
-				Digest: &swarmingV1.SwarmingRpcsDigest{
-					Hash:      "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb",
-					SizeBytes: 810,
-				},
-			},
-		},
-		RightBuild: workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "a633e198b79b2e0c83c72a3006cdffe642871e22"}), // 1284449
-			},
-			CAS: &swarmingV1.SwarmingRpcsCASReference{
-				CasInstance: "projects/chrome-swarming/instances/default_instance",
-				Digest: &swarmingV1.SwarmingRpcsDigest{
-					Hash:      "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6",
-					SizeBytes: 810,
-				},
-			},
-		},
+		Seed:        54321,
+		LeftCommit:  midpoint.NewCombinedCommit(&pb.Commit{GitHash: "573a50658f4301465569c3faf00a145093a1fe9b"}), // 1284448
+		RightCommit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "a633e198b79b2e0c83c72a3006cdffe642871e22"}), // 1284449
 	}
 
 	var pr *internal.PairwiseRun

@@ -70,6 +70,7 @@ go_test(
         "//go/testutils",
         "//go/vcsinfo",
         "//pinpoint/go/backends",
+        "//pinpoint/go/bot_configs",
         "//pinpoint/go/compare",
         "//pinpoint/go/midpoint",
         "//pinpoint/go/run_benchmark",
