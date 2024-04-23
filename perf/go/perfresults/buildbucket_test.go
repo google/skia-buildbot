@@ -16,10 +16,10 @@ func Test_FindTaskID_ReturnsInstanceAndTask(t *testing.T) {
 	require.NoError(t, err)
 
 	verify := func(buildID int64, expectedInstance string, expectedTaskID string) {
-		instanceId, taskId, err := bc.findTaskRunID(ctx, buildID)
+		ti, err := bc.findBuildInfo(ctx, buildID)
 		assert.NoError(t, err)
-		assert.EqualValues(t, expectedInstance, instanceId)
-		assert.EqualValues(t, expectedTaskID, taskId)
+		assert.EqualValues(t, expectedInstance, ti.SwarmingInstance)
+		assert.EqualValues(t, expectedTaskID, ti.TaskID)
 	}
 
 	// Chomium regular builders

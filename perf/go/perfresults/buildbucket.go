@@ -25,6 +25,24 @@ type bbClient struct {
 	bpb.BuildsClient
 }
 
+// BuildInfo contains info that are useful for identifying the perf results.
+type BuildInfo struct {
+	// The swarming instance that runs this build.
+	SwarmingInstance string
+
+	// The swarming task ID that runs this build.
+	TaskID string
+
+	// The git hash Revision that this build was built at.
+	//
+	// Note the patches and other source info is not added here as we don't need them now. More info
+	// can be expanded as needed later. We should try to keep this simple.
+	Revision string
+
+	// The commit position that this build was built at.
+	CommitPosisition string
+}
+
 func newBuildsClient(ctx context.Context, client *http.Client) (*bbClient, error) {
 	if client == nil {
 		ts, err := google.DefaultTokenSource(ctx)
@@ -55,31 +73,37 @@ func newBuildsClient(ctx context.Context, client *http.Client) (*bbClient, error
 	}, nil
 }
 
-// findTaskRunID returns the swarming backend instance and taskId.
-func (bc bbClient) findTaskRunID(ctx context.Context, buildID int64) (string, string, error) {
+// findBuildInfo returns the swarming backend instance and taskId.
+func (bc bbClient) findBuildInfo(ctx context.Context, buildID int64) (BuildInfo, error) {
 	build, err := bc.GetBuild(ctx, &bpb.GetBuildRequest{
 		Id: buildID,
 		Mask: &bpb.BuildMask{
 			Fields: &fieldmaskpb.FieldMask{
-				Paths: []string{"status", "infra.backend.task.id"},
+				Paths: []string{"status", "infra.backend.task.id", "output.properties"},
 			},
 		},
 	})
 	if err != nil {
-		return "", "", skerr.Wrapf(err, "unable to get build info (%v)", buildID)
+		return BuildInfo{}, skerr.Wrapf(err, "unable to get build info (%v)", buildID)
 	}
 
 	if build.GetStatus()&bpb.Status_ENDED_MASK == 0 {
-		return "", "", skerr.Fmt("build (%v) is not ended", buildID)
+		return BuildInfo{}, skerr.Fmt("build (%v) is not ended", buildID)
 	}
 	t := build.GetInfra().GetBackend().GetTask().GetId()
 	if t == nil {
-		return "", "", skerr.Fmt("unable to get swarming task info for build (%v)", buildID)
+		return BuildInfo{}, skerr.Fmt("unable to get swarming task info for build (%v)", buildID)
 	}
 	if !strings.HasPrefix(t.GetTarget(), swarmingProtocol) {
-		return "", "", skerr.Fmt("incorrect swarming instance (%v) for build (%v)", t.GetTarget(), buildID)
+		return BuildInfo{}, skerr.Fmt("incorrect swarming instance (%v) for build (%v)", t.GetTarget(), buildID)
 	}
 	sh := t.GetTarget()[len(swarmingProtocol):] + ".appspot.com"
 
-	return sh, t.GetId(), nil
+	props := build.GetOutput().GetProperties().AsMap()
+	return BuildInfo{
+		SwarmingInstance: sh,
+		TaskID:           t.GetId(),
+		Revision:         props["got_revision"].(string),
+		CommitPosisition: props["got_revision_cp"].(string),
+	}, nil
 }

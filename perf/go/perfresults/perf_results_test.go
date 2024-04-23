@@ -54,7 +54,6 @@ func Test_LoadValidFullJSON_ReturnsFullTraceKey(t *testing.T) {
 	assert.Contains(t, pr.Histograms, traceKey)
 	assert.EqualValues(t, pr.Histograms[traceKey], histogram)
 	assert.EqualValues(t, pr.GetSampleValues(traceKey.ChartName), histogram.SampleValues)
-
 }
 
 func Test_PerfResult_MergeHistogram(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"cloud.google.com/go/httpreplay"
@@ -55,7 +56,9 @@ func setupReplay(t *testing.T, replayName string) *http.Client {
 }
 
 func newRBEReplay(t *testing.T, ctx context.Context, casInstance string, replayName string) *RBEPerfLoader {
-	casInstance = "projects/" + casInstance + "/instances/default_instance"
+	if !strings.HasPrefix(casInstance, "projects/") {
+		casInstance = "projects/" + casInstance + "/instances/default_instance"
+	}
 
 	ts, err := google.DefaultTokenSource(ctx)
 	require.NoError(t, err)

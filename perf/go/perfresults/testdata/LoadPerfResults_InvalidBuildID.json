@@ -1,0 +1,97 @@
+{
+  "Initial": null,
+  "Version": "0.2",
+  "Converter": {
+    "ClearHeaders": [
+      "^X-Goog-.*Encryption-Key$"
+    ],
+    "RemoveRequestHeaders": [
+      "^Authorization$",
+      "^Proxy-Authorization$",
+      "^Connection$",
+      "^Content-Type$",
+      "^Date$",
+      "^Host$",
+      "^Transfer-Encoding$",
+      "^Via$",
+      "^X-Forwarded-.*$",
+      "^X-Cloud-Trace-Context$",
+      "^X-Goog-Api-Client$",
+      "^X-Goog-Gcs-Idempotency-Token$",
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "RemoveResponseHeaders": [
+      "^X-Google-.*$",
+      "^X-Gfe-.*$"
+    ],
+    "ClearParams": null,
+    "RemoveParams": null
+  },
+  "Entries": [
+    {
+      "ID": "de4043f96385ccbe",
+      "Request": {
+        "Method": "POST",
+        "URL": "https://cr-buildbucket.appspot.com:443/prpc/buildbucket.v2.Builds/GetBuild",
+        "Header": {
+          "Accept": [
+            "application/prpc; encoding=binary"
+          ],
+          "Accept-Encoding": [
+            "gzip"
+          ],
+          "Content-Length": [
+            "62"
+          ],
+          "User-Agent": [
+            "pRPC Client 1.4"
+          ],
+          "X-Prpc-Grpc-Timeout": [
+            "90000000u"
+          ]
+        },
+        "MediaType": "application/prpc",
+        "BodyParts": [
+          "CKqfv8m7GaoGNAoyCgZzdGF0dXMKFWluZnJhLmJhY2tlbmQudGFzay5pZAoRb3V0cHV0LnByb3BlcnRpZXM="
+        ]
+      },
+      "Response": {
+        "StatusCode": 404,
+        "Proto": "HTTP/1.1",
+        "ProtoMajor": 1,
+        "ProtoMinor": 1,
+        "Header": {
+          "Cache-Control": [
+            "private"
+          ],
+          "Content-Encoding": [
+            "gzip"
+          ],
+          "Content-Type": [
+            "text/plain"
+          ],
+          "Date": [
+            "Tue, 23 Apr 2024 17:45:37 GMT"
+          ],
+          "Server": [
+            "Google Frontend"
+          ],
+          "Vary": [
+            "Accept-Encoding"
+          ],
+          "X-Cloud-Trace-Context": [
+            "61937745f01add7dc2fd4df51b897e6d"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Prpc-Grpc-Code": [
+            "5"
+          ]
+        },
+        "Body": "H4sIAAAAAAAEAxzKwQ2AIBAEwL9VbCjAAnzZCpFVSJTVO5D2TZz3GJ9Ob0wwurptRFXDrl4TZAjdaUuOGtJ6SMfJedMVkET/a44vcdOu4l5U0YS3cKC06QMAAP//AwDSwDpIXQAAAA=="
+      }
+    }
+  ]
+}
