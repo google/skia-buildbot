@@ -17,6 +17,7 @@ go_library(
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/compare",
+        "//pinpoint/go/midpoint",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/internal",
         "//pinpoint/proto/v1:proto",

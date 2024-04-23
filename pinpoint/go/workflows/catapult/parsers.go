@@ -3,12 +3,14 @@ package catapult
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 
 	"go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/compare"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
@@ -206,4 +208,48 @@ func parseArguments(request *pinpoint_proto.ScheduleBisectRequest) (*pinpoint_pr
 	}
 
 	return args, nil
+}
+
+// parseToSortedCombinedCommits sorts a list of commit pairs to a list of commits by commit time.
+//
+// This assumes that the list is curated by the bisection sequence, resulting in an order such as
+// (A, Z), (A, M), (M, Z), (A, F), (F, M), (M, S), (S, Z) and so on. This would be sorted to
+// (A, F, M, S, Z)
+func parseToSortedCombinedCommits(comparisons []*internal.CombinedResults) []*midpoint.CombinedCommit {
+	if len(comparisons) < 1 {
+		return nil
+	}
+	sortedCombinedCommits := []*midpoint.CombinedCommit{
+		comparisons[0].CommitPairValues.Lower.Commit,
+		comparisons[0].CommitPairValues.Higher.Commit,
+	}
+	for idx := 1; idx < len(comparisons); idx++ {
+		comparison := comparisons[idx]
+		midIdx := len(sortedCombinedCommits) / 2
+		lowerCommit := comparison.CommitPairValues.Lower.Commit
+		lowerCommitKey := lowerCommit.Key()
+		higherCommit := comparison.CommitPairValues.Higher.Commit
+		higherCommitKey := higherCommit.Key()
+
+		if sortedCombinedCommits[midIdx-1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx].Key() != higherCommitKey {
+			// Given (A M Z), lower is A and higher is E (not M), inject higher inbetween A and M.
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx, higherCommit)
+		} else if sortedCombinedCommits[midIdx].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+1].Key() != higherCommitKey {
+			// Given (A M Z), lower is M and higher is Z, inject higher inbetween M and Z.
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+1, higherCommit)
+		} else if midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == lowerCommitKey && sortedCombinedCommits[midIdx+2].Key() != higherCommitKey {
+			// Given (A M Q U Z), lower is U and higher is not Z, inject higher inbetween U and Z.
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+2, higherCommit)
+		} else if sortedCombinedCommits[midIdx-1].Key() == higherCommitKey && sortedCombinedCommits[midIdx-2].Key() != lowerCommitKey {
+			// Given (A D F M Z), higher is D and lower is not A so inject lower inbetween A and D
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx-1, lowerCommit)
+		} else if sortedCombinedCommits[midIdx].Key() == higherCommitKey && sortedCombinedCommits[midIdx-1].Key() != lowerCommitKey {
+			// Given (A D F M Z), higher is F and lower is not D so inject lower inbetween D and F
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx, lowerCommit)
+		} else if midIdx+1 < len(sortedCombinedCommits) && sortedCombinedCommits[midIdx+1].Key() == higherCommitKey && sortedCombinedCommits[midIdx].Key() != lowerCommitKey {
+			// Given (A D F M Z), higher is M and lower is not F so inject lower inbetween F and M
+			sortedCombinedCommits = slices.Insert(sortedCombinedCommits, midIdx+1, lowerCommit)
+		}
+	}
+	return sortedCombinedCommits
 }

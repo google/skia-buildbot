@@ -163,3 +163,127 @@ func TestParseArguments(t *testing.T) {
 	assert.Equal(t, int32(20), arguments.InitialAttemptCount)
 	assert.Nil(t, arguments.Tags)
 }
+
+func TestParseToSortedCombinedCommits_LowerLower_SortedOrder(t *testing.T) {
+	// order from oldest to newest:
+	// 493a946, 2887740, 93dd3db, 836476df, f8e1800, 6649fc3, 58079459, 2604df7, 4b233ef7
+	// lower lower meaning:
+	// midpoint f8e1800, then 93dd3db, then 288740
+	comparisons := []*internal.CombinedResults{
+		// initial range
+		createCombinedResults("493a946", nil, "4b233ef7", nil),
+		// midpoint comparisons with 93dd3db
+		createCombinedResults("493a946", nil, "f8e1800", nil),
+		createCombinedResults("f8e1800", nil, "4b233ef7", nil),
+		// lower side midpoint 93dd3db comparisons
+		createCombinedResults("93dd3db", nil, "f8e1800", nil),
+		createCombinedResults("493a946", nil, "93dd3db", nil),
+		// lower side midpoint 288740 comparison
+		createCombinedResults("493a946", nil, "2887740", nil),
+		createCombinedResults("2887740", nil, "93dd3db", nil),
+	}
+	expected := []*midpoint.CombinedCommit{
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("2887740")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("93dd3db")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	}
+	result := parseToSortedCombinedCommits(comparisons)
+	for i, combinedCommit := range result {
+		assert.Equal(t, expected[i].Key(), combinedCommit.Key())
+	}
+}
+
+func TestParseToSortedCombinedCommits_LowerUpper_SortedOrder(t *testing.T) {
+	// order from oldest to newest:
+	// [493a946, 2887740, 93dd3db, 836476df, f8e1800, 6649fc3, 58079459, 2604df7, 4b233ef7]
+	// lower upper meaning:
+	// midpoint f8e1800, then 93dd3db, then 836476df
+	comparisons := []*internal.CombinedResults{
+		// initial range
+		createCombinedResults("493a946", nil, "4b233ef7", nil),
+		// midpoint comparisons with f8e1800
+		createCombinedResults("493a946", nil, "f8e1800", nil),
+		createCombinedResults("f8e1800", nil, "4b233ef7", nil),
+		// lower side midpoint 93dd3db comparisons
+		createCombinedResults("93dd3db", nil, "f8e1800", nil),
+		createCombinedResults("493a946", nil, "93dd3db", nil),
+		// lower side midpoint 836476df comparison
+		createCombinedResults("93dd3db", nil, "836476df", nil),
+		createCombinedResults("836476df", nil, "f8e1800", nil),
+	}
+	expected := []*midpoint.CombinedCommit{
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("93dd3db")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("836476df")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	}
+	result := parseToSortedCombinedCommits(comparisons)
+	for i, combinedCommit := range result {
+		assert.Equal(t, expected[i].Key(), combinedCommit.Key())
+	}
+}
+
+func TestParseToSortedCombinedCommits_UpperLower_SortedOrder(t *testing.T) {
+	// order from oldest to newest:
+	// [493a946, 2887740, 93dd3db, 836476df, f8e1800, 6649fc3, 58079459, 2604df7, 4b233ef7]
+	// upper lower meaning:
+	// midpoint f8e1800, then 58079459, then 6649fc3
+	comparisons := []*internal.CombinedResults{
+		// initial range
+		createCombinedResults("493a946", nil, "4b233ef7", nil),
+		// midpoint comparisons with f8e1800
+		createCombinedResults("493a946", nil, "f8e1800", nil),
+		createCombinedResults("f8e1800", nil, "4b233ef7", nil),
+		// lower side midpoint 58079459 comparisons
+		createCombinedResults("58079459", nil, "4b233ef7", nil),
+		createCombinedResults("f8e1800", nil, "58079459", nil),
+		// lower side midpoint 6649fc3 comparison
+		createCombinedResults("6649fc3", nil, "58079459", nil),
+		createCombinedResults("f8e1800", nil, "6649fc3", nil),
+	}
+	expected := []*midpoint.CombinedCommit{
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("6649fc3")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("58079459")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	}
+	result := parseToSortedCombinedCommits(comparisons)
+	for i, combinedCommit := range result {
+		assert.Equal(t, expected[i].Key(), combinedCommit.Key())
+	}
+}
+
+func TestParseToSortedCombinedCommits_UpperUpper_SortedOrder(t *testing.T) {
+	// order from oldest to newest:
+	// [493a946, 2887740, 93dd3db, 836476df, f8e1800, 6649fc3, 58079459, 2604df7, 4b233ef7]
+	// upper upper meaning:
+	// midpoint f8e1800, then 58079459, then 2604df7
+	comparisons := []*internal.CombinedResults{
+		// initial range
+		createCombinedResults("493a946", nil, "4b233ef7", nil),
+		// midpoint comparisons with f8e1800
+		createCombinedResults("493a946", nil, "f8e1800", nil),
+		createCombinedResults("f8e1800", nil, "4b233ef7", nil),
+		// lower side midpoint 58079459 comparisons
+		createCombinedResults("f8e1800", nil, "58079459", nil),
+		createCombinedResults("58079459", nil, "4b233ef7", nil),
+		// lower side midpoint 2604df7 comparison
+		createCombinedResults("2604df7", nil, "4b233ef7", nil),
+		createCombinedResults("58079459", nil, "2604df7", nil),
+	}
+	expected := []*midpoint.CombinedCommit{
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("58079459")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("2604df7")),
+		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	}
+	result := parseToSortedCombinedCommits(comparisons)
+	for i, combinedCommit := range result {
+		assert.Equal(t, expected[i].Key(), combinedCommit.Key())
+	}
+}
