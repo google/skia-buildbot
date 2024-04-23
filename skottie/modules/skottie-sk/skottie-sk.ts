@@ -776,6 +776,8 @@ export class SkottieSk extends ElementSk {
 
   private width: number = 0;
 
+  private forceRedraw: boolean = false;
+
   constructor() {
     super(SkottieSk.template);
 
@@ -865,7 +867,7 @@ export class SkottieSk extends ElementSk {
           this.duration,
           this.state.lottie?.fr || 0
         );
-        this.skottiePlayer?.seek(normalizedProgress);
+        this.skottiePlayer?.seek(normalizedProgress, this.forceRedraw);
         this.performanceChart?.end();
         this.skottieLibrary?.seek(normalizedProgress);
 
@@ -1431,6 +1433,9 @@ export class SkottieSk extends ElementSk {
       if (this.state.assets) {
         slotManager.resourceList = Object.keys(this.state.assets);
       }
+      if (slotManager.hasSlots()) {
+        this.forceRedraw = true;
+      }
     }
   }
 
@@ -1608,7 +1613,7 @@ export class SkottieSk extends ElementSk {
     t = Math.min(t, 0.9999);
     this.elapsedTime = t * this.duration;
     this.lottiePlayer?.goToAndStop(t * this.duration);
-    this.skottiePlayer?.seek(t);
+    this.skottiePlayer?.seek(t, this.forceRedraw);
     this.skottieLibrary?.seek(t);
   }
 
@@ -1620,7 +1625,7 @@ export class SkottieSk extends ElementSk {
   private rewind(): void {
     // Handle rewinding when paused.
     if (!this.playing) {
-      this.skottiePlayer!.seek(0);
+      this.skottiePlayer!.seek(0, this.forceRedraw);
       this.skottieLibrary?.seek(0);
       this.previousFrameTime = 0;
       this.lottiePlayer?.goToAndStop(0);

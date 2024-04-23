@@ -57,6 +57,15 @@ export class SkottieSlotManagerSk extends ElementSk {
     <div class="wrapper">${ele.renderView()}</div>
   `;
 
+  public hasSlots(): boolean {
+    return (
+      this.colorSlots.length !== 0 ||
+      this.scalarSlots.length !== 0 ||
+      this.vec2Slots.length !== 0 ||
+      this.imageSlot.length !== 0
+    );
+  }
+
   private renderView(): TemplateResult {
     if (
       this.colorSlots.length ||
