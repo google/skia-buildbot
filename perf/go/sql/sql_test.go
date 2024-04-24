@@ -31,7 +31,7 @@ const DropTables = `
 
 // LiveSchema has to reflect what's live in prod right now
 const LiveSchema = `
-  CREATE TABLE IF NOT EXISTS Alerts (
+CREATE TABLE IF NOT EXISTS Alerts (
 	id INT PRIMARY KEY DEFAULT unique_rowid(),
 	alert TEXT,
 	config_state INT DEFAULT 0,
@@ -126,6 +126,8 @@ const LiveSchema = `
 	bug_labels STRING ARRAY,
 	hotlists STRING ARRAY,
 	bug_component STRING,
+	bug_priority INT,
+	bug_severity INT,
 	bug_cc_emails STRING ARRAY,
 	contact_email STRING,
 	PRIMARY KEY(name, revision)

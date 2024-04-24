@@ -60,6 +60,8 @@
     "subscriptions.bug_cc_emails": "ARRAY def: nullable:YES",
     "subscriptions.bug_component": "text def: nullable:YES",
     "subscriptions.bug_labels": "ARRAY def: nullable:YES",
+    "subscriptions.bug_priority": "bigint def: nullable:YES",
+    "subscriptions.bug_severity": "bigint def: nullable:YES",
     "subscriptions.contact_email": "text def: nullable:YES",
     "subscriptions.hotlists": "ARRAY def: nullable:YES",
     "subscriptions.name": "text def: nullable:NO",

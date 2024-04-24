@@ -222,7 +222,8 @@ run-demo-maintenance:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
 		--local \
 		--config_filename=./configs/demo.json \
-		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
+		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable \
+		--migrate_regressions
 
 run-demo-backend:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...

@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS Regressions (
   commit_number INT,
   alert_id INT,
   regression TEXT,
+  migrated BOOL,
+  regression_id TEXT,
   PRIMARY KEY (commit_number, alert_id)
 );
 CREATE TABLE IF NOT EXISTS Regressions2 (
@@ -177,6 +179,8 @@ var Regressions = []string{
 	"commit_number",
 	"alert_id",
 	"regression",
+	"migrated",
+	"regression_id",
 }
 
 var Regressions2 = []string{

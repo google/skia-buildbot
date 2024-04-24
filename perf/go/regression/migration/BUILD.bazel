@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "migration",
+    srcs = ["migrator.go"],
+    importpath = "go.skia.org/infra/perf/go/regression/migration",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
+        "//perf/go/alerts",
+        "//perf/go/alerts/sqlalertstore",
+        "//perf/go/regression/sqlregression2store",
+        "//perf/go/regression/sqlregressionstore",
+    ],
+)
+
+go_test(
+    name = "migration_test",
+    srcs = ["migrator_test.go"],
+    embed = [":migration"],
+    deps = [
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/regression/sqlregression2store",
+        "//perf/go/regression/sqlregressionstore",
+        "//perf/go/sql/sqltest",
+        "//perf/go/stepfit",
+        "//perf/go/types",
+        "//perf/go/ui/frame",
+        "@com_github_stretchr_testify//assert",
+    ],
+)

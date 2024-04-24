@@ -13,5 +13,11 @@ type RegressionSchema struct {
 	// A regression.Regression serialized as JSON.
 	Regression string `sql:"regression TEXT"`
 
+	// Indicates if the regression is migrated to the regression2 table.
+	Migrated bool `sql:"migrated BOOL"`
+
+	// Id for the regression. This is only used to migrate data into the new schema.
+	RegressionId string `sql:"regression_id TEXT"`
+
 	compoundKey struct{} `sql:"PRIMARY KEY (commit_number, alert_id)"`
 }

@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/regression/migration"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/tracing"
 )
@@ -15,6 +16,12 @@ import (
 const (
 	// How often to update the git repo from origin.
 	gitRepoUpdatePeriod = time.Minute
+
+	// How often to migrate a batch of regressions to the new table.
+	regressionMigratePeriod = time.Minute
+
+	// Size of the batch of regressions to migrate.
+	regressionMigrationBatchSize = 50
 )
 
 // Start all the long running processes. This function does not return if all
@@ -42,6 +49,15 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	// Start a background process that periodically adds new commits to the
 	// database.
 	g.StartBackgroundPolling(ctx, gitRepoUpdatePeriod)
+
+	// Migrate regression schema if specified.
+	if flags.MigrateRegressions {
+		migrator, err := migration.New(ctx, db)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
+		}
+		migrator.RunPeriodicMigration(ctx, regressionMigratePeriod, regressionMigrationBatchSize)
+	}
 
 	select {}
 }

@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -15,10 +16,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/sqlutil"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
@@ -142,6 +145,8 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 		if r.HighStatus.Status == regression.None {
 			r.HighStatus.Status = regression.Untriaged
 		}
+
+		populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterHigh.Inc(1)
 	return ret, err
@@ -159,6 +164,7 @@ func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.Com
 		if r.LowStatus.Status == regression.None {
 			r.LowStatus.Status = regression.Untriaged
 		}
+		populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterLow.Inc(1)
 	return ret, err
@@ -275,20 +281,12 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 		})
 	} else {
 		err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
-			// Existing regressions with a frame. Lets see if it matches the current trace.
 			if r.Frame != nil {
-				existingRegressionParamset := r.Frame.DataFrame.ParamSet
-				// There should be only one trace in the trace set since this is individual?
-				isSameParams := areParamsetsEqual(existingRegressionParamset, df.DataFrame.ParamSet)
-
-				// Only update the regression if it matches the paramset.
-				if !isSameParams {
-					return false
-				}
+				// Do not update existing regressions when the algo is stepfit.
+				return false
 			}
 
-			// At this point r is either a newly created regression or an existing regression
-			// that matches the paramset. This should get updated in the database.
+			// At this point r is a newly created regression. This should get updated in the database.
 			updateFunc(r)
 			return true
 		})
@@ -330,7 +328,9 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 	}
 
 	regressionsToWrite := []*regression.Regression{}
+	existingRows := false
 	for rows.Next() {
+		existingRows = true
 		r, err = convertRowToRegression(rows)
 		if err != nil {
 			if mustExist {
@@ -342,14 +342,21 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 				}
 				rollbackTransaction(ctx, tx)
 				return skerr.Wrapf(err, errorMsg)
-			} else {
-				r = regression.NewRegression()
-				r.AlertId = alertID
-				r.CommitNumber = commitNumber
-				r.CreationTime = time.Now().UTC()
 			}
 		}
 
+		shouldUpdate := cb(r)
+
+		if shouldUpdate {
+			regressionsToWrite = append(regressionsToWrite, r)
+		}
+	}
+
+	if !existingRows {
+		r = regression.NewRegression()
+		r.AlertId = alertID
+		r.CommitNumber = commitNumber
+		r.CreationTime = time.Now().UTC()
 		shouldUpdate := cb(r)
 
 		if shouldUpdate {
@@ -393,6 +400,48 @@ func areParamsetsEqual(p1 paramtools.ReadOnlyParamSet, p2 paramtools.ReadOnlyPar
 	}
 
 	return true
+}
+
+// WriteRegression writes a single regression object into the table and returns the Id of the written row.
+func (s *SQLRegression2Store) WriteRegression(ctx context.Context, regression *regression.Regression, tx pgx.Tx) (string, error) {
+	populateRegression2Fields(regression)
+	err := s.writeSingleRegression(ctx, regression, tx)
+	return regression.Id, err
+}
+
+// populateRegression2Fields populates the fields in the regression object
+// which are specific to the regression2 schema.
+func populateRegression2Fields(regression *regression.Regression) {
+	if regression.Id == "" {
+		regression.Id = uuid.NewString()
+	}
+
+	_, clusterSummary, _ := regression.GetClusterTypeAndSummaryAndTriageStatus()
+
+	regression.CreationTime = clusterSummary.Timestamp
+
+	// Find the index of the commit where the regression was detected.
+	regressionPointIndex := clusterSummary.StepFit.TurningPoint
+
+	prevCommitNumber := regression.Frame.DataFrame.Header[regressionPointIndex-1].Offset
+	regression.PrevCommitNumber = prevCommitNumber
+
+	medianBefore, _, _, _ := vec32.TwoSidedStdDev(clusterSummary.Centroid[:regressionPointIndex])
+	regression.MedianBefore = medianBefore
+	medianAfter, _, _, _ := vec32.TwoSidedStdDev(clusterSummary.Centroid[regressionPointIndex:])
+	regression.MedianAfter = medianAfter
+
+	regression.IsImprovement = isRegressionImprovement(regression.Frame.DataFrame.ParamSet, clusterSummary.StepFit.Status)
+}
+
+// isRegressionImprovement returns true if the metric has moved towards the improvement direction.
+func isRegressionImprovement(paramset map[string][]string, stepFitStatus stepfit.StepFitStatus) bool {
+	if _, ok := paramset["improvement_direction"]; ok {
+		improvementDirection := paramset["improvement_direction"]
+		return improvementDirection[0] == "down" && stepFitStatus == stepfit.LOW || improvementDirection[0] == "up" && stepFitStatus == stepfit.HIGH
+	}
+
+	return false
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

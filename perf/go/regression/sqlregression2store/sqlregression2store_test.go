@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	alerts_mock "go.skia.org/infra/perf/go/alerts/mock"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -32,7 +33,7 @@ func readSpecificRegressionFromDb(ctx context.Context, t *testing.T, store *SQLR
 	return reg
 }
 
-func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQLRegression2Store) *regression.Regression {
+func generateNewRegression() *regression.Regression {
 	r := regression.NewRegression()
 	r.Id = uuid.NewString()
 	r.CommitNumber = 12345
@@ -43,14 +44,31 @@ func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQL
 	r.MedianAfter = 2.0
 
 	r.PrevCommitNumber = 12340
-	regressions := map[types.CommitNumber]*regression.AllRegressionsForCommit{
-		r.CommitNumber: {
-			ByAlertID: map[string]*regression.Regression{
-				alerts.IDToString(r.AlertId): r,
+	df := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1},
+				{Offset: 2},
+				{Offset: 3},
 			},
 		},
 	}
-	err := store.Write(ctx, regressions)
+	clusterSummary := &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
+		Timestamp: time.Now(),
+		Centroid:  []float32{1.0, 5.0, 5.0},
+	}
+
+	r.High = clusterSummary
+	r.Frame = df
+	return r
+}
+
+func generateAndStoreNewRegression(ctx context.Context, t *testing.T, store *SQLRegression2Store) *regression.Regression {
+	r := generateNewRegression()
+	_, err := store.WriteRegression(ctx, r, nil)
 	assert.Nil(t, err)
 	return r
 }
@@ -159,22 +177,39 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 	ctx := context.Background()
 
 	// Add an item to the database.
-	r := generateAndStoreNewRegression(ctx, t, store)
+	r := generateNewRegression()
 
 	alertIdStr := alerts.IDToString(r.AlertId)
 	clusterSummary := &clustering2.ClusterSummary{
 		Centroid: []float32{1.0, 2.0, 3.0},
-		StepFit:  stepfit.NewStepFit(),
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
 	}
 
 	var success bool
 	var err error
+	frameResponse := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{
+					Offset: 1,
+				},
+				{
+					Offset: 2,
+				},
+				{
+					Offset: 3,
+				},
+			},
+		},
+	}
 	if isHighRegression {
 		// Set a high regression.
-		success, err = store.SetHigh(ctx, r.CommitNumber, alertIdStr, &frame.FrameResponse{}, clusterSummary)
+		success, err = store.SetHigh(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
 	} else {
 		// Set a low regression.
-		success, err = store.SetLow(ctx, r.CommitNumber, alertIdStr, &frame.FrameResponse{}, clusterSummary)
+		success, err = store.SetLow(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
 	}
 
 	assert.Nil(t, err)

@@ -690,10 +690,11 @@ func (flags *IngestFlags) AsCliFlags() []cli.Flag {
 
 // MaintenanceFlags are the command-line flags for the maintenance process.
 type MaintenanceFlags struct {
-	ConfigFilename   string
-	ConnectionString string
-	PromPort         string
-	Local            bool
+	ConfigFilename     string
+	ConnectionString   string
+	PromPort           string
+	Local              bool
+	MigrateRegressions bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -722,6 +723,12 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 			Name:        "local",
 			Value:       false,
 			Usage:       "True if running locally and not in production.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.MigrateRegressions,
+			Name:        "migrate_regressions",
+			Value:       false,
+			Usage:       "If true, migrate the regressions data from regressions table to regressions2 table.",
 		},
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -27,15 +28,17 @@ const (
 	write statement = iota
 	read
 	readRange
+	batchReadMigration
+	markMigrated
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statements = map[statement]string{
 	write: `
 		UPSERT INTO
-			Regressions (commit_number, alert_id, regression)
+			Regressions (commit_number, alert_id, regression, migrated)
 		VALUES
-			($1, $2, $3)
+			($1, $2, $3, false)
 		`,
 	read: `
 		SELECT
@@ -53,6 +56,23 @@ var statements = map[statement]string{
 		WHERE
 			commit_number >= $1
 			AND commit_number <= $2
+		`,
+	batchReadMigration: `
+		SELECT
+			commit_number, alert_id, regression, regression_id
+		FROM
+			Regressions
+		WHERE
+			migrated is NULL OR migrated=false
+		LIMIT $1
+		`,
+	markMigrated: `
+		UPDATE
+			Regressions
+		SET
+			migrated=true, regression_id=$1
+		WHERE
+			commit_number=$2 AND alert_id=$3
 		`,
 }
 
@@ -256,6 +276,47 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	}
 
 	return tx.Commit(ctx)
+}
+
+// GetRegressionsToMigrate returns a set of regressions which are available to be migrated.
+func (s *SQLRegressionStore) GetRegressionsToMigrate(ctx context.Context, batchSize int) ([]*regression.Regression, error) {
+	regressions := []*regression.Regression{}
+	var rows pgx.Rows
+	var err error
+	if rows, err = s.db.Query(ctx, statements[batchReadMigration], batchSize); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to read regressions for migration")
+	}
+	for rows.Next() {
+		var commitID types.CommitNumber
+		var alertID int64
+		var jsonRegression string
+		var regressionId *string
+		if err := rows.Scan(&commitID, &alertID, &jsonRegression, &regressionId); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to read single regression")
+		}
+		var r regression.Regression
+		if err := json.Unmarshal([]byte(jsonRegression), &r); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to decode a single regression for commit %d, alert %d", commitID, alertID)
+		}
+		r.AlertId = alertID
+		r.CommitNumber = commitID
+		if regressionId != nil {
+			r.Id = *regressionId
+		}
+
+		regressions = append(regressions, &r)
+	}
+
+	return regressions, nil
+}
+
+// MarkMigrated marks a specific row in the regressions table as migrated.
+func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId string, commitNumber types.CommitNumber, alertID int64, tx pgx.Tx) error {
+	if _, err := tx.Exec(ctx, statements[markMigrated], regressionId, commitNumber, alertID); err != nil {
+		return skerr.Wrapf(err, "Failed to mark regression migrated for alertID: %d  commitNumber=%d", alertID, commitNumber)
+	}
+
+	return nil
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.
