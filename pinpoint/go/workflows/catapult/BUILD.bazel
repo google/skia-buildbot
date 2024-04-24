@@ -37,6 +37,7 @@ go_test(
     name = "catapult_test",
     srcs = [
         "activities_test.go",
+        "catapult_bisect_test.go",
         "parsers_test.go",
     ],
     data = glob(["testdata/**"]),

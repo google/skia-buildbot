@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 
@@ -15,6 +16,41 @@ import (
 const (
 	BisectJobNameTemplate = "[Skia] Performance bisect on %s/%s"
 )
+
+// updateStatesWithComparisons goes through each state and appends legacy comparisons
+func updateStatesWithComparisons(states []*pinpoint_proto.LegacyJobResponse_State, magnitude float64, direction compare.ImprovementDir) error {
+	if len(states) < 2 {
+		return skerr.Fmt("cannot create comparisons when there are less than 2 objects")
+	}
+
+	// handling idx 0.
+	perfResult, err := compare.ComparePerformance(states[0].Values, states[1].Values, magnitude, direction)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	states[0].Comparisons = &pinpoint_proto.LegacyJobResponse_State_Comparison{
+		Next: string(perfResult.Verdict),
+	}
+
+	// everything else inbetween should have prev and next set.
+	for idx := 1; idx < len(states)-1; idx++ {
+		currState := states[idx]
+		perfResult, err := compare.ComparePerformance(currState.Values, states[idx+1].Values, magnitude, direction)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		currState.Comparisons = &pinpoint_proto.LegacyJobResponse_State_Comparison{
+			Prev: states[idx-1].Comparisons.Next,
+			Next: string(perfResult.Verdict),
+		}
+	}
+
+	// on the last idx, only prev is set.
+	states[len(states)-1].Comparisons = &pinpoint_proto.LegacyJobResponse_State_Comparison{
+		Prev: states[len(states)-2].Comparisons.Next,
+	}
+	return nil
+}
 
 // ConvertToCatapultResponseWorkflow converts raw data from a Skia bisection into a Catapult-supported format.
 func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.BisectParams, be *internal.BisectExecution) (*pinpoint_proto.LegacyJobResponse, error) {
@@ -58,6 +94,15 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 
 	resp.State = state
 	resp.Bots = bots
+
+	// Comparisons (prev, next) are calculated by comparing each one in order of events
+	// so if we have commits (A, B, C), A is compared with B to determine next. B is compared with C
+	// and the comparison values at B would be (prev: {next value from A}, next: {current calculated value}).
+	// C would only have prev set, which would be equivalent to B's next value.
+	err = updateStatesWithComparisons(state, p.GetMagnitude(), p.GetImprovementDirection())
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	return resp, nil
 }
