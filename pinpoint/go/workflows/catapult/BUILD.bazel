@@ -13,7 +13,11 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows/catapult",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/auth",
+        "//go/gitiles",
+        "//go/httputils",
         "//go/skerr",
+        "//go/vcsinfo",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/compare",
@@ -24,14 +28,28 @@ go_library(
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_golang_google_protobuf//types/known/timestamppb",
+        "@org_golang_x_oauth2//google",
     ],
 )
 
 go_test(
     name = "catapult_test",
-    srcs = ["parsers_test.go"],
+    srcs = [
+        "activities_test.go",
+        "parsers_test.go",
+    ],
+    data = glob(["testdata/**"]),
     embed = [":catapult"],
+    embedsrcs = [
+        "testdata/main_commit_message.txt",
+        "testdata/modified_dep_commit_message.txt",
+    ],
     deps = [
+        "//go/gitiles",
+        "//go/gitiles/mocks",
+        "//go/testutils",
+        "//go/vcsinfo",
         "//pinpoint/go/compare",
         "//pinpoint/go/midpoint",
         "//pinpoint/go/workflows",
@@ -41,6 +59,7 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@io_temporal_go_sdk//testsuite",
+        "@io_temporal_go_sdk//worker",
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
     ],

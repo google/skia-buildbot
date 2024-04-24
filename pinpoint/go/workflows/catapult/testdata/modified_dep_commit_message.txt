@@ -1,0 +1,5 @@
+[bazel] Fix some bazel buildifier complains
+
+Change-Id: Ic49ac7e647ce14081b271dc5baf0cfe8c5a7b438
+Reviewed-on: https://chromium-review.googlesource.com/c/v8/v8/+/5342761
+Cr-Commit-Position: refs/heads/main@{#92657}

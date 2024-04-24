@@ -1,0 +1,21 @@
+[anchor-position] Implements resolving anchor-center.
+
+This patch implements the layout-time anchor-center logic.
+In part based on:
+https://chromium-review.googlesource.com/c/chromium/src/+/4919956
+
+This patch:
+1) Pulls the alignment logic out into its own struct, and step.
+    See: ComputeAlignment()
+2) Adds a step for computing the anchor-center position if necessary.
+    See: ComputeAnchorCenterPosition()
+3) Adjusts the logic in ComputeOutOfFlowInsets() to coerce any auto
+    insets to zero if anchor-center is present.
+4) Adds special logic in ComputeInsetModifiedContainingBlock() to
+    coerce the available-size in a similar manner to center static
+    position.
+
+Fixed: 1469728
+Change-Id: I40cc1e697cd8f8f0759f18ba814e19321e19702b
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/5196073
+Cr-Commit-Position: refs/heads/main@{#1252779}

@@ -1,12 +1,17 @@
 package catapult
 
 import (
+	"fmt"
 	"testing"
+	"time"
+
+	_ "embed"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -15,6 +20,12 @@ import (
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 )
+
+//go:embed testdata/main_commit_message.txt
+var mainCommitMsg string
+
+//go:embed testdata/modified_dep_commit_message.txt
+var modifiedDepCommitMsg string
 
 func TestParseImprovementDirection_Up_0(t *testing.T) {
 	assert.Equal(t, int32(0), parseImprovementDir(compare.Up))
@@ -286,4 +297,75 @@ func TestParseToSortedCombinedCommits_UpperUpper_SortedOrder(t *testing.T) {
 	for i, combinedCommit := range result {
 		assert.Equal(t, expected[i].Key(), combinedCommit.Key())
 	}
+}
+
+// mockParseCommitDataWorkflow is a helper function to wrap parseCommitData() under a workflow to mock the FetchCommitActivity behavior
+func mockParseCommitDataWorkflow(ctx workflow.Context, combinedCommit *midpoint.CombinedCommit) ([]*pinpoint_proto.Commit, error) {
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+
+	return parseCommitData(ctx, combinedCommit)
+}
+
+func TestParseCommitData_CombinedCommitWithModifiedDeps_Commits(t *testing.T) {
+	chromiumHash := "493a946"
+	depRepo := "https://chromium-review.googlesource.com/c/v8/v8"
+	depHash := "f8e1800"
+	chromiumCommit := midpoint.NewChromiumCommit(chromiumHash)
+	modifiedDepCommit := &pinpoint_proto.Commit{
+		Repository: depRepo,
+		GitHash:    depHash,
+	}
+	combinedCommit := midpoint.NewCombinedCommit(chromiumCommit, modifiedDepCommit)
+	timeNow := time.Now().UTC()
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflow(mockParseCommitDataWorkflow)
+	env.RegisterActivity(FetchCommitActivity)
+
+	mainCommitResp := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    chromiumHash,
+			Author:  "John Doe (johndoe@gmail.com)",
+			Subject: "[anchor-position] Implements resolving anchor-center.",
+		},
+		Body:      mainCommitMsg,
+		Timestamp: timeNow,
+	}
+	modDepCommitResp := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash:    depHash,
+			Author:  "Jane Doe (janedoe@gmail.com)",
+			Subject: "[bazel] Fix some bazel buildifier complains",
+		},
+		Body:      modifiedDepCommitMsg,
+		Timestamp: timeNow,
+	}
+
+	// context mocked w/ mock.Anything
+	env.OnActivity(FetchCommitActivity, mock.Anything, chromiumCommit).Return(mainCommitResp, nil)
+	env.OnActivity(FetchCommitActivity, mock.Anything, modifiedDepCommit).Return(modDepCommitResp, nil)
+
+	env.ExecuteWorkflow(mockParseCommitDataWorkflow, combinedCommit)
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var actual []*pinpoint_proto.Commit
+	require.NoError(t, env.GetWorkflowResult(&actual))
+	require.NotNil(t, actual)
+	require.NotEmpty(t, actual)
+	assert.Equal(t, 2, len(actual))
+
+	mainCommit := actual[0]
+	assert.Equal(t, fmt.Sprintf(repositoryUrlTemplate, midpoint.ChromiumSrcGit, chromiumHash), mainCommit.Url)
+	assert.Equal(t, "johndoe@gmail.com", mainCommit.Author)
+	assert.Equal(t, "I40cc1e697cd8f8f0759f18ba814e19321e19702b", mainCommit.ChangeId)
+	assert.Equal(t, "refs/heads/main", mainCommit.CommitBranch)
+	assert.Equal(t, int32(1252779), mainCommit.CommitPosition)
+	assert.Equal(t, "https://chromium-review.googlesource.com/c/chromium/src/+/5196073", mainCommit.ReviewUrl)
+
+	modDepCommit := actual[1]
+	assert.Equal(t, int32(92657), modDepCommit.CommitPosition)
+	assert.Equal(t, "https://chromium-review.googlesource.com/c/v8/v8/+/5342761", modDepCommit.ReviewUrl)
 }
