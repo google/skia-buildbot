@@ -3,7 +3,6 @@ package sqlregression2store
 import (
 	"bytes"
 	"context"
-	"slices"
 	"strings"
 	"text/template"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -145,7 +143,6 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 		if r.HighStatus.Status == regression.None {
 			r.HighStatus.Status = regression.Untriaged
 		}
-
 		populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterHigh.Inc(1)
@@ -378,28 +375,6 @@ func rollbackTransaction(ctx context.Context, tx pgx.Tx) {
 	if err := tx.Rollback(ctx); err != nil {
 		sklog.Errorf("Failed on rollback: %s", err)
 	}
-}
-
-func areParamsetsEqual(p1 paramtools.ReadOnlyParamSet, p2 paramtools.ReadOnlyParamSet) bool {
-	if len(p1) != len(p2) {
-		return false
-	}
-	for key, val1 := range p1 {
-		val2, ok := p2[key]
-		if ok {
-			if len(val1) == len(val2) {
-				slices.Sort(val1)
-				slices.Sort(val2)
-				for i := 0; i < len(val1); i++ {
-					if val1[i] != val2[i] {
-						return false
-					}
-				}
-			}
-		}
-	}
-
-	return true
 }
 
 // WriteRegression writes a single regression object into the table and returns the Id of the written row.

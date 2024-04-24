@@ -28,6 +28,7 @@ go_library(
         "//perf/go/graphsshortcut",
         "//perf/go/graphsshortcut/graphsshortcutstore",
         "//perf/go/regression",
+        "//perf/go/regression/sqlregression2store",
         "//perf/go/regression/sqlregressionstore",
         "//perf/go/shortcut",
         "//perf/go/shortcut/sqlshortcutstore",

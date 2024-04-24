@@ -133,7 +133,7 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 	ctx, instanceConfig := newCockroachDBConfigForTest(t)
 
-	store, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig)
+	store, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig, nil)
 	require.NoError(t, err)
 
 	regressiontest.SetLowAndTriage(t, store)
@@ -145,7 +145,7 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig)
+	_, err := NewRegressionStoreFromConfig(ctx, false, instanceConfig, nil)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }

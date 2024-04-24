@@ -8,7 +8,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/metrics2",
-        "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",

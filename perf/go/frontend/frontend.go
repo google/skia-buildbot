@@ -508,14 +508,16 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
-	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
-	if err != nil {
-		sklog.Fatalf("Failed to build regression.Store: %s", err)
-	}
 	f.configProvider, err = alerts.NewConfigProvider(ctx, f.alertStore, 600)
 	if err != nil {
 		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
 	}
+
+	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg, f.configProvider)
+	if err != nil {
+		sklog.Fatalf("Failed to build regression.Store: %s", err)
+	}
+
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
 	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)

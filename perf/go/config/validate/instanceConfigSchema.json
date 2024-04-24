@@ -269,6 +269,9 @@
         "need_alert_action": {
           "type": "boolean"
         },
+        "use_regression2_schema": {
+          "type": "boolean"
+        },
         "auth_config": {
           "$ref": "#/$defs/AuthConfig"
         },

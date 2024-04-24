@@ -842,6 +842,8 @@ type InstanceConfig struct {
 
 	NeedAlertAction bool `json:"need_alert_action,omitempty"`
 
+	UseRegression2 bool `json:"use_regression2_schema,omitempty"`
+
 	AuthConfig          AuthConfig          `json:"auth_config,omitempty"`
 	DataStoreConfig     DataStoreConfig     `json:"data_store_config"`
 	IngestionConfig     IngestionConfig     `json:"ingestion_config"`

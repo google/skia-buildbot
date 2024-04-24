@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/regression/sqlregression2store"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
@@ -183,14 +184,19 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig, alertsConfigProvider alerts.ConfigProvider) (regression.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
 		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqlregressionstore.New(db)
+
+		if instanceConfig.UseRegression2 {
+			return sqlregression2store.New(db, alertsConfigProvider)
+		} else {
+			return sqlregressionstore.New(db)
+		}
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

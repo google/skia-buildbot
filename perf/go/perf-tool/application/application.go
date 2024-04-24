@@ -310,7 +310,7 @@ func (app) DatabaseBackupRegressions(local bool, instanceConfig *config.Instance
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig)
+	regressionStore, err := getRegressionStore(ctx, local, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -528,7 +528,7 @@ func (app) DatabaseRestoreRegressions(local bool, instanceConfig *config.Instanc
 	defer util.Close(z)
 
 	// Restore Regressions
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig)
+	regressionStore, err := getRegressionStore(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -929,6 +929,23 @@ func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConf
 	return util.WithWriteFile(outputFilename, func(w io.Writer) error {
 		return json.NewEncoder(w).Encode(b)
 	})
+}
+
+func getRegressionStore(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	alertConfigProvider, err := alerts.NewConfigProvider(ctx, alertStore, 600)
+	if err != nil {
+		sklog.Fatalf("Failed to create alerts configprovider: %s", err)
+	}
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig, alertConfigProvider)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return regressionStore, nil
 }
 
 // Confirm app implements App.
