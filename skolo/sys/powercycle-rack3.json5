@@ -1,7 +1,7 @@
 {
   synaccess: {
     "PDU4": {
-      address: "https://pdu4",
+      address: "http://pdu4",
       ports: {
         "skia-e-win-305": 1,
         "skia-e-win-302": 2,
