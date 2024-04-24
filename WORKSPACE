@@ -26,23 +26,26 @@ http_archive(
 
 http_archive(
     name = "rules_python",
-    sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
-    strip_prefix = "rules_python-0.8.1",
+    sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
+    strip_prefix = "rules_python-0.31.0",
     urls = gcs_mirror_url(
-        sha256 = "cdf6b84084aad8f10bf20b46b77cb48d83c319ebe6458a18e9d2cebf57807cdd",
+        sha256 = "c68bdc4fbec25de5b5493b8819cfc877c4ea299c0dcb15c244c5a00208cde311",
         # Update after a release with https://github.com/bazelbuild/rules_python/pull/1032 lands
-        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.8.1.tar.gz",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.31.0.tar.gz",
     ),
 )
 
-load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+
+# Load transitive dependencies for rules_python.
+py_repositories()
 
 # Hermetically downloads Python 3.
 python_register_toolchains(
-    name = "python3_10",
+    name = "python3_11",
     # Taken from
-    # https://github.com/bazelbuild/rules_python/blob/63805ab7a65b90c4723ecbe18f2c88da714e5d7a/python/versions.bzl#L94.
-    python_version = "3.10",
+    # https://github.com/bazelbuild/rules_python/blob/1f17637b88489a5c35a5c83595c0e8dbb6d983e9/python/versions.bzl#L372.
+    python_version = "3.11",
 )
 
 ##############################
@@ -506,18 +509,18 @@ cipd_install(
     name = "vpython_amd64_linux",
     build_file_content = all_cipd_files(),
     cipd_package = "infra/tools/luci/vpython/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097
-    sha256 = "1de06f1727bde7ef9eaae901944adead46dd2b7ddda1e962fff29ee431b0e746",
-    tag = "git_revision:7989c7a87b25083bd8872f9216ba4819c18ab097",
+    # From https://chrome-infra-packages.appspot.com/p/infra/tools/luci/vpython/linux-amd64/+/git_revision:31868238187077557113efa2bd4e2c7e3b3ec970
+    sha256 = "ec210b3873665208c42e80883546d22d5f448f04e736f1e1fc015da7fc3003a3",
+    tag = "git_revision:31868238187077557113efa2bd4e2c7e3b3ec970",
 )
 
 cipd_install(
     name = "cpython3_amd64_linux",
     build_file_content = all_cipd_files(),
     cipd_package = "infra/3pp/tools/cpython3/linux-amd64",
-    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.8.10.chromium.19
-    sha256 = "4ba68650a271a80a565a619ed2419f4cf1344525b63798608ce3b8cef63a9244",
-    tag = "version:2@3.8.10.chromium.19",
+    # From https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/cpython3/linux-amd64/+/version:2@3.11.7.chromium.31
+    sha256 = "0ff2955adf65e2921c4abd8e2848862d3c7731feeda5c506f44e796aa4af2dc7",
+    tag = "version:2@3.11.7.chromium.31",
 )
 
 cipd_install(

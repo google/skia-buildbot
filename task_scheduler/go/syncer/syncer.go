@@ -207,14 +207,16 @@ func (s *Syncer) LazyTempGitRepo(rs types.RepoState) *LazyTempGitRepo {
 func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Add git binary to PATH.
+	// Prepend git binary to PATH.
 	gitPath, _, _, err := git_common.FindGit(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", filepath.Dir(gitPath), os.Getenv("PATH"))); err != nil {
-		return nil, skerr.Wrap(err)
-	}
+	paths := strings.Split(os.Getenv("PATH"), ":")
+	paths = append([]string{filepath.Dir(gitPath)}, paths...)
+
+	// Prepend depotToolsDir to PATH.
+	paths = append([]string{depotToolsDir}, paths...)
 
 	// Run gclient to obtain a checkout of the repo and its DEPS.
 	gclientPath := path.Join(depotToolsDir, "gclient.py")
@@ -227,17 +229,33 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to find vpython3 binary from CIPD")
 		}
-		python38Binary, err := cpython3.FindPython38()
+		python311Binary, err := cpython3.FindPython311()
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to find python3.8 binary from CIPD")
 		}
-		python38BinaryDir := filepath.Dir(python38Binary)
-		if err := os.Setenv("PATH", fmt.Sprintf("%s:%s", python38BinaryDir, os.Getenv("PATH"))); err != nil {
-			return nil, skerr.Wrapf(err, "failed to update PATH with python3.8 directory")
-		}
+		python311BinaryDir := filepath.Dir(python311Binary)
+		paths = append([]string{python311BinaryDir}, paths...)
 	}
+
+	env := []string{
+		"DEPOT_TOOLS_METRICS=0",
+		"DEPOT_TOOLS_UPDATE=0",
+		fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
+		fmt.Sprintf("HOME=%s", tmp),
+		fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
+		fmt.Sprintf("PATH=%s", strings.Join(paths, ":")),
+		// Incase we need to download topics.
+		"SKIP_GCE_AUTH_FOR_GIT=1",
+		fmt.Sprintf("GIT_COOKIES_PATH=%s", types.GitCookiesPath),
+	}
+
 	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
-	if _, err := exec.RunCwd(ctx, tmp, vpythonBinary, "-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)); err != nil {
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Name: vpythonBinary,
+		Args: []string{"-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)},
+		Dir:  tmp,
+		Env:  env,
+	}); err != nil {
 		return nil, skerr.Wrapf(err, "Failed 'gclient config'")
 	}
 
@@ -283,20 +301,10 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	})
 	sklog.Infof("Executing: %s", strings.Join(cmd, " "))
 	out, err := exec.RunCommand(ctx, &exec.Command{
-		Name: cmd[0],
-		Args: cmd[1:],
-		Dir:  tmp,
-		Env: []string{
-			"DEPOT_TOOLS_METRICS=0",
-			"DEPOT_TOOLS_UPDATE=0",
-			fmt.Sprintf("GIT_CACHE_PATH=%s", gitCacheDir),
-			fmt.Sprintf("HOME=%s", tmp),
-			fmt.Sprintf("INFRA_GIT_WRAPPER_HOME=%s", tmp),
-			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
-			// Incase we need to download topics.
-			"SKIP_GCE_AUTH_FOR_GIT=1",
-			fmt.Sprintf("GIT_COOKIES_PATH=%s", types.GitCookiesPath),
-		},
+		Name:       cmd[0],
+		Args:       cmd[1:],
+		Dir:        tmp,
+		Env:        env,
 		InheritEnv: true,
 		Timeout:    syncTimeout,
 	})
