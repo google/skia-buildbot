@@ -1,5 +1,5 @@
 {
-  mpower: {
+  synaccess: {
     "PDU4": {
       address: "https://pdu4",
       ports: {
