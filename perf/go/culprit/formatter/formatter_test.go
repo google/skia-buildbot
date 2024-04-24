@@ -15,7 +15,7 @@ import (
 
 func TestFormatting_HappyPath(t *testing.T) {
 	commitUrlTemplate := "https://skia.googlesource.com/skia/+log/%s"
-	cfg := &config.NotifyConfig{}
+	cfg := &config.CulpritNotifyConfig{}
 	culprit := &pb.Culprit{
 		Commit: &pb.Commit{
 			Host:     "chromium.googlesource.com",

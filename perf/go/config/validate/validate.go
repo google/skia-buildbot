@@ -73,6 +73,15 @@ func Validate(i config.InstanceConfig) error {
 		}
 	}
 
+	if i.CulpritNotifyConfig.Notifications == notifytypes.MarkdownIssueTracker {
+		if i.CulpritNotifyConfig.IssueTrackerAPIKeySecretProject == "" {
+			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.Notifications)
+		}
+		if i.CulpritNotifyConfig.IssueTrackerAPIKeySecretName == "" {
+			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.Notifications)
+		}
+	}
+
 	if i.InvalidParamCharRegex != "" {
 		re, err := regexp.Compile(i.InvalidParamCharRegex)
 		if err != nil {

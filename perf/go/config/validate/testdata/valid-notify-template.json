@@ -60,6 +60,11 @@
             "{{ index .ParamSet \"unknown_key\" }}"
         ]
     },
+    "culprit_notify_config" : {
+        "notifications": "markdown_issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },

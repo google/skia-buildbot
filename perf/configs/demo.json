@@ -12,7 +12,9 @@
         "notifications": "none",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
-
+    },
+    "culprit_notify_config": {
+        "notifications": "none"
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",

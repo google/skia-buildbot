@@ -46,6 +46,33 @@
         "namespace"
       ]
     },
+    "CulpritNotifyConfig": {
+      "properties": {
+        "notifications": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_project": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_name": {
+          "type": "string"
+        },
+        "culprit_subject": {
+          "type": "string"
+        },
+        "culprit_body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "notifications"
+      ]
+    },
     "DataStoreConfig": {
       "properties": {
         "datastore_type": {
@@ -257,6 +284,9 @@
         "notify_config": {
           "$ref": "#/$defs/NotifyConfig"
         },
+        "culprit_notify_config": {
+          "$ref": "#/$defs/CulpritNotifyConfig"
+        },
         "anomaly_config": {
           "$ref": "#/$defs/AnomalyConfig"
         },
@@ -302,15 +332,6 @@
           "type": "string"
         },
         "missing_body": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "culprit_subject": {
-          "type": "string"
-        },
-        "culprit_body": {
           "items": {
             "type": "string"
           },

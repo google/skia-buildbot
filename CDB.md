@@ -11,7 +11,8 @@ mode. Download from:
 > https://www.cockroachlabs.com/docs/releases/
 
 Make sure to download the version that corresponds to the version used in production, which can
-be checked by looking at the YAML file in the [`k8s-config`](https://skia.googlesource.com/k8s-config/) repo.
+be checked by looking at the YAML file in the
+[`k8s-config`](https://skia.googlesource.com/k8s-config/) repo(This is v22.1 as of Apr 2024).
 
     cd /tmp; cockroach start-single-node --insecure --listen-addr=127.0.0.1
 

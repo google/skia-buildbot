@@ -83,6 +83,26 @@ type NotifyConfig struct {
 	// formatted as Markdow. Sent when a detected regression is no longer
 	// detectable.
 	MissingBody []string `json:"missing_body,omitempty"`
+}
+
+// NotifyConfig controls how notifications are sent, and their format.
+type CulpritNotifyConfig struct {
+	// Notifications chooses how notifications are sent when a regression is found.
+	Notifications notifytypes.Type `json:"notifications"`
+
+	// IssueTrackerAPIKeySecretProject is the name of the GCP project where the
+	// issue tracker API key is stored in the secret manager. Only required if
+	// Notifications is set to use an issue tracker.
+	IssueTrackerAPIKeySecretProject string `json:"issue_tracker_api_key_secret_project,omitempty"`
+
+	// IssueTrackerAPIKeySecretName is the name of the secret in the secret
+	// manager that contains the issue tracker API key. Only required if
+	// Notifications is set to use an issue tracker.
+	IssueTrackerAPIKeySecretName string `json:"issue_tracker_api_key_secret_name,omitempty"`
+
+	// The following fields, CulpritSubject and CulpritBody, are
+	// all golang text templates. See culprit.formatter.TemplateContext for the values that
+	// are available to the templates.
 
 	// CulpritSubject is a template for the subject of the notfication sent when
 	// a culprit is detected.
@@ -822,13 +842,14 @@ type InstanceConfig struct {
 
 	NeedAlertAction bool `json:"need_alert_action,omitempty"`
 
-	AuthConfig      AuthConfig      `json:"auth_config,omitempty"`
-	DataStoreConfig DataStoreConfig `json:"data_store_config"`
-	IngestionConfig IngestionConfig `json:"ingestion_config"`
-	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
-	NotifyConfig    NotifyConfig    `json:"notify_config"`
-	AnomalyConfig   AnomalyConfig   `json:"anomaly_config,omitempty"`
-	QueryConfig     QueryConfig     `json:"query_config,omitempty"`
+	AuthConfig          AuthConfig          `json:"auth_config,omitempty"`
+	DataStoreConfig     DataStoreConfig     `json:"data_store_config"`
+	IngestionConfig     IngestionConfig     `json:"ingestion_config"`
+	GitRepoConfig       GitRepoConfig       `json:"git_repo_config"`
+	NotifyConfig        NotifyConfig        `json:"notify_config"`
+	CulpritNotifyConfig CulpritNotifyConfig `json:"culprit_notify_config,omitempty"`
+	AnomalyConfig       AnomalyConfig       `json:"anomaly_config,omitempty"`
+	QueryConfig         QueryConfig         `json:"query_config,omitempty"`
 
 	// Measurement ID to use when tracking user metrics with Google Analytics.
 	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`

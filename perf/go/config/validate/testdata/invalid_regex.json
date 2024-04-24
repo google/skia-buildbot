@@ -28,6 +28,9 @@
     "notify_config": {
         "notifications": "html_email"
     },
+    "culprit_notify_config": {
+        "notifications": "none"
+    },
     "git_repo_config": {
         "provider": "gitiles",
         "url": "https://chromium.googlesource.com/chromium/src",

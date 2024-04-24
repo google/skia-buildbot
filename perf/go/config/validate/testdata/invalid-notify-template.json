@@ -14,6 +14,9 @@
             "This in not a valid template reference: {{ .FOO }}"
         ]
     },
+    "culprit_notify_config": {
+        "notifications": "none"
+    },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"
     },

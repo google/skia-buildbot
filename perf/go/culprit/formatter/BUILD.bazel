@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "formatter",
-    srcs = ["formatter.go"],
+    srcs = [
+        "formatter.go",
+        "noop.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/culprit/formatter",
     visibility = ["//visibility:public"],
     deps = [

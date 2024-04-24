@@ -2,7 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "transport",
-    srcs = ["transport.go"],
+    srcs = [
+        "noop.go",
+        "transport.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/culprit/transport",
     visibility = ["//visibility:public"],
     deps = [
