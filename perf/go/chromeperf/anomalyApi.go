@@ -277,12 +277,17 @@ func (cp *anomalyApiClientImpl) GetAnomaliesAroundRevision(ctx context.Context, 
 	response := []AnomalyForRevision{}
 	for testPath, cpAnomalies := range getAnomaliesResp.Anomalies {
 		for _, anomaly := range cpAnomalies {
+			params := getParams(testPath)
+			if len(testPath) > 0 && len(params) == 0 {
+				return nil, skerr.Fmt("Test path likely has more params than expected. Test path: %s", testPath)
+			}
+
 			response = append(response, AnomalyForRevision{
 				TestPath:      testPath,
 				StartRevision: anomaly.StartRevision,
 				EndRevision:   anomaly.EndRevision,
 				Anomaly:       anomaly,
-				Params:        getParams(testPath),
+				Params:        params,
 			})
 		}
 	}
@@ -377,7 +382,7 @@ func getParams(testPath string) map[string][]string {
 	if len(testPathParts) == 0 {
 		return params
 	}
-	paramKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3"}
+	paramKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3", "subtest_4", "subtest_5"}
 	if len(testPathParts) > len(paramKeys) {
 		return params
 	}
