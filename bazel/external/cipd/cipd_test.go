@@ -23,8 +23,8 @@ func TestFindVPython3(t *testing.T) {
 	assertFileExists(t, path)
 }
 
-func TestFindPython311(t *testing.T) {
-	path, err := cpython3.FindPython311()
+func TestFindPython38(t *testing.T) {
+	path, err := cpython3.FindPython38()
 	require.NoError(t, err)
 	assertFileExists(t, path)
 }
