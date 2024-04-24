@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"flag"
 	"io/fs"
+	"strings"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -20,6 +22,8 @@ const (
 	// Make the triggerInterrogation channel buffered so we don't lag responding
 	// to HTTP requests from the Swarming bot.
 	interrogationChannelSize = 10
+
+	oauth2RetryDuration = time.Minute
 )
 
 // flags
@@ -42,11 +46,37 @@ var (
 )
 
 func main() {
-	common.InitWithMust(
-		"test_machine_monitor",
-		common.PrometheusOpt(promPort),
-		common.CloudLogging(local, "skia-public"),
-	)
+	var err error
+
+	for {
+		err = common.InitWith(
+			"test_machine_monitor",
+			common.PrometheusOpt(promPort),
+			common.CloudLogging(local, "skia-public"),
+		)
+		if err == nil {
+			break
+		}
+		// Keep re-trying if the error comes from the Date/Time on the machine being wrong.
+		//
+		// There is a longer response from the server returned in the error
+		// message here of the form:
+		//
+		//     Response: {"error":"invalid_grant","error_description":"Invalid JWT:
+		//     Token must be a short-lived token (60 minutes) and in a reasonable
+		//     timeframe. Check your iat and exp values in the JWT claim."}
+		//
+		// But that response is controlled by the server and may change in the
+		// future.
+		if strings.Contains(err.Error(), "Failed to initialize: oauth2: cannot fetch token: 400 Bad Request") {
+			sklog.Info("Date/Time on machine is incorrect resulting in an oauth2 error.")
+			time.Sleep(oauth2RetryDuration)
+		} else {
+			// Some other error.
+			sklog.Fatalf("Failed to initialize: %s", err)
+		}
+	}
+
 	sklog.Infof("Version: %s", Version)
 	var instanceConfig config.InstanceConfig
 	b, err := fs.ReadFile(configs.Configs, *configFlag)
