@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Pinpoint_ScheduleBisection_FullMethodName = "/pinpoint.v1.Pinpoint/ScheduleBisection"
+	Pinpoint_CancelJob_FullMethodName         = "/pinpoint.v1.Pinpoint/CancelJob"
 	Pinpoint_QueryBisection_FullMethodName    = "/pinpoint.v1.Pinpoint/QueryBisection"
 	Pinpoint_LegacyJobQuery_FullMethodName    = "/pinpoint.v1.Pinpoint/LegacyJobQuery"
 	Pinpoint_SchedulePairwise_FullMethodName  = "/pinpoint.v1.Pinpoint/SchedulePairwise"
@@ -34,6 +35,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PinpointClient interface {
 	ScheduleBisection(ctx context.Context, in *ScheduleBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
+	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	QueryBisection(ctx context.Context, in *QueryBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
 	LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error)
 	SchedulePairwise(ctx context.Context, in *SchedulePairwiseRequest, opts ...grpc.CallOption) (*PairwiseExecution, error)
@@ -50,6 +52,15 @@ func NewPinpointClient(cc grpc.ClientConnInterface) PinpointClient {
 func (c *pinpointClient) ScheduleBisection(ctx context.Context, in *ScheduleBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error) {
 	out := new(BisectExecution)
 	err := c.cc.Invoke(ctx, Pinpoint_ScheduleBisection_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pinpointClient) CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error) {
+	out := new(CancelJobResponse)
+	err := c.cc.Invoke(ctx, Pinpoint_CancelJob_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +99,7 @@ func (c *pinpointClient) SchedulePairwise(ctx context.Context, in *SchedulePairw
 // for forward compatibility
 type PinpointServer interface {
 	ScheduleBisection(context.Context, *ScheduleBisectRequest) (*BisectExecution, error)
+	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error)
 	LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error)
 	SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error)
@@ -100,6 +112,9 @@ type UnimplementedPinpointServer struct {
 
 func (UnimplementedPinpointServer) ScheduleBisection(context.Context, *ScheduleBisectRequest) (*BisectExecution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ScheduleBisection not implemented")
+}
+func (UnimplementedPinpointServer) CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelJob not implemented")
 }
 func (UnimplementedPinpointServer) QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryBisection not implemented")
@@ -137,6 +152,24 @@ func _Pinpoint_ScheduleBisection_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PinpointServer).ScheduleBisection(ctx, req.(*ScheduleBisectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Pinpoint_CancelJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointServer).CancelJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Pinpoint_CancelJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointServer).CancelJob(ctx, req.(*CancelJobRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -205,6 +238,10 @@ var Pinpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ScheduleBisection",
 			Handler:    _Pinpoint_ScheduleBisection_Handler,
+		},
+		{
+			MethodName: "CancelJob",
+			Handler:    _Pinpoint_CancelJob_Handler,
 		},
 		{
 			MethodName: "QueryBisection",

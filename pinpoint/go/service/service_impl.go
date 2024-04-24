@@ -165,3 +165,27 @@ func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (
 	}
 	return resp, nil
 }
+
+func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.CancelJobResponse, error) {
+	sklog.Infof("Receiving cancel job request: %v", req)
+	if req.JobId == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing JobId")
+	}
+
+	if req.Reason == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
+	}
+
+	c, cleanUp, err := s.temporal.NewClient()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
+	}
+
+	defer cleanUp()
+
+	err = c.CancelWorkflow(ctx, req.JobId, "")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to cancel workflow (%v).", err)
+	}
+	return &pb.CancelJobResponse{JobId: req.JobId, State: "Cancelled"}, nil
+}

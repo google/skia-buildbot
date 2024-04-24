@@ -73,6 +73,16 @@ message QueryBisectRequest {
 	string job_id = 1;
 }
 
+message CancelJobRequest {
+	string job_id = 1;
+	string reason = 2;
+}
+
+message CancelJobResponse {
+	string job_id = 1;
+	string state = 2;
+}
+
 message Commit {
 	string git_hash = 1;
 	string repository = 2;
@@ -243,26 +253,32 @@ message LegacyJobResponse {
 }
 
 service Pinpoint {
-  rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
-    option (google.api.http) = {
-      post: "/pinpoint/v1/bisection"
-			additional_bindings {
-				post: "/pinpoint/v1/schedule"
-			}
-    };
-  }
+	rpc ScheduleBisection(ScheduleBisectRequest) returns (BisectExecution) {
+		option (google.api.http) = {
+			post: "/pinpoint/v1/bisection"
+				additional_bindings {
+					post: "/pinpoint/v1/schedule"
+				}
+		};
+	}
 
-  rpc QueryBisection(QueryBisectRequest) returns (BisectExecution) {
-    option (google.api.http) = {
-      get: "/pinpoint/v1/query"
-    };
-  }
+	rpc CancelJob(CancelJobRequest) returns (CancelJobResponse) {
+		option (google.api.http) = {
+			get: "/pinpoint/v1/cancel"
+		};
+	}
+
+	rpc QueryBisection(QueryBisectRequest) returns (BisectExecution) {
+		option (google.api.http) = {
+			get: "/pinpoint/v1/query"
+		};
+	}
 
 	rpc LegacyJobQuery(LegacyJobRequest) returns (LegacyJobResponse) {
-    option (google.api.http) = {
-      get: "/pinpoint/v1/legacy-job"
-    };
-  }
+		option (google.api.http) = {
+			get: "/pinpoint/v1/legacy-job"
+		};
+	}
 
 	rpc SchedulePairwise(SchedulePairwiseRequest) returns (PairwiseExecution) {
 		option (google.api.http) = {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -118,4 +119,46 @@ func TestQueryBisection_NonExistingJob_ShouldError(t *testing.T) {
 	// TODO(b/322047067): change this to correct error message
 	assert.ErrorContains(t, err, "not implemented", "Empty Job ID should error.")
 	assert.Nil(t, resp, "Empty Job ID shouldn't contain any response.")
+}
+
+func TestCancelJob_InvalidInput_ReturnError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+
+	_, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id"})
+	assert.ErrorContains(t, err, "bad request: missing Reason")
+
+	_, err = svc.CancelJob(ctx, &pb.CancelJobRequest{Reason: "cancel reason"})
+	assert.ErrorContains(t, err, "bad request: missing JobId")
+}
+
+func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient").Return(tcm, func() {}, nil)
+
+	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("internal error"))
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+
+	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "Unable to cancel workflow")
+	assert.ErrorContains(t, err, "internal error")
+}
+
+func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient").Return(tcm, func() {}, nil)
+
+	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+
+	resp, err := svc.CancelJob(ctx, &pb.CancelJobRequest{JobId: "job-id", Reason: "cancel reason"})
+	assert.Nil(t, err)
+	assert.Equal(t, resp.JobId, "job-id")
+	assert.Equal(t, resp.State, "Cancelled")
 }
