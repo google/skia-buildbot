@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/cd/go/cd"
 	"go.skia.org/infra/go/docker"
@@ -196,12 +197,7 @@ func main() {
 					if err != nil {
 						return skerr.Wrap(err)
 					}
-					// Initialize git authentication.
-					ts, err := git_steps.Init(ctx.Context, true)
-					if err != nil {
-						return td.FailStep(ctx.Context, err)
-					}
-					if _, err := gitauth.New(ctx.Context, ts, "/tmp/.gitcookies", true, ctx.String(flagEmail)); err != nil {
+					if _, err := initGitAuth(ctx.Context, ctx.String(flagEmail)); err != nil {
 						return td.FailStep(ctx.Context, err)
 					}
 					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
@@ -275,6 +271,27 @@ func writeBuildImagesJSON(ctx context.Context, workspace string, imageInfo *buil
 		return td.FailStep(ctx, err)
 	}
 	return nil
+}
+
+// initGitAuth initializes Git authentication.
+func initGitAuth(ctx context.Context, email string) (oauth2.TokenSource, error) {
+	ctx = td.StartStep(ctx, td.Props("Init Git Auth"))
+	defer td.EndStep(ctx)
+
+	// Use a custom location for the global .gitconfig, since we may not be able
+	// to write to $HOME.
+	if err := os.Setenv("GIT_CONFIG_GLOBAL", "/tmp/.gitconfig"); err != nil {
+		return nil, td.FailStep(ctx, err)
+	}
+
+	ts, err := git_steps.Init(ctx, true)
+	if err != nil {
+		return nil, td.FailStep(ctx, err)
+	}
+	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
+		return nil, td.FailStep(ctx, err)
+	}
+	return ts, nil
 }
 
 // shallowClone creates a shallow clone of the given repo at the given commit.

@@ -7,10 +7,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -23,12 +21,7 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
 	defer td.EndStep(ctx)
 
-	// Initialize git authentication.
-	ts, err := git_steps.Init(ctx, true)
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
-	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
+	if _, err := initGitAuth(ctx, email); err != nil {
 		return td.FailStep(ctx, err)
 	}
 
