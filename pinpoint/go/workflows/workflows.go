@@ -31,7 +31,7 @@ const (
 	BugUpdate                         = "perf.bug_update"
 )
 
-const defaultPairwiseAttemptCount = 30
+const defaultPairwiseAttemptCount int32 = 30
 
 // Workflow params definitions.
 //
@@ -111,6 +111,9 @@ func (bp *BisectParams) GetInitialAttempt() int32 {
 	if err != nil {
 		return 0
 	}
+	if attempt < 0 {
+		return 0
+	}
 	return int32(attempt)
 }
 
@@ -134,16 +137,23 @@ type PairwiseParams struct {
 
 // GetInitialAttempt returns the initial attempt as int32.
 //
+// Pairwise analysis needs to run an even number of commits to ensure an equal number
+// of pairs where commit A goes first and commit B goes first.
 // If the given string value is invalid or unable to parse, it returns the default 30.
 func (pp *PairwiseParams) GetInitialAttempt() int32 {
 	if pp.Request.InitialAttemptCount == "" {
 		return defaultPairwiseAttemptCount
 	}
 	attempt, err := strconv.ParseInt(pp.Request.InitialAttemptCount, 10, 32)
+	// TODO(sunxiaodi@): Cover invalid input error cases upstream of this function call
 	if err != nil {
 		return defaultPairwiseAttemptCount
 	}
-	return int32(attempt)
+	if attempt < 0 {
+		return defaultPairwiseAttemptCount
+	}
+	// use bit shifting to ensure response is always even
+	return int32((attempt + 1) >> 1 << 1)
 }
 
 // GetImprovementDirection returns the improvement direction.

@@ -37,9 +37,14 @@ func TestBisectParams_GetInitialAttempt(t *testing.T) {
 	assert.Zero(t, makeParam("string").GetInitialAttempt())
 	assert.Zero(t, makeParam("0").GetInitialAttempt())
 	assert.EqualValues(t, 50, makeParam("50").GetInitialAttempt())
+	assert.EqualValues(t, 20, makeParam("+20").GetInitialAttempt())
+	assert.EqualValues(t, 0, makeParam("-0").GetInitialAttempt())
+	assert.Zero(t, makeParam("12.0").GetInitialAttempt())
+	assert.Zero(t, makeParam("-10").GetInitialAttempt())
+	assert.Zero(t, makeParam("123e-2").GetInitialAttempt())
 }
 
-func TestGetImprovementDirection_GivenDirection_ReturnsCorrectDirection(t *testing.T) {
+func TestBisectGetImprovementDirection_GivenDirection_ReturnsCorrectDirection(t *testing.T) {
 	test := func(direction string, expected compare.ImprovementDir) {
 		params := &BisectParams{
 			Request: &pinpointpb.ScheduleBisectRequest{
@@ -51,6 +56,43 @@ func TestGetImprovementDirection_GivenDirection_ReturnsCorrectDirection(t *testi
 
 	test("UP", compare.Up)
 	test("Down", compare.Down)
+	test("UNKNOWN", compare.UnknownDir)
+	test("fake-dir", compare.UnknownDir)
+}
+
+func TestPairwiseParams_GetInitialAttempt(t *testing.T) {
+	makeParam := func(attempt string) *PairwiseParams {
+		return &PairwiseParams{
+			Request: &pinpointpb.SchedulePairwiseRequest{
+				InitialAttemptCount: attempt,
+			},
+		}
+	}
+
+	assert.EqualValues(t, defaultPairwiseAttemptCount, makeParam("").GetInitialAttempt())
+	assert.EqualValues(t, defaultPairwiseAttemptCount, makeParam("string").GetInitialAttempt())
+	assert.Zero(t, makeParam("0").GetInitialAttempt())
+	assert.EqualValues(t, 50, makeParam("50").GetInitialAttempt())
+	assert.EqualValues(t, 32, makeParam("31").GetInitialAttempt())
+	assert.EqualValues(t, 20, makeParam("+20").GetInitialAttempt())
+	assert.EqualValues(t, 0, makeParam("-0").GetInitialAttempt())
+	assert.EqualValues(t, defaultPairwiseAttemptCount, makeParam("12.0").GetInitialAttempt())
+	assert.EqualValues(t, defaultPairwiseAttemptCount, makeParam("-10").GetInitialAttempt())
+	assert.EqualValues(t, defaultPairwiseAttemptCount, makeParam("123e-2").GetInitialAttempt())
+}
+
+func TestPairwiseGetImprovementDirection(t *testing.T) {
+	test := func(direction string, expected compare.ImprovementDir) {
+		params := &BisectParams{
+			Request: &pinpointpb.ScheduleBisectRequest{
+				ImprovementDirection: direction,
+			},
+		}
+		assert.Equal(t, params.GetImprovementDirection(), expected)
+	}
+
+	test("Up", compare.Up)
+	test("down", compare.Down)
 	test("UNKNOWN", compare.UnknownDir)
 	test("fake-dir", compare.UnknownDir)
 }
