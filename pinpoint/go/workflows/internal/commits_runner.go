@@ -39,6 +39,7 @@ type SingleCommitRunnerParams struct {
 	AggregationMethod string
 
 	// The commit with optional deps override
+	// Note: This field is only used in bisect
 	// TODO(b/326352320): move CombinedCommit to a common package or rename midpoint
 	CombinedCommit *midpoint.CombinedCommit
 
@@ -51,6 +52,7 @@ type SingleCommitRunnerParams struct {
 	// In the bisect jobs, one commit run will start with an initial number of iteration
 	// If the compare result is not significant enough, then extra number of iteration will be added to that commit
 	// We need this attribute to record the finished number of iterations
+	// Note: This field is only used in bisect
 	FinishedIteration int32
 
 	// Available bot list

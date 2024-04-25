@@ -27,8 +27,11 @@ const (
 	RunBenchmark                      = "perf.run_benchmark"
 	SingleCommitRunner                = "perf.single_commit_runner"
 	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
+	PairwiseWorkflow                  = "perf.pairwise"
 	BugUpdate                         = "perf.bug_update"
 )
+
+const defaultPairwiseAttemptCount = 30
 
 // Workflow params definitions.
 //
@@ -116,6 +119,38 @@ func (bp *BisectParams) GetInitialAttempt() int32 {
 // Returns Unknown by default regardless of input.
 func (bp *BisectParams) GetImprovementDirection() compare.ImprovementDir {
 	switch strings.ToLower(bp.Request.ImprovementDirection) {
+	case strings.ToLower(string(compare.Up)):
+		return compare.Up
+	case strings.ToLower(string(compare.Down)):
+		return compare.Down
+	}
+	return compare.UnknownDir
+}
+
+type PairwiseParams struct {
+	// PairwiseWorkflow reuses SchedulePairwiseRequest proto request
+	Request *pb.SchedulePairwiseRequest
+}
+
+// GetInitialAttempt returns the initial attempt as int32.
+//
+// If the given string value is invalid or unable to parse, it returns the default 30.
+func (pp *PairwiseParams) GetInitialAttempt() int32 {
+	if pp.Request.InitialAttemptCount == "" {
+		return defaultPairwiseAttemptCount
+	}
+	attempt, err := strconv.ParseInt(pp.Request.InitialAttemptCount, 10, 32)
+	if err != nil {
+		return defaultPairwiseAttemptCount
+	}
+	return int32(attempt)
+}
+
+// GetImprovementDirection returns the improvement direction.
+//
+// Returns Unknown by default.
+func (pp *PairwiseParams) GetImprovementDirection() compare.ImprovementDir {
+	switch strings.ToLower(pp.Request.ImprovementDirection) {
 	case strings.ToLower(string(compare.Up)):
 		return compare.Up
 	case strings.ToLower(string(compare.Down)):

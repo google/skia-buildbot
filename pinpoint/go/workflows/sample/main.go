@@ -110,6 +110,36 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 	return pr, nil
 }
 
+func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
+	ctx := context.Background()
+	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/179a34b2be0000
+	p := &workflows.PairwiseParams{
+		Request: &pb.SchedulePairwiseRequest{
+			StartGitHash:         "573a50658f4301465569c3faf00a145093a1fe9b", // 1284448
+			EndGitHash:           "a633e198b79b2e0c83c72a3006cdffe642871e22", // 1284449
+			Configuration:        "android-pixel4-perf",
+			Benchmark:            "blink_perf.bindings",
+			Story:                "gc-mini-tree.html",
+			Chart:                "gc-mini-tree",
+			Statistic:            "mean",
+			InitialAttemptCount:  "2",
+			ImprovementDirection: "DOWN",
+		},
+	}
+
+	var pe *pb.PairwiseExecution
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.PairwiseWorkflow, p)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &pe); err != nil {
+		return nil, skerr.Wrapf(err, "Unable to get result")
+	}
+	return pe, nil
+}
+
 func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	ctx := context.Background()
 	p := &internal.SingleCommitRunnerParams{
@@ -206,7 +236,7 @@ func main() {
 		result, err = triggerSingleCommitRunner(c)
 	}
 	if *triggerPairwiseFlag {
-		result, err = triggerPairwiseRunner(c)
+		result, err = triggerPairwiseWorkflow(c)
 	}
 	if *triggerBugUpdateFlag {
 		result, err = triggerBugUpdateWorkflow(c)

@@ -72,7 +72,9 @@ func main() {
 	w.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
 
 	w.RegisterActivity(internal.FindAvailableBotsActivity)
+	w.RegisterActivity(internal.ComparePairwiseActivity)
 	w.RegisterWorkflowWithOptions(internal.PairwiseCommitsRunnerWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseCommitsRunner})
+	w.RegisterWorkflowWithOptions(internal.PairwiseWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseWorkflow})
 
 	w.RegisterActivity(internal.PostBugCommentActivity)
 	w.RegisterWorkflowWithOptions(internal.PostBugCommentWorkflow, workflow.RegisterOptions{Name: workflows.BugUpdate})

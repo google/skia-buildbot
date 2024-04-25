@@ -107,6 +107,6 @@ func compareRuns(ctx workflow.Context, lRun, hRun *BisectRun, chart string, mag 
 }
 
 // ComparePairwiseActivity wraps compare.ComparePairwise as a temporal activity
-func ComparePairwiseActivity(ctx workflow.Context, valuesA, valuesB []float64, chart string, dir compare.ImprovementDir) (*compare.ComparePairwiseResult, error) {
+func ComparePairwiseActivity(ctx context.Context, valuesA, valuesB []float64, dir compare.ImprovementDir) (*compare.ComparePairwiseResult, error) {
 	return compare.ComparePairwise(valuesA, valuesB, dir)
 }

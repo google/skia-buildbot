@@ -12,6 +12,7 @@ go_library(
         "compare.go",
         "midpoint.go",
         "options.go",
+        "pairwise.go",
         "pairwise_runner.go",
         "run_benchmark.go",
     ],
@@ -53,6 +54,7 @@ go_test(
         "compare_test.go",
         "midpoint_test.go",
         "pairwise_runner_test.go",
+        "pairwise_test.go",
         "run_benchmark_test.go",
     ],
     data = glob(["testdata/**"]),
@@ -66,6 +68,7 @@ go_test(
     deps = [
         "//go/gitiles/mocks",
         "//go/mockhttpclient",
+        "//go/skerr",
         "//go/swarming",
         "//go/testutils",
         "//go/vcsinfo",
