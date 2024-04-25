@@ -3,30 +3,24 @@ package ingest
 import (
 	"bytes"
 	"encoding/json"
-	"io"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
-func loadTestdata(t assert.TestingT, filename string) *perfresults.PerfResults {
-	var r io.Reader
-	r, err := os.Open("../testdata/" + filename)
-	assert.NoError(t, err)
-
-	pr, err := perfresults.NewResults(r)
+func loadTestdata(t sktest.TestingT, filename string) *perfresults.PerfResults {
+	pr, err := perfresults.NewResults(testutils.GetReader(t, filename))
 	assert.NoError(t, err)
 	return pr
 }
 
-func loadTestdataUnmarshal(filename string) *perfresults.PerfResults {
-	d, _ := os.ReadFile("../testdata/" + filename)
-
+func loadTestdataUnmarshal(t sktest.TestingT, filename string) *perfresults.PerfResults {
 	pr := &perfresults.PerfResults{}
-	_ = pr.UnmarshalJSON(d)
+	_ = pr.UnmarshalJSON(testutils.ReadFileBytes(t, filename))
 	return pr
 }
 
@@ -55,7 +49,7 @@ func Test_EncodeFormat_PerfResults_ReturnsValidJson(t *testing.T) {
 func BenchmarkLoadPerfResultsJSON(b *testing.B) {
 	b.Run("unmarshal", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = loadTestdataUnmarshal("full.json")
+			_ = loadTestdataUnmarshal(b, "full.json")
 		}
 	})
 	b.Run("decode", func(b *testing.B) {

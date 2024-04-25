@@ -27,6 +27,9 @@ import (
 func TestDataDir(t sktest.TestingT) string {
 	_, thisFile, _, ok := runtime.Caller(0)
 	require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
+
+	// Start with the root dir.
+	testDir := string(filepath.Separator)
 	for skip := 0; ; skip++ {
 		_, file, _, ok := runtime.Caller(skip)
 		require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
@@ -41,9 +44,23 @@ func TestDataDir(t sktest.TestingT) string {
 				file = filepath.Join(bazel.RunfilesDir(), file)
 			}
 
-			return filepath.Join(filepath.Dir(file), "testdata")
+			testDir = filepath.Dir(file)
+			break
 		}
 	}
+
+	// If the testDir ends with the path separator, then it is at the root, we should stop.
+	for testDir[len(testDir)-1] != filepath.Separator {
+		testdataDir := filepath.Join(testDir, "testdata")
+		if _, err := os.Stat(testdataDir); os.IsNotExist(err) {
+			testDir = filepath.Dir(testDir)
+		} else {
+			return testdataDir
+		}
+	}
+
+	require.FailNow(t, "No testdata found.")
+	return ""
 }
 
 // TestDataFilename returns the absolute path for the given relative path to a

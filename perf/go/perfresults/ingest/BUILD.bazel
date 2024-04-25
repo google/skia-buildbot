@@ -20,6 +20,8 @@ go_test(
     ],
     embed = [":ingest"],
     deps = [
+        "//go/sktest",
+        "//go/testutils",
         "//perf/go/ingest/format",
         "//perf/go/perfresults",
         "@com_github_stretchr_testify//assert",
