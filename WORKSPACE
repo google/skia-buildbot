@@ -406,7 +406,7 @@ container_pull(
 # skia_app_container macro.
 container_pull(
     name = "cd-base",
-    digest = "sha256:17e18164238a4162ce2c30b7328a7e44fbe569e56cab212ada424dc7378c1f5f",
+    digest = "sha256:384dc474bf6c1dc6fd99477f6f6fae52deba29b999de8d31530306b7d50d6bfa",
     registry = "gcr.io",
     repository = "skia-public/cd-base",
 )
