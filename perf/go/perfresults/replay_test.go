@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/rpcreplay"
 	"github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,8 +28,7 @@ func setupReplay(t *testing.T, replayName string) *http.Client {
 	// if the recordPath is not given, then we will replay from the testdata;
 	// otherwise we will record the traffic and save to the given path;
 	if *recordPath == "" {
-		replayFile := path.Join("testdata", replayName)
-		hr, err := httpreplay.NewReplayer(replayFile)
+		hr, err := httpreplay.NewReplayer(testutils.TestDataFilename(t, replayName))
 		require.NoError(t, err)
 
 		ctx, cancel := context.WithCancel(context.Background())
@@ -69,9 +69,7 @@ func newRBEReplay(t *testing.T, ctx context.Context, casInstance string, replayN
 	}
 
 	if *recordPath == "" {
-		replayFile := path.Join("testdata", replayName)
-		f, err := os.Open(replayFile + ".rpc")
-		require.NoError(t, err)
+		f := testutils.GetReader(t, replayName+".rpc")
 		gr, err := gzip.NewReader(f)
 		require.NoError(t, err)
 
