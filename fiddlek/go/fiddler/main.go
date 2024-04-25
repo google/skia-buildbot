@@ -168,10 +168,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	setState(types.RUNNING)
 
-	if request.Options.Duration == 0 {
+	if !request.Options.Animated {
 		oneStep(ctx, *checkout, res, 0.0, request.Options.Duration)
 		serializeOutput(ctx, w, res)
 	} else {
+		if request.Options.Duration == 0 {
+			request.Options.Duration = types.DefaultAnimationDuration
+		}
 
 		var g errgroup.Group
 		// If this is an animated fiddle then:

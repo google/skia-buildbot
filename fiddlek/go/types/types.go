@@ -14,6 +14,8 @@ const (
 	MAX_JSON_SIZE = 100 * 1024 * 1024
 
 	MAX_CODE_SIZE = 128 * 1024
+
+	DefaultAnimationDuration = 2 // seconds
 )
 
 // Result is the JSON output format from fiddle_run.

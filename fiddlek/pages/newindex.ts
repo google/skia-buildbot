@@ -29,7 +29,7 @@ fiddle.options = {
   width: 256,
   height: 256,
   animated: false,
-  duration: 2,
+  duration: 0,
   offscreen: false,
   offscreen_width: 256,
   offscreen_height: 256,

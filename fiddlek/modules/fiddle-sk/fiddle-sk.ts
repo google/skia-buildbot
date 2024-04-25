@@ -78,7 +78,7 @@ export class FiddleSk extends ElementSk {
     width: 128,
     height: 128,
     animated: false,
-    duration: 5,
+    duration: 0,
     offscreen: false,
     offscreen_width: 128,
     offscreen_height: 128,
