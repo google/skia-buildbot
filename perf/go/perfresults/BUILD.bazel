@@ -38,10 +38,14 @@ go_test(
         "replay_test.go",
         "swarming_test.go",
     ],
-    data = glob(["testdata/**"]),
+    data = [
+        "//perf/go/perfresults/testdata:perftest",
+        "//perf/go/perfresults/testdata:replay",
+    ],
     embed = [":perfresults"],
     env_inherit = ["HOME"],
     deps = [
+        "//go/testutils",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/digest",
         "@com_github_stretchr_testify//assert",

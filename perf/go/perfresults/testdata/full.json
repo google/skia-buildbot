@@ -1,6 +1,37 @@
 [
   {
     "type": "GenericSet",
+    "guid": "c7397d4d-1651-453c-8621-98c6cc5d2f38",
+    "values": [
+      "AMD64"
+    ]
+  },
+  {
+    "type": "GenericSet",
+    "guid": "a8441fd2-d0eb-4a12-b845-be9902a2202e",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.2_workTime_5"
+    ]
+  },  {
+    "type": "GenericSet",
+    "guid": "95fac77a-80ad-4938-b285-843e8de10b94",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.4"
+    ]
+  }, {
+    "type": "GenericSet",
+    "guid": "2944381f-f611-4b9a-bd07-779d2533771c",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0"
+    ]
+  }, {
+    "type": "GenericSet",
+    "guid": "1ed3b0d9-27ce-4a9f-a8c0-c116bccd1e0c",
+    "values": [
+      "tests_cube-sea?framebufferScale_1.0_heavyGpu_1_cubeScale_0.3_workTime_10"
+    ]
+  }, {
+    "type": "GenericSet",
     "guid": "5b76decd-7ee9-4743-b24d-d7cc8eeb9c5f",
     "values": [
       "win"

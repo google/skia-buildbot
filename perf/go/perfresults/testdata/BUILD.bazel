@@ -1,0 +1,22 @@
+filegroup(
+    name = "replay",
+    srcs = glob([
+        "*.rpc",
+        "SwarmingClient_*.json",
+        "LoadPerfResults_*.json",
+    ]) + ["FindTaskID_ReturnsInstanceAndTask.json"],
+    visibility = ["//perf/go/perfresults:__subpackages__"],
+)
+
+filegroup(
+    name = "perftest",
+    srcs = [
+        "empty.json",
+        "full.json",
+        "merged.json",
+        "merged_diff.json",
+        "valid_histograms.json",
+        "valid_metadata.json",
+    ],
+    visibility = ["//perf/go/perfresults:__subpackages__"],
+)

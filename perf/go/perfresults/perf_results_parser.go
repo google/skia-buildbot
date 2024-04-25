@@ -70,6 +70,19 @@ type Histogram struct {
 	SampleValues []float64
 }
 
+// AggregationMapping maps the string literals to the aggregation methods to be used in the
+// trace generations and user-facing Json/OpenAPIs.
+var AggregationMapping = map[string]func(Histogram) float64{
+	"max":  Histogram.Max,
+	"min":  Histogram.Min,
+	"mean": Histogram.Mean,
+	"std":  Histogram.Stddev,
+	"sum":  Histogram.Sum,
+	"count": func(h Histogram) float64 {
+		return float64(h.Count())
+	},
+}
+
 type histogramRaw struct {
 	Name string `json:"name"`
 	Unit string `json:"unit"`
@@ -200,6 +213,13 @@ func NewResults(r io.Reader) (*PerfResults, error) {
 	}
 
 	return pr, nil
+}
+
+func (h Histogram) Aggregate(method string) float64 {
+	if m, ok := AggregationMapping[method]; len(h.SampleValues) > 0 && ok {
+		return m(h)
+	}
+	return math.NaN()
 }
 
 // This should be deprecated in favor of streaming decoding.
