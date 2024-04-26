@@ -91,13 +91,13 @@ func NewPinpointClient(backendServiceUrlOverride string) (pinpoint.PinpointClien
 	return pinpoint.NewPinpointClient(conn), nil
 }
 
-// NewAnomalyGroupClient returns a new instance of a client for the anomalygroup service.
-func NewAnomalyGroupClient(backendServiceUrlOverride string) (anomalygroup.AnomalyGroupServiceClient, error) {
+// NewAnomalyGroupServiceClient returns a new instance of a client for the anomalygroup service.
+func NewAnomalyGroupServiceClient(backendServiceUrlOverride string, insecure_conn bool) (anomalygroup.AnomalyGroupServiceClient, error) {
 	if !isBackendEnabled(backendServiceUrlOverride) {
 		return nil, skerr.Fmt("Backend service is not enabled for this instance.")
 	}
 
-	conn, err := getGrpcConnection(backendServiceUrlOverride, false)
+	conn, err := getGrpcConnection(backendServiceUrlOverride, insecure_conn)
 	if err != nil {
 		return nil, err
 	}

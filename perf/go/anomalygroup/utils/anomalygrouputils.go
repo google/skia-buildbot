@@ -44,7 +44,7 @@ func ProcessRegression(
 	groupingMutex.Lock()
 	defer groupingMutex.Unlock()
 
-	ag_client, err := backend.NewAnomalyGroupClient("")
+	ag_client, err := backend.NewAnomalyGroupServiceClient("", false)
 	if err != nil {
 		return "", skerr.Wrapf(err, "error creating anomaly group client from backend")
 	}
