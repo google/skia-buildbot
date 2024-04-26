@@ -46,7 +46,7 @@ export class SkottieButtonSk extends ElementSk {
 
   private _content: ContentType = '';
 
-  protected classes: string[] = [];
+  protected _classes: string[] = [];
 
   private _id: string = '';
 
@@ -70,7 +70,7 @@ export class SkottieButtonSk extends ElementSk {
   }
 
   buildButtonClass(): string {
-    const classes = ['base', classesMap[this._type]].concat(this.classes);
+    const classes = ['base', classesMap[this._type]].concat(this._classes);
 
     return classes.join(' ');
   }
@@ -101,6 +101,11 @@ export class SkottieButtonSk extends ElementSk {
 
   set type(value: ButtonType) {
     this._type = value;
+    this._render();
+  }
+
+  set classes(val: string[]) {
+    this._classes = val;
     this._render();
   }
 }

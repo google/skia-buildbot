@@ -214,7 +214,10 @@ export class SkottieSk extends ElementSk {
               @select=${ele.togglePerformanceChart}
               type="outline"
               .content=${'Performance chart'}
-              .classes=${['header__button']}>
+              .classes=${[
+                'header__button',
+                ele.showPerformanceChart ? 'active-dialog' : '',
+              ]}>
             </skottie-button-sk>
             ${ele.compatibilityReportOpen()}
             <skottie-button-sk
@@ -222,7 +225,10 @@ export class SkottieSk extends ElementSk {
               @select=${ele.toggleEditor}
               type="outline"
               .content=${'View JSON code'}
-              .classes=${['header__button']}>
+              .classes=${[
+                'header__button',
+                ele.showJSONEditor ? 'active-dialog' : '',
+              ]}>
             </skottie-button-sk>
             ${ele.renderApplyChanges()}
 
@@ -405,7 +411,10 @@ export class SkottieSk extends ElementSk {
       @select=${this.toggleCompatibilityReport}
       type="outline"
       .content=${'Compatibility Report'}
-      .classes=${['header__button']}>
+      .classes=${[
+        'header__button',
+        this.showCompatibilityReport ? 'active-dialog' : '',
+      ]}>
     </skottie-button-sk>`;
   }
 
@@ -1644,8 +1653,11 @@ export class SkottieSk extends ElementSk {
   private toggleEditor(e: Event): void {
     // avoid double toggles
     e.preventDefault();
+
+    const showJSONEditor = this.showJSONEditor;
+    this.closeAllDialogs();
     this.showTextEditor = false;
-    this.showJSONEditor = !this.showJSONEditor;
+    this.showJSONEditor = !showJSONEditor;
     this.stateChanged();
     this.render();
   }
@@ -1666,10 +1678,19 @@ export class SkottieSk extends ElementSk {
     exportManager?.export(e.detail.value as ExportType, this.skottiePlayer);
   }
 
+  private closeAllDialogs() {
+    this.showPerformanceChart = false;
+    this.showJSONEditor = false;
+    this.showCompatibilityReport = false;
+  }
+
   private togglePerformanceChart(e: Event): void {
     // avoid double toggles
     e.preventDefault();
-    this.showPerformanceChart = !this.showPerformanceChart;
+
+    const showPerformanceChart = this.showPerformanceChart;
+    this.closeAllDialogs();
+    this.showPerformanceChart = !showPerformanceChart;
     this.stateChanged();
     this.render();
   }
@@ -1677,7 +1698,10 @@ export class SkottieSk extends ElementSk {
   private toggleCompatibilityReport(e: Event): void {
     // avoid double toggles
     e.preventDefault();
-    this.showCompatibilityReport = !this.showCompatibilityReport;
+
+    const showCompatibilityReport = this.showCompatibilityReport;
+    this.closeAllDialogs();
+    this.showCompatibilityReport = !showCompatibilityReport;
     this.stateChanged();
     this.render();
   }

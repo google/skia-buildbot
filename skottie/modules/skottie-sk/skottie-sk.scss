@@ -12,6 +12,10 @@ body.body-sk.font-sk {
     outline-offset: 4px;
   }
 
+  skottie-button-sk button.active-dialog {
+    color: var(--primary);
+  }
+
   skottie-sk {
     * {
       font-size: 16px;
@@ -251,10 +255,6 @@ body.body-sk.font-sk {
           align-items: center;
           margin: 0 8px;
         }
-      }
-
-      dialog.compatibility-report {
-        width: fit-content;
       }
     }
 

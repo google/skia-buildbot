@@ -85,6 +85,15 @@ function processErrors(
   }, new Map<string, ErrorObject>());
 
   return [...uniqueErrorMap.values()].sort((e1, e2) => {
+    const n1 = (e1 as LottieError).nameHierarchy?.join(':') ?? '';
+    const n2 = (e2 as LottieError).nameHierarchy?.join(':') ?? '';
+
+    const nRes = n1.localeCompare(n2);
+
+    if (nRes !== 0) {
+      return nRes;
+    }
+
     const res = e1.instancePath.localeCompare(e2.instancePath);
 
     if (res === 0) {

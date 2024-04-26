@@ -1,14 +1,19 @@
+@import '../../../elements-sk/modules/colors';
+
 skottie-compatibility-sk {
-  .report-name-cell {
+  .tab-container {
+    margin: 0 8px;
+  }
+
+  .pass-message {
+    padding: 16px;
+  }
+
+  .feature-id-cell {
     vertical-align: top;
-    text-align: center;
   }
 
-  .result-cell {
-    padding: 0px;
-  }
-
-  .result-cell-table {
-    width: 100%;
+  skottie-button-sk button.active-tab {
+    color: var(--primary);
   }
 }

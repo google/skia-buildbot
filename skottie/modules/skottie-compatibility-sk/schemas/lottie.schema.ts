@@ -534,6 +534,16 @@ export const lottieSchema = {
                     }
                 ]
             },
+            "unknown": {
+                "$comment": "Unknown layers, TODO(b/336760092)- port to public spec",
+                "not": {
+                    "properties": {
+                        "ty": {
+                            "enum": [0,1,2,3,4]
+                        }
+                    }
+                }
+            },
             "all-layers": {
                 "oneOf": [
                     {
@@ -550,6 +560,9 @@ export const lottieSchema = {
                     },
                     {
                         "$ref": "#/$defs/layers/shape-layer"
+                    },
+                    {
+                        "$ref": "#/$defs/layers/unknown"
                     }
                 ]
             },
@@ -1411,6 +1424,17 @@ export const lottieSchema = {
                     }
                 ]
             },
+            "unknown": {
+                "$comment": "Unknown shapes, TODO(b/336760092)- port to public spec",
+                "not": {
+                    "properties": {
+                        "ty": {
+
+                            "enum": ["el", "fl", "gr", "rc",  "sh", "sr", "tr", "tm"]
+                        }
+                    }
+                }
+            },
             "all-graphic-elements": {
                 "$comment": "List of valid shapes",
                 "oneOf": [
@@ -1437,7 +1461,10 @@ export const lottieSchema = {
                     },
                     {
                         "$ref": "#/$defs/shapes/trim-path"
-                    }
+                    },
+                    {
+                        "$ref": "#/$defs/shapes/unknown"
+                    },
                 ]
             },
             "modifier": {
