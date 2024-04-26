@@ -2,7 +2,6 @@ ARG CIPD_ROOT="/cipd"
 
 FROM debian:bullseye as base
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
-    adduser \
     apt-transport-https \
     ca-certificates \
     clang-11 \
@@ -17,10 +16,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
     && apt-get install -y docker-ce \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get remove -y git \
-    && ln -s /usr/bin/python3 /usr/bin/python \
-    && addgroup --gid 2000 skia \
-    && adduser --uid 2000 --gid 2000 skia
-USER skia:skia
+    && ln -s /usr/bin/python3 /usr/bin/python
 ENV CC=clang-11
 
 # Install the CIPD client by syncing depot_tools to the revision specified in
@@ -28,9 +24,7 @@ ENV CC=clang-11
 # rolled) and running the wrapper script. This process requires temporarily
 # installing some packages that we prefer to obtain via CIPD.
 FROM base AS install_cipd
-USER root
 RUN apt-get update && apt-get install -y git curl python3-minimal
-USER skia:skia
 COPY ./recipes.cfg /tmp/recipes.cfg
 RUN cat /tmp/recipes.cfg | \
     python3 -c "import json; import sys; print(json.load(sys.stdin)['deps']['depot_tools']['revision'])" > /tmp/depot_tools_rev \
@@ -49,9 +43,7 @@ COPY --from=install_cipd /tmp/cipd /usr/local/bin/cipd
 FROM cipd AS install_pkgs
 ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
-USER root
-RUN mkdir -p ${CIPD_ROOT} && chown skia:skia ${CIPD_ROOT}
-USER skia:skia
+RUN mkdir -p ${CIPD_ROOT}
 ENV CIPD_CACHE_DIR="/tmp/.cipd_cache"
 RUN cipd init ${CIPD_ROOT} -force \
     && cipd install skia/bots/bazelisk version:0 -root /cipd \
@@ -64,8 +56,6 @@ ARG CIPD_ROOT
 ENV CIPD_ROOT=$CIPD_ROOT
 COPY --from=install_pkgs ${CIPD_ROOT} ${CIPD_ROOT}
 ENV GOPATH=/go
-USER root
-RUN mkdir -p ${GOPATH} && chown skia:skia ${GOPATH}
-USER skia:skia
+RUN mkdir -p ${GOPATH}
 ENV PATH="${CIPD_ROOT}/bin:${CIPD_ROOT}/go/bin:${CIPD_ROOT}:${GOPATH}/bin:${PATH}"
 RUN go install github.com/mikefarah/yq/v4@v4.28.1
