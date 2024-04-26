@@ -42,11 +42,6 @@ func TestBuild_SingleTarget_OutputJSONFileCreated(t *testing.T) {
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
 			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
-			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
@@ -92,13 +87,7 @@ func TestBuild_SingleTarget_InvalidTargetCausesFailure(t *testing.T) {
 		assert.Contains(t, err.Error(), "Invalid target")
 
 		executedCommands := mock.Commands()
-		testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
-		}, executedCommands)
+		testutils.AssertCommandsMatch(t, [][]string{}, executedCommands)
 
 		assertFileDoesNotExist(t, filepath.Join(workspace, "build-images.json"))
 		return nil
@@ -134,11 +123,6 @@ func TestBuild_SingleTarget_GitFetchErrorCausesFailure(t *testing.T) {
 
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
@@ -179,11 +163,6 @@ func TestBuild_SingleTarget_DockerErrorCausesFailure(t *testing.T) {
 
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
@@ -229,11 +208,6 @@ func TestBuild_SingleTarget_BazelErrorCausesFailure(t *testing.T) {
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
 			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
-			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
@@ -273,11 +247,6 @@ func TestBuild_MultipleTarget_OutputJSONFileCreated(t *testing.T) {
 
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
@@ -336,11 +305,6 @@ func TestBuild_SingleTargetMultipleTimes_Deduplicated(t *testing.T) {
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
 			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
-			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
 			{fakeGitPath, "fetch", "--depth=1", "origin", gitCommit},
@@ -395,11 +359,6 @@ func TestBuild_MultipleExtraArgs_PreservedInOrder(t *testing.T) {
 
 		executedCommands := mock.Commands()
 		testutils.AssertCommandsMatch(t, [][]string{
-			{fakeGitPath, "--version"},
-			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
-			{fakeGitPath, "config", "--global", "user.email", email},
-			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
-			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},

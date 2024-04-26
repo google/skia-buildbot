@@ -21,10 +21,6 @@ func build(ctx context.Context, commit, repo, workspace, username, email string,
 	ctx = td.StartStep(ctx, td.Props("Build Images"))
 	defer td.EndStep(ctx)
 
-	if _, err := initGitAuth(ctx, email); err != nil {
-		return td.FailStep(ctx, err)
-	}
-
 	toBuild := make([]containerToBuild, 0, len(targets))
 nextTarget:
 	for _, target := range targets {

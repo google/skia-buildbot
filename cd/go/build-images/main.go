@@ -98,8 +98,12 @@ func main() {
 						Required: true,
 					},
 				},
-				Action: func(ctx *cli.Context) error {
-					return build(ctx.Context, ctx.String(flagCommit), ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagUser), ctx.String(flagEmail), ctx.StringSlice(flagTarget), ctx.StringSlice(flagExtraBazelArg))
+				Action: func(cliCtx *cli.Context) error {
+					ctx, _, err := initGitAuth(cliCtx.Context, cliCtx.String(flagEmail))
+					if err != nil {
+						return td.FailStep(ctx, err)
+					}
+					return build(ctx, cliCtx.String(flagCommit), cliCtx.String(flagRepo), cliCtx.String(flagWorkspace), cliCtx.String(flagUser), cliCtx.String(flagEmail), cliCtx.StringSlice(flagTarget), cliCtx.StringSlice(flagExtraBazelArg))
 				},
 			},
 			{
@@ -148,12 +152,16 @@ func main() {
 						Required: false,
 					},
 				},
-				Action: func(ctx *cli.Context) error {
-					dc, err := docker.NewClient(ctx.Context)
+				Action: func(cliCtx *cli.Context) error {
+					dc, err := docker.NewClient(cliCtx.Context)
 					if err != nil {
 						return skerr.Wrap(err)
 					}
-					return updateRefs(ctx.Context, dc, ctx.String(flagRepo), ctx.String(flagWorkspace), ctx.String(flagEmail), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit))
+					ctx, ts, err := initGitAuth(cliCtx.Context, cliCtx.String(flagEmail))
+					if err != nil {
+						return td.FailStep(ctx, err)
+					}
+					return updateRefs(ctx, ts, dc, cliCtx.String(flagRepo), cliCtx.String(flagWorkspace), cliCtx.String(flagEmail), cliCtx.String(flagLouhiPubSubProject), cliCtx.String(flagLouhiExecutionID), cliCtx.String(flagSourceRepo), cliCtx.String(flagSourceCommit))
 				},
 			},
 			{
@@ -192,15 +200,16 @@ func main() {
 						Required: true,
 					},
 				},
-				Action: func(ctx *cli.Context) error {
+				Action: func(cliCtx *cli.Context) error {
 					cwd, err := os.Getwd()
 					if err != nil {
 						return skerr.Wrap(err)
 					}
-					if _, err := initGitAuth(ctx.Context, ctx.String(flagEmail)); err != nil {
-						return td.FailStep(ctx.Context, err)
+					ctx, _, err := initGitAuth(cliCtx.Context, cliCtx.String(flagEmail))
+					if err != nil {
+						return td.FailStep(ctx, err)
 					}
-					return cd.MaybeUploadCL(ctx.Context, cwd, ctx.String(flagCommitSubject), ctx.String(flagSourceRepo), ctx.String(flagSourceCommit), ctx.String(flagLouhiPubSubProject), ctx.String(flagLouhiExecutionID))
+					return cd.MaybeUploadCL(ctx, cwd, cliCtx.String(flagCommitSubject), cliCtx.String(flagSourceRepo), cliCtx.String(flagSourceCommit), cliCtx.String(flagLouhiPubSubProject), cliCtx.String(flagLouhiExecutionID))
 				},
 			},
 		},
@@ -274,24 +283,22 @@ func writeBuildImagesJSON(ctx context.Context, workspace string, imageInfo *buil
 }
 
 // initGitAuth initializes Git authentication.
-func initGitAuth(ctx context.Context, email string) (oauth2.TokenSource, error) {
-	ctx = td.StartStep(ctx, td.Props("Init Git Auth"))
-	defer td.EndStep(ctx)
-
+func initGitAuth(ctx context.Context, email string) (context.Context, oauth2.TokenSource, error) {
 	// Use a custom location for the global .gitconfig, since we may not be able
 	// to write to $HOME.
-	if err := os.Setenv("GIT_CONFIG_GLOBAL", "/tmp/.gitconfig"); err != nil {
-		return nil, td.FailStep(ctx, err)
-	}
+	rvCtx := td.WithEnv(ctx, []string{"GIT_CONFIG_GLOBAL=/tmp/.gitconfig"})
+
+	ctx = td.StartStep(rvCtx, td.Props("Init Git Auth"))
+	defer td.EndStep(ctx)
 
 	ts, err := git_steps.Init(ctx, true)
 	if err != nil {
-		return nil, td.FailStep(ctx, err)
+		return rvCtx, nil, td.FailStep(ctx, err)
 	}
 	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
-		return nil, td.FailStep(ctx, err)
+		return rvCtx, nil, td.FailStep(ctx, err)
 	}
-	return ts, nil
+	return rvCtx, ts, nil
 }
 
 // shallowClone creates a shallow clone of the given repo at the given commit.

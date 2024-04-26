@@ -19,16 +19,13 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vfs"
 	"go.skia.org/infra/task_driver/go/td"
+	"golang.org/x/oauth2"
 )
 
-func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
+func updateRefs(ctx context.Context, ts oauth2.TokenSource, dockerClient docker.Client, repo, workspace, email, louhiPubsubProject, executionID, srcRepo, srcCommit string) error {
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
-	ts, err := initGitAuth(ctx, email)
-	if err != nil {
-		return td.FailStep(ctx, err)
-	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create a shallow clone of the repo.
