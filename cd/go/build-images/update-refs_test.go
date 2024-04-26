@@ -219,11 +219,16 @@ func TestUpdateRefs_NoStageFileNoGitilesNoPubsub_ReplacementsMadeCLUploaded(t *t
 
 		require.NoError(t, os.WriteFile(filepath.Join(workspace, "build-images.json"), []byte(fakeBuildImageJSON), 0666))
 
-		err := updateRefs(ctx, nil, mDocker, gitRepo, workspace, email, "", "", "", "")
+		err := updateRefs(ctx, mDocker, gitRepo, workspace, email, "", "", "", "")
 		assert.NoError(t, err)
 
 		executedCommands := mockExec.Commands()
 		exec_testutils.AssertCommandsMatch(t, [][]string{
+			{fakeGitPath, "--version"},
+			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
+			{fakeGitPath, "config", "--global", "user.email", email},
+			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
+			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
@@ -290,11 +295,16 @@ func TestUpdateRefs_NoDiffs_NoCLUploaded(t *testing.T) {
 
 		require.NoError(t, os.WriteFile(filepath.Join(workspace, "build-images.json"), []byte(fakeBuildImageJSON), 0666))
 
-		err := updateRefs(ctx, nil, mDocker, gitRepo, workspace, email, "", "", "", "")
+		err := updateRefs(ctx, mDocker, gitRepo, workspace, email, "", "", "", "")
 		assert.NoError(t, err)
 
 		executedCommands := mockExec.Commands()
 		exec_testutils.AssertCommandsMatch(t, [][]string{
+			{fakeGitPath, "--version"},
+			{fakeGitPath, "config", "--global", "http.cookiefile", "/tmp/.gitcookies"},
+			{fakeGitPath, "config", "--global", "user.email", email},
+			{fakeGitPath, "config", "--global", "user.name", "louhi-service-account"},
+			{fakeGitPath, "config", "--list", "--show-origin"},
 			{fakeGitPath, "--version"},
 			{fakeGitPath, "init"},
 			{fakeGitPath, "remote", "add", "origin", gitRepo},
