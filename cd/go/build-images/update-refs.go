@@ -15,9 +15,11 @@ import (
 	"go.skia.org/infra/go/docker"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vfs"
+	"go.skia.org/infra/task_driver/go/lib/git_steps"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
@@ -25,8 +27,12 @@ func updateRefs(ctx context.Context, dockerClient docker.Client, repo, workspace
 	ctx = td.StartStep(ctx, td.Props("Update References"))
 	defer td.EndStep(ctx)
 
-	ts, err := initGitAuth(ctx, email)
+	// Initialize git authentication.
+	ts, err := git_steps.Init(ctx, true)
 	if err != nil {
+		return td.FailStep(ctx, err)
+	}
+	if _, err := gitauth.New(ctx, ts, "/tmp/.gitcookies", true, email); err != nil {
 		return td.FailStep(ctx, err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
