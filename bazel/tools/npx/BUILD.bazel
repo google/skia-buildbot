@@ -2,15 +2,15 @@
 # https://bazel.build/reference/be/make-variables#predefined_label_variables.
 #
 # We cannot use single quotes here because of the "echo '%s' > $@" command in the below genrule.
-_SCRIPT = """
+_SCRIPT_TEMPLATE = """
 
 # The "realpath" comand gives us an absolute path where any symlinks are resolved.
-NPX_BIN=$$(realpath $(rootpath @nodejs_linux_amd64//:bin/nodejs/bin/npx))
+NPX_BIN=$$(realpath $(rootpath {nodejs_root}//:bin/nodejs/bin/npx))
 
 # We need to make sure the Bazel-downloaded "node" binary comes first in the PATH environment
 # variable, or "npx" might fail if it picks up the system "node" binary and its version is too
 # old.
-NODE_BIN_DIR=$$(realpath $$(dirname $(rootpath @nodejs_linux_amd64//:bin/nodejs/bin/node)))
+NODE_BIN_DIR=$$(realpath $$(dirname $(rootpath {nodejs_root}//:bin/nodejs/bin/node)))
 export PATH=$$NODE_BIN_DIR:$$PATH
 
 # Change into the directory where Bazel was invoked.
@@ -20,27 +20,67 @@ $$NPX_BIN $$@
 """
 
 genrule(
-    name = "gen_script",
-    outs = ["npx.sh"],
-    cmd = "echo '%s' > $@" % _SCRIPT,
+    name = "gen_script_linux_x64",
+    outs = ["npx_linux_x64.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+        nodejs_root = "@nodejs_linux_amd64",
+    ),
     exec_tools = [
         "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
         "@nodejs_linux_amd64//:bin/nodejs/bin/node",
     ],
 )
 
+genrule(
+    name = "gen_script_mac_x64",
+    outs = ["npx_mac_x64.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+        nodejs_root = "@nodejs_darwin_amd64",
+    ),
+    exec_tools = [
+        "@nodejs_darwin_amd64//:bin/nodejs/bin/npx",
+        "@nodejs_darwin_amd64//:bin/nodejs/bin/node",
+    ],
+)
+
+genrule(
+    name = "gen_script_mac_arm64",
+    outs = ["npx_mac_arm64.sh"],
+    cmd = "echo '%s' > $@" % _SCRIPT_TEMPLATE.format(
+        nodejs_root = "@nodejs_darwin_arm64",
+    ),
+    exec_tools = [
+        "@nodejs_darwin_arm64//:bin/nodejs/bin/npx",
+        "@nodejs_darwin_arm64//:bin/nodejs/bin/node",
+    ],
+)
+
 # Wrapper script around the Bazel-downloaded "npx" binary.
 #
 # This script ensures "npx" always uses the Bazel-downloaded "node" binary rather than the system's
-# "node" binary.
+# "node" binary. It uses select statements to find the appropriate binary for the host platform.
 #
 # Reference: https://bazel.build/reference/be/shell#sh_binary.
 sh_binary(
     name = "npx",
-    srcs = ["npx.sh"],
-    data = [
-        "@nodejs_linux_amd64//:bin/nodejs/bin/node",
-        "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
-    ],
+    srcs = select({
+        "//bazel/constraints:linux_x64": ["npx_linux_x64.sh"],
+        "//bazel/constraints:mac_x64": ["npx_mac_x64.sh"],
+        "//bazel/constraints:mac_arm64": ["npx_mac_arm64.sh"],
+    }),
+    data = select({
+        "//bazel/constraints:linux_x64": [
+            "@nodejs_linux_amd64//:bin/nodejs/bin/node",
+            "@nodejs_linux_amd64//:bin/nodejs/bin/npx",
+        ],
+        "//bazel/constraints:mac_x64": [
+            "@nodejs_darwin_amd64//:bin/nodejs/bin/node",
+            "@nodejs_darwin_amd64//:bin/nodejs/bin/npx",
+        ],
+        "//bazel/constraints:mac_arm64": [
+            "@nodejs_darwin_arm64//:bin/nodejs/bin/node",
+            "@nodejs_darwin_arm64//:bin/nodejs/bin/npx",
+        ],
+    }),
     visibility = ["//visibility:public"],
 )
