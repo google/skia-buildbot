@@ -655,7 +655,7 @@ func runBuildifier(ctx context.Context, buildifierPath string, files []fileWithC
 	}
 
 	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "Buildifier caused changes. Please inspect them (git diff) and commit if ok.\n")
+		logf(ctx, "Buildifier caused additional changes. %+v \n", changedFiles)
 		return false
 	}
 	return true
@@ -685,7 +685,7 @@ func runGoimports(ctx context.Context, files []fileWithChanges, workspaceRoot, b
 	}
 
 	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "goimports caused changes. Please inspect them (git diff) and commit if ok.\n")
+		logf(ctx, "goimports caused additional changes. %+v \n", changedFiles)
 		return false
 	}
 	return true
@@ -746,7 +746,7 @@ func runPrettier(ctx context.Context, files []fileWithChanges, workspaceRoot, br
 	}
 
 	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "Prettier caused changes. Please inspect them (git diff) and commit if ok.\n")
+		logf(ctx, "Prettier caused additional changes. %+v \n", changedFiles)
 		return false
 	}
 	return true
@@ -776,7 +776,7 @@ func runGofmt(ctx context.Context, files []fileWithChanges, branchBaseCommit str
 	}
 
 	if changedFiles, _ := computeDiffFiles(ctx, branchBaseCommit); !deepequal.DeepEqual(files, changedFiles) {
-		logf(ctx, "gofmt caused changes. Please inspect them (git diff) and commit if ok.\n")
+		logf(ctx, "gofmt caused additional changes. %+v \n", changedFiles)
 		return false
 	}
 	return true
