@@ -43,13 +43,13 @@ py_repositories()
 # Hermetically downloads Python 3.
 python_register_toolchains(
     name = "python3_11",
-    # Taken from
-    # https://github.com/bazelbuild/rules_python/blob/1f17637b88489a5c35a5c83595c0e8dbb6d983e9/python/versions.bzl#L372.
-    python_version = "3.11",
     # Our Louhi builds run as root in order to prevent "permission denied"
     # errors when attempting to write to mounted directories controlled by
     # Google Cloud Build.
     ignore_root_user_error = True,
+    # Taken from
+    # https://github.com/bazelbuild/rules_python/blob/1f17637b88489a5c35a5c83595c0e8dbb6d983e9/python/versions.bzl#L372.
+    python_version = "3.11",
 )
 
 ##############################
