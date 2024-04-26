@@ -9,80 +9,50 @@ Provides interactive dashboard for Skia performance data.
 This is the general flow of data for the Skia performance application.
 The frontend is available at http://perf.skia.org for Skia.
 
-```
-               +-------------+
-               |             |
-               |   Ingress   |
-               |             |
-               |             |
-               |             |
-               +-------------+
-                          ^
-                          |
-              GKE Instance| skia-perf
-                          |
-                       ---+
-                       |
-            +----------+-------------+
-            |        Perf (Go)       |
-            +------------------------+
-                   ^       ^
-                   |       | (PubSub Events)
-                   |       |
-                   | +-----+--------------+
-                   | | Perf Ingester (Go) |
-                   | +--+-----------------+
-                   |    |       ^
-                   |    |       |
-                   |    |       |
-                   |    | +-----+----+
-                   |    | | Google   |
-                   |    | | Storage  |
-                   |    | +----------+
-                   |    |
-                   |    |   +-------------+
-                   |    |   | Maintenance |
-                   |    |   +-------------+
-                   |    |     |
-                   |    v     v
-                 +-+-------------+
-                 |  CockroachDB  |
-                 +---------------+
+![High level block diagram of Skia Perf](./highlevel.excalidraw.png)
 
-```
+[CockroachDB](https://github.com/cockroachdb/cockroach) is used as the datastore for Skia Perf.
 
-Perf is a Go application that serves the HTML, CSS, JS and the JSON
+Note that besides CockroachDB, all the applications shown in the block diagram
+are the same executable, `perfserver`, which can then run in different modes.
+
+Also note that in the diagram `ingest` and `cluster` are followed by `[1,2,...]`
+which indicates that multiple of these applications can be run concurrently to
+scale with the amount of data being ingested or the number of alerts being
+processed.
+
+Perf frontend is a Go application that serves the HTML, CSS, JS and the JSON
 representations that the JS needs. It loads test results from the TraceStore. It
 combines that data with data about commits and serves that in the UI.
 
-The Perf ingester receives PubSub events as files arrive in Google Storage and
-then writes Traces into the TraceStore from the data in those files. It
+# Ingestion
+
+![Block diagram of ingestion](./ingest.excalidraw.png)
+
+The Perf ingest application(s) receive PubSub events as files arrive in Google Cloud Storage and
+then writes Traces into the database from the data in those files. It
 optionally generates PubSub events for each file it ingests which can be used by
 Perf to optimize how clustering, the process of looking for regressions, is
 done.
 
+The files written to GCS must be in a specific format and follow a particular
+directory structure. See [the documentation on the ingestion
+process](./FORMAT.md) for more details.
+
 ## Users
 
-Users must be logged in to access some content or to make some changes in the
-application, such as changing the status of perf alerts. User authentication
-is handled through OAuth 2.0, in this case specifically tied to the Google
-implementation. Once the OAuth 2.0 permission grant is complete then the users
-email is used as an identifer. The authentication is not stored on the server,
-instead it is stored as a cookie in the browser and verified when
-authentication is needed.
+Authenication and authorization is handled outside the Skia Perf application. The application
+presumes the presence of the following headers on all frontend HTTP requests:
 
-There are two APIs, one in Go and another in Javascript that are used to
-access the current user and their logged in status:
+`X-WEBAUTH-USER` - The value of this header is an identifier of the signed in
+user, presumably an email address.
 
-In Go the login.LoggedInAs(), see go/login/login.go.
-
-In Javascript the interface is sk.Login which is a Promise, see
-res/imp/login.html.
+`X-ROLES` - This header contains the Roles that the user has been authorized
+for. See [roles.go](../go/roles/roles.go) for the full list of possible Roles.
 
 ## Monitoring
 
-Monitoring of the application is done via Graphite at https://grafana2.skia.org.
-Both system and application level metrics are monitored.
+Monitoring of the application is done via Prometheus metrics and OpenCensus tracing.
 
 ## Clustering
 
@@ -226,17 +196,6 @@ There are two other forms of trace ids:
 ## Installation
 
 See the README file.
-
-## Ingestion
-
-Ingestion is now event driven, using PubSub events from GCS as files
-are written. The naming convention for those PubSub topics is:
-
-    <app name>-<function>-<instance>
-
-For example, for Perf ingestion of Skia data the topic will be:
-
-    perf-ingestion-skia
 
 ## Event Driven Alerting
 
