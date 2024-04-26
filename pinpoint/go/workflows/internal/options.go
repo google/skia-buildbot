@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -48,6 +49,8 @@ var (
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 4,
 		},
+		// When the parent workflow got cancelled, cancellation will be requested of the child workflow
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
 	}
 
 	// Acitivity option for Building Chrome.

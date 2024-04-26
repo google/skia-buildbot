@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -25,12 +26,28 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 
 	bca := &BuildChromeActivity{}
 	var buildID int64
+	var status buildbucketpb.Status
+	defer func() {
+		// ErrCanceled is the error returned by Context.Err when the context is canceled
+		// This logic ensures cleanup only happens if there is a Cancellation error
+		if !errors.Is(ctx.Err(), workflow.ErrCanceled) {
+			return
+		}
+		// For the Workflow to execute an Activity after it receives a Cancellation Request
+		// It has to get a new disconnected context
+		newCtx, _ := workflow.NewDisconnectedContext(ctx)
+
+		err := workflow.ExecuteActivity(newCtx, bca.CleanupBuildActivity, buildID, status).Get(ctx, nil)
+		if err != nil {
+			logger.Error("CleanupBuildActivity failed", err)
+		}
+	}()
+
 	if err := workflow.ExecuteActivity(ctx, bca.SearchOrBuildActivity, params).Get(ctx, &buildID); err != nil {
 		logger.Error("Failed to wait for SearchOrBuildActivity:", err)
 		return nil, err
 	}
 
-	var status buildbucketpb.Status
 	if err := workflow.ExecuteActivity(ctx, bca.WaitBuildCompletionActivity, buildID).Get(ctx, &status); err != nil {
 		logger.Error("Failed to wait for WaitBuildCompletionActivity:", err)
 		return nil, err
@@ -127,4 +144,26 @@ func (bca *BuildChromeActivity) RetrieveCASActivity(ctx context.Context, buildID
 		return nil, err
 	}
 	return cas, nil
+}
+
+// CleanupBuildActivity wraps BuildChromeClient.CancelBuild
+func (bca *BuildChromeActivity) CleanupBuildActivity(ctx context.Context, buildID int64, status buildbucketpb.Status) error {
+	if buildID == 0 || !(status == buildbucketpb.Status_SCHEDULED || status == buildbucketpb.Status_STARTED) {
+		return nil
+	}
+
+	logger := activity.GetLogger(ctx)
+	bc, err := build_chrome.New(ctx)
+	if err != nil {
+		logger.Error("Failed to new build_chrome:", err)
+		return err
+	}
+
+	activity.RecordHeartbeat(ctx, "cancelling the build.")
+	err = bc.CancelBuild(ctx, buildID, "Pinpoint job cancelled")
+	if err != nil {
+		logger.Error("Failed to cancel build:", err)
+		return err
+	}
+	return nil
 }

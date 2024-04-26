@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -53,6 +54,23 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 
 	var rba RunBenchmarkActivity
 	var taskID string
+	var state run_benchmark.State
+	defer func() {
+		// ErrCanceled is the error returned by Context.Err when the context is canceled
+		// This logic ensures cleanup only happens if there is a Cancellation error
+		if !errors.Is(ctx.Err(), workflow.ErrCanceled) {
+			return
+		}
+		// For the Workflow to execute an Activity after it receives a Cancellation Request
+		// It has to get a new disconnected context
+		newCtx, _ := workflow.NewDisconnectedContext(ctx)
+
+		err := workflow.ExecuteActivity(newCtx, rba.CleanupBenchmarkRunActivity, taskID, state).Get(ctx, nil)
+		if err != nil {
+			logger.Error("CleanupBenchmarkRunActivity failed", err)
+		}
+	}()
+
 	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
 		logger.Error("Failed to schedule task:", err)
 		return nil, skerr.Wrap(err)
@@ -62,7 +80,6 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 	// because swarming tasks can be pending for hours while swarming tasks
 	// generally finish in ~10 min
 	// TODO(sunxiaodi@): handle NO_RESOURCE retry case in WaitTaskPendingActivity
-	var state run_benchmark.State
 	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, taskID).Get(pendingCtx, &state); err != nil {
 		logger.Error("Failed to poll pending task ID:", err)
 		return nil, skerr.Wrap(err)
@@ -199,4 +216,24 @@ func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, ta
 	}
 
 	return cas, nil
+}
+
+// CleanupActivity wraps run_benchmark.Cancel
+func (rba *RunBenchmarkActivity) CleanupBenchmarkRunActivity(ctx context.Context, taskID string, state run_benchmark.State) error {
+	if len(taskID) == 0 || state.IsTaskFinished() {
+		return nil
+	}
+
+	logger := activity.GetLogger(ctx)
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		logger.Error("Failed to connect to swarming client:", err)
+		return skerr.Wrap(err)
+	}
+
+	err = run_benchmark.Cancel(ctx, sc, taskID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

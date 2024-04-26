@@ -101,3 +101,13 @@ func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark
 
 	return resp, nil
 }
+
+// Cancel cancels a swarming task.
+func Cancel(ctx context.Context, sc backends.SwarmingClient, taskID string) error {
+	err := sc.CancelTasks(ctx, []string{taskID})
+	if err != nil {
+		return skerr.Wrapf(err, "benchmark task %v cancellation failed", taskID)
+	}
+
+	return nil
+}
