@@ -97,10 +97,18 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 
 	if connect {
 		out, _ := runner.ExecCmds(ctx, "help")
+		sklog.Infof("help out: %q", out)
 		// When using sshpass, we always seem to get exit code 255 (from ssh) and any actual errors are
 		// in stderr. So, we check the returned output for evidence that things actually worked
 		if !strings.Contains(out, "HELP") {
-			return ret, skerr.Fmt("smoke test on edge switch %s failed; output: %s", target, out)
+
+			sklog.Info("Smoke test failed, this might be a UniFI device.")
+			// UniFI devices are like the EdgeMax devices, but you need to telnet back to localhost to get to the right command prompt.
+			runner = PasswordSSHCommandRunner(conf.getPassword(), "-T", target, "-o", "StrictHostKeyChecking=no", "-o", "RemoteCommand=\"telnet 127.0.0.1\"")
+			out, _ = runner.ExecCmds(ctx, "help")
+			if !strings.Contains(out, "HELP") {
+				return ret, skerr.Fmt("smoke test on edge switch %s failed; output: %s", target, out)
+			}
 		}
 		sklog.Infof("connected successfully to edge switch %s", target)
 	}
