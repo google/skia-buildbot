@@ -107,6 +107,50 @@ func (_m *AnomalyApiClient) GetAnomaliesTimeBased(ctx context.Context, traceName
 	return r0, r1
 }
 
+// GetAnomalyFromUrlSafeKey provides a mock function with given fields: ctx, key
+func (_m *AnomalyApiClient) GetAnomalyFromUrlSafeKey(ctx context.Context, key string) (int, int, map[string][]string, error) {
+	ret := _m.Called(ctx, key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnomalyFromUrlSafeKey")
+	}
+
+	var r0 int
+	var r1 int
+	var r2 map[string][]string
+	var r3 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int, int, map[string][]string, error)); ok {
+		return rf(ctx, key)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int); ok {
+		r0 = rf(ctx, key)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) int); ok {
+		r1 = rf(ctx, key)
+	} else {
+		r1 = ret.Get(1).(int)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, string) map[string][]string); ok {
+		r2 = rf(ctx, key)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(context.Context, string) error); ok {
+		r3 = rf(ctx, key)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
 // ReportRegression provides a mock function with given fields: ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter
 func (_m *AnomalyApiClient) ReportRegression(ctx context.Context, testPath string, startCommitPosition int32, endCommitPosition int32, projectId string, isImprovement bool, botName string, internal bool, medianBefore float32, medianAfter float32) (*chromeperf.ReportRegressionResponse, error) {
 	ret := _m.Called(ctx, testPath, startCommitPosition, endCommitPosition, projectId, isImprovement, botName, internal, medianBefore, medianAfter)

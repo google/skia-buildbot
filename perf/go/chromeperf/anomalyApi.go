@@ -3,6 +3,7 @@ package chromeperf
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ const (
 	AddFuncName      = "add"
 	FindFuncName     = "find"
 	FindTimeFuncName = "find_time"
+	GetFuncName      = "get"
 )
 
 // CommitNumberAnomalyMap is a map of Anomaly, keyed by commit number.
@@ -117,6 +119,9 @@ type AnomalyApiClient interface {
 	// ReportRegression sends regression information to chromeperf.
 	ReportRegression(ctx context.Context, testPath string, startCommitPosition int32, endCommitPosition int32, projectId string, isImprovement bool, botName string, internal bool, medianBefore float32, medianAfter float32) (*ReportRegressionResponse, error)
 
+	// GetAnomalyFromUrlSafeKey returns the anomaly details based on the urlsafe key.
+	GetAnomalyFromUrlSafeKey(ctx context.Context, key string) (startCommit int, endCommit int, queryParams map[string][]string, err error)
+
 	// GetAnomalies retrieves anomalies for a given set of traces within the supplied commit positions.
 	GetAnomalies(ctx context.Context, traceNames []string, startCommitPosition int, endCommitPosition int) (AnomalyMap, error)
 
@@ -193,6 +198,28 @@ func (cp *anomalyApiClientImpl) ReportRegression(
 
 	cp.sendAnomalyCalled.Inc(1)
 	return &response, nil
+}
+
+// GetAnomalyFromUrlSafeKey returns the anomaly details based on the urlsafe key.
+func (cp *anomalyApiClientImpl) GetAnomalyFromUrlSafeKey(ctx context.Context, key string) (int, int, map[string][]string, error) {
+	getAnomaliesResp := &GetAnomaliesResponse{}
+	err := cp.chromeperfClient.sendGetRequest(ctx, AnomalyAPIName, GetFuncName, url.Values{"key": {key}}, getAnomaliesResp)
+	if err != nil {
+		return -1, -1, nil, skerr.Wrapf(err, "Failed to get anomaly data based on url safe key: %s", key)
+	}
+
+	var startCommit, endCommit int
+	var queryParams map[string][]string
+	if len(getAnomaliesResp.Anomalies) > 0 {
+		for testPath, anomaly := range getAnomaliesResp.Anomalies {
+			queryParams = getParams(testPath)
+			startCommit = anomaly[0].StartRevision
+			endCommit = anomaly[0].EndRevision
+			break
+		}
+	}
+
+	return startCommit, endCommit, queryParams, nil
 }
 
 // GetAnomalies implements AnomalyApiClient, it calls chrome perf API to fetch anomlies.

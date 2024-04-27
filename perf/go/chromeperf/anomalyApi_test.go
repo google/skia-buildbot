@@ -3,6 +3,7 @@ package chromeperf
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -109,4 +110,41 @@ func testTraceNameToTestPath_InvalidTraceName_Error(t *testing.T, traceName stri
 	require.Error(t, err)
 	assert.Equal(t, "", testPath)
 	assert.Equal(t, "", stat)
+}
+
+func TestGetAnomaly_Success(t *testing.T) {
+	master := "m"
+	bot := "testBot"
+	benchmark := "bench"
+	test := "myTest"
+	subtest := "mysubtest"
+	testPath := fmt.Sprintf("%s/%s/%s/%s/%s", master, bot, benchmark, test, subtest)
+	anomaly := Anomaly{
+		StartRevision: 1111,
+		EndRevision:   2222,
+		TestPath:      testPath,
+	}
+	anomalyResponse := &GetAnomaliesResponse{
+		Anomalies: map[string][]Anomaly{
+			testPath: {anomaly},
+		},
+	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(anomalyResponse)
+		require.NoError(t, err)
+	}))
+
+	ctx := context.Background()
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	assert.Nil(t, err, "No error expected when creating a new client.")
+	anomalyClient := newAnomalyApiClient(cpClient)
+	start, end, params, err := anomalyClient.GetAnomalyFromUrlSafeKey(ctx, "someKey")
+	assert.Nil(t, err)
+	assert.Equal(t, anomaly.StartRevision, start)
+	assert.Equal(t, anomaly.EndRevision, end)
+	assert.Equal(t, master, params["master"][0])
+	assert.Equal(t, bot, params["bot"][0])
+	assert.Equal(t, benchmark, params["benchmark"][0])
+	assert.Equal(t, test, params["test"][0])
+	assert.Equal(t, subtest, params["subtest_1"][0])
 }

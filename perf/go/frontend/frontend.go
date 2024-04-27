@@ -174,6 +174,8 @@ type Frontend struct {
 
 	alertGroupClient chromeperf.AlertGroupApiClient
 
+	anomalyApiClient chromeperf.AnomalyApiClient
+
 	urlProvider *urlprovider.URLProvider
 }
 
@@ -459,11 +461,11 @@ func (f *Frontend) initialize() {
 		dfbuilder.Filtering(config.Config.FilterParentTraces))
 
 	if config.Config.FetchChromePerfAnomalies {
-		anomalyApiClient, err := chromeperf.NewAnomalyApiClient(ctx)
+		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx)
 		if err != nil {
 			sklog.Fatal("Failed to build chrome anomaly api client: %s", err)
 		}
-		f.anomalyStore, err = cache.New(anomalyApiClient)
+		f.anomalyStore, err = cache.New(f.anomalyApiClient)
 		if err != nil {
 			sklog.Fatal("Failed to build anomalies.Store: %s", err)
 		}
@@ -796,6 +798,33 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 		return
 	}
+}
+
+// anomalyHandler handles the request for the anomaly api.
+func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+
+	sklog.Info("Received anomaly request")
+	if f.anomalyApiClient == nil {
+		sklog.Info("Anomaly service is not enabled")
+		httputils.ReportError(w, nil, "Anomaly service is not enabled", http.StatusNotFound)
+		return
+	}
+	key := r.URL.Query().Get("key")
+	sklog.Infof("Anomaly key is %s", key)
+	ctx, span := trace.StartSpan(ctx, "anomalyGetRequest")
+	defer span.End()
+	startCommit, endCommit, queryParams, err := f.anomalyApiClient.GetAnomalyFromUrlSafeKey(ctx, key)
+	if err != nil {
+		httputils.ReportError(w, err, "Error retrieving anomaly data", http.StatusBadRequest)
+		return
+	}
+
+	// Generate the explore page url for the given params.
+	redirectUrl := f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams)
+	sklog.Infof("Generated url: %s", redirectUrl)
+	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 
 // CountHandlerRequest is the JSON format for the countHandler request.
@@ -1944,6 +1973,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	}
 
 	router.Get("/_/alertgroup", f.alertGroupQueryHandler)
+	router.Get("/_/anomaly", f.anomalyHandler)
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
 	router.Post("/_/cidRange/", f.cidRangeHandler)
 	router.Post("/_/count/", f.countHandler)
