@@ -43,3 +43,15 @@ release_periodictasks_container:
 .PHONY: mocks
 mocks:
 	go generate ./...
+
+# Run auth proxy (port 8003) in front of the local gold instance (port 8000).
+.PHONY: run_auth_proxy_before_local_instance
+run_auth_proxy_before_local_instance:
+	$(BAZEL) run --config=mayberemote //kube/cmd/auth-proxy -- \
+		--prom-port=:20003 \
+		--role=editor=google.com \
+		--authtype=mocked \
+		--mock_user=$(USER)@google.com \
+		--port=:8003 \
+		--target_port=http://127.0.0.1:8000 \
+		--local

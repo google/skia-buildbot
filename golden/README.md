@@ -5,8 +5,10 @@ For information on setting up or using Gold, see [these docs](docs/README.md).
 For an architectural overview, see:
 <https://docs.google.com/document/d/1U7eBzYrZCPx24Lp9JH2scKj3G8Gr8GRtQJZRhdigyRQ/edit>
 
-To run Gold locally, see:
-<https://skia.googlesource.com/infra-internal/+show/c6fad0bec78c6768ce7e4187606325216dd438ed/scripts/start-gold-chrome-gpu.sh>
+To run Gold locally, run a local target defined in BUILD.bazel.
+E.g. `bazel run //golden:skia_infra_local`. Then run `make run_auth_proxy_before_local_instance`.
+You can then access the local Gold instance through http://localhost:8003 with the current
+user authenticated.
 
 ## Backend Storage
 

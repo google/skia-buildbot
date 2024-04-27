@@ -142,7 +142,7 @@ skia_app_container(
 # Runs a local Gold instance that mirrors http://gold.skia.org. It might have write access to the
 # production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:skia_local -- path/to/client_secret.json
+# Usage: bazel run //golden:skia_local
 gold_launcher(
     name = "skia_local",
     code_review_systems = [
@@ -209,7 +209,7 @@ gold_launcher(
 # Runs a local Gold instance that mirrors http://skia-infra-gold.skia.org. It might have write
 # access to the production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:skia_infra_local -- path/to/client_secret.json
+# Usage: bazel run //golden:skia_infra_local
 gold_launcher(
     name = "skia_infra_local",
     code_review_systems = [
@@ -239,7 +239,7 @@ gold_launcher(
 # Runs a local Gold instance that mirrors http://chrome-gold.skia.org. It might have write access
 # to the production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:chrome_local -- path/to/client_secret.json
+# Usage: bazel run //golden:chrome_local
 gold_launcher(
     name = "chrome_local",
     code_review_systems = [
@@ -310,7 +310,7 @@ gold_launcher(
 # Runs a local Gold instance that mirrors http://chrome-public-gold.skia.org. It might have write
 # access to the production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:chrome_public_local -- path/to/client_secret.json
+# Usage: bazel run //golden:chrome_public_local
 gold_launcher(
     name = "chrome_public_local",
     code_review_systems = [
@@ -442,7 +442,7 @@ gold_launcher(
 # Runs a local Gold instance that mirrors http://flutter-gold.skia.org. It might have write access
 # to the production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:flutter_local -- path/to/client_secret.json
+# Usage: bazel run //golden:flutter_local
 gold_launcher(
     name = "flutter_local",
     code_review_systems = [
@@ -473,7 +473,7 @@ gold_launcher(
 # Runs a local Gold instance that mirrors http://flutter-engine-gold.skia.org. It might have write access
 # to the production CockroachDB database, so please exercise caution.
 #
-# Usage: bazel run //golden:flutter_engine_local -- path/to/client_secret.json
+# Usage: bazel run //golden:flutter_engine_local
 gold_launcher(
     name = "flutter_engine_local",
     code_review_systems = [

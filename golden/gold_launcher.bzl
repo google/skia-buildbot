@@ -5,10 +5,6 @@ load("//golden/pages:all_gold_pages.bzl", "ALL_GOLD_PAGES")
 # Curly braces are escaped ("{" becomes "{{", "}" becomes "}}") because we will format this
 # template with https://bazel.build/rules/lib/string#format.
 _RUNNER_SCRIPT = """
-if [[ -z "$$1" ]]; then
-    echo "Usage: bazel run {bazel_target_name} -- /path/to/client_secret.json"
-    exit 1
-fi
 
 # Compute the path to the directory with web assets by extracting the parent directory of an
 # arbitrary page. This works because all web assets are generated on the same directory (with the
