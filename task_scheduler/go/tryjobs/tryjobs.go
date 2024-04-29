@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/pubsub"
@@ -360,6 +361,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	for {
 		select {
 		case jobs := <-jobsCh:
+			sklog.Infof("Start processing jobs from modified jobs channel.")
 			for _, job := range jobs {
 				if job.Status != types.JOB_STATUS_REQUESTED {
 					continue
@@ -369,7 +371,9 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
 				}
 			}
+			sklog.Infof("Done processing jobs from modified jobs channel.")
 		case <-tickCh:
+			sklog.Infof("Start processing jobs from periodic DB poll, cache updated %s ago.", human.Duration(time.Now().Sub(t.jCache.LastUpdated())))
 			jobs, err := t.jCache.RequestedJobs()
 			if err != nil {
 				sklog.Errorf("failed retrieving Jobs: %s", err)
@@ -381,6 +385,7 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 					}
 				}
 			}
+			sklog.Infof("Done processing jobs from periodic DB poll.")
 		case <-doneCh:
 			ticker.Stop()
 			return

@@ -492,6 +492,9 @@ type JobCache interface {
 
 	// AddJobs adds jobs directly to the JobCache.
 	AddJobs([]*types.Job)
+
+	// LastUpdated is the timestamp of the last call to Update.
+	LastUpdated() time.Time
 }
 
 type jobCache struct {
@@ -508,6 +511,8 @@ type jobCache struct {
 	modified map[string]*types.Job
 	modMtx   sync.Mutex
 	onModFn  func()
+
+	lastUpdated time.Time
 }
 
 // See documentation for JobCache interface.
@@ -764,6 +769,9 @@ func (c *jobCache) Update(ctx context.Context) error {
 	defer c.mtx.Unlock()
 	c.modMtx.Lock()
 	defer c.modMtx.Unlock()
+
+	c.lastUpdated = time.Now()
+
 	c.expireJobs()
 	for _, job := range c.modified {
 		if c.timeWindow.TestTime(job.Repo, job.Created) {
@@ -791,6 +799,13 @@ func (c *jobCache) AddJobs(jobs []*types.Job) {
 	if !jobSliceIsSorted(c.jobsByTime) {
 		sklog.Errorf("jobsByTime is not sorted after AddJobs of %v", jobs)
 	}
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) LastUpdated() time.Time {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	return c.lastUpdated
 }
 
 // NewJobCache returns a local cache which provides more convenient views of

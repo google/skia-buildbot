@@ -221,6 +221,24 @@ func (_m *JobCache) InProgressJobs() ([]*types.Job, error) {
 	return r0, r1
 }
 
+// LastUpdated provides a mock function with given fields:
+func (_m *JobCache) LastUpdated() time.Time {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for LastUpdated")
+	}
+
+	var r0 time.Time
+	if rf, ok := ret.Get(0).(func() time.Time); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(time.Time)
+	}
+
+	return r0
+}
+
 // RequestedJobs provides a mock function with given fields:
 func (_m *JobCache) RequestedJobs() ([]*types.Job, error) {
 	ret := _m.Called()

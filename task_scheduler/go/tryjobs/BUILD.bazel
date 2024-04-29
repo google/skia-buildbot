@@ -11,6 +11,7 @@ go_library(
         "//go/cleanup",
         "//go/gerrit",
         "//go/git/repograph",
+        "//go/human",
         "//go/metrics2",
         "//go/now",
         "//go/pubsub",
