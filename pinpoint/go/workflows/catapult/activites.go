@@ -77,3 +77,12 @@ func FetchCommitActivity(ctx context.Context, commit *pinpoint_proto.Commit) (*v
 
 	return longCommit, nil
 }
+
+// WriteBisectToCatapultActivity wraps the call to WriteBisectToCatapult
+func WriteBisectToCatapultActivity(ctx context.Context, content *pinpoint_proto.LegacyJobResponse, staging bool) (*DatastoreResponse, error) {
+	cc, err := NewCatapultClient(ctx, staging)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return cc.WriteBisectToCatapult(ctx, content)
+}

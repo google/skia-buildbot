@@ -17,6 +17,11 @@ const (
 	BisectJobNameTemplate = "[Skia] Performance bisect on %s/%s"
 )
 
+type CatapultBisectResponse struct {
+	*internal.BisectExecution
+	*DatastoreResponse
+}
+
 // updateStatesWithComparisons goes through each state and appends legacy comparisons
 func updateStatesWithComparisons(states []*pinpoint_proto.LegacyJobResponse_State, magnitude float64, direction compare.ImprovementDir) error {
 	if len(states) < 2 {
@@ -113,11 +118,11 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 // the responses to Catapult via Skia-Bridge, such that the Catapult UI can display the results.
 // Thus, the workflow method signature should be identical to internal.BisectWorkflow.
 // This is written in its own package and in its own workflow so that it's self-contained.
-func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *pinpoint_proto.BisectExecution, wkErr error) {
+func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*CatapultBisectResponse, error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
-	var bisectExecution *pinpoint_proto.BisectExecution
+	var bisectExecution *internal.BisectExecution
 	if err := workflow.ExecuteChildWorkflow(ctx, internal.BisectWorkflow, p).Get(ctx, &bisectExecution); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -127,7 +132,13 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be
 		return nil, skerr.Wrap(err)
 	}
 
-	// TODO(jeffyoon@) - integrate with skia bridge call
+	var dsResp *DatastoreResponse
+	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, true).Get(ctx, &dsResp); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
-	return bisectExecution, nil
+	return &CatapultBisectResponse{
+		BisectExecution:   bisectExecution,
+		DatastoreResponse: dsResp,
+	}, nil
 }

@@ -4,9 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
 
 	"go.skia.org/infra/pinpoint/go/compare"
+	"go.skia.org/infra/pinpoint/go/workflows"
+	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -53,4 +58,35 @@ func TestUpdateStatesWithComparisons_MultiComparison_Different(t *testing.T) {
 	assert.Equal(t, string(compare.Different), states[1].Comparisons.Next)
 	assert.Equal(t, string(compare.Different), states[2].Comparisons.Prev)
 	assert.Empty(t, states[2].Comparisons.Next)
+}
+
+func TestCatapultBisectWorkflow_HappyPath_ReturnsDatastoreResponse(t *testing.T) {
+	mockBisectExecution := &internal.BisectExecution{
+		JobId: mockJobId,
+	}
+	mockDSResp, err := unmarshalMockDatastoreResp(mockDatastoreResp)
+	require.NoError(t, err)
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+	env.RegisterWorkflowWithOptions(ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
+
+	env.OnWorkflow(workflows.Bisect, mock.Anything, mock.Anything).Return(mockBisectExecution, nil).Once()
+	env.OnWorkflow(workflows.ConvertToCatapultResponseWorkflow, mock.Anything, mock.Anything, mockBisectExecution).Return(mockPinpointLegacyJobResp, nil).Once()
+	env.OnActivity(WriteBisectToCatapultActivity, mock.Anything, mockPinpointLegacyJobResp, true).Return(mockDSResp, nil).Once()
+
+	env.ExecuteWorkflow(CatapultBisectWorkflow, &workflows.BisectParams{
+		Request: &pinpoint_proto.ScheduleBisectRequest{},
+	})
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+
+	var actual *CatapultBisectResponse
+	require.NoError(t, env.GetWorkflowResult(&actual))
+	assert.NotNil(t, actual)
+	assert.Equal(t, mockJobId, actual.BisectExecution.JobId)
+	assert.Empty(t, actual.BisectExecution.Culprits)
+	assert.Equal(t, mockDSResp, actual.DatastoreResponse)
+	env.AssertExpectations(t)
 }
