@@ -92,6 +92,8 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	commit_number INT,
 	alert_id INT,
 	regression TEXT,
+	migrated BOOL,
+	regression_id TEXT,
 	PRIMARY KEY (commit_number, alert_id)
   );
   CREATE TABLE IF NOT EXISTS Regressions2 (

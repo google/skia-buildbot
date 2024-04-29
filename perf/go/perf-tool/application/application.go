@@ -461,7 +461,7 @@ func (app) DatabaseRestoreAlerts(local bool, instanceConfig *config.InstanceConf
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		if err := alertStore.Save(ctx, &alert); err != nil {
+		if err := alertStore.Save(ctx, &alerts.SaveRequest{Cfg: &alert}); err != nil {
 			return skerr.Wrap(err)
 		}
 		fmt.Printf("Alerts: %q\n", alert.DisplayName)

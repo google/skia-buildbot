@@ -1734,7 +1734,7 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Invalid Alert", http.StatusInternalServerError)
 	}
 
-	if err := f.alertStore.Save(ctx, cfg); err != nil {
+	if err := f.alertStore.Save(ctx, &alerts.SaveRequest{Cfg: cfg}); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
 	err := json.NewEncoder(w).Encode(AlertUpdateResponse{

@@ -11,7 +11,6 @@ import (
 
 	"go.skia.org/infra/go/emulators/cockroachdb_instance"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/perf/go/alerts/alertstest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/git/gittest"
@@ -108,15 +107,6 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	_, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
-}
-
-func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
-	ctx, instanceConfig := newCockroachDBConfigForTest(t)
-
-	store, err := NewAlertStoreFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	alertstest.Store_SaveListDelete(t, store)
 }
 
 func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {

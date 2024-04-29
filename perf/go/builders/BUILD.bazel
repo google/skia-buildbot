@@ -61,7 +61,6 @@ go_test(
     deps = [
         "//go/emulators/cockroachdb_instance",
         "//go/paramtools",
-        "//perf/go/alerts/alertstest",
         "//perf/go/config",
         "//perf/go/file/dirsource",
         "//perf/go/git/gittest",

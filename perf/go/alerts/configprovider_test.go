@@ -16,7 +16,7 @@ type MockStore struct {
 	mutex     sync.Mutex
 }
 
-func (store *MockStore) Save(ctx context.Context, cfg *Alert) error {
+func (store *MockStore) Save(ctx context.Context, req *SaveRequest) error {
 	return nil
 }
 

@@ -28,8 +28,10 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
-        "//perf/go/alerts/alertstest",
+        "//go/sql/pool",
+        "//perf/go/alerts",
         "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -37,17 +37,17 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	ALTER TABLE Regressions
-	ADD COLUMN migrated BOOLEAN,
-	ADD COLUMN regression_id TEXT;
+	ALTER TABLE Alerts
+	ADD COLUMN sub_name STRING,
+	ADD COLUMN sub_revision STRING;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	ALTER TABLE Regressions
-	DROP COLUMN migrated,
-	DROP COLUMN regression_id;
+	ALTER TABLE Alerts
+	DROP COLUMN sub_name,
+	DROP COLUMN sub_revision;
 `
 
 // This function will check whether there's a new schema checked-in,
