@@ -237,6 +237,7 @@ npm_translate_lock(
     npm_package_lock = "//:package-lock.json",
     npmrc = "//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
+    update_pnpm_lock = False,
     verify_node_modules_ignored = "//:.bazelignore",
 )
 

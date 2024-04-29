@@ -31,6 +31,11 @@ update-go-bazel-deps:
 .PHONY: gazelle
 gazelle: update-go-bazel-deps update-go-bazel-files
 
+# Run this if we need to update our JS/TS packages
+.PHONY: update-npm
+update-npm:
+	$(BAZEL) run -- @pnpm//:pnpm --dir $(PWD) install --lockfile-only
+
 .PHONY: buildifier
 buildifier:
 	$(BAZEL) run --config=mayberemote //:buildifier
