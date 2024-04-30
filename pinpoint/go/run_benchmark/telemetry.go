@@ -97,7 +97,7 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 	}
 
 	if t.story != "" {
-		// TODO(b/40635221): Note that usage of "--run-full-story-set" and "--story-filter"
+		// TODO(b/40635221): Note that usage of "--story-filter"
 		// can be replaced with --story=<story> (no regex needed). See crrev/c/1869800.
 		cmd = append(cmd, "--story-filter", fmt.Sprintf("^%s$", t.story))
 	}
@@ -113,11 +113,6 @@ func (t *telemetryTest) GetTelemetryExtraArgs() []string {
 	// Telemetry parameter `--results-label <change>` to the runs.
 	// TODO(jeffyoon@) deprecate this label once the UI is no longer dependant on this.
 	cmd = append(cmd, "--results-label", t.commit[:7])
-
-	// Note: Appending "--run-full-story-set" last per comment above to retain
-	// argument order. This is always appended in catapult regardless of whether
-	// a story is defined or not.
-	cmd = append(cmd, "--run-full-story-set")
 
 	return cmd
 }
