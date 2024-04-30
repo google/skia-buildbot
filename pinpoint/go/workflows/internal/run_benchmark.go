@@ -16,6 +16,8 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+const maxRetry = 3
+
 // RunBenchmarkParams are the Temporal Workflow params
 // for the RunBenchmarkWorkflow.
 type RunBenchmarkParams struct {
@@ -71,18 +73,26 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		}
 	}()
 
-	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
-		logger.Error("Failed to schedule task:", err)
-		return nil, skerr.Wrap(err)
-	}
-
-	// polling pending and polling running are two different activities
-	// because swarming tasks can be pending for hours while swarming tasks
-	// generally finish in ~10 min
-	// TODO(sunxiaodi@): handle NO_RESOURCE retry case in WaitTaskPendingActivity
-	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, taskID).Get(pendingCtx, &state); err != nil {
-		logger.Error("Failed to poll pending task ID:", err)
-		return nil, skerr.Wrap(err)
+	// sometimes bots can die in the middle of a Pinpoint job. If a task is scheduled
+	// onto a dead bot, the swarming task will return NO_RESOURCE. In that case, reschedule
+	// the run on any other bot.
+	// TODO(sunxiaodi@): Monitor how often tasks fail with NO_RESOURCE. We want to maintain this
+	// occurence below a threshold i.e. 5%.
+	for attempt := 1; canRetry(state, attempt); attempt++ {
+		if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, p).Get(ctx, &taskID); err != nil {
+			logger.Error("Failed to schedule task:", err)
+			return nil, skerr.Wrap(err)
+		}
+		// polling pending and polling running are two different activities
+		// because swarming tasks can be pending for hours while swarming tasks
+		// generally finish in ~10 min
+		if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, taskID).Get(pendingCtx, &state); err != nil {
+			logger.Error("Failed to poll pending task ID:", err)
+			return nil, skerr.Wrap(err)
+		}
+		// remove the bot ID from the swarming task request so that the task can
+		// schedule on all bots in the pool for future retries
+		p.Dimensions = nil
 	}
 
 	if err := workflow.ExecuteActivity(ctx, rba.WaitTaskFinishedActivity, taskID).Get(ctx, &state); err != nil {
@@ -110,6 +120,10 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 	}, nil
 }
 
+func canRetry(state run_benchmark.State, attempt int) bool {
+	return (state == run_benchmark.State("") || state.IsNoResource()) && attempt <= maxRetry
+}
+
 // ScheduleTaskActivity wraps run_benchmark.Run
 func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *RunBenchmarkParams) (string, error) {
 	logger := activity.GetLogger(ctx)
@@ -127,7 +141,7 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 	return taskIds[0].TaskId, nil
 }
 
-// WaitTaskPendingActivity polls the task until it is not longer pending. Returns the status
+// WaitTaskPendingActivity polls the task until it is no longer pending. Returns the status
 // if the task stops pending regardless of task success
 func (rba *RunBenchmarkActivity) WaitTaskPendingActivity(ctx context.Context, taskID string) (run_benchmark.State, error) {
 	logger := activity.GetLogger(ctx)

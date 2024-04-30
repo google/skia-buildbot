@@ -46,6 +46,11 @@ var runningStates = []string{
 
 type State string
 
+// IsNoResource checks if a swarming task state has state NO_RESOURCE
+func (s State) IsNoResource() bool {
+	return string(s) == swarming.TASK_STATE_NO_RESOURCE
+}
+
 // IsTaskPending checks if a swarming task state is still pending
 func (s State) IsTaskPending() bool {
 	return string(s) == swarming.TASK_STATE_PENDING
