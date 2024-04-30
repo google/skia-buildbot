@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cli_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perfresults/cli",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//perf/go/perfresults",
+        "//perf/go/perfresults/ingest",
+    ],
+)
+
+go_binary(
+    name = "cli",
+    embed = [":cli_lib"],
+    visibility = ["//visibility:public"],
+)

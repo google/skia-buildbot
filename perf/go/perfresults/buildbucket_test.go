@@ -8,6 +8,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_BuildInfo_ReturnsValidPosition(t *testing.T) {
+	validate := func(cp, expected string) {
+		assert.EqualValues(t, expected, BuildInfo{CommitPosisition: cp}.GetPosition())
+	}
+
+	// Full qualified position string
+	validate("refs/heads/main@{#1294264}", "CP:1294264")
+
+	// Only contains numbers
+	validate("main@{#1294264}", "CP:1294264")
+}
+
+func Test_BuildInfo_ReturnsRevision(t *testing.T) {
+	validate := func(cp, revision, expected string) {
+		assert.EqualValues(t, expected, BuildInfo{
+			Revision:         revision,
+			CommitPosisition: cp,
+		}.GetPosition())
+	}
+
+	const aRevision = "f6db5c95c4099889f96cdad9ca1a067dbcb5fbaa"
+
+	// Empty CP returns the revision instead
+	validate("", aRevision, aRevision)
+
+	// Missing numbers return git revision
+	validate("refs/heads/main@{#}", aRevision, aRevision)
+}
+
 func Test_FindTaskID_ReturnsInstanceAndTask(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

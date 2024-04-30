@@ -3,6 +3,7 @@ package perfresults
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -41,6 +42,15 @@ type BuildInfo struct {
 
 	// The commit position that this build was built at.
 	CommitPosisition string
+}
+
+func (bi BuildInfo) GetPosition() string {
+	cp := regexp.MustCompile(`\d+`).FindString(bi.CommitPosisition)
+	// Return the git hash if no position is found
+	if cp == "" {
+		return bi.Revision
+	}
+	return "CP:" + cp
 }
 
 func newBuildsClient(ctx context.Context, client *http.Client) (*bbClient, error) {
