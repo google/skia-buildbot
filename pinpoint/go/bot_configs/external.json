@@ -706,6 +706,31 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "mac-m2-pro-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac arm Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Mac14,7"
+      },
+      {
+        "key": "os",
+        "value": "Mac"
+      },
+      {
+        "key": "cpu",
+        "value": "arm"
+      }
+    ],
+    "repository": "chromium",
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "mojo-linux-perf": {
     "alias": "linux-perf-fyi"
   },
