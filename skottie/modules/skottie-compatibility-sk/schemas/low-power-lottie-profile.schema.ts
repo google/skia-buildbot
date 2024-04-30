@@ -165,7 +165,6 @@ export const lowPowerLottieProfileSchema = {
             {'$ref': '#/$defs/features/shapes/types/no-stroke'},
             {'$ref': '#/$defs/features/shapes/types/no-gradient-fill'},
             {'$ref': '#/$defs/features/shapes/types/no-gradient-stroke'},
-            {'$ref': '#/$defs/features/shapes/types/no-path'},
           ],
         },
         'group': {
