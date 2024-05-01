@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -66,6 +67,11 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 	//      issues back to the UI
 	//   - CancelReason
 	//   - BatchID: Unsupported field from Skia Bisect
+	user := p.Request.GetUser()
+	if user == "" {
+		// default account for autobisects
+		user = "chromeperf@appspot.gserviceaccount.com"
+	}
 	resp := &pinpoint_proto.LegacyJobResponse{
 		JobId:                be.JobId,
 		Configuration:        p.Request.GetConfiguration(),
@@ -74,7 +80,7 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		Project:              p.Request.GetProject(),
 		ComparisonMode:       p.Request.GetComparisonMode(),
 		Name:                 fmt.Sprintf(BisectJobNameTemplate, p.Request.GetConfiguration(), p.Request.GetBenchmark()),
-		User:                 p.Request.GetUser(),
+		User:                 user,
 		Created:              be.CreateTime,
 		DifferenceCount:      int32(len(be.Culprits)),
 		Metric:               p.Request.GetChart(),
@@ -87,7 +93,7 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 	}
 	resp.Arguments = arguments
 
-	state, bots, err := parseRawDataToLegacyObject(ctx, be.Comparisons, be.RunData)
+	state, bots, err := parseRawDataToLegacyObject(ctx, be.Comparisons, be.RunData, p.Request.GetChart())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -103,6 +109,8 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+
+	resp.Updated = timestamppb.Now()
 
 	return resp, nil
 }

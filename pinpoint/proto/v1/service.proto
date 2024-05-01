@@ -239,6 +239,10 @@ message LegacyJobResponse {
 				repeated Detail details = 3;
 			}
 			repeated Execution executions = 1;
+
+			// This key is not actually supported by Catapult's response here, but
+			// the values of each attempt is needed to populate data back on the UI.
+			repeated double result_values = 2;
 		}
 		repeated Attempt attempts = 2;
 

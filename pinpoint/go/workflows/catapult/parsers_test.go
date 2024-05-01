@@ -39,11 +39,11 @@ func TestParseImprovementDirection_UnknownDir_4(t *testing.T) {
 }
 
 // mockParseRunDataWorkflow is a helper function to wrap parseRunData() under a workflow to mock the FetchTaskActivity calls.
-func mockParseRunDataWorkflow(ctx workflow.Context, runData []*internal.BisectRun) (*pinpoint_proto.LegacyJobResponse, error) {
+func mockParseRunDataWorkflow(ctx workflow.Context, runData []*internal.BisectRun, chart string) (*pinpoint_proto.LegacyJobResponse, error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
-	commitToAttempts, bots, _ := parseRunData(ctx, runData)
+	commitToAttempts, bots, _ := parseRunData(ctx, runData, chart)
 	resp := &pinpoint_proto.LegacyJobResponse{
 		Bots:  bots,
 		State: []*pinpoint_proto.LegacyJobResponse_State{},
@@ -61,6 +61,7 @@ func mockParseRunDataWorkflow(ctx workflow.Context, runData []*internal.BisectRu
 func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	swarmingTaskID := "69067f22f5cc6710"
 	botID := "build123-h1"
+	chart := "chart"
 	bisectRuns := []*internal.BisectRun{
 		{
 			CommitRun: internal.CommitRun{
@@ -79,6 +80,11 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 								SizeBytes: int64(183),
 							},
 						},
+						Values: map[string][]float64{
+							chart: {
+								0.1, 0.2, 0.3,
+							},
+						},
 					},
 				},
 			},
@@ -94,7 +100,7 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 		BotId:  botID,
 		TaskId: swarmingTaskID,
 	}, nil)
-	env.ExecuteWorkflow(mockParseRunDataWorkflow, bisectRuns)
+	env.ExecuteWorkflow(mockParseRunDataWorkflow, bisectRuns, chart)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 

@@ -143,7 +143,7 @@ func createTestQuestDetail(task *swarming.SwarmingRpcsTaskResult, benchmarkRun *
 }
 
 // parseRunData parses run data into a map of combined commit to list of attempts and a unique list of bots run for tests.
-func parseRunData(ctx workflow.Context, runData []*internal.BisectRun) (map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt, []string, error) {
+func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart string) (map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt, []string, error) {
 	// use as set so we don't repeat keys
 	botSet := map[string]bool{}
 	commitToAttempts := map[uint32][]*pinpoint_proto.LegacyJobResponse_State_Attempt{}
@@ -170,6 +170,7 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun) (map[uint
 						Details:   []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{},
 					},
 				},
+				ResultValues: benchmarkRun.Values[chart],
 			}
 
 			attempts = append(attempts, attempt)
@@ -333,7 +334,7 @@ func parseCommitData(ctx workflow.Context, combinedCommit *midpoint.CombinedComm
 // parseRawDataToLegacyObject does the heavy lifting of converting all the raw run data to objects needed for the LegacyJobResponse.
 //
 // returns a list of JobState objects (curated by both comparison data and run data), a list of bots used for test runs and error if any.
-func parseRawDataToLegacyObject(ctx workflow.Context, comparisons []*internal.CombinedResults, runData []*internal.BisectRun) ([]*pinpoint_proto.LegacyJobResponse_State, []string, error) {
+func parseRawDataToLegacyObject(ctx workflow.Context, comparisons []*internal.CombinedResults, runData []*internal.BisectRun, chart string) ([]*pinpoint_proto.LegacyJobResponse_State, []string, error) {
 	states := []*pinpoint_proto.LegacyJobResponse_State{}
 
 	// runData is parsed into:
@@ -341,7 +342,7 @@ func parseRawDataToLegacyObject(ctx workflow.Context, comparisons []*internal.Co
 	//     and this allows us to fetch all attempt data for every commit that's analyzed.
 	//   - a unique list of bots that all attempts ran on, which is propagated back to the root
 	//     response object.
-	commitToAttempts, bots, err := parseRunData(ctx, runData)
+	commitToAttempts, bots, err := parseRunData(ctx, runData, chart)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
