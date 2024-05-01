@@ -18,7 +18,9 @@ import {
   DEFAULT_RANGE_S,
   ExploreSimpleSk,
   State as ExploreState,
+  GraphConfig,
   LabelMode,
+  updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
 
 import { fromKey } from '../paramtools';
@@ -53,14 +55,6 @@ class State {
   pageOffset: number = 0;
 
   totalGraphs: number = 0;
-}
-
-class GraphConfig {
-  formulas: string[] = []; // Formulas
-
-  queries: string[] = []; // Queries
-
-  keys: string = ''; // Keys
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -276,7 +270,7 @@ export class ExploreMultiSk extends ElementSk {
 
       graphConfig.keys = elemState.keys || '';
 
-      this.updateShortcut();
+      this.updateShortcutMultiview();
     });
 
     return explore;
@@ -422,7 +416,7 @@ export class ExploreMultiSk extends ElementSk {
         this.graphConfigs[i].formulas = [formulas];
       }
     });
-    this.updateShortcut();
+    this.updateShortcutMultiview();
 
     // Upon the split action, we would want to move to the first page
     // of the split graph set.
@@ -450,7 +444,7 @@ export class ExploreMultiSk extends ElementSk {
     this.addEmptyGraph();
 
     this.graphConfigs[0] = mergedGraphConfig;
-    this.updateShortcut!();
+    this.updateShortcutMultiview!();
     // Upon the merge action, we would want to move to the first page.
     this.state.pageOffset = 0;
     this.addGraphsToCurrentPage();
@@ -486,27 +480,15 @@ export class ExploreMultiSk extends ElementSk {
    * Creates a shortcut ID for the current Graph Configs and updates the state.
    *
    */
-  private updateShortcut() {
-    if (this.graphConfigs.length === 0) {
-      this.state.shortcut = '';
-      this.stateHasChanged!();
-      return;
-    }
-
-    const body = {
-      graphs: this.graphConfigs,
-    };
-
-    fetch('/_/shortcut/update', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.state.shortcut = json.id;
+  private updateShortcutMultiview() {
+    updateShortcut(this.graphConfigs)
+      .then((shortcut) => {
+        if (shortcut === '') {
+          this.state.shortcut = '';
+          this.stateHasChanged!();
+          return;
+        }
+        this.state.shortcut = shortcut;
         this.stateHasChanged!();
       })
       .catch(errorMessage);

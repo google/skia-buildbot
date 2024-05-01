@@ -18,6 +18,8 @@ export class ExploreSk extends ElementSk {
 
   private stateHasChanged: (() => void) | null = null;
 
+  private showMultiViewButton = false;
+
   constructor() {
     super(ExploreSk.template);
   }
@@ -44,9 +46,23 @@ export class ExploreSk extends ElementSk {
     this.exploreSimpleSk!.addEventListener('state_changed', () => {
       this.stateHasChanged!();
     });
+
+    this.exploreSimpleSk!.addEventListener('rendered_traces', () => {
+      this.showMultiViewButton = true;
+      this._render();
+    });
   }
 
   private static template = (ele: ExploreSk) => html`
+    <div ?hidden=${!ele.showMultiViewButton}>
+      <button
+        style="margin: 16px 0 0 16px;"
+        @click=${() => {
+          ele.exploreSimpleSk?.viewMultiGraph();
+        }}>
+        View in multi-graph
+      </button>
+    </div>
     <explore-simple-sk></explore-simple-sk>
   `;
 }

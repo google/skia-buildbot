@@ -23,6 +23,8 @@ import {
   PointSelected,
   selectionToEvent,
   CommitRange,
+  GraphConfig,
+  updateShortcut,
 } from './explore-simple-sk';
 import { timestampBounds, buildParamSet } from '../dataframe';
 import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
@@ -212,6 +214,115 @@ describe('PointSelected', () => {
     // ColumnHeader in 'header' doesn't exist.
     const e = selectionToEvent(p, header);
     assert.equal(e.detail.x, -1);
+  });
+});
+
+describe('updateShortcut', () => {
+  it('should return empty shortcut if graph configs are absent', async () => {
+    const shortcut = await updateShortcut([]);
+    assert.equal(shortcut, '');
+  });
+
+  it('should return shortcut for non empty graph list', async () => {
+    const defaultConfig: QueryConfig = {
+      default_param_selections: null,
+      default_url_values: null,
+      include_params: null,
+    };
+
+    const defaultBody = JSON.stringify(defaultConfig);
+    fetchMock.get('path:/_/defaults/', {
+      status: 200,
+      body: defaultBody,
+    });
+
+    fetchMock.post('/_/count/', {
+      count: 117,
+      paramset: {},
+    });
+
+    fetchMock.get(/_\/initpage\/.*/, () => ({
+      dataframe: {
+        traceset: null,
+        header: null,
+        paramset: {},
+        skip: 0,
+      },
+      ticks: [],
+      skps: [],
+      msg: '',
+    }));
+
+    fetchMock.postOnce('/_/shortcut/update', { id: '12345' });
+    fetchMock.flush(true);
+
+    const shortcut = await updateShortcut([
+      { keys: '', queries: [], formulas: [] },
+    ] as GraphConfig[]);
+
+    assert.deepEqual(shortcut, '12345');
+  });
+});
+
+describe('createGraphConfigs', () => {
+  it('traceset without formulas', () => {
+    const traceset = TraceSet({
+      ',config=8888,arch=x86,': Trace([0.1, 0.2, 0.0, 0.4]),
+      ',config=8888,arch=arm,': Trace([1.1, 1.2, 0.0, 1.4]),
+      ',config=565,arch=x86,': Trace([0.0, 0.0, 3.3, 3.4]),
+      ',config=565,arch=arm,': Trace([0.0, 0.0, 4.3, 4.4]),
+    });
+    const explore =
+      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const result = explore.createGraphConfigs(traceset);
+    const expected: GraphConfig[] = [
+      {
+        keys: '',
+        formulas: [],
+        queries: ['config=8888&arch=x86'],
+      },
+      {
+        keys: '',
+        formulas: [],
+        queries: ['config=8888&arch=arm'],
+      },
+      {
+        keys: '',
+        formulas: [],
+        queries: ['config=565&arch=x86'],
+      },
+      {
+        keys: '',
+        formulas: [],
+        queries: ['config=565&arch=arm'],
+      },
+    ];
+
+    assert.deepEqual(result, expected);
+  });
+
+  it('traceset with formulas', () => {
+    const traceset = TraceSet({
+      'func1(,config=8888,arch=x86,)': Trace([0.1, 0.2, 0.0, 0.4]),
+      'func2(,config=8888,arch=arm,)': Trace([1.1, 1.2, 0.0, 1.4]),
+    });
+    const explore =
+      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const result = explore.createGraphConfigs(traceset);
+    const expected: GraphConfig[] = [
+      {
+        keys: '',
+        formulas: ['func1(,config=8888,arch=x86,)'],
+        queries: [],
+      },
+      {
+        keys: '',
+        formulas: ['func2(,config=8888,arch=arm,)'],
+        queries: [],
+      },
+    ];
+
+    assert.deepEqual(result, expected);
   });
 });
 

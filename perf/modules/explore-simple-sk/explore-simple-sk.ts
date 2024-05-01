@@ -219,6 +219,41 @@ export const defaultPointSelected = (): PointSelected => ({
   name: '',
 });
 
+export class GraphConfig {
+  formulas: string[] = []; // Formulas
+
+  queries: string[] = []; // Queries
+
+  keys: string = ''; // Keys
+}
+
+/**
+ * Creates a shortcut ID for the given Graph Configs.
+ *
+ */
+export const updateShortcut = async (
+  graphConfigs: GraphConfig[]
+): Promise<string> => {
+  if (graphConfigs.length === 0) {
+    return '';
+  }
+
+  const body = {
+    graphs: graphConfigs,
+  };
+
+  return fetch('/_/shortcut/update', {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then(jsonOrThrow)
+    .then((json) => json.id)
+    .catch(errorMessage);
+};
+
 // State is reflected to the URL via stateReflector.
 export class State {
   begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
@@ -943,6 +978,10 @@ export class ExploreSimpleSk extends ElementSk {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {
     this.dispatchEvent(new CustomEvent('state_changed', {}));
+  };
+
+  private _renderedTraces = () => {
+    this.dispatchEvent(new CustomEvent('rendered_traces', {}));
   };
 
   private closeQueryDialog(): void {
@@ -1979,6 +2018,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
     this._dataframe = mergedDataframe;
+    this._renderedTraces();
   }
 
   /**
@@ -2241,6 +2281,45 @@ export class ExploreSimpleSk extends ElementSk {
     await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
       this.addTraces(json, false);
     });
+  }
+
+  public createGraphConfigs(traceSet: TraceSet): GraphConfig[] {
+    const graphConfigs = [] as GraphConfig[];
+    Object.keys(traceSet).forEach((key) => {
+      const conf: GraphConfig = {
+        keys: '',
+        formulas: [],
+        queries: [],
+      };
+      if (key[0] === ',') {
+        conf.queries = [new URLSearchParams(fromKey(key)).toString()];
+      } else {
+        if (key.startsWith('special')) {
+          return;
+        }
+        conf.formulas = [key];
+      }
+      graphConfigs.push(conf);
+    });
+
+    return graphConfigs;
+  }
+
+  public async viewMultiGraph(): Promise<void> {
+    const pageSize = 11;
+    const graphConfigs: GraphConfig[] = this.createGraphConfigs(
+      this._dataframe.traceset
+    );
+    const newShortcut = await updateShortcut(graphConfigs);
+
+    if (newShortcut === '') {
+      return;
+    }
+
+    window.open(
+      `/m/?pageSize=${pageSize}&shortcut=${newShortcut}&totalGraphs=${graphConfigs.length}`,
+      '_self'
+    );
   }
 
   private removeHighlighted() {
