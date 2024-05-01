@@ -82,11 +82,10 @@ func TestCatapultBisectWorkflow_HappyPath_ReturnsDatastoreResponse(t *testing.T)
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 
-	var actual *CatapultBisectResponse
+	var actual *pinpoint_proto.BisectExecution
 	require.NoError(t, env.GetWorkflowResult(&actual))
 	assert.NotNil(t, actual)
-	assert.Equal(t, mockJobId, actual.BisectExecution.JobId)
-	assert.Empty(t, actual.BisectExecution.Culprits)
-	assert.Equal(t, mockDSResp, actual.DatastoreResponse)
+	assert.Equal(t, mockJobId, actual.JobId)
+	assert.Empty(t, actual.Culprits)
 	env.AssertExpectations(t)
 }
