@@ -98,34 +98,28 @@ var (
 	// CIPD packages required for using Python.
 	PkgsPython = map[string][]*Package{
 		PlatformLinuxAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxAmd64)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 		PlatformLinuxArm64: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArm64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArm64)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 		PlatformLinuxArmv6l: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformLinuxArmv6l)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformLinuxArmv6l)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 		PlatformMacAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformMacAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformMacAmd64)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 		PlatformWindows386: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindows386)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindows386)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 		PlatformWindowsAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgCpythonTmpl, PlatformWindowsAmd64)),
 			MustGetPackage(fmt.Sprintf(pkgCpython3Tmpl, PlatformWindowsAmd64)),
-			MustGetPackage("infra/tools/luci/vpython/${platform}"),
+			MustGetPackage("infra/tools/luci/vpython3/${platform}"),
 		},
 	}
 )
