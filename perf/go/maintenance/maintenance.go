@@ -56,7 +56,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
 		}
-		migrator.RunPeriodicMigration(ctx, regressionMigratePeriod, regressionMigrationBatchSize)
+		migrator.RunPeriodicMigration(regressionMigratePeriod, regressionMigrationBatchSize)
 	}
 
 	select {}

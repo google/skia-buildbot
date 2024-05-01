@@ -48,17 +48,17 @@ func New(ctx context.Context, db pool.Pool) (*RegressionMigrator, error) {
 
 // RunPeriodicMigration runs a goroutine that runs the migration with the provided batch size
 // with a frequency specified by iterationPeriod.
-func (m *RegressionMigrator) RunPeriodicMigration(parentCtx context.Context, iterationPeriod time.Duration, batchSize int) {
-	go func() {
-		ctx, cancel := context.WithTimeout(parentCtx, time.Minute)
-		defer cancel()
-		for range time.Tick(iterationPeriod) {
+func (m *RegressionMigrator) RunPeriodicMigration(iterationPeriod time.Duration, batchSize int) {
+	for range time.Tick(iterationPeriod) {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			defer cancel()
 			sklog.Infof("Running regression data migration cycle.")
 			if err := m.migrateRegressions(ctx, batchSize); err != nil {
 				sklog.Errorf("Failed to migrate regressions: %s", err)
 			}
-		}
-	}()
+		}()
+	}
 }
 
 // migrateRegressions runs the migration of regressions with the provided batch size.
