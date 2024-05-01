@@ -319,5 +319,10 @@ func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId stri
 	return nil
 }
 
+// Not implemented as old regression schema does not have id.
+func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
+	return nil, skerr.Fmt("GetByIDs are not implemented in old version of regression store.")
+}
+
 // Confirm that SQLRegressionStore implements regression.Store.
 var _ regression.Store = (*SQLRegressionStore)(nil)

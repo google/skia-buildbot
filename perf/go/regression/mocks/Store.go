@@ -21,6 +21,36 @@ type Store struct {
 	mock.Mock
 }
 
+// GetByIDs provides a mock function with given fields: ctx, ids
+func (_m *Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
+	ret := _m.Called(ctx, ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByIDs")
+	}
+
+	var r0 []*regression.Regression
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*regression.Regression, error)); ok {
+		return rf(ctx, ids)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*regression.Regression); ok {
+		r0 = rf(ctx, ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*regression.Regression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Range provides a mock function with given fields: ctx, begin, end
 func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := _m.Called(ctx, begin, end)

@@ -122,6 +122,25 @@ func TestRead_Empty(t *testing.T) {
 	assert.Empty(t, regressionsFromDb)
 }
 
+// TestGetByIDs_Success reads the database using the
+// ids of the created regressions.
+func TestGetByIDs_Success(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+	r := generateAndStoreNewRegression(ctx, t, store)
+	r2 := generateAndStoreNewRegression(ctx, t, store)
+
+	regressionIDs := []string{r.Id, r2.Id}
+	regressions, err := store.GetByIDs(ctx, regressionIDs)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(regressions))
+	assert.Contains(t, regressionIDs, regressions[0].Id)
+	assert.Contains(t, regressionIDs, regressions[1].Id)
+}
+
 // TestHighRegression_KMeans_Triage sets a High regression into the database, triages it
 // and verifies that the data was updated correctly. The alert Algo is set to be KMeans.
 func TestHighRegression_KMeans_Triage(t *testing.T) {

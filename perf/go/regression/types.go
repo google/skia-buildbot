@@ -30,6 +30,10 @@ type Store interface {
 	// Write the Regressions to the store. The provided 'regressions' maps from
 	// types.CommitNumber to all the regressions for that commit.
 	Write(ctx context.Context, regressions map[types.CommitNumber]*AllRegressionsForCommit) error
+
+	// Given a list of regression IDs (only in the regression2store),
+	// return a list of regressions.
+	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
 }
 
 // FullSummary describes a single regression.

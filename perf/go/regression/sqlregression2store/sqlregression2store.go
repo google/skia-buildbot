@@ -3,6 +3,7 @@ package sqlregression2store
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"strings"
 	"text/template"
 	"time"
@@ -42,6 +43,7 @@ const (
 	write statementFormat = iota
 	readCompat
 	readRange
+	readByIDs
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -77,6 +79,14 @@ var statementFormats = map[statementFormat]string{
 			Regressions2 ({{ .Columns }})
 		VALUES
 			{{ .ValuesPlaceholders }}
+		`,
+	readByIDs: `
+		SELECT
+			{{ .Columns }}
+		FROM
+			Regressions2
+		WHERE
+			id IN (%s)
 		`,
 }
 
@@ -199,6 +209,27 @@ func (s *SQLRegression2Store) Write(ctx context.Context, regressions map[types.C
 		}
 	}
 	return nil
+}
+
+// Get a list of regressions given a list of regression ids.
+func (s *SQLRegression2Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
+	statement := s.statements[readByIDs]
+	query := fmt.Sprintf(statement, quotedSlice(ids))
+	rows, err := s.db.Query(ctx, query)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get regressions by id list. Query: %s", query)
+	}
+
+	var regressions []*regression.Regression
+	for rows.Next() {
+		r, err := convertRowToRegression(rows)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
+		}
+		regressions = append(regressions, r)
+	}
+
+	return regressions, nil
 }
 
 // convertRowToRegression converts the content of the row retrieved from the database
@@ -421,3 +452,13 @@ func isRegressionImprovement(paramset map[string][]string, stepFitStatus stepfit
 
 // Confirm that SQLRegressionStore implements regression.Store.
 var _ regression.Store = (*SQLRegression2Store)(nil)
+
+// Takes a string array as input, and returns a comma joined string where each element
+// is single quoted.
+func quotedSlice(a []string) string {
+	q := make([]string, len(a))
+	for i, s := range a {
+		q[i] = fmt.Sprintf("'%s'", s)
+	}
+	return strings.Join(q, ", ")
+}
