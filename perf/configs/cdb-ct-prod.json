@@ -2,6 +2,7 @@
   "URL": "https://ct-perf.skia.org",
   "contact": "https://bugs.skia.org",
   "trace_sample_proportion": 0.01,
+  "use_regression2_schema": true,
   "notify_config": {
     "notifications": "html_email"
   },
