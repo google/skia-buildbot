@@ -163,7 +163,6 @@ export const lowPowerLottieProfileSchema = {
             {'$ref': '#/$defs/features/shapes/types/no-pucker-and-bloat'},
             {'$ref': '#/$defs/features/shapes/types/no-polystar'},
             {'$ref': '#/$defs/features/shapes/types/no-stroke'},
-            {'$ref': '#/$defs/features/shapes/types/no-gradient-fill'},
             {'$ref': '#/$defs/features/shapes/types/no-gradient-stroke'},
           ],
         },
