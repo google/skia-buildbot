@@ -14,3 +14,6 @@ import subprocess
 # will not be cleaned up. overlay2 was noticed to be a very large
 # component, over 150GB large in some cases.
 print(subprocess.check_output(['docker', 'system', 'prune', '-fa']))
+print(subprocess.check_output(['sudo', 'rm', '-rf', '/home/chrome-bot/.npm/_cacache']))
+print(subprocess.check_output(['sudo', 'rm', '-rf', '/home/chrome-bot/.cache/go-build']))
+print(subprocess.check_output(['sudo', 'rm', '-rf', '/home/chrome-bot/go']))
