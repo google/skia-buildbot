@@ -92,6 +92,7 @@ packages:
   go.skia.org/infra/pinpoint/go/backends:
     interfaces:
       BuildbucketClient:
+      CrrevClient:
       IssueTracker:
       SwarmingClient:
   go.skia.org/infra/pinpoint/go/build_chrome:

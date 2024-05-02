@@ -5,6 +5,7 @@ go_library(
     name = "backends",
     srcs = [
         "buildbucket.go",
+        "crrev.go",
         "doc.go",
         "gitiles.go",
         "issuetracker.go",
@@ -41,12 +42,15 @@ go_test(
     name = "backends_test",
     srcs = [
         "buildbucket_test.go",
+        "crrev_test.go",
         "issuetracker_test.go",
         "swarming_test.go",
     ],
     embed = [":backends"],
     deps = [
         "//go/buildbucket",
+        "//go/mockhttpclient",
+        "//go/skerr",
         "//go/swarming",
         "//go/swarming/mocks",
         "//pinpoint/go/midpoint",

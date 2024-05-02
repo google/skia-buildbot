@@ -4,12 +4,14 @@ go_library(
     name = "mocks",
     srcs = [
         "BuildbucketClient.go",
+        "CrrevClient.go",
         "IssueTracker.go",
         "SwarmingClient.go",
     ],
     importpath = "go.skia.org/infra/pinpoint/go/backends/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//pinpoint/go/backends",
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//buildbucket/proto",
