@@ -822,6 +822,7 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate the explore page url for the given params.
+	queryParams["stat"] = []string{"value"}
 	redirectUrl := f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams)
 	sklog.Infof("Generated url: %s", redirectUrl)
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
