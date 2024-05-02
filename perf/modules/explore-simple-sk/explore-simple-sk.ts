@@ -2317,7 +2317,9 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     window.open(
-      `/m/?pageSize=${pageSize}&shortcut=${newShortcut}&totalGraphs=${graphConfigs.length}`,
+      `/m/?begin=${this._state.begin}&end=${this._state.end}` +
+        `&pageSize=${pageSize}&shortcut=${newShortcut}` +
+        `&totalGraphs=${graphConfigs.length}`,
       '_self'
     );
   }
