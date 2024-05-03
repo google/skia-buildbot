@@ -1,0 +1,10 @@
+{
+  // Arbitrary commit from Feb 8 2024
+  initial_commit: "d010de27b6f3b9222643f2d995882c1480fd8acf",
+  poll_period: "1m",
+
+  repos_to_monitor_cls: [],
+
+  prom_port: ":20000",
+  ready_port: ":8000"
+}

@@ -1,0 +1,5 @@
+{
+  prom_port: ":20000",
+  ready_port: ":8000",
+  debug_port: ":8001",
+}

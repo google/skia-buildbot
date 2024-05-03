@@ -1,0 +1,16 @@
+{
+  authorized_users: [
+    "google.com",
+  ],
+  client_secret_file: "/etc/skia.org/login.json",
+  force_login: true, // This instance requires authentication.
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    defaultCorpus: "koru",
+    title: "koru Gold",
+  },
+  prom_port: ":20000",
+  ready_port: ":7000",
+  debug_port: ":7001",
+  resources_path: "/usr/local/share/frontend/dist",
+}

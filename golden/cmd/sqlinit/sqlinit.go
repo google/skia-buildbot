@@ -24,6 +24,8 @@ import (
 	"go.skia.org/infra/golden/go/sql/schema"
 )
 
+const cockroachDBVersion = "--image=cockroachdb/cockroach:v22.2.3"
+
 func main() {
 	backupBucket := flag.String("backup_bucket", "skia-gold-sql-backups", "The bucket backups should be written to. Defaults to public bucket.")
 	dbCluster := flag.String("db_cluster", "gold-cockroachdb:26234", "The name of the cluster")
@@ -46,7 +48,7 @@ func main() {
 	sklog.Infof("Creating database %s", normalizedDB)
 	out, err := exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
+		"--restart=Never", cockroachDBVersion,
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster,
@@ -59,7 +61,7 @@ func main() {
 	sklog.Infof("Creating tables")
 	out, err = exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
+		"--restart=Never", cockroachDBVersion,
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster, "--database="+normalizedDB,
@@ -72,7 +74,7 @@ func main() {
 	sklog.Infof("Deleting existing schedules, if any")
 	out, err = exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
+		"--restart=Never", cockroachDBVersion,
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster, "--database="+normalizedDB,
@@ -90,7 +92,7 @@ func main() {
 	sklog.Infof("Creating automatic backup schedules")
 	out, err = exec.Command("kubectl", "run",
 		"gold-cockroachdb-init-"+normalizedDB,
-		"--restart=Never", "--image=cockroachdb/cockroach:v20.2.7",
+		"--restart=Never", cockroachDBVersion,
 		"--rm", "-it", // -it forces this command to wait until it completes.
 		"--", "sql",
 		"--insecure", "--host="+*dbCluster,

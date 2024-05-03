@@ -1,0 +1,19 @@
+{
+  backup_poll_interval: "1h",
+  backup_poll_scope: "2h",
+  ingestion_files_topic: "gold-koru-data-files",
+  ingestion_subscription: "gold-koru-ingestion",
+  prom_port: ":20000",
+  ready_port: ":9091",
+
+  primary_branch_config: {
+    type: "sql_primary",
+    gcs_source: {
+      bucket: "skia-gold-koru",
+      prefix: "dm-json-v1"
+    },
+    extra_configuration: {
+      TileWidth: "100",
+    }
+  },
+}
