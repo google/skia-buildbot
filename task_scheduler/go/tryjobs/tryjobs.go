@@ -418,6 +418,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 
 	sklog.Infof("Starting job %s (build %d); lease key: %d", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey)
 	startJobHelper := func() error {
+		sklog.Infof("Retrieving repo state information for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 		repoGraph, err := t.getRepo(job.Repo)
 		if err != nil {
 			return skerr.Wrapf(err, "unable to find repo %s", job.Repo)
@@ -443,9 +444,11 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		}
 
 		// Create a Job.
+		sklog.Infof("GetOrCacheRepoState for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 		if _, err := t.chr.GetOrCacheRepoState(ctx, job.RepoState); err != nil {
 			return skerr.Wrapf(err, "failed to obtain JobSpec")
 		}
+		sklog.Infof("Reading tasks cfg for job %s (build %d)", job.Id, job.BuildbucketBuildId)
 		cfg, cachedErr, err := t.taskCfgCache.Get(ctx, job.RepoState)
 		if err != nil {
 			return err
@@ -467,6 +470,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		// Determine if this is a manual retry of a previously-run try job. If
 		// so, set IsForce to ensure that we don't immediately de-duplicate all
 		// of its tasks.
+		sklog.Infof("Determining whether job %s (build %d) is a manual retry", job.Id, job.BuildbucketBuildId)
 		prevJobs, err := t.jCache.GetJobsByRepoState(job.Name, job.RepoState)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -474,6 +478,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		if len(prevJobs) > 0 {
 			job.IsForce = true
 		}
+		sklog.Infof("Ready to start job %s (build %d)", job.Id, job.BuildbucketBuildId)
 		return nil
 	}
 
