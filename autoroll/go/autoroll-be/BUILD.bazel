@@ -13,6 +13,7 @@ go_library(
         "//autoroll/go/manual",
         "//autoroll/go/repo_manager/parent",
         "//autoroll/go/roller",
+        "//autoroll/go/roller_cleanup",
         "//autoroll/go/status",
         "//email/go/emailclient",
         "//go/auth",

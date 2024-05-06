@@ -20,6 +20,7 @@ go_library(
         "//autoroll/go/recent_rolls",
         "//autoroll/go/repo_manager",
         "//autoroll/go/revision",
+        "//autoroll/go/roller_cleanup",
         "//autoroll/go/state_machine",
         "//autoroll/go/status",
         "//autoroll/go/strategy",
@@ -37,6 +38,7 @@ go_library(
         "//go/human",
         "//go/metrics2",
         "//go/notifier",
+        "//go/now",
         "//go/rotations",
         "//go/skerr",
         "//go/sklog",
@@ -54,8 +56,11 @@ go_test(
     embed = [":roller"],
     deps = [
         "//autoroll/go/revision",
+        "//autoroll/go/roller_cleanup",
+        "//autoroll/go/roller_cleanup/mocks",
         "//go/metrics2/testutils",
         "//go/mockhttpclient",
+        "//go/now",
         "@com_github_stretchr_testify//require",
     ],
 )

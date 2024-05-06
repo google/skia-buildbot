@@ -245,6 +245,8 @@ type TestAutoRollerImpl struct {
 	// These can be overridden for testing.
 	maxRollCLsToSameRevision int
 	maxRollCQAttempts        int
+
+	requestedCleanup bool
 }
 
 // Return a TestAutoRollerImpl instance.
@@ -416,6 +418,11 @@ func (r *TestAutoRollerImpl) GetConfig() *config.Config {
 		MaxRollCqAttempts:        int32(r.maxRollCQAttempts),
 		MaxRollClsToSameRevision: int32(r.maxRollCLsToSameRevision),
 	}
+}
+
+func (r *TestAutoRollerImpl) RequestCleanup(ctx context.Context, reason string) error {
+	r.requestedCleanup = true
+	return nil
 }
 
 // Assert that the StateMachine is in the given state.
@@ -828,6 +835,10 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 		throttled = S_DRY_RUN_SAFETY_THROTTLED
 	}
 	checkNextState(t, sm, throttled)
+
+	// We should have requested a cleanup.  Note that in normal operation of
+	// the roller this will cause the process to exit on the next tick.
+	require.True(t, r.requestedCleanup)
 
 	// Make sure we stay throttled.
 	checkNextState(t, sm, throttled)
