@@ -59,6 +59,51 @@ type AnomalyForRevision struct {
 	TestPath      string              `json:"test_path"`
 }
 
+// GetKey returns a string representing a key based on the params for the anomaly.
+func (anomaly *AnomalyForRevision) GetKey() string {
+	paramKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3", "subtest_4", "subtest_5"}
+	var sb strings.Builder
+	for _, key := range paramKeys {
+		paramValue, ok := anomaly.Params[key]
+		if ok {
+			sb.WriteString(paramValue[0])
+			sb.WriteString("-")
+		}
+	}
+
+	return sb.String()
+}
+
+// GetParamValue returns the value for the given param name in the anomaly.
+// Returns empty string if the value is not present.
+func (anomaly *AnomalyForRevision) GetParamValue(paramName string) string {
+	if paramValue, ok := anomaly.Params[paramName]; ok {
+		return paramValue[0]
+	}
+
+	return ""
+}
+
+// GetTestPath returns the test path representation for the anomaly.
+// To maintain parity with the legacy dashboard, this testpath does not
+// include the master/bot/benchmark portion of the path.
+func (anomaly *AnomalyForRevision) GetTestPath() string {
+	var sb strings.Builder
+	sb.WriteString(anomaly.GetParamValue("test"))
+
+	subtestKeys := []string{"subtest_1", "subtest_2", "subtest_3", "subtest_4", "subtest_5"}
+	for _, key := range subtestKeys {
+		value := anomaly.GetParamValue(key)
+		if value == "" {
+			break
+		}
+		sb.WriteString("/")
+		sb.WriteString(value)
+	}
+
+	return sb.String()
+}
+
 // RevisionInfo defines struct to contain revision information
 type RevisionInfo struct {
 	Master        string `json:"master"`
@@ -66,7 +111,7 @@ type RevisionInfo struct {
 	Benchmark     string `json:"benchmark"`
 	StartRevision int    `json:"start_revision"`
 	EndRevision   int    `json:"end_revision"`
-	Test          string `json:"test"`
+	TestPath      string `json:"test"`
 	IsImprovement bool   `json:"is_improvement"`
 	BugId         string `json:"bug_id"`
 	ExploreUrl    string `json:"explore_url"`

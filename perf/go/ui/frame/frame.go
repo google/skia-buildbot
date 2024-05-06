@@ -77,14 +77,15 @@ var AllResponseDisplayModes = []ResponseDisplayMode{
 
 // FrameRequest is used to deserialize JSON frame requests.
 type FrameRequest struct {
-	Begin       int         `json:"begin"`       // Beginning of time range in Unix timestamp seconds.
-	End         int         `json:"end"`         // End of time range in Unix timestamp seconds.
-	Formulas    []string    `json:"formulas"`    // The Formulae to evaluate.
-	Queries     []string    `json:"queries"`     // The queries to perform encoded as a URL query.
-	Keys        string      `json:"keys"`        // The id of a list of keys stored via shortcut2.
-	TZ          string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
-	NumCommits  int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
-	RequestType RequestType `json:"request_type"`
+	Begin                   int         `json:"begin"`       // Beginning of time range in Unix timestamp seconds.
+	End                     int         `json:"end"`         // End of time range in Unix timestamp seconds.
+	Formulas                []string    `json:"formulas"`    // The Formulae to evaluate.
+	Queries                 []string    `json:"queries"`     // The queries to perform encoded as a URL query.
+	Keys                    string      `json:"keys"`        // The id of a list of keys stored via shortcut2.
+	TZ                      string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
+	NumCommits              int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
+	RequestType             RequestType `json:"request_type"`
+	DoNotFilterParentTraces bool        `json:"disable_filter_parent_traces"`
 
 	Pivot *pivot.Request `json:"pivot"`
 

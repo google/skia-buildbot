@@ -289,6 +289,8 @@ export class State {
   labelMode: LabelMode = LabelMode.Date;
 
   _incremental: boolean = false; // Enables a data fetching optimization.
+
+  disable_filter_parent_traces: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -1707,6 +1709,7 @@ export class ExploreSimpleSk extends ElementSk {
         validatePivotRequest(this._state.pivotRequest) === ''
           ? this._state.pivotRequest
           : null,
+      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
     };
   }
 
@@ -1725,6 +1728,7 @@ export class ExploreSimpleSk extends ElementSk {
         validatePivotRequest(this._state.pivotRequest) === ''
           ? this._state.pivotRequest
           : null,
+      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
     };
   }
 

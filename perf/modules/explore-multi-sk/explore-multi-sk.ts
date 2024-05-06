@@ -244,6 +244,7 @@ export class ExploreMultiSk extends ElementSk {
       selected: explore.state.selected,
       _incremental: false,
       labelMode: LabelMode.Date,
+      disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
     };
     explore.state = newState;
   }

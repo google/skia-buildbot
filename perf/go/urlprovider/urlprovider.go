@@ -16,12 +16,15 @@ type URLProvider struct {
 }
 
 // Explore generates a url to the explore page for the given parameters
-func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string) string {
+func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string, disableFilterParentTraces bool) string {
 	queryUrl := url.Values{}
 	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
 	// Now let's look at the parameters for the query
 
 	queryUrl["queries"] = []string{prov.GetQueryStringFromParameters(parameters)}
+	if disableFilterParentTraces {
+		queryUrl["disable_filter_parent_traces"] = []string{"true"}
+	}
 
 	return "/e/?" + queryUrl.Encode()
 }

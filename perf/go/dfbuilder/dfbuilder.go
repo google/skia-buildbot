@@ -729,7 +729,7 @@ func (b *builder) NumMatches(ctx context.Context, q *query.Query) (int64, error)
 // of T1
 func filterParentTraces(traceSet types.TraceSet) types.TraceSet {
 	traceFilter := tracefilter.NewTraceFilter()
-	paramSetKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "units"}
+	paramSetKeys := []string{"master", "bot", "benchmark", "test", "subtest_1", "subtest_2", "subtest_3", "subtest_4", "subtest_5"}
 	for key := range traceSet {
 		params, err := query.ParseKey(key)
 		if err != nil {

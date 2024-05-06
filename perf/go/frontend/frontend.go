@@ -719,6 +719,14 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dfBuilder := f.dfBuilder
+	if fr.DoNotFilterParentTraces {
+		dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(
+			f.perfGit,
+			f.traceStore,
+			f.flags.NumParamSetsForQueries,
+			dfbuilder.Filtering(false))
+	}
 	f.progressTracker.Add(fr.Progress)
 	go func() {
 		// Intentionally using a background context here because the calculation will go on in the background after
@@ -727,7 +735,7 @@ func (f *Frontend) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
-		err := frame.ProcessFrameRequest(timeoutCtx, fr, f.perfGit, f.dfBuilder, f.shortcutStore, f.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
+		err := frame.ProcessFrameRequest(timeoutCtx, fr, f.perfGit, dfBuilder, f.shortcutStore, f.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {
@@ -785,14 +793,14 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 				sklog.Errorf("Error inserting shortcut %s", err)
 				// Let's redirect the user to the explore page instead.
 				queryParams := alertGroupDetails.GetQueryParams(ctx)
-				redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+				redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false)
 			} else {
 				redirectUrl = f.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId)
 			}
 
 		} else {
 			queryParams := alertGroupDetails.GetQueryParams(ctx)
-			redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams)
+			redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false)
 		}
 		sklog.Infof("Generated url: %s", redirectUrl)
 		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
@@ -823,7 +831,7 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Generate the explore page url for the given params.
 	queryParams["stat"] = []string{"value"}
-	redirectUrl := f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams)
+	redirectUrl := f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, true)
 	sklog.Infof("Generated url: %s", redirectUrl)
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
@@ -1319,18 +1327,14 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 
 	revisionInfoMap := map[string]chromeperf.RevisionInfo{}
 	for _, anomalyData := range anomaliesForRevision {
-		key := fmt.Sprintf(
-			"%s-%s-%s-%s",
-			anomalyData.Params["master"],
-			anomalyData.Params["bot"],
-			anomalyData.Params["benchmark"],
-			anomalyData.Params["test"])
+		key := anomalyData.GetKey()
 		if _, ok := revisionInfoMap[key]; !ok {
 			exploreUrl := f.urlProvider.Explore(
 				ctx,
 				anomalyData.StartRevision,
 				anomalyData.EndRevision,
-				anomalyData.Params)
+				anomalyData.Params,
+				true)
 			bugId := ""
 			if anomalyData.Anomaly.BugId > 0 {
 				bugId = strconv.Itoa(anomalyData.Anomaly.BugId)
@@ -1338,10 +1342,10 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 			revisionInfoMap[key] = chromeperf.RevisionInfo{
 				StartRevision: anomalyData.StartRevision,
 				EndRevision:   anomalyData.EndRevision,
-				Master:        anomalyData.Params["master"][0],
-				Bot:           anomalyData.Params["bot"][0],
-				Benchmark:     anomalyData.Params["benchmark"][0],
-				Test:          anomalyData.Params["test"][0],
+				Master:        anomalyData.GetParamValue("master"),
+				Bot:           anomalyData.GetParamValue("bot"),
+				Benchmark:     anomalyData.GetParamValue("benchmark"),
+				TestPath:      anomalyData.GetTestPath(),
 				BugId:         bugId,
 				ExploreUrl:    exploreUrl,
 			}

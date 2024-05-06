@@ -20,7 +20,7 @@ func TestProvider_Default(t *testing.T) {
 		"param2": {"value2"},
 		"param3": {"value3"},
 	}
-	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
+	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	queryIndex := strings.Index(queryurl, "&queries=")
 	assert.NotEqual(t, -1, queryIndex)
@@ -42,7 +42,7 @@ func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 		"param2": {"value2"},
 		"param3": {"value3"},
 	}
-	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params)
+	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	queryIndex := strings.Index(queryurl, "&queries=")
 	assert.NotEqual(t, -1, queryIndex)

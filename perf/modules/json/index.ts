@@ -182,6 +182,7 @@ export interface FrameRequest {
 	tz: string;
 	num_commits: number;
 	request_type: RequestType;
+	disable_filter_parent_traces: boolean;
 	pivot: pivot.Request | null;
 }
 
