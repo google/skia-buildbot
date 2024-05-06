@@ -135,7 +135,20 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 			allForCommit = regression.New()
 		}
 		alertIDString := alerts.IDToString(r.AlertId)
-		allForCommit.ByAlertID[alertIDString] = r
+		existingRegressionForAlertId := allForCommit.ByAlertID[alertIDString]
+		// If there are existing regressions for the commit-alert tuple,
+		// merge it into the same regression object for backward compatibility.
+		if existingRegressionForAlertId != nil {
+			if existingRegressionForAlertId.High != nil && r.Low != nil {
+				existingRegressionForAlertId.Low = r.Low
+				existingRegressionForAlertId.LowStatus = r.LowStatus
+			} else {
+				existingRegressionForAlertId.High = r.High
+				existingRegressionForAlertId.HighStatus = r.HighStatus
+			}
+		} else {
+			allForCommit.ByAlertID[alertIDString] = r
+		}
 		ret[r.CommitNumber] = allForCommit
 	}
 	return ret, nil
@@ -410,9 +423,25 @@ func rollbackTransaction(ctx context.Context, tx pgx.Tx) {
 
 // WriteRegression writes a single regression object into the table and returns the Id of the written row.
 func (s *SQLRegression2Store) WriteRegression(ctx context.Context, regression *regression.Regression, tx pgx.Tx) (string, error) {
-	populateRegression2Fields(regression)
-	err := s.writeSingleRegression(ctx, regression, tx)
-	return regression.Id, err
+	// If the regression has both high and low specified, we need to create two separate regression
+	// entries into the regression2 table.
+	if regression.High != nil && regression.Low != nil {
+		highRegression := *regression
+		lowRegression := *regression
+		highRegression.Low = nil
+		lowRegression.High = nil
+		populateRegression2Fields(&highRegression)
+		err := s.writeSingleRegression(ctx, &highRegression, tx)
+		if err == nil {
+			populateRegression2Fields(&lowRegression)
+			err = s.writeSingleRegression(ctx, &lowRegression, tx)
+		}
+		return highRegression.Id, err
+	} else {
+		populateRegression2Fields(regression)
+		err := s.writeSingleRegression(ctx, regression, tx)
+		return regression.Id, err
+	}
 }
 
 // populateRegression2Fields populates the fields in the regression object

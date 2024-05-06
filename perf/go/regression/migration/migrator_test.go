@@ -238,3 +238,39 @@ func Test_Migrate_Prev_Migrated_Regression(t *testing.T) {
 	newRegression = regressionsForCommit.ByAlertID[alertID]
 	assert.NotNil(t, newRegression.HighStatus)
 }
+
+func Test_Migrate_Mixed_Regression(t *testing.T) {
+	ctx, migrator, legacyStore, newStore := setup(t)
+	alertID := "123"
+	commitNumber := types.CommitNumber(222)
+	df := &frame.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			Header: []*dataframe.ColumnHeader{
+				{Offset: 1},
+				{Offset: 2},
+				{Offset: 3},
+			},
+		},
+	}
+	clusterSummary := &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			TurningPoint: 1,
+		},
+		Timestamp: time.Now(),
+		Centroid:  []float32{1.0, 5.0, 5.0},
+	}
+
+	// Set both high and low values to create a mixed regression
+	_, _ = legacyStore.SetHigh(ctx, commitNumber, alertID, df, clusterSummary)
+	_, _ = legacyStore.SetLow(ctx, commitNumber, alertID, df, clusterSummary)
+
+	err := migrator.migrateRegressions(ctx, 1)
+	assert.Nil(t, err)
+
+	// Get the regression from the new store.
+	regressionsMap, _ := newStore.Range(ctx, commitNumber, commitNumber)
+	regressionsForCommit := regressionsMap[commitNumber]
+	newRegression := regressionsForCommit.ByAlertID[alertID]
+	assert.NotNil(t, newRegression.High)
+	assert.NotNil(t, newRegression.Low)
+}

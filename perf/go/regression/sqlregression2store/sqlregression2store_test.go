@@ -191,6 +191,27 @@ func TestLowRegression_Ind_Triage(t *testing.T) {
 	runClusterSummaryAndTriageTest(t, false, alertsProvider)
 }
 
+func TestMixedRegressionWrite(t *testing.T) {
+	alertsProvider := alerts_mock.NewConfigProvider(t)
+	alertIdStr := "1111"
+
+	store := setupStore(t, alertsProvider)
+	ctx := context.Background()
+
+	// Add an item to the database.
+	r := generateNewRegression()
+	r.Id = ""
+
+	// Add another cluster summary to the same regression.
+	r.Low = r.High
+	_, err := store.WriteRegression(ctx, r, nil)
+	assert.Nil(t, err)
+	reg := readSpecificRegressionFromDb(ctx, t, store, r.CommitNumber, alertIdStr)
+	assert.NotNil(t, reg)
+	assert.NotNil(t, reg.High)
+	assert.NotNil(t, reg.Low)
+}
+
 func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsProvider alerts.ConfigProvider) {
 	store := setupStore(t, alertsProvider)
 	ctx := context.Background()

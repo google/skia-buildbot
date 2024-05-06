@@ -242,6 +242,7 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	}
 
 	r := regression.NewRegression()
+	r.Id = ""
 
 	// Read the regression from the database. If any part of that fails then
 	// just use the default regression we've already constructed.
