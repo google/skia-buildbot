@@ -154,10 +154,6 @@ type AutoRollerImpl interface {
 	// times within a time period.
 	FailureThrottle() *Throttler
 
-	// RequestCleanup requests that all local checkouts stored by the roller be
-	// deleted.
-	RequestCleanup(ctx context.Context, reason string) error
-
 	// Return the currently-active roll. Should return untyped nil, as
 	// opposed to RollCLImpl(nil), if no roll exists.
 	GetActiveRoll() RollCLImpl
@@ -471,9 +467,6 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	})
 	b.F(F_NOTIFY_SAFETY_THROTTLE, func(ctx context.Context) error {
 		n.SendSafetyThrottled(ctx, s.a.SafetyThrottle().ThrottledUntil())
-		if err := s.a.RequestCleanup(ctx, "Safety throttled due to CL upload failures"); err != nil {
-			return err
-		}
 		return nil
 	})
 	b.F(F_ERROR_CURRENT_ROLL_MISSING, func(ctx context.Context) error {

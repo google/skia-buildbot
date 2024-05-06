@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
-	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/auth"
@@ -341,12 +340,6 @@ func main() {
 		sklog.Fatalf("Failed to create manual roll DB: %s", err)
 	}
 
-	sklog.Infof("Creating roller cleanup DB.")
-	rollerCleanup, err := roller_cleanup.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
-	if err != nil {
-		sklog.Fatalf("Failed to create roller cleanup DB: %s", err)
-	}
-
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 	}
@@ -361,7 +354,7 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls, rollerCleanup)
+	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls)
 	if err != nil {
 		sklog.Fatal(err)
 	}
