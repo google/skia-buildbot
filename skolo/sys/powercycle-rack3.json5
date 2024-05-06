@@ -6,7 +6,18 @@
         "skia-e-win-305": 1,
         "skia-e-win-302": 2,
         "skia-e-win-301": 3,
-        "skia-e-linux-307": 4
+        "skia-e-linux-307": 4,
+        "skia-e-win-310": 5,
+        "skia-e-win-311": 6,
+        "skia-e-win-312": 7,
+        "skia-e-win-341": 8,
+        "skia-e-win-342": 9,
+        "skia-e-win-343": 10,
+        "skia-e-win-344": 11,
+        "skia-e-win-346": 12,
+        "skia-e-win-347": 13,
+        "skia-e-win-348": 14,
+        "skia-e-win-349": 15
       }
     }
   }
