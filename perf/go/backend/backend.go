@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/grpcsp"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag_service "go.skia.org/infra/perf/go/anomalygroup/service"
 	"go.skia.org/infra/perf/go/backend/shared"
@@ -17,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/culprit"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_service "go.skia.org/infra/perf/go/culprit/service"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -48,7 +50,12 @@ type BackendService interface {
 }
 
 // initialize initializes the Backend application.
-func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store, subscriptionStore subscription.Store, notifier notify.CulpritNotifier) error {
+func (b *Backend) initialize(
+	anomalygroupStore anomalygroup.Store,
+	culpritStore culprit.Store,
+	subscriptionStore subscription.Store,
+	regressionStore regression.Store,
+	notifier notify.CulpritNotifier) error {
 	common.InitWithMust(
 		appName,
 		common.PrometheusOpt(&b.promPort),
@@ -97,11 +104,34 @@ func (b *Backend) initialize(anomalygroupStore anomalygroup.Store, culpritStore 
 		}
 	}
 
+	sklog.Info("Creating regression store.")
+	if regressionStore == nil {
+		sklog.Info("Creating alertStore.")
+		alertStore, err := builders.NewAlertStoreFromConfig(ctx, false, config.Config)
+		if err != nil {
+			sklog.Fatal(err)
+			return err
+		}
+
+		sklog.Info("Creating config provider.")
+		configProvider, err := alerts.NewConfigProvider(ctx, alertStore, 600)
+		if err != nil {
+			sklog.Fatalf("Failed to create alerts configprovider: %s", err)
+			return err
+		}
+
+		regressionStore, err = builders.NewRegressionStoreFromConfig(ctx, false, config.Config, configProvider)
+		if err != nil {
+			sklog.Errorf("Error creating regression store. %s", err)
+			return err
+		}
+	}
+
 	sklog.Info("Configuring grpc services.")
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
-		ag_service.New(anomalygroupStore),
+		ag_service.New(anomalygroupStore, regressionStore),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier),
 	}
 	err = b.configureServices(services)
@@ -190,6 +220,7 @@ func New(flags *config.BackendFlags,
 	anomalygroupStore anomalygroup.Store,
 	culpritStore culprit.Store,
 	subscriptionStore subscription.Store,
+	regressionStore regression.Store,
 	notifier notify.CulpritNotifier,
 ) (*Backend, error) {
 	b := &Backend{
@@ -200,7 +231,7 @@ func New(flags *config.BackendFlags,
 		flags:            flags,
 	}
 
-	err := b.initialize(anomalygroupStore, culpritStore, subscriptionStore, notifier)
+	err := b.initialize(anomalygroupStore, culpritStore, subscriptionStore, regressionStore, notifier)
 	return b, err
 }
 

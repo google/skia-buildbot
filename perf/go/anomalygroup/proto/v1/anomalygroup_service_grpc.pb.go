@@ -24,6 +24,7 @@ const (
 	AnomalyGroupService_LoadAnomalyGroupByID_FullMethodName  = "/anomalygroup.v1.AnomalyGroupService/LoadAnomalyGroupByID"
 	AnomalyGroupService_UpdateAnomalyGroup_FullMethodName    = "/anomalygroup.v1.AnomalyGroupService/UpdateAnomalyGroup"
 	AnomalyGroupService_FindExistingGroups_FullMethodName    = "/anomalygroup.v1.AnomalyGroupService/FindExistingGroups"
+	AnomalyGroupService_FindTopAnomalies_FullMethodName      = "/anomalygroup.v1.AnomalyGroupService/FindTopAnomalies"
 )
 
 // AnomalyGroupServiceClient is the client API for AnomalyGroupService service.
@@ -40,6 +41,7 @@ type AnomalyGroupServiceClient interface {
 	// Find matching anomaly groups based on the criterias.
 	// (e.g., from a newly found anomaly).
 	FindExistingGroups(ctx context.Context, in *FindExistingGroupsRequest, opts ...grpc.CallOption) (*FindExistingGroupsResponse, error)
+	FindTopAnomalies(ctx context.Context, in *FindTopAnomaliesRequest, opts ...grpc.CallOption) (*FindTopAnomaliesResponse, error)
 }
 
 type anomalyGroupServiceClient struct {
@@ -86,6 +88,15 @@ func (c *anomalyGroupServiceClient) FindExistingGroups(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *anomalyGroupServiceClient) FindTopAnomalies(ctx context.Context, in *FindTopAnomaliesRequest, opts ...grpc.CallOption) (*FindTopAnomaliesResponse, error) {
+	out := new(FindTopAnomaliesResponse)
+	err := c.cc.Invoke(ctx, AnomalyGroupService_FindTopAnomalies_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnomalyGroupServiceServer is the server API for AnomalyGroupService service.
 // All implementations must embed UnimplementedAnomalyGroupServiceServer
 // for forward compatibility
@@ -100,6 +111,7 @@ type AnomalyGroupServiceServer interface {
 	// Find matching anomaly groups based on the criterias.
 	// (e.g., from a newly found anomaly).
 	FindExistingGroups(context.Context, *FindExistingGroupsRequest) (*FindExistingGroupsResponse, error)
+	FindTopAnomalies(context.Context, *FindTopAnomaliesRequest) (*FindTopAnomaliesResponse, error)
 	mustEmbedUnimplementedAnomalyGroupServiceServer()
 }
 
@@ -118,6 +130,9 @@ func (UnimplementedAnomalyGroupServiceServer) UpdateAnomalyGroup(context.Context
 }
 func (UnimplementedAnomalyGroupServiceServer) FindExistingGroups(context.Context, *FindExistingGroupsRequest) (*FindExistingGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindExistingGroups not implemented")
+}
+func (UnimplementedAnomalyGroupServiceServer) FindTopAnomalies(context.Context, *FindTopAnomaliesRequest) (*FindTopAnomaliesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindTopAnomalies not implemented")
 }
 func (UnimplementedAnomalyGroupServiceServer) mustEmbedUnimplementedAnomalyGroupServiceServer() {}
 
@@ -204,6 +219,24 @@ func _AnomalyGroupService_FindExistingGroups_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnomalyGroupService_FindTopAnomalies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindTopAnomaliesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnomalyGroupServiceServer).FindTopAnomalies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AnomalyGroupService_FindTopAnomalies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnomalyGroupServiceServer).FindTopAnomalies(ctx, req.(*FindTopAnomaliesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AnomalyGroupService_ServiceDesc is the grpc.ServiceDesc for AnomalyGroupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -226,6 +259,10 @@ var AnomalyGroupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindExistingGroups",
 			Handler:    _AnomalyGroupService_FindExistingGroups_Handler,
+		},
+		{
+			MethodName: "FindTopAnomalies",
+			Handler:    _AnomalyGroupService_FindTopAnomalies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

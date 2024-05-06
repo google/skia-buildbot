@@ -33,7 +33,7 @@ func main() {
 				Flags:       (&backendFlags).AsCliFlags(),
 				Action: func(c *cli.Context) error {
 					urfavecli.LogFlags(c)
-					b, err := backend.New(&backendFlags, nil, nil, nil, nil)
+					b, err := backend.New(&backendFlags, nil, nil, nil, nil, nil)
 					if err != nil {
 						return err
 					}

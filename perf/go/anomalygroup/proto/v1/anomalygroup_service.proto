@@ -27,6 +27,10 @@ service AnomalyGroupService {
     rpc FindExistingGroups(
         FindExistingGroupsRequest) returns (FindExistingGroupsResponse) {
     }
+
+    rpc FindTopAnomalies(
+        FindTopAnomaliesRequest) returns (FindTopAnomaliesResponse) {
+    }
 }
 
 // Request object for CreateNewAnomalyGroup
@@ -114,6 +118,17 @@ message FindExistingGroupsResponse {
     repeated AnomalyGroup anomaly_groups = 1;
 }
 
+// Request object for FindTopAnomaliesRequest
+message FindTopAnomaliesRequest {
+    string anomaly_group_id = 1;
+    int64 limit = 2;
+}
+
+// // Response object for FindTopAnomaliesResponse
+message FindTopAnomaliesResponse {
+    repeated Anomaly anomalies = 1;
+}
+
 // Simplified format for an anomaly group, which should be sufficient
 // in the following use cases:
 // 1. provide a list of anomalies for filing a bug.
@@ -135,6 +150,36 @@ message AnomalyGroup {
     string subsciption_name = 6;
     // The subscription revision this anomaly group belongs to
     string subscription_revision = 7;
+}
+
+// Regression object in a format used for anomaly group actions,
+// including filing a new bug and triggering a new bisection job.
+message Anomaly {
+    // the start commit position of the detected anomaly
+    int64 start_commit = 1;
+    // the end commit position of the detected anomaly
+    int64 end_commit = 2;
+    // the paramset from the regression detected in Skia. The parameters
+    // are used in Skia alerts to define which tests to apply the deteciton
+    // rules.
+    // In chromeperf's context, it should include the following keys:
+    //  - bot:
+    //      the name of the bot (a.k.a, 'builder' in waterfall, and
+    //      'configuration' in pinpoint job page.)
+    //  - benchmark:
+    //      the name of the benchmark
+    //  - story:
+    //      the name of the story (a.k.a., test)
+    //  - measurement:
+    //      the metric to look at. (a.k.a., 'test' in skia query ui,
+    //      and 'chart' in pinpoint job page)
+    //  - stat:
+    //      the aggregation method on the data points
+    map<string, string> paramset = 3;
+    // indicate the direction towards which the change should be
+    // considered as regression.
+    // The possible values are: UP, DOWN or UNKNOWN
+    string improvement_direction = 4;
 }
 
 

@@ -7,9 +7,12 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/anomalygroup/service",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/paramtools",
+        "//go/skerr",
         "//perf/go/anomalygroup:store",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/shared",
+        "//perf/go/regression",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -21,6 +24,10 @@ go_test(
     deps = [
         "//perf/go/anomalygroup/mocks",
         "//perf/go/anomalygroup/proto/v1",
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/regression/mocks",
+        "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
     ],
