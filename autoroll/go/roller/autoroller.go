@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +22,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -37,6 +40,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/notifier"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -60,6 +64,7 @@ const (
 // project into another.
 type AutoRoller struct {
 	cfg                   *config.Config
+	cleanup               roller_cleanup.DB
 	client                *http.Client
 	codereview            codereview.CodeReview
 	commitMsgBuilder      *commit_msg.Builder
@@ -74,7 +79,6 @@ type AutoRoller struct {
 	modeHistory           modes.ModeHistory
 	nextRollRev           *revision.Revision
 	notifier              *arb_notifier.AutoRollNotifier
-	notifierConfigs       []*notifier.Config
 	notRolledRevs         []*revision.Revision
 	recent                *recent_rolls.RecentRolls
 	reg                   *config_vars.Registry
@@ -98,10 +102,11 @@ type AutoRoller struct {
 	throttle              unthrottle.Throttle
 	timeWindow            *time_window.TimeWindow
 	tipRev                *revision.Revision
+	workdir               string
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -255,6 +260,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	}
 	arb := &AutoRoller{
 		cfg:                   c,
+		cleanup:               cleanupDB,
 		client:                client,
 		codereview:            cr,
 		commitMsgBuilder:      commitMsgBuilder,
@@ -286,6 +292,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		throttle:              unthrottle.NewDatastore(ctx),
 		timeWindow:            tw,
 		tipRev:                tipRev,
+		workdir:               workdir,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -804,6 +811,21 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 
 	sklog.Infof("Running autoroller.")
 
+	// Cleanup and exit if requested.
+	needsCleanup, err := roller_cleanup.NeedsCleanup(ctx, r.cleanup, r.roller)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	if needsCleanup {
+		sklog.Warningf("Deleting local data and exiting...")
+		if err := r.DeleteLocalData(ctx); err != nil {
+			return skerr.Wrap(err)
+		}
+		// TODO(borenet): Should we instead pass in a cancel function for the
+		// top-level Context, so that things can shut down cleanly?
+		os.Exit(0)
+	}
+
 	// Update the config vars.
 	if err := r.reg.Update(ctx); err != nil {
 		sklog.Errorf("Failed to update config registry; continuing, but config may be out of date: %s", err)
@@ -914,8 +936,8 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 	// Send notifications if this roll had a different result from the last
 	// roll, ie. success -> failure or failure -> success.
 	currentSuccess := util.In(currentRoll.Result, autoroll.SUCCESS_RESULTS)
-	lastSuccess := util.In(lastRoll.Result, autoroll.SUCCESS_RESULTS)
 	if lastRoll != nil {
+		lastSuccess := util.In(lastRoll.Result, autoroll.SUCCESS_RESULTS)
 		if currentSuccess && !lastSuccess {
 			r.notifier.SendNewSuccess(ctx, fmt.Sprintf("%d", currentRoll.Issue), issueURL)
 		} else if !currentSuccess && lastSuccess {
@@ -1087,7 +1109,7 @@ func (r *AutoRoller) getRevision(ctx context.Context, id string) (*revision.Revi
 
 // reportRevisionDetection reports the time it took for revisions to be noticed
 // by the roller.
-func (r *AutoRoller) reportRevisionDetection(ctx context.Context) {
+func (r *AutoRoller) reportRevisionDetection(_ context.Context) {
 	now := time.Now()
 
 	// Remove older revisions from reportedRevs to stop reportedRevs from growing
@@ -1114,4 +1136,44 @@ func (r *AutoRoller) reportRevisionDetection(ctx context.Context) {
 		diff := now.Sub(rev.Timestamp)
 		m.Observe(diff.Seconds())
 	}
+}
+
+// RequestCleanup implements state_machine.AutoRollerImpl.
+func (r *AutoRoller) RequestCleanup(ctx context.Context, reason string) error {
+	return skerr.Wrap(r.cleanup.RequestCleanup(ctx, &roller_cleanup.CleanupRequest{
+		RollerID:      r.roller,
+		NeedsCleanup:  true,
+		User:          r.roller,
+		Timestamp:     time.Now(),
+		Justification: reason,
+	}))
+}
+
+// DeleteLocalData deletes the local data stored on this roller. The caller
+// should exit immediately afterward, otherwise processes which depend on this
+// local data will have problems.
+func (r *AutoRoller) DeleteLocalData(ctx context.Context) error {
+	// Delete the contents of r.workdir.  We cannot simply delete and recreate
+	// the workdir because for most rollers the workdir is a mount which cannot
+	// be removed.
+	toRemove, err := os.ReadDir(r.workdir)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, item := range toRemove {
+		if err := os.RemoveAll(filepath.Join(r.workdir, item.Name())); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	// Clear the needs-cleanup bit.
+	if err := r.cleanup.RequestCleanup(ctx, &roller_cleanup.CleanupRequest{
+		RollerID:      r.roller,
+		NeedsCleanup:  false,
+		User:          r.roller,
+		Timestamp:     now.Now(ctx),
+		Justification: "Deleted local data",
+	}); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }

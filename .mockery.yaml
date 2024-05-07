@@ -20,6 +20,9 @@ packages:
   go.skia.org/infra/autoroll/go/recent_rolls:
     interfaces:
       DB:
+  go.skia.org/infra/autoroll/go/roller_cleanup:
+    interfaces:
+      DB:
   go.skia.org/infra/autoroll/go/status:
     interfaces:
       DB:
