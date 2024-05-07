@@ -29,15 +29,18 @@ You need to redo steps 3-5 if you want to run your latest local changes.
 1. Skia breakglass (More context at go/skia-infra-iac-handbook under `Breakglass Access`):<br>
    `grants add --wait_for_twosync --reason="b/XYZ -- justification"
 skia-infra-breakglass-policy:2h`
-2. Connect your cloudtop to GKE cluster: `./kube/attach.sh skia-infra-public`
+2. Connect your cloudtop to GKE cluster belonging to one of the production instances:
+   - `./kube/attach.sh skia-infra-corp`
+   - `./kube/attach.sh skia-infra-prod`
 3. Connect to the service at localhost 7233:<br>
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
 4. (if needed) Change workflow parameters in `sample/sample.go`
 5. Trigger the workflow:<br>
    `bazelisk run  //pinpoint/go/workflows/sample -- --namespace=perf-internal
---taskQueue=perf.perf-chrome-public.bisect --flag_for_workflow=true`
-6. Check the workflow status
-   [here](https://temporal-ui.skia.org/namespaces/perf-internal/workflows)
+--taskQueue=perf.perf-chrome-public.bisect --[flag_for_workflow i.e. bisect]=true`
+6. Check the workflow status:
+   - [skia-infra-corp](https://skia-temporal-ui.corp.goog/namespaces/perf-internal/workflows)
+   - [skia-infra-prod](https://temporal-ui.skia.org/namespaces/perf-internal/workflows)
 
 Notes:
 
