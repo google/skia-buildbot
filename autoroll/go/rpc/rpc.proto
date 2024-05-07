@@ -6,6 +6,10 @@ import "google/protobuf/timestamp.proto";
 
 // AutoRollService provides interactions with the AutoRoll frontend.
 service AutoRollService {
+  // AddCleanupRequest adds a CleanupRequest.
+  rpc AddCleanupRequest(AddCleanupRequestRequest) returns (AddCleanupRequestResponse);
+  // GetCleanupHistory retrieves CleanupRequest history.
+  rpc GetCleanupHistory(GetCleanupHistoryRequest) returns (GetCleanupHistoryResponse);
   // GetRollers retrieves AutoRollMiniStatuses for all known rollers.
   rpc GetRollers(GetRollersRequest) returns (GetRollersResponse);
   // GetRolls retrieves rolls from the database.
@@ -329,6 +333,9 @@ message AutoRollStatus {
   // throttled_until is the timestamp at which the autoroller will no longer be
   // throttled, if the autoroller is currently throttled.
   google.protobuf.Timestamp throttled_until = 14;
+  // cleanup_requested is the most recent request for cleanup of this roller, if
+  // any.
+  CleanupRequest cleanup_requested = 15;
 }
 
 // GetRollersRequest is a request to GetRollers.
@@ -468,3 +475,40 @@ message UnthrottleRequest {
 
 // UnthrottleResponse is a response returned by Unthrottle.
 message UnthrottleResponse {}
+
+// AddCleanupRequestRequest is a request to AddCleanupRequest.
+message AddCleanupRequestRequest {
+  // roller_id is the unique identifier of the autoroller in question.
+  string roller_id = 1;
+  // justification is the reason that cleanup is being requested.
+  string justification = 2;
+}
+
+// AddCleanupRequestResponse is a response returned by AddCleanupRequest.
+message AddCleanupRequestResponse {
+  // status is the updated status of the autoroller.
+  AutoRollStatus status = 1;
+}
+
+// GetCleanupHistoryRequest is a request to GetCleanupHistory.
+message GetCleanupHistoryRequest {
+  // roller_id is the unique identifier of the autoroller in question.
+  string roller_id = 1;
+  // limit is the maximum number of results to return.
+  uint32 limit = 2;
+}
+
+message GetCleanupHistoryResponse {
+  repeated CleanupRequest history = 1;
+}
+
+message CleanupRequest {
+  // needs_cleanup indicates whether this request wants the roller to be cleaned up.
+  bool needs_cleanup = 1;
+  // user is the user who requests the cleanup.
+  string user = 2;
+  // timestamp is the time at which cleanup was requested.
+  google.protobuf.Timestamp timestamp = 3;
+  // justification is the reason that cleanup was requested.
+  string justification = 4;
+}

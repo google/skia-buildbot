@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
@@ -46,6 +47,7 @@ var loadRollersFunc = loadRollers
 type AutoRollServer struct {
 	*twirp_auth2.AuthHelper
 	cancelPolling context.CancelFunc
+	cleanupDB     roller_cleanup.DB
 	handler       http.Handler
 	manualRollDB  manual.DB
 	throttle      unthrottle.Throttle
@@ -61,7 +63,7 @@ func (s *AutoRollServer) GetHandler() http.Handler {
 
 // NewAutoRollServer returns an AutoRollServer instance.
 // If configRefreshInterval is zero, the configs are not refreshed.
-func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, rollsDB recent_rolls.DB, manualRollDB manual.DB, throttle unthrottle.Throttle, configRefreshInterval time.Duration, plogin alogin.Login) (*AutoRollServer, error) {
+func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, rollsDB recent_rolls.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB, throttle unthrottle.Throttle, configRefreshInterval time.Duration, plogin alogin.Login) (*AutoRollServer, error) {
 	rollers, cancelPolling, err := loadRollersFunc(ctx, statusDB, configDB)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to load roller configs from DB")
@@ -69,6 +71,7 @@ func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, 
 	srv := &AutoRollServer{
 		AuthHelper:    twirp_auth2.New(),
 		cancelPolling: cancelPolling,
+		cleanupDB:     cleanupDB,
 		manualRollDB:  manualRollDB,
 		throttle:      throttle,
 		rollers:       rollers,
@@ -251,7 +254,11 @@ func (s *AutoRollServer) getStatus(ctx context.Context, rollerID string) (*AutoR
 			return nil, err
 		}
 	}
-	return convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
+	cleanup, err := s.cleanupDB.History(ctx, rollerID, 1)
+	if err != nil {
+		return nil, err
+	}
+	return convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs, cleanup)
 }
 
 // GetStatus implements AutoRollRPCs.
@@ -444,6 +451,54 @@ func (s *AutoRollServer) Unthrottle(ctx context.Context, req *UnthrottleRequest)
 		return nil, err
 	}
 	return &UnthrottleResponse{}, nil
+}
+
+// AddCleanupRequest implements AutoRollRPCs.
+func (s *AutoRollServer) AddCleanupRequest(ctx context.Context, req *AddCleanupRequestRequest) (*AddCleanupRequestResponse, error) {
+	// Verify that the user has edit access.
+	user, err := s.GetEditor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// Check that the roller exists.
+	if _, err := s.GetRoller(req.RollerId); err != nil {
+		return nil, err
+	}
+	cr := &roller_cleanup.CleanupRequest{
+		RollerID:      req.RollerId,
+		NeedsCleanup:  true,
+		User:          user,
+		Timestamp:     firestore.FixTimestamp(timeNowFunc()),
+		Justification: req.Justification,
+	}
+	if err := s.cleanupDB.RequestCleanup(ctx, cr); err != nil {
+		return nil, err
+	}
+	return &AddCleanupRequestResponse{}, nil
+}
+
+// GetCleanupHistory implements AutoRollRPCs.
+func (s *AutoRollServer) GetCleanupHistory(ctx context.Context, req *GetCleanupHistoryRequest) (*GetCleanupHistoryResponse, error) {
+	// Check that the roller exists.
+	if _, err := s.GetRoller(req.RollerId); err != nil {
+		return nil, err
+	}
+	history, err := s.cleanupDB.History(ctx, req.RollerId, int(req.Limit))
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*CleanupRequest, 0, len(history))
+	for _, cr := range history {
+		rv = append(rv, &CleanupRequest{
+			NeedsCleanup:  cr.NeedsCleanup,
+			User:          cr.User,
+			Timestamp:     timestamppb.New(cr.Timestamp),
+			Justification: cr.Justification,
+		})
+	}
+	return &GetCleanupHistoryResponse{
+		History: rv,
+	}, nil
 }
 
 // AutoRoller provides interactions with a single roller.
@@ -740,7 +795,7 @@ func convertManualRollRequest(inp *manual.ManualRollRequest) (*ManualRoll, error
 	}, nil
 }
 
-func convertStatus(st *status.AutoRollStatus, cfg *config.Config, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
+func convertStatus(st *status.AutoRollStatus, cfg *config.Config, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest, cleanupHistory []*roller_cleanup.CleanupRequest) (*AutoRollStatus, error) {
 	mode := modes.ModeRunning
 	if modeChange != nil {
 		mode = modeChange.Mode
@@ -782,7 +837,17 @@ func convertStatus(st *status.AutoRollStatus, cfg *config.Config, modeChange *mo
 			return nil, err
 		}
 	}
+	var cleanupReq *CleanupRequest
+	if len(cleanupHistory) != 0 && cleanupHistory[0].NeedsCleanup {
+		cleanupReq = &CleanupRequest{
+			NeedsCleanup:  cleanupHistory[0].NeedsCleanup,
+			User:          cleanupHistory[0].User,
+			Timestamp:     timestamppb.New(cleanupHistory[0].Timestamp),
+			Justification: cleanupHistory[0].Justification,
+		}
+	}
 	rv := &AutoRollStatus{
+		CleanupRequested:   cleanupReq,
 		MiniStatus:         ms,
 		Status:             st.Status,
 		Config:             convertConfig(cfg),

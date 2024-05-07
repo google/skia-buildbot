@@ -22,6 +22,7 @@ import { truncate } from '../../../infra-sk/modules/string';
 import '../../../infra-sk/modules/human-date-sk';
 
 import {
+  AddCleanupRequestResponse,
   AutoRollCL,
   AutoRollCL_Result,
   AutoRollConfig,
@@ -29,6 +30,7 @@ import {
   AutoRollStatus,
   CreateManualRollResponse,
   GetAutoRollService,
+  GetCleanupHistoryResponse,
   GetStatusResponse,
   ManualRoll,
   ManualRoll_Result,
@@ -381,6 +383,31 @@ export class ARBStatusSk extends ElementSk {
                 >Update</button>
           </td>
         </tr>
+        <tr>
+          <td class="nowrap">Cleanup Local Data</td>
+          <td class="nowrap">
+            ${
+              ele.status.cleanupRequested
+                ? html`
+                    ${ele.status.cleanupRequested.user} requested cleanup
+                    <human-date-sk
+                      .date="${ele.status.cleanupRequested.timestamp}"
+                      .diff="${true}"></human-date-sk
+                    >: ${ele.status.cleanupRequested.justification}
+                  `
+                : html`
+                    <button
+                      @click="${() => {
+                        ele.requestCleanupDialog();
+                      }}"
+                      ?disabled="${!ele.editRights ||
+                      ele.requestCleanupPending}">
+                      Request Cleanup
+                    </button>
+                  `
+            }
+          </td>
+        </tr>
       </table>
     </div>
     <div class="manual">
@@ -621,7 +648,26 @@ export class ARBStatusSk extends ElementSk {
       ele.changeStrategy(true);
     }}">Submit</button>
   </dialog>
+  <dialog id="requestCleanupDialog" class=surface-themes-sk>
+  <h2>Request Cleanup</h2>
+  <table>
+    <tr>
+      <td>Justification:</td>
+      <td>
+        <textarea id="requestCleanupJustification" rows="4" cols="50"></textarea>
+      </td>
+    </tr>
+  </table>
+  <button @click="${() => {
+    ele.requestCleanup(false);
+  }}">Cancel</button>
+  <button @click="${() => {
+    ele.requestCleanup(true);
+  }}">Submit</button>
+</dialog>
 `;
+
+  private requestCleanupPending: boolean = false;
 
   private editRights: boolean = false;
 
@@ -755,6 +801,40 @@ export class ARBStatusSk extends ElementSk {
           if (this.status?.strategy?.strategy) {
             strategySelect!.value = this.status.strategy.strategy;
           }
+          this._render();
+        }
+      );
+  }
+
+  private requestCleanupDialog() {
+    $$<HTMLDialogElement>('#requestCleanupDialog', this)!.showModal();
+  }
+
+  private requestCleanup(submit: boolean) {
+    $$<HTMLDialogElement>('#requestCleanupDialog', this)!.close();
+    const requestCleanupJustificationInput = <HTMLInputElement>(
+      $$('#requestCleanupJustification')
+    );
+    if (!submit) {
+      return;
+    }
+    if (!requestCleanupJustificationInput) {
+      return;
+    }
+    this.requestCleanupPending = true;
+    this.rpc
+      .addCleanupRequest({
+        rollerId: this.roller,
+        justification: requestCleanupJustificationInput.value,
+      })
+      .then(
+        (resp: AddCleanupRequestResponse) => {
+          this.requestCleanupPending = false;
+          requestCleanupJustificationInput.value = '';
+          this.update(resp.status!);
+        },
+        () => {
+          this.requestCleanupPending = false;
           this._render();
         }
       );

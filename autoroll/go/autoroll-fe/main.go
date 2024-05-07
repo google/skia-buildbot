@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config/db"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roller_cleanup"
 	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/unthrottle"
@@ -430,6 +431,10 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	cleanupDB, err := roller_cleanup.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 	throttleDB := unthrottle.NewDatastore(ctx)
 
 	if *configRepo == "" {
@@ -442,7 +447,7 @@ func main() {
 	configGitiles = gitiles.NewRepo(*configRepo, client)
 
 	plogin := proxylogin.NewWithDefaults()
-	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, rollsDB, manualRollDB, throttleDB, *configRefreshInterval, plogin)
+	srv, err = rpc.NewAutoRollServer(ctx, statusDB, configDB, rollsDB, manualRollDB, cleanupDB, throttleDB, *configRefreshInterval, plogin)
 	if err != nil {
 		sklog.Fatal(err)
 	}

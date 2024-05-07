@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config/db"
 	config_db_mocks "go.skia.org/infra/autoroll/go/config/db/mocks"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	manual_mocks "go.skia.org/infra/autoroll/go/manual/mocks"
 	"go.skia.org/infra/autoroll/go/modes"
@@ -19,6 +18,8 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	rolls_mocks "go.skia.org/infra/autoroll/go/recent_rolls/mocks"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/roller_cleanup"
+	cleanup_mocks "go.skia.org/infra/autoroll/go/roller_cleanup/mocks"
 	"go.skia.org/infra/autoroll/go/status"
 	status_mocks "go.skia.org/infra/autoroll/go/status/mocks"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -49,11 +50,6 @@ var (
 		Roles: roles.Roles{},
 	}
 
-	unauthorizedStatus = alogin.Status{
-		EMail: noAccess,
-		Roles: roles.Roles{},
-	}
-
 	viewerStatus = alogin.Status{
 		EMail: alogin.EMail(viewer),
 		Roles: roles.Roles{roles.Viewer},
@@ -67,12 +63,6 @@ var (
 	// Current at time of writing.
 	currentTime = time.Unix(1598467386, 0).UTC()
 )
-
-func defaultBranchTmpl(t *testing.T) *config_vars.Template {
-	tmpl, err := config_vars.NewTemplate(git.MainBranch)
-	require.NoError(t, err)
-	return tmpl
-}
 
 func makeFakeModeChange(cfg *config.Config) *modes.ModeChange {
 	return &modes.ModeChange{
@@ -193,7 +183,7 @@ func makeFakeStatus(cfg *config.Config) *status.AutoRollStatus {
 	}
 }
 
-func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mocks.DB) *AutoRoller {
+func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mocks.DB, cdb *cleanup_mocks.DB) *AutoRoller {
 	cfg := &config.Config{
 		ChildBugLink:      "https://child-bug.com",
 		ChildDisplayName:  name + "_child",
@@ -244,6 +234,14 @@ func makeRoller(ctx context.Context, t *testing.T, name string, mdb *manual_mock
 	manualReq := makeFakeManualRollRequest(cfg)
 	mdb.On("GetRecent", cfg.RollerName, recent_rolls.RecentRollsLength).Return([]*manual.ManualRollRequest{manualReq}, nil)
 
+	cdb.On("History", testutils.AnyContext, name, 1).Return([]*roller_cleanup.CleanupRequest{{
+		RollerID:      name,
+		NeedsCleanup:  true,
+		User:          "editor@google.com",
+		Timestamp:     currentTime,
+		Justification: "needs cleanup",
+	}}, nil)
+
 	return &AutoRoller{
 		Cfg:      cfg,
 		Mode:     modeHistory,
@@ -258,11 +256,12 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 	}
 	ctx := context.Background()
 	cdb := &config_db_mocks.DB{}
+	cleanupDB := &cleanup_mocks.DB{}
 	mdb := &manual_mocks.DB{}
 	sdb := &status_mocks.DB{}
 	rdb := &rolls_mocks.DB{}
-	r1 := makeRoller(ctx, t, "roller1", mdb)
-	r2 := makeRoller(ctx, t, "roller2", mdb)
+	r1 := makeRoller(ctx, t, "roller1", mdb, cleanupDB)
+	r2 := makeRoller(ctx, t, "roller2", mdb, cleanupDB)
 	rollers := map[string]*AutoRoller{
 		r1.Cfg.RollerName: r1,
 		r2.Cfg.RollerName: r2,
@@ -271,7 +270,7 @@ func setup(t *testing.T) (context.Context, map[string]*AutoRoller, *AutoRollServ
 		return rollers, func() {}, nil
 	}
 	plogin := mocks.NewLogin(t)
-	srv, err := NewAutoRollServer(ctx, sdb, cdb, rdb, mdb, &unthrottle_mocks.Throttle{}, time.Duration(0), plogin)
+	srv, err := NewAutoRollServer(ctx, sdb, cdb, rdb, mdb, cleanupDB, &unthrottle_mocks.Throttle{}, time.Duration(0), plogin)
 	require.NoError(t, err)
 	return ctx, rollers, srv
 }
@@ -381,7 +380,9 @@ func TestGetStatus(t *testing.T) {
 	st := makeFakeStatus(roller.Cfg)
 	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
 	require.NoError(t, err)
-	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
+	cleanupHistory, err := srv.cleanupDB.History(ctx, roller.Cfg.RollerName, 1)
+	require.NoError(t, err)
+	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs, cleanupHistory)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &GetStatusResponse{
 		Status: expect,
@@ -429,7 +430,10 @@ func TestSetMode(t *testing.T) {
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
 	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
-	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
+	require.NoError(t, err)
+	cleanupHistory, err := srv.cleanupDB.History(ctx, roller.Cfg.RollerName, 1)
+	require.NoError(t, err)
+	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs, cleanupHistory)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetModeResponse{
 		Status: expect,
@@ -476,7 +480,10 @@ func TestSetStrategy(t *testing.T) {
 	require.NoError(t, err)
 	st := makeFakeStatus(roller.Cfg)
 	manualReqs, err := srv.manualRollDB.GetRecent(roller.Cfg.RollerName, recent_rolls.RecentRollsLength)
-	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs)
+	require.NoError(t, err)
+	cleanupHistory, err := srv.cleanupDB.History(ctx, roller.Cfg.RollerName, 1)
+	require.NoError(t, err)
+	expect, err := convertStatus(st, roller.Cfg, roller.Mode.CurrentMode(), roller.Strategy.CurrentStrategy(), manualReqs, cleanupHistory)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &SetStrategyResponse{
 		Status: expect,
@@ -559,6 +566,85 @@ func TestUnthrottle(t *testing.T) {
 	res, err = srv.Unthrottle(ctx, req)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &UnthrottleResponse{}, res)
+}
+
+func TestAddCleanupRequest(t *testing.T) {
+	// Setup, mocks.
+	ctx, rollers, srv := setup(t)
+	roller := rollers["roller1"]
+	req := &AddCleanupRequestRequest{
+		RollerId:      "this roller doesn't exist",
+		Justification: "needs cleanup",
+	}
+
+	// Check authorization.
+	ctx = alogin.FakeStatus(ctx, &notLoggedInStatus)
+	res, err := srv.AddCleanupRequest(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error permission_denied: \"\" is not an authorized editor")
+	ctx = alogin.FakeStatus(ctx, &viewerStatus)
+	res, err = srv.AddCleanupRequest(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error permission_denied: \"viewer@google.com\" is not an authorized editor")
+
+	// Check error for unknown roller.
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	res, err = srv.AddCleanupRequest(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error not_found: Unknown roller")
+
+	// Check results.
+	req.RollerId = roller.Cfg.RollerName
+	srv.cleanupDB.(*cleanup_mocks.DB).On("RequestCleanup", ctx, &roller_cleanup.CleanupRequest{
+		RollerID:      "roller1",
+		NeedsCleanup:  true,
+		User:          "editor@google.com",
+		Timestamp:     currentTime,
+		Justification: "needs cleanup",
+	}).Return(nil)
+	res, err = srv.AddCleanupRequest(ctx, req)
+	require.NoError(t, err)
+	assertdeep.Equal(t, &AddCleanupRequestResponse{}, res)
+}
+
+func TestGetCleanupHistory(t *testing.T) {
+	// Setup, mocks.
+	ctx, rollers, srv := setup(t)
+	roller := rollers["roller1"]
+	req := &GetCleanupHistoryRequest{
+		RollerId: "this roller doesn't exist",
+		Limit:    1,
+	}
+
+	// Check error for unknown roller.
+	ctx = alogin.FakeStatus(ctx, &editorStatus)
+	res, err := srv.GetCleanupHistory(ctx, req)
+	require.Nil(t, res)
+	require.EqualError(t, err, "twirp error not_found: Unknown roller")
+
+	// Check results.
+	req.RollerId = roller.Cfg.RollerName
+	srv.cleanupDB.(*cleanup_mocks.DB).On("History", ctx, roller.Cfg.RollerName, int(req.Limit)).Return([]*roller_cleanup.CleanupRequest{
+		{
+			RollerID:      roller.Cfg.RollerName,
+			NeedsCleanup:  true,
+			User:          "editor@google.com",
+			Timestamp:     currentTime,
+			Justification: "needs cleanup",
+		},
+	}, nil)
+	res, err = srv.GetCleanupHistory(ctx, req)
+	require.NoError(t, err)
+	assertdeep.Equal(t, &GetCleanupHistoryResponse{
+		History: []*CleanupRequest{
+			{
+				NeedsCleanup:  true,
+				User:          "editor@google.com",
+				Timestamp:     timestamppb.New(currentTime),
+				Justification: "needs cleanup",
+			},
+		},
+	}, res)
 }
 
 func TestConvertMiniStatus(t *testing.T) {
@@ -755,8 +841,7 @@ func TestConvertManualRollRequest(t *testing.T) {
 }
 
 func TestConvertStatus(t *testing.T) {
-
-	_, rollers, srv := setup(t)
+	ctx, rollers, srv := setup(t)
 	r := rollers["roller1"]
 	cfg := r.Cfg
 	st := r.Status.Get()
@@ -774,10 +859,12 @@ func TestConvertStatus(t *testing.T) {
 	require.NoError(t, err)
 	recentRolls, err := convertRollCLs(st.Recent)
 	require.NoError(t, err)
+	cleanupHistory, err := srv.cleanupDB.History(ctx, cfg.RollerName, 1)
+	require.NoError(t, err)
 
 	// Use Copy to ensure that the test checks all of the fields. Note that it
 	// only checks top-level fields and does not dig into member structs.
-	actual, err := convertStatus(st, cfg, r.Mode.CurrentMode(), r.Strategy.CurrentStrategy(), manualReqs)
+	actual, err := convertStatus(st, cfg, r.Mode.CurrentMode(), r.Strategy.CurrentStrategy(), manualReqs, cleanupHistory)
 	require.NoError(t, err)
 	mreqs, err := convertManualRollRequests(manualReqs)
 	require.NoError(t, err)
@@ -796,5 +883,11 @@ func TestConvertStatus(t *testing.T) {
 		ManualRolls:        mreqs,
 		Error:              st.Error,
 		ThrottledUntil:     timestamppb.New(time.Unix(st.ThrottledUntil, 0)),
+		CleanupRequested: &CleanupRequest{
+			NeedsCleanup:  cleanupHistory[0].NeedsCleanup,
+			User:          cleanupHistory[0].User,
+			Timestamp:     timestamppb.New(cleanupHistory[0].Timestamp),
+			Justification: cleanupHistory[0].Justification,
+		},
 	}, actual)
 }

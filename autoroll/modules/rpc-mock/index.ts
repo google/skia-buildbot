@@ -37,7 +37,15 @@ import {
   GetStrategyHistory,
 } from './fake-status';
 import { GetFakeMiniStatuses } from './fake-ministatuses';
-import { GetRollsRequest, GetRollsResponse } from '../rpc/rpc';
+import {
+  AddCleanupRequestRequest,
+  AddCleanupRequestResponse,
+  GetCleanupHistoryRequest,
+  GetCleanupHistoryResponse,
+  GetRollsRequest,
+  GetRollsResponse,
+  CleanupRequest,
+} from '../rpc/rpc';
 
 export * from './fake-status';
 
@@ -54,6 +62,8 @@ const manualRollResults = Object.keys(ManualRoll_Result);
  * FakeAutoRollService provides a mocked implementation of AutoRollService.
  */
 class FakeAutoRollService implements AutoRollService {
+  private cleanupRequests: CleanupRequest[] = [];
+
   private manualRollResult: number = 0;
 
   private manualRequestId: number = 0;
@@ -205,5 +215,29 @@ class FakeAutoRollService implements AutoRollService {
 
   unthrottle(_: UnthrottleRequest): Promise<UnthrottleResponse> {
     return Promise.resolve({});
+  }
+
+  addCleanupRequest(
+    req: AddCleanupRequestRequest
+  ): Promise<AddCleanupRequestResponse> {
+    const cleanupRequest: CleanupRequest = {
+      needsCleanup: true,
+      user: 'you@google.com',
+      justification: req.justification,
+      timestamp: new Date().toString(),
+    };
+    this.cleanupRequests.unshift(cleanupRequest);
+    this.status.cleanupRequested = cleanupRequest;
+    return Promise.resolve({
+      status: this.status,
+    });
+  }
+
+  getCleanupHistory(
+    _: GetCleanupHistoryRequest
+  ): Promise<GetCleanupHistoryResponse> {
+    return Promise.resolve({
+      history: this.cleanupRequests,
+    });
   }
 }

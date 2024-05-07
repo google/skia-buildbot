@@ -23,15 +23,15 @@ const (
 	fsApp = "autoroll"
 )
 
-// firestoreDB implements DB using Firestore.
-type firestoreDB struct {
+// FirestoreDB implements DB using Firestore.
+type FirestoreDB struct {
 	client *firestore.Client
 	coll   *fs.CollectionRef
 }
 
 // NewDB returns a DB instance backed by the given firestore.Client.
-func NewDB(ctx context.Context, client *firestore.Client) (*firestoreDB, error) {
-	return &firestoreDB{
+func NewDB(ctx context.Context, client *firestore.Client) (*FirestoreDB, error) {
+	return &FirestoreDB{
 		client: client,
 		coll:   client.Collection(collection),
 	}, nil
@@ -47,7 +47,7 @@ func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.To
 }
 
 // RequestCleanup implements DB.
-func (c *firestoreDB) RequestCleanup(ctx context.Context, req *CleanupRequest) error {
+func (c *FirestoreDB) RequestCleanup(ctx context.Context, req *CleanupRequest) error {
 	if err := req.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -58,7 +58,7 @@ func (c *firestoreDB) RequestCleanup(ctx context.Context, req *CleanupRequest) e
 }
 
 // History implements DB.
-func (c *firestoreDB) History(ctx context.Context, rollerID string, limit int) ([]*CleanupRequest, error) {
+func (c *FirestoreDB) History(ctx context.Context, rollerID string, limit int) ([]*CleanupRequest, error) {
 	// TODO(borenet): Implement pagination?
 	var rv []*CleanupRequest
 	q := c.coll.Query.Where("RollerID", "==", rollerID).OrderBy("Timestamp", fs.Desc)
@@ -79,4 +79,4 @@ func (c *firestoreDB) History(ctx context.Context, rollerID string, limit int) (
 }
 
 // Assert that firestoreDB implements DB.
-var _ DB = &firestoreDB{}
+var _ DB = &FirestoreDB{}

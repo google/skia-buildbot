@@ -324,6 +324,7 @@ export interface AutoRollStatus {
   manualRolls?: ManualRoll[];
   error: string;
   throttledUntil?: string;
+  cleanupRequested?: CleanupRequest;
 }
 
 interface AutoRollStatusJSON {
@@ -341,6 +342,7 @@ interface AutoRollStatusJSON {
   manual_rolls?: ManualRollJSON[];
   error?: string;
   throttled_until?: string;
+  cleanup_requested?: CleanupRequestJSON;
 }
 
 const JSONToAutoRollStatus = (m: AutoRollStatusJSON): AutoRollStatus => {
@@ -359,6 +361,7 @@ const JSONToAutoRollStatus = (m: AutoRollStatusJSON): AutoRollStatus => {
     manualRolls: m.manual_rolls && m.manual_rolls.map(JSONToManualRoll),
     error: m.error || "",
     throttledUntil: m.throttled_until,
+    cleanupRequested: m.cleanup_requested && JSONToCleanupRequest(m.cleanup_requested),
   };
 };
 
@@ -672,7 +675,94 @@ const JSONToUnthrottleResponse = (m: UnthrottleResponseJSON): UnthrottleResponse
   };
 };
 
+export interface AddCleanupRequestRequest {
+  rollerId: string;
+  justification: string;
+}
+
+interface AddCleanupRequestRequestJSON {
+  roller_id?: string;
+  justification?: string;
+}
+
+const AddCleanupRequestRequestToJSON = (m: AddCleanupRequestRequest): AddCleanupRequestRequestJSON => {
+  return {
+    roller_id: m.rollerId,
+    justification: m.justification,
+  };
+};
+
+export interface AddCleanupRequestResponse {
+  status?: AutoRollStatus;
+}
+
+interface AddCleanupRequestResponseJSON {
+  status?: AutoRollStatusJSON;
+}
+
+const JSONToAddCleanupRequestResponse = (m: AddCleanupRequestResponseJSON): AddCleanupRequestResponse => {
+  return {
+    status: m.status && JSONToAutoRollStatus(m.status),
+  };
+};
+
+export interface GetCleanupHistoryRequest {
+  rollerId: string;
+  limit: string;
+}
+
+interface GetCleanupHistoryRequestJSON {
+  roller_id?: string;
+  limit?: string;
+}
+
+const GetCleanupHistoryRequestToJSON = (m: GetCleanupHistoryRequest): GetCleanupHistoryRequestJSON => {
+  return {
+    roller_id: m.rollerId,
+    limit: m.limit,
+  };
+};
+
+export interface GetCleanupHistoryResponse {
+  history?: CleanupRequest[];
+}
+
+interface GetCleanupHistoryResponseJSON {
+  history?: CleanupRequestJSON[];
+}
+
+const JSONToGetCleanupHistoryResponse = (m: GetCleanupHistoryResponseJSON): GetCleanupHistoryResponse => {
+  return {
+    history: m.history && m.history.map(JSONToCleanupRequest),
+  };
+};
+
+export interface CleanupRequest {
+  needsCleanup: boolean;
+  user: string;
+  timestamp?: string;
+  justification: string;
+}
+
+interface CleanupRequestJSON {
+  needs_cleanup?: boolean;
+  user?: string;
+  timestamp?: string;
+  justification?: string;
+}
+
+const JSONToCleanupRequest = (m: CleanupRequestJSON): CleanupRequest => {
+  return {
+    needsCleanup: m.needs_cleanup || false,
+    user: m.user || "",
+    timestamp: m.timestamp,
+    justification: m.justification || "",
+  };
+};
+
 export interface AutoRollService {
+  addCleanupRequest: (addCleanupRequestRequest: AddCleanupRequestRequest) => Promise<AddCleanupRequestResponse>;
+  getCleanupHistory: (getCleanupHistoryRequest: GetCleanupHistoryRequest) => Promise<GetCleanupHistoryResponse>;
   getRollers: (getRollersRequest: GetRollersRequest) => Promise<GetRollersResponse>;
   getRolls: (getRollsRequest: GetRollsRequest) => Promise<GetRollsResponse>;
   getMiniStatus: (getMiniStatusRequest: GetMiniStatusRequest) => Promise<GetMiniStatusResponse>;
@@ -697,6 +787,36 @@ export class AutoRollServiceClient implements AutoRollService {
     this.fetch = fetch;
     this.writeCamelCase = writeCamelCase;
     this.optionsOverride = optionsOverride;
+  }
+
+  addCleanupRequest(addCleanupRequestRequest: AddCleanupRequestRequest): Promise<AddCleanupRequestResponse> {
+    const url = this.hostname + this.pathPrefix + "AddCleanupRequest";
+    let body: AddCleanupRequestRequest | AddCleanupRequestRequestJSON = addCleanupRequestRequest;
+    if (!this.writeCamelCase) {
+      body = AddCleanupRequestRequestToJSON(addCleanupRequestRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToAddCleanupRequestResponse);
+    });
+  }
+
+  getCleanupHistory(getCleanupHistoryRequest: GetCleanupHistoryRequest): Promise<GetCleanupHistoryResponse> {
+    const url = this.hostname + this.pathPrefix + "GetCleanupHistory";
+    let body: GetCleanupHistoryRequest | GetCleanupHistoryRequestJSON = getCleanupHistoryRequest;
+    if (!this.writeCamelCase) {
+      body = GetCleanupHistoryRequestToJSON(getCleanupHistoryRequest);
+    }
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
+      }
+
+      return resp.json().then(JSONToGetCleanupHistoryResponse);
+    });
   }
 
   getRollers(getRollersRequest: GetRollersRequest): Promise<GetRollersResponse> {
