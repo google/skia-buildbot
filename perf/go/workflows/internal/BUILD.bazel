@@ -20,8 +20,8 @@ go_test(
     srcs = ["process_culprit_test.go"],
     embed = [":internal"],
     deps = [
-        "//perf/go/culprit/proto/mocks",
         "//perf/go/culprit/proto/v1",
+        "//perf/go/culprit/proto/v1/mocks",
         "//perf/go/workflows",
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",

@@ -247,6 +247,13 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  # Uncomment if changes are made to anomalygroupservice. This would require some changes to the
+  # generate mocks. See comments in the mock file before generating this.
+  # go.skia.org/infra/perf/go/anomalygroup/proto/v1:
+  #   config:
+  #     dir: "{{.InterfaceDir}}/mocks"
+  #   interfaces:
+  #     AnomalyGroupServiceServer:
   go.skia.org/infra/perf/go/anomalygroup/utils:
     config:
       dir: "{{.InterfaceDir}}/mocks"
@@ -263,6 +270,13 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  # Uncomment if changes are made to culpritservice. This would require some changes to the generate
+  # mocks. See comments in the mock file before generating this.
+  # go.skia.org/infra/perf/go/culprit/proto/v1:
+  #   config:
+  #     dir: "{{.InterfaceDir}}/mocks"
+  #   interfaces:
+  #     CulpritServiceServer:
   go.skia.org/infra/perf/go/culprit/formatter:
     config:
       dir: "{{.InterfaceDir}}/mocks"

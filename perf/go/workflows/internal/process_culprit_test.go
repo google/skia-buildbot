@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	pbmock "go.skia.org/infra/perf/go/culprit/proto/mocks"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	pbmock "go.skia.org/infra/perf/go/culprit/proto/v1/mocks"
 	"go.skia.org/infra/perf/go/workflows"
 	"go.temporal.io/sdk/testsuite"
 	"google.golang.org/grpc"
