@@ -56,10 +56,7 @@ const (
 	BINARY_ADB             = "adb"
 	BINARY_MAIL            = "mail"
 	BINARY_PYTHON          = "python3"
-	// chromium/src's analyze_metrics_ct.py and record_wpr still seem to be on
-	// python2.
-	BINARY_VPYTHON  = "vpython"
-	BINARY_VPYTHON3 = "vpython3"
+	BINARY_VPYTHON3        = "vpython3"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
