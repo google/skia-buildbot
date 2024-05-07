@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "internal",
-    srcs = ["process_culprit.go"],
+    srcs = [
+        "maybe_trigger_bisection.go",
+        "process_culprit.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/workflows/internal",
     visibility = ["//visibility:public"],
     deps = [

@@ -11,7 +11,8 @@ import (
 // the actual implementation.
 // TODO(b/326352379): introduce a specific type to encapsulate these workflow names
 const (
-	ProcessCulprit = "perf.process_culprit"
+	ProcessCulprit        = "perf.process_culprit"
+	MaybeTriggerBisection = "perf.maybe_trigger_bisection"
 )
 
 type ProcessCulpritParam struct {
@@ -23,4 +24,10 @@ type ProcessCulpritParam struct {
 type ProcessCulpritResult struct {
 	CulpritIds []string
 	IssueIds   []string
+}
+
+type MaybeTriggerBisectionParam struct {
+}
+
+type MaybeTriggerBisectionResult struct {
 }
