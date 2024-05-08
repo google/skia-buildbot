@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS Culprits (
   last_modified INT,
   anomaly_group_ids STRING ARRAY,
   issue_ids STRING ARRAY,
+  group_issue_map JSONB,
   UNIQUE INDEX by_revision (revision, host, project, ref)
 );
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
@@ -159,6 +160,7 @@ var Culprits = []string{
 	"last_modified",
 	"anomaly_group_ids",
 	"issue_ids",
+	"group_issue_map",
 	"UNIQUE",
 }
 

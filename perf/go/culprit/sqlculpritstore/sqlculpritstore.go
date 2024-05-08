@@ -5,6 +5,7 @@ package sqlculpritstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -33,7 +34,7 @@ func New(db pool.Pool) (*CulpritStore, error) {
 
 // Returns Culprit objects corresponding to given set of ids.
 func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, error) {
-	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids FROM Culprits where id IN (%s)"
+	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits where id IN (%s)"
 	query := fmt.Sprintf(statement, quotedSlice(ids))
 	fmt.Println(query)
 	rows, err := s.db.Query(ctx, query)
@@ -49,13 +50,20 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 		var revision string
 		var anomaly_group_ids []string
 		var issue_ids []string
-		if err := rows.Scan(&id, &host, &project, &ref, &revision, &anomaly_group_ids, &issue_ids); err != nil {
+		var group_issue_map_in_jsonb string
+		if err := rows.Scan(&id, &host, &project, &ref, &revision, &anomaly_group_ids, &issue_ids, &group_issue_map_in_jsonb); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read Culprit results")
+		}
+		var group_issue_map map[string]string
+		err = json.Unmarshal([]byte(group_issue_map_in_jsonb), &group_issue_map)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed to unmarshal the group issue map string %s", group_issue_map_in_jsonb)
 		}
 		resp = append(resp, &pb.Culprit{
 			Commit:          &pb.Commit{Host: host, Project: project, Ref: ref, Revision: revision},
 			AnomalyGroupIds: anomaly_group_ids,
 			IssueIds:        issue_ids,
+			GroupIssueMap:   group_issue_map,
 		})
 	}
 	return resp, nil
@@ -154,7 +162,7 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 }
 
 // Adds issue id to a Culprit row.
-func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id string) error {
+func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id string, group_id string) error {
 	// Fetch existing anomaly_group_ids
 	culprits, err := s.Get(ctx, []string{id})
 	if err != nil {
@@ -165,19 +173,42 @@ func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id strin
 	} else if len(culprits) > 1 {
 		panic(fmt.Sprintf("Database invariant broken. More than one culprits found for id : %s", id))
 	}
+	group_id_exist := false
+	for i := 0; i < len(culprits[0].AnomalyGroupIds); i++ {
+		if culprits[0].AnomalyGroupIds[0] == group_id {
+			group_id_exist = true
+			break
+		}
+	}
+	if !group_id_exist {
+		return skerr.Fmt("adding issue %s for group %s which is not related to the culprit %s", issue_id, group_id, id)
+	}
+
 	issue_ids := culprits[0].IssueIds
 	issue_ids = append(issue_ids, issue_id)
 	issue_ids = removeDuplicateStr(issue_ids)
 
+	group_issue_map := culprits[0].GroupIssueMap
+	if group_issue_map == nil {
+		group_issue_map = map[string]string{}
+	}
+	if _, ok := group_issue_map[group_id]; ok {
+		return skerr.Fmt("group id %s has related issue already: %s", group_id, err)
+	}
+	group_issue_map[group_id] = issue_id
+	group_issue_map_in_jsonb, err := json.Marshal(group_issue_map)
+	if err != nil {
+		return skerr.Wrapf(err, "Error marshal group issue map: %s", group_issue_map)
+	}
 	statement := `
 		UPDATE
 			Culprits
 		SET
-			issue_ids=$1
+			issue_ids=$1, group_issue_map=$2
 		WHERE
-			id=$2
+			id=$3
 	`
-	if _, err := s.db.Exec(ctx, statement, issue_ids, id); err != nil {
+	if _, err := s.db.Exec(ctx, statement, issue_ids, group_issue_map_in_jsonb, id); err != nil {
 		return fmt.Errorf("error adding issue_id %s to culprit %s: %s ", issue_id, id, err)
 	}
 	return nil

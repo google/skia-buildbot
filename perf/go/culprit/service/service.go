@@ -82,6 +82,7 @@ func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritR
 	}, nil
 }
 
+// File bugs per culprit for the anomaly group (from a bisect)
 func (s *culpritService) NotifyUser(ctx context.Context, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
 	var err error
 	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
@@ -102,7 +103,7 @@ func (s *culpritService) NotifyUser(ctx context.Context, req *pb.NotifyUserReque
 		if err != nil {
 			return nil, err
 		}
-		err = s.culpritStore.AddIssueId(ctx, culprit.Id, issueId)
+		err = s.culpritStore.AddIssueId(ctx, culprit.Id, issueId, req.AnomalyGroupId)
 		if err != nil {
 			return nil, err
 		}

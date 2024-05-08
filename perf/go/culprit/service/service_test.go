@@ -93,7 +93,7 @@ func TestNotifyUser_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 	issueId := "issue_id1"
 	notifier.On("NotifyCulpritFound", mock.Anything,
 		stored_culprits[0], subscription).Return(issueId, nil)
-	culpritStore.On("AddIssueId", mock.Anything, stored_culprits[0].Id, issueId).Return(nil)
+	culpritStore.On("AddIssueId", mock.Anything, stored_culprits[0].Id, issueId, "aid1").Return(nil)
 	req := &pb.NotifyUserRequest{
 		CulpritIds:     cids,
 		AnomalyGroupId: "aid1",

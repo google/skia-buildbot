@@ -61,11 +61,14 @@ message NotifyUserResponse {
 
 
 // Represents the change which has been identified as a culprit.
+// TODO(wenbinzhang): remove anomaly group ids and issue ids as we have
+// the info needed the group issue map
 message Culprit {
   string id = 1;
   Commit commit = 2;
   repeated string anomaly_group_ids = 3;
   repeated string issue_ids = 4;
+  map<string, string> group_issue_map = 5;
 }
 
 

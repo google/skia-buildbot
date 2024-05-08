@@ -1,6 +1,8 @@
 package schema
 
 // CulpritSchema represents the SQL schema of the Culprits table.
+// TODO(wenbinzhang): remove anomaly group ids and issue ids as we have
+// the info needed the group issue map
 type CulpritSchema struct {
 	Id string `sql:"id UUID PRIMARY KEY DEFAULT gen_random_uuid()"`
 
@@ -25,6 +27,9 @@ type CulpritSchema struct {
 
 	// List of Issue Ids associated with this culprit
 	IssueIds []string `sql:"issue_ids STRING ARRAY"`
+
+	// JSON map from anomaly group id to the issue id.
+	GroupIssueMap interface{} `sql:"group_issue_map JSONB"`
 
 	// Index by (host, project, ref, revision). Revision is kept first to
 	// reduce hotspots

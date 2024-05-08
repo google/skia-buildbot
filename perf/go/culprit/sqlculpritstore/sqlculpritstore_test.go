@@ -2,6 +2,7 @@ package sqlculpritstore
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/google/uuid"
@@ -25,6 +26,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
 	id := uuid.NewString()
+	groupIssueMap := map[string]string{"a1": "b1"}
 	existingCommit := schema.CulpritSchema{
 		Id:              id,
 		Host:            "chromium.googlesource.com",
@@ -33,6 +35,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"a1"},
 		IssueIds:        []string{"b1"},
+		GroupIssueMap:   groupIssueMap,
 	}
 	populateDb(t, ctx, db, existingCommit)
 
@@ -48,6 +51,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 		},
 		AnomalyGroupIds: []string{"a1"},
 		IssueIds:        []string{"b1"},
+		GroupIssueMap:   groupIssueMap,
 	}}
 	assert.ElementsMatch(t, actual, expected)
 }
@@ -145,6 +149,7 @@ func TestUpsert_InsertNewCulprit_UpdateDbAndReturnNil(t *testing.T) {
 		Ref:             "refs/head/main",
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"111"},
+		GroupIssueMap:   map[string]string(nil),
 	}}
 	actual := getCulpritsFromDb(t, ctx, db)
 	assert.ElementsMatch(t, actual, expected)
@@ -178,6 +183,7 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 		Ref:             "refs/head/main",
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"222", "111"},
+		GroupIssueMap:   map[string]string(nil),
 	}}
 	actual := getCulpritsFromDb(t, ctx, db)
 	assert.ElementsMatch(t, actual, expected)
@@ -186,25 +192,29 @@ func TestUpsert_UpdateExistingCulprit_UpdateDbAndReturnNil(t *testing.T) {
 func TestAddIssueId_NoIssueId_UpdateDbAndReturnNil(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
+	culpritID := uuid.NewString()
 	existingCommit := schema.CulpritSchema{
-		Id:              uuid.NewString(),
+		Id:              culpritID,
 		Host:            "chromium.googlesource.com",
 		Project:         "chromium/src",
 		Ref:             "refs/head/main",
 		Revision:        "123",
 		AnomalyGroupIDs: []string{"111"},
+		GroupIssueMap:   map[string]string{},
 	}
 	populateDb(t, ctx, db, existingCommit)
 
-	err := store.AddIssueId(ctx, existingCommit.Id, "bugid")
+	err := store.AddIssueId(ctx, existingCommit.Id, "bugid", "111")
 	require.NoError(t, err)
 
-	actual := getCulpritsFromDb(t, ctx, db)
+	actual, err := store.Get(ctx, []string{culpritID})
+	assert.NoError(t, err)
 	assert.Equal(t, len(actual), 1)
 	assert.ElementsMatch(t, actual[0].IssueIds, []string{"bugid"})
+	assert.Equal(t, actual[0].GroupIssueMap["111"], "bugid")
 }
 
-func TestAddIssueId_ExistingIssueId_UpdateDbAndReturnNil(t *testing.T) {
+func TestAddIssueId_UnexpectedGroup_ReturnErr(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()
 	existingCommit := schema.CulpritSchema{
@@ -218,31 +228,53 @@ func TestAddIssueId_ExistingIssueId_UpdateDbAndReturnNil(t *testing.T) {
 	}
 	populateDb(t, ctx, db, existingCommit)
 
-	err := store.AddIssueId(ctx, existingCommit.Id, "bugid2")
-	require.NoError(t, err)
+	err := store.AddIssueId(ctx, existingCommit.Id, "bugid2", "222")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not related to the culprit")
+}
 
-	actual := getCulpritsFromDb(t, ctx, db)
-	assert.Equal(t, len(actual), 1)
-	assert.ElementsMatch(t, actual[0].IssueIds, []string{"bugid1", "bugid2"})
+func TestAddIssueId_ExistingGroupAndIssue_ReturnErr(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+	existingCommit := schema.CulpritSchema{
+		Id:              uuid.NewString(),
+		Host:            "chromium.googlesource.com",
+		Project:         "chromium/src",
+		Ref:             "refs/head/main",
+		Revision:        "123",
+		AnomalyGroupIDs: []string{"111"},
+		IssueIds:        []string{"bugid1"},
+		GroupIssueMap:   map[string]string{"111": "bugid1"},
+	}
+	populateDb(t, ctx, db, existingCommit)
+
+	err := store.AddIssueId(ctx, existingCommit.Id, "bugid2", "111")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "group id 111 has related issue already")
 }
 
 func populateDb(t *testing.T, ctx context.Context, db pool.Pool, culprit schema.CulpritSchema) {
+	group_issue_map, _ := json.Marshal(culprit.GroupIssueMap)
 	const query = `INSERT INTO Culprits
-		(id, host, project, ref, revision, anomaly_group_ids, issue_ids)
-		VALUES ($1,$2,$3,$4,$5,$6,$7)`
-	if _, err := db.Exec(ctx, query, culprit.Id, culprit.Host, culprit.Project, culprit.Ref, culprit.Revision, culprit.AnomalyGroupIDs, culprit.IssueIds); err != nil {
+		(id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`
+	if _, err := db.Exec(ctx, query, culprit.Id, culprit.Host, culprit.Project, culprit.Ref, culprit.Revision, culprit.AnomalyGroupIDs, culprit.IssueIds, group_issue_map); err != nil {
 		require.NoError(t, err)
 	}
 }
 
 func getCulpritsFromDb(t *testing.T, ctx context.Context, db pool.Pool) []schema.CulpritSchema {
 	actual := []schema.CulpritSchema{}
-	rows, _ := db.Query(ctx, "SELECT host, project, ref, revision, anomaly_group_ids, issue_ids FROM Culprits")
+	rows, _ := db.Query(ctx, "SELECT host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits")
 	for rows.Next() {
 		var culpritInDb schema.CulpritSchema
-		if err := rows.Scan(&culpritInDb.Host, &culpritInDb.Project, &culpritInDb.Ref, &culpritInDb.Revision, &culpritInDb.AnomalyGroupIDs, &culpritInDb.IssueIds); err != nil {
+		var group_issue_map_in_jsonb []byte
+		if err := rows.Scan(&culpritInDb.Host, &culpritInDb.Project, &culpritInDb.Ref, &culpritInDb.Revision, &culpritInDb.AnomalyGroupIDs, &culpritInDb.IssueIds, &group_issue_map_in_jsonb); err != nil {
 			require.NoError(t, err)
 		}
+		var group_issue_map map[string]string
+		_ = json.Unmarshal(group_issue_map_in_jsonb, &group_issue_map)
+		culpritInDb.GroupIssueMap = group_issue_map
 		actual = append(actual, culpritInDb)
 
 	}

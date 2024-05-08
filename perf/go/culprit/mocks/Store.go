@@ -15,17 +15,17 @@ type Store struct {
 	mock.Mock
 }
 
-// AddIssueId provides a mock function with given fields: ctx, id, issueId
-func (_m *Store) AddIssueId(ctx context.Context, id string, issueId string) error {
-	ret := _m.Called(ctx, id, issueId)
+// AddIssueId provides a mock function with given fields: ctx, id, issueId, groupId
+func (_m *Store) AddIssueId(ctx context.Context, id string, issueId string, groupId string) error {
+	ret := _m.Called(ctx, id, issueId, groupId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddIssueId")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, id, issueId)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, id, issueId, groupId)
 	} else {
 		r0 = ret.Error(0)
 	}
