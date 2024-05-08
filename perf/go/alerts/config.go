@@ -151,6 +151,10 @@ type Alert struct {
 
 	// Action to take for this alert. It could be none, report or bisect.
 	Action types.AlertAction `json:"action,omitempty"` // What action should be taken by the detected anomalies.
+
+	// Subscription fields.
+	SubscriptionName     string `json:"sub_name,omitempty"`
+	SubscriptionRevision string `json:"sub_revision,omitempty"`
 }
 
 type AlertsStatus struct {

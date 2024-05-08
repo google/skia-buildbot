@@ -7,9 +7,7 @@ const Schema = `CREATE TABLE IF NOT EXISTS Alerts (
   id INT PRIMARY KEY DEFAULT unique_rowid(),
   alert TEXT,
   config_state INT DEFAULT 0,
-  last_modified INT,
-  sub_name STRING,
-  sub_revision STRING
+  last_modified INT
 );
 CREATE TABLE IF NOT EXISTS AnomalyGroups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -124,8 +122,6 @@ var Alerts = []string{
 	"alert",
 	"config_state",
 	"last_modified",
-	"sub_name",
-	"sub_revision",
 }
 
 var AnomalyGroups = []string{

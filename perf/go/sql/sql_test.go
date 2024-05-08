@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	last_modified INT,
 	anomaly_group_ids STRING ARRAY,
 	issue_ids STRING ARRAY,
+	group_issue_map JSONB,
 	UNIQUE INDEX by_revision (revision, host, project, ref)
   );
   CREATE TABLE IF NOT EXISTS GraphsShortcuts (

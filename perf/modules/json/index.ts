@@ -33,6 +33,8 @@ export interface Alert {
 	minimum_num: number;
 	category: string;
 	action?: AlertAction;
+	sub_name?: string;
+	sub_revision?: string;
 }
 
 export interface AlertsStatus {

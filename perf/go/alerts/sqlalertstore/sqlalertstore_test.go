@@ -2,7 +2,6 @@ package sqlalertstore
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"testing"
 	"time"
@@ -32,8 +31,7 @@ func TestStore_SaveListDelete(t *testing.T) {
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
 	err := store.Save(ctx, &alerts.SaveRequest{
-		Cfg:    cfg,
-		SubKey: nil,
+		Cfg: cfg,
 	})
 	assert.NoError(t, err)
 	require.NotEqual(t, alerts.BadAlertIDAsAsString, cfg.IDAsString)
@@ -63,8 +61,7 @@ func TestStore_SaveListDelete(t *testing.T) {
 	cfg.Query = "source_type=skp"
 	cfg.DisplayName = "foo"
 	err = store.Save(ctx, &alerts.SaveRequest{
-		Cfg:    cfg,
-		SubKey: nil,
+		Cfg: cfg,
 	})
 	assert.NoError(t, err)
 
@@ -86,13 +83,13 @@ func TestStoreList_ListActiveAlerts(t *testing.T) {
 	cfg1.SetIDFromInt64(1)
 	cfg1.Query = "source_type=svg"
 	cfg1.DisplayName = "bar"
-	insertAlertToDb(t, ctx, db, cfg1, nil)
+	insertAlertToDb(t, ctx, db, cfg1)
 
 	cfg2 := alerts.NewConfig()
 	cfg2.SetIDFromInt64(2)
 	cfg2.Query = "source_type=skp"
 	cfg2.DisplayName = "foo"
-	insertAlertToDb(t, ctx, db, cfg2, nil)
+	insertAlertToDb(t, ctx, db, cfg2)
 
 	cfgs, err := store.List(ctx, true)
 	assert.NoError(t, err)
@@ -118,14 +115,14 @@ func TestStoreList_ListDeletedAlert(t *testing.T) {
 	cfg1.SetIDFromInt64(1)
 	cfg1.Query = "source_type=svg"
 	cfg1.DisplayName = "bar"
-	insertAlertToDb(t, ctx, db, cfg1, nil)
+	insertAlertToDb(t, ctx, db, cfg1)
 
 	cfg2 := alerts.NewConfig()
 	cfg2.SetIDFromInt64(2)
 	cfg2.Query = "source_type=skp"
 	cfg2.DisplayName = "foo"
 	cfg2.StateAsString = alerts.DELETED
-	insertAlertToDb(t, ctx, db, cfg2, nil)
+	insertAlertToDb(t, ctx, db, cfg2)
 
 	cfgs, err := store.List(ctx, true)
 	assert.NoError(t, err)
@@ -155,17 +152,15 @@ func TestStoreDelete_DeleteOneAlert(t *testing.T) {
 	cfg.SetIDFromInt64(2)
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
-	insertAlertToDb(t, ctx, db, cfg, nil)
+	insertAlertToDb(t, ctx, db, cfg)
 
-	_, subKey1, configState1 := getAlertFromDb(t, ctx, db, 2)
-	assert.Nil(t, subKey1)
+	_, configState1 := getAlertFromDb(t, ctx, db, 2)
 	assert.Equal(t, alerts.ConfigStateToInt(alerts.ACTIVE), configState1)
 
 	err := store.Delete(ctx, 2)
 	require.NoError(t, err)
 
-	cfg2, subKey2, configState2 := getAlertFromDb(t, ctx, db, 2)
-	assert.Nil(t, subKey2)
+	cfg2, configState2 := getAlertFromDb(t, ctx, db, 2)
 	assert.Equal(t, "bar", cfg2.DisplayName)
 	assert.Equal(t, "source_type=svg", cfg2.Query)
 	assert.Equal(t, "2", cfg2.IDAsString)
@@ -182,13 +177,11 @@ func TestStoreSave_SaveWithBadID(t *testing.T) {
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
 	err := store.Save(ctx, &alerts.SaveRequest{
-		Cfg:    cfg,
-		SubKey: nil,
+		Cfg: cfg,
 	})
 	require.NoError(t, err)
 
-	_, subKey1, configState1 := getAlertFromDb(t, ctx, db, cfg.IDAsStringToInt())
-	assert.Nil(t, subKey1)
+	_, configState1 := getAlertFromDb(t, ctx, db, cfg.IDAsStringToInt())
 	assert.Equal(t, alerts.ConfigStateToInt(alerts.ACTIVE), configState1)
 	assert.NotEqual(t, alerts.BadAlertID, cfg.IDAsStringToInt())
 }
@@ -203,12 +196,10 @@ func TestStoreSave_SaveWithValidID(t *testing.T) {
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
 	err := store.Save(ctx, &alerts.SaveRequest{
-		Cfg:    cfg,
-		SubKey: nil,
+		Cfg: cfg,
 	})
 	require.NoError(t, err)
-	_, subKey, configState := getAlertFromDb(t, ctx, db, 1)
-	assert.Nil(t, subKey)
+	_, configState := getAlertFromDb(t, ctx, db, 1)
 	assert.Equal(t, alerts.ConfigStateToInt(alerts.ACTIVE), configState)
 }
 
@@ -221,53 +212,38 @@ func TestStoreSave_SaveWithSubscription(t *testing.T) {
 	cfg.SetIDFromInt64(1)
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
+	cfg.SubscriptionName = "Test Subscription"
+	cfg.SubscriptionRevision = "abcd"
 	err := store.Save(ctx, &alerts.SaveRequest{
 		Cfg: cfg,
-		SubKey: &alerts.SubKey{
-			SubName:     "Test Subscription",
-			SubRevision: "abcd",
-		},
 	})
 	require.NoError(t, err)
 
-	_, subKey, configState := getAlertFromDb(t, ctx, db, 1)
-	assert.Equal(t, "Test Subscription", subKey.SubName)
-	assert.Equal(t, "abcd", subKey.SubRevision)
+	alert, configState := getAlertFromDb(t, ctx, db, 1)
+	assert.Equal(t, "Test Subscription", alert.SubscriptionName)
+	assert.Equal(t, "abcd", alert.SubscriptionRevision)
 	assert.Equal(t, alerts.ConfigStateToInt(alerts.ACTIVE), configState)
 }
 
-func insertAlertToDb(t *testing.T, ctx context.Context, db pool.Pool, cfg *alerts.Alert, subKey *alerts.SubKey) {
+func insertAlertToDb(t *testing.T, ctx context.Context, db pool.Pool, cfg *alerts.Alert) {
 	b, err := json.Marshal(cfg)
 	require.NoError(t, err)
 
-	nameOrNull := sql.NullString{Valid: false}
-	revisionOrNull := sql.NullString{Valid: false}
-
-	if subKey != nil {
-		nameOrNull.String = subKey.SubName
-		nameOrNull.Valid = true
-		revisionOrNull.String = subKey.SubRevision
-		revisionOrNull.Valid = true
-	}
 	const query = `UPSERT INTO Alerts
-        (id, alert, config_state, last_modified, sub_name, sub_revision)
-        VALUES ($1,$2,$3,$4,$5,$6)`
-	if _, err := db.Exec(ctx, query, cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), time.Now().Unix(), nameOrNull, revisionOrNull); err != nil {
+        (id, alert, config_state, last_modified)
+        VALUES ($1,$2,$3,$4)`
+	if _, err := db.Exec(ctx, query, cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), time.Now().Unix()); err != nil {
 		require.NoError(t, err)
 	}
 }
 
-func getAlertFromDb(t *testing.T, ctx context.Context, db pool.Pool, id int64) (*alerts.Alert, *alerts.SubKey, int) {
+func getAlertFromDb(t *testing.T, ctx context.Context, db pool.Pool, id int64) (*alerts.Alert, int) {
 	alert := &alerts.Alert{}
 	var serializedAlert string
 
-	var nameOrNull sql.NullString
-	var revisionOrNull sql.NullString
 	var configState int
-	err := db.QueryRow(ctx, "SELECT alert, sub_name, sub_revision, config_state FROM Alerts WHERE id = $1", id).Scan(
+	err := db.QueryRow(ctx, "SELECT alert, config_state FROM Alerts WHERE id = $1", id).Scan(
 		&serializedAlert,
-		&nameOrNull,
-		&revisionOrNull,
 		&configState,
 	)
 	require.NoError(t, err)
@@ -275,12 +251,5 @@ func getAlertFromDb(t *testing.T, ctx context.Context, db pool.Pool, id int64) (
 	err = json.Unmarshal([]byte(serializedAlert), alert)
 	require.NoError(t, err)
 
-	if !nameOrNull.Valid || !revisionOrNull.Valid {
-		return alert, nil, configState
-	}
-
-	return alert, &alerts.SubKey{
-		SubName:     nameOrNull.String,
-		SubRevision: revisionOrNull.String,
-	}, configState
+	return alert, configState
 }

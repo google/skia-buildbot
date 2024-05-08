@@ -37,15 +37,17 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	ALTER TABLE Culprits
-	ADD COLUMN group_issue_map JSONB;
+	ALTER TABLE Alerts
+	DROP COLUMN sub_name,
+	DROP COLUMN sub_revision;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	ALTER TABLE Culprits
-	DROP COLUMN group_issue_map;
+	ALTER TABLE Alerts
+	ADD COLUMN sub_name STRING,
+	ADD COLUMN sub_revision STRING;
 `
 
 // This function will check whether there's a new schema checked-in,

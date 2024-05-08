@@ -17,10 +17,4 @@ type AlertSchema struct {
 
 	// Stored as a Unit timestamp.
 	LastModified int `sql:"last_modified INT"`
-
-	// Name of the subscription this alert responds to.
-	SubscriptionName string `sql:"sub_name STRING"`
-
-	// Revision of the associated subscription. Used to query the Subscriptions table.
-	SubscriptionRevision string `sql:"sub_revision STRING"`
 }

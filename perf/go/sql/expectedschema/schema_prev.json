@@ -24,6 +24,7 @@
     "commits.git_hash": "text def: nullable:NO",
     "commits.subject": "text def: nullable:YES",
     "culprits.anomaly_group_ids": "ARRAY def: nullable:YES",
+    "culprits.group_issue_map": "jsonb def: nullable:YES",
     "culprits.host": "text def: nullable:YES",
     "culprits.id": "uuid def:gen_random_uuid() nullable:NO",
     "culprits.issue_ids": "ARRAY def: nullable:YES",
