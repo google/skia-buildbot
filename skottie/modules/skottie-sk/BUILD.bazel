@@ -12,17 +12,10 @@ load(
 # packages directly. Instead, we must create local copies of those files. See the
 # copy_file_from_npm_pkg macro documentation for details.
 copy_file_from_npm_pkg(
-    name = "jsoneditor_icons_svg",
-    src = "dist/img/jsoneditor-icons.svg",
-    out = "jsoneditor-icons.svg",
-    npm_package_name = "jsoneditor",
-)
-
-copy_file_from_npm_pkg(
-    name = "jsoneditor_min_css",
-    src = "dist/jsoneditor.min.css",
-    out = "jsoneditor.min.css",
-    npm_package_name = "jsoneditor",
+    name = "vanilla-jsoneditor-dark-css",
+    src = "themes/jse-theme-dark.css",
+    out = "jse-theme-dark.css",
+    npm_package_name = "vanilla-jsoneditor",
 )
 
 sk_demo_page_server(
@@ -34,10 +27,6 @@ sk_demo_page_server(
             "//skottie/wasm_libs:canvaskit.js",
             "//skottie/wasm_libs:canvaskit.wasm",
         ],
-        "/img": [
-            # Not quite sure why this is being looked for in /img and not /static/img.
-            "jsoneditor-icons.svg",
-        ],
     },
 )
 
@@ -45,7 +34,7 @@ sk_element(
     name = "skottie-sk",
     sass_srcs = [
         "skottie-sk.scss",
-        "jsoneditor.min.css",  # keep
+        "jse-theme-dark.css",  # keep
     ],
     sk_element_deps = [
         "//skottie/modules/skottie-audio-sk",
@@ -91,10 +80,11 @@ sk_element(
         "//infra-sk/modules:statereflector_ts_lib",
         "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules/window:window_ts_lib",
-        "//:node_modules/@types/jsoneditor",
-        "//:node_modules/jsoneditor",
+        "//:node_modules/ajv",
         "//:node_modules/lit-html",
         "//:node_modules/lottie-web",
+        "//:node_modules/vanilla-jsoneditor",
+        "//skottie/modules/skottie-compatibility-sk/schemas:lottie.schema_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

@@ -57,13 +57,6 @@ copy_file_from_npm_pkg(
     npm_package_name = "@ffmpeg/core",
 )
 
-copy_file_from_npm_pkg(
-    name = "jsoneditor_icons_svg",
-    src = "dist/img/jsoneditor-icons.svg",
-    out = "jsoneditor-icons.svg",
-    npm_package_name = "jsoneditor",
-)
-
 sk_page(
     name = "index",
     assets_serving_path = "/static",
@@ -78,10 +71,6 @@ sk_page(
         {
             "src": "//skottie/modules/skottie-gif-exporter-sk:gif_worker_js",
             "dst": "gif.worker.js",
-        },
-        {
-            "src": "jsoneditor-icons.svg",
-            "dst": "img/jsoneditor-icons.svg",
         },
         {
             "src": "//skottie/modules/skottie-inline-sk:bundle",

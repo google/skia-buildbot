@@ -34,13 +34,6 @@ copy_file_from_npm_pkg(
     npm_package_name = "@ffmpeg/core",
 )
 
-copy_file_from_npm_pkg(
-    name = "jsoneditor_icons_svg",
-    src = "dist/img/jsoneditor-icons.svg",
-    out = "jsoneditor-icons.svg",
-    npm_package_name = "jsoneditor",
-)
-
 skia_app_container(
     name = "skottie_container-base",
     base_image = "@base-cipd//image",
@@ -95,12 +88,6 @@ skia_app_container(
         "/usr/local/share/skottie/configs": [
             [
                 ":configs",
-                "0644",
-            ],
-        ],
-        "/usr/local/share/skottie/img": [
-            [
-                "jsoneditor-icons.svg",
                 "0644",
             ],
         ],

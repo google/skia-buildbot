@@ -12,8 +12,14 @@ import '../skottie-player-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/error-toast-sk';
+import Ajv from 'ajv/dist/2020';
 import { html, TemplateResult } from 'lit-html';
-import JSONEditor from 'jsoneditor';
+import {
+  JSONEditor,
+  toJSONContent,
+  createAjvValidator,
+  JSONEditorPropsOptional,
+} from 'vanilla-jsoneditor';
 import LottiePlayer from 'lottie-web';
 import { RendererType } from 'lottie-web';
 import { $$ } from '../../../infra-sk/modules/dom';
@@ -86,6 +92,7 @@ import { SkottieTemplateEventDetail } from '../skottie-color-manager-sk/skottie-
 import { isBinaryAsset } from '../helpers/animation';
 import '../window/window';
 import { SkottieSlotManagerSk } from '../skottie-slot-manager-sk/skottie-slot-manager-sk';
+import { lottieSchema } from '../skottie-compatibility-sk/schemas/lottie.schema';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
 // file.
@@ -290,17 +297,17 @@ export class SkottieSk extends ElementSk {
 
   private displayIdle = () => html`
     <div class="threecol">
-      <div class="left">${this.leftControls()}</div>
-      <div class="main"></div>
-      <div class="right">${this.rightControls()}</div>
+      <div class="left-panel">${this.leftControls()}</div>
+      <div class="main-panel"></div>
+      <div class="right-panel">${this.rightControls()}</div>
     </div>
   `;
 
   private displayLoaded = () => html`
     <div class="threecol">
-      <div class="left">${this.leftControls()}</div>
-      <div class="main">${this.mainContent()}</div>
-      <div class="right">${this.rightControls()}</div>
+      <div class="left-panel">${this.leftControls()}</div>
+      <div class="main-panel">${this.mainContent()}</div>
+      <div class="right-panel">${this.rightControls()}</div>
     </div>
   `;
 
@@ -1463,24 +1470,41 @@ export class SkottieSk extends ElementSk {
       this.editor = null;
       return;
     }
+
     const editorContainer = $$<HTMLDivElement>('#json_editor')!;
-    // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
+
+    // See https://github.com/josdejong/svelte-jsoneditor/tree/main?tab=readme-ov-file#api
     // for documentation on this editor.
-    const editorOptions = {
-      // Use original key order (this preserves related fields locality).
-      sortObjectKeys: false,
-      // There are sometimes a few onChange events that happen
-      // during the initial .set(), so we have a safety variable
-      // _editorLoaded to prevent a bunch of recursion
+    const editorProps: JSONEditorPropsOptional = {
       onChange: () => {
         if (!this.editorLoaded) {
           return;
         }
         this.changingTool = 'json-editor';
         this.ui = 'draft';
-        this.state.lottie = this.editor!.get();
+
+        const lottie = toJSONContent(this.editor!.get()).json;
+        this.state.lottie = lottie as LottieAnimation;
         this.render();
       },
+    };
+
+    if (this.enableCompatibilityReport) {
+      editorProps.validator = createAjvValidator({
+        // TODO(bwils) include feature schemas as well? More of UX problem
+        schema: lottieSchema,
+        onCreateAjv: () =>
+          // Override ajv instance to support json schema 2020-12
+          new Ajv({
+            allErrors: true,
+            verbose: true,
+          }),
+      });
+    }
+
+    const editorOptions = {
+      target: editorContainer,
+      props: editorProps,
     };
 
     // Only set the JSON when it is loaded, either because it's
@@ -1489,11 +1513,11 @@ export class SkottieSk extends ElementSk {
     if (!this.editor) {
       this.editorLoaded = false;
       editorContainer.innerHTML = '';
-      this.editor = new JSONEditor(editorContainer, editorOptions);
-      this.editor.set(this.state.lottie);
+      this.editor = new JSONEditor(editorOptions);
+      this.editor.set({ json: this.state.lottie });
     } else if (this.isToolUnsynced('json-editor')) {
       this.editorLoaded = false;
-      this.editor.set(this.state.lottie);
+      this.editor.set({ json: this.state.lottie });
     }
     // We are now pretty confident that the onChange events will only be
     // when the user modifies the JSON.

@@ -1,10 +1,11 @@
-@use 'skottie/modules/skottie-sk/jsoneditor.min.css';
+@use 'skottie/modules/skottie-sk/jse-theme-dark.css';
 
 body.body-sk.font-sk {
   background: var(--surface);
 
   &.darkmode {
     --surface-1dp: #2a2a2a;
+    @extend .jse-theme-dark;
   }
 
   button:focus {
@@ -95,16 +96,16 @@ body.body-sk.font-sk {
       background-color: var(--surface);
       width: 100%;
 
-      .left,
-      .right,
-      .main {
+      .left-panel,
+      .right-panel,
+      .main-panel {
         display: flex;
         flex-flow: column;
         border-radius: 10px;
       }
 
-      .left,
-      .right {
+      .left-panel,
+      .right-panel {
         background: var(--surface-1dp);
         padding: 0;
         width: 329px;
@@ -160,15 +161,15 @@ body.body-sk.font-sk {
         }
       }
 
-      .left {
+      .left-panel {
         margin: 0 0 0 16px;
       }
 
-      .right {
+      .right-panel {
         margin: 0 16px 0 0;
       }
 
-      .main {
+      .main-panel {
         background: var(--background);
         margin: 0;
         flex: 1 1 auto;
@@ -420,60 +421,9 @@ body.body-sk.font-sk {
     }
   }
 
-  // The third-party jsoneditor doesn't support darkmode
-  // https://github.com/josdejong/jsoneditor/issues/893 so we force the editor
-  // back to light mode.
   #json_editor {
-    background: white;
-
-    // Need this rule to have higher specificity otherwise the common themes
-    // button background color will override it.
-    .jsoneditor-menu button {
-      background-image: url(./img/jsoneditor-icons.svg);
-    }
-
-    input {
-      color: black;
-      background: white;
-    }
-
-    tr {
-      background: #ffffff;
-    }
-
-    tr:hover {
-      background-color: var(--light-gray);
-    }
-
-    .jsoneditor-contextmenu .jsoneditor-menu li ul .jsoneditor-icon {
-      margin-left: 0;
-    }
-
-    button {
-      /* Prevent clashes with element-sk/buttons.css */
-      padding: 4px;
-      height: 28px;
-      margin: 2px;
-      width: 26px;
-      min-width: initial;
-      transition: initial;
-      box-shadow: initial;
-    }
-
-    .jsoneditor-menu button {
-      min-width: initial;
-      transition: initial;
-      box-shadow: initial;
-    }
-
-    .jsoneditor-contextmenu-root button {
-      width: initial;
-    }
-
-    .jsoneditor-search button {
-      height: 22px;
-      margin: 2px;
-      width: 22px;
+    .jse-validation-warning td {
+      color: var(--jse-message-warning-color, #4d4d4d);
     }
   }
 }
