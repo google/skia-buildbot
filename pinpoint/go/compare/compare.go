@@ -80,7 +80,11 @@ const (
 	ErrorVerdict Verdict = "Error"
 )
 
-const float64EqualityThreshold = 1e-9
+const (
+	float64EqualityThreshold = 1e-9
+	// small numbers do not behave well with logarithms
+	pairwiseSmallNumberThreshold = 1e-6
+)
 
 func almostEqual(a, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
@@ -109,11 +113,28 @@ type ComparePairwiseResult struct {
 }
 
 // ComparePairwise wraps PairwiseWilcoxonSignedRankedTest.
-// TODO(sunxiaodi@): Add additional data manipulation CABE does to ensure
-// data is valid prior to analysis.
 func ComparePairwise(valuesA, valuesB []float64, dir ImprovementDir) (*ComparePairwiseResult, error) {
+	// check if there are negative values in the input arrays.
+	// We do not expect benchmark data to return negative values.
+	// Also check if there are small numbers or zeros, as logarithms
+	// do not behave well with small numbers and log(0) is invalid.
+	transform := stats.LogTransform
+	for _, v := range valuesA {
+		if v < 0 {
+			return nil, skerr.Fmt("Unexpected negative chart data: value %f is < 0 in valuesA %v", v, valuesA)
+		} else if v <= pairwiseSmallNumberThreshold {
+			transform = stats.NormalizeResult
+		}
+	}
+	for _, v := range valuesB {
+		if v < 0 {
+			return nil, skerr.Fmt("Unexpected negative chart data: value %f is < 0 in valuesB %v", v, valuesB)
+		} else if v <= pairwiseSmallNumberThreshold {
+			transform = stats.NormalizeResult
+		}
+	}
 	// The pairwise test is intentionally designed to receive the input backwards.
-	result, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, stats.LogTransform)
+	result, err := stats.PairwiseWilcoxonSignedRankedTest(valuesB, valuesA, stats.TwoSided, transform)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/pinpoint/go/compare/stats"
 	"go.skia.org/infra/pinpoint/go/compare/thresholds"
 )
 
@@ -114,8 +115,8 @@ func TestCompare_GivenImprovement_ReturnsSameAndNoPValue(t *testing.T) {
 			}
 		})
 	}
-	var x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	x := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	test("x < y, ImprovementDir = Up, return same", x, y, Up)
 
 	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
@@ -137,8 +138,8 @@ func TestCompare_GivenRegression_ReturnsPValue(t *testing.T) {
 			}
 		})
 	}
-	var x = []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	x := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 	test("x < y, ImprovementDir = Down", x, y, Down)
 
 	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
@@ -161,8 +162,8 @@ func TestComparePairwise_GivenImprovement_ReturnsSame(t *testing.T) {
 			}
 		})
 	}
-	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	x := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
 	test("x < y, ImprovementDir = Up", x, y, Up)
 
 	x = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
@@ -186,8 +187,8 @@ func TestComparePairwise_GivenRegression_ReturnsDifferent(t *testing.T) {
 			}
 		})
 	}
-	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	var y = []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
+	x := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15}
 	test("x < y, ImprovementDir = Down", x, y, Down)
 	test("x < y, ImprovementDir = Unknown", x, y, UnknownDir)
 
@@ -206,8 +207,39 @@ func TestComparePairwise_GivenNoRegression_ReturnsSame(t *testing.T) {
 			assert.Negative(t, result.PairwiseWilcoxonSignedRankedTestResult.LowerCi*result.PairwiseWilcoxonSignedRankedTestResult.UpperCi)
 		})
 	}
-	var x = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	var y = []float64{1.1, 1.9, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
+	x := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{1.1, 1.9, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
 	test("ImprovementDir = Down", x, y, Down)
 	test("ImprovementDir = Unknown", x, y, UnknownDir)
+}
+
+func TestComparePairwise_GivenZeros_UsesNormalizedResult(t *testing.T) {
+	x := []float64{1, 2, 0, 4, 5, 6, 7, 8, 9}
+	y := []float64{1.1, 0, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
+
+	result, err := ComparePairwise(x, y, Up)
+	require.NoError(t, err)
+	normalizedResult, err := stats.PairwiseWilcoxonSignedRankedTest(y, x, stats.TwoSided, stats.NormalizeResult)
+	require.NoError(t, err)
+	assert.Equal(t, normalizedResult, result.PairwiseWilcoxonSignedRankedTestResult)
+}
+
+func TestComparePairwise_GivenNonZeros_UsesLogTransform(t *testing.T) {
+	x := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{1.1, 2.1, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
+
+	result, err := ComparePairwise(x, y, Up)
+	require.NoError(t, err)
+	logTransformResult, err := stats.PairwiseWilcoxonSignedRankedTest(y, x, stats.TwoSided, stats.LogTransform)
+	require.NoError(t, err)
+	assert.Equal(t, logTransformResult, result.PairwiseWilcoxonSignedRankedTestResult)
+}
+
+func TestComparePairwise_GivenNegativeNumbers_ThrowsError(t *testing.T) {
+	x := []float64{1, 2, 3, -4, 5, 6, 7, 8, 9}
+	y := []float64{1.1, 2.1, 3.1, 3.9, 4.1, 4.9, 6.1, 7.9, 9.1}
+
+	result, err := ComparePairwise(x, y, Up)
+	require.Error(t, err)
+	assert.Nil(t, result)
 }
