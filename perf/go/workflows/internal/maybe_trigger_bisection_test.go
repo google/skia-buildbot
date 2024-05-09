@@ -39,14 +39,18 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
+	gsa := &GerritServiceActivity{insecure_conn: true}
 	env.RegisterActivity(agsa)
+	env.RegisterActivity(gsa)
 	env.RegisterWorkflowWithOptions(catapult.CatapultBisectWorkflow, workflow.RegisterOptions{Name: pinpoint.CatapultBisect})
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
+	var startCommit int64 = 1
+	var endCommit int64 = 10
 	mockAnomaly := &ag_proto.Anomaly{
-		StartCommit: 1,
-		EndCommit:   10,
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
 		Paramset: map[string]string{
 			"bot":         "linux-perf",
 			"benchmark":   "speedometer",
@@ -71,12 +75,16 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 		Limit:          10}).
 		Return(
 			&ag_proto.FindTopAnomaliesResponse{Anomalies: []*ag_proto.Anomaly{mockAnomaly}}, nil)
+	mockStartRevision := "revision1"
+	mockEndRevision := "revision10"
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, endCommit).Return(mockEndRevision, nil).Once()
 	env.OnWorkflow(pinpoint.CatapultBisect, mock.Anything,
 		&pinpoint.BisectParams{
 			Request: &pinpoint_proto.ScheduleBisectRequest{
 				ComparisonMode:       "performance",
-				StartGitHash:         "test",
-				EndGitHash:           "test",
+				StartGitHash:         mockStartRevision,
+				EndGitHash:           mockEndRevision,
 				Configuration:        mockAnomaly.Paramset["bot"],
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                mockAnomaly.Paramset["story"],

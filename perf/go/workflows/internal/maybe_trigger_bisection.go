@@ -2,12 +2,14 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
 	pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	backend "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/workflows"
+	"go.skia.org/infra/pinpoint/go/backends"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/workflow"
@@ -18,6 +20,9 @@ const (
 )
 
 type AnomalyGroupServiceActivity struct {
+	insecure_conn bool
+}
+type GerritServiceActivity struct {
 	insecure_conn bool
 }
 
@@ -57,6 +62,18 @@ func (agsa *AnomalyGroupServiceActivity) UpdateAnomalyGroup(ctx context.Context,
 	return resp, nil
 }
 
+func (gsa *GerritServiceActivity) GetCommitRevision(ctx context.Context, commitPostion int64) (string, error) {
+	client, err := backends.NewCrrevClient(ctx)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.GetCommitInfo(ctx, fmt.Sprint(commitPostion))
+	if err != nil {
+		return "", err
+	}
+	return resp.GitHash, nil
+}
+
 // MaybeTriggerBisectionWorkflow is the entry point for the workflow which handles anomaly group
 // processing. It is responsible for triggering a bisection if the anomalygroup's
 // group action = BISECT. If group action = REPORT, files a bug notifying user of the anomalies.
@@ -66,28 +83,26 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 	var anomalyGroupResponse *pb.LoadAnomalyGroupByIDResponse
 	var err error
 	var agsa AnomalyGroupServiceActivity
+	var gsa GerritServiceActivity
 
 	// Step 1. wait for some time so that more anomalies can be detected and grouped.
-	err = workflow.Sleep(ctx, _WAIT_TIME_FOR_ANOMALIES)
-	if err != nil {
+	if err = workflow.Sleep(ctx, _WAIT_TIME_FOR_ANOMALIES); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Step 2. Load Anomalygroup data
-	err = workflow.ExecuteActivity(ctx, agsa.LoadAnomalyGroupByID, input.AnomalyGroupServiceUrl, &pb.LoadAnomalyGroupByIDRequest{
+	if err = workflow.ExecuteActivity(ctx, agsa.LoadAnomalyGroupByID, input.AnomalyGroupServiceUrl, &pb.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: input.AnomalyGroupId,
-	}).Get(ctx, &anomalyGroupResponse)
-	if err != nil {
+	}).Get(ctx, &anomalyGroupResponse); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Step 3. Load Anomaly data
 	var topAnomaliesResponse *pb.FindTopAnomaliesResponse
-	err = workflow.ExecuteActivity(ctx, agsa.FindTopAnomalies, input.AnomalyGroupServiceUrl, &pb.FindTopAnomaliesRequest{
+	if err = workflow.ExecuteActivity(ctx, agsa.FindTopAnomalies, input.AnomalyGroupServiceUrl, &pb.FindTopAnomaliesRequest{
 		AnomalyGroupId: input.AnomalyGroupId,
 		Limit:          10,
-	}).Get(ctx, &topAnomaliesResponse)
-	if err != nil {
+	}).Get(ctx, &topAnomaliesResponse); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	var topAnomaly *pb.Anomaly
@@ -99,18 +114,21 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 
 	var be *pinpoint_proto.BisectExecution
 	if anomalyGroupResponse.AnomalyGroup.GroupAction == pb.GroupActionType_BISECT {
-		// Step 4. Convert commit postions to commit hash
-		// TODO(b/321081776): Implement conversion from commit positions to commit hash.
-		startCommit := "test"
-		endCommit := "test"
-
+		// Step 4. Convert start and end commit postions to commit hash
+		var startHash, endHash string
+		if err = workflow.ExecuteActivity(ctx, gsa.GetCommitRevision, topAnomaly.StartCommit).Get(ctx, &startHash); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if err = workflow.ExecuteActivity(ctx, gsa.GetCommitRevision, topAnomaly.EndCommit).Get(ctx, &endHash); err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		// Step 5. Invoke Bisection conditionally
-		err := workflow.ExecuteChildWorkflow(ctx, pinpoint.CatapultBisect,
+		if err := workflow.ExecuteChildWorkflow(ctx, pinpoint.CatapultBisect,
 			&pinpoint.BisectParams{
 				Request: &pinpoint_proto.ScheduleBisectRequest{
 					ComparisonMode:       "performance",
-					StartGitHash:         startCommit,
-					EndGitHash:           endCommit,
+					StartGitHash:         startHash,
+					EndGitHash:           endHash,
 					Configuration:        topAnomaly.Paramset["bot"],
 					Benchmark:            topAnomaly.Paramset["benchmark"],
 					Story:                topAnomaly.Paramset["story"],
@@ -118,17 +136,15 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					AggregationMethod:    topAnomaly.Paramset["stat"],
 					ImprovementDirection: topAnomaly.ImprovementDirection,
 				},
-			}).Get(ctx, &be)
-		if err != nil {
+			}).Get(ctx, &be); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		var updateAnomalyGroupResponse *pb.UpdateAnomalyGroupResponse
-		err = workflow.ExecuteActivity(ctx, agsa.UpdateAnomalyGroup, input.AnomalyGroupServiceUrl, &pb.UpdateAnomalyGroupRequest{
+		if err = workflow.ExecuteActivity(ctx, agsa.UpdateAnomalyGroup, input.AnomalyGroupServiceUrl, &pb.UpdateAnomalyGroupRequest{
 			AnomalyGroupId: input.AnomalyGroupId,
 			BisectionId:    be.JobId,
-		}).Get(ctx, &updateAnomalyGroupResponse)
-		if err != nil {
-			return nil, err
+		}).Get(ctx, &updateAnomalyGroupResponse); err != nil {
+			return nil, skerr.Wrap(err)
 		}
 		return &workflows.MaybeTriggerBisectionResult{}, nil
 	} else if anomalyGroupResponse.AnomalyGroup.GroupAction == pb.GroupActionType_REPORT {

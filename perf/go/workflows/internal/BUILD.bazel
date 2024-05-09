@@ -16,6 +16,7 @@ go_library(
         "//perf/go/backend/client",
         "//perf/go/culprit/proto/v1",
         "//perf/go/workflows",
+        "//pinpoint/go/backends",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
         "@io_temporal_go_sdk//temporal",

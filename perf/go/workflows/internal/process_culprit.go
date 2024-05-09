@@ -13,7 +13,7 @@ type CulpritServiceActivity struct {
 	insecure_conn bool
 }
 
-func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
+func (csa *CulpritServiceActivity) PeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
 	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (csa *CulpritServiceActivity) InvokePeristCulprit(ctx context.Context, culp
 	return resp, nil
 }
 
-func (csa *CulpritServiceActivity) InvokeNotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
+func (csa *CulpritServiceActivity) NotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
 	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
 	if err != nil {
 		return nil, err
@@ -45,14 +45,14 @@ func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpri
 	var resp2 *pb.NotifyUserResponse
 	var err error
 	var csa CulpritServiceActivity
-	err = workflow.ExecuteActivity(ctx, csa.InvokePeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
+	err = workflow.ExecuteActivity(ctx, csa.PeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
 		Commits:        input.Commits,
 		AnomalyGroupId: input.AnomalyGroupId,
 	}).Get(ctx, &resp1)
 	if err != nil {
 		return nil, err
 	}
-	err = workflow.ExecuteActivity(ctx, csa.InvokeNotifyUser, input.CulpritServiceUrl, &pb.NotifyUserRequest{
+	err = workflow.ExecuteActivity(ctx, csa.NotifyUser, input.CulpritServiceUrl, &pb.NotifyUserRequest{
 		CulpritIds:     resp1.CulpritIds,
 		AnomalyGroupId: input.AnomalyGroupId}).Get(ctx, &resp2)
 	if err != nil {
