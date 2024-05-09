@@ -100,21 +100,18 @@ func parseImprovementDir(dir compare.ImprovementDir) int32 {
 	}
 }
 
-// TODO(b/335543316): the build information isn't propagated back to the CommitRun.Build object, so it's just empty right now and causes nil issues.
 func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.LegacyJobResponse_State_Attempt_Execution {
 	return &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution{
 		Completed: true,
 		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 			{
-				Key: "builder",
-				// TODO(b/335543316): The following fulfills the req above, but it's commented out b/c of nil reference to Build.
-				// Value: commitRun.Build.Device,
+				Key:   "builder",
+				Value: commitRun.Build.BuildChromeParams.Device,
 			},
 			{
-				Key: "isolate",
-				// TODO(b/335543316): The following fulfills the req above, but it's commented out b/c of nil reference to Build.
-				// Value: fmt.Sprintf(casIsolateHashTemplate, commitRun.Build.CAS.Digest.Hash, commitRun.Build.CAS.Digest.SizeBytes),
-				// Url:   fmt.Sprintf(casUrlTemplate, commitRun.Build.CAS.CasInstance, commitRun.Build.CAS.Digest.Hash, commitRun.Build.CAS.Digest.SizeBytes),
+				Key:   "isolate",
+				Value: fmt.Sprintf(casIsolateHashTemplate, commitRun.Build.CAS.Digest.Hash, commitRun.Build.CAS.Digest.SizeBytes),
+				Url:   fmt.Sprintf(casUrlTemplate, commitRun.Build.CAS.CasInstance, commitRun.Build.CAS.Digest.Hash, commitRun.Build.CAS.Digest.SizeBytes),
 			},
 		},
 	}

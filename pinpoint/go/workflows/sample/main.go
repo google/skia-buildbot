@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
+	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
@@ -47,7 +48,7 @@ func defaultWorkflowOptions() client.StartWorkflowOptions {
 	}
 }
 
-func triggerBisectWorkflow(c client.Client) (*internal.BisectExecution, error) {
+func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
 	ctx := context.Background()
 	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/17ab3cfa9e0000
 	p := &workflows.BisectParams{
@@ -65,8 +66,8 @@ func triggerBisectWorkflow(c client.Client) (*internal.BisectExecution, error) {
 			ImprovementDirection: "DOWN",
 		},
 	}
-	var be *internal.BisectExecution
-	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), internal.BisectWorkflow, p)
+	var be *pb.BisectExecution
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), catapult.CatapultBisectWorkflow, p)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Unable to execute workflow")
 	}

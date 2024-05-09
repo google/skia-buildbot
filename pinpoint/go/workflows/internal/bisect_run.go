@@ -132,6 +132,7 @@ func (br *BisectRun) updateRuns(ctx workflow.Context, cf workflow.ChildWorkflowF
 		return skerr.Fmt("no runs were found in the child workflow")
 	}
 
+	br.Build = r.Build
 	br.Runs = append(br.Runs, r.Runs...)
 	return nil
 }

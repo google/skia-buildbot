@@ -10,6 +10,7 @@ go_library(
         "//go/sklog",
         "//pinpoint/go/midpoint",
         "//pinpoint/go/workflows",
+        "//pinpoint/go/workflows/catapult",
         "//pinpoint/go/workflows/internal",
         "//pinpoint/proto/v1:proto",
         "@com_github_davecgh_go_spew//spew",

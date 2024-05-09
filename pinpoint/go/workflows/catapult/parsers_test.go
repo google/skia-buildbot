@@ -69,6 +69,13 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 					BuildChromeParams: workflows.BuildChromeParams{
 						Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1")),
 					},
+					CAS: &swarmingV1.SwarmingRpcsCASReference{
+						CasInstance: "projects/chrome-swarming/instances/default_instance",
+						Digest: &swarmingV1.SwarmingRpcsDigest{
+							Hash:      "25009b847133c029dc585020ed7b60b6573fe12123559319ea5c04fec3b6e06c",
+							SizeBytes: int64(183),
+						},
+					},
 				},
 				Runs: []*workflows.TestRun{
 					{
