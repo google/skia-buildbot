@@ -340,6 +340,7 @@ message ParentChildRepoManagerConfig {
         GitCheckoutGitHubFileParentConfig git_checkout_github_file_parent = 4;
         GitilesParentConfig gitiles_parent = 5;
         GoModGerritParentConfig go_mod_gerrit_parent = 14;
+        GitCheckoutGerritParentConfig git_checkout_gerrit_parent = 17;
     }
     // child is the entity which is depended on by the parent and is rolled.
     oneof child {
@@ -394,6 +395,12 @@ message DEPSLocalGerritParentConfig {
 message GitCheckoutGitHubParentConfig {
     GitCheckoutParentConfig git_checkout = 1;
     string fork_repo_url = 2;
+}
+
+// GitCheckoutGerritParentConfig provides configuration for a Parent which
+// uses a local Git checkout and uploads CLs to Gerrit.
+message GitCheckoutGerritParentConfig {
+    GitCheckoutParentConfig git_checkout = 1;
 }
 
 // GitCheckoutGitHubFileParentConfig provides configuration for a Parent which

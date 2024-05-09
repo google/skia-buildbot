@@ -53,6 +53,8 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
 		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, recipeCfgFile, cr)
+	} else if c.GetGitCheckoutGerritParent() != nil {
+		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGithubFileParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {

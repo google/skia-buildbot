@@ -329,6 +329,7 @@ export interface ParentChildRepoManagerConfig {
   gitCheckoutGithubFileParent?: GitCheckoutGitHubFileParentConfig;
   gitilesParent?: GitilesParentConfig;
   goModGerritParent?: GoModGerritParentConfig;
+  gitCheckoutGerritParent?: GitCheckoutGerritParentConfig;
   cipdChild?: CIPDChildConfig;
   fuchsiaSdkChild?: FuchsiaSDKChildConfig;
   gitCheckoutChild?: GitCheckoutChildConfig;
@@ -348,6 +349,7 @@ interface ParentChildRepoManagerConfigJSON {
   git_checkout_github_file_parent?: GitCheckoutGitHubFileParentConfigJSON;
   gitiles_parent?: GitilesParentConfigJSON;
   go_mod_gerrit_parent?: GoModGerritParentConfigJSON;
+  git_checkout_gerrit_parent?: GitCheckoutGerritParentConfigJSON;
   cipd_child?: CIPDChildConfigJSON;
   fuchsia_sdk_child?: FuchsiaSDKChildConfigJSON;
   git_checkout_child?: GitCheckoutChildConfigJSON;
@@ -410,6 +412,14 @@ export interface GitCheckoutGitHubParentConfig {
 interface GitCheckoutGitHubParentConfigJSON {
   git_checkout?: GitCheckoutParentConfigJSON;
   fork_repo_url?: string;
+}
+
+export interface GitCheckoutGerritParentConfig {
+  gitCheckout?: GitCheckoutParentConfig;
+}
+
+interface GitCheckoutGerritParentConfigJSON {
+  git_checkout?: GitCheckoutParentConfigJSON;
 }
 
 export interface GitCheckoutGitHubFileParentConfig {

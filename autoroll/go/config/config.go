@@ -680,6 +680,9 @@ func (c *ParentChildRepoManagerConfig) Validate() error {
 	if c.GetGitCheckoutGithubFileParent() != nil {
 		parents = append(parents, c.GetGitCheckoutGithubFileParent())
 	}
+	if c.GetGitCheckoutGerritParent() != nil {
+		parents = append(parents, c.GetGitCheckoutGerritParent())
+	}
 	if c.GetGitilesParent() != nil {
 		parents = append(parents, c.GetGitilesParent())
 	}
@@ -726,6 +729,9 @@ func (c *ParentChildRepoManagerConfig) NoCheckout() bool {
 		return false
 	}
 	if c.GetGitCheckoutGithubFileParent() != nil {
+		return false
+	}
+	if c.GetGitCheckoutGerritParent() != nil {
 		return false
 	}
 	return true
@@ -1087,6 +1093,17 @@ func (c *GitCheckoutGitHubParentConfig) Validate() error {
 	}
 	if c.ForkRepoUrl == "" {
 		return skerr.Fmt("ForkRepoUrl is required.")
+	}
+	return nil
+}
+
+// Validate implements util.Validator.
+func (c *GitCheckoutGerritParentConfig) Validate() error {
+	if c.GitCheckout == nil {
+		return skerr.Fmt("GitCheckout is required.")
+	}
+	if err := c.GitCheckout.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 	return nil
 }
