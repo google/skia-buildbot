@@ -17,7 +17,9 @@ go_library(
         "run_benchmark.go",
     ],
     importpath = "go.skia.org/infra/pinpoint/go/workflows/internal",
-    visibility = ["//pinpoint/go/workflows:__subpackages__"],
+    visibility = [
+        "//pinpoint/go/workflows:__subpackages__",
+    ],
     deps = [
         "//go/auth",
         "//go/httputils",

@@ -39,6 +39,8 @@ func main() {
 	w.RegisterActivity(csa)
 	w.RegisterWorkflowWithOptions(internal.ProcessCulpritWorkflow, workflow.RegisterOptions{Name: workflows.ProcessCulprit})
 
+	agsa := &internal.AnomalyGroupServiceActivity{}
+	w.RegisterActivity(agsa)
 	w.RegisterWorkflowWithOptions(internal.MaybeTriggerBisectionWorkflow, workflow.RegisterOptions{Name: workflows.MaybeTriggerBisection})
 
 	err = w.Run(worker.InterruptCh())

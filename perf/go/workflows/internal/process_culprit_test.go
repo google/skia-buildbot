@@ -6,19 +6,19 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
-	pbmock "go.skia.org/infra/perf/go/culprit/proto/v1/mocks"
+	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
+	culprit_mock "go.skia.org/infra/perf/go/culprit/proto/v1/mocks"
 	"go.skia.org/infra/perf/go/workflows"
 	"go.temporal.io/sdk/testsuite"
 	"google.golang.org/grpc"
 )
 
-func setup(t *testing.T) (string, *pbmock.CulpritServiceServer, func()) {
+func setupProcessCulprit(t *testing.T) (string, *culprit_mock.CulpritServiceServer, func()) {
 	lis, err := net.Listen("tcp", "localhost:9000")
 	require.NoError(t, err)
 	s := grpc.NewServer()
-	service := pbmock.NewCulpritServiceServer(t)
-	pb.RegisterCulpritServiceServer(s, service)
+	service := culprit_mock.NewCulpritServiceServer(t)
+	culprit_proto.RegisterCulpritServiceServer(s, service)
 	go func() {
 		require.NoError(t, s.Serve(lis))
 	}()
@@ -28,15 +28,13 @@ func setup(t *testing.T) (string, *pbmock.CulpritServiceServer, func()) {
 }
 
 func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
-	addr, server, cleanup := setup(t)
+	addr, server, cleanup := setupProcessCulprit(t)
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	csa := &CulpritServiceActivity{
-		insecure_conn: true,
-	}
+	csa := &CulpritServiceActivity{insecure_conn: true}
 	env.RegisterActivity(csa)
-	commits := []*pb.Commit{
+	commits := []*culprit_proto.Commit{
 		{
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
@@ -53,17 +51,17 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	anomalyGroupId := "111"
 	mockCulpritIds := []string{"c1", "c2"}
 	mockIssueIds := []string{"b1", "b2"}
-	server.On("PersistCulprit", mock.Anything, &pb.PersistCulpritRequest{
+	server.On("PersistCulprit", mock.Anything, &culprit_proto.PersistCulpritRequest{
 		Commits:        commits,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&pb.PersistCulpritResponse{
+			&culprit_proto.PersistCulpritResponse{
 				CulpritIds: mockCulpritIds}, nil)
-	server.On("NotifyUser", mock.Anything, &pb.NotifyUserRequest{
+	server.On("NotifyUser", mock.Anything, &culprit_proto.NotifyUserRequest{
 		CulpritIds:     mockCulpritIds,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&pb.NotifyUserResponse{
+			&culprit_proto.NotifyUserResponse{
 				IssueIds: mockIssueIds}, nil)
 
 	env.ExecuteWorkflow(ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{

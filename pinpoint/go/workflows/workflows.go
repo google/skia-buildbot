@@ -81,7 +81,8 @@ type TestRun struct {
 type BisectParams struct {
 	// BisectWorkflow reuses BisectRequest message
 	Request *pb.ScheduleBisectRequest
-	// Available bot list
+	// Available bot list.
+	// This field is for internal use. Clients of BisectionWorkflow(s) are not expected to set it.
 	BotIds []string
 }
 
