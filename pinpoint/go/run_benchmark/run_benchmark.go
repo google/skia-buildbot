@@ -91,7 +91,11 @@ func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark
 		return nil, skerr.Wrapf(err, "Failed to prepare benchmark test for execution")
 	}
 
-	dims := append(botConfig.Dimensions, botID)
+	dims := botConfig.Dimensions
+	// botID can be nil upon retry or testing smaller workflows
+	if botID != nil {
+		dims = append(dims, botID)
+	}
 	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, dims)
 
 	resp := make([]*spb.SwarmingRpcsTaskRequestMetadata, 0)
