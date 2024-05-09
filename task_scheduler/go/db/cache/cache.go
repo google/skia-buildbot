@@ -839,10 +839,18 @@ func NewJobCache(ctx context.Context, d db.JobReader, timeWindow window.Window, 
 	}
 	go func() {
 		for jobs := range mod {
+			now := time.Now()
 			c.modMtx.Lock()
 			for _, job := range jobs {
 				if old, ok := c.modified[job.Id]; !ok || job.DbModified.After(old.DbModified) {
 					c.modified[job.Id] = job
+				}
+				// Log a warning if the modified-jobs channel is lagging.
+				latency := now.Sub(job.DbModified)
+				if latency > 5*time.Minute {
+					sklog.Warningf("modified-job latency for job %s (build %s) is %s", job.Id, job.BuildbucketBuildId, latency)
+				} else if latency > 2*time.Minute {
+					sklog.Debugf("modified-job latency for job %s (build %s) is %s", job.Id, job.BuildbucketBuildId, latency)
 				}
 			}
 			c.modMtx.Unlock()
