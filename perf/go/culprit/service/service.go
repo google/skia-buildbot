@@ -58,11 +58,11 @@ func (s *culpritService) PersistCulprit(ctx context.Context, req *pb.PersistCulp
 		return &pb.PersistCulpritResponse{CulpritIds: ids}, nil
 	}
 	// TODO(pasthana): Update anomaly group once anomaly table is available in production
-	// notifyReq := &pb.NotifyUserRequest{
+	// notifyReq := &pb.NotifyUserOfCulpritRequest{
 	// 	Culprits:       req.Culprits,
 	// 	AnomalyGroupId: req.AnomalyGroupId,
 	// }
-	// notifyResp, err := s.NotifyUser(context, notifyReq)
+	// notifyResp, err := s.NotifyUserOfCulprit(context, notifyReq)
 	// if err != nil {
 	// 	return nil, err
 	// }
@@ -83,7 +83,7 @@ func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritR
 }
 
 // File bugs per culprit for the anomaly group (from a bisect)
-func (s *culpritService) NotifyUser(ctx context.Context, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
+func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
 	var err error
 	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
 	if err != nil {
@@ -109,5 +109,5 @@ func (s *culpritService) NotifyUser(ctx context.Context, req *pb.NotifyUserReque
 		}
 		issueIds = append(issueIds, issueId)
 	}
-	return &pb.NotifyUserResponse{IssueIds: issueIds}, nil
+	return &pb.NotifyUserOfCulpritResponse{IssueIds: issueIds}, nil
 }

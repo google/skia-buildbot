@@ -67,7 +67,7 @@ func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestNotifyUser_ValidInput_ShouldInvokeNotifier(t *testing.T) {
+func TestNotifyUserOfCulprit_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 	c, anomalygroup, culpritStore, subscriptionStore, notifier := setUp(t)
 	ctx := context.Background()
 	cids := []string{"culprit_id1"}
@@ -94,12 +94,12 @@ func TestNotifyUser_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 	notifier.On("NotifyCulpritFound", mock.Anything,
 		stored_culprits[0], subscription).Return(issueId, nil)
 	culpritStore.On("AddIssueId", mock.Anything, stored_culprits[0].Id, issueId, "aid1").Return(nil)
-	req := &pb.NotifyUserRequest{
+	req := &pb.NotifyUserOfCulpritRequest{
 		CulpritIds:     cids,
 		AnomalyGroupId: "aid1",
 	}
-	resp, err := c.NotifyUser(ctx, req)
+	resp, err := c.NotifyUserOfCulprit(ctx, req)
 
 	assert.Nil(t, err)
-	assert.Equal(t, resp, &pb.NotifyUserResponse{IssueIds: []string{"issue_id1"}})
+	assert.Equal(t, resp, &pb.NotifyUserOfCulpritResponse{IssueIds: []string{"issue_id1"}})
 }

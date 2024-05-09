@@ -25,12 +25,12 @@ func (csa *CulpritServiceActivity) PeristCulprit(ctx context.Context, culpritSer
 	return resp, nil
 }
 
-func (csa *CulpritServiceActivity) NotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserRequest) (*pb.NotifyUserResponse, error) {
+func (csa *CulpritServiceActivity) NotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
 	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.NotifyUser(ctx, req)
+	resp, err := client.NotifyUserOfCulprit(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (csa *CulpritServiceActivity) NotifyUser(ctx context.Context, culpritServic
 func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpritParam) (*workflows.ProcessCulpritResult, error) {
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	var resp1 *pb.PersistCulpritResponse
-	var resp2 *pb.NotifyUserResponse
+	var resp2 *pb.NotifyUserOfCulpritResponse
 	var err error
 	var csa CulpritServiceActivity
 	err = workflow.ExecuteActivity(ctx, csa.PeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
@@ -52,7 +52,7 @@ func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpri
 	if err != nil {
 		return nil, err
 	}
-	err = workflow.ExecuteActivity(ctx, csa.NotifyUser, input.CulpritServiceUrl, &pb.NotifyUserRequest{
+	err = workflow.ExecuteActivity(ctx, csa.NotifyUser, input.CulpritServiceUrl, &pb.NotifyUserOfCulpritRequest{
 		CulpritIds:     resp1.CulpritIds,
 		AnomalyGroupId: input.AnomalyGroupId}).Get(ctx, &resp2)
 	if err != nil {

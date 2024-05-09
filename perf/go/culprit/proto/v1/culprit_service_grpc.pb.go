@@ -20,9 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	CulpritService_PersistCulprit_FullMethodName = "/culprit.v1.CulpritService/PersistCulprit"
-	CulpritService_GetCulprit_FullMethodName     = "/culprit.v1.CulpritService/GetCulprit"
-	CulpritService_NotifyUser_FullMethodName     = "/culprit.v1.CulpritService/NotifyUser"
+	CulpritService_PersistCulprit_FullMethodName      = "/culprit.v1.CulpritService/PersistCulprit"
+	CulpritService_GetCulprit_FullMethodName          = "/culprit.v1.CulpritService/GetCulprit"
+	CulpritService_NotifyUserOfAnomaly_FullMethodName = "/culprit.v1.CulpritService/NotifyUserOfAnomaly"
+	CulpritService_NotifyUserOfCulprit_FullMethodName = "/culprit.v1.CulpritService/NotifyUserOfCulprit"
 )
 
 // CulpritServiceClient is the client API for CulpritService service.
@@ -33,8 +34,10 @@ type CulpritServiceClient interface {
 	PersistCulprit(ctx context.Context, in *PersistCulpritRequest, opts ...grpc.CallOption) (*PersistCulpritResponse, error)
 	// Fetches a given culprit by id
 	GetCulprit(ctx context.Context, in *GetCulpritRequest, opts ...grpc.CallOption) (*GetCulpritResponse, error)
-	// Takes necessary actions to inform users about the regression.
-	NotifyUser(ctx context.Context, in *NotifyUserRequest, opts ...grpc.CallOption) (*NotifyUserResponse, error)
+	// Takes necessary actions to inform users about the anomalies.
+	NotifyUserOfAnomaly(ctx context.Context, in *NotifyUserOfAnomalyRequest, opts ...grpc.CallOption) (*NotifyUserOfAnomalyResponse, error)
+	// Takes necessary actions to inform users about the culprits.
+	NotifyUserOfCulprit(ctx context.Context, in *NotifyUserOfCulpritRequest, opts ...grpc.CallOption) (*NotifyUserOfCulpritResponse, error)
 }
 
 type culpritServiceClient struct {
@@ -63,9 +66,18 @@ func (c *culpritServiceClient) GetCulprit(ctx context.Context, in *GetCulpritReq
 	return out, nil
 }
 
-func (c *culpritServiceClient) NotifyUser(ctx context.Context, in *NotifyUserRequest, opts ...grpc.CallOption) (*NotifyUserResponse, error) {
-	out := new(NotifyUserResponse)
-	err := c.cc.Invoke(ctx, CulpritService_NotifyUser_FullMethodName, in, out, opts...)
+func (c *culpritServiceClient) NotifyUserOfAnomaly(ctx context.Context, in *NotifyUserOfAnomalyRequest, opts ...grpc.CallOption) (*NotifyUserOfAnomalyResponse, error) {
+	out := new(NotifyUserOfAnomalyResponse)
+	err := c.cc.Invoke(ctx, CulpritService_NotifyUserOfAnomaly_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *culpritServiceClient) NotifyUserOfCulprit(ctx context.Context, in *NotifyUserOfCulpritRequest, opts ...grpc.CallOption) (*NotifyUserOfCulpritResponse, error) {
+	out := new(NotifyUserOfCulpritResponse)
+	err := c.cc.Invoke(ctx, CulpritService_NotifyUserOfCulprit_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +92,10 @@ type CulpritServiceServer interface {
 	PersistCulprit(context.Context, *PersistCulpritRequest) (*PersistCulpritResponse, error)
 	// Fetches a given culprit by id
 	GetCulprit(context.Context, *GetCulpritRequest) (*GetCulpritResponse, error)
-	// Takes necessary actions to inform users about the regression.
-	NotifyUser(context.Context, *NotifyUserRequest) (*NotifyUserResponse, error)
+	// Takes necessary actions to inform users about the anomalies.
+	NotifyUserOfAnomaly(context.Context, *NotifyUserOfAnomalyRequest) (*NotifyUserOfAnomalyResponse, error)
+	// Takes necessary actions to inform users about the culprits.
+	NotifyUserOfCulprit(context.Context, *NotifyUserOfCulpritRequest) (*NotifyUserOfCulpritResponse, error)
 	mustEmbedUnimplementedCulpritServiceServer()
 }
 
@@ -95,8 +109,11 @@ func (UnimplementedCulpritServiceServer) PersistCulprit(context.Context, *Persis
 func (UnimplementedCulpritServiceServer) GetCulprit(context.Context, *GetCulpritRequest) (*GetCulpritResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCulprit not implemented")
 }
-func (UnimplementedCulpritServiceServer) NotifyUser(context.Context, *NotifyUserRequest) (*NotifyUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method NotifyUser not implemented")
+func (UnimplementedCulpritServiceServer) NotifyUserOfAnomaly(context.Context, *NotifyUserOfAnomalyRequest) (*NotifyUserOfAnomalyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotifyUserOfAnomaly not implemented")
+}
+func (UnimplementedCulpritServiceServer) NotifyUserOfCulprit(context.Context, *NotifyUserOfCulpritRequest) (*NotifyUserOfCulpritResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotifyUserOfCulprit not implemented")
 }
 func (UnimplementedCulpritServiceServer) mustEmbedUnimplementedCulpritServiceServer() {}
 
@@ -147,20 +164,38 @@ func _CulpritService_GetCulprit_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CulpritService_NotifyUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NotifyUserRequest)
+func _CulpritService_NotifyUserOfAnomaly_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotifyUserOfAnomalyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CulpritServiceServer).NotifyUser(ctx, in)
+		return srv.(CulpritServiceServer).NotifyUserOfAnomaly(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CulpritService_NotifyUser_FullMethodName,
+		FullMethod: CulpritService_NotifyUserOfAnomaly_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CulpritServiceServer).NotifyUser(ctx, req.(*NotifyUserRequest))
+		return srv.(CulpritServiceServer).NotifyUserOfAnomaly(ctx, req.(*NotifyUserOfAnomalyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CulpritService_NotifyUserOfCulprit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotifyUserOfCulpritRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CulpritServiceServer).NotifyUserOfCulprit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CulpritService_NotifyUserOfCulprit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CulpritServiceServer).NotifyUserOfCulprit(ctx, req.(*NotifyUserOfCulpritRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -181,8 +216,12 @@ var CulpritService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CulpritService_GetCulprit_Handler,
 		},
 		{
-			MethodName: "NotifyUser",
-			Handler:    _CulpritService_NotifyUser_Handler,
+			MethodName: "NotifyUserOfAnomaly",
+			Handler:    _CulpritService_NotifyUserOfAnomaly_Handler,
+		},
+		{
+			MethodName: "NotifyUserOfCulprit",
+			Handler:    _CulpritService_NotifyUserOfCulprit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

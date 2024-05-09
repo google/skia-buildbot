@@ -50,28 +50,58 @@ func (_m *CulpritServiceServer) GetCulprit(_a0 context.Context, _a1 *v1.GetCulpr
 	return r0, r1
 }
 
-// NotifyUser provides a mock function with given fields: _a0, _a1
-func (_m *CulpritServiceServer) NotifyUser(_a0 context.Context, _a1 *v1.NotifyUserRequest) (*v1.NotifyUserResponse, error) {
+// NotifyUserOfAnomaly provides a mock function with given fields: _a0, _a1
+func (_m *CulpritServiceServer) NotifyUserOfAnomaly(_a0 context.Context, _a1 *v1.NotifyUserOfAnomalyRequest) (*v1.NotifyUserOfAnomalyResponse, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
-		panic("no return value specified for NotifyUser")
+		panic("no return value specified for NotifyUserOfAnomaly")
 	}
 
-	var r0 *v1.NotifyUserResponse
+	var r0 *v1.NotifyUserOfAnomalyResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserRequest) (*v1.NotifyUserResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserOfAnomalyRequest) (*v1.NotifyUserOfAnomalyResponse, error)); ok {
 		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserRequest) *v1.NotifyUserResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserOfAnomalyRequest) *v1.NotifyUserOfAnomalyResponse); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*v1.NotifyUserResponse)
+			r0 = ret.Get(0).(*v1.NotifyUserOfAnomalyResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *v1.NotifyUserRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *v1.NotifyUserOfAnomalyRequest) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// NotifyUserOfCulprit provides a mock function with given fields: _a0, _a1
+func (_m *CulpritServiceServer) NotifyUserOfCulprit(_a0 context.Context, _a1 *v1.NotifyUserOfCulpritRequest) (*v1.NotifyUserOfCulpritResponse, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NotifyUserOfCulprit")
+	}
+
+	var r0 *v1.NotifyUserOfCulpritResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserOfCulpritRequest) (*v1.NotifyUserOfCulpritResponse, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.NotifyUserOfCulpritRequest) *v1.NotifyUserOfCulpritResponse); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*v1.NotifyUserOfCulpritResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *v1.NotifyUserOfCulpritRequest) error); ok {
 		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)

@@ -57,11 +57,11 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 		Return(
 			&culprit_proto.PersistCulpritResponse{
 				CulpritIds: mockCulpritIds}, nil)
-	server.On("NotifyUser", mock.Anything, &culprit_proto.NotifyUserRequest{
+	server.On("NotifyUserOfCulprit", mock.Anything, &culprit_proto.NotifyUserOfCulpritRequest{
 		CulpritIds:     mockCulpritIds,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&culprit_proto.NotifyUserResponse{
+			&culprit_proto.NotifyUserOfCulpritResponse{
 				IssueIds: mockIssueIds}, nil)
 
 	env.ExecuteWorkflow(ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{

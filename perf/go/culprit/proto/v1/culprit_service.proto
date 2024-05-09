@@ -13,8 +13,11 @@ service CulpritService {
   // Fetches a given culprit by id
   rpc GetCulprit(GetCulpritRequest) returns (GetCulpritResponse) {
   }
-  // Takes necessary actions to inform users about the regression.
-  rpc NotifyUser(NotifyUserRequest) returns (NotifyUserResponse) {
+  // Takes necessary actions to inform users about the anomalies.
+  rpc NotifyUserOfAnomaly(NotifyUserOfAnomalyRequest) returns (NotifyUserOfAnomalyResponse) {
+  }
+  // Takes necessary actions to inform users about the culprits.
+  rpc NotifyUserOfCulprit(NotifyUserOfCulpritRequest) returns (NotifyUserOfCulpritResponse) {
   }
 }
 
@@ -44,19 +47,62 @@ message GetCulpritResponse {
   repeated Culprit culprits = 1;
 }
 
-// Request object for NotifyUser rpc.
-message NotifyUserRequest {
+// Request object for NotifyUserOfAnomaly rpc.
+message NotifyUserOfAnomalyRequest {
+  string anomaly_group_id = 1;
+  repeated Anomaly anomaly = 2;
+}
+
+// Response object for NotifyUserOfAnomaly rpc.
+message NotifyUserOfAnomalyResponse {
+  // Id of issue created
+  string issue_id = 1;
+}
+
+// Request object for NotifyUserOfCulprit rpc.
+message NotifyUserOfCulpritRequest {
   // List of culprit ids.
   repeated string culprit_ids = 1;
   // ID of the anomaly group corresponding to the bisection.
   string anomaly_group_id = 2;
 }
 
-
-// Response object for NotifyUser rpc.
-message NotifyUserResponse {
+// Response object for NotifyUserOfCulprit rpc.
+message NotifyUserOfCulpritResponse {
   // List of issue ids created
   repeated string issue_ids = 1;
+}
+
+// Anomaly detected in a test
+// Note: This is (right now) same as Anomaly object in anomalygroup_service.proto. But this has been
+// duplicated because the two protos are used in two different service(culprit & anomlaygroup), and
+// these services can evolve independently
+message Anomaly {
+  // the start commit position of the detected anomaly
+  int64 start_commit = 1;
+  // the end commit position of the detected anomaly
+  int64 end_commit = 2;
+  // the paramset from the regression detected in Skia. The parameters
+  // are used in Skia alerts to define which tests to apply the deteciton
+  // rules.
+  // In chromeperf's context, it should include the following keys:
+  //  - bot:
+  //      the name of the bot (a.k.a, 'builder' in waterfall, and
+  //      'configuration' in pinpoint job page.)
+  //  - benchmark:
+  //      the name of the benchmark
+  //  - story:
+  //      the name of the story (a.k.a., test)
+  //  - measurement:
+  //      the metric to look at. (a.k.a., 'test' in skia query ui,
+  //      and 'chart' in pinpoint job page)
+  //  - stat:
+  //      the aggregation method on the data points
+  map<string, string> paramset = 3;
+  // indicate the direction towards which the change should be
+  // considered as regression.
+  // The possible values are: UP, DOWN or UNKNOWN
+  string improvement_direction = 4;
 }
 
 
