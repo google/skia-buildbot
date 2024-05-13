@@ -16,12 +16,12 @@ import (
 )
 
 func setUp(_ *testing.T) (*culpritService, *anomalygroup_mocks.Store, *culprit_mocks.Store, *subscription_mocks.Store, *notify_mocks.CulpritNotifier) {
-	anomalygroup := new(anomalygroup_mocks.Store)
+	anomalygroupStore := new(anomalygroup_mocks.Store)
 	culpritStore := new(culprit_mocks.Store)
-	notifier := new(notify_mocks.CulpritNotifier)
 	subscriptionStore := new(subscription_mocks.Store)
-	service := New(anomalygroup, culpritStore, subscriptionStore, notifier)
-	return service, anomalygroup, culpritStore, subscriptionStore, notifier
+	notifier := new(notify_mocks.CulpritNotifier)
+	service := New(anomalygroupStore, culpritStore, subscriptionStore, notifier)
+	return service, anomalygroupStore, culpritStore, subscriptionStore, notifier
 }
 
 func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
@@ -40,7 +40,7 @@ func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
 }
 
 func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
-	c, _, culpritStore, _, _ := setUp(t)
+	c, anomalygroupStore, culpritStore, _, _ := setUp(t)
 	ctx := context.Background()
 	commits := []*pb.Commit{{
 		Host:     "chromium.googlesource.com",
@@ -58,7 +58,9 @@ func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
 	req := &pb.PersistCulpritRequest{
 		Commits: commits, AnomalyGroupId: "111",
 	}
-	culpritStore.On("Upsert", mock.Anything, "111", commits).Return(nil, nil)
+	mockCulpritIds := []string{"cid1", "cid2"}
+	culpritStore.On("Upsert", mock.Anything, "111", commits).Return(mockCulpritIds, nil)
+	anomalygroupStore.On("AddCulpritIDs", mock.Anything, "111", mockCulpritIds).Return(nil, nil)
 
 	_, err := c.PersistCulprit(ctx, req)
 

@@ -54,22 +54,12 @@ func (s *culpritService) PersistCulprit(ctx context.Context, req *pb.PersistCulp
 	ids, err := s.culpritStore.Upsert(ctx, req.AnomalyGroupId, req.Commits)
 	if err != nil {
 		return nil, err
-	} else {
-		return &pb.PersistCulpritResponse{CulpritIds: ids}, nil
 	}
-	// TODO(pasthana): Update anomaly group once anomaly table is available in production
-	// notifyReq := &pb.NotifyUserOfCulpritRequest{
-	// 	Culprits:       req.Culprits,
-	// 	AnomalyGroupId: req.AnomalyGroupId,
-	// }
-	// notifyResp, err := s.NotifyUserOfCulprit(context, notifyReq)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// response := &pb.PersistCulpritResponse{
-	// 	IssueId: notifyResp.IssueId,
-	// }
-	// return response, nil
+	err = s.anomalygroupStore.AddCulpritIDs(ctx, req.AnomalyGroupId, ids)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.PersistCulpritResponse{CulpritIds: ids}, nil
 }
 
 func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritRequest) (*pb.GetCulpritResponse, error) {
