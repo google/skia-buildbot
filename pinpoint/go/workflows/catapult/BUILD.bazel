@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "activites.go",
         "catapult_bisect.go",
+        "culprit_finder.go",
         "doc.go",
         "options.go",
         "parsers.go",
@@ -39,6 +40,7 @@ go_test(
     srcs = [
         "activities_test.go",
         "catapult_bisect_test.go",
+        "culprit_finder_test.go",
         "parsers_test.go",
         "write_test.go",
     ],

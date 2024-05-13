@@ -35,7 +35,6 @@ message ScheduleBisectRequest {
 	string statistic = 8;
 
 	// Comparison Magnitude is the expected absolute difference of a potential regression.
-	// Only used in bisections. Default is 1.0.
 	string comparison_magnitude = 9;
 
 	// The Change (Commits + Patch) to apply to every change for all the subsequence runs.
@@ -115,7 +114,8 @@ message BisectExecution {
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/
 // dashboard/services/workflow_service.py;drc=2b42d43ff4989182d28de40ad4ed0dc82356c0f7;l=35
 // The params are defined based off of the keys used in catapult.
-// TODO(sunxiaodi@): Deprecate this once sandwich verification is fully enabled.
+// TODO(sunxiaodi@): Add user-facing try job request params to this request.
+// i.e. extra-browser-args
 message SchedulePairwiseRequest {
 	string start_git_hash = 1;
 	string end_git_hash = 2;
@@ -161,6 +161,52 @@ message PairwiseExecution {
 		double treatment_median = 5;
 	}
 	WilcoxonResult statistic = 3;
+
+	// The culprit is only populated on culprit verification workflows
+	// and if the result is significant
+	CombinedCommit culprit = 4;
+}
+
+// ScheduleCulpritFinderRequest contains the input to schedule an E2E anomaly to culprits
+// workflow. This workflow consists of a regression verification step, a bisection to find
+// culprits, and a culprit verification step.
+// This workflow is also known as the sandwich verification workflow.
+message ScheduleCulpritFinderRequest {
+	string start_git_hash = 1;
+	string end_git_hash = 2;
+
+	// The builder/bot configuration name.
+	string configuration = 3 [json_name = "bot_name"];
+
+	// The Chrome perf benchmark test target.
+	string benchmark = 4;
+
+	// https://chromium.googlesource.com/catapult.git/+/e8367e6/telemetry
+	// The story is usually a test case that runs a set of actions in a certain scenario, and
+	// collects performance histogram data to analyze.
+	string story = 5;
+	string chart = 6 [json_name = "measurement"];
+
+	// The statistic, if there is one, aggregates measurement values into a single data point.
+	string statistic = 7;
+
+	// The improvement direction of the measurement.
+	// Is either Up, Down, or Unknown.
+	string improvement_direction = 8 [json_name = "improvement_dir"];
+
+	// The comparison magnitude is the expected absolute difference of a potential regression.
+	// This parameter is used in bisection.
+	string comparison_magnitude = 9;
+
+	// The buganizer issue id number to post updates to. This is a legacy feature.
+	string bug_id = 10;
+}
+
+message CulpritFinderExecution {
+	// If true, regression_verified means there is a regression
+	bool regression_verified = 1;
+
+	repeated CombinedCommit culprits = 2;
 }
 
 // See LegacyJobResponse below
@@ -287,6 +333,12 @@ service Pinpoint {
 	rpc SchedulePairwise(SchedulePairwiseRequest) returns (PairwiseExecution) {
 		option (google.api.http) = {
 			post: "/pinpoint/v1/pairwise"
+		};
+	}
+
+	rpc ScheduleCulpritFinder(ScheduleCulpritFinderRequest) returns (CulpritFinderExecution) {
+		option (google.api.http) = {
+			post: "/pinpoint/v1/culprit-finder"
 		};
 	}
 }

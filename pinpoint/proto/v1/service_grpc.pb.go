@@ -23,11 +23,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Pinpoint_ScheduleBisection_FullMethodName = "/pinpoint.v1.Pinpoint/ScheduleBisection"
-	Pinpoint_CancelJob_FullMethodName         = "/pinpoint.v1.Pinpoint/CancelJob"
-	Pinpoint_QueryBisection_FullMethodName    = "/pinpoint.v1.Pinpoint/QueryBisection"
-	Pinpoint_LegacyJobQuery_FullMethodName    = "/pinpoint.v1.Pinpoint/LegacyJobQuery"
-	Pinpoint_SchedulePairwise_FullMethodName  = "/pinpoint.v1.Pinpoint/SchedulePairwise"
+	Pinpoint_ScheduleBisection_FullMethodName     = "/pinpoint.v1.Pinpoint/ScheduleBisection"
+	Pinpoint_CancelJob_FullMethodName             = "/pinpoint.v1.Pinpoint/CancelJob"
+	Pinpoint_QueryBisection_FullMethodName        = "/pinpoint.v1.Pinpoint/QueryBisection"
+	Pinpoint_LegacyJobQuery_FullMethodName        = "/pinpoint.v1.Pinpoint/LegacyJobQuery"
+	Pinpoint_SchedulePairwise_FullMethodName      = "/pinpoint.v1.Pinpoint/SchedulePairwise"
+	Pinpoint_ScheduleCulpritFinder_FullMethodName = "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder"
 )
 
 // PinpointClient is the client API for Pinpoint service.
@@ -39,6 +40,7 @@ type PinpointClient interface {
 	QueryBisection(ctx context.Context, in *QueryBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
 	LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error)
 	SchedulePairwise(ctx context.Context, in *SchedulePairwiseRequest, opts ...grpc.CallOption) (*PairwiseExecution, error)
+	ScheduleCulpritFinder(ctx context.Context, in *ScheduleCulpritFinderRequest, opts ...grpc.CallOption) (*CulpritFinderExecution, error)
 }
 
 type pinpointClient struct {
@@ -94,6 +96,15 @@ func (c *pinpointClient) SchedulePairwise(ctx context.Context, in *SchedulePairw
 	return out, nil
 }
 
+func (c *pinpointClient) ScheduleCulpritFinder(ctx context.Context, in *ScheduleCulpritFinderRequest, opts ...grpc.CallOption) (*CulpritFinderExecution, error) {
+	out := new(CulpritFinderExecution)
+	err := c.cc.Invoke(ctx, Pinpoint_ScheduleCulpritFinder_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PinpointServer is the server API for Pinpoint service.
 // All implementations must embed UnimplementedPinpointServer
 // for forward compatibility
@@ -103,6 +114,7 @@ type PinpointServer interface {
 	QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error)
 	LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error)
 	SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error)
+	ScheduleCulpritFinder(context.Context, *ScheduleCulpritFinderRequest) (*CulpritFinderExecution, error)
 	mustEmbedUnimplementedPinpointServer()
 }
 
@@ -124,6 +136,9 @@ func (UnimplementedPinpointServer) LegacyJobQuery(context.Context, *LegacyJobReq
 }
 func (UnimplementedPinpointServer) SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SchedulePairwise not implemented")
+}
+func (UnimplementedPinpointServer) ScheduleCulpritFinder(context.Context, *ScheduleCulpritFinderRequest) (*CulpritFinderExecution, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ScheduleCulpritFinder not implemented")
 }
 func (UnimplementedPinpointServer) mustEmbedUnimplementedPinpointServer() {}
 
@@ -228,6 +243,24 @@ func _Pinpoint_SchedulePairwise_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pinpoint_ScheduleCulpritFinder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ScheduleCulpritFinderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PinpointServer).ScheduleCulpritFinder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Pinpoint_ScheduleCulpritFinder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PinpointServer).ScheduleCulpritFinder(ctx, req.(*ScheduleCulpritFinderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Pinpoint_ServiceDesc is the grpc.ServiceDesc for Pinpoint service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -254,6 +287,10 @@ var Pinpoint_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SchedulePairwise",
 			Handler:    _Pinpoint_SchedulePairwise_Handler,
+		},
+		{
+			MethodName: "ScheduleCulpritFinder",
+			Handler:    _Pinpoint_ScheduleCulpritFinder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

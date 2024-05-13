@@ -44,8 +44,10 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 	}
 
 	var significant bool
+	var culprit *pinpoint_proto.CombinedCommit
 	if res.Verdict == compare.Different {
 		significant = true
+		culprit = (*pinpoint_proto.CombinedCommit)(pairwiseRunnerParams.RightCommit)
 	}
 
 	return &pinpoint_proto.PairwiseExecution{
@@ -58,5 +60,6 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			ControlMedian:            res.XMedian,
 			TreatmentMedian:          res.YMedian,
 		},
+		Culprit: culprit,
 	}, nil
 }

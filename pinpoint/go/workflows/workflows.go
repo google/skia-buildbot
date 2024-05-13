@@ -24,6 +24,7 @@ const (
 	BuildChrome                       = "perf.build_chrome"
 	CatapultBisect                    = "perf.catapult.bisect"
 	ConvertToCatapultResponseWorkflow = "perf.catapult.response"
+	CulpritFinderWorkflow             = "perf.culprit_finder"
 	RunBenchmark                      = "perf.run_benchmark"
 	SingleCommitRunner                = "perf.single_commit_runner"
 	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
@@ -134,6 +135,10 @@ func (bp *BisectParams) GetImprovementDirection() compare.ImprovementDir {
 type PairwiseParams struct {
 	// PairwiseWorkflow reuses SchedulePairwiseRequest proto request
 	Request *pb.SchedulePairwiseRequest
+
+	// CulpritVerify when true states the pairwise job is a culprit
+	// verification job.
+	CulpritVerify bool
 }
 
 // GetInitialAttempt returns the initial attempt as int32.
@@ -168,4 +173,9 @@ func (pp *PairwiseParams) GetImprovementDirection() compare.ImprovementDir {
 		return compare.Down
 	}
 	return compare.UnknownDir
+}
+
+type CulpritFinderParams struct {
+	// CulpritFinderParams embeds the pinpoint proto ScheduleCulpritFinderRequest
+	Request *pb.ScheduleCulpritFinderRequest
 }
