@@ -41,7 +41,7 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
-	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.Bisect, mock.Anything).Return(wfm, nil)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CatapultBisect, mock.Anything).Return(wfm, nil)
 
 	ctx := context.Background()
 	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
