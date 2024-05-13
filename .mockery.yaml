@@ -130,6 +130,9 @@ packages:
   go.skia.org/infra/go/swarming:
     interfaces:
       ApiClient:
+  go.skia.org/infra/go/swarming/v2:
+    interfaces:
+      SwarmingV2Client:
   go.skia.org/infra/go/vcsinfo:
     interfaces:
       VCS:

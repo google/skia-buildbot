@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "swarming",
+    srcs = ["swarming.go"],
+    importpath = "go.skia.org/infra/go/swarming/v2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cas/rbe",
+        "//go/skerr",
+        "//go/swarming",
+        "@org_chromium_go_luci//grpc/prpc",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+    ],
+)
+
+go_test(
+    name = "swarming_test",
+    srcs = ["swarming_test.go"],
+    embed = [":swarming"],
+    deps = [
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+    ],
+)

@@ -9,6 +9,8 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"go.chromium.org/luci/common/retry"
+	"go.chromium.org/luci/grpc/prpc"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
@@ -31,7 +33,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
-	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	swarming_task_execution_v1 "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	swarming_task_execution_v2 "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -48,29 +51,28 @@ const (
 
 var (
 	// Flags.
-	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	debugBusyBots     = flag.Bool("debug-busy-bots", false, "If set, dump debug information in the busy-bots module.")
-	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
-	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	rbeInstance       = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
-	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools     = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use.")
-	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
-	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	diagnosticsBucket = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-
+	btInstance           = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject            = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	debugBusyBots        = flag.Bool("debug-busy-bots", false, "If set, dump debug information in the busy-bots module.")
+	port                 = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	firestoreInstance    = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable        = flag.String("gitstore_bt_table", "git-repos2", "BigTable table used for GitStore.")
+	local                = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	rbeInstance          = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
+	repoUrls             = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	scoreDecay24Hr       = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools        = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use.")
+	swarmingServer       = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod           = flag.String("timeWindow", "4d", "Time period to use.")
+	commitWindow         = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	diagnosticsBucket    = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
+	promPort             = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
+	swarmingAPIv2        = flag.Bool("swarming-api-v2", false, "If set, use Swarming API v2")
 )
 
 func main() {
-
 	// Global init.
 	common.InitWithMust(
 		APP_NAME,
@@ -137,10 +139,6 @@ func main() {
 	// Initialize Swarming client.
 	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
 	cfg.RequestTimeout = time.Minute
-	swarm, err := swarming.NewApiClient(cfg.Client(), *swarmingServer)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
 	if err != nil {
@@ -161,13 +159,43 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 
-	// Create and start the task scheduler.
-	sklog.Infof("Creating task scheduler.")
-	swarmingTaskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
+	// Create the task executor.
+	var swarmingTaskExec types.TaskExecutor
+	if *swarmingAPIv2 {
+		prpcClient := &prpc.Client{
+			C:    httpClient,
+			Host: *swarmingServer,
+			Options: &prpc.Options{
+				Retry: func() retry.Iterator {
+					return &retry.ExponentialBackoff{
+						MaxDelay: time.Minute,
+						Limited: retry.Limited{
+							Delay:   time.Second,
+							Retries: 10,
+						},
+					}
+				},
+				// The swarming server has an internal 60-second deadline for responding to
+				// requests, so 90 seconds shouldn't cause any requests to fail that would
+				// otherwise succeed.
+				PerRPCTimeout: 90 * time.Second,
+			},
+		}
+		swarmingTaskExec = swarming_task_execution_v2.NewSwarmingV2TaskExecutor(prpcClient, *rbeInstance, *pubsubTopicName)
+	} else {
+		swarm, err := swarming.NewApiClient(cfg.Client(), *swarmingServer)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		swarmingTaskExec = swarming_task_execution_v1.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
+	}
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
 	}
+
+	// Create and start the task scheduler.
+	sklog.Infof("Creating task scheduler.")
 	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, cas, *rbeInstance, taskExecs, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, tokenSource, diagClient, diagInstance, scheduling.BusyBotsDebugLog(*debugBusyBots))
 	if err != nil {
 		sklog.Fatal(err)

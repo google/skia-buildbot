@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["SwarmingV2Client.go"],
+    importpath = "go.skia.org/infra/go/swarming/v2/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_stretchr_testify//mock",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)
