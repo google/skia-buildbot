@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func setupProcessCulprit(t *testing.T) (string, *culprit_mock.CulpritServiceServer, func()) {
+func setupCulpritService(t *testing.T) (string, *culprit_mock.CulpritServiceServer, func()) {
 	lis, err := net.Listen("tcp", "localhost:9000")
 	require.NoError(t, err)
 	s := grpc.NewServer()
@@ -28,7 +28,7 @@ func setupProcessCulprit(t *testing.T) (string, *culprit_mock.CulpritServiceServ
 }
 
 func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
-	addr, server, cleanup := setupProcessCulprit(t)
+	addr, service, cleanup := setupCulpritService(t)
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -51,13 +51,13 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	anomalyGroupId := "111"
 	mockCulpritIds := []string{"c1", "c2"}
 	mockIssueIds := []string{"b1", "b2"}
-	server.On("PersistCulprit", mock.Anything, &culprit_proto.PersistCulpritRequest{
+	service.On("PersistCulprit", mock.Anything, &culprit_proto.PersistCulpritRequest{
 		Commits:        commits,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
 			&culprit_proto.PersistCulpritResponse{
 				CulpritIds: mockCulpritIds}, nil)
-	server.On("NotifyUserOfCulprit", mock.Anything, &culprit_proto.NotifyUserOfCulpritRequest{
+	service.On("NotifyUserOfCulprit", mock.Anything, &culprit_proto.NotifyUserOfCulpritRequest{
 		CulpritIds:     mockCulpritIds,
 		AnomalyGroupId: anomalyGroupId}).
 		Return(

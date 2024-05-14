@@ -1,41 +1,10 @@
 package internal
 
 import (
-	"context"
-
-	backend "go.skia.org/infra/perf/go/backend/client"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
 	"go.temporal.io/sdk/workflow"
 )
-
-type CulpritServiceActivity struct {
-	insecure_conn bool
-}
-
-func (csa *CulpritServiceActivity) PeristCulprit(ctx context.Context, culpritServiceUrl string, req *pb.PersistCulpritRequest) (*pb.PersistCulpritResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := client.PersistCulprit(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (csa *CulpritServiceActivity) NotifyUser(ctx context.Context, culpritServiceUrl string, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
-	client, err := backend.NewCulpritServiceClient(culpritServiceUrl, csa.insecure_conn)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := client.NotifyUserOfCulprit(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
 
 // Handles processing of identified culprits.
 // Stores culprit data in a persistant storage and notifies users accordingly.
@@ -45,17 +14,15 @@ func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpri
 	var resp2 *pb.NotifyUserOfCulpritResponse
 	var err error
 	var csa CulpritServiceActivity
-	err = workflow.ExecuteActivity(ctx, csa.PeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
+	if err = workflow.ExecuteActivity(ctx, csa.PeristCulprit, input.CulpritServiceUrl, &pb.PersistCulpritRequest{
 		Commits:        input.Commits,
 		AnomalyGroupId: input.AnomalyGroupId,
-	}).Get(ctx, &resp1)
-	if err != nil {
+	}).Get(ctx, &resp1); err != nil {
 		return nil, err
 	}
-	err = workflow.ExecuteActivity(ctx, csa.NotifyUser, input.CulpritServiceUrl, &pb.NotifyUserOfCulpritRequest{
+	if err = workflow.ExecuteActivity(ctx, csa.NotifyUserOfCulprit, input.CulpritServiceUrl, &pb.NotifyUserOfCulpritRequest{
 		CulpritIds:     resp1.CulpritIds,
-		AnomalyGroupId: input.AnomalyGroupId}).Get(ctx, &resp2)
-	if err != nil {
+		AnomalyGroupId: input.AnomalyGroupId}).Get(ctx, &resp2); err != nil {
 		return nil, err
 	}
 	return &workflows.ProcessCulpritResult{

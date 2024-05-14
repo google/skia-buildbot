@@ -28,6 +28,7 @@ type ProcessCulpritResult struct {
 
 type MaybeTriggerBisectionParam struct {
 	AnomalyGroupServiceUrl string
+	CulpritServiceUrl      string
 	AnomalyGroupId         string
 }
 

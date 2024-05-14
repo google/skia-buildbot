@@ -4,6 +4,9 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "internal",
     srcs = [
+        "anomalygroup_service_activity.go",
+        "culprit_service_activity.go",
+        "gerrit_service_activity.go",
         "maybe_trigger_bisection.go",
         "options.go",
         "process_culprit.go",
