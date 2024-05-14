@@ -2,12 +2,11 @@ package supported_branches
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
@@ -15,6 +14,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/supported_branches"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -22,17 +22,17 @@ import (
 const (
 	// This metric indicates whether or not a given branch has a valid
 	// commit queue config; its value is 0 (false) or 1 (true).
-	METRIC_BRANCH_EXISTS = "cq_cfg_branch_exists"
+	metricBranchExists = "cq_cfg_branch_exists"
 
 	// This metric indicates whether or not a given CQ tryjob for a
 	// particular branch exists in tasks.json for that branch; its value
 	// is 0 (false) or 1 (true).
-	METRIC_TRYJOB_EXISTS = "cq_cfg_tryjob_exists"
+	metricTryJobExists = "cq_cfg_tryjob_exists"
 
 	// This metric indicates whether or not bots exist which are able to run
 	// a given CQ tryjob for a given branch. Its value is 0 (false) or 1
 	// (true).
-	METRIC_BOT_EXISTS = "cq_cfg_bot_exists_for_tryjob"
+	metricBotExists = "cq_cfg_bot_exists_for_tryjob"
 )
 
 // botCanRunTask returns true iff a bot with the given dimensions is able to
@@ -56,7 +56,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 			sklog.Infof("Skipping repo %s; no supported branches file found.", repo.URL())
 			return nil
 		}
-		return fmt.Errorf("Failed to get supported branches for %s: %s", repo.URL(), err)
+		return skerr.Wrapf(err, "failed to get supported branches for %s", repo.URL())
 	}
 	for _, branch := range sbc.Branches {
 		// Find the CQ trybots for this branch.
@@ -64,7 +64,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to get CQ config for %s and %s", repo.URL(), branch.Ref)
 		}
-		branchExistsMetric := metrics2.GetInt64Metric(METRIC_BRANCH_EXISTS, map[string]string{
+		branchExistsMetric := metrics2.GetInt64Metric(metricBranchExists, map[string]string{
 			"repo":   repo.URL(),
 			"branch": branch.Ref,
 		})
@@ -78,11 +78,11 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		// Obtain the tasks cfg for this branch.
 		tasksContents, err := repo.ReadFileAtRef(context.Background(), specs.TASKS_CFG_FILE, branch.Ref)
 		if err != nil {
-			return fmt.Errorf("Failed to read %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL(), err)
+			return skerr.Wrapf(err, "failed to read %s on %s of %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL())
 		}
 		tasksCfg, err := specs.ParseTasksCfg(string(tasksContents))
 		if err != nil {
-			return fmt.Errorf("Failed to parse %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL(), err)
+			return skerr.Wrapf(err, "failed to parse %s on %s of %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL())
 		}
 
 		// Determine whether each tryjob exists in the tasks cfg.
@@ -92,7 +92,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 			if ok {
 				jobExists = 1
 			}
-			jobExistsMetric := metrics2.GetInt64Metric(METRIC_TRYJOB_EXISTS, map[string]string{
+			jobExistsMetric := metrics2.GetInt64Metric(metricTryJobExists, map[string]string{
 				"repo":   repo.URL(),
 				"branch": branch.Ref,
 				"tryjob": job,
@@ -122,7 +122,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 				for taskName, taskSpec := range tasks {
 					taskDims, err := swarming.ParseDimensions(taskSpec.Dimensions)
 					if err != nil {
-						return fmt.Errorf("Failed to parse dimensions for %s on %s; %s\ndims: %+v", taskName, branch.Ref, err, taskSpec.Dimensions)
+						return skerr.Wrapf(err, "failed to parse dimensions for %s on %s; dims: %+v", taskName, branch.Ref, taskSpec.Dimensions)
 					}
 					canRunTask := false
 					for _, botDims := range botDimsList {
@@ -137,7 +137,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 						break
 					}
 				}
-				botExistsMetric := metrics2.GetInt64Metric(METRIC_BOT_EXISTS, map[string]string{
+				botExistsMetric := metrics2.GetInt64Metric(metricBotExists, map[string]string{
 					"repo":   repo.URL(),
 					"branch": branch.Ref,
 					"tryjob": job,
@@ -151,18 +151,19 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 }
 
 // Perform one iteration of supported branch metrics.
-func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, swarm swarming.ApiClient, pools []string) (map[metrics2.Int64Metric]struct{}, error) {
+func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.Int64Metric]struct{}, swarm swarmingv2.SwarmingV2Client, pools []string) (map[metrics2.Int64Metric]struct{}, error) {
 	// Get all of the Swarming bots.
-	bots := []*swarming_api.SwarmingRpcsBotInfo{}
+	bots := []*apipb.BotInfo{}
 	for _, pool := range pools {
-		call := swarm.SwarmingService().Bots.List()
-		// Copied from apiClient.ListFreeBots. We don't want to count dead or
-		// quarantined bots, but it doesn't matter if they are busy or free at the
-		// moment.
-		call.Dimensions(fmt.Sprintf("%s:%s", swarming.DIMENSION_POOL_KEY, pool))
-		call.IsDead("FALSE")
-		call.Quarantined("FALSE")
-		b, err := swarming.ProcessBotsListCall(ctx, call)
+		// We don't want to count dead or quarantined bots, but it
+		// doesn't matter if they are busy or free at the moment.
+		b, err := swarmingv2.ListBotsHelper(ctx, swarm, &apipb.BotsRequest{
+			Dimensions: []*apipb.StringPair{
+				{Key: swarming.DIMENSION_POOL_KEY, Value: pool},
+			},
+			IsDead:      apipb.NullableBool_FALSE,
+			Quarantined: apipb.NullableBool_FALSE,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +174,7 @@ func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.I
 	// TODO(borenet): Can we exclude duplicates?
 	botDimsList := make([]map[string][]string, 0, len(bots))
 	for _, bot := range bots {
-		botDimsList = append(botDimsList, swarming.BotDimensionsToStringMap(bot.Dimensions))
+		botDimsList = append(botDimsList, swarmingv2.BotDimensionsToStringMap(bot.Dimensions))
 	}
 
 	// Calculate metrics for each repo.
@@ -200,7 +201,7 @@ func cycle(ctx context.Context, repos []*gitiles.Repo, oldMetrics map[metrics2.I
 }
 
 // Start collecting metrics for supported branches.
-func Start(ctx context.Context, repoUrls []string, client *http.Client, swarm swarming.ApiClient, pools []string) {
+func Start(ctx context.Context, repoUrls []string, client *http.Client, swarm swarmingv2.SwarmingV2Client, pools []string) {
 	repos := make([]*gitiles.Repo, 0, len(repoUrls))
 	for _, repo := range repoUrls {
 		repos = append(repos, gitiles.NewRepo(repo, client))

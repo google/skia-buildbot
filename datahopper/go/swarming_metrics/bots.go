@@ -3,24 +3,26 @@ package swarming_metrics
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	MEASUREMENT_SWARM_BOTS_BUSY        = "swarming_bots_busy"
-	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
-	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
-	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
-	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP = "swarming_bots_device_temp"
-	MEASUREMENT_SWARM_BOTS_UPTIME      = "swarming_bots_uptime_s"
+	measurementSwarmingBotsBusy        = "swarming_bots_busy"
+	measurementSwarmingBotsLastSeen    = "swarming_bots_last_seen"
+	measurementSwarmingBotsQuarantined = "swarming_bots_quarantined"
+	measurementSwarmingBotsLastTask    = "swarming_bots_last_task"
+	measurementSwarmingBotsDeviceTemp  = "swarming_bots_device_temp"
+	measurementSwarmingBotsUptime      = "swarming_bots_uptime_s"
 )
 
 var ignoreBatteries = []*regexp.Regexp{
@@ -49,21 +51,17 @@ func cleanupOldMetrics(oldMetrics []metrics2.Int64Metric) []metrics2.Int64Metric
 // reportBotMetrics reports information about the bots in the given pool
 // to the metrics client. This includes if the bot is quarantined and
 // how long ago we saw the bot.
-func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiClient, metricsClient metrics2.Client, pool, server string) ([]metrics2.Int64Metric, error) {
+func reportBotMetrics(ctx context.Context, now time.Time, client swarmingv2.SwarmingV2Client, metricsClient metrics2.Client, pool, server string) ([]metrics2.Int64Metric, error) {
 	sklog.Infof("Loading Swarming bot data for pool %s", pool)
-	bots, err := client.ListBotsForPool(ctx, pool)
+	bots, err := swarmingv2.ListBotsForPool(ctx, client, pool)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get list of bots for pool %s: %s", pool, err)
+		return nil, skerr.Wrapf(err, "could not get list of bots for pool %s", pool)
 	}
 	sklog.Infof("  Found %d bots in pool %s", len(bots), pool)
 
 	newMetrics := []metrics2.Int64Metric{}
 	for _, bot := range bots {
-		last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
-		if err != nil {
-			sklog.Errorf("Malformed last seen time in bot: %s", err)
-			continue
-		}
+		lastSeenTime := bot.LastSeenTs.AsTime().UTC()
 
 		var deviceOs string
 		var deviceType string
@@ -117,8 +115,8 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 		}
 
 		// Bot last seen <duration> ago.
-		m1 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
-		m1.Update(int64(now.Sub(last)))
+		m1 := metricsClient.GetInt64Metric(measurementSwarmingBotsLastSeen, tags)
+		m1.Update(int64(now.Sub(lastSeenTime)))
 		newMetrics = append(newMetrics, m1)
 
 		for _, reason := range device_state_guages {
@@ -131,31 +129,29 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 			if bot.Quarantined && reason == currDeviceState {
 				quarantined = int64(1)
 			}
-			m2 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, quarantinedTags)
+			m2 := metricsClient.GetInt64Metric(measurementSwarmingBotsQuarantined, quarantinedTags)
 			m2.Update(quarantined)
 			newMetrics = append(newMetrics, m2)
 		}
 
 		// Last task performed <duration> ago
-		lastTasks, err := client.ListBotTasks(ctx, bot.BotId, 1)
+		lastTasks, err := client.ListBotTasks(ctx, &apipb.BotTasksRequest{
+			BotId: bot.BotId,
+			Limit: 1,
+		})
 		if err != nil {
 			sklog.Errorf("Problem getting tasks that bot %s has run: %s", bot.BotId, err)
 			continue
 		}
-		ts := ""
-		if len(lastTasks) == 0 {
-			ts = bot.FirstSeenTs
+		var lastTaskTime time.Time
+		if len(lastTasks.Items) == 0 {
+			lastTaskTime = bot.FirstSeenTs.AsTime()
 		} else {
-			ts = lastTasks[0].ModifiedTs
+			lastTaskTime = lastTasks.Items[0].ModifiedTs.AsTime()
 		}
 
-		last, err = time.Parse("2006-01-02T15:04:05", ts)
-		if err != nil {
-			sklog.Errorf("Malformed last modified time in bot %s's last task %q: %s", bot.BotId, ts, err)
-			continue
-		}
-		m3 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_TASK, tags)
-		m3.Update(int64(now.Sub(last)))
+		m3 := metricsClient.GetInt64Metric(measurementSwarmingBotsLastTask, tags)
+		m3.Update(int64(now.Sub(lastTaskTime)))
 		newMetrics = append(newMetrics, m3)
 
 		if bot.State != "" {
@@ -168,7 +164,7 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 			for zone, temp := range st.BotTemperatureMap {
 				tempTags := util.CopyStringMap(tags)
 				tempTags["temp_zone"] = zone
-				m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
+				m4 := metricsClient.GetInt64Metric(measurementSwarmingBotsDeviceTemp, tempTags)
 				// Round to nearest whole number
 				m4.Update(int64(temp + 0.5))
 				newMetrics = append(newMetrics, m4)
@@ -180,7 +176,7 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 						// Avoid conflicts if there's a "battery" in DevTemperatureMap
 						tempTags := util.CopyStringMap(tags)
 						tempTags["temp_zone"] = "battery_direct"
-						m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
+						m4 := metricsClient.GetInt64Metric(measurementSwarmingBotsDeviceTemp, tempTags)
 						// Round to nearest whole number, keeping in mind that the battery
 						// temperature is given in tenths of a degree C
 						temp, ok := t.(float64)
@@ -202,7 +198,7 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 					}
 					tempTags := util.CopyStringMap(tags)
 					tempTags["temp_zone"] = zone
-					m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tempTags)
+					m4 := metricsClient.GetInt64Metric(measurementSwarmingBotsDeviceTemp, tempTags)
 					if strings.HasPrefix(zone, "tsens_tz_sensor") && temp > 200 {
 						// These sensors are sometimes in deci°C, so we divide by 10
 						m4.Update(int64(temp+5) / 10)
@@ -216,14 +212,14 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarming.ApiCli
 				break
 			}
 
-			uptimeMetric := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_UPTIME, tags)
+			uptimeMetric := metricsClient.GetInt64Metric(measurementSwarmingBotsUptime, tags)
 			uptimeMetric.Update(st.UptimeSeconds)
 			newMetrics = append(newMetrics, uptimeMetric)
 
 		}
 
 		// Bot is currently busy/idle.
-		m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_BUSY, tags)
+		m4 := metricsClient.GetInt64Metric(measurementSwarmingBotsBusy, tags)
 		busy := int64(0)
 		if bot.TaskId != "" {
 			busy = int64(1)
@@ -250,7 +246,7 @@ type androidDevice struct {
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting
 // metrics every 2 minutes.
-func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmingPools []string, client swarming.ApiClient, metricsClient metrics2.Client) {
+func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmingPools []string, client swarmingv2.SwarmingV2Client, metricsClient metrics2.Client) {
 	for _, pool := range swarmingPools {
 		pool := pool
 		lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{

@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/metrics2"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/swarming/v2/mocks"
 	"go.skia.org/infra/go/testutils"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -30,9 +30,8 @@ func getPromClient() metrics2.Client {
 }
 
 func TestDeadQuarantinedBotMetrics(t *testing.T) {
-
 	ctx := context.Background()
-	ms := &mocks.ApiClient{}
+	ms := &mocks.SwarmingV2Client{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
@@ -77,27 +76,45 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		},
 	}
 
-	b := []*swarming_api.SwarmingRpcsBotInfo{}
+	b := []*apipb.BotInfo{}
 	for _, e := range ex {
-		dims := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(e.dimensions))
+		dims := make([]*apipb.StringListPair, 0, len(e.dimensions))
 		for k, v := range e.dimensions {
-			dims = append(dims, &swarming_api.SwarmingRpcsStringListPair{
+			dims = append(dims, &apipb.StringListPair{
 				Key:   k,
 				Value: v,
 			})
 		}
-		b = append(b, &swarming_api.SwarmingRpcsBotInfo{
+		b = append(b, &apipb.BotInfo{
 			BotId:       e.botID,
-			LastSeenTs:  now.Add(-e.lastSeenDelta).Format("2006-01-02T15:04:05"),
+			LastSeenTs:  timestamppb.New(now.Add(-e.lastSeenDelta)),
 			IsDead:      e.isDead,
 			Quarantined: e.quarantined,
-			FirstSeenTs: now.Add(-24 * time.Hour).Format("2006-01-02T15:04:05"),
+			FirstSeenTs: timestamppb.New(now.Add(-24 * time.Hour)),
 			Dimensions:  dims,
 		})
 	}
 
-	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return(b, nil)
-	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{}, nil)
+	ms.On("ListBots", testutils.AnyContext, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: MOCK_POOL},
+		},
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: b,
+	}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "bot-a",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "bot-b",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "bot-c",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()
 
@@ -127,9 +144,9 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
 		// that can read Scientific notation.
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags), 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, measurementSwarmingBotsLastSeen, tags), 64)
 		require.NoError(t, err)
-		require.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN)
+		require.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", measurementSwarmingBotsLastSeen)
 
 		toCheck := []string{"too_hot", "low_battery", "available", "<none>"}
 		for _, extraTag := range toCheck {
@@ -140,7 +157,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 			if e.quarantined && extraTag == "<none>" {
 				expected = 1
 			}
-			require.Equalf(t, int64(expected), int64(actual), "Wrong is quarantined for metric %s + tag %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, extraTag)
+			require.Equalf(t, int64(expected), int64(actual), "Wrong is quarantined for metric %s + tag %s", measurementSwarmingBotsQuarantined, extraTag)
 		}
 
 	}
@@ -149,45 +166,57 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 func TestLastTaskBotMetrics(t *testing.T) {
 
 	ctx := context.Background()
-	ms := &mocks.ApiClient{}
+	ms := &mocks.SwarmingV2Client{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
-		{
-			BotId:       "my-bot",
-			LastSeenTs:  now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
-			IsDead:      false,
-			Quarantined: false,
-			Dimensions: []*swarming_api.SwarmingRpcsStringListPair{
-				{
-					Key:   swarming.DIMENSION_OS_KEY,
-					Value: []string{"Android"},
-				},
-				{
-					Key:   swarming.DIMENSION_DEVICE_TYPE_KEY,
-					Value: []string{"Nexus5x"},
-				},
-				{
-					Key:   swarming.DIMENSION_DEVICE_OS_KEY,
-					Value: []string{"P", "PPR1.180610.009"},
-				},
-				{
-					Key:   swarming.DIMENSION_GPU_KEY,
-					Value: []string{"102b:0534"},
-				},
-				{
-					Key:   swarming.DIMENSION_QUARANTINED_KEY,
-					Value: []string{"Device Missing"},
+	ms.On("ListBots", testutils.AnyContext, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: MOCK_POOL},
+		},
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: []*apipb.BotInfo{
+			{
+				BotId:       "my-bot",
+				LastSeenTs:  timestamppb.New(now.Add(-time.Minute)),
+				IsDead:      false,
+				Quarantined: false,
+				Dimensions: []*apipb.StringListPair{
+					{
+						Key:   swarming.DIMENSION_OS_KEY,
+						Value: []string{"Android"},
+					},
+					{
+						Key:   swarming.DIMENSION_DEVICE_TYPE_KEY,
+						Value: []string{"Nexus5x"},
+					},
+					{
+						Key:   swarming.DIMENSION_DEVICE_OS_KEY,
+						Value: []string{"P", "PPR1.180610.009"},
+					},
+					{
+						Key:   swarming.DIMENSION_GPU_KEY,
+						Value: []string{"102b:0534"},
+					},
+					{
+						Key:   swarming.DIMENSION_QUARANTINED_KEY,
+						Value: []string{"Device Missing"},
+					},
 				},
 			},
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", testutils.AnyContext, "my-bot", 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
-		{
-			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "my-bot",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{
+		Items: []*apipb.TaskResultResponse{
+			{
+				ModifiedTs: timestamppb.New(now.Add(-31 * time.Minute)),
+			},
 		},
 	}, nil)
 
@@ -210,35 +239,41 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	// even though this is a (really big) int, JSON notation returns scientific notation
 	// for large enough ints, which means we need to ParseFloat, the only parser we have
 	// that can read Scientific notation.
-	actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_LAST_TASK, tags), 64)
+	actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, measurementSwarmingBotsLastTask, tags), 64)
 	require.NoError(t, err)
-	require.Equalf(t, int64(31*time.Minute), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_TASK)
+	require.Equalf(t, int64(31*time.Minute), int64(actual), "Wrong last seen time for metric %s", measurementSwarmingBotsLastTask)
 
 }
 
 func TestBotTemperatureMetrics(t *testing.T) {
 
 	ctx := context.Background()
-	ms := &mocks.ApiClient{}
+	ms := &mocks.SwarmingV2Client{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
-		{
-			BotId:      "my-bot-no-temp",
-			LastSeenTs: now.Add(-3 * time.Minute).Format("2006-01-02T15:04:05"),
-			State:      `{}`,
+	ms.On("ListBots", testutils.AnyContext, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: MOCK_POOL},
 		},
-		{
-			BotId:      "my-bot-no-device",
-			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
-			State:      `{"temp": {"thermal_zone0": 27.8,"thermal_zone1": 29.8,"thermal_zone2": 36}}`,
-		},
-		{
-			BotId:      "my-bot-device",
-			LastSeenTs: now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
-			State: `{
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: []*apipb.BotInfo{
+			{
+				BotId:      "my-bot-no-temp",
+				LastSeenTs: timestamppb.New(now.Add(-3 * time.Minute)),
+				State:      `{}`,
+			},
+			{
+				BotId:      "my-bot-no-device",
+				LastSeenTs: timestamppb.New(now.Add(-2 * time.Minute)),
+				State:      `{"temp": {"thermal_zone0": 27.8,"thermal_zone1": 29.8,"thermal_zone2": 36}}`,
+			},
+			{
+				BotId:      "my-bot-device",
+				LastSeenTs: timestamppb.New(now.Add(-time.Minute)),
+				State: `{
 				"temp": {"thermal_zone0": 42.5000000000000000000000000000001},
 				"devices": {
 						"abcdefg": {
@@ -259,14 +294,22 @@ func TestBotTemperatureMetrics(t *testing.T) {
 						}
 					}
 				}`,
+			},
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
-		{
-			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
-		},
-	}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "my-bot-no-temp",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "my-bot-no-device",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "my-bot-device",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()
 
@@ -291,9 +334,9 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			swarming.DIMENSION_GPU_KEY:         "",
 			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, measurementSwarmingBotsDeviceTemp, tags), 64)
 		require.NoError(t, err)
-		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", measurementSwarmingBotsDeviceTemp, z)
 	}
 
 	expected = map[string]float64{
@@ -317,33 +360,39 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			swarming.DIMENSION_GPU_KEY:         "",
 			swarming.DIMENSION_QUARANTINED_KEY: "",
 		}
-		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, measurementSwarmingBotsDeviceTemp, tags), 64)
 		require.NoError(t, err)
-		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		require.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", measurementSwarmingBotsDeviceTemp, z)
 	}
 }
 
 func TestBotUptimeMetrics(t *testing.T) {
 
 	ctx := context.Background()
-	ms := &mocks.ApiClient{}
+	ms := &mocks.SwarmingV2Client{}
 	defer ms.AssertExpectations(t)
 
 	now := time.Date(2017, 9, 1, 12, 0, 0, 0, time.UTC)
 
-	ms.On("ListBotsForPool", testutils.AnyContext, MOCK_POOL).Return([]*swarming_api.SwarmingRpcsBotInfo{
-		{
-			BotId:      "my-bot",
-			LastSeenTs: now.Add(-2 * time.Minute).Format("2006-01-02T15:04:05"),
-			State:      `{"uptime": 153}`,
+	ms.On("ListBots", testutils.AnyContext, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: MOCK_POOL},
+		},
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: []*apipb.BotInfo{
+			{
+				BotId:      "my-bot",
+				LastSeenTs: timestamppb.New(now.Add(-2 * time.Minute)),
+				State:      `{"uptime": 153}`,
+			},
 		},
 	}, nil)
 
-	ms.On("ListBotTasks", testutils.AnyContext, mock.AnythingOfType("string"), 1).Return([]*swarming_api.SwarmingRpcsTaskResult{
-		{
-			ModifiedTs: now.Add(-31 * time.Minute).Format("2006-01-02T15:04:05"),
-		},
-	}, nil)
+	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
+		BotId: "my-bot",
+		Limit: 1,
+	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()
 
@@ -351,6 +400,6 @@ func TestBotUptimeMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	tags := map[string]string{}
-	actual := metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_UPTIME, tags)
+	actual := metrics_util.GetRecordedMetric(t, measurementSwarmingBotsUptime, tags)
 	require.Equal(t, "153", actual)
 }

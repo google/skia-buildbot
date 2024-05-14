@@ -13,8 +13,9 @@ go_library(
         "//go/sklog",
         "//go/supported_branches",
         "//go/swarming",
+        "//go/swarming/v2:swarming",
         "//go/util",
         "//task_scheduler/go/specs",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

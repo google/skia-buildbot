@@ -55,6 +55,15 @@ func ListBotsHelper(ctx context.Context, c apipb.BotsClient, req *apipb.BotsRequ
 	return rv, nil
 }
 
+// ListBotsForPool retrieves all of the bots in the given pool.
+func ListBotsForPool(ctx context.Context, c apipb.BotsClient, pool string) ([]*apipb.BotInfo, error) {
+	return ListBotsHelper(ctx, c, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: pool},
+		},
+	})
+}
+
 // ListTasksHelper makes multiple paginated requests to ListTasks to retrieve
 // all results.
 func ListTasksHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskResultResponse, error) {
@@ -106,4 +115,16 @@ func MakeCASReference(digest, casInstance string) (*apipb.CASReference, error) {
 			SizeBytes: size,
 		},
 	}, nil
+}
+
+// GetTaskRequestProperties returns the SwarmingRpcsTaskProperties for the given
+// SwarmingRpcsTaskRequestMetadata.
+func GetTaskRequestProperties(t *apipb.TaskRequestResponse) *apipb.TaskProperties {
+	if len(t.TaskSlices) > 0 {
+		// TODO(borenet): It would probably be better to determine which
+		// (if any) of the TaskSlices actually ran, rather than assuming
+		// it was the first.
+		return t.TaskSlices[0].Properties
+	}
+	return t.Properties
 }
