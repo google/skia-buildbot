@@ -16,8 +16,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
-	"go.chromium.org/luci/common/retry"
-	"go.chromium.org/luci/grpc/prpc"
 	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/alogin"
@@ -384,26 +382,7 @@ func main() {
 	// Initialize Swarming client.
 	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
 	httpClient := cfg.Client()
-	prpcClient := &prpc.Client{
-		C:    httpClient,
-		Host: *swarmingServer,
-		Options: &prpc.Options{
-			Retry: func() retry.Iterator {
-				return &retry.ExponentialBackoff{
-					MaxDelay: time.Minute,
-					Limited: retry.Limited{
-						Delay:   time.Second,
-						Retries: 10,
-					},
-				}
-			},
-			// The swarming server has an internal 60-second deadline for responding to
-			// requests, so 90 seconds shouldn't cause any requests to fail that would
-			// otherwise succeed.
-			PerRPCTimeout: 90 * time.Second,
-		},
-	}
-	swarm := swarmingv2.NewClient(prpcClient)
+	swarm := swarmingv2.NewDefaultClient(httpClient, *swarmingServer)
 
 	// Auto-update the git repos.
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, func(_ context.Context, _ string, _ *repograph.Graph, ack, _ func()) error {

@@ -8,8 +8,11 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/cas/rbe",
+        "//go/cipd",
         "//go/skerr",
+        "//go/sklog",
         "//go/swarming",
+        "@org_chromium_go_luci//common/retry",
         "@org_chromium_go_luci//grpc/prpc",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],

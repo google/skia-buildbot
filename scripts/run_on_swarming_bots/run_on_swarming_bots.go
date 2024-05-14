@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"golang.org/x/oauth2/google"
 	"golang.org/x/sync/errgroup"
 
@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 )
 
@@ -95,10 +96,7 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Swarming API client.
-	swarmApi, err := swarming.NewApiClient(httpClient, swarmingServer)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	swarmApi := swarmingv2.NewDefaultClient(httpClient, swarmingServer)
 
 	// Are we re-running a previous set of tasks?
 	if *rerun != "" {
@@ -107,12 +105,14 @@ func main() {
 	}
 
 	// Obtain the list of bots.
-	bots, err := swarmApi.ListBots(ctx, dims)
+	bots, err := swarmingv2.ListBotsHelper(ctx, swarmApi, &apipb.BotsRequest{
+		Dimensions: swarmingv2.StringMapToTaskDimensions(dims),
+	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	var casInput *swarming_api.SwarmingRpcsCASReference
+	var casInput *apipb.CASReference
 	if !*dryRun {
 		if *script == "" {
 			sklog.Fatal("--script is required if not running in dry run mode.")
@@ -138,7 +138,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		casInput, err = swarming.MakeCASReference(digest, casInstance)
+		casInput, err = swarmingv2.MakeCASReference(digest, casInstance)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -172,7 +172,7 @@ func main() {
 		wg.Add(1)
 		go func(id string) {
 			defer wg.Done()
-			dims := []*swarming_api.SwarmingRpcsStringPair{
+			dims := []*apipb.StringPair{
 				{
 					Key:   "pool",
 					Value: *pool,
@@ -184,14 +184,14 @@ func main() {
 			}
 
 			sklog.Infof("Triggering on %s", id)
-			req := &swarming_api.SwarmingRpcsNewTaskRequest{
+			req := &apipb.NewTaskRequest{
 				Name:     *taskName,
 				Priority: swarming.HIGHEST_PRIORITY,
-				TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+				TaskSlices: []*apipb.TaskSlice{
 					{
-						ExpirationSecs: int64((12 * time.Hour).Seconds()),
-						Properties: &swarming_api.SwarmingRpcsTaskProperties{
-							Caches: []*swarming_api.SwarmingRpcsCacheEntry{
+						ExpirationSecs: int32((12 * time.Hour).Seconds()),
+						Properties: &apipb.TaskProperties{
+							Caches: []*apipb.CacheEntry{
 								{
 									Name: "vpython",
 									Path: "cache/vpython",
@@ -201,7 +201,7 @@ func main() {
 							CipdInput:    cipdInput,
 							Command:      cmd,
 							Dimensions:   dims,
-							EnvPrefixes: []*swarming_api.SwarmingRpcsStringListPair{
+							EnvPrefixes: []*apipb.StringListPair{
 								{
 									Key:   "PATH",
 									Value: []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
@@ -211,15 +211,15 @@ func main() {
 									Value: []string{"cache/vpython"},
 								},
 							},
-							ExecutionTimeoutSecs: int64((120 * time.Minute).Seconds()),
+							ExecutionTimeoutSecs: int32((120 * time.Minute).Seconds()),
 							Idempotent:           false,
-							IoTimeoutSecs:        int64((120 * time.Minute).Seconds()),
+							IoTimeoutSecs:        int32((120 * time.Minute).Seconds()),
 						},
 					},
 				},
 				Tags: tags,
 			}
-			if _, err := swarmApi.TriggerTask(ctx, req); err != nil {
+			if _, err := swarmApi.NewTask(ctx, req); err != nil {
 				sklog.Fatal(err)
 			}
 		}(bot.BotId)
@@ -252,7 +252,7 @@ func matchesAny(s string, xr []*regexp.Regexp) bool {
 	return false
 }
 
-func getPythonCIPDPackages(bot *swarming_api.SwarmingRpcsBotInfo) *swarming_api.SwarmingRpcsCipdInput {
+func getPythonCIPDPackages(bot *apipb.BotInfo) *apipb.CipdInput {
 	var os string
 	var arch string
 	for _, dim := range bot.Dimensions {
@@ -307,32 +307,37 @@ func getPythonCIPDPackages(bot *swarming_api.SwarmingRpcsBotInfo) *swarming_api.
 	} else if os == "Mac" {
 		platform = cipd.PlatformMacAmd64
 	}
-	var cipdInput *swarming_api.SwarmingRpcsCipdInput
+	var cipdInput *apipb.CipdInput
 	if platform != "" {
-		cipdInput = swarming.ConvertCIPDInput(cipd.PkgsPython[platform])
+		cipdInput = swarmingv2.ConvertCIPDInput(cipd.PkgsPython[platform])
 	}
 	return cipdInput
 }
 
-func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarming.ApiClient, rerun string) {
-	results, err := swarmApi.ListTaskResults(ctx, time.Time{}, time.Time{}, []string{rerun}, "", false)
+func rerunPrevious(ctx context.Context, swarmingServer string, swarmApi swarmingv2.SwarmingV2Client, rerun string) {
+	results, err := swarmingv2.ListTasksHelper(ctx, swarmApi, &apipb.TasksWithPerfRequest{
+		State: apipb.StateQuery_QUERY_ALL,
+		Tags:  []string{rerun},
+	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	newTag := rerun + "_rerun"
 	var g errgroup.Group
 	for _, result := range results {
-		if result.State == swarming.TASK_STATE_COMPLETED && !result.Failure && !result.InternalFailure {
+		result := result // https://golang.org/doc/faq#closures_and_goroutines
+		if result.State == apipb.TaskState_COMPLETED && !result.Failure && !result.InternalFailure {
 			continue
 		}
-		id := result.TaskId
 		g.Go(func() error {
-			taskMeta, err := swarmApi.GetTaskMetadata(ctx, id)
+			taskMeta, err := swarmApi.GetRequest(ctx, &apipb.TaskIdRequest{
+				TaskId: result.TaskId,
+			})
 			if err != nil {
 				return err
 			}
-			taskMeta.Request.Tags = append(taskMeta.Request.Tags, newTag)
-			_, err = swarmApi.RetryTask(ctx, taskMeta)
+			taskMeta.Tags = append(taskMeta.Tags, newTag)
+			_, err = swarmingv2.RetryTask(ctx, swarmApi, taskMeta)
 			return err
 		})
 	}

@@ -14,8 +14,6 @@ import (
 	monitoring "cloud.google.com/go/monitoring/apiv3"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
-	"go.chromium.org/luci/common/retry"
-	"go.chromium.org/luci/grpc/prpc"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
 	buildbucket_metrics "go.skia.org/infra/datahopper/go/buildbucket"
 	"go.skia.org/infra/datahopper/go/cd_metrics"
@@ -135,26 +133,7 @@ func main() {
 	// Data generation goroutines.
 
 	// Swarming bots.
-	prpcClient := &prpc.Client{
-		C:    httpClient,
-		Host: *swarmingServer,
-		Options: &prpc.Options{
-			Retry: func() retry.Iterator {
-				return &retry.ExponentialBackoff{
-					MaxDelay: time.Minute,
-					Limited: retry.Limited{
-						Delay:   time.Second,
-						Retries: 10,
-					},
-				}
-			},
-			// The swarming server has an internal 60-second deadline for responding to
-			// requests, so 90 seconds shouldn't cause any requests to fail that would
-			// otherwise succeed.
-			PerRPCTimeout: 90 * time.Second,
-		},
-	}
-	swarmClient := swarmingv2.NewClient(prpcClient)
+	swarmClient := swarmingv2.NewDefaultClient(httpClient, *swarmingServer)
 	swarming_metrics.StartSwarmingBotMetrics(ctx, *swarmingServer, *swarmingPools, swarmClient, metrics2.GetDefaultClient())
 
 	// Swarming tasks.

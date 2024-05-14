@@ -34,8 +34,6 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",
         "@com_google_cloud_go_datastore//:datastore",
-        "@org_chromium_go_luci//common/retry",
-        "@org_chromium_go_luci//grpc/prpc",
         "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_google_api//compute/v1:compute",
         "@org_golang_google_api//iterator",

@@ -9,8 +9,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
-	"go.chromium.org/luci/common/retry"
-	"go.chromium.org/luci/grpc/prpc"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
@@ -28,6 +26,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
@@ -162,25 +161,7 @@ func main() {
 	// Create the task executor.
 	var swarmingTaskExec types.TaskExecutor
 	if *swarmingAPIv2 {
-		prpcClient := &prpc.Client{
-			C:    httpClient,
-			Host: *swarmingServer,
-			Options: &prpc.Options{
-				Retry: func() retry.Iterator {
-					return &retry.ExponentialBackoff{
-						MaxDelay: time.Minute,
-						Limited: retry.Limited{
-							Delay:   time.Second,
-							Retries: 10,
-						},
-					}
-				},
-				// The swarming server has an internal 60-second deadline for responding to
-				// requests, so 90 seconds shouldn't cause any requests to fail that would
-				// otherwise succeed.
-				PerRPCTimeout: 90 * time.Second,
-			},
-		}
+		prpcClient := swarmingv2.DefaultPRPCClient(httpClient, *swarmingServer)
 		swarmingTaskExec = swarming_task_execution_v2.NewSwarmingV2TaskExecutor(prpcClient, *rbeInstance, *pubsubTopicName)
 	} else {
 		swarm, err := swarming.NewApiClient(cfg.Client(), *swarmingServer)

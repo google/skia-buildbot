@@ -2,11 +2,20 @@ package swarmingv2
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 
+	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/cas/rbe"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
 
@@ -29,6 +38,35 @@ func NewClient(prpcClient *prpc.Client) *WrappedClient {
 		BotsClient:  apipb.NewBotsClient(prpcClient),
 		TasksClient: apipb.NewTasksClient(prpcClient),
 	}
+}
+
+// DefaultPRPCClient returns a prpc.Client using default settings.
+func DefaultPRPCClient(httpClient *http.Client, swarmingServer string) *prpc.Client {
+	return &prpc.Client{
+		C:    httpClient,
+		Host: swarmingServer,
+		Options: &prpc.Options{
+			Retry: func() retry.Iterator {
+				return &retry.ExponentialBackoff{
+					MaxDelay: time.Minute,
+					Limited: retry.Limited{
+						Delay:   time.Second,
+						Retries: 10,
+					},
+				}
+			},
+			// The swarming server has an internal 60-second deadline for responding to
+			// requests, so 90 seconds shouldn't cause any requests to fail that would
+			// otherwise succeed.
+			PerRPCTimeout: 90 * time.Second,
+		},
+	}
+}
+
+// NewDefaultClient returns a SwarmingV2Client implementation using default
+// PRPC client settings.
+func NewDefaultClient(httpClient *http.Client, swarmingServer string) *WrappedClient {
+	return NewClient(DefaultPRPCClient(httpClient, swarmingServer))
 }
 
 // Assert that WrappedClient implements SwarmingV2Client.
@@ -101,6 +139,47 @@ func BotDimensionsToStringSlice(dims []*apipb.StringListPair) []string {
 	return swarming.PackageDimensions(BotDimensionsToStringMap(dims))
 }
 
+// StringMapToBotDimensions converts Swarming bot dimensions from a
+// map[string][]string to their Swarming API representation.
+func StringMapToBotDimensions(dims map[string][]string) []*apipb.StringListPair {
+	dimensions := make([]*apipb.StringListPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &apipb.StringListPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return dimensions
+}
+
+// StringMapToTaskDimensions converts Swarming task dimensions from a
+// map[string]string to their Swarming API representation.
+func StringMapToTaskDimensions(dims map[string]string) []*apipb.StringPair {
+	dimensions := make([]*apipb.StringPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &apipb.StringPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+	return dimensions
+}
+
+// ConvertCIPDInput converts a slice of cipd.Package to a SwarmingRpcsCipdInput.
+func ConvertCIPDInput(pkgs []*cipd.Package) *apipb.CipdInput {
+	rv := &apipb.CipdInput{
+		Packages: []*apipb.CipdPackage{},
+	}
+	for _, pkg := range pkgs {
+		rv.Packages = append(rv.Packages, &apipb.CipdPackage{
+			PackageName: pkg.Name,
+			Path:        pkg.Path,
+			Version:     pkg.Version,
+		})
+	}
+	return rv
+}
+
 // MakeCASReference returns a CASReference which can be used as input to
 // a Swarming task.
 func MakeCASReference(digest, casInstance string) (*apipb.CASReference, error) {
@@ -127,4 +206,45 @@ func GetTaskRequestProperties(t *apipb.TaskRequestResponse) *apipb.TaskPropertie
 		return t.TaskSlices[0].Properties
 	}
 	return t.Properties
+}
+
+var retriesRE = regexp.MustCompile("retries:([0-9])*")
+
+// RetryTask duplicates fields from the given request and triggers a new task
+// as a retry of it.
+func RetryTask(ctx context.Context, c SwarmingV2Client, req *apipb.TaskRequestResponse) (*apipb.TaskRequestMetadataResponse, error) {
+	// Swarming API does not have a way to Retry commands. This was done
+	// intentionally by swarming-eng to reduce API surface.
+	newReq := &apipb.NewTaskRequest{}
+	newReq.Name = fmt.Sprintf("%s (retry)", req.Name)
+	newReq.ParentTaskId = req.ParentTaskId
+	newReq.Priority = req.Priority
+	newReq.PubsubTopic = req.PubsubTopic
+	newReq.PubsubUserdata = req.PubsubUserdata
+	newReq.User = req.User
+	newReq.TaskSlices = req.TaskSlices
+	if newReq.TaskSlices == nil {
+		newReq.ExpirationSecs = req.ExpirationSecs
+		newReq.Properties = req.Properties
+	}
+
+	newReq.Tags = req.Tags
+	// Add retries tag. Increment it if it already exists.
+	foundRetriesTag := false
+	for i, tag := range newReq.Tags {
+		if retriesRE.FindString(tag) != "" {
+			n, err := strconv.Atoi(strings.Split(tag, ":")[1])
+			if err != nil {
+				sklog.Errorf("retries value in %s is not numeric: %s", tag, err)
+				continue
+			}
+			newReq.Tags[i] = fmt.Sprintf("retries:%d", (n + 1))
+			foundRetriesTag = true
+		}
+	}
+	if !foundRetriesTag {
+		newReq.Tags = append(newReq.Tags, "retries:1")
+	}
+
+	return c.NewTask(ctx, newReq)
 }

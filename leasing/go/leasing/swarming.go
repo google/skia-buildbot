@@ -8,10 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
-	"go.chromium.org/luci/common/retry"
-	"go.chromium.org/luci/grpc/prpc"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
@@ -100,48 +97,10 @@ func SwarmingInit(ctx context.Context) error {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Public Swarming API client.
-	prpcClientPublic := &prpc.Client{
-		C:    httpClient,
-		Host: swarming.SWARMING_SERVER,
-		Options: &prpc.Options{
-			Retry: func() retry.Iterator {
-				return &retry.ExponentialBackoff{
-					MaxDelay: time.Minute,
-					Limited: retry.Limited{
-						Delay:   time.Second,
-						Retries: 10,
-					},
-				}
-			},
-			// The swarming server has an internal 60-second deadline for responding to
-			// requests, so 90 seconds shouldn't cause any requests to fail that would
-			// otherwise succeed.
-			PerRPCTimeout: 90 * time.Second,
-		},
-	}
-	swarmingClientPublic = swarmingv2.NewClient(prpcClientPublic)
+	swarmingClientPublic = swarmingv2.NewDefaultClient(httpClient, swarming.SWARMING_SERVER)
 
 	// Private Swarming API client.
-	prpcClientPrivate := &prpc.Client{
-		C:    httpClient,
-		Host: swarming.SWARMING_SERVER_PRIVATE,
-		Options: &prpc.Options{
-			Retry: func() retry.Iterator {
-				return &retry.ExponentialBackoff{
-					MaxDelay: time.Minute,
-					Limited: retry.Limited{
-						Delay:   time.Second,
-						Retries: 10,
-					},
-				}
-			},
-			// The swarming server has an internal 60-second deadline for responding to
-			// requests, so 90 seconds shouldn't cause any requests to fail that would
-			// otherwise succeed.
-			PerRPCTimeout: 90 * time.Second,
-		},
-	}
-	swarmingClientPrivate = swarmingv2.NewClient(prpcClientPrivate)
+	swarmingClientPrivate = swarmingv2.NewDefaultClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 
 	return nil
 }
