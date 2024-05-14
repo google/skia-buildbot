@@ -57,7 +57,7 @@
     },
     "git_repo_config": {
         "provider": "gitiles",
-        "url": "https://android.googlesource.com/platform/frameworks/support",
+        "url": "https://android.googlesource.com/platform/superproject",
         "dir": "/tmp/androidx",
         "debounce_commit_url": false
     },
