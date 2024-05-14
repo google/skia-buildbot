@@ -110,6 +110,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{"pool:Skia"},
 		IncludePerformanceStats: true,
+		State:                   apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{t1.TaskResult, t2.TaskResult},
 	}, nil)
@@ -158,6 +159,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{"pool:Skia"},
 		IncludePerformanceStats: true,
+		State:                   apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{},
 	}, nil)
@@ -211,6 +213,7 @@ func TestMetrics(t *testing.T) {
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{"pool:Skia"},
 		IncludePerformanceStats: true,
+		State:                   apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{t1.TaskResult},
 	}, nil)
@@ -319,6 +322,7 @@ func TestPerfUpload(t *testing.T) {
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{"pool:Skia"},
 		IncludePerformanceStats: true,
+		State:                   apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{t1.TaskResult, t2.TaskResult, t3.TaskResult, t4.TaskResult},
 	}, nil)
@@ -405,6 +409,7 @@ func TestPerfUpload(t *testing.T) {
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{"pool:Skia"},
 		IncludePerformanceStats: true,
+		State:                   apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{},
 	}, nil)

@@ -59,6 +59,7 @@ func loadSwarmingTasks(ctx context.Context, s swarmingv2.SwarmingV2Client, pool 
 	tasks, err := swarmingv2.ListTasksHelper(ctx, s, &apipb.TasksWithPerfRequest{
 		Start:                   timestamppb.New(lastLoad),
 		Tags:                    []string{fmt.Sprintf("pool:%s", pool)},
+		State:                   apipb.StateQuery_QUERY_ALL,
 		IncludePerformanceStats: true,
 	})
 	if err != nil {

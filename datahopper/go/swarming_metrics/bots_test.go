@@ -106,14 +106,17 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "bot-a",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "bot-b",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "bot-c",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()
@@ -212,6 +215,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "my-bot",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{
 		Items: []*apipb.TaskResultResponse{
 			{
@@ -301,14 +305,17 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "my-bot-no-temp",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "my-bot-no-device",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "my-bot-device",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()
@@ -392,6 +399,7 @@ func TestBotUptimeMetrics(t *testing.T) {
 	ms.On("ListBotTasks", testutils.AnyContext, &apipb.BotTasksRequest{
 		BotId: "my-bot",
 		Limit: 1,
+		State: apipb.StateQuery_QUERY_ALL,
 	}).Return(&apipb.TaskListResponse{}, nil)
 
 	pc := getPromClient()

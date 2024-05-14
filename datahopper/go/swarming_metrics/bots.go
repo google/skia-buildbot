@@ -138,6 +138,8 @@ func reportBotMetrics(ctx context.Context, now time.Time, client swarmingv2.Swar
 		lastTasks, err := client.ListBotTasks(ctx, &apipb.BotTasksRequest{
 			BotId: bot.BotId,
 			Limit: 1,
+			// Default is PENDING, which isn't what we want.
+			State: apipb.StateQuery_QUERY_ALL,
 		})
 		if err != nil {
 			sklog.Errorf("Problem getting tasks that bot %s has run: %s", bot.BotId, err)
