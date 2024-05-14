@@ -32,22 +32,22 @@ type CatapultClient struct {
 }
 
 // NewCatapultClient creates a new CatapultClient
-func NewCatapultClient(ctx context.Context, staging bool) (*CatapultClient, error) {
+func NewCatapultClient(ctx context.Context, prod bool) (*CatapultClient, error) {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create catapult client.")
 	}
 
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
-	if staging {
+	if prod {
 		return &CatapultClient{
 			httpClient: client,
-			url:        catapultStagingPostUrl,
+			url:        catapultBisectPostUrl,
 		}, nil
 	}
 	return &CatapultClient{
 		httpClient: client,
-		url:        catapultBisectPostUrl,
+		url:        catapultStagingPostUrl,
 	}, nil
 }
 

@@ -133,7 +133,10 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 			MaximumAttempts: 1,
 		},
 	}
-	wf, err := c.ExecuteWorkflow(ctx, wo, workflows.CatapultBisect, &workflows.BisectParams{Request: req})
+	wf, err := c.ExecuteWorkflow(ctx, wo, workflows.CatapultBisect, &workflows.BisectParams{
+		Request:    req,
+		Production: true,
+	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to start workflow (%v).", err)
 	}

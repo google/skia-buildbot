@@ -74,7 +74,7 @@ func TestCatapultBisectWorkflow_HappyPath_ReturnsDatastoreResponse(t *testing.T)
 
 	env.OnWorkflow(workflows.Bisect, mock.Anything, mock.Anything).Return(mockBisectExecution, nil).Once()
 	env.OnWorkflow(workflows.ConvertToCatapultResponseWorkflow, mock.Anything, mock.Anything, mockBisectExecution).Return(mockPinpointLegacyJobResp, nil).Once()
-	env.OnActivity(WriteBisectToCatapultActivity, mock.Anything, mockPinpointLegacyJobResp, true).Return(mockDSResp, nil).Once()
+	env.OnActivity(WriteBisectToCatapultActivity, mock.Anything, mockPinpointLegacyJobResp, false).Return(mockDSResp, nil).Once()
 
 	env.ExecuteWorkflow(CatapultBisectWorkflow, &workflows.BisectParams{
 		Request: &pinpoint_proto.ScheduleBisectRequest{},

@@ -93,6 +93,10 @@ type BisectParams struct {
 	// Available bot list.
 	// This field is for internal use. Clients of BisectionWorkflow(s) are not expected to set it.
 	BotIds []string
+	// Production if true indicates the workflow is intended to be run on production
+	// and not the dev or staging environment.
+	// Used to determine whether to write to Pinpoint prod or staging.
+	Production bool
 }
 
 // GetMagnitude returns the magnitude as float64.

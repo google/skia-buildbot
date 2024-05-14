@@ -137,7 +137,7 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	}
 
 	var dsResp *DatastoreResponse
-	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, true).Get(ctx, &dsResp); err != nil {
+	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, p.Production).Get(ctx, &dsResp); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

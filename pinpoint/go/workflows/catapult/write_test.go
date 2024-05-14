@@ -29,15 +29,15 @@ func unmarshalMockDatastoreResp(data string) (*DatastoreResponse, error) {
 	return &resp, nil
 }
 
-func TestNewCatapultClient_GivenDefaults_ReturnsClient(t *testing.T) {
-	cc, err := NewCatapultClient(context.Background(), false)
+func TestNewCatapultClient_GivenProd_ReturnsProdClient(t *testing.T) {
+	cc, err := NewCatapultClient(context.Background(), true)
 	assert.NoError(t, err)
 	assert.NotNil(t, cc)
 	assert.Equal(t, cc.url, catapultBisectPostUrl)
 }
 
 func TestNewCatapultClient_GivenStaging_ReturnsStagingClient(t *testing.T) {
-	cc, err := NewCatapultClient(context.Background(), true)
+	cc, err := NewCatapultClient(context.Background(), false)
 	assert.NoError(t, err)
 	assert.NotNil(t, cc)
 	assert.Equal(t, cc.url, catapultStagingPostUrl)
@@ -55,7 +55,7 @@ func TestWriteBisectToCatapault_GivenValidInput_ReturnsResponse(t *testing.T) {
 	mockPost := mockhttpclient.MockPostDialogue(contentType, b, []byte(mockDatastoreResp))
 	m.MockOnce(catapultStagingPostUrl, mockPost)
 
-	cc, err := NewCatapultClient(ctx, true)
+	cc, err := NewCatapultClient(ctx, false)
 	require.NoError(t, err)
 	cc.httpClient = m.Client()
 	resp, err := cc.WriteBisectToCatapult(ctx, mockPinpointLegacyJobResp)
@@ -72,7 +72,7 @@ func TestWriteBisectToCatapault_GivenBadStatusCode_ReturnsError(t *testing.T) {
 	mockPost := mockhttpclient.MockPostDialogueWithResponseCode(contentType, b, []byte(""), 400)
 	m.MockOnce(catapultStagingPostUrl, mockPost)
 
-	cc, err := NewCatapultClient(ctx, true)
+	cc, err := NewCatapultClient(ctx, false)
 	require.NoError(t, err)
 	cc.httpClient = m.Client()
 	resp, err := cc.WriteBisectToCatapult(ctx, mockPinpointLegacyJobResp)
