@@ -300,6 +300,7 @@ message LegacyJobResponse {
 		repeated double values = 4;
 	}
 	repeated State state = 22;
+	string skia_workflow_url = 23;
 }
 
 service Pinpoint {
