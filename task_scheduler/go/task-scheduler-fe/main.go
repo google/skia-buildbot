@@ -16,6 +16,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/cors"
+	"go.chromium.org/luci/common/retry"
+	"go.chromium.org/luci/grpc/prpc"
 	"golang.org/x/oauth2/google"
 
 	"go.skia.org/infra/go/alogin"
@@ -33,9 +35,9 @@ import (
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/tracing"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/job_creation/buildbucket_taskbackend"
 	"go.skia.org/infra/task_scheduler/go/rpc"
@@ -53,20 +55,8 @@ const (
 )
 
 var (
-	// Task Scheduler database.
-	tsDb db.DBCloser
-
 	// Tasks to skip.
 	skipTasks *skip_tasks.DB
-
-	// Git repo objects.
-	repos repograph.Map
-
-	// Swarming API client.
-	swarm swarming.ApiClient
-
-	// Task cfg cache.
-	taskCfgCache task_cfg_cache.TaskCfgCache
 
 	// HTML templates.
 	skipTasksTemplate   *template.Template = nil
@@ -354,7 +344,7 @@ func main() {
 	}
 
 	// Initialize the database.
-	tsDb, err = firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
+	tsDb, err := firestore.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
@@ -383,21 +373,37 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	repos = autoUpdateRepos.Map
+	repos := autoUpdateRepos.Map
 
 	// Task Cfg Cache.
-	taskCfgCache, err = task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, tokenSource)
+	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Initialize Swarming client.
 	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
-	cfg.RequestTimeout = time.Minute
-	swarm, err = swarming.NewApiClient(cfg.Client(), *swarmingServer)
-	if err != nil {
-		sklog.Fatal(err)
+	httpClient := cfg.Client()
+	prpcClient := &prpc.Client{
+		C:    httpClient,
+		Host: *swarmingServer,
+		Options: &prpc.Options{
+			Retry: func() retry.Iterator {
+				return &retry.ExponentialBackoff{
+					MaxDelay: time.Minute,
+					Limited: retry.Limited{
+						Delay:   time.Second,
+						Retries: 10,
+					},
+				}
+			},
+			// The swarming server has an internal 60-second deadline for responding to
+			// requests, so 90 seconds shouldn't cause any requests to fail that would
+			// otherwise succeed.
+			PerRPCTimeout: 90 * time.Second,
+		},
 	}
+	swarm := swarmingv2.NewClient(prpcClient)
 
 	// Auto-update the git repos.
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, func(_ context.Context, _ string, _ *repograph.Graph, ack, _ func()) error {

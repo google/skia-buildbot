@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	fs_testutils "go.skia.org/infra/go/firestore/testutils"
@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/roles"
-	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/swarming/v2/mocks"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
@@ -52,7 +52,7 @@ var (
 	}
 )
 
-func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *mocks.ApiClient, func()) {
+func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Task, *types.Job, *skip_tasks.Rule, *mocks.SwarmingV2Client, func()) {
 	ctx := context.Background()
 
 	// Git repo.
@@ -134,7 +134,7 @@ func setup(t *testing.T) (context.Context, *taskSchedulerServiceImpl, *types.Tas
 	}
 	require.NoError(t, d.PutTask(ctx, task))
 
-	swarm := &mocks.ApiClient{}
+	swarm := &mocks.SwarmingV2Client{}
 
 	// Create the service.
 	srv := newTaskSchedulerServiceImpl(ctx, d, repos, skipDB, tcc, swarm)
@@ -305,13 +305,16 @@ func TestGetTask(t *testing.T) {
 	// convertTask.
 
 	// Now, verify that we retrieve task stats when requested.
-	swarm.On("GetTask", testutils.AnyContext, task.SwarmingTaskId, true).Return(&swarming_api.SwarmingRpcsTaskResult{
-		PerformanceStats: &swarming_api.SwarmingRpcsPerformanceStats{
+	swarm.On("GetResult", testutils.AnyContext, &apipb.TaskIdWithPerfRequest{
+		TaskId:                  task.SwarmingTaskId,
+		IncludePerformanceStats: true,
+	}).Return(&apipb.TaskResultResponse{
+		PerformanceStats: &apipb.PerformanceStats{
 			BotOverhead: 10.0,
-			IsolatedDownload: &swarming_api.SwarmingRpcsCASOperationStats{
+			IsolatedDownload: &apipb.CASOperationStats{
 				Duration: 6.0,
 			},
-			IsolatedUpload: &swarming_api.SwarmingRpcsCASOperationStats{
+			IsolatedUpload: &apipb.CASOperationStats{
 				Duration: 4.0,
 			},
 		},
