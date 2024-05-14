@@ -21,7 +21,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/secure"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/go/alogin"
@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/leasing/go/types"
 )
@@ -443,16 +444,16 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
 
 	// Upload artifacts.
-	var swarmingProps *swarming_api.SwarmingRpcsTaskProperties
+	var swarmingProps *apipb.TaskProperties
 	if task.TaskIdForIsolates != "" {
 		t, err := GetSwarmingTaskMetadata(r.Context(), task.SwarmingPool, task.TaskIdForIsolates)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
-		swarmingProps = swarming.GetTaskRequestProperties(t)
+		swarmingProps = swarmingv2.GetTaskRequestProperties(t.Request)
 	} else {
-		swarmingProps = &swarming_api.SwarmingRpcsTaskProperties{}
+		swarmingProps = &apipb.TaskProperties{}
 	}
 
 	datastoreKey, err := PutDSTask(key, task)

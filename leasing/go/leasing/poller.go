@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/leasing/go/types"
 	"google.golang.org/api/iterator"
 )
@@ -87,30 +87,30 @@ func taskCancelled(k *datastore.Key, t *types.Task) error {
 
 func getCompletedStateStr(failure bool) string {
 	if failure {
-		return swarming.TASK_STATE_COMPLETED + " (FAILURE)"
+		return apipb.TaskState_COMPLETED.String() + " (FAILURE)"
 	}
-	return swarming.TASK_STATE_COMPLETED + " (SUCCESS)"
+	return apipb.TaskState_COMPLETED.String() + " (SUCCESS)"
 }
 
 // checkForUnexpectedStates checks to see if the new state falls in a list of unexpected states.
 // If it does then the Task is marked as Done, the lease ended and a failure email it sent.
-func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t *types.Task) error {
-	unexpectedStates := []string{
-		swarming.TASK_STATE_BOT_DIED,
-		swarming.TASK_STATE_CANCELED,
-		swarming.TASK_STATE_CLIENT_ERROR,
-		swarming.TASK_STATE_COMPLETED,
-		swarming.TASK_STATE_EXPIRED,
-		swarming.TASK_STATE_NO_RESOURCE,
-		swarming.TASK_STATE_TIMED_OUT,
+func checkForUnexpectedStates(newState apipb.TaskState, failure bool, k *datastore.Key, t *types.Task) error {
+	unexpectedStates := []apipb.TaskState{
+		apipb.TaskState_BOT_DIED,
+		apipb.TaskState_CANCELED,
+		apipb.TaskState_CLIENT_ERROR,
+		apipb.TaskState_COMPLETED,
+		apipb.TaskState_EXPIRED,
+		apipb.TaskState_NO_RESOURCE,
+		apipb.TaskState_TIMED_OUT,
 	}
 	for _, unexpectedState := range unexpectedStates {
 		if newState == unexpectedState {
 			// Update the state.
-			if newState == swarming.TASK_STATE_COMPLETED {
-				newState = getCompletedStateStr(failure)
+			t.SwarmingTaskState = newState.String()
+			if newState == apipb.TaskState_COMPLETED {
+				t.SwarmingTaskState = getCompletedStateStr(failure)
 			}
-			t.SwarmingTaskState = newState
 			// Something unexpected happened so mark the leasing task as done and end the lease.
 			t.Done = true
 			t.LeaseEndTime = time.Now()
@@ -154,10 +154,10 @@ func pollSwarmingTasks(ctx context.Context) error {
 			return fmt.Errorf("Failed to retrieve swarming task %s: %s", t.SwarmingTaskId, err)
 		}
 
-		if swarmingTask.State == swarming.TASK_STATE_PENDING {
+		if swarmingTask.State == apipb.TaskState_PENDING {
 			// If the swarming task is still pending then there is nothing to do here.
 			continue
-		} else if swarmingTask.State == swarming.TASK_STATE_CANCELED {
+		} else if swarmingTask.State == apipb.TaskState_CANCELED {
 			// If the swarming task has been cancelled then mark it as such in the DS.
 			if err := taskCancelled(k, t); err != nil {
 				return fmt.Errorf("Failed to mark task as cancelled: %s", err)
@@ -175,10 +175,10 @@ func pollSwarmingTasks(ctx context.Context) error {
 		// Check 4: If new state is unexpected then set Done=true and send failure email
 		//          to the requester.
 
-		if t.SwarmingTaskState == swarming.TASK_STATE_PENDING /* Check 1 */ {
+		if t.SwarmingTaskState == apipb.TaskState_PENDING.String() /* Check 1 */ {
 			// The previous task state was pending but this has now changed.
 			// Populate the datastore with running task values.
-			if err := populateRunningTask(swarmingTask.State, swarmingTask.BotId, k, t); err != nil {
+			if err := populateRunningTask(swarmingTask.State.String(), swarmingTask.BotId, k, t); err != nil {
 				return fmt.Errorf("Error populating running task: %s", err)
 			}
 		} else if t.LeaseEndTime.Before(time.Now()) /* Check 2*/ {
@@ -186,7 +186,7 @@ func pollSwarmingTasks(ctx context.Context) error {
 			if err := expireTask(k, t); err != nil {
 				return fmt.Errorf("Error when expiring task: %s", err)
 			}
-		} else if swarmingTask.State == swarming.TASK_STATE_RUNNING && !t.WarningSent && t.LeaseEndTime.Before(time.Now().Add(time.Minute*15)) /* Check 3 */ {
+		} else if swarmingTask.State == apipb.TaskState_RUNNING && !t.WarningSent && t.LeaseEndTime.Before(time.Now().Add(time.Minute*15)) /* Check 3 */ {
 			if err := taskExpiringSoon(k, t); err != nil {
 				return fmt.Errorf("Error when warning task expiring soon: %s", err)
 			}

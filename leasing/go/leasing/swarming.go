@@ -7,8 +7,12 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.chromium.org/luci/common/retry"
+	"go.chromium.org/luci/grpc/prpc"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 
@@ -17,6 +21,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/leasing/go/types"
 )
 
@@ -24,7 +29,7 @@ import (
 // with a given Swarming instance.
 type SwarmingInstanceClients struct {
 	SwarmingServer string
-	SwarmingClient *swarming.ApiClient
+	SwarmingClient *swarmingv2.SwarmingV2Client
 
 	CasClient   *cas.CAS
 	CasInstance string
@@ -34,8 +39,8 @@ var (
 	casClientPublic  cas.CAS
 	casClientPrivate cas.CAS
 
-	swarmingClientPublic  swarming.ApiClient
-	swarmingClientPrivate swarming.ApiClient
+	swarmingClientPublic  swarmingv2.SwarmingV2Client
+	swarmingClientPrivate swarmingv2.SwarmingV2Client
 
 	// PublicSwarming contains the API clients needed for the public Swarming
 	// instance.
@@ -65,7 +70,7 @@ var (
 		"CTLinuxBuilder":   InternalSwarming,
 	}
 
-	cpythonPackage = &swarming_api.SwarmingRpcsCipdPackage{
+	cpythonPackage = &apipb.CipdPackage{
 		PackageName: "infra/3pp/tools/cpython3/${platform}",
 		Path:        "python",
 		Version:     "version:2@3.8.10.chromium.19",
@@ -95,15 +100,48 @@ func SwarmingInit(ctx context.Context) error {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Public Swarming API client.
-	swarmingClientPublic, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create public swarming client")
+	prpcClientPublic := &prpc.Client{
+		C:    httpClient,
+		Host: swarming.SWARMING_SERVER,
+		Options: &prpc.Options{
+			Retry: func() retry.Iterator {
+				return &retry.ExponentialBackoff{
+					MaxDelay: time.Minute,
+					Limited: retry.Limited{
+						Delay:   time.Second,
+						Retries: 10,
+					},
+				}
+			},
+			// The swarming server has an internal 60-second deadline for responding to
+			// requests, so 90 seconds shouldn't cause any requests to fail that would
+			// otherwise succeed.
+			PerRPCTimeout: 90 * time.Second,
+		},
 	}
+	swarmingClientPublic = swarmingv2.NewClient(prpcClientPublic)
+
 	// Private Swarming API client.
-	swarmingClientPrivate, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to create private swarming client")
+	prpcClientPrivate := &prpc.Client{
+		C:    httpClient,
+		Host: swarming.SWARMING_SERVER_PRIVATE,
+		Options: &prpc.Options{
+			Retry: func() retry.Iterator {
+				return &retry.ExponentialBackoff{
+					MaxDelay: time.Minute,
+					Limited: retry.Limited{
+						Delay:   time.Second,
+						Retries: 10,
+					},
+				}
+			},
+			// The swarming server has an internal 60-second deadline for responding to
+			// requests, so 90 seconds shouldn't cause any requests to fail that would
+			// otherwise succeed.
+			PerRPCTimeout: 90 * time.Second,
+		},
 	}
+	swarmingClientPrivate = swarmingv2.NewClient(prpcClientPrivate)
 
 	return nil
 }
@@ -115,7 +153,7 @@ func GetSwarmingInstance(pool string) *SwarmingInstanceClients {
 }
 
 // GetSwarmingClient returns the Swarming client for the given Swarming pool.
-func GetSwarmingClient(pool string) *swarming.ApiClient {
+func GetSwarmingClient(pool string) *swarmingv2.SwarmingV2Client {
 	return GetSwarmingInstance(pool).SwarmingClient
 }
 
@@ -126,7 +164,11 @@ func GetCASClient(pool string) *cas.CAS {
 
 func getPoolDetails(ctx context.Context, pool string) (*types.PoolDetails, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	bots, err := swarmingClient.ListBotsForPool(ctx, pool)
+	bots, err := swarmingv2.ListBotsHelper(ctx, swarmingClient, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: pool},
+		},
+	})
 	if err != nil {
 		return nil, fmt.Errorf("Could not list bots in pool: %s", err)
 	}
@@ -185,7 +227,7 @@ func GetDetailsOfAllPools(ctx context.Context) (map[string]*types.PoolDetails, e
 
 // AddLeasingArtifactsToCAS uploads the leasing artifacts and merges them into
 // the given CAS input if it exists.
-func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarming_api.SwarmingRpcsCASReference) (string, error) {
+func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *apipb.CASReference) (string, error) {
 	client := *GetCASClient(pool)
 
 	// Upload the leasing artifacts.
@@ -202,15 +244,50 @@ func AddLeasingArtifactsToCAS(ctx context.Context, pool string, casInput *swarmi
 }
 
 // GetSwarmingTask retrieves the given Swarming task.
-func GetSwarmingTask(ctx context.Context, pool, taskID string) (*swarming_api.SwarmingRpcsTaskResult, error) {
+func GetSwarmingTask(ctx context.Context, pool, taskID string) (*apipb.TaskResultResponse, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	return swarmingClient.GetTask(ctx, taskID, false)
+	return swarmingClient.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
+		TaskId:                  taskID,
+		IncludePerformanceStats: false,
+	})
 }
 
 // GetSwarmingTaskMetadata returns the metadata for the given Swarming task.
-func GetSwarmingTaskMetadata(ctx context.Context, pool, taskID string) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+func GetSwarmingTaskMetadata(ctx context.Context, pool, taskID string) (*apipb.TaskRequestMetadataResponse, error) {
 	swarmingClient := *GetSwarmingClient(pool)
-	return swarmingClient.GetTaskMetadata(ctx, taskID)
+	var wg sync.WaitGroup
+	var request *apipb.TaskRequestResponse
+	var err1 error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		request, err1 = swarmingClient.GetRequest(ctx, &apipb.TaskIdRequest{
+			TaskId: taskID,
+		})
+	}()
+	var result *apipb.TaskResultResponse
+	var err2 error
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		result, err2 = swarmingClient.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
+			TaskId:                  taskID,
+			IncludePerformanceStats: false, // TODO(borenet): Verify this.
+		})
+	}()
+	wg.Wait()
+	if err1 != nil {
+		return nil, skerr.Wrap(err1)
+	}
+	if err2 != nil {
+		return nil, skerr.Wrap(err2)
+	}
+
+	return &apipb.TaskRequestMetadataResponse{
+		Request:    request,
+		TaskId:     taskID,
+		TaskResult: result,
+	}, nil
 }
 
 // IsBotIDValid returns true iff the given bot exists in the given pool.
@@ -220,7 +297,12 @@ func IsBotIDValid(ctx context.Context, pool, botID string) (bool, error) {
 		"pool": pool,
 		"id":   botID,
 	}
-	bots, err := swarmingClient.ListBots(ctx, dims)
+	bots, err := swarmingv2.ListBotsHelper(ctx, swarmingClient, &apipb.BotsRequest{
+		Dimensions: []*apipb.StringPair{
+			{Key: swarming.DIMENSION_POOL_KEY, Value: pool},
+			{Key: "id", Value: botID},
+		},
+	})
 	if err != nil {
 		return false, fmt.Errorf("Could not query swarming bots with %s: %s", dims, err)
 	}
@@ -238,7 +320,7 @@ func IsBotIDValid(ctx context.Context, pool, botID string) (bool, error) {
 }
 
 // TriggerSwarmingTask triggers the given Swarming task.
-func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osType, deviceType, botID, serverURL, casDigest, relativeCwd string, cipdInput *swarming_api.SwarmingRpcsCipdInput, cmd []string) (string, error) {
+func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osType, deviceType, botID, serverURL, casDigest, relativeCwd string, cipdInput *apipb.CipdInput, cmd []string) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 	}
@@ -251,9 +333,9 @@ func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osTy
 	if botID != "" {
 		dimsMap["id"] = botID
 	}
-	dims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dimsMap))
+	dims := make([]*apipb.StringPair, 0, len(dimsMap))
 	for k, v := range dimsMap {
-		dims = append(dims, &swarming_api.SwarmingRpcsStringPair{
+		dims = append(dims, &apipb.StringPair{
 			Key:   k,
 			Value: v,
 		})
@@ -263,10 +345,10 @@ func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osTy
 	// for why we do not include it for all architectures.
 	pythonBinary := "python/bin/python3"
 	if cipdInput == nil {
-		cipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+		cipdInput = &apipb.CipdInput{}
 	}
 	if cipdInput.Packages == nil {
-		cipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+		cipdInput.Packages = []*apipb.CipdPackage{cpythonPackage}
 	} else {
 		cipdInput.Packages = append(cipdInput.Packages, cpythonPackage)
 	}
@@ -285,17 +367,17 @@ func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osTy
 	command = append(command, extraArgs...)
 
 	swarmingInstance := GetSwarmingInstance(pool)
-	expirationSecs := int64(swarming.RECOMMENDED_EXPIRATION.Seconds())
-	executionTimeoutSecs := int64(swarmingHardTimeout.Seconds())
-	ioTimeoutSecs := int64(swarmingHardTimeout.Seconds())
+	expirationSecs := int32(swarming.RECOMMENDED_EXPIRATION.Seconds())
+	executionTimeoutSecs := int32(swarmingHardTimeout.Seconds())
+	ioTimeoutSecs := int32(swarmingHardTimeout.Seconds())
 	taskName := fmt.Sprintf("Leased by %s using leasing.skia.org", requester)
-	taskRequest := &swarming_api.SwarmingRpcsNewTaskRequest{
+	taskRequest := &apipb.NewTaskRequest{
 		Name:     taskName,
 		Priority: leaseTaskPriority,
-		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+		TaskSlices: []*apipb.TaskSlice{
 			{
 				ExpirationSecs: expirationSecs,
-				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+				Properties: &apipb.TaskProperties{
 					CipdInput:            cipdInput,
 					Dimensions:           dims,
 					ExecutionTimeoutSecs: executionTimeoutSecs,
@@ -307,14 +389,14 @@ func TriggerSwarmingTask(ctx context.Context, pool, requester, datastoreID, osTy
 		User: "skiabot@google.com",
 	}
 
-	casInput, err := swarming.MakeCASReference(casDigest, swarmingInstance.CasInstance)
+	casInput, err := swarmingv2.MakeCASReference(casDigest, swarmingInstance.CasInstance)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Invalid CAS input")
 	}
 	taskRequest.TaskSlices[0].Properties.CasInputRoot = casInput
 
 	swarmingClient := *GetSwarmingClient(pool)
-	resp, err := swarmingClient.TriggerTask(ctx, taskRequest)
+	resp, err := swarmingClient.NewTask(ctx, taskRequest)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s", err)
 	}
