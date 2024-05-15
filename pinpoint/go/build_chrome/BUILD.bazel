@@ -15,7 +15,7 @@ go_library(
         "//pinpoint/go/bot_configs",
         "@com_github_google_uuid//:uuid",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_x_oauth2//google",
     ],
 )
@@ -32,7 +32,7 @@ go_test(
         "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

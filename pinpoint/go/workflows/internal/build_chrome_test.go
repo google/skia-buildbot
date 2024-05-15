@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -18,7 +18,7 @@ func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
 
 	var bca *BuildChromeActivity
 	const fakeBuildID = int64(1234)
-	cas := &swarmingV1.SwarmingRpcsCASReference{
+	cas := &apipb.CASReference{
 		CasInstance: "fake-instance",
 	}
 
@@ -32,11 +32,11 @@ func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.Build
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.Build{
+	require.EqualExportedValues(t, workflows.Build{
 		ID:     fakeBuildID,
 		Status: buildbucketpb.Status_SUCCESS,
 		CAS:    cas,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }
 
@@ -57,10 +57,10 @@ func Test_BuildChrome_ShouldPopulateBuildError(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.Build
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.Build{
+	require.EqualExportedValues(t, workflows.Build{
 		ID:     fakeBuildID,
 		Status: buildbucketpb.Status_FAILURE,
 		CAS:    nil,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
@@ -117,7 +117,7 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 	}
 }
 
-func createTestQuestDetail(task *swarming.SwarmingRpcsTaskResult, benchmarkRun *workflows.TestRun) *pinpoint_proto.LegacyJobResponse_State_Attempt_Execution {
+func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflows.TestRun) *pinpoint_proto.LegacyJobResponse_State_Attempt_Execution {
 	return &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution{
 		Completed: true,
 		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
@@ -149,7 +149,7 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart str
 	for _, commitRun := range runData {
 		attempts := []*pinpoint_proto.LegacyJobResponse_State_Attempt{}
 		for _, benchmarkRun := range commitRun.Runs {
-			var task *swarming.SwarmingRpcsTaskResult
+			var task *apipb.TaskResultResponse
 			if err := workflow.ExecuteActivity(ctx, FetchTaskActivity, benchmarkRun.TaskID).Get(ctx, &task); err != nil {
 				return nil, nil, skerr.Wrapf(err, "failed to fetch task for parsing the bot id")
 			}

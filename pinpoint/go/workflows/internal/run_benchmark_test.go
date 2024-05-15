@@ -9,11 +9,11 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"github.com/stretchr/testify/require"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.temporal.io/sdk/testsuite"
 )
 
-var mockCas = &swarmingV1.SwarmingRpcsCASReference{
+var mockCas = &apipb.CASReference{
 	CasInstance: "fake-instance",
 }
 
@@ -36,11 +36,11 @@ func TestRunBenchmark_GivenSuccessfulRun_ShouldReturnCas(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.TestRun
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.TestRun{
+	require.EqualExportedValues(t, workflows.TestRun{
 		TaskID: fakeTaskID,
 		Status: state,
 		CAS:    mockCas,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }
 
@@ -62,11 +62,11 @@ func TestRunBenchmark_GivenUnsuccessfulRun_ShouldNotReturnCas(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.TestRun
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.TestRun{
+	require.EqualExportedValues(t, workflows.TestRun{
 		TaskID: fakeTaskID,
 		Status: state,
 		CAS:    nil,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }
 
@@ -95,11 +95,11 @@ func TestRunBenchmark_ReturnsNoResource_TriesAgain(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.TestRun
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.TestRun{
+	require.EqualExportedValues(t, workflows.TestRun{
 		TaskID: fakeTaskID2,
 		Status: state_completed,
 		CAS:    mockCas,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }
 
@@ -123,10 +123,10 @@ func TestRunBenchmark_ReturnsNoResourceTooManyTimes_ErrorsOut(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result *workflows.TestRun
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, &workflows.TestRun{
+	require.EqualExportedValues(t, workflows.TestRun{
 		TaskID: fakeTaskID,
 		Status: state_no_resource,
 		CAS:    nil,
-	}, result)
+	}, *result)
 	env.AssertExpectations(t)
 }

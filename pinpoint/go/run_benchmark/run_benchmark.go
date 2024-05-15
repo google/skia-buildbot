@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 
-	spb "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
 // A RunBenchmarkRequest defines the request arguments of the performance test to swarming.
@@ -24,7 +24,7 @@ type RunBenchmarkRequest struct {
 	// the Pinpoint job id
 	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
-	Build *spb.SwarmingRpcsCASReference
+	Build *apipb.CASReference
 	// commit hash
 	Commit string
 	// device configuration
@@ -80,7 +80,7 @@ func (s State) IsTaskSuccessful() bool {
 }
 
 // Run schedules a swarming task to run the RunBenchmarkRequest.
-func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *spb.SwarmingRpcsCASReference, iter int, botID map[string]string) ([]*spb.SwarmingRpcsTaskRequestMetadata, error) {
+func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark, story, storyTag string, jobID string, buildArtifact *apipb.CASReference, iter int, botID map[string]string) ([]*apipb.TaskRequestMetadataResponse, error) {
 	botConfig, err := bot_configs.GetBotConfig(bot, false)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create benchmark test object")
@@ -98,7 +98,7 @@ func Run(ctx context.Context, sc backends.SwarmingClient, commit, bot, benchmark
 	}
 	swarmingRequest := createSwarmingRequest(jobID, bt.GetCommand(), buildArtifact, dims)
 
-	resp := make([]*spb.SwarmingRpcsTaskRequestMetadata, 0)
+	resp := make([]*apipb.TaskRequestMetadataResponse, 0)
 	for i := 0; i < iter; i++ {
 		r, err := sc.TriggerTask(ctx, swarmingRequest)
 		if err != nil {

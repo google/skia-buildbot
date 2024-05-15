@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -69,7 +69,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,
-		CAS:    &swarmingV1.SwarmingRpcsCASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &swarmingV1.SwarmingRpcsDigest{Hash: "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb", SizeBytes: 810}},
+		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb", SizeBytes: 810}},
 	}
 
 	rightBuild := &workflows.Build{
@@ -77,7 +77,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,
-		CAS:    &swarmingV1.SwarmingRpcsCASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &swarmingV1.SwarmingRpcsDigest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
+		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},
 	}
 
 	p := PairwiseCommitsRunnerParams{

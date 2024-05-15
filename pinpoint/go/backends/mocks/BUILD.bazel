@@ -15,6 +15,6 @@ go_library(
         "//pinpoint/proto/v1:proto",
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

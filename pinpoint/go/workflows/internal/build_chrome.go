@@ -7,7 +7,7 @@ import (
 	"time"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/build_chrome"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -62,7 +62,7 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 		}, nil
 	}
 
-	var cas *swarmingV1.SwarmingRpcsCASReference
+	var cas *apipb.CASReference
 	if err := workflow.ExecuteActivity(ctx, bca.RetrieveCASActivity, buildID, params.Target).Get(ctx, &cas); err != nil {
 		logger.Error("Failed to wait for RetrieveCASActivity:", err)
 		return nil, err
@@ -128,7 +128,7 @@ func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context,
 }
 
 // RetrieveCASActivity wraps BuildChromeClient.RetrieveCAS and gets build artifacts in CAS.
-func (bca *BuildChromeActivity) RetrieveCASActivity(ctx context.Context, buildID int64, target string) (*swarmingV1.SwarmingRpcsCASReference, error) {
+func (bca *BuildChromeActivity) RetrieveCASActivity(ctx context.Context, buildID int64, target string) (*apipb.CASReference, error) {
 	logger := activity.GetLogger(ctx)
 
 	bc, err := build_chrome.New(ctx)

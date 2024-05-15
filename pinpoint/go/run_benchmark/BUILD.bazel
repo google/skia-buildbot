@@ -18,7 +18,7 @@ go_library(
         "//go/util",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )
 
@@ -34,10 +34,10 @@ go_test(
     deps = [
         "//go/skerr",
         "//go/swarming",
-        "//go/swarming/mocks",
+        "//go/swarming/v2/mocks",
         "//pinpoint/go/backends",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

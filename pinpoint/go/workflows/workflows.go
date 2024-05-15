@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
@@ -64,7 +64,7 @@ type Build struct {
 	// Status is the status of the build, this is needed to surface the build failures.
 	Status buildbucketpb.Status
 	// CAS is the CAS address of the build isolate.
-	CAS *swarmingV1.SwarmingRpcsCASReference
+	CAS *apipb.CASReference
 }
 
 // TestRun stores individual benchmark test run.
@@ -74,7 +74,7 @@ type TestRun struct {
 	// Status is the swarming task status.
 	Status run_benchmark.State
 	// CAS is the CAS address of the test output.
-	CAS *swarmingV1.SwarmingRpcsCASReference
+	CAS *apipb.CASReference
 	// Values is sampled values for each benchmark story.
 	Values map[string][]float64
 }

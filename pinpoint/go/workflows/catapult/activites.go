@@ -3,7 +3,7 @@ package catapult
 import (
 	"context"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
@@ -20,12 +20,15 @@ type httpClientContext struct{}
 var httpClientKey = &httpClientContext{}
 
 // FetchTaskActivity fetches the task used for the given swarming task.
-func FetchTaskActivity(ctx context.Context, taskID string) (*swarming.SwarmingRpcsTaskResult, error) {
+func FetchTaskActivity(ctx context.Context, taskID string) (*apipb.TaskResultResponse, error) {
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	task, err := sc.GetTask(ctx, taskID, false)
+	task, err := sc.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
+		TaskId:                  taskID,
+		IncludePerformanceStats: false,
+	})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not fetch task %s", taskID)
 	}

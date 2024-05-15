@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -259,9 +259,9 @@ func TestRetrieveCAS_BuildIdAndTarget_ReturnsCasReference(t *testing.T) {
 	const buildID = int64(1)
 	const target = "fake-target"
 
-	mockResp := &swarmingV1.SwarmingRpcsCASReference{
+	mockResp := &apipb.CASReference{
 		CasInstance: backends.DefaultCASInstance,
-		Digest: &swarmingV1.SwarmingRpcsDigest{
+		Digest: &apipb.Digest{
 			Hash:      "6e75b9064d8ce9a16c3815af13709f05556da586460587a5155e599aafea4a93",
 			SizeBytes: 1294,
 		},

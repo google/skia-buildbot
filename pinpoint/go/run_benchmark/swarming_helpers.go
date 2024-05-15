@@ -3,13 +3,13 @@ package run_benchmark
 import (
 	"fmt"
 
-	spb "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
 const ExecutionTimeoutSecs = 2700 // 45 min
 const PendingTimeoutSecs = 86400  // 1 day
 
-func convertDimensions(dimensions []map[string]string) []*spb.SwarmingRpcsStringPair {
+func convertDimensions(dimensions []map[string]string) []*apipb.StringPair {
 	// TODO(b/318863812): add mapping from device + benchmark to the specific run test
 	// currently catapult maps the device + benchmark to the target and then
 	// the target dictates what test to run. We can map to target if that info
@@ -18,9 +18,9 @@ func convertDimensions(dimensions []map[string]string) []*spb.SwarmingRpcsString
 	// https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/handlers/new.py;drc=8fe602e47f11cfdd79225696f1f6a5556b57c58c;l=466
 	// TODO(b/321299939): create an interface for different runBenchmark types
 	// and refactor telemetryExp to use that interface
-	dim := make([]*spb.SwarmingRpcsStringPair, len(dimensions))
+	dim := make([]*apipb.StringPair, len(dimensions))
 	for i, kv := range dimensions {
-		dim[i] = &spb.SwarmingRpcsStringPair{
+		dim[i] = &apipb.StringPair{
 			Key:   kv["key"],
 			Value: kv["value"],
 		}
@@ -28,8 +28,8 @@ func convertDimensions(dimensions []map[string]string) []*spb.SwarmingRpcsString
 	return dim
 }
 
-func generateProperties(command []string, casRef *spb.SwarmingRpcsCASReference, dim []*spb.SwarmingRpcsStringPair) *spb.SwarmingRpcsTaskProperties {
-	return &spb.SwarmingRpcsTaskProperties{
+func generateProperties(command []string, casRef *apipb.CASReference, dim []*apipb.StringPair) *apipb.TaskProperties {
+	return &apipb.TaskProperties{
 		CasInputRoot:         casRef,
 		Command:              command,
 		Dimensions:           dim,
@@ -47,8 +47,8 @@ func generateTags(jobID string, hash string, sizeBytes int64) []string {
 	}
 }
 
-func createSwarmingRequest(jobID string, command []string, casRef *spb.SwarmingRpcsCASReference, dimensions []map[string]string) *spb.SwarmingRpcsNewTaskRequest {
-	return &spb.SwarmingRpcsNewTaskRequest{
+func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASReference, dimensions []map[string]string) *apipb.NewTaskRequest {
+	return &apipb.NewTaskRequest{
 		BotPingToleranceSecs: 1200,
 		ExpirationSecs:       PendingTimeoutSecs,
 		// EvaluateOnly omitted

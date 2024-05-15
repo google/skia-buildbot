@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -24,7 +24,7 @@ type RunBenchmarkParams struct {
 	// the Pinpoint job id
 	JobID string
 	// the swarming instance and cas digest hash and bytes location for the build
-	BuildCAS *swarmingV1.SwarmingRpcsCASReference
+	BuildCAS *apipb.CASReference
 	// commit hash
 	Commit *midpoint.CombinedCommit
 	// device configuration
@@ -107,7 +107,7 @@ func RunBenchmarkWorkflow(ctx workflow.Context, p *RunBenchmarkParams) (*workflo
 		}, nil
 	}
 
-	var cas *swarmingV1.SwarmingRpcsCASReference
+	var cas *apipb.CASReference
 	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, taskID).Get(ctx, &cas); err != nil {
 		logger.Error("Failed to retrieve CAS reference:", err)
 		return nil, skerr.Wrap(err)
@@ -214,7 +214,7 @@ func (rba *RunBenchmarkActivity) WaitTaskFinishedActivity(ctx context.Context, t
 }
 
 // RetrieveTestCASActivity wraps retrieves task artifacts from CAS
-func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, taskID string) (*swarmingV1.SwarmingRpcsCASReference, error) {
+func (rba *RunBenchmarkActivity) RetrieveTestCASActivity(ctx context.Context, taskID string) (*apipb.CASReference, error) {
 	logger := activity.GetLogger(ctx)
 
 	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)

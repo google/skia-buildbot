@@ -9,10 +9,10 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/swarming/v2/mocks"
 	"go.skia.org/infra/pinpoint/go/backends"
 
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
 var fakeBotID = map[string]string{
@@ -23,9 +23,9 @@ var req = RunBenchmarkRequest{
 	JobID:     "id",
 	Benchmark: "benchmark",
 	Story:     "story",
-	Build: &swarmingV1.SwarmingRpcsCASReference{
+	Build: &apipb.CASReference{
 		CasInstance: "instance",
-		Digest: &swarmingV1.SwarmingRpcsDigest{
+		Digest: &apipb.Digest{
 			Hash:      "hash",
 			SizeBytes: 0,
 		},
@@ -36,14 +36,14 @@ var expectedErr = skerr.Fmt("some error")
 
 func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &backends.SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 
-	buildArtifact := &swarmingV1.SwarmingRpcsCASReference{
+	buildArtifact := &apipb.CASReference{
 		CasInstance: "instance",
-		Digest: &swarmingV1.SwarmingRpcsDigest{
+		Digest: &apipb.Digest{
 			Hash:      "hash",
 			SizeBytes: 0,
 		},
@@ -51,8 +51,8 @@ func TestRun_TelemetryTest_ValidExecution(t *testing.T) {
 
 	c, fakeID := "64893ca6294946163615dcf23b614afe0419bfa3", "fake-id"
 
-	mockClient.On("TriggerTask", ctx, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskRequestMetadata{
+	mockClient.On("NewTask", ctx, mock.Anything).
+		Return(&apipb.TaskRequestMetadataResponse{
 			TaskId: "123",
 		}, nil).Once()
 	taskIds, err := Run(ctx, sc, c, "android-pixel2_webview-perf", "performance_browser_tests", "story", "all", fakeID, buildArtifact, 1, fakeBotID)

@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -132,7 +132,7 @@ func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel
 	return runs
 }
 
-func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *swarmingV1.SwarmingRpcsCASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int32) (*workflows.TestRun, error) {
+func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *apipb.CASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int32) (*workflows.TestRun, error) {
 	var tr *workflows.TestRun
 	rbp := &RunBenchmarkParams{
 		JobID:        scrp.PinpointJobID,
@@ -241,5 +241,5 @@ func CollectValuesActivity(ctx context.Context, run *workflows.TestRun, benchmar
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to dial rbe client")
 	}
-	return client.ReadValuesByChart(ctx, benchmark, chart, []*swarmingV1.SwarmingRpcsCASReference{run.CAS}, aggMethod)
+	return client.ReadValuesByChart(ctx, benchmark, chart, []*apipb.CASReference{run.CAS}, aggMethod)
 }

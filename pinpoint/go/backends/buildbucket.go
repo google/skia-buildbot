@@ -13,6 +13,7 @@ import (
 
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
@@ -20,7 +21,6 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	bpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingpb "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	spb "google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -95,7 +95,7 @@ type BuildbucketClient interface {
 	GetBuildStatus(ctx context.Context, buildID int64) (bpb.Status, error)
 
 	// GetCASReference returns a CAS reference to the output artifacts of a successful build.
-	GetCASReference(ctx context.Context, buildID int64, target string) (*swarmingpb.SwarmingRpcsCASReference, error)
+	GetCASReference(ctx context.Context, buildID int64, target string) (*apipb.CASReference, error)
 
 	// StartChromeBuild triggers a Chrome build.
 	StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error)
@@ -314,7 +314,7 @@ func (b *buildbucketClient) createCASReferenceRequest(buildID int64) *bpb.GetBui
 }
 
 // GetCASReference parses output.properties of a successful build for a CAS hash.
-func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, target string) (*swarmingpb.SwarmingRpcsCASReference, error) {
+func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, target string) (*apipb.CASReference, error) {
 	req := b.createCASReferenceRequest(buildID)
 	build, err := b.client.GetBuild(ctx, req)
 	if err != nil {
@@ -340,9 +340,9 @@ func (b *buildbucketClient) GetCASReference(ctx context.Context, buildID int64, 
 			if err != nil {
 				return nil, err
 			}
-			return &swarmingpb.SwarmingRpcsCASReference{
+			return &apipb.CASReference{
 				CasInstance: DefaultCASInstance,
-				Digest: &swarmingpb.SwarmingRpcsDigest{
+				Digest: &apipb.Digest{
 					Hash:      parts[0],
 					SizeBytes: bytes,
 				},

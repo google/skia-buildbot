@@ -9,7 +9,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -166,7 +166,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 	return cr, nil
 }
 
-func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
+func triggerBuildChrome(c client.Client) *apipb.CASReference {
 	bcp := workflows.BuildChromeParams{
 		WorkflowID: "123",
 		Commit:     midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
@@ -182,7 +182,7 @@ func triggerBuildChrome(c client.Client) *swarmingV1.SwarmingRpcsCASReference {
 	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
 
 	// Synchronously wait for the workflow completion.
-	var result *swarmingV1.SwarmingRpcsCASReference
+	var result *apipb.CASReference
 	err = we.Get(context.Background(), &result)
 	if err != nil {
 		sklog.Errorf("Unable get workflow result: %v", err)

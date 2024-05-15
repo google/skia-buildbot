@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -69,9 +69,9 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 					BuildChromeParams: workflows.BuildChromeParams{
 						Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1")),
 					},
-					CAS: &swarmingV1.SwarmingRpcsCASReference{
+					CAS: &apipb.CASReference{
 						CasInstance: "projects/chrome-swarming/instances/default_instance",
-						Digest: &swarmingV1.SwarmingRpcsDigest{
+						Digest: &apipb.Digest{
 							Hash:      "25009b847133c029dc585020ed7b60b6573fe12123559319ea5c04fec3b6e06c",
 							SizeBytes: int64(183),
 						},
@@ -80,9 +80,9 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 				Runs: []*workflows.TestRun{
 					{
 						TaskID: swarmingTaskID,
-						CAS: &swarmingV1.SwarmingRpcsCASReference{
+						CAS: &apipb.CASReference{
 							CasInstance: "projects/chrome-swarming/instances/default_instance",
-							Digest: &swarmingV1.SwarmingRpcsDigest{
+							Digest: &apipb.Digest{
 								Hash:      "25009b847133c029dc585020ed7b60b6573fe12123559319ea5c04fec3b6e06c",
 								SizeBytes: int64(183),
 							},
@@ -103,7 +103,7 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	env.RegisterWorkflow(mockParseRunDataWorkflow)
 	env.RegisterActivity(FetchTaskActivity)
 
-	env.OnActivity(FetchTaskActivity, mock.Anything, swarmingTaskID).Return(&swarmingV1.SwarmingRpcsTaskResult{
+	env.OnActivity(FetchTaskActivity, mock.Anything, swarmingTaskID).Return(&apipb.TaskResultResponse{
 		BotId:  botID,
 		TaskId: swarmingTaskID,
 	}, nil)

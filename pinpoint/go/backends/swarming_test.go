@@ -8,10 +8,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/swarming/v2/mocks"
 
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
 func TestNewSwarmingClient_Default_SwarmingClient(t *testing.T) {
@@ -23,34 +22,34 @@ func TestNewSwarmingClient_Default_SwarmingClient(t *testing.T) {
 
 func TestGetStatus_CompletedAndSuccess_ReturnsCompleted(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 
-	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskResult{
-			State:   swarming.TASK_STATE_COMPLETED,
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State:   apipb.TaskState_COMPLETED,
 			Failure: false,
 		}, nil).Once()
 
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	status, err := sc.GetStatus(ctx, "task")
 	require.NoError(t, err)
-	assert.Equal(t, swarming.TASK_STATE_COMPLETED, status)
+	assert.Equal(t, apipb.TaskState_COMPLETED.String(), status)
 }
 
 func TestGetStatus_CompletedAndFailure_ReturnsRunBenchmarkFailure(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 
-	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskResult{
-			State:   swarming.TASK_STATE_COMPLETED,
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State:   apipb.TaskState_COMPLETED,
 			Failure: true,
 		}, nil).Once()
 
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	status, err := sc.GetStatus(ctx, "task")
 	require.NoError(t, err)
@@ -59,46 +58,48 @@ func TestGetStatus_CompletedAndFailure_ReturnsRunBenchmarkFailure(t *testing.T) 
 
 func TestGetStatus_NotCompleted_ReturnsState(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 
-	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskResult{
-			State:   swarming.TASK_STATE_BOT_DIED,
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State:   apipb.TaskState_BOT_DIED,
 			Failure: true,
 		}, nil).Once()
 
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	status, err := sc.GetStatus(ctx, "task")
 	require.NoError(t, err)
-	assert.Equal(t, swarming.TASK_STATE_BOT_DIED, status)
+	assert.Equal(t, apipb.TaskState_BOT_DIED.String(), status)
 }
 
 func TestListPinpointTasks_ValidInput_TasksFound(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 
-	bA := &swarmingV1.SwarmingRpcsCASReference{
+	bA := &apipb.CASReference{
 		CasInstance: "instance",
-		Digest: &swarmingV1.SwarmingRpcsDigest{
+		Digest: &apipb.Digest{
 			Hash:      "hash",
 			SizeBytes: 0,
 		},
 	}
 
 	mockClient.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]*swarmingV1.SwarmingRpcsTaskRequestMetadata{
-			{
-				TaskId: "123",
-			},
-			{
-				TaskId: "456",
+		Return(&apipb.TaskListResponse{
+			Items: []*apipb.TaskResultResponse{
+				{
+					TaskId: "123",
+				},
+				{
+					TaskId: "456",
+				},
 			},
 		}, nil).Once()
 
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	taskIds, err := sc.ListPinpointTasks(ctx, "id", bA)
 	assert.NoError(t, err)
@@ -107,21 +108,21 @@ func TestListPinpointTasks_ValidInput_TasksFound(t *testing.T) {
 
 func TestListPinpointTasks_ValidInput_NoTasksFound(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 
-	bA := &swarmingV1.SwarmingRpcsCASReference{
+	bA := &apipb.CASReference{
 		CasInstance: "instance",
-		Digest: &swarmingV1.SwarmingRpcsDigest{
+		Digest: &apipb.Digest{
 			Hash:      "hash",
 			SizeBytes: 0,
 		},
 	}
 
 	mockClient.On("ListTasks", ctx, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]*swarmingV1.SwarmingRpcsTaskRequestMetadata{}, nil).Once()
+		Return(&apipb.TaskListResponse{}, nil).Once()
 
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	taskIds, err := sc.ListPinpointTasks(ctx, "id", bA)
 
@@ -131,12 +132,12 @@ func TestListPinpointTasks_ValidInput_NoTasksFound(t *testing.T) {
 
 func TestListPinpointTasks_InvalidInputs_Error(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 
-	taskIds, err := sc.ListPinpointTasks(ctx, "", &swarmingV1.SwarmingRpcsCASReference{})
+	taskIds, err := sc.ListPinpointTasks(ctx, "", &apipb.CASReference{})
 	assert.Nil(t, taskIds)
 	assert.ErrorContains(t, err, "Cannot list tasks because request is missing JobID")
 
@@ -147,17 +148,17 @@ func TestListPinpointTasks_InvalidInputs_Error(t *testing.T) {
 
 func TestGetCASOutput_ValidInput_SwarmingRBECasRef(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 
-	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskResult{
-			State: "COMPLETED",
-			CasOutputRoot: &swarmingV1.SwarmingRpcsCASReference{
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State: apipb.TaskState_COMPLETED,
+			CasOutputRoot: &apipb.CASReference{
 				CasInstance: "instance",
-				Digest: &swarmingV1.SwarmingRpcsDigest{
+				Digest: &apipb.Digest{
 					Hash:      "hash",
 					SizeBytes: 0,
 				},
@@ -173,14 +174,14 @@ func TestGetCASOutput_ValidInput_SwarmingRBECasRef(t *testing.T) {
 
 func TestGasCASOutput_IncompleteTask_Error(t *testing.T) {
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 
-	mockClient.On("GetTask", ctx, mock.Anything, mock.Anything).
-		Return(&swarmingV1.SwarmingRpcsTaskResult{
-			State: "Not_Completed",
+	mockClient.On("GetResult", ctx, mock.Anything, mock.Anything).
+		Return(&apipb.TaskResultResponse{
+			State: apipb.TaskState_RUNNING,
 		}, nil).Once()
 
 	rbe, err := sc.GetCASOutput(ctx, "taskId")
@@ -192,9 +193,9 @@ func TestFetchFreeBots_NoBuildConfig_ReturnsError(t *testing.T) {
 	const fakeBuilder = "fake_builder"
 
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 	_, err := sc.FetchFreeBots(ctx, fakeBuilder)
 	require.Error(t, err)
@@ -204,24 +205,27 @@ func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
 	const builder = "android-pixel2-perf"
 
 	ctx := context.Background()
-	mockClient := mocks.NewApiClient(t)
+	mockClient := &mocks.SwarmingV2Client{}
 	sc := &SwarmingClientImpl{
-		ApiClient: mockClient,
+		SwarmingV2Client: mockClient,
 	}
 
-	mockClient.On("ListBotsForDimensions", ctx, mock.Anything).Return(
-		func(_ context.Context, dims map[string]string) ([]*swarmingV1.SwarmingRpcsBotInfo, error) {
-			assert.Len(t, dims, 3)
-			// The expected dimensions asserted below are from bot_configs
-			// For the builder in question, these dimensions will
-			// be fetched from here: https://source.corp.google.com/h/skia/buildbot/+/main:pinpoint/go/bot_configs/external.json;l=23#:~:text=%22-,android,-%2Dpixel2%2Dperf%22
-			assert.Equal(t, "chrome.tests.pinpoint", dims["pool"])
-			assert.Equal(t, "walleye", dims["device_type"])
-			assert.Equal(t, "OPM1.171019.021", dims["device_os"])
-
-			return []*swarmingV1.SwarmingRpcsBotInfo{{BotId: "b1"}, {BotId: "b2"}}, nil
+	mockClient.On("ListBots", ctx, &apipb.BotsRequest{
+		// The expected dimensions asserted below are from bot_configs
+		// For the builder in question, these dimensions will
+		// be fetched from here: https://source.corp.google.com/h/skia/buildbot/+/main:pinpoint/go/bot_configs/external.json;l=23#:~:text=%22-,android,-%2Dpixel2%2Dperf%22
+		Dimensions: []*apipb.StringPair{
+			{Key: "pool", Value: "chrome.tests.pinpoint"},
+			{Key: "device_type", Value: "walleye"},
+			{Key: "device_os", Value: "OPM1.171019.021"},
 		},
-	)
+		Limit: 1000,
+	}).Return(&apipb.BotInfoListResponse{
+		Items: []*apipb.BotInfo{
+			{BotId: "b1"},
+			{BotId: "b2"},
+		},
+	}, nil)
 
 	resp, err := sc.FetchFreeBots(ctx, builder)
 	require.NoError(t, err)

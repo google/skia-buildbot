@@ -40,7 +40,7 @@ go_library(
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_google_protobuf//types/known/timestamppb",
         "@org_golang_x_oauth2//google",
     ],
@@ -89,6 +89,6 @@ go_test(
         "@io_temporal_go_sdk//worker",
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

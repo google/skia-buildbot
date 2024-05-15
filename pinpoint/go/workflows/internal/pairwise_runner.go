@@ -5,7 +5,7 @@ import (
 	"errors"
 	"math/rand"
 
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
@@ -118,7 +118,7 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
 	runs := []struct {
 		cc  *midpoint.CombinedCommit
-		cas *swarmingV1.SwarmingRpcsCASReference
+		cas *apipb.CASReference
 		ch  workflow.Channel
 	}{
 		{

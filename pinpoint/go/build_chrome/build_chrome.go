@@ -21,7 +21,7 @@ import (
 	"golang.org/x/oauth2/google"
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 )
 
 // BuildChromeClient is a buildbucket client to build Chrome.
@@ -34,7 +34,7 @@ type BuildChromeClient interface {
 	GetStatus(context.Context, int64) (buildbucketpb.Status, error)
 
 	// RetrieveCAS retrieves CAS from the build.
-	RetrieveCAS(context.Context, int64, string) (*swarmingV1.SwarmingRpcsCASReference, error)
+	RetrieveCAS(context.Context, int64, string) (*apipb.CASReference, error)
 
 	// CancelBuild cancels the ongoing build.
 	CancelBuild(context.Context, int64, string) error
@@ -151,7 +151,7 @@ func (bci *buildChromeImpl) SearchOrBuild(ctx context.Context, pinpointJobID, co
 }
 
 // RetrieveCAS implements BuildChromeClient interface
-func (bci *buildChromeImpl) RetrieveCAS(ctx context.Context, buildID int64, target string) (*swarmingV1.SwarmingRpcsCASReference, error) {
+func (bci *buildChromeImpl) RetrieveCAS(ctx context.Context, buildID int64, target string) (*apipb.CASReference, error) {
 	ref, err := bci.GetCASReference(ctx, buildID, target)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not find the CAS outputs to build %d", buildID)

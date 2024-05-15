@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
@@ -45,7 +45,7 @@ var testData = map[string]perfresults.PerfResults{
 type mockedProvider struct {
 }
 
-func (mp mockedProvider) Fetch(ctx context.Context, cas *swarming.SwarmingRpcsCASReference) (map[string]perfresults.PerfResults, error) {
+func (mp mockedProvider) Fetch(ctx context.Context, cas *apipb.CASReference) (map[string]perfresults.PerfResults, error) {
 	return testData, nil
 }
 
@@ -55,7 +55,7 @@ func TestReadChart_ReadSampleValues(t *testing.T) {
 	}
 	test := func(name, benchmark, chart string, expected ...float64) {
 		t.Run(name, func(t *testing.T) {
-			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*swarming.SwarmingRpcsCASReference{{}}, "")
+			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}}, "")
 			assert.NoError(t, err)
 			assert.EqualValues(t, expected, values)
 		})
@@ -73,7 +73,7 @@ func TestReadChart_ReadAggregatedValues(t *testing.T) {
 	test := func(name, benchmark, chart, agg string, expected ...float64) {
 		t.Run(name, func(t *testing.T) {
 			// Load three same CAS
-			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*swarming.SwarmingRpcsCASReference{{}, {}, {}}, agg)
+			values, err := c.ReadValuesByChart(context.Background(), benchmark, chart, []*apipb.CASReference{{}, {}, {}}, agg)
 			assert.NoError(t, err)
 			assert.EqualValues(t, expected, values)
 		})

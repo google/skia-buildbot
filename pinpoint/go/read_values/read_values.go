@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/perfresults"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
-	swarmingV1 "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 var aggregationMapping = map[string]func(perfresults.Histogram) float64{
@@ -36,7 +36,7 @@ func IsSupportedAggregation(aggregationMethod string) bool {
 
 // CASProvider provides API to fetch perf results from a given CAS digest.
 type CASProvider interface {
-	Fetch(context.Context, *swarmingV1.SwarmingRpcsCASReference) (map[string]perfresults.PerfResults, error)
+	Fetch(context.Context, *apipb.CASReference) (map[string]perfresults.PerfResults, error)
 }
 
 // rbeProvider implements CASProvider to fetch perf results from RBE backend.
@@ -44,7 +44,7 @@ type rbeProvider struct {
 	*rbeclient.Client
 }
 
-func (r *rbeProvider) Fetch(ctx context.Context, digest *swarmingV1.SwarmingRpcsCASReference) (map[string]perfresults.PerfResults, error) {
+func (r *rbeProvider) Fetch(ctx context.Context, digest *apipb.CASReference) (map[string]perfresults.PerfResults, error) {
 	path := fmt.Sprintf("%s/%d", digest.Digest.Hash, digest.Digest.SizeBytes)
 	return backends.FetchBenchmarkJSON(ctx, r.Client, path)
 }
@@ -82,7 +82,7 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 //	values := client.ReadValuesByChart(ctx, benchmark, chart, digests, nil)
 //
 // TODO(sunxiaodi@): Migrate CABE backends into pinpoint/go/backends/
-func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*swarmingV1.SwarmingRpcsCASReference, agg string) ([]float64, error) {
+func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string, chart string, digests []*apipb.CASReference, agg string) ([]float64, error) {
 	aggMethod, ok := aggregationMapping[agg]
 	if !ok && agg != "" {
 		return nil, skerr.Fmt("unsupported aggregation method (%s).", agg)

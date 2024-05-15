@@ -12,7 +12,7 @@ go_library(
         "//pinpoint/go/run_benchmark",
         "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//buildbucket/proto",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )
 

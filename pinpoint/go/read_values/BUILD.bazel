@@ -12,7 +12,7 @@ go_library(
         "//go/sklog",
         "//perf/go/perfresults",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )
 
@@ -23,6 +23,6 @@ go_test(
     deps = [
         "//perf/go/perfresults",
         "@com_github_stretchr_testify//assert",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )
