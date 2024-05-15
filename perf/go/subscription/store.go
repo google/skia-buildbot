@@ -14,4 +14,7 @@ type Store interface {
 
 	// InsertSubscriptions inserts multiple subscription.
 	InsertSubscriptions(ctx context.Context, subscription []*pb.Subscription) error
+
+	// GetAllSubscriptions gets all the subscriptions unique by name
+	GetAllSubscriptions(ctx context.Context) ([]*pb.Subscription, error)
 }

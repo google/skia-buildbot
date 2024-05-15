@@ -15,6 +15,36 @@ type Store struct {
 	mock.Mock
 }
 
+// GetAllSubscriptions provides a mock function with given fields: ctx
+func (_m *Store) GetAllSubscriptions(ctx context.Context) ([]*v1.Subscription, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllSubscriptions")
+	}
+
+	var r0 []*v1.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]*v1.Subscription, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []*v1.Subscription); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*v1.Subscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSubscription provides a mock function with given fields: ctx, name, revision
 func (_m *Store) GetSubscription(ctx context.Context, name string, revision string) (*v1.Subscription, error) {
 	ret := _m.Called(ctx, name, revision)

@@ -18,6 +18,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	insertSubscription statement = iota
 	getSubscription
+	getAllSubscriptions
 )
 
 // statements holds all the raw SQL statemens.
@@ -45,6 +46,12 @@ var statements = map[statement]string{
 			Subscriptions (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email)
 		VALUES
 			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`,
+	getAllSubscriptions: `
+		Select
+			*
+		FROM
+			Subscriptions
 	`,
 }
 
@@ -97,4 +104,36 @@ func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.
 	}
 
 	return tx.Commit(ctx)
+}
+
+// GetAllSubscriptions implements the subscription.Store interface.
+// This function queries the db to fetch all the subscriptions.
+func (s *SubscriptionStore) GetAllSubscriptions(ctx context.Context) ([]*pb.Subscription, error) {
+	stmt := statements[getAllSubscriptions]
+	rows, err := s.db.Query(ctx, stmt)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to load subscriptions.")
+	}
+
+	subscriptions := []*pb.Subscription{}
+	for rows.Next() {
+		sub := &pb.Subscription{}
+		if err = rows.Scan(
+			&sub.Name,
+			&sub.Revision,
+			&sub.BugLabels,
+			&sub.Hotlists,
+			&sub.BugComponent,
+			&sub.BugPriority,
+			&sub.BugSeverity,
+			&sub.BugCcEmails,
+			&sub.ContactEmail,
+		); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to parse subscriptions.")
+		} else {
+			subscriptions = append(subscriptions, sub)
+		}
+	}
+
+	return subscriptions, nil
 }

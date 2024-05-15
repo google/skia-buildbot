@@ -64,6 +64,7 @@ import (
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/subscription"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracing"
 	"go.skia.org/infra/perf/go/trybot/results"
@@ -129,6 +130,8 @@ type Frontend struct {
 	loadTemplatesOnce sync.Once
 
 	regStore regression.Store
+
+	subStore subscription.Store
 
 	continuous []*continuous.Continuous
 
@@ -518,6 +521,11 @@ func (f *Frontend) initialize() {
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg, f.configProvider)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
+	}
+
+	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build subscription.Store: %s", err)
 	}
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
@@ -1302,6 +1310,24 @@ func (f *Frontend) pinpointBisectionHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// subscriptionsHandler is an API endpoint handler that fetches all the subscriptions from the db
+func (f *Frontend) subscriptionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	ctx, span := trace.StartSpan(ctx, "subscriptionQueryRequest")
+	defer span.End()
+
+	subscriptionList, err := f.subStore.GetAllSubscriptions(ctx)
+	if err != nil {
+		httputils.ReportError(w, err, "Unable to fetch subscription", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(subscriptionList); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
@@ -2013,6 +2039,8 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/_/favorites/", f.favoritesHandler)
 	router.Get("/_/defaults/", f.defaultsHandler)
 	router.Get("/_/revision/", f.revisionHandler)
+
+	router.Get("/_/subscriptions", f.subscriptionsHandler)
 	return router
 }
 

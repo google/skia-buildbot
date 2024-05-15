@@ -50,6 +50,7 @@ go_library(
         "//perf/go/regression",
         "//perf/go/regression/continuous",
         "//perf/go/shortcut",
+        "//perf/go/subscription:store",
         "//perf/go/tracestore",
         "//perf/go/tracing",
         "//perf/go/trybot/results",
@@ -73,6 +74,9 @@ go_test(
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/roles",
+        "//go/testutils",
+        "//perf/go/subscription/mocks",
+        "//perf/go/subscription/proto/v1",
         "@com_github_stretchr_testify//require",
     ],
 )

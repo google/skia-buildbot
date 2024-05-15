@@ -147,6 +147,50 @@ func TestGet_ValidSubscription(t *testing.T) {
 	assert.Equal(t, actual, s)
 }
 
+func TestGet_AllSubscriptionsUniqByName(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	s := &pb.Subscription{
+		Name:         "Test Subscription 1",
+		Revision:     "abcd",
+		BugLabels:    []string{"A", "B"},
+		Hotlists:     []string{"C", "D"},
+		BugComponent: "Component1>Subcomponent1",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+
+	s1 := &pb.Subscription{
+		Name:         "Test Subscription 2",
+		Revision:     "bcde",
+		BugLabels:    []string{"A", "B"},
+		Hotlists:     []string{"C", "D"},
+		BugComponent: "Component1>Subcomponent1",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+
+	insertSubscriptionToDb(t, ctx, db, s)
+	insertSubscriptionToDb(t, ctx, db, s1)
+
+	actual, err := store.GetAllSubscriptions(ctx)
+	require.NoError(t, err)
+
+	expected := []*pb.Subscription{s, s1}
+	assert.Equal(t, actual, expected)
+}
+
 // Test that fails when retrieving an unknown subscription.
 func TestGet_NonExistent(t *testing.T) {
 	ctx := context.Background()
