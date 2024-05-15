@@ -11,7 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -80,6 +82,7 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 				Runs: []*workflows.TestRun{
 					{
 						TaskID: swarmingTaskID,
+						Status: swarming.TASK_STATE_COMPLETED,
 						CAS: &apipb.CASReference{
 							CasInstance: "projects/chrome-swarming/instances/default_instance",
 							Digest: &apipb.Digest{
@@ -92,6 +95,10 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 								0.1, 0.2, 0.3,
 							},
 						},
+					},
+					{
+						TaskID: swarmingTaskID,
+						Status: backends.RunBenchmarkFailure,
 					},
 				},
 			},
@@ -122,6 +129,10 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 	assert.Equal(t, swarmingTaskID, testQuestDetail[1].Value)
 	assert.Equal(t, 1, len(actual.Bots))
 	assert.Equal(t, botID, actual.Bots[0])
+	assert.Equal(t, fmt.Sprintf(casIsolateHashTemplate, "25009b847133c029dc585020ed7b60b6573fe12123559319ea5c04fec3b6e06c", int64(183)), testQuestDetail[2].Value)
+
+	questDetail2 := actual.State[0].Attempts[1].Executions[1].Details
+	assert.Empty(t, questDetail2[2].Value)
 }
 
 // createCombinedResults a helper function to generate combinedresults

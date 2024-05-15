@@ -9,6 +9,7 @@ import (
 
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
+	skia_swarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -118,25 +119,30 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 }
 
 func createTestQuestDetail(task *apipb.TaskResultResponse, benchmarkRun *workflows.TestRun) *pinpoint_proto.LegacyJobResponse_State_Attempt_Execution {
-	return &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution{
-		Completed: true,
-		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
-			{
-				Key:   "bot",
-				Value: task.BotId,
-			},
-			{
-				Key:   "task",
-				Value: task.TaskId,
-				Url:   fmt.Sprintf(swarmingTaskUrlTemplate, task.TaskId),
-			},
-			{
-				Key:   "isolate",
-				Value: fmt.Sprintf(casIsolateHashTemplate, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes),
-				Url:   fmt.Sprintf(casUrlTemplate, benchmarkRun.CAS.CasInstance, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes),
-			},
+	details := []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
+		{
+			Key:   "bot",
+			Value: task.BotId,
+		},
+		{
+			Key:   "task",
+			Value: task.TaskId,
+			Url:   fmt.Sprintf(swarmingTaskUrlTemplate, task.TaskId),
 		},
 	}
+	iso_details := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
+		Key: "isolate",
+	}
+	if benchmarkRun.Status == skia_swarming.TASK_STATE_COMPLETED {
+		iso_details.Value = fmt.Sprintf(casIsolateHashTemplate, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
+		iso_details.Url = fmt.Sprintf(casUrlTemplate, benchmarkRun.CAS.CasInstance, benchmarkRun.CAS.Digest.Hash, benchmarkRun.CAS.Digest.SizeBytes)
+	}
+	details = append(details, iso_details)
+	resp := &pinpoint_proto.LegacyJobResponse_State_Attempt_Execution{
+		Completed: benchmarkRun.Status == skia_swarming.TASK_STATE_COMPLETED,
+		Details:   details,
+	}
+	return resp
 }
 
 // parseRunData parses run data into a map of combined commit to list of attempts and a unique list of bots run for tests.
