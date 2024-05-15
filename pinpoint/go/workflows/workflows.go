@@ -79,6 +79,14 @@ type TestRun struct {
 	Values map[string][]float64
 }
 
+// PairwiseTestRun stores pairwise benchmark test run.
+type PairwiseTestRun struct {
+	// FirstTestRun is the first benchmark test run
+	FirstTestRun *TestRun
+	// FirstTestRun is the second benchmark test run
+	SecondTestRun *TestRun
+}
+
 type BisectParams struct {
 	// BisectWorkflow reuses BisectRequest message
 	Request *pb.ScheduleBisectRequest

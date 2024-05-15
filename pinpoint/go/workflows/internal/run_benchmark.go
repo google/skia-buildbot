@@ -41,6 +41,11 @@ type RunBenchmarkParams struct {
 	// benchmark runs and this param comes in handy to get additional info of a specific run.
 	// This is for debugging/informational purposes only.
 	IterationIdx int32
+	// Chart is a story histogram in a Benchmark.
+	Chart string
+	// AggregationMethod is method to aggregate sampled values.
+	// If empty, then the original values are returned.
+	AggregationMethod string
 }
 
 // RunBenchmarkActivity wraps RunBenchmarkWorkflow in Activities
@@ -124,6 +129,113 @@ func canRetry(state run_benchmark.State, attempt int) bool {
 	return (state == run_benchmark.State("") || state.IsNoResource()) && attempt <= maxRetry
 }
 
+// RunBenchmarkPairwiseWorkflow is a Workflow definition that schedules a pairwise of tasks,
+// polls and retrieves the CAS for the RunBenchmarkParams defined.
+// TODO(sunxiaodi@): Convert this workflow to accept slice and replace RunBenchmarkWorkflow
+// with this workflow.
+func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkParams, secondRBP *RunBenchmarkParams) (*workflows.PairwiseTestRun, error) {
+	ctx = workflow.WithActivityOptions(ctx, runBenchmarkActivityOption)
+	pendingCtx := workflow.WithActivityOptions(ctx, runBenchmarkPendingActivityOption)
+	logger := workflow.GetLogger(ctx)
+
+	var rba RunBenchmarkActivity
+	var firstTaskID, secondTaskID string
+	var firstState, secondState run_benchmark.State
+	defer func() {
+		// ErrCanceled is the error returned by Context.Err when the context is canceled
+		// This logic ensures cleanup only happens if there is a Cancellation error
+		if !errors.Is(ctx.Err(), workflow.ErrCanceled) {
+			return
+		}
+		// For the Workflow to execute an Activity after it receives a Cancellation Request
+		// It has to get a new disconnected context
+		newCtx, _ := workflow.NewDisconnectedContext(ctx)
+
+		err := workflow.ExecuteActivity(newCtx, rba.CleanupBenchmarkRunActivity, firstTaskID, firstState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("CleanupBenchmarkRunActivity failed", err)
+		}
+
+		err = workflow.ExecuteActivity(newCtx, rba.CleanupBenchmarkRunActivity, secondTaskID, secondState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("CleanupBenchmarkRunActivity failed", err)
+		}
+	}()
+
+	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, firstRBP).Get(ctx, &firstTaskID); err != nil {
+		logger.Error("Failed to schedule first task:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskAcceptedActivity, firstTaskID).Get(pendingCtx, &firstState); err != nil {
+		logger.Error("Failed to poll accepted first task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(ctx, rba.ScheduleTaskActivity, secondRBP).Get(ctx, &secondTaskID); err != nil {
+		logger.Error("Failed to schedule second task:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, firstTaskID).Get(pendingCtx, &firstState); err != nil {
+		logger.Error("Failed to poll pending first task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(pendingCtx, rba.WaitTaskPendingActivity, secondTaskID).Get(pendingCtx, &secondState); err != nil {
+		logger.Error("Failed to poll pending second task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(ctx, rba.WaitTaskFinishedActivity, firstTaskID).Get(ctx, &firstState); err != nil {
+		logger.Error("Failed to poll running first task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if err := workflow.ExecuteActivity(ctx, rba.WaitTaskFinishedActivity, secondTaskID).Get(ctx, &secondState); err != nil {
+		logger.Error("Failed to poll running second task ID:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	if !firstState.IsTaskSuccessful() || !secondState.IsTaskSuccessful() {
+		return &workflows.PairwiseTestRun{
+			FirstTestRun: &workflows.TestRun{
+				TaskID: firstTaskID,
+				Status: firstState,
+			},
+			SecondTestRun: &workflows.TestRun{
+				TaskID: secondTaskID,
+				Status: secondState,
+			},
+		}, nil
+	}
+
+	var firstCAS *apipb.CASReference
+	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, firstTaskID).Get(ctx, &firstCAS); err != nil {
+		logger.Error("Failed to retrieve first CAS reference:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	var secondCAS *apipb.CASReference
+	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, secondTaskID).Get(ctx, &secondCAS); err != nil {
+		logger.Error("Failed to retrieve second CAS reference:", err)
+		return nil, skerr.Wrap(err)
+	}
+
+	return &workflows.PairwiseTestRun{
+		FirstTestRun: &workflows.TestRun{
+			TaskID: firstTaskID,
+			Status: firstState,
+			CAS:    firstCAS,
+		},
+		SecondTestRun: &workflows.TestRun{
+			TaskID: secondTaskID,
+			Status: secondState,
+			CAS:    secondCAS,
+		},
+	}, nil
+}
+
 // ScheduleTaskActivity wraps run_benchmark.Run
 func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *RunBenchmarkParams) (string, error) {
 	logger := activity.GetLogger(ctx)
@@ -139,6 +251,57 @@ func (rba *RunBenchmarkActivity) ScheduleTaskActivity(ctx context.Context, rbp *
 		return "", err
 	}
 	return taskIds[0].TaskId, nil
+}
+
+// WaitTaskAcceptedActivity polls the task until Swarming schedules the task.
+// If the task is not scheduled, then it returns NO_RESOURCE.
+// Note that there are other causes for NO_RESOURCE, but the solution is generally
+// the same: schedule the run on a different, available bot.
+// This activity is intended to only be used by pairwise workflow.
+func (rba *RunBenchmarkActivity) WaitTaskAcceptedActivity(ctx context.Context, taskID string) (run_benchmark.State, error) {
+	logger := activity.GetLogger(ctx)
+
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		logger.Error("Failed to connect to swarming client:", err)
+		return "", skerr.Wrap(err)
+	}
+
+	activity.RecordHeartbeat(ctx, "begin accepted run_benchmark task polling")
+	// TODO(b/327224992): Investigate if it is possible to consolidate activity retry logic
+	// for all run_benchmark activities.
+	failureRetries := 5
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+			s, err := sc.GetStatus(ctx, taskID)
+			if err != nil {
+				logger.Error("Failed to get task status:", err, "remaining retries:", failureRetries)
+				failureRetries -= 1
+				if failureRetries <= 0 {
+					return "", skerr.Wrapf(err, "Failed to wait for task to be accepted")
+				}
+				time.Sleep(3 * time.Second) // duration is shorter as swarming should schedule the task fast
+				activity.RecordHeartbeat(ctx, fmt.Sprintf("waiting on test %v with state %s", taskID, s))
+				continue
+			}
+			// Swarming state in no resource implies bot is not available or the task
+			// is not yet scheduled.
+			if run_benchmark.State(s).IsNoResource() {
+				logger.Warn("swarming task:", taskID, "had status:", s, "remaining retries:", failureRetries)
+				failureRetries -= 1
+				if failureRetries <= 0 {
+					return run_benchmark.State(s), skerr.Wrapf(err, "Failed to wait for task %s to be accepted", taskID)
+				}
+				time.Sleep(3 * time.Second) // duration is shorter as swarming should schedule the task fast
+				activity.RecordHeartbeat(ctx, fmt.Sprintf("waiting on test %v with state %s", taskID, s))
+				continue
+			}
+			return run_benchmark.State(s), nil
+		}
+	}
 }
 
 // WaitTaskPendingActivity polls the task until it is no longer pending. Returns the status
@@ -167,8 +330,7 @@ func (rba *RunBenchmarkActivity) WaitTaskPendingActivity(ctx context.Context, ta
 				if failureRetries <= 0 {
 					return "", skerr.Wrapf(err, "Failed to wait for task to start")
 				}
-			}
-			if !state.IsTaskPending() {
+			} else if !state.IsTaskPending() {
 				return state, nil
 			}
 			time.Sleep(15 * time.Second)
