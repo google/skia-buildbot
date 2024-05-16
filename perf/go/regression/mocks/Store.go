@@ -51,6 +51,36 @@ func (_m *Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regr
 	return r0, r1
 }
 
+// GetRegressionsBySubName provides a mock function with given fields: ctx, sub_name, limit, offset
+func (_m *Store) GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*regression.Regression, error) {
+	ret := _m.Called(ctx, sub_name, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRegressionsBySubName")
+	}
+
+	var r0 []*regression.Regression
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*regression.Regression, error)); ok {
+		return rf(ctx, sub_name, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*regression.Regression); ok {
+		r0 = rf(ctx, sub_name, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*regression.Regression)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) error); ok {
+		r1 = rf(ctx, sub_name, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Range provides a mock function with given fields: ctx, begin, end
 func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := _m.Called(ctx, begin, end)

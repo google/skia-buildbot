@@ -38,16 +38,16 @@ import (
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
 	ALTER TABLE Alerts
-	DROP COLUMN sub_name,
-	DROP COLUMN sub_revision;
+	ADD COLUMN sub_name STRING,
+	ADD COLUMN sub_revision STRING;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
 	ALTER TABLE Alerts
-	ADD COLUMN sub_name STRING,
-	ADD COLUMN sub_revision STRING;
+	DROP COLUMN sub_name,
+	DROP COLUMN sub_revision;
 `
 
 // This function will check whether there's a new schema checked-in,

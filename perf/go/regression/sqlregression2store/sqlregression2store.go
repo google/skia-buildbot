@@ -44,6 +44,7 @@ const (
 	readCompat
 	readRange
 	readByIDs
+	readBySubName
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -87,6 +88,20 @@ var statementFormats = map[statementFormat]string{
 			Regressions2
 		WHERE
 			id IN (%s)
+		`,
+	readBySubName: `
+		SELECT
+			r.id, commit_number, prev_commit_number, alert_id, creation_time, median_before, median_after, is_improvement, cluster_type, cluster_summary, frame, triage_status, triage_message
+		FROM
+			Regressions2 r
+		INNER JOIN
+			Alerts a ON r.alert_id=a.id
+		WHERE
+			a.sub_name = $1
+		LIMIT
+			$2
+		OFFSET
+			$3
 		`,
 }
 
@@ -222,6 +237,28 @@ func (s *SQLRegression2Store) Write(ctx context.Context, regressions map[types.C
 		}
 	}
 	return nil
+}
+
+// Given the subscription name GetRegressionsBySubName gets all the regressions against
+// the specified subscription. The response will be paginated according to the provided
+// limit and offset.
+func (s *SQLRegression2Store) GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*regression.Regression, error) {
+	statement := s.statements[readBySubName]
+	rows, err := s.db.Query(ctx, statement, sub_name, limit, offset)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to get regressions. Query: %s", statement)
+	}
+
+	regressions := []*regression.Regression{}
+	for rows.Next() {
+		r, err := convertRowToRegression(rows)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "failed to convert row to regression.")
+		}
+		regressions = append(regressions, r)
+	}
+
+	return regressions, nil
 }
 
 // Get a list of regressions given a list of regression ids.

@@ -2,8 +2,14 @@ package alerts
 
 import "context"
 
+type SubKey struct {
+	SubName     string
+	SubRevision string
+}
+
 type SaveRequest struct {
-	Cfg *Alert
+	Cfg    *Alert
+	SubKey *SubKey
 }
 
 // Store is the interface used to persist Alerts.

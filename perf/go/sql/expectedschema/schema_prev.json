@@ -4,8 +4,6 @@
     "alerts.config_state": "bigint def:0:::INT8 nullable:YES",
     "alerts.id": "bigint def:unique_rowid() nullable:NO",
     "alerts.last_modified": "bigint def: nullable:YES",
-    "alerts.sub_name": "text def: nullable:YES",
-    "alerts.sub_revision": "text def: nullable:YES",
     "anomalygroups.action": "text def: nullable:YES",
     "anomalygroups.action_time": "timestamp with time zone def: nullable:YES",
     "anomalygroups.anomaly_ids": "ARRAY def: nullable:YES",

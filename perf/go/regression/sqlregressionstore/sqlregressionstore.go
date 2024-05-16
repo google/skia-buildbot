@@ -96,6 +96,11 @@ func New(db pool.Pool) (*SQLRegressionStore, error) {
 	}, nil
 }
 
+// Unimplemented: This function is implemented by regression2 store
+func (s *SQLRegressionStore) GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*regression.Regression, error) {
+	return nil, nil
+}
+
 // Range implements the regression.Store interface.
 func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}

@@ -1328,6 +1328,36 @@ func (f *Frontend) subscriptionsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (f *Frontend) regressionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	ctx, span := trace.StartSpan(ctx, "regressionsQueryRequest")
+	defer span.End()
+
+	sub_name := r.URL.Query().Get("sub_name")
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		httputils.ReportError(w, err, "Limit value is not an integer", http.StatusBadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if err != nil {
+		httputils.ReportError(w, err, "Offset value is not an integer", http.StatusBadRequest)
+		return
+	}
+
+	regressionsList, err := f.regStore.GetRegressionsBySubName(ctx, sub_name, limit, offset)
+	fmt.Println(regressionsList)
+	if err != nil {
+		httputils.ReportError(w, err, "Unable to fetch regressions", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(regressionsList); err != nil {
+		sklog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
@@ -2041,6 +2071,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/_/revision/", f.revisionHandler)
 
 	router.Get("/_/subscriptions", f.subscriptionsHandler)
+	router.Get("/_/regressions", f.regressionsHandler)
 	return router
 }
 

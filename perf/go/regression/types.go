@@ -31,6 +31,11 @@ type Store interface {
 	// types.CommitNumber to all the regressions for that commit.
 	Write(ctx context.Context, regressions map[types.CommitNumber]*AllRegressionsForCommit) error
 
+	// Given the subscription name GetRegressionsBySubName gets all the regressions against
+	// the specified subscription. The response will be paginated according to the provided
+	// limit and offset.
+	GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*Regression, error)
+
 	// Given a list of regression IDs (only in the regression2store),
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)

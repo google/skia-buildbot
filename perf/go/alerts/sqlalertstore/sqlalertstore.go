@@ -5,6 +5,7 @@ package sqlalertstore
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"sort"
 	"time"
@@ -38,9 +39,9 @@ var statements = map[statement]string{
 		`,
 	updateAlert: `
 		UPSERT INTO
-			Alerts (id, alert, config_state, last_modified)
+			Alerts (id, alert, config_state, last_modified, sub_name, sub_revision)
 		VALUES
-			($1, $2, $3, $4)
+			($1, $2, $3, $4, $5, $6)
 		`,
 	deleteAlert: `
 		UPDATE
@@ -101,7 +102,16 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 		}
 		cfg.SetIDFromInt64(newID)
 	} else {
-		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now); err != nil {
+		nameOrNull := sql.NullString{Valid: false}
+		revisionOrNull := sql.NullString{Valid: false}
+
+		if req.SubKey != nil {
+			nameOrNull.String = req.SubKey.SubName
+			nameOrNull.Valid = true
+			revisionOrNull.String = req.SubKey.SubRevision
+			revisionOrNull.Valid = true
+		}
+		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now, nameOrNull, revisionOrNull); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%s", cfg.IDAsString)
 		}
 	}
