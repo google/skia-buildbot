@@ -237,25 +237,29 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 			return fmt.Errorf("Error when seeing diff of golden %s: %s", foundLicenseFileName, err)
 		}
 		sklog.Infof("The licenses diff output is:\n%s", licensesDiffOutput)
+	}
 
-		// Step7: Update sky_engine/LICENSE. It should always be run
-		// according to https://github.com/flutter/engine/pull/4959#issuecomment-380222322
-		updateLicenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
-		sklog.Infof("Running %s", updateLicenseCmd)
-		releasesLicensePath := filepath.Join(parentRepoDir, "sky", "packages", "sky_engine", "LICENSE")
-		outFile, err := os.Create(releasesLicensePath)
-		if err != nil {
-			return fmt.Errorf("Could not open %s: %s", releasesLicensePath, err)
-		}
-		if err := exec.Run(ctx, &exec.Command{
-			Dir:    licenseToolsDir,
-			Name:   updateLicenseCmd[0],
-			Args:   updateLicenseCmd[1:],
-			Stdout: outFile,
-			Stderr: os.Stderr,
-		}); err != nil {
-			return fmt.Errorf("Error when running dart license script: %s", err)
-		}
+	// Step7: Update sky_engine/LICENSE. It should always be run
+	// according to https://github.com/flutter/engine/pull/4959#issuecomment-380222322
+	updateLicenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
+	sklog.Infof("Running %s", updateLicenseCmd)
+	releasesLicenseDirPath := filepath.Join(parentRepoDir, "sky", "packages", "sky_engine")
+	if err := os.MkdirAll(releasesLicenseDirPath, os.ModePerm); err != nil {
+		return fmt.Errorf("Could not create %s: %s", releasesLicenseDirPath, err)
+	}
+	releasesLicensePath := filepath.Join(releasesLicenseDirPath, "LICENSE")
+	outFile, err := os.Create(releasesLicensePath)
+	if err != nil {
+		return fmt.Errorf("Could not open %s: %s", releasesLicensePath, err)
+	}
+	if err := exec.Run(ctx, &exec.Command{
+		Dir:    licenseToolsDir,
+		Name:   updateLicenseCmd[0],
+		Args:   updateLicenseCmd[1:],
+		Stdout: outFile,
+		Stderr: os.Stderr,
+	}); err != nil {
+		return fmt.Errorf("Error when running dart license script: %s", err)
 	}
 
 	// Step 8: Look for "excluded_files" and copy to golden dir if it exists.

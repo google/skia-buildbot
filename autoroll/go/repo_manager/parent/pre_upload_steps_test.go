@@ -41,9 +41,11 @@ func TestFlutterLicenseScripts(t *testing.T) {
 		dartBinary := "testing/flutter/third_party/dart/tools/sdks/dart-sdk/bin/dart"
 		pubDartCmd := "pub get"
 		mainDartCmd := "--interpret_irregexp lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
-		if cmd.Name == dartBinary && strings.Join(cmd.Args, " ") == pubDartCmd {
+		releaseDartCmd := "--interpret_irregexp lib/main.dart --release --src ../../.. --quiet --out testing/out/licenses"
+		cmdArgs := strings.Join(cmd.Args, " ")
+		if cmd.Name == dartBinary && cmdArgs == pubDartCmd {
 			return pubErr
-		} else if cmd.Name == dartBinary && strings.Join(cmd.Args, " ") == mainDartCmd {
+		} else if cmd.Name == dartBinary && (cmdArgs == mainDartCmd || cmdArgs == releaseDartCmd) {
 			return mainDartErr
 		} else if strings.Contains(cmd.Name, "git") {
 			expectedCheckoutArgs := "checkout -- pubspec.lock"
