@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
@@ -37,6 +38,7 @@ import (
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	skutil "go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
@@ -63,7 +65,7 @@ var (
 	// Authenticated http client
 	client *http.Client
 	// Swarming API client.
-	swarm swarming.ApiClient
+	swarm swarmingv2.SwarmingV2Client
 
 	plogin alogin.Login
 )
@@ -185,7 +187,10 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 					sklog.Infof("The task %v has not been triggered yet", task)
 					continue
 				}
-				swarmingTask, err := swarm.GetTask(ctx, swarmingTaskID, false)
+				swarmingTask, err := swarm.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
+					TaskId:                  swarmingTaskID,
+					IncludePerformanceStats: false,
+				})
 				if err != nil {
 					sklog.Errorf("Failed to get task %s for %s: %s", swarmingTaskID, prototype.GetTaskName(), err)
 					continue
@@ -193,15 +198,15 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 				failure := false
 				taskCompleted := false
 				switch swarmingTask.State {
-				case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_CLIENT_ERROR, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+				case apipb.TaskState_BOT_DIED, apipb.TaskState_CANCELED, apipb.TaskState_CLIENT_ERROR, apipb.TaskState_EXPIRED, apipb.TaskState_NO_RESOURCE, apipb.TaskState_TIMED_OUT, apipb.TaskState_KILLED:
 					sklog.Errorf("The task %s exited early with state %v", swarmingTaskID, swarmingTask.State)
 					taskCompleted = true
 					failure = true
-				case swarming.TASK_STATE_PENDING:
+				case apipb.TaskState_PENDING:
 					sklog.Infof("The task %s is in pending state", swarmingTaskID)
-				case swarming.TASK_STATE_RUNNING:
+				case apipb.TaskState_RUNNING:
 					sklog.Infof("The task %s is in running state", swarmingTaskID)
-				case swarming.TASK_STATE_COMPLETED:
+				case apipb.TaskState_COMPLETED:
 					taskCompleted = true
 					if swarmingTask.Failure {
 						sklog.Infof("The task %s failed", swarmingTaskID)
@@ -210,7 +215,7 @@ func pollMasterScriptSwarmingTasks(ctx context.Context) {
 						sklog.Infof("The task %s successfully completed", swarmingTaskID)
 					}
 				default:
-					sklog.Errorf("Unknown Swarming State %v in %v", swarmingTask.State, swarmingTask)
+					sklog.Errorf("Unknown Swarming State %v in %v", swarmingTask.State.String(), swarmingTask)
 				}
 
 				if taskCompleted {
@@ -346,11 +351,7 @@ func main() {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 	client = httputils.DefaultClientConfig().WithTokenSource(httpClientTokenSource).With2xxOnly().Client()
-
-	swarm, err = swarming.NewApiClient(client, swarming.SWARMING_SERVER_PRIVATE)
-	if err != nil {
-		sklog.Fatalf("Could not instantiate swarming client: %s", err)
-	}
+	swarm = swarmingv2.NewDefaultClient(client, swarming.SWARMING_SERVER_PRIVATE)
 	casTokenSource, err := google.DefaultTokenSource(ctx, compute.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to set up CAS token source: %s", err)

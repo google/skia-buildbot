@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	"go.chromium.org/luci/common/retry"
 	"go.chromium.org/luci/grpc/prpc"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
@@ -121,6 +122,67 @@ func ListTasksHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksW
 		}
 	}
 	return rv, nil
+}
+
+// GetRequestMetadataForTasks returns the apipb.TaskRequestMetadataResponse for
+// each of the given apipb.TaskResultResponses.
+func GetRequestMetadataForTasks(ctx context.Context, c apipb.TasksClient, tasks []*apipb.TaskResultResponse) ([]*apipb.TaskRequestMetadataResponse, error) {
+	rv := make([]*apipb.TaskRequestMetadataResponse, len(tasks))
+	g := multierror.Group{}
+	for idx, task := range tasks {
+		idx := idx // https://golang.org/doc/faq#closures_and_goroutines
+		task := task
+		g.Go(func() error {
+			request, err := c.GetRequest(ctx, &apipb.TaskIdRequest{
+				TaskId: task.TaskId,
+			})
+			if err != nil {
+				return err
+			}
+			rv[idx] = &apipb.TaskRequestMetadataResponse{
+				Request:    request,
+				TaskId:     task.TaskId,
+				TaskResult: task,
+			}
+			return nil
+		})
+	}
+	if err := g.Wait().ErrorOrNil(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return rv, nil
+}
+
+// ListTaskRequestMetadataHelper is like ListTasksHelper but retrieves the
+// apipb.TaskRequestMetadataResponse for each of the task. This is significantly
+// more expensive, so it should only be used where necessary.
+func ListTaskRequestMetadataHelper(ctx context.Context, c apipb.TasksClient, req *apipb.TasksWithPerfRequest) ([]*apipb.TaskRequestMetadataResponse, error) {
+	tasks, err := ListTasksHelper(ctx, c, req)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return GetRequestMetadataForTasks(ctx, c, tasks)
+}
+
+// DeleteBots performs multiple calls to DeleteBot in parallel.
+func DeleteBots(ctx context.Context, c apipb.BotsClient, botIds []string) error {
+	g := multierror.Group{}
+	for _, botId := range botIds {
+		botId := botId // https://golang.org/doc/faq#closures_and_goroutines
+		g.Go(func() error {
+			resp, err := c.DeleteBot(ctx, &apipb.BotRequest{
+				BotId: botId,
+			})
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			if !resp.Deleted {
+				return skerr.Fmt("could not delete bot %q", botId)
+			}
+			return nil
+		})
+	}
+	return skerr.Wrap(g.Wait().ErrorOrNil())
 }
 
 // BotDimensionsToStringMap converts Swarming bot dimensions as represented in

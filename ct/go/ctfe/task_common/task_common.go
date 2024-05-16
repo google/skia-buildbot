@@ -19,7 +19,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/go-chi/chi/v5"
-	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/ct/go/ct_autoscaler"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
@@ -31,7 +31,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	skutil "go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
@@ -60,7 +60,7 @@ var (
 	// Will be used to construct task specific URLs in emails. Will have a trailing "/".
 	WebappURL string
 
-	swarm     swarming.ApiClient
+	swarm     swarmingv2.SwarmingV2Client
 	casClient cas.CAS
 
 	plogin alogin.Login
@@ -99,7 +99,7 @@ type CommonCols struct {
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error
+	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) error
 	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	SetCompleted(success bool)
@@ -467,10 +467,10 @@ func canRedoTask(task Task, r *http.Request) (bool, error) {
 	return true, nil
 }
 
-func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata) chan *swarmingapi.SwarmingRpcsTaskRequestMetadata {
+func getClosedTasksChannel(tasks []*apipb.TaskResultResponse) chan *apipb.TaskResultResponse {
 	// Create channel that contains specified tasks. This channel will be consumed by the worker
 	// pool in DeleteTaskHandler.
-	tasksChannel := make(chan *swarmingapi.SwarmingRpcsTaskRequestMetadata, len(tasks))
+	tasksChannel := make(chan *apipb.TaskResultResponse, len(tasks))
 
 	for _, t := range tasks {
 		tasksChannel <- t
@@ -503,7 +503,10 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// If the task is currently running then will have to cancel all of its swarming tasks as well.
 	if task.GetCommonCols().TsStarted != 0 && task.GetCommonCols().TsCompleted == 0 {
 		runID := GetRunID(task)
-		tasks, err := swarm.ListTasks(r.Context(), time.Time{}, time.Time{}, []string{fmt.Sprintf("runid:%s", runID)}, "")
+		tasks, err := swarmingv2.ListTasksHelper(r.Context(), swarm, &apipb.TasksWithPerfRequest{
+			State: apipb.StateQuery_QUERY_ALL,
+			Tags:  []string{fmt.Sprintf("runid:%s", runID)},
+		})
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not list tasks for %s", runID), http.StatusInternalServerError)
 		}
@@ -520,7 +523,11 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 				defer wg.Done()
 
 				for t := range tasksChannel {
-					if err := swarm.CancelTask(r.Context(), t.TaskId, true /* killRunning */); err != nil {
+					resp, err := swarm.CancelTask(r.Context(), &apipb.TaskCancelRequest{
+						TaskId:      t.TaskId,
+						KillRunning: true,
+					})
+					if err != nil || !resp.Canceled {
 						sklog.Errorf("Could not cancel %s: %s", t.TaskId, err)
 						continue
 					}
@@ -853,7 +860,7 @@ func AddHandlers(externalRouter chi.Router) {
 	externalRouter.Get("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler)
 }
 
-func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarming.ApiClient, cas cas.CAS, getGCETasksCount func(ctx context.Context) (int, error)) error {
+func Init(ctx context.Context, local, enableAutoscaler bool, ctfeURL, serviceAccountFileFlagVal string, swarmingClient swarmingv2.SwarmingV2Client, cas cas.CAS, getGCETasksCount func(ctx context.Context) (int, error)) error {
 	WebappURL = ctfeURL
 	if WebappURL[len(WebappURL)-1:] != "/" {
 		WebappURL = WebappURL + "/"

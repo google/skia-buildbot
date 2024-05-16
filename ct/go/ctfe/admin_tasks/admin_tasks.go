@@ -20,7 +20,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -113,7 +113,7 @@ func (task RecreatePageSetsDatastoreTask) Get(c context.Context, key *datastore.
 	return t, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
+func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
 	cmd := []string{
@@ -231,7 +231,7 @@ func (task RecreateWebpageArchivesDatastoreTask) Get(c context.Context, key *dat
 	return t, nil
 }
 
-func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
+func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
 	cmd := []string{

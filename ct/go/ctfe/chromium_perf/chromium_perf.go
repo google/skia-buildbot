@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -180,7 +180,7 @@ func (task ChromiumPerfDatastoreTask) Get(c context.Context, key *datastore.Key)
 	return t, nil
 }
 
-func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient, casClient cas.CAS) error {
+func (task ChromiumPerfDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	cmd := []string{

@@ -17,6 +17,7 @@ go_library(
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
+        "//go/swarming/v2:swarming",
         "//go/util",
         "@org_golang_x_oauth2//google",
     ],
@@ -28,8 +29,9 @@ go_test(
     embed = [":ct_autoscaler"],
     deps = [
         "//go/gce/autoscaler",
-        "//go/swarming/mocks",
+        "//go/swarming/v2/mocks",
         "//go/testutils",
         "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

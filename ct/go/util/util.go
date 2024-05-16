@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"go.skia.org/infra/go/cas"
 	"go.skia.org/infra/go/cas/rbe"
@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
@@ -429,7 +430,7 @@ func UploadToCAS(ctx context.Context, casClient cas.CAS, casSpec *CasSpec, local
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, targetPlatform string, casSpec *CasSpec, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, runOnGCE, local bool, repeatValue int, baseCmd []string, swarmingClient swarming.ApiClient, casClient cas.CAS) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, targetPlatform string, casSpec *CasSpec, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, runOnGCE, local bool, repeatValue int, baseCmd []string, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) (int, error) {
 	// Upload the task inputs to CAS.
 	casDigest, err := UploadToCAS(ctx, casClient, casSpec, local, false)
 	if err != nil {
@@ -512,11 +513,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 			cmd := cmd
 			go func() {
 				defer wg.Done()
-				req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string][]string{"PATH": CIPD_PATHS}, int64(priority), ioTimeout, casClient)
+				req, err := MakeSwarmingTaskRequest(ctx, taskName, casDigest, cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string][]string{"PATH": CIPD_PATHS}, int32(priority), ioTimeout, casClient)
 				if err != nil {
 					sklog.Errorf("Failed to create Swarming task request for task %q: %s", taskName, err)
 				}
-				resp, err := swarmingClient.TriggerTask(ctx, req)
+				resp, err := swarmingClient.NewTask(ctx, req)
 				if err != nil {
 					sklog.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 					return
@@ -525,13 +526,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, runID, ta
 				_, state, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient)
 				if err != nil {
 					sklog.Errorf("task %s failed: %s", taskName, err)
-					if state == swarming.TASK_STATE_KILLED {
+					if state == apipb.TaskState_KILLED {
 						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", taskName)
 						return
 					}
 					sklog.Infof("Retrying task %s with high priority %d", taskName, TASKS_PRIORITY_HIGH)
 					req.Priority = TASKS_PRIORITY_HIGH
-					retryResp, err := swarmingClient.TriggerTask(ctx, req)
+					retryResp, err := swarmingClient.NewTask(ctx, req)
 					if err != nil {
 						sklog.Errorf("Could not trigger swarming retry task %s: %s", taskName, err)
 						return
@@ -988,20 +989,23 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // pollSwarmingTaskToCompletion polls the specified swarming task till it completes. It returns the
 // resulting CAS digest (if it exists) and the state of the swarming task if there is no error.
 // TODO(rmistry): Use pubsub instead.
-func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarming.ApiClient) (string, string, error) {
+func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarmingv2.SwarmingV2Client) (string, apipb.TaskState, error) {
 	for range time.Tick(2 * time.Minute) {
-		swarmingTask, err := swarmingClient.GetTask(ctx, taskId, false)
+		swarmingTask, err := swarmingClient.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
+			TaskId:                  taskId,
+			IncludePerformanceStats: false,
+		})
 		if err != nil {
-			return "", "", fmt.Errorf("Could not get task %s: %s", taskId, err)
+			return "", apipb.TaskState_INVALID, fmt.Errorf("Could not get task %s: %s", taskId, err)
 		}
 		switch swarmingTask.State {
-		case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_CLIENT_ERROR, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+		case apipb.TaskState_BOT_DIED, apipb.TaskState_CANCELED, apipb.TaskState_CLIENT_ERROR, apipb.TaskState_EXPIRED, apipb.TaskState_NO_RESOURCE, apipb.TaskState_TIMED_OUT, apipb.TaskState_KILLED:
 			return "", swarmingTask.State, fmt.Errorf("The task %s exited early with state %v", taskId, swarmingTask.State)
-		case swarming.TASK_STATE_PENDING:
+		case apipb.TaskState_PENDING:
 			// The task is in pending state.
-		case swarming.TASK_STATE_RUNNING:
+		case apipb.TaskState_RUNNING:
 			// The task is in running state.
-		case swarming.TASK_STATE_COMPLETED:
+		case apipb.TaskState_COMPLETED:
 			if swarmingTask.Failure {
 				return "", swarmingTask.State, fmt.Errorf("The task %s failed", taskId)
 			}
@@ -1015,13 +1019,13 @@ func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingCl
 			sklog.Errorf("Unknown swarming state %v in %v", swarmingTask.State, swarmingTask)
 		}
 	}
-	return "", "", nil
+	return "", apipb.TaskState_INVALID, nil
 }
 
 // TriggerIsolateTelemetrySwarmingTask triggers a swarming task which runs the
 // isolate_telemetry worker script to upload telemetry to CAS and returns the
 // resulting digest.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool, swarmingClient swarming.ApiClient, casClient cas.CAS) (string, error) {
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) (string, error) {
 	// Find which dimensions, os and CIPD pkgs to use.
 	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
 	var casSpec *CasSpec
@@ -1060,7 +1064,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(ctx, req)
+	resp, err := swarmingClient.NewTask(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
@@ -1086,15 +1090,15 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
-func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, cipdPkgs, cmd, tags []string, dims map[string]string, envPrefixes map[string][]string, priority int64, ioTimeoutSecs time.Duration, casClient cas.CAS) (*swarming_api.SwarmingRpcsNewTaskRequest, error) {
-	var cipdInput *swarming_api.SwarmingRpcsCipdInput
+func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, cipdPkgs, cmd, tags []string, dims map[string]string, envPrefixes map[string][]string, priority int32, ioTimeoutSecs time.Duration, casClient cas.CAS) (*apipb.NewTaskRequest, error) {
+	var cipdInput *apipb.CipdInput
 	if len(cipdPkgs) > 0 {
-		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
-			Packages: make([]*swarming_api.SwarmingRpcsCipdPackage, 0, len(cipdPkgs)),
+		cipdInput = &apipb.CipdInput{
+			Packages: make([]*apipb.CipdPackage, 0, len(cipdPkgs)),
 		}
 		for _, p := range cipdPkgs {
 			tokens := strings.SplitN(p, ":", 3)
-			cipdInput.Packages = append(cipdInput.Packages, &swarming_api.SwarmingRpcsCipdPackage{
+			cipdInput.Packages = append(cipdInput.Packages, &apipb.CipdPackage{
 				Path:        tokens[0],
 				PackageName: tokens[1],
 				Version:     tokens[2],
@@ -1102,19 +1106,19 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, ci
 		}
 	}
 
-	swarmingDims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dims))
+	swarmingDims := make([]*apipb.StringPair, 0, len(dims))
 	for k, v := range dims {
-		swarmingDims = append(swarmingDims, &swarming_api.SwarmingRpcsStringPair{
+		swarmingDims = append(swarmingDims, &apipb.StringPair{
 			Key:   k,
 			Value: v,
 		})
 	}
 
-	var swarmingEnvPrefixes []*swarming_api.SwarmingRpcsStringListPair
+	var swarmingEnvPrefixes []*apipb.StringListPair
 	if len(envPrefixes) > 0 {
-		swarmingEnvPrefixes = make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(envPrefixes))
+		swarmingEnvPrefixes = make([]*apipb.StringListPair, 0, len(envPrefixes))
 		for k, v := range envPrefixes {
-			swarmingEnvPrefixes = append(swarmingEnvPrefixes, &swarming_api.SwarmingRpcsStringListPair{
+			swarmingEnvPrefixes = append(swarmingEnvPrefixes, &apipb.StringListPair{
 				Key:   k,
 				Value: v,
 			})
@@ -1125,7 +1129,7 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, ci
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	casInput, err := swarming.MakeCASReference(casDigest, casInstance)
+	casInput, err := swarmingv2.MakeCASReference(casDigest, casInstance)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1135,22 +1139,22 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, ci
 	executionTimeoutSecs := 36 * time.Hour
 	expirationTimeoutSecs := 2*24*time.Hour - executionTimeoutSecs - time.Hour // Remove one hour to be safe.
 
-	return &swarming_api.SwarmingRpcsNewTaskRequest{
+	return &apipb.NewTaskRequest{
 		Name:           taskName,
 		Priority:       priority,
 		ServiceAccount: CT_SERVICE_ACCOUNT,
 		Tags:           tags,
-		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+		TaskSlices: []*apipb.TaskSlice{
 			{
-				ExpirationSecs: int64(expirationTimeoutSecs.Seconds()),
-				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+				ExpirationSecs: int32(expirationTimeoutSecs.Seconds()),
+				Properties: &apipb.TaskProperties{
 					CasInputRoot:         casInput,
 					CipdInput:            cipdInput,
 					Command:              cmd,
 					Dimensions:           swarmingDims,
 					EnvPrefixes:          swarmingEnvPrefixes,
-					ExecutionTimeoutSecs: int64(executionTimeoutSecs.Seconds()),
-					IoTimeoutSecs:        int64(ioTimeoutSecs.Seconds()),
+					ExecutionTimeoutSecs: int32(executionTimeoutSecs.Seconds()),
+					IoTimeoutSecs:        int32(ioTimeoutSecs.Seconds()),
 				},
 				WaitForCapacity: false,
 			},
@@ -1159,7 +1163,7 @@ func MakeSwarmingTaskRequest(ctx context.Context, taskName, casDigest string, ci
 	}, nil
 }
 
-func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string, local bool, cmd []string, casSpec *CasSpec, swarmingClient swarming.ApiClient, casClient cas.CAS) (string, error) {
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string, local bool, cmd []string, casSpec *CasSpec, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) (string, error) {
 	// Master scripts only need linux versions of their cipd packages. But still need to specify
 	// osType correctly so that exe binaries can be packaged for windows.
 	cipdPkgs := []string{}
@@ -1177,7 +1181,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string
 	if err != nil {
 		return "", skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(ctx, req)
+	resp, err := swarmingClient.NewTask(ctx, req)
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
@@ -1187,7 +1191,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName string
 // TriggerBuildRepoSwarmingTask triggers a swarming task which runs the
 // build_repo worker script which will return a list of remote build
 // directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON, gnArgs string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient, casClient cas.CAS) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON, gnArgs string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarmingv2.SwarmingV2Client, casClient cas.CAS) ([]string, error) {
 	// Find which os and CIPD pkgs to use.
 	var casSpec *CasSpec
 	if targetPlatform == PLATFORM_WINDOWS {
@@ -1234,7 +1238,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create Swarming task request")
 	}
-	resp, err := swarmingClient.TriggerTask(ctx, req)
+	resp, err := swarmingClient.NewTask(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}

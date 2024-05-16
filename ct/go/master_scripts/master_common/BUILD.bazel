@@ -15,6 +15,7 @@ go_library(
         "//go/luciauth",
         "//go/skerr",
         "//go/swarming",
+        "//go/swarming/v2:swarming",
         "@org_golang_google_api//compute/v1:compute",
     ],
 )

@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -28,7 +29,7 @@ var (
 )
 
 // Init initializes common master tasks and returns an authenticated swarming client.
-func Init(appName string) (swarming.ApiClient, cas.CAS, error) {
+func Init(appName string) (swarmingv2.SwarmingV2Client, cas.CAS, error) {
 	common.InitWithMust(appName)
 	initRest()
 
@@ -38,10 +39,7 @@ func Init(appName string) (swarming.ApiClient, cas.CAS, error) {
 		return nil, nil, fmt.Errorf("Could not get token source: %s", err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	swarmClient, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
+	swarmClient := swarmingv2.NewDefaultClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	casClient, err := rbe.NewClient(context.TODO(), rbe.InstanceChromeSwarming, ts)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)

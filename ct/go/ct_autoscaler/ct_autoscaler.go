@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2/google"
 )
@@ -35,7 +36,7 @@ type ICTAutoscaler interface {
 //     GCE tasks.
 type CTAutoscaler struct {
 	a                autoscaler.IAutoscaler
-	s                swarming.ApiClient
+	s                swarmingv2.SwarmingV2Client
 	ctx              context.Context
 	mtx              sync.Mutex
 	getGCETasksCount func(ctx context.Context) (int, error)
@@ -65,10 +66,7 @@ func NewCTAutoscaler(ctx context.Context, local bool, getGCETasksCount func(ctx 
 	}
 
 	// Instantiate the swarming client.
-	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
-	if err != nil {
-		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
-	}
+	s := swarmingv2.NewDefaultClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 
 	// Get the running GCE tasks count.
 	runningGCETasksCount, err := getGCETasksCount(ctx)
@@ -114,7 +112,7 @@ func (c *CTAutoscaler) maybeScaleDown(ctx context.Context) error {
 			sklog.Errorf("Could not log running instances: %s", err)
 		}
 
-		if err := c.s.DeleteBots(ctx, c.a.GetNamesOfManagedInstances()); err != nil {
+		if err := swarmingv2.DeleteBots(ctx, c.s, c.a.GetNamesOfManagedInstances()); err != nil {
 			sklog.Errorf("Could not delete all bots: %s", err)
 		}
 		c.botsUp = false
