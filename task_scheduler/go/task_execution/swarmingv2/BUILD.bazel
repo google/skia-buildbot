@@ -16,7 +16,6 @@ go_library(
         "//go/util",
         "//task_scheduler/go/types",
         "@io_opencensus_go//trace",
-        "@org_chromium_go_luci//grpc/prpc",
         "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_google_protobuf//types/known/timestamppb",
     ],

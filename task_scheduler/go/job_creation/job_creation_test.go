@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/cas/mocks"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
@@ -27,7 +27,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
-	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -282,7 +282,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
 	cas.On("Close").Return(nil)
-	swarmingTaskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
+	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
@@ -297,9 +297,9 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 	// Scheduler should trigger tasks for them.
 	updateRepos(t, ctx, jc)
 
-	bot1 := &swarming_api.SwarmingRpcsBotInfo{
+	bot1 := &apipb.BotInfo{
 		BotId: "bot1",
-		Dimensions: []*swarming_api.SwarmingRpcsStringListPair{
+		Dimensions: []*apipb.StringListPair{
 			{
 				Key:   "pool",
 				Value: []string{"Skia"},
@@ -310,7 +310,7 @@ func TestTaskSchedulerIntegration(t *testing.T) {
 			},
 		},
 	}
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	swarmingClient.MockBots([]*apipb.BotInfo{bot1})
 
 	require.Eventually(t, func() bool {
 		tasks, err := d.GetTasksFromDateRange(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, "")

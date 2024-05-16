@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"go.chromium.org/luci/grpc/prpc"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/cas/rbe"
@@ -34,11 +33,11 @@ type SwarmingV2TaskExecutor struct {
 }
 
 // NewSwarmingV2TaskExecutor returns a SwarmingTaskExecutor instance.
-func NewSwarmingV2TaskExecutor(prpcClient *prpc.Client, casInstance, pubSubTopic string) *SwarmingV2TaskExecutor {
+func NewSwarmingV2TaskExecutor(client swarmingv2.SwarmingV2Client, casInstance, pubSubTopic string) *SwarmingV2TaskExecutor {
 	return &SwarmingV2TaskExecutor{
 		casInstance: casInstance,
 		pubSubTopic: pubSubTopic,
-		client:      swarmingv2.NewClient(prpcClient),
+		client:      client,
 	}
 }
 

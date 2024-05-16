@@ -2,25 +2,26 @@ package testutils
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/google/uuid"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/util"
+	grpc "google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type TestClient struct {
-	botList    []*swarming_api.SwarmingRpcsBotInfo
+	botList    []*apipb.BotInfo
 	botListMtx sync.RWMutex
 
-	taskList    []*swarming_api.SwarmingRpcsTaskRequestMetadata
+	taskList    []*apipb.TaskRequestMetadataResponse
 	taskListMtx sync.RWMutex
 
 	triggerDedupe     map[string][]string
@@ -31,23 +32,19 @@ type TestClient struct {
 
 func NewTestClient() *TestClient {
 	return &TestClient{
-		botList:           []*swarming_api.SwarmingRpcsBotInfo{},
-		taskList:          []*swarming_api.SwarmingRpcsTaskRequestMetadata{},
+		botList:           []*apipb.BotInfo{},
+		taskList:          []*apipb.TaskRequestMetadataResponse{},
 		triggerDedupe:     map[string][]string{},
 		triggerFailure:    map[string]bool{},
 		triggerNoResource: map[string]bool{},
 	}
 }
 
-func (c *TestClient) SwarmingService() *swarming_api.Service {
-	return nil
-}
-
-func (c *TestClient) GetStates(ctx context.Context, ids []string) ([]string, error) {
-	rv := make([]string, 0, len(ids))
+func (c *TestClient) ListTaskStates(_ context.Context, in *apipb.TaskStatesRequest, opts ...grpc.CallOption) (*apipb.TaskStates, error) {
+	rv := make([]apipb.TaskState, 0, len(in.TaskId))
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
-	for _, id := range ids {
+	for _, id := range in.TaskId {
 		found := false
 		for _, t := range c.taskList {
 			if t.TaskId == id {
@@ -57,22 +54,24 @@ func (c *TestClient) GetStates(ctx context.Context, ids []string) ([]string, err
 			}
 		}
 		if !found {
-			return nil, fmt.Errorf("Unknown task %q", id)
+			return nil, skerr.Fmt("unknown task %q", id)
 		}
 	}
-	return rv, nil
+	return &apipb.TaskStates{
+		States: rv,
+	}, nil
 }
 
-func (c *TestClient) ListBots(ctx context.Context, dimensions map[string]string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListBots(_ context.Context, in *apipb.BotsRequest, opts ...grpc.CallOption) (*apipb.BotInfoListResponse, error) {
 	c.botListMtx.RLock()
 	defer c.botListMtx.RUnlock()
-	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(c.botList))
+	rv := make([]*apipb.BotInfo, 0, len(c.botList))
 	for _, b := range c.botList {
 		match := true
-		for k, v := range dimensions {
+		for _, reqDim := range in.Dimensions {
 			dMatch := false
-			for _, dim := range b.Dimensions {
-				if dim.Key == k && util.In(v, dim.Value) {
+			for _, botDim := range b.Dimensions {
+				if reqDim.Key == botDim.Key && util.In(reqDim.Value, botDim.Value) {
 					dMatch = true
 					break
 				}
@@ -86,101 +85,50 @@ func (c *TestClient) ListBots(ctx context.Context, dimensions map[string]string)
 			rv = append(rv, b)
 		}
 	}
-	return rv, nil
+	return &apipb.BotInfoListResponse{
+		Items: rv,
+	}, nil
 }
 
-func (c *TestClient) ListDownBots(ctx context.Context, pool string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
-	return nil, nil
-}
-
-func (c *TestClient) ListFreeBots(ctx context.Context, pool string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
-	bots, err := c.ListBots(ctx, map[string]string{
-		swarming.DIMENSION_POOL_KEY: pool,
-	})
-	if err != nil {
-		return nil, err
-	}
-	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
-	for _, b := range bots {
-		if !b.Quarantined && !b.IsDead && b.TaskId == "" {
-			rv = append(rv, b)
-		}
-	}
-	return rv, nil
-}
-
-func (c *TestClient) ListBotsForPool(ctx context.Context, pool string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(ctx, map[string]string{
-		swarming.DIMENSION_POOL_KEY: pool,
-	})
-}
-
-func (c *TestClient) ListBotsForDimensions(ctx context.Context, dimensions map[string]string) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
-	return nil, nil
-}
-
-func (c *TestClient) GetStdoutOfTask(ctx context.Context, id string) (*swarming_api.SwarmingRpcsTaskOutput, error) {
-	return nil, nil
-}
-
-func (c *TestClient) GracefullyShutdownBot(ctx context.Context, id string) (*swarming_api.SwarmingRpcsTerminateResponse, error) {
-	return nil, nil
-}
-
-func (c *TestClient) ListTasks(ctx context.Context, start, end time.Time, tags []string, state string) ([]*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) ListTasks(_ context.Context, req *apipb.TasksWithPerfRequest, _ ...grpc.CallOption) (*apipb.TaskListResponse, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
-	rv := make([]*swarming_api.SwarmingRpcsTaskRequestMetadata, 0, len(c.taskList))
-	tagSet := util.NewStringSet(tags)
+	rv := make([]*apipb.TaskResultResponse, 0, len(c.taskList))
+	tagSet := util.NewStringSet(req.Tags)
 	for _, t := range c.taskList {
-		created, err := time.Parse(swarming.TIMESTAMP_FORMAT, t.TaskResult.CreatedTs)
-		if err != nil {
-			return nil, err
-		}
-		if !util.TimeIsZero(start) && start.After(created) {
+		created := t.TaskResult.CreatedTs.AsTime()
+		if req.Start != nil && req.Start.AsTime().After(created) {
 			continue
 		}
-		if !util.TimeIsZero(end) && end.Before(created) {
+		if req.End != nil && req.End.AsTime().Before(created) {
 			continue
 		}
-		if len(tagSet.Intersect(util.NewStringSet(t.Request.Tags))) == len(tags) {
-			if state == "" || t.TaskResult.State == state {
-				rv = append(rv, t)
+		if len(tagSet.Intersect(util.NewStringSet(t.Request.Tags))) == len(req.Tags) {
+			if req.State == apipb.StateQuery_QUERY_ALL || t.TaskResult.State.String() == req.State.String() {
+				rv = append(rv, t.TaskResult)
 			}
 		}
 	}
-	return rv, nil
+	return &apipb.TaskListResponse{
+		Items: rv,
+	}, nil
 }
 
-func (c *TestClient) ListBotTasks(ctx context.Context, botID string, limit int) ([]*swarming_api.SwarmingRpcsTaskResult, error) {
+func (c *TestClient) ListBotTasks(_ context.Context, in *apipb.BotTasksRequest, opts ...grpc.CallOption) (*apipb.TaskListResponse, error) {
 	// For now, just return all tasks in the list.  This could probably be better.
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
-	rv := make([]*swarming_api.SwarmingRpcsTaskResult, 0, len(c.taskList))
+	rv := make([]*apipb.TaskResultResponse, 0, len(c.taskList))
 	for _, t := range c.taskList {
 		rv = append(rv, t.TaskResult)
 	}
-	return rv, nil
+	return &apipb.TaskListResponse{
+		Items: rv,
+	}, nil
 }
 
-func (c *TestClient) ListSkiaTasks(ctx context.Context, start, end time.Time) ([]*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
-	return c.ListTasks(ctx, start, end, []string{"pool:Skia"}, "")
-}
-
-func (c *TestClient) ListTaskResults(ctx context.Context, start, end time.Time, tags []string, state string, includePerformanceStats bool) ([]*swarming_api.SwarmingRpcsTaskResult, error) {
-	tasks, err := c.ListTasks(ctx, start, end, tags, state)
-	if err != nil {
-		return nil, err
-	}
-	rv := make([]*swarming_api.SwarmingRpcsTaskResult, len(tasks), len(tasks))
-	for i, t := range tasks {
-		rv[i] = t.TaskResult
-	}
-	return rv, nil
-}
-
-func (c *TestClient) CancelTask(ctx context.Context, id string, killRunning bool) error {
-	return nil
+func (c *TestClient) CancelTask(_ context.Context, _ *apipb.TaskCancelRequest, _ ...grpc.CallOption) (*apipb.CancelResponse, error) {
+	return nil, nil
 }
 
 // md5Tags returns a MD5 hash of the task tags, excluding task ID.
@@ -199,21 +147,21 @@ func md5Tags(tags []string) string {
 	return rv
 }
 
-// TriggerTask automatically appends its result to the mocked tasks set by
+// NewTask automatically appends its result to the mocked tasks set by
 // MockTasks.
-func (c *TestClient) TriggerTask(ctx context.Context, t *swarming_api.SwarmingRpcsNewTaskRequest) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) NewTask(ctx context.Context, t *apipb.NewTaskRequest, _ ...grpc.CallOption) (*apipb.TaskRequestMetadataResponse, error) {
 	c.triggerMtx.Lock()
 	defer c.triggerMtx.Unlock()
 	md5 := md5Tags(t.Tags)
 	if c.triggerFailure[md5] {
 		delete(c.triggerFailure, md5)
-		return nil, fmt.Errorf("Mocked trigger failure!")
+		return nil, skerr.Fmt("mocked trigger failure!")
 	}
 
-	createdTs := now.Now(ctx).UTC().Format(swarming.TIMESTAMP_FORMAT)
+	createdTs := timestamppb.New(now.Now(ctx).UTC())
 	id := uuid.New().String()
-	rv := &swarming_api.SwarmingRpcsTaskRequestMetadata{
-		Request: &swarming_api.SwarmingRpcsTaskRequest{
+	rv := &apipb.TaskRequestMetadataResponse{
+		Request: &apipb.TaskRequestResponse{
 			CreatedTs:      createdTs,
 			ExpirationSecs: t.ExpirationSecs,
 			Name:           t.Name,
@@ -223,20 +171,20 @@ func (c *TestClient) TriggerTask(ctx context.Context, t *swarming_api.SwarmingRp
 			TaskSlices:     t.TaskSlices,
 		},
 		TaskId: id,
-		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+		TaskResult: &apipb.TaskResultResponse{
 			CreatedTs: createdTs,
 			Name:      t.Name,
-			State:     swarming.TASK_STATE_PENDING,
+			State:     apipb.TaskState_PENDING,
 			TaskId:    id,
 			Tags:      t.Tags,
 		},
 	}
 	if c.triggerNoResource[md5] {
 		delete(c.triggerNoResource, md5)
-		rv.TaskResult.State = swarming.TASK_STATE_NO_RESOURCE
+		rv.TaskResult.State = apipb.TaskState_NO_RESOURCE
 	} else if extraTags, ok := c.triggerDedupe[md5]; ok {
 		delete(c.triggerDedupe, md5)
-		rv.TaskResult.State = swarming.TASK_STATE_COMPLETED // No deduplicated state.
+		rv.TaskResult.State = apipb.TaskState_COMPLETED // No deduplicated state.
 		rv.TaskResult.DedupedFrom = uuid.New().String()
 		rv.TaskResult.Tags = append(rv.TaskResult.Tags, extraTags...)
 	}
@@ -246,8 +194,8 @@ func (c *TestClient) TriggerTask(ctx context.Context, t *swarming_api.SwarmingRp
 	return rv, nil
 }
 
-func (c *TestClient) RetryTask(ctx context.Context, t *swarming_api.SwarmingRpcsTaskRequestMetadata) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
-	return c.TriggerTask(ctx, &swarming_api.SwarmingRpcsNewTaskRequest{
+func (c *TestClient) RetryTask(ctx context.Context, t *apipb.TaskRequestMetadataResponse) (*apipb.TaskRequestMetadataResponse, error) {
+	return c.NewTask(ctx, &apipb.NewTaskRequest{
 		Name:     t.Request.Name,
 		Priority: t.Request.Priority,
 		Tags:     t.Request.Tags,
@@ -255,30 +203,33 @@ func (c *TestClient) RetryTask(ctx context.Context, t *swarming_api.SwarmingRpcs
 	})
 }
 
-func (c *TestClient) GetTask(ctx context.Context, id string, includePerformanceStats bool) (*swarming_api.SwarmingRpcsTaskResult, error) {
-	m, err := c.GetTaskMetadata(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return m.TaskResult, nil
-}
-
-func (c *TestClient) GetTaskMetadata(ctx context.Context, id string) (*swarming_api.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) GetResult(_ context.Context, in *apipb.TaskIdWithPerfRequest, opts ...grpc.CallOption) (*apipb.TaskResultResponse, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
 	for _, t := range c.taskList {
-		if t.TaskId == id {
-			return t, nil
+		if t.TaskId == in.TaskId {
+			return t.TaskResult, nil
 		}
 	}
-	return nil, fmt.Errorf("No such task: %s", id)
+	return nil, skerr.Fmt("no such task: %s", in.TaskId)
 }
 
-func (c *TestClient) DeleteBots(ctx context.Context, bots []string) error {
+func (c *TestClient) GetRequest(_ context.Context, in *apipb.TaskIdRequest, opts ...grpc.CallOption) (*apipb.TaskRequestResponse, error) {
+	c.taskListMtx.RLock()
+	defer c.taskListMtx.RUnlock()
+	for _, t := range c.taskList {
+		if t.TaskId == in.TaskId {
+			return t.Request, nil
+		}
+	}
+	return nil, skerr.Fmt("no such task: %s", in.TaskId)
+}
+
+func (c *TestClient) DeleteBots(_ context.Context, bots []string) error {
 	return nil
 }
 
-func (c *TestClient) MockBots(bots []*swarming_api.SwarmingRpcsBotInfo) {
+func (c *TestClient) MockBots(bots []*apipb.BotInfo) {
 	c.botListMtx.Lock()
 	defer c.botListMtx.Unlock()
 	c.botList = bots
@@ -287,7 +238,7 @@ func (c *TestClient) MockBots(bots []*swarming_api.SwarmingRpcsBotInfo) {
 // MockTasks sets the tasks that can be returned from ListTasks, ListSkiaTasks,
 // GetTaskMetadata, and GetTask. Replaces any previous tasks, including those
 // automatically added by TriggerTask.
-func (c *TestClient) MockTasks(tasks []*swarming_api.SwarmingRpcsTaskRequestMetadata) {
+func (c *TestClient) MockTasks(tasks []*apipb.TaskRequestMetadataResponse) {
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
 	c.taskList = tasks
@@ -295,7 +246,7 @@ func (c *TestClient) MockTasks(tasks []*swarming_api.SwarmingRpcsTaskRequestMeta
 
 // DoMockTasks calls f for each mocked task, allowing goroutine-safe updates. f
 // must not call any other method on c.
-func (c *TestClient) DoMockTasks(f func(*swarming_api.SwarmingRpcsTaskRequestMetadata)) {
+func (c *TestClient) DoMockTasks(f func(*apipb.TaskRequestMetadataResponse)) {
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
 	for _, task := range c.taskList {
@@ -329,4 +280,39 @@ func (c *TestClient) MockTriggerTaskNoResource(tags []string) {
 	c.triggerNoResource[md5Tags(tags)] = true
 }
 
-var _ swarming.ApiClient = &TestClient{}
+// These aren't used by our tests.
+func (c *TestClient) BatchGetResult(context.Context, *apipb.BatchGetResultRequest, ...grpc.CallOption) (*apipb.BatchGetResultResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) CancelTasks(context.Context, *apipb.TasksCancelRequest, ...grpc.CallOption) (*apipb.TasksCancelResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) CountTasks(context.Context, *apipb.TasksCountRequest, ...grpc.CallOption) (*apipb.TasksCount, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) CountBots(context.Context, *apipb.BotsCountRequest, ...grpc.CallOption) (*apipb.BotsCount, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) DeleteBot(_ context.Context, in *apipb.BotRequest, opts ...grpc.CallOption) (*apipb.DeleteResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) GetBot(_ context.Context, in *apipb.BotRequest, opts ...grpc.CallOption) (*apipb.BotInfo, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) GetBotDimensions(_ context.Context, in *apipb.BotsDimensionsRequest, opts ...grpc.CallOption) (*apipb.BotsDimensions, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) GetStdout(_ context.Context, in *apipb.TaskIdWithOffsetRequest, opts ...grpc.CallOption) (*apipb.TaskOutputResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) ListBotEvents(_ context.Context, in *apipb.BotEventsRequest, opts ...grpc.CallOption) (*apipb.BotEventsResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) ListTaskRequests(_ context.Context, in *apipb.TasksRequest, opts ...grpc.CallOption) (*apipb.TaskRequestsResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+func (c *TestClient) TerminateBot(_ context.Context, in *apipb.TerminateRequest, opts ...grpc.CallOption) (*apipb.TerminateResponse, error) {
+	return nil, skerr.Fmt("not implemented")
+}
+
+var _ swarmingv2.SwarmingV2Client = &TestClient{}

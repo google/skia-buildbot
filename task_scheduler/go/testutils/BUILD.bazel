@@ -7,10 +7,13 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/now",
+        "//go/skerr",
         "//go/sklog",
-        "//go/swarming",
+        "//go/swarming/v2:swarming",
         "//go/util",
         "@com_github_google_uuid//:uuid",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

@@ -23,7 +23,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/google/uuid"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/cas/rbe"
 	"go.skia.org/infra/go/common"
@@ -45,7 +45,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
-	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -78,15 +78,15 @@ func assertEqual(a, b interface{}) {
 	}
 }
 
-func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
-	dimensions := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
+func makeBot(id string, dims map[string]string) *apipb.BotInfo {
+	dimensions := make([]*apipb.StringListPair, 0, len(dims))
 	for k, v := range dims {
-		dimensions = append(dimensions, &swarming_api.SwarmingRpcsStringListPair{
+		dimensions = append(dimensions, &apipb.StringListPair{
 			Key:   k,
 			Value: []string{v},
 		})
 	}
-	return &swarming_api.SwarmingRpcsBotInfo{
+	return &apipb.BotInfo{
 		BotId:      id,
 		Dimensions: dimensions,
 	}
@@ -274,7 +274,7 @@ func main() {
 	assertNoError(err)
 
 	// Create a bunch of bots.
-	bots := make([]*swarming_api.SwarmingRpcsBotInfo, 100)
+	bots := make([]*apipb.BotInfo, 100)
 	for idx := range bots {
 		dims := map[string]string{
 			"pool": "Skia",
@@ -332,7 +332,7 @@ func main() {
 	}
 	cas, err := rbe.NewClient(ctx, rbeInstance, ts)
 	assertNoError(err)
-	swarmingTaskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, rbeInstance, "")
+	swarmingTaskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, rbeInstance, "")
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
@@ -355,7 +355,7 @@ func main() {
 	// Wait for job-creator to process the jobs from the repo.
 	waitForNewJobs(ctx, repos, jc, jCache, *tasksPerCommit)
 
-	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) []*types.Task {
+	runTasks := func(bots []*apipb.BotInfo) []*types.Task {
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop(ctx))
 		time.Sleep(5 * time.Second) // Wait for tasks to appear in the cache.  TODO: no!

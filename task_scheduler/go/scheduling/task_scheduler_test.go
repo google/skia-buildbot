@@ -18,7 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/go/cas/mocks"
 	"go.skia.org/infra/go/deepequal"
@@ -35,6 +36,7 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -47,7 +49,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_mocks "go.skia.org/infra/task_scheduler/go/task_cfg_cache/mocks"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
-	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
+	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -149,30 +151,24 @@ func makeTask(ctx context.Context, name, repo, revision string) *types.Task {
 	}
 }
 
-func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims map[string]string) *swarming_api.SwarmingRpcsTaskRequestMetadata {
+func makeTaskRequestMetadata(t *testing.T, task *types.Task, dims map[string]string) *apipb.TaskRequestMetadataResponse {
 	tag := func(k, v string) string {
 		return fmt.Sprintf("%s:%s", k, v)
 	}
-	ts := func(t time.Time) string {
-		if util.TimeIsZero(t) {
-			return ""
-		}
-		return t.Format(swarming.TIMESTAMP_FORMAT)
-	}
-	abandoned := ""
-	state := swarming.TASK_STATE_PENDING
+	var abandoned *timestamppb.Timestamp
+	state := apipb.TaskState_PENDING
 	failed := false
 	switch task.Status {
 	case types.TASK_STATUS_MISHAP:
-		state = swarming.TASK_STATE_BOT_DIED
-		abandoned = ts(task.Finished)
+		state = apipb.TaskState_BOT_DIED
+		abandoned = timestamppb.New(task.Finished)
 	case types.TASK_STATUS_RUNNING:
-		state = swarming.TASK_STATE_RUNNING
+		state = apipb.TaskState_RUNNING
 	case types.TASK_STATUS_FAILURE:
-		state = swarming.TASK_STATE_COMPLETED
+		state = apipb.TaskState_COMPLETED
 		failed = true
 	case types.TASK_STATUS_SUCCESS:
-		state = swarming.TASK_STATE_COMPLETED
+		state = apipb.TaskState_COMPLETED
 	case types.TASK_STATUS_PENDING:
 		// noop
 	default:
@@ -190,27 +186,27 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 		tags = append(tags, tag(types.SWARMING_TAG_PARENT_TASK_ID, p))
 	}
 
-	dimensions := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dims))
+	dimensions := make([]*apipb.StringPair, 0, len(dims))
 	for k, v := range dims {
-		dimensions = append(dimensions, &swarming_api.SwarmingRpcsStringPair{
+		dimensions = append(dimensions, &apipb.StringPair{
 			Key:   k,
 			Value: v,
 		})
 	}
 
-	var casOutput *swarming_api.SwarmingRpcsCASReference
+	var casOutput *apipb.CASReference
 	if task.IsolatedOutput != "" {
 		var err error
-		casOutput, err = swarming.MakeCASReference(task.IsolatedOutput, "fake-cas-instance")
+		casOutput, err = swarmingv2.MakeCASReference(task.IsolatedOutput, "fake-cas-instance")
 		require.NoError(t, err)
 	}
 
-	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
-		Request: &swarming_api.SwarmingRpcsTaskRequest{
-			CreatedTs: ts(task.Created),
-			TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+	return &apipb.TaskRequestMetadataResponse{
+		Request: &apipb.TaskRequestResponse{
+			CreatedTs: timestamppb.New(task.Created),
+			TaskSlices: []*apipb.TaskSlice{
 				{
-					Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					Properties: &apipb.TaskProperties{
 						Dimensions: dimensions,
 					},
 				},
@@ -218,14 +214,14 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 			Tags: tags,
 		},
 		TaskId: task.SwarmingTaskId,
-		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+		TaskResult: &apipb.TaskResultResponse{
 			AbandonedTs:   abandoned,
 			BotId:         task.SwarmingBotId,
-			CreatedTs:     ts(task.Created),
-			CompletedTs:   ts(task.Finished),
+			CreatedTs:     timestamppb.New(task.Created),
+			CompletedTs:   timestamppb.New(task.Finished),
 			Failure:       failed,
 			CasOutputRoot: casOutput,
-			StartedTs:     ts(task.Started),
+			StartedTs:     timestamppb.New(task.Started),
 			State:         state,
 			Tags:          tags,
 			TaskId:        task.SwarmingTaskId,
@@ -289,7 +285,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
+	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_Swarming:   taskExec,
 		types.TaskExecutor_UseDefault: taskExec,
@@ -1948,13 +1944,13 @@ func makeBot(id string, dims map[string]string) *types.Machine {
 }
 
 func mockBots(t sktest.TestingT, swarmingClient *swarming_testutils.TestClient, bots ...*types.Machine) {
-	swarmBots := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
+	swarmBots := make([]*apipb.BotInfo, 0, len(bots))
 	for _, bot := range bots {
 		dims, err := swarming.ParseDimensions(bot.Dimensions)
 		require.NoError(t, err)
-		swarmBots = append(swarmBots, &swarming_api.SwarmingRpcsBotInfo{
+		swarmBots = append(swarmBots, &apipb.BotInfo{
 			BotId:      bot.ID,
-			Dimensions: swarming.StringMapToBotDimensions(dims),
+			Dimensions: swarmingv2.StringMapToBotDimensions(dims),
 		})
 	}
 	swarmingClient.MockBots(swarmBots)
@@ -2011,8 +2007,8 @@ func TestSchedulingE2E(t *testing.T) {
 	t1.Finished = now.Now(ctx)
 	t1.IsolatedOutput = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/86"
 	require.NoError(t, s.putTask(ctx, t1))
-	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims),
+	swarmingClient.MockTasks([]*apipb.TaskRequestMetadataResponse{
+		makeTaskRequestMetadata(t, t1, linuxTaskDims),
 	})
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest, t1.IsolatedOutput}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/56", nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest, t1.IsolatedOutput}).Return("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccabc123/56", nil)
@@ -2092,10 +2088,10 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// No new bots free; only the remaining test task should be in the queue.
 	mockBots(t, swarmingClient)
-	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims),
-		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
-		makeSwarmingRpcsTaskRequestMetadata(t, t4, linuxTaskDims),
+	mockTasks := []*apipb.TaskRequestMetadataResponse{
+		makeTaskRequestMetadata(t, t2, linuxTaskDims),
+		makeTaskRequestMetadata(t, t3, linuxTaskDims),
+		makeTaskRequestMetadata(t, t4, linuxTaskDims),
 	}
 	swarmingClient.MockTasks(mockTasks)
 	require.NoError(t, s.updateUnfinishedTasks(ctx))
@@ -2113,8 +2109,8 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// Ensure that we finalize all of the tasks and insert into the DB.
 	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4)
-	mockTasks = []*swarming_api.SwarmingRpcsTaskRequestMetadata{
-		makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims),
+	mockTasks = []*apipb.TaskRequestMetadataResponse{
+		makeTaskRequestMetadata(t, t3, linuxTaskDims),
 	}
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest, t4.IsolatedOutput}).Return("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbabc123/56", nil)
 	runMainLoop(t, s, ctx)
@@ -2137,9 +2133,9 @@ func TestSchedulingE2E(t *testing.T) {
 			}
 		}
 	}
-	mockTasks = make([]*swarming_api.SwarmingRpcsTaskRequestMetadata, 0, len(tasksList))
+	mockTasks = make([]*apipb.TaskRequestMetadataResponse, 0, len(tasksList))
 	for _, task := range tasksList {
-		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
+		mockTasks = append(mockTasks, makeTaskRequestMetadata(t, task, linuxTaskDims))
 	}
 	swarmingClient.MockTasks(mockTasks)
 	mockBots(t, swarmingClient, bot1, bot2, bot3, bot4)
@@ -2337,12 +2333,12 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	}
 	hashes := mg.CommitN(1)
 
-	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
+	mockTasks := []*apipb.TaskRequestMetadataResponse{}
 	mock := func(task *types.Task) {
 		task.Status = types.TASK_STATUS_SUCCESS
 		task.Finished = now.Now(ctx)
 		task.IsolatedOutput = tcc_testutils.CompileCASDigest
-		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
+		mockTasks = append(mockTasks, makeTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
 	}
 
@@ -2354,7 +2350,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.TestCASDigest}).Return(tcc_testutils.TestCASDigest, nil)
 	cas.On("Merge", testutils.AnyContext, []string{tcc_testutils.PerfCASDigest}).Return(tcc_testutils.PerfCASDigest, nil)
 
-	taskExec := swarming_task_execution.NewSwarmingTaskExecutor(swarmingClient, "fake-cas-instance", "")
+	taskExec := swarming_task_execution.NewSwarmingV2TaskExecutor(swarmingClient, "fake-cas-instance", "")
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_Swarming:   taskExec,
 		types.TaskExecutor_UseDefault: taskExec,
@@ -2883,13 +2879,15 @@ func TestTaskTimeouts(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, unfinished, 1)
 	task := unfinished[0]
-	swarmingTask, err := swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
+	swarmingTask, err := swarmingClient.GetRequest(ctx, &apipb.TaskIdRequest{
+		TaskId: task.SwarmingTaskId,
+	})
 	require.NoError(t, err)
 	// These are the defaults in go/swarming/swarming.go.
-	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
-	require.Equal(t, int64(60*60), swarmingTask.Request.TaskSlices[0].Properties.ExecutionTimeoutSecs)
-	require.Equal(t, int64(20*60), swarmingTask.Request.TaskSlices[0].Properties.IoTimeoutSecs)
-	require.Equal(t, int64(4*60*60), swarmingTask.Request.TaskSlices[0].ExpirationSecs)
+	require.Equal(t, 1, len(swarmingTask.TaskSlices))
+	require.Equal(t, int32(60*60), swarmingTask.TaskSlices[0].Properties.ExecutionTimeoutSecs)
+	require.Equal(t, int32(20*60), swarmingTask.TaskSlices[0].Properties.IoTimeoutSecs)
+	require.Equal(t, int32(4*60*60), swarmingTask.TaskSlices[0].ExpirationSecs)
 	// Fail the task to get it out of the unfinished list.
 	task.Status = types.TASK_STATUS_FAILURE
 	require.NoError(t, s.putTask(ctx, task))
@@ -2944,12 +2942,14 @@ func TestTaskTimeouts(t *testing.T) {
 	require.Len(t, unfinished, 1)
 	task = unfinished[0]
 	require.Equal(t, name, task.Name)
-	swarmingTask, err = swarmingClient.GetTaskMetadata(ctx, task.SwarmingTaskId)
+	swarmingTask, err = swarmingClient.GetRequest(ctx, &apipb.TaskIdRequest{
+		TaskId: task.SwarmingTaskId,
+	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(swarmingTask.Request.TaskSlices))
-	require.Equal(t, int64(40*60), swarmingTask.Request.TaskSlices[0].Properties.ExecutionTimeoutSecs)
-	require.Equal(t, int64(3*60), swarmingTask.Request.TaskSlices[0].Properties.IoTimeoutSecs)
-	require.Equal(t, int64(2*60*60), swarmingTask.Request.TaskSlices[0].ExpirationSecs)
+	require.Equal(t, 1, len(swarmingTask.TaskSlices))
+	require.Equal(t, int32(40*60), swarmingTask.TaskSlices[0].Properties.ExecutionTimeoutSecs)
+	require.Equal(t, int32(3*60), swarmingTask.TaskSlices[0].Properties.IoTimeoutSecs)
+	require.Equal(t, int32(2*60*60), swarmingTask.TaskSlices[0].ExpirationSecs)
 }
 
 func TestUpdateUnfinishedTasks(t *testing.T) {
@@ -2994,15 +2994,21 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	t3.Status = types.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff/256"
 
-	m1 := makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims)
-	m2 := makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims)
-	m3 := makeSwarmingRpcsTaskRequestMetadata(t, t3, linuxTaskDims)
-	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2, m3})
+	m1 := makeTaskRequestMetadata(t, t1, linuxTaskDims)
+	m2 := makeTaskRequestMetadata(t, t2, linuxTaskDims)
+	m3 := makeTaskRequestMetadata(t, t3, linuxTaskDims)
+	swarmingClient.MockTasks([]*apipb.TaskRequestMetadataResponse{m1, m2, m3})
 
 	// Assert that the third task doesn't show up in the time range query.
-	got, err := swarmingClient.ListTasks(ctx, now.Add(-4*time.Hour), now, []string{"pool:Skia"}, "")
+	got, err := swarmingClient.ListTasks(ctx, &apipb.TasksWithPerfRequest{
+		Start: timestamppb.New(now.Add(-4 * time.Hour)),
+		Tags:  []string{"pool:Skia"},
+		State: apipb.StateQuery_QUERY_ALL,
+	})
 	require.NoError(t, err)
-	assertdeep.Equal(t, []*swarming_api.SwarmingRpcsTaskRequestMetadata{m1, m2}, got)
+	assertdeep.Equal(t, &apipb.TaskListResponse{
+		Items: []*apipb.TaskResultResponse{m1.TaskResult, m2.TaskResult},
+	}, got)
 
 	// Ensure that we update the tasks as expected.
 	require.NoError(t, s.updateUnfinishedTasks(ctx))
@@ -3531,7 +3537,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	err := s.MainLoop(ctx)
 	s.testWaitGroup.Wait()
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "Mocked trigger failure!"))
+	require.True(t, strings.Contains(err.Error(), "mocked trigger failure!"))
 	require.NoError(t, s.tCache.Update(ctx))
 	require.Equal(t, 6, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(rs1.Repo, commits)
@@ -3576,7 +3582,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	failedTrigger := 0
 	for _, c := range diag.Candidates {
 		if c.Revision == commits[4] {
-			require.True(t, strings.Contains(c.Diagnostics.Triggering.TriggerError, "Mocked trigger failure!"))
+			require.True(t, strings.Contains(c.Diagnostics.Triggering.TriggerError, "mocked trigger failure!"))
 			failedTrigger++
 		} else {
 			if c.TaskKey == t1.TaskKey {

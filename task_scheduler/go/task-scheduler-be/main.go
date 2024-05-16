@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
-	swarming_task_execution_v1 "go.skia.org/infra/task_scheduler/go/task_execution/swarming"
 	swarming_task_execution_v2 "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -159,17 +158,9 @@ func main() {
 	}
 
 	// Create the task executor.
-	var swarmingTaskExec types.TaskExecutor
-	if *swarmingAPIv2 {
-		prpcClient := swarmingv2.DefaultPRPCClient(httpClient, *swarmingServer)
-		swarmingTaskExec = swarming_task_execution_v2.NewSwarmingV2TaskExecutor(prpcClient, *rbeInstance, *pubsubTopicName)
-	} else {
-		swarm, err := swarming.NewApiClient(cfg.Client(), *swarmingServer)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		swarmingTaskExec = swarming_task_execution_v1.NewSwarmingTaskExecutor(swarm, *rbeInstance, *pubsubTopicName)
-	}
+	prpcClient := swarmingv2.DefaultPRPCClient(httpClient, *swarmingServer)
+	swarmClient := swarmingv2.NewClient(prpcClient)
+	swarmingTaskExec := swarming_task_execution_v2.NewSwarmingV2TaskExecutor(swarmClient, *rbeInstance, *pubsubTopicName)
 	taskExecs := map[string]types.TaskExecutor{
 		types.TaskExecutor_UseDefault: swarmingTaskExec,
 		types.TaskExecutor_Swarming:   swarmingTaskExec,
