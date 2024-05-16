@@ -22,7 +22,10 @@ const (
 
 type DatastoreResponse struct {
 	Kind string `json:"kind"`
-	ID   int64  `json:"id"`
+
+	// Pinpoint IDs are usually int, but now that we execute workflows with
+	// a UUID, Pinpoint stores the IDs as string and handles them.
+	ID string `json:"id"`
 }
 
 // CatapultClient contains an httpClient for writing to catpault

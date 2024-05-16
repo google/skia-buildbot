@@ -112,6 +112,9 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	logger := workflow.GetLogger(ctx)
 
 	jobID := uuid.New().String()
+	if p.JobID != "" {
+		jobID = p.JobID
+	}
 	be = &BisectExecution{
 		JobId:       jobID,
 		Culprits:    []*pinpoint_proto.CombinedCommit{},

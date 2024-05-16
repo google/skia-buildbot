@@ -3,6 +3,7 @@ package catapult
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/compare"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -15,7 +16,9 @@ import (
 )
 
 const (
-	BisectJobNameTemplate = "[Skia] Performance bisect on %s/%s"
+	BisectJobNameTemplate            = "[Skia] Performance bisect on %s/%s"
+	ProdPerfInternalWorkflowTemplate = "https://temporal-ui.skia.org/namespaces/perf-internal/workflows/%s"
+	DevPerfInternalWorkflowTemplate  = "https://temporal-ui-dev.corp.goog/namespaces/perf-internal/workflows/%s"
 )
 
 // updateStatesWithComparisons goes through each state and appends legacy comparisons
@@ -87,6 +90,12 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 		Quests:               []string{"Build", "Test", "Get values"},
 	}
 
+	if p.Production {
+		resp.SkiaWorkflowUrl = fmt.Sprintf(ProdPerfInternalWorkflowTemplate, be.JobId)
+	} else {
+		resp.SkiaWorkflowUrl = fmt.Sprintf(DevPerfInternalWorkflowTemplate, be.JobId)
+	}
+
 	arguments, err := parseArguments(p.Request)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -122,15 +131,27 @@ func ConvertToCatapultResponseWorkflow(ctx workflow.Context, p *workflows.Bisect
 // Thus, the workflow method signature should be identical to internal.BisectWorkflow.
 // This is written in its own package and in its own workflow so that it's self-contained.
 func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*pinpoint_proto.BisectExecution, error) {
-	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	logger := workflow.GetLogger(ctx)
 
+	// We want to specify the exact job id it'll be using instead of a randomly generated one
+	// so that users from Pinpoint can route back to it.
+	workflowID := uuid.New().String()
+	bisectOptions := childWorkflowOptions
+	bisectOptions.WorkflowID = workflowID
+	bisectCtx := workflow.WithChildOptions(ctx, bisectOptions)
+	bisectCtx = workflow.WithActivityOptions(bisectCtx, regularActivityOptions)
+
+	// The workflow options above will ensure that it runs with that UUID. Setting it in
+	// BisectParams will ensure that the respoonse JobID is also set to this such that
+	// when it's converted to the Legacy response it's propagated accordingly.
+	p.JobID = workflowID
 	var bisectExecution *internal.BisectExecution
-	if err := workflow.ExecuteChildWorkflow(ctx, internal.BisectWorkflow, p).Get(ctx, &bisectExecution); err != nil {
+	if err := workflow.ExecuteChildWorkflow(bisectCtx, internal.BisectWorkflow, p).Get(bisectCtx, &bisectExecution); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	var resp *pinpoint_proto.LegacyJobResponse
 	if err := workflow.ExecuteChildWorkflow(ctx, ConvertToCatapultResponseWorkflow, p, bisectExecution).Get(ctx, &resp); err != nil {
 		return nil, skerr.Wrap(err)

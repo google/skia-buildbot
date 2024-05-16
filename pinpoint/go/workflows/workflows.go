@@ -97,6 +97,8 @@ type BisectParams struct {
 	// and not the dev or staging environment.
 	// Used to determine whether to write to Pinpoint prod or staging.
 	Production bool
+	// JobID for the bisect run
+	JobID string
 }
 
 // GetMagnitude returns the magnitude as float64.

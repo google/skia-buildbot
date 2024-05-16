@@ -14,7 +14,7 @@ import (
 
 const (
 	mockJobId         = "179a34b2be0000"
-	mockDatastoreResp = `{"kind":"Job","id":5743261448667136}`
+	mockDatastoreResp = `{"kind":"Job","id":"13c71a26-8ae0-4404-bfdd-d377352898a6"}`
 )
 
 var mockPinpointLegacyJobResp = &pinpoint_proto.LegacyJobResponse{

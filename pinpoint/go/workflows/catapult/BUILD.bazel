@@ -28,6 +28,7 @@ go_library(
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/internal",
         "//pinpoint/proto/v1:proto",
+        "@com_github_google_uuid//:uuid",
         "@io_temporal_go_sdk//temporal",
         "@io_temporal_go_sdk//workflow",
         "@org_chromium_go_luci//swarming/proto/api_v2",
