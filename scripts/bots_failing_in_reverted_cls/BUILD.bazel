@@ -11,6 +11,8 @@ go_library(
         "//go/httputils",
         "//go/sklog",
         "//go/swarming",
+        "//go/swarming/v2:swarming",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
         "@org_golang_x_oauth2//google",
     ],
 )

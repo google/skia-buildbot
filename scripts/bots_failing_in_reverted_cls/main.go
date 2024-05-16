@@ -14,13 +14,14 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"golang.org/x/oauth2/google"
 )
 
@@ -32,15 +33,18 @@ var (
 	removeAll         = regexp.MustCompile("-All")
 )
 
-func failingTasksAtACommit(ctx context.Context, swarmApi swarming.ApiClient, hash string) map[string]bool {
-	resp, err := swarmApi.ListTasks(ctx, time.Time{}, time.Time{}, []string{fmt.Sprintf("source_revision:%s", hash)}, "completed_failure")
+func failingTasksAtACommit(ctx context.Context, swarmApi swarmingv2.SwarmingV2Client, hash string) map[string]bool {
+	resp, err := swarmingv2.ListTasksHelper(ctx, swarmApi, &apipb.TasksWithPerfRequest{
+		State: apipb.StateQuery_QUERY_COMPLETED_FAILURE,
+		Tags:  []string{fmt.Sprintf("source_revision:%s", hash)},
+	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	ret := map[string]bool{}
 	names := []string{}
 	for _, r := range resp {
-		name := removeAll.ReplaceAllLiteralString(r.TaskResult.Name, "")
+		name := removeAll.ReplaceAllLiteralString(r.Name, "")
 		ret[name] = true
 		names = append(names, name)
 	}
@@ -60,10 +64,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	swarmApi := swarmingv2.NewDefaultClient(httpClient, swarming.SWARMING_SERVER)
 
 	// Get all the commits since *since with one line per commit.
 	output, err := gd.Git(ctx, "log", "--format=oneline", fmt.Sprintf("--since=%s", *since))
