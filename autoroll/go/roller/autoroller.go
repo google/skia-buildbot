@@ -2,6 +2,7 @@ package roller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -1024,6 +1025,16 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			}
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
+			fromBytes, err := json.Marshal(from)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			toBytes, err := json.Marshal(to)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			sklog.Infof("Rolling from: %s", string(fromBytes))
+			sklog.Infof("Rolling to: %s", string(toBytes))
 
 			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun, req.Canary, req.Requester)
 			if err != nil {
