@@ -1,0 +1,61 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":plot-summary-sk-demo",
+)
+
+sk_element(
+    name = "plot-summary-sk",
+    sass_srcs = ["plot-summary-sk.scss"],
+    sk_element_deps = ["//perf/modules/plot-simple-sk"],
+    ts_deps = [
+        "//:node_modules/lit-html",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/@types/d3-scale",
+        "//:node_modules/d3-scale",
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@types/google.visualization",  # keep
+        "//perf/modules/common:plot-builder_ts_lib",
+    ],
+    ts_srcs = [
+        "plot-summary-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "plot-summary-sk-demo",
+    html_file = "plot-summary-sk-demo.html",
+    scss_entry_point = "plot-summary-sk-demo.scss",
+    sk_element_deps = [":plot-summary-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+    ],
+    ts_entry_point = "plot-summary-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "plot-summary-sk_puppeteer_test",
+    src = "plot-summary-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "plot-summary-sk_test",
+    src = "plot-summary-sk_test.ts",
+    deps = [
+        ":plot-summary-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)

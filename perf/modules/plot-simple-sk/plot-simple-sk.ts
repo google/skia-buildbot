@@ -207,7 +207,7 @@ class PathBuilder {
   }
 }
 
-interface Point {
+export interface Point {
   x: number;
   y: number;
 }
@@ -219,7 +219,7 @@ const invalidPoint: Point = {
 
 const pointIsValid = (p: Point): boolean => p.x !== invalidPoint.x;
 
-interface Rect extends Point {
+export interface Rect extends Point {
   width: number;
   height: number;
 }
@@ -397,7 +397,7 @@ export interface AnomalyData {
   anomaly: Anomaly;
 }
 
-interface MousePosition {
+export interface MousePosition {
   clientX: number;
   clientY: number;
 }
@@ -422,7 +422,7 @@ interface CrosshairPoint extends Point {
 }
 
 // Common information for both the Summary and Detail display areas.
-interface Area {
+export interface Area {
   rect: Rect;
   axis: {
     path: Path2D;
