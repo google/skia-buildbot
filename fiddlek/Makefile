@@ -33,9 +33,12 @@ pull-skia-release-image:
 skia-source: pull-skia-release-image
 	# Extract skia checkout from the most recently built docker container.
 	# This is built with @skia//docker/skia-wasm-release/Dockerfile
-	$(DOCKER) run --rm -u $$(id -u ${USER}):$$(id -g ${USER}) \
+	mkdir -p build
+	chmod 777 build
+	# ID 2000 is hardcoded to be the skia user
+	$(DOCKER) run --rm -u 2000:2000 \
 	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-release:prod \
-	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/"
+	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/; chmod 0666 /OUT/skia.tar.gz"
 
 release-fiddler: build skia-source
 	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddler_container
