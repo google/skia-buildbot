@@ -65,6 +65,7 @@ var (
 	internal              = flag.Bool("internal", false, "If true, display the internal rollers.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                  = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	project               = flag.String("project", "", "GCP project that this service runs in.")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	hang                  = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
@@ -160,10 +161,12 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 		ChildName  string
 		ParentName string
 		Roller     string
+		Project    string
 	}{
 		ChildName:  cfg.ChildDisplayName,
 		ParentName: cfg.ParentDisplayName,
 		Roller:     cfg.RollerName,
+		Project:    *project,
 	}
 	if err := rollerTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)

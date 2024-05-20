@@ -15,6 +15,7 @@ import { localeTime } from '../../../infra-sk/modules/human';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
+import '../../../elements-sk/modules/icons/launch-icon-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
@@ -30,7 +31,6 @@ import {
   AutoRollStatus,
   CreateManualRollResponse,
   GetAutoRollService,
-  GetCleanupHistoryResponse,
   GetStatusResponse,
   ManualRoll,
   ManualRoll_Result,
@@ -65,10 +65,21 @@ export class ARBStatusSk extends ElementSk {
     !ele.status
       ? html``
       : html`
-  <tabs-sk>
+  <tabs-sk style="width: 100%">
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
     <button value="config">View Roller Config</button>
+    <div style="flex-grow: 1"></div>
+    <div style="display: flex; align-items: center">
+      <a
+        href="https://pantheon.corp.google.com/logs/query;query=labels.k8s-pod%2Fapp%3D%22autoroll-be-${
+          ele.roller
+        }%22?project=${ele.project}"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Logs <launch-icon-sk></launch-icon-sk>
+      </a>
+    </div>
   </tabs-sk>
   ${
     !ele.editRights
@@ -704,6 +715,7 @@ export class ARBStatusSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._upgradeProperty('roller');
+    this._upgradeProperty('project');
     this._render();
     LoggedIn().then((loginstatus: Status) => {
       this.editRights = loginstatus.roles!.includes('editor');
@@ -718,6 +730,15 @@ export class ARBStatusSk extends ElementSk {
 
   set roller(v: string) {
     this.setAttribute('roller', v);
+    this.reload();
+  }
+
+  get project() {
+    return this.getAttribute('project') || '';
+  }
+
+  set project(v: string) {
+    this.setAttribute('project', v);
     this.reload();
   }
 

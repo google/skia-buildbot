@@ -12,6 +12,7 @@ sk_element(
     sass_srcs = ["arb-status-sk.scss"],
     sk_element_deps = [
         "//infra-sk/modules/human-date-sk",
+        "//elements-sk/modules/icons/launch-icon-sk",
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",
         "//infra-sk/modules/alogin-sk",

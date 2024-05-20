@@ -30,7 +30,7 @@ export function GetFakeStatus(): AutoRollStatus {
       childBugLink: 'https://fake-child-bug',
       parentBugLink: 'https://fake-parent-bug',
       parentWaterfall: 'https://status-staging.skia.org/repo/skiabot-test',
-      rollerId: 'skia-skiabot-test',
+      rollerId: 'skia-skiabot-test-autoroll',
       supportsManualRolls: true,
       timeWindow: 'M-F 04:00-08:00',
       validModes: [],
