@@ -363,10 +363,12 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 		case jobs := <-jobsCh:
 			sklog.Infof("Start processing jobs from modified jobs channel.")
 			for _, job := range jobs {
+				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
+			}
+			for _, job := range jobs {
 				if job.Status != types.JOB_STATUS_REQUESTED {
 					continue
 				}
-				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
 				if err := t.startJob(ctx, job); err != nil {
 					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
 				}
@@ -380,6 +382,8 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 			} else {
 				for _, job := range jobs {
 					sklog.Infof("Found job %s (build %d) via periodic DB poll", job.Id, job.BuildbucketBuildId)
+				}
+				for _, job := range jobs {
 					if err := t.startJob(ctx, job); err != nil {
 						sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
 					}
