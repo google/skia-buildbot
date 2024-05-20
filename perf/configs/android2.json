@@ -59,7 +59,9 @@
         "provider": "gitiles",
         "url": "https://android.googlesource.com/platform/superproject",
         "dir": "/tmp/androidx",
-        "debounce_commit_url": false
+        "debounce_commit_url": false,
+        "branch": "androidx-main",
+        "start_commit": "5f8b9aa0feafff7548336998a17723cb792cdb53"
     },
     "anomaly_config": {
         "settling_time": "5h"

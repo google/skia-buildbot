@@ -238,3 +238,24 @@ func TestUpdate_AlwaysReturnsNil(t *testing.T) {
 	gp := &Gitiles{}
 	require.NoError(t, gp.Update(context.Background()))
 }
+
+func TestCommitsFromMostRecentGitHashToHead_NonMainBranch_Success(t *testing.T) {
+	mockRepo := gitiles_mocks.NewGitilesRepo(t)
+	startCommit := "startCommit"
+	branch := "testBranch"
+	mockRepo.On("LogFnBatch", testutils.AnyContext, git.FullyQualifiedBranchName(branch), mock.Anything, gitiles.LogBatchSize(batchSize), gitiles.LogReverse(), gitiles.LogStartCommit(startCommit)).Run(func(args mock.Arguments) {
+		cb := args[2].(func(context.Context, []*vcsinfo.LongCommit) error)
+		err := cb(context.Background(), commitDetailsForOneCommit)
+		require.NoError(t, err)
+	}).Return(nil)
+
+	gp := &Gitiles{
+		gr:     mockRepo,
+		branch: branch,
+	}
+	cb := func(c provider.Commit) error {
+		return nil
+	}
+	err := gp.CommitsFromMostRecentGitHashToHead(context.Background(), startCommit, cb)
+	require.NoError(t, err)
+}

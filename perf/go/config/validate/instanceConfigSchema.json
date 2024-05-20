@@ -186,6 +186,9 @@
         },
         "commit_number_regex": {
           "type": "string"
+        },
+        "branch": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

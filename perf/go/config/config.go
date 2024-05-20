@@ -343,6 +343,10 @@ type GitRepoConfig struct {
 	// Git log example: "... Cr-Commit-Position: refs/heads/master@{#727901}"
 	// Leave empty to have Perf generate commit numbers.
 	CommitNumberRegex string `json:"commit_number_regex,omitempty"`
+
+	// Branch is a specific branch that the commits should be tracked from.
+	// If this is empty, the main branch will be used.
+	Branch string `json:"branch,omitempty"`
 }
 
 // TraceFormat is the format used to display trace info on the instance.

@@ -488,6 +488,11 @@ func LogLimit(n int) LogOption {
 	return logLimit(n)
 }
 
+// LogStartCommit is a LogOption which makes Log return commits starting from startCommit.
+func LogStartCommit(startCommit string) LogOption {
+	return stringLogOption([2]string{"s", startCommit})
+}
+
 // logPath restricts the log to a given path.
 type logPath string
 
@@ -579,6 +584,19 @@ func LogOptionsToQuery(opts []LogOption) (string, string, int, error) {
 // commits. If the function returns an error, iteration stops, and the error is
 // returned, unless it was ErrStopIteration.
 func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
+	start := ""
+	for i := 0; i < len(opts); i++ {
+		// If the caller has provided a start option, use that.
+		// Also remove that option from the opts list since in the for
+		// loop that handles the batches, we are updating the "s" query
+		// parameter.
+		if opts[i].Key() == "s" {
+			start = opts[i].Value()
+			opts[i] = opts[len(opts)-1]
+			opts = opts[:len(opts)-1]
+			break
+		}
+	}
 	// Build the query parameters.
 	path, query, limit, err := LogOptionsToQuery(opts)
 	if err != nil {
@@ -594,7 +612,7 @@ func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Co
 
 	// Load commits in batches.
 	seen := 0
-	start := ""
+
 	for {
 		var l Log
 		u := url

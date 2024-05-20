@@ -28,6 +28,8 @@ type Gitiles struct {
 	// not supplied then we start with the first commit in the repo as reachable
 	// from HEAD.
 	startCommit string
+
+	branch string
 }
 
 // New returns a new instance of Gitiles.
@@ -35,6 +37,7 @@ func New(c *http.Client, instanceConfig *config.InstanceConfig) *Gitiles {
 	return &Gitiles{
 		gr:          gitiles.NewRepo(instanceConfig.GitRepoConfig.URL, c),
 		startCommit: instanceConfig.GitRepoConfig.StartCommit,
+		branch:      instanceConfig.GitRepoConfig.Branch,
 	}
 }
 
@@ -44,9 +47,20 @@ func (g *Gitiles) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRe
 		mostRecentGitHash = g.startCommit
 	}
 
-	expr := git.LogFromTo(mostRecentGitHash, "HEAD")
-	if mostRecentGitHash == "" {
-		expr = git.MainBranch
+	var expr string
+	opts := []gitiles.LogOption{
+		gitiles.LogBatchSize(batchSize),
+		gitiles.LogReverse(),
+	}
+	if g.isMainBranch() {
+		expr = git.LogFromTo(mostRecentGitHash, "HEAD")
+		if mostRecentGitHash == "" {
+			expr = git.MainBranch
+		}
+	} else {
+		sklog.Infof("Ingesting from branch %s", g.branch)
+		expr = git.FullyQualifiedBranchName(g.branch)
+		opts = append(opts, gitiles.LogStartCommit(mostRecentGitHash))
 	}
 
 	sklog.Infof("Populating from gitiles from %q", expr)
@@ -66,7 +80,8 @@ func (g *Gitiles) CommitsFromMostRecentGitHashToHead(ctx context.Context, mostRe
 			}
 		}
 		return nil
-	}, gitiles.LogBatchSize(batchSize), gitiles.LogReverse())
+	}, opts...)
+
 	if err != nil {
 		return skerr.Wrapf(err, "loading commits")
 	}
@@ -109,6 +124,10 @@ Date %s
 // Update implements provider.Provider.
 func (g *Gitiles) Update(ctx context.Context) error {
 	return nil
+}
+
+func (g *Gitiles) isMainBranch() bool {
+	return g.branch == "" || g.branch == "main"
 }
 
 // Confirm *Gitiles implements provider.Provider.
