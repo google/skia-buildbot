@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -71,6 +72,7 @@ func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_v
 
 // GetRevision implements Child.
 func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	sklog.Debugf("GetRevision(%s): %d dependencies", id, len(c.Dependencies))
 	details, err := c.Details(ctx, id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -82,6 +84,9 @@ func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revisi
 		})
 		if err != nil {
 			return nil, skerr.Wrap(err)
+		}
+		if len(deps) != len(c.Dependencies) {
+			sklog.Errorf("Have %d configured dependencies but retrieved %d: %v vs %v", len(c.Dependencies), len(deps), c.Dependencies, deps)
 		}
 		rev.Dependencies = deps
 	}
