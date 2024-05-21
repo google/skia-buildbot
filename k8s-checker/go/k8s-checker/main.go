@@ -43,6 +43,7 @@ const (
 	dirtyCommittedImageMetric       = "dirty_committed_image_metric"
 	dirtyConfigMetric               = "dirty_config_metric"
 	ephemeralDiskRequestMetric      = "ephemeral_disk_requested"
+	eventsMetric                    = "k8s_events"
 	evictedPodMetric                = "evicted_pod_metric"
 	livenessMetric                  = "k8s_checker"
 	podMaxReadyTimeMetric           = "pod_max_ready_time_s"
@@ -54,6 +55,7 @@ const (
 	staleImageMetric                = "stale_image_metric"
 	totalDiskRequestMetric          = "total_disk_requested"
 	podSecurityMetric               = "pod_security"
+	podUnschedulableMetric          = "pod_unschedulable"
 )
 
 // The format of the image is expected to be:
@@ -147,7 +149,7 @@ func fixupNamespace(namespace string) string {
 }
 
 // getNamespaces finds all namespaces in the cluster.
-func getNamespaces(ctx context.Context, cluster string, k8sClient k8s.Client, ignoreNamespaces []string) ([]v1.Namespace, error) {
+func getNamespaces(ctx context.Context, k8sClient k8s.Client, ignoreNamespaces []string) ([]v1.Namespace, error) {
 	namespaces, err := k8sClient.ListNamespaces(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "listing namespaces")
@@ -200,19 +202,21 @@ func getPodMetrics(ctx context.Context, cluster, namespace string, k8sClient k8s
 	}
 
 	for _, p := range pods {
+		tags := map[string]string{
+			"app":       p.Labels["app"],
+			"pod":       p.ObjectMeta.Name,
+			"cluster":   cluster,
+			"namespace": fixupNamespace(namespace),
+		}
 		for _, c := range p.Status.ContainerStatuses {
-			tags := map[string]string{
-				"app":       p.Labels["app"],
-				"pod":       p.ObjectMeta.Name,
+			extraTags := map[string]string{
 				"container": c.Name,
-				"cluster":   cluster,
-				"namespace": fixupNamespace(namespace),
 			}
-			restarts := metrics2.GetInt64Metric(podRestartCountMetric, tags)
+			restarts := metrics2.GetInt64Metric(podRestartCountMetric, tags, extraTags)
 			restarts.Update(int64(c.RestartCount))
 			metrics[restarts] = struct{}{}
 
-			running := metrics2.GetInt64Metric(podRunningMetric, tags)
+			running := metrics2.GetInt64Metric(podRunningMetric, tags, extraTags)
 			isRunning := int64(0)
 			if c.State.Running != nil {
 				isRunning = 1
@@ -220,7 +224,7 @@ func getPodMetrics(ctx context.Context, cluster, namespace string, k8sClient k8s
 			running.Update(isRunning)
 			metrics[running] = struct{}{}
 
-			ready := metrics2.GetInt64Metric(podReadyMetric, tags)
+			ready := metrics2.GetInt64Metric(podReadyMetric, tags, extraTags)
 			isReady := int64(0)
 			if c.Ready {
 				isReady = 1
@@ -233,19 +237,32 @@ func getPodMetrics(ctx context.Context, cluster, namespace string, k8sClient k8s
 					if containerSpec.ReadinessProbe != nil {
 						rp := containerSpec.ReadinessProbe
 						maxReadyTime := rp.InitialDelaySeconds + (rp.FailureThreshold+rp.SuccessThreshold)*(rp.PeriodSeconds+rp.TimeoutSeconds)
-						mrtMetric := metrics2.GetInt64Metric(podMaxReadyTimeMetric, tags)
+						mrtMetric := metrics2.GetInt64Metric(podMaxReadyTimeMetric, tags, extraTags)
 						mrtMetric.Update(int64(maxReadyTime))
 						metrics[mrtMetric] = struct{}{}
 					}
 				}
 			}
 		}
+		isUnschedulable := int64(0)
+		unschedulableMessage := ""
+		for _, condition := range p.Status.Conditions {
+			if condition.Reason == "Unschedulable" {
+				unschedulableMessage = condition.Message
+				isUnschedulable = 1
+			}
+		}
+		unschedulable := metrics2.GetInt64Metric(podUnschedulableMetric, tags, map[string]string{
+			"unschedulable": unschedulableMessage,
+		})
+		unschedulable.Update(isUnschedulable)
+		metrics[unschedulable] = struct{}{}
 	}
 	return nil
 }
 
 // getNamespaceMetrics retrieves metrics for namespaces.
-func getNamespaceMetrics(ctx context.Context, cluster string, namespace v1.Namespace, k8sClient k8s.Client, metrics map[metrics2.Int64Metric]struct{}) error {
+func getNamespaceMetrics(_ context.Context, namespace v1.Namespace, metrics map[metrics2.Int64Metric]struct{}) error {
 	// Pod security levels.
 	for _, action := range []string{"enforce", "audit", "warn"} {
 		podSecurityLevelLabel := fmt.Sprintf("pod-security.kubernetes.io/%s", action)
@@ -262,6 +279,29 @@ func getNamespaceMetrics(ctx context.Context, cluster string, namespace v1.Names
 		})
 		levelMetric.Update(podSecurityLevelValue)
 		metrics[levelMetric] = struct{}{}
+	}
+	return nil
+}
+
+// getEventMetrics retrieves metrics for events.
+func getEventMetrics(ctx context.Context, namespace v1.Namespace, k8sClient k8s.Client, metrics map[metrics2.Int64Metric]struct{}) error {
+	events, err := k8sClient.GetEvents(ctx, namespace.Name)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, event := range events {
+		tags := map[string]string{
+			"namespace": namespace.Name,
+			"reason":    event.Reason,
+			"message":   event.Message,
+			"type":      event.Type,
+			// Note that we're not providing event.Name, which would uniquely
+			// identify the event. Not including it allows deduplication of
+			// events with the same cause (namespace+reason+mesage).
+		}
+		metric := metrics2.GetInt64Metric(eventsMetric, tags)
+		metric.Update(1) // 1 indicates that the event is present.
+		metrics[metric] = struct{}{}
 	}
 	return nil
 }
@@ -307,7 +347,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 	sklog.Info("---------- New round of checking k8s ----------")
 	newMetrics := map[metrics2.Int64Metric]struct{}{}
 
-	namespaces, err := getNamespaces(ctx, cluster, k8sClient, ignoreNamespaces)
+	namespaces, err := getNamespaces(ctx, k8sClient, ignoreNamespaces)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "retrieving namespaces")
 	}
@@ -315,7 +355,7 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 	liveAppContainerToImagesByNamespace := make(map[string]map[string]map[string]string, len(namespaces))
 	for _, namespace := range namespaces {
 		// Check the namespace itself.
-		if err := getNamespaceMetrics(ctx, cluster, namespace, k8sClient, newMetrics); err != nil {
+		if err := getNamespaceMetrics(ctx, namespace, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "obtaining namespace metrics")
 		}
 
@@ -327,6 +367,11 @@ func performChecks(ctx context.Context, cluster, repo string, k8sClient k8s.Clie
 		// Check for crashing pods.
 		if err := getPodMetrics(ctx, cluster, namespace.Name, k8sClient, newMetrics); err != nil {
 			return nil, skerr.Wrapf(err, "checking for crashing pods from kubectl")
+		}
+
+		// Check for events within the namespace.
+		if err := getEventMetrics(ctx, namespace, k8sClient, newMetrics); err != nil {
+			return nil, skerr.Wrapf(err, "checking namespace events")
 		}
 
 		// Get mapping from live apps to their containers and images.

@@ -33,6 +33,9 @@ type Client interface {
 
 	// GetStatefulSet retrieves a single StatefulSet.
 	GetStatefulSet(ctx context.Context, namespace, name string, opts metav1.GetOptions) (*appsv1.StatefulSet, error)
+
+	// GetEvents retrieves events for the given namespace.
+	GetEvents(ctx context.Context, namespace string) ([]corev1.Event, error)
 }
 
 // ClientImpl implements Client.
@@ -87,6 +90,15 @@ func (c *ClientImpl) GetStatefulSet(ctx context.Context, namespace, name string,
 		return nil, skerr.Wrap(err)
 	}
 	return result, nil
+}
+
+// GetEvents implements Client.
+func (c *ClientImpl) GetEvents(ctx context.Context, namespace string) ([]corev1.Event, error) {
+	resp, err := c.c.CoreV1().Events(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return resp.Items, nil
 }
 
 // Assert that ClientImpl implements Client.
