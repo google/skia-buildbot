@@ -299,6 +299,7 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 		return nil, err
 	}
 
+	r.ClusterType = string(clusterType)
 	switch clusterType {
 	case regression.HighClusterType:
 		r.High = &clusterSummary

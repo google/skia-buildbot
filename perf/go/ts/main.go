@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/perf/go/progress"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/stepfit"
+	subProto "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/trybot/results"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -89,12 +90,14 @@ func main() {
 		pinpoint.CreateBisectRequest{},
 		pinpoint.CreateBisectResponse{},
 		provider.Commit{},
+		regression.Regression{},
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.RegressionDetectionResponse{},
 		regression.TriageStatus{},
 		results.TryBotRequest{},
 		results.TryBotResponse{},
+		subProto.Subscription{},
 	)
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnionToNamespace().

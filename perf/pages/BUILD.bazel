@@ -139,6 +139,21 @@ sk_page(
 )
 
 sk_page(
+    name = "regressions",
+    assets_serving_path = "/dist",
+    html_file = "regressions.html",
+    nonce = "{% .Nonce %}",
+    production_sourcemap = True,
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "regressions.scss",
+    sk_element_deps = [
+        "//perf/modules/perf-scaffold-sk",
+        "//perf/modules/regressions-page-sk",
+    ],
+    ts_entry_point = "regressions.ts",
+)
+
+sk_page(
     name = "revisions",
     assets_serving_path = "/dist",
     html_file = "revisions.html",

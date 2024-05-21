@@ -218,6 +218,7 @@ var templateFilenames = []string{
 	"trybot.html",
 	"favorites.html",
 	"revisions.html",
+	"regressions.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -1347,7 +1348,6 @@ func (f *Frontend) regressionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	regressionsList, err := f.regStore.GetRegressionsBySubName(ctx, sub_name, limit, offset)
-	fmt.Println(regressionsList)
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to fetch regressions", http.StatusInternalServerError)
 		return
@@ -2015,6 +2015,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
 	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
+	router.Get("/r2/", f.templateHandler("regressions.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 	router.HandleFunc("/p/", f.pinpointBisectionHandler)

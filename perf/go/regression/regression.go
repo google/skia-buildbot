@@ -79,6 +79,7 @@ type Regression struct {
 	MedianBefore     float32            `json:"median_before"`
 	MedianAfter      float32            `json:"median_after"`
 	IsImprovement    bool               `json:"is_improvement"`
+	ClusterType      string             `json:"cluster_type"`
 }
 
 // NewRegression returns a new *Regression.

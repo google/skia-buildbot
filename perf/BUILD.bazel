@@ -42,6 +42,7 @@ skia_app_container(
                 "trybot",
                 "favorites",
                 "revisions",
+                "regressions",
             ]
             for ext in [
                 "css",

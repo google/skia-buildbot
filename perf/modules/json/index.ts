@@ -168,6 +168,7 @@ export interface Regression {
 	median_before: number;
 	median_after: number;
 	is_improvement: boolean;
+	cluster_type: string;
 }
 
 export interface RegressionAtCommit {
@@ -376,6 +377,18 @@ export interface TryBotResponse {
 	header: (ColumnHeader | null)[] | null;
 	results: TryBotResult[] | null;
 	paramset: ReadOnlyParamSet;
+}
+
+export interface Subscription {
+	name?: string;
+	revision?: string;
+	bug_labels?: string[] | null;
+	hotlists?: string[] | null;
+	bug_component?: string;
+	bug_priority?: number;
+	bug_severity?: number;
+	bug_cc_emails?: string[] | null;
+	contact_email?: string;
 }
 
 export namespace progress {
