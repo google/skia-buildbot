@@ -170,6 +170,42 @@ func TestTrybotResults(t *testing.T) {
 	require.True(t, roll.AllTrybotsSucceeded())
 }
 
+func TestTrybotResults_SkCQ(t *testing.T) {
+	roll := &AutoRollIssue{
+		Closed:    false,
+		Committed: false,
+		Created:   time.Now(),
+		Issue:     123,
+		Modified:  time.Now(),
+		Patchsets: []int64{1},
+		Subject:   "Roll src/third_party/skia abc123..def456 (3 commits).",
+	}
+	roll.Result = RollResult(roll)
+
+	trybot := &buildbucketpb.Build{
+		Builder: &buildbucketpb.BuilderID{
+			Project: "skia",
+			Bucket:  "fake",
+			Builder: "fake-builder",
+		},
+		CreateTime: ts(time.Now().UTC()),
+		Status:     buildbucketpb.Status_STARTED,
+		Tags: []*buildbucketpb.StringPair{
+			{
+				Key:   "triggered_by",
+				Value: "skcq",
+			},
+			{
+				Key:   "cq_experimental",
+				Value: "false",
+			},
+		},
+	}
+	tryResult, err := TryResultFromBuildbucket(trybot)
+	require.NoError(t, err)
+	require.Equal(t, tryResult.Category, TRYBOT_CATEGORY_CQ)
+}
+
 func TestTryResultsFromGithubChecks(t *testing.T) {
 
 	// Create local vars since you cannot take address of a const.

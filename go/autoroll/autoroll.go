@@ -280,6 +280,9 @@ func TryResultFromBuildbucket(b *buildbucketpb.Build) (*TryResult, error) {
 		if tag.Key == "user_agent" && tag.Value == "cq" {
 			triggeredByCQ = true
 		}
+		if tag.Key == "triggered_by" && tag.Value == "skcq" {
+			triggeredByCQ = true
+		}
 		if tag.Key == "cq_experimental" && tag.Value == "true" {
 			isExperimental = true
 		}
