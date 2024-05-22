@@ -136,3 +136,30 @@ to the correct namespace. Otherwise, create a namespace following the example
 of the other apps in the cluster.
 
 Key metrics: pod_running
+
+## K8sFailedScheduling
+
+The Kubernetes cluster is failing to schedule a pod. This may be because the
+node pool needs to scale up, or because the pod is requesting too many
+resources. Read the associated message field or investigate cluster logs to
+determine the cause and appropriate resolution.
+
+Key metrics: k8s_events
+
+## PodUnschedulable
+
+The Kubernetes cluster is failing to schedule a pod. This may be because the
+node pool needs to scale up, or because the pod is requesting too many
+resources. Read the associated message field or investigate cluster logs to
+determine the cause and appropriate resolution.
+
+Key metrics: pod_unschedulable
+
+## K8sFailedScaleUp
+
+The Kubernetes cluster is failing to scale up the node pool. This may be because
+the node pool is at its upper limit, or because we've exceeded our quota. Read
+the associated message field or investigate cluster logs to determine the cause
+and appropriate resolution.
+
+Key metrics: k8s_events
