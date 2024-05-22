@@ -13,6 +13,8 @@ import (
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
+	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -195,8 +197,29 @@ func (c *Config) Validate() error {
 	}
 
 	rm := []RepoManagerConfig{}
+	var childTransitiveDeps []*VersionFileConfig
+	var parentTransitiveDeps []*TransitiveDepConfig
 	if c.GetParentChildRepoManager() != nil {
-		rm = append(rm, c.GetParentChildRepoManager())
+		pc := c.GetParentChildRepoManager()
+		rm = append(rm, pc)
+		if p := pc.GetDepsLocalGerritParent(); p != nil {
+			parentTransitiveDeps = p.DepsLocal.GitCheckout.Dep.Transitive
+		} else if p := pc.GetDepsLocalGithubParent(); p != nil {
+			parentTransitiveDeps = p.DepsLocal.GitCheckout.Dep.Transitive
+		} else if p := pc.GetGitCheckoutGithubFileParent(); p != nil {
+			parentTransitiveDeps = p.GitCheckout.GitCheckout.Dep.Transitive
+		} else if p := pc.GetGitilesParent(); p != nil {
+			parentTransitiveDeps = p.Dep.Transitive
+		} else if p := pc.GetGitCheckoutGerritParent(); p != nil {
+			parentTransitiveDeps = p.GitCheckout.Dep.Transitive
+		}
+		if c := pc.GetGitCheckoutChild(); c != nil {
+			childTransitiveDeps = c.GitCheckout.Dependencies
+		} else if c := pc.GetGitCheckoutGithubChild(); c != nil {
+			childTransitiveDeps = c.GitCheckout.GitCheckout.Dependencies
+		} else if c := pc.GetGitilesChild(); c != nil {
+			childTransitiveDeps = c.Gitiles.Dependencies
+		}
 	}
 	if c.GetAndroidRepoManager() != nil {
 		rm = append(rm, c.GetAndroidRepoManager())
@@ -237,9 +260,24 @@ func (c *Config) Validate() error {
 		}
 	}
 
-	for _, td := range c.TransitiveDeps {
+	if len(c.TransitiveDeps) != len(parentTransitiveDeps) {
+		return skerr.Fmt("top level transitive dependency count %d does not match transitive dependency count %d set on parent", len(c.TransitiveDeps), len(parentTransitiveDeps))
+	}
+	if len(c.TransitiveDeps) != len(childTransitiveDeps) {
+		return skerr.Fmt("top level transitive dependency count %d does not match dependency count %d set on child", len(c.TransitiveDeps), len(childTransitiveDeps))
+	}
+	// Note: this assumes that the dependencies are listed in the same order.
+	for idx, td := range c.TransitiveDeps {
 		if err := td.Validate(); err != nil {
-			return skerr.Wrapf(err, "transitive dep config failed validation")
+			return skerr.Wrapf(err, "transitive dependency config failed validation")
+		}
+		parentDep := parentTransitiveDeps[idx]
+		if !deepequal.DeepEqual(td, parentDep) {
+			return skerr.Fmt("top level transitive dependency differs from transitive dependency set on parent: %s", assertdeep.Diff(td, parentDep))
+		}
+		childDep := childTransitiveDeps[idx]
+		if !deepequal.DeepEqual(td.Child, childDep) {
+			return skerr.Fmt("top level transitive dependency differs from dependency set on child: %s", assertdeep.Diff(td.Child, childDep))
 		}
 	}
 
@@ -1148,4 +1186,33 @@ func (c *DockerChildConfig) Validate() error {
 		return skerr.Fmt("Tag is required.")
 	}
 	return nil
+}
+
+// Copy returns a deep copy.
+func (c *TransitiveDepConfig) Copy() *TransitiveDepConfig {
+	return &TransitiveDepConfig{
+		Child:      c.Child.Copy(),
+		Parent:     c.Parent.Copy(),
+		LogUrlTmpl: c.LogUrlTmpl,
+	}
+}
+
+// Copy returns a deep copy.
+func (c *VersionFileConfig) Copy() *VersionFileConfig {
+	return &VersionFileConfig{
+		Id:    c.Id,
+		Path:  c.Path,
+		Regex: c.Regex,
+	}
+}
+
+type transitiveDepConfigSlice []*TransitiveDepConfig
+
+// Copy returns a deep copy.
+func (s transitiveDepConfigSlice) Copy() []*TransitiveDepConfig {
+	rv := make([]*TransitiveDepConfig, 0, len(s))
+	for _, c := range s {
+		rv = append(rv, c.Copy())
+	}
+	return rv
 }
