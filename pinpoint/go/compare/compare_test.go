@@ -100,6 +100,16 @@ func TestComparePerformance_GivenValidInputs_ReturnsCorrectResult(t *testing.T) 
 	test("arrays are significantly different, return different", x, y, 0.0, Different)
 }
 
+func TestComparePerformance_GivenSmallDifference_ReturnsSame(t *testing.T) {
+	x := []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	y := []float64{7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	result, err := ComparePerformance(x, y, 1e6, UnknownDir)
+	assert.NoError(t, err)
+	assert.Equal(t, Same, result.Verdict)
+	assert.Zero(t, result.PValue)
+	assert.True(t, result.IsTooSmall)
+}
+
 func TestCompare_GivenImprovement_ReturnsSameAndNoPValue(t *testing.T) {
 	test := func(name string, x, y []float64, dir ImprovementDir) {
 		t.Run(name, func(t *testing.T) {

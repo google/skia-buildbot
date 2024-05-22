@@ -84,6 +84,10 @@ const (
 	float64EqualityThreshold = 1e-9
 	// small numbers do not behave well with logarithms
 	pairwiseSmallNumberThreshold = 1e-6
+	// small regressions should be ignored; a small regression is
+	// defined relative to the comparison (or raw) magnitude of the
+	// expected regression
+	smallRegressionThreshold = 0.1
 )
 
 func almostEqual(a, b float64) bool {
@@ -99,6 +103,10 @@ func mean(arr []float64) float64 {
 		sum += v
 	}
 	return sum / float64(len(arr))
+}
+
+func isSmallDiff(diff, rawMagnitude float64) bool {
+	return math.Abs(diff) < math.Abs(smallRegressionThreshold*rawMagnitude)
 }
 
 // ComparePairwiseResult contains the results of a pairwise comparison
@@ -186,6 +194,9 @@ type CompareResults struct {
 	// MeanDiff > 0 means the mean of B > mean of A.
 	// MeanDiff is used to decide if a difference is a regression or not.
 	MeanDiff float64
+	// IsTooSmall indicates that the regression is too small and a
+	// comparison did not take place
+	IsTooSmall bool
 }
 
 // CompareFunctional determines if valuesA and valuesB are statistically different,
@@ -229,6 +240,20 @@ func ComparePerformance(valuesA, valuesB []float64, rawMagnitude float64, direct
 	if len(valuesA) == 0 || len(valuesB) == 0 {
 		return &CompareResults{Verdict: NilVerdict}, nil
 	}
+	// Commit ranges tend to contain many regressions. While bisection
+	// is capable of finding culprits to very small regressions, developers
+	// are usually not interested in fixing small regressions so Pinpoint
+	// ends up creating noise. Rather than bisect further, we stop the
+	// comparison to conserve resources and minimize alerting.
+	diff := mean(valuesB) - mean(valuesA)
+	if isSmallDiff(diff, rawMagnitude) {
+		return &CompareResults{
+			Verdict:    Same,
+			MeanDiff:   diff,
+			IsTooSmall: true,
+		}, nil
+	}
+
 	all_values := append(valuesA, valuesB...)
 	sort.Float64s(all_values)
 	iqr := all_values[len(all_values)*3/4] - all_values[len(all_values)/4]
