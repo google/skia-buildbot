@@ -1336,7 +1336,7 @@ export class ExploreSimpleSk extends ElementSk {
   private queryChangeDelayedHandler(
     e: CustomEvent<QuerySkQueryChangeEventDetail>
   ) {
-    this.queryCount!.current_query = e.detail.q;
+    this.queryCount!.current_query = this.applyDefaultsToQuery(e.detail.q);
   }
 
   /** Reflect the current query to the query summary. */
@@ -2148,6 +2148,18 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
+  // take a query string, and update the parameters with default values if needed
+  private applyDefaultsToQuery(queryString: string): string {
+    const paramSet = toParamSet(queryString);
+    for (const defaultParamKey in this.defaults?.default_param_selections) {
+      if (!(defaultParamKey in paramSet)) {
+        paramSet[defaultParamKey] =
+          this.defaults!.default_param_selections![defaultParamKey]!;
+      }
+    }
+    return fromParamSet(paramSet);
+  }
+
   // applyQueryDefaultsIfMissing updates the fields in the state object to
   // specify the default values provided for the instance if they haven't
   // been specified by the user explicitly.
@@ -2157,14 +2169,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Check the current query to see if the default params have been specified.
     // If not, add them with the default value in the instance config.
     this._state.queries.forEach((query) => {
-      const paramSet = toParamSet(query);
-      for (const defaultParamKey in this.defaults?.default_param_selections) {
-        if (!(defaultParamKey in paramSet)) {
-          paramSet[defaultParamKey] =
-            this.defaults!.default_param_selections![defaultParamKey]!;
-        }
-      }
-      updatedQueries.push(fromParamSet(paramSet));
+      updatedQueries.push(this.applyDefaultsToQuery(query));
     });
 
     this._state.queries = updatedQueries;
