@@ -222,6 +222,15 @@ export interface GetGraphsShortcutRequest {
 	id: string;
 }
 
+export interface NextParamListHandlerRequest {
+	q: string;
+}
+
+export interface NextParamListHandlerResponse {
+	count: number;
+	paramset: ReadOnlyParamSet;
+}
+
 export interface RangeRequest {
 	offset: CommitNumber;
 	begin: number;

@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -845,6 +846,17 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
 
+// NextParamListHandlerRequest is the JSON format for NextParamListHandler request.
+type NextParamListHandlerRequest struct {
+	Query string `json:"q"`
+}
+
+// NextParamListHandlerResponse is the JSON format for NextParamListHandler response.
+type NextParamListHandlerResponse struct {
+	Count    int                         `json:"count"`
+	Paramset paramtools.ReadOnlyParamSet `json:"paramset"`
+}
+
 // CountHandlerRequest is the JSON format for the countHandler request.
 type CountHandlerRequest struct {
 	Q     string `json:"q"`
@@ -856,6 +868,81 @@ type CountHandlerRequest struct {
 type CountHandlerResponse struct {
 	Count    int                         `json:"count"`
 	Paramset paramtools.ReadOnlyParamSet `json:"paramset"`
+}
+
+// generat the query and call PreflightQuery on dfBuilder
+func (f *Frontend) PreflightQuery(ctx context.Context, w http.ResponseWriter, qs string) (int, paramtools.ReadOnlyParamSet, error) {
+	u, err := url.ParseQuery(qs)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid URL query.", http.StatusInternalServerError)
+		return 0, nil, err
+	}
+	q, err := query.New(u)
+	if err != nil {
+		httputils.ReportError(w, err, "Invalid query.", http.StatusInternalServerError)
+		return 0, nil, err
+	}
+
+	fullPS := f.getParamSet()
+	if qs == "" {
+		return 0, fullPS, nil
+	} else {
+		count, ps, err := f.dfBuilder.PreflightQuery(ctx, q, fullPS)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
+			return 0, nil, err
+		}
+		return int(count), filterParamSetIfNeeded(ps.Freeze()), nil
+	}
+}
+
+// nextParamListHandler takes the POST'd query and runs that against the current
+// dataframe and returns how many traces match the query.
+// Notice that nextParamListHandler is a chromeperf specific version of countHander.
+// The differences here are:
+//   - in the UI, the parameter fields take the user intpus in strict order.
+//     e.g., end users are expect to first input benchmark, and then bot,
+//     and then measurement, etc. The order is defined in include_params in the config file.
+//   - the reponse does not includes all paramsets. It only returns the values for the
+//     'next' parameter in order.
+func (f *Frontend) nextParamListHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	var npr NextParamListHandlerRequest
+	if err := json.NewDecoder(r.Body).Decode(&npr); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	nextParam, err := findNextParamInQueryString(npr.Query)
+	if err != nil {
+		httputils.ReportError(w, err, "Error in findNextParamInQueryString.", http.StatusInternalServerError)
+		return
+	}
+	if nextParam == "" {
+		return
+	}
+
+	count, ps, err := f.PreflightQuery(ctx, w, npr.Query)
+	if err != nil {
+		httputils.ReportError(w, err, "Error in nextParamListHandler.", http.StatusInternalServerError)
+		return
+	}
+	if _, ok := ps[nextParam]; !ok {
+		httputils.ReportError(w, errors.New("the next param is not in the returned paramset"), "Error in loading next paramset.", http.StatusInternalServerError)
+		return
+	}
+
+	resp := NextParamListHandlerResponse{
+		Count: count,
+		Paramset: map[string][]string{
+			nextParam: ps[nextParam]},
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		httputils.ReportError(w, err, "Failed to encode nextparam response.", http.StatusInternalServerError)
+	}
 }
 
 // countHandler takes the POST'd query and runs that against the current
@@ -871,31 +958,15 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := url.ParseQuery(cr.Q)
+	count, ps, err := f.PreflightQuery(ctx, w, cr.Q)
 	if err != nil {
-		httputils.ReportError(w, err, "Invalid URL query.", http.StatusInternalServerError)
-		return
+		sklog.Errorf("Error in nextParamListHandler: %s", err)
 	}
-	q, err := query.New(u)
-	if err != nil {
-		httputils.ReportError(w, err, "Invalid query.", http.StatusInternalServerError)
-		return
+	resp := CountHandlerResponse{
+		Count:    count,
+		Paramset: ps,
 	}
-	resp := CountHandlerResponse{}
-	fullPS := f.getParamSet()
-	if cr.Q == "" {
-		resp.Count = 0
-		resp.Paramset = fullPS
-	} else {
-		count, ps, err := f.dfBuilder.PreflightQuery(ctx, q, fullPS)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
-			return
-		}
 
-		resp.Count = int(count)
-		resp.Paramset = filterParamSetIfNeeded(ps.Freeze())
-	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
 	}
@@ -2039,6 +2110,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/_/initpage/", f.initpageHandler)
 	router.Post("/_/cidRange/", f.cidRangeHandler)
 	router.Post("/_/count/", f.countHandler)
+	router.Post("/_/nextParamList/", f.nextParamListHandler)
 	router.Post("/_/cid/", f.cidHandler)
 	router.Post("/_/keys/", f.keysHandler)
 
@@ -2147,4 +2219,35 @@ func filterParamSetIfNeeded(paramSet paramtools.ReadOnlyParamSet) paramtools.Rea
 	}
 
 	return paramSet
+}
+
+// given a query string from UI, find the next paramter which is:
+//   - not in the query string, and
+//   - in the include_params next in order.
+//
+// e.g., if end user has selected values for 'benchmark' and 'bot', and the
+// include_params is ["benchmark","bot","test","subtest_1","subtest_2","subtest_3"],
+// the next expected parameter is 'test'.
+func findNextParamInQueryString(qs string) (string, error) {
+	// If no include_params is defined in config, we have no way to tell
+	// which is 'next'.
+	if config.Config.QueryConfig.IncludedParams == nil {
+		err := errors.New("no included parameter list in config")
+		sklog.Error("No included parameter list in config.", err)
+		return "", err
+	}
+	qKeyValues, err := url.ParseQuery(qs)
+	if err != nil {
+		sklog.Error("Invalid URL query. %s", err)
+		return "", err
+	}
+	for _, key := range config.Config.QueryConfig.IncludedParams {
+		// when scanning the parameter list in order, if the included parameter
+		// key is not in the query, it is the next we are looking for.
+		if _, ok := qKeyValues[key]; !ok {
+			return key, nil
+		}
+	}
+	// all included parameter keys are in the query.
+	return "", nil
 }
