@@ -96,47 +96,47 @@ var PACKAGES = map[string]*Package{
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
 		Name:    "infra/tools/cipd/${os}-${arch}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/git/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/git/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci-auth/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci-auth/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/git-credential-luci/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/git-credential-luci/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/isolate/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/isolate/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/kitchen/${platform}": {
 		Path:    ".",
 		Name:    "infra/tools/luci/kitchen/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/lucicfg/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/lucicfg/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/swarming/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/swarming/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"infra/tools/luci/vpython3/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/tools/luci/vpython3/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"skia/bots/bazel": {
 		Path:    "bazel",
@@ -186,26 +186,26 @@ var PACKAGES = map[string]*Package{
 	"skia/tools/bazel_build_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_build_all/${platform}",
-		Version: "git_revision:a4f76cda0587b5b72cf7dcd9cc73baf3fe1ab8e4",
+		Version: "git_revision:e483d5746b9767aaedcf44998d718772fe3a1abf",
 	},
 	"skia/tools/bazel_test_all/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/bazel_test_all/${platform}",
-		Version: "git_revision:a4f76cda0587b5b72cf7dcd9cc73baf3fe1ab8e4",
+		Version: "git_revision:e483d5746b9767aaedcf44998d718772fe3a1abf",
 	},
 	"skia/tools/command_wrapper/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/command_wrapper/${platform}",
-		Version: "git_revision:a4f76cda0587b5b72cf7dcd9cc73baf3fe1ab8e4",
+		Version: "git_revision:e483d5746b9767aaedcf44998d718772fe3a1abf",
 	},
 	"skia/tools/goldctl/${platform}": {
 		Path:    "cipd_bin_packages",
 		Name:    "skia/tools/goldctl/${platform}",
-		Version: "git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+		Version: "git_revision:d694db159735f268c1d123fc5dbed411487e9290",
 	},
 	"skia/tools/presubmit/${platform}": {
 		Path:    "task_drivers",
 		Name:    "skia/tools/presubmit/${platform}",
-		Version: "git_revision:a4f76cda0587b5b72cf7dcd9cc73baf3fe1ab8e4",
+		Version: "git_revision:e483d5746b9767aaedcf44998d718772fe3a1abf",
 	},
 }
