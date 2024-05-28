@@ -921,24 +921,24 @@ func (f *Frontend) nextParamListHandler(w http.ResponseWriter, r *http.Request) 
 		httputils.ReportError(w, err, "Error in findNextParamInQueryString.", http.StatusInternalServerError)
 		return
 	}
-	if nextParam == "" {
-		return
-	}
 
 	count, ps, err := f.PreflightQuery(ctx, w, npr.Query)
 	if err != nil {
 		httputils.ReportError(w, err, "Error in nextParamListHandler.", http.StatusInternalServerError)
 		return
 	}
-	if _, ok := ps[nextParam]; !ok {
-		httputils.ReportError(w, errors.New("the next param is not in the returned paramset"), "Error in loading next paramset.", http.StatusInternalServerError)
-		return
-	}
-
 	resp := NextParamListHandlerResponse{
 		Count: count,
-		Paramset: map[string][]string{
-			nextParam: ps[nextParam]},
+	}
+	if nextParam == "" {
+		// There is no next parameter. No filtering is needed.
+		resp.Paramset = map[string][]string{}
+	} else {
+		if _, ok := ps[nextParam]; !ok {
+			httputils.ReportError(w, errors.New("the next param is not in the returned paramset"), "Error in loading next paramset.", http.StatusInternalServerError)
+			return
+		}
+		resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, err, "Failed to encode nextparam response.", http.StatusInternalServerError)
