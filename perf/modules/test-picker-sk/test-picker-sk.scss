@@ -1,0 +1,27 @@
+@import '../themes/themes.scss';
+
+.body-sk test-picker-sk {
+  spinner-sk {
+    width: 2px;
+    height: 2px;
+  }
+
+  #testPicker,
+  #fieldContainer {
+    display: flex;
+    align-items: end;
+    gap: 8px;
+  }
+
+  #fieldContainer {
+    display: flex;
+  }
+
+  #queryCount {
+    button {
+      z-index: 1;
+    }
+    display: grid;
+    place-items: center;
+  }
+}

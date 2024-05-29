@@ -1,0 +1,58 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":picker-field-sk-demo",
+)
+
+sk_element(
+    name = "picker-field-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["picker-field-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit-html",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/@vaadin/combo-box",
+    ],
+    ts_srcs = [
+        "picker-field-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "picker-field-sk-demo",
+    html_file = "picker-field-sk-demo.html",
+    scss_entry_point = "picker-field-sk-demo.scss",
+    sk_element_deps = [":picker-field-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_entry_point = "picker-field-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "picker-field-sk_puppeteer_test",
+    src = "picker-field-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "picker-field-sk_test",
+    src = "picker-field-sk_test.ts",
+    deps = [
+        ":picker-field-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)
