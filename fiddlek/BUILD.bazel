@@ -50,7 +50,7 @@ skia_app_container(
 
 skia_app_container(
     name = "fiddler_container",
-    base_image = "@skia-build-tools//image",
+    base_image = "@skia-release//image",
     dirs = {
         "/usr/local/bin": [
             [
@@ -81,12 +81,6 @@ skia_app_container(
                 "6.png",
             ]
         ],
-        "/usr/local/share/fiddler": [
-            [
-                "//fiddlek/build:skia_checkout",
-                "0777",  # For executables that fiddler runs.
-            ],
-        ],
     },
     entrypoint = "/usr/local/bin/fiddler",
     repository = "skia-public/fiddler",
@@ -101,12 +95,6 @@ skia_app_container(
         "useradd container",
     ],
     run_commands_skia = [
-        # Copy the skia checkout into the dir used by the fiddler k8s config.
-        # We cannot do a move because we get a "Permission denied".
-        "mkdir /tmp/skia",
-        "cp -r /usr/local/share/fiddler/skia /tmp/skia/",
-        # Cleanup the old skia checkout location in /usr/local/share/fiddler/skia
-        "rm -rf /usr/local/share/fiddler/skia/*",
         # Build again so that first runs are fast in the new container.
         "/tmp/depot_tools/ninja -C /tmp/skia/skia/out/Static",
     ],

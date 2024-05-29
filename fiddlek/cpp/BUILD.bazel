@@ -1,9 +1,28 @@
-# buildifier: disable=native-cc
-cc_binary(
-    name = "fiddle_secwrap",
+genrule(
+    name = "compile fiddle_secwrap",
     srcs = [
+        "Dockerfile",
+        "fail_execve.cpp",
+        "fail_link.cpp",
+        "fail_mknod.cpp",
+        "fail_rename.cpp",
+        "fail_socket.cpp",
         "fiddle_secwrap.cpp",
         "seccomp_bpf.h",
+        "success.cpp",
     ],
-    visibility = ["//visibility:public"],
+    outs = ["fiddle_secwrap"],
+    cmd = "cd fiddlek/cpp;" +
+          # Docker doesn't work well with symlinks
+          # https://stackoverflow.com/a/62915644
+          "tar -czh . | docker build --tag secwrap_builder -;" +
+          # https://stackoverflow.com/a/31316636
+          "docker run --name tmpsecwrap secwrap_builder:latest;" +
+          "docker cp tmpsecwrap:/tmp/fiddle_secwrap ../../$@;" +
+          "docker rm -v tmpsecwrap;",
+    tags = [
+        "manual",
+        "noremote",
+    ],
+    visibility = ["//:__subpackages__"],
 )

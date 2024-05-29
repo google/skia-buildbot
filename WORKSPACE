@@ -476,6 +476,14 @@ container_pull(
     repository = "golang",
 )
 
+# Pulls the gcr.io/skia-public/skia-release container, needed by fiddle
+container_pull(
+    name = "skia-release",
+    registry = "gcr.io",
+    repository = "skia-public/skia-release",
+    tag = "511fd84b36e4f449a7d05723de4f354effc28bf4",
+)
+
 ##################
 # CIPD packages. #
 ##################

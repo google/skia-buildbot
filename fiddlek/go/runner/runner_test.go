@@ -32,7 +32,7 @@ func TestPrepCodeToCompile_OptionsInjectedIntoString(t *testing.T) {
 		`#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, skgpu::Mipmapped::kNo, 64, 64, 0, skgpu::Mipmapped::kNo);
 }
 
 #line 1
@@ -44,7 +44,7 @@ void draw(SkCanvas* canvas) {
 		`#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/etc/fiddle/source/2.png"; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, GrMipMapped::kNo, 64, 64, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, false, false, false, path, skgpu::Mipmapped::kNo, 64, 64, 0, skgpu::Mipmapped::kNo);
 }
 
 #line 1
@@ -56,7 +56,7 @@ void draw(SkCanvas* canvas) {
 		`#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 64, 64, 0, GrMipMapped::kNo);
+  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, skgpu::Mipmapped::kYes, 64, 64, 0, skgpu::Mipmapped::kNo);
 }
 
 #line 1
@@ -79,7 +79,7 @@ void draw(SkCanvas* canvas) {
 	}, `#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
-  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, GrMipMapped::kYes, 128, 256, 2, GrMipMapped::kYes);
+  return DrawOptions(128, 256, true, true, true, true, true, false, true, path, skgpu::Mipmapped::kYes, 128, 256, 2, skgpu::Mipmapped::kYes);
 }
 
 #line 1
