@@ -44,6 +44,15 @@ CREATE TABLE IF NOT EXISTS Culprits (
   group_issue_map JSONB,
   UNIQUE INDEX by_revision (revision, host, project, ref)
 );
+CREATE TABLE IF NOT EXISTS Favorites (
+  id INT PRIMARY KEY DEFAULT unique_rowid(),
+  user_id STRING NOT NULL,
+  name STRING,
+  url STRING NOT NULL,
+  description STRING,
+  last_modified INT,
+  INDEX by_user_id (user_id)
+);
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   graphs TEXT
@@ -162,6 +171,15 @@ var Culprits = []string{
 	"issue_ids",
 	"group_issue_map",
 	"UNIQUE",
+}
+
+var Favorites = []string{
+	"id",
+	"user_id",
+	"name",
+	"url",
+	"description",
+	"last_modified",
 }
 
 var GraphsShortcuts = []string{
