@@ -13,12 +13,7 @@ import * as d3Scale from 'd3-scale';
 import { load } from '@google-web-components/google-chart/loader';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  Area,
-  MousePosition,
-  Point,
-  Rect,
-} from '../plot-simple-sk/plot-simple-sk';
+import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import '@google-web-components/google-chart/';
 import { ChartData, DrawSummaryChart } from '../common/plot-builder';
 
@@ -29,8 +24,8 @@ export type ZoomRange = [number, number] | null;
 export interface PlotSummarySkSelectionEventDetails {
   start: number;
   end: number;
-  valueStart: number;
-  valueEnd: number;
+  valueStart: number | Date;
+  valueEnd: number | Date;
 }
 
 export class PlotSummarySk extends ElementSk {
@@ -46,7 +41,19 @@ export class PlotSummarySk extends ElementSk {
   // This contains a mapping of the coordinates on the summary bar to
   // the corresponding values. This helps us translate the position of
   // the selected area to the corresponding values that they represent.
-  private valuesRange: d3Scale.ScaleLinear<number, number> | null = null;
+  private valuesRangeCommit: d3Scale.ScaleLinear<number, number> | null = null;
+
+  private commitsStart: number = 0;
+
+  private commitsEnd: number = 0;
+
+  private valuesRangeDate: d3Scale.ScaleTime<number, number> | null = null;
+
+  private dateStart: Date = new Date();
+
+  private dateEnd: Date = new Date();
+
+  private isCommitScale: boolean = false;
 
   // Array denoting the start and end points of the current selection.
   private selectionRange: ZoomRange = null;
@@ -68,25 +75,36 @@ export class PlotSummarySk extends ElementSk {
   // The canvas element that is used for the selection overlay.
   private overlayCanvas: HTMLCanvasElement | null = null;
 
+  // Keeps a track of the current chart data being displayed.
+  private currentChartData: ChartData | null = null;
+
   private static template = (ele: PlotSummarySk) => html`
-    <div
-      id="plot"
-      class="plot"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></div>
-    <canvas
-      id="overlay"
-      class="overlay"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+    <div class="border">
+      <div
+        id="plot"
+        class="plot"
+        width=${ele.width * window.devicePixelRatio}
+        height=${ele.height * window.devicePixelRatio}
+        style="transform-origin: 0 0; transform: scale(${1 /
+        window.devicePixelRatio});"></div>
+      <canvas
+        id="overlay"
+        class="overlay"
+        width=${ele.width * window.devicePixelRatio}
+        height=${ele.height * window.devicePixelRatio}
+        style="transform-origin: 0 0; transform: scale(${1 /
+        window.devicePixelRatio});"></canvas>
+    </div>
   `;
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
+    this.render();
+
+    window.requestAnimationFrame(this.raf.bind(this));
+  }
+
+  render(): void {
     this._render();
     this.scale = window.devicePixelRatio;
     this.plotElement = this.querySelector<HTMLElement>('#plot')!;
@@ -97,26 +115,66 @@ export class PlotSummarySk extends ElementSk {
     // allows us to show the highlight plus the portion of the plot highlighted.
     this.overlayCtx!.globalAlpha = 0.5;
 
-    this.valuesRange = d3Scale
-      .scaleLinear()
-      .domain([0, this.width])
-      .range([this.valuesStart, this.valuesEnd]);
     this.addEventListeners();
     this.drawSummaryRect();
-
-    window.requestAnimationFrame(this.raf.bind(this));
   }
 
-  // Display the chart data on the plot.
-  public async DisplayChartData(chartData: ChartData) {
+  private async _renderChart() {
+    if (this.isCommitScale) {
+      this.commitsStart = this.currentChartData!.data[0].x as number;
+      this.commitsEnd = this.currentChartData!.data[
+        this.currentChartData!.data.length - 1
+      ].x as number;
+      this.valuesRangeCommit = d3Scale
+        .scaleLinear()
+        .domain([0, this.width])
+        .range([this.commitsStart, this.commitsEnd]);
+    } else {
+      this.dateStart = this.currentChartData!.data[0].x as Date;
+      this.dateEnd = this.currentChartData!.data[
+        this.currentChartData!.data.length - 1
+      ].x as Date;
+      this.valuesRangeDate = d3Scale
+        .scaleTime()
+        .domain([0, this.width])
+        .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
+    }
+
     await load({ packages: ['corechart'] });
     DrawSummaryChart(
       this.plotElement!,
-      chartData,
+      this.currentChartData!,
       this.width,
       this.height,
       getComputedStyle(this)
     );
+  }
+
+  // Select the provided range on the plot-summary.
+  public Select(valueStart: number | Date, valuesEnd: number | Date) {
+    if (this.isCommitScale) {
+      this.selectionRange = [
+        this.valuesRangeCommit!(valueStart),
+        this.valuesRangeCommit!(valuesEnd),
+      ];
+    } else {
+      this.selectionRange = [
+        this.valuesRangeDate!(valueStart),
+        this.valuesRangeDate!(valuesEnd),
+      ];
+    }
+
+    // Dispatch the summary selection event.
+    this.summarySelected();
+  }
+
+  // Display the chart data on the plot.
+  public async DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
+    if (chartData.data?.length > 0) {
+      this.currentChartData = chartData;
+      this.isCommitScale = isCommitScale;
+      this._renderChart();
+    }
   }
 
   // Clear the current selection.
@@ -161,7 +219,20 @@ export class PlotSummarySk extends ElementSk {
     // Releasing the mouse means selection/dragging is done.
     this.isCurrentlySelecting = false;
     this.lockedSelectionDiffs = null;
+    this.summarySelected();
+  }
+
+  private summarySelected() {
     if (this.selectionRange !== null) {
+      let start: number | Date;
+      let end: number | Date;
+      if (this.isCommitScale) {
+        start = this.valuesRangeCommit!(this.selectionRange[0]);
+        end = this.valuesRangeCommit!(this.selectionRange[1]);
+      } else {
+        start = new Date(this.valuesRangeDate!(this.selectionRange[0]));
+        end = new Date(this.valuesRangeDate!(this.selectionRange[1]));
+      }
       this.dispatchEvent(
         new CustomEvent<PlotSummarySkSelectionEventDetails>(
           'summary_selected',
@@ -169,8 +240,8 @@ export class PlotSummarySk extends ElementSk {
             detail: {
               start: this.selectionRange[0],
               end: this.selectionRange[1],
-              valueStart: this.valuesRange!(this.selectionRange[0]),
-              valueEnd: this.valuesRange!(this.selectionRange[1]),
+              valueStart: start,
+              valueEnd: end,
             },
             bubbles: true,
           }
@@ -191,8 +262,14 @@ export class PlotSummarySk extends ElementSk {
 
   // Add all the event listeners.
   private addEventListeners(): void {
+    // If the user toggles the theme to/from darkmode then redraw.
+    document.addEventListener('theme-chooser-toggle', () => {
+      this.render();
+      this._renderChart();
+    });
     this.addEventListener('mousedown', this.mouseDownListener);
     this.addEventListener('mouseup', this.mouseUpListener);
+    this.addEventListener('mouseleave', this.mouseUpListener);
     this.addEventListener('mousemove', this.mouseMoveListener);
   }
 
@@ -230,24 +307,6 @@ export class PlotSummarySk extends ElementSk {
 
   set highlightColor(val: string) {
     this.setAttribute('highlight_color', val);
-  }
-
-  /** Mirrors the values_start attribute. */
-  get valuesStart(): number {
-    return +(this.getAttribute('values_start') || '0');
-  }
-
-  set valuesStart(val: number) {
-    this.setAttribute('values_start', val.toString());
-  }
-
-  /** Mirrors the values_end attribute. */
-  get valuesEnd(): number {
-    return +(this.getAttribute('values_end') || '0');
-  }
-
-  set valuesEnd(val: number) {
-    this.setAttribute('values_end', val.toString());
   }
 
   // Converts an event to a specific point

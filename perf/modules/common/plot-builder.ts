@@ -27,10 +27,6 @@ export function DrawSummaryChart(
 
   const dataForChart = google.visualization.arrayToDataTable(data);
 
-  let background = style.getPropertyValue('--background');
-  if (background === '') {
-    background = 'white';
-  }
   const options: google.visualization.LineChartOptions = {
     legend: 'none',
     width: width,
@@ -42,7 +38,7 @@ export function DrawSummaryChart(
       },
     },
     vAxis: {
-      textPosition: 'none',
+      textPosition: 'out',
       gridlines: {
         color: 'transparent',
       },
@@ -50,8 +46,12 @@ export function DrawSummaryChart(
     chartArea: {
       width: '100%',
       height: '100%',
+      backgroundColor: {
+        stroke: 'black',
+        strokeWidth: 1,
+      },
     },
-    backgroundColor: background,
+    backgroundColor: style.backgroundColor,
     colors: [style.color],
   };
   const chart = new google.visualization.LineChart(canvas);

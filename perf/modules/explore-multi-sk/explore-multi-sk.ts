@@ -55,6 +55,8 @@ class State {
   pageOffset: number = 0;
 
   totalGraphs: number = 0;
+
+  plotSummary: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -245,6 +247,7 @@ export class ExploreMultiSk extends ElementSk {
       _incremental: false,
       labelMode: LabelMode.Date,
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
+      plotSummary: this.state.plotSummary,
     };
     explore.state = newState;
   }

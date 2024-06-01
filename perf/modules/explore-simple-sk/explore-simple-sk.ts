@@ -40,6 +40,7 @@ import '../ingest-file-links-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';
 import '../plot-simple-sk';
+import '../plot-summary-sk';
 import '../query-count-sk';
 import '../window/window';
 
@@ -116,6 +117,16 @@ import {
   GetTraceFormatter,
 } from '../trace-details-formatter/traceformatter';
 import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
+import {
+  PlotSummarySk,
+  PlotSummarySkSelectionEventDetails,
+} from '../plot-summary-sk/plot-summary-sk';
+import { ChartData, DataPoint } from '../common/plot-builder';
+import {
+  CreateChartDataFromTraceSet,
+  GetSelectionCommitIndicesFromColumnHeader,
+  GetSelectionDateIndicesFromColumnHeader,
+} from '../common/plot-util';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -291,6 +302,8 @@ export class State {
   _incremental: boolean = false; // Enables a data fetching optimization.
 
   disable_filter_parent_traces: boolean = false;
+
+  plotSummary: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -446,6 +459,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private plot: PlotSimpleSk | null = null;
 
+  private plotSummary: PlotSummarySk | null = null;
+
   private query: QuerySk | null = null;
 
   private fromParamsQuery: QuerySk | null = null;
@@ -499,6 +514,8 @@ export class ExploreSimpleSk extends ElementSk {
   private originalTraceSet: TraceSet = TraceSet({});
 
   private scrollable: boolean = false;
+
+  private fullDataFrame: DataFrame | null = null;
 
   constructor(scrollable: boolean) {
     super(ExploreSimpleSk.template);
@@ -653,6 +670,9 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
+      <plot-summary-sk id="plotSummary" width="1000" height="50" highlight_color="#CED0CE"
+      @summary_selected=${ele.summarySelected}>
+      </plot-summary-sk>
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
@@ -910,6 +930,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
+    this.plotSummary = this.querySelector('#plotSummary');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
@@ -1389,6 +1410,47 @@ export class ExploreSimpleSk extends ElementSk {
     return tmp ? tmp[0] : '';
   }
 
+  /**
+   * React to the summary_selected event.
+   * @param e Event object.
+   */
+  summarySelected(e: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    const totalCommits = this.fullDataFrame!.header!.length;
+    let selectionIndices: number[];
+    if (this.state.labelMode === LabelMode.Date) {
+      const selectionStartDate = e.detail.valueStart as Date;
+      const selectionEndDate = e.detail.valueEnd as Date;
+      selectionIndices = GetSelectionDateIndicesFromColumnHeader(
+        this.fullDataFrame!.header!,
+        selectionStartDate,
+        selectionEndDate
+      );
+    } else {
+      selectionIndices = GetSelectionCommitIndicesFromColumnHeader(
+        this.fullDataFrame!.header!,
+        e.detail.valueStart as number,
+        e.detail.valueEnd as number
+      );
+    }
+
+    const traceKeys = Object.keys(this.fullDataFrame!.traceset);
+    const selectedTraceSet: TraceSet = TraceSet({});
+    traceKeys.forEach((key) => {
+      const fullTrace: number[] = this.fullDataFrame!.traceset[key];
+      selectedTraceSet[key] = fullTrace.slice(
+        selectionIndices[0],
+        selectionIndices[1]
+      ) as Trace;
+    });
+
+    const columnHeader = this.fullDataFrame!.header!.slice(
+      selectionIndices[0],
+      selectionIndices[1]
+    );
+    this.plot!.removeAll();
+    this.AddPlotLines(selectedTraceSet, this.getLabels(columnHeader));
+  }
+
   /** Highlight a trace when it is clicked on. */
   traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
     this.plot!.highlight = [e.detail.name];
@@ -1610,8 +1672,56 @@ export class ExploreSimpleSk extends ElementSk {
           traceSet[key] = this.originalTraceSet[key];
         }
       });
-      this.plot!.addLines(traceSet, []);
+      this.AddPlotLines(traceSet, []);
     }
+  }
+
+  /**
+   * Adds the plot lines to the plot-simple-sk module.
+   * @param traceSet The traceset input.
+   * @param labels The xAxis labels.
+   */
+  private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
+    this.plot!.addLines(traceSet, labels);
+    if (this._state.plotSummary) {
+      if (this.fullDataFrame !== null) {
+        this.plotSummary!.DisplayChartData(
+          this.createChartData(this.fullDataFrame!.traceset),
+          this.state.labelMode === LabelMode.CommitPosition
+        );
+      }
+    } else {
+      this.plotSummary!.hidden = true;
+    }
+  }
+
+  /**
+   * Create the chart data from the input traceset
+   * @param traceSet input trace set
+   * @returns ChartData output.
+   */
+  private createChartData(traceSet: { [key: string]: number[] }): ChartData {
+    let chartData: ChartData;
+    const xAxisLabelsCommitNum: number[] = [];
+    const xAxisLabelsDate: Date[] = [];
+    switch (this.state.labelMode) {
+      case LabelMode.CommitPosition:
+        this.fullDataFrame!.header!.forEach((header) => {
+          xAxisLabelsCommitNum.push(header!.offset as number);
+        });
+        chartData = CreateChartDataFromTraceSet(traceSet, xAxisLabelsCommitNum);
+        break;
+      case LabelMode.Date:
+        this.fullDataFrame!.header!.forEach((header) => {
+          xAxisLabelsDate.push(new Date(header!.timestamp * 1000));
+        });
+        chartData = CreateChartDataFromTraceSet(traceSet, xAxisLabelsDate);
+        break;
+      default:
+        break;
+    }
+
+    return chartData!;
   }
 
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {
@@ -1807,7 +1917,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.showZero) {
       const lines: { [key: string]: number[] } = {};
       lines[ZERO_NAME] = Array(this._dataframe.header.length).fill(0);
-      this.plot!.addLines(lines, []);
+      this.AddPlotLines(lines, []);
     } else {
       this.plot!.deleteLines([ZERO_NAME]);
     }
@@ -1857,9 +1967,9 @@ export class ExploreSimpleSk extends ElementSk {
       this._state.labelMode = LabelMode.Date;
     }
     this.plot!.removeAll();
-    this.plot!.addLines(
+    this.AddPlotLines(
       this._dataframe.traceset,
-      this.getLabels(this._dataframe)
+      this.getLabels(this._dataframe.header!)
     );
     this._stateHasChanged();
   }
@@ -1896,6 +2006,7 @@ export class ExploreSimpleSk extends ElementSk {
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
   private addTraces(json: FrameResponse, tab: boolean) {
+    this.fullDataFrame = json.dataframe;
     // If this is data returned from a panning-triggered dataframe fetch, then
     // we want to try to preserve the existing zoom *size* so the zoomed data range
     // only pans left or right, without re-sizing the zoomed range.
@@ -1943,7 +2054,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
     // before it called this method. Why does it do this twice? Is it a bug?
     this.plot!.removeAll();
-    const labels = this.getLabels(mergedDataframe);
+    const labels = this.getLabels(mergedDataframe.header!);
     // TODO(seanmccullough): verify the order of addLines and setting the zoom on this.plot.
     // Turns out that with real-life dataframe sizes, this "empty the plot and add all the
     // data again" generates a lot of visual noise.  For the case of zoomed plots, this
@@ -1951,7 +2062,7 @@ export class ExploreSimpleSk extends ElementSk {
     // series squished into the main plot, then zooms it back in to just the previously-set
     // zoom window.  I'm sure this is also quite inneficient compared to just having
     // the plot render only the zoomed portion on the first try here.
-    this.plot!.addLines(mergedDataframe.traceset, labels);
+    this.AddPlotLines(mergedDataframe.traceset, labels);
     this.originalTraceSet = deepCopy(mergedDataframe.traceset);
 
     // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
@@ -2046,12 +2157,12 @@ export class ExploreSimpleSk extends ElementSk {
    * @param dataframe The dataframe to use for generating labels
    * @returns a list of labels
    */
-  private getLabels(dataframe: DataFrame): tick[] {
+  private getLabels(columnHeader: (ColumnHeader | null)[]): tick[] {
     let labels: tick[] = [];
     const dates: Date[] = [];
     switch (this.state.labelMode) {
       case LabelMode.CommitPosition:
-        dataframe.header!.forEach((header, i) => {
+        columnHeader.forEach((header, i) => {
           labels.push({
             x: i,
             text: header!.offset.toString(),
@@ -2060,7 +2171,7 @@ export class ExploreSimpleSk extends ElementSk {
         labels = fixTicksLength(labels);
         break;
       case LabelMode.Date:
-        dataframe.header!.forEach((header) => {
+        columnHeader.forEach((header) => {
           dates.push(new Date(header!.timestamp * 1000));
         });
         labels = ticks(dates);

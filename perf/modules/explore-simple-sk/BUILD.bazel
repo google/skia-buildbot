@@ -30,6 +30,7 @@ sk_element(
         "//elements-sk/modules/tabs-sk",
         "//elements-sk/modules/toast-sk",
         "//perf/modules/anomaly-sk",
+        "//perf/modules/plot-summary-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
@@ -52,6 +53,8 @@ sk_element(
         "//:node_modules/lit-html",
         "//infra-sk/modules:object_ts_lib",
         "//perf/modules/plot-simple-sk:ticks_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/common:plot-util_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",

@@ -21,7 +21,9 @@ plot-summary-sk {
   }
 }
 
-.body-sk plot-simple-sk {
+@import '../themes/themes.scss';
+
+.body-sk plot-summary-sk {
   color: var(--on-background);
   background: var(--background);
 }
