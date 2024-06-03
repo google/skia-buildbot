@@ -58,6 +58,11 @@ const (
 
 	// We'll send a notification if this many rolls fail in a row.
 	notifyIfLastNFailed = 3
+
+	// Unless otherwise configured, we'll wait 10 minutes after a successful
+	// roll before uploading a new roll. This prevents safety-throttling for
+	// rollers which have a very fast commit queue.
+	defaultRollCooldown = 10 * time.Minute
 )
 
 // AutoRoller is a struct which automates the merging new revisions of one
@@ -209,7 +214,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
 
-	var rollCooldown time.Duration
+	rollCooldown := defaultRollCooldown
 	if c.RollCooldown != "" {
 		rollCooldown, err = human.ParseDuration(c.RollCooldown)
 		if err != nil {

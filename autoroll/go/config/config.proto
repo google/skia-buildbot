@@ -40,7 +40,7 @@ message Config {
     // if a URL is specified for the reviewer.
     repeated string reviewer_backup = 11;
     // roll_cooldown is a period of time after a successful roll attempt during
-    // which no new roll attempts will be created. Optional.
+    // which no new roll attempts will be created. Optional. The default is 10m.
     string roll_cooldown = 12;
     // dry_run_cooldown specifies how long successful dry run CLs will be left
     // open before closing in favor of a new roll.
