@@ -23,7 +23,7 @@ type TargetMaps struct {
 // Most isolate targets are device specific but there is one benchmark specific target.
 func GetIsolateTarget(bot, benchmark string) (string, error) {
 	// verify bot can be run on Pinpoint
-	_, err := GetBotConfig(bot, true)
+	_, err := GetBotConfig(bot, false)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Cannot get isolate target of bot %s which is unlisted in bot_configs", bot)
 	}
