@@ -67,6 +67,11 @@
         },
         "default_url_values": {
             "summary": "true"
+        },
+        "redis_config": {
+            "project": "skia-infra-corp",
+            "zone": "us-central1",
+            "instance": "skia-query"
         }
     },
     "help_url_override": "http://go/chrome-perf-user-doc",

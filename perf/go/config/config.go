@@ -719,6 +719,7 @@ type MaintenanceFlags struct {
 	PromPort           string
 	Local              bool
 	MigrateRegressions bool
+	RefreshQueryCache  bool
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -781,6 +782,18 @@ type Favorites struct {
 	Sections []FavoritesSectionConfig `json:"sections"`
 }
 
+// RedisConfig contains properties of a redis instance.
+type RedisConfig struct {
+	// The GCP Project of the Redis instance
+	Project string `json:"project,omitempty"`
+
+	// The Zone (Region) of the Redis instance.
+	Zone string `json:"zone,omitempty"`
+
+	// The name of the Redis instance.
+	Instance string `json:"instance,omitempty"`
+}
+
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
 	// IncludedParams defines the params that should be displayed in the query dialog.
@@ -794,6 +807,10 @@ type QueryConfig struct {
 	// DefaultUrlValues specifies default values for url params.
 	// If the user makes a selection for any of these params, the user selected value is used.
 	DefaultUrlValues map[string]string `json:"default_url_values,omitempty"`
+
+	// RedisConfig defines the Redis properties used to find the Redis instance which
+	// helps reduce the query latency.
+	RedisConfig RedisConfig `json:"redis_config,omitempty"`
 }
 
 // InstanceConfig contains all the info needed by a Perf instance.

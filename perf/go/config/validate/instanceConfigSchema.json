@@ -376,6 +376,24 @@
             }
           },
           "type": "object"
+        },
+        "redis_config": {
+          "$ref": "#/$defs/RedisConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RedisConfig": {
+      "properties": {
+        "project": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

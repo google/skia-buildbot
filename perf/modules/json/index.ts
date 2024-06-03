@@ -97,10 +97,17 @@ export interface Favorites {
 	sections: FavoritesSectionConfig[] | null;
 }
 
+export interface RedisConfig {
+	project?: string;
+	zone?: string;
+	instance?: string;
+}
+
 export interface QueryConfig {
 	include_params?: string[] | null;
 	default_param_selections?: { [key: string]: string[] | null } | null;
 	default_url_values?: { [key: string]: string } | null;
+	redis_config?: RedisConfig;
 }
 
 export interface Commit {

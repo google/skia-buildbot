@@ -315,6 +315,9 @@ packages:
   go.skia.org/infra/perf/go/psrefresh:
     interfaces:
       OPSProvider:
+  go.skia.org/infra/perf/go/redis:
+    interfaces:
+      RedisWrapper:
   go.skia.org/infra/perf/go/regression:
     interfaces:
       Store:
