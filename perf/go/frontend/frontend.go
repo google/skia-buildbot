@@ -53,6 +53,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/dryrun"
+	"go.skia.org/infra/perf/go/favorites"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/graphsshortcut"
@@ -133,6 +134,8 @@ type Frontend struct {
 	regStore regression.Store
 
 	subStore subscription.Store
+
+	favStore favorites.Store
 
 	continuous []*continuous.Continuous
 
@@ -528,6 +531,11 @@ func (f *Frontend) initialize() {
 	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build subscription.Store: %s", err)
+	}
+
+	f.favStore, err = builders.NewFavoriteStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build favorite.Store: %s", err)
 	}
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)

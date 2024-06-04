@@ -38,6 +38,7 @@ go_library(
         "//perf/go/dataframe",
         "//perf/go/dfbuilder",
         "//perf/go/dryrun",
+        "//perf/go/favorites:store",
         "//perf/go/git",
         "//perf/go/git/provider",
         "//perf/go/graphsshortcut",
