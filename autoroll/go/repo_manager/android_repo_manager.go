@@ -556,7 +556,7 @@ third_party {
 	}
 
 	// Upload the CL to Gerrit.
-	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify"}
+	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify", "--yes"}
 	if rollEmails != nil && len(rollEmails) > 0 {
 		uploadArgs = append(uploadArgs, fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")))
 	}
@@ -567,6 +567,7 @@ third_party {
 		// The below is to bypass the blocking
 		// "ATTENTION: You are uploading an unusually high number of commits."
 		// prompt which shows up when a merge contains more than 5 commits.
+		// TODO(borenet): Is this necessary with "--yes"?
 		Stdin: strings.NewReader("yes"),
 	}
 	if uploadOutput, uploadErr := exec.RunCommand(ctx, uploadCommand); uploadErr != nil {
