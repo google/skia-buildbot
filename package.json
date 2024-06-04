@@ -74,7 +74,7 @@
     "puppeteer": "22.7.1",
     "puppeteer-core": "19.2.2",
     "sass": "^1.69.5",
-    "sinon": "^7.5.0",
+    "sinon": "^17.0.1",
     "socket.io-parser": "^4.2.3",
     "streamx": "^2.15.5",
     "typescript": "5.4.5",
