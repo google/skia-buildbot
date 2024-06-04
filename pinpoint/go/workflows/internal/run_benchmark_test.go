@@ -151,7 +151,7 @@ func TestRunBenchmarkPairwise_HappyPath_ReturnsCAS(t *testing.T) {
 	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID1).Return(mockCas, nil).Once()
 	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID2).Return(mockCas, nil).Once()
 
-	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{})
+	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{}, workflows.LeftThenRight)
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -184,7 +184,7 @@ func TestRunBenchmarkPairwise_NoResources_ReturnsError(t *testing.T) {
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(mockTaskID1, nil).Once()
 	env.OnActivity(rba.WaitTaskAcceptedActivity, mock.Anything, mockTaskID1).Return(noResourceState, expectedErr).Times(int(runBenchmarkPendingActivityOption.RetryPolicy.MaximumAttempts))
 
-	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{})
+	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{}, workflows.RightThenLeft)
 
 	require.True(t, env.IsWorkflowCompleted())
 	assert.Error(t, env.GetWorkflowError())
