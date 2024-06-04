@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -152,8 +151,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	parentCfg.GclientSpec = testutils.ExecTemplate(t, parentCfg.GclientSpec, vars)
 
 	// Create the RepoManager.
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	cleanup := func() {

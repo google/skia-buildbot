@@ -27,7 +27,7 @@ type parentChildRepoManager struct {
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
 	var childRM child.Child
 	var parentRM parent.Parent
 	var err error
@@ -43,7 +43,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
-		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, recipeCfgFile, cr)
+		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetDepsLocalGithubParent() != nil {
 		parentCfg := c.GetDepsLocalGithubParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -52,7 +52,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 		}
 		childFullPath := filepath.Join(workdir, childPath)
 		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
-		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, recipeCfgFile, cr)
+		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGerritParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGithubFileParent() != nil {

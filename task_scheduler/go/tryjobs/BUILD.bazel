@@ -40,7 +40,6 @@ go_test(
         "tryjobs_test.go",
         "utils_test.go",
     ],
-    data = ["//infra/config:recipes.cfg"],
     embed = [":tryjobs"],
     deps = [
         "//go/buildbucket/mocks",

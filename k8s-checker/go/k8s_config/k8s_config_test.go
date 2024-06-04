@@ -138,7 +138,6 @@ spec:
             - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir=/tmp"
           ports:
             - containerPort: 8000
@@ -236,14 +235,14 @@ func TestParseK8sConfigFile_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, k8sConfigs.ClusterRole, 1)
-	require.Equal(t, &ByteRange{Start: 7645, End: 8026}, lineRanges[k8sConfigs.ClusterRole[0]])
+	require.Equal(t, &ByteRange{Start: 7577, End: 7958}, lineRanges[k8sConfigs.ClusterRole[0]])
 
 	require.Len(t, k8sConfigs.ClusterRoleBinding, 1)
-	require.Equal(t, &ByteRange{Start: 8029, End: 8304}, lineRanges[k8sConfigs.ClusterRoleBinding[0]])
+	require.Equal(t, &ByteRange{Start: 7961, End: 8236}, lineRanges[k8sConfigs.ClusterRoleBinding[0]])
 
 	require.Len(t, k8sConfigs.CronJob, 1)
 	require.Equal(t, "gcr.io/skia-public/comp-ui-gitcron:2022-04-08T11_33_16Z-jcgregorio-72d31c9-clean", k8sConfigs.CronJob[0].Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image)
-	require.Equal(t, &ByteRange{Start: 7031, End: 7642}, lineRanges[k8sConfigs.CronJob[0]])
+	require.Equal(t, &ByteRange{Start: 6963, End: 7574}, lineRanges[k8sConfigs.CronJob[0]])
 
 	require.Len(t, k8sConfigs.DaemonSet, 0)
 
@@ -394,7 +393,6 @@ spec:
             - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir=/tmp"
           ports:
             - containerPort: 8000
@@ -505,23 +503,23 @@ spec:
 		},
 		{
 			Start: 2312,
-			End:   7028,
+			End:   6960,
 		},
 		{
-			Start: 7031,
-			End:   7642,
+			Start: 6963,
+			End:   7574,
 		},
 		{
-			Start: 7645,
-			End:   8026,
+			Start: 7577,
+			End:   7958,
 		},
 		{
-			Start: 8029,
-			End:   8304,
+			Start: 7961,
+			End:   8236,
 		},
 		{
-			Start: 8307,
-			End:   8410,
+			Start: 8239,
+			End:   8342,
 		},
 	}, ranges)
 }

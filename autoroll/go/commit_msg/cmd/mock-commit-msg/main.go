@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/repo_root"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -152,13 +151,7 @@ func main() {
 			log.Fatalf("Failed to create config var registry: %s", err)
 		}
 
-		repoRoot, err := repo_root.Get()
-		if err != nil {
-			log.Fatal(err)
-		}
-		recipesCfgFile := filepath.Join(repoRoot, "infra", "config", "recipes.cfg")
-
-		rm, err := repo_manager.New(ctx, cfg.GetRepoManagerConfig(), reg, *workdir, cfg.RollerName, recipesCfgFile, *serverURL, cfg.ServiceAccount, client, cr, cfg.IsInternal, true)
+		rm, err := repo_manager.New(ctx, cfg.GetRepoManagerConfig(), reg, *workdir, cfg.RollerName, *serverURL, cfg.ServiceAccount, client, cr, cfg.IsInternal, true)
 		if err != nil {
 			log.Fatal(err)
 		}

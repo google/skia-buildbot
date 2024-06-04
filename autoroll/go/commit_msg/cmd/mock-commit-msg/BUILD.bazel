@@ -22,7 +22,6 @@ go_library(
         "//go/gerrit",
         "//go/github",
         "//go/httputils",
-        "//go/repo_root",
         "@com_github_pmezard_go_difflib//difflib",
         "@com_google_cloud_go_datastore//:datastore",
         "@org_golang_google_api//option",

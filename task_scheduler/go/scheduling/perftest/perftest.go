@@ -15,7 +15,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"runtime/pprof"
 	"sort"
 	"strings"
@@ -61,7 +60,6 @@ var (
 	tasksPerCommit = flag.Int("tasks_per_commit", 300, "Number of tasks defined per commit.")
 	numCommits     = flag.Int("num_commits", 200, "Number of commits.")
 	maxRounds      = flag.Int("max_cycles", 0, "Stop after this many scheduling cycles.")
-	recipesCfgFile = flag.String("recipes_cfg_file", "", "Path to the recipes.cfg file. If not provided, attempt to find it automatically.")
 	saveQueue      = flag.String("save_queue", "", "If set, dump the task candidate queue for every round of scheduling into this file.")
 	checkQueue     = flag.String("check_queue", "", "If set, compare the task candidate queue at every round of scheduling to that contained in this file.")
 )
@@ -342,11 +340,7 @@ func main() {
 
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 
-	if *recipesCfgFile == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*recipesCfgFile = filepath.Join(filepath.Dir(filename), "..", "..", "..", "..", "infra", "config", "recipes.cfg")
-	}
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, *recipesCfgFile)
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
 	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)

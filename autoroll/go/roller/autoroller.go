@@ -111,7 +111,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -134,7 +134,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	}
 
 	// Create the RepoManager.
-	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, recipesCfgFile, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
+	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

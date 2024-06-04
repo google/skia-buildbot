@@ -34,7 +34,7 @@ type RepoManager interface {
 }
 
 // New returns a RepoManager instance based on the given RepoManagerConfig.
-func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, recipeCfgFile, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal bool, local bool) (RepoManager, error) {
+func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, isInternal bool, local bool) (RepoManager, error) {
 	if c == nil {
 		return nil, skerr.Fmt("No RepoManagerConfig was provided.")
 	}
@@ -48,7 +48,7 @@ func New(ctx context.Context, c config.RepoManagerConfig, reg *config_vars.Regis
 	} else if rmc, ok := c.(*config.FreeTypeRepoManagerConfig); ok {
 		return NewFreeTypeRepoManager(ctx, rmc, reg, workdir, serverURL, client, cr, local)
 	} else if rmc, ok := c.(*config.ParentChildRepoManagerConfig); ok {
-		return newParentChildRepoManager(ctx, rmc, reg, workdir, rollerName, recipeCfgFile, serverURL, client, cr)
+		return newParentChildRepoManager(ctx, rmc, reg, workdir, rollerName, serverURL, client, cr)
 	}
 	return nil, skerr.Fmt("Unknown RepoManager type.")
 }

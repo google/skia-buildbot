@@ -29,7 +29,6 @@ go_test(
         "syncer_manual_test.go",
         "syncer_test.go",
     ],
-    data = ["//infra/config:recipes.cfg"],
     embed = [":syncer"],
     deps = [
         "//bazel/external/cipd/git",
