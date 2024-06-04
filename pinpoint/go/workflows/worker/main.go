@@ -61,6 +61,7 @@ func main() {
 	rba := &internal.RunBenchmarkActivity{}
 	w.RegisterActivity(rba)
 	w.RegisterWorkflowWithOptions(internal.RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
+	w.RegisterWorkflowWithOptions(internal.RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
 
 	w.RegisterActivity(internal.CollectValuesActivity)
 	w.RegisterWorkflowWithOptions(internal.SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})

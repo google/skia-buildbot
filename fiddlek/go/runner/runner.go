@@ -62,9 +62,9 @@ var (
 
 func toGrMipMapped(b bool) string {
 	if b {
-		return "GrMipMapped::kYes"
+		return "skgpu::Mipmapped::kYes"
 	} else {
-		return "GrMipMapped::kNo"
+		return "skgpu::Mipmapped::kNo"
 	}
 }
 

@@ -59,6 +59,17 @@ describe('paramset-sk', () => {
       );
     });
 
+    it('has many ParamSets, no titles, word wrap', async () => {
+      // Reduce width just enough to make some longer text wrap
+      await testBed.page.setViewport({ width: 500, height: 600 });
+      const paramSetSk = await testBed.page.$('#many-paramsets-no-titles');
+      await takeScreenshot(
+        paramSetSk!,
+        'infra-sk',
+        'paramset-sk_many-paramsets_no-titles_word-wrap'
+      );
+    });
+
     it('has many ParamSets, with titles', async () => {
       const paramSetSk = await testBed.page.$('#many-paramsets-with-titles');
       await takeScreenshot(

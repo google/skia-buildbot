@@ -172,10 +172,17 @@ export class SkottieCompatibilitySk extends ElementSk {
             <tr>
               ${index === 0
                 ? html`<td class="feature-id-cell" rowspan=${errorList.length}>
-                    <a href="https://canilottie.com/${error.featureCode}"
+                    <a
+                      href="https://canilottie.com/${error.featureLink ??
+                      error.featureCode}"
                       >${error.featureCode}</a
                     >
-                    not supported
+                    ${error.featureLevel === 'partial'
+                      ? 'partially supported'
+                      : 'not supported'}
+                    ${error.featureDetails
+                      ? html` <div>${error.featureDetails}</div> `
+                      : null}
                   </td>`
                 : null}
               <td>${error.nameHierarchy?.join(' > ')}</td>

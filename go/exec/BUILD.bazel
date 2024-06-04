@@ -10,23 +10,29 @@ go_library(
         "exec_mac.go",
         "exec_testutil.go",
         "exec_windows.go",
+        "retry.go",
     ],
     importpath = "go.skia.org/infra/go/exec",
     visibility = ["//visibility:public"],
     deps = [
         "//go/sklog",
         "//go/util",
+        "@com_github_cenkalti_backoff_v4//:backoff",
     ],
 )
 
 go_test(
     name = "exec_test",
-    srcs = ["exec_test.go"],
+    srcs = [
+        "exec_test.go",
+        "retry_test.go",
+    ],
     embed = [":exec"],
     deps = [
         "//bazel/external/rules_python",
         "//go/sklog",
         "//go/testutils/unittest",
+        "@com_github_cenkalti_backoff_v4//:backoff",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -2,7 +2,6 @@ package roller
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -59,6 +58,11 @@ const (
 
 	// We'll send a notification if this many rolls fail in a row.
 	notifyIfLastNFailed = 3
+
+	// Unless otherwise configured, we'll wait 10 minutes after a successful
+	// roll before uploading a new roll. This prevents safety-throttling for
+	// rollers which have a very fast commit queue.
+	defaultRollCooldown = 10 * time.Minute
 )
 
 // AutoRoller is a struct which automates the merging new revisions of one
@@ -107,7 +111,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -130,7 +134,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	}
 
 	// Create the RepoManager.
-	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, recipesCfgFile, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
+	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -210,7 +214,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
 
-	var rollCooldown time.Duration
+	rollCooldown := defaultRollCooldown
 	if c.RollCooldown != "" {
 		rollCooldown, err = human.ParseDuration(c.RollCooldown)
 		if err != nil {
@@ -1025,16 +1029,6 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			}
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
-			fromBytes, err := json.Marshal(from)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			toBytes, err := json.Marshal(to)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			sklog.Infof("Rolling from: %s", string(fromBytes))
-			sklog.Infof("Rolling to: %s", string(toBytes))
 
 			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun, req.Canary, req.Requester)
 			if err != nil {

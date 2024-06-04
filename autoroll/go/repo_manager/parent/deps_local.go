@@ -33,7 +33,7 @@ const (
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string, cr codereview.CodeReview, uploadRoll autoroll_git_common.UploadRollFunc, applyExternalChangeFunc autoroll_git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, cr codereview.CodeReview, uploadRoll autoroll_git_common.UploadRollFunc, applyExternalChangeFunc autoroll_git_common.ApplyExternalChangeFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -53,7 +53,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	}
 
 	// Set up depot tools.
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "setting up depot tools in %s", workdir)
 	}
@@ -217,13 +217,13 @@ func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (strin
 
 // NewDEPSLocalGitHub returns a DEPSLocal parent which creates GitHub pull
 // requests.
-func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	githubClient, ok := cr.Client().(*github.GitHub)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
 	}
 	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoUrl)
-	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, recipeCfgFile, cr, uploadRoll, ApplyExternalChangeGithubFunc())
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, cr, uploadRoll, ApplyExternalChangeGithubFunc())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -234,13 +234,13 @@ func NewDEPSLocalGitHub(ctx context.Context, c *config.DEPSLocalGitHubParentConf
 }
 
 // NewDEPSLocalGerrit returns a DEPSLocal parent which creates CLs in Gerrit.
-func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName, recipeCfgFile string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewDEPSLocalGerrit(ctx context.Context, c *config.DEPSLocalGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	gerritClient, ok := cr.Client().(gerrit.GerritInterface)
 	if !ok {
 		return nil, skerr.Fmt("DEPSLocalGitHub must use GitHub for code review.")
 	}
 	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
-	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, recipeCfgFile, cr, uploadRoll, nil)
+	parentRM, err := NewDEPSLocal(ctx, c.DepsLocal, reg, client, serverURL, workdir, cr, uploadRoll, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

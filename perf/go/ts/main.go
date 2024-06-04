@@ -76,6 +76,8 @@ func main() {
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
 		frontend.GetGraphsShortcutRequest{},
+		frontend.NextParamListHandlerRequest{},
+		frontend.NextParamListHandlerResponse{},
 		frontend.RangeRequest{},
 		frontend.RegressionRangeRequest{},
 		frontend.RegressionRangeResponse{},

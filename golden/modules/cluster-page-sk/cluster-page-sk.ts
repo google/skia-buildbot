@@ -32,6 +32,7 @@ import {
   ClusterDiffLink,
   ClusterDiffResult,
   DetailsRequest,
+  DiffRequest,
   Digest,
   DigestComparison,
   DigestDetails,
@@ -359,20 +360,27 @@ export class ClusterPageSk extends ElementSk {
     const extra = this.prefetch();
     sendBeginTask(this);
 
-    const urlObj: HintableObject = {
-      corpus: [this.searchCriteria.corpus],
-      test: [this.grouping.name],
-      left: [leftDigest],
-      right: [rightDigest],
+    const request: DiffRequest = {
+      grouping: this.grouping,
+      left_digest: leftDigest,
+      right_digest: rightDigest,
     };
     if (this.changeListID) {
-      urlObj.changelist_id = [this.changeListID];
-      urlObj.crs = [this.crs];
+      request.changelist_id = this.changeListID;
+      request.crs = this.crs;
     }
-    const base = '/json/v2/diff';
-    const url = `${base}?${fromObject(urlObj)}`;
+    if (this.changeListID && this.crs) {
+      request.changelist_id = this.changeListID;
+      request.crs = this.crs;
+    }
 
-    fetch(url, extra)
+    fetch('/json/v2/diff', {
+      method: 'POST',
+      body: JSON.stringify(request),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
       .then(jsonOrThrow)
       .then((digestComparison: DigestComparison) => {
         this.diffDetails = digestComparison;

@@ -1,4 +1,0 @@
-exports_files(
-    ["recipes.cfg"],
-    visibility = ["//visibility:public"],
-)

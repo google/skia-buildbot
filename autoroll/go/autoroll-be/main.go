@@ -77,7 +77,6 @@ var (
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                   = flag.String("port", ":8000", "HTTP service port.")
 	promPort               = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile         = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	hang                   = flag.String("hang", string(hangNone), fmt.Sprintf("If set, just hang and do nothing, at specified points in the code. Options: %v", hangOptions))
 	namespacedEmailService = flag.Bool("namespaced-email-service", false, "If true then use the emailservice that's running in its own namespace.")
@@ -347,10 +346,6 @@ func main() {
 		sklog.Fatalf("Failed to create roller cleanup DB: %s", err)
 	}
 
-	if *recipesCfgFile == "" {
-		*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
-	}
-
 	// Set environment variable for depot_tools.
 	if err := os.Setenv("SKIP_GCE_AUTH_FOR_GIT", "1"); err != nil {
 		sklog.Fatal(err)
@@ -361,7 +356,7 @@ func main() {
 		httputils.RunHealthCheckServer(*port)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls, rollerCleanup)
+	arb, err := roller.NewAutoRoller(ctx, &cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, serverURL, gcsClient, client, rollerName, *local, statusDB, manualRolls, rollerCleanup)
 	if err != nil {
 		sklog.Fatal(err)
 	}

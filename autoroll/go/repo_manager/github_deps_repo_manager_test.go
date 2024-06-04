@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -23,7 +22,6 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -136,10 +134,8 @@ func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (cont
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
 	g, urlmock := setupFakeGithubDEPS(ctx, t)
-	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {

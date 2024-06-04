@@ -26,12 +26,6 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/autoroll": [
-            [
-                "//infra/config:recipes.cfg",
-                "0644",
-            ],
-        ],
     },
     env = {
         "PATH": "/cipd/go/bin:$${PATH}",

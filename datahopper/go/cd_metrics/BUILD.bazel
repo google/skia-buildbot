@@ -17,6 +17,7 @@ go_library(
         "//go/louhi/pubsub",
         "//go/metrics2",
         "//go/metrics2/events",
+        "//go/now",
         "//go/skerr",
         "//go/sklog",
         "//go/util",

@@ -6,6 +6,7 @@ import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"
 	anomalygroupschema "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore/schema"
 	culpritschema "go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
+	favoriteschema "go.skia.org/infra/perf/go/favorites/sqlfavoritestore/schema"
 	gitschema "go.skia.org/infra/perf/go/git/schema"
 	graphsshortcutschema "go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore/schema"
 	regression2schema "go.skia.org/infra/perf/go/regression/sqlregression2store/schema"
@@ -21,6 +22,7 @@ type Tables struct {
 	AnomalyGroups   []anomalygroupschema.AnomalyGroupSchema
 	Commits         []gitschema.Commit
 	Culprits        []culpritschema.CulpritSchema
+	Favorites       []favoriteschema.FavoriteSchema
 	GraphsShortcuts []graphsshortcutschema.GraphsShortcutSchema
 	ParamSets       []traceschema.ParamSetsSchema
 	Postings        []traceschema.PostingsSchema

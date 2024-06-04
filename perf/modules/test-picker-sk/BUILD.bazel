@@ -1,0 +1,68 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":test-picker-sk-demo",
+)
+
+sk_element(
+    name = "test-picker-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["test-picker-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/picker-field-sk",
+        "//elements-sk/modules/spinner-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit-html",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+    ],
+    ts_srcs = [
+        "test-picker-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "test-picker-sk-demo",
+    html_file = "test-picker-sk-demo.html",
+    scss_entry_point = "test-picker-sk-demo.scss",
+    sk_element_deps = [":test-picker-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:query_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_entry_point = "test-picker-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "test-picker-sk_puppeteer_test",
+    src = "test-picker-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "test-picker-sk_test",
+    src = "test-picker-sk_test.ts",
+    deps = [
+        ":test-picker-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)

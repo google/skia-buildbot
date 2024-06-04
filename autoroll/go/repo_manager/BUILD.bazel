@@ -53,7 +53,6 @@ go_test(
         "repo_manager_test.go",
         "semver_gcs_repo_manager_test.go",
     ],
-    data = ["//infra/config:recipes.cfg"],
     embed = [":repo_manager"],
     deps = [
         "//autoroll/go/codereview",
@@ -80,7 +79,6 @@ go_test(
         "//go/github",
         "//go/gitiles/testutils",
         "//go/mockhttpclient",
-        "//go/recipe_cfg",
         "//go/skerr",
         "//go/sklog",
         "//go/testutils",

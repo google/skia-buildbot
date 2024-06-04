@@ -26,6 +26,7 @@ const (
 	ConvertToCatapultResponseWorkflow = "perf.catapult.response"
 	CulpritFinderWorkflow             = "perf.culprit_finder"
 	RunBenchmark                      = "perf.run_benchmark"
+	RunBenchmarkPairwise              = "perf.run_benchmark.pairwise"
 	SingleCommitRunner                = "perf.single_commit_runner"
 	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
 	PairwiseWorkflow                  = "perf.pairwise"
@@ -79,12 +80,25 @@ type TestRun struct {
 	Values map[string][]float64
 }
 
+// PairwiseOrder indicates in a pairwise run, which commit ran first
+type PairwiseOrder int
+
+const (
+	// LeftThenRight means Left commit ran first, then the Right commit
+	LeftThenRight PairwiseOrder = 0
+	// RightThenLeft means Right commit ran first, then the Left commit
+	RightThenLeft PairwiseOrder = 1
+)
+
 // PairwiseTestRun stores pairwise benchmark test run.
 type PairwiseTestRun struct {
 	// FirstTestRun is the first benchmark test run
 	FirstTestRun *TestRun
-	// FirstTestRun is the second benchmark test run
+	// SecondTestRun is the second benchmark test run
 	SecondTestRun *TestRun
+	// First indicates which commit ran first.
+	// First = Left commit or Right commit.
+	Permutation PairwiseOrder
 }
 
 type BisectParams struct {

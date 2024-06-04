@@ -123,7 +123,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	cfg := afdoCfg(t)
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipe-cfg", "fake.server.com", client, gerritCR(t, g, client))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", client, gerritCR(t, g, client))
 	require.NoError(t, err)
 
 	// Mock requests for Update.

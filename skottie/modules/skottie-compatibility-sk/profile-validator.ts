@@ -8,10 +8,16 @@ import Ajv, { ErrorObject, ValidateFunction } from 'ajv/dist/2020';
 
 export interface LottieError extends ErrorObject {
   featureCode?: string;
+  featureLink?: string;
+  featureLevel?: string;
+  featureDetails?: string;
   nameHierarchy?: string[];
 }
 
 const FEATURE_CODE_KEYWORD = 'feature-code';
+const FEATURE_LINK_KEYWORD = 'feature-link';
+const FEATURE_LEVEL_KEYWORD = 'feature-level';
+const FEATURE_DETAILS_KEYWORD = 'feature-details';
 
 const NAME_PROPERTY_PATH = 'nm';
 
@@ -25,6 +31,21 @@ export class ProfileValidator {
 
     ajv.addKeyword({
       keyword: FEATURE_CODE_KEYWORD,
+      schemaType: 'string',
+    });
+
+    ajv.addKeyword({
+      keyword: FEATURE_LINK_KEYWORD,
+      schemaType: 'string',
+    });
+
+    ajv.addKeyword({
+      keyword: FEATURE_LEVEL_KEYWORD,
+      schemaType: 'string',
+    });
+
+    ajv.addKeyword({
+      keyword: FEATURE_DETAILS_KEYWORD,
       schemaType: 'string',
     });
 
@@ -59,10 +80,16 @@ function processErrors(
   }
 
   const enhancedErrors = errors.map((error: LottieError) => {
-    const featureCode = getSchemaPathFeatureCode(error.schemaPath, validate);
+    const featureNode: any = getSchemaPathFeatureNode(
+      error.schemaPath,
+      validate
+    );
 
-    if (featureCode) {
-      error.featureCode = featureCode;
+    if (featureNode) {
+      error.featureCode = featureNode[FEATURE_CODE_KEYWORD];
+      error.featureLink = featureNode[FEATURE_LINK_KEYWORD];
+      error.featureLevel = featureNode[FEATURE_LEVEL_KEYWORD];
+      error.featureDetails = featureNode[FEATURE_DETAILS_KEYWORD];
     }
 
     error.nameHierarchy = getNameHierarchy(lottie, error.instancePath);
@@ -110,11 +137,11 @@ function processErrors(
   });
 }
 
-function getSchemaPathFeatureCode(
+function getSchemaPathFeatureNode(
   schemaPath: string,
   validate: ValidateFunction
-): string | null {
-  const codes = extractPropertiesFromPath(
+): Object | null {
+  const codes = findNodesWithProperty(
     validate.schema,
     schemaPath,
     FEATURE_CODE_KEYWORD
@@ -152,6 +179,33 @@ function extractPropertiesFromPath(
 
     if (obj[property]) {
       values.push(obj[property]);
+    }
+  }
+
+  return values;
+}
+
+function findNodesWithProperty(
+  obj: any,
+  path: string,
+  property: string
+): Object[] {
+  const pathParts = path.split('/');
+
+  const values: string[] = [];
+  for (const pathPart of pathParts) {
+    if (pathPart === '#' || pathPart === '') {
+      continue;
+    }
+
+    obj = (obj as any)[pathPart];
+
+    if (!obj) {
+      break;
+    }
+
+    if (obj[property]) {
+      values.push(obj);
     }
   }
 

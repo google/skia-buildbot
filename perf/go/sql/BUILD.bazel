@@ -13,6 +13,7 @@ go_library(
         "//perf/go/alerts/sqlalertstore/schema",
         "//perf/go/anomalygroup/sqlanomalygroupstore/schema",
         "//perf/go/culprit/sqlculpritstore/schema",
+        "//perf/go/favorites/sqlfavoritestore/schema",
         "//perf/go/git/schema",
         "//perf/go/graphsshortcut/graphsshortcutstore/schema",
         "//perf/go/regression/sqlregression2store/schema",

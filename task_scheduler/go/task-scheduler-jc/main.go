@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -63,7 +62,6 @@ var (
 	local                    = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	rbeInstance              = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls                 = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile           = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	timePeriod               = flag.String("timeWindow", "4d", "Time period to use.")
 	tracingProject           = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
 	commitWindow             = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
@@ -161,10 +159,7 @@ func main() {
 
 	// Find depot_tools.
 	// TODO(borenet): Package depot_tools in the Docker image.
-	if *recipesCfgFile == "" {
-		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
-	}
-	depotTools, err := depot_tools.Sync(ctx, wdAbs, *recipesCfgFile)
+	depotTools, err := depot_tools.Sync(ctx, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -185,6 +180,9 @@ func main() {
 	var pubsubClient pubsub.Client
 	if *buildbucketPubSubProject != "" {
 		pubsubClient, err = pubsub.NewClient(ctx, *buildbucketPubSubProject, option.WithTokenSource(tokenSource))
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Create and start the JobCreator.

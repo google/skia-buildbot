@@ -55,20 +55,23 @@
     },
     "query_config": {
         "include_params": [
-            "master",
-            "bot",
             "benchmark",
+            "bot",
             "test",
             "subtest_1",
             "subtest_2",
-            "subtest_3",
-            "stat"
+            "subtest_3"
         ],
         "default_param_selections": {
             "stat": ["value"]
         },
         "default_url_values": {
             "summary": "true"
+        },
+        "redis_config": {
+            "project": "skia-infra-corp",
+            "zone": "us-central1",
+            "instance": "skia-query"
         }
     },
     "help_url_override": "http://go/chrome-perf-user-doc",

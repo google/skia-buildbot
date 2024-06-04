@@ -15,8 +15,7 @@ export const lowPowerLottieProfileSchema = {
               {'$ref': '#/$defs/features/layers/types/no-text-layer'},
               {'$ref': '#/$defs/features/layers/properties/no-effects'},
               {'$ref': '#/$defs/features/layers/properties/no-time-remap'},
-              {'$ref': '#/$defs/features/layers/properties/no-time-stretch'},
-              {'$ref': '#/$defs/features/layers/properties/no-masks'},
+              {'$ref': '#/$defs/features/layers/properties/no-animated-masks'},
               {'$ref': '#/$defs/features/layers/properties/no-blend-modes'},
               {'$ref': '#/$defs/features/layers/properties/no-layer-styles'},
             ],
@@ -76,6 +75,31 @@ export const lowPowerLottieProfileSchema = {
               'masksProperties': false,
             },
           },
+          'no-animated-masks': {
+            'feature-code': 'animated-mask',
+            'feature-link': 'mask',
+            'properties': {
+              'masksProperties': {
+                'type': 'array',
+                'items': {
+                  'type': 'object',
+                  'additionalProperties': {
+                    'if': {
+                      'type': 'object'
+                    },
+                    'then': {
+                      'type': 'object',
+                      'properties': {
+                        'a': {
+                          'const': 0
+                        }
+                      }
+                    }
+                  }
+                },
+              },
+            }
+          },
           'no-blend-modes': {
             'feature-code': 'blend-mode',
             'type': 'object',
@@ -115,6 +139,8 @@ export const lowPowerLottieProfileSchema = {
           },
           'no-stroke': {
             'feature-code': 'shape-stroke',
+            'feature-level': 'partial',
+            'feature-details': 'If Stroke is animated, may cause framerate issues',
             'not': {
               'type': 'object',
               'properties': {

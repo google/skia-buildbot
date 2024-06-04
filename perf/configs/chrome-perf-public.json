@@ -77,14 +77,12 @@
     },
     "query_config": {
         "include_params": [
-            "master",
-            "bot",
             "benchmark",
+            "bot",
             "test",
             "subtest_1",
             "subtest_2",
-            "subtest_3",
-            "stat"
+            "subtest_3"
         ],
         "default_param_selections": {
             "stat": ["value"]

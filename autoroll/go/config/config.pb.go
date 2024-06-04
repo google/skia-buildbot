@@ -467,7 +467,7 @@ type Config struct {
 	// if a URL is specified for the reviewer.
 	ReviewerBackup []string `protobuf:"bytes,11,rep,name=reviewer_backup,json=reviewerBackup,proto3" json:"reviewer_backup,omitempty"`
 	// roll_cooldown is a period of time after a successful roll attempt during
-	// which no new roll attempts will be created. Optional.
+	// which no new roll attempts will be created. Optional. The default is 10m.
 	RollCooldown string `protobuf:"bytes,12,opt,name=roll_cooldown,json=rollCooldown,proto3" json:"roll_cooldown,omitempty"`
 	// dry_run_cooldown specifies how long successful dry run CLs will be left
 	// open before closing in favor of a new roll.

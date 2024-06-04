@@ -20,14 +20,13 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
 ENV CC=clang-11
 
 # Install the CIPD client by syncing depot_tools to the revision specified in
-# recipes.cfg (we're not a recipe, but it's conveniently pinned there and auto-
-# rolled) and running the wrapper script. This process requires temporarily
+# DEPS and running the wrapper script. This process requires temporarily
 # installing some packages that we prefer to obtain via CIPD.
 FROM base AS install_cipd
 RUN apt-get update && apt-get install -y git curl python3-minimal
-COPY ./recipes.cfg /tmp/recipes.cfg
-RUN cat /tmp/recipes.cfg | \
-    python3 -c "import json; import sys; print(json.load(sys.stdin)['deps']['depot_tools']['revision'])" > /tmp/depot_tools_rev \
+COPY ./DEPS /tmp/DEPS
+RUN cat /tmp/DEPS | \
+    grep "depot_tools.git" | grep -oP "[a-f0-9]{40}" > /tmp/depot_tools_rev \
     && cd $(mktemp -d) \
     && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
     && cd depot_tools \

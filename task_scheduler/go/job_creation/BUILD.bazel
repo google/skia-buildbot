@@ -36,7 +36,6 @@ go_test(
     name = "job_creation_test",
     size = "large",
     srcs = ["job_creation_test.go"],
-    data = ["//infra/config:recipes.cfg"],
     embed = [":job_creation"],
     deps = [
         "//go/cas/mocks",

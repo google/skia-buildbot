@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "config",
@@ -11,9 +12,18 @@ go_library(
     deps = [
         "//autoroll/go/strategy",
         "//autoroll/go/time_window",
+        "//go/deepequal",
+        "//go/deepequal/assertdeep",
         "//go/skerr",
         "//go/util",
         "@org_golang_google_protobuf//reflect/protoreflect",
         "@org_golang_google_protobuf//runtime/protoimpl",
     ],
+)
+
+go_test(
+    name = "config_test",
+    srcs = ["config_test.go"],
+    embed = [":config"],
+    deps = ["@com_github_stretchr_testify//require"],
 )

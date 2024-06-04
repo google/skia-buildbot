@@ -5,8 +5,6 @@ import (
 	"errors"
 	"math/rand"
 
-	apipb "go.chromium.org/luci/swarming/proto/api_v2"
-
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -30,6 +28,13 @@ type PairwiseCommitsRunnerParams struct {
 // PairwiseRun is the output of the PairwiseCommitsRunnerWorkflow
 type PairwiseRun struct {
 	Left, Right CommitRun
+	// Order represents the order of the runs between Left and Right.
+	// 0 means Left went first and 1 means Right went first.
+	// The order is needed to handle pair failures. If a pair fails,
+	// another pair that went in the other order needs to be tossed
+	// from the data analysis to ensure balancing.
+	// TODO(b/321306427): convert to []workflows.PairwiseOrder
+	Order []int
 }
 
 // FindAvailableBotsActivity fetches a list of free, alive and non quarantined bots per provided bot
@@ -63,12 +68,17 @@ func FindAvailableBotsActivity(ctx context.Context, botConfig string, seed int64
 	return botIds, nil
 }
 
-// generatePairIndices generates a randomized list of [0,1,0,1,0,...]
+// generatePairOrderIndices generates a randomized list of [0,1,0,1,0,...]
 //
 // The element can be used for the combination, for example:
-// 0: [0, 1], runs the first commit, and then second commit
-// 1: [1, 0], runs the second commit, and then first commit
-func generatePairIndices(seed int64, count int) []int {
+// 0: runs the first commit, and then second commit
+// 1: runs the second commit, and then first commit
+// Note: The returned list of numbers contains the same number of 0s and
+// 1s so the permutations of given pairs are equally distributed.
+// TODO(b/321306427): Change this function to return a list of workflows.PairwiseOrder
+// and replace seed with contextKey to avoid brittle testing.
+// see https://github.com/google/skia-buildbot/blob/2d509f23bc9186f582eb66b5c1db5877dc486eb8/go/now/now.go#L40-L52
+func generatePairOrderIndices(seed int64, count int) []int {
 	lt := make([]int, count)
 	// generates a list of [0,1,0,1,0,1,...]
 	for i := range lt {
@@ -80,13 +90,48 @@ func generatePairIndices(seed int64, count int) []int {
 	return lt
 }
 
+func generatePairwiseBenchmarkParams(p SingleCommitRunnerParams, builds []*workflows.Build, botDimension map[string]string, iteration int32, order workflows.PairwiseOrder) (firstRBP, secondRBP *RunBenchmarkParams) {
+	left := &RunBenchmarkParams{
+		JobID:             p.PinpointJobID,
+		Commit:            builds[0].Commit,
+		BuildCAS:          builds[0].CAS,
+		BotConfig:         p.BotConfig,
+		Benchmark:         p.Benchmark,
+		Story:             p.Story,
+		StoryTags:         p.StoryTags,
+		Dimensions:        botDimension,
+		IterationIdx:      iteration,
+		Chart:             p.Chart,
+		AggregationMethod: p.AggregationMethod,
+	}
+	right := &RunBenchmarkParams{
+		JobID:             p.PinpointJobID,
+		Commit:            builds[1].Commit,
+		BuildCAS:          builds[1].CAS,
+		BotConfig:         p.BotConfig,
+		Benchmark:         p.Benchmark,
+		Story:             p.Story,
+		StoryTags:         p.StoryTags,
+		Dimensions:        botDimension,
+		IterationIdx:      iteration,
+		Chart:             p.Chart,
+		AggregationMethod: p.AggregationMethod,
+	}
+	switch order {
+	case workflows.LeftThenRight:
+		firstRBP = left
+		secondRBP = right
+	case workflows.RightThenLeft:
+		firstRBP = right
+		secondRBP = left
+	}
+	return firstRBP, secondRBP
+}
+
 // PairwiseCommitsRunnerWorkflow is a Workflow definition.
 //
 // PairwiseCommitsRunner builds, runs and collects benchmark sampled values from several commits.
 // It runs the tests in pairs to reduces sample noises.
-//
-// TODO(b/331856095): viditchitkara@ handle odd number of iterations for pairwise execution
-// workflow.
 func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunnerParams) (*PairwiseRun, error) {
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 	ctx = workflow.WithChildOptions(ctx, runBenchmarkWorkflowOptions)
@@ -104,7 +149,6 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 
 	// TODO(b/332391612): viditchitkara@ Build chrome for leftBuild and rightBuild in parallel
 	// to save time.
-
 	leftBuild, err := buildChrome(ctx, pc.PinpointJobID, pc.BotConfig, pc.Benchmark, pc.LeftCommit)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.LeftCommit.Main.String())
@@ -115,50 +159,46 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 		return nil, skerr.Wrapf(err, "unable to build chrome for commit %s", pc.RightCommit.Main.String())
 	}
 
-	pairs := generatePairIndices(pc.Seed, int(pc.Iterations))
-	runs := []struct {
-		cc  *midpoint.CombinedCommit
-		cas *apipb.CASReference
-		ch  workflow.Channel
-	}{
-		{
-			cc:  leftBuild.Commit,
-			cas: leftBuild.CAS,
-			ch:  leftRunCh,
-		},
-		{
-			cc:  rightBuild.Commit,
-			cas: rightBuild.CAS,
-			ch:  rightRunCh,
-		},
-	}
+	// Pairwise workflow compares the performance of two versions of Chrome against each other.
+	// By shuffling the order the two commits are run, we ensure that if a difference is detected,
+	// the difference is not caused by the order that the commits are run.
+	pairOrder := generatePairOrderIndices(pc.Seed, int(pc.Iterations))
+	builds := []*workflows.Build{leftBuild, rightBuild}
+	runs := []workflow.Channel{leftRunCh, rightRunCh}
 
-	// [0, 1]: runs the left commit (runs[0]) and then the right (runs[1])
-	// [1, 0]: runs the right commit (runs[1]) and then the left (runs[0])
-	orders := [][2]int{{0, 1}, {1, 0}}
 	for i := 0; i < int(pc.Iterations); i++ {
-		pairIdx := pairs[i]
+		first := workflows.PairwiseOrder(pairOrder[i])
 		// TODO(sunxiaodi@): Consider defining these maps directly using the key/value
 		// pair rather than separate entries. See convertDimensions in swarming_helpers.go
 		botDimension := map[string]string{
 			"key":   "id",
 			"value": botIds[i%len(botIds)],
 		}
-
 		// We need to make a copy of i since the following is a closure. By making a
 		// copy every closure will point to it's own copy of i rather than pointing to
 		// the same variable.
 		iteration := int32(i)
+		firstRBP, secondRBP := generatePairwiseBenchmarkParams(pc.SingleCommitRunnerParams, builds, botDimension, iteration, first)
+
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
-			for _, idx := range orders[pairIdx] {
-				tr, err := runBenchmark(gCtx, runs[idx].cc, runs[idx].cas, &pc.SingleCommitRunnerParams, botDimension, iteration)
-				if err != nil {
-					ec.Send(gCtx, err)
-					continue
-				}
-				runs[idx].ch.Send(gCtx, tr)
+			var ptr *workflows.PairwiseTestRun
+			// pass first into the workflow even though it is not used in the workflow,
+			// only returned in the output. The return helps distinguish which return
+			// ran first while debugging the UI and to ensure the unit tests can pass
+			// as the unit tests cannot return channel workflows in a specified order.
+			if err := workflow.ExecuteChildWorkflow(gCtx, workflows.RunBenchmarkPairwise, firstRBP, secondRBP, first).Get(gCtx, &ptr); err != nil {
+				ec.Send(gCtx, err)
+			}
+			// use the return's first indicator to send the correct result to the correct channel.
+			switch ptr.Permutation {
+			case workflows.LeftThenRight:
+				runs[0].Send(gCtx, ptr.FirstTestRun)
+				runs[1].Send(gCtx, ptr.SecondTestRun)
+			case workflows.RightThenLeft:
+				runs[1].Send(gCtx, ptr.FirstTestRun)
+				runs[0].Send(gCtx, ptr.SecondTestRun)
 			}
 		})
 	}
@@ -173,9 +213,28 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 	if errs := fetchAllFromChannel[error](ctx, ec); len(errs) != 0 {
 		return nil, skerr.Wrapf(errors.Join(errs...), "not all iterations are successful")
 	}
-
-	rightRuns := fetchAllFromChannel[*workflows.TestRun](ctx, rightRunCh)
 	leftRuns := fetchAllFromChannel[*workflows.TestRun](ctx, leftRunCh)
+	rightRuns := fetchAllFromChannel[*workflows.TestRun](ctx, rightRunCh)
+	// collect values from CAS
+	for i := 0; i < int(pc.Iterations); i++ {
+		if leftRuns[i].CAS == nil || rightRuns[i].CAS == nil {
+			continue
+		}
+		var lv []float64
+		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, leftRuns[i], pc.Benchmark, pc.Chart, pc.AggregationMethod).Get(ctx, &lv); err != nil {
+			return nil, skerr.Wrapf(err, "leftRuns failed %v", *leftRuns[i])
+		}
+		leftRuns[i].Values = map[string][]float64{
+			pc.Chart: lv,
+		}
+		var rv []float64
+		if err := workflow.ExecuteActivity(ctx, CollectValuesActivity, rightRuns[i], pc.Benchmark, pc.Chart, pc.AggregationMethod).Get(ctx, &rv); err != nil {
+			return nil, skerr.Wrapf(err, "rightRuns failed %v", *rightRuns[i])
+		}
+		rightRuns[i].Values = map[string][]float64{
+			pc.Chart: rv,
+		}
+	}
 
 	return &PairwiseRun{
 		Left: CommitRun{
@@ -186,5 +245,6 @@ func PairwiseCommitsRunnerWorkflow(ctx workflow.Context, pc PairwiseCommitsRunne
 			Build: rightBuild,
 			Runs:  rightRuns,
 		},
+		Order: pairOrder,
 	}, nil
 }

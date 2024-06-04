@@ -24,12 +24,6 @@ skia_app_container(
                 "0755",
             ],
         ],
-        "/usr/local/share/task-scheduler": [
-            [
-                "//infra/config:recipes.cfg",
-                "0644",
-            ],
-        ],
     },
     repository = "skia-public/task-scheduler-jc",
     run_commands_root = [

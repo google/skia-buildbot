@@ -7,6 +7,7 @@ sk_demo_page_server(
 
 sk_element(
     name = "plot-summary-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
     sass_srcs = ["plot-summary-sk.scss"],
     sk_element_deps = ["//perf/modules/plot-simple-sk"],
     ts_deps = [
@@ -57,5 +58,6 @@ karma_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
     ],
 )

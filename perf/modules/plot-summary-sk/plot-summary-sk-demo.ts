@@ -42,6 +42,6 @@ window.customElements.whenDefined('plot-summary-sk').then(() => {
     ],
   };
   $<PlotSummarySk>('plot-summary-sk').forEach((plot) => {
-    plot.DisplayChartData(chartData);
+    plot.DisplayChartData(chartData, false);
   });
 });
