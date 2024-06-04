@@ -23,6 +23,8 @@ import {
   updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
 
+import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
+
 import { fromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
@@ -30,6 +32,7 @@ import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../explore-simple-sk';
+import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
 
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -42,7 +45,7 @@ class State {
 
   shortcut: string = '';
 
-  showZero: boolean = true;
+  showZero: boolean = false;
 
   dots: boolean = true;
 
@@ -57,6 +60,8 @@ class State {
   totalGraphs: number = 0;
 
   plotSummary: boolean = false;
+
+  useTestPicker: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -76,7 +81,15 @@ export class ExploreMultiSk extends ElementSk {
 
   private mergeGraphsButton: HTMLButtonElement | null = null;
 
+  private addGraphButton: HTMLButtonElement | null = null;
+
   private graphDiv: Element | null = null;
+
+  private useTestPicker: boolean = false;
+
+  private testPicker: TestPickerSk | null = null;
+
+  private testPickerParams: string[] | null = [];
 
   constructor() {
     super(ExploreMultiSk.template);
@@ -84,11 +97,14 @@ export class ExploreMultiSk extends ElementSk {
 
   connectedCallback(): void {
     super.connectedCallback();
+
     this._render();
 
     this.graphDiv = this.querySelector('#graphContainer');
     this.splitGraphButton = this.querySelector('#split-graph-button');
     this.mergeGraphsButton = this.querySelector('#merge-graphs-button');
+    this.addGraphButton = this.querySelector('#add-graph-button');
+    this.testPicker = this.querySelector('#test-picker');
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
@@ -96,6 +112,10 @@ export class ExploreMultiSk extends ElementSk {
         const state = hintableState as unknown as State;
 
         const numElements = this.exploreElements.length;
+
+        if (state.useTestPicker) {
+          this.initializeTestPicker();
+        }
 
         let graphConfigs: GraphConfig[] | undefined = [];
         if (state.shortcut !== '') {
@@ -133,6 +153,7 @@ export class ExploreMultiSk extends ElementSk {
     <div id="menu">
       <h1>MultiGraph Menu</h1>
       <button
+        id="add-graph-button"
         @click=${() => {
           const explore = ele.addEmptyGraph();
           if (explore) {
@@ -159,6 +180,7 @@ export class ExploreMultiSk extends ElementSk {
         title="Merge all graphs into a single graph.">
         Merge Graphs
       </button>
+      <test-picker-sk id="test-picker"></test-picker-sk>
     </div>
     <hr />
 
@@ -186,6 +208,52 @@ export class ExploreMultiSk extends ElementSk {
       @page-changed=${ele.pageChanged}>
     </pagination-sk>
   `;
+
+  /**
+   * Fetch include_params flag from instance config. If it's set,
+   * initialize the test picker using the params provided.
+   *
+   * If testPicker is initialized, disable Add Graph button.
+   */
+  private initializeTestPicker() {
+    fetch(`/_/defaults/`, {
+      method: 'GET',
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.testPickerParams = json?.include_params ?? null;
+        if (this.testPickerParams !== null) {
+          this.useTestPicker = true;
+          this.addGraphButton!.style.display = 'none';
+          this.testPicker!.style.display = 'flex';
+          this.testPicker!.initializeTestPicker(this.testPickerParams);
+
+          // Event listener for when the Test Picker plot button is clicked.
+          // This will create a new empty Graph at the top and plot it with the
+          // selected test values.
+          this.addEventListener('plot-button-clicked', (e) => {
+            const explore = this.addEmptyGraph(true);
+            if (explore) {
+              this.addGraphsToCurrentPage();
+              const query = this.testPicker!.createQueryFromFieldData();
+              explore.addFromQueryOrFormula(true, 'query', query, '');
+            }
+          });
+
+          // Event listener for when the "Query Highlighted" button is clicked.
+          // It will populate the Test Picker with the keys from the highlighted
+          // trace.
+          this.addEventListener('populate-query', (e) => {
+            const trace_key = (e as CustomEvent).detail.key;
+            this.testPicker!.populateFieldDataFromQuery(
+              this.queryFromKey(trace_key),
+              this.testPickerParams!
+            );
+            this.testPicker!.scrollIntoView();
+          });
+        }
+      });
+  }
 
   private clearGraphs() {
     this.exploreElements = [];
@@ -252,21 +320,25 @@ export class ExploreMultiSk extends ElementSk {
     explore.state = newState;
   }
 
-  private addEmptyGraph(): ExploreSimpleSk | null {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(true);
-
+  private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(
+      true,
+      this.useTestPicker
+    );
+    const graphConfig = new GraphConfig();
     explore.openQueryByDefault = false;
     explore.navOpen = false;
-    this.exploreElements.push(explore);
+    if (unshift) {
+      this.exploreElements.unshift(explore);
+      this.graphConfigs.unshift(graphConfig);
+    } else {
+      this.exploreElements.push(explore);
+      this.graphConfigs.push(graphConfig);
+    }
     this.updateButtons();
-    this.graphConfigs.push(new GraphConfig());
-
-    const index = this.exploreElements.length - 1;
 
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
-
-      const graphConfig = this.graphConfigs[index];
 
       graphConfig.formulas = elemState.formulas || [];
 

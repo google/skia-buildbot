@@ -94,7 +94,7 @@ export class TestPickerSk extends ElementSk {
           @click=${ele.onPlotButtonClick}
           title="Plot a graph on selected values. Narrow down selection to ${PLOT_MAXIMUM} matches to be able to plot."
           disabled>
-          Plot
+          Add Graph
         </button>
       </div>
     </div>
@@ -230,8 +230,9 @@ export class TestPickerSk extends ElementSk {
    * figure out which options the field can provide as valid options in
    * its dropdown menu.
    *
-   * Once options are fetched, the field will be populated and its dropdown
-   * menu will be automatically opened. The match count is also updated.
+   * Once options are fetched, the field will be populated. Its dropdown
+   * menu will be automatically opened, unless it is the first field.
+   * The match count is also updated.
    *
    * @param index
    */
@@ -249,7 +250,9 @@ export class TestPickerSk extends ElementSk {
       this._requestInProgress = false;
       field!.options = json.paramset[field!.label];
       this.updateCount(json.count);
-      field!.openOverlay();
+      if (index !== 0) {
+        field!.openOverlay();
+      }
       this._render();
     };
     const errorHandler = (msg: any) => {
@@ -364,7 +367,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @returns value selection in query format.
    */
-  private createQueryFromFieldData(): string {
+  createQueryFromFieldData(): string {
     const paramSet: ParamSet = {};
     this._fieldData.forEach((fieldInfo) => {
       if (fieldInfo.value !== '') {

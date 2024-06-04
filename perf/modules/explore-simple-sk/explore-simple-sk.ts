@@ -517,17 +517,37 @@ export class ExploreSimpleSk extends ElementSk {
 
   private fullDataFrame: DataFrame | null = null;
 
-  constructor(scrollable: boolean) {
+  private useTestPicker: boolean = false;
+
+  constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
     this.traceFormatter = GetTraceFormatter();
+    this.useTestPicker = useTestPicker ?? false;
   }
 
   private static template = (ele: ExploreSimpleSk) => html`
   <div id=explore class=${ele.displayMode}>
     <div id=buttons>
-      <button id=open_query_dialog @click=${ele.openQuery}>Query</button>
+      <button
+        id=open_query_dialog
+        ?hidden=${ele.useTestPicker}
+        @click=${ele.openQuery}>
+        Query
+      </button>
+
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
+        <button
+        id=query_highlighted
+        ?hidden=${!(
+          ele.plot &&
+          ele.plot!.highlight.length &&
+          ele.useTestPicker
+        )}
+        @click=${ele.queryHighlighted}>
+          Query Highlighted
+        </button>
+
         <button
           @click=${() => ele.removeAll(false)}
           title='Remove all the traces.'>
@@ -2192,7 +2212,7 @@ export class ExploreSimpleSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  private addFromQueryOrFormula(
+  addFromQueryOrFormula(
     replace: boolean,
     plotType: addPlotType,
     q: string,
@@ -2441,6 +2461,15 @@ export class ExploreSimpleSk extends ElementSk {
         `&pageSize=${pageSize}&shortcut=${newShortcut}` +
         `&totalGraphs=${graphConfigs.length}`,
       '_self'
+    );
+  }
+
+  private queryHighlighted() {
+    const detail = {
+      key: this.plot!.highlight[0],
+    };
+    this.dispatchEvent(
+      new CustomEvent('populate-query', { detail: detail, bubbles: true })
     );
   }
 

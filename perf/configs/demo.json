@@ -41,6 +41,14 @@
         "dir": "/tmp/perf-demo",
         "debounce_commit_url": false
     },
+    "query_config": {
+        "include_params": [
+            "arch",
+            "config",
+            "test",
+            "units"
+        ]
+    },
     "favorites": {
         "sections":[
             {
