@@ -755,6 +755,12 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 			Value:       false,
 			Usage:       "If true, migrate the regressions data from regressions table to regressions2 table.",
 		},
+		&cli.BoolFlag{
+			Destination: &flags.RefreshQueryCache,
+			Name:        "refresh_query_cache",
+			Value:       false,
+			Usage:       "If true, periodically check the Redis cache instances.",
+		},
 	}
 }
 
