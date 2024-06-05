@@ -25,7 +25,7 @@ const (
 	// Size of the batch of regressions to migrate.
 	regressionMigrationBatchSize = 50
 
-	redisCacheRefreshPeriod = time.Minute * 30
+	redisCacheRefreshPeriod = time.Minute
 )
 
 // Start all the long running processes. This function does not return if all
@@ -70,10 +70,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			return skerr.Wrapf(err, "Failed to create Redis client.")
 		}
 		sklog.Info("Starting Redis Routine.")
-		err = redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
-		if err != nil {
-			return skerr.Wrapf(err, "Failed to execute the Redis refresh routine.")
-		}
+		redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
 	}
 
 	select {}
