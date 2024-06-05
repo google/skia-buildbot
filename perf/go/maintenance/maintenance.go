@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/redis"
@@ -63,10 +64,12 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	if flags.RefreshQueryCache {
+		sklog.Info("Creating Redis Client.")
 		redisClient, err := redis.NewRedisClient(ctx)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to create Redis client.")
 		}
+		sklog.Info("Starting Redis Routine.")
 		err = redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to execute the Redis refresh routine.")

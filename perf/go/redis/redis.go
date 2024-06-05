@@ -54,15 +54,18 @@ func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod tim
 		return errors.New("empty project or zone")
 	}
 	parent := fmt.Sprintf("projects/%s/locations/%s", project, zone)
-	for range time.Tick(refreshPeriod) {
-		var sb strings.Builder
-		instances := r.ListRedisInstances(ctx, parent)
-		sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
-		for _, instance := range instances {
-			sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
+	sklog.Infof("Start listing Redis instances for %s.", parent)
+	go func() {
+		for range time.Tick(refreshPeriod) {
+			var sb strings.Builder
+			instances := r.ListRedisInstances(ctx, parent)
+			sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
+			for _, instance := range instances {
+				sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
+			}
+			sklog.Infof(sb.String())
 		}
-		sklog.Infof(sb.String())
-	}
+	}()
 	return nil
 }
 
@@ -76,7 +79,7 @@ func (r *RedisClient) ListRedisInstances(ctx context.Context, parent string) []*
 	for {
 		resp, err := it.Next()
 		if err == iterator.Done {
-			sklog.Infof("Iterated all %s Redis instances for %s.", len(instances), parent)
+			sklog.Infof("Iterated all %d Redis instances for %s.", len(instances), parent)
 			break
 		}
 		instances = append(instances, resp)
