@@ -73,6 +73,10 @@ export class DigestDetailsSkPO extends PageObject {
     return this.element.hasClassName('selected');
   }
 
+  hasClassName(className: string): Promise<boolean> {
+    return this.element.hasClassName(className);
+  }
+
   getTestName(): Promise<string> {
     return this.testName.innerText;
   }

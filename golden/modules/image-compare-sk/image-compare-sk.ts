@@ -202,16 +202,25 @@ export class ImageCompareSk extends ElementSk {
   private toggleFullSizeLeftImage(): void {
     this._fullSizeLeftImage = !this._fullSizeLeftImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
   }
 
   private toggleFullSizeDiffImage(): void {
     this._fullSizeDiffImage = !this._fullSizeDiffImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
   }
 
   private toggleFullSizeRightImage(): void {
     this._fullSizeRightImage = !this._fullSizeRightImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
+  }
+
+  private _dispatchImageSizeToggledEvent(): void {
+    this.dispatchEvent(
+      new CustomEvent('image_compare_size_toggled', { bubbles: true })
+    );
   }
 }
 
