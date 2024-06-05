@@ -16,8 +16,6 @@ import {
   Commit,
   DetailsRequest,
   DigestDetails,
-  GroupingForTestRequest,
-  GroupingForTestResponse,
   GroupingsResponse,
   Params,
   SearchResult,
@@ -28,11 +26,23 @@ export class DetailsPageSk extends ElementSk {
     if (!ele.didInitialLoad) {
       return html`<h1>Loading...</h1>`;
     }
+    if (!ele.grouping?.name) {
+      return html`
+        <h1>
+          Invalid request: Gold now requires the complete "grouping" to be
+          specified. This means both the corpus and the test name.
+        </h1>
+        <div>
+          Please fix the query parameters in the URL as following:
+          <br />
+          /detail?grouping=name%3D<strong>[test_name]</strong>%26source_type%3D<strong>[corpus_name]</strong>&digest=<strong
+            >[digest_id]</strong
+          >
+        </div>
+      `;
+    }
     if (!ele.details?.digest) {
-      const testName =
-        Object.keys(ele.grouping).length === 0
-          ? ele.testName
-          : ele.grouping.name;
+      const testName = ele.grouping.name;
       return html`
         <div>
           Could not load details for digest ${ele.digest} and test
@@ -56,8 +66,6 @@ export class DetailsPageSk extends ElementSk {
   private groupings: GroupingsResponse | null = null;
 
   private grouping: Params = {};
-
-  private testName = ''; // TODO(lovisolo): Delete once all inbound links include a grouping.
 
   private digest = '';
 
@@ -83,7 +91,6 @@ export class DetailsPageSk extends ElementSk {
       /* getState */ () => ({
         // provide empty values
         grouping: this.grouping,
-        test: this.testName, // TODO(lovisolo): Delete once all inbound links include a grouping.
         digest: this.digest,
         changelist_id: this.changeListID,
         crs: this.crs,
@@ -94,8 +101,6 @@ export class DetailsPageSk extends ElementSk {
         }
         // default values if not specified.
         this.grouping = (newState.grouping as Params) || {};
-        // TODO(lovisolo): Delete once all inbound links include a grouping.
-        this.testName = (newState.test as string) || '';
         this.digest = (newState.digest as string) || '';
         this.changeListID = (newState.changelist_id as string) || '';
         this.crs = (newState.crs as string) || '';
@@ -137,30 +142,6 @@ export class DetailsPageSk extends ElementSk {
     // They cannot be re-used once aborted.
     this.fetchController = new AbortController();
     sendBeginTask(this);
-
-    // Fetch grouping if not specified as an URL parameter.
-    if (Object.keys(this.grouping).length === 0) {
-      const request: GroupingForTestRequest = {
-        test_name: this.testName,
-      };
-      try {
-        const response: GroupingForTestResponse = await fetch(
-          '/json/v1/groupingfortest',
-          {
-            method: 'POST',
-            body: JSON.stringify(request),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        ).then(jsonOrThrow);
-        this.grouping = response.grouping;
-      } catch (e) {
-        this._render();
-        sendFetchError(this, e, 'fetching grouping for test');
-        return;
-      }
-    }
 
     const request: DetailsRequest = {
       digest: this.digest,

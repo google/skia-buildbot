@@ -13,12 +13,7 @@ import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 import { GoldScaffoldSk } from '../gold-scaffold-sk/gold-scaffold-sk';
 import { DetailsPageSk } from './details-page-sk';
-import {
-  DetailsRequest,
-  DigestDetails,
-  GroupingForTestRequest,
-  GroupingForTestResponse,
-} from '../rpc_types';
+import { DetailsRequest, DigestDetails } from '../rpc_types';
 import { setQueryString } from '../../../infra-sk/modules/test_util';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
@@ -39,16 +34,6 @@ if (window.location.search.length === 0) {
 Date.now = () => fakeNow;
 
 fetchMock.get('/json/v1/groupings', groupingsResponse);
-fetchMock.post('/json/v1/groupingfortest', (url, opts) => {
-  const request: GroupingForTestRequest = JSON.parse(opts.body!.toString());
-  const response: GroupingForTestResponse = {
-    grouping: {
-      name: request.test_name,
-      source_type: 'infra',
-    },
-  };
-  return response;
-});
 
 fetchMock.post('/json/v2/details', (url, opts) => {
   if ($$<HTMLInputElement>('#simulate-rpc-error')!.checked) {

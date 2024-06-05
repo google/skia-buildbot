@@ -19,7 +19,7 @@ describe('details-page-sk', () => {
   // parameters in the below query string are different from said defaults. This allows this test
   // to verify that the page correctly parses out the query parameters.
   const baseParams =
-    '?digest=99c58c7002073346ff55f446d47d6311&test=My%20test%20has%20spaces';
+    '?digest=99c58c7002073346ff55f446d47d6311&grouping=name%3DMy%2520test%2520has%2520spaces%26source_type%3Dinfra';
 
   it('should render the demo page', async () => {
     await navigateTo(testBed.page, testBed.baseUrl, baseParams);
@@ -35,6 +35,23 @@ describe('details-page-sk', () => {
         height: 700,
       });
       await takeScreenshot(testBed.page, 'gold', 'details-page-sk');
+    });
+
+    it('should show the invalid request page if grouping params are not present', async () => {
+      await navigateTo(
+        testBed.page,
+        testBed.baseUrl,
+        '?digest=99c58c7002073346ff55f446d47d6311'
+      );
+      await testBed.page.setViewport({
+        width: 1300,
+        height: 700,
+      });
+      await takeScreenshot(
+        testBed.page,
+        'gold',
+        'details-page-sk-invalid-request'
+      );
     });
 
     it('should show the digest even if it is not in the index', async () => {
