@@ -23,7 +23,7 @@ import (
 // generatePairwiseTestRuns generates mock test runs data for PairwiseRunner
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
-func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairOrder []int) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
+func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairOrder []workflows.PairwiseOrder) ([]*workflows.PairwiseTestRun, chan *workflows.PairwiseTestRun) {
 	iterations := len(pairOrder)
 	rc := make(chan *workflows.PairwiseTestRun, iterations)
 	ptrs := make([]*workflows.PairwiseTestRun, iterations)
@@ -34,7 +34,7 @@ func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairO
 		SecondTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
 		},
-		Permutation: workflows.PairwiseOrder(pairOrder[0]),
+		Permutation: pairOrder[0],
 	}
 	rc <- &workflows.PairwiseTestRun{
 		FirstTestRun: &workflows.TestRun{
@@ -43,7 +43,7 @@ func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairO
 		SecondTestRun: &workflows.TestRun{
 			Status: run_benchmark.State(backends.RunBenchmarkFailure),
 		},
-		Permutation: workflows.PairwiseOrder(pairOrder[0]),
+		Permutation: pairOrder[0],
 	}
 	// The cas references used here are an example of the type of return
 	// one can get. They are arbitrary and independent of the inputs.
@@ -64,17 +64,17 @@ func generatePairwiseTestRuns(chart string, chartExpectedValues []float64, pairO
 		},
 	}
 	for i := 1; i < iterations; i++ {
-		first := pairOrder[i]
+		first := int(pairOrder[i])
 		second := 1 - first // 1-0 = 1; 1-1 = 0;
 		ptrs[i] = &workflows.PairwiseTestRun{
 			FirstTestRun:  runs[first],
 			SecondTestRun: runs[second],
-			Permutation:   workflows.PairwiseOrder(first),
+			Permutation:   pairOrder[i],
 		}
 		rc <- &workflows.PairwiseTestRun{
 			FirstTestRun:  runs[first],
 			SecondTestRun: runs[second],
-			Permutation:   workflows.PairwiseOrder(first),
+			Permutation:   pairOrder[i],
 		}
 	}
 
@@ -89,14 +89,14 @@ func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
 		}
 		return lt
 	}
-	verify := func(name string, generated []int, even []int) {
+	verify := func(name string, generated []workflows.PairwiseOrder, even []int) {
 		t.Run(name, func(t *testing.T) {
 			// This can still happen because this is one of the random cases, then we should change to
 			// a different seed.
 			assert.NotEqualValues(t, generated, even, "shuffled pairs are still evenly distributed.")
 			ct := 0
 			for i := range generated {
-				ct = ct + generated[i]
+				ct = ct + int(generated[i])
 			}
 			assert.EqualValues(t, len(generated)/2, ct, "pairs don't have equal 0's and 1's.")
 		})
@@ -171,8 +171,8 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	}
 
 	fakeChartValues := []float64{1, 2, 3, 4}
-	goFirstIndices := generatePairOrderIndices(seed, int(p.Iterations))
-	ptrs, rc := generatePairwiseTestRuns(p.SingleCommitRunnerParams.Chart, fakeChartValues, goFirstIndices)
+	pairwiseOrder := generatePairOrderIndices(seed, int(p.Iterations))
+	ptrs, rc := generatePairwiseTestRuns(p.SingleCommitRunnerParams.Chart, fakeChartValues, pairwiseOrder)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -199,7 +199,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	require.NotNil(t, pr)
 	require.Equal(t, *leftBuild, *pr.Left.Build)
 	require.Equal(t, *rightBuild, *pr.Right.Build)
-	assert.Equal(t, pr.Order, goFirstIndices)
+	assert.Equal(t, pr.Order, pairwiseOrder)
 	for i, first := range pr.Order {
 		if first == 0 { // left is first
 			assert.EqualValues(t, ptrs[i].FirstTestRun, pr.Left.Runs[i], fmt.Sprintf("[%v], left first", i))
