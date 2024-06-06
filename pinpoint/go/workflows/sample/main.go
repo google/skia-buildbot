@@ -30,6 +30,7 @@ var (
 	taskQueue                 = flag.String("taskQueue", "", "Task queue name registered to worker services.")
 	commit                    = flag.String("commit", "611b5a084486cd6d99a0dad63f34e320a2ebc2b3", "Git commit hash to build Chrome.")
 	triggerBisectFlag         = flag.Bool("bisect", false, "toggle true to trigger bisect workflow")
+	triggerCulpritFinderFlag  = flag.Bool("culprit-finder", false, "toggle true to trigger culprit-finder aka sandwich verification workflow")
 	triggerSingleCommitFlag   = flag.Bool("single-commit", false, "toggle true to trigger single commit runner workflow")
 	triggerPairwiseRunnerFlag = flag.Bool("pairwise-runner", false, "toggle true to trigger pairwise commit runner workflow")
 	triggerPairwiseFlag       = flag.Bool("pairwise", false, "toggle true to trigger pairwise workflow")
@@ -47,6 +48,36 @@ func defaultWorkflowOptions() client.StartWorkflowOptions {
 			MaximumAttempts:    1,
 		},
 	}
+}
+
+func triggerCulpritFinderWorkflow(c client.Client) (*pb.CulpritFinderExecution, error) {
+	// Based off of b/344943386
+	ctx := context.Background()
+	p := &workflows.CulpritFinderParams{
+		Request: &pb.ScheduleCulpritFinderRequest{
+			StartGitHash:         "c73e059a2ac54302b2951e4b4f1f7d94d92a707a",
+			EndGitHash:           "979c9324d3c6474c15335e676ac7123312d5df82",
+			Configuration:        "mac-m2-pro-perf",
+			Benchmark:            "system_health.common_desktop",
+			Story:                "load:games:bubbles:2020",
+			Chart:                "cpu_time_percentage",
+			Statistic:            "mean",
+			ComparisonMagnitude:  "0.0504",
+			ImprovementDirection: "DOWN",
+		},
+	}
+
+	var cfe *pb.CulpritFinderExecution
+	we, err := c.ExecuteWorkflow(ctx, defaultWorkflowOptions(), workflows.CulpritFinderWorkflow, p)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Unable to execute workflow")
+	}
+	sklog.Infof("Started workflow.. WorkflowID: %v RunID: %v", we.GetID(), we.GetRunID())
+
+	if err := we.Get(ctx, &cfe); err != nil {
+		return nil, skerr.Wrapf(err, "Unable to get result")
+	}
+	return cfe, nil
 }
 
 func triggerBisectWorkflow(c client.Client) (*pb.BisectExecution, error) {
@@ -113,17 +144,16 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 
 func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	ctx := context.Background()
-	// based off of https://pinpoint-dot-chromeperf.appspot.com/job/1372a174810000
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
-			StartGitHash:         "6c7b055afe2bd688ee3e7d9f035191cdd1bbd0be",
-			EndGitHash:           "1ff117b69e38d05f97872061e256a3e1225f7368",
-			Configuration:        "linux-perf",
+			StartGitHash:         "b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0",
+			EndGitHash:           "61adb993e8a46e38caac98dcb80c306391692079",
+			Configuration:        "mac-m2-pro-perf",
 			Benchmark:            "v8.browsing_desktop",
-			Story:                "browse:tools:docs_scrolling",
-			Chart:                "v8:gc:cycle:main_thread:full:atomic",
+			Story:                "browse:search:google:2020",
+			Chart:                "memory:chrome:renderer_processes:reported_by_chrome:blink_gc:allocated_objects_size",
 			Statistic:            "mean",
-			InitialAttemptCount:  "6",
+			InitialAttemptCount:  "30",
 			ImprovementDirection: "DOWN",
 		},
 	}
@@ -232,6 +262,9 @@ func main() {
 	var result interface{}
 	if *triggerBisectFlag {
 		result, err = triggerBisectWorkflow(c)
+	}
+	if *triggerCulpritFinderFlag {
+		result, err = triggerCulpritFinderWorkflow(c)
 	}
 	if *triggerSingleCommitFlag {
 		result, err = triggerSingleCommitRunner(c)
