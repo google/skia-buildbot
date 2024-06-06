@@ -46,7 +46,8 @@
             "arch",
             "config",
             "test",
-            "units"
+            "units",
+	    "bot"
         ]
     },
     "favorites": {

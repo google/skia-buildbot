@@ -942,11 +942,13 @@ func (f *Frontend) nextParamListHandler(w http.ResponseWriter, r *http.Request) 
 		// There is no next parameter. No filtering is needed.
 		resp.Paramset = map[string][]string{}
 	} else {
+		// There's a next parameter, but there's no matching paramset.
 		if _, ok := ps[nextParam]; !ok {
-			httputils.ReportError(w, errors.New("the next param is not in the returned paramset"), "Error in loading next paramset.", http.StatusInternalServerError)
-			return
+			resp.Paramset = map[string][]string{}
+		} else {
+			resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
 		}
-		resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
+
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, err, "Failed to encode nextparam response.", http.StatusInternalServerError)
