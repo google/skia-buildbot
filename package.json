@@ -13,7 +13,7 @@
     "@google-web-components/google-chart": "^4.0.2",
     "@material/material-color-utilities": "^0.2.7",
     "@puppeteer/browsers": "^1.7.1",
-    "@types/chai": "^4.2.16",
+    "@types/chai": "^4.3.16",
     "@types/chai-dom": "0.0.10",
     "@types/codemirror": "0.0.108",
     "@types/codemirror5": "npm:@types/codemirror@^5.60.5",
