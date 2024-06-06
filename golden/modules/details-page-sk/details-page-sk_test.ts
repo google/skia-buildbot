@@ -77,6 +77,17 @@ describe('details-page-sk', () => {
       );
       await endTask;
     });
+
+    it('should show overview layout by default', async () => {
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
+        .to.be.true;
+    });
+
+    it('should change to full width view if image size is toggled', async () => {
+      await detailsPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
+        .to.be.false;
+    });
   };
 
   afterEach(() => {

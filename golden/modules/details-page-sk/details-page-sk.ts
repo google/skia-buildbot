@@ -54,11 +54,13 @@ export class DetailsPageSk extends ElementSk {
     }
     return html`
       <digest-details-sk
+        class="overview"
         .groupings=${ele.groupings}
         .commits=${ele.commits}
         .changeListID=${ele.changeListID}
         .crs=${ele.crs}
-        .details=${ele.details}>
+        .details=${ele.details}
+        @image_compare_size_toggled=${ele.enableFullWidthComparison}>
       </digest-details-sk>
     `;
   };
@@ -175,6 +177,15 @@ export class DetailsPageSk extends ElementSk {
         this._render();
         sendFetchError(this, e, 'digest-details');
       });
+  }
+
+  private enableFullWidthComparison(e: CustomEvent) {
+    e.stopPropagation();
+    const digestDetail = this.querySelector('digest-details-sk');
+
+    if (digestDetail && digestDetail.classList) {
+      digestDetail.classList.remove('overview');
+    }
   }
 }
 

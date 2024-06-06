@@ -37,6 +37,20 @@ describe('details-page-sk', () => {
       await takeScreenshot(testBed.page, 'gold', 'details-page-sk');
     });
 
+    it('should show the full width comparison view', async () => {
+      const detailsPageSkPO = await navigateTo(
+        testBed.page,
+        testBed.baseUrl,
+        baseParams
+      );
+      await testBed.page.setViewport({
+        width: 1300,
+        height: 700,
+      });
+      await detailsPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
+      await takeScreenshot(testBed.page, 'gold', 'details-page-sk-full-width');
+    });
+
     it('should show the invalid request page if grouping params are not present', async () => {
       await navigateTo(
         testBed.page,
