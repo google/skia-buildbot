@@ -27,7 +27,7 @@
     "@types/karma": "^6.3.8",
     "@types/mocha": "^8.2.2",
     "@types/node": "^20.12.8",
-    "@types/sinon": "^7.5.2",
+    "@types/sinon": "^17.0.3",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.22.0",
     "@typescript/lib-dom": "npm:@types/web@^0.0.58",
