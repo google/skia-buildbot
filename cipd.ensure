@@ -1,23 +1,14 @@
-# This file specifies the CIPD packages and versions used in this repo.
-# Note that there are packages for multiple platforms here which may clobber
-# each other. Therefore, if you plan to "cipd ensure" this file, you will need
-# to first strip out the packages you don't want. For an example, see
-# kube/build_base_cipd_release, which should be updated if new platforms are
-# added here.
-
 # The CIPD server to use.
-$ServiceURL https://chrome-infra-packages.appspot.com/
+$ServiceURL https://chrome-infra-packages.appspot.com
 
-# This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
+# This is the CIPD client itself.
+infra/tools/cipd/${os}-${arch} git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
+
+@Subdir
+infra/tools/luci/kitchen/${platform}             git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
 
 @Subdir cipd_bin_packages
 infra/3pp/tools/git/linux-amd64                  version:2@2.45.2.chromium.11
-infra/3pp/tools/git/linux-arm64                  version:2@2.45.2.chromium.11
-infra/3pp/tools/git/linux-armv6l                 version:2@2.45.2.chromium.11
-infra/3pp/tools/git/mac-amd64                    version:2@2.45.2.chromium.11
-infra/3pp/tools/git/windows-386                  version:2@2.45.0.chromium.11
-infra/3pp/tools/git/windows-amd64                version:2@2.45.1.chromium.11
 infra/tools/git/${platform}                      git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
 infra/tools/luci-auth/${platform}                git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
 infra/tools/luci/git-credential-luci/${platform} git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
@@ -28,27 +19,14 @@ infra/tools/luci/vpython3/${platform}            git_revision:454b1d585279d71c7c
 skia/bots/gsutil                                 version:6
 skia/tools/goldctl/${platform}                   git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
 
-@subdir cipd_bin_packages/cpython
+@Subdir cipd_bin_packages/cpython
 infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.47
-infra/3pp/tools/cpython/linux-arm64              version:2@2.7.18.chromium.47
-infra/3pp/tools/cpython/linux-armv6l             version:2@2.7.18.chromium.47
-infra/3pp/tools/cpython/mac-amd64                version:2@2.7.18.chromium.47
-infra/3pp/tools/cpython/windows-386              version:2@2.7.18.chromium.47
-infra/3pp/tools/cpython/windows-amd64            version:2@2.7.18.chromium.47
 
-@subdir cipd_bin_packages/cpython3
+@Subdir cipd_bin_packages/cpython3
 infra/3pp/tools/cpython3/linux-amd64             version:2@3.11.7.chromium.31
-infra/3pp/tools/cpython3/linux-arm64             version:2@3.11.7.chromium.31
-infra/3pp/tools/cpython3/linux-armv6l            version:2@3.11.7.chromium.31
-infra/3pp/tools/cpython3/mac-amd64               version:2@3.11.7.chromium.31
-infra/3pp/tools/cpython3/windows-386             version:2@3.11.7.chromium.31
-infra/3pp/tools/cpython3/windows-amd64           version:2@3.11.7.chromium.31
 
-@subdir task_drivers
+@Subdir task_drivers
 skia/tools/bazel_build_all/${platform}           git_revision:8dccd812a00c904f38dff446871ec3ad655a532a
 skia/tools/bazel_test_all/${platform}            git_revision:8dccd812a00c904f38dff446871ec3ad655a532a
 skia/tools/command_wrapper/${platform}           git_revision:8dccd812a00c904f38dff446871ec3ad655a532a
 skia/tools/presubmit/${platform}                 git_revision:8dccd812a00c904f38dff446871ec3ad655a532a
-
-@Subdir
-infra/tools/luci/kitchen/${platform}             git_revision:454b1d585279d71c7cebd435f5700dfbc6211ed7
