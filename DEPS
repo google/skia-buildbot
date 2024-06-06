@@ -33,11 +33,11 @@ deps = {
       },
       {
         'package': 'infra/3pp/tools/git/windows-386',
-        'version': 'version:2@2.45.0.chromium.11',
+        'version': Var('tools_git_version'),
       },
       {
         'package': 'infra/3pp/tools/git/windows-amd64',
-        'version': 'version:2@2.45.1.chromium.11',
+        'version': Var('tools_git_version'),
       },
       {
         'package': 'infra/tools/git/${{platform}}',

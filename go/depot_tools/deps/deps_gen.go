@@ -94,12 +94,12 @@ var deps = deps_parser.DepsEntries{
 	},
 	"infra/3pp/tools/git/windows-386": {
 		Id:      "infra/3pp/tools/git/windows-386",
-		Version: "version:2@2.45.0.chromium.11",
+		Version: "version:2@2.45.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/3pp/tools/git/windows-amd64": {
 		Id:      "infra/3pp/tools/git/windows-amd64",
-		Version: "version:2@2.45.1.chromium.11",
+		Version: "version:2@2.45.2.chromium.11",
 		Path:    "cipd_bin_packages",
 	},
 	"infra/tools/cipd/${os}-${arch}": {

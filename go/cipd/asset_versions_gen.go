@@ -86,12 +86,12 @@ var PACKAGES = map[string]*Package{
 	"infra/3pp/tools/git/windows-386": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-386",
-		Version: "version:2@2.45.0.chromium.11",
+		Version: "version:2@2.45.2.chromium.11",
 	},
 	"infra/3pp/tools/git/windows-amd64": {
 		Path:    "cipd_bin_packages",
 		Name:    "infra/3pp/tools/git/windows-amd64",
-		Version: "version:2@2.45.1.chromium.11",
+		Version: "version:2@2.45.2.chromium.11",
 	},
 	"infra/tools/cipd/${os}-${arch}": {
 		Path:    ".",
