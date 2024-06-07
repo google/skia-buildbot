@@ -33,7 +33,7 @@ type Store interface {
 	Update(ctx context.Context, req *SaveRequest, id int64) error
 
 	// Delete removes the Favorite with the given id.
-	Delete(ctx context.Context, id int64) error
+	Delete(ctx context.Context, userId string, id int64) error
 
 	// List retrieves all the Favorites by user id (email).
 	List(ctx context.Context, userId string) ([]*Favorite, error)

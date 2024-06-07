@@ -246,7 +246,7 @@ func TestDelete_FavoriteWithId(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(favsInDb))
 
-	err = store.Delete(ctx, favsInDb[0].ID)
+	err = store.Delete(ctx, "a@b.com", favsInDb[0].ID)
 	require.NoError(t, err)
 
 	favsInDb, err = store.List(ctx, "a@b.com")

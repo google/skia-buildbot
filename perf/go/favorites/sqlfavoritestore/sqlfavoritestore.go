@@ -53,7 +53,7 @@ var statements = map[statement]string{
 		FROM
 			Favorites
 		WHERE
-			id=$1
+			id=$1 AND user_id=$2
 	`,
 	listFavorites: `
 		SELECT
@@ -116,10 +116,15 @@ func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, 
 }
 
 // Delete implements the favorites.Store interface.
-func (s *FavoriteStore) Delete(ctx context.Context, id int64) error {
-	if _, err := s.db.Exec(ctx, statements[deleteFavorite], id); err != nil {
+func (s *FavoriteStore) Delete(ctx context.Context, userId string, id int64) error {
+	call, err := s.db.Exec(ctx, statements[deleteFavorite], id, userId)
+	if err != nil {
 		return skerr.Wrapf(err, "Failed to delete favorite with id=%d", id)
 	}
+	if call.RowsAffected() != 1 {
+		return skerr.Fmt("Failed to delete favorite with id=%d", id)
+	}
+
 	return nil
 }
 

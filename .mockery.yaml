@@ -329,6 +329,11 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/favorites:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      Store:
   go.skia.org/infra/perf/go/tracestore:
     interfaces:
       TraceStore:
