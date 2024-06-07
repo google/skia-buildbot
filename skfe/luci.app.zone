@@ -3,15 +3,13 @@
 ;;; to populate the zone records in the skia-public GCP project,
 ;;; which is where our zone file is hosted.
 ;;;
-;;; If you add or change any records in this file then apply them with:
+;;; If you add or change any records in this file then they will
+;;; automatically be applied by the `zone-apply` application
+;;; running in skia-infra-corp.
 ;;;
-;;;    $ ./update-zone-records.sh
+;;; See //skfe/go/zone-apply/README.md for more details.
 ;;;
-;;; After you apply the changes run:
-;;;
-;;;    $./watch-for-zone-file-update.sh
-;;;
-;;; Once the changes have propogated update the tests in:
+;;; Once the changes have propogated you can update the tests in:
 ;;;
 ;;;    //skfe/go/dns/dns_test.go
 ;;;
