@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/favorites"
 	favoriteMocks "go.skia.org/infra/perf/go/favorites/mocks"
 	"go.skia.org/infra/perf/go/regression"
@@ -242,6 +243,46 @@ func TestFrontendDeleteFavoriteHandler_Success(t *testing.T) {
 	f.deleteFavoriteHandler(w, r)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+}
+
+func TestFrontendFavoritesHandler_Success(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/_/favorites/", nil)
+
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	require.NoError(t, err)
+
+	login := mocks.NewLogin(t)
+	login.On("LoggedInAs", r).Return(alogin.EMail("nobody@example.org"))
+
+	favMocks := favoriteMocks.NewStore(t)
+	fakeUserFavs := []*favorites.Favorite{
+		{ID: 12345, UserId: "nobody@example.org"},
+		{ID: 23456, UserId: "nobody@example.org"},
+	}
+	favMocks.On("List", testutils.AnyContext, "nobody@example.org").Return(fakeUserFavs, nil)
+
+	f := &Frontend{
+		favStore:      favMocks,
+		loginProvider: login,
+	}
+
+	f.favoritesHandler(w, r)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	var favResp *config.Favorites
+	err = json.Unmarshal(w.Body.Bytes(), &favResp)
+	require.NoError(t, err)
+
+	require.Equal(t, favResp.Sections[0].Name, "Section 1")
+	require.Len(t, favResp.Sections[0].Links, 2)
+
+	require.Equal(t, favResp.Sections[1].Name, "Section 2")
+	require.Len(t, favResp.Sections[1].Links, 1)
+
+	require.Equal(t, favResp.Sections[2].Name, "My Favorites")
+	require.Len(t, favResp.Sections[2].Links, 2)
 }
 
 func TestFrontendRegressionsHandler_Success(t *testing.T) {

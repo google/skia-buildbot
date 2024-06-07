@@ -2155,16 +2155,47 @@ func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// favoritesHandler returns the favorites config for the instance
+// favoritesHandler returns the favorites config for the instance. If a user is
+// logged in this also returns the favorites specific to the logged in user.
 func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	fav := config.Favorites{
 		Sections: []config.FavoritesSectionConfig{},
 	}
+
 	if config.Config.Favorites.Sections != nil {
-		fav = config.Config.Favorites
+		fav.Sections = config.Config.Favorites.Sections
 	}
+
+	loggedInEmail := f.loginProvider.LoggedInAs(r)
+	if loggedInEmail != "" {
+		favsFromDb, err := f.favStore.List(ctx, loggedInEmail.String())
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to list favorite.", http.StatusInternalServerError)
+			return
+		}
+
+		favoriteList := []config.FavoritesSectionLinkConfig{}
+
+		for _, favorite := range favsFromDb {
+			favoriteList = append(favoriteList, config.FavoritesSectionLinkConfig{
+				Text:        favorite.Name,
+				Href:        favorite.Url,
+				Description: favorite.Description,
+			})
+		}
+
+		if len(favsFromDb) > 0 {
+			fav.Sections = append(fav.Sections, config.FavoritesSectionConfig{
+				Name:  "My Favorites",
+				Links: favoriteList,
+			})
+		}
+	}
+
 	if err := json.NewEncoder(w).Encode(fav); err != nil {
 		sklog.Errorf("Error writing the Favorites json to response: %s", err)
 	}

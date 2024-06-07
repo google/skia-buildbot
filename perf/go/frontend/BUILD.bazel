@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "frontend",
     srcs = ["frontend.go"],
+    data = glob(["testdata/**"]),
     embedsrcs = [
         "googleanalytics.html",
         "cookieconsent.html",
@@ -70,12 +71,14 @@ go_library(
 go_test(
     name = "frontend_test",
     srcs = ["frontend_test.go"],
+    data = glob(["testdata/**"]),
     embed = [":frontend"],
     deps = [
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/roles",
         "//go/testutils",
+        "//perf/go/config",
         "//perf/go/favorites:store",
         "//perf/go/favorites/mocks",
         "//perf/go/regression",
