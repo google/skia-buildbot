@@ -292,6 +292,11 @@ func getCtx(ctx context.Context) *execContext {
 	return defaultContext
 }
 
+// GetRunFn retrieves the function used to run commands for this context.
+func GetRunFn(ctx context.Context) func(context.Context, *Command) error {
+	return getCtx(ctx).runFn
+}
+
 // See documentation for exec.Run.
 func (c *execContext) Run(ctx context.Context, command *Command) error {
 	return c.runFn(ctx, command)

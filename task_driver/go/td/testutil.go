@@ -21,11 +21,16 @@ type TestingRun struct {
 // StartTestRun returns a root-level Step to be used for testing. This is
 // an alternative so that we don't need to call Init() in testing.
 func StartTestRun(t sktest.TestingT) *TestingRun {
+	return StartTestRunWithContext(t, context.Background())
+}
+
+// StartTestRunWithContext is like StartTestRun but uses the given Context.
+func StartTestRunWithContext(t sktest.TestingT, ctx context.Context) *TestingRun {
 	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	return &TestingRun{
 		t:      t,
 		ctx:    newRun(ctx, report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
@@ -82,15 +87,19 @@ func (r *TestingRun) Dir() string {
 	return r.wd
 }
 
-// Run testing steps inside the given context.
+// RunTestSteps runs testing steps inside the given context.
 func RunTestSteps(t sktest.TestingT, expectPanic bool, fn func(context.Context) error) (rv *StepReport) {
-	tr := StartTestRun(t)
+	return RunTestStepsWithContext(t, context.Background(), expectPanic, fn)
+}
+
+// RunTestStepsWithContext is the same as RunTestSteps but uses the given context.
+func RunTestStepsWithContext(t sktest.TestingT, ctx context.Context, expectPanic bool, fn func(context.Context) error) (rv *StepReport) {
+	tr := StartTestRunWithContext(t, ctx)
 	defer tr.Cleanup()
 	var err error
 	defer func() {
 		rv = tr.finishRun(expectPanic, &err, recover())
 	}()
-	ctx := tr.Root()
-	err = fn(ctx)
+	err = fn(tr.Root())
 	return
 }
