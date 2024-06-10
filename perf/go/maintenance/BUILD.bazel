@@ -14,5 +14,6 @@ go_library(
         "//perf/go/regression/migration",
         "//perf/go/sql/expectedschema",
         "//perf/go/tracing",
+        "@com_google_cloud_go_redis//apiv1",
     ],
 )

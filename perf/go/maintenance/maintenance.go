@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	gcp_redis "cloud.google.com/go/redis/apiv1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
@@ -65,10 +66,15 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	if flags.RefreshQueryCache {
 		sklog.Info("Creating Redis Client.")
-		redisClient, err := redis.NewRedisClient(ctx)
+		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
 		if err != nil {
-			return skerr.Wrapf(err, "Failed to create Redis client.")
+			return skerr.Wrapf(err, "Cannot create Redis client for Google Cloud.")
 		}
+		traceStore, err := builders.NewTraceStoreFromConfig(ctx, flags.Local, instanceConfig)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to build TraceStore.")
+		}
+		redisClient := redis.NewRedisClient(ctx, gcpClient, &traceStore, flags.TilesForQueryCache)
 		sklog.Info("Starting Redis Routine.")
 		redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
 	}

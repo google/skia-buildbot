@@ -720,6 +720,7 @@ type MaintenanceFlags struct {
 	Local              bool
 	MigrateRegressions bool
 	RefreshQueryCache  bool
+	TilesForQueryCache int
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -760,6 +761,12 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 			Name:        "refresh_query_cache",
 			Value:       false,
 			Usage:       "If true, periodically check the Redis cache instances.",
+		},
+		&cli.IntFlag{
+			Destination: &flags.TilesForQueryCache,
+			Name:        "tiles_for_query_cache",
+			Value:       2,
+			Usage:       "The number of tiles to look for when caching query results.",
 		},
 	}
 }

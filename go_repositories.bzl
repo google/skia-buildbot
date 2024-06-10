@@ -304,6 +304,19 @@ def go_repositories():
         version = "v0.0.0-20190913173617-a41fca850d0b",
     )
     go_repository(
+        name = "com_github_bsm_ginkgo_v2",
+        importpath = "github.com/bsm/ginkgo/v2",
+        sum = "h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=",
+        version = "v2.12.0",
+    )
+    go_repository(
+        name = "com_github_bsm_gomega",
+        importpath = "github.com/bsm/gomega",
+        sum = "h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=",
+        version = "v1.27.10",
+    )
+
+    go_repository(
         name = "com_github_burntsushi_toml",
         importpath = "github.com/BurntSushi/toml",
         sum = "h1:ksErzDEI1khOiGPgpwuI7x2ebx/uXQNw7xJpn9Eq1+I=",
@@ -539,6 +552,12 @@ def go_repositories():
         importpath = "github.com/dgrijalva/jwt-go",
         sum = "h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=",
         version = "v3.2.0+incompatible",
+    )
+    go_repository(
+        name = "com_github_dgryski_go_rendezvous",
+        importpath = "github.com/dgryski/go-rendezvous",
+        sum = "h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=",
+        version = "v0.0.0-20200823014737-9f7001d12a5f",
     )
 
     go_repository(
@@ -2185,6 +2204,12 @@ def go_repositories():
         importpath = "github.com/r3labs/sse/v2",
         sum = "h1:lZH+W4XOLIq88U5MIHOsLec7+R62uhz3bIi2yn0Sg8o=",
         version = "v2.8.1",
+    )
+    go_repository(
+        name = "com_github_redis_go_redis_v9",
+        importpath = "github.com/redis/go-redis/v9",
+        sum = "h1:fOAp1/uJG+ZtcITgZOfYFmTKPE7n4Vclj1wZFgRciUU=",
+        version = "v9.5.3",
     )
 
     go_repository(

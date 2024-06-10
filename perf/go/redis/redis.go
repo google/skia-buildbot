@@ -12,12 +12,15 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	gcp_redis "cloud.google.com/go/redis/apiv1"
 	rpb "cloud.google.com/go/redis/apiv1/redispb"
+	"github.com/redis/go-redis/v9"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/tracestore"
 	"google.golang.org/api/iterator"
 )
 
@@ -29,19 +32,20 @@ type RedisWrapper interface {
 
 // RedisClient implements RedisWrapper
 type RedisClient struct {
-	gcpClient *gcp_redis.CloudRedisClient
+	gcpClient    *gcp_redis.CloudRedisClient
+	traceStore   *tracestore.TraceStore
+	tilesToCache int
+
+	mutex sync.Mutex
 }
 
 // Create a new Redisclient.
-func NewRedisClient(ctx context.Context) (*RedisClient, error) {
-	gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
-	if err != nil {
-		sklog.Errorf("Cannot create Redis client for Google Cloud.")
-		return nil, err
-	}
+func NewRedisClient(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, traceStore *tracestore.TraceStore, tilesToCache int) *RedisClient {
 	return &RedisClient{
-		gcpClient: gcpClient,
-	}, nil
+		gcpClient:    gcpClient,
+		traceStore:   traceStore,
+		tilesToCache: tilesToCache,
+	}
 }
 
 // Start a routine to periodically access the Redis instance.
@@ -58,11 +62,19 @@ func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod tim
 			sklog.Infof("Time to list Redis instances...")
 			var sb strings.Builder
 			instances := r.ListRedisInstances(ctx, parent)
+			var targetInstance *rpb.Instance
 			sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
 			for _, instance := range instances {
 				sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
+				if instance.Name == config.Instance {
+					sb.WriteString(fmt.Sprintf("Target instance found: %s", config.Instance))
+					targetInstance = instance
+				}
 			}
 			sklog.Infof(sb.String())
+			if targetInstance != nil {
+				r.RefreshCachedQueries(ctx, targetInstance)
+			}
 		}
 	}()
 }
@@ -88,4 +100,31 @@ func (r *RedisClient) ListRedisInstances(ctx context.Context, parent string) []*
 		instances = append(instances, resp)
 	}
 	return instances
+}
+
+// Routine to update the cache for skia perf query UI.
+func (r *RedisClient) RefreshCachedQueries(ctx context.Context, instance *rpb.Instance) {
+	opts := &redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", instance.Host, instance.Port),
+		Password: "",
+	}
+	rdb := redis.NewClient(opts)
+
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// Test code while setting up Redis instance.
+	currentValue, err := rdb.Get(ctx, "FullPS").Result()
+	if err == redis.Nil {
+		sklog.Warningf("Key does not exist.")
+	} else if err != nil {
+		sklog.Errorf("Failed to Get Redis: %s", err.Error())
+	} else {
+		sklog.Infof("Value read: %s", currentValue)
+	}
+
+	err = rdb.Set(ctx, "FullPS", time.Now().Format(time.UnixDate), time.Second*30).Err()
+	if err != nil {
+		sklog.Errorf("Failed to Set Redis: %s", err.Error())
+	}
 }

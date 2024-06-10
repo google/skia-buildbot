@@ -128,6 +128,7 @@ require (
 	github.com/cncf/xds/go v0.0.0-20231109132714-523115ebc101 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/danjacques/gofslock v0.0.0-20230728142113-ae8f59f9e88b // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.11.1 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
@@ -193,6 +194,7 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/redis/go-redis/v9 v9.5.3 // indirect
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/rs/zerolog v1.29.0 // indirect
