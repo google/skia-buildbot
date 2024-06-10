@@ -2,7 +2,7 @@ plot-summary-sk {
   resize: both;
   overflow: hidden;
   min-width: 200px;
-  min-height: 200px;
+  min-height: 100px;
   position: relative;
   padding: 0;
   border: 0;
@@ -13,11 +13,18 @@ plot-summary-sk {
     position: absolute;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
   }
   .plot {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  [hidden] {
+    display: none;
   }
 }
 

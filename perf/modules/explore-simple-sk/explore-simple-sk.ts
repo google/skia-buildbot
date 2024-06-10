@@ -164,6 +164,10 @@ const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
+type PlotSummaryRequestCallback = (
+  start: number,
+  end: number
+) => Promise<boolean>;
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -690,8 +694,10 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
-      <plot-summary-sk id="plotSummary" width="1000" height="50" highlight_color="#CED0CE"
-      @summary_selected=${ele.summarySelected}>
+      <plot-summary-sk id=plotSummary highlight_color="#CED0CE"
+      @summary_selected=${
+        ele.summarySelected
+      } class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
       </plot-summary-sk>
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
@@ -1704,14 +1710,21 @@ export class ExploreSimpleSk extends ElementSk {
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plot!.addLines(traceSet, labels);
     if (this._state.plotSummary) {
-      if (this.fullDataFrame !== null) {
-        this.plotSummary!.DisplayChartData(
-          this.createChartData(this.fullDataFrame!.traceset),
-          this.state.labelMode === LabelMode.CommitPosition
-        );
-      }
+      this.populatePlotSummary();
     } else {
       this.plotSummary!.hidden = true;
+    }
+  }
+
+  /**
+   * Populate the plot summary with the data in the fullDataFrame.
+   */
+  private populatePlotSummary() {
+    if (this.fullDataFrame !== null) {
+      this.plotSummary!.DisplayChartData(
+        this.createChartData(this.fullDataFrame!.traceset),
+        this.state.labelMode === LabelMode.CommitPosition
+      );
     }
   }
 
@@ -1845,9 +1858,26 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** Create a FrameRequest that will re-create the current state of the page. */
   private requestFrameBodyFullFromState(): FrameRequest {
+    return this.requestFrameBodyFullForRange(
+      this._state.begin,
+      this._state.end
+    );
+  }
+
+  /**
+   * Create a FrameRequest that recreates the current state of the page
+   * for the given range.
+   * @param begin Start time.
+   * @param end End time.
+   * @returns FrameRequest object.
+   */
+  private requestFrameBodyFullForRange(
+    begin: number,
+    end: number
+  ): FrameRequest {
     return {
-      begin: this._state.begin,
-      end: this._state.end,
+      begin: begin,
+      end: end,
       num_commits: this._state.numCommits,
       request_type: this._state.requestType,
       formulas: this._state.formulas,
@@ -2026,7 +2056,6 @@ export class ExploreSimpleSk extends ElementSk {
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
   private addTraces(json: FrameResponse, tab: boolean) {
-    this.fullDataFrame = json.dataframe;
     // If this is data returned from a panning-triggered dataframe fetch, then
     // we want to try to preserve the existing zoom *size* so the zoomed data range
     // only pans left or right, without re-sizing the zoomed range.
@@ -2070,6 +2099,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._dataframe !== null && this._state._incremental) {
       mergedDataframe = join(this._dataframe, dataframe);
     }
+
+    this.fullDataFrame = mergedDataframe;
 
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
     // before it called this method. Why does it do this twice? Is it a bug?
@@ -2154,6 +2185,64 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this._dataframe = mergedDataframe;
     this._renderedTraces();
+    this.populateExtendedTimelineForPlotSummary();
+  }
+
+  /**
+   * Populate the summary bar over an extended time line. This involves the following steps.
+   *
+   * 1. Define a chunkSize for the data being fetched (eg: 1 month).
+   * 2. Define how many chunks before and after the queried timeline we want to populate.
+   * 3. For each chunk, query for the relevant data and populate the summary bar.
+   *
+   * Eg: If the user queried for a trace from t1 to tn, we go back to t1 - 3 months
+   * querying 1 month at a time and go tn + 3 months querying 1 month at a time.
+   */
+  async populateExtendedTimelineForPlotSummary(): Promise<void> {
+    if (this._state.plotSummary) {
+      let currentStart = this.state.begin;
+      let currentEnd = this.state.end;
+
+      const monthsToLook = 3;
+
+      const chunkSize = 30 * 24 * 60 * 60; // 1 month in seconds.
+      const processChunk: PlotSummaryRequestCallback = async (start, end) => {
+        const frameRequest = this.requestFrameBodyFullForRange(start, end);
+        let proceed = true;
+        await this.sendFrameRequest(frameRequest, (json) => {
+          if (json.dataframe === undefined || json.dataframe === null) {
+            // If there is no data to process, we can end right away.
+            proceed = false;
+          } else {
+            this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
+            this.populatePlotSummary();
+          }
+        });
+        return proceed;
+      };
+
+      // Let's fetch the data before the current time window.
+      for (let i = 0; i < monthsToLook; i++) {
+        currentEnd = currentStart;
+        currentStart -= chunkSize;
+        const proceed = processChunk(currentStart, currentEnd);
+        if (!proceed) {
+          break;
+        }
+      }
+
+      // Let's fetch data after the current time window.
+      currentStart = this._state.begin;
+      currentEnd = this._state.end;
+      for (let i = 0; i < monthsToLook; i++) {
+        currentStart = currentEnd;
+        currentEnd = currentStart + chunkSize;
+        const proceed = processChunk(currentStart, currentEnd);
+        if (!proceed) {
+          break;
+        }
+      }
+    }
   }
 
   /**
@@ -2600,7 +2689,6 @@ export class ExploreSimpleSk extends ElementSk {
    * of the response once it's available.
    */
   private async requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
-    body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (this._requestId !== '') {
       errorMessage('There is a pending query already running.');
       return;
@@ -2609,29 +2697,34 @@ export class ExploreSimpleSk extends ElementSk {
     this._requestId = 'About to make request';
     this.spinning = true;
     try {
-      const finishedProg = await startRequest(
-        '/_/frame/start',
-        body,
-        200,
-        this.spinner!,
-        (prog: progress.SerializedProgress) => {
-          this.percent!.textContent = messagesToPreString(prog.messages);
-        }
-      );
-      if (finishedProg.status !== 'Finished') {
-        throw new Error(messagesToErrorString(finishedProg.messages));
-      }
-      const msg = messageByName(finishedProg.messages, 'Message');
-      if (msg) {
-        errorMessage(msg);
-      }
-      cb(finishedProg.results as FrameResponse);
+      await this.sendFrameRequest(body, cb);
     } catch (msg) {
       this.catch(msg);
     } finally {
       this.spinning = false;
       this._requestId = '';
     }
+  }
+
+  private async sendFrameRequest(body: FrameRequest, cb: RequestFrameCallback) {
+    body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const finishedProg = await startRequest(
+      '/_/frame/start',
+      body,
+      200,
+      this.spinner!,
+      (prog: progress.SerializedProgress) => {
+        this.percent!.textContent = messagesToPreString(prog.messages);
+      }
+    );
+    if (finishedProg.status !== 'Finished') {
+      throw new Error(messagesToErrorString(finishedProg.messages));
+    }
+    const msg = messageByName(finishedProg.messages, 'Message');
+    if (msg) {
+      errorMessage(msg);
+    }
+    cb(finishedProg.results as FrameResponse);
   }
 
   // Download all the displayed data as a CSV file.

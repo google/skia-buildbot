@@ -31,6 +31,13 @@ export interface PlotSummarySkSelectionEventDetails {
 export class PlotSummarySk extends ElementSk {
   constructor() {
     super(PlotSummarySk.template);
+
+    this._upgradeProperty('width');
+    this._upgradeProperty('height');
+  }
+
+  static get observedAttributes(): string[] {
+    return ['width', 'height'];
   }
 
   private overlayCtx: CanvasRenderingContext2D | null = null;
@@ -79,29 +86,46 @@ export class PlotSummarySk extends ElementSk {
   private currentChartData: ChartData | null = null;
 
   private static template = (ele: PlotSummarySk) => html`
-    <div class="border">
-      <div
-        id="plot"
-        class="plot"
-        width=${ele.width * window.devicePixelRatio}
-        height=${ele.height * window.devicePixelRatio}
-        style="transform-origin: 0 0; transform: scale(${1 /
-        window.devicePixelRatio});"></div>
-      <canvas
-        id="overlay"
-        class="overlay"
-        width=${ele.width * window.devicePixelRatio}
-        height=${ele.height * window.devicePixelRatio}
-        style="transform-origin: 0 0; transform: scale(${1 /
-        window.devicePixelRatio});"></canvas>
-    </div>
+    <div
+      id="plot"
+      class="plot"
+      width=${ele.width * window.devicePixelRatio}
+      height=${ele.height * window.devicePixelRatio}
+      style="transform-origin: 0 0; transform: scale(${1 /
+      window.devicePixelRatio});"></div>
+    <canvas
+      id="overlay"
+      class="overlay"
+      width=${ele.width * window.devicePixelRatio}
+      height=${ele.height * window.devicePixelRatio}
+      style="transform-origin: 0 0; transform: scale(${1 /
+      window.devicePixelRatio});"></canvas>
   `;
 
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
+    const resizeObserver = new ResizeObserver(
+      (entries: ResizeObserverEntry[]) => {
+        entries.forEach((entry) => {
+          this.width = entry.contentRect.width;
+          this.height = entry.contentRect.height;
+        });
+      }
+    );
+    resizeObserver.observe(this);
     this.render();
 
     window.requestAnimationFrame(this.raf.bind(this));
+  }
+
+  attributeChangedCallback(
+    _: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    if (oldValue !== newValue) {
+      this.render();
+    }
   }
 
   render(): void {
@@ -307,6 +331,14 @@ export class PlotSummarySk extends ElementSk {
 
   set highlightColor(val: string) {
     this.setAttribute('highlight_color', val);
+  }
+
+  /** Set's the hidden attribute. */
+  set hidden(val: boolean) {
+    super.hidden = val;
+    // Update the attribute to the child elements as well.
+    this.overlayCanvas!.hidden = val;
+    this.plotElement!.hidden = val;
   }
 
   // Converts an event to a specific point
