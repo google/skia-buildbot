@@ -10,7 +10,6 @@ package redis
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -46,24 +45,26 @@ func NewRedisClient(ctx context.Context) (*RedisClient, error) {
 }
 
 // Start a routine to periodically access the Redis instance.
-func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod time.Duration, config *config.RedisConfig) error {
+func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod time.Duration, config *config.RedisConfig) {
 	project := config.Project
 	zone := config.Zone
 	if project == "" || zone == "" {
 		sklog.Errorf("No project or zone defined in redis config.")
-		return errors.New("empty project or zone")
 	}
 	parent := fmt.Sprintf("projects/%s/locations/%s", project, zone)
-	for range time.Tick(refreshPeriod) {
-		var sb strings.Builder
-		instances := r.ListRedisInstances(ctx, parent)
-		sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
-		for _, instance := range instances {
-			sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
+	sklog.Infof("Start listing Redis instances for %s.", parent)
+	go func() {
+		for range time.Tick(refreshPeriod) {
+			sklog.Infof("Time to list Redis instances...")
+			var sb strings.Builder
+			instances := r.ListRedisInstances(ctx, parent)
+			sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
+			for _, instance := range instances {
+				sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
+			}
+			sklog.Infof(sb.String())
 		}
-		sklog.Infof(sb.String())
-	}
-	return nil
+	}()
 }
 
 // List all Redis instances based on the parent string, which is like "projects/{project}/locations/{location}"
@@ -74,11 +75,16 @@ func (r *RedisClient) ListRedisInstances(ctx context.Context, parent string) []*
 	it := r.gcpClient.ListInstances(ctx, listreq)
 	instances := []*rpb.Instance{}
 	for {
+		sklog.Infof("Iterating...")
 		resp, err := it.Next()
 		if err == iterator.Done {
-			sklog.Infof("Iterated all %s Redis instances for %s.", len(instances), parent)
+			sklog.Infof("Iterated all %d Redis instances for %s.", len(instances), parent)
+			break
+		} else if err != nil {
+			sklog.Errorf("Error found in listing Redis instances: %s. Parent: %s", err.Error(), parent)
 			break
 		}
+		sklog.Infof("Appending Redis instance: %s", resp.Name)
 		instances = append(instances, resp)
 	}
 	return instances

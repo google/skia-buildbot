@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/redis"
@@ -24,7 +25,7 @@ const (
 	// Size of the batch of regressions to migrate.
 	regressionMigrationBatchSize = 50
 
-	redisCacheRefreshPeriod = time.Minute * 30
+	redisCacheRefreshPeriod = time.Minute
 )
 
 // Start all the long running processes. This function does not return if all
@@ -63,14 +64,13 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	if flags.RefreshQueryCache {
+		sklog.Info("Creating Redis Client.")
 		redisClient, err := redis.NewRedisClient(ctx)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to create Redis client.")
 		}
-		err = redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
-		if err != nil {
-			return skerr.Wrapf(err, "Failed to execute the Redis refresh routine.")
-		}
+		sklog.Info("Starting Redis Routine.")
+		redisClient.StartRefreshRoutine(ctx, redisCacheRefreshPeriod, &instanceConfig.QueryConfig.RedisConfig)
 	}
 
 	select {}

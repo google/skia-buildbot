@@ -24,7 +24,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 	checkDeps := func(repo string, rev string, expectMap map[string]*depsEntryPos) {
 		contents, err := gitiles.NewRepo(repo, nil).ReadFileAtRef(ctx, "DEPS", rev)
 		require.NoError(t, err)
-		actual, poss, err := parseDeps(string(contents))
+		actual, poss, err := parseDeps(string(contents), true)
 		require.NoError(t, err)
 		actualMap := make(map[string]*depsEntryPos, len(actual))
 		for depId, dep := range actual {
@@ -47,6 +47,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 				Id:      "skia.googlesource.com/skia",
 				Version: "85755f46a8810b1863493a81887f1dc17c2e49e1",
 				Path:    "src/third_party/skia",
+				Type:    DepType_Git,
 			},
 			Pos: &ast.Pos{
 				Lineno:    178,
@@ -59,6 +60,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 				Id:      "infra/tools/luci/swarming",
 				Version: "git_revision:de73cf6c4bde86f0a9c8d54151b69b0154a398f1",
 				Path:    "src/tools/luci-go",
+				Type:    DepType_Cipd,
 			},
 			Pos: &ast.Pos{
 				Lineno:    159,
@@ -71,6 +73,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 				Id:      "android.googlesource.com/platform/external/protobuf",
 				Version: "7fca48d8ce97f7ba3ab8eea5c472f1ad3711762f",
 				Path:    "src/third_party/android_protobuf/src",
+				Type:    DepType_Git,
 			},
 			Pos: &ast.Pos{
 				Lineno:    640,
@@ -86,6 +89,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 				Id:      "chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools",
 				Version: "e95fbfb1f509ad7a7fdfb72ac35fe412d72fc4a4",
 				Path:    "third_party/spirv-tools/src",
+				Type:    DepType_Git,
 			},
 			Pos: &ast.Pos{
 				Lineno:    49,
@@ -101,6 +105,7 @@ func TestParseDepsRealWorld(t *testing.T) {
 				Id:      "chromium.googlesource.com/chromium/tools/build",
 				Version: "",
 				Path:    "build",
+				Type:    DepType_Git,
 			},
 			Pos: &ast.Pos{
 				Lineno:    8,

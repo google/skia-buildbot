@@ -25,6 +25,8 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
+	"go.skia.org/infra/perf/go/favorites"
+	favorite_store "go.skia.org/infra/perf/go/favorites/sqlfavoritestore"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/file/gcssource"
@@ -295,6 +297,20 @@ func NewSubscriptionStoreFromConfig(ctx context.Context, instanceConfig *config.
 			return nil, skerr.Wrap(err)
 		}
 		return subscription_store.New(db)
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+}
+
+// NewFavoriteStoreFromConfig creates a new favorites.Store from the
+// InstanceConfig which provides access to the favorite data.
+func NewFavoriteStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (favorites.Store, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.CockroachDBDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return favorite_store.New(db), nil
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

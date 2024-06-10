@@ -18,7 +18,6 @@ import (
 // Those are used to invoke the workflows. This is meant to decouple the
 // souce code dependencies such that the client doesn't need to link with
 // the actual implementation.
-// TODO(b/326352379): introduce a specific type to encapsulate these workflow names
 const (
 	Bisect                            = "perf.bisect"
 	BuildChrome                       = "perf.build_chrome"

@@ -94,7 +94,7 @@ export class TestPickerSk extends ElementSk {
           @click=${ele.onPlotButtonClick}
           title="Plot a graph on selected values. Narrow down selection to ${PLOT_MAXIMUM} matches to be able to plot."
           disabled>
-          Plot
+          Add Graph
         </button>
       </div>
     </div>
@@ -112,26 +112,40 @@ export class TestPickerSk extends ElementSk {
    * Adds a PickerFieldSk to the fieldContainer div.
    *
    * Order of events:
-   * 1. Render new PickerFieldSk object with no options and appropriate label.
-   * 2. Focus the field.
-   * 3. Add eventListener to field specifying how to handle selected value changes.
-   * 4. Fetch dropdown options from backend using currently populated values in _fieldData.
-   * 5. Once options are fetched, open the dropdown selection menu and update the
-   *    matches count.
+   * 1. Fetch options for the next child to be added.
+   * 2. If we receive options, we initialize new PickerFieldSk object. Otherwise, do
+   *    create a new field. Just update the count.
+   * 2. Populate the field with fetched dropdown options.
+   * 3. Focus the field.
+   * 4. Open the dropdown selection menu automatically if it's not the first field.
+   * 5. Add eventListener to field specifying how to handle selected value changes.
    */
   private addChildField() {
     const currentIndex = this._currentIndex;
     const currentFieldInfo = this._fieldData[currentIndex];
     const param = currentFieldInfo.param;
 
-    const field: PickerFieldSk = new PickerFieldSk(param);
-    currentFieldInfo.field = field;
-    this._containerDiv!.appendChild(field);
-    field.focus();
-    this._currentIndex += 1;
+    const handler = (json: NextParamListHandlerResponse) => {
+      this.updateCount(json.count);
 
-    this.addValueChangedEventToField(currentIndex);
-    this.fetchOptions(currentIndex);
+      if (param in json.paramset && json.paramset[param] !== null) {
+        const options = json.paramset[param];
+        const field: PickerFieldSk = new PickerFieldSk(param);
+        currentFieldInfo.field = field;
+        this._containerDiv!.appendChild(field);
+        this._currentIndex += 1;
+
+        field!.options = options;
+        field!.focus();
+        if (currentIndex !== 0) {
+          field!.openOverlay();
+        }
+        this.addValueChangedEventToField(currentIndex);
+      }
+
+      this._render();
+    };
+    this.callNextParamList(handler);
   }
 
   /**
@@ -202,15 +216,19 @@ export class TestPickerSk extends ElementSk {
   /**
    * Wrapper for POST Call to backend.
    *
-   * @param body
    * @param handler
-   * @param errorHandler
    */
   private callNextParamList(
-    body: NextParamListHandlerRequest,
-    handler: (json: NextParamListHandlerResponse) => void,
-    errorHandler: (msg: any) => void
+    handler: (json: NextParamListHandlerResponse) => void
   ) {
+    this.updateCount(-1);
+    this._requestInProgress = true;
+    this._render();
+
+    const body: NextParamListHandlerRequest = {
+      q: this.createQueryFromFieldData(),
+    };
+
     fetch('/_/nextParamList/', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -219,8 +237,15 @@ export class TestPickerSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then(handler)
-      .catch(errorHandler);
+      .then((json) => {
+        this._requestInProgress = false;
+        handler(json);
+      })
+      .catch((msg: any) => {
+        this._requestInProgress = false;
+        this._render();
+        errorMessage(msg);
+      });
   }
 
   /**
@@ -230,34 +255,30 @@ export class TestPickerSk extends ElementSk {
    * figure out which options the field can provide as valid options in
    * its dropdown menu.
    *
-   * Once options are fetched, the field will be populated and its dropdown
-   * menu will be automatically opened. The match count is also updated.
+   * Once options are fetched, the field will be populated. Its dropdown
+   * menu will be automatically opened, unless it is the first field.
+   * The match count is also updated.
    *
    * @param index
    */
   private fetchOptions(index: number) {
     const fieldInfo = this._fieldData[index];
     const field = fieldInfo.field;
-    this.updateCount(-1);
-    this._requestInProgress = true;
-    this._render();
+    const param = field!.label;
 
-    const body: NextParamListHandlerRequest = {
-      q: this.createQueryFromFieldData(),
-    };
     const handler = (json: NextParamListHandlerResponse) => {
-      this._requestInProgress = false;
-      field!.options = json.paramset[field!.label];
-      this.updateCount(json.count);
-      field!.openOverlay();
-      this._render();
+      if (param in json.paramset && json.paramset[param] !== null) {
+        const options = json.paramset[field!.label];
+        field!.options = options;
+        this.updateCount(json.count);
+        field!.focus();
+        if (index !== 0) {
+          field!.openOverlay();
+        }
+        this._render();
+      }
     };
-    const errorHandler = (msg: any) => {
-      this._requestInProgress = false;
-      this._render();
-      errorMessage(msg);
-    };
-    this.callNextParamList(body, handler, errorHandler);
+    this.callNextParamList(handler);
   }
 
   /**
@@ -267,9 +288,6 @@ export class TestPickerSk extends ElementSk {
    * selection has.
    */
   private fetchCount() {
-    this.updateCount(-1);
-    this._requestInProgress = true;
-    this._render();
     const body: NextParamListHandlerRequest = {
       q: this.createQueryFromFieldData(),
     };
@@ -279,12 +297,8 @@ export class TestPickerSk extends ElementSk {
       this.updateCount(json.count);
       this._render();
     };
-    const errorHandler = (msg: any) => {
-      this._requestInProgress = false;
-      this._render();
-      errorMessage(msg);
-    };
-    this.callNextParamList(body, handler, errorHandler);
+
+    this.callNextParamList(handler);
   }
 
   private onPlotButtonClick() {
@@ -298,10 +312,7 @@ export class TestPickerSk extends ElementSk {
 
   /**
    * Reset test picker and populate the fields with an input query.
-   *
-   * This input query must have all the params as keys, even if the
-   * values are empty. e.g.:
-   *
+   * e.g.:
    * populateFieldDataFromQuery(
    *    'benchmark=a&bot=b&test=c&subtest1=&subtest2=d',
    *    ['benchmark', 'bot', 'test', 'subtest1', 'subtest2']
@@ -322,18 +333,16 @@ export class TestPickerSk extends ElementSk {
    */
   populateFieldDataFromQuery(query: string, params: string[]) {
     const paramSet = toParamSet(query);
-    for (let i = 0; i < params.length; i++) {
-      if (!(params[i] in paramSet) || paramSet[params[i]].length === 0) {
-        errorMessage(`The param '${params[i]}' is not present in query.`);
-        return;
-      }
-    }
 
     this.initializeFieldData(params);
 
     for (let i = 0; i < this._fieldData.length; i++) {
       const fieldInfo = this._fieldData[i];
       const param = fieldInfo.param;
+
+      if (!(param in paramSet)) {
+        break;
+      }
 
       const field: PickerFieldSk = new PickerFieldSk(param);
       fieldInfo.field = field;
@@ -364,7 +373,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @returns value selection in query format.
    */
-  private createQueryFromFieldData(): string {
+  createQueryFromFieldData(): string {
     const paramSet: ParamSet = {};
     this._fieldData.forEach((fieldInfo) => {
       if (fieldInfo.value !== '') {

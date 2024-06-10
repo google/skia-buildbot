@@ -53,6 +53,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/dryrun"
+	"go.skia.org/infra/perf/go/favorites"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/graphsshortcut"
@@ -133,6 +134,8 @@ type Frontend struct {
 	regStore regression.Store
 
 	subStore subscription.Store
+
+	favStore favorites.Store
 
 	continuous []*continuous.Continuous
 
@@ -528,6 +531,11 @@ func (f *Frontend) initialize() {
 	f.subStore, err = builders.NewSubscriptionStoreFromConfig(ctx, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build subscription.Store: %s", err)
+	}
+
+	f.favStore, err = builders.NewFavoriteStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build favorite.Store: %s", err)
 	}
 
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
@@ -934,11 +942,13 @@ func (f *Frontend) nextParamListHandler(w http.ResponseWriter, r *http.Request) 
 		// There is no next parameter. No filtering is needed.
 		resp.Paramset = map[string][]string{}
 	} else {
+		// There's a next parameter, but there's no matching paramset.
 		if _, ok := ps[nextParam]; !ok {
-			httputils.ReportError(w, errors.New("the next param is not in the returned paramset"), "Error in loading next paramset.", http.StatusInternalServerError)
-			return
+			resp.Paramset = map[string][]string{}
+		} else {
+			resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
 		}
-		resp.Paramset = map[string][]string{nextParam: ps[nextParam]}
+
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, err, "Failed to encode nextparam response.", http.StatusInternalServerError)
@@ -1827,6 +1837,122 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CreateFavRequest is the request to create a new Favorite
+type CreateFavRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Url         string `json:"url"`
+}
+
+// newFavoriteHandler creates a new favorite in the db
+func (f *Frontend) newFavoriteHandler(w http.ResponseWriter, r *http.Request) {
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	loggedInEmail := f.loginProvider.LoggedInAs(r)
+	if loggedInEmail == "" {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Login Required", http.StatusUnauthorized)
+		return
+	}
+
+	var createReq CreateFavRequest
+	if err := json.NewDecoder(r.Body).Decode(&createReq); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	saveReq := favorites.SaveRequest{
+		UserId:      loggedInEmail.String(),
+		Name:        createReq.Name,
+		Description: createReq.Description,
+		Url:         createReq.Url,
+	}
+	err := f.favStore.Create(ctx, &saveReq)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to create favorite.", http.StatusInternalServerError)
+	}
+}
+
+// UpdateFavRequest is a request to update an existing Favorite
+type UpdateFavRequest struct {
+	Id          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Url         string `json:"url"`
+}
+
+// updateFavoriteHandler updates a new favorite per id in the db
+func (f *Frontend) updateFavoriteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	loggedInEmail := f.loginProvider.LoggedInAs(r)
+	if loggedInEmail == "" {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Login Required", http.StatusUnauthorized)
+		return
+	}
+
+	var updateReq UpdateFavRequest
+	if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	fav, err := f.favStore.Get(ctx, updateReq.Id)
+	if err != nil {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Invalid id", http.StatusNotFound)
+		return
+	}
+
+	if fav.UserId != loggedInEmail.String() {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Unauthorized action", http.StatusForbidden)
+		return
+	}
+
+	saveReq := favorites.SaveRequest{
+		UserId:      loggedInEmail.String(),
+		Name:        updateReq.Name,
+		Description: updateReq.Description,
+		Url:         updateReq.Url,
+	}
+	err = f.favStore.Update(ctx, &saveReq, fav.ID)
+	if err != nil {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Failed to update favorite.", http.StatusInternalServerError)
+	}
+}
+
+// DeleteFavRequest is a request to delete an existing Favorite
+type DeleteFavRequest struct {
+	Id int64 `json:"id"`
+}
+
+// deleteFavoriteHandler deletes a favorite per id in the db
+func (f *Frontend) deleteFavoriteHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	loggedInEmail := f.loginProvider.LoggedInAs(r)
+	if loggedInEmail == "" {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Login Required", http.StatusUnauthorized)
+		return
+	}
+
+	var deleteReq DeleteFavRequest
+	if err := json.NewDecoder(r.Body).Decode(&deleteReq); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+
+	err := f.favStore.Delete(ctx, loggedInEmail.String(), deleteReq.Id)
+	if err != nil {
+		httputils.ReportError(w, skerr.Fmt("Favorite Error:"), "Failed to delete favorite.", http.StatusInternalServerError)
+	}
+}
+
 func (f *Frontend) alertNewHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(alerts.NewConfig()); err != nil {
@@ -2029,16 +2155,47 @@ func (f *Frontend) createBisectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// favoritesHandler returns the favorites config for the instance
+// favoritesHandler returns the favorites config for the instance. If a user is
+// logged in this also returns the favorites specific to the logged in user.
 func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
 	fav := config.Favorites{
 		Sections: []config.FavoritesSectionConfig{},
 	}
+
 	if config.Config.Favorites.Sections != nil {
-		fav = config.Config.Favorites
+		fav.Sections = config.Config.Favorites.Sections
 	}
+
+	loggedInEmail := f.loginProvider.LoggedInAs(r)
+	if loggedInEmail != "" {
+		favsFromDb, err := f.favStore.List(ctx, loggedInEmail.String())
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to list favorite.", http.StatusInternalServerError)
+			return
+		}
+
+		favoriteList := []config.FavoritesSectionLinkConfig{}
+
+		for _, favorite := range favsFromDb {
+			favoriteList = append(favoriteList, config.FavoritesSectionLinkConfig{
+				Text:        favorite.Name,
+				Href:        favorite.Url,
+				Description: favorite.Description,
+			})
+		}
+
+		if len(favsFromDb) > 0 {
+			fav.Sections = append(fav.Sections, config.FavoritesSectionConfig{
+				Name:  "My Favorites",
+				Links: favoriteList,
+			})
+		}
+	}
+
 	if err := json.NewEncoder(w).Encode(fav); err != nil {
 		sklog.Errorf("Error writing the Favorites json to response: %s", err)
 	}
@@ -2131,6 +2288,10 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Post("/_/alert/delete/{id:[0-9]+}", f.alertDeleteHandler)
 	router.Post("/_/alert/bug/try", f.alertBugTryHandler)
 	router.Post("/_/alert/notify/try", f.alertNotifyTryHandler)
+
+	router.Post("/_/favorites/new", f.newFavoriteHandler)
+	router.Post("/_/favorites/edit", f.updateFavoriteHandler)
+	router.Post("/_/favorites/delete", f.deleteFavoriteHandler)
 
 	router.Get("/_/login/status", f.loginStatus)
 

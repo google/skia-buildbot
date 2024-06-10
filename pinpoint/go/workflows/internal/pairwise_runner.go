@@ -33,8 +33,7 @@ type PairwiseRun struct {
 	// The order is needed to handle pair failures. If a pair fails,
 	// another pair that went in the other order needs to be tossed
 	// from the data analysis to ensure balancing.
-	// TODO(b/321306427): convert to []workflows.PairwiseOrder
-	Order []int
+	Order []workflows.PairwiseOrder
 }
 
 // FindAvailableBotsActivity fetches a list of free, alive and non quarantined bots per provided bot
@@ -75,14 +74,11 @@ func FindAvailableBotsActivity(ctx context.Context, botConfig string, seed int64
 // 1: runs the second commit, and then first commit
 // Note: The returned list of numbers contains the same number of 0s and
 // 1s so the permutations of given pairs are equally distributed.
-// TODO(b/321306427): Change this function to return a list of workflows.PairwiseOrder
-// and replace seed with contextKey to avoid brittle testing.
-// see https://github.com/google/skia-buildbot/blob/2d509f23bc9186f582eb66b5c1db5877dc486eb8/go/now/now.go#L40-L52
-func generatePairOrderIndices(seed int64, count int) []int {
-	lt := make([]int, count)
+func generatePairOrderIndices(seed int64, count int) []workflows.PairwiseOrder {
+	lt := make([]workflows.PairwiseOrder, count)
 	// generates a list of [0,1,0,1,0,1,...]
 	for i := range lt {
-		lt[i] = i % 2
+		lt[i] = workflows.PairwiseOrder(i % 2)
 	}
 	rand.New(rand.NewSource(seed)).Shuffle(len(lt), func(i, j int) {
 		lt[i], lt[j] = lt[j], lt[i]

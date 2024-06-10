@@ -75,7 +75,7 @@ func TestParseDeps(t *testing.T) {
 
 	// Verify that we parse the DEPS content successfully and get the
 	// correct results for our toy example.
-	deps, poss, err := parseDeps(fakeDepsContent)
+	deps, poss, err := parseDeps(fakeDepsContent, true)
 	require.NoError(t, err)
 	require.Equal(t, len(deps), len(poss))
 	assertdeep.Equal(t, DepsEntries{
@@ -83,51 +83,61 @@ func TestParseDeps(t *testing.T) {
 			Id:      "my-host/simple-repo",
 			Version: "simple-revision",
 			Path:    "simple/dep",
+			Type:    DepType_Git,
 		},
 		"my-host/var-repo": {
 			Id:      "my-host/var-repo",
 			Version: "var-revision",
 			Path:    "variable/dep",
+			Type:    DepType_Git,
 		},
 		"my-host/format-repo": {
 			Id:      "my-host/format-repo",
 			Version: "format-revision",
 			Path:    "format/dep",
+			Type:    DepType_Git,
 		},
 		"my-host/dict-repo": {
 			Id:      "my-host/dict-repo",
 			Version: "dict-revision",
 			Path:    "dict/dep",
+			Type:    DepType_Git,
 		},
 		"package1": {
 			Id:      "package1",
 			Version: "version1",
 			Path:    "cipd/deps",
+			Type:    DepType_Cipd,
 		},
 		"package2": {
 			Id:      "package2",
 			Version: "version2",
 			Path:    "cipd/deps",
+			Type:    DepType_Cipd,
 		},
 		"package3/linux-x64": {
 			Id:      "package3/linux-x64",
 			Version: "pkg3-version",
 			Path:    "cipd/deps",
+			Type:    DepType_Cipd,
 		},
 		"my-host/expr-dep": {
 			Id:      "my-host/expr-dep",
 			Version: "version",
 			Path:    "expr/dep",
+			Type:    DepType_Git,
 		},
 		"my-gcs-bucket/some/gcs/object": {
 			Id:      "my-gcs-bucket/some/gcs/object",
 			Version: "abc123",
 			Path:    "gcs/example-gcs-dep",
+			Type:    DepType_Gcs,
 		},
 		"my-gcs-bucket/another/gcs/object": {
 			Id:      "my-gcs-bucket/another/gcs/object",
 			Version: "def456",
 			Path:    "gcs/example-gcs-dep",
+			Type:    DepType_Gcs,
 		},
 	}, deps)
 
@@ -144,7 +154,7 @@ func TestParseDeps(t *testing.T) {
 
 func TestSetDep(t *testing.T) {
 
-	before, beforePos, err := parseDeps(fakeDepsContent)
+	before, beforePos, err := parseDeps(fakeDepsContent, true)
 	require.NoError(t, err)
 	beforeSplit := strings.Split(fakeDepsContent, "\n")
 
@@ -153,7 +163,7 @@ func TestSetDep(t *testing.T) {
 	testSetDep := func(id, version string) {
 		newDepsContent, err := SetDep(fakeDepsContent, id, version)
 		require.NoError(t, err)
-		after, afterPos, err := parseDeps(newDepsContent)
+		after, afterPos, err := parseDeps(newDepsContent, true)
 		require.NoError(t, err)
 		var modifiedDepPos *ast.Pos
 		for depId, dep := range after {

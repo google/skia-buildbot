@@ -3,7 +3,7 @@ package schema
 // FavoriteSchema represents the SQL schema of the Favorites table.
 type FavoriteSchema struct {
 	// Unique identifier of the favorite
-	ID int `sql:"id INT PRIMARY KEY DEFAULT unique_rowid()"`
+	ID int64 `sql:"id INT PRIMARY KEY DEFAULT unique_rowid()"`
 
 	// The user to which this favorite belong. The user id
 	// will be their email as returned by uber-proxy auth

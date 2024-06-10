@@ -64,6 +64,14 @@ var (
 	}
 )
 
+type DepType string
+
+const (
+	DepType_Git  DepType = "git"
+	DepType_Cipd DepType = "cipd"
+	DepType_Gcs  DepType = "gcs"
+)
+
 // DepsEntry represents a single entry in a DEPS file. Note that the 'deps' dict
 // may specify that multiple CIPD package are unpacked to the same location; a
 // DepsEntry refers to the dependency, not the path, so each CIPD package would
@@ -80,6 +88,9 @@ type DepsEntry struct {
 	// Path is the path to which the dependency should be downloaded. It is
 	// also used as the key in the 'deps' map in the DEPS file.
 	Path string
+
+	// Type indicates the type of the dependency.
+	Type DepType
 }
 
 // DepsEntries represents all entries in a DEPS file.
@@ -96,7 +107,13 @@ func (e DepsEntries) Get(dep string) *DepsEntry {
 // syntax upon which DEPS is based and may break completely if the file takes an
 // unexpected format.
 func ParseDeps(depsContent string) (DepsEntries, error) {
-	entries, _, err := parseDeps(depsContent)
+	entries, _, err := parseDeps(depsContent, true)
+	return entries, err
+}
+
+// ParseDepsNoNormalize is like ParseDeps but does not normalize dependency IDs.
+func ParseDepsNoNormalize(depsContent string) (DepsEntries, error) {
+	entries, _, err := parseDeps(depsContent, false)
 	return entries, err
 }
 
@@ -128,7 +145,7 @@ func SetDep(depsContent, depId, version string) (string, error) {
 	depId = NormalizeDep(depId)
 
 	// Parse the DEPS content.
-	entries, poss, err := parseDeps(depsContent)
+	entries, poss, err := parseDeps(depsContent, true)
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -296,6 +313,7 @@ func parseGitDep(path string, valueExpr ast.Expr) ([]*DepsEntry, []*ast.Pos, err
 		entry := &DepsEntry{
 			Id:   split[0],
 			Path: path,
+			Type: DepType_Git,
 		}
 		// Some DEPS files contain unpinned entries with no "@version"
 		// suffix. This isn't really valid, but we shouldn't fail to
@@ -328,6 +346,7 @@ func parseCIPDDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error
 				pkgDict := pkgExpr.(*ast.Dict)
 				entry := &DepsEntry{
 					Path: path,
+					Type: DepType_Cipd,
 				}
 				var pos *ast.Pos
 				for idx, key := range pkgDict.Keys {
@@ -424,6 +443,7 @@ func parseGCSDeps(path string, dict *ast.Dict) ([]*DepsEntry, []*ast.Pos, error)
 			Id:      fmt.Sprintf("%s/%s", bucket, object),
 			Version: sha256sums[idx],
 			Path:    path,
+			Type:    DepType_Gcs,
 		})
 	}
 
@@ -592,7 +612,7 @@ func resolveVars(vars map[string]ast.Expr, expr ast.Expr) (ast.Expr, error) {
 // parseDeps parses the DEPS file content and returns a map of normalized
 // dependency ID to DepsEntry and a map of normalized dependency ID to ast.Pos
 // indicating where the dependency version was defined in the DEPS file content.
-func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
+func parseDeps(depsContent string, normalizeIDs bool) (DepsEntries, map[string]*ast.Pos, error) {
 	// Use gpython to parse the DEPS file as a Python script.
 	parsed, err := parser.ParseString(depsContent, "exec")
 	if err != nil {
@@ -634,9 +654,7 @@ func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 				return nil, nil, skerr.Fmt("Found different numbers of keys and values for %q", name.Id)
 			}
 			keys := make([]ast.Expr, 0, len(d.Keys))
-			for _, key := range d.Keys {
-				keys = append(keys, key)
-			}
+			keys = append(keys, d.Keys...)
 			if name.Id == "vars" {
 				// Store all vars to be used later.
 				for idx, val := range d.Values {
@@ -657,7 +675,9 @@ func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 						return nil, nil, skerr.Wrap(err)
 					}
 					for idx, entry := range entries {
-						entry.Id = NormalizeDep(entry.Id)
+						if normalizeIDs {
+							entry.Id = NormalizeDep(entry.Id)
+						}
 						rvEntries[entry.Id] = entry
 						rvPos[entry.Id] = pos[idx]
 					}

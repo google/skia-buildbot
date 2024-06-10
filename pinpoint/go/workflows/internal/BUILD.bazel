@@ -24,6 +24,7 @@ go_library(
         "//go/auth",
         "//go/httputils",
         "//go/skerr",
+        "//go/sklog",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/build_chrome",
