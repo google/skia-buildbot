@@ -23,7 +23,7 @@ skia/tools/goldctl/${platform}                   git_revision:454b1d585279d71c7c
 infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.47
 
 @Subdir cipd_bin_packages/cpython3
-infra/3pp/tools/cpython3/linux-amd64             version:2@3.11.7.chromium.31
+infra/3pp/tools/cpython3/linux-amd64             version:2@3.11.9.chromium.35
 
 @Subdir task_drivers
 skia/tools/bazel_build_all/${platform}           git_revision:8dccd812a00c904f38dff446871ec3ad655a532a
