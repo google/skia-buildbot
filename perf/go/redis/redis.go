@@ -66,7 +66,9 @@ func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod tim
 			sb.WriteString(fmt.Sprintf("Found %d Redis instances.\n", len(instances)))
 			for _, instance := range instances {
 				sb.WriteString(fmt.Sprintf("Name: %s, Host: %s, Port: %d\n", instance.Name, instance.Host, instance.Port))
-				if instance.Name == config.Instance {
+				namePieces := strings.Split(instance.Name, "/")
+				name := namePieces[len(namePieces)-1]
+				if name == config.Instance {
 					sb.WriteString(fmt.Sprintf("Target instance found: %s", config.Instance))
 					targetInstance = instance
 				}
