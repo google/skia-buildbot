@@ -3684,7 +3684,7 @@ func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping param
 		return nil, skerr.Wrap(err)
 	}
 
-	const statement = `SELECT trace_id FROM TiledTraceDigests
+	const statement = `SELECT trace_id FROM TiledTraceDigests@grouping_digest_idx
 WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
 `
 	rows, err := s.db.Query(ctx, statement, getFirstTileID(ctx), groupingID, digestBytes)
