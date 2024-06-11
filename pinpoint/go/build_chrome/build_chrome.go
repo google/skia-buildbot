@@ -103,17 +103,30 @@ func (bci *buildChromeImpl) searchBuild(ctx context.Context, builder, commit str
 		return build.Id, nil
 	}
 
-	// Search waterfall for build if there is an appropriate waterfall
-	// builder and no gerrit patches. We search waterfall after Pinpoint,
-	// because waterfall builders lag behind main. A user could try to
-	// request a build via Pinpoint before waterfall has the chance to
-	// build the same commit.
+	// Do not check waterfall if there are gerrit patches or DEPS rolls.
+	// Waterfall continuously builds commits along chromium/src and does not build
+	// commits in other repos (i.e. DEPS) or user submitted gerrit patches.
+	// If we checked the waterfall pool, we would find builds in chromium/src without
+	// DEPS or the gerrit patch, finding the wrong build.
+	if deps != nil && len(deps) > 0 {
+		return 0, nil
+	}
+	if patches != nil && len(patches) > 0 {
+		return 0, nil
+	}
+
+	// Search waterfall for build if there is an appropriate waterfall builder,
+	// no gerrit patches, and no DEPS rolls. Waterfall only builds chromium/src
+	// commits. We search waterfall after Pinpoint, because waterfall builders
+	// lag behind main. A user could try to request a build via Pinpoint before
+	// waterfall has the chance to build the same commit.
 	sklog.Debugf("SearchBuild: search waterfall builder %s for build", backends.PinpointWaterfall[builder])
 	build, err = bci.GetBuildFromWaterfall(ctx, builder, commit)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "Failed to find build with CI equivalent.")
 	}
 
+	// safeguard against any waterfall builds with patches
 	if len(build.GetInput().GetGerritChanges()) > 0 {
 		return 0, nil
 	}

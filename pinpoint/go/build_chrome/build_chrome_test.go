@@ -69,6 +69,46 @@ func TestSearchBuild_PinpointBuild_ReturnsBuildId(t *testing.T) {
 	assert.Equal(t, expectedBuildId, id)
 }
 
+func TestSearchBuild_BuildWithDEPS_DoesNotSearchWaterfall(t *testing.T) {
+	ctx := context.Background()
+
+	var patches []*buildbucketpb.GerritChange
+	deps := map[string]string{
+		// use arbitrary repo: commit
+		"https://skia.googlesource.com/skia": "238bd51f804bba5d8481c4cad32404c45dc5ba17",
+	}
+	mb := &mocks.BuildbucketClient{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, nil)
+
+	id, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	assert.NoError(t, err)
+	assert.Zero(t, 0, id)
+}
+
+func TestSearchBuild_BuildWithPatch_DoesNotSearchWaterfall(t *testing.T) {
+	ctx := context.Background()
+
+	// arbitrary patch, point is that it's not nil
+	patches := []*buildbucketpb.GerritChange{
+		{Host: "chromium-review.googlesource.com"},
+	}
+	deps := map[string]string{}
+	mb := &mocks.BuildbucketClient{}
+	bc := &buildChromeImpl{
+		BuildbucketClient: mb,
+	}
+
+	mb.On("GetSingleBuild", testutils.AnyContext, fakeBuilder, backends.DefaultBucket, fakeCommit, deps, patches).Return(nil, nil)
+
+	id, err := bc.searchBuild(ctx, fakeBuilder, fakeCommit, deps, patches)
+	assert.NoError(t, err)
+	assert.Zero(t, 0, id)
+}
+
 func TestSearchBuild_WaterfallBuild_ReturnsBuildIdCICounterpart(t *testing.T) {
 	var patches []*buildbucketpb.GerritChange
 
