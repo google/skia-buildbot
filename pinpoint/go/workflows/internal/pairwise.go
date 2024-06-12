@@ -36,6 +36,8 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		return nil, skerr.Wrap(err)
 	}
 
+	pr.removeDataUntilBalanced(p.Request.Chart)
+
 	lValues := pr.Left.AllValues(p.Request.Chart)
 	rValues := pr.Right.AllValues(p.Request.Chart)
 	var res compare.ComparePairwiseResult

@@ -20,6 +20,13 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+// generateValuesByChart generate mock values for TestRun
+func generateSingleValueByChart(chart string, values float64) map[string][]float64 {
+	return map[string][]float64{
+		chart: {values},
+	}
+}
+
 // generatePairwiseTestRuns generates mock test runs data for PairwiseRunner
 //
 // It returns the expected runs, and a channel that was buffered to send to mocked workflow.
@@ -112,6 +119,181 @@ func TestGeneratePairIndices_GenerateRandomPair(t *testing.T) {
 		pairs := i * 17 // 17 and 10169 are arbitrary prime numbers.
 		verify(fmt.Sprintf("%v pairs", pairs), generatePairOrderIndices(int64(pairs*10169), pairs), generate_even(pairs))
 	}
+}
+
+func TestPairwiseRun_isPairMissingData_GivenPairWithData_ReturnsFalse(t *testing.T) {
+	const mockChart = "cpu_percentage_time" // an arbitrary example chart
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{
+					Values: map[string][]float64{mockChart: {1, 2, 3}, "anotherChart": {1}},
+				},
+				{
+					Values: map[string][]float64{mockChart: {1, 2, 3}},
+				},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{
+					Values: map[string][]float64{mockChart: {4}},
+				},
+				{
+					Values: map[string][]float64{mockChart: {6, 7}, "anotherChart": {1}},
+				},
+			},
+		},
+	}
+	for i := range pr.Left.Runs {
+		assert.False(t, pr.isPairMissingData(i, mockChart), fmt.Sprintf("iteration %d", i))
+	}
+}
+
+func TestPairwiseRun_isPairMissingData_GivenPairWithMissingData_ReturnsTrue(t *testing.T) {
+	const mockChart = "cpu_percentage_time" // an arbitrary example chart
+	verify := func(name string, pr PairwiseRun, i int) {
+		t.Run(name, func(t *testing.T) {
+			assert.True(t, pr.isPairMissingData(i, mockChart))
+		})
+	}
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				nil,
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Values: generateSingleValueByChart("anotherChart", 1)},
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+				nil,
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Values: generateSingleValueByChart("another chart", 6)},
+			},
+		},
+	}
+	verify("left run is nil", pr, 0)
+	verify("left run values is nil", pr, 1)
+	verify("left run values does not have chart", pr, 2)
+	verify("right run is nil", pr, 3)
+	verify("right run values is nil", pr, 4)
+	verify("right run values does not have chart", pr, 5)
+}
+
+func TestPairwiseRun_balanceData_GivenValidInput_WAI(t *testing.T) {
+	const mockChart = "cpu_percentage_time" // an arbitrary example chart
+
+	pr := PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 1)},
+				{Values: generateSingleValueByChart(mockChart, 3)},
+				{Values: generateSingleValueByChart(mockChart, 5)},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: generateSingleValueByChart(mockChart, 1.1)},
+				{Values: generateSingleValueByChart(mockChart, 3)},
+				{Values: generateSingleValueByChart(mockChart, 5)},
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Values: generateSingleValueByChart(mockChart, 6.3)},
+				{Values: generateSingleValueByChart(mockChart, 6.1)},
+			},
+		},
+		Order: []workflows.PairwiseOrder{
+			workflows.LeftThenRight,
+			workflows.LeftThenRight,
+			workflows.LeftThenRight,
+			workflows.RightThenLeft,
+			workflows.RightThenLeft,
+			workflows.RightThenLeft,
+		},
+	}
+	require.Equal(t, len(pr.Left.Runs), len(pr.Right.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
+	require.Equal(t, len(pr.Left.Runs), len(pr.Order), "test case not set up correctly. Number of orders needs to equal number of runs")
+	equalOrder := 0
+	for _, order := range pr.Order {
+		switch order {
+		case workflows.LeftThenRight:
+			equalOrder += 1
+		case workflows.RightThenLeft:
+			equalOrder -= 1
+		}
+	}
+	require.Zero(t, equalOrder, 0, "test case is not set up correctly. pr.Order must be balanced")
+	pr.removeMissingDataFromPairs(mockChart)
+	require.Equal(t, 1, pr.calcOrderBalance(mockChart), "require test case has imbalance on LeftThenRight by 1")
+	pr.removeDataUntilBalanced(mockChart)
+	assert.Zero(t, pr.calcOrderBalance(mockChart))
+	assert.Nil(t, pr.Right.Runs[1].Values[mockChart])
+	assert.NotNil(t, pr.Right.Runs[2].Values[mockChart])
+
+	pr = PairwiseRun{
+		Left: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 1)},
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 1)},
+				{Values: generateSingleValueByChart(mockChart, 3)},
+				{Values: generateSingleValueByChart(mockChart, 5)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+				{Values: generateSingleValueByChart(mockChart, 7)},
+			},
+		},
+		Right: CommitRun{
+			Runs: []*workflows.TestRun{
+				{Values: generateSingleValueByChart(mockChart, 4)},
+				{Values: generateSingleValueByChart(mockChart, 1)},
+				{Values: generateSingleValueByChart(mockChart, 3)},
+				{Values: generateSingleValueByChart(mockChart, 5)},
+				{Values: generateSingleValueByChart(mockChart, 6)},
+				{Values: generateSingleValueByChart(mockChart, 7)},
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+				{Status: run_benchmark.State(backends.RunBenchmarkFailure)},
+			},
+		},
+		Order: []workflows.PairwiseOrder{
+			workflows.LeftThenRight,
+			workflows.LeftThenRight,
+			workflows.LeftThenRight,
+			workflows.LeftThenRight,
+			workflows.RightThenLeft,
+			workflows.RightThenLeft,
+			workflows.RightThenLeft,
+			workflows.RightThenLeft,
+		},
+	}
+	require.Equal(t, len(pr.Left.Runs), len(pr.Right.Runs), "test case not set up correctly. Number of left runs needs to equal number of right runs")
+	require.Equal(t, len(pr.Left.Runs), len(pr.Order), "test case not set up correctly. Number of orders needs to equal number of runs")
+	equalOrder = 0
+	for _, order := range pr.Order {
+		switch order {
+		case workflows.LeftThenRight:
+			equalOrder += 1
+		case workflows.RightThenLeft:
+			equalOrder -= 1
+		}
+	}
+	require.Zero(t, equalOrder, 0, "test case is not set up correctly. pr.Order must be balanced")
+	pr.removeMissingDataFromPairs(mockChart)
+	require.Equal(t, -2, pr.calcOrderBalance(mockChart), "require test case has imbalance on RightThenLeft by 2")
+	pr.removeDataUntilBalanced(mockChart)
+	assert.Zero(t, pr.calcOrderBalance(mockChart))
+	assert.Nil(t, pr.Left.Runs[0].Values[mockChart])
+	assert.Nil(t, pr.Left.Runs[1].Values[mockChart])
+	assert.NotNil(t, pr.Left.Runs[2].Values[mockChart])
 }
 
 func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {

@@ -26,6 +26,12 @@ type PairwiseCommitsRunnerParams struct {
 }
 
 // PairwiseRun is the output of the PairwiseCommitsRunnerWorkflow
+// TODO(b/321306427): This struct assumes that the i-th Left and
+// Right CommitRuns are part of the same pair. If this assumption
+// breaks, consider refactoring this struct and the subsequent
+// workflows to instead store a list of PairwiseTestRuns.
+// Another potential reason for refactoring is if len(Order) !=
+// len(Left) or len(Right).
 type PairwiseRun struct {
 	Left, Right CommitRun
 	// Order represents the order of the runs between Left and Right.
@@ -34,6 +40,59 @@ type PairwiseRun struct {
 	// another pair that went in the other order needs to be tossed
 	// from the data analysis to ensure balancing.
 	Order []workflows.PairwiseOrder
+}
+
+// Returns true if one or both commits in the pair is missing data for the chart
+func (pr *PairwiseRun) isPairMissingData(i int, chart string) bool {
+	return pr.Left.Runs[i].IsEmptyValues(chart) || pr.Right.Runs[i].IsEmptyValues(chart)
+}
+
+func (pr *PairwiseRun) calcOrderBalance(chart string) int {
+	balance := 0
+	for i := range pr.Order {
+		missingData := pr.isPairMissingData(i, chart)
+		if missingData && pr.Order[i] == workflows.LeftThenRight {
+			balance += 1
+		} else if missingData && pr.Order[i] == workflows.RightThenLeft {
+			balance -= 1
+		}
+	}
+	return balance
+}
+
+func (pr *PairwiseRun) removeData(i int, chart string) {
+	pr.Left.Runs[i].RemoveDataFromChart(chart)
+	pr.Right.Runs[i].RemoveDataFromChart(chart)
+}
+
+// if one commit in the pair fails, ensure neither commit has data.
+func (pr *PairwiseRun) removeMissingDataFromPairs(chart string) {
+	for i := 0; i < len(pr.Order); i++ {
+		if pr.isPairMissingData(i, chart) {
+			pr.removeData(i, chart)
+		}
+	}
+}
+
+// if >= 1 run(s) in a pair fails, remove data until the number of pairs with data
+// has the same number of pairs with LeftThenRight as RightThenLeft
+func (pr *PairwiseRun) removeDataUntilBalanced(chart string) {
+	balance := pr.calcOrderBalance(chart)
+
+	for i := 0; balance > 0 && i < len(pr.Order); i++ {
+		// missing LeftThenRight increases balance, so remove RightThenLeft
+		if !pr.isPairMissingData(i, chart) && pr.Order[i] == workflows.RightThenLeft {
+			pr.removeData(i, chart)
+			balance -= 1
+		}
+	}
+	for i := 0; balance < 0 && i < len(pr.Order); i++ {
+		// missing RightThenLeft decreases balance, so remove LeftThenRight
+		if !pr.isPairMissingData(i, chart) && pr.Order[i] == workflows.LeftThenRight {
+			pr.removeData(i, chart)
+			balance += 1
+		}
+	}
 }
 
 // FindAvailableBotsActivity fetches a list of free, alive and non quarantined bots per provided bot

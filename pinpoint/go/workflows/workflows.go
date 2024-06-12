@@ -79,6 +79,18 @@ type TestRun struct {
 	Values map[string][]float64
 }
 
+// IsEmptyValues checks the TestRun if there are values at that chart
+func (tr *TestRun) IsEmptyValues(chart string) bool {
+	return tr == nil || tr.Values == nil || tr.Values[chart] == nil
+}
+
+// RemoveDataFromChart removes chart data from that TestRun
+func (tr *TestRun) RemoveDataFromChart(chart string) {
+	if tr.Values != nil {
+		tr.Values[chart] = nil
+	}
+}
+
 // PairwiseOrder indicates in a pairwise run, which commit ran first
 type PairwiseOrder int
 
