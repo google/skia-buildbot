@@ -121,7 +121,7 @@ import {
   PlotSummarySk,
   PlotSummarySkSelectionEventDetails,
 } from '../plot-summary-sk/plot-summary-sk';
-import { ChartData, DataPoint } from '../common/plot-builder';
+import { ChartAxisFormat, ChartData, DataPoint } from '../common/plot-builder';
 import {
   CreateChartDataFromTraceSet,
   GetSelectionCommitIndicesFromColumnHeader,
@@ -164,10 +164,7 @@ const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
-type PlotSummaryRequestCallback = (
-  start: number,
-  end: number
-) => Promise<boolean>;
+type PlotSummaryRequestCallback = (start: number, end: number) => Promise<void>;
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -1717,6 +1714,25 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /**
+   * This function tells the plot summary module to select the
+   * region specific to the currently rendered chart.
+   */
+  private addSelectionOnPlotSummary() {
+    const length = this._dataframe!.header!.length;
+    if (length > 0) {
+      if (this.state.labelMode === LabelMode.CommitPosition) {
+        const start = this._dataframe!.header![0]!.offset;
+        const end = this._dataframe!.header![length - 1]!.offset;
+        this.plotSummary!.Select(start, end);
+      } else {
+        const start = this._dataframe!.header![0]!.timestamp * 1000;
+        const end = this._dataframe!.header![length - 1]!.timestamp * 1000;
+        this.plotSummary!.Select(start, end);
+      }
+    }
+  }
+
+  /**
    * Populate the plot summary with the data in the fullDataFrame.
    */
   private populatePlotSummary() {
@@ -1742,13 +1758,21 @@ export class ExploreSimpleSk extends ElementSk {
         this.fullDataFrame!.header!.forEach((header) => {
           xAxisLabelsCommitNum.push(header!.offset as number);
         });
-        chartData = CreateChartDataFromTraceSet(traceSet, xAxisLabelsCommitNum);
+        chartData = CreateChartDataFromTraceSet(
+          traceSet,
+          xAxisLabelsCommitNum,
+          ChartAxisFormat.Commit
+        );
         break;
       case LabelMode.Date:
         this.fullDataFrame!.header!.forEach((header) => {
           xAxisLabelsDate.push(new Date(header!.timestamp * 1000));
         });
-        chartData = CreateChartDataFromTraceSet(traceSet, xAxisLabelsDate);
+        chartData = CreateChartDataFromTraceSet(
+          traceSet,
+          xAxisLabelsDate,
+          ChartAxisFormat.Date
+        );
         break;
       default:
         break;
@@ -2200,48 +2224,52 @@ export class ExploreSimpleSk extends ElementSk {
    */
   async populateExtendedTimelineForPlotSummary(): Promise<void> {
     if (this._state.plotSummary) {
-      let currentStart = this.state.begin;
-      let currentEnd = this.state.end;
+      const dfLength = this.fullDataFrame!.header!.length;
+      let currentStart = this.fullDataFrame!.header![0]!.timestamp as number;
+      let currentEnd = this.fullDataFrame!.header![dfLength - 1]!
+        .timestamp as number;
 
       const monthsToLook = 3;
 
       const chunkSize = 30 * 24 * 60 * 60; // 1 month in seconds.
       const processChunk: PlotSummaryRequestCallback = async (start, end) => {
         const frameRequest = this.requestFrameBodyFullForRange(start, end);
-        let proceed = true;
+        // Set the request type explicitly to 0 (time range). If the current request type is
+        // 1 (compact), this will only return a fixed no of commits in the response and we end
+        // up missing data points in the time range.
+        frameRequest.request_type = 0;
         await this.sendFrameRequest(frameRequest, (json) => {
-          if (json.dataframe === undefined || json.dataframe === null) {
-            // If there is no data to process, we can end right away.
-            proceed = false;
-          } else {
+          if (json.dataframe !== undefined && json.dataframe !== null) {
             this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
             this.populatePlotSummary();
+            this.addSelectionOnPlotSummary();
           }
         });
-        return proceed;
       };
 
       // Let's fetch the data before the current time window.
+      const tasksToAwait: Promise<void>[] = [];
       for (let i = 0; i < monthsToLook; i++) {
         currentEnd = currentStart;
         currentStart -= chunkSize;
-        const proceed = processChunk(currentStart, currentEnd);
-        if (!proceed) {
-          break;
-        }
+        tasksToAwait.push(processChunk(currentStart, currentEnd));
       }
 
       // Let's fetch data after the current time window.
-      currentStart = this._state.begin;
       currentEnd = this._state.end;
+
+      const now = Math.floor(Date.now() / 1000);
       for (let i = 0; i < monthsToLook; i++) {
         currentStart = currentEnd;
         currentEnd = currentStart + chunkSize;
-        const proceed = processChunk(currentStart, currentEnd);
-        if (!proceed) {
+
+        // Exit if we have reached the current time.
+        if (currentStart > now) {
           break;
         }
+        tasksToAwait.push(processChunk(currentStart, currentEnd));
       }
+      await Promise.all(tasksToAwait);
     }
   }
 

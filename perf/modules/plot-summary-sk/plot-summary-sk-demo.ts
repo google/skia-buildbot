@@ -5,7 +5,7 @@ import {
   PlotSummarySk,
   PlotSummarySkSelectionEventDetails,
 } from './plot-summary-sk';
-import { ChartData } from '../common/plot-builder';
+import { ChartAxisFormat, ChartData } from '../common/plot-builder';
 
 document
   .querySelector('plot-summary-sk')!
@@ -23,6 +23,7 @@ window.customElements.whenDefined('plot-summary-sk').then(() => {
   const chartData: ChartData = {
     xLabel: 'test x',
     yLabel: 'test y',
+    chartAxisFormat: ChartAxisFormat.Date,
     data: [
       { x: new Date('2023/10/1'), y: 1 },
       { x: new Date('2023/10/2'), y: 1 },

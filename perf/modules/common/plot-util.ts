@@ -1,5 +1,5 @@
 import { ColumnHeader } from '../json';
-import { ChartData, DataPoint } from './plot-builder';
+import { ChartAxisFormat, ChartData, DataPoint } from './plot-builder';
 
 /**
  * GetSelectionDateIndicesFromColumnHeader returns the indices of the start and end date
@@ -91,12 +91,14 @@ export function GetSelectionCommitIndicesFromColumnHeader(
  */
 export function CreateChartDataFromTraceSet(
   traceSet: { [key: string]: number[] },
-  xLabels: (number | Date)[]
+  xLabels: (number | Date)[],
+  chartAxisFormat: ChartAxisFormat
 ): ChartData {
   const chartData: ChartData = {
     data: [],
-    xLabel: 'xLabel',
-    yLabel: 'yLabel',
+    xLabel: chartAxisFormat.toString(),
+    yLabel: 'Value',
+    chartAxisFormat: chartAxisFormat,
   };
   const trace = traceSet[Object.keys(traceSet)[0]];
   for (let i = 0; i < trace.length; i++) {

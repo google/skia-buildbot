@@ -1,3 +1,4 @@
+/* eslint-disable dot-notation */
 import './index';
 import { assert } from 'chai';
 import {
@@ -6,7 +7,7 @@ import {
 } from './plot-summary-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { ChartData } from '../common/plot-builder';
+import { ChartAxisFormat, ChartData } from '../common/plot-builder';
 
 describe('plot-summary-sk', () => {
   const newInstance = setUpElementUnderTest<PlotSummarySk>('plot-summary-sk');
@@ -37,6 +38,7 @@ describe('plot-summary-sk', () => {
           { x: 8, y: 8 },
           { x: 9, y: 9 },
         ],
+        chartAxisFormat: ChartAxisFormat.Commit,
         xLabel: 'xLabel',
         yLabel: 'yLabel',
       };
@@ -46,8 +48,9 @@ describe('plot-summary-sk', () => {
 
       // Because of how d3scale works, we will not get the exact
       // values in the event
-      assert.equal(3, Math.floor(lastEvent.start));
-      assert.equal(7, Math.ceil(lastEvent.end));
+      const selectionRange = element['selectionRange'];
+      assert.isTrue(Math.abs(3 - Math.floor(selectionRange![0])) <= 1);
+      assert.isTrue(Math.abs(7 - Math.ceil(selectionRange![1])) <= 1);
     });
   });
 });

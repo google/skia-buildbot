@@ -54,7 +54,7 @@ export class PlotSummarySk extends ElementSk {
 
   private commitsEnd: number = 0;
 
-  private valuesRangeDate: d3Scale.ScaleTime<number, number> | null = null;
+  private valuesRangeDate: d3Scale.ScaleLinear<number, number> | null = null;
 
   private dateStart: Date = new Date();
 
@@ -159,7 +159,7 @@ export class PlotSummarySk extends ElementSk {
         this.currentChartData!.data.length - 1
       ].x as Date;
       this.valuesRangeDate = d3Scale
-        .scaleTime()
+        .scaleLinear()
         .domain([0, this.width])
         .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
     }
@@ -175,21 +175,20 @@ export class PlotSummarySk extends ElementSk {
   }
 
   // Select the provided range on the plot-summary.
-  public Select(valueStart: number | Date, valuesEnd: number | Date) {
+  public Select(valueStart: number, valuesEnd: number | Date) {
     if (this.isCommitScale) {
       this.selectionRange = [
-        this.valuesRangeCommit!(valueStart),
-        this.valuesRangeCommit!(valuesEnd),
+        this.valuesRangeCommit!.invert(valueStart),
+        this.valuesRangeCommit!.invert(valuesEnd),
       ];
     } else {
       this.selectionRange = [
-        this.valuesRangeDate!(valueStart),
-        this.valuesRangeDate!(valuesEnd),
+        this.valuesRangeDate!.invert(valueStart),
+        this.valuesRangeDate!.invert(valuesEnd),
       ];
     }
 
-    // Dispatch the summary selection event.
-    this.summarySelected();
+    this.drawSelection();
   }
 
   // Display the chart data on the plot.
