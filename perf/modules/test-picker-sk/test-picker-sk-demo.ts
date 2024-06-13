@@ -70,7 +70,7 @@ const paramset = {
 
 window.customElements.whenDefined('test-picker-sk').then(() => {
   document.querySelectorAll<TestPickerSk>('test-picker-sk').forEach((ele) => {
-    ele.initializeTestPicker(params);
+    ele.initializeTestPicker(params, {});
     ele.addEventListener('plot-button-clicked', (e) => {
       const log = $$<HTMLPreElement>('#events')!;
       log.textContent = (e as CustomEvent).detail.query;

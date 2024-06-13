@@ -434,7 +434,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private user: string = '';
 
-  private defaults: QueryConfig | null = null;
+  private _defaults: QueryConfig | null = null;
 
   private _initialized: boolean = false;
 
@@ -939,7 +939,6 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     this._initialized = true;
-    this._setDefaults();
     this._render();
 
     this.anomalyTable = this.querySelector('#anomaly');
@@ -1297,18 +1296,6 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
     this._dialogOn = true;
     this.bisectDialog!.showModal();
-  }
-
-  private _setDefaults(): void {
-    if (this.defaults === null) {
-      fetch(`/_/defaults/`, {
-        method: 'GET',
-      })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.defaults = json;
-        });
-    }
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
@@ -2399,12 +2386,13 @@ export class ExploreSimpleSk extends ElementSk {
   // take a query string, and update the parameters with default values if needed
   private applyDefaultsToQuery(queryString: string): string {
     const paramSet = toParamSet(queryString);
-    for (const defaultParamKey in this.defaults?.default_param_selections) {
+    for (const defaultParamKey in this._defaults?.default_param_selections) {
       if (!(defaultParamKey in paramSet)) {
         paramSet[defaultParamKey] =
-          this.defaults!.default_param_selections![defaultParamKey]!;
+          this._defaults!.default_param_selections![defaultParamKey]!;
       }
     }
+
     return fromParamSet(paramSet);
   }
 
@@ -2424,11 +2412,11 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Check if the user has specified the params provided in the default url config.
     // If not, add them to the state object
-    for (const urlKey in this.defaults?.default_url_values) {
+    for (const urlKey in this._defaults?.default_url_values) {
       if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
         if (urlKey === 'summary') {
           this._state.summary = Boolean(
-            this.defaults!.default_url_values![urlKey]
+            this._defaults!.default_url_values![urlKey]
           );
           break;
         }
@@ -2844,6 +2832,10 @@ export class ExploreSimpleSk extends ElementSk {
 
   getTraceset(): { [key: string]: number[] } {
     return this._dataframe.traceset;
+  }
+
+  set defaults(val: QueryConfig | null) {
+    this._defaults = val;
   }
 }
 

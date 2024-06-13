@@ -24,14 +24,6 @@
  * It will contain the currently populated query in the test picker in
  * event.detail.query.
  *
- * @attr {string[]} params - A list of params that'll be used to populate
- * the field labels and query the DB. The order of the list establishes
- * a hierarchy in which each field can be populated.
- *
- * For example, if we have params: ['benchmark', 'bot', 'test'], the
- * 'benchmark' field will be the first required field. The child ('bot')
- * will not appear until a valid 'benchmark' value is selected, and so on.
- *
  */
 import { html } from 'lit-html';
 import { define } from '../../../elements-sk/modules/define';
@@ -73,9 +65,11 @@ export class TestPickerSk extends ElementSk {
 
   private _plotButton: HTMLButtonElement | null = null;
 
-  private _requestInProgress = false;
+  private _requestInProgress: boolean = false;
 
-  private _currentIndex = 0;
+  private _currentIndex: number = 0;
+
+  private _defaultParams: { [key: string]: string[] | null } = {};
 
   constructor() {
     super(TestPickerSk.template);
@@ -367,7 +361,7 @@ export class TestPickerSk extends ElementSk {
 
   /**
    * Reads the values currently selected and transforms them to
-   * query format.
+   * query format. Add default values from _defaultParams.
    *
    * This is necessary to make calls to /_/nextParamList/.
    *
@@ -380,6 +374,14 @@ export class TestPickerSk extends ElementSk {
         paramSet[fieldInfo.param] = [fieldInfo.value];
       }
     });
+
+    // Apply default values.
+    for (const defaultParamKey in this._defaultParams) {
+      if (!(defaultParamKey in paramSet)) {
+        paramSet[defaultParamKey] = this._defaultParams![defaultParamKey]!;
+      }
+    }
+
     return fromParamSet(paramSet);
   }
 
@@ -416,10 +418,21 @@ export class TestPickerSk extends ElementSk {
    * Initializes the fieldData structure based on params given, and
    * renders the first field for the user.
    *
-   * @param params
+   * @param params - A list of params that'll be used to populate
+   * the field labels and query the DB. The order of the list establishes
+   * a hierarchy in which each field can be populated.
+   *
+   * @param defaultParams - A map of default param values to apply to test
+   * selections. For example, if defaultParams is { 'bot': ['linux-perf'] },
+   * queries will automatically get "bot=linux-perf" appended. The exception
+   * is if bot is already specified in the query, then no defaults are applied.
    */
-  initializeTestPicker(params: string[]) {
+  initializeTestPicker(
+    params: string[],
+    defaultParams: { [key: string]: string[] | null }
+  ) {
     this.initializeFieldData(params);
+    this._defaultParams = defaultParams;
     this.addChildField();
     this._render();
   }

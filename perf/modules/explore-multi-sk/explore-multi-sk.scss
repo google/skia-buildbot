@@ -18,7 +18,10 @@ explore-multi-sk {
     background: var(--surface-1dp);
     width: 64px;
   }
-  test-picker-sk {
+  #test-picker.hidden {
+    display: none;
+  }
+  #add-graph-button.hidden {
     display: none;
   }
 }

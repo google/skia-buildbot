@@ -46,8 +46,7 @@
             "arch",
             "config",
             "test",
-            "units",
-            "bot"
+            "units"
         ],
         "redis_config": {
             "level1_cache_key": "arch",

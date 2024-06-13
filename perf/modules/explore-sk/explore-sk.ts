@@ -10,6 +10,8 @@ import { ExploreSimpleSk, State } from '../explore-simple-sk/explore-simple-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { QueryConfig } from '../json';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 import '../explore-simple-sk';
 
@@ -20,17 +22,22 @@ export class ExploreSk extends ElementSk {
 
   private showMultiViewButton = false;
 
+  private defaults: QueryConfig | null = null;
+
   constructor() {
     super(ExploreSk.template);
   }
 
-  connectedCallback(): void {
+  async connectedCallback() {
     super.connectedCallback();
     this._render();
 
     this.exploreSimpleSk = this.querySelector('explore-simple-sk');
     this.exploreSimpleSk!.openQueryByDefault = true;
     this.exploreSimpleSk!.navOpen = true;
+
+    await this.initializeDefaults();
+
     this.stateHasChanged = stateReflector(
       () => this.exploreSimpleSk!.state as unknown as HintableObject,
       (hintableState) => {
@@ -65,6 +72,20 @@ export class ExploreSk extends ElementSk {
     </div>
     <explore-simple-sk></explore-simple-sk>
   `;
+
+  /**
+   * Fetches defaults from backend and passes them down to the
+   * ExploreSimpleSk element.
+   */
+  private async initializeDefaults() {
+    await fetch(`/_/defaults/`, {
+      method: 'GET',
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.exploreSimpleSk!.defaults = json;
+      });
+  }
 }
 
 define('explore-sk', ExploreSk);

@@ -379,24 +379,13 @@ describe('Default values', () => {
       },
       include_params: null,
     };
-    const defaultBody = JSON.stringify(defaultConfig);
-    fetchMock.get('path:/_/defaults/', {
-      status: 200,
-      body: defaultBody,
-    });
 
     const explore =
       setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await fetchMock.flush(true);
-    const actualConfig = explore['defaults'];
-    assert.deepEqual(
-      actualConfig,
-      defaultConfig,
-      'actual and default configs are the same'
-    );
+    explore['_defaults'] = defaultConfig;
+
     const originalState = deepCopy(explore.state);
     await explore['applyQueryDefaultsIfMissing']();
-    assert.isTrue(fetchMock.done());
 
     const newState = explore.state;
     assert.notDeepEqual(
@@ -429,6 +418,10 @@ describe('requestFrameBodyDeltaFromState', () => {
     buildParamSet(ret);
     return ret;
   }
+
+  afterEach(() => {
+    fetchMock.reset();
+  });
 
   it('fetches only missing older data when panning left with overlap', async () => {
     // dataframe:           [1100,   1400]
