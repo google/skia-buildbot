@@ -389,6 +389,9 @@ func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *Comb
 }
 
 // findMidCommit coordinates the search for finding the midpoint between the two commits.
+// findMidCommit assumes that it's operating within the same repo. Care is required if
+// findMidCommit is used to find the midCommit between commits from two different repos.
+// See doc.go for edge cases.
 func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	midCommit, err := m.findMidpoint(ctx, startCommit, endCommit)
 	if err != nil {
@@ -460,6 +463,9 @@ func (m *MidpointHandler) Equal(ctx context.Context, first, second *CombinedComm
 //
 // See midpoint/doc.go for examples and details.
 func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit, endCommit *CombinedCommit) (*CombinedCommit, error) {
+	if startCommit.Key() == endCommit.Key() {
+		return nil, skerr.Fmt("Unable to find midpoint between two commits that are identical")
+	}
 	if startCommit.Main.Repository != endCommit.Main.Repository {
 		return nil, skerr.Fmt("Unable to find midpoint between two commits with different main repositories.")
 	}
@@ -469,6 +475,9 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	// commits have been compared (where DEPS is analyzed). We search for the
 	// midpoint from modified dep where commits for it differ.
 	if len(startCommit.ModifiedDeps) > 0 || len(endCommit.ModifiedDeps) > 0 {
+		// Create originals of the start commits before the deps are filled in.
+		// These originals are needed before DEPS are filled in and they are edited.
+		origStartCommit, origEndCommit := startCommit.Clone(), endCommit.Clone()
 		// During bisection, either one of start or end combined commits may be missing
 		// a modified deps definition.
 		//
@@ -493,11 +502,29 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 		startDep := startCommit.GetLatestModifiedDep()
 		endDep := endCommit.GetLatestModifiedDep()
 
+		// Checks if we are looking at the first or last commit in the DEPS roll.
+		// If we reach a state where {C@1, V8@4) is compared to {C@2, V8@4},
+		// and C@2 was a deps roll to V8@4, an equality check on the two objects
+		// by key wouldn't work because of the difference in base.
+		if startDep.GetGitHash() == endDep.GetGitHash() {
+			sklog.Warningf("Both start and end DEPS are identical. Either startDep is the last commit in the DEPS roll or endDep is the first commit in the DEPS roll. Return original startCommit: %v. startDep: %v; endDep: %v", origStartCommit, startDep, endDep)
+			return origStartCommit, nil
+		}
+
 		midDepCommit, err := m.findMidCommit(ctx, startDep, endDep)
 		if err != nil {
 			return nil, err
 		}
 
+		// Addresses the edge case if we are comparing the 2nd to last commit
+		// in the roll so that the midpoint is the last commit in the roll.
+		// i.e. {C@1, V8@3} vs {C@2} fills deps to {C@1, V8@3} vs {C@2, V8@4}
+		// and returns {C@1, V8@4}
+		if strings.HasPrefix(midDepCommit.GitHash, startDep.GitHash) && len(origStartCommit.ModifiedDeps) > len(origEndCommit.ModifiedDeps) {
+			resp := startCommit.Clone()
+			resp.UpsertModifiedDep(endDep)
+			return resp, nil
+		}
 		// There is no mid to proceed on.
 		if strings.HasPrefix(midDepCommit.GitHash, startDep.GitHash) {
 			return startCommit, nil
@@ -516,7 +543,7 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	}
 
 	// There is no mid.
-	if strings.HasPrefix(midCommit.GitHash, startCommit.Main.GitHash) {
+	if strings.HasPrefix(midCommit.GitHash, startCommit.GetMainGitHash()) {
 		return startCommit, nil
 	}
 
