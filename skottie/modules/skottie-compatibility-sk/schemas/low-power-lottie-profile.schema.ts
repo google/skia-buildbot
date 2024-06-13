@@ -11,6 +11,7 @@ export const lowPowerLottieProfileSchema = {
           'items': {
             'allOf': [
               {'$ref': '#/$defs/features/layers/only-supported-shapes'},
+              {'$ref': '#/$defs/features/effects/only-supported-effects'},
               {'$ref': '#/$defs/features/layers/types/no-image-layer'},
               {'$ref': '#/$defs/features/layers/types/no-text-layer'},
               {'$ref': '#/$defs/features/layers/properties/no-effects'},
@@ -24,6 +25,183 @@ export const lowPowerLottieProfileSchema = {
       },
     },
     'features': {
+      'effects': {
+        'only-supported-effects': {
+          'type': 'object',
+          'properties': {
+            'ef': {
+              'type': 'array',
+              'items': {
+                'allOf': [
+                  {'$ref': '#/$defs/features/effects/no-tint'},
+                  {'$ref': '#/$defs/features/effects/no-fill'},
+                  {'$ref': '#/$defs/features/effects/no-stroke'},
+                  {'$ref': '#/$defs/features/effects/no-tritone'},
+                  {'$ref': '#/$defs/features/effects/no-pro-levels'},
+                  {'$ref': '#/$defs/features/effects/no-drop-shadow'},
+                  {'$ref': '#/$defs/features/effects/no-radial-wipe'},
+                  {'$ref': '#/$defs/features/effects/no-displacement-map'},
+                  {'$ref': '#/$defs/features/effects/no-matte3'},
+                  {'$ref': '#/$defs/features/effects/no-gaussian-blur'},
+                  {'$ref': '#/$defs/features/effects/no-twirl'},
+                  {'$ref': '#/$defs/features/effects/no-mesh-warp'},
+                  {'$ref': '#/$defs/features/effects/no-wavy'},
+                  {'$ref': '#/$defs/features/effects/no-spherize'},
+                  {'$ref': '#/$defs/features/effects/no-puppet'},
+                ]
+              }
+            }
+          }
+        },
+        'no-tint': {
+          'feature-code': 'effect-tint',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 20}
+            }
+          }
+        },
+        'no-fill': {
+          'feature-code': 'effect-fill',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 21}
+            }
+          }
+        },
+        'no-stroke': {
+          'feature-code': 'effect-stroke',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 22}
+            }
+          }
+        },
+        'no-tritone': {
+          'feature-code': 'effect-tritone',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 23}
+            }
+          }
+        },
+        'no-pro-levels': {
+          'feature-code': 'effect-pro-levels',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 24}
+            }
+          }
+        },
+        'no-drop-shadow': {
+          'feature-code': 'effect-drop-shadow',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 25}
+            }
+          }
+        },
+        'no-radial-wipe': {
+          'feature-code': 'effect-radial-wipe',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 26}
+            }
+          }
+        },
+        'no-displacement-map': {
+          'feature-code': 'effect-displacement-map',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 27}
+            }
+          }
+        },
+        'no-matte3': {
+          'feature-code': 'effect-matte3',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 28}
+            }
+          }
+        },
+        'no-gaussian-blur': {
+          'feature-code': 'effect-gaussian-blur',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 29}
+            }
+          }
+        },
+        'no-twirl': {
+          'feature-code': 'effect-twirl',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 30}
+            }
+          }
+        },
+        'no-mesh-warp': {
+          'feature-code': 'effect-mesh-warp',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 31}
+            }
+          }
+        },
+        'no-wavy': {
+          'feature-code': 'effect-wavy',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 32}
+            }
+          }
+        },
+        'no-spherize': {
+          'feature-code': 'effect-spherize',
+          'feature-link': 'spherize-effect',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 33}
+            }
+          }
+        },
+        'no-puppet': {
+          'feature-code': 'effect-puppet',
+          '$comment': 'Not on canilottie',
+          'feature-link': 'effects',
+          'type': 'object',
+          'properties': {
+            'ty': {
+              'not': {'const': 34}
+            }
+          }
+        }
+      },
       'layers': {
         'types': {
           'no-image-layer': {
