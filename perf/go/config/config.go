@@ -805,6 +805,21 @@ type RedisConfig struct {
 
 	// The name of the Redis instance.
 	Instance string `json:"instance,omitempty"`
+
+	// The parameter key of first level of cache.
+	Level1Key string `json:"level1_cache_key,omitempty"`
+
+	// The parameter values of first level of cache.
+	Level1Values []string `json:"level1_cache_values,omitempty"`
+
+	// The parameter key of second level of cache.
+	Level2Key string `json:"level2_cache_key,omitempty"`
+
+	// The parameter values of second level of cache.
+	Level2Values []string `json:"level2_cache_values,omitempty"`
+
+	// The switch to turn cache on and off
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.

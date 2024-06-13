@@ -9,8 +9,11 @@ go_library(
     deps = [
         "//go/metrics2",
         "//go/paramtools",
+        "//go/query",
         "//go/skerr",
         "//go/sklog",
+        "//perf/go/config",
+        "//perf/go/dataframe",
         "//perf/go/types",
     ],
 )
@@ -22,6 +25,8 @@ go_test(
     deps = [
         "//go/paramtools",
         "//go/testutils",
+        "//perf/go/config",
+        "//perf/go/dataframe/mocks",
         "//perf/go/psrefresh/mocks",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",

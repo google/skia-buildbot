@@ -47,8 +47,12 @@
             "config",
             "test",
             "units",
-	    "bot"
-        ]
+            "bot"
+        ],
+        "redis_config": {
+            "level1_cache_key": "arch",
+            "level2_cache_key": "config"
+        }
     },
     "favorites": {
         "sections":[

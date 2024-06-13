@@ -87,7 +87,7 @@ const (
 
 	// paramsetRefresherPeriod is how often we refresh our canonical paramset from the OPS's
 	// stored in the last two tiles.
-	paramsetRefresherPeriod = 5 * time.Minute
+	paramsetRefresherPeriod = 1 * time.Hour
 
 	// startClusterDelay is the time we wait between starting each clusterer, to avoid hammering
 	// the trace store all at once.
@@ -428,13 +428,6 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
 
-	sklog.Info("About to build paramset refresher.")
-
-	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries)
-	if err := f.paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
-		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
-	}
-
 	sklog.Info("About to build perfgit.")
 
 	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, f.flags.Local, config.Config)
@@ -467,6 +460,13 @@ func (f *Frontend) initialize() {
 		f.traceStore,
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces))
+
+	sklog.Info("About to build paramset refresher.")
+
+	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig)
+	if err := f.paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
+		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
+	}
 
 	if config.Config.FetchChromePerfAnomalies {
 		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx)
@@ -895,6 +895,12 @@ func (f *Frontend) PreflightQuery(ctx context.Context, w http.ResponseWriter, qs
 	if qs == "" {
 		return 0, fullPS, nil
 	} else {
+		sklog.Debugf("Trying on query cache. url.value: %s, qs: %s", u, qs)
+		countCached, psCached := f.getQueryCache(u)
+		if countCached > 0 {
+			sklog.Debugf("Cache hit on query")
+			return int(countCached), filterParamSetIfNeeded(psCached), nil
+		}
 		count, ps, err := f.dfBuilder.PreflightQuery(ctx, q, fullPS)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
@@ -2357,6 +2363,12 @@ func (f *Frontend) getParamSet() paramtools.ReadOnlyParamSet {
 	paramSet := f.paramsetRefresher.Get()
 
 	return filterParamSetIfNeeded(paramSet)
+}
+
+func (f *Frontend) getQueryCache(u url.Values) (int64, paramtools.ReadOnlyParamSet) {
+	count, ps := f.paramsetRefresher.GetQuery(u)
+
+	return count, ps
 }
 
 // filterParamSetIfNeeded filters the paramset if any filters have been specified in

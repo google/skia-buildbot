@@ -394,6 +394,27 @@
         },
         "instance": {
           "type": "string"
+        },
+        "level1_cache_key": {
+          "type": "string"
+        },
+        "level1_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "level2_cache_key": {
+          "type": "string"
+        },
+        "level2_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

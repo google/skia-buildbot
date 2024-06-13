@@ -71,7 +71,12 @@
         "redis_config": {
             "project": "skia-infra-corp",
             "zone": "us-central1",
-            "instance": "chrome-internal"
+            "instance": "chrome-internal",
+            "level1_cache_key": "benchmark",
+            "level1_cache_values": ["speedometer2", "webrtc"],
+            "level2_cache_key": "bot",
+            "level2_cache_values": ["linux-perf"],
+            "enabled": true
         }
     },
     "help_url_override": "http://go/chrome-perf-user-doc",

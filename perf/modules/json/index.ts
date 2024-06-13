@@ -101,6 +101,11 @@ export interface RedisConfig {
 	project?: string;
 	zone?: string;
 	instance?: string;
+	level1_cache_key?: string;
+	level1_cache_values?: string[] | null;
+	level2_cache_key?: string;
+	level2_cache_values?: string[] | null;
+	enabled?: boolean;
 }
 
 export interface QueryConfig {
