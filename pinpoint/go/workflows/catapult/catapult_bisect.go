@@ -157,6 +157,8 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 		return nil, skerr.Wrap(err)
 	}
 
+	// Note, if running locally, you may need to disable this activity.
+	// See WriteBisectToCatapultActivity in README.md.
 	var dsResp *DatastoreResponse
 	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, p.Production).Get(ctx, &dsResp); err != nil {
 		return nil, skerr.Wrap(err)

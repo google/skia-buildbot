@@ -55,6 +55,15 @@ Notes:
 Please ask the team to add you to
 https://chrome-infra-auth.appspot.com/auth/groups/project-chromeperf-admins.
 
+## WriteBisectToCatapultActivity: `The catapult post request failed with status code 500`
+
+Only applies to running the bisect workflow on the local dev environment.
+
+- Check if the bisection covered any non-chromium commits
+- See if those repositories are omitted [here](https://pantheon.corp.google.com/datastore/databases/-default-/entities;kind=Repository;ns=__$DEFAULT$__/query/kind?e=-13802955&mods=component_inspector&project=chromeperf-stage)
+- If they are omitted, then temporal will be unable to write the UI result to the staging environment.
+- Disable the activity.
+
 # Common Temporal development pitfalls
 
 - All parameters must be exportable for golang to serialize the parameter into
