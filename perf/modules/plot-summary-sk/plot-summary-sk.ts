@@ -389,11 +389,22 @@ export class PlotSummarySk extends ElementSk {
     if (this.isCurrentlySelecting) {
       // If the user is currently selecting an area, update the selection range
       // array based on the current mouse position.
-      const startx = this.selectionRange![0];
-      let endx = this.currentMousePosition.clientX;
-      if (endx < startx) {
-        endx = startx;
+      let startx = this.selectionRange![0];
+      let endx = this.selectionRange![1];
+      const currentx = this.currentMousePosition.clientX;
+
+      // Figure out the closest end of the selection to the current position.
+      // This tells us the direction in which the user is highlighting.
+      const isMovingOnLeft =
+        Math.abs(currentx - startx) < Math.abs(currentx - endx);
+      if (isMovingOnLeft) {
+        // If the mouse is towards the left side, we update the start values.
+        startx = currentx;
+      } else {
+        // If the mouse is towards the right, we update the end values.
+        endx = currentx;
       }
+      this.selectionRange![0] = startx;
       this.selectionRange![1] = endx;
     } else if (this.lockedSelectionDiffs !== null) {
       // User is dragging the current selection around.
