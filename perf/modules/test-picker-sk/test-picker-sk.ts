@@ -375,6 +375,12 @@ export class TestPickerSk extends ElementSk {
       }
     });
 
+    // If all fields are empty, don't add any defaults, which can potentially
+    // make the query slow. An empty query should be a fast retrieval.
+    if (Object.keys(paramSet).length === 0) {
+      return '';
+    }
+
     // Apply default values.
     for (const defaultParamKey in this._defaultParams) {
       if (!(defaultParamKey in paramSet)) {
