@@ -89,7 +89,7 @@ func (pf *ParamSetRefresher) Start(period time.Duration) error {
 //	"startup", "startup&linux", "startup&mac", "v8", "v8&linux", "v8&mac"
 func (pf *ParamSetRefresher) cacheQueryResults(ctx context.Context, ps paramtools.ParamSet) (map[string]int64, map[string]paramtools.ReadOnlyParamSet, error) {
 	// get timer only for the extra caching for query results
-	t := metrics2.NewTimer("repobuilder")
+	t := metrics2.NewTimer("QueryUICache")
 	countCache := map[string]int64{}
 	queryCache := map[string]paramtools.ReadOnlyParamSet{}
 
