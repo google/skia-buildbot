@@ -72,6 +72,15 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	group_issue_map JSONB,
 	UNIQUE INDEX by_revision (revision, host, project, ref)
   );
+  CREATE TABLE IF NOT EXISTS Favorites (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	user_id STRING NOT NULL,
+	name STRING,
+	url STRING NOT NULL,
+	description STRING,
+	last_modified INT,
+	INDEX by_user_id (user_id)
+  );
   CREATE TABLE IF NOT EXISTS GraphsShortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,
 	graphs TEXT

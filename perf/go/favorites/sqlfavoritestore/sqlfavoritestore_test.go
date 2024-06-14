@@ -52,10 +52,11 @@ func TestGet_FavoriteWithId(t *testing.T) {
 	favs, err := store.List(ctx, "a@b.com")
 	require.NoError(t, err)
 
-	favFromDb, err := store.Get(ctx, favs[0].ID)
+	getId := favs[0].ID
+	favFromDb, err := store.Get(ctx, getId)
 	require.NoError(t, err)
 
-	require.Equal(t, f1.Name, favFromDb.Name)
+	require.Equal(t, getId, favFromDb.ID)
 }
 
 func TestGet_NonExistentFavorite_ReturnsError(t *testing.T) {
@@ -72,7 +73,7 @@ func TestGet_NonExistentFavorite_ReturnsError(t *testing.T) {
 	err := store.Create(ctx, f1)
 	require.NoError(t, err)
 
-	_, err = store.Get(ctx, 10)
+	_, err = store.Get(ctx, "10")
 	require.Error(t, err)
 }
 
@@ -200,7 +201,7 @@ func TestUpdate_NonExistingFavorite(t *testing.T) {
 	err = store.Create(ctx, f3)
 	require.NoError(t, err)
 
-	nonExistentFavId := int64(10)
+	nonExistentFavId := "10"
 
 	req := &favorites.SaveRequest{
 		Name:        "fav1updated",
@@ -208,14 +209,14 @@ func TestUpdate_NonExistingFavorite(t *testing.T) {
 		Description: "Desc for fav1 updated",
 	}
 	err = store.Update(ctx, req, nonExistentFavId)
-	require.NoError(t, err)
+	require.Error(t, err)
 
 	favs, err := store.List(ctx, "a@b.com")
 	require.NoError(t, err)
 
 	require.Len(t, favs, 2)
-	require.Equal(t, favs[0].Name, "fav1")
-	require.Equal(t, favs[1].Name, "fav2")
+	require.Contains(t, []string{favs[0].Name, favs[1].Name}, "fav1")
+	require.Contains(t, []string{favs[0].Name, favs[1].Name}, "fav2")
 }
 
 func TestDelete_FavoriteWithId(t *testing.T) {
@@ -246,12 +247,13 @@ func TestDelete_FavoriteWithId(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(favsInDb))
 
-	err = store.Delete(ctx, "a@b.com", favsInDb[0].ID)
+	deleteId := favsInDb[0].ID
+	err = store.Delete(ctx, "a@b.com", deleteId)
 	require.NoError(t, err)
 
 	favsInDb, err = store.List(ctx, "a@b.com")
 	require.Equal(t, 1, len(favsInDb))
-	require.Equal(t, "fav2", favsInDb[0].Name)
+	require.NotEqual(t, deleteId, favsInDb[0].ID)
 }
 
 func TestList_ForUserId(t *testing.T) {
@@ -291,8 +293,8 @@ func TestList_ForUserId(t *testing.T) {
 	favFromDb, err := store.List(ctx, "a@b.com")
 	require.NoError(t, err)
 	require.Len(t, favFromDb, 2)
-	require.Equal(t, "fav1", favFromDb[0].Name)
-	require.Equal(t, "fav2", favFromDb[1].Name)
+	require.Contains(t, []string{favFromDb[0].Name, favFromDb[1].Name}, "fav1")
+	require.Contains(t, []string{favFromDb[0].Name, favFromDb[1].Name}, "fav2")
 }
 
 func TestList_ForUserId_EmptyList(t *testing.T) {

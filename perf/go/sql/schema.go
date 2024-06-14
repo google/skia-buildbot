@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS Culprits (
   UNIQUE INDEX by_revision (revision, host, project, ref)
 );
 CREATE TABLE IF NOT EXISTS Favorites (
-  id INT PRIMARY KEY DEFAULT unique_rowid(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id STRING NOT NULL,
   name STRING,
   url STRING NOT NULL,

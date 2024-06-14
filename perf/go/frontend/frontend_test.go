@@ -194,7 +194,7 @@ func TestFrontendNewFavoriteHandler_Success(t *testing.T) {
 func TestFrontendEditFavoriteHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	updateFavReq := UpdateFavRequest{
-		Id:          12345,
+		Id:          "12345",
 		Name:        "Fav1",
 		Description: "Fav1 desc",
 		Url:         "fav.com",
@@ -205,7 +205,7 @@ func TestFrontendEditFavoriteHandler_Success(t *testing.T) {
 
 	favMocks := favoriteMocks.NewStore(t)
 	favMocks.On("Update", testutils.AnyContext, mock.Anything, updateFavReq.Id).Return(nil)
-	favMocks.On("Get", testutils.AnyContext, updateFavReq.Id).Return(&favorites.Favorite{ID: 12345, UserId: "nobody@example.org"}, nil)
+	favMocks.On("Get", testutils.AnyContext, updateFavReq.Id).Return(&favorites.Favorite{ID: "12345", UserId: "nobody@example.org"}, nil)
 
 	login := mocks.NewLogin(t)
 	login.On("LoggedInAs", r).Return(alogin.EMail("nobody@example.org"))
@@ -223,7 +223,7 @@ func TestFrontendEditFavoriteHandler_Success(t *testing.T) {
 func TestFrontendDeleteFavoriteHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	deleteFavReq := DeleteFavRequest{
-		Id: 12345,
+		Id: "12345",
 	}
 	favBody, _ := json.Marshal(deleteFavReq)
 	body := bytes.NewReader(favBody)
@@ -258,8 +258,8 @@ func TestFrontendFavoritesHandler_Success(t *testing.T) {
 
 	favMocks := favoriteMocks.NewStore(t)
 	fakeUserFavs := []*favorites.Favorite{
-		{ID: 12345, UserId: "nobody@example.org"},
-		{ID: 23456, UserId: "nobody@example.org"},
+		{ID: "12345", UserId: "nobody@example.org"},
+		{ID: "23456", UserId: "nobody@example.org"},
 	}
 	favMocks.On("List", testutils.AnyContext, "nobody@example.org").Return(fakeUserFavs, nil)
 

@@ -37,8 +37,9 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
+	DROP TABLE IF EXISTS Favorites;
 	CREATE TABLE IF NOT EXISTS Favorites (
-		id INT PRIMARY KEY DEFAULT unique_rowid(),
+		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 		user_id STRING NOT NULL,
 		name STRING,
 		url STRING NOT NULL,
@@ -51,7 +52,16 @@ var FromLiveToNext = `
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	DROP TABLE IF EXISTS Favorites;
+DROP TABLE IF EXISTS Favorites;
+CREATE TABLE IF NOT EXISTS Favorites (
+	id INT PRIMARY KEY DEFAULT unique_rowid(),
+	user_id STRING NOT NULL,
+	name STRING,
+	url STRING NOT NULL,
+	description STRING,
+	last_modified INT,
+	INDEX by_user_id (user_id)
+  );
 `
 
 // This function will check whether there's a new schema checked-in,

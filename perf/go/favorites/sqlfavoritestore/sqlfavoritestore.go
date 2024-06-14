@@ -82,7 +82,7 @@ func New(db pool.Pool) *FavoriteStore {
 }
 
 // Get implements the favorites.Store interface.
-func (s *FavoriteStore) Get(ctx context.Context, id int64) (*favorites.Favorite, error) {
+func (s *FavoriteStore) Get(ctx context.Context, id string) (*favorites.Favorite, error) {
 	fav := &favorites.Favorite{}
 	if err := s.db.QueryRow(ctx, statements[getFavorite], id).Scan(
 		&fav.ID,
@@ -107,22 +107,22 @@ func (s *FavoriteStore) Create(ctx context.Context, req *favorites.SaveRequest) 
 }
 
 // Create implements the favorites.Store interface.
-func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, id int64) error {
+func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, id string) error {
 	now := time.Now().Unix()
 	if _, err := s.db.Exec(ctx, statements[updateFavorite], req.Name, req.Url, req.Description, now, id); err != nil {
-		return skerr.Wrapf(err, "Failed to update favorite with id=%d", id)
+		return skerr.Wrapf(err, "Failed to update favorite with id=%s", id)
 	}
 	return nil
 }
 
 // Delete implements the favorites.Store interface.
-func (s *FavoriteStore) Delete(ctx context.Context, userId string, id int64) error {
+func (s *FavoriteStore) Delete(ctx context.Context, userId string, id string) error {
 	call, err := s.db.Exec(ctx, statements[deleteFavorite], id, userId)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to delete favorite with id=%d", id)
+		return skerr.Wrapf(err, "Failed to delete favorite with id=%s", id)
 	}
 	if call.RowsAffected() != 1 {
-		return skerr.Fmt("Failed to delete favorite with id=%d", id)
+		return skerr.Fmt("No rows changed=%s", id)
 	}
 
 	return nil

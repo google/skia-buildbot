@@ -6,7 +6,7 @@ import (
 
 // Favorite is a struct that represents a favorite.
 type Favorite struct {
-	ID           int64
+	ID           string
 	UserId       string
 	Name         string
 	Url          string
@@ -24,16 +24,16 @@ type SaveRequest struct {
 // Store is the interface used to persist Favorites.
 type Store interface {
 	// Get fetches a favorite with the given id from the db.
-	Get(ctx context.Context, id int64) (*Favorite, error)
+	Get(ctx context.Context, id string) (*Favorite, error)
 
 	// Create inserts a new favorite into the db
 	Create(ctx context.Context, req *SaveRequest) error
 
 	// Update updates an existing favorite into the db based on id
-	Update(ctx context.Context, req *SaveRequest, id int64) error
+	Update(ctx context.Context, req *SaveRequest, id string) error
 
 	// Delete removes the Favorite with the given id.
-	Delete(ctx context.Context, userId string, id int64) error
+	Delete(ctx context.Context, userId string, id string) error
 
 	// List retrieves all the Favorites by user id (email).
 	List(ctx context.Context, userId string) ([]*Favorite, error)

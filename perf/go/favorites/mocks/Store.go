@@ -33,7 +33,7 @@ func (_m *Store) Create(ctx context.Context, req *favorites.SaveRequest) error {
 }
 
 // Delete provides a mock function with given fields: ctx, userId, id
-func (_m *Store) Delete(ctx context.Context, userId string, id int64) error {
+func (_m *Store) Delete(ctx context.Context, userId string, id string) error {
 	ret := _m.Called(ctx, userId, id)
 
 	if len(ret) == 0 {
@@ -41,7 +41,7 @@ func (_m *Store) Delete(ctx context.Context, userId string, id int64) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, int64) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, userId, id)
 	} else {
 		r0 = ret.Error(0)
@@ -51,7 +51,7 @@ func (_m *Store) Delete(ctx context.Context, userId string, id int64) error {
 }
 
 // Get provides a mock function with given fields: ctx, id
-func (_m *Store) Get(ctx context.Context, id int64) (*favorites.Favorite, error) {
+func (_m *Store) Get(ctx context.Context, id string) (*favorites.Favorite, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
@@ -60,10 +60,10 @@ func (_m *Store) Get(ctx context.Context, id int64) (*favorites.Favorite, error)
 
 	var r0 *favorites.Favorite
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) (*favorites.Favorite, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*favorites.Favorite, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) *favorites.Favorite); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *favorites.Favorite); ok {
 		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
@@ -71,7 +71,7 @@ func (_m *Store) Get(ctx context.Context, id int64) (*favorites.Favorite, error)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
@@ -111,7 +111,7 @@ func (_m *Store) List(ctx context.Context, userId string) ([]*favorites.Favorite
 }
 
 // Update provides a mock function with given fields: ctx, req, id
-func (_m *Store) Update(ctx context.Context, req *favorites.SaveRequest, id int64) error {
+func (_m *Store) Update(ctx context.Context, req *favorites.SaveRequest, id string) error {
 	ret := _m.Called(ctx, req, id)
 
 	if len(ret) == 0 {
@@ -119,7 +119,7 @@ func (_m *Store) Update(ctx context.Context, req *favorites.SaveRequest, id int6
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *favorites.SaveRequest, int64) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *favorites.SaveRequest, string) error); ok {
 		r0 = rf(ctx, req, id)
 	} else {
 		r0 = ret.Error(0)

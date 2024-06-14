@@ -1883,7 +1883,7 @@ func (f *Frontend) newFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 
 // UpdateFavRequest is a request to update an existing Favorite
 type UpdateFavRequest struct {
-	Id          int64  `json:"id"`
+	Id          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Url         string `json:"url"`
@@ -1932,7 +1932,7 @@ func (f *Frontend) updateFavoriteHandler(w http.ResponseWriter, r *http.Request)
 
 // DeleteFavRequest is a request to delete an existing Favorite
 type DeleteFavRequest struct {
-	Id int64 `json:"id"`
+	Id string `json:"id"`
 }
 
 // deleteFavoriteHandler deletes a favorite per id in the db
