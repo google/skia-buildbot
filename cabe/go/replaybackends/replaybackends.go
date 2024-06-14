@@ -20,12 +20,13 @@ import (
 	"time"
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
-	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/cabe/go/backends"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
@@ -37,7 +38,7 @@ const (
 // ReplayBackends implements the backend interfaces required for testing package etl and rpcservice.
 type ReplayBackends struct {
 	ParsedPerfResults   map[string]perfresults.PerfResults
-	ParsedSwarmingTasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata
+	ParsedSwarmingTasks []*apipb.TaskRequestMetadataResponse
 
 	rbeClients map[string]*rbeclient.Client
 
@@ -58,7 +59,7 @@ type ReplayBackends struct {
 // ReplayBackends instance with it suitable for testing purposes.
 //
 // Replay zip files have the following internal directory structure:
-// ./swarming-tasks.json - json serialized array of [swarmingapi.SwarmingRpcsTaskRequestMetadata]
+// ./swarming-tasks.json - json serialized array of [apipb.TaskRequestMetadataResponse]
 // ./cas/<digest hash> - (multiple) the individual swarming task measurement output files
 //
 // benchmarkName is typically something determined by the thing *executing* the benchmarks, not
@@ -112,7 +113,7 @@ func FromZipFile(replayZipFile string, benchmarkName string) *ReplayBackends {
 		}
 	}
 
-	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
+	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*apipb.TaskRequestMetadataResponse, error) {
 		return ret.ParsedSwarmingTasks, nil
 	}
 
@@ -136,24 +137,21 @@ func FromZipFile(replayZipFile string, benchmarkName string) *ReplayBackends {
 // in order to complete the recording process and save the replay data to replayZipFile.
 func ToZipFile(replayZipFile string,
 	rbeClients map[string]*rbeclient.Client,
-	swarmingClient swarming.ApiClient) *ReplayBackends {
+	swarmingClient swarmingv2.SwarmingV2Client) *ReplayBackends {
 	ret := &ReplayBackends{
 		replayZipFile: replayZipFile,
 	}
-	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
-		var start, end time.Time
-		end = time.Now()
-		start = time.Now().Add(-time.Hour * 24 * 52) // past 52 days
-		state := ""                                  // any state
-
+	ret.SwarmingTaskReader = func(ctx context.Context, pinpointJobID string) ([]*apipb.TaskRequestMetadataResponse, error) {
 		sklog.Infof("getting task metadata from swarming service, pinpoint_job_id: %v", pinpointJobID)
-		rmd, err := swarmingClient.ListTasks(ctx, start, end, []string{"pinpoint_job_id:" + pinpointJobID}, state)
+		rmd, err := swarmingv2.ListTaskRequestMetadataHelper(ctx, swarmingClient, &apipb.TasksWithPerfRequest{
+			Start: timestamppb.New(time.Now().Add(-time.Hour * 24 * 52)), // past 52 days
+			State: apipb.StateQuery_QUERY_ALL,
+			Tags:  []string{"pinpoint_job_id:" + pinpointJobID},
+		})
 		if err != nil {
 			sklog.Errorf("getting swarming tasks: %v", err)
 			return nil, err
 		}
-		sklog.Infof("read %d tasks from swarming api", len(rmd))
-
 		raw, err := json.Marshal(rmd)
 		if err != nil {
 			return nil, err

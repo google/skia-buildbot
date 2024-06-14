@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/util"
 
 	specpb "go.skia.org/infra/cabe/go/proto"
@@ -22,9 +22,9 @@ type Checker interface {
 	// Findings returns a list of strings describing potential issues that the checker identified.
 	Findings() []string
 	// CheckSwarmingTask validates a single swarming task in isolation.
-	CheckSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata)
+	CheckSwarmingTask(taskInfo *apipb.TaskRequestMetadataResponse)
 	// CheckRunTask validates a single swarming run task request/result pair in isolation.
-	CheckRunTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata)
+	CheckRunTask(taskInfo *apipb.TaskRequestMetadataResponse)
 	// CheckArmComparability validates assumptions about how treatment and control arm tasks may
 	// differ from each other, and how tasks within an arm may differ from each other.
 	CheckArmComparability(controls, treatments *processedArmTasks)
@@ -123,7 +123,7 @@ func (c *checker) addFinding(checkName string, msg string) {
 	c.findings = append(c.findings, fmt.Sprintf("%s: %s", checkName, msg))
 }
 
-func (c *checker) CheckSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata) {
+func (c *checker) CheckSwarmingTask(taskInfo *apipb.TaskRequestMetadataResponse) {
 	addFinding := func(msg string) {
 		c.addFinding(fmt.Sprintf("CheckSwarmingTask %q", taskInfo.TaskId), msg)
 	}
@@ -131,14 +131,14 @@ func (c *checker) CheckSwarmingTask(taskInfo *swarming.SwarmingRpcsTaskRequestMe
 		addFinding("SwarmingRpcsTaskRequestMetadata had no TaskResult")
 		return
 	}
-	if taskInfo.TaskResult.State != taskCompletedState {
+	if taskInfo.TaskResult.State != apipb.TaskState_COMPLETED {
 		addFinding(fmt.Sprintf("TaskResult is in state %q rather than %q", taskInfo.TaskResult.State, taskCompletedState))
 	}
 }
 
 // CheckRunTask verifies assumptions about an individual request/result pair for a Swarming task
 // that executed a benchmark.
-func (c *checker) CheckRunTask(taskInfo *swarming.SwarmingRpcsTaskRequestMetadata) {
+func (c *checker) CheckRunTask(taskInfo *apipb.TaskRequestMetadataResponse) {
 	if taskInfo == nil {
 		c.addFinding("CheckRunTask", "taskInfo was nil")
 		return

@@ -13,13 +13,14 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/go-chi/chi/v5"
-	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.opencensus.io/plugin/ocgrpc"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
@@ -66,7 +67,7 @@ type App struct {
 
 	authPolicy     *grpcsp.ServerPolicy
 	grpcLogger     *grpclogging.GRPCLogger
-	swarmingClient swarming.ApiClient
+	swarmingClient swarmingv2.SwarmingV2Client
 	rbeClients     map[string]*rbeclient.Client
 
 	httpServer *http.Server
@@ -96,8 +97,12 @@ func (a *App) casResultReader(ctx context.Context, instance, digest string) (map
 	return backends.FetchBenchmarkJSON(ctx, rbeClient, digest)
 }
 
-func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
-	tasksResp, err := a.swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -56), time.Now(), []string{"pinpoint_job_id:" + pinpointJobID}, "")
+func (a *App) swarmingTaskReader(ctx context.Context, pinpointJobID string) ([]*apipb.TaskRequestMetadataResponse, error) {
+	tasksResp, err := swarmingv2.ListTaskRequestMetadataHelper(ctx, a.swarmingClient, &apipb.TasksWithPerfRequest{
+		Start: timestamppb.New(time.Now().AddDate(0, 0, -56)),
+		State: apipb.StateQuery_QUERY_ALL,
+		Tags:  []string{"pinpoint_job_id:" + pinpointJobID},
+	})
 	if err != nil {
 		sklog.Fatalf("list task results: %v", err)
 		return nil, err
@@ -287,7 +292,7 @@ func (a *App) Cleanup() {
 		}
 	}
 
-	// The [swarming.ApiClient] interface does not offer a clean shutdown method.
+	// The [swarmingv2.SwarmingV2Client] interface does not offer a clean shutdown method.
 }
 
 func main() {

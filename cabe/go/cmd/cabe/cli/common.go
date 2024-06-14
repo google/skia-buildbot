@@ -7,13 +7,14 @@ import (
 
 	rbeclient "github.com/bazelbuild/remote-apis-sdks/go/pkg/client"
 	"github.com/urfave/cli/v2"
-	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/cabe/go/backends"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/cabe/go/replaybackends"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
@@ -40,7 +41,7 @@ type commonCmd struct {
 
 	replayBackends *replaybackends.ReplayBackends
 
-	swarmingClient swarming.ApiClient
+	swarmingClient swarmingv2.SwarmingV2Client
 	rbeClients     map[string]*rbeclient.Client
 
 	swarmingTaskReader backends.SwarmingTaskReader
@@ -56,8 +57,12 @@ func (a *commonCmd) readCASResultFromRBEAPI(ctx context.Context, instance, diges
 	return backends.FetchBenchmarkJSON(ctx, rbeClient, digest)
 }
 
-func (a *commonCmd) readSwarmingTasksFromAPI(ctx context.Context, pinpointJobID string) ([]*swarmingapi.SwarmingRpcsTaskRequestMetadata, error) {
-	tasksResp, err := a.swarmingClient.ListTasks(ctx, time.Now().AddDate(0, 0, -rbeCASTTLDays), time.Now(), []string{"pinpoint_job_id:" + pinpointJobID}, "")
+func (a *commonCmd) readSwarmingTasksFromAPI(ctx context.Context, pinpointJobID string) ([]*apipb.TaskRequestMetadataResponse, error) {
+	tasksResp, err := swarmingv2.ListTaskRequestMetadataHelper(ctx, a.swarmingClient, &apipb.TasksWithPerfRequest{
+		Start: timestamppb.New(time.Now().AddDate(0, 0, -rbeCASTTLDays)),
+		State: apipb.StateQuery_QUERY_ALL,
+		Tags:  []string{"pinpoint_job_id:" + pinpointJobID},
+	})
 	if err != nil {
 		sklog.Fatalf("list task results: %v", err)
 		return nil, err

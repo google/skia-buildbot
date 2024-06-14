@@ -536,15 +536,6 @@ cipd_install(
     tag = "version:2@3.11.7.chromium.31",
 )
 
-cipd_install(
-    name = "cabe_replay_data",
-    build_file_content = all_cipd_files(),
-    cipd_package = "skia/bots/cabe",
-    # From https://chrome-infra-packages.appspot.com/p/skia/bots/cabe/+/0NzStC-LCmQMZkOfJgFx7NcMAP129WqZ7eu8unAPCSkC
-    sha256 = "d0dcd2b42f8b0a640c66439f260171ecd70c00fd76f56a99edebbcba700f0929",
-    tag = "version:6",
-)
-
 #############################################################
 # Google Cloud SDK (needed for the Google Cloud Emulators). #
 #############################################################

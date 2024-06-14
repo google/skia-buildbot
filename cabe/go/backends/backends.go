@@ -5,7 +5,7 @@ package backends
 import (
 	"context"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -25,7 +25,7 @@ var (
 type CASResultReader func(context.Context, string, string) (map[string]perfresults.PerfResults, error)
 
 // SwarmingTaskReader is an interface for getting Swarming task metadata associated with a pinpoint job.
-type SwarmingTaskReader func(context.Context, string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+type SwarmingTaskReader func(context.Context, string) ([]*apipb.TaskRequestMetadataResponse, error)
 
 func outboundAuthTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
 	ts, err := google.DefaultTokenSource(ctx, scopesForBackends...)

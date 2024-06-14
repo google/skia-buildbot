@@ -13,10 +13,11 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
-	"go.skia.org/infra/go/swarming/mocks"
+	"go.skia.org/infra/go/swarming/v2/mocks"
 	"go.skia.org/infra/kube/go/authproxy"
 
 	"github.com/stretchr/testify/assert"
@@ -26,10 +27,10 @@ import (
 
 func testSetupAppWithBackends(t *testing.T) (context.Context, *App, func()) {
 	ctx := context.Background()
-	swarmingClient := mocks.NewApiClient(t)
+	swarmingClient := &mocks.SwarmingV2Client{}
 	anything := mock.MatchedBy(func(any) bool { return true })
 	swarmingClient.On("ListTasks",
-		anything, anything, anything, anything, anything).Return(nil, nil).Maybe()
+		anything, anything, anything, anything, anything).Return(&apipb.TaskListResponse{}, nil).Maybe()
 	a := &App{
 		port:           ":0",
 		grpcPort:       ":0",

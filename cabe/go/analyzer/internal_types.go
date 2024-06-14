@@ -8,8 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/perf/go/perfresults"
 )
 
@@ -31,7 +32,7 @@ func appendIfHasPrefix(prefix, source string, dest *[]string) {
 // The contents are formatted here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/dashboard/pinpoint/models/change/change.py;l=52
 // however we only care about the presence of the "change:" prefix in this function. The rest
 // (if anything) is handled by the caller.
-func pinpointChangeTagForTask(t *swarming.SwarmingRpcsTaskRequestMetadata) string {
+func pinpointChangeTagForTask(t *apipb.TaskRequestMetadataResponse) string {
 	for _, tag := range t.TaskResult.Tags {
 		if strings.HasPrefix(tag, "change:") {
 			return tag[len("change:"):]
@@ -42,7 +43,7 @@ func pinpointChangeTagForTask(t *swarming.SwarmingRpcsTaskRequestMetadata) strin
 
 // Request dimensions are key value pairs, and keys can appear more that once.  This function
 // groups values by key.
-func requestDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map[string][]string {
+func requestDimensionsForTask(s *apipb.TaskRequestMetadataResponse) map[string][]string {
 	ret := make(map[string][]string)
 	for _, dim := range s.Request.Properties.Dimensions {
 		v := ret[dim.Key]
@@ -55,7 +56,7 @@ func requestDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map[s
 	return ret
 }
 
-func resultBotDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map[string][]string {
+func resultBotDimensionsForTask(s *apipb.TaskRequestMetadataResponse) map[string][]string {
 	ret := make(map[string][]string)
 	for _, dim := range s.TaskResult.BotDimensions {
 		v := ret[dim.Key]
@@ -70,7 +71,7 @@ func resultBotDimensionsForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) map
 
 // A build task has a tag like "buildbucket_build_id:8810006378346751937"
 // May return nil, nil if the task is not a build task at all.
-func buildInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*buildInfo, error) {
+func buildInfoForTask(s *apipb.TaskRequestMetadataResponse) (*buildInfo, error) {
 	ret := &buildInfo{}
 	for _, tag := range s.TaskResult.Tags {
 		assignIfHasPrefix("buildbucket_build_id:", tag, &ret.buildbucketBuildID)
@@ -85,7 +86,7 @@ func buildInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*buildInfo, 
 	return ret, nil
 }
 
-func runInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*runInfo, error) {
+func runInfoForTask(s *apipb.TaskRequestMetadataResponse) (*runInfo, error) {
 	ret := &runInfo{}
 
 	// t.request.Properties.Dimensions reflect what the user (e.g. via Pinpoint) asked swarming to
@@ -111,7 +112,7 @@ func runInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*runInfo, erro
 		// the bill for a name for a specific "hardware/OS/other runtime stuff" configuration.
 		if d.Key == "synthetic_product_name" {
 			if len(d.Value) == 0 {
-				js, _ := json.Marshal(s.TaskResult)
+				js, _ := json.Marshal(s)
 				sklog.Errorf("result: %s", string(js))
 				return nil, fmt.Errorf("task %q had empty values for synthetic_product_name: %#v", s.TaskId, s.TaskResult.BotDimensions)
 
@@ -126,7 +127,7 @@ func runInfoForTask(s *swarming.SwarmingRpcsTaskRequestMetadata) (*runInfo, erro
 	}
 
 	ret.botID = s.TaskResult.BotId
-	ret.startTimestamp = s.TaskResult.StartedTs
+	ret.startTimestamp = s.TaskResult.StartedTs.AsTime().Format(swarming.TIMESTAMP_FORMAT)
 
 	return ret, nil
 }
@@ -143,8 +144,8 @@ type processedArmTasks struct {
 	tasks []*armTask
 }
 
-func (a *processedArmTasks) outputDigests() []*swarming.SwarmingRpcsCASReference {
-	ret := []*swarming.SwarmingRpcsCASReference{}
+func (a *processedArmTasks) outputDigests() []*apipb.CASReference {
+	ret := []*apipb.CASReference{}
 	for _, t := range a.tasks {
 		ret = append(ret, t.resultOutput)
 	}
@@ -184,11 +185,11 @@ func (r *runInfo) String() string {
 // all of the data that is specific to one measurement task for one arm of an experiment.
 type armTask struct {
 	taskID                 string
-	resultOutput           *swarming.SwarmingRpcsCASReference
+	resultOutput           *apipb.CASReference
 	buildConfig, runConfig string
 	buildInfo              *buildInfo
 	parsedResults          map[string]perfresults.PerfResults
-	taskInfo               *swarming.SwarmingRpcsTaskRequestMetadata
+	taskInfo               *apipb.TaskRequestMetadataResponse
 }
 
 // all of the data collected for an experiment.
@@ -244,7 +245,7 @@ type pairedTasks struct {
 }
 
 func (p *pairedTasks) isControlOrderFirst() bool {
-	return p.control.taskInfo.TaskResult.StartedTs < p.treatment.taskInfo.TaskResult.StartedTs
+	return p.control.taskInfo.TaskResult.StartedTs.AsTime().Before(p.treatment.taskInfo.TaskResult.StartedTs.AsTime())
 }
 
 func (p *pairedTasks) hasTaskFailures() bool {
@@ -268,7 +269,7 @@ func (v byPairingOrder) Swap(i, j int) { v[i], v[j] = v[j], v[i] }
 // the tasks should still be in pairing order within the given bot ID.
 func (v byPairingOrder) Less(i, j int) bool {
 	if v[i].taskInfo.TaskResult.BotId == v[j].taskInfo.TaskResult.BotId {
-		return v[i].taskInfo.TaskResult.StartedTs < v[j].taskInfo.TaskResult.StartedTs
+		return v[i].taskInfo.TaskResult.StartedTs.AsTime().Before(v[j].taskInfo.TaskResult.StartedTs.AsTime())
 	}
 	return v[i].taskInfo.TaskResult.BotId < v[j].taskInfo.TaskResult.BotId
 }
