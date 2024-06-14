@@ -1,0 +1,37 @@
+@import '../themes/themes.scss';
+
+favorites-dialog-sk {
+  dialog {
+    padding: 16px;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
+    padding: 24px;
+
+    h2 {
+      font-size: 2em !important;
+      margin-bottom: 40px !important;
+    }
+
+    & > span {
+      display: inline-block;
+      width: 100px;
+
+      label {
+        font-size: 1.2em !important;
+      }
+    }
+
+    & > input {
+      margin-bottom: 20px;
+      width: 500px;
+      margin-left: 12px;
+      font-size: 1.2em !important;
+      padding: 6px;
+    }
+
+    button {
+      font-size: 1.2em !important;
+    }
+  }
+}

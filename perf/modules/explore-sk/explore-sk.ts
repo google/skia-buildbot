@@ -14,6 +14,12 @@ import { QueryConfig } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 import '../explore-simple-sk';
+import '../favorites-dialog-sk';
+import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
+import { errorMessage } from '../errorMessage';
 
 export class ExploreSk extends ElementSk {
   private exploreSimpleSk: ExploreSimpleSk | null = null;
@@ -23,6 +29,8 @@ export class ExploreSk extends ElementSk {
   private showMultiViewButton = false;
 
   private defaults: QueryConfig | null = null;
+
+  private userEmail: string = '';
 
   constructor() {
     super(ExploreSk.template);
@@ -58,16 +66,34 @@ export class ExploreSk extends ElementSk {
       this.showMultiViewButton = true;
       this._render();
     });
+
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this.userEmail = status.email;
+      })
+      .catch(errorMessage);
   }
+
+  private openAddFavoriteDialog = async () => {
+    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
+    await d!.open();
+  };
 
   private static template = (ele: ExploreSk) => html`
     <div ?hidden=${!ele.showMultiViewButton}>
+      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <button
-        style="margin: 16px 0 0 16px;"
         @click=${() => {
           ele.exploreSimpleSk?.viewMultiGraph();
         }}>
         View in multi-graph
+      </button>
+      <button
+        ?disabled=${!ele.userEmail || ele.userEmail === ''}
+        @click=${() => {
+          ele.openAddFavoriteDialog();
+        }}>
+        Add to Favorites
       </button>
     </div>
     <explore-simple-sk></explore-simple-sk>

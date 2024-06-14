@@ -30,14 +30,18 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { QueryConfig } from '../json';
 
 import '../explore-simple-sk';
+import '../favorites-dialog-sk';
 import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
 
-import { QueryConfig } from '../json';
-
+import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
+import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 
 class State {
@@ -92,6 +96,8 @@ export class ExploreMultiSk extends ElementSk {
   private testPicker: TestPickerSk | null = null;
 
   private defaults: QueryConfig | null = null;
+
+  private userEmail: string = '';
 
   constructor() {
     super(ExploreMultiSk.template);
@@ -151,7 +157,23 @@ export class ExploreMultiSk extends ElementSk {
         this.updateButtons();
       }
     );
+
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this.userEmail = status.email;
+        this._render();
+      })
+      .catch(errorMessage);
   }
+
+  private canAddFav(): boolean {
+    return this.userEmail !== null && this.userEmail !== '';
+  }
+
+  private openAddFavoriteDialog = async () => {
+    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
+    await d!.open();
+  };
 
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
@@ -184,6 +206,15 @@ export class ExploreMultiSk extends ElementSk {
         title="Merge all graphs into a single graph.">
         Merge Graphs
       </button>
+      <button
+        id="favBtn"
+        ?disabled=${!ele.canAddFav()}
+        @click=${() => {
+          ele.openAddFavoriteDialog();
+        }}>
+        Add to Favorites
+      </button>
+      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
     </div>
     <hr />

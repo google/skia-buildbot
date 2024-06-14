@@ -83,6 +83,7 @@ export interface ClusterSummary {
 }
 
 export interface FavoritesSectionLinkConfig {
+	id?: string;
 	text: string;
 	href: string;
 	description: string;

@@ -2188,6 +2188,7 @@ func (f *Frontend) favoritesHandler(w http.ResponseWriter, r *http.Request) {
 
 		for _, favorite := range favsFromDb {
 			favoriteList = append(favoriteList, config.FavoritesSectionLinkConfig{
+				Id:          favorite.ID,
 				Text:        favorite.Name,
 				Href:        favorite.Url,
 				Description: favorite.Description,

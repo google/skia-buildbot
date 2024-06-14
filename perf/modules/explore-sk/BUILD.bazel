@@ -4,6 +4,8 @@ sk_element(
     name = "explore-sk",
     sk_element_deps = [
         "//perf/modules/explore-simple-sk",
+        "//perf/modules/favorites-dialog-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
@@ -13,6 +15,9 @@ sk_element(
         "//:node_modules/lit-html",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "explore-sk.ts",

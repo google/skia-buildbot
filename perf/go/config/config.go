@@ -772,6 +772,9 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 }
 
 type FavoritesSectionLinkConfig struct {
+	// Id of a user's personalized favorite
+	Id string `json:"id,omitempty"`
+
 	// Text to display on the link
 	Text string `json:"text"`
 
