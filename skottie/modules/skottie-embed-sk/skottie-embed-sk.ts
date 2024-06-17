@@ -11,7 +11,7 @@
  * @example
  *
  *  <iframe width=128 height=128
- *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b?w=128&h=128"
+ *    src="https://skottie.skia.org/e/5c1c5cc9aa4aabe4acc1f12a7bac60fb?w=128&h=128"
  *    scrolling=no>
  *  </iframe>
  */
@@ -49,7 +49,7 @@ export class SkottieEmbedSk extends ElementSk {
     const match = window.location.pathname.match(/\/e\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the lottie file you want to play on startup.
-      this.hash = '1112d01d28a776d777cebcd0632da15b'; // gear.json
+      this.hash = '5c1c5cc9aa4aabe4acc1f12a7bac60fb'; // gear.json
     } else {
       this.hash = match[1];
     }

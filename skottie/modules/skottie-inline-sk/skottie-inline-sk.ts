@@ -19,7 +19,7 @@
  * @example
  *
  *  <skottie-inline-sk width=128 height=128
- *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b">
+ *    src="https://skottie.skia.org/e/5c1c5cc9aa4aabe4acc1f12a7bac60fb">
  *  </skottie-inline-sk>
  */
 import '../skottie-player-sk';
