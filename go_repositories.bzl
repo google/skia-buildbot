@@ -3894,6 +3894,7 @@ def go_repositories():
     go_repository(
         name = "io_temporal_go_sdk",
         importpath = "go.temporal.io/sdk",
+        patches = ["//temporal:sdk-go.diff"],
         sum = "h1:Cqyujbnt831agvkiFrJwZHVWT52kAUy4m2XyUsQpjZE=",
         version = "v1.25.2-0.20240108215803-6244097c5aca",
     )
