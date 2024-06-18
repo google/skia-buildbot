@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -121,34 +122,31 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 		Comparisons: []*CombinedResults{},
 	}
 
-	// TODO(b/347066812): Temporal workers are constantly crashing potentially due to issues
-	// with metrics reporting. While we are not 100% sure that this is the root cause, we
-	// disable metrics collection for now to see if workers become more stable.
-	// mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
-	// 	"job_id":    jobID,
-	// 	"user":      p.Request.User,
-	// 	"benchmark": p.Request.Benchmark,
-	// 	"config":    p.Request.Configuration,
-	// 	"story":     p.Request.Story,
-	// })
-	// mh.Counter("bisect_start_count").Inc(1)
-	// wkStartTime := time.Now().UnixNano()
-	// defer func() {
-	// 	duration := time.Now().UnixNano() - wkStartTime
-	// 	mh.Timer("bisect_duration").Record(time.Duration(duration))
-	// 	mh.Counter("bisect_complete_count").Inc(1)
+	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
+		"job_id":    jobID,
+		"user":      p.Request.User,
+		"benchmark": p.Request.Benchmark,
+		"config":    p.Request.Configuration,
+		"story":     p.Request.Story,
+	})
+	mh.Counter("bisect_start_count").Inc(1)
+	wkStartTime := time.Now().UnixNano()
+	defer func() {
+		duration := time.Now().UnixNano() - wkStartTime
+		mh.Timer("bisect_duration").Record(time.Duration(duration))
+		mh.Counter("bisect_complete_count").Inc(1)
 
-	// 	if wkErr != nil {
-	// 		mh.Counter("bisect_err_count").Inc(1)
-	// 	}
-	// 	if errors.Is(ctx.Err(), workflow.ErrCanceled) || errors.Is(ctx.Err(), workflow.ErrDeadlineExceeded) {
-	// 		mh.Counter("bisect_timeout_count").Inc(1)
-	// 	}
+		if wkErr != nil {
+			mh.Counter("bisect_err_count").Inc(1)
+		}
+		if errors.Is(ctx.Err(), workflow.ErrCanceled) || errors.Is(ctx.Err(), workflow.ErrDeadlineExceeded) {
+			mh.Counter("bisect_timeout_count").Inc(1)
+		}
 
-	// 	if be != nil && len(be.Culprits) > 0 {
-	// 		mh.Counter("bisect_found_culprit_count").Inc(1)
-	// 	}
-	// }()
+		if be != nil && len(be.Culprits) > 0 {
+			mh.Counter("bisect_found_culprit_count").Inc(1)
+		}
+	}()
 
 	// Find the available bot list
 	if err := workflow.ExecuteActivity(ctx, FindAvailableBotsActivity, p.Request.Configuration, time.Now().UnixNano()).Get(ctx, &p.BotIds); err != nil {
