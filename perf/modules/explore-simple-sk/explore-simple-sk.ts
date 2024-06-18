@@ -66,6 +66,8 @@ import {
   Commit,
   Trace,
   ReadOnlyParamSet,
+  AnomalyMap,
+  CommitNumberAnomalyMap,
 } from '../json';
 import {
   PlotSimpleSk,
@@ -517,6 +519,8 @@ export class ExploreSimpleSk extends ElementSk {
   private scrollable: boolean = false;
 
   private fullDataFrame: DataFrame | null = null;
+
+  private fullAnomalyMap: AnomalyMap | null = null;
 
   private useTestPicker: boolean = false;
 
@@ -1457,8 +1461,42 @@ export class ExploreSimpleSk extends ElementSk {
       selectionIndices[0],
       selectionIndices[1]
     );
+
+    // Let's make sure the anomalies are supplied for the selection.
+    const anomalyMap: AnomalyMap = {};
+    if (this.fullAnomalyMap !== null) {
+      const commitCount = columnHeader.length;
+      Object.keys(this.fullAnomalyMap).forEach((key) => {
+        const anomalies = this.fullAnomalyMap![key];
+        const filteredAnomalies: CommitNumberAnomalyMap = {};
+        Object.keys(anomalies!)
+          .map(Number)
+          .forEach((commit) => {
+            // Add the anomaly only if the commit is in the selected range.
+            if (
+              commit >= columnHeader[0]!.offset &&
+              commit <= columnHeader[commitCount - 1]!.offset
+            ) {
+              filteredAnomalies[commit] = anomalies![commit];
+            }
+          });
+        anomalyMap![key] = filteredAnomalies;
+      });
+    }
     this.plot!.removeAll();
+
+    // Update the current dataframe to reflect the selection.
+    this._dataframe.traceset = selectedTraceSet;
+    this._dataframe.header = columnHeader;
     this.AddPlotLines(selectedTraceSet, this.getLabels(columnHeader));
+    if (anomalyMap !== null) {
+      const anomalyDataMap = getAnomalyDataMap(
+        selectedTraceSet,
+        columnHeader,
+        anomalyMap
+      );
+      this.plot!.anomalyDataMap = anomalyDataMap;
+    }
   }
 
   /** Highlight a trace when it is clicked on. */
@@ -2112,6 +2150,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     this.fullDataFrame = mergedDataframe;
+    this.fullAnomalyMap = json.anomalymap;
 
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
     // before it called this method. Why does it do this twice? Is it a bug?
@@ -2230,6 +2269,7 @@ export class ExploreSimpleSk extends ElementSk {
             this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
             this.populatePlotSummary();
             this.addSelectionOnPlotSummary();
+            this.addToAnomalyMap(json.anomalymap);
           }
         });
       };
@@ -2257,6 +2297,30 @@ export class ExploreSimpleSk extends ElementSk {
         tasksToAwait.push(processChunk(currentStart, currentEnd));
       }
       await Promise.all(tasksToAwait);
+    }
+  }
+
+  /**
+   * Add the newAnomalyMap to the full anomaly map.
+   * @param newAnomalyMap
+   */
+  private addToAnomalyMap(newAnomalyMap: AnomalyMap): void {
+    if (this.fullAnomalyMap === null) {
+      this.fullAnomalyMap = newAnomalyMap;
+    } else {
+      Object.keys(newAnomalyMap!).forEach((key) => {
+        const existingMap = this.fullAnomalyMap![key];
+        if (existingMap === null) {
+          this.fullAnomalyMap![key] = newAnomalyMap![key];
+        } else {
+          const newAnomalies = newAnomalyMap![key];
+          Object.keys(newAnomalies!)
+            .map(Number)
+            .forEach((commit) => {
+              this.fullAnomalyMap![key]![commit] = newAnomalies![commit];
+            });
+        }
+      });
     }
   }
 
