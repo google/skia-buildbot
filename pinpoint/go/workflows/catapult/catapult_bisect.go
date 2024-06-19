@@ -135,7 +135,15 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 
 	// We want to specify the exact job id it'll be using instead of a randomly generated one
 	// so that users from Pinpoint can route back to it.
-	workflowID := uuid.New().String()
+	workflowID := p.JobID
+	if workflowID != "" {
+		// Reuse the JobID as the workflowID if given.
+	} else if err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.New().String()
+	}).Get(&workflowID); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	bisectOptions := childWorkflowOptions
 	bisectOptions.WorkflowID = workflowID
 	bisectCtx := workflow.WithChildOptions(ctx, bisectOptions)
