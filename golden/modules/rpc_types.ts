@@ -273,14 +273,6 @@ export interface DiffRequest {
 	crs?: string;
 }
 
-export interface GroupingForTestRequest {
-	test_name: string;
-}
-
-export interface GroupingForTestResponse {
-	grouping: Params;
-}
-
 export type ParamSet = { [key: string]: string[] };
 
 export type ParamSetResponse = { [key: string]: string[] | null } | null;

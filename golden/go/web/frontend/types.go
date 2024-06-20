@@ -698,16 +698,6 @@ type DiffRequest struct {
 	CodeReviewSystem string            `json:"crs,omitempty"`
 }
 
-// GroupingForTestRequest is the request for the /json/v1/groupingfortest RPC.
-type GroupingForTestRequest struct {
-	TestName string `json:"test_name"`
-}
-
-// GroupingForTestResponse is the response for the /json/v1/groupingfortest RPC.
-type GroupingForTestResponse struct {
-	Grouping paramtools.Params `json:"grouping"`
-}
-
 // DetailsRequest is the request for the /json/v2/details RPC.
 type DetailsRequest struct {
 	Grouping         paramtools.Params `json:"grouping"`
