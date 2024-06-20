@@ -91,15 +91,13 @@ export class PlotSummarySk extends ElementSk {
       class="plot"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></div>
+      style="transform-origin: 0 0;"></div>
     <canvas
       id="overlay"
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+      style="transform-origin: 0 0;"></canvas>
   `;
 
   async connectedCallback(): Promise<void> {
@@ -109,6 +107,9 @@ export class PlotSummarySk extends ElementSk {
         entries.forEach((entry) => {
           this.width = entry.contentRect.width;
           this.height = entry.contentRect.height;
+          if (this.currentChartData !== null) {
+            this.render();
+          }
         });
       }
     );
@@ -130,7 +131,6 @@ export class PlotSummarySk extends ElementSk {
 
   render(): void {
     this._render();
-    this.scale = window.devicePixelRatio;
     this.plotElement = this.querySelector<HTMLElement>('#plot')!;
     this.overlayCanvas = this.querySelector<HTMLCanvasElement>('#overlay')!;
     this.overlayCtx = this.overlayCanvas.getContext('2d');

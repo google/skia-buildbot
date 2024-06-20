@@ -49,6 +49,7 @@ export function DrawSummaryChart(
       gridlines: {
         color: 'transparent',
       },
+      viewWindowMode: 'maximized',
     },
     chartArea: {
       width: '100%',
