@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/compare"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
@@ -122,8 +123,10 @@ func TestPairwiseWorkflow_GivenSuccessfulWorkflowWithCulprit_ReturnsCulprit(t *t
 
 	env.ExecuteWorkflow(PairwiseWorkflow, &workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			Chart:      mockChart,
-			EndGitHash: "fake-commit",
+			Chart: mockChart,
+			EndCommit: &pinpoint_proto.CombinedCommit{
+				Main: midpoint.NewChromiumCommit("fake-commit"),
+			},
 		},
 		CulpritVerify: true,
 	})

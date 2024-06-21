@@ -108,17 +108,19 @@ message BisectExecution {
 
 // SchedulePairwiseRequest contains the input to schedule a pairwise job used
 // in regression and culprit verification. This request uses a subset of the params
-// used in Pinpoint try jobs.
+// used in Pinpoint try jobs. Pairwise can check for regressions between two commits
+// that are located in repos outside of chromium/src. This use case is particularly
+// important for verifying culprits that are located in DEPS rolls.
 //
 // The params used are defined here:
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/
 // dashboard/services/workflow_service.py;drc=2b42d43ff4989182d28de40ad4ed0dc82356c0f7;l=35
 // The params are defined based off of the keys used in catapult.
-// TODO(sunxiaodi@): Add user-facing try job request params to this request.
+// TODO(b/346836299): Add user-facing try job request params to this request.
 // i.e. extra-browser-args
 message SchedulePairwiseRequest {
-	string start_git_hash = 1;
-	string end_git_hash = 2;
+	CombinedCommit start_commit = 1;
+	CombinedCommit end_commit = 2;
 
 	// The builder/bot configuration name, this usually specifies the builder that can trigger
 	// the build.
@@ -171,6 +173,8 @@ message PairwiseExecution {
 // workflow. This workflow consists of a regression verification step, a bisection to find
 // culprits, and a culprit verification step.
 // This workflow is also known as the sandwich verification workflow.
+// This workflow assumes that the culprit is detected on chromium/src and does not
+// support start and end git hashes on other repos.
 message ScheduleCulpritFinderRequest {
 	string start_git_hash = 1;
 	string end_git_hash = 2;

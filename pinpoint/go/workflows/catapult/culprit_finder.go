@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/workflow"
@@ -20,8 +21,12 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 
 	pp := workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			StartGitHash:         cfp.Request.StartGitHash,
-			EndGitHash:           cfp.Request.EndGitHash,
+			StartCommit: &pinpoint_proto.CombinedCommit{
+				Main: midpoint.NewChromiumCommit(cfp.Request.StartGitHash),
+			},
+			EndCommit: &pinpoint_proto.CombinedCommit{
+				Main: midpoint.NewChromiumCommit(cfp.Request.EndGitHash),
+			},
 			Configuration:        cfp.Request.Configuration,
 			Benchmark:            cfp.Request.Benchmark,
 			Story:                cfp.Request.Story,
@@ -130,10 +135,10 @@ func runCulpritVerification(ctx workflow.Context, culprit *pinpoint_proto.Combin
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
 			// TODO(b/340220164): compare against the previous commit instead of the commit
 			// at the start of the regression range (requires changes to bisectExecution)
-			StartGitHash: cfp.Request.StartGitHash,
-			// TODO(b/340220827): modify pairwise to support commits with modified deps (otherwise
-			// culprit verification doesn't work on commits from rolls)
-			EndGitHash:           culprit.Main.GitHash,
+			StartCommit: &pinpoint_proto.CombinedCommit{
+				Main: midpoint.NewChromiumCommit(cfp.Request.StartGitHash),
+			},
+			EndCommit:            culprit,
 			Configuration:        cfp.Request.Configuration,
 			Benchmark:            cfp.Request.Benchmark,
 			Story:                cfp.Request.Story,

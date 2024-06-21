@@ -146,8 +146,12 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	ctx := context.Background()
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
-			StartGitHash:         "b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0",
-			EndGitHash:           "61adb993e8a46e38caac98dcb80c306391692079",
+			StartCommit: &pb.CombinedCommit{
+				Main: midpoint.NewChromiumCommit("b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0"),
+			},
+			EndCommit: &pb.CombinedCommit{
+				Main: midpoint.NewChromiumCommit("61adb993e8a46e38caac98dcb80c306391692079"),
+			},
 			Configuration:        "mac-m2-pro-perf",
 			Benchmark:            "v8.browsing_desktop",
 			Story:                "browse:search:google:2020",
