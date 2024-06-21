@@ -31,3 +31,13 @@ $$('#demo-open')?.addEventListener('click', () => {
   const ele = document.querySelector('#focus-and-fill') as PickerFieldSk;
   ele.openOverlay();
 });
+
+$$('#demo-disable')?.addEventListener('click', () => {
+  const ele = document.querySelector('#focus-and-fill') as PickerFieldSk;
+  ele.disable();
+});
+
+$$('#demo-enable')?.addEventListener('click', () => {
+  const ele = document.querySelector('#focus-and-fill') as PickerFieldSk;
+  ele.enable();
+});

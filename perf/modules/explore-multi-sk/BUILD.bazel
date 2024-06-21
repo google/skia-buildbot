@@ -1,4 +1,4 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "explore-multi-sk",
@@ -28,4 +28,21 @@ sk_element(
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":explore-multi-sk-demo",
+)
+
+sk_page(
+    name = "explore-multi-sk-demo",
+    html_file = "explore-multi-sk-demo.html",
+    scss_entry_point = "explore-multi-sk-demo.scss",
+    sk_element_deps = [
+        "//elements-sk/modules/error-toast-sk",
+        ":explore-multi-sk",
+    ],
+    ts_deps = ["//perf/modules/common:test-util_ts_lib"],
+    ts_entry_point = "explore-multi-sk-demo.ts",
 )

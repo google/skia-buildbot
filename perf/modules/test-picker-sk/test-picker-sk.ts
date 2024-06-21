@@ -208,6 +208,21 @@ export class TestPickerSk extends ElementSk {
   }
 
   /**
+   * Sets the readonly property for all rendered fields.
+   *
+   * @param readonly
+   */
+  private setReadOnly(readonly: boolean) {
+    this._fieldData.forEach((field) => {
+      if (readonly) {
+        field.field?.disable();
+      } else {
+        field.field?.enable();
+      }
+    });
+  }
+
+  /**
    * Wrapper for POST Call to backend.
    *
    * @param handler
@@ -217,6 +232,7 @@ export class TestPickerSk extends ElementSk {
   ) {
     this.updateCount(-1);
     this._requestInProgress = true;
+    this.setReadOnly(true);
     this._render();
 
     const body: NextParamListHandlerRequest = {
@@ -233,10 +249,12 @@ export class TestPickerSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this._requestInProgress = false;
+        this.setReadOnly(false);
         handler(json);
       })
       .catch((msg: any) => {
         this._requestInProgress = false;
+        this.setReadOnly(false);
         this._render();
         errorMessage(msg);
       });

@@ -69,6 +69,16 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  disable() {
+    this._comboBox!.setAttribute('readonly', '');
+    this._render();
+  }
+
+  enable() {
+    this._comboBox!.removeAttribute('readonly');
+    this._render();
+  }
+
   clear() {
     this.setValue('');
   }
