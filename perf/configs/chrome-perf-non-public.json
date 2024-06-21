@@ -66,7 +66,9 @@
             "stat": ["value"]
         },
         "default_url_values": {
-            "summary": "true"
+            "plotSummary": "true",
+            "useTestPicker": "true",
+            "showZero": "false"
         },
         "redis_config": {
             "project": "skia-infra-corp",

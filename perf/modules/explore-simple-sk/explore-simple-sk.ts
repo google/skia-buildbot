@@ -2477,12 +2477,28 @@ export class ExploreSimpleSk extends ElementSk {
     // Check if the user has specified the params provided in the default url config.
     // If not, add them to the state object
     for (const urlKey in this._defaults?.default_url_values) {
+      const stringToBool = function (str: string): boolean {
+        return str.toLowerCase() === 'true';
+      };
       if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
-        if (urlKey === 'summary') {
-          this._state.summary = Boolean(
-            this._defaults!.default_url_values![urlKey]
-          );
-          break;
+        const paramValue = stringToBool(
+          this._defaults!.default_url_values![urlKey]
+        );
+        switch (urlKey) {
+          case 'summary':
+            this._state.summary = paramValue;
+            break;
+          case 'plotSummary':
+            this._state.plotSummary = paramValue;
+            break;
+          case 'showZero':
+            this._state.showZero = paramValue;
+            break;
+          case 'useTestPicker':
+            this.useTestPicker = paramValue;
+            break;
+          default:
+            break;
         }
       }
     }
@@ -2860,6 +2876,7 @@ export class ExploreSimpleSk extends ElementSk {
     ) {
       this.openQuery();
     }
+    this.applyQueryDefaultsIfMissing();
     this.zeroChanged();
     this.autoRefreshChanged();
     this.rangeChangeImpl();

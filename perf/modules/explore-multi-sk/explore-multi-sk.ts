@@ -262,6 +262,27 @@ export class ExploreMultiSk extends ElementSk {
       .then((json) => {
         this.defaults = json;
       });
+
+    if (this.defaults !== null) {
+      if (
+        this.defaults.default_url_values !== undefined &&
+        this.defaults.default_url_values !== null
+      ) {
+        const defaultKeys = Object.keys(this.defaults.default_url_values);
+        if (
+          defaultKeys !== null &&
+          defaultKeys !== undefined &&
+          defaultKeys.indexOf('useTestPicker') > -1
+        ) {
+          const stringToBool = function (str: string): boolean {
+            return str.toLowerCase() === 'true';
+          };
+          this.state.useTestPicker = stringToBool(
+            this.defaults!.default_url_values.useTestPicker
+          );
+        }
+      }
+    }
   }
 
   /**
