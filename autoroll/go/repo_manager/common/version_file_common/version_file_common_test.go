@@ -332,3 +332,46 @@ Transitive-dep-version: transitive-dep-new-rev;
 `,
 	}, changes)
 }
+
+func TestUpdateDep_UsesChangeCache(t *testing.T) {
+	// This configuration updates DEPS twice: once for the primary dependency
+	// and again using find-and-replace to update a comment. Verify that we only
+	// read the file from the repo once (since reading it a second time would
+	// undo the first update).
+	oldContents := map[string]string{
+		deps_parser.DepsFileName: `deps = {
+			# Use my-dep at commit old-rev.
+			"my-dep-path": "my-dep@old-rev",
+		}`,
+	}
+	alreadyRead := false
+	getFile := func(ctx context.Context, path string) (string, error) {
+		require.False(t, alreadyRead, "read %s multiple times instead of using version cached in changes map", path)
+		contents, ok := oldContents[path]
+		if !ok {
+			return "", fmt.Errorf("Unknown path %s", path)
+		}
+		alreadyRead = true
+		return contents, nil
+	}
+
+	changes, err := UpdateDep(context.Background(), &config.DependencyConfig{
+		Primary: &config.VersionFileConfig{
+			Id:   "my-dep",
+			Path: deps_parser.DepsFileName,
+		},
+		FindAndReplace: []string{
+			deps_parser.DepsFileName,
+		},
+	}, &revision.Revision{
+		Id: "new-rev",
+	}, getFile)
+	require.NoError(t, err)
+
+	require.Equal(t, map[string]string{
+		deps_parser.DepsFileName: `deps = {
+			# Use my-dep at commit new-rev.
+			"my-dep-path": "my-dep@new-rev",
+		}`,
+	}, changes)
+}

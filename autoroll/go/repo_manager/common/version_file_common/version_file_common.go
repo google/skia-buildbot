@@ -214,25 +214,21 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 	// Handle find-and-replace.
 	sklog.Infof("find and replace count: \"%d\".", len(primaryDep.FindAndReplace))
 	for _, f := range primaryDep.FindAndReplace {
-		oldContents, err := getFile(ctx, f)
-		if err != nil {
-			return nil, skerr.Wrap(err)
+		oldContents, ok := changes[f]
+		if !ok {
+			oldContents, err = getFile(ctx, f)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
 		}
 		newContents := oldContents
 		for oldRev, newRev := range replacements {
 			sklog.Infof("replacing \"%s\" with \"%s\" in %s.", oldRev, newRev, f)
-			preReplacement := newContents
 			newContents = strings.ReplaceAll(newContents, oldRev, newRev)
-			if newContents == preReplacement {
-				// TODO(borenet): Should we just return an error here? I believe
-				// most use cases where we use find-and-replace would consider
-				// this to be problematic and not something to gloss over.
-				sklog.Errorf("found no instances of \"%s\" in %s", oldRev, f)
-			}
 		}
 		if oldContents != newContents {
 			changes[f] = newContents
-		} else {
+		} else if _, ok := changes[f]; !ok {
 			sklog.Errorf("find-and-replace made no changes to %s", f)
 		}
 	}
