@@ -64,6 +64,4 @@ func (prov *URLProvider) fillCommonParams(ctx context.Context, queryUrl url.Valu
 	// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
 	endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
 	queryUrl["end"] = []string{strconv.Itoa(int(endTime.Unix()))}
-
-	queryUrl["summary"] = []string{"true"}
 }
