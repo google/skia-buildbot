@@ -177,9 +177,9 @@ http_archive(
 http_archive(
     name = "com_github_temporal",
     build_file = "//temporal:temporal.BUILD",
-    sha256 = "8ab8cbe6092877904df40cbf6640936a9d68421520b877faa39e6e6775a95bcb",
-    strip_prefix = "./temporal-1.22.3",
-    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.22.3.tar.gz",
+    sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
+    strip_prefix = "./temporal-1.23.1",
+    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
 )
 
 http_archive(
