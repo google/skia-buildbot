@@ -29,6 +29,7 @@ window.perf = {
   trace_format: 'chrome',
   need_alert_action: false,
   bug_host_url: '',
+  git_repo_url: '',
 };
 
 customElements.whenDefined('explore-sk').then(() => {

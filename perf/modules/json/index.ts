@@ -296,6 +296,7 @@ export interface SkPerfConfig {
 	trace_format: TraceFormat;
 	need_alert_action: boolean;
 	bug_host_url: string;
+	git_repo_url: string;
 }
 
 export interface TriageRequest {

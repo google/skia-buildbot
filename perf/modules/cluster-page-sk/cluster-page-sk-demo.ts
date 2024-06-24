@@ -128,4 +128,5 @@ window.perf = {
   trace_format: '',
   need_alert_action: false,
   bug_host_url: '',
+  git_repo_url: '',
 };

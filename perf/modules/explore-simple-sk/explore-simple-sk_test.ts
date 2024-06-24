@@ -112,6 +112,7 @@ describe('applyFuncToTraces', () => {
     trace_format: '',
     need_alert_action: false,
     bug_host_url: '',
+    git_repo_url: '',
   };
 
   // Create a common element-sk to be used by all the tests.
