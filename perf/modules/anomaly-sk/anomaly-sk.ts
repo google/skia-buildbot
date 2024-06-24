@@ -115,7 +115,7 @@ export class AnomalySk extends ElementSk {
     super(AnomalySk.template);
   }
 
-  private static formatNumber = (num: number): string =>
+  static formatNumber = (num: number): string =>
     num.toLocaleString('en-US', {
       maximumFractionDigits: 4,
     });
@@ -126,7 +126,7 @@ export class AnomalySk extends ElementSk {
       signDisplay: 'exceptZero',
     });
 
-  private static getPercentChange = (
+  static getPercentChange = (
     median_before: number,
     median_after: number
   ): number => {
@@ -161,11 +161,11 @@ export class AnomalySk extends ElementSk {
     this._render();
   };
 
-  private formatBug(bugId: number): TemplateResult {
+  static formatBug(bugHostUrl: string, bugId: number): TemplateResult {
     if (bugId === -1) {
       return html``;
     }
-    return html`<a href="${`${this.bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
+    return html`<a href="${`${bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
   }
 
   private static template = (ele: AnomalySk) => {
@@ -211,7 +211,7 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Bug Id</th>
-              <td>${ele.formatBug(anomaly.bug_id)}</td>
+              <td>${AnomalySk.formatBug(ele.bugHostUrl, anomaly.bug_id)}</td>
             </tr>
           </tbody>
         </table>

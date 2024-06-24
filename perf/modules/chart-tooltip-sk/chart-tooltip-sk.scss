@@ -1,0 +1,27 @@
+chart-tooltip-sk {
+  display: block;
+
+  div {
+    width: 380px;
+    margin: 1px;
+    padding: 20px;
+    border: 1px solid black;
+    word-wrap: break-word;
+    overflow: auto;
+  }
+
+  h4 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 0;
+  }
+
+  button[hidden] {
+    display: None;
+  }
+}

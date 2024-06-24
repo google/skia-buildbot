@@ -1,0 +1,76 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":chart-tooltip-sk-demo",
+)
+
+sk_element(
+    name = "chart-tooltip-sk",
+    sass_srcs = ["chart-tooltip-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/anomaly-sk",
+        "//perf/modules/commit-range-sk",
+        "//perf/modules/ingest-file-links-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit-html",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/cid:cid_ts_lib",
+        "//perf/modules/window:window_ts_lib",
+    ],
+    ts_srcs = [
+        "chart-tooltip-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "chart-tooltip-sk-demo",
+    html_file = "chart-tooltip-sk-demo.html",
+    scss_entry_point = "chart-tooltip-sk-demo.scss",
+    sk_element_deps = [
+        ":chart-tooltip-sk",
+        "//perf/modules/commit-range-sk",
+    ],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "//:node_modules/fetch-mock",
+        "//perf/modules/const:const_ts_lib",
+    ],
+    ts_entry_point = "chart-tooltip-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "chart-tooltip-sk_puppeteer_test",
+    src = "chart-tooltip-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "chart-tooltip-sk_test",
+    src = "chart-tooltip-sk_test.ts",
+    deps = [
+        ":chart-tooltip-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)
