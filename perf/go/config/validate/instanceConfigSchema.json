@@ -416,6 +416,9 @@
           },
           "type": "array"
         },
+        "cache_expiration_minutes": {
+          "type": "integer"
+        },
         "enabled": {
           "type": "boolean"
         }

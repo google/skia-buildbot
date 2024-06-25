@@ -821,6 +821,9 @@ type RedisConfig struct {
 	// The parameter values of second level of cache.
 	Level2Values []string `json:"level2_cache_values,omitempty"`
 
+	// Cache expiration for the given keys.
+	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty"`
+
 	// The switch to turn cache on and off
 	Enabled bool `json:"enabled,omitempty"`
 }

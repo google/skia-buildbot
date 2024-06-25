@@ -106,6 +106,7 @@ export interface RedisConfig {
 	level1_cache_values?: string[] | null;
 	level2_cache_key?: string;
 	level2_cache_values?: string[] | null;
+	cache_expiration_minutes?: number;
 	enabled?: boolean;
 }
 

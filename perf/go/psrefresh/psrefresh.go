@@ -114,7 +114,7 @@ func (pf *ParamSetRefresher) cacheQueryResults(ctx context.Context, ps paramtool
 
 	// Layer 1 looping on the level 1 parameter.
 	for _, lv1Value := range lv1Values {
-		if !IsValidValue(lv1Value, pf.qConfig.RedisConfig.Level1Values) {
+		if !ShouldCacheValue(lv1Value, pf.qConfig.RedisConfig.Level1Values) {
 			continue
 		}
 		sklog.Debugf("Query on: %s:%s", lv1Key, lv1Value)
@@ -153,7 +153,7 @@ func (pf *ParamSetRefresher) cacheQueryResults(ctx context.Context, ps paramtool
 		}
 		// Layer 2 looping on the level 2 parameter.
 		for _, lv2Value := range lv2Values {
-			if !IsValidValue(lv2Value, pf.qConfig.RedisConfig.Level2Values) {
+			if !ShouldCacheValue(lv2Value, pf.qConfig.RedisConfig.Level2Values) {
 				continue
 			}
 			sklog.Debugf("Query on: %s:%s, %s:%s", lv1Key, lv1Value, lv2Key, lv2Value)
@@ -306,7 +306,7 @@ func (pf *ParamSetRefresher) UpdateQueryValueWithDefaults(v url.Values) {
 }
 
 // check whether value is part of the list validValues
-func IsValidValue(value string, validValues []string) bool {
+func ShouldCacheValue(value string, validValues []string) bool {
 	for _, validValue := range validValues {
 		if value == validValue {
 			return true

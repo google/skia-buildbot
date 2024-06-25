@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "psrefresh",
-    srcs = ["psrefresh.go"],
+    srcs = [
+        "cachedpsrefresh.go",
+        "psrefresh.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/psrefresh",
     visibility = ["//visibility:public"],
     deps = [
@@ -12,6 +15,7 @@ go_library(
         "//go/query",
         "//go/skerr",
         "//go/sklog",
+        "//perf/go/cache",
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/types",
@@ -20,11 +24,15 @@ go_library(
 
 go_test(
     name = "psrefresh_test",
-    srcs = ["psrefresh_test.go"],
+    srcs = [
+        "cachedpsrefresh_test.go",
+        "psrefresh_test.go",
+    ],
     embed = [":psrefresh"],
     deps = [
         "//go/paramtools",
         "//go/testutils",
+        "//perf/go/cache/mock",
         "//perf/go/config",
         "//perf/go/dataframe/mocks",
         "//perf/go/psrefresh/mocks",

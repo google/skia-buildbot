@@ -2,6 +2,8 @@
 package memcached
 
 import (
+	"context"
+	"errors"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -83,6 +85,14 @@ func (c *Cache) Exists(key string) bool {
 		c.localCache.Add(key)
 	}
 	return exists
+}
+
+func (c *Cache) SetValue(ctx context.Context, key string, value string) error {
+	panic(errors.ErrUnsupported)
+}
+
+func (c *Cache) GetValue(ctx context.Context, key string) (string, error) {
+	panic(errors.ErrUnsupported)
 }
 
 // Confirm we implement the interface.
