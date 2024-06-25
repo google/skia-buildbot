@@ -193,9 +193,9 @@ http_archive(
 http_archive(
     name = "com_github_temporal_ui",
     build_file = "//temporal:temporal-ui.BUILD",
-    sha256 = "6a8497bfb8c626964cde26f7d049fd6fbe4e2d609fb9774f0cb09bb97f8730c3",
-    strip_prefix = "./ui-server-2.21.3",
-    url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.21.3.tar.gz",
+    sha256 = "b9ecf1afadce3e693c852b4bbe0dce5639998c10384692ca23b6a94e0d64642d",
+    strip_prefix = "./ui-server-2.27.3",
+    url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.27.3.tar.gz",
 )
 
 #############
