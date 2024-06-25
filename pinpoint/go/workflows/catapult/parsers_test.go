@@ -138,6 +138,7 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 // createCombinedResults a helper function to generate combinedresults
 func createCombinedResults(lower string, lowerValues []float64, higher string, higherValues []float64) *internal.CombinedResults {
 	return &internal.CombinedResults{
+		ResultType: "Performance",
 		CommitPairValues: internal.CommitPairValues{
 			Lower: internal.CommitValues{
 				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(lower)),
@@ -149,6 +150,18 @@ func createCombinedResults(lower string, lowerValues []float64, higher string, h
 			},
 		},
 	}
+}
+
+func TestParseResultValuesPerCommit_FunctionalResult_Nothing(t *testing.T) {
+	// commit order from oldest to newest: 493a946, 2887740, 93dd3db, 836476df, f8e1800
+	comparisons := []*internal.CombinedResults{
+		{
+			ResultType: internal.Functional,
+		},
+	}
+	res := parseResultValuesPerCommit(comparisons)
+	require.NotNil(t, res)
+	assert.Empty(t, res)
 }
 
 func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *testing.T) {

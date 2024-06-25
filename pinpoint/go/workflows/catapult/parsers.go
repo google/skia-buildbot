@@ -199,8 +199,12 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart str
 func parseResultValuesPerCommit(comparisons []*internal.CombinedResults) map[uint32][]float64 {
 	resp := map[uint32][]float64{}
 	for _, comparison := range comparisons {
-		resp[comparison.CommitPairValues.Lower.Commit.Key()] = comparison.CommitPairValues.Lower.Values
-		resp[comparison.CommitPairValues.Higher.Commit.Key()] = comparison.CommitPairValues.Higher.Values
+		// For writing back to Catapult, we're only really interested in Performance results.
+		// Functional comparisons don't set CommitPairValues. In other words, they remain nil.
+		if comparison.ResultType == internal.Performance {
+			resp[comparison.CommitPairValues.Lower.Commit.Key()] = comparison.CommitPairValues.Lower.Values
+			resp[comparison.CommitPairValues.Higher.Commit.Key()] = comparison.CommitPairValues.Higher.Values
+		}
 	}
 	return resp
 }
