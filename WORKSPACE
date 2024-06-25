@@ -120,9 +120,11 @@ http_archive(
 # required to build this repository.
 http_archive(
     name = "rules_proto",
-    sha256 = "a4382f78723af788f0bc19fd4c8411f44ffe0a72723670a34692ffad56ada3ac",
     strip_prefix = "rules_proto-f7a30f6f80006b591fa7c437fe5a951eb10bcbcf",
-    urls = ["https://github.com/bazelbuild/rules_proto/archive/f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip"],
+    urls = gcs_mirror_url(
+        sha256 = "a4382f78723af788f0bc19fd4c8411f44ffe0a72723670a34692ffad56ada3ac",
+        url = "https://github.com/bazelbuild/rules_proto/archive/f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip",
+    ),
 )
 
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
@@ -169,33 +171,41 @@ http_archive(
 http_archive(
     name = "zlib",
     build_file = "@com_github_grpc_grpc//third_party:zlib.BUILD",
-    sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
     strip_prefix = "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f",
-    url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+    urls = gcs_mirror_url(
+        sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
+        url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal",
     build_file = "//temporal:temporal.BUILD",
-    sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
     strip_prefix = "./temporal-1.23.1",
-    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
+    urls = gcs_mirror_url(
+        sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
+        url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal_cli",
     build_file = "//temporal:temporal-cli.BUILD",
-    sha256 = "9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74",
     strip_prefix = "./cli-0.13.1",
-    url = "https://github.com/temporalio/cli/archive/refs/tags/v0.13.1.tar.gz",
+    urls = gcs_mirror_url(
+        sha256 = "9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74",
+        url = "https://github.com/temporalio/cli/archive/refs/tags/v0.13.1.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal_ui",
     build_file = "//temporal:temporal-ui.BUILD",
-    sha256 = "b9ecf1afadce3e693c852b4bbe0dce5639998c10384692ca23b6a94e0d64642d",
     strip_prefix = "./ui-server-2.27.3",
-    url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.27.3.tar.gz",
+    urls = gcs_mirror_url(
+        sha256 = "b9ecf1afadce3e693c852b4bbe0dce5639998c10384692ca23b6a94e0d64642d",
+        url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.27.3.tar.gz",
+    ),
 )
 
 #############
