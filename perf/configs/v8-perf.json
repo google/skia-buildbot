@@ -39,5 +39,22 @@
     "file_change_marker": "",
     "start_commit": "6ddb8445a89409bcbec87bf84e9caade9bf9088a",
     "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+  },
+  "query_config": {
+    "include_params": [
+      "benchmark",
+      "bot",
+      "test",
+      "subtest_1",
+      "subtest_2",
+      "subtest_3"
+    ],
+    "default_param_selections": {
+      "stat": ["value"]
+    },
+    "default_url_values": {
+      "plotSummary": "true",
+      "showZero": "false"
+    }
   }
 }
