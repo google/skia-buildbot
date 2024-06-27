@@ -5,11 +5,9 @@ import (
 	"context"
 	"time"
 
-	gcp_redis "cloud.google.com/go/redis/apiv1"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
-	redis_cache "go.skia.org/infra/perf/go/cache/redis"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/psrefresh"
@@ -68,10 +66,6 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	if flags.RefreshQueryCache {
 		sklog.Info("Creating Redis Client.")
-		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
-		if err != nil {
-			return skerr.Wrapf(err, "Cannot create Redis client for Google Cloud.")
-		}
 		traceStore, err := builders.NewTraceStoreFromConfig(ctx, flags.Local, instanceConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build TraceStore.")
@@ -82,18 +76,19 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			traceStore,
 			2,
 			dfbuilder.Filtering(instanceConfig.FilterParentTraces))
-		psRefresher := psrefresh.NewParamSetRefresher(traceStore, 2, dfBuilder, instanceConfig.QueryConfig)
+		psRefresher := psrefresh.NewDefaultParamSetRefresher(traceStore, 2, dfBuilder, instanceConfig.QueryConfig)
 		err = psRefresher.Start(time.Hour)
 		if err != nil {
 			return skerr.Wrapf(err, "Error starting paramset refreshser.")
 		}
 
-		cache, err := redis_cache.NewRedisCache(ctx, gcpClient, &instanceConfig.QueryConfig.RedisConfig, &traceStore, flags.TilesForQueryCache)
+		cache, err := builders.GetCacheFromConfig(ctx, *instanceConfig)
+
 		if err != nil {
-			return skerr.Wrapf(err, "Error creating new redis cache instance")
+			return skerr.Wrapf(err, "Error creating new cache instance")
 		}
 		cacheParamSetRefresher := psrefresh.NewCachedParamSetRefresher(psRefresher, cache)
-		cacheParamSetRefresher.StartRefreshRoutine(ctx, redisCacheRefreshPeriod)
+		cacheParamSetRefresher.StartRefreshRoutine(redisCacheRefreshPeriod)
 	}
 
 	select {}

@@ -70,15 +70,18 @@
             "useTestPicker": "true",
             "showZero": "false"
         },
-        "redis_config": {
-            "project": "skia-infra-corp",
-            "zone": "us-central1",
-            "instance": "chrome-internal",
+        "cache_config": {
+            "type": "redis",
             "level1_cache_key": "benchmark",
             "level1_cache_values": ["speedometer2", "webrtc"],
             "level2_cache_key": "bot",
             "level2_cache_values": ["linux-perf"],
             "enabled": true
+        },
+        "redis_config": {
+            "project": "skia-infra-corp",
+            "zone": "us-central1",
+            "instance": "chrome-internal"
         }
     },
     "help_url_override": "http://go/chrome-perf-user-doc",

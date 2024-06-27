@@ -2,6 +2,7 @@
 package paramtools
 
 import (
+	"encoding/json"
 	"sort"
 	"strings"
 
@@ -180,6 +181,23 @@ func (p ReadOnlyParamSet) Keys() []string {
 	}
 
 	return ret
+}
+
+// ToString returns a json string representation of the paramset.
+func (p ReadOnlyParamSet) ToString() (string, error) {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+// FromString creates a new paramset object from json string.
+func FromString(jsonStr string) (ParamSet, error) {
+	var ps ParamSet
+	err := json.Unmarshal([]byte(jsonStr), &ps)
+	return ps, err
 }
 
 // Keys returns the keys of the ParamSet.

@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
+	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
@@ -45,6 +46,10 @@ import (
 	subscription_store "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
+
+	gcp_redis "cloud.google.com/go/redis/apiv1"
+	localCache "go.skia.org/infra/perf/go/cache/local"
+	redisCache "go.skia.org/infra/perf/go/cache/redis"
 )
 
 // pgxLogAdaptor allows bubbling pgx logs up into our application.
@@ -313,4 +318,31 @@ func NewFavoriteStoreFromConfig(ctx context.Context, instanceConfig *config.Inst
 		return favorite_store.New(db), nil
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+}
+
+// GetCacheFromConfig returns a cache.Cache instance based on the given configuration.
+func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfig) (cache.Cache, error) {
+	var cache cache.Cache
+	var err error
+	switch instanceConfig.QueryConfig.CacheConfig.Type {
+	case config.RedisCache:
+		redisConfig := config.Config.QueryConfig.RedisConfig
+		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
+		if err != nil {
+			sklog.Fatalf("Cannot create Redis client for Google Cloud: %v", err)
+		}
+		cache, err = redisCache.NewRedisCache(ctx, gcpClient, &redisConfig)
+		if err != nil {
+			sklog.Fatalf("Error creating new redis cache: %v", err)
+		}
+	case config.LocalCache:
+		cache, err = localCache.New(100)
+		if err != nil {
+			sklog.Fatalf("Error creating new local cache: %v", err)
+		}
+	default:
+		sklog.Fatalf("Invalid cache type %s specified in config", config.Config.QueryConfig.CacheConfig.Type)
+	}
+
+	return cache, err
 }

@@ -9,7 +9,6 @@ go_library(
         "//go/sklog",
         "//perf/go/cache",
         "//perf/go/config",
-        "//perf/go/tracestore",
         "@com_github_redis_go_redis_v9//:go-redis",
         "@com_google_cloud_go_redis//apiv1",
         "@com_google_cloud_go_redis//apiv1/redispb",

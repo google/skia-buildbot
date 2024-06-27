@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/tracestore"
 )
 
 // Format for the redis instance name in GCP.
@@ -28,20 +27,16 @@ const redisInstanceNameFormat = "projects/%s/locations/%s/instances/%s"
 
 // redisCache implements RedisWrapper
 type redisCache struct {
-	gcpClient    *gcp_redis.CloudRedisClient
-	traceStore   *tracestore.TraceStore
-	tilesToCache int
-	config       *config.RedisConfig
-	redisClient  *redis.Client
+	gcpClient   *gcp_redis.CloudRedisClient
+	config      *config.RedisConfig
+	redisClient *redis.Client
 }
 
 // NewRedisCache returns an initialized RedisCache
-func NewRedisCache(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, config *config.RedisConfig, traceStore *tracestore.TraceStore, tilesToCache int) (*redisCache, error) {
+func NewRedisCache(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, config *config.RedisConfig) (*redisCache, error) {
 	r := &redisCache{
-		gcpClient:    gcpClient,
-		traceStore:   traceStore,
-		tilesToCache: tilesToCache,
-		config:       config,
+		gcpClient: gcpClient,
+		config:    config,
 	}
 	err := r.init(ctx)
 	return r, err

@@ -17,6 +17,9 @@ go_library(
         "//perf/go/alerts/sqlalertstore",
         "//perf/go/anomalygroup:store",
         "//perf/go/anomalygroup/sqlanomalygroupstore",
+        "//perf/go/cache",
+        "//perf/go/cache/local",
+        "//perf/go/cache/redis",
         "//perf/go/config",
         "//perf/go/culprit:store",
         "//perf/go/culprit/sqlculpritstore",
@@ -43,6 +46,7 @@ go_library(
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_jackc_pgx_v4//stdlib",
+        "@com_google_cloud_go_redis//apiv1",
     ],
 )
 

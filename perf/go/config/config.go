@@ -809,23 +809,8 @@ type RedisConfig struct {
 	// The name of the Redis instance.
 	Instance string `json:"instance,omitempty"`
 
-	// The parameter key of first level of cache.
-	Level1Key string `json:"level1_cache_key,omitempty"`
-
-	// The parameter values of first level of cache.
-	Level1Values []string `json:"level1_cache_values,omitempty"`
-
-	// The parameter key of second level of cache.
-	Level2Key string `json:"level2_cache_key,omitempty"`
-
-	// The parameter values of second level of cache.
-	Level2Values []string `json:"level2_cache_values,omitempty"`
-
 	// Cache expiration for the given keys.
 	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty"`
-
-	// The switch to turn cache on and off
-	Enabled bool `json:"enabled,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.
@@ -842,9 +827,38 @@ type QueryConfig struct {
 	// If the user makes a selection for any of these params, the user selected value is used.
 	DefaultUrlValues map[string]string `json:"default_url_values,omitempty"`
 
-	// RedisConfig defines the Redis properties used to find the Redis instance which
-	// helps reduce the query latency.
+	// CacheConfig defines the caching config information for the query to reduce latency.
+	CacheConfig QueryCacheConfig `json:"cache_config,omitempty"`
+
+	// RedisConfig defines the Redis properties used to find the Redis instance.
 	RedisConfig RedisConfig `json:"redis_config,omitempty"`
+}
+
+type CacheType string
+
+const (
+	LocalCache CacheType = "local"
+	RedisCache CacheType = "redis"
+)
+
+// QueryCacheConfig provides a struct to hold config data for query cache.
+type QueryCacheConfig struct {
+	Type CacheType `json:"type"`
+
+	// The parameter key of first level of cache.
+	Level1Key string `json:"level1_cache_key,omitempty"`
+
+	// The parameter values of first level of cache.
+	Level1Values []string `json:"level1_cache_values,omitempty"`
+
+	// The parameter key of second level of cache.
+	Level2Key string `json:"level2_cache_key,omitempty"`
+
+	// The parameter values of second level of cache.
+	Level2Values []string `json:"level2_cache_values,omitempty"`
+
+	// The switch to turn cache on and off
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 // InstanceConfig contains all the info needed by a Perf instance.

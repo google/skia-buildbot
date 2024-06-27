@@ -2,24 +2,29 @@ package psrefresh
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"net/url"
+	"slices"
+	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/cache"
+	"go.skia.org/infra/perf/go/config"
 )
 
 // CachedParamSetRefresher provides a struct to refresh paramsets and store them in the given cache.
 type CachedParamSetRefresher struct {
-	psRefresher *ParamSetRefresher
+	psRefresher *defaultParamSetRefresher
 	cache       cache.Cache
 }
 
 // NewCachedParamSetRefresher returns a new instance of the CachedParamSetRefresher.
-func NewCachedParamSetRefresher(psRefresher *ParamSetRefresher, cache cache.Cache) *CachedParamSetRefresher {
+func NewCachedParamSetRefresher(psRefresher *defaultParamSetRefresher, cache cache.Cache) *CachedParamSetRefresher {
 	return &CachedParamSetRefresher{
 		psRefresher: psRefresher,
 		cache:       cache,
@@ -27,10 +32,12 @@ func NewCachedParamSetRefresher(psRefresher *ParamSetRefresher, cache cache.Cach
 }
 
 // Populate the cache with the paramsets.
-func (c *CachedParamSetRefresher) PopulateCache(ctx context.Context) {
-	cacheConfig := c.psRefresher.qConfig.RedisConfig
+func (c *CachedParamSetRefresher) PopulateCache() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
+	defer cancel()
+	cacheConfig := c.psRefresher.qConfig.CacheConfig
 
-	fullps := c.psRefresher.Get()
+	fullps := c.psRefresher.GetAll()
 
 	// Get the level 1 parameter key from config.
 	// Return if it is not defined and nothing will be cached.
@@ -40,50 +47,236 @@ func (c *CachedParamSetRefresher) PopulateCache(ctx context.Context) {
 		return
 	}
 
-	// Get the possible values of level 1 parameter.
-	// If the key is not in full paramset, it is invalid and return error.
-	lv1Values, ok := fullps[lv1Key]
+	sklog.Info("Starting populating the query cache.")
+	// Populate Level 1 onwards.
+	c.populateLevels(ctx, lv1Key, cacheConfig.Level1Values, fullps)
+}
+
+// populateChildLevel adds the child level filtered paramset data into the cache.
+func (c *CachedParamSetRefresher) populateChildLevel(ctx context.Context, parentKey string, parentValue string, paramSet paramtools.ReadOnlyParamSet, childLevelKey string, childLevelValues []string) error {
+	availableValues, ok := paramSet[childLevelKey]
 	if !ok {
-		sklog.Errorf("No level1 key %s in paramset.", lv1Key)
-		return
+		return skerr.Fmt("No level key %s in paramset.", childLevelKey)
 	}
 
-	// Layer 1 looping on the level 1 parameter.
-	for _, lv1Value := range lv1Values {
-		if !ShouldCacheValue(lv1Value, cacheConfig.Level1Values) {
-			continue
-		}
-		values := url.Values{lv1Key: []string{lv1Value}}
-		c.psRefresher.UpdateQueryValueWithDefaults(values)
-		lv1Query, err := query.New(values)
-		if err != nil {
-			sklog.Errorf("Can not parse level1 query values")
-			return
-		}
-		count, lv1PS, err := c.psRefresher.dfBuilder.PreflightQuery(ctx, lv1Query, fullps)
-		if err != nil {
-			sklog.Error("Error on preflight query on level 1 key: %s", err.Error())
-			return
-		}
-		sklog.Debugf("Preflightquery returns count: %d", count)
-		paramSet := paramtools.ReadOnlyParamSet(lv1PS)
-		b, err := json.Marshal(paramSet)
-		if err != nil {
-			sklog.Errorf("Error converting paramset to json: %v", err)
-			return
-		}
-		err = c.cache.SetValue(ctx, lv1Value, string(b))
-		if err != nil {
-			sklog.Errorf("Error setting the value in cache: %v", err)
+	if len(childLevelValues) == 0 {
+		// If no values are provided, let's look at all values.
+		childLevelValues = availableValues
+	}
+	for _, value := range childLevelValues {
+		if slices.Contains(availableValues, value) {
+			qValues := url.Values{parentKey: []string{parentValue}, childLevelKey: []string{value}}
+			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			lv2Query, err := query.New(qValues)
+			if err != nil {
+				sklog.Errorf("Can not parse child query values")
+				return err
+			}
+
+			count, filteredPS, err := c.psRefresher.dfBuilder.PreflightQuery(ctx, lv2Query, paramSet)
+			if err != nil {
+				sklog.Error("Error on preflight query on level 2 key: %s", err.Error())
+				return err
+			}
+			sklog.Infof("Child level Preflightquery returns count: %d", count)
+			childParamset := paramtools.ReadOnlyParamSet(filteredPS)
+			cacheValue, err := childParamset.ToString()
+			if err != nil {
+				sklog.Errorf("Error converting paramset to json: %v", err)
+				return err
+			}
+			psCacheKey, ok := paramSetKey(qValues, []string{parentKey, childLevelKey})
+			if !ok {
+				sklog.Errorf("Error creating child psCacheKey for %s, %s for values %v", parentKey, childLevelKey, qValues)
+				return skerr.Fmt("Error creating psCacheKey for %s, %s for values %v", parentKey, childLevelKey, qValues)
+			}
+
+			sklog.Infof("Adding %s: %s to child cache", psCacheKey, cacheValue)
+			c.addToCache(ctx, psCacheKey, cacheValue, count)
 		}
 	}
+
+	return nil
+}
+
+// populateLevels adds the specified level paramset and count data into the cache.
+// If there are child levels specified, it will further drill down and populate the child levels as well.
+func (c *CachedParamSetRefresher) populateLevels(ctx context.Context, levelKey string, levelValues []string, fullPS paramtools.ReadOnlyParamSet) {
+	sklog.Infof("Populating cache for key %s", levelKey)
+	availableValues, ok := fullPS[levelKey]
+	if !ok {
+		sklog.Errorf("No level key %s in paramset.", levelKey)
+		return
+	}
+	if len(levelValues) == 0 {
+		// If no values are provided, let's look at all values.
+		levelValues = availableValues
+	}
+	// Range through the values provided.
+	for _, value := range levelValues {
+		// If the provided value is actually available in the paramset.
+		if slices.Contains(availableValues, value) {
+			qValues := url.Values{levelKey: []string{value}}
+			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
+			query, err := query.New(qValues)
+			if err != nil {
+				sklog.Errorf("Can not parse query values: %v", err)
+				return
+			}
+			count, filteredPS, err := c.psRefresher.dfBuilder.PreflightQuery(ctx, query, fullPS)
+			if err != nil {
+				sklog.Error("Error on preflight query on level 1 key: %s", err.Error())
+				return
+			}
+			sklog.Debugf("Preflightquery returns count: %d", count)
+			paramSet := paramtools.ReadOnlyParamSet(filteredPS)
+			cacheValue, err := paramSet.ToString()
+			if err != nil {
+				sklog.Errorf("Error converting paramset to json: %v", err)
+				return
+			}
+
+			psCacheKey, ok := paramSetKey(qValues, []string{levelKey})
+			if !ok {
+				sklog.Errorf("Error creating psCacheKey for %s for values %v", levelKey, qValues)
+				return
+			}
+			c.addToCache(ctx, psCacheKey, cacheValue, count)
+
+			// Now let's populate the relevant child levels for this param.
+			if c.psRefresher.qConfig.CacheConfig.Level2Key != "" {
+				err := c.populateChildLevel(ctx, levelKey, value, paramSet, c.psRefresher.qConfig.CacheConfig.Level2Key, c.psRefresher.qConfig.CacheConfig.Level2Values)
+				if err != nil {
+					sklog.Errorf("Error while populating child level for parent %s", levelKey)
+				}
+			}
+		}
+	}
+}
+
+// addToCache adds the ps data and count to the cache
+func (c *CachedParamSetRefresher) addToCache(ctx context.Context, psCacheKey string, psCacheValue string, count int64) {
+	sklog.Infof("Adding filtered paramsets for key %s into the cache.", psCacheKey)
+	err := c.cache.SetValue(ctx, psCacheKey, psCacheValue)
+	if err != nil {
+		sklog.Errorf("Error setting the value in cache: %v", err)
+	}
+
+	countKey := countKey(psCacheKey)
+	sklog.Infof("Adding count data for key %s into the cache.", countKey)
+	err = c.cache.SetValue(ctx, countKey, strconv.FormatInt(count, 10))
+	if err != nil {
+		sklog.Errorf("Error setting the count value in cache: %v", err)
+	}
+}
+
+// GetAll returns the entire ParamSet for the instance.
+func (c *CachedParamSetRefresher) GetAll() paramtools.ReadOnlyParamSet {
+	return c.psRefresher.GetAll()
+}
+
+// GetParamSetForQuery returns the trace count and paramset for the given query.
+func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
+	count, filteredPS, err := c.getParamSetForQueryInternal(ctx, query, q)
+	if err != nil {
+		// If there was an error getting the data from cache
+		// let's give it a try to get it from the db.
+		return c.psRefresher.GetParamSetForQuery(ctx, query, q)
+	}
+
+	return count, filteredPS, err
+}
+
+func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
+	sklog.Debugf("GetParamSetForQuery on values: %s", q)
+	qlen := len(q)
+	if len(c.psRefresher.qConfig.DefaultParamSelections) > 0 {
+		sklog.Debugf("Found default params: %s: ", c.psRefresher.qConfig.DefaultParamSelections)
+		qlen -= len(c.psRefresher.qConfig.DefaultParamSelections)
+	}
+	key := ""
+	ok := false
+	switch qlen {
+	case 1:
+		key, ok = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key})
+		if !ok {
+			return 0, nil, nil
+		}
+	case 2:
+		key, ok = paramSetKey(q, []string{c.psRefresher.qConfig.CacheConfig.Level1Key, c.psRefresher.qConfig.CacheConfig.Level2Key})
+		if !ok {
+			return 0, nil, nil
+		}
+	default:
+		// We don't cache query results with more than 2 parameters,
+		// so let's do a full search instead.
+		return c.psRefresher.GetParamSetForQuery(ctx, query, q)
+	}
+
+	cacheValue, err := c.cache.GetValue(ctx, key)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if cacheValue != "" {
+		paramset, err := paramtools.FromString(cacheValue)
+
+		if err != nil {
+			return 0, nil, err
+		}
+		countStr, err := c.cache.GetValue(ctx, countKey(key))
+		var count int64
+		if countStr != "" {
+			count, err = strconv.ParseInt(countStr, 10, 64)
+		}
+
+		sklog.Infof("Cache hit for paramset key %s", key)
+		return count, paramset, err
+	}
+
+	// If nothing has been found in cache, let's default to getting it from the regular refresher.
+	sklog.Infof("Cache miss for paramset key %s", key)
+	return c.psRefresher.GetParamSetForQuery(ctx, query, q)
+}
+
+// Start the refresher.
+func (c *CachedParamSetRefresher) Start(period time.Duration) error {
+	err := c.psRefresher.Start(period)
+	if c.psRefresher.qConfig.CacheConfig.Type == config.LocalCache {
+		sklog.Infof("Starting the refresh routine on %v", period)
+		c.StartRefreshRoutine(period)
+	}
+	return err
 }
 
 // StartRefreshRoutine starts a goroutine to refresh the paramsets in the cache.
-func (c *CachedParamSetRefresher) StartRefreshRoutine(ctx context.Context, refreshPeriod time.Duration) {
+func (c *CachedParamSetRefresher) StartRefreshRoutine(refreshPeriod time.Duration) {
+	c.PopulateCache()
 	go func() {
 		for range time.Tick(refreshPeriod) {
-			c.PopulateCache(ctx)
+			c.PopulateCache()
 		}
 	}()
 }
+
+// paramSetKey returns a string key to be used for paramset data in the cache.
+func paramSetKey(q url.Values, paramKeys []string) (string, bool) {
+	paramSetStrings := []string{}
+	for _, key := range paramKeys {
+		paramVal, ok := q[key]
+		if !ok {
+			sklog.Errorf("Key %s not present in query values %v", key, q)
+			return "", ok
+		}
+		paramSetStrings = append(paramSetStrings, fmt.Sprintf("%s=%s", key, paramVal))
+	}
+
+	return strings.Join(paramSetStrings, "&"), true
+}
+
+// countKey returns a key to store the count value in the cache.
+func countKey(psCacheKey string) string {
+	return fmt.Sprintf("count_%s", psCacheKey)
+}
+
+var _ ParamSetRefresher = (*CachedParamSetRefresher)(nil)

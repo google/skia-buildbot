@@ -156,7 +156,7 @@ type Frontend struct {
 
 	dryrunRequests *dryrun.Requests
 
-	paramsetRefresher *psrefresh.ParamSetRefresher
+	paramsetRefresher psrefresh.ParamSetRefresher
 
 	dfBuilder dataframe.DataFrameBuilder
 
@@ -333,9 +333,9 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 
 // newParamsetProvider returns a regression.ParamsetProvider which produces a paramset
 // for the current tiles.
-func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetProvider {
+func newParamsetProvider(pf psrefresh.ParamSetRefresher) regression.ParamsetProvider {
 	return func() paramtools.ReadOnlyParamSet {
-		return pf.Get()
+		return pf.GetAll()
 	}
 }
 
@@ -465,7 +465,17 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build paramset refresher.")
 
-	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig)
+	paramsetRefresher := psrefresh.NewDefaultParamSetRefresher(f.traceStore, f.flags.NumParamSetsForQueries, f.dfBuilder, config.Config.QueryConfig)
+	if config.Config.QueryConfig.CacheConfig.Enabled {
+		cache, err := builders.GetCacheFromConfig(ctx, *config.Config)
+		if err != nil {
+			sklog.Fatalf("Error creating cache from the config : %v", err)
+		}
+		f.paramsetRefresher = psrefresh.NewCachedParamSetRefresher(paramsetRefresher, cache)
+	} else {
+		f.paramsetRefresher = paramsetRefresher
+	}
+
 	if err := f.paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
@@ -897,13 +907,7 @@ func (f *Frontend) PreflightQuery(ctx context.Context, w http.ResponseWriter, qs
 	if qs == "" {
 		return 0, fullPS, nil
 	} else {
-		sklog.Debugf("Trying on query cache. url.value: %s, qs: %s", u, qs)
-		countCached, psCached := f.getQueryCache(u)
-		if countCached > 0 {
-			sklog.Debugf("Cache hit on query")
-			return int(countCached), filterParamSetIfNeeded(psCached), nil
-		}
-		count, ps, err := f.dfBuilder.PreflightQuery(ctx, q, fullPS)
+		count, ps, err := f.paramsetRefresher.GetParamSetForQuery(ctx, q, u)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to Preflight the query, too many key-value pairs selected. Limit is 200.", http.StatusBadRequest)
 			return 0, nil, err
@@ -1063,7 +1067,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		// This intentionally does not use r.Context() because we want it to outlive this request.
-		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.Get(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig)
+		err := regression.ProcessRegressions(context.Background(), req, cb, f.perfGit, f.shortcutStore, f.dfBuilder, f.paramsetRefresher.GetAll(), regression.ExpandBaseAlertByGroupBy, regression.ReturnOnError, config.Config.AnomalyConfig)
 		if err != nil {
 			sklog.Errorf("ProcessRegressions returned: %s", err)
 			req.Progress.Error("Failed to load data.")
@@ -2363,15 +2367,9 @@ func (f *Frontend) Serve() {
 // traces stored in the two most recent tiles in the trace store. It is filtered
 // if such filtering is turned on in the config.
 func (f *Frontend) getParamSet() paramtools.ReadOnlyParamSet {
-	paramSet := f.paramsetRefresher.Get()
+	paramSet := f.paramsetRefresher.GetAll()
 
 	return filterParamSetIfNeeded(paramSet)
-}
-
-func (f *Frontend) getQueryCache(u url.Values) (int64, paramtools.ReadOnlyParamSet) {
-	count, ps := f.paramsetRefresher.GetQuery(u)
-
-	return count, ps
 }
 
 // filterParamSetIfNeeded filters the paramset if any filters have been specified in

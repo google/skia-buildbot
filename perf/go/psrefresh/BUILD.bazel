@@ -31,7 +31,9 @@ go_test(
     embed = [":psrefresh"],
     deps = [
         "//go/paramtools",
+        "//go/query",
         "//go/testutils",
+        "//perf/go/cache/local",
         "//perf/go/cache/mock",
         "//perf/go/config",
         "//perf/go/dataframe/mocks",
@@ -39,5 +41,6 @@ go_test(
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )

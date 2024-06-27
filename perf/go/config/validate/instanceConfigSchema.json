@@ -353,6 +353,39 @@
         "notifications"
       ]
     },
+    "QueryCacheConfig": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "level1_cache_key": {
+          "type": "string"
+        },
+        "level1_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "level2_cache_key": {
+          "type": "string"
+        },
+        "level2_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type"
+      ]
+    },
     "QueryConfig": {
       "properties": {
         "include_params": {
@@ -380,6 +413,9 @@
           },
           "type": "object"
         },
+        "cache_config": {
+          "$ref": "#/$defs/QueryCacheConfig"
+        },
         "redis_config": {
           "$ref": "#/$defs/RedisConfig"
         }
@@ -398,29 +434,8 @@
         "instance": {
           "type": "string"
         },
-        "level1_cache_key": {
-          "type": "string"
-        },
-        "level1_cache_values": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "level2_cache_key": {
-          "type": "string"
-        },
-        "level2_cache_values": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
         "cache_expiration_minutes": {
           "type": "integer"
-        },
-        "enabled": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false,

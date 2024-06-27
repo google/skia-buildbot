@@ -3,7 +3,6 @@ package local
 
 import (
 	"context"
-	"errors"
 
 	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/skerr"
@@ -37,11 +36,16 @@ func (c *Cache) Exists(key string) bool {
 }
 
 func (c *Cache) SetValue(ctx context.Context, key string, value string) error {
-	panic(errors.ErrUnsupported)
+	_ = c.cache.Add(key, value)
+	return nil
 }
 
 func (c *Cache) GetValue(ctx context.Context, key string) (string, error) {
-	panic(errors.ErrUnsupported)
+	value, ok := c.cache.Get(key)
+	if !ok {
+		return "", nil
+	}
+	return value.(string), nil
 }
 
 // Confirm we implement the interface.
