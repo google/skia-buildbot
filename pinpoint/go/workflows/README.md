@@ -31,7 +31,7 @@ You need to redo steps 3-5 if you want to run your latest local changes.
 skia-infra-breakglass-policy:2h`
 2. Connect your cloudtop to GKE cluster belonging to one of the production instances:
    - `./kube/attach.sh skia-infra-corp`
-   - `./kube/attach.sh skia-infra-prod`
+   - `./kube/attach.sh skia-infra-public`
 3. Connect to the service at localhost 7233:<br>
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
 4. (if needed) Change workflow parameters in `sample/sample.go`
@@ -40,7 +40,7 @@ skia-infra-breakglass-policy:2h`
 --taskQueue=perf.perf-chrome-public.bisect --[flag_for_workflow i.e. bisect]=true`
 6. Check the workflow status:
    - [skia-infra-corp](https://skia-temporal-ui.corp.goog/namespaces/perf-internal/workflows)
-   - [skia-infra-prod](https://temporal-ui.skia.org/namespaces/perf-internal/workflows)
+   - [skia-infra-public](https://temporal-ui.skia.org/namespaces/perf-internal/workflows)
 
 Notes:
 
@@ -49,6 +49,32 @@ Notes:
   connecting to the worker is unnecessary.
 
 # Troubleshooting
+
+## Collect event history for workflow test replay
+
+Temporal workflows uses event history replay to ensure that any changes to a workflow will not
+break any existing running workflow (called non-determinism error). Proper versioning is required
+to avoid non-determinism errors and replay unit tests confirm versioning is successful without
+deploying the change to production or running the workflow in real time.
+
+Here is how to download the event history from a temporal workflow:
+
+### Via the temporal workflow UI
+
+On a given temporal workflow page, you can download the event history by clicking the `Download`
+button to the right of the `Event History` header. Disable `Decode Event History`.
+
+This method is the fastest way to get the event history. This method may break if there is a version
+incompatibility between the temporal UI and the server. If this occurs, either upgrade temporal
+until they are both compatible or try the command line method.
+
+### Via the temporal command line
+
+1. Connect to the dev or prod instance and turn on port forwarding as described above.
+2. Trigger the command line:
+   `bazelisk run //temporal:temporal-cli -- workflow show -w <workflow-id> -n <namespace> -o json > <filename>`
+
+You should see the event history in `<filename>`.
 
 ## 403 to chrome-swarming
 

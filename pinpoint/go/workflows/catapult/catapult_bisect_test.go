@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -88,4 +89,15 @@ func TestCatapultBisectWorkflow_HappyPath_ReturnsDatastoreResponse(t *testing.T)
 	assert.Equal(t, mockJobId, actual.JobId)
 	assert.Empty(t, actual.Culprits)
 	env.AssertExpectations(t)
+}
+
+func TestCatapultBisectWorkflow_ReplayEvents_ShouldAlwaysPass(t *testing.T) {
+	replayer := worker.NewWorkflowReplayer()
+
+	replayer.RegisterWorkflowWithOptions(CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
+	replayer.RegisterWorkflowWithOptions(internal.BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+	replayer.RegisterWorkflowWithOptions(ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
+
+	err := replayer.ReplayWorkflowHistoryFromJSONFile(nil, "testdata/catapult_bisect_event_history_20240627.json")
+	assert.NoError(t, err)
 }

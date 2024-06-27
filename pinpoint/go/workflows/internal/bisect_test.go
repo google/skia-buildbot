@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/pinpoint/go/compare"
@@ -11,6 +12,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -103,4 +105,13 @@ func TestBisectRunTracker_ManyRuns_ReturnIndex(t *testing.T) {
 		idx, run := tracker.newRun(&midpoint.CombinedCommit{})
 		require.Same(t, run, tracker.get(idx), "should be exact same addresses")
 	}
+}
+
+func TestBisectWorkflow_ReplayEvents_ShouldAlwaysPass(t *testing.T) {
+	replayer := worker.NewWorkflowReplayer()
+
+	replayer.RegisterWorkflowWithOptions(BisectWorkflow, workflow.RegisterOptions{Name: workflows.Bisect})
+
+	err := replayer.ReplayWorkflowHistoryFromJSONFile(nil, "testdata/bisect_event_history_20240627.json")
+	assert.NoError(t, err)
 }
