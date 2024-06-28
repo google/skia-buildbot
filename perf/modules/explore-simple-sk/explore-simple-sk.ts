@@ -2065,11 +2065,15 @@ export class ExploreSimpleSk extends ElementSk {
     } else {
       this._state.labelMode = LabelMode.Date;
     }
+    // Since we are only changing the labels, keep track of the anomaly map
+    // to add to the plot after it is refreshed.
+    const anomalyMap = this.plot!.anomalyDataMap;
     this.plot!.removeAll();
     this.AddPlotLines(
       this._dataframe.traceset,
       this.getLabels(this._dataframe.header!)
     );
+    this.plot!.anomalyDataMap = anomalyMap;
     this._stateHasChanged();
   }
 
@@ -2283,7 +2287,8 @@ export class ExploreSimpleSk extends ElementSk {
       }
 
       // Let's fetch data after the current time window.
-      currentEnd = this._state.end;
+      currentEnd = this.fullDataFrame!.header![dfLength - 1]!
+        .timestamp as number;
 
       const now = Math.floor(Date.now() / 1000);
       for (let i = 0; i < monthsToLook; i++) {

@@ -29,10 +29,13 @@ func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, end
 	return "/e/?" + queryUrl.Encode()
 }
 
-func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, endCommitNumber int, shortcutId string) string {
+func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, endCommitNumber int, shortcutId string, disableFilterParentTraces bool) string {
 	queryUrl := url.Values{}
 	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
 	queryUrl["shortcut"] = []string{shortcutId}
+	if disableFilterParentTraces {
+		queryUrl["disable_filter_parent_traces"] = []string{"true"}
+	}
 
 	return "/m/?" + queryUrl.Encode()
 }

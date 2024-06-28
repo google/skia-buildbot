@@ -825,7 +825,7 @@ func (f *Frontend) alertGroupQueryHandler(w http.ResponseWriter, r *http.Request
 				queryParams := alertGroupDetails.GetQueryParams(ctx)
 				redirectUrl = f.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false)
 			} else {
-				redirectUrl = f.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId)
+				redirectUrl = f.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false)
 			}
 
 		} else {
@@ -843,14 +843,12 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
 	defer cancel()
 
-	sklog.Info("Received anomaly request")
 	if f.anomalyApiClient == nil {
 		sklog.Info("Anomaly service is not enabled")
 		httputils.ReportError(w, nil, "Anomaly service is not enabled", http.StatusNotFound)
 		return
 	}
 	key := r.URL.Query().Get("key")
-	sklog.Infof("Anomaly key is %s", key)
 	ctx, span := trace.StartSpan(ctx, "anomalyGetRequest")
 	defer span.End()
 	startCommit, endCommit, queryParams, err := f.anomalyApiClient.GetAnomalyFromUrlSafeKey(ctx, key)
@@ -861,7 +859,30 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Generate the explore page url for the given params.
 	queryParams["stat"] = []string{"value"}
-	redirectUrl := f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, true)
+	graphs := []graphsshortcut.GraphConfig{}
+	queryString := f.urlProvider.GetQueryStringFromParameters(queryParams)
+
+	// Let's generate the graph config that represents the graph for the queryString.
+	// This is then inserted as a shortcut and we generate the multigraph url with
+	// the created shortcut.
+	graphs = append(graphs, graphsshortcut.GraphConfig{
+		Queries:  []string{queryString},
+		Formulas: []string{},
+	})
+	shortcutObj := graphsshortcut.GraphsShortcut{
+		Graphs: graphs,
+	}
+
+	var redirectUrl string
+	shortcutId, err := f.graphsShortcutStore.InsertShortcut(ctx, &shortcutObj)
+	if err != nil {
+		// Something went wrong while inserting shortcut. Let's fall back to the explore page.
+		sklog.Errorf("Error inserting shortcut %s", err)
+		redirectUrl = f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, true)
+	} else {
+		redirectUrl = f.urlProvider.MultiGraph(ctx, startCommit, endCommit, shortcutId, true)
+	}
+
 	sklog.Infof("Generated url: %s", redirectUrl)
 	http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 }
