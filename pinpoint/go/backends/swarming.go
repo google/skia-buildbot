@@ -166,13 +166,17 @@ func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) 
 		return nil, skerr.Wrapf(err, "error retrieving bots")
 	}
 
-	dims := map[string]string{}
+	dims := make([]*apipb.StringPair, 0, len(botConfig.Dimensions))
+
 	for _, d := range botConfig.Dimensions {
-		dims[d["key"]] = d["value"]
+		dims = append(dims, &apipb.StringPair{
+			Key:   d["key"],
+			Value: d["value"],
+		})
 	}
 
 	bots, err := swarmingv2.ListBotsHelper(ctx, s.SwarmingV2Client, &apipb.BotsRequest{
-		Dimensions: swarmingv2.StringMapToTaskDimensions(dims),
+		Dimensions: dims,
 	})
 
 	return bots, skerr.Wrap(err)
