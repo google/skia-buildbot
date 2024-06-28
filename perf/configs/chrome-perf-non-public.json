@@ -74,7 +74,6 @@
             "type": "redis",
             "level1_cache_key": "benchmark",
             "level2_cache_key": "bot",
-            "level2_cache_values": ["linux-perf"],
             "enabled": true
         },
         "redis_config": {

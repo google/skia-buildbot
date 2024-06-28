@@ -50,6 +50,7 @@ func (c *CachedParamSetRefresher) PopulateCache() {
 	sklog.Info("Starting populating the query cache.")
 	// Populate Level 1 onwards.
 	c.populateLevels(ctx, lv1Key, cacheConfig.Level1Values, fullps)
+	sklog.Info("Finished populating the query cache.")
 }
 
 // populateChildLevel adds the child level filtered paramset data into the cache.
@@ -125,7 +126,7 @@ func (c *CachedParamSetRefresher) populateLevels(ctx context.Context, levelKey s
 			}
 			count, filteredPS, err := c.psRefresher.dfBuilder.PreflightQuery(ctx, query, fullPS)
 			if err != nil {
-				sklog.Error("Error on preflight query on level 1 key: %s", err.Error())
+				sklog.Error("Error on preflight query on level 1 (%s=%s): %v", levelKey, value, err)
 				return
 			}
 			sklog.Debugf("Preflightquery returns count: %d", count)
