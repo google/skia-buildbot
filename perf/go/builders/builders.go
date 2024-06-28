@@ -326,7 +326,7 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 	var err error
 	switch instanceConfig.QueryConfig.CacheConfig.Type {
 	case config.RedisCache:
-		redisConfig := config.Config.QueryConfig.RedisConfig
+		redisConfig := instanceConfig.QueryConfig.RedisConfig
 		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
 		if err != nil {
 			sklog.Fatalf("Cannot create Redis client for Google Cloud: %v", err)
@@ -341,7 +341,7 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 			sklog.Fatalf("Error creating new local cache: %v", err)
 		}
 	default:
-		sklog.Fatalf("Invalid cache type %s specified in config", config.Config.QueryConfig.CacheConfig.Type)
+		sklog.Fatalf("Invalid cache type %s specified in config", instanceConfig.QueryConfig.CacheConfig.Type)
 	}
 
 	return cache, err
