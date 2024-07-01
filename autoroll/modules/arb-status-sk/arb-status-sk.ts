@@ -101,6 +101,12 @@ export class ARBStatusSk extends ElementSk {
       </div>
       <table>
         <tr>
+          <td>Status</td>
+          <td><span class="big ${ele.statusClass(
+            ele.status
+          )}">${ele.statusMessage(ele.status)}</span></td>
+        </tr>
+        <tr>
           <td>Last successful roll</td>
           <td>
             <human-date-sk .date="${ele.status.miniStatus!
@@ -159,9 +165,9 @@ export class ARBStatusSk extends ElementSk {
           </td>
         </tr>
         <tr>
-          <td class="nowrap">Status:</td>
+          <td class="nowrap">State:</td>
           <td class="nowrap">
-            <span class="${ele.statusClass(ele.status.status)}">
+            <span class="${ele.stateClass(ele.status.status)}">
               <span class="big">${ele.status.status}</span>
             </span>
             ${
@@ -1191,8 +1197,8 @@ export class ARBStatusSk extends ElementSk {
     }
   }
 
-  private statusClass(status: string) {
-    // TODO(borenet): Status could probably be an enum.
+  private stateClass(state: string) {
+    // TODO(borenet): State could probably be an enum.
     const statusClassMap: { [key: string]: string } = {
       idle: 'fg-unknown',
       active: 'fg-unknown',
@@ -1208,7 +1214,38 @@ export class ARBStatusSk extends ElementSk {
       stopped: 'fg-stopped',
       offline: 'fg-offline',
     };
-    return statusClassMap[status] || '';
+    return statusClassMap[state] || '';
+  }
+
+  private statusClass(status: AutoRollStatus) {
+    if (status.miniStatus?.numBehind === 0) {
+      return 'fg-success';
+    }
+    if (
+      status.notRolledRevisions?.every(
+        (rev: Revision) => rev.invalidReason !== ''
+      )
+    ) {
+      return 'fg-success';
+    }
+    return 'fg-unknown';
+  }
+
+  private statusMessage(status: AutoRollStatus) {
+    if (status.miniStatus?.numBehind === 0) {
+      return 'up to date';
+    }
+    if (
+      status.notRolledRevisions?.every(
+        (rev: Revision) => rev.invalidReason !== ''
+      )
+    ) {
+      return `up to date (${status.notRolledRevisions.length} not-yet-rolled revisions are invalid)`;
+    }
+    if (status.notRolledRevisions?.length === 1) {
+      return '1 revision behind';
+    }
+    return `${status.notRolledRevisions?.length} revisions behind`;
   }
 
   private trybotClass(tryjob: TryJob) {
