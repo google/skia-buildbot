@@ -33,7 +33,7 @@ func NewCachedParamSetRefresher(psRefresher *defaultParamSetRefresher, cache cac
 
 // Populate the cache with the paramsets.
 func (c *CachedParamSetRefresher) PopulateCache() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 	cacheConfig := c.psRefresher.qConfig.CacheConfig
 
@@ -179,8 +179,8 @@ func (c *CachedParamSetRefresher) GetAll() paramtools.ReadOnlyParamSet {
 // GetParamSetForQuery returns the trace count and paramset for the given query.
 func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
 	count, filteredPS, err := c.getParamSetForQueryInternal(ctx, query, q)
-	if err != nil {
-		// If there was an error getting the data from cache
+	if err != nil || filteredPS == nil {
+		// If there was an error getting the data from cache or data was not found in cache
 		// let's give it a try to get it from the db.
 		return c.psRefresher.GetParamSetForQuery(ctx, query, q)
 	}
