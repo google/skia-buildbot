@@ -27,7 +27,7 @@ const (
 	regressionMigrationBatchSize = 50
 
 	// Time interval for refreshing the redis cache.
-	redisCacheRefreshPeriod = time.Hour * 2
+	redisCacheRefreshPeriod = time.Hour * 4
 )
 
 // Start all the long running processes. This function does not return if all

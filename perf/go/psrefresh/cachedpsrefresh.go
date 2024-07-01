@@ -33,7 +33,7 @@ func NewCachedParamSetRefresher(psRefresher *defaultParamSetRefresher, cache cac
 
 // Populate the cache with the paramsets.
 func (c *CachedParamSetRefresher) PopulateCache() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Hour*2)
 	defer cancel()
 	cacheConfig := c.psRefresher.qConfig.CacheConfig
 
