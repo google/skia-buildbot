@@ -34,7 +34,7 @@
       "packages_allow_list": [],
       "trusted_scopes": [],
       "issue_tracker_config": {
-        "owner": "cjacomet@google.com"
+        "owner": "dlf@google.com"
       }
     },
     "chops-monorail": {
