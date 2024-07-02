@@ -27,20 +27,24 @@ describe('plot-summary-sk', () => {
 
     it('Select an area', () => {
       const chartData: ChartData = {
-        data: [
-          { x: 1, y: 1 },
-          { x: 2, y: 2 },
-          { x: 3, y: 3 },
-          { x: 4, y: 4 },
-          { x: 5, y: 5 },
-          { x: 6, y: 6 },
-          { x: 7, y: 7 },
-          { x: 8, y: 8 },
-          { x: 9, y: 9 },
-        ],
+        lines: {
+          test: [
+            { x: 1, y: 1 },
+            { x: 2, y: 2 },
+            { x: 3, y: 3 },
+            { x: 4, y: 4 },
+            { x: 5, y: 5 },
+            { x: 6, y: 6 },
+            { x: 7, y: 7 },
+            { x: 8, y: 8 },
+            { x: 9, y: 9 },
+          ],
+        },
         chartAxisFormat: ChartAxisFormat.Commit,
         xLabel: 'xLabel',
         yLabel: 'yLabel',
+        start: 1,
+        end: 9,
       };
       element.width = 10;
       element.DisplayChartData(chartData, true);

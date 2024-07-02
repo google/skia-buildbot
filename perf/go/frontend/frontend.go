@@ -878,9 +878,9 @@ func (f *Frontend) anomalyHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Something went wrong while inserting shortcut. Let's fall back to the explore page.
 		sklog.Errorf("Error inserting shortcut %s", err)
-		redirectUrl = f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, true)
+		redirectUrl = f.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, false)
 	} else {
-		redirectUrl = f.urlProvider.MultiGraph(ctx, startCommit, endCommit, shortcutId, true)
+		redirectUrl = f.urlProvider.MultiGraph(ctx, startCommit, endCommit, shortcutId, false)
 	}
 
 	sklog.Infof("Generated url: %s", redirectUrl)

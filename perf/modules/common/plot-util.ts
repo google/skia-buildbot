@@ -95,20 +95,28 @@ export function CreateChartDataFromTraceSet(
   chartAxisFormat: ChartAxisFormat
 ): ChartData {
   const chartData: ChartData = {
-    data: [],
+    lines: {},
     xLabel: chartAxisFormat.toString(),
     yLabel: 'Value',
     chartAxisFormat: chartAxisFormat,
+    start: xLabels[0],
+    end: xLabels[xLabels.length - 1],
   };
-  const trace = traceSet[Object.keys(traceSet)[0]];
-  for (let i = 0; i < trace.length; i++) {
-    const dataPoint: DataPoint = {
-      x: xLabels[i],
-      y: trace[i],
-    };
 
-    chartData.data.push(dataPoint);
-  }
+  const traceKeys = Object.keys(traceSet);
+  traceKeys.forEach((key) => {
+    const trace = traceSet[key];
+    const traceDataPoints: DataPoint[] = [];
+    for (let i = 0; i < trace.length; i++) {
+      const dataPoint: DataPoint = {
+        x: xLabels[i],
+        y: trace[i],
+      };
+      traceDataPoints.push(dataPoint);
+    }
+
+    chartData.lines[key] = traceDataPoints;
+  });
 
   return chartData;
 }

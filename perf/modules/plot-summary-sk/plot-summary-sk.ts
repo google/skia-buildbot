@@ -145,19 +145,15 @@ export class PlotSummarySk extends ElementSk {
 
   private async _renderChart() {
     if (this.isCommitScale) {
-      this.commitsStart = this.currentChartData!.data[0].x as number;
-      this.commitsEnd = this.currentChartData!.data[
-        this.currentChartData!.data.length - 1
-      ].x as number;
+      this.commitsStart = this.currentChartData!.start as number;
+      this.commitsEnd = this.currentChartData!.end as number;
       this.valuesRangeCommit = d3Scale
         .scaleLinear()
         .domain([0, this.width])
         .range([this.commitsStart, this.commitsEnd]);
     } else {
-      this.dateStart = this.currentChartData!.data[0].x as Date;
-      this.dateEnd = this.currentChartData!.data[
-        this.currentChartData!.data.length - 1
-      ].x as Date;
+      this.dateStart = this.currentChartData!.start as Date;
+      this.dateEnd = this.currentChartData!.end as Date;
       this.valuesRangeDate = d3Scale
         .scaleLinear()
         .domain([0, this.width])
@@ -193,11 +189,9 @@ export class PlotSummarySk extends ElementSk {
 
   // Display the chart data on the plot.
   public async DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
-    if (chartData.data?.length > 0) {
-      this.currentChartData = chartData;
-      this.isCommitScale = isCommitScale;
-      this._renderChart();
-    }
+    this.currentChartData = chartData;
+    this.isCommitScale = isCommitScale;
+    this._renderChart();
   }
 
   // Clear the current selection.
