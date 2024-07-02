@@ -229,7 +229,7 @@ func UpdateDep(ctx context.Context, primaryDep *config.DependencyConfig, rev *re
 		if oldContents != newContents {
 			changes[f] = newContents
 		} else if _, ok := changes[f]; !ok {
-			sklog.Errorf("find-and-replace made no changes to %s", f)
+			sklog.Warningf("find-and-replace made no changes to %s", f)
 		}
 	}
 
