@@ -23,6 +23,9 @@ const response: RevisionInfo[] = [
     is_improvement: false,
     master: 'm1',
     test: 't1',
+    start_time: 1712026352,
+    end_time: 1712285552,
+    query: 'master=m1&bot=bot1&benchmark=b1&test=t1',
   },
 ];
 

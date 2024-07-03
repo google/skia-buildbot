@@ -111,10 +111,13 @@ type RevisionInfo struct {
 	Benchmark     string `json:"benchmark"`
 	StartRevision int    `json:"start_revision"`
 	EndRevision   int    `json:"end_revision"`
+	StartTime     int64  `json:"start_time"`
+	EndTime       int64  `json:"end_time"`
 	TestPath      string `json:"test"`
 	IsImprovement bool   `json:"is_improvement"`
 	BugId         string `json:"bug_id"`
 	ExploreUrl    string `json:"explore_url"`
+	Query         string `json:"query"`
 }
 
 // GetAnomaliesRequest struct to request anomalies from the chromeperf api.

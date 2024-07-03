@@ -1509,15 +1509,25 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 			if anomalyData.Anomaly.BugId > 0 {
 				bugId = strconv.Itoa(anomalyData.Anomaly.BugId)
 			}
+
+			startCommit, _ := f.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomalyData.StartRevision))
+			startTime := startCommit.Timestamp
+
+			endCommit, _ := f.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomalyData.EndRevision))
+			endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1).Unix()
+
 			revisionInfoMap[key] = chromeperf.RevisionInfo{
 				StartRevision: anomalyData.StartRevision,
 				EndRevision:   anomalyData.EndRevision,
+				StartTime:     startTime,
+				EndTime:       endTime,
 				Master:        anomalyData.GetParamValue("master"),
 				Bot:           anomalyData.GetParamValue("bot"),
 				Benchmark:     anomalyData.GetParamValue("benchmark"),
 				TestPath:      anomalyData.GetTestPath(),
 				BugId:         bugId,
 				ExploreUrl:    exploreUrl,
+				Query:         f.urlProvider.GetQueryStringFromParameters(anomalyData.Params),
 			}
 		} else {
 			revInfo := revisionInfoMap[key]
