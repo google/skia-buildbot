@@ -30,6 +30,9 @@ type SwarmingClient interface {
 	// GetCASOutput returns the CAS output of a swarming task.
 	GetCASOutput(ctx context.Context, taskID string) (*apipb.CASReference, error)
 
+	// GetStartTime returns the starting time of the swarming task.
+	GetStartTime(ctx context.Context, taskID string) (*timestamppb.Timestamp, error)
+
 	// GetStates returns the state of each task in a list of tasks.
 	GetStates(ctx context.Context, taskIDs []string) ([]string, error)
 
@@ -100,6 +103,16 @@ func (s *SwarmingClientImpl) GetCASOutput(ctx context.Context, taskID string) (*
 	return task.CasOutputRoot, nil
 }
 
+// GetStartTime returns the starting time of the swarming task.
+func (s *SwarmingClientImpl) GetStartTime(ctx context.Context, taskID string) (*timestamppb.Timestamp, error) {
+	res, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "could not get result of swarming task %s", taskID)
+	}
+	return res.StartedTs, skerr.Wrap(err)
+}
+
+// GetStates returns the state of each task in a list of tasks.
 func (s *SwarmingClientImpl) GetStates(ctx context.Context, taskIDs []string) ([]string, error) {
 	resp, err := s.SwarmingV2Client.ListTaskStates(ctx, &apipb.TaskStatesRequest{
 		TaskId: taskIDs,
@@ -189,20 +202,20 @@ func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) 
 
 // GetBotTasksBetweenTwoTasks generates a list of tasks that started in between two tasks.
 func (s *SwarmingClientImpl) GetBotTasksBetweenTwoTasks(ctx context.Context, botID, taskID1, taskID2 string) (*apipb.TaskListResponse, error) {
-	t1, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID1})
+	taskStart1, err := s.GetStartTime(ctx, taskID1)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to get task %s", taskID1)
+		return nil, skerr.Wrap(err)
 	}
-	t2, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID2})
+	taskStart2, err := s.GetStartTime(ctx, taskID2)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "unable to get task %s", taskID2)
+		return nil, skerr.Wrap(err)
 	}
 
 	botReq := &apipb.BotTasksRequest{
 		BotId: botID,
 		State: apipb.StateQuery_QUERY_ALL,
-		Start: t1.StartedTs,
-		End:   t2.StartedTs,
+		Start: taskStart1,
+		End:   taskStart2,
 		Sort:  apipb.SortQuery_QUERY_STARTED_TS,
 	}
 
