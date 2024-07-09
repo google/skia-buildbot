@@ -520,7 +520,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private fullDataFrame: DataFrame | null = null;
 
-  private fullAnomalyMap: AnomalyMap | null = null;
+  fullAnomalyMap: AnomalyMap | null = null;
 
   private useTestPicker: boolean = false;
 
@@ -2305,17 +2305,21 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
+  private isEmptyMap(map: Object | null | undefined): boolean {
+    return map === null || map === undefined || Object.keys(map).length === 0;
+  }
+
   /**
    * Add the newAnomalyMap to the full anomaly map.
    * @param newAnomalyMap
    */
-  private addToAnomalyMap(newAnomalyMap: AnomalyMap): void {
-    if (this.fullAnomalyMap === null) {
+  addToAnomalyMap(newAnomalyMap: AnomalyMap): void {
+    if (this.isEmptyMap(this.fullAnomalyMap)) {
       this.fullAnomalyMap = newAnomalyMap;
     } else {
       Object.keys(newAnomalyMap!).forEach((key) => {
         const existingMap = this.fullAnomalyMap![key];
-        if (existingMap === null) {
+        if (this.isEmptyMap(existingMap)) {
           this.fullAnomalyMap![key] = newAnomalyMap![key];
         } else {
           const newAnomalies = newAnomalyMap![key];
