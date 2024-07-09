@@ -2,11 +2,13 @@ package backends
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.skia.org/infra/go/swarming/v2/mocks"
 
@@ -232,4 +234,72 @@ func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
 	assert.Len(t, resp, 2)
 	assert.Equal(t, "b1", resp[0].BotId)
 	assert.Equal(t, "b2", resp[1].BotId)
+}
+
+func TestGetBotTasksBetweenTwoTasks_GivenValidInputs_ReturnsTasks(t *testing.T) {
+	const botID = "build132-a5"                                                 // arbitrary bot ID
+	const task1, task2 = "6a7cbc697c99ed10", "6a7cbc8a22246410"                 // arbitrary task IDs
+	const interruption1, interruption2 = "6a7cbc697c66ed10", "6a7cbc697c77ed10" // arbitrary task IDs
+
+	test := func(name string, mockResp *apipb.TaskListResponse) {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			mockClient := &mocks.SwarmingV2Client{}
+			sc := &SwarmingClientImpl{
+				SwarmingV2Client: mockClient,
+			}
+			t1 := &apipb.TaskResultResponse{StartedTs: &timestamppb.Timestamp{Seconds: 1}}
+			t2 := &apipb.TaskResultResponse{StartedTs: &timestamppb.Timestamp{Seconds: 2}}
+
+			mockClient.On("GetResult", ctx, &apipb.TaskIdWithPerfRequest{TaskId: task1}).Return(t1, nil)
+			mockClient.On("GetResult", ctx, &apipb.TaskIdWithPerfRequest{TaskId: task2}).Return(t2, nil)
+
+			mockBotReq := &apipb.BotTasksRequest{
+				BotId: botID,
+				State: apipb.StateQuery_QUERY_ALL,
+				Start: t1.StartedTs,
+				End:   t2.StartedTs,
+				Sort:  apipb.SortQuery_QUERY_STARTED_TS,
+			}
+			mockClient.On("ListBotTasks", ctx, mockBotReq).Return(mockResp, nil)
+
+			resp, err := sc.GetBotTasksBetweenTwoTasks(ctx, botID, task1, task2)
+			assert.NoError(t, err)
+			assert.Equal(t, mockResp, resp)
+		})
+	}
+
+	mockResp := &apipb.TaskListResponse{
+		Items: []*apipb.TaskResultResponse{
+			{TaskId: task1},
+			{TaskId: task2},
+		},
+	}
+	test("two task return", mockResp)
+
+	mockResp = &apipb.TaskListResponse{
+		Items: []*apipb.TaskResultResponse{
+			{TaskId: task1},
+			{TaskId: interruption1},
+			{TaskId: interruption2},
+			{TaskId: task2},
+		},
+	}
+	test("more than two tasks return (implies task interception)", mockResp)
+}
+
+func TestGetBotTasksBetweenTwoTasks_GivenBadTask_ReturnsError(t *testing.T) {
+	const botID = "build132-a5"                                 // arbitrary bot ID
+	const task1, task2 = "6a7cbc697c99ed10", "6a7cbc8a22246410" // arbitrary task IDs
+	ctx := context.Background()
+
+	mockClient := &mocks.SwarmingV2Client{}
+	sc := &SwarmingClientImpl{
+		SwarmingV2Client: mockClient,
+	}
+	mockClient.On("GetResult", ctx, &apipb.TaskIdWithPerfRequest{TaskId: task1}).Return(nil, fmt.Errorf("some error"))
+
+	resp, err := sc.GetBotTasksBetweenTwoTasks(ctx, botID, task1, task2)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }

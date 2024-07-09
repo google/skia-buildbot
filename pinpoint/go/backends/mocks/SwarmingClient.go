@@ -63,6 +63,36 @@ func (_m *SwarmingClient) FetchFreeBots(ctx context.Context, builder string) ([]
 	return r0, r1
 }
 
+// GetBotTasksBetweenTwoTasks provides a mock function with given fields: ctx, botID, taskID1, taskID2
+func (_m *SwarmingClient) GetBotTasksBetweenTwoTasks(ctx context.Context, botID string, taskID1 string, taskID2 string) (*apipb.TaskListResponse, error) {
+	ret := _m.Called(ctx, botID, taskID1, taskID2)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBotTasksBetweenTwoTasks")
+	}
+
+	var r0 *apipb.TaskListResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*apipb.TaskListResponse, error)); ok {
+		return rf(ctx, botID, taskID1, taskID2)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *apipb.TaskListResponse); ok {
+		r0 = rf(ctx, botID, taskID1, taskID2)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*apipb.TaskListResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, botID, taskID1, taskID2)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetCASOutput provides a mock function with given fields: ctx, taskID
 func (_m *SwarmingClient) GetCASOutput(ctx context.Context, taskID string) (*apipb.CASReference, error) {
 	ret := _m.Called(ctx, taskID)

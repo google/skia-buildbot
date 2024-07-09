@@ -45,6 +45,11 @@ type SwarmingClient interface {
 
 	// FetchFreeBots gets a list of available bots per specified builder configuration.
 	FetchFreeBots(ctx context.Context, builder string) ([]*apipb.BotInfo, error)
+
+	// GetBotTasksBetweenTwoTasks generates a list of tasks that started in between two tasks.
+	// This function is primarily used by Pairwise jobs to assess if another swarming task
+	// executed in between a pair of tasks.
+	GetBotTasksBetweenTwoTasks(ctx context.Context, botID, taskID1, taskID2 string) (*apipb.TaskListResponse, error)
 }
 
 // SwarmingClientImpl
@@ -180,4 +185,27 @@ func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) 
 	})
 
 	return bots, skerr.Wrap(err)
+}
+
+// GetBotTasksBetweenTwoTasks generates a list of tasks that started in between two tasks.
+func (s *SwarmingClientImpl) GetBotTasksBetweenTwoTasks(ctx context.Context, botID, taskID1, taskID2 string) (*apipb.TaskListResponse, error) {
+	t1, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID1})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to get task %s", taskID1)
+	}
+	t2, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID2})
+	if err != nil {
+		return nil, skerr.Wrapf(err, "unable to get task %s", taskID2)
+	}
+
+	botReq := &apipb.BotTasksRequest{
+		BotId: botID,
+		State: apipb.StateQuery_QUERY_ALL,
+		Start: t1.StartedTs,
+		End:   t2.StartedTs,
+		Sort:  apipb.SortQuery_QUERY_STARTED_TS,
+	}
+
+	tasks, err := s.SwarmingV2Client.ListBotTasks(ctx, botReq)
+	return tasks, skerr.Wrap(err)
 }
