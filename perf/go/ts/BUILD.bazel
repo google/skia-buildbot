@@ -16,6 +16,7 @@ go_library(
         "//perf/go/config",
         "//perf/go/dryrun",
         "//perf/go/frontend",
+        "//perf/go/frontend/api",
         "//perf/go/git/provider",
         "//perf/go/graphsshortcut",
         "//perf/go/ingest/format",
