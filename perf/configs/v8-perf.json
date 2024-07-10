@@ -4,7 +4,6 @@
   "trace_sample_proportion": 0.01,
   "fetch_chrome_perf_anomalies": true,
   "bug_host_url": "https://bugs.chromium.org",
-  "filter_parent_traces": true,
   "feedback_url": "http://go/berf-skia-feedback",
   "chat_url": "http://go/berf-skia-chat",
   "notify_config": {
@@ -47,7 +46,8 @@
       "test",
       "subtest_1",
       "subtest_2",
-      "subtest_3"
+      "subtest_3",
+      "subtest_4"
     ],
     "default_param_selections": {
       "stat": ["value"]

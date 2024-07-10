@@ -1293,6 +1293,12 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
     this._dialogOn = true;
     this.queryDialog!.showModal();
+    // If there is a query already plotted, update the counts on the query dialog.
+    if (this._state.queries.length > 0) {
+      this.queryCount!.current_query = this.applyDefaultsToQuery(
+        this.query!.current_query
+      );
+    }
   }
 
   /** Open the bisect dialog box. */
