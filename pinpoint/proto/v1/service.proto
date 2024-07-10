@@ -101,9 +101,24 @@ message CombinedCommit {
 	repeated Commit modified_deps = 2;
 }
 
+// Culprit contains the culprit commit and also the commit prior to the culprit.
+// Culprit verification needs to verify there is a real regression between the culprit
+// the the prior commit (A-1 vs A). Bisection writes this information as part of the
+// culprit finder workflow.
+message Culprit {
+	CombinedCommit prior = 1; // the commit prior to the culprit
+ 	CombinedCommit culprit = 2; // the culprit commit
+}
+
 message BisectExecution {
 	string job_id = 1;
+	// TODO(b/322203189): replace this with detailed_culprit. This field is used by the
+	// catapult bisect UI write.
 	repeated CombinedCommit culprits = 2;
+
+	// Although this field is used only in culprit verification, bisection needs to pass
+	// the commit prior to the culprit to the culprit verification step.
+	repeated Culprit detailed_culprits = 3;
 }
 
 // SchedulePairwiseRequest contains the input to schedule a pairwise job used

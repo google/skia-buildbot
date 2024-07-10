@@ -175,7 +175,8 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	logger.Info(fmt.Sprintf("Datastore information for this job: %v", dsResp))
 
 	return &pinpoint_proto.BisectExecution{
-		JobId:    bisectExecution.JobId,
-		Culprits: bisectExecution.Culprits,
+		JobId:            bisectExecution.JobId,
+		Culprits:         bisectExecution.Culprits,
+		DetailedCulprits: bisectExecution.DetailedCulprits,
 	}, nil
 }

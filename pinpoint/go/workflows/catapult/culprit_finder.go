@@ -94,11 +94,11 @@ func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cf
 	ec := workflow.NewBufferedChannel(ctx, len(be.Culprits))
 	wg := workflow.NewWaitGroup(ctx)
 	wg.Add(len(be.Culprits))
-	for _, culprit := range be.Culprits {
+	for _, culpritPair := range be.DetailedCulprits {
 		workflow.Go(ctx, func(gCtx workflow.Context) {
 			defer wg.Done()
 
-			exec, err := runCulpritVerification(gCtx, culprit, cfp)
+			exec, err := runCulpritVerification(gCtx, culpritPair, cfp)
 
 			if err != nil {
 				ec.Send(gCtx, err)
@@ -130,15 +130,11 @@ func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cf
 }
 
 // runCulpritVerification triggers a culprit verification workflow and returns the result
-func runCulpritVerification(ctx workflow.Context, culprit *pinpoint_proto.CombinedCommit, cfp *workflows.CulpritFinderParams) (*pinpoint_proto.PairwiseExecution, error) {
+func runCulpritVerification(ctx workflow.Context, culpritPair *pinpoint_proto.Culprit, cfp *workflows.CulpritFinderParams) (*pinpoint_proto.PairwiseExecution, error) {
 	pp := workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
-			// TODO(b/340220164): compare against the previous commit instead of the commit
-			// at the start of the regression range (requires changes to bisectExecution)
-			StartCommit: &pinpoint_proto.CombinedCommit{
-				Main: midpoint.NewChromiumCommit(cfp.Request.StartGitHash),
-			},
-			EndCommit:            culprit,
+			StartCommit:          culpritPair.Prior,
+			EndCommit:            culpritPair.Culprit,
 			Configuration:        cfp.Request.Configuration,
 			Benchmark:            cfp.Request.Benchmark,
 			Story:                cfp.Request.Story,

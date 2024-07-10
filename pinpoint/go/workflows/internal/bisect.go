@@ -96,11 +96,17 @@ func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpo
 // TODO(b/322203189) - This is a temporary solution for backwards compatibilty to the
 // Catapult UI and should be removed when the catapult package is deprecated.
 type BisectExecution struct {
-	JobId       string
-	Culprits    []*pinpoint_proto.CombinedCommit
-	CreateTime  *timestamppb.Timestamp
-	Comparisons []*CombinedResults
-	RunData     []*BisectRun
+	JobId string
+	// TODO(b/322203189): replace Culprits with DetailedCulprits. This field is used by the
+	// catapult bisect UI write.
+	Culprits []*pinpoint_proto.CombinedCommit
+	// DetailedCulprits stores a list of culprits and the commit prior to the culprit.
+	// Without this field, culprit verification would not know the commit prior to any culprit
+	// and be unable to verify the correct pair of commits.
+	DetailedCulprits []*pinpoint_proto.Culprit
+	CreateTime       *timestamppb.Timestamp
+	Comparisons      []*CombinedResults
+	RunData          []*BisectRun
 }
 
 // BisectWorkflow is a Workflow definition that takes a range of git hashes and finds the culprit.
@@ -116,10 +122,11 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 		jobID = p.JobID
 	}
 	be = &BisectExecution{
-		JobId:       jobID,
-		Culprits:    []*pinpoint_proto.CombinedCommit{},
-		CreateTime:  timestamppb.Now(),
-		Comparisons: []*CombinedResults{},
+		JobId:            jobID,
+		Culprits:         []*pinpoint_proto.CombinedCommit{},
+		DetailedCulprits: []*pinpoint_proto.Culprit{},
+		CreateTime:       timestamppb.Now(),
+		Comparisons:      []*CombinedResults{},
 	}
 
 	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
@@ -289,7 +296,14 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 				if equal {
 					// TODO(b/329502712): Append additional info to bisectionExecution
 					// such as p-values, average difference
-					be.Culprits = append(be.Culprits, (*pinpoint_proto.CombinedCommit)(higher.Build.Commit))
+					culprit := (*pinpoint_proto.CombinedCommit)(higher.Build.Commit)
+					be.Culprits = append(be.Culprits, culprit)
+					be.DetailedCulprits = append(be.DetailedCulprits,
+						&pinpoint_proto.Culprit{
+							Prior:   (*pinpoint_proto.CombinedCommit)(lower.Build.Commit),
+							Culprit: culprit,
+						},
+					)
 					break
 				}
 
