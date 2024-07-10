@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/pubsub"
@@ -361,40 +360,45 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	for {
 		select {
 		case jobs := <-jobsCh:
-			sklog.Infof("Start processing jobs from modified jobs channel.")
-			for _, job := range jobs {
-				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
-			}
-			for _, job := range jobs {
-				if job.Status != types.JOB_STATUS_REQUESTED {
-					continue
-				}
-				if err := t.startJob(ctx, job); err != nil {
-					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
-				}
-			}
-			sklog.Infof("Done processing jobs from modified jobs channel.")
+			t.startJobs(ctx, jobs, "modified jobs channel")
 		case <-tickCh:
-			sklog.Infof("Start processing jobs from periodic DB poll, cache updated %s ago.", human.Duration(time.Now().Sub(t.jCache.LastUpdated())))
 			jobs, err := t.jCache.RequestedJobs()
 			if err != nil {
 				sklog.Errorf("failed retrieving Jobs: %s", err)
 			} else {
-				for _, job := range jobs {
-					sklog.Infof("Found job %s (build %d) via periodic DB poll", job.Id, job.BuildbucketBuildId)
-				}
-				for _, job := range jobs {
-					if err := t.startJob(ctx, job); err != nil {
-						sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
-					}
-				}
+				t.startJobs(ctx, jobs, "periodic DB poll")
 			}
-			sklog.Infof("Done processing jobs from periodic DB poll.")
 		case <-doneCh:
 			ticker.Stop()
 			return
 		}
 	}
+}
+
+func (t *TryJobIntegrator) startJobs(ctx context.Context, jobs []*types.Job, foundVia string) {
+	sklog.Infof("Start processing jobs from %s.", foundVia)
+	// Organize jobs by RepoState, since jobs with the same RepoState must be
+	// processed serially.
+	byRepoState := map[types.RepoState][]*types.Job{}
+	for _, job := range jobs {
+		sklog.Infof("Found job %s (build %d) via %s", job.Id, job.BuildbucketBuildId, foundVia)
+		byRepoState[job.RepoState] = append(byRepoState[job.RepoState], job)
+	}
+	var wg sync.WaitGroup
+	for _, jobs := range byRepoState {
+		wg.Add(1)
+		jobs := jobs // https://golang.org/doc/faq#closures_and_goroutines
+		go func() {
+			defer wg.Done()
+			for _, job := range jobs {
+				if err := t.startJob(ctx, job); err != nil {
+					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	sklog.Infof("Done processing jobs from %s.", foundVia)
 }
 
 func isBuildAlreadyStartedError(err error) bool {
