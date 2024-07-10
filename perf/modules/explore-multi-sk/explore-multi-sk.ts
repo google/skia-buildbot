@@ -68,6 +68,8 @@ class State {
   plotSummary: boolean = false;
 
   useTestPicker: boolean = false;
+
+  highlight_anomalies: string[] = [];
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -388,6 +390,7 @@ export class ExploreMultiSk extends ElementSk {
       labelMode: LabelMode.Date,
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
       plotSummary: this.state.plotSummary,
+      highlight_anomalies: this.state.highlight_anomalies,
     };
     explore.state = newState;
   }

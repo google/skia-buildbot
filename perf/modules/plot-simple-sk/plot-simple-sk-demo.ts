@@ -154,11 +154,13 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
           x: 5,
           y: traces[id][5],
           anomaly: dummyAnomaly(false),
+          highlight: true,
         },
         {
           x: 20,
           y: traces[id][20],
           anomaly: dummyAnomaly(true),
+          highlight: false,
         },
       ];
     }

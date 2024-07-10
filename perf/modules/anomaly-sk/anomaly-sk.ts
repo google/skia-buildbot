@@ -56,7 +56,8 @@ import '../window/window';
 export const getAnomalyDataMap = (
   traceSet: TraceSet,
   header: (ColumnHeader | null)[],
-  anomalymap: AnomalyMap
+  anomalymap: AnomalyMap,
+  highlight_anomalies: string[]
 ): { [key: string]: AnomalyData[] } => {
   const anomalyDataMap: { [traceId: string]: AnomalyData[] } = {};
 
@@ -82,10 +83,17 @@ export const getAnomalyDataMap = (
               // we show the anomaly on the next available data point instead of not
               // displaying it at all.
               if (columnHeader!.offset >= cid) {
+                const currentAnomaly = cidAnomalyMap[cid];
+                // If the currentAnomaly is present in the highlight list, mark it for highlighting.
+                const highlight =
+                  highlight_anomalies !== null &&
+                  highlight_anomalies.includes(currentAnomaly.id.toString());
+
                 anomalyDataMap[traceId].push({
                   anomaly: cidAnomalyMap[cid],
                   x: i,
                   y: trace[i],
+                  highlight: highlight,
                 });
                 break;
               }

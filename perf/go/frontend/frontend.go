@@ -707,13 +707,17 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 	revisionInfoMap := map[string]chromeperf.RevisionInfo{}
 	for _, anomalyData := range anomaliesForRevision {
 		key := anomalyData.GetKey()
+		queryParams := url.Values{
+			"highlight_anomalies": []string{strconv.Itoa(anomalyData.Anomaly.Id)},
+		}
 		if _, ok := revisionInfoMap[key]; !ok {
 			exploreUrl := f.urlProvider.Explore(
 				ctx,
 				anomalyData.StartRevision,
 				anomalyData.EndRevision,
 				anomalyData.Params,
-				true)
+				true,
+				queryParams)
 			bugId := ""
 			if anomalyData.Anomaly.BugId > 0 {
 				bugId = strconv.Itoa(anomalyData.Anomaly.BugId)

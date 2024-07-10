@@ -307,6 +307,8 @@ export class State {
   disable_filter_parent_traces: boolean = false;
 
   plotSummary: boolean = false;
+
+  highlight_anomalies: string[] = [];
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -1499,7 +1501,8 @@ export class ExploreSimpleSk extends ElementSk {
       const anomalyDataMap = getAnomalyDataMap(
         selectedTraceSet,
         columnHeader,
-        anomalyMap
+        anomalyMap,
+        this.state.highlight_anomalies
       );
       this.plot!.anomalyDataMap = anomalyDataMap;
     }
@@ -2206,7 +2209,8 @@ export class ExploreSimpleSk extends ElementSk {
       const anomalyDataMap = getAnomalyDataMap(
         mergedDataframe.traceset,
         mergedDataframe.header!,
-        json.anomalymap
+        json.anomalymap,
+        this.state.highlight_anomalies
       );
       this.plot!.anomalyDataMap = anomalyDataMap;
     }
@@ -2322,7 +2326,7 @@ export class ExploreSimpleSk extends ElementSk {
   addToAnomalyMap(newAnomalyMap: AnomalyMap): void {
     if (this.isEmptyMap(this.fullAnomalyMap)) {
       this.fullAnomalyMap = newAnomalyMap;
-    } else {
+    } else if (!this.isEmptyMap(newAnomalyMap)) {
       Object.keys(newAnomalyMap!).forEach((key) => {
         const existingMap = this.fullAnomalyMap![key];
         if (this.isEmptyMap(existingMap)) {

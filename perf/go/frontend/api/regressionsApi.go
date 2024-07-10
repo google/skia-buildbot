@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -417,7 +418,7 @@ func (rApi regressionsApi) anomalyHandler(w http.ResponseWriter, r *http.Request
 	key := r.URL.Query().Get("key")
 	ctx, span := trace.StartSpan(ctx, "anomalyGetRequest")
 	defer span.End()
-	startCommit, endCommit, queryParams, err := rApi.anomalyApiClient.GetAnomalyFromUrlSafeKey(ctx, key)
+	queryParams, anomaly, err := rApi.anomalyApiClient.GetAnomalyFromUrlSafeKey(ctx, key)
 	if err != nil {
 		httputils.ReportError(w, err, "Error retrieving anomaly data", http.StatusBadRequest)
 		return
@@ -439,14 +440,15 @@ func (rApi regressionsApi) anomalyHandler(w http.ResponseWriter, r *http.Request
 		Graphs: graphs,
 	}
 
+	graphQueryParams := getGraphQueryParamsForAnomalyId([]string{strconv.Itoa(anomaly.Id)})
 	var redirectUrl string
 	shortcutId, err := rApi.graphsShortcutStore.InsertShortcut(ctx, &shortcutObj)
 	if err != nil {
 		// Something went wrong while inserting shortcut. Let's fall back to the explore page.
 		sklog.Errorf("Error inserting shortcut %s", err)
-		redirectUrl = rApi.urlProvider.Explore(ctx, startCommit, endCommit, queryParams, false)
+		redirectUrl = rApi.urlProvider.Explore(ctx, anomaly.StartRevision, anomaly.EndRevision, queryParams, true, graphQueryParams)
 	} else {
-		redirectUrl = rApi.urlProvider.MultiGraph(ctx, startCommit, endCommit, shortcutId, false)
+		redirectUrl = rApi.urlProvider.MultiGraph(ctx, anomaly.StartRevision, anomaly.EndRevision, shortcutId, true, graphQueryParams)
 	}
 
 	sklog.Infof("Generated url: %s", redirectUrl)
@@ -498,14 +500,14 @@ func (rApi regressionsApi) alertGroupQueryHandler(w http.ResponseWriter, r *http
 				sklog.Errorf("Error inserting shortcut %s", err)
 				// Let's redirect the user to the explore page instead.
 				queryParams := alertGroupDetails.GetQueryParams(ctx)
-				redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false)
+				redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, nil)
 			} else {
-				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false)
+				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false, nil)
 			}
 
 		} else {
 			queryParams := alertGroupDetails.GetQueryParams(ctx)
-			redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false)
+			redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, nil)
 		}
 		sklog.Infof("Generated url: %s", redirectUrl)
 		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
@@ -635,5 +637,11 @@ func (rApi regressionsApi) clusterStartHandler(w http.ResponseWriter, r *http.Re
 
 	if err := req.Progress.JSON(w); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+func getGraphQueryParamsForAnomalyId(anomalyIds []string) url.Values {
+	return url.Values{
+		"highlight_anomalies": anomalyIds,
 	}
 }

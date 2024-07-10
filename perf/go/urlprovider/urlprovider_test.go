@@ -25,7 +25,7 @@ func TestProvider_Default(t *testing.T) {
 		"param2": {"value2"},
 		"param3": {"value3"},
 	}
-	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false)
+	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false, nil)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	queryIndex := strings.Index(queryurl, "&queries=")
 	assert.NotEqual(t, -1, queryIndex)
@@ -57,7 +57,7 @@ func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 		assert.Equal(t, parsed_query.Get("param3"), "value3")
 	}
 	// Test with disableParentFilterTraces = false
-	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false)
+	queryurl := urlProvider.Explore(context.Background(), 1234, 5678, params, false, nil)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	queryIndex := strings.Index(queryurl, "&queries=")
 	assert.NotEqual(t, -1, queryIndex)
@@ -67,7 +67,7 @@ func TestProvider_Chromeperf_NoCustomization(t *testing.T) {
 	assert.Equal(t, -1, disableParentArgIndex)
 
 	// Test with disableParentFilterTraces = true
-	queryurl = urlProvider.Explore(context.Background(), 1234, 5678, params, true)
+	queryurl = urlProvider.Explore(context.Background(), 1234, 5678, params, true, nil)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	queryIndex = strings.Index(queryurl, "&queries=")
 	assert.NotEqual(t, -1, queryIndex)
@@ -84,7 +84,7 @@ func TestProvider_MultiGraph(t *testing.T) {
 	shortcutId := "shortcutId"
 
 	// Test with disableParentFilterTraces = false
-	queryurl := urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId, false)
+	queryurl := urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId, false, nil)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	multiGraphIndex := strings.Index(queryurl, "/m/?")
 	assert.NotEqual(t, -1, multiGraphIndex)
@@ -94,7 +94,7 @@ func TestProvider_MultiGraph(t *testing.T) {
 	assert.Equal(t, -1, disableParentArgIndex)
 
 	// Test with disableParentFilterTraces = true
-	queryurl = urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId, true)
+	queryurl = urlProvider.MultiGraph(context.Background(), 1234, 5678, shortcutId, true, nil)
 	assert.NotNil(t, queryurl, "Url expected to be generated")
 	multiGraphIndex = strings.Index(queryurl, "/m/?")
 	assert.NotEqual(t, -1, multiGraphIndex)
