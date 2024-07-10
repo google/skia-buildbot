@@ -138,6 +138,8 @@ func TestRunBenchmarkPairwise_HappyPath_ReturnsCAS(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	var rba *RunBenchmarkActivity
+	p1 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
+	p2 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
 	mockTaskID1, mockTaskID2 := "fake-task1", "fake-task2"
 	state := run_benchmark.State(swarming.TASK_STATE_COMPLETED)
 
@@ -151,7 +153,7 @@ func TestRunBenchmarkPairwise_HappyPath_ReturnsCAS(t *testing.T) {
 	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID1).Return(mockCas, nil).Once()
 	env.OnActivity(rba.RetrieveTestCASActivity, mock.Anything, mockTaskID2).Return(mockCas, nil).Once()
 
-	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{}, workflows.LeftThenRight)
+	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, p1, p2, workflows.LeftThenRight)
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -177,6 +179,8 @@ func TestRunBenchmarkPairwise_NoResources_ReturnsError(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	var rba *RunBenchmarkActivity
+	p1 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
+	p2 := &RunBenchmarkParams{Dimensions: map[string]string{"value": "bot-123"}}
 	mockTaskID1 := "fake-task1"
 	noResourceState := run_benchmark.State(swarming.TASK_STATE_NO_RESOURCE)
 	expectedErr := skerr.Fmt("Failed to wait for task %s to be accepted", mockTaskID1)
@@ -184,7 +188,7 @@ func TestRunBenchmarkPairwise_NoResources_ReturnsError(t *testing.T) {
 	env.OnActivity(rba.ScheduleTaskActivity, mock.Anything, mock.Anything).Return(mockTaskID1, nil).Once()
 	env.OnActivity(rba.WaitTaskAcceptedActivity, mock.Anything, mockTaskID1).Return(noResourceState, expectedErr).Times(int(runBenchmarkPendingActivityOption.RetryPolicy.MaximumAttempts))
 
-	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, &RunBenchmarkParams{}, &RunBenchmarkParams{}, workflows.RightThenLeft)
+	env.ExecuteWorkflow(RunBenchmarkPairwiseWorkflow, p1, p2, workflows.RightThenLeft)
 
 	require.True(t, env.IsWorkflowCompleted())
 	assert.Error(t, env.GetWorkflowError())
