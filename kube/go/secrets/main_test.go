@@ -78,22 +78,8 @@ func setup(t *testing.T) (context.Context, *secretsApp, *mocks.Client, <-chan st
 }
 
 func TestSecretsApp_Create(t *testing.T) {
-	ctx, app, mockClient, secretFileCh, enterToContinueCh := setup(t)
-	mockClient.On("Create", ctx, testProject, testSecretName).Return(nil)
-	mockClient.On("Update", ctx, testProject, testSecretName, testSecretValue).Return("1", nil)
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		require.NoError(t, app.cmdCreate(ctx, testProject, testSecretName))
-	}()
-	secretFilePath := <-secretFileCh
-	secretFileContents, err := os.ReadFile(secretFilePath)
-	require.NoError(t, err)
-	require.Equal(t, "", string(secretFileContents))
-	require.NoError(t, os.WriteFile(secretFilePath, []byte(testSecretValue), os.ModePerm))
-	enterToContinueCh <- true
-	wg.Wait()
+	app := &secretsApp{}
+	require.ErrorContains(t, app.cmdCreate(context.Background(), testProject, testSecretName), "Secret creation is now done via Terraform")
 }
 
 func TestSecretsApp_Update(t *testing.T) {
@@ -116,7 +102,6 @@ func TestSecretsApp_Update(t *testing.T) {
 }
 
 func TestSecretsApp_Migrate(t *testing.T) {
-
 	mockClient := mocks.NewClient(t)
 	app := &secretsApp{
 		secretClient: mockClient,
@@ -126,7 +111,7 @@ func TestSecretsApp_Migrate(t *testing.T) {
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_KubectlGetSecret",
 	)
-	mockClient.On("Create", ctx, testProject, testSecretName).Return(nil)
+	mockClient.On("Describe", ctx, testProject, testSecretName).Return(nil, nil)
 	mockClient.On("Update", ctx, testProject, testSecretName, testSecretValue).Return("1", nil)
 	require.NoError(t, app.cmdMigrate(ctx, oldProject, oldSecretName, oldSecretSubPath, testProject, testSecretName))
 }
@@ -161,4 +146,14 @@ func Test_FakeExe_KubectlGetSecret(t *testing.T) {
 		oldSecretSubPath: base64.StdEncoding.EncodeToString([]byte(testSecretValue)),
 	}))
 	os.Exit(0)
+}
+
+func TestSecretsApp_GrantAccess(t *testing.T) {
+	app := &secretsApp{}
+	require.ErrorContains(t, app.cmdGrantAccess(context.Background(), testProject, []string{"my-secret"}, []string{"me@google.com"}), "Secret IAM settings are now managed via Terraform")
+}
+
+func TestSecretsApp_RevokeAccess(t *testing.T) {
+	app := &secretsApp{}
+	require.ErrorContains(t, app.cmdRevokeAccess(context.Background(), testProject, []string{"my-secret"}, []string{"me@google.com"}), "Secret IAM settings are now managed via Terraform")
 }

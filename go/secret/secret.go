@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
+	secretmanagerpb "cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 
 	"go.skia.org/infra/go/skerr"
 )
@@ -34,15 +34,8 @@ type Client interface {
 	// Update the given secret with a new version. Returns the resulting version.
 	Update(ctx context.Context, project, name, value string) (string, error)
 
-	// Create a new secret in the given project with the given name.
-	Create(ctx context.Context, project, name string) error
-
-	// GrantAccess grants the given service account access to the given secret.
-	GrantAccess(ctx context.Context, project, name, serviceAccount string) error
-
-	// RevokeAccess revokes the given service account's access to the given
-	// secret.
-	RevokeAccess(ctx context.Context, project, name, serviceAccount string) error
+	// Describe returns metadata about the secret.
+	Describe(ctx context.Context, project, name string) (*secretmanagerpb.Secret, error)
 
 	// Close cleans up resources used by the Client.
 	Close() error
@@ -98,60 +91,24 @@ func (c *ClientImpl) Update(ctx context.Context, project, name, value string) (s
 	return split[len(split)-1], nil
 }
 
-// Create implements the Client interface.
-func (c *ClientImpl) Create(ctx context.Context, project, name string) error {
+// Describe implements the Client interface.
+func (c *ClientImpl) Describe(ctx context.Context, project, name string) (*secretmanagerpb.Secret, error) {
 	// Build the request.
-	req := &secretmanagerpb.CreateSecretRequest{
-		Parent:   fmt.Sprintf("projects/%s", project),
-		SecretId: name,
-		Secret: &secretmanagerpb.Secret{
-			Replication: &secretmanagerpb.Replication{
-				Replication: &secretmanagerpb.Replication_Automatic_{
-					Automatic: &secretmanagerpb.Replication_Automatic{},
-				},
-			},
-		},
+	req := &secretmanagerpb.GetSecretRequest{
+		Name: fmt.Sprintf("projects/%s/secrets/%s", project, name),
 	}
 
 	// Call the API.
-	if _, err := c.client.CreateSecret(ctx, req); err != nil {
-		return skerr.Wrapf(err, "failed to create secret")
+	result, err := c.client.GetSecret(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "failed to access secret")
 	}
-
-	return nil
+	return result, nil
 }
 
 // Close implements the Client interface.
 func (c *ClientImpl) Close() error {
 	return skerr.Wrap(c.client.Close())
-}
-
-// GrantAccess implements the Client interface.
-func (c *ClientImpl) GrantAccess(ctx context.Context, project, name, serviceAccount string) error {
-	policyHandle := c.client.IAM(fmt.Sprintf("projects/%s/secrets/%s", project, name))
-	policy, err := policyHandle.Policy(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to retrieve IAM policy")
-	}
-	policy.Add(serviceAccountPrefix+serviceAccount, secretAccessorRole)
-	if err := policyHandle.SetPolicy(ctx, policy); err != nil {
-		return skerr.Wrapf(err, "failed to set IAM policy")
-	}
-	return nil
-}
-
-// RevokeAccess implements the Client interface.
-func (c *ClientImpl) RevokeAccess(ctx context.Context, project, name, serviceAccount string) error {
-	policyHandle := c.client.IAM(fmt.Sprintf("projects/%s/secrets/%s", project, name))
-	policy, err := policyHandle.Policy(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "failed to retrieve IAM policy")
-	}
-	policy.Remove(serviceAccountPrefix+serviceAccount, secretAccessorRole)
-	if err := policyHandle.SetPolicy(ctx, policy); err != nil {
-		return skerr.Wrapf(err, "failed to set IAM policy")
-	}
-	return nil
 }
 
 // Assert that ClientImpl implements Client.
