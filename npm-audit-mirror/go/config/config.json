@@ -88,7 +88,7 @@
       "package_json_dir": "milo/ui",
       "packages_allow_list": [
         {
-          "name": "fast-loop",
+          "name": "fast-loops",
           "version": "1.1.4"
         }
       ],
