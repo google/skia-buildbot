@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
+	"go.skia.org/infra/go/cache"
+	"go.skia.org/infra/go/cache/local"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/cache"
-	"go.skia.org/infra/perf/go/cache/local"
 )
 
 // The largest Perf instance right now has roughly 5 million traces, and we need

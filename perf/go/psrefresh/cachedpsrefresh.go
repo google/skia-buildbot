@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/config"
 )
 

@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -22,7 +23,6 @@ import (
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag_store "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore"
-	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	culprit_store "go.skia.org/infra/perf/go/culprit/sqlculpritstore"
@@ -48,8 +48,8 @@ import (
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 
 	gcp_redis "cloud.google.com/go/redis/apiv1"
-	localCache "go.skia.org/infra/perf/go/cache/local"
-	redisCache "go.skia.org/infra/perf/go/cache/redis"
+	localCache "go.skia.org/infra/go/cache/local"
+	redisCache "go.skia.org/infra/go/cache/redis"
 )
 
 // pgxLogAdaptor allows bubbling pgx logs up into our application.

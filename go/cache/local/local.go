@@ -5,8 +5,8 @@ import (
 	"context"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/perf/go/cache"
 )
 
 // Cache implements the cache.Cache interface.

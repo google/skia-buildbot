@@ -17,8 +17,8 @@ import (
 	gcp_redis "cloud.google.com/go/redis/apiv1"
 	rpb "cloud.google.com/go/redis/apiv1/redispb"
 	"github.com/redis/go-redis/v9"
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/config"
 )
 

@@ -262,7 +262,7 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       AnomalyGrouper:
-  go.skia.org/infra/perf/go/cache:
+  go.skia.org/infra/go/cache:
     config:
       dir: "{{.InterfaceDir}}/mock"
     interfaces:
