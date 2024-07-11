@@ -86,8 +86,14 @@
       "repo_url": "https://chromium.googlesource.com/infra/luci/luci-go",
       "git_branch": "main",
       "package_json_dir": "milo/ui",
-      "packages_allow_list": [],
+      "packages_allow_list": [
+        {
+          "name": "fast-loop",
+          "version": "1.1.4"
+        }
+      ],
       "trusted_scopes": ["@chopsui/"],
+      "audit_dev_dependencies": true,
       "issue_tracker_config": {
         "owner": "weiweilin@google.com"
       }
