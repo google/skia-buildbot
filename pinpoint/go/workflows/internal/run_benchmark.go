@@ -179,7 +179,7 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP, secondRBP *Run
 		"benchmark": firstRBP.Benchmark,
 		"config":    firstRBP.BotConfig,
 		"story":     firstRBP.Story,
-		"bot_id":    firstRBP.Dimensions["id"],
+		"bot_id":    firstRBP.Dimensions["value"],
 		"task1":     firstTaskID,
 		"task2":     secondTaskID,
 	})
