@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -640,4 +641,154 @@ func TestRetryV2(t *testing.T) {
 	require.True(t, j2.IsForce)
 	require.True(t, j2.Valid())
 	mockBB.AssertExpectations(t)
+}
+
+func TestJobQueues_DifferentRepoStatesInParallel(t *testing.T) {
+	// These Jobs all have different RepoStates. Ensure that we call workFn in
+	// parallel.
+	j1 := &types.Job{
+		Id: "1",
+		RepoState: types.RepoState{
+			Revision: "1",
+		},
+	}
+	j2 := &types.Job{
+		Id: "2",
+		RepoState: types.RepoState{
+			Revision: "2",
+		},
+	}
+	j3 := &types.Job{
+		Id: "3",
+		RepoState: types.RepoState{
+			Revision: "3",
+		},
+	}
+
+	// We'll signal that each instance of workFn may finish using these
+	// channels.
+	startCh := make(chan *types.Job)
+	doneCh := map[*types.Job]chan struct{}{
+		j1: make(chan struct{}),
+		j2: make(chan struct{}),
+		j3: make(chan struct{}),
+	}
+
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			startCh <- job
+			<-doneCh[job]
+		},
+	}
+	q.Enqueue(j1)
+	q.Enqueue(j2)
+	q.Enqueue(j3)
+
+	// Wait until all three instances of workFn have started before signalling
+	// that they may all finish.
+	<-startCh
+	<-startCh
+	<-startCh
+	for _, done := range doneCh {
+		done <- struct{}{}
+	}
+}
+
+func TestJobQueues_SameRepoStatesSerially(t *testing.T) {
+	// These Jobs all have different RepoStates. Ensure that we call workFn in
+	// parallel.
+	j1 := &types.Job{
+		Id: "1",
+		RepoState: types.RepoState{
+			Revision: "1",
+		},
+	}
+	j2 := &types.Job{
+		Id: "2",
+		RepoState: types.RepoState{
+			Revision: "1",
+		},
+	}
+	j3 := &types.Job{
+		Id: "3",
+		RepoState: types.RepoState{
+			Revision: "1",
+		},
+	}
+
+	// We'll signal that each instance of workFn may finish using these
+	// channels.
+	startCh := make(chan *types.Job)
+	doneCh := map[*types.Job]chan struct{}{
+		j1: make(chan struct{}),
+		j2: make(chan struct{}),
+		j3: make(chan struct{}),
+	}
+	var mtx sync.Mutex
+	count := 0
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			mtx.Lock()
+			require.Equal(t, 0, count)
+			count++
+			mtx.Unlock()
+
+			startCh <- job
+			<-doneCh[job]
+
+			mtx.Lock()
+			require.Equal(t, 1, count)
+			count--
+			mtx.Unlock()
+		},
+	}
+	q.Enqueue(j1)
+	q.Enqueue(j2)
+	q.Enqueue(j3)
+
+	// Start and finish each workFn sequentially.
+	<-startCh
+	doneCh[j1] <- struct{}{}
+	<-startCh
+	doneCh[j2] <- struct{}{}
+	<-startCh
+	doneCh[j3] <- struct{}{}
+}
+
+func TestJobQueues_Deduplicate(t *testing.T) {
+	// Verify that we deduplicate jobs in the queue.
+	j1 := &types.Job{
+		Id: "1",
+		RepoState: types.RepoState{
+			Revision: "1",
+		},
+	}
+
+	// We'll signal that each instance of workFn may finish using these
+	// channels.
+	startCh := make(chan *types.Job)
+	doneCh := make(chan struct{})
+	var mtx sync.Mutex
+	count := 0
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			mtx.Lock()
+			count++
+			mtx.Unlock()
+			startCh <- job
+			<-doneCh
+		},
+	}
+	q.Enqueue(j1)
+	q.Enqueue(j1)
+	q.Enqueue(j1)
+
+	// Consume one job from startCh and then signal that the first workFn can
+	// finish.
+	<-startCh
+	doneCh <- struct{}{}
+	require.Equal(t, 1, count)
 }

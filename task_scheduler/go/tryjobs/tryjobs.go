@@ -344,6 +344,74 @@ func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*type
 	return nil, nil
 }
 
+type jobQueue struct {
+	queue []*types.Job
+	mtx   sync.Mutex
+}
+
+func newJobQueue() *jobQueue {
+	return &jobQueue{
+		queue: make([]*types.Job, 0, 50 /* approximate number of try jobs per RepoState/CL */),
+	}
+}
+
+func (q *jobQueue) Enqueue(job *types.Job) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	// Prevent processing the same job multiple times if it's already queued.
+	// Queue length will max out at the number of try jobs on a given CL, so
+	// this should be significantly less expensive than processing the job
+	// twice.
+	for _, old := range q.queue {
+		if old.Id == job.Id {
+			return
+		}
+	}
+	q.queue = append(q.queue, job)
+}
+
+func (q *jobQueue) Dequeue() *types.Job {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	rv := q.queue[0]
+	q.queue = q.queue[1:]
+	return rv
+}
+
+func (q *jobQueue) Len() int {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	return len(q.queue)
+}
+
+type jobQueues struct {
+	queues map[types.RepoState]*jobQueue
+	mtx    sync.Mutex
+	workFn func(*types.Job)
+}
+
+func (q *jobQueues) Enqueue(job *types.Job) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	jobQueue, ok := q.queues[job.RepoState]
+	if !ok {
+		jobQueue = newJobQueue()
+		q.queues[job.RepoState] = jobQueue
+	}
+	jobQueue.Enqueue(job)
+	if !ok {
+		go func() {
+			for jobQueue.Len() > 0 {
+				job := jobQueue.Dequeue()
+				q.workFn(job)
+			}
+			q.mtx.Lock()
+			defer q.mtx.Unlock()
+			delete(q.queues, job.RepoState)
+		}()
+	}
+}
+
 func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	// The code in startJob makes the assumption that we'll come back to the job
 	// and try again if requests to Buildbucket fail for transient-looking
@@ -353,52 +421,41 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	// because it is short enough not to cause significant lag in handling try
 	// jobs but hopefully long enough that any transient errors are resolved
 	// before we try again.
-	jobsCh := t.db.ModifiedJobsCh(ctx)
+	modJobsCh := t.db.ModifiedJobsCh(ctx)
 	ticker := time.NewTicker(time.Minute)
 	tickCh := ticker.C
 	doneCh := ctx.Done()
+
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			if err := t.startJob(ctx, job); err != nil {
+				sklog.Errorf("Failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
+			}
+		},
+	}
 	for {
 		select {
-		case jobs := <-jobsCh:
-			t.startJobs(ctx, jobs, "modified jobs channel")
+		case jobs := <-modJobsCh:
+			for _, job := range jobs {
+				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
+				q.Enqueue(job)
+			}
 		case <-tickCh:
 			jobs, err := t.jCache.RequestedJobs()
 			if err != nil {
 				sklog.Errorf("failed retrieving Jobs: %s", err)
 			} else {
-				t.startJobs(ctx, jobs, "periodic DB poll")
+				for _, job := range jobs {
+					sklog.Infof("Found job %s (build %d) via periodic DB poll", job.Id, job.BuildbucketBuildId)
+					q.Enqueue(job)
+				}
 			}
 		case <-doneCh:
 			ticker.Stop()
 			return
 		}
 	}
-}
-
-func (t *TryJobIntegrator) startJobs(ctx context.Context, jobs []*types.Job, foundVia string) {
-	sklog.Infof("Start processing jobs from %s.", foundVia)
-	// Organize jobs by RepoState, since jobs with the same RepoState must be
-	// processed serially.
-	byRepoState := map[types.RepoState][]*types.Job{}
-	for _, job := range jobs {
-		sklog.Infof("Found job %s (build %d) via %s", job.Id, job.BuildbucketBuildId, foundVia)
-		byRepoState[job.RepoState] = append(byRepoState[job.RepoState], job)
-	}
-	var wg sync.WaitGroup
-	for _, jobs := range byRepoState {
-		wg.Add(1)
-		jobs := jobs // https://golang.org/doc/faq#closures_and_goroutines
-		go func() {
-			defer wg.Done()
-			for _, job := range jobs {
-				if err := t.startJob(ctx, job); err != nil {
-					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
-				}
-			}
-		}()
-	}
-	wg.Wait()
-	sklog.Infof("Done processing jobs from %s.", foundVia)
 }
 
 func isBuildAlreadyStartedError(err error) bool {
