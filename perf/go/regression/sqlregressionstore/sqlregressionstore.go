@@ -131,7 +131,7 @@ func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitN
 }
 
 // SetHigh implements the regression.Store interface.
-func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
 	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
@@ -144,12 +144,12 @@ func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.Com
 		}
 	})
 	s.regressionFoundCounterHigh.Inc(1)
-	return ret, err
+	return ret, "", err
 
 }
 
 // SetLow implements the regression.Store interface.
-func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
 	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
@@ -162,7 +162,7 @@ func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.Comm
 		}
 	})
 	s.regressionFoundCounterLow.Inc(1)
-	return ret, err
+	return ret, "", err
 }
 
 // TriageLow implements the regression.Store interface.

@@ -246,10 +246,10 @@ func runClusterSummaryAndTriageTest(t *testing.T, isHighRegression bool, alertsP
 	}
 	if isHighRegression {
 		// Set a high regression.
-		success, err = store.SetHigh(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
+		success, _, err = store.SetHigh(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
 	} else {
 		// Set a low regression.
-		success, err = store.SetLow(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
+		success, _, err = store.SetLow(ctx, r.CommitNumber, alertIdStr, frameResponse, clusterSummary)
 	}
 
 	assert.Nil(t, err)

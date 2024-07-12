@@ -48,13 +48,13 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	// TODO(jcgregorio) Break up into finer grained tests and add more tests.
 
 	// Create a new regression.
-	isNew, err := store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err := store.SetLow(ctx, c, "1", df, cl)
 	assert.True(t, isNew)
 	require.NoError(t, err)
 
 	// Overwrite a regression, which is allowed, and that it changes the
 	// returned 'isNew' value.
-	isNew, err = store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err = store.SetLow(ctx, c, "1", df, cl)
 	assert.False(t, isNew)
 	require.NoError(t, err)
 
@@ -99,7 +99,7 @@ func Range_Exact(t *testing.T, store regression.Store) {
 	}
 
 	// Create a new regression.
-	isNew, err := store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err := store.SetLow(ctx, c, "1", df, cl)
 	assert.True(t, isNew)
 	require.NoError(t, err)
 

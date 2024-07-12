@@ -112,7 +112,7 @@ func (_m *Store) Range(ctx context.Context, begin types.CommitNumber, end types.
 }
 
 // SetHigh provides a mock function with given fields: ctx, commitNumber, alertID, df, high
-func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := _m.Called(ctx, commitNumber, alertID, df, high)
 
 	if len(ret) == 0 {
@@ -120,8 +120,9 @@ func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, a
 	}
 
 	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, error)); ok {
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, string, error)); ok {
 		return rf(ctx, commitNumber, alertID, df, high)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) bool); ok {
@@ -130,17 +131,23 @@ func (_m *Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, a
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) string); ok {
 		r1 = rf(ctx, commitNumber, alertID, df, high)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(string)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) error); ok {
+		r2 = rf(ctx, commitNumber, alertID, df, high)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // SetLow provides a mock function with given fields: ctx, commitNumber, alertID, df, low
-func (_m *Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+func (_m *Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error) {
 	ret := _m.Called(ctx, commitNumber, alertID, df, low)
 
 	if len(ret) == 0 {
@@ -148,8 +155,9 @@ func (_m *Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, al
 	}
 
 	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, error)); ok {
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) (bool, string, error)); ok {
 		return rf(ctx, commitNumber, alertID, df, low)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) bool); ok {
@@ -158,13 +166,19 @@ func (_m *Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, al
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) string); ok {
 		r1 = rf(ctx, commitNumber, alertID, df, low)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(string)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, types.CommitNumber, string, *frame.FrameResponse, *clustering2.ClusterSummary) error); ok {
+		r2 = rf(ctx, commitNumber, alertID, df, low)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // TriageHigh provides a mock function with given fields: ctx, commitNumber, alertID, tr

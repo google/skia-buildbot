@@ -145,7 +145,8 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 
-					isNew, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+					isNew, regressionID, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+					sklog.Infof("New regression is created by SetLow: %s", regressionID)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
@@ -158,7 +159,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						cl.NotificationID = notificationID
 
 						if notificationID != "" {
-							_, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
+							_, _, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 							if err != nil {
 								sklog.Errorf("save cluster with notification: %s", err)
 							}
@@ -167,7 +168,8 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
-					isNew, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+					isNew, regressionID, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+					sklog.Infof("New regression is created by SetHigh: %s", regressionID)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue
@@ -180,7 +182,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						cl.NotificationID = notificationID
 
 						if notificationID != "" {
-							_, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
+							_, _, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
 							if err != nil {
 								sklog.Errorf("save cluster with notification: %s", err)
 							}

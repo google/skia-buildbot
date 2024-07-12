@@ -16,10 +16,10 @@ type Store interface {
 	Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*AllRegressionsForCommit, error)
 
 	// SetHigh sets the ClusterSummary for a high regression at the given commit and alertID.
-	SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error)
+	SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error)
 
 	// SetLow sets the ClusterSummary for a low regression at the given commit and alertID.
-	SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error)
+	SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error)
 
 	// TriageLow sets the triage status for the low cluster at the given commit and alertID.
 	TriageLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr TriageStatus) error

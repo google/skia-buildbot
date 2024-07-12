@@ -170,9 +170,9 @@ func (s *SQLRegression2Store) Range(ctx context.Context, begin, end types.Commit
 }
 
 // SetHigh implements the regression.Store interface.
-func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
-	err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false, func(r *regression.Regression) {
+	regressionID, err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -184,13 +184,13 @@ func (s *SQLRegression2Store) SetHigh(ctx context.Context, commitNumber types.Co
 		populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterHigh.Inc(1)
-	return ret, err
+	return ret, regressionID, err
 }
 
 // SetLow implements the regression.Store interface.
-func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
-	err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false /* mustExist*/, func(r *regression.Regression) {
+	regressionID, err := s.updateBasedOnAlertAlgo(ctx, commitNumber, alertID, df, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -202,7 +202,7 @@ func (s *SQLRegression2Store) SetLow(ctx context.Context, commitNumber types.Com
 		populateRegression2Fields(r)
 	})
 	s.regressionFoundCounterLow.Inc(1)
-	return ret, err
+	return ret, regressionID, err
 }
 
 // TriageLow implements the regression.Store interface.
@@ -210,10 +210,11 @@ func (s *SQLRegression2Store) TriageLow(ctx context.Context, commitNumber types.
 	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
 	// Once we move all the data to the new db, this will need to be updated to take in a specific
 	// regression id and update only that.
-	return s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
+	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
 		r.LowStatus = tr
 		return true
 	})
+	return err
 }
 
 // TriageHigh implements the regression.Store interface.
@@ -221,10 +222,11 @@ func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types
 	// TODO(ashwinpv): This code will update all regressions with the <commit_id, alert_id> pair.
 	// Once we move all the data to the new db, this will need to be updated to take in a specific
 	// regression id and update only that.
-	return s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
+	_, err := s.readModifyWriteCompat(ctx, commitNumber, alertID, true, func(r *regression.Regression) bool {
 		r.HighStatus = tr
 		return true
 	})
+	return err
 }
 
 // Write implements the regression.Store interface.
@@ -343,23 +345,24 @@ func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regr
 // TODO(ashwinpv): Once we are fully on to the regression2 schema, move this logic out
 // of the Store (since ideally store should only care about reading and writing data instead
 // of the feature semantics)
-func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, mustExist bool, updateFunc func(r *regression.Regression)) error {
+func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, mustExist bool, updateFunc func(r *regression.Regression)) (string, error) {
 	// If KMeans the expectation is that as we get more incoming data,
 	// the regression becomes more accurate. This means we need to check
 	// if there is a regression for the same <commit_id, alert_id> pair
 	// and update it.
+	var regressionID string
 	var err error
 	alertConfig, err := s.alertConfigProvider.GetAlertConfig(alerts.IDAsStringToInt(alertID))
 	if err != nil {
-		return err
+		return "", err
 	}
 	if alertConfig.Algo == types.KMeansGrouping {
-		err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
 			updateFunc(r)
 			return true
 		})
 	} else {
-		err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
+		regressionID, err = s.readModifyWriteCompat(ctx, commitNumber, alertID, mustExist /* mustExist*/, func(r *regression.Regression) bool {
 			if r.Frame != nil {
 				// Do not update existing regressions when the algo is stepfit.
 				return false
@@ -373,10 +376,10 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 
 	if err != nil {
 		sklog.Errorf("Error while updating database %s", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return regressionID, nil
 }
 
 // readModifyWriteCompat reads the Regression at the given commitNumber and alert id
@@ -386,16 +389,16 @@ func (s *SQLRegression2Store) updateBasedOnAlertAlgo(ctx context.Context, commit
 // If mustExist is true then the read must be successful, otherwise a new
 // default Regression will be used and stored back to the database after the
 // callback is called.
-func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression) bool) error {
+func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression) bool) (string, error) {
 	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
-		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
+		return "", skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
 
 	// Do everything in a transaction so we don't have any lost updates.
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "Can't start transaction")
+		return "", skerr.Wrapf(err, "Can't start transaction")
 	}
 
 	var r *regression.Regression
@@ -403,7 +406,7 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 	rows, err := tx.Query(ctx, s.statements[readCompat], commitNumber, alertID)
 	if err != nil {
 		rollbackTransaction(ctx, tx)
-		return err
+		return "", err
 	}
 
 	regressionsToWrite := []*regression.Regression{}
@@ -420,7 +423,7 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 					errorMsg = "Failed reading regression data."
 				}
 				rollbackTransaction(ctx, tx)
-				return skerr.Wrapf(err, errorMsg)
+				return "", skerr.Wrapf(err, errorMsg)
 			}
 		}
 
@@ -447,10 +450,10 @@ func (s *SQLRegression2Store) readModifyWriteCompat(ctx context.Context, commitN
 	for _, reg := range regressionsToWrite {
 		if err = s.writeSingleRegression(ctx, reg, tx); err != nil {
 			rollbackTransaction(ctx, tx)
-			return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
+			return "", skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 		}
 	}
-	return tx.Commit(ctx)
+	return r.Id, tx.Commit(ctx)
 }
 
 func rollbackTransaction(ctx context.Context, tx pgx.Tx) {
