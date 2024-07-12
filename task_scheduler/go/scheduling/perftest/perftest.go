@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
@@ -343,7 +344,7 @@ func main() {
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.
