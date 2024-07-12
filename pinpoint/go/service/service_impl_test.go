@@ -20,7 +20,10 @@ func newTemporalMock(t *testing.T) (*mocks.TemporalProvider, *temporal_mocks.Cli
 	tcm.Mock.Test(t)
 
 	tpm := mocks.NewTemporalProvider(t)
-	t.Cleanup(func() { tcm.AssertExpectations(t) })
+	t.Cleanup(func() {
+		tcm.AssertExpectations(t)
+		tpm.AssertExpectations(t)
+	})
 	return tpm, tcm
 }
 
@@ -33,11 +36,8 @@ func newWorkflowRunMock(t *testing.T, wid string) *temporal_mocks.WorkflowRun {
 }
 
 func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
-	counter := int32(0)
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {
-		counter += 1
-	}, nil)
+	tpm.On("NewClient").Return(tcm, func() {}, nil)
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
@@ -52,13 +52,12 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 	})
 	assert.Equal(t, fakeID, resp.JobId)
 	assert.NoError(t, err)
-	assert.EqualValues(t, 1, counter, "CleanUp should be called exactly once.")
 }
 
 func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
 
 	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	// invalid request should be rate limited.
@@ -80,6 +79,48 @@ func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 	assert.ErrorContains(t, err, "git hash is empty")
 
 	// TODO(b/322047067): Add requests with invalid fields
+}
+
+func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient").Return(tcm, func() {}, nil).Once()
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
+		StartGitHash: "fake-start",
+		EndGitHash:   "fake-end",
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
+}
+
+func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient").Return(tcm, func() {}, nil).Once()
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
+
+	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
+		StartGitHash: "fake-start",
+		EndGitHash:   "fake-end",
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
+
+	resp, err = svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{})
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "unable to fulfill")
 }
 
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {

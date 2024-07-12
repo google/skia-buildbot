@@ -63,6 +63,7 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 			InitialAttemptCount:  "20",
 			ImprovementDirection: cfp.Request.ImprovementDirection,
 		},
+		Production: cfp.Production,
 	}
 	var be *pinpoint_proto.BisectExecution
 	if err := workflow.ExecuteChildWorkflow(ctx, workflows.CatapultBisect, bp).Get(ctx, &be); err != nil {

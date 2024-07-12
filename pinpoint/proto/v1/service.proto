@@ -222,10 +222,11 @@ message ScheduleCulpritFinderRequest {
 }
 
 message CulpritFinderExecution {
+	string job_id = 1;
 	// If true, regression_verified means there is a regression
-	bool regression_verified = 1;
+	bool regression_verified = 2;
 
-	repeated CombinedCommit culprits = 2;
+	repeated CombinedCommit culprits = 3;
 }
 
 // See LegacyJobResponse below

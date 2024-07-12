@@ -217,4 +217,8 @@ func (pp *PairwiseParams) GetImprovementDirection() compare.ImprovementDir {
 type CulpritFinderParams struct {
 	// CulpritFinderParams embeds the pinpoint proto ScheduleCulpritFinderRequest
 	Request *pb.ScheduleCulpritFinderRequest
+	// Production if true indicates the workflow is intended to be run on production
+	// and not the dev or staging environment.
+	// Used to determine whether to write to Pinpoint prod or staging.
+	Production bool
 }
