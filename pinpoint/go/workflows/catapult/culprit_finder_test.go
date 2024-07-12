@@ -59,9 +59,14 @@ func TestCulpritFinder_NoCulpritsAfterBisect_ReturnsRegression(t *testing.T) {
 	env.RegisterWorkflowWithOptions(internal.PairwiseWorkflow, workflow.RegisterOptions{Name: workflows.PairwiseWorkflow})
 	env.RegisterWorkflowWithOptions(CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
 
-	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(&pinpoint_proto.PairwiseExecution{
-		Significant: true,
-	}, nil).Once()
+	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(
+		&pinpoint_proto.PairwiseExecution{
+			Significant: true,
+			Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
+				ControlMedian:   0.1, // arbitrary values
+				TreatmentMedian: 0.2,
+			},
+		}, nil).Once()
 	env.OnWorkflow(workflows.CatapultBisect, mock.Anything, mock.Anything).Return(&pinpoint_proto.BisectExecution{}, nil).Once()
 
 	env.ExecuteWorkflow(CulpritFinderWorkflow, generateCulpritFinderParams())
@@ -116,9 +121,14 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulprits(t *testing.T) {
 			Culprit: fakeCulprits[i],
 		}
 	}
-	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(&pinpoint_proto.PairwiseExecution{
-		Significant: true,
-	}, nil).Once()
+	env.OnWorkflow(workflows.PairwiseWorkflow, mock.Anything, mock.Anything).Return(
+		&pinpoint_proto.PairwiseExecution{
+			Significant: true,
+			Statistic: &pinpoint_proto.PairwiseExecution_WilcoxonResult{
+				ControlMedian:   0.1, // arbitrary values
+				TreatmentMedian: 0.2,
+			},
+		}, nil).Once()
 	env.OnWorkflow(workflows.CatapultBisect, mock.Anything, mock.Anything).Return(&pinpoint_proto.BisectExecution{
 		Culprits:         fakeCulprits,
 		DetailedCulprits: fakeCulpritPairs,

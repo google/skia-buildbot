@@ -2,6 +2,7 @@ package catapult
 
 import (
 	"errors"
+	"fmt"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/midpoint"
@@ -49,6 +50,8 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 		}, nil
 	}
 
+	magnitude := fmt.Sprintf("%f", pe.Statistic.TreatmentMedian-pe.Statistic.ControlMedian)
+
 	bp := &workflows.BisectParams{
 		Request: &pinpoint_proto.ScheduleBisectRequest{
 			ComparisonMode:       "performance",
@@ -59,7 +62,7 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 			Story:                cfp.Request.Story,
 			Chart:                cfp.Request.Chart,
 			AggregationMethod:    cfp.Request.Statistic,
-			ComparisonMagnitude:  cfp.Request.ComparisonMagnitude,
+			ComparisonMagnitude:  magnitude,
 			InitialAttemptCount:  "20",
 			ImprovementDirection: cfp.Request.ImprovementDirection,
 		},
