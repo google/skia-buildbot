@@ -36,6 +36,7 @@ describe('revision-info-sk', () => {
           master: 'm1',
           test: 't1',
           query: 'master=m1&bot=bot1&benchmark=b1&test=t1',
+          anomaly_ids: ['123', '456'],
         },
       ];
 
@@ -64,6 +65,7 @@ describe('revision-info-sk', () => {
           test: 't1/t2/t3',
           query:
             'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
+          anomaly_ids: ['123', '456'],
         },
         {
           benchmark: 'b1',
@@ -78,6 +80,7 @@ describe('revision-info-sk', () => {
           master: 'm1',
           test: 't5',
           query: 'master=m1&bot=bot1&benchmark=b1&test=t5',
+          anomaly_ids: ['123', '456'],
         },
       ];
 
@@ -116,6 +119,7 @@ describe('revision-info-sk', () => {
           test: 't1/t2/t3',
           query:
             'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
+          anomaly_ids: ['123', '456'],
         },
         {
           benchmark: 'b1',
@@ -130,6 +134,7 @@ describe('revision-info-sk', () => {
           master: 'm1',
           test: 't5',
           query: 'master=m1&bot=bot1&benchmark=b1&test=t5',
+          anomaly_ids: ['123', '456'],
         },
       ];
 
@@ -140,6 +145,10 @@ describe('revision-info-sk', () => {
         'begin=1712026352&end=1713408752&shortcut=1234567&totalGraphs=2';
 
       assert.include(url, expected);
+
+      const highlight_params =
+        '&highlight_anomalies=123&highlight_anomalies=456';
+      assert.include(url, highlight_params);
     });
   });
 });

@@ -106,18 +106,19 @@ func (anomaly *AnomalyForRevision) GetTestPath() string {
 
 // RevisionInfo defines struct to contain revision information
 type RevisionInfo struct {
-	Master        string `json:"master"`
-	Bot           string `json:"bot"`
-	Benchmark     string `json:"benchmark"`
-	StartRevision int    `json:"start_revision"`
-	EndRevision   int    `json:"end_revision"`
-	StartTime     int64  `json:"start_time"`
-	EndTime       int64  `json:"end_time"`
-	TestPath      string `json:"test"`
-	IsImprovement bool   `json:"is_improvement"`
-	BugId         string `json:"bug_id"`
-	ExploreUrl    string `json:"explore_url"`
-	Query         string `json:"query"`
+	Master        string   `json:"master"`
+	Bot           string   `json:"bot"`
+	Benchmark     string   `json:"benchmark"`
+	StartRevision int      `json:"start_revision"`
+	EndRevision   int      `json:"end_revision"`
+	StartTime     int64    `json:"start_time"`
+	EndTime       int64    `json:"end_time"`
+	TestPath      string   `json:"test"`
+	IsImprovement bool     `json:"is_improvement"`
+	BugId         string   `json:"bug_id"`
+	ExploreUrl    string   `json:"explore_url"`
+	Query         string   `json:"query"`
+	AnomalyIds    []string `json:"anomaly_ids"`
 }
 
 // GetAnomaliesRequest struct to request anomalies from the chromeperf api.

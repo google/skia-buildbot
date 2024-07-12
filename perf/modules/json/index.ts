@@ -54,6 +54,7 @@ export interface RevisionInfo {
 	bug_id: string;
 	explore_url: string;
 	query: string;
+	anomaly_ids: string[] | null;
 }
 
 export interface ValuePercent {

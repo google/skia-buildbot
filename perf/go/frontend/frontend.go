@@ -741,6 +741,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 				BugId:         bugId,
 				ExploreUrl:    exploreUrl,
 				Query:         f.urlProvider.GetQueryStringFromParameters(anomalyData.Params),
+				AnomalyIds:    []string{strconv.Itoa(anomalyData.Anomaly.Id)},
 			}
 		} else {
 			revInfo := revisionInfoMap[key]
@@ -752,6 +753,7 @@ func (f *Frontend) revisionHandler(w http.ResponseWriter, r *http.Request) {
 				revInfo.EndRevision = anomalyData.EndRevision
 			}
 
+			revInfo.AnomalyIds = append(revInfo.AnomalyIds, strconv.Itoa(anomalyData.Anomaly.Id))
 			revisionInfoMap[key] = revInfo
 		}
 	}

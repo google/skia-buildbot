@@ -101,10 +101,25 @@ export class RevisionInfoSk extends ElementSk {
       .sort()
       .reverse()[0];
 
+    const uniqueAnomalies: Set<string> = new Set();
+    let highlightAnomalies = '';
+    // Gather the unique anomaly ids from all revisioninfos.
+    revisions
+      .map((rev) => rev.anomaly_ids)
+      .forEach((anomalyArr) => {
+        anomalyArr!.forEach((anomalyId) => {
+          uniqueAnomalies.add(anomalyId);
+        });
+      });
+    uniqueAnomalies.forEach((anomalyId) => {
+      highlightAnomalies += `&highlight_anomalies=${anomalyId}`;
+    });
+
     const url =
       `/m/?begin=${begin}&end=${end}` +
       `&shortcut=${newShortcut}` +
-      `&totalGraphs=${graphConfigs.length}`;
+      `&totalGraphs=${graphConfigs.length}` +
+      `${highlightAnomalies}`;
 
     return url;
   }

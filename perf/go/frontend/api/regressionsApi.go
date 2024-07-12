@@ -477,6 +477,12 @@ func (rApi regressionsApi) alertGroupQueryHandler(w http.ResponseWriter, r *http
 	if alertGroupDetails != nil {
 		sklog.Infof("Retrieved %d anomalies for alert group id %s", len(alertGroupDetails.Anomalies), groupId)
 
+		anomalyIds := []string{}
+		for anomalyId := range alertGroupDetails.Anomalies {
+			anomalyIds = append(anomalyIds, anomalyId)
+		}
+
+		highlightAnomalyParams := getGraphQueryParamsForAnomalyId(anomalyIds)
 		explore := r.URL.Query().Get("e")
 		var redirectUrl string
 		if explore == "" {
@@ -500,14 +506,14 @@ func (rApi regressionsApi) alertGroupQueryHandler(w http.ResponseWriter, r *http
 				sklog.Errorf("Error inserting shortcut %s", err)
 				// Let's redirect the user to the explore page instead.
 				queryParams := alertGroupDetails.GetQueryParams(ctx)
-				redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, nil)
+				redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, highlightAnomalyParams)
 			} else {
-				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false, nil)
+				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false, highlightAnomalyParams)
 			}
 
 		} else {
 			queryParams := alertGroupDetails.GetQueryParams(ctx)
-			redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, nil)
+			redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, highlightAnomalyParams)
 		}
 		sklog.Infof("Generated url: %s", redirectUrl)
 		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)

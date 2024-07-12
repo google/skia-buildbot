@@ -26,6 +26,7 @@ const response: RevisionInfo[] = [
     start_time: 1712026352,
     end_time: 1712285552,
     query: 'master=m1&bot=bot1&benchmark=b1&test=t1',
+    anomaly_ids: ['123', '456'],
   },
 ];
 
