@@ -261,10 +261,12 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:b09f6ef584c4a48d2501db644c3450ac7d8c132f",
         "--cipd",
+        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
+        "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
         "--",
-        "./bazel_build_all",
+        "./task_drivers/bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -287,9 +289,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",
@@ -335,10 +334,12 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:b09f6ef584c4a48d2501db644c3450ac7d8c132f",
         "--cipd",
+        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
+        "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
         "--",
-        "./bazel_test_all",
+        "./task_drivers/bazel_test_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -363,9 +364,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",

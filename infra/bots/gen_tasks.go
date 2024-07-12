@@ -267,8 +267,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	// TODO(kjlubick) Replace after this bakes in
-	// usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
@@ -310,8 +309,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string) string {
 	}
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	// TODO(kjlubick) Replace after this bakes in
-	// usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
