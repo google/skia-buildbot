@@ -88,10 +88,10 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 		"patchrepo": rs.PatchRepo,
 		"server":    rs.Server,
 	}
-	m := metrics2.GetInt64Metric(metricSyncing, tags)
-	m.Update(1)
+	m := metrics2.NewTimer(metricSyncing, tags)
+	m.Start()
 	defer func() {
-		m.Update(0)
+		m.Stop()
 	}()
 	rvErr := make(chan error)
 	s.queue <- func(workerId int) {

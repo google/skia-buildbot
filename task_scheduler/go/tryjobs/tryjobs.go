@@ -80,6 +80,8 @@ const (
 	// buildAlreadyFinishedErr is a substring of the error message returned by
 	// Buildbucket when we call UpdateBuild after the build has finished.
 	buildAlreadyFinishedErr = "cannot update an ended build"
+
+	metricJobQueueLength = "task_scheduler_jc_job_queue_length"
 )
 
 var (
@@ -347,11 +349,20 @@ func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*type
 type jobQueue struct {
 	queue []*types.Job
 	mtx   sync.Mutex
+	m     metrics2.Int64Metric
 }
 
-func newJobQueue() *jobQueue {
+func newJobQueue(rs types.RepoState) *jobQueue {
 	return &jobQueue{
 		queue: make([]*types.Job, 0, 50 /* approximate number of try jobs per RepoState/CL */),
+		m: metrics2.GetInt64Metric(metricJobQueueLength, map[string]string{
+			"repo":      rs.Repo,
+			"revision":  rs.Revision,
+			"issue":     rs.Issue,
+			"patchset":  rs.Patchset,
+			"patchrepo": rs.PatchRepo,
+			"server":    rs.Server,
+		}),
 	}
 }
 
@@ -364,10 +375,12 @@ func (q *jobQueue) Enqueue(job *types.Job) {
 	// twice.
 	for _, old := range q.queue {
 		if old.Id == job.Id {
+			sklog.Infof("Job %s (build %d) is already queued; skipping.", job.Id, job.BuildbucketBuildId)
 			return
 		}
 	}
 	q.queue = append(q.queue, job)
+	q.m.Update(int64(len(q.queue)))
 }
 
 func (q *jobQueue) Dequeue() *types.Job {
@@ -375,6 +388,7 @@ func (q *jobQueue) Dequeue() *types.Job {
 	defer q.mtx.Unlock()
 	rv := q.queue[0]
 	q.queue = q.queue[1:]
+	q.m.Update(int64(len(q.queue)))
 	return rv
 }
 
@@ -391,23 +405,38 @@ type jobQueues struct {
 }
 
 func (q *jobQueues) Enqueue(job *types.Job) {
+	sklog.Infof("Enqueue job %s (build %d)", job.Id, job.BuildbucketBuildId)
 	q.mtx.Lock()
 	defer q.mtx.Unlock()
 	jobQueue, ok := q.queues[job.RepoState]
 	if !ok {
-		jobQueue = newJobQueue()
+		sklog.Infof("Creating new queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+		jobQueue = newJobQueue(job.RepoState)
 		q.queues[job.RepoState] = jobQueue
 	}
 	jobQueue.Enqueue(job)
 	if !ok {
 		go func() {
-			for jobQueue.Len() > 0 {
+			for {
 				job := jobQueue.Dequeue()
+				sklog.Infof("Dequeue job %s (build %d)", job.Id, job.BuildbucketBuildId)
 				q.workFn(job)
+
+				// Lock the outer mutex before the inner one, to ensure that
+				// no other thread is trying to add to this queue while we're
+				// removing it. Doing so after we're finished removing the queue
+				// will just add a new one, but re-adding the queue after we're
+				// done is fine.
+				q.mtx.Lock()
+				if jobQueue.Len() == 0 {
+					sklog.Infof("Deleting empty queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+					delete(q.queues, job.RepoState)
+					util.LogErr(jobQueue.m.Delete())
+					q.mtx.Unlock()
+					return
+				}
+				q.mtx.Unlock()
 			}
-			q.mtx.Lock()
-			defer q.mtx.Unlock()
-			delete(q.queues, job.RepoState)
 		}()
 	}
 }
