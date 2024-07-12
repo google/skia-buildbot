@@ -30,6 +30,7 @@ const (
 	DefaultNumWorkers = 10
 
 	syncTimeout       = 15 * time.Minute
+	metricSyncing     = "task_scheduler_jc_syncing"
 	metricSyncTimeout = "task_scheduler_sync_timeout"
 	metricWorkerBusy  = "task_scheduler_jc_worker_busy"
 
@@ -56,14 +57,9 @@ func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string
 		workdir:       workdir,
 	}
 	for i := 0; i < numWorkers; i++ {
-		m := metrics2.GetInt64Metric(metricWorkerBusy, map[string]string{
-			"worker": strconv.Itoa(i),
-		})
 		go func(i int) {
 			for f := range queue {
-				m.Update(1)
 				f(i)
-				m.Update(0)
 			}
 		}(i)
 	}
@@ -84,8 +80,28 @@ func (s *Syncer) Close() error {
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
 func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*git.TempCheckout) error) error {
+	tags := map[string]string{
+		"repo":      rs.Repo,
+		"revision":  rs.Revision,
+		"issue":     rs.Issue,
+		"patchset":  rs.Patchset,
+		"patchrepo": rs.PatchRepo,
+		"server":    rs.Server,
+	}
+	m := metrics2.GetInt64Metric(metricSyncing, tags)
+	m.Update(1)
+	defer func() {
+		m.Update(0)
+	}()
 	rvErr := make(chan error)
 	s.queue <- func(workerId int) {
+		m := metrics2.GetInt64Metric(metricWorkerBusy, map[string]string{
+			"worker": strconv.Itoa(workerId),
+		}, tags)
+		m.Update(1)
+		defer func() {
+			m.Update(0)
+		}()
 		tmp, err2 := os.MkdirTemp("", "")
 		if err2 != nil {
 			rvErr <- err2
@@ -269,7 +285,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		vpythonBinary, "-u", gclientPath, "sync",
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
-		"-v", "-v", "-v", "--shallow",
+		"--shallow",
 	}
 	if ctx.Value(SkipDownloadTopicsKey) == nil {
 		cmd = append(cmd, "--download-topics")
