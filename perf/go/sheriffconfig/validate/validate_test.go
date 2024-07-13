@@ -21,13 +21,13 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "~.*-perf",
+									Master: "ChromiumPerf",
+									Bot:    "~.*-perf",
 								},
 							},
 							Exclude: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
+									Master: "ChromiumPerf",
 								},
 							},
 						},
@@ -43,9 +43,9 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
+									Master: "ChromiumPerf",
+									Bot:    "mac-perf",
+									Test:   "Speedometer2",
 								},
 							},
 						},
@@ -182,9 +182,9 @@ func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "~*)(mac-perf",
-									Test: "Speedometer2",
+									Master: "ChromiumPerf",
+									Bot:    "~*)(mac-perf",
+									Test:   "Speedometer2",
 								},
 							},
 						},
@@ -211,15 +211,15 @@ func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "~.*-perf",
-									Test: "Speedometer2",
+									Master: "ChromiumPerf",
+									Bot:    "~.*-perf",
+									Test:   "Speedometer2",
 								},
 							},
 							Exclude: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "bot2",
+									Master: "ChromiumPerf",
+									Bot:    "bot2",
 								},
 							},
 						},
@@ -246,9 +246,9 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
+									Master: "ChromiumPerf",
+									Bot:    "mac-perf",
+									Test:   "Speedometer2",
 								},
 							},
 						},
@@ -264,9 +264,9 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 						Rules: &pb.Rules{
 							Match: []*pb.Pattern{
 								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
+									Master: "ChromiumPerf",
+									Bot:    "mac-perf",
+									Test:   "Speedometer2",
 								},
 							},
 						},

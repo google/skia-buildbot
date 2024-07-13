@@ -10,16 +10,16 @@ option go_package = "go.skia.org/infra/perf/go/sheriffconfig/proto/v1";
 // To specify that a value is a Regex, a "~" must be added at the beginning
 // of the string.
 message Pattern {
-    string main = 1;        // e.g. "ChromiumPerf", "Chromium*"
+    string master = 1;        // e.g. "ChromiumPerf", "Chromium*"
     string bot = 2;         // e.g. "linux-perf", "~lacros-.*"
     string benchmark = 3;   // e.g. "Speedometer2"
     string test = 4;        // e.g. "speedometer2"
-    string subtest1 = 5;
-    string subtest2 = 6;
-    string subtest3 = 7;
+    string subtest_1 = 5;
+    string subtest_2 = 6;
+    string subtest_3 = 7;
 }
 
-// We can use patterns to specify which metrics we want to include or exclude.
+// Rules specify how to capture tests in ChromePerf format.
 //
 // For matching, if a Pattern field is not specified, the default is wildcard "*",
 // meaning match to any value.
@@ -86,14 +86,42 @@ message AnomalyConfig {
   }
 
   // Anomaly detection algorithm.
+  // Default: Original step.
   Step step = 1;
 
   // How many commits to each side of a commit to consider when looking for a step.
-  int32 radius = 2;
+  // TODO(eduardoyap): Determine default and document here.
+  optional int32 radius = 2;
 
   // The threshold value beyond which values become interesting
   // (indicates a real regression). Range of this value depends on algorithm used.
   float threshold = 3;
+
+  // How many traces need to be found interesting before an alert is fired.
+  // Default: 1.
+  optional int32 minimum_num = 4;
+
+  // If true, only include commits that have data.
+  // Default: False
+  optional bool sparse = 5;
+
+  // If algo is set to K-means, this determines the K in K-means clustering.
+  // Default: 0.
+  optional int32 k = 6;
+
+  // Comma separated list of keys that all clustering should be broken up accross.
+  // Keys must not be part of a pattern.
+  // Default: "".
+  optional string group_by = 7;
+
+  // Which direction will trigger an alert.
+  enum Direction {
+    BOTH = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+  // Default: Both
+  Direction direction = 8;
 
   // What actions should be taken for detected anomalies.
   // - NOACTION: Only show anomaly in UI. Don't triage or bisect.
@@ -104,10 +132,21 @@ message AnomalyConfig {
     TRIAGE = 1;
     BISECT = 2;
   }
-  Action action = 4;
+  // Default: No Action.
+  Action action = 9;
+
+  // What Clustering Algorithm to use.
+  // StepFit: Look at each trace individually.
+  // KMeans: Cluster traces using K-Means Clustering.
+  enum Algo {
+    STEPFIT = 0;
+    KMEANS = 1;
+  }
+  // Default: Step Fit Grouping
+  Algo algo = 10;
 
   // Which metrics should be captured by this AnomalyConfig.
-  Rules rules = 5;
+  Rules rules = 11;
 }
 
 // A Subscription describes a configuration through which we determine:

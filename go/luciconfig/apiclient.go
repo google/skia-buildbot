@@ -11,10 +11,15 @@ const (
 	API_BASE_PATH = "https://luci-config.appspot.com/_ah/api/config/v1/"
 )
 
+type ProjectConfig struct {
+	Content  string
+	Revision string
+}
+
 // Interface for LUCI Config wrapper.
 type ApiClient interface {
 	// Given a LUCI Config path, retrieve all matching configs to that path.
-	GetProjectConfigs(path string) ([]*configApi.LuciConfigGetConfigMultiResponseMessageConfigEntry, error)
+	GetProjectConfigs(path string) ([]*ProjectConfig, error)
 }
 
 type apiClient struct {
@@ -33,11 +38,18 @@ func NewApiClient(ctx context.Context) (*apiClient, error) {
 
 // Wrapper for LUCI Config's GetProjectConfigs endpoint. Retrieves all
 // configs that live in a matching given path..
-func (c *apiClient) GetProjectConfigs(path string) ([]*configApi.LuciConfigGetConfigMultiResponseMessageConfigEntry, error) {
-	ret, err := c.s.GetProjectConfigs(path).Do()
+func (c *apiClient) GetProjectConfigs(path string) ([]*ProjectConfig, error) {
+	luciConfigs, err := c.s.GetProjectConfigs(path).Do()
 	if err != nil {
 		return nil, skerr.Fmt("Call to GetProjectConfigs failed: %s", err)
 	}
 
-	return ret.Configs, nil
+	projectConfigs := make([]*ProjectConfig, len(luciConfigs.Configs))
+	for i, luciConfig := range luciConfigs.Configs {
+		projectConfigs[i] = &ProjectConfig{
+			Content:  luciConfig.Content,
+			Revision: luciConfig.Revision,
+		}
+	}
+	return projectConfigs, nil
 }

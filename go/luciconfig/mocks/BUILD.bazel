@@ -6,7 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/go/luciconfig/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/luciconfig",
         "@com_github_stretchr_testify//mock",
-        "@org_chromium_go_luci//common/api/luci_config/config/v1:config",
     ],
 )
