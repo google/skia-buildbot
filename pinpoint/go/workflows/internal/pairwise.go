@@ -24,7 +24,7 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			Benchmark:         p.Request.Benchmark,
 			Chart:             p.Request.Chart,
 			Story:             p.Request.Story,
-			AggregationMethod: p.Request.Statistic,
+			AggregationMethod: p.Request.AggregationMethod,
 			Iterations:        p.GetInitialAttempt(),
 		},
 		LeftCommit:  (*midpoint.CombinedCommit)(p.Request.StartCommit),

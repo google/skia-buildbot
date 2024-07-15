@@ -32,6 +32,8 @@ message ScheduleBisectRequest {
 	// collects performance histogram data to analyze.
 	string story = 6;
 	string chart = 7;
+	// TODO(b/322202740) This field is used by catapult and should eventually be deprecated.
+	// Use aggregation_method instead.
 	string statistic = 8;
 
 	// Comparison Magnitude is the expected absolute difference of a potential regression.
@@ -50,7 +52,8 @@ message ScheduleBisectRequest {
 	string user = 13;
 
 	// The mechanism in which benchmark measurements are aggregated by.
-	// One of sum, mean, min, max count, and std.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
 	string aggregation_method = 14;
 
 	// StoryTags is a comma delimited string of tags to pass for the story.
@@ -149,7 +152,11 @@ message SchedulePairwiseRequest {
 	// collects performance histogram data to analyze.
 	string story = 5;
 	string chart = 6 [json_name = "measurement"];
-	string statistic = 7; // not included in the catapult request, which might be a mistake
+	// The mechanism in which benchmark measurements are aggregated by.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
+	string aggregation_method = 7;
+
 	string target = 8; // probably unnecessary, we can infer this
 
 	// The Monorail project ID.
@@ -207,18 +214,24 @@ message ScheduleCulpritFinderRequest {
 	string chart = 6 [json_name = "measurement"];
 
 	// The statistic, if there is one, aggregates measurement values into a single data point.
+	// TODO(b/322202740) This field is used by catapult and should eventually be deprecated.
+	// Use aggregation_method instead.
 	string statistic = 7;
+	// The mechanism in which benchmark measurements are aggregated by.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
+	string aggregation_method = 8;
 
 	// The improvement direction of the measurement.
 	// Is either Up, Down, or Unknown.
-	string improvement_direction = 8 [json_name = "improvement_dir"];
+	string improvement_direction = 9 [json_name = "improvement_dir"];
 
 	// The comparison magnitude is the expected absolute difference of a potential regression.
 	// This parameter is used in bisection.
-	string comparison_magnitude = 9;
+	string comparison_magnitude = 10;
 
 	// The buganizer issue id number to post updates to. This is a legacy feature.
-	string bug_id = 10;
+	string bug_id = 11;
 }
 
 message CulpritFinderExecution {

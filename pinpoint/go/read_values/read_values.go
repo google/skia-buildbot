@@ -24,6 +24,9 @@ var aggregationMapping = map[string]func(perfresults.Histogram) float64{
 	},
 }
 
+// IsSupportedAggregation checks if the aggregation method
+// is supported by read_values. If not, return false.
+// Empty string is supported and means that no data will be aggregated.
 func IsSupportedAggregation(aggregationMethod string) bool {
 	if aggregationMethod == "" {
 		return true
@@ -72,8 +75,8 @@ func DialRBECAS(ctx context.Context, instance string) (*perfCASClient, error) {
 	return nil, fmt.Errorf("swarming instance %s is not within the set of allowed instances", instance)
 }
 
-// ReadValuesByChart reads Pinpoint results for specific benchmark and chart from a list of CAS digests.
-// ReadValuesByChart will also apply any data aggregations.
+// ReadValuesByChart reads Pinpoint results for the benchmark and chart from a list of CAS digests.
+// ReadValuesByChart will also apply data aggregations if there are any.
 //
 // Example Usage:
 //
