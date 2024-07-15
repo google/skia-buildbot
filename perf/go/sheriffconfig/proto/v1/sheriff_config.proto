@@ -4,37 +4,27 @@ package sheriff_config.v1;
 
 option go_package = "go.skia.org/infra/perf/go/sheriffconfig/proto/v1";
 
-// A Pattern message defines regular expression patterns for capturing
-// a group of metrics. A metric is uniquely identified by the
-// combination of all the keys specified within a Pattern.
-// To specify that a value is a Regex, a "~" must be added at the beginning
-// of the string.
-message Pattern {
-    string master = 1;        // e.g. "ChromiumPerf", "Chromium*"
-    string bot = 2;         // e.g. "linux-perf", "~lacros-.*"
-    string benchmark = 3;   // e.g. "Speedometer2"
-    string test = 4;        // e.g. "speedometer2"
-    string subtest_1 = 5;
-    string subtest_2 = 6;
-    string subtest_3 = 7;
-}
-
-// Rules specify how to capture tests in ChromePerf format.
+// Rules specify how to capture traces for Anomaly Detection.
 //
-// For matching, if a Pattern field is not specified, the default is wildcard "*",
+// A match or exclude string must be of the string format:
+// "{key1}={value1}&{key2=value2}&..."
+// where key is the name of the parameter and value is the value to filter for.
+// If a key doesn't match an actual key in the Skia DB, the alert config will simply get
+// ignored.
+//
+// For matching, if a parameter is not specified, the default value is wildcard "*",
 // meaning match to any value.
-// For excluding, only filter on specified Pattern fields. Exclude patterns are
-// only allowed to have one field specified.
+// For excluding, each statement must only include a single key.
 //
 // Consider the example below:
 // {
 //   match: [
-//     {main:"ChromiumPerf",bot:"~lacros-.*-perf",benchmark:"Speedometer2"},
-//     {main:"ChromiumPerf",benchmark:"Jetstream2"},
+//     "master=ChromiumPerf"&bot=~lacros-.*-perf&benchmark=Speedometer2",
+//     "master=ChromiumPerf&benchmark=Jetstream2",
 //   ],
 //   exclude: [
-//     {bot:"lacros-eve-perf"},
-//     {bot:"lacros-x86-perf"},
+//     "bot=lacros-eve-perf",
+//     "bot=lacros-x86-perf",
 //   ]
 // }
 //
@@ -45,11 +35,11 @@ message Pattern {
 // (main='ChromiumPerf' AND bot REGEXP 'lacros-.*-perf' AND benchmark='Speedometer2'
 // AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
 // OR
-// (main='ChromiumPerf' AND benchmark='Jetstream')
+// (main='ChromiumPerf' AND benchmark='Jetstream'
 // AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
 message Rules {
-  repeated Pattern match = 1;
-  repeated Pattern exclude = 2;
+  repeated string match = 1;
+  repeated string exclude = 2;
 }
 
 // An AnomalyConfig defines the bounds for which a change in a matching metric

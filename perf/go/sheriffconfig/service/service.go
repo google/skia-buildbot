@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"sort"
 	"strings"
 
 	"go.skia.org/infra/go/luciconfig"
@@ -141,7 +143,10 @@ func (s *sheriffconfigService) processConfig(config *luciconfig.ProjectConfig) (
 
 	// Prepare subscription and alert data
 	subscriptions := makeSubscriptions(sheriffconfig, config.Revision)
-	saveRequests := makeSaveRequests(sheriffconfig.Subscriptions, config.Revision)
+	saveRequests, err := makeSaveRequests(sheriffconfig.Subscriptions, config.Revision)
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
 
 	return subscriptions, saveRequests, nil
 }
@@ -168,14 +173,17 @@ func makeSubscriptions(sheriffConfig *pb.SheriffConfig, revision string) []*subs
 }
 
 // Create SaveRequest objects to be inserted into Alerts DB table.
-func makeSaveRequests(subscriptions []*pb.Subscription, revision string) []*alerts.SaveRequest {
+func makeSaveRequests(subscriptions []*pb.Subscription, revision string) ([]*alerts.SaveRequest, error) {
 
 	saveRequests := []*alerts.SaveRequest{}
 	for _, subscription := range subscriptions {
 		for _, anomalyConfig := range subscription.AnomalyConfigs {
 			for _, match := range anomalyConfig.Rules.Match {
 
-				query := buildQueryFromRules(match, anomalyConfig.Rules.Exclude)
+				query, err := buildQueryFromRules(match, anomalyConfig.Rules.Exclude)
+				if err != nil {
+					return nil, skerr.Wrap(err)
+				}
 				cfg := createAlert(query, anomalyConfig, subscription, revision)
 
 				saveRequest := &alerts.SaveRequest{
@@ -189,7 +197,7 @@ func makeSaveRequests(subscriptions []*pb.Subscription, revision string) []*aler
 			}
 		}
 	}
-	return saveRequests
+	return saveRequests, nil
 }
 
 // Create Alert object.
@@ -245,32 +253,31 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 }
 
 // Create query based on Sheriff Config rules.
-func buildQueryFromRules(match *pb.Pattern, excludes []*pb.Pattern) string {
+func buildQueryFromRules(match string, excludes []string) (string, error) {
 	var queryParts []string
-
-	addValue := func(key string, value string, exclude bool) {
-		if value != "" {
-			if exclude {
-				value = fmt.Sprintf("!%s", value)
-			}
+	matchQuery, err := url.ParseQuery(match)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+	for key, values := range matchQuery {
+		for _, value := range values {
 			queryParts = append(queryParts, fmt.Sprintf("%s=%s", key, value))
 		}
+
 	}
 
-	// TODO(eduardoyap): Change schema to not have hardcoded values.
-	// Instead use a flexible format that allows user to specify selection as a query.
-	allPatterns := append([]*pb.Pattern{match}, excludes...)
-	for _, pattern := range allPatterns {
-		addValue("master", pattern.Master, pattern != match)
-		addValue("bot", pattern.Bot, pattern != match)
-		addValue("benchmark", pattern.Benchmark, pattern != match)
-		addValue("test", pattern.Test, pattern != match)
-		addValue("subtest_1", pattern.Subtest_1, pattern != match)
-		addValue("subtest_2", pattern.Subtest_2, pattern != match)
-		addValue("subtest_3", pattern.Subtest_3, pattern != match)
+	for _, exclude := range excludes {
+		excludeQuery, err := url.ParseQuery(exclude)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		for key, values := range excludeQuery {
+			// Use values[0] as there should only be 1 valid key value pair in an exclude pattern.
+			queryParts = append(queryParts, fmt.Sprintf("%s=!%s", key, values[0]))
+		}
 	}
-
-	return strings.Join(queryParts, "&")
+	sort.Strings(queryParts)
+	return strings.Join(queryParts, "&"), nil
 }
 
 func getPriorityFromProto(pri pb.Subscription_Priority) int32 {

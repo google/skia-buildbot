@@ -68,19 +68,19 @@ func TestImportSheriffConfig_OneSubOneAlert(t *testing.T) {
 	service, subscriptionStore, alertStore, apiClient := setUp(ctx, t)
 
 	// Encoded content translates to:
-	//	subscriptions {
-	//		name: "a"
-	//		contact_email: "test@google.com"
-	//		bug_component: "A>B>C"
-	//		anomaly_configs {
-	//			rules: {
-	//				match: {master: "ChromiumPerf"}
-	//			}
-	//		}
-	//	}
+	// subscriptions {
+	// 		name: "a"
+	// 		contact_email: "test@google.com"
+	// 		bug_component: "A>B>C"
+	// 		anomaly_configs {
+	// 			rules: {
+	// 				match: "master=ChromiumPerf"
+	// 			}
+	// 		}
+	// }
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  "c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKCWNvbnRhY3RfZW1haWw6ICJ0ZXN0QGdvb2dsZS5jb20iCglidWdfY29tcG9uZW50OiAiQT5CPkMiCglhbm9tYWx5X2NvbmZpZ3MgewoJCXJ1bGVzOiB7CgkJCW1hdGNoOiB7bWFzdGVyOiAiQ2hyb21pdW1QZXJmIn0KCQl9Cgl9Cn0=",
+			Content:  "c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKCWNvbnRhY3RfZW1haWw6ICJ0ZXN0QGdvb2dsZS5jb20iCglidWdfY29tcG9uZW50OiAiQT5CPkMiCglhbm9tYWx5X2NvbmZpZ3MgewoJCXJ1bGVzOiB7CgkJCW1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIKCQl9Cgl9Cn0=",
 			Revision: "abcd",
 		},
 	}
@@ -158,19 +158,19 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 	//			action: BISECT
 	//			rules {
 	//				match: [
-	//					{master: "ChromiumPerf", benchmark: "blink_perf.webcodecs"},
-	//					{master: "ChromiumPerf", test: "browser_accessibility_events_sum"}
+	//					"master=ChromiumPerf&benchmark=blink_perf.webcodecs",
+	//					"master=ChromiumPerf&test=browser_accessibility_events_sum"
 	//				]
 	//				exclude: [
-	//					{bot: "lacros-eve-perf"},
-	//					{bot: "~android-*"}
+	// 					"bot=lacros-eve-perf",
+	//					"bot=~android-*"
 	//				]
 	//			}
 	//		}
 	//	}
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyB7bWFzdGVyOiAiQ2hyb21pdW1QZXJmIiwgYmVuY2htYXJrOiAiYmxpbmtfcGVyZi53ZWJjb2RlY3MifSwge21hc3RlcjogIkNocm9taXVtUGVyZiIsIHRlc3Q6ICJicm93c2VyX2FjY2Vzc2liaWxpdHlfZXZlbnRzX3N1bSJ9IF0gZXhjbHVkZTogWyB7Ym90OiAibGFjcm9zLWV2ZS1wZXJmIn0sIHtib3Q6ICJ+YW5kcm9pZC0qIn0gXSB9IH0gfQ==",
+			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=",
 			Revision: "abcd",
 		},
 	}
@@ -190,8 +190,8 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 		{
 			Cfg: &alerts.Alert{
 				IDAsString:           "-1",
-				DisplayName:          "master=ChromiumPerf&benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*",
-				Query:                "master=ChromiumPerf&benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*",
+				DisplayName:          "benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf",
+				Query:                "benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf",
 				Alert:                "test@google.com",
 				Algo:                 "stepfit",
 				Step:                 "cohen",
@@ -213,8 +213,8 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 		{
 			Cfg: &alerts.Alert{
 				IDAsString:           "-1",
-				DisplayName:          "master=ChromiumPerf&test=browser_accessibility_events_sum&bot=!lacros-eve-perf&bot=!~android-*",
-				Query:                "master=ChromiumPerf&test=browser_accessibility_events_sum&bot=!lacros-eve-perf&bot=!~android-*",
+				DisplayName:          "bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf&test=browser_accessibility_events_sum",
+				Query:                "bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf&test=browser_accessibility_events_sum",
 				Alert:                "test@google.com",
 				Algo:                 "stepfit",
 				Step:                 "cohen",
@@ -267,7 +267,7 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 	//		bug_component: "A>B>C"
 	//		anomaly_configs {
 	//			rules: {
-	//				match: {main: "ChromiumPerf"}
+	//				match: "master=ChromiumPerf"
 	//			}
 	//		}
 	//	}
@@ -283,12 +283,12 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 	//			action: BISECT
 	//			rules {
 	//				match: [
-	//					{main: "ChromiumPerf", benchmark: "blink_perf.webcodecs"},
-	//					{main: "ChromiumPerf", test: "browser_accessibility_events_sum"}
+	//					"master=ChromiumPerf&benchmark=blink_perf.webcodecs",
+	//					"master=ChromiumPerf&test=browser_accessibility_events_sum"
 	//				]
 	//				exclude: [
-	//					{bot: "lacros-eve-perf"},
-	//					{bot: "~android-*"}
+	// 					"bot=lacros-eve-perf",
+	//					"bot=~android-*"
 	//				]
 	//			}
 	//		}
@@ -296,7 +296,7 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGFub21hbHlfY29uZmlncyB7IHJ1bGVzOiB7IG1hdGNoOiB7bWFzdGVyOiAiQ2hyb21pdW1QZXJmIn0gfSB9IH0gc3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJiIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyB7bWFzdGVyOiAiQ2hyb21pdW1QZXJmIiwgYmVuY2htYXJrOiAiYmxpbmtfcGVyZi53ZWJjb2RlY3MifSwge21hc3RlcjogIkNocm9taXVtUGVyZiIsIHRlc3Q6ICJicm93c2VyX2FjY2Vzc2liaWxpdHlfZXZlbnRzX3N1bSJ9IF0gZXhjbHVkZTogWyB7Ym90OiAibGFjcm9zLWV2ZS1wZXJmIn0sIHtib3Q6ICJ+YW5kcm9pZC0qIn0gXSB9IH0gfQ==",
+			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGFub21hbHlfY29uZmlncyB7IHJ1bGVzOiB7IG1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIgfSB9IH0gc3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJiIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=",
 			Revision: "abcd",
 		},
 	}
@@ -345,8 +345,8 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 		{
 			Cfg: &alerts.Alert{
 				IDAsString:           "-1",
-				DisplayName:          "master=ChromiumPerf&benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*",
-				Query:                "master=ChromiumPerf&benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*",
+				DisplayName:          "benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf",
+				Query:                "benchmark=blink_perf.webcodecs&bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf",
 				Alert:                "test@google.com",
 				Algo:                 "stepfit",
 				Step:                 "cohen",
@@ -368,8 +368,8 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 		{
 			Cfg: &alerts.Alert{
 				IDAsString:           "-1",
-				DisplayName:          "master=ChromiumPerf&test=browser_accessibility_events_sum&bot=!lacros-eve-perf&bot=!~android-*",
-				Query:                "master=ChromiumPerf&test=browser_accessibility_events_sum&bot=!lacros-eve-perf&bot=!~android-*",
+				DisplayName:          "bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf&test=browser_accessibility_events_sum",
+				Query:                "bot=!lacros-eve-perf&bot=!~android-*&master=ChromiumPerf&test=browser_accessibility_events_sum",
 				Alert:                "test@google.com",
 				Algo:                 "stepfit",
 				Step:                 "cohen",
