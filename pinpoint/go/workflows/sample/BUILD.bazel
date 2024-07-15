@@ -8,7 +8,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//pinpoint/go/midpoint",
+        "//pinpoint/go/common",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/catapult",
         "//pinpoint/go/workflows/internal",

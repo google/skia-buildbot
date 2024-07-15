@@ -53,7 +53,7 @@ go_test(
         "//go/mockhttpclient",
         "//go/skerr",
         "//go/swarming/v2/mocks",
-        "//pinpoint/go/midpoint",
+        "//pinpoint/go/common",
         "//pinpoint/proto/v1:proto",
         "@com_github_golang_mock//gomock",
         "@com_github_stretchr_testify//assert",

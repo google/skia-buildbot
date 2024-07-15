@@ -6,6 +6,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 
 	"golang.org/x/oauth2/google"
@@ -16,7 +17,7 @@ type MidpointHandlerKey struct{}
 var MidpointHandlerContextKey = &MidpointHandlerKey{}
 
 // FindMidCommitActivity is an Activity that finds the middle point of two commits.
-func FindMidCommitActivity(ctx context.Context, lower, higher *midpoint.CombinedCommit) (*midpoint.CombinedCommit, error) {
+func FindMidCommitActivity(ctx context.Context, lower, higher *common.CombinedCommit) (*common.CombinedCommit, error) {
 	handler, ok := ctx.Value(MidpointHandlerContextKey).(*midpoint.MidpointHandler)
 	if !ok {
 		httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)
@@ -35,7 +36,7 @@ func FindMidCommitActivity(ctx context.Context, lower, higher *midpoint.Combined
 }
 
 // CheckCombinedCommitEqualActivity checks whether two combined commits are equal.
-func CheckCombinedCommitEqualActivity(ctx context.Context, lower, higher *midpoint.CombinedCommit) (bool, error) {
+func CheckCombinedCommitEqualActivity(ctx context.Context, lower, higher *common.CombinedCommit) (bool, error) {
 	handler, ok := ctx.Value(MidpointHandlerContextKey).(*midpoint.MidpointHandler)
 	if !ok {
 		httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly)

@@ -7,8 +7,8 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/go/workflows",
     visibility = ["//visibility:public"],
     deps = [
+        "//pinpoint/go/common",
         "//pinpoint/go/compare",
-        "//pinpoint/go/midpoint",
         "//pinpoint/go/run_benchmark",
         "//pinpoint/proto/v1:proto",
         "@org_chromium_go_luci//buildbucket/proto",

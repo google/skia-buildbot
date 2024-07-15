@@ -7,7 +7,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 
 	"go.temporal.io/sdk/workflow"
@@ -19,7 +19,7 @@ type PairwiseCommitsRunnerParams struct {
 
 	// LeftCommit and RightCommit specify the two commits the pairwise runner will compare.
 	// SingleCommitRunnerParams includes a field for only one commit.
-	LeftCommit, RightCommit *midpoint.CombinedCommit
+	LeftCommit, RightCommit *common.CombinedCommit
 
 	// The random seed used to generate pairs.
 	Seed int64

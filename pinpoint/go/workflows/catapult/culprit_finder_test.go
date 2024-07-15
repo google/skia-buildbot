@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
@@ -89,23 +89,23 @@ func TestCulpritFinder_CulpritsVerified_ReturnsCulprits(t *testing.T) {
 	env.RegisterWorkflowWithOptions(CatapultBisectWorkflow, workflow.RegisterOptions{Name: workflows.CatapultBisect})
 
 	fakeCulprits := []*pinpoint_proto.CombinedCommit{
-		{Main: midpoint.NewChromiumCommit("commit2")},
-		{Main: midpoint.NewChromiumCommit("commit4")},
-		{Main: midpoint.NewChromiumCommit("commit6")},
+		{Main: common.NewChromiumCommit("commit2")},
+		{Main: common.NewChromiumCommit("commit4")},
+		{Main: common.NewChromiumCommit("commit6")},
 	}
 
 	fakeCulpritPairs := []*pinpoint_proto.Culprit{
 		{
-			Prior:   &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit1")},
-			Culprit: &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit2")},
+			Prior:   &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit1")},
+			Culprit: &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit2")},
 		},
 		{
-			Prior:   &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit3")},
-			Culprit: &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit4")},
+			Prior:   &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit3")},
+			Culprit: &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit4")},
 		},
 		{
-			Prior:   &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit5")},
-			Culprit: &pinpoint_proto.CombinedCommit{Main: midpoint.NewChromiumCommit("commit6")},
+			Prior:   &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit5")},
+			Culprit: &pinpoint_proto.CombinedCommit{Main: common.NewChromiumCommit("commit6")},
 		},
 	}
 

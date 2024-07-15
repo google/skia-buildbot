@@ -12,7 +12,7 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
@@ -125,8 +125,8 @@ func triggerPairwiseRunner(c client.Client) (*internal.PairwiseRun, error) {
 			Iterations:        6,
 		},
 		Seed:        54321,
-		LeftCommit:  midpoint.NewCombinedCommit(&pb.Commit{GitHash: "6c7b055afe2bd688ee3e7d9f035191cdd1bbd0be"}),
-		RightCommit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: "1ff117b69e38d05f97872061e256a3e1225f7368"}),
+		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: "6c7b055afe2bd688ee3e7d9f035191cdd1bbd0be"}),
+		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: "1ff117b69e38d05f97872061e256a3e1225f7368"}),
 	}
 
 	var pr *internal.PairwiseRun
@@ -147,10 +147,10 @@ func triggerPairwiseWorkflow(c client.Client) (*pb.PairwiseExecution, error) {
 	p := &workflows.PairwiseParams{
 		Request: &pb.SchedulePairwiseRequest{
 			StartCommit: &pb.CombinedCommit{
-				Main: midpoint.NewChromiumCommit("b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0"),
+				Main: common.NewChromiumCommit("b4378eb24acedae3c2ad6d7c06dea6a2ddee89b0"),
 			},
 			EndCommit: &pb.CombinedCommit{
-				Main: midpoint.NewChromiumCommit("61adb993e8a46e38caac98dcb80c306391692079"),
+				Main: common.NewChromiumCommit("61adb993e8a46e38caac98dcb80c306391692079"),
 			},
 			Configuration:        "mac-m2-pro-perf",
 			Benchmark:            "v8.browsing_desktop",
@@ -184,7 +184,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 		Story:             "browse:social:twitter_infinite_scroll:2018",
 		Chart:             "v8:gc:cycle:main_thread:young:atomic",
 		AggregationMethod: "mean",
-		CombinedCommit:    midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
+		CombinedCommit:    common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
 		Iterations:        3,
 	}
 	var cr *internal.CommitRun
@@ -203,7 +203,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 func triggerBuildChrome(c client.Client) *apipb.CASReference {
 	bcp := workflows.BuildChromeParams{
 		WorkflowID: "123",
-		Commit:     midpoint.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
+		Commit:     common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
 		Device:     "mac-m1_mini_2020-perf",
 		Target:     "performance_test_suite",
 	}

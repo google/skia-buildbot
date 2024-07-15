@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/workflow"
@@ -23,10 +23,10 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 	pp := workflows.PairwiseParams{
 		Request: &pinpoint_proto.SchedulePairwiseRequest{
 			StartCommit: &pinpoint_proto.CombinedCommit{
-				Main: midpoint.NewChromiumCommit(cfp.Request.StartGitHash),
+				Main: common.NewChromiumCommit(cfp.Request.StartGitHash),
 			},
 			EndCommit: &pinpoint_proto.CombinedCommit{
-				Main: midpoint.NewChromiumCommit(cfp.Request.EndGitHash),
+				Main: common.NewChromiumCommit(cfp.Request.EndGitHash),
 			},
 			Configuration:        cfp.Request.Configuration,
 			Benchmark:            cfp.Request.Benchmark,

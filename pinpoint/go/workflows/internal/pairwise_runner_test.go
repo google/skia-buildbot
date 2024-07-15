@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/pinpoint/go/backends"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -311,8 +311,8 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 			Iterations:        30,
 		},
 		Seed:        seed,
-		LeftCommit:  midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
-		RightCommit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+		LeftCommit:  common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+		RightCommit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
 	}
 	target, err := bot_configs.GetIsolateTarget(p.BotConfig, p.Benchmark)
 	require.NoError(t, err)
@@ -339,14 +339,14 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	}
 	leftBuild := &workflows.Build{
 		BuildChromeParams: workflows.BuildChromeParams{
-			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
+			Commit: common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb", SizeBytes: 810}},
 	}
 	rightBuild := &workflows.Build{
 		BuildChromeParams: workflows.BuildChromeParams{
-			Commit: midpoint.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
+			Commit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "51845150f953c33ee4c0900589ba916ca28b7896806460aa8935c0de2b209db6", SizeBytes: 810}},

@@ -5,8 +5,8 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -22,7 +22,7 @@ type CommitPairValues struct {
 }
 
 type CommitValues struct {
-	Commit      *midpoint.CombinedCommit
+	Commit      *common.CombinedCommit
 	Values      []float64
 	ErrorValues []float64
 }

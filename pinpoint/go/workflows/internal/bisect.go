@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
+	pinpoint_common "go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/temporal/go/common"
 	"go.temporal.io/sdk/workflow"
@@ -35,7 +35,7 @@ type bisectRunTracker struct {
 	runs []*BisectRun
 }
 
-func (t *bisectRunTracker) newRun(cc *midpoint.CombinedCommit) (BisectRunIndex, *BisectRun) {
+func (t *bisectRunTracker) newRun(cc *pinpoint_common.CombinedCommit) (BisectRunIndex, *BisectRun) {
 	r := newBisectRun(cc)
 	t.runs = append(t.runs, r)
 	return BisectRunIndex(len(t.runs) - 1), r
@@ -73,7 +73,7 @@ func (t CommitRangeTracker) CloneWithLower(lower BisectRunIndex) CommitRangeTrac
 	}
 }
 
-func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *midpoint.CombinedCommit, finishedIteration int32) *SingleCommitRunnerParams {
+func newRunnerParams(jobID string, p workflows.BisectParams, it int32, cc *pinpoint_common.CombinedCommit, finishedIteration int32) *SingleCommitRunnerParams {
 	return &SingleCommitRunnerParams{
 		CombinedCommit:    cc,
 		PinpointJobID:     jobID,
@@ -282,7 +282,7 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 				})
 
 			case compare.Different:
-				var mid *midpoint.CombinedCommit
+				var mid *pinpoint_common.CombinedCommit
 				if err := workflow.ExecuteActivity(ctx, FindMidCommitActivity, lower.Build.Commit, higher.Build.Commit).Get(ctx, &mid); err != nil {
 					logger.Warn(fmt.Sprintf("Failed to find middle commit: %v", err))
 					break
@@ -333,8 +333,8 @@ func BisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (be *Bisect
 	})
 
 	// Schedule the first pair and wait for all to finish before continuing.
-	lowerIdx, lower := tracker.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.StartGitHash)))
-	higherIdx, higher := tracker.newRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(p.Request.EndGitHash)))
+	lowerIdx, lower := tracker.newRun(pinpoint_common.NewCombinedCommit(pinpoint_common.NewChromiumCommit(p.Request.StartGitHash)))
+	higherIdx, higher := tracker.newRun(pinpoint_common.NewCombinedCommit(pinpoint_common.NewChromiumCommit(p.Request.EndGitHash)))
 	lf, hf, err := schedulePairRuns(lower, higher)
 	if err != nil {
 		// If we are able to schedule in the beginning, there is less chance we will fail in the middle.

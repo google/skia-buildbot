@@ -3,8 +3,8 @@ package internal
 import (
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/workflow"
 
@@ -27,8 +27,8 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 			AggregationMethod: p.Request.AggregationMethod,
 			Iterations:        p.GetInitialAttempt(),
 		},
-		LeftCommit:  (*midpoint.CombinedCommit)(p.Request.StartCommit),
-		RightCommit: (*midpoint.CombinedCommit)(p.Request.EndCommit),
+		LeftCommit:  (*common.CombinedCommit)(p.Request.StartCommit),
+		RightCommit: (*common.CombinedCommit)(p.Request.EndCommit),
 	}
 
 	var pr *PairwiseRun

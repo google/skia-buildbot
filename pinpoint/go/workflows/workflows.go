@@ -7,8 +7,8 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -44,7 +44,7 @@ type BuildChromeParams struct {
 	// This is usually the pinpoint job ID.
 	WorkflowID string
 	// Commit is the chromium commit hash.
-	Commit *midpoint.CombinedCommit
+	Commit *common.CombinedCommit
 	// Device is the name of the device, e.g. "linux-perf".
 	Device string
 	// Target is name of the build isolate target

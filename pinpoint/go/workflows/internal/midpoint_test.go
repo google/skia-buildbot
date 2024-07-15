@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/midpoint"
 
 	_ "embed"
@@ -62,7 +63,7 @@ func createResponse(commit ...*vcsinfo.ShortCommit) []*vcsinfo.LongCommit {
 	return resp
 }
 
-func runFindMidCommitActivity(t *testing.T, ctx context.Context, lower, higher *midpoint.CombinedCommit) *midpoint.CombinedCommit {
+func runFindMidCommitActivity(t *testing.T, ctx context.Context, lower, higher *common.CombinedCommit) *common.CombinedCommit {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment().SetWorkerOptions(worker.Options{BackgroundActivityContext: ctx})
 	env.RegisterActivity(FindMidCommitActivity)
@@ -70,13 +71,13 @@ func runFindMidCommitActivity(t *testing.T, ctx context.Context, lower, higher *
 	res, err := env.ExecuteActivity(FindMidCommitActivity, lower, higher)
 	require.NoError(t, err)
 
-	var actual *midpoint.CombinedCommit
+	var actual *common.CombinedCommit
 	err = res.Get(&actual)
 	require.NoError(t, err)
 	return actual
 }
 
-func runCombinedCommitEqualActivity(t *testing.T, ctx context.Context, first, second *midpoint.CombinedCommit) bool {
+func runCombinedCommitEqualActivity(t *testing.T, ctx context.Context, first, second *common.CombinedCommit) bool {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment().SetWorkerOptions(worker.Options{BackgroundActivityContext: ctx})
 	env.RegisterActivity(CheckCombinedCommitEqualActivity)
@@ -96,8 +97,8 @@ func TestFindMidCommitActivity_NoModifiedDeps_MidpointInMain(t *testing.T) {
 	ctx := context.Background()
 
 	// n+2 vs latest, so midpoint should be n+1
-	lower := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusTwoChromiumGitHash))
-	higher := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
+	lower := common.NewCombinedCommit(common.NewChromiumCommit(NMinusTwoChromiumGitHash))
+	higher := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
 
 	chromiumRepo := &mocks.GitilesRepo{}
 
@@ -121,8 +122,8 @@ func TestFindMidCommitActivity_AdjacentMain_MidpointInDep(t *testing.T) {
 	ctx := context.Background()
 
 	// adjacent, so logic assumes a deps roll and parses deps for midpoint
-	lower := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusOneChromiumGitHash))
-	higher := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
+	lower := common.NewCombinedCommit(common.NewChromiumCommit(NMinusOneChromiumGitHash))
+	higher := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
 
 	chromiumRepo := &mocks.GitilesRepo{}
 
@@ -163,8 +164,8 @@ func TestFindMidCommitActivity_AdjacentMain_NoMoreMidpoint(t *testing.T) {
 	ctx := context.Background()
 
 	// adjacent, so logic assumes a deps roll and parses deps for midpoint
-	lower := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusOneChromiumGitHash))
-	higher := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
+	lower := common.NewCombinedCommit(common.NewChromiumCommit(NMinusOneChromiumGitHash))
+	higher := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
 
 	chromiumRepo := &mocks.GitilesRepo{}
 
@@ -194,10 +195,10 @@ func TestFindMidCommitActivity_LowerNoModifiedDeps_MidpointInDep(t *testing.T) {
 
 	// same base commit, but different modified deps length, so that lower gets
 	// backfilled.
-	lower := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusOneChromiumGitHash))
-	higher := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, LatestV8GitHash),
+	lower := common.NewCombinedCommit(common.NewChromiumCommit(NMinusOneChromiumGitHash))
+	higher := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, LatestV8GitHash),
 	)
 
 	// Since lower has no modified deps, it's backfilled starting at the Main commit's git hash.
@@ -231,13 +232,13 @@ func TestFindMidCommitActivity_AdjancentModifiedDeps_MidpointInDep(t *testing.T)
 	ctx := context.Background()
 
 	// adjacent modified deps
-	lower := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, NMinusOneV8GitHash),
+	lower := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, NMinusOneV8GitHash),
 	)
-	higher := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, LatestV8GitHash),
+	higher := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, LatestV8GitHash),
 	)
 
 	// Return adjacent. It'll need to traverse DEPS.
@@ -279,13 +280,13 @@ func TestFindMidCommitActivity_AdjancentModifiedDeps_NoMoreMidpoint(t *testing.T
 	ctx := context.Background()
 
 	// adjacent modified deps
-	lower := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, NMinusOneV8GitHash),
+	lower := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, NMinusOneV8GitHash),
 	)
-	higher := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, LatestV8GitHash),
+	higher := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, LatestV8GitHash),
 	)
 
 	// Return adjacent. It'll need to traverse DEPS.
@@ -314,8 +315,8 @@ func TestFindMidCommitActivity_AdjancentModifiedDeps_NoMoreMidpoint(t *testing.T
 func TestCheckCombinedCommitEqual_NoModifiedDeps_Equal(t *testing.T) {
 	ctx := context.Background()
 
-	first := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
-	second := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
+	first := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
+	second := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
 
 	isEqual := runCombinedCommitEqualActivity(t, ctx, first, second)
 	assert.True(t, isEqual)
@@ -324,8 +325,8 @@ func TestCheckCombinedCommitEqual_NoModifiedDeps_Equal(t *testing.T) {
 func TestCheckCombinedCommitEqual_NoModifiedDeps_NotEqual(t *testing.T) {
 	ctx := context.Background()
 
-	first := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusTwoChromiumGitHash))
-	second := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(LatestChromiumGitHash))
+	first := common.NewCombinedCommit(common.NewChromiumCommit(NMinusTwoChromiumGitHash))
+	second := common.NewCombinedCommit(common.NewChromiumCommit(LatestChromiumGitHash))
 
 	isEqual := runCombinedCommitEqualActivity(t, ctx, first, second)
 	assert.False(t, isEqual)
@@ -334,10 +335,10 @@ func TestCheckCombinedCommitEqual_NoModifiedDeps_NotEqual(t *testing.T) {
 func TestCheckCombinedCommitEqual_UnevenModifiedDeps_Equal(t *testing.T) {
 	ctx := context.Background()
 
-	first := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusOneChromiumGitHash))
-	second := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, NMinusTwoV8GitHash),
+	first := common.NewCombinedCommit(common.NewChromiumCommit(NMinusOneChromiumGitHash))
+	second := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, NMinusTwoV8GitHash),
 	)
 
 	chromiumRepo := &mocks.GitilesRepo{}
@@ -356,10 +357,10 @@ func TestCheckCombinedCommitEqual_UnevenModifiedDeps_Equal(t *testing.T) {
 func TestCheckCombinedCommitEqual_UnevenModifiedDeps_NotEqual(t *testing.T) {
 	ctx := context.Background()
 
-	first := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(NMinusOneChromiumGitHash))
-	second := midpoint.NewCombinedCommit(
-		midpoint.NewChromiumCommit(NMinusOneChromiumGitHash),
-		midpoint.NewCommit(V8Url, LatestV8GitHash),
+	first := common.NewCombinedCommit(common.NewChromiumCommit(NMinusOneChromiumGitHash))
+	second := common.NewCombinedCommit(
+		common.NewChromiumCommit(NMinusOneChromiumGitHash),
+		common.NewCommit(V8Url, LatestV8GitHash),
 	)
 
 	chromiumRepo := &mocks.GitilesRepo{}

@@ -9,7 +9,7 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
@@ -26,7 +26,7 @@ type RunBenchmarkParams struct {
 	// the swarming instance and cas digest hash and bytes location for the build
 	BuildCAS *apipb.CASReference
 	// commit hash
-	Commit *midpoint.CombinedCommit
+	Commit *common.CombinedCommit
 	// device configuration
 	BotConfig string
 	// benchmark to test
