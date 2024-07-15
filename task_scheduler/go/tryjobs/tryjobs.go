@@ -381,6 +381,7 @@ func (q *jobQueue) Enqueue(job *types.Job) {
 	}
 	q.queue = append(q.queue, job)
 	q.m.Update(int64(len(q.queue)))
+	sklog.Infof("Enqueued job %s (build %d) for %+v, %d others in queue", job.Id, job.BuildbucketBuildId, job.RepoState, len(q.queue))
 }
 
 func (q *jobQueue) Dequeue() *types.Job {
@@ -405,7 +406,7 @@ type jobQueues struct {
 }
 
 func (q *jobQueues) Enqueue(job *types.Job) {
-	sklog.Infof("Enqueue job %s (build %d)", job.Id, job.BuildbucketBuildId)
+	sklog.Infof("Enqueue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 	q.mtx.Lock()
 	defer q.mtx.Unlock()
 	jobQueue, ok := q.queues[job.RepoState]
@@ -419,7 +420,7 @@ func (q *jobQueues) Enqueue(job *types.Job) {
 		go func() {
 			for {
 				job := jobQueue.Dequeue()
-				sklog.Infof("Dequeue job %s (build %d)", job.Id, job.BuildbucketBuildId)
+				sklog.Infof("Dequeue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 				q.workFn(job)
 
 				// Lock the outer mutex before the inner one, to ensure that
@@ -467,8 +468,10 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 		select {
 		case jobs := <-modJobsCh:
 			for _, job := range jobs {
-				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
-				q.Enqueue(job)
+				if job.Status == types.JOB_STATUS_REQUESTED {
+					sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
+					q.Enqueue(job)
+				}
 			}
 		case <-tickCh:
 			jobs, err := t.jCache.RequestedJobs()
@@ -506,13 +509,13 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		return skerr.Wrapf(err, "failed loading job from DB")
 	}
 	if updatedJob.Status != types.JOB_STATUS_REQUESTED {
-		sklog.Infof("Job %s (build %d) has already started; skipping", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Job %s (build %d) has already started; skipping: %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		return nil
 	}
 
-	sklog.Infof("Starting job %s (build %d); lease key: %d", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey)
+	sklog.Infof("Starting job %s (build %d); lease key: %d, %+v", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey, job.RepoState)
 	startJobHelper := func() error {
-		sklog.Infof("Retrieving repo state information for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Retrieving repo state information for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		repoGraph, err := t.getRepo(job.Repo)
 		if err != nil {
 			return skerr.Wrapf(err, "unable to find repo %s", job.Repo)
@@ -538,11 +541,11 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		}
 
 		// Create a Job.
-		sklog.Infof("GetOrCacheRepoState for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("GetOrCacheRepoState for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		if _, err := t.chr.GetOrCacheRepoState(ctx, job.RepoState); err != nil {
 			return skerr.Wrapf(err, "failed to obtain JobSpec")
 		}
-		sklog.Infof("Reading tasks cfg for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Reading tasks cfg for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		cfg, cachedErr, err := t.taskCfgCache.Get(ctx, job.RepoState)
 		if err != nil {
 			return err
@@ -564,7 +567,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		// Determine if this is a manual retry of a previously-run try job. If
 		// so, set IsForce to ensure that we don't immediately de-duplicate all
 		// of its tasks.
-		sklog.Infof("Determining whether job %s (build %d) is a manual retry", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Determining whether job %s (build %d) is a manual retry: %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		prevJobs, err := t.jCache.GetJobsByRepoState(job.Name, job.RepoState)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -572,7 +575,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		if len(prevJobs) > 0 {
 			job.IsForce = true
 		}
-		sklog.Infof("Ready to start job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Ready to start job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		return nil
 	}
 
