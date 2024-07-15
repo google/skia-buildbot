@@ -100,6 +100,36 @@ func validate(req *pb.ScheduleBisectRequest) error {
 	}
 }
 
+// updateCulpritFinderFieldsForCatapult converts specific catapult Pinpoint arguments
+// to their skia Pinpoint counterparts
+func updateCulpritFinderFieldsForCatapult(req *pb.ScheduleCulpritFinderRequest) *pb.ScheduleCulpritFinderRequest {
+	if req.Statistic != "" {
+		req.AggregationMethod = req.Statistic
+	}
+	return req
+}
+
+func validateCulpritFinder(req *pb.ScheduleCulpritFinderRequest) error {
+	switch {
+	case req.StartGitHash == "" || req.EndGitHash == "":
+		return skerr.Fmt("git hash is empty")
+	case req.Benchmark == "":
+		return skerr.Fmt("benchmark is empty")
+	case req.Story == "":
+		return skerr.Fmt("story is empty")
+	case req.Chart == "":
+		return skerr.Fmt("chart is empty")
+	case req.Configuration == "":
+		return skerr.Fmt("configuration (aka the device name) is empty")
+	case req.Configuration == "android-pixel-fold-perf" || req.Configuration == "mac-m1-pro-perf":
+		return skerr.Fmt("bot (%s) is currently unsupported due to low resources", req.Configuration)
+	case !read_values.IsSupportedAggregation(req.AggregationMethod):
+		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
+	default:
+		return nil
+	}
+}
+
 func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, error) {
 	m := runtime.NewServeMux()
 	if err := pb.RegisterPinpointHandlerServer(ctx, m, srv); err != nil {
@@ -152,13 +182,18 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 
 func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulpritFinderRequest) (*pb.CulpritFinderExecution, error) {
 	// Those logs are used to test traffic from existing services in catapult, shall be removed.
-	sklog.Infof("Receiving bisection request: %v", req)
+	sklog.Infof("Receiving culprit finder request: %v", req)
 	if !s.limiter.Allow() {
 		sklog.Infof("The request is dropped due to rate limiting.")
 		return nil, status.Errorf(codes.ResourceExhausted, "unable to fulfill the request due to rate limiting, dropping")
 	}
 
-	// TODO(b/337043921): Validate input arguments to culprit finder workflow
+	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
+	req = updateCulpritFinderFieldsForCatapult(req)
+
+	if err := validateCulpritFinder(req); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	c, cleanUp, err := s.temporal.NewClient()
 	if err != nil {

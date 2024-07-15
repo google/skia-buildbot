@@ -93,8 +93,12 @@ func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
 	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
-		StartGitHash: "fake-start",
-		EndGitHash:   "fake-end",
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
 	})
 	assert.Equal(t, fakeID, resp.JobId)
 	assert.NoError(t, err)
@@ -112,8 +116,12 @@ func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
 	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
 
 	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
-		StartGitHash: "fake-start",
-		EndGitHash:   "fake-end",
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
 	})
 	assert.Equal(t, fakeID, resp.JobId)
 	assert.NoError(t, err)
@@ -121,6 +129,92 @@ func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
 	resp, err = svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{})
 	assert.Nil(t, resp)
 	assert.ErrorContains(t, err, "unable to fulfill")
+}
+
+func TestScheduleCulpritFinder_BadRequestParams_JobBlocked(t *testing.T) {
+	test := func(name string, req *pb.ScheduleCulpritFinderRequest, errMsg string) {
+		t.Run(name, func(t *testing.T) {
+			tpm, _ := newTemporalMock(t)
+
+			ctx := context.Background()
+			svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+			resp, err := svc.ScheduleCulpritFinder(ctx, req)
+			assert.Nil(t, resp)
+			assert.ErrorContains(t, err, errMsg)
+		})
+	}
+
+	req := &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty benchmark", req, "benchmark is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty git hash", req, "git hash is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty story", req, "story is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty chart", req, "chart is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "",
+	}
+	test("empty config", req, "configuration (aka the device name) is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "android-pixel-fold-perf",
+	}
+	test("invalid bot", req, "bot (android-pixel-fold-perf) is currently unsupported")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:      "fake-start",
+		EndGitHash:        "fake-end",
+		Benchmark:         "speedometer3",
+		Story:             "Speedometer3",
+		Chart:             "Score",
+		Configuration:     "mac-m1_mini_2020-perf",
+		AggregationMethod: "fake-aggregation-method",
+	}
+	test("invalid aggregation method", req, "aggregation method (fake-aggregation-method) is not available")
 }
 
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
