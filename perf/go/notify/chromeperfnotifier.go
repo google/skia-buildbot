@@ -47,7 +47,8 @@ func (n *ChromePerfNotifier) RegressionFound(
 	previousCommit provider.Commit,
 	alert *alerts.Alert,
 	cl *clustering2.ClusterSummary,
-	frame *frame.FrameResponse) (string, error) {
+	frame *frame.FrameResponse,
+	regressionID string) (string, error) {
 
 	sklog.Infof("%d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 

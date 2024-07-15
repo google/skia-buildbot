@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -279,7 +280,7 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 	// called again to store the notification ID.
 	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
 
-	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame).Return(notificationID, nil)
+	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
 	c.reportRegressions(ctx, req, resp, cfg)
 

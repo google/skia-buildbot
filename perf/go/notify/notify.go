@@ -70,7 +70,7 @@ type TemplateContext struct {
 // Notifier provides an interface for regression notification functions
 type Notifier interface {
 	// RegressionFound sends a notification for the given cluster found at the given commit.
-	RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error)
+	RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, regressionID string) (string, error)
 
 	// RegressionMissing sends a notification that a previous regression found for
 	// the given cluster found at the given commit has disappeared after more data
@@ -101,7 +101,7 @@ func newNotifier(formatter Formatter, transport Transport, url string) Notifier 
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
+func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, regressionID string) (string, error) {
 	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return "", err
@@ -168,7 +168,7 @@ func (n *defaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) 
 		},
 	}
 
-	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl, frame)
+	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl, frame, "")
 	if err != nil {
 		return skerr.Wrap(err)
 	}

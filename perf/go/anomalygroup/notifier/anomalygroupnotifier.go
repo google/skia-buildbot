@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -42,7 +41,8 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 	previousCommit provider.Commit,
 	alert *alerts.Alert,
 	cl *clustering2.ClusterSummary,
-	frame *frame.FrameResponse) (string, error) {
+	frame *frame.FrameResponse,
+	regressionID string) (string, error) {
 
 	sklog.Infof("[AG] %d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 
@@ -65,7 +65,7 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 		_, err = n.grouper.ProcessRegressionInGroup(
 			ctx,
 			alert,
-			uuid.NewString(), //TODO(ashwinpv): use regression.id when regression2 is in place
+			regressionID,
 			int64(previousCommit.CommitNumber),
 			int64(commit.CommitNumber),
 			testPath,

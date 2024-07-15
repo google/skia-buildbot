@@ -69,7 +69,7 @@ func TestValidRegression_Success(t *testing.T) {
 		Centroid: []float32{1.0, 2.0},
 		StepFit:  &stepfit.StepFit{TurningPoint: 1, Status: stepfit.HIGH},
 	}
-	anomalyId, err := notifier.RegressionFound(ctx, endCommit, startCommit, alerts.NewConfig(), cl, frame)
+	anomalyId, err := notifier.RegressionFound(ctx, endCommit, startCommit, alerts.NewConfig(), cl, frame, "")
 	assert.Nil(t, err, "No error expected")
 	assert.Equal(t, chromePerfResponse.AnomalyId, anomalyId)
 }
@@ -127,7 +127,7 @@ func testNotifierFunctions_InvalidParams_ReturnsError(paramset map[string]string
 		StepFit:  &stepfit.StepFit{TurningPoint: 1},
 	}
 	notifier, _ := NewChromePerfNotifier(ctx, mocks.NewAnomalyApiClient(t))
-	_, err := notifier.RegressionFound(ctx, provider.Commit{}, provider.Commit{}, alert, cl, frame)
+	_, err := notifier.RegressionFound(ctx, provider.Commit{}, provider.Commit{}, alert, cl, frame, "")
 	assert.NotNil(t, err, "Error expected due to invalid query")
 
 	err = notifier.RegressionMissing(ctx, provider.Commit{}, provider.Commit{}, alert, cl, frame, "")
