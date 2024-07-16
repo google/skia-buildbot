@@ -159,7 +159,7 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	}
 
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+	ctx = workflow.WithActivityOptions(ctx, catapultBisectActivityOptions)
 	var resp *pinpoint_proto.LegacyJobResponse
 	if err := workflow.ExecuteChildWorkflow(ctx, ConvertToCatapultResponseWorkflow, p, bisectExecution).Get(ctx, &resp); err != nil {
 		return nil, skerr.Wrap(err)
