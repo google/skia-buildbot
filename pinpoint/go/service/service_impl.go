@@ -83,7 +83,10 @@ func New(t TemporalProvider, l *rate.Limiter) *server {
 // updateFieldsForCatapult converts specific catapult Pinpoint arguments
 // to their skia Pinpoint counterparts
 func updateFieldsForCatapult(req *pb.ScheduleBisectRequest) *pb.ScheduleBisectRequest {
-	if req.Statistic != "" {
+	switch {
+	case req.Statistic == "avg":
+		req.AggregationMethod = "mean"
+	case req.Statistic != "":
 		req.AggregationMethod = req.Statistic
 	}
 	return req
@@ -103,7 +106,10 @@ func validate(req *pb.ScheduleBisectRequest) error {
 // updateCulpritFinderFieldsForCatapult converts specific catapult Pinpoint arguments
 // to their skia Pinpoint counterparts
 func updateCulpritFinderFieldsForCatapult(req *pb.ScheduleCulpritFinderRequest) *pb.ScheduleCulpritFinderRequest {
-	if req.Statistic != "" {
+	switch {
+	case req.Statistic == "avg":
+		req.AggregationMethod = "mean"
+	case req.Statistic != "":
 		req.AggregationMethod = req.Statistic
 	}
 	return req
@@ -125,9 +131,8 @@ func validateCulpritFinder(req *pb.ScheduleCulpritFinderRequest) error {
 		return skerr.Fmt("bot (%s) is currently unsupported due to low resources", req.Configuration)
 	case !read_values.IsSupportedAggregation(req.AggregationMethod):
 		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
-	default:
-		return nil
 	}
+	return nil
 }
 
 func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, error) {
@@ -192,6 +197,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 	req = updateCulpritFinderFieldsForCatapult(req)
 
 	if err := validateCulpritFinder(req); err != nil {
+		sklog.Warningf("the request failed validation due to %v", err.Error())
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
