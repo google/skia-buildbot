@@ -44,7 +44,7 @@ func TestFrontendUniqSubscriptionHandler_Success(t *testing.T) {
 				ContactEmail: "test@owner.com",
 			},
 		}, nil)
-	a := NewAlertsApi(nil, nil, nil, nil, subMock)
+	a := NewAlertsApi(nil, nil, nil, nil, subMock, nil)
 	w := httptest.NewRecorder()
 
 	r := httptest.NewRequest("GET", "/_/allsubscriptions", nil)

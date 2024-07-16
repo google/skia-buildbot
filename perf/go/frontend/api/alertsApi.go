@@ -32,13 +32,14 @@ type alertsApi struct {
 }
 
 // NewAlertsApi returns a new instance of the alertsApi struct.
-func NewAlertsApi(loginProvider alogin.Login, configProvider alerts.ConfigProvider, alertStore alerts.Store, notifier notify.Notifier, subStore subscription.Store) alertsApi {
+func NewAlertsApi(loginProvider alogin.Login, configProvider alerts.ConfigProvider, alertStore alerts.Store, notifier notify.Notifier, subStore subscription.Store, dryRunRequests *dryrun.Requests) alertsApi {
 	return alertsApi{
 		loginProvider:  loginProvider,
 		configProvider: configProvider,
 		alertStore:     alertStore,
 		notifier:       notifier,
 		subStore:       subStore,
+		dryrunRequests: dryRunRequests,
 	}
 }
 
