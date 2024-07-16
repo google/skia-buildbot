@@ -22,7 +22,7 @@ import (
 
 const cockroachDBVersion = "--image=cockroachdb/cockroach:v22.2.3"
 
-var supportedTables = []string{"tiledtracedigests", "valuesathead"}
+var supportedTables = []string{"tiledtracedigests", "valuesathead", "expectations"}
 
 func main() {
 	dryRun := flag.Bool("dry_run", true, "dry run rollback the transaction. Default true.")
@@ -31,6 +31,7 @@ func main() {
 	tableName := flag.String("table_name", "", fmt.Sprintf("name of table to trim data. Supported: %s", supportedTables))
 	batchSize := flag.Int("batch_size", 1000, "limit the number of data to be trimmed. Default 1000.")
 	cutOffDate := flag.String("cut_off_date", "2024-04-01", "date in YYYY-MM-DD format to determine old data. Default 2024-04-01.")
+	corpus := flag.String("corpus", "", "corpus name. Required by the following trimmers: expectations.")
 
 	sklogimpl.SetLogger(stdlogging.New(os.Stderr))
 	flag.Parse()
@@ -56,14 +57,15 @@ func main() {
 		TableName:  normalizedTableName,
 		BatchSize:  *batchSize,
 		CutOffDate: *cutOffDate,
-	}
-
-	if *dryRun {
-		sklog.Infof("Running in DRY RUN mode, use `--dry_run=false` to disable")
+		Corpus:     *corpus,
 	}
 
 	trimmer, _ := getTrimmerForTable(params)
 	sql := trimmer.sql()
+
+	if *dryRun {
+		sklog.Infof("Running in DRY RUN mode, use `--dry_run=false` to disable")
+	}
 
 	sklog.Infof("Trimming %s.%s with SQL:\n%s", normalizedDB, normalizedTableName, sql)
 
@@ -89,6 +91,8 @@ func getTrimmerForTable(params *parameters) (dataTrimmer, error) {
 		return &tiledTraceDigestsTrimmer{params: params}, nil
 	case "valuesathead":
 		return &valuesAtHeadTrimmer{params: params}, nil
+	case "expectations":
+		return &expectationsTrimmer{params: params}, nil
 	default:
 		return nil, skerr.Fmt("unimplemented for table %s", params.TableName)
 	}
@@ -113,6 +117,7 @@ type parameters struct {
 	TableName  string
 	BatchSize  int
 	CutOffDate string
+	Corpus     string
 }
 
 // dataTrimmer is the interface that all data trimmers must implement.
@@ -164,8 +169,7 @@ DELETE FROM TiledTraceDigests o
 WHERE EXISTS (
   SELECT 1 FROM TiledTraceDigests_trimmer t
   WHERE o.tile_id = t.tile_id AND o.trace_id = t.trace_id
-)
-RETURNING o.tile_id, o.trace_id;
+);
 `
 	if t.params.DryRun {
 		sqlTemplate += `
@@ -212,8 +216,68 @@ DELETE FROM ValuesAtHead o
 WHERE EXISTS (
   SELECT 1 FROM ValuesAtHead_trimmer t
   WHERE o.trace_id = t.trace_id
+);
+`
+	if t.params.DryRun {
+		sqlTemplate += `
+ROLLBACK;
+`
+	} else {
+		sqlTemplate += `
+COMMIT;
+`
+	}
+	sql := generateSQL(sqlTemplate, t.params)
+	return sql
+}
+
+// expectationsTrimmer implements data trimmer for the Expectations table.
+type expectationsTrimmer struct {
+	params *parameters
+}
+
+// sql for the expectationsTrimmer finds "fresh" digests from the ValuesAtHead
+// table and non-fresh untriaged digests are considered safe to delete.
+// This trimmer handles one corpus at a time to achieve ideal performance.
+func (t *expectationsTrimmer) sql() string {
+	if t.params.Corpus == "" {
+		sklog.Fatalf("Must supply corpus")
+	}
+
+	sqlTemplate := `
+SET experimental_enable_temp_tables=on;
+USE {{.DBName}};
+CREATE TEMP TABLE Expectations_trimmer (
+  grouping_id BYTES NOT NULL,
+  digest BYTES NOT NULL,
+  CONSTRAINT "primary" PRIMARY KEY (grouping_id ASC, digest ASC)
+);
+WITH
+corpus_grouping AS (
+  SELECT grouping_id FROM Groupings WHERE keys->>'source_type'='{{.Corpus}}'
+),
+min_commit_id_to_keep AS (
+  SELECT commit_id FROM GitCommits
+  WHERE commit_time > '{{.CutOffDate}}' ORDER BY commit_time ASC LIMIT 1
+),
+fresh_digests AS (
+  SELECT DISTINCT grouping_id, digest FROM ValuesAtHead
+  WHERE corpus = '{{.Corpus}}'
+    AND most_recent_commit_id > (SELECT commit_id FROM min_commit_id_to_keep)
 )
-RETURNING o.trace_id;
+INSERT INTO Expectations_trimmer (grouping_id, digest)
+SELECT grouping_id, digest FROM Expectations e
+WHERE grouping_id IN (SELECT grouping_id FROM corpus_grouping)
+  AND e.label = 'u' AND e.expectation_record_id IS NULL
+  AND NOT EXISTS (SELECT 1 FROM fresh_digests f WHERE e.digest = f.digest)
+LIMIT {{.BatchSize}};
+
+BEGIN;
+DELETE FROM Expectations o
+WHERE EXISTS (
+  SELECT 1 FROM Expectations_trimmer t
+  WHERE o.grouping_id = t.grouping_id AND o.digest = t.digest
+);
 `
 	if t.params.DryRun {
 		sqlTemplate += `

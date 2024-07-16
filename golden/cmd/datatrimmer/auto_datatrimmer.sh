@@ -51,7 +51,7 @@ while true; do
     fi
 
     # Parse output file to get the number of inserted rows (to the temp table)
-    insert_count=$(grep -oP "INSERT 0 \K\d+" "$log_file")
+    insert_count=$(grep -oP "DELETE \K\d+" "$log_file")
 
     # Compare and exit if necessary
     if [ -z "$insert_count" ]; then
