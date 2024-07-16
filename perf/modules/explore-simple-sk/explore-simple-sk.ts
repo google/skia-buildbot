@@ -2343,10 +2343,13 @@ export class ExploreSimpleSk extends ElementSk {
         frameRequest.request_type = 0;
         await this.sendFrameRequest(frameRequest, (json) => {
           if (json.dataframe !== undefined && json.dataframe !== null) {
-            this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
-            this.populatePlotSummary();
-            this.addSelectionOnPlotSummary();
-            this.addToAnomalyMap(json.anomalymap);
+            const traceKeys = Object.keys(json.dataframe!.traceset);
+            if (traceKeys !== null && traceKeys.length > 0) {
+              this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
+              this.populatePlotSummary();
+              this.addSelectionOnPlotSummary();
+              this.addToAnomalyMap(json.anomalymap);
+            }
           }
         });
       };

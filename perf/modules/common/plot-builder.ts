@@ -62,6 +62,7 @@ export function DrawSummaryChart(
   const options: google.visualization.LineChartOptions = {
     width: width,
     height: height,
+    curveType: 'function',
     hAxis: {
       textPosition: 'out',
       gridlines: {
