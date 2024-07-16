@@ -420,6 +420,10 @@ func (q *jobQueues) Enqueue(job *types.Job) {
 		go func() {
 			for {
 				job := jobQueue.Dequeue()
+				// workFn modifies the RepoState to set the actual commit hash
+				// after syncing. We need to grab a copy of it pre-modification
+				// so that we can delete the correct queue when finished.
+				rs := job.RepoState
 				sklog.Infof("Dequeue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 				q.workFn(job)
 
@@ -430,8 +434,8 @@ func (q *jobQueues) Enqueue(job *types.Job) {
 				// done is fine.
 				q.mtx.Lock()
 				if jobQueue.Len() == 0 {
-					sklog.Infof("Deleting empty queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
-					delete(q.queues, job.RepoState)
+					sklog.Infof("Deleting empty queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, rs)
+					delete(q.queues, rs)
 					util.LogErr(jobQueue.m.Delete())
 					q.mtx.Unlock()
 					return

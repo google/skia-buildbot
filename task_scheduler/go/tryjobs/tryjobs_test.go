@@ -792,3 +792,61 @@ func TestJobQueues_Deduplicate(t *testing.T) {
 	doneCh <- struct{}{}
 	require.Equal(t, 1, count)
 }
+
+func TestJobQueues_Cleanup(t *testing.T) {
+	// Verify that we remove the (correct) queue once it's empty.
+	j1 := &types.Job{
+		Id: "1",
+		RepoState: types.RepoState{
+			Patch: types.Patch{
+				Issue: "12345",
+			},
+		},
+	}
+
+	// We'll signal that each instance of workFn may finish using these
+	// channels.
+	startCh := make(chan *types.Job)
+	doneCh := make(chan struct{})
+
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			startCh <- job
+			// Set the job's revision. This is analogous to what happens in the
+			// real startJob function, where we sync the repo to the most recent
+			// commit on the branch in question and use that as the revision.
+			if job.Id == j1.Id {
+				job.Revision = "1"
+			}
+			<-doneCh
+		},
+	}
+	q.Enqueue(j1)
+
+	// Wait until workFn has started.
+	<-startCh
+
+	// Verify that the expected queue exists.
+	repoState := types.RepoState{
+		Patch: types.Patch{
+			Issue: "12345",
+		},
+	}
+	q.mtx.Lock()
+	_, ok := q.queues[repoState]
+	q.mtx.Unlock()
+	require.True(t, ok)
+
+	// Allow j2's workFn to finish.
+	doneCh <- struct{}{}
+
+	// This is inherently racy. Wait up to two seconds for the queue to be
+	// deleted.
+	require.Eventually(t, func() bool {
+		q.mtx.Lock()
+		_, ok := q.queues[repoState]
+		q.mtx.Unlock()
+		return !ok
+	}, 2*time.Second, 10*time.Millisecond)
+}
