@@ -37,6 +37,7 @@ import '../commit-range-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
 import '../ingest-file-links-sk';
+import '../picker-field-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';
 import '../plot-simple-sk';
@@ -129,6 +130,7 @@ import {
   GetSelectionCommitIndicesFromColumnHeader,
   GetSelectionDateIndicesFromColumnHeader,
 } from '../common/plot-util';
+import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -510,8 +512,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private collapseButton: HTMLButtonElement | null = null;
 
-  private collapseDetails: CollapseSk | null = null;
-
   private traceDetails: HTMLSpanElement | null = null;
 
   private traceFormatter: TraceFormatter | null = null;
@@ -522,9 +522,15 @@ export class ExploreSimpleSk extends ElementSk {
 
   private fullDataFrame: DataFrame | null = null;
 
+  private traceKeyForSummary: string = '';
+
   fullAnomalyMap: AnomalyMap | null = null;
 
   private useTestPicker: boolean = false;
+
+  private summaryOptionsField: PickerFieldSk | null = null;
+
+  private traceNameIdMap = new Map();
 
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
@@ -697,6 +703,10 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
+      <div id="summaryPicker">
+          <picker-field-sk id=selectSummaryTrace hidden></picker-field-sk>
+          <label>${ele.getPlotSummaryTraceLabel()}</label>
+      </div>
       <plot-summary-sk id=plotSummary highlight_color="#CED0CE"
       @summary_selected=${
         ele.summarySelected
@@ -983,8 +993,10 @@ export class ExploreSimpleSk extends ElementSk {
     this.closeToastButton = this.querySelector('#hide-toast');
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
-    this.collapseDetails = this.querySelector('#collapseDetails');
     this.traceDetails = this.querySelector('#traceDetails');
+    this.summaryOptionsField = this.querySelector<PickerFieldSk>(
+      '#selectSummaryTrace'
+    );
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1741,9 +1753,52 @@ export class ExploreSimpleSk extends ElementSk {
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plot!.addLines(traceSet, labels);
     if (this._state.plotSummary) {
+      this.summaryOptionsField!.hidden = false;
+      this.addPlotSummaryOptions();
       this.populatePlotSummary();
     } else {
       this.plotSummary!.hidden = true;
+      this.summaryOptionsField!.hidden = true;
+    }
+  }
+
+  /**
+   * Returns the label for the selected plot summary trace.
+   */
+  private getPlotSummaryTraceLabel(): string {
+    if (this.traceKeyForSummary !== '') {
+      return this.traceFormatter!.formatTrace(fromKey(this.traceKeyForSummary));
+    }
+
+    return '';
+  }
+
+  /**
+   * Adds the option list for the plot summary selection.
+   */
+  private addPlotSummaryOptions() {
+    if (this.fullDataFrame !== null) {
+      const traceIds: string[] = [];
+      Object.keys(this.fullDataFrame!.traceset).forEach((traceId) => {
+        // Ignore the zero trace if present.
+        if (traceId !== ZERO_NAME) {
+          const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
+          this.traceNameIdMap.set(traceName, traceId);
+          traceIds.push(traceName);
+        }
+      });
+
+      this.summaryOptionsField!.options = traceIds;
+      this.summaryOptionsField!.label = 'Trace for summary bar';
+      this.summaryOptionsField!.comboBox!.addEventListener(
+        'value-changed',
+        (e) => {
+          const selectedTrace = (e as CustomEvent).detail.value;
+          this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace);
+          this.populatePlotSummary();
+          this._render();
+        }
+      );
     }
   }
 
@@ -1770,9 +1825,16 @@ export class ExploreSimpleSk extends ElementSk {
    * Populate the plot summary with the data in the fullDataFrame.
    */
   private populatePlotSummary() {
-    if (this.fullDataFrame !== null) {
+    if (this.fullDataFrame !== null && this.fullDataFrame!.traceset !== null) {
+      if (this.traceKeyForSummary === '') {
+        this.traceKeyForSummary = Object.keys(this.fullDataFrame!.traceset)[0];
+      }
+
+      const selectedTrace = TraceSet({});
+      selectedTrace[this.traceKeyForSummary] =
+        this.fullDataFrame!.traceset[this.traceKeyForSummary];
       this.plotSummary!.DisplayChartData(
-        this.createChartData(this.fullDataFrame!.traceset),
+        this.createChartData(selectedTrace),
         this.state.labelMode === LabelMode.CommitPosition
       );
     }
@@ -2163,6 +2225,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     this.fullDataFrame = mergedDataframe;
+    this.traceKeyForSummary = '';
     this.fullAnomalyMap = json.anomalymap;
 
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately

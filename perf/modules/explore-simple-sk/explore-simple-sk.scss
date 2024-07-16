@@ -117,6 +117,10 @@ explore-simple-sk {
     height: 100px;
   }
 
+  #selectSummaryTrace[hidden] {
+    display: none;
+  }
+
   #spin-overlay {
     position: relative;
     display: block;
@@ -336,5 +340,16 @@ explore-simple-sk {
 
   button.navigation {
     padding: 0 4px;
+  }
+
+  #summaryPicker {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+
+    label {
+      margin-bottom: 10px;
+      margin-left: 10px;
+    }
   }
 }
