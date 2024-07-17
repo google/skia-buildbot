@@ -221,7 +221,10 @@ func TestFetchFreeBots_ForBuilder_ReturnsFreeBots(t *testing.T) {
 			{Key: "device_type", Value: "walleye"},
 			{Key: "device_os", Value: "OPM1.171019.021"},
 		},
-		Limit: 1000,
+		Quarantined:   apipb.NullableBool_FALSE,
+		IsDead:        apipb.NullableBool_FALSE,
+		InMaintenance: apipb.NullableBool_FALSE,
+		Limit:         1000,
 	}).Return(&apipb.BotInfoListResponse{
 		Items: []*apipb.BotInfo{
 			{BotId: "b1"},

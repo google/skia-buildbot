@@ -194,7 +194,10 @@ func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) 
 	}
 
 	bots, err := swarmingv2.ListBotsHelper(ctx, s.SwarmingV2Client, &apipb.BotsRequest{
-		Dimensions: dims,
+		Dimensions:    dims,
+		Quarantined:   apipb.NullableBool_FALSE,
+		IsDead:        apipb.NullableBool_FALSE,
+		InMaintenance: apipb.NullableBool_FALSE,
 	})
 
 	return bots, skerr.Wrap(err)
