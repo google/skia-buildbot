@@ -19,7 +19,7 @@
     src: '~chrome-bot/.ssh/id_ed25519.pub'
     dest: '{{ authorized_keys_filename }}'
     flat: true
-  when: copy_authorized_keys__jumphost
+  when: copy_authorized_keys__jumphost != "skip"
 
 - name: Add the jumphost public key.
   ansible.posix.authorized_key:
@@ -27,4 +27,4 @@
     state: present
     key: "{{ lookup('file', authorized_keys_filename) }}"
     exclusive: false
-  when: copy_authorized_keys__jumphost
+  when: copy_authorized_keys__jumphost != "skip"
