@@ -51,10 +51,8 @@ type GetMetadataResponse struct {
 func (api sheriffConfigApi) getMetadataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO(eduardoyap): Set role to Editor for testing purposes but change in future to more granular
-	// group.
-	if !api.loginProvider.HasRole(r, roles.Editor) {
-		sklog.Infof("User is not authorized in: %s", api.loginProvider.LoggedInAs(r).String())
+	if !api.loginProvider.HasRole(r, roles.LuciConfig) {
+		sklog.Infof("User is not authorized: %s", api.loginProvider.LoggedInAs(r).String())
 		httputils.ReportError(w, nil, "Permission denied", http.StatusForbidden)
 		return
 	}
@@ -91,10 +89,8 @@ type ValidateConfigRequest struct {
 func (api sheriffConfigApi) validateConfigHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO(eduardoyap): Set role to Editor for testing purposes but change in future to more granular
-	// group.
-	if !api.loginProvider.HasRole(r, roles.Editor) {
-		sklog.Infof("User is not authorized in: %s", api.loginProvider.LoggedInAs(r).String())
+	if !api.loginProvider.HasRole(r, roles.LuciConfig) {
+		sklog.Infof("User is not authorized: %s", api.loginProvider.LoggedInAs(r).String())
 		httputils.ReportError(w, nil, "Permission denied", http.StatusForbidden)
 		return
 	}
