@@ -325,27 +325,27 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		"build59-h7--device2",
 	}
 
-	leftBuildChromeParams := workflows.BuildChromeParams{
+	leftBuildChromeParams := workflows.BuildParams{
 		WorkflowID: p.PinpointJobID,
 		Device:     p.BotConfig,
 		Target:     target,
 		Commit:     p.LeftCommit,
 	}
-	rightBuildChromeParams := workflows.BuildChromeParams{
+	rightBuildChromeParams := workflows.BuildParams{
 		WorkflowID: p.PinpointJobID,
 		Device:     p.BotConfig,
 		Target:     target,
 		Commit:     p.RightCommit,
 	}
 	leftBuild := &workflows.Build{
-		BuildChromeParams: workflows.BuildChromeParams{
+		BuildParams: workflows.BuildParams{
 			Commit: common.NewCombinedCommit(&pb.Commit{GitHash: leftCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,
 		CAS:    &apipb.CASReference{CasInstance: "projects/chrome-swarming/instances/default_instance", Digest: &apipb.Digest{Hash: "062ccf0a30a362d8e4df3c9b82172a78e3d62c2990eb30927f5863a6b08e80bb", SizeBytes: 810}},
 	}
 	rightBuild := &workflows.Build{
-		BuildChromeParams: workflows.BuildChromeParams{
+		BuildParams: workflows.BuildParams{
 			Commit: common.NewCombinedCommit(&pb.Commit{GitHash: rightCommit}),
 		},
 		Status: buildbucketpb.Status_SUCCESS,

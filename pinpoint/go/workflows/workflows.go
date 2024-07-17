@@ -38,7 +38,7 @@ const defaultPairwiseAttemptCount int32 = 30
 //
 // Each workflow defines its own struct for the params, this will ensure
 // the input parameter type safety, as well as expose them in a structured way.
-type BuildChromeParams struct {
+type BuildParams struct {
 	// WorkflowID is arbitrary string that tags the build.
 	// This is used to connect the downstream and know which build is used.
 	// This is usually the pinpoint job ID.
@@ -57,7 +57,7 @@ type BuildChromeParams struct {
 // Build stores the build from Buildbucket.
 type Build struct {
 	// The parameters used to make this build.
-	BuildChromeParams
+	BuildParams
 	// ID is the buildbucket ID of the Chrome build.
 	// https://github.com/luci/luci-go/blob/19a07406e/buildbucket/proto/build.proto#L138
 	ID int64

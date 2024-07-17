@@ -201,7 +201,7 @@ func triggerSingleCommitRunner(c client.Client) (*internal.CommitRun, error) {
 }
 
 func triggerBuildChrome(c client.Client) *apipb.CASReference {
-	bcp := workflows.BuildChromeParams{
+	bcp := workflows.BuildParams{
 		WorkflowID: "123",
 		Commit:     common.NewCombinedCommit(&pb.Commit{GitHash: *commit}),
 		Device:     "mac-m1_mini_2020-perf",

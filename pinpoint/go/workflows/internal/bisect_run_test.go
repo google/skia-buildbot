@@ -16,7 +16,7 @@ import (
 func generateSingleCommitRuns(hash string, count int) *CommitRun {
 	return &CommitRun{
 		Build: &workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
+			BuildParams: workflows.BuildParams{
 				Commit: common.NewCombinedCommit(common.NewChromiumCommit(hash)),
 			},
 		},

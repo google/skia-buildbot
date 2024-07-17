@@ -25,7 +25,7 @@ func newBisectRun(cc *common.CombinedCommit) *BisectRun {
 	return &BisectRun{
 		CommitRun: CommitRun{
 			Build: &workflows.Build{
-				BuildChromeParams: workflows.BuildChromeParams{
+				BuildParams: workflows.BuildParams{
 					Commit: cc,
 				},
 			},

@@ -20,7 +20,7 @@ type BuildChromeActivity struct {
 }
 
 // BuildChrome is a Workflow definition that builds Chrome.
-func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*workflows.Build, error) {
+func BuildChrome(ctx workflow.Context, params workflows.BuildParams) (*workflows.Build, error) {
 	ctx = workflow.WithActivityOptions(ctx, buildActivityOption)
 	logger := workflow.GetLogger(ctx)
 
@@ -55,10 +55,10 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 
 	if status != buildbucketpb.Status_SUCCESS {
 		return &workflows.Build{
-			BuildChromeParams: params,
-			ID:                buildID,
-			Status:            status,
-			CAS:               nil,
+			BuildParams: params,
+			ID:          buildID,
+			Status:      status,
+			CAS:         nil,
 		}, nil
 	}
 
@@ -69,15 +69,15 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildChromeParams) (*wor
 	}
 
 	return &workflows.Build{
-		BuildChromeParams: params,
-		ID:                buildID,
-		Status:            status,
-		CAS:               cas,
+		BuildParams: params,
+		ID:          buildID,
+		Status:      status,
+		CAS:         cas,
 	}, nil
 }
 
 // SearchOrBuildActivity wraps BuildChromeClient.SearchOrBuild
-func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, params workflows.BuildChromeParams) (int64, error) {
+func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, params workflows.BuildParams) (int64, error) {
 	logger := activity.GetLogger(ctx)
 
 	bc, err := build_chrome.New(ctx)

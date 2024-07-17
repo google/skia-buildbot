@@ -107,7 +107,7 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *com
 	}
 
 	var b *workflows.Build
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildChromeParams{
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildParams{
 		WorkflowID: jobID,
 		Device:     bot,
 		Target:     t,

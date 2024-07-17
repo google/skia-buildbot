@@ -107,7 +107,7 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 			{
 				Key:   "builder",
-				Value: commitRun.Build.BuildChromeParams.Device,
+				Value: commitRun.Build.BuildParams.Device,
 			},
 			{
 				Key:   "isolate",

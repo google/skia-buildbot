@@ -68,7 +68,7 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 		{
 			CommitRun: internal.CommitRun{
 				Build: &workflows.Build{
-					BuildChromeParams: workflows.BuildChromeParams{
+					BuildParams: workflows.BuildParams{
 						Commit: common.NewCombinedCommit(common.NewChromiumCommit("d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1")),
 					},
 					CAS: &apipb.CASReference{
