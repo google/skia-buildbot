@@ -41,7 +41,7 @@ const (
 
 var (
 	// AllValidRoles is all valid Roles.
-	AllValidRoles Roles = []Role{Viewer, Editor, Admin, Bisecter, Buildbucket}
+	AllValidRoles Roles = []Role{Viewer, Editor, Admin, Bisecter, Buildbucket, LuciConfig}
 
 	// AllRoles is all Roles including InvalidRole.
 	AllRoles Roles = append(AllValidRoles, InvalidRole)
