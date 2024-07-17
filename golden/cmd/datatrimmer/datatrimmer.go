@@ -22,7 +22,7 @@ import (
 
 const cockroachDBVersion = "--image=cockroachdb/cockroach:v22.2.3"
 
-var supportedTables = []string{"tiledtracedigests", "valuesathead", "expectations"}
+var supportedTables = []string{"tiledtracedigests", "valuesathead", "expectations", "tracevalues"}
 
 func main() {
 	dryRun := flag.Bool("dry_run", true, "dry run rollback the transaction. Default true.")
@@ -93,6 +93,8 @@ func getTrimmerForTable(params *parameters) (dataTrimmer, error) {
 		return &valuesAtHeadTrimmer{params: params}, nil
 	case "expectations":
 		return &expectationsTrimmer{params: params}, nil
+	case "tracevalues":
+		return &traceValuesTrimmer{params: params}, nil
 	default:
 		return nil, skerr.Fmt("unimplemented for table %s", params.TableName)
 	}
@@ -277,6 +279,66 @@ DELETE FROM Expectations o
 WHERE EXISTS (
   SELECT 1 FROM Expectations_trimmer t
   WHERE o.grouping_id = t.grouping_id AND o.digest = t.digest
+);
+`
+	if t.params.DryRun {
+		sqlTemplate += `
+ROLLBACK;
+`
+	} else {
+		sqlTemplate += `
+COMMIT;
+`
+	}
+	sql := generateSQL(sqlTemplate, t.params)
+	return sql
+}
+
+// traceValuesTrimmer implements data trimmer for the TraceValues table.
+type traceValuesTrimmer struct {
+	params *parameters
+}
+
+// sql for the traceValuesTrimmer determines old data by commit_id.
+// To achieve better performance:
+//   - The trimmer only looks back one year from the cut-off date. To trim data
+//     more than one year, change the cut-off date for each year.
+//   - The `WHERE shard IN` condition is a performance tweak. See
+//     http://gpaste/5285242229489664 for more information.
+//   - The trimming is based on shard and commit_id, instead of shard, commit_id
+//     and trace_id. The former is much faster, but the number of rows to be
+//     deleted will be significantly greater than the batch size: a batch of 10
+//     commits may trim rows in millions.
+func (t *traceValuesTrimmer) sql() string {
+	if t.params.BatchSize > 100 {
+		// Testing shows a batch size of 10 finishes in ~2 mins, 100 in ~15 mins
+		sklog.Warningf("Batch size might be too big for the current trimmer")
+	}
+	sqlTemplate := `
+SET experimental_enable_temp_tables=on;
+USE {{.DBName}};
+CREATE TEMP TABLE TraceValues_trimmer (
+  shard INT2 NOT NULL,
+  commit_id STRING NOT NULL,
+  CONSTRAINT "primary" PRIMARY KEY (shard ASC, commit_id ASC)
+);
+WITH
+last_year_commits AS (
+  SELECT commit_id FROM GitCommits
+  WHERE commit_time < '{{.CutOffDate}}'
+    AND commit_time > ('{{.CutOffDate}}'::DATE - INTERVAL '366 day')
+)
+INSERT INTO TraceValues_trimmer (shard, commit_id)
+SELECT DISTINCT shard, t.commit_id
+FROM TraceValues t JOIN last_year_commits c ON t.commit_id = c.commit_id
+WHERE shard IN (0,1,2,3,4,5,6,7)
+LIMIT {{.BatchSize}};
+
+BEGIN;
+DELETE FROM TraceValues o
+WHERE EXISTS (
+  SELECT 1 FROM TraceValues_trimmer t
+  WHERE o.shard = t.shard AND o.commit_id = t.commit_id
 );
 `
 	if t.params.DryRun {
