@@ -13,7 +13,7 @@
     "chat_url": "http://go/berf-skia-chat",
     "filter_parent_traces": true,
     "notify_config": {
-        "notifications": "chromeperf"
+        "notifications": "anomalygroup"
     },
     "culprit_notify_config": {
         "notifications": "markdown_issuetracker",
