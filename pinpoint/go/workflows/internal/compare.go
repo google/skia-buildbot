@@ -48,25 +48,30 @@ func GetAllDataForCompareLocalActivity(ctx context.Context, lbr *BisectRun, hbr 
 // UI what two commits are being tested. Errors are recorded in the activity but
 // the ErrorVerdict is not passed back to the main workflow.
 func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude, errRate float64, direction compare.ImprovementDir) (*CombinedResults, error) {
-	// TODO(sunxiaodi@): skip functional analysis if there are no errors
 	funcResult, err := compare.CompareFunctional(allValues.Lower.ErrorValues, allValues.Higher.ErrorValues, errRate)
 	if err != nil {
-		return &CombinedResults{Result: funcResult, ResultType: Functional}, skerr.Wrap(err)
+		return &CombinedResults{
+			Result:           funcResult,
+			ResultType:       Functional,
+			CommitPairValues: allValues,
+		}, skerr.Wrap(err)
 	}
 	// always return different verdicts
 	if funcResult.Verdict == compare.Different {
 		return &CombinedResults{
-			Result:     funcResult,
-			ResultType: Functional,
+			Result:           funcResult,
+			ResultType:       Functional,
+			CommitPairValues: allValues,
 		}, nil
 	}
 
 	perfResult, err := compare.ComparePerformance(allValues.Lower.Values, allValues.Higher.Values, magnitude, direction)
 	if err != nil {
 		return &CombinedResults{
-			Result:      funcResult,
-			OtherResult: perfResult,
-			ResultType:  Functional,
+			Result:           funcResult,
+			OtherResult:      perfResult,
+			ResultType:       Functional,
+			CommitPairValues: allValues,
 		}, skerr.Wrap(err)
 	}
 
@@ -74,16 +79,18 @@ func CompareActivity(ctx context.Context, allValues CommitPairValues, magnitude,
 	// occurs if all benchmark runs fail and we are relying on functional analysis results
 	if perfResult.Verdict == compare.NilVerdict {
 		return &CombinedResults{
-			Result:      funcResult,
-			OtherResult: perfResult,
-			ResultType:  Functional,
+			Result:           funcResult,
+			OtherResult:      perfResult,
+			ResultType:       Functional,
+			CommitPairValues: allValues,
 		}, nil
 	}
 	if funcResult.Verdict == compare.Unknown && perfResult.Verdict == compare.Same {
 		return &CombinedResults{
-			Result:      funcResult,
-			OtherResult: perfResult,
-			ResultType:  Functional,
+			Result:           funcResult,
+			OtherResult:      perfResult,
+			ResultType:       Functional,
+			CommitPairValues: allValues,
 		}, nil
 	}
 	return &CombinedResults{
