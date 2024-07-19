@@ -146,7 +146,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 					isRegressionFound = true
 					isNew, regressionID, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
-					sklog.Infof("New regression is created by SetLow: %s", regressionID)
+					sklog.Infof("Regression is detected by SetLow: %s", regressionID)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
@@ -171,7 +171,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.IDAsString, *req)
 					isRegressionFound = true
 					isNew, regressionID, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
-					sklog.Infof("New regression is created by SetHigh: %s", regressionID)
+					sklog.Infof("Regression is detected by SetHigh: %s", regressionID)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue

@@ -80,7 +80,7 @@ func ProcessRegression(
 		if err != nil {
 			return "", skerr.Wrapf(err, "error finding existing group for new anomaly")
 		}
-		sklog.Info("Created new anomaly group: %s", newGroupID)
+		sklog.Info("Created new anomaly group: %s for anomaly %s", newGroupID, anomalyID)
 		// TODO(wenbinzhang): Update on create in one step.
 		_, err = ag_client.UpdateAnomalyGroup(
 			ctx,
@@ -92,6 +92,7 @@ func ProcessRegression(
 		}
 		// TODO(wenbinzhang:b/329900854): trigger temporal workflow with new group id
 	} else {
+		sklog.Info("Found %d existing anomaly groups for anomaly %s", len(resp.AnomalyGroups), anomalyID)
 		// found matching groups for the new anomaly
 		for _, alertGroup := range resp.AnomalyGroups {
 			groupID := alertGroup.GroupId
