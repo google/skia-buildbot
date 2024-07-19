@@ -47,8 +47,8 @@ export class FavoritesDialogSk extends ElementSk {
   }
 
   private async confirm(): Promise<void> {
-    if (this.name === '' || this.description === '' || this.url === '') {
-      errorMessage('All the fields must be non empty');
+    if (this.name === '' || this.url === '') {
+      errorMessage('Name and url must be non empty');
       return;
     }
 
@@ -154,7 +154,7 @@ export class FavoritesDialogSk extends ElementSk {
         <br/>
 
         <span class="label">
-          <label>Description*</label>
+          <label>Description</label>
         </span>
         <input
           id="desc"
