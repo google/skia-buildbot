@@ -129,12 +129,16 @@ const (
 	// using idevice* commands.
 	AttachedDeviceIOS AttachedDevice = "ios"
 
+	// AttachedDevicePyOCD means a device, typically a hardware devkit, which we
+	// interact with via pyocd. https://github.com/pyocd/pyOCD
+	AttachedDevicePyOCD AttachedDevice = "pyocd"
+
 	// AttachedDeviceSSH means a ChromeOS device, or any other device we
 	// interact with via SSH.
 	AttachedDeviceSSH AttachedDevice = "ssh"
 )
 
-var AllAttachedDevices = []AttachedDevice{AttachedDeviceNone, AttachedDeviceAdb, AttachedDeviceIOS, AttachedDeviceSSH}
+var AllAttachedDevices = []AttachedDevice{AttachedDeviceNone, AttachedDeviceAdb, AttachedDeviceIOS, AttachedDevicePyOCD, AttachedDeviceSSH}
 
 // Annotation represents a timestamped message.
 type Annotation struct {
@@ -385,6 +389,16 @@ func (i *IOS) IsPopulated() bool {
 	return i.DeviceType != ""
 }
 
+type PyOCD struct {
+	DeviceType string `json:"device_type"` // e.g. "MIMXRT1170-EVK"
+}
+
+// IsPopulated returns whether the PyOCD subevent record has been filled out, implying an attached
+// PyOCD device.
+func (p *PyOCD) IsPopulated() bool {
+	return p.DeviceType != ""
+}
+
 // Standalone represents the Swarming-style dimensions of a test machine that runs tests on itself,
 // not on some attached device.
 //
@@ -428,6 +442,7 @@ type Event struct {
 	Android             Android    `json:"android"`
 	ChromeOS            ChromeOS   `json:"chromeos"`
 	IOS                 IOS        `json:"ios"`
+	PyOCD               PyOCD      `json:"pyocd"`
 	Standalone          Standalone `json:"standalone"`
 	Host                Host       `json:"host"`
 	RunningSwarmingTask bool       `json:"running_swarming_task"`
