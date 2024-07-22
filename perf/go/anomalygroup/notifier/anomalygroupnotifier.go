@@ -99,6 +99,11 @@ func (n *AnomalyGroupNotifier) ExampleSend(ctx context.Context, alert *alerts.Al
 	return nil
 }
 
+// UpdateRegressionNotification implements Transport.
+func (n *AnomalyGroupNotifier) UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error {
+	return nil
+}
+
 // GetTestPath returns a test path based on the values found in the paramset.
 // TODO(wenbinzhang): using kvp in config to control which keys to expect
 func getTestPath(paramset map[string]string) string {

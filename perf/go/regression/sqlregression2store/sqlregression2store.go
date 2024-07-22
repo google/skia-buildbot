@@ -229,6 +229,11 @@ func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types
 	return err
 }
 
+// No Op for SQLRegression2Store.
+func (s *SQLRegression2Store) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
+	return "", nil
+}
+
 // Write implements the regression.Store interface.
 func (s *SQLRegression2Store) Write(ctx context.Context, regressions map[types.CommitNumber]*regression.AllRegressionsForCommit) error {
 	for _, allRegressionsForCommit := range regressions {

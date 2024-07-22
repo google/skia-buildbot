@@ -61,6 +61,24 @@ func (_m *Transport) SendRegressionMissing(ctx context.Context, threadingReferen
 	return r0
 }
 
+// UpdateRegressionNotification provides a mock function with given fields: ctx, alert, body, notificationId
+func (_m *Transport) UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body string, notificationId string) error {
+	ret := _m.Called(ctx, alert, body, notificationId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRegressionNotification")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *alerts.Alert, string, string) error); ok {
+		r0 = rf(ctx, alert, body, notificationId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewTransport creates a new instance of Transport. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewTransport(t interface {

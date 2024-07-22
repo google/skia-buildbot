@@ -84,6 +84,24 @@ func (_m *Notifier) RegressionMissing(ctx context.Context, commit provider.Commi
 	return r0
 }
 
+// UpdateNotification provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5, notificationId
+func (_m *Notifier) UpdateNotification(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse, notificationId string) error {
+	ret := _m.Called(ctx, commit, previousCommit, alert, cl, _a5, notificationId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateNotification")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) error); ok {
+		r0 = rf(ctx, commit, previousCommit, alert, cl, _a5, notificationId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewNotifier creates a new instance of Notifier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewNotifier(t interface {

@@ -138,6 +138,11 @@ func (n *ChromePerfNotifier) ExampleSend(ctx context.Context, alert *alerts.Aler
 	return nil
 }
 
+// UpdateRegressionNotification implements Transport.
+func (n *ChromePerfNotifier) UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error {
+	return nil
+}
+
 // isParamSetValid returns true if the paramsets contains all the
 // keys required by chromeperf api.
 func isParamSetValid(paramset map[string]string) bool {

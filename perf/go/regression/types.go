@@ -39,6 +39,9 @@ type Store interface {
 	// Given a list of regression IDs (only in the regression2store),
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
+
+	// GetNotificationId returns the notificationId for the regression at the given commit number for the alert.
+	GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error)
 }
 
 // FullSummary describes a single regression.

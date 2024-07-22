@@ -51,6 +51,34 @@ func (_m *Store) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regr
 	return r0, r1
 }
 
+// GetNotificationId provides a mock function with given fields: ctx, commitNumber, alertID
+func (_m *Store) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
+	ret := _m.Called(ctx, commitNumber, alertID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNotificationId")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string) (string, error)); ok {
+		return rf(ctx, commitNumber, alertID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, types.CommitNumber, string) string); ok {
+		r0 = rf(ctx, commitNumber, alertID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, types.CommitNumber, string) error); ok {
+		r1 = rf(ctx, commitNumber, alertID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRegressionsBySubName provides a mock function with given fields: ctx, sub_name, limit, offset
 func (_m *Store) GetRegressionsBySubName(ctx context.Context, sub_name string, limit int, offset int) ([]*regression.Regression, error) {
 	ret := _m.Called(ctx, sub_name, limit, offset)

@@ -63,3 +63,8 @@ func (e EmailTransport) SendRegressionMissing(ctx context.Context, threadingRefe
 	}
 	return nil
 }
+
+// UpdateRegressionNotification implements Transport.
+func (e EmailTransport) UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body, notificationId string) error {
+	return nil
+}
