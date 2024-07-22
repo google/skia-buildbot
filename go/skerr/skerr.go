@@ -22,7 +22,7 @@ func (st *StackTrace) String() string {
 // The lines returned start at the depth specified by startAt: 0 means the call to CallStack,
 // 1 means CallStack's caller, 2 means CallStack's caller's caller and so on. height means how
 // many lines to include, counting deeper into the stack, with zero meaning to include all stack
-// frames. If height is non-zero and there aren't enough stack frames, a dummy value is used
+// frames. If height is non-zero and there aren't enough stack frames, a placeholder value is used
 // instead.
 //
 // Suppose the stacktrace looks like:
@@ -37,7 +37,7 @@ func (st *StackTrace) String() string {
 //
 //	{File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
 //
-// CallStack and padding the response with a dummy value, since the stack was not tall enough to
+// CallStack and padding the response with a placeholder value, since the stack was not tall enough to
 // show 6 items, starting at the second one.
 func CallStack(height, startAt int) []StackTrace {
 	stack := []StackTrace{}
