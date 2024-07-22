@@ -70,6 +70,8 @@ class State {
   useTestPicker: boolean = false;
 
   highlight_anomalies: string[] = [];
+
+  enable_chart_tooltip: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -391,6 +393,7 @@ export class ExploreMultiSk extends ElementSk {
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
       plotSummary: this.state.plotSummary,
       highlight_anomalies: this.state.highlight_anomalies,
+      enable_chart_tooltip: this.state.enable_chart_tooltip,
     };
     explore.state = newState;
   }

@@ -110,21 +110,12 @@ export class ChartTooltipSk extends ElementSk {
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
     <div>
+      <h3>${ele.test_name}</h3>
       <ul>
-        <li>Test: ${ele.test_name}</li>
         <li>Value: <b>${ele.y_value}</b></li>
         <li>Commit Number: ${ele.commit_position}</li>
       </ul>
-      ${ele.anomalyTemplate()}
-
-      <button
-        class="action"
-        id="more_details"
-        @click=${ele.fetch_details}
-        ?hidden=${ele.commit}>
-        More details
-      </button>
-      ${ele.commitTemplate()}
+      ${ele.anomalyTemplate()} ${ele.commitTemplate()}
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       <ingest-file-links-sk
         id="tooltip-ingest-file-links"></ingest-file-links-sk>
@@ -221,11 +212,15 @@ export class ChartTooltipSk extends ElementSk {
   load(
     test_name: string,
     y_value: number,
-    commit_position: CommitNumber
+    commit_position: CommitNumber,
+    anomaly: Anomaly | null
   ): void {
     this._test_name = test_name;
     this._y_value = y_value;
     this._commit_position = commit_position;
+    if (anomaly !== null) {
+      this._anomaly = anomaly;
+    }
     this._render();
   }
 

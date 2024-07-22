@@ -1,5 +1,8 @@
+@import '../themes/themes.scss';
+
 chart-tooltip-sk {
   display: block;
+  background: var(--on-primary);
 
   div {
     width: 380px;

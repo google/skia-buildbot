@@ -24,9 +24,5 @@ describe('chart-tooltip-sk', () => {
     it('shows the default view', async () => {
       await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk');
     });
-    it('selects the more details button', async () => {
-      await testBed.page.click('#more_details');
-      await takeScreenshot(testBed.page, 'perf', 'chart-tooltip-sk');
-    });
   });
 });

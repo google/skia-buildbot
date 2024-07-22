@@ -448,7 +448,10 @@ export type ZoomRange = [number, number] | null;
 export interface PlotSimpleSkTraceEventDetails {
   x: number;
   y: number;
-
+  // DOM position of x in Pixels
+  xPos?: number;
+  // DOM position of y in Pixels
+  yPos?: number;
   // The trace id.
   name: string;
 }
@@ -1196,6 +1199,8 @@ export class PlotSimpleSk extends ElementSk {
         const detail = {
           x: closest.sx,
           y: closest.sy,
+          xPos: closest.x / this.scale,
+          yPos: closest.y / this.scale,
           name: closest.name,
         };
         if (detail.x !== this.hoverPt.x || detail.y !== this.hoverPt.y) {

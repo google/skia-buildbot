@@ -14,6 +14,9 @@ sk_demo_page_server(
 
 sk_element(
     name = "chart-tooltip-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+    ],
     sass_srcs = ["chart-tooltip-sk.scss"],
     sk_element_deps = [
         "//perf/modules/anomaly-sk",

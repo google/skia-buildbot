@@ -131,6 +131,8 @@ import {
   GetSelectionDateIndicesFromColumnHeader,
 } from '../common/plot-util';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
+import '../chart-tooltip-sk/chart-tooltip-sk';
+import { ChartTooltipSk } from '../chart-tooltip-sk/chart-tooltip-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -311,6 +313,8 @@ export class State {
   plotSummary: boolean = false;
 
   highlight_anomalies: string[] = [];
+
+  enable_chart_tooltip: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -524,6 +528,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceKeyForSummary: string = '';
 
+  chartTooltip: ChartTooltipSk | null = null;
+
   fullAnomalyMap: AnomalyMap | null = null;
 
   private useTestPicker: boolean = false;
@@ -693,6 +699,7 @@ export class ExploreSimpleSk extends ElementSk {
     </div>
 
     <div id=spin-overlay>
+      <chart-tooltip-sk id="tooltip" class="tooltipHidden"></chart-tooltip-sk>
       <plot-simple-sk
         .summary=${ele._state.summary}
         id=plot
@@ -1424,6 +1431,61 @@ export class ExploreSimpleSk extends ElementSk {
       fromKey(e.detail.name)
     );
     this.traceDetails!.textContent = formattedTrace;
+
+    if (this._state.enable_chart_tooltip) {
+      const tooltipElem = <ChartTooltipSk>document.querySelector('#tooltip');
+
+      const viewportWidth = Math.max(
+        document.documentElement.clientWidth || 0,
+        window.innerWidth || 0
+      );
+
+      const tooltipMargin = 10;
+
+      const tooltipWidth = tooltipElem.getBoundingClientRect().width;
+
+      let tooltipLeftPos = (e.detail.xPos || 0) + tooltipMargin;
+
+      // If tooltip falls beyond viewport width move it to left so that
+      // it is always visible
+      if (tooltipLeftPos + tooltipWidth > viewportWidth) {
+        tooltipLeftPos = (e.detail.xPos || 0) - tooltipWidth - tooltipMargin;
+      }
+      const tooltipRightPos = (e.detail.yPos || 0) + tooltipMargin;
+      const testName = e.detail.name;
+      const commitPosition = this._dataframe.header![e.detail.x]!.offset;
+      let anomaly = null;
+      if (
+        !(
+          this.fullAnomalyMap![testName] === null ||
+          this.fullAnomalyMap![testName] === undefined
+        )
+      ) {
+        const traceAnomalies = this.fullAnomalyMap![testName];
+
+        if (
+          !(
+            traceAnomalies![commitPosition] === null ||
+            traceAnomalies![commitPosition] === undefined
+          )
+        ) {
+          anomaly = traceAnomalies![commitPosition];
+        }
+      }
+
+      tooltipElem!.load(
+        this.traceFormatter!.formatTrace(fromKey(testName)),
+        e.detail.y,
+        commitPosition,
+        anomaly
+      );
+
+      tooltipElem?.setAttribute('class', 'tooltipDisplayed');
+      tooltipElem?.setAttribute(
+        'style',
+        `left: ${tooltipLeftPos}px; top: ${tooltipRightPos}px;`
+      );
+    }
   }
 
   /** User has zoomed in on the graph. */

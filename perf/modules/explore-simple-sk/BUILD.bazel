@@ -32,6 +32,7 @@ sk_element(
         "//perf/modules/anomaly-sk",
         "//perf/modules/plot-summary-sk",
         "//perf/modules/picker-field-sk",
+        "//perf/modules/chart-tooltip-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

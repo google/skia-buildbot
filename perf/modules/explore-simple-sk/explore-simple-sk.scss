@@ -124,6 +124,16 @@ explore-simple-sk {
   #spin-overlay {
     position: relative;
     display: block;
+
+    .tooltipHidden {
+      display: none;
+    }
+
+    .tooltipDisplayed {
+      display: block;
+      position: absolute;
+      z-index: 1;
+    }
   }
 
   #buttons,
