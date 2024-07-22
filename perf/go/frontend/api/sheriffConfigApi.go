@@ -36,7 +36,7 @@ type Pattern struct {
 }
 
 type Validation struct {
-	Patterns []Pattern `json:"pattern"`
+	Patterns []Pattern `json:"patterns"`
 	Url      string    `json:"url"`
 }
 
