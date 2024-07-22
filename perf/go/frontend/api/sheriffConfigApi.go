@@ -76,11 +76,24 @@ func (api sheriffConfigApi) getMetadataHandler(w http.ResponseWriter, r *http.Re
 }
 
 type ValidateConfigRequest struct {
+	Path    string `json:"path"`
 	Content string `json:"content"`
 }
 
+type Message struct {
+	Path     string `json:"path"`
+	Severity string `json:"severity"`
+	Text     string `json:"text"`
+}
+
+type ValidateConfigResponse struct {
+	Messages []Message `json:"messages"`
+}
+
 // validateConfigHandler will receive incoming validation requests from LUCI Config.
-// It'll return an empty object and status 200 if the validation is succesful.
+// It'll return an empty object and status 200 if the validation is succesful. If the validation
+// fails, it'll return status 200 and a formatted error message to LUCI Config.
+//
 // Example ValidateConfigRequest:
 //
 //	{
@@ -103,8 +116,18 @@ func (api sheriffConfigApi) validateConfigHandler(w http.ResponseWriter, r *http
 
 	err := sheriffconfig.ValidateContent(vcr.Content)
 	if err != nil {
-		httputils.ReportError(w, err, "Received invalid config.", http.StatusInternalServerError)
-		return
+		ret := ValidateConfigResponse{
+			Messages: []Message{
+				{
+					Path:     vcr.Path,
+					Severity: "ERROR",
+					Text:     err.Error(),
+				},
+			},
+		}
+		if err := json.NewEncoder(w).Encode(ret); err != nil {
+			sklog.Errorf("Failed to write or encode output: %s", err)
+		}
 	}
 
 }
