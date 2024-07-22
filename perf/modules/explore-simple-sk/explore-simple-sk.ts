@@ -935,7 +935,7 @@ export class ExploreSimpleSk extends ElementSk {
               <anomaly-sk id=anomaly></anomaly-sk>
             </div>
             <div>
-              <commit-range-sk></commit-range-sk>
+              <commit-range-sk id="commit-range-link"></commit-range-sk>
               <commit-detail-panel-sk id=commits selectable .hide=${
                 window.perf.hide_list_of_commits_on_explore
               }></commit-detail-panel-sk>
@@ -995,7 +995,7 @@ export class ExploreSimpleSk extends ElementSk {
       '#from-params-query-dialog'
     );
     this.helpDialog = this.querySelector('#help');
-    this.commitRangeSk = this.querySelector('commit-range-sk');
+    this.commitRangeSk = this.querySelector('#commit-range-link');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
     this.closeToastButton = this.querySelector('#hide-toast');
     this.bisectButton = this.querySelector('#bisect-button');
