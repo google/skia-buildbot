@@ -99,6 +99,9 @@ type BuildbucketClient interface {
 
 	// StartChromeBuild triggers a Chrome build.
 	StartChromeBuild(ctx context.Context, pinpointJobID, requestID, builderName, commitHash string, deps map[string]string, patches []*bpb.GerritChange) (*bpb.Build, error)
+
+	// StartBuild triggers a Buildbucket request.
+	StartBuild(ctx context.Context, req *bpb.ScheduleBuildRequest) (*bpb.Build, error)
 }
 
 // buildbucketClient is an object used to interact with a single Buildbucket instance.
@@ -453,6 +456,14 @@ func (b *buildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID,
 
 	req := b.createChromeBuildRequest(pinpointJobID, requestID, builderName, commitHash, deps, patches)
 
+	build, err := b.client.ScheduleBuild(ctx, req)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to schedule build with Buildbucket")
+	}
+	return build, nil
+}
+
+func (b *buildbucketClient) StartBuild(ctx context.Context, req *bpb.ScheduleBuildRequest) (*bpb.Build, error) {
 	build, err := b.client.ScheduleBuild(ctx, req)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to schedule build with Buildbucket")

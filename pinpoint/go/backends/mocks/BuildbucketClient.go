@@ -213,6 +213,36 @@ func (_m *BuildbucketClient) GetSingleBuild(ctx context.Context, builderName str
 	return r0, r1
 }
 
+// StartBuild provides a mock function with given fields: ctx, req
+func (_m *BuildbucketClient) StartBuild(ctx context.Context, req *buildbucketpb.ScheduleBuildRequest) (*buildbucketpb.Build, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartBuild")
+	}
+
+	var r0 *buildbucketpb.Build
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *buildbucketpb.ScheduleBuildRequest) (*buildbucketpb.Build, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *buildbucketpb.ScheduleBuildRequest) *buildbucketpb.Build); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*buildbucketpb.Build)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *buildbucketpb.ScheduleBuildRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // StartChromeBuild provides a mock function with given fields: ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches
 func (_m *BuildbucketClient) StartChromeBuild(ctx context.Context, pinpointJobID string, requestID string, builderName string, commitHash string, deps map[string]string, patches []*buildbucketpb.GerritChange) (*buildbucketpb.Build, error) {
 	ret := _m.Called(ctx, pinpointJobID, requestID, builderName, commitHash, deps, patches)
