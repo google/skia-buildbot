@@ -111,6 +111,8 @@ func updateCulpritFinderFieldsForCatapult(req *pb.ScheduleCulpritFinderRequest) 
 		req.AggregationMethod = "mean"
 	case req.Statistic != "":
 		req.AggregationMethod = req.Statistic
+	case req.AggregationMethod == "avg":
+		req.AggregationMethod = "mean"
 	}
 	return req
 }

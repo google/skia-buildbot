@@ -93,12 +93,13 @@ func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
 	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
 
 	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
-		StartGitHash:  "fake-start",
-		EndGitHash:    "fake-end",
-		Benchmark:     "speedometer3",
-		Story:         "Speedometer3",
-		Chart:         "Score",
-		Configuration: "mac-m1_mini_2020-perf",
+		StartGitHash:      "fake-start",
+		EndGitHash:        "fake-end",
+		Benchmark:         "speedometer3",
+		Story:             "Speedometer3",
+		Chart:             "Score",
+		Configuration:     "mac-m1_mini_2020-perf",
+		AggregationMethod: "avg", // technically should use mean, but catapult will use avg
 	})
 	assert.Equal(t, fakeID, resp.JobId)
 	assert.NoError(t, err)
