@@ -85,6 +85,36 @@ func TestFindBuild_ValidReq_BuildNotFound(t *testing.T) {
 	require.NoError(t, err)
 
 	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", DefaultBucket, "random_hash", mock.Anything, mock.Anything).Return(nil, nil)
+	mockClient.On("GetBuildFromWaterfall", testutils.AnyContext, "Linux Builder Perf", "random_hash").Return(nil, nil)
+
+	resp, err := client.FindBuild(ctx, req)
+	assert.Nil(t, resp.Response)
+	assert.Nil(t, err)
+}
+
+func TestFindBuild_ValidReqWithPatch_BuildNotFound(t *testing.T) {
+	ctx := context.Background()
+	device := "linux-perf"
+	params := workflows.BuildParams{
+		Device: device,
+		Commit: common.NewCombinedCommit(common.NewChromiumCommit("random_hash")),
+		Patch: []*buildbucketpb.GerritChange{
+			{
+				Host:     "chromium-review.googlesource.com",
+				Change:   1318136,
+				Patchset: 1,
+			},
+		},
+	}
+
+	mockClient := &mocks.BuildbucketClient{}
+	client := &buildChromeClient{
+		BuildbucketClient: mockClient,
+	}
+	req, err := client.CreateFindBuildRequest(params)
+	require.NoError(t, err)
+
+	mockClient.On("GetSingleBuild", testutils.AnyContext, "Linux Builder Perf", DefaultBucket, "random_hash", mock.Anything, mock.Anything).Return(nil, nil)
 
 	resp, err := client.FindBuild(ctx, req)
 	assert.Nil(t, resp.Response)

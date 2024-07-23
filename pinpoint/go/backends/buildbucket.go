@@ -17,6 +17,7 @@ import (
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -278,6 +279,7 @@ func (b *buildbucketClient) GetBuildFromWaterfall(ctx context.Context, builderNa
 	if !ok {
 		return nil, skerr.Fmt("%s has no supported CI waterfall builder.", builderName)
 	}
+	sklog.Debugf("FindBuild: searching for a build from waterfall builder waterfall builder %s", mirror)
 
 	builds, err := b.getBuilds(ctx, mirror, WaterfallBucket, commit, nil)
 	if err != nil {

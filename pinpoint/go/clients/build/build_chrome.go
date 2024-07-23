@@ -90,9 +90,41 @@ func (b *buildChromeClient) FindBuild(ctx context.Context, req *FindBuildRequest
 		return nil, skerr.Wrapf(err, "Failed to search for Chrome build")
 	}
 
-	// Not found, terminate early.
+	if build != nil {
+		return &FindBuildResponse{
+			BuildID:  build.Id,
+			Response: build,
+		}, nil
+	}
+
+	// Do not check waterfall if there are gerrit patches or DEPS rolls.
+	// Waterfall continuously builds commits along chromium/src and does not build
+	// commits in other repos (i.e. DEPS) or user submitted gerrit patches.
+	// If we checked the waterfall pool, we would find builds in chromium/src without
+	// DEPS or the gerrit patch, finding the wrong build.
+	if (findReq.Deps != nil && len(findReq.Deps) > 0) || (findReq.Patches != nil && len(findReq.Patches) > 0) {
+		return &FindBuildResponse{
+			Response: nil,
+		}, nil
+	}
+
+	// For Chrome, search waterfall for build if there is an appropriate waterfall builder,
+	// no gerrit patches, and no DEPS rolls.
+	// Waterfall only builds chromium/src commits.
+	// We search waterfall after Pinpoint, because waterfall builders
+	// lag behind main. A user could try to request a build via Pinpoint before
+	// waterfall has the chance to build the same commit.
+	build, err = b.BuildbucketClient.GetBuildFromWaterfall(ctx, builder.Builder, findReq.Commit)
+	if err != nil {
+		return &FindBuildResponse{
+			Response: nil,
+		}, skerr.Wrapf(err, "Failed to find build with CI equivalent.")
+	}
+	// No matching waterfall build found.
 	if build == nil {
-		return &FindBuildResponse{}, nil
+		return &FindBuildResponse{
+			Response: nil,
+		}, nil
 	}
 
 	return &FindBuildResponse{

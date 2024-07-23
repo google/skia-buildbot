@@ -23,6 +23,7 @@ go_library(
         "//go/issuetracker/v1:issuetracker",
         "//go/secret",
         "//go/skerr",
+        "//go/sklog",
         "//go/swarming/v2:swarming",
         "//pinpoint/go/bot_configs",
         "//pinpoint/proto/v1:proto",
