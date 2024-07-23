@@ -62,7 +62,7 @@ var (
 		regexp.MustCompile(".*PathKit.*"),
 	}
 
-	jobsJSONReplaceRegex    = regexp.MustCompile(`(?m)\{\n    "name": "(\S+)",\n    "cq_config": null\n  }`)
+	jobsJSONReplaceRegex    = regexp.MustCompile(`(?m)\{\n\s*"name":\s*"(\S+)",\n\s*"cq_config":\s*null\n\s*}`)
 	jobsJSONReplaceContents = []byte(`{"name": "$1"}`)
 
 	// newGitilesVFS can be overridden for testing.
@@ -432,7 +432,37 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var jobs []struct {
+	newJobsContents, err := updateJobsJSON(oldJobsContents)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	jobsJSONFilePath := filepath.Join(co.Dir(), jobsJSONFile)
+	if err := os.WriteFile(filepath.Join(co.Dir(), jobsJSONFilePath), newJobsContents, os.ModePerm); err != nil {
+		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFilePath)
+	}
+
+	// Regenerate tasks.json.
+	if _, err := exec.RunCwd(ctx, co.Dir(), "go", "run", "./infra/bots/gen_tasks.go"); err != nil {
+		return nil, skerr.Wrapf(err, "failed to regenerate tasks.json")
+	}
+
+	// Create the Gerrit CL.
+	commitMsg := fmt.Sprintf("Filter unsupported CQ try jobs on %s", newBranch)
+	repoSplit := strings.Split(repo.URL(), "/")
+	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
+	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, reviewers, co)
+	if err == gerrit.ErrEmptyChange && allowEmptyCLs {
+		ci, err = g.CreateChange(ctx, project, newBranch, commitMsg, "", "")
+	}
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	fmt.Printf("Uploaded change %s\n", g.Url(ci.Issue))
+	return ci, nil
+}
+
+func updateJobsJSON(oldJobsContents []byte) ([]byte, error) {
+	var jobs []*struct {
 		Name     string                      `json:"name"`
 		CqConfig *specs.CommitQueueJobConfig `json:"cq_config"`
 	}
@@ -457,29 +487,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 	// to also omit `"cq_config": {}` which indicates that a job *should* be on
 	// the CQ. Also attempt to match the whitespace of the original files, to
 	// help prevent conflicts during cherry-picks.
-	newJobsContents = jobsJSONReplaceRegex.ReplaceAll(newJobsContents, jobsJSONReplaceContents)
-	if err := os.WriteFile(filepath.Join(co.Dir(), jobsJSONFile), newJobsContents, os.ModePerm); err != nil {
-		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFile)
-	}
-
-	// Regenerate tasks.json.
-	if _, err := exec.RunCwd(ctx, co.Dir(), "go", "run", "./infra/bots/gen_tasks.go"); err != nil {
-		return nil, skerr.Wrapf(err, "failed to regenerate tasks.json")
-	}
-
-	// Create the Gerrit CL.
-	commitMsg := fmt.Sprintf("Filter unsupported CQ try jobs on %s", newBranch)
-	repoSplit := strings.Split(repo.URL(), "/")
-	project := strings.TrimSuffix(repoSplit[len(repoSplit)-1], ".git")
-	ci, err := gerrit.CreateCLFromLocalDiffs(ctx, g, project, newBranch, commitMsg, reviewers, co)
-	if err == gerrit.ErrEmptyChange && allowEmptyCLs {
-		ci, err = g.CreateChange(ctx, project, newBranch, commitMsg, "", "")
-	}
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	fmt.Println(fmt.Sprintf("Uploaded change %s", g.Url(ci.Issue)))
-	return ci, nil
+	return jobsJSONReplaceRegex.ReplaceAll(newJobsContents, jobsJSONReplaceContents), nil
 }
 
 func removeCQ(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.Repo, oldBranch string, reviewers []string) error {
