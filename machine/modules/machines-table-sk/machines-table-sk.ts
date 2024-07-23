@@ -84,6 +84,7 @@ const attachedDeviceDisplayName: Record<string, AttachedDevice> = {
   '-': 'nodevice',
   Android: 'adb',
   iOS: 'ios',
+  pyocd: 'pyocd',
   SSH: 'ssh',
 };
 
