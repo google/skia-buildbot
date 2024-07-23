@@ -9,7 +9,7 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/pinpoint/go/build_chrome"
+	"go.skia.org/infra/pinpoint/go/clients/build"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
@@ -80,37 +80,65 @@ func BuildChrome(ctx workflow.Context, params workflows.BuildParams) (*workflows
 func (bca *BuildChromeActivity) SearchOrBuildActivity(ctx context.Context, params workflows.BuildParams) (int64, error) {
 	logger := activity.GetLogger(ctx)
 
-	bc, err := build_chrome.New(ctx)
+	buildClient, err := build.NewBuildClient(ctx, "chrome")
 	if err != nil {
-		logger.Error("Failed to new build_chrome:", err)
-		return 0, err
+		logger.Error("Failed to instantiate build client: ", err)
+		return 0, skerr.Wrapf(err, "failed to instantiate a build client")
 	}
 
 	activity.RecordHeartbeat(ctx, "kicking off the build.")
-	buildID, err := bc.SearchOrBuild(ctx, params.WorkflowID, params.Commit.GetMainGitHash(), params.Device, params.Commit.DepsToMap(), params.Patch)
+	findReq, err := buildClient.CreateFindBuildRequest(params)
 	if err != nil {
-		logger.Error("Failed to build chrome:", err)
-		return 0, err
+		logger.Error("Failed to create find build request: ", err)
+		return -1, skerr.Wrapf(err, "failed to create find build request")
 	}
-	return buildID, nil
+
+	logger.Debug("Request for finding a build: ", findReq)
+	findResp, err := buildClient.FindBuild(ctx, findReq)
+	if err != nil {
+		logger.Error("Failed to search for an existing Chrome build: ", err)
+		return -1, skerr.Wrapf(err, "failed to search for an exsting build")
+	}
+
+	if findResp.BuildID != 0 {
+		return findResp.BuildID, nil
+	}
+
+	// Not found, trigger a new build
+	buildReq, err := buildClient.CreateStartBuildRequest(params)
+	if err != nil {
+		logger.Error("Failed to generate build request for Chrome: ", err)
+		return -1, skerr.Wrapf(err, "failed to generate build request")
+	}
+
+	logger.Debug("Request for a new build: ", buildReq)
+	buildResp, err := buildClient.StartBuild(ctx, buildReq)
+	if err != nil {
+		logger.Error("Failed to start new build for Chrome: ", err)
+		return -1, skerr.Wrapf(err, "failed to start new build")
+	}
+
+	logger.Info("New build started for Chrome. Buildbucket response: ", buildResp.Response.(*buildbucketpb.Build))
+	return buildResp.Response.(*buildbucketpb.Build).Id, nil
 }
 
 // WaitBuildCompletionActivity wraps BuildChromeClient.GetStatus and waits until it is completed or errors.
 func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context, buildID int64) (buildbucketpb.Status, error) {
 	logger := activity.GetLogger(ctx)
 
-	bc, err := build_chrome.New(ctx)
+	buildClient, err := build.NewBuildClient(ctx, "chrome")
 	if err != nil {
-		logger.Error("Failed to new build_chrome:", err)
+		logger.Error("Failed to instantiate build client: ", err)
 		return buildbucketpb.Status_STATUS_UNSPECIFIED, err
 	}
+
 	failureRetries := 10
 	for {
 		select {
 		case <-ctx.Done():
 			return buildbucketpb.Status_STATUS_UNSPECIFIED, ctx.Err()
 		default:
-			status, err := bc.GetStatus(ctx, buildID)
+			status, err := buildClient.GetStatus(ctx, buildID)
 			if err != nil {
 				logger.Error("Failed to get build status:", err, "remaining retries:", failureRetries)
 				failureRetries -= 1
@@ -127,23 +155,29 @@ func (bca *BuildChromeActivity) WaitBuildCompletionActivity(ctx context.Context,
 	}
 }
 
-// RetrieveCASActivity wraps BuildChromeClient.RetrieveCAS and gets build artifacts in CAS.
+// RetrieveCASActivity gets build artifacts in CAS.
 func (bca *BuildChromeActivity) RetrieveCASActivity(ctx context.Context, buildID int64, target string) (*apipb.CASReference, error) {
 	logger := activity.GetLogger(ctx)
 
-	bc, err := build_chrome.New(ctx)
+	buildClient, err := build.NewBuildClient(ctx, "chrome")
 	if err != nil {
-		logger.Error("Failed to new build_chrome:", err)
+		logger.Error("Failed to instantiate build client: ", err)
 		return nil, err
 	}
 
 	activity.RecordHeartbeat(ctx, fmt.Sprintf("start retrieving CAS for: (%v, %v)", buildID, target))
-	cas, err := bc.RetrieveCAS(ctx, buildID, target)
+
+	getArtifactReq := &build.GetBuildArtifactRequest{
+		BuildID: buildID,
+		Target:  target,
+	}
+	resp, err := buildClient.GetBuildArtifact(ctx, getArtifactReq)
 	if err != nil {
-		logger.Error("Failed to retrieve CAS:", err)
+		logger.Error("Failed to fetch build artifacts: ", err)
 		return nil, err
 	}
-	return cas, nil
+
+	return resp.Response.(*apipb.CASReference), nil
 }
 
 // CleanupBuildActivity wraps BuildChromeClient.CancelBuild
@@ -153,17 +187,18 @@ func (bca *BuildChromeActivity) CleanupBuildActivity(ctx context.Context, buildI
 	}
 
 	logger := activity.GetLogger(ctx)
-	bc, err := build_chrome.New(ctx)
+
+	buildClient, err := build.NewBuildClient(ctx, "chrome")
 	if err != nil {
-		logger.Error("Failed to new build_chrome:", err)
+		logger.Error("Failed to instantiate build client: ", err)
 		return err
 	}
 
 	activity.RecordHeartbeat(ctx, "cancelling the build.")
-	err = bc.CancelBuild(ctx, buildID, "Pinpoint job cancelled")
-	if err != nil {
-		logger.Error("Failed to cancel build:", err)
-		return err
+
+	cancelReq := &build.CancelBuildRequest{
+		BuildID: buildID,
+		Reason:  "Pinpoint job cancelled",
 	}
-	return nil
+	return buildClient.CancelBuild(ctx, cancelReq)
 }

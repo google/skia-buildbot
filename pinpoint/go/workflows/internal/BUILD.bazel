@@ -27,7 +27,7 @@ go_library(
         "//go/sklog",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
-        "//pinpoint/go/build_chrome",
+        "//pinpoint/go/clients/build",
         "//pinpoint/go/common",
         "//pinpoint/go/compare",
         "//pinpoint/go/midpoint",
