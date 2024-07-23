@@ -438,7 +438,7 @@ func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Clien
 
 	sklog.Info("Running regenerate_internal_cts_html.py...")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Name: "vpython",
+		Name: "vpython3",
 		Args: []string{filepath.Join("third_party", "webgpu-cts", "scripts", "regenerate_internal_cts_html.py")},
 		Dir:  parentRepoDir,
 		Env:  env,
