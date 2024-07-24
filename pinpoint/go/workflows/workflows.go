@@ -52,6 +52,11 @@ type BuildParams struct {
 	Target string
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
+	// Project is the project the Build workflow is being run for.
+	// For example, Chromium and V8 would be under project "chromium" and create
+	// a Chrome binary. AndroidX would have project "androidx" and generate
+	// Android X modules.
+	Project string
 }
 
 // Build stores the build from Buildbucket.

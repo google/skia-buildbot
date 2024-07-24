@@ -112,6 +112,7 @@ func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *com
 		Device:     bot,
 		Target:     t,
 		Commit:     commit,
+		Project:    "chromium",
 	}).Get(ctx, &b); err != nil {
 		return nil, skerr.Wrap(err)
 	}

@@ -54,9 +54,9 @@ func main() {
 
 	w := worker.New(c, *taskQueue, worker.Options{})
 
-	bca := &internal.BuildChromeActivity{}
+	bca := &internal.BuildActivity{}
 	w.RegisterActivity(bca)
-	w.RegisterWorkflowWithOptions(internal.BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	w.RegisterWorkflowWithOptions(internal.BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
 
 	rba := &internal.RunBenchmarkActivity{}
 	w.RegisterActivity(rba)

@@ -330,12 +330,14 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 		Device:     p.BotConfig,
 		Target:     target,
 		Commit:     p.LeftCommit,
+		Project:    "chromium",
 	}
 	rightBuildChromeParams := workflows.BuildParams{
 		WorkflowID: p.PinpointJobID,
 		Device:     p.BotConfig,
 		Target:     target,
 		Commit:     p.RightCommit,
+		Project:    "chromium",
 	}
 	leftBuild := &workflows.Build{
 		BuildParams: workflows.BuildParams{
@@ -359,7 +361,7 @@ func TestPairwiseCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.RegisterWorkflowWithOptions(BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
 	env.RegisterWorkflowWithOptions(RunBenchmarkPairwiseWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmarkPairwise})
 
 	env.OnWorkflow(workflows.BuildChrome, mock.Anything, leftBuildChromeParams).Return(leftBuild, nil).Once()

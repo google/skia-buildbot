@@ -12,6 +12,10 @@ import (
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 )
 
+type BuildClientKey struct{}
+
+var BuildClientContextKey = &BuildClientKey{}
+
 // BuildClient is the interface for all build clients to implement.
 type BuildClient interface {
 	// CreateFindBuildRequest returns a request for FindBuild.

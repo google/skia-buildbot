@@ -16,17 +16,17 @@ func Test_BuildChrome_ShouldReturnBuild(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	var bca *BuildChromeActivity
+	var bca *BuildActivity
 	const fakeBuildID = int64(1234)
 	cas := &apipb.CASReference{
 		CasInstance: "fake-instance",
 	}
 
 	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything).Return(fakeBuildID, nil).Once()
-	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID).Return(buildbucketpb.Status_SUCCESS, nil).Once()
-	env.OnActivity(bca.RetrieveCASActivity, mock.Anything, mock.Anything, mock.Anything).Return(cas, nil).Once()
+	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_SUCCESS, nil).Once()
+	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(cas, nil).Once()
 
-	env.ExecuteWorkflow(BuildChrome, workflows.BuildParams{})
+	env.ExecuteWorkflow(BuildWorkflow, workflows.BuildParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
@@ -44,14 +44,14 @@ func Test_BuildChrome_ShouldPopulateBuildError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	var bca *BuildChromeActivity
+	var bca *BuildActivity
 	const fakeBuildID = int64(1234)
 
 	env.OnActivity(bca.SearchOrBuildActivity, mock.Anything, mock.Anything).Return(fakeBuildID, nil)
-	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID).Return(buildbucketpb.Status_FAILURE, nil).Once()
-	env.OnActivity(bca.RetrieveCASActivity, mock.Anything, mock.Anything, mock.Anything).Never()
+	env.OnActivity(bca.WaitBuildCompletionActivity, mock.Anything, fakeBuildID, mock.Anything).Return(buildbucketpb.Status_FAILURE, nil).Once()
+	env.OnActivity(bca.RetrieveBuildArtifactActivity, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Never()
 
-	env.ExecuteWorkflow(BuildChrome, workflows.BuildParams{})
+	env.ExecuteWorkflow(BuildWorkflow, workflows.BuildParams{})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())

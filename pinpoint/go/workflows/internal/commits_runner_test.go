@@ -57,7 +57,7 @@ func TestSingleCommitRunner_GivenValidInput_ShouldReturnValues(t *testing.T) {
 	fakeChartValues := []float64{1, 2, 3, 4}
 	trs, rc := generateTestRuns(chart, iterations, fakeChartValues)
 
-	env.RegisterWorkflowWithOptions(BuildChrome, workflow.RegisterOptions{Name: workflows.BuildChrome})
+	env.RegisterWorkflowWithOptions(BuildWorkflow, workflow.RegisterOptions{Name: workflows.BuildChrome})
 	env.RegisterWorkflowWithOptions(RunBenchmarkWorkflow, workflow.RegisterOptions{Name: workflows.RunBenchmark})
 
 	env.OnWorkflow(workflows.BuildChrome, mock.Anything, mock.Anything).Return(b, nil).Once()
