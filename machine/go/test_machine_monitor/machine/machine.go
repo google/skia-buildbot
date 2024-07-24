@@ -245,8 +245,10 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 			sklog.Infof("Successful communication with PyOCD device: %#v", pd)
 			ret.PyOCD = pd
 		}
+	case "":
+		break
 	default:
-		sklog.Errorf("Unhandled type of machine.AttachedDevice: %s", m.description.AttachedDevice)
+		sklog.Errorf("Unhandled type of machine.AttachedDevice: %q", m.description.AttachedDevice)
 	}
 
 	ret.ForcedQuarantine = m.checkForForcedQuarantine()
@@ -502,7 +504,7 @@ func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, e
 	return ret, nil
 }
 
-// tryInterrogatingIOSDevice attempts to communicate with an attached PyOCD device.
+// tryInterrogatingPyOCDDevice attempts to communicate with an attached PyOCD device.
 // If there is such a device, this function returns nil and the information gathered. If
 // there is not a device attached, it returns an error, and the other return value is undefined.
 // If multiple devices are attached, an arbitrary one is chosen.
