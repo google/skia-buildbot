@@ -5,12 +5,10 @@ package pyocd
 import (
 	"context"
 	"os"
-	"strings"
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/machine/go/common"
 )
 
 type PyOCD interface {
@@ -54,24 +52,10 @@ func (p pyocdImpl) DeviceType(ctx context.Context) (string, error) {
 	if p.deviceType == "" {
 		return "", skerr.Fmt("Empty device type configured")
 	}
-	output, err := common.TrimmedCommandOutput(ctx, "python3", "-m", "pyocd", "list", "--color=never")
-	if err != nil {
-		return "", skerr.Wrapf(err, "Failed to get pyocd device type. Output was '%s'", output)
-	}
-	output = strings.TrimSpace(output)
-	if len(output) == 0 {
-		return "", skerr.Fmt("Empty output on call to pyocd list")
-	}
-	// Count how many lines there are. We should expect at least 3 if a device is attached:
-	//  header
-	// ---------
-	// device 0
-	lines := strings.Split(output, "\n")
-	if len(lines) >= 3 {
-		return p.deviceType, nil
-	}
-
-	return "", skerr.Fmt("No device attached but %q was expected to be:\n%s", p.deviceType, output)
+	// We do not use pyocd to actually check for the device because, the way
+	// tests currently run, we shut off the device after every task to keep
+	// it from going awry.
+	return p.deviceType, nil
 }
 
 var _ PyOCD = pyocdImpl{}

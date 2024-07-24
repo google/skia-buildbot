@@ -9,7 +9,6 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sklog",
-        "//machine/go/common",
         "@com_github_flynn_json5//:json5",
     ],
 )
@@ -19,7 +18,6 @@ go_test(
     srcs = ["pyocd_test.go"],
     embed = [":pyocd"],
     deps = [
-        "//go/executil",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

@@ -349,9 +349,7 @@ func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t 
 }
 
 func TestInterrogate_EVKDeviceAttached_Success(t *testing.T) {
-	ctx := executil.FakeTestsContext(
-		"Test_FakeExe_PyOCDList_PrintsSTM32U5String",
-	)
+	ctx := context.Background()
 
 	m := &Machine{
 		pyocd:     pyocd.WithHardcodedMachine("STM32U5"),
@@ -913,16 +911,6 @@ func Test_FakeExe_SSHReboot_Success(t *testing.T) {
 	require.Contains(t, args, "reboot")
 
 	// Force exit so we don't get PASS in the output.
-	os.Exit(0)
-}
-
-func Test_FakeExe_PyOCDList_PrintsSTM32U5String(t *testing.T) {
-	if !executil.IsCallingFakeCommand() {
-		return
-	}
-	_, _ = fmt.Println(`  #   Probe/Board   Unique ID                  Target
--------------------------------------------------------
-  0   STLINK-V3     002E00183033510435393935   n/a`)
 	os.Exit(0)
 }
 
