@@ -52,6 +52,8 @@ func Test_LoadPerfResults_NoChildRuns(t *testing.T) {
 	assert.Empty(t, pf)
 	assert.EqualValues(t, bi, BuildInfo{
 		SwarmingInstance: "chrome-swarming.appspot.com",
+		BuilderName:      "android-pixel2-processor-perf",
+		MachineGroup:     "ChromiumPerf",
 		TaskID:           "692473e4c9b8d410",
 		Revision:         "c845ea1817639802e52815b0a401391ea5d72282",
 		CommitPosisition: "refs/heads/main@{#1291128}",
@@ -72,6 +74,8 @@ func Test_LoadPerfResults_ValidFullResults(t *testing.T) {
 	assert.Len(t, pf["speedometer3"].GetSampleValues("TodoMVC-Vue"), 40)
 	assert.EqualValues(t, bi, BuildInfo{
 		SwarmingInstance: "chrome-swarming.appspot.com",
+		BuilderName:      "mac-m1_mini_2020-perf-pgo",
+		MachineGroup:     "ChromiumPerfPGO",
 		TaskID:           "6922258402e54910",
 		Revision:         "958d24898d18c3fcd3cefdb7c994b39672261813",
 		CommitPosisition: "refs/heads/main@{#1291040}",
