@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/redis",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache/redis",
         "//go/sklog",
         "//perf/go/config",
         "//perf/go/tracestore",

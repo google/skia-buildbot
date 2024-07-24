@@ -19,21 +19,35 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/config"
 )
 
 // Format for the redis instance name in GCP.
 const redisInstanceNameFormat = "projects/%s/locations/%s/instances/%s"
 
+// RedisConfig contains properties of a redis instance.
+type RedisConfig struct {
+	// The GCP Project of the Redis instance
+	Project string `json:"project,omitempty"`
+
+	// The Zone (Region) of the Redis instance.
+	Zone string `json:"zone,omitempty"`
+
+	// The name of the Redis instance.
+	Instance string `json:"instance,omitempty"`
+
+	// Cache expiration for the given keys.
+	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty"`
+}
+
 // redisCache implements RedisWrapper
 type redisCache struct {
 	gcpClient   *gcp_redis.CloudRedisClient
-	config      *config.RedisConfig
+	config      *RedisConfig
 	redisClient *redis.Client
 }
 
 // NewRedisCache returns an initialized RedisCache
-func NewRedisCache(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, config *config.RedisConfig) (*redisCache, error) {
+func NewRedisCache(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, config *RedisConfig) (*redisCache, error) {
 	r := &redisCache{
 		gcpClient: gcpClient,
 		config:    config,

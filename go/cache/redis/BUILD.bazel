@@ -8,7 +8,6 @@ go_library(
     deps = [
         "//go/cache",
         "//go/sklog",
-        "//perf/go/config",
         "@com_github_redis_go_redis_v9//:go-redis",
         "@com_google_cloud_go_redis//apiv1",
         "@com_google_cloud_go_redis//apiv1/redispb",

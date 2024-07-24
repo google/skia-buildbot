@@ -32,6 +32,7 @@ go_test(
     deps = [
         "//go/cache/local",
         "//go/cache/mock",
+        "//go/cache/redis",
         "//go/paramtools",
         "//go/query",
         "//go/testutils",

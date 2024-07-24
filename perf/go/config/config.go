@@ -8,6 +8,7 @@ import (
 
 	iSchema "github.com/invopop/jsonschema"
 	cli "github.com/urfave/cli/v2"
+	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/notifytypes"
 )
@@ -798,21 +799,6 @@ type Favorites struct {
 	Sections []FavoritesSectionConfig `json:"sections"`
 }
 
-// RedisConfig contains properties of a redis instance.
-type RedisConfig struct {
-	// The GCP Project of the Redis instance
-	Project string `json:"project,omitempty"`
-
-	// The Zone (Region) of the Redis instance.
-	Zone string `json:"zone,omitempty"`
-
-	// The name of the Redis instance.
-	Instance string `json:"instance,omitempty"`
-
-	// Cache expiration for the given keys.
-	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty"`
-}
-
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
 	// IncludedParams defines the params that should be displayed in the query dialog.
@@ -831,7 +817,7 @@ type QueryConfig struct {
 	CacheConfig QueryCacheConfig `json:"cache_config,omitempty"`
 
 	// RedisConfig defines the Redis properties used to find the Redis instance.
-	RedisConfig RedisConfig `json:"redis_config,omitempty"`
+	RedisConfig redis.RedisConfig `json:"redis_config,omitempty"`
 }
 
 type CacheType string

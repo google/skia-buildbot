@@ -7,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/config",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache/redis",
         "//go/skerr",
         "//perf/go/notifytypes",
         "@com_github_invopop_jsonschema//:jsonschema",

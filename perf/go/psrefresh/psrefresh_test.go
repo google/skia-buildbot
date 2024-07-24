@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
@@ -18,7 +19,7 @@ import (
 var (
 	errMyMockError = errors.New("my mock error")
 	qConfig        = config.QueryConfig{
-		RedisConfig: config.RedisConfig{},
+		RedisConfig: redis.RedisConfig{},
 	}
 )
 

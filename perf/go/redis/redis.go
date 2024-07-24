@@ -18,6 +18,7 @@ import (
 	gcp_redis "cloud.google.com/go/redis/apiv1"
 	rpb "cloud.google.com/go/redis/apiv1/redispb"
 	"github.com/redis/go-redis/v9"
+	redis_client "go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -49,7 +50,7 @@ func NewRedisClient(ctx context.Context, gcpClient *gcp_redis.CloudRedisClient, 
 }
 
 // Start a routine to periodically access the Redis instance.
-func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod time.Duration, config *config.RedisConfig) {
+func (r *RedisClient) StartRefreshRoutine(ctx context.Context, refreshPeriod time.Duration, config *redis_client.RedisConfig) {
 	project := config.Project
 	zone := config.Zone
 	if project == "" || zone == "" {
