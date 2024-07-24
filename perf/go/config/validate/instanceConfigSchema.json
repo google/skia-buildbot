@@ -302,6 +302,9 @@
         "query_config": {
           "$ref": "#/$defs/QueryConfig"
         },
+        "enable_sheriff_config": {
+          "type": "boolean"
+        },
         "ga_measurement_id": {
           "type": "string"
         }

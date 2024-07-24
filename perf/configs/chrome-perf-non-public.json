@@ -83,6 +83,7 @@
             "cache_expiration_minutes": 300
         }
     },
+    "enable_sheriff_config": true,
     "help_url_override": "http://go/chrome-perf-user-doc",
     "trace_format": "chrome",
     "need_alert_action": true

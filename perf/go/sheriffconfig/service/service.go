@@ -6,9 +6,11 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/luciconfig"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	pb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
 	"go.skia.org/infra/perf/go/sheriffconfig/validate"
@@ -292,4 +294,21 @@ func getSeverityFromProto(sev pb.Subscription_Severity) int32 {
 		return defaultBugSeverity
 	}
 	return int32(sev) - 1
+}
+
+func (s *sheriffconfigService) StartImportRoutine(period time.Duration) {
+	go func() {
+		for range time.Tick(period) {
+			s.ImportSheriffConfigOnce()
+		}
+	}()
+}
+
+func (s *sheriffconfigService) ImportSheriffConfigOnce() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	sklog.Infof("Importing sheriff configs.")
+	if err := s.ImportSheriffConfig(ctx, "skia-sheriff-configs.cfg"); err != nil {
+		sklog.Errorf("Failed to import configs: %s", err)
+	}
 }

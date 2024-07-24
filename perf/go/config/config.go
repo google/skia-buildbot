@@ -922,6 +922,8 @@ type InstanceConfig struct {
 	AnomalyConfig       AnomalyConfig       `json:"anomaly_config,omitempty"`
 	QueryConfig         QueryConfig         `json:"query_config,omitempty"`
 
+	EnableSheriffConfig bool `json:"enable_sheriff_config,omitempty"`
+
 	// Measurement ID to use when tracking user metrics with Google Analytics.
 	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`
 }

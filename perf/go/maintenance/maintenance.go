@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"go.skia.org/infra/go/luciconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression/migration"
+	sheriffconfig "go.skia.org/infra/perf/go/sheriffconfig/service"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/tracing"
 )
@@ -22,6 +24,9 @@ const (
 
 	// How often to migrate a batch of regressions to the new table.
 	regressionMigratePeriod = time.Minute
+
+	// How often to poll LUCI Config for new config changes.
+	configImportPeriod = time.Minute * 10
 
 	// Size of the batch of regressions to migrate.
 	regressionMigrationBatchSize = 50
@@ -63,6 +68,26 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
 		}
 		migrator.RunPeriodicMigration(regressionMigratePeriod, regressionMigrationBatchSize)
+	}
+
+	if instanceConfig.EnableSheriffConfig {
+		alertStore, err := builders.NewAlertStoreFromConfig(ctx, flags.Local, instanceConfig)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to build AlertStore.")
+		}
+		subscriptionStore, err := builders.NewSubscriptionStoreFromConfig(ctx, instanceConfig)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to build SubscriptionStore.")
+		}
+		luciConfig, err := luciconfig.NewApiClient(ctx)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to build LUCI Config client.")
+		}
+		sheriffConfig, err := sheriffconfig.New(ctx, subscriptionStore, alertStore, luciConfig)
+		if err != nil {
+			return skerr.Wrapf(err, "Error starting sheriff config service.")
+		}
+		sheriffConfig.StartImportRoutine(configImportPeriod)
 	}
 
 	if flags.RefreshQueryCache {
