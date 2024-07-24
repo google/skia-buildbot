@@ -27,9 +27,6 @@ export const lowPowerLottieProfileSchema =
                 "$ref": "#/$defs/features/layers/properties/no-effects"
               },
               {
-                "$ref": "#/$defs/features/layers/properties/no-time-remap"
-              },
-              {
                 "$ref": "#/$defs/features/layers/properties/no-animated-masks"
               },
               {
@@ -312,22 +309,6 @@ export const lowPowerLottieProfileSchema =
             "type": "object",
             "properties": {
               "sy": false
-            }
-          },
-          "no-time-stretch": {
-            "feature-code": "property-time-stretch",
-            "type": "object",
-            "properties": {
-              "sr": {
-                "const": 1
-              }
-            }
-          },
-          "no-time-remap": {
-            "feature-code": "property-timeremap",
-            "type": "object",
-            "properties": {
-              "tm": false
             }
           },
           "no-effects": {
