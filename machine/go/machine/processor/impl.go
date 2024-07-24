@@ -294,6 +294,7 @@ func processPyOCDEvent(ctx context.Context, previous machine.Description, event 
 	ret := previous.Copy()
 	ret.Battery = 0
 	ret.Temperature = nil
+	ret.Recovering = ""
 
 	ret.Dimensions[machine.DimID] = []string{event.Host.Name}
 	ret.Dimensions[machine.DimDeviceType] = []string{event.PyOCD.DeviceType}
