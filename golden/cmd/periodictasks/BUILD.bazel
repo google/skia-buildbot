@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//go/auth",
+        "//go/cache/redis",
         "//go/common",
         "//go/gcs",
         "//go/gcs/gcsclient",
@@ -19,6 +20,7 @@ go_library(
         "//go/sklog",
         "//go/sql/sqlutil",
         "//go/util",
+        "//golden/cmd/periodictasks/cachepopulation",
         "//golden/go/code_review",
         "//golden/go/code_review/commenter",
         "//golden/go/code_review/gerrit_crs",
@@ -35,6 +37,7 @@ go_library(
         "@com_github_jackc_pgtype//:pgtype",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_google_cloud_go_redis//apiv1",
         "@com_google_cloud_go_storage//:storage",
         "@io_opencensus_go//trace",
         "@org_golang_x_oauth2//:oauth2",

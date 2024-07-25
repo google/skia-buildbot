@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -68,6 +69,22 @@ type Common struct {
 	// GroupingParamKeysByCorpus is a map from corpus name to the list of keys that comprise the
 	// corpus' grouping.
 	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
+
+	// SearchCacheConfig contains the configurations for the search cache.
+	SearchCacheConfig SearchCacheConfig `json:"search_cache_config" optional:"true"`
+
+	// RedisConfig provides configuration for redis instance to be used for caching.
+	RedisConfig redis.RedisConfig `json:"redis_config" optional:"true"`
+}
+
+// SearchCacheConfig represents the configuration for populating the search cache.
+type SearchCacheConfig struct {
+	// DefaultPageCacheKey is the cache key used for the results of the default search page.
+	DefaultPageCacheKey string `json:"default_page_key" optional:"true"`
+
+	// Corpora defines the list of corpus values that should be provided in the search query
+	// for populating the cache.
+	Corpora []string `json:"corpora" optional:"true"`
 }
 
 // CodeReviewSystem represents the details needed to interact with a CodeReviewSystem (e.g.
