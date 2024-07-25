@@ -6,6 +6,7 @@ go_library(
     srcs = ["shortcut.go"],
     importpath = "go.skia.org/infra/perf/go/shortcut",
     visibility = ["//visibility:public"],
+    deps = ["@com_github_jackc_pgx_v4//:pgx"],
 )
 
 go_test(

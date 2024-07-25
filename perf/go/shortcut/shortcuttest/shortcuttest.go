@@ -81,6 +81,24 @@ func GetAll(t *testing.T, store shortcut.Store) {
 	assert.True(t, strings.HasPrefix(all[0].Keys[0], ",arch=x86,test=test"))
 }
 
+// Shortcut_DeleteShortcut tests that DeleteShortcut removes the shortcut id.
+func DeleteShortcut(t *testing.T, store shortcut.Store) {
+	ctx := context.Background()
+	sh1 := &shortcut.Shortcut{
+		Keys: []string{"arch=x86,test=test123"},
+	}
+	id, err := store.InsertShortcut(ctx, sh1)
+	require.NoError(t, err)
+	sh2, err := store.Get(ctx, id)
+	require.NoError(t, err)
+	require.Equal(t, sh1, sh2, "inserted shortcut is not in the table")
+	err = store.DeleteShortcut(ctx, id, nil)
+	require.NoError(t, err, "delete shortcut failed")
+	sh3, err := store.Get(ctx, id)
+	require.NoError(t, err, "delete shortcut failed")
+	require.Nil(t, sh3, "shortcut is still present after deletion")
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store shortcut.Store)
@@ -90,4 +108,5 @@ var SubTests = map[string]SubTestFunction{
 	"Shortcut_GetAll":         GetAll,
 	"Shortcut_InsertGet":      InsertGet,
 	"Shortcut_GetNonExistent": GetNonExistent,
+	"Shortcut_DeleteShortcut": GetNonExistent,
 }

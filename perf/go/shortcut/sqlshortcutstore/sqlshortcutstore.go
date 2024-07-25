@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -23,6 +24,7 @@ const (
 	insertShortcut statement = iota
 	getShortcut
 	getAllShortcuts
+	deleteShortcut
 )
 
 // statements holds all the raw SQL statemens.
@@ -48,6 +50,13 @@ var statements = map[statement]string{
 		FROM
 			Shortcuts
 		`,
+	deleteShortcut: `
+		DELETE
+		FROM
+			Shortcuts
+		WHERE
+			id=$1
+	`,
 }
 
 // SQLShortcutStore implements the shortcut.Store interface using an SQL
@@ -135,4 +144,16 @@ func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcu
 	}()
 
 	return ret, nil
+}
+
+// DeleteShortcut implements the shortcut.Store interface.
+func (s *SQLShortcutStore) DeleteShortcut(ctx context.Context, id string, tx pgx.Tx) error {
+	var err error
+	if tx == nil {
+		_, err = s.db.Exec(ctx, statements[deleteShortcut], id)
+	} else {
+		_, err = tx.Exec(ctx, statements[deleteShortcut], id)
+	}
+
+	return skerr.Wrap(err)
 }
