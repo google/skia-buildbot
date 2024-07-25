@@ -12,6 +12,7 @@ go_library(
         "//pinpoint/go/read_values",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
+        "//temporal/go/client",
         "@com_github_google_uuid//:uuid",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
         "@io_temporal_go_sdk//client",
@@ -27,9 +28,9 @@ go_test(
     srcs = ["service_impl_test.go"],
     embed = [":service"],
     deps = [
-        "//pinpoint/go/service/mocks",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
+        "//temporal/go/client/mocks",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
         "@io_temporal_go_sdk//mocks",
