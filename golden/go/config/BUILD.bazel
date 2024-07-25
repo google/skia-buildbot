@@ -7,7 +7,6 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/config",
     visibility = ["//visibility:public"],
     deps = [
-        "//go/cache/redis",
         "//go/config",
         "//go/skerr",
         "//go/util",
