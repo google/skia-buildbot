@@ -7,8 +7,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	temporal_mocks "go.temporal.io/sdk/mocks"
-
 	mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -20,8 +18,7 @@ import (
 func setUp(_ *testing.T) (*anomalygroupService, *mocks.Store, *reg_mocks.Store) {
 	mockAnomalyGroupstore := new(mocks.Store)
 	mockRegressionStore := new(reg_mocks.Store)
-	mockTemporalClient := temporal_mocks.Client{}
-	service := New(mockAnomalyGroupstore, mockRegressionStore, &mockTemporalClient)
+	service := New(mockAnomalyGroupstore, mockRegressionStore)
 	return service, mockAnomalyGroupstore, mockRegressionStore
 }
 

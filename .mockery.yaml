@@ -342,7 +342,7 @@ packages:
   go.skia.org/infra/perf/go/trybot/store:
     interfaces:
       TryBotStore:
-  go.skia.org/infra/temporal/go/client:
+  go.skia.org/infra/pinpoint/go/service:
     interfaces:
       TemporalProvider:
   go.skia.org/infra/scrap/go/scrap:

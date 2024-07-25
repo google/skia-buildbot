@@ -799,18 +799,6 @@ type Favorites struct {
 	Sections []FavoritesSectionConfig `json:"sections"`
 }
 
-// TemporalConfig contains properties of the temporal instance used by the client in the backend.
-type TemporalConfig struct {
-	// The host and port of the temporal instance.
-	HostPort string `json:"host_post,omitempty"`
-
-	// The namespace used in the temporal config.
-	Namespace string `json:"namespace,omitempty"`
-
-	// The task queue name where the created workflows go to.
-	TaskQueue string `json:"task_queue,omitempty"`
-}
-
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
 	// IncludedParams defines the params that should be displayed in the query dialog.
@@ -919,7 +907,6 @@ type InstanceConfig struct {
 	CulpritNotifyConfig CulpritNotifyConfig `json:"culprit_notify_config,omitempty"`
 	AnomalyConfig       AnomalyConfig       `json:"anomaly_config,omitempty"`
 	QueryConfig         QueryConfig         `json:"query_config,omitempty"`
-	TemporalConfig      TemporalConfig      `json:"temporal_config,omitempty"`
 
 	EnableSheriffConfig bool `json:"enable_sheriff_config,omitempty"`
 

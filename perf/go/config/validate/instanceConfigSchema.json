@@ -302,9 +302,6 @@
         "query_config": {
           "$ref": "#/$defs/QueryConfig"
         },
-        "temporal_config": {
-          "$ref": "#/$defs/TemporalConfig"
-        },
         "enable_sheriff_config": {
           "type": "boolean"
         },
@@ -489,21 +486,6 @@
         "subscription",
         "sources"
       ]
-    },
-    "TemporalConfig": {
-      "properties": {
-        "host_post": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "task_queue": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
     }
   }
 }

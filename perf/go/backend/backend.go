@@ -4,12 +4,9 @@ import (
 	"context"
 	"net"
 
-	"go.temporal.io/sdk/client"
-
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/grpcsp"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalygroup"
@@ -21,10 +18,8 @@ import (
 	"go.skia.org/infra/perf/go/culprit"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	culprit_service "go.skia.org/infra/perf/go/culprit/service"
-	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/subscription"
-	tpr_client "go.skia.org/infra/temporal/go/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -75,7 +70,7 @@ func (b *Backend) initialize(
 		sklog.Fatal(err)
 	}
 
-	sklog.Debug("Creating anomalygroup store.")
+	sklog.Info("Creating anomalygroup store.")
 	if anomalygroupStore == nil {
 		anomalygroupStore, err = builders.NewAnomalyGroupStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -83,7 +78,7 @@ func (b *Backend) initialize(
 			return err
 		}
 	}
-	sklog.Debug("Creating culprit notifier.")
+	sklog.Info("Creating culprit notifier.")
 	if notifier == nil {
 		notifier, err = notify.GetDefaultNotifier(ctx, config.Config, b.flags.CommitRangeURL)
 		if err != nil {
@@ -91,7 +86,7 @@ func (b *Backend) initialize(
 		}
 	}
 
-	sklog.Debug("Creating culprit store.")
+	sklog.Info("Creating culprit store.")
 	if culpritStore == nil {
 		culpritStore, err = builders.NewCulpritStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -100,7 +95,7 @@ func (b *Backend) initialize(
 		}
 	}
 
-	sklog.Debug("Creating subscription store.")
+	sklog.Info("Creating subscription store.")
 	if subscriptionStore == nil {
 		subscriptionStore, err = builders.NewSubscriptionStoreFromConfig(ctx, config.Config)
 		if err != nil {
@@ -109,16 +104,16 @@ func (b *Backend) initialize(
 		}
 	}
 
-	sklog.Debug("Creating regression store.")
+	sklog.Info("Creating regression store.")
 	if regressionStore == nil {
-		sklog.Debug("Creating alertStore.")
+		sklog.Info("Creating alertStore.")
 		alertStore, err := builders.NewAlertStoreFromConfig(ctx, false, config.Config)
 		if err != nil {
 			sklog.Fatal(err)
 			return err
 		}
 
-		sklog.Debug("Creating config provider.")
+		sklog.Info("Creating config provider.")
 		configProvider, err := alerts.NewConfigProvider(ctx, alertStore, 600)
 		if err != nil {
 			sklog.Fatalf("Failed to create alerts configprovider: %s", err)
@@ -132,28 +127,11 @@ func (b *Backend) initialize(
 		}
 	}
 
-	var temporalClient client.Client
-	if config.Config.NotifyConfig.Notifications == notifytypes.AnomalyGrouper {
-		// Temporal client needs to setup when grouping is in use.
-		sklog.Debug("Creating Temporal client.")
-		if config.Config.TemporalConfig.HostPort == "" || config.Config.TemporalConfig.Namespace == "" {
-			return skerr.Fmt("Empty values found in temporal properties: Hostport %s, Namespace: %s",
-				config.Config.TemporalConfig.HostPort, config.Config.TemporalConfig.Namespace)
-		}
-		temporalProvider := tpr_client.DefaultTemporalProvider{}
-		var err error
-		temporalClient, _, err = temporalProvider.NewClient(
-			config.Config.TemporalConfig.HostPort, config.Config.TemporalConfig.Namespace)
-		if err != nil {
-			return skerr.Wrapf(err, "Error creating temporal client.")
-		}
-	}
-
 	sklog.Info("Configuring grpc services.")
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
-		ag_service.New(anomalygroupStore, regressionStore, temporalClient),
+		ag_service.New(anomalygroupStore, regressionStore),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier),
 	}
 	err = b.configureServices(services)
