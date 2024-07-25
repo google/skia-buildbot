@@ -7,9 +7,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
-        "@org_chromium_go_luci//auth",
-        "@org_chromium_go_luci//config",
-        "@org_chromium_go_luci//config/impl/remote",
-        "@org_chromium_go_luci//hardcoded/chromeinfra",
+        "@org_chromium_go_luci//common/api/luci_config/config/v1:config",
     ],
 )

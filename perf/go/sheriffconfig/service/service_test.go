@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/base64"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -36,7 +35,7 @@ func TestImportSheriffConfig_EmptyConfig(t *testing.T) {
 
 	mockReturn := []*luciconfig.ProjectConfig{}
 
-	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
+	apiClient.On("GetProjectConfigs", "dummy.path").Return(mockReturn, nil)
 
 	err := service.ImportSheriffConfig(ctx, "dummy.path")
 
@@ -49,18 +48,15 @@ func TestImportSheriffConfig_InvalidConfig(t *testing.T) {
 
 	service, _, _, apiClient := setUp(ctx, t)
 
-	config, err := base64.StdEncoding.DecodeString("c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKfQ==")
-	require.NoError(t, err)
-
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content: string(config),
+			Content: "c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKfQ==",
 		},
 	}
 
-	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
+	apiClient.On("GetProjectConfigs", "dummy.path").Return(mockReturn, nil)
 
-	err = service.ImportSheriffConfig(ctx, "dummy.path")
+	err := service.ImportSheriffConfig(ctx, "dummy.path")
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Error for Subscription at index 0:")
@@ -82,12 +78,9 @@ func TestImportSheriffConfig_OneSubOneAlert(t *testing.T) {
 	// 			}
 	// 		}
 	// }
-	config, err := base64.StdEncoding.DecodeString("c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKCWNvbnRhY3RfZW1haWw6ICJ0ZXN0QGdvb2dsZS5jb20iCglidWdfY29tcG9uZW50OiAiQT5CPkMiCglhbm9tYWx5X2NvbmZpZ3MgewoJCXJ1bGVzOiB7CgkJCW1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIKCQl9Cgl9Cn0=")
-	require.NoError(t, err)
-
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  string(config),
+			Content:  "c3Vic2NyaXB0aW9ucyB7CgluYW1lOiAiYSIKCWNvbnRhY3RfZW1haWw6ICJ0ZXN0QGdvb2dsZS5jb20iCglidWdfY29tcG9uZW50OiAiQT5CPkMiCglhbm9tYWx5X2NvbmZpZ3MgewoJCXJ1bGVzOiB7CgkJCW1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIKCQl9Cgl9Cn0=",
 			Revision: "abcd",
 		},
 	}
@@ -127,7 +120,7 @@ func TestImportSheriffConfig_OneSubOneAlert(t *testing.T) {
 		},
 	}
 
-	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
+	apiClient.On("GetProjectConfigs", "dummy.path").Return(mockReturn, nil)
 	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
@@ -142,7 +135,7 @@ func TestImportSheriffConfig_OneSubOneAlert(t *testing.T) {
 		}
 	}).Return(nil)
 
-	err = service.ImportSheriffConfig(ctx, "dummy.path")
+	err := service.ImportSheriffConfig(ctx, "dummy.path")
 
 	require.NoError(t, err)
 }
@@ -175,12 +168,9 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 	//			}
 	//		}
 	//	}
-	config, err := base64.StdEncoding.DecodeString("c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=")
-	require.NoError(t, err)
-
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  string(config),
+			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=",
 			Revision: "abcd",
 		},
 	}
@@ -245,7 +235,7 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 		},
 	}
 
-	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
+	apiClient.On("GetProjectConfigs", "dummy.path").Return(mockReturn, nil)
 	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
@@ -260,7 +250,7 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 		}
 	}).Return(nil)
 
-	err = service.ImportSheriffConfig(ctx, "dummy.path")
+	err := service.ImportSheriffConfig(ctx, "dummy.path")
 
 	require.NoError(t, err)
 }
@@ -303,12 +293,10 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 	//			}
 	//		}
 	//	}
-	config, err := base64.StdEncoding.DecodeString("c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGFub21hbHlfY29uZmlncyB7IHJ1bGVzOiB7IG1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIgfSB9IH0gc3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJiIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=")
-	require.NoError(t, err)
 
 	mockReturn := []*luciconfig.ProjectConfig{
 		{
-			Content:  string(config),
+			Content:  "c3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJhIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGFub21hbHlfY29uZmlncyB7IHJ1bGVzOiB7IG1hdGNoOiAibWFzdGVyPUNocm9taXVtUGVyZiIgfSB9IH0gc3Vic2NyaXB0aW9ucyB7IG5hbWU6ICJiIiBjb250YWN0X2VtYWlsOiAidGVzdEBnb29nbGUuY29tIiBidWdfY29tcG9uZW50OiAiQT5CPkMiIGJ1Z19wcmlvcml0eTogUDMgYW5vbWFseV9jb25maWdzIHsgc3RlcDogQ09IRU5fU1RFUCByYWRpdXM6IDIgdGhyZXNob2xkOiAzLjAgYWN0aW9uOiBCSVNFQ1QgcnVsZXMgeyBtYXRjaDogWyAibWFzdGVyPUNocm9taXVtUGVyZiZiZW5jaG1hcms9YmxpbmtfcGVyZi53ZWJjb2RlY3MiLCAibWFzdGVyPUNocm9taXVtUGVyZiZ0ZXN0PWJyb3dzZXJfYWNjZXNzaWJpbGl0eV9ldmVudHNfc3VtIiBdIGV4Y2x1ZGU6IFsgImJvdD1sYWNyb3MtZXZlLXBlcmYiLCAiYm90PX5hbmRyb2lkLSoiIF0gfSB9IH0=",
 			Revision: "abcd",
 		},
 	}
@@ -402,7 +390,7 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 		},
 	}
 
-	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
+	apiClient.On("GetProjectConfigs", "dummy.path").Return(mockReturn, nil)
 	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
@@ -417,7 +405,7 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 		}
 	}).Return(nil)
 
-	err = service.ImportSheriffConfig(ctx, "dummy.path")
+	err := service.ImportSheriffConfig(ctx, "dummy.path")
 
 	require.NoError(t, err)
 }
