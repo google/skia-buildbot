@@ -142,6 +142,30 @@ func Write(t *testing.T, store regression.Store) {
 	assert.Equal(t, reg, ranges[2])
 }
 
+// DeleteByCommit tests that the implementation of the regression.Store interface can
+// delete an inserted regression
+func DeleteByCommit(t *testing.T, store regression.Store) {
+	ctx := context.Background()
+
+	reg := &regression.AllRegressionsForCommit{
+		ByAlertID: map[string]*regression.Regression{
+			"fake-alert-id": regression.NewRegression(),
+		},
+	}
+	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg})
+	require.NoError(t, err, "error writing regression")
+
+	regressions, err := store.Range(ctx, 1, 2)
+	require.NoError(t, err, "error fetching regression")
+	require.Len(t, regressions, 1)
+
+	err = store.DeleteByCommit(ctx, types.CommitNumber(2), nil)
+	require.NoError(t, err)
+	regressions, err = store.Range(ctx, 1, 3)
+	require.NoError(t, err, "error fetching regression")
+	require.Len(t, regressions, 0, "regression was not deleted")
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store regression.Store)
@@ -152,4 +176,5 @@ var SubTests = map[string]SubTestFunction{
 	"Range_Exact":                 Range_Exact,
 	"TriageNonExistentRegression": TriageNonExistentRegression,
 	"TestWrite":                   Write,
+	"TestDeleteByCommit":          DeleteByCommit,
 }

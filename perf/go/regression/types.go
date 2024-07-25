@@ -3,6 +3,7 @@ package regression
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -42,6 +43,10 @@ type Store interface {
 
 	// GetNotificationId returns the notificationId for the regression at the given commit number for the alert.
 	GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error)
+
+	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
+	// Use with caution.
+	DeleteByCommit(ctx context.Context, commitNumber types.CommitNumber, tx pgx.Tx) error
 }
 
 // FullSummary describes a single regression.

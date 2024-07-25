@@ -30,6 +30,7 @@ const (
 	readRange
 	batchReadMigration
 	markMigrated
+	deleteByCommit
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
@@ -73,6 +74,13 @@ var statements = map[statement]string{
 			migrated=true, regression_id=$1
 		WHERE
 			commit_number=$2 AND alert_id=$3
+		`,
+	deleteByCommit: `
+		DELETE
+		FROM
+			Regressions
+		WHERE
+			commit_number=$1
 		`,
 }
 
@@ -347,6 +355,18 @@ func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId stri
 // Not implemented as old regression schema does not have id.
 func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
 	return nil, skerr.Fmt("GetByIDs are not implemented in old version of regression store.")
+}
+
+// DeleteByCommit implements the regression.Store interface. Deletes a regression via commit number.
+func (s *SQLRegressionStore) DeleteByCommit(ctx context.Context, num types.CommitNumber, tx pgx.Tx) error {
+	var err error
+	if tx == nil {
+		_, err = s.db.Exec(ctx, statements[deleteByCommit], num)
+	} else {
+		_, err = tx.Exec(ctx, statements[deleteByCommit], num)
+	}
+
+	return err
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

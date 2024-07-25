@@ -45,6 +45,7 @@ const (
 	readRange
 	readByIDs
 	readBySubName
+	deleteByCommit
 )
 
 // statementContext provides a struct to expand sql statement templates.
@@ -102,6 +103,13 @@ var statementFormats = map[statementFormat]string{
 			$2
 		OFFSET
 			$3
+		`,
+	deleteByCommit: `
+		DELETE
+		FROM
+			Regressions2
+		WHERE
+			commit_number=$1
 		`,
 }
 
@@ -523,6 +531,18 @@ func isRegressionImprovement(paramset map[string][]string, stepFitStatus stepfit
 	}
 
 	return false
+}
+
+// DeleteByCommit implements the regression.Store interface. Deletes a regression via commit number.
+func (s *SQLRegression2Store) DeleteByCommit(ctx context.Context, num types.CommitNumber, tx pgx.Tx) error {
+	var err error
+	if tx == nil {
+		_, err = s.db.Exec(ctx, statementFormats[deleteByCommit], num)
+	} else {
+		_, err = tx.Exec(ctx, statementFormats[deleteByCommit], num)
+	}
+
+	return err
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.
