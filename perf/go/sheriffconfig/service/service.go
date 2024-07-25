@@ -103,7 +103,7 @@ func New(ctx context.Context,
 // in Subscription and Alert tables.
 func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path string) error {
 
-	configs, err := s.luciconfigApiClient.GetProjectConfigs(path)
+	configs, err := s.luciconfigApiClient.GetProjectConfigs(ctx, path)
 	if err != nil {
 		return skerr.Wrap(err)
 	}

@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	mock "github.com/stretchr/testify/mock"
 	luciconfig "go.skia.org/infra/go/luciconfig"
 )
@@ -12,9 +14,9 @@ type ApiClient struct {
 	mock.Mock
 }
 
-// GetProjectConfigs provides a mock function with given fields: path
-func (_m *ApiClient) GetProjectConfigs(path string) ([]*luciconfig.ProjectConfig, error) {
-	ret := _m.Called(path)
+// GetProjectConfigs provides a mock function with given fields: ctx, path
+func (_m *ApiClient) GetProjectConfigs(ctx context.Context, path string) ([]*luciconfig.ProjectConfig, error) {
+	ret := _m.Called(ctx, path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProjectConfigs")
@@ -22,19 +24,19 @@ func (_m *ApiClient) GetProjectConfigs(path string) ([]*luciconfig.ProjectConfig
 
 	var r0 []*luciconfig.ProjectConfig
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*luciconfig.ProjectConfig, error)); ok {
-		return rf(path)
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*luciconfig.ProjectConfig, error)); ok {
+		return rf(ctx, path)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*luciconfig.ProjectConfig); ok {
-		r0 = rf(path)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*luciconfig.ProjectConfig); ok {
+		r0 = rf(ctx, path)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*luciconfig.ProjectConfig)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(path)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, path)
 	} else {
 		r1 = ret.Error(1)
 	}
