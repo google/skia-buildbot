@@ -46,14 +46,7 @@ describe('chart-tooltip-sk', () => {
 
   describe('set fields', () => {
     it('anomalies should be set', () => {
-      element.load(
-        test_name,
-        y_value,
-        commit_position,
-        dummyAnomaly(12345),
-        null,
-        false
-      );
+      element.load(test_name, y_value, commit_position, dummyAnomaly(12345));
       assert.equal(element.test_name, test_name);
       assert.equal(element.y_value, y_value);
       assert.equal(element.commit_position, commit_position);
