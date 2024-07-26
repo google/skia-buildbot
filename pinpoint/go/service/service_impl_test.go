@@ -8,18 +8,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/pinpoint/go/service/mocks"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client_mock "go.skia.org/infra/temporal/go/client/mocks"
 	temporal_mocks "go.temporal.io/sdk/mocks"
 	"golang.org/x/time/rate"
 )
 
-func newTemporalMock(t *testing.T) (*mocks.TemporalProvider, *temporal_mocks.Client) {
+func newTemporalMock(t *testing.T) (*tpr_client_mock.TemporalProvider, *temporal_mocks.Client) {
 	tcm := &temporal_mocks.Client{}
 	tcm.Mock.Test(t)
 
-	tpm := mocks.NewTemporalProvider(t)
+	tpm := tpr_client_mock.NewTemporalProvider(t)
 	t.Cleanup(func() {
 		tcm.AssertExpectations(t)
 		tpm.AssertExpectations(t)
@@ -37,7 +37,7 @@ func newWorkflowRunMock(t *testing.T, wid string) *temporal_mocks.WorkflowRun {
 
 func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
@@ -83,7 +83,7 @@ func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 
 func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil).Once()
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil).Once()
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
@@ -107,7 +107,7 @@ func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
 
 func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil).Once()
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil).Once()
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
@@ -271,7 +271,7 @@ func TestCancelJob_InvalidInput_ReturnError(t *testing.T) {
 
 func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("internal error"))
 
@@ -286,7 +286,7 @@ func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 
 func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 

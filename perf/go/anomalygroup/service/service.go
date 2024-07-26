@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	tpr_client "go.temporal.io/sdk/client"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/anomalygroup"
@@ -20,13 +22,15 @@ type anomalygroupService struct {
 	ag.UnimplementedAnomalyGroupServiceServer
 	anomalygroupStore anomalygroup.Store
 	regressionStore   reg.Store
+	temporalClient    tpr_client.Client
 }
 
 // New returns a new instance of anomalygroupService.
-func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store) *anomalygroupService {
+func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store, temporalClient tpr_client.Client) *anomalygroupService {
 	return &anomalygroupService{
 		anomalygroupStore: anomalygroupStore,
 		regressionStore:   regressionStore,
+		temporalClient:    temporalClient,
 	}
 }
 

@@ -83,6 +83,10 @@
             "cache_expiration_minutes": 300
         }
     },
+    "temporal_config": {
+        "host_port": "temporal.temporal:7233",
+        "namespace": "perf-internal"
+    },
     "enable_sheriff_config": true,
     "help_url_override": "http://go/chrome-perf-user-doc",
     "trace_format": "chrome",

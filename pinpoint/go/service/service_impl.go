@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client "go.skia.org/infra/temporal/go/client"
 )
 
 type server struct {
@@ -26,7 +27,7 @@ type server struct {
 	// Local rate limiter to only limit the traffic for migration temporarilly.
 	limiter *rate.Limiter
 
-	temporal TemporalProvider
+	temporal tpr_client.TemporalProvider
 }
 
 const (
@@ -43,36 +44,13 @@ const (
 	culpritFinderTimeout = 16 * time.Hour
 )
 
-type TemporalProvider interface {
-	// NewClient returns a Temporal Client and a clean up function
-	NewClient() (client.Client, func(), error)
-}
-
-type defaultTemporalProvider struct {
-}
-
-// NewClient implements TemporalProvider.NewClient
-func (defaultTemporalProvider) NewClient() (client.Client, func(), error) {
-	c, err := client.NewLazyClient(client.Options{
-		HostPort:  hostPort,
-		Namespace: namespace,
-	})
-
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
-	return c, func() {
-		c.Close()
-	}, nil
-}
-
-func New(t TemporalProvider, l *rate.Limiter) *server {
+func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
 	if l == nil {
 		// 1 token every 30 minutes, this allow some buffer to drain the hot spots in the bots pool.
 		l = rate.NewLimiter(rate.Every(rateLimit), 1)
 	}
 	if t == nil {
-		t = defaultTemporalProvider{}
+		t = tpr_client.DefaultTemporalProvider{}
 	}
 	return &server{
 		limiter:  l,
@@ -160,7 +138,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	c, cleanUp, err := s.temporal.NewClient()
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -203,7 +181,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	c, cleanUp, err := s.temporal.NewClient()
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -269,7 +247,7 @@ func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.C
 		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
 	}
 
-	c, cleanUp, err := s.temporal.NewClient()
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
