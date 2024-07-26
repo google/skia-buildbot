@@ -32,9 +32,8 @@ type Server struct {
 	repo    *gitinfo.GitInfo
 	repoDir string
 
-	livenessExamples    metrics2.Liveness    // liveness of the naming the Skia examples.
-	errorsInExamplesRun metrics2.Counter     // errorsInExamplesRun is the number of errors in a single examples run.
-	numInvalidExamples  metrics2.Int64Metric // numInvalidExamples is the number of examples that are currently invalid.
+	livenessExamples   metrics2.Liveness    // liveness of the naming the Skia examples.
+	numInvalidExamples metrics2.Int64Metric // numInvalidExamples is the number of examples that are currently invalid.
 }
 
 func main() {
@@ -84,9 +83,8 @@ func startSyncing(ctx context.Context, local bool, repoURL, repoDir string) (*Se
 		repo:    repo,
 		repoDir: repoDir,
 
-		livenessExamples:    metrics2.NewLiveness("named_fiddles_examples"),
-		errorsInExamplesRun: metrics2.GetCounter("named_fiddles_errors_in_examples_run"),
-		numInvalidExamples:  metrics2.GetInt64Metric("named_fiddles_examples_total_invalid"),
+		livenessExamples:   metrics2.NewLiveness("named_fiddles_examples"),
+		numInvalidExamples: metrics2.GetInt64Metric("named_fiddles_examples_total_invalid"),
 	}
 	go util.RepeatCtx(ctx, time.Minute, srv.exampleStep)
 	return srv, nil
@@ -111,7 +109,6 @@ func errorsInResults(runResults *types.RunResults) string {
 
 // exampleStep is a single run through naming all the examples.
 func (srv *Server) exampleStep(ctx context.Context) {
-	srv.errorsInExamplesRun.Reset()
 	sklog.Info("Starting exampleStep")
 	if err := srv.repo.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to sync git repo.")
@@ -162,10 +159,16 @@ func (srv *Server) exampleStep(ctx context.Context) {
 		runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
 			return true
 		})
+		metric := metrics2.GetBoolMetric("named_fiddles_errors_in_examples_run", map[string]string{
+			"name": name,
+			"link": fmt.Sprintf("https://fiddle.skia.org/c/@%s", name),
+		})
 		status := errorsInResults(runResults)
-		if !success {
+		if success {
+			metric.Update(false)
+		} else {
 			sklog.Errorf("Failed to run https://fiddle.skia.org/c/@%s: %s", name, status)
-			srv.errorsInExamplesRun.Inc(1)
+			metric.Update(true)
 			return nil
 		}
 		if err := srv.store.WriteName(name, runResults.FiddleHash, "Skia example", status); err != nil {
