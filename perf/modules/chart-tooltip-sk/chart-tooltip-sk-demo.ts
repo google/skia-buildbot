@@ -75,7 +75,9 @@ window.customElements.whenDefined('chart-tooltip-sk').then(async () => {
     'ChromiumPerf/win-11-perf/webrtc/cpuTimeMetric_duration_std/multiple_peerconnections',
     100,
     CommitNumber(12345),
-    dummyAnomaly(12345)
+    dummyAnomaly(12345),
+    null,
+    false
   );
 
   tooltip.commitRangeSk!.trace = [12, MISSING_DATA_SENTINEL, 13];

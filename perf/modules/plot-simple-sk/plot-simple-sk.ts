@@ -879,6 +879,8 @@ export class PlotSimpleSk extends ElementSk {
       const detail = {
         x: closest.sx,
         y: closest.sy,
+        xPos: closest.x / this.scale,
+        yPos: closest.y / this.scale,
         name: closest.name,
       };
       this.dispatchEvent(
