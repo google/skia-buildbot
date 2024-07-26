@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	gcp_redis "cloud.google.com/go/redis/apiv1"
 	gstorage "cloud.google.com/go/storage"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgtype"
@@ -19,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -31,7 +29,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/sqlutil"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/cmd/periodictasks/cachepopulation"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/commenter"
 	"go.skia.org/infra/golden/go/code_review/gerrit_crs"
@@ -102,7 +99,6 @@ func main() {
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to the periodic tasks server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
-		populateSearchCache  = flag.Bool("populate_search_cache", false, "Set to true if the search cache should be populated.")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -150,23 +146,6 @@ func main() {
 	startKnownDigestsSync(ctx, db, ptc)
 	if ptc.PerfSummaries != nil {
 		startPerfSummarization(ctx, db, ptc.PerfSummaries)
-	}
-
-	if *populateSearchCache {
-		sklog.Infof("Cache population is enabled.")
-		if &ptc.RedisConfig == nil {
-			sklog.Fatalf("Redis config not specified in the instance config.")
-		}
-		sklog.Infof("RedisConfig: %v", &ptc.RedisConfig)
-		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
-		redisCache, err := redis.NewRedisCache(ctx, gcpClient, &ptc.RedisConfig)
-		if err != nil {
-			sklog.Fatalf("Error creating a new redis cache instance: %v", err)
-		}
-		cachePopulator := cachepopulation.NewCachePopulator(redisCache, cachepopulation.GetAllCacheDataProviders(db, ptc.SearchCacheConfig))
-
-		sklog.Info("Starting the cache populator.")
-		cachePopulator.Start(ctx)
 	}
 
 	sklog.Infof("periodic tasks have been started")
