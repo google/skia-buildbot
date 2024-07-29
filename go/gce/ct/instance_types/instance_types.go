@@ -16,7 +16,7 @@ const (
 
 	CT_WORKER_PREFIX = "ct-gce-"
 
-	LINUX_SOURCE_IMAGE = "projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190722a"
+	LINUX_SOURCE_IMAGE = "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20240717"
 )
 
 //go:embed setup-script.sh
@@ -36,6 +36,7 @@ func CT20170602(name string, useSSDDataDisk bool) (*gce.Instance, error) {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
+			SizeGb:      50,
 			SourceImage: LINUX_SOURCE_IMAGE,
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
