@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "coveragedemo_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/coverage/demo",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/coverage/config",
+        "//go/coverage/coveragestore/sqlcoveragestore/coverageschema",
+        "//go/sklog",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "coveragedemo",
+    embed = [":coveragedemo_lib"],
+    visibility = ["//visibility:public"],
+)

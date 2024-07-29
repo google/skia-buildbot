@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlcoveragestore",
+    srcs = ["sqlcoveragestore.go"],
+    importpath = "go.skia.org/infra/go/coverage/coveragestore/sqlcoveragestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/coverage/proto/v1",
+        "//go/sklog",
+        "//go/sql/pool",
+        "@com_github_jackc_pgconn//:pgconn",
+    ],
+)
+
+go_test(
+    name = "sqlcoveragestore_test",
+    srcs = ["sqlcoveragestore_test.go"],
+    embed = [":sqlcoveragestore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

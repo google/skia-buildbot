@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["Store.go"],
+    importpath = "go.skia.org/infra/go/coverage/coveragestore/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/coverage/proto/v1",
+        "@com_github_stretchr_testify//mock",
+    ],
+)

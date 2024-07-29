@@ -1,0 +1,8 @@
+{
+    "database_type": "cockroachdb",
+    "database_name": "coveragemapping",
+    "database_host": "perf-cockroachdb-public",
+    "database_port": 26257,
+    "service_host": "127.0.0.1",
+    "service_port": 8007
+}

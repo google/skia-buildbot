@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+filegroup(
+    name = "configs",
+    srcs = glob(
+        ["*.json"],
+        allow_empty = False,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "config",
+    srcs = ["config.go"],
+    importpath = "go.skia.org/infra/go/coverage/config",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@com_github_urfave_cli_v2//:cli",
+    ],
+)

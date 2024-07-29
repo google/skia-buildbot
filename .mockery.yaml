@@ -65,6 +65,9 @@ packages:
   go.skia.org/infra/go/cipd:
     interfaces:
       CIPDClient:
+  go.skia.org/infra/go/coverage/coveragestore:
+    interfaces:
+      Store:
   go.skia.org/infra/go/docker:
     interfaces:
       Client:

@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "coverageclient_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/coverage/coverageclient",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/coverage/proto/v1",
+        "//go/sklog",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//credentials/insecure",
+    ],
+)
+
+go_binary(
+    name = "coverageclient",
+    embed = [":coverageclient_lib"],
+    visibility = ["//visibility:public"],
+)
