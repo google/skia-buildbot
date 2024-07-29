@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/now"
+
+	"go.skia.org/infra/golden/go/config/validation"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -874,6 +876,13 @@ func TestSummarizeTraces_Success(t *testing.T) {
 		}
 	]
 }`, uploadedFiles["gold-summary-v1/2022/10/10/10/corners-taimen-Android/1665396610010101010.json"])
+}
+
+func TestLoadExistingConfigs_Valid(t *testing.T) {
+	var ptc periodicTasksConfig
+	err := validation.ValidateServiceConfigs("periodictasks", validation.PrimaryInstances, &ptc)
+	require.NoError(t, err)
+	assert.NotZero(t, ptc, "Config object should not be nil.")
 }
 
 var beginningOfTime = ts("1970-01-01T00:00:00Z")

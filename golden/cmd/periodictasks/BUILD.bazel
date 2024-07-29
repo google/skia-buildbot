@@ -51,12 +51,14 @@ go_binary(
 go_test(
     name = "periodictasks_test",
     srcs = ["periodictasks_test.go"],
+    data = ["//golden/k8s-instances:periodictasks_configs"],
     embed = [":periodictasks_lib"],
     deps = [
         "//go/gcs",
         "//go/gcs/mocks",
         "//go/now",
         "//go/testutils",
+        "//golden/go/config/validation",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

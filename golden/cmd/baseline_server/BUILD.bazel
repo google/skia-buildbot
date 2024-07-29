@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "baseline_server_lib",
@@ -29,4 +30,16 @@ go_binary(
     name = "baseline_server",
     embed = [":baseline_server_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "baseline_server_test",
+    srcs = ["baseline_server_test.go"],
+    data = ["//golden/k8s-instances:baseline_configs"],
+    embed = [":baseline_server_lib"],
+    deps = [
+        "//golden/go/config/validation",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
 )

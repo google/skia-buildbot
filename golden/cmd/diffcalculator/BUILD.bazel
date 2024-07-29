@@ -40,11 +40,13 @@ go_binary(
 go_test(
     name = "diffcalculator_test",
     srcs = ["diffcalculator_test.go"],
+    data = ["//golden/k8s-instances:diffcalculator_configs"],
     embed = [":diffcalculator_lib"],
     deps = [
         "//go/now",
         "//go/paramtools",
         "//go/testutils",
+        "//golden/go/config/validation",
         "//golden/go/diff",
         "//golden/go/diff/mocks",
         "//golden/go/sql/datakitchensink",

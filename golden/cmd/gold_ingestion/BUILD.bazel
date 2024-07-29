@@ -39,15 +39,18 @@ go_binary(
 go_test(
     name = "gold_ingestion_test",
     srcs = ["gold_ingestion_test.go"],
+    data = ["//golden/k8s-instances:ingestion_configs"],
     embed = [":gold_ingestion_lib"],
     deps = [
         "//go/metrics2",
         "//go/now",
         "//go/testutils",
         "//golden/go/config",
+        "//golden/go/config/validation",
         "//golden/go/ingestion",
         "//golden/go/ingestion/mocks",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )
