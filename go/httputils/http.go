@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 	"reflect"
 	"runtime"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/metrics2"
@@ -779,4 +781,36 @@ func XFrameOptionsDeny(h http.Handler) http.Handler {
 		w.Header().Set("X-Frame-Options", "DENY")
 		h.ServeHTTP(w, r)
 	})
+}
+
+// ServePprof starts a web server to serve pprof endpoints on the given port.
+// Does not return.
+func ServePprof(port string) {
+	router := chi.NewRouter()
+	AddPprofHandlers(router)
+	sklog.Fatal(http.ListenAndServe(port, router))
+}
+
+// AddPprofHandlers adds pprof handlers to the given chi.Mux.
+func AddPprofHandlers(router *chi.Mux) {
+	// Convenience redirect.
+	//
+	// We use http.StatusFound (302) rather than http.StatusPermanentRedirect (308) because the
+	// latter causes the browser to cache the redirect, which is inconvenient during local
+	// development. For example, if the browser gets a 308 permanent redirect from
+	// http://localhost:8000 to http://localhost:8000/foo, it will cache it, and from that moment
+	// on it will always try to redirect http://localhost:8000 to http://localhost:8000/foo,
+	// even if the process listening on port 8000 is different at a different point in time.
+	router.Handle("/", http.RedirectHandler("/debug/pprof/", http.StatusFound))
+
+	// The links in the page served by pprof.Index break unless we serve that page from this
+	// specific path: "/debug/pprof/" (note the slash at the end).
+	router.Handle("/debug/pprof", http.RedirectHandler("/debug/pprof/", http.StatusFound))
+
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	router.HandleFunc("/debug/pprof/{profile}", pprof.Index)
 }

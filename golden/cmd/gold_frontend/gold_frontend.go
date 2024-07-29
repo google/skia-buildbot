@@ -205,7 +205,7 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 			// Sample usage:
 			//     $ kubectl port-forward --address 0.0.0.0 gold-skia-infra-frontend-xxxxxxxxxx-yyyyy 8000:7001
 			sklog.Infof("Internal server on http://127.0.0.1" + fsc.DebugPort)
-			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, web.MakeDebugRouter()))
+			httputils.ServePprof(fsc.DebugPort)
 		}()
 	}
 }

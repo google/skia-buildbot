@@ -69,6 +69,7 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	buildbucketTarget = flag.String("buildbucket_target", "", "Target name used by Buildbucket to address this Task Scheduler.")
+	debugPort         = flag.String("debug_port", "", "HTTP service port for debugging using pprof")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
@@ -412,6 +413,10 @@ func main() {
 	}
 
 	go runServer(serverURL, srv, bbHandler, plogin)
+
+	if *debugPort != "" {
+		go httputils.ServePprof(*debugPort)
+	}
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}

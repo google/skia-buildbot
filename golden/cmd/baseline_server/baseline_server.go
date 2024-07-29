@@ -170,7 +170,7 @@ func main() {
 			// Sample usage:
 			//     $ kubectl port-forward --address 0.0.0.0 gold-skia-infra-baselineserver-xxxxxxxxxx-yyyyy 8000:8001
 			sklog.Infof("Internal server on http://127.0.0.1" + bsc.DebugPort)
-			sklog.Fatal(http.ListenAndServe(bsc.DebugPort, web.MakeDebugRouter()))
+			httputils.ServePprof(bsc.DebugPort)
 		}()
 	}
 

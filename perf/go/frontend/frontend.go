@@ -11,7 +11,6 @@ import (
 	"io/fs"
 	"math/rand"
 	"net/http"
-	"net/http/pprof"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -908,20 +907,9 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 func (f *Frontend) Serve() {
 	// Start the internal server on the internal port if requested.
 	if f.flags.InternalPort != "" {
-		// Add the profiling endpoints to the internal router.
-		internalRouter := chi.NewRouter()
-
-		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/trace", pprof.Trace)
-		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
-
 		go func() {
 			sklog.Infof("Internal server on %q", f.flags.InternalPort)
-			sklog.Info(http.ListenAndServe(f.flags.InternalPort, internalRouter))
+			httputils.ServePprof(f.flags.InternalPort)
 		}()
 	}
 

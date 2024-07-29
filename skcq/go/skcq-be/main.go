@@ -8,7 +8,6 @@ import (
 	"context"
 	"flag"
 	"net/http"
-	"net/http/pprof"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -56,10 +55,7 @@ func maybeStartDebugServer() {
 		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 		// Register pprof handlers
-		internalRouter.HandleFunc("/debug/pprof/", pprof.Index)
-		internalRouter.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-		internalRouter.HandleFunc("/debug/pprof/profile", pprof.Profile)
-		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
+		httputils.AddPprofHandlers(internalRouter)
 
 		go func() {
 			sklog.Infof("Internal server on http://127.0.0.1" + *debugPort)
