@@ -19,14 +19,12 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 
-class Commit {
+export class Commit {
   commit_hash: string = '';
 
   timestamp: string = '';
 
   author: string = '';
-
-  message: string = '';
 
   commit_url: string = '';
 
@@ -34,13 +32,11 @@ class Commit {
     commit_hash: string,
     timestamp: number,
     author: string,
-    message: string,
     commit_url: string
   ) {
     this.commit_hash = commit_hash;
     this.timestamp = new Date(timestamp).toDateString();
     this.author = author;
-    this.message = message;
     this.commit_url = commit_url;
   }
 
@@ -48,12 +44,23 @@ class Commit {
   // include the header.
   render(): TemplateResult {
     return html`
-      <ul>
-        <li>commit <a href=${this.commit_url}>${this.commit_hash}</a></li>
-        <li>Date: ${this.timestamp}</li>
-        <li>Author: ${this.author}</li>
-        <li>Message: ${this.message}</li>
-        <li>Date: ${this.timestamp}</li>
+      <ul class="table">
+        <li>
+          <span>Commit:</span>
+          <span>
+            <a href="${this.commit_url}" target="_blank">
+              ${this.commit_hash.substring(0, 7)}
+            </a>
+          </span>
+        </li>
+        <li>
+          <span>Date:</span>
+          <span>${this.timestamp}</span>
+        </li>
+        <li>
+          <span>Author:</span>
+          <span>${this.author}</span>
+        </li>
       </ul>
     `;
   }
@@ -92,6 +99,17 @@ export class ChartTooltipSk extends ElementSk {
   // Ingest file links element. Provides links based on cid and
   ingestFileLinks: IngestFileLinksSk | null = null;
 
+  // Fields below are used for chart tooltip styling
+
+  // If the tooltip is to be displayed or hidden
+  display: boolean = false;
+
+  // The position from top of it's first position:relative parent in px
+  top: number = 0;
+
+  // The position from left of it's first position:relative parent in px
+  left: number = 0;
+
   // The overall html template for outlining the contents needed in
   // chart-tooltip.
   //
@@ -109,16 +127,25 @@ export class ChartTooltipSk extends ElementSk {
   //
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
-    <div>
+    <div
+      style="display: ${ele.display ? 'block' : 'none'};
+             left: ${ele.left}px; top: ${ele.top}px;">
       <h3>${ele.test_name}</h3>
-      <ul>
-        <li>Value: <b>${ele.y_value}</b></li>
-        <li>Commit Number: ${ele.commit_position}</li>
+      <ul class="table">
+        <li>
+          <span>Value:</span>
+          <span>${ele.y_value}</span>
+        </li>
+        <li>
+          <span>Commit Number:</span>
+          <span>${ele.commit_position}</span>
+        </li>
       </ul>
       ${ele.anomalyTemplate()} ${ele.commitTemplate()}
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       <ingest-file-links-sk
         id="tooltip-ingest-file-links"></ingest-file-links-sk>
+      ${ele.seeMoreText()}
     </div>
   `;
 
@@ -134,6 +161,16 @@ export class ChartTooltipSk extends ElementSk {
       ${this.commit.render()}`;
   }
 
+  private seeMoreText() {
+    if (this._commit !== null) {
+      return html``;
+    }
+
+    return html`
+      <span class="see-more-text">*Click on the point to see more details</span>
+    `;
+  }
+
   // HTML template for Anomaly information, only shown when the data
   // point is an anomaly. Usually set by the results of POST /_/cid
   // correlated against anomaly map.
@@ -145,27 +182,39 @@ export class ChartTooltipSk extends ElementSk {
     // TOOD(jeffyoon@) - add revision range formatting
     return html`
       <h4>Anomaly Details</h4>
-      <ul>
+      <ul class="table">
         <li>
-          Score: ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
+          <span>Score:</span>
+          <span>
+            ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
+          </span>
         </li>
         <li>
-          Prior Score:
-          ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
+          <span>Prior Score:</span>
+          <span>
+            ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
+          </span>
         </li>
         <li>
-          Percent Change:
-          ${AnomalySk.formatPercentage(
-            AnomalySk.getPercentChange(
-              this.anomaly!.median_before_anomaly,
-              this.anomaly!.median_after_anomaly
-            )
-          )}%
+          <span>Percentage Change:</span>
+          <span>
+            ${AnomalySk.formatPercentage(
+              AnomalySk.getPercentChange(
+                this.anomaly!.median_before_anomaly,
+                this.anomaly!.median_after_anomaly
+              )
+            )}%
+          </span>
         </li>
-        <li>Improvement: ${this.anomaly!.is_improvement}</li>
         <li>
-          Bug Id:
-          ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
+          <span>Improvement:</span>
+          <span>${this.anomaly!.is_improvement}</span>
+        </li>
+        <li>
+          <span>Bug Id:</span>
+          <span>
+            ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
+          </span>
         </li>
       </ul>
     `;
@@ -202,7 +251,6 @@ export class ChartTooltipSk extends ElementSk {
       details.hash,
       details.ts,
       details.author,
-      details.message,
       details.url
     );
   };
@@ -213,14 +261,20 @@ export class ChartTooltipSk extends ElementSk {
     test_name: string,
     y_value: number,
     commit_position: CommitNumber,
-    anomaly: Anomaly | null
+    anomaly: Anomaly | null,
+    commit: Commit | null,
+    displayFileLinks: boolean
   ): void {
     this._test_name = test_name;
     this._y_value = y_value;
     this._commit_position = commit_position;
-    if (anomaly !== null) {
-      this._anomaly = anomaly;
+    this._anomaly = anomaly;
+    this._commit = commit;
+
+    if (displayFileLinks && commit_position != null && test_name !== '') {
+      this.ingestFileLinks?.load(commit_position, test_name);
     }
+
     this._render();
   }
 
