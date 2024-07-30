@@ -44,6 +44,9 @@ type Store interface {
 	// GetNotificationId returns the notificationId for the regression at the given commit number for the alert.
 	GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error)
 
+	// GetOldestCommit returns the commit with the lowest commit number
+	GetOldestCommit(ctx context.Context) (*types.CommitNumber, error)
+
 	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
 	// Use with caution.
 	DeleteByCommit(ctx context.Context, commitNumber types.CommitNumber, tx pgx.Tx) error

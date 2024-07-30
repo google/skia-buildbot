@@ -27,6 +27,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	write statement = iota
 	read
+	readOldest
 	readRange
 	batchReadMigration
 	markMigrated
@@ -49,6 +50,15 @@ var statements = map[statement]string{
 		WHERE
 			commit_number=$1 AND
 			alert_id=$2`,
+	readOldest: `
+		SELECT
+			commit_number
+		FROM
+			Regressions
+		ORDER BY
+			commit_number ASC
+		LIMIT 1
+		`,
 	readRange: `
 		SELECT
 			commit_number, alert_id, regression
@@ -355,6 +365,16 @@ func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId stri
 // Not implemented as old regression schema does not have id.
 func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
 	return nil, skerr.Fmt("GetByIDs are not implemented in old version of regression store.")
+}
+
+// GetOldestCommit implements the regression.Store interface. Gets the oldest commit in the table.
+func (s *SQLRegressionStore) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
+	var num int
+	if err := s.db.QueryRow(ctx, statements[readOldest]).Scan(&num); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to fetch oldest commit.")
+	}
+	commitNumber := types.CommitNumber(num)
+	return &commitNumber, nil
 }
 
 // DeleteByCommit implements the regression.Store interface. Deletes a regression via commit number.

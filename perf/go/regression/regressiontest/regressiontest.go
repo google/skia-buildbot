@@ -166,6 +166,35 @@ func DeleteByCommit(t *testing.T, store regression.Store) {
 	require.Len(t, regressions, 0, "regression was not deleted")
 }
 
+// GetOldestCommit tests that the implementation of the regression.Store interface can
+// get the lowest commit number
+func GetOldestCommit(t *testing.T, store regression.Store) {
+	ctx := context.Background()
+
+	reg := &regression.AllRegressionsForCommit{
+		ByAlertID: map[string]*regression.Regression{
+			"fake-alert-id": regression.NewRegression(),
+		},
+	}
+	for i := 0; i < 5; i++ {
+		err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{
+			types.CommitNumber(i): reg,
+		})
+		require.NoError(t, err, "error writing regression %d", i)
+	}
+
+	commitNumber, err := store.GetOldestCommit(ctx)
+	require.NoError(t, err, "error fetching regression")
+	require.Equal(t, types.CommitNumber(0), *commitNumber)
+
+	err = store.DeleteByCommit(ctx, types.CommitNumber(0), nil)
+	require.NoError(t, err)
+
+	commitNumber, err = store.GetOldestCommit(ctx)
+	require.NoError(t, err, "error fetching regression")
+	require.Equal(t, types.CommitNumber(1), *commitNumber)
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store regression.Store)
@@ -177,4 +206,5 @@ var SubTests = map[string]SubTestFunction{
 	"TriageNonExistentRegression": TriageNonExistentRegression,
 	"TestWrite":                   Write,
 	"TestDeleteByCommit":          DeleteByCommit,
+	"TestGetOldestCommit":         GetOldestCommit,
 }

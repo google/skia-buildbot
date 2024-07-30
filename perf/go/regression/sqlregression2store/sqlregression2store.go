@@ -42,6 +42,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	write statementFormat = iota
 	readCompat
+	readOldest
 	readRange
 	readByIDs
 	readBySubName
@@ -66,6 +67,15 @@ var statementFormats = map[statementFormat]string{
 			Regressions2@by_commit_alert
 		WHERE
 			commit_number=$1 AND alert_id=$2
+		`,
+	readOldest: `
+		SELECT
+			commit_number
+		FROM
+			Regressions2
+		ORDER BY
+			commit_number ASC
+		LIMIT 1
 		`,
 	readRange: `
 		SELECT
@@ -240,6 +250,16 @@ func (s *SQLRegression2Store) TriageHigh(ctx context.Context, commitNumber types
 // No Op for SQLRegression2Store.
 func (s *SQLRegression2Store) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
 	return "", nil
+}
+
+// GetOldestCommit implements regression.Store interface
+func (s *SQLRegression2Store) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
+	var num int
+	if err := s.db.QueryRow(ctx, statementFormats[readOldest]).Scan(&num); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to fetch oldest commit.")
+	}
+	commitNumber := types.CommitNumber(num)
+	return &commitNumber, nil
 }
 
 // Write implements the regression.Store interface.
