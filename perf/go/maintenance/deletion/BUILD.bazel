@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "deletion",
+    srcs = ["deleter.go"],
+    importpath = "go.skia.org/infra/perf/go/maintenance/deletion",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
+        "//perf/go/regression",
+        "//perf/go/regression/sqlregressionstore",
+        "//perf/go/shortcut",
+        "//perf/go/shortcut/sqlshortcutstore",
+        "//perf/go/types",
+    ],
+)
+
+go_test(
+    name = "deletion_test",
+    srcs = ["deleter_test.go"],
+    embed = [":deletion"],
+    deps = [
+        "//perf/go/clustering2",
+        "//perf/go/dataframe",
+        "//perf/go/regression",
+        "//perf/go/regression/sqlregressionstore",
+        "//perf/go/shortcut",
+        "//perf/go/shortcut/sqlshortcutstore",
+        "//perf/go/sql/sqltest",
+        "//perf/go/types",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

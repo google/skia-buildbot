@@ -12,6 +12,7 @@ go_library(
         "//perf/go/builders",
         "//perf/go/config",
         "//perf/go/dfbuilder",
+        "//perf/go/maintenance/deletion",
         "//perf/go/psrefresh",
         "//perf/go/regression/migration",
         "//perf/go/sheriffconfig/service",

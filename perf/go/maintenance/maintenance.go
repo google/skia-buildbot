@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dfbuilder"
+	"go.skia.org/infra/perf/go/maintenance/deletion"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression/migration"
 	sheriffconfig "go.skia.org/infra/perf/go/sheriffconfig/service"
@@ -33,6 +34,12 @@ const (
 
 	// Time interval for refreshing the redis cache.
 	redisCacheRefreshPeriod = time.Hour * 4
+
+	// How often to delete a batch of old shortcuts and regressions.
+	deletionPeriod = time.Minute * 15
+
+	// Size of the batch of shortcuts to delete.
+	deletionBatchSize = 1000
 )
 
 // Start all the long running processes. This function does not return if all
@@ -115,6 +122,14 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 		}
 		cacheParamSetRefresher := psrefresh.NewCachedParamSetRefresher(psRefresher, cache)
 		cacheParamSetRefresher.StartRefreshRoutine(redisCacheRefreshPeriod)
+	}
+
+	if flags.DeleteShortcutsAndRegressions {
+		deleter, err := deletion.New(db)
+		if err != nil {
+			return skerr.Wrapf(err, "Error creating new Deleter")
+		}
+		deleter.RunPeriodicDeletion(deletionPeriod, deletionBatchSize)
 	}
 
 	select {}

@@ -715,13 +715,14 @@ func (flags *IngestFlags) AsCliFlags() []cli.Flag {
 
 // MaintenanceFlags are the command-line flags for the maintenance process.
 type MaintenanceFlags struct {
-	ConfigFilename     string
-	ConnectionString   string
-	PromPort           string
-	Local              bool
-	MigrateRegressions bool
-	RefreshQueryCache  bool
-	TilesForQueryCache int
+	ConfigFilename                string
+	ConnectionString              string
+	PromPort                      string
+	Local                         bool
+	MigrateRegressions            bool
+	RefreshQueryCache             bool
+	DeleteShortcutsAndRegressions bool
+	TilesForQueryCache            int
 }
 
 // AsCliFlags returns a slice of cli.Flag.
@@ -768,6 +769,12 @@ func (flags *MaintenanceFlags) AsCliFlags() []cli.Flag {
 			Name:        "tiles_for_query_cache",
 			Value:       2,
 			Usage:       "The number of tiles to look for when caching query results.",
+		},
+		&cli.BoolFlag{
+			Destination: &flags.DeleteShortcutsAndRegressions,
+			Name:        "delete_shortcuts_and_regressions",
+			Value:       false,
+			Usage:       "If true, periodically delete outdated regressions and corresponding shortcuts",
 		},
 	}
 }
