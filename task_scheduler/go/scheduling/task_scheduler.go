@@ -1462,6 +1462,11 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return skerr.Wrapf(err, "Failed to schedule tasks")
 	}
 
+	// Clean up the taskCfgCache.
+	if err := s.taskCfgCache.Cleanup(ctx, now.Now(ctx).Sub(s.window.EarliestStart())); err != nil {
+		return skerr.Wrapf(err, "failed to cleanup task cfg cache")
+	}
+
 	sklog.Infof("Task Scheduler MainLoop finished.")
 	return nil
 }
