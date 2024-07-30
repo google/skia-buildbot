@@ -48,7 +48,7 @@ func TestLoader_UnknownCommit_ReturnsError(t *testing.T) {
 	}
 	_, err := loader.Load(ctx, request, nil)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Failed to get details for CommitNumber")
+	assert.Contains(t, err.Error(), "no rows in result set")
 }
 
 func TestLoader_InvalidQuery_ReturnsError(t *testing.T) {
