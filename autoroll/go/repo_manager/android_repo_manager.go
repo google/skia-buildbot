@@ -555,6 +555,23 @@ third_party {
 		return 0, skerr.Wrapf(configErr, "could not set autoupload config")
 	}
 
+	// Check for untracked files and fail if we find any.
+	output, err := r.childRepo.Git(ctx, "ls-files", "--exclude-standard", "--others")
+	if err != nil {
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
+		return 0, skerr.Wrapf(err, "failed to check for untracked files")
+	}
+	output = strings.TrimSpace(output)
+	if len(output) > 0 {
+		untrackedFiles := strings.Split(output, "\n")
+		msg := "found untracked files:"
+		for _, f := range untrackedFiles {
+			msg += fmt.Sprintf("\n- %s", f)
+		}
+		util.LogErr(r.abandonRepoBranchAndCleanup(ctx))
+		return 0, skerr.Fmt(msg)
+	}
+
 	// Upload the CL to Gerrit.
 	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify", "--yes"}
 	if rollEmails != nil && len(rollEmails) > 0 {
