@@ -35,7 +35,8 @@ export class Commit {
     commit_url: string
   ) {
     this.commit_hash = commit_hash;
-    this.timestamp = new Date(timestamp).toDateString();
+    // timestamp is in seconds, so we need to multiply by 1000 to get ms
+    this.timestamp = new Date(timestamp * 1000).toDateString();
     this.author = author;
     this.commit_url = commit_url;
   }
