@@ -12,6 +12,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 
 const urls = [
+  'https://android-15-debugger.skia.org',
   'https://android-14-debugger.skia.org',
   'https://android-13-debugger.skia.org',
   'https://android-12-debugger.skia.org',
