@@ -86,15 +86,19 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build SubscriptionStore.")
 		}
-		luciConfig, err := luciconfig.NewApiClient(ctx)
+		luciConfig, err := luciconfig.NewApiClient(ctx, false)
 		if err != nil {
-			return skerr.Wrapf(err, "Failed to build LUCI Config client.")
+			sklog.Errorf("Failed to build LUCI Config client: %s", err)
+			// TODO(eduardoyap): Move this out of the else block. For now it's just to prevent the
+			// service from crashing if we're unable to connect.
+		} else {
+			sheriffConfig, err := sheriffconfig.New(ctx, subscriptionStore, alertStore, luciConfig)
+			if err != nil {
+				return skerr.Wrapf(err, "Error starting sheriff config service.")
+			}
+			sheriffConfig.StartImportRoutine(configImportPeriod)
 		}
-		sheriffConfig, err := sheriffconfig.New(ctx, subscriptionStore, alertStore, luciConfig)
-		if err != nil {
-			return skerr.Wrapf(err, "Error starting sheriff config service.")
-		}
-		sheriffConfig.StartImportRoutine(configImportPeriod)
+
 	}
 
 	if flags.RefreshQueryCache {

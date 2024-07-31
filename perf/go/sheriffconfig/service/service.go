@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/perf/go/subscription"
 	subscription_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 // Custom default values for Alert and Subscription parameters.
@@ -86,7 +87,7 @@ func New(ctx context.Context,
 
 	if luciconfigApiClient == nil {
 		var err error
-		luciconfigApiClient, err = luciconfig.NewApiClient(ctx)
+		luciconfigApiClient, err = luciconfig.NewApiClient(ctx, false)
 		if err != nil {
 			return nil, skerr.Fmt("Failed to create new LUCI Config client: %s.", err)
 		}
@@ -103,7 +104,7 @@ func New(ctx context.Context,
 // in Subscription and Alert tables.
 func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path string) error {
 
-	configs, err := s.luciconfigApiClient.GetProjectConfigs(path)
+	configs, err := s.luciconfigApiClient.GetProjectConfigs(ctx, path)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -141,9 +142,10 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 // processConfig handles validation and transformation of a single config.
 func (s *sheriffconfigService) processConfig(ctx context.Context, config *luciconfig.ProjectConfig) ([]*subscription_pb.Subscription, []*alerts.SaveRequest, error) {
 	// Validate and deserialize config content
-	sheriffconfig, err := validate.DeserializeProto(config.Content)
+	sheriffconfig := &pb.SheriffConfig{}
+	err := prototext.Unmarshal([]byte(config.Content), sheriffconfig)
 	if err != nil {
-		return nil, nil, skerr.Wrap(err)
+		return nil, nil, skerr.Fmt("Failed to unmarshal prototext: %s", err)
 	}
 	if err := validate.ValidateConfig(sheriffconfig); err != nil {
 		return nil, nil, skerr.Wrap(err)
