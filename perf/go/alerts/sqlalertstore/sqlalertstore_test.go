@@ -324,6 +324,62 @@ func TestStoreReplaceAll_ValidAlerts(t *testing.T) {
 	}
 }
 
+func TestStoreReplaceAll_DuplicateAlerts(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+	oldAlert := &alerts.SaveRequest{
+		Cfg: &alerts.Alert{
+			IDAsString:  "1",
+			DisplayName: "Alert A",
+		},
+		SubKey: &alerts.SubKey{
+			SubName:     "a",
+			SubRevision: "abcd",
+		},
+	}
+
+	// First populate DB with 1 alert and confirm that it's set to active.
+	insertAlertToDb(t, ctx, db, oldAlert.Cfg, oldAlert.SubKey)
+	_, _, configState := getAlertFromDb(t, ctx, db, 1)
+	assert.Equal(t, alerts.ConfigStateToInt(alerts.ACTIVE), configState)
+
+	newAlerts := []*alerts.SaveRequest{
+		{
+			Cfg: &alerts.Alert{
+				IDAsString:  "2",
+				DisplayName: "Alert B",
+			},
+			SubKey: &alerts.SubKey{
+				SubName:     "b",
+				SubRevision: "abcde",
+			},
+		},
+		{
+			Cfg: &alerts.Alert{
+				IDAsString:  "3",
+				DisplayName: "Alert C",
+			},
+			SubKey: &alerts.SubKey{
+				SubName:     "b",
+				SubRevision: "abcde",
+			},
+		},
+	}
+
+	err := store.ReplaceAll(ctx, newAlerts)
+	require.NoError(t, err)
+
+	// Now check that old alert is inactive and new alerts are active
+	_, _, configState = getAlertFromDb(t, ctx, db, 1)
+	assert.Equal(t, alerts.ConfigStateToInt(alerts.DELETED), configState)
+
+	activeAlerts := listAllAlertsInDb(t, ctx, db, alerts.ConfigStateToInt(alerts.ACTIVE))
+	assert.Len(t, activeAlerts, 2)
+	for _, alert := range activeAlerts {
+		assert.True(t, alert.IDAsString == "2" || alert.IDAsString == "3")
+	}
+}
+
 // insertAlertToDb inserts the given Alert into the database.
 func insertAlertToDb(t *testing.T, ctx context.Context, db pool.Pool, cfg *alerts.Alert, subKey *alerts.SubKey) {
 	b, err := json.Marshal(cfg)

@@ -191,13 +191,14 @@ func TestGet_AllSubscriptionsUniqByName(t *testing.T) {
 	assert.Equal(t, actual, expected)
 }
 
-// Test that fails when retrieving an unknown subscription.
+// Test that checks nil is returned when retrieving a non-existent subscription.
 func TestGet_NonExistent(t *testing.T) {
 	ctx := context.Background()
 	store, _ := setUp(t)
 
-	_, err := store.GetSubscription(ctx, "Fake Subscription", "abcd")
-	require.Error(t, err)
+	sub, err := store.GetSubscription(ctx, "Fake Subscription", "abcd")
+	require.NoError(t, err)
+	assert.Nil(t, sub)
 }
 
 func insertSubscriptionToDb(t *testing.T, ctx context.Context, db pool.Pool, subscription *pb.Subscription) {

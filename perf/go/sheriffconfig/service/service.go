@@ -115,7 +115,7 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 	saveRequests := []*alerts.SaveRequest{}
 	subscriptions := []*subscription_pb.Subscription{}
 	for _, config := range configs {
-		ss, srs, err := s.processConfig(config)
+		ss, srs, err := s.processConfig(ctx, config)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
@@ -123,17 +123,23 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 		saveRequests = append(saveRequests, srs...)
 
 	}
-	if err := s.subscriptionStore.InsertSubscriptions(ctx, subscriptions); err != nil {
-		return skerr.Wrap(err)
+
+	if len(subscriptions) != 0 {
+		if err := s.subscriptionStore.InsertSubscriptions(ctx, subscriptions); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
-	if err := s.alertStore.ReplaceAll(ctx, saveRequests); err != nil {
-		return skerr.Wrap(err)
+	if len(saveRequests) != 0 {
+		if err := s.alertStore.ReplaceAll(ctx, saveRequests); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
+
 	return nil
 }
 
 // processConfig handles validation and transformation of a single config.
-func (s *sheriffconfigService) processConfig(config *luciconfig.ProjectConfig) ([]*subscription_pb.Subscription, []*alerts.SaveRequest, error) {
+func (s *sheriffconfigService) processConfig(ctx context.Context, config *luciconfig.ProjectConfig) ([]*subscription_pb.Subscription, []*alerts.SaveRequest, error) {
 	// Validate and deserialize config content
 	sheriffconfig, err := validate.DeserializeProto(config.Content)
 	if err != nil {
@@ -143,66 +149,78 @@ func (s *sheriffconfigService) processConfig(config *luciconfig.ProjectConfig) (
 		return nil, nil, skerr.Wrap(err)
 	}
 
+	subscriptionEntities := []*subscription_pb.Subscription{}
+	saveRequests := []*alerts.SaveRequest{}
+
 	// Prepare subscription and alert data
-	subscriptions := makeSubscriptions(sheriffconfig, config.Revision)
-	saveRequests, err := makeSaveRequests(sheriffconfig.Subscriptions, config.Revision)
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
+	for _, subscription := range sheriffconfig.Subscriptions {
+		subscriptionEntity := makeSubscriptionEntity(subscription, config.Revision)
 
-	return subscriptions, saveRequests, nil
-}
-
-// Create subscription entities to be inserted into DB based on Sheriff Config protos.
-func makeSubscriptions(sheriffConfig *pb.SheriffConfig, revision string) []*subscription_pb.Subscription {
-	subscriptions := []*subscription_pb.Subscription{}
-
-	for _, subscription := range sheriffConfig.Subscriptions {
-		subscriptionEntity := &subscription_pb.Subscription{
-			Name:         subscription.Name,
-			ContactEmail: subscription.ContactEmail,
-			BugLabels:    subscription.BugLabels,
-			Hotlists:     subscription.HotlistLabels,
-			BugComponent: subscription.BugComponent,
-			BugPriority:  getPriorityFromProto(subscription.BugPriority),
-			BugSeverity:  getSeverityFromProto(subscription.BugSeverity),
-			BugCcEmails:  subscription.BugCcEmails,
-			Revision:     revision,
+		// We check if the entity already exists in the DB. If it is, there's no need to re-insert it.
+		// We only want to update the DB when there's an actual revision change in the configurations.
+		sub, err := s.subscriptionStore.GetSubscription(ctx, subscriptionEntity.Name, subscriptionEntity.Revision)
+		if err != nil {
+			return nil, nil, skerr.Wrap(err)
 		}
-		subscriptions = append(subscriptions, subscriptionEntity)
+		if sub == nil {
+			subscriptionEntities = append(subscriptionEntities, subscriptionEntity)
+
+			subSaveRequests, err := makeSaveRequests(subscription, config.Revision)
+			if err != nil {
+				return nil, nil, skerr.Wrap(err)
+			}
+			saveRequests = append(saveRequests, subSaveRequests...)
+		}
 	}
-	return subscriptions
+
+	return subscriptionEntities, saveRequests, nil
 }
 
-// Create SaveRequest objects to be inserted into Alerts DB table.
-func makeSaveRequests(subscriptions []*pb.Subscription, revision string) ([]*alerts.SaveRequest, error) {
+// makeSubscriptionEntity creates subscription entitiy to be inserted into DB based on Sheriff Config protos.
+func makeSubscriptionEntity(subscription *pb.Subscription, revision string) *subscription_pb.Subscription {
+	subscriptionEntity := &subscription_pb.Subscription{
+		Name:         subscription.Name,
+		ContactEmail: subscription.ContactEmail,
+		BugLabels:    subscription.BugLabels,
+		Hotlists:     subscription.HotlistLabels,
+		BugComponent: subscription.BugComponent,
+		BugPriority:  getPriorityFromProto(subscription.BugPriority),
+		BugSeverity:  getSeverityFromProto(subscription.BugSeverity),
+		BugCcEmails:  subscription.BugCcEmails,
+		Revision:     revision,
+	}
+
+	return subscriptionEntity
+}
+
+// makeSaveRequests creates SaveRequest objects for a given subscription to be inserted into Alerts DB table.
+func makeSaveRequests(subscription *pb.Subscription, revision string) ([]*alerts.SaveRequest, error) {
 
 	saveRequests := []*alerts.SaveRequest{}
-	for _, subscription := range subscriptions {
-		for _, anomalyConfig := range subscription.AnomalyConfigs {
-			for _, match := range anomalyConfig.Rules.Match {
+	for _, anomalyConfig := range subscription.AnomalyConfigs {
+		for _, match := range anomalyConfig.Rules.Match {
 
-				query, err := buildQueryFromRules(match, anomalyConfig.Rules.Exclude)
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-				cfg := createAlert(query, anomalyConfig, subscription, revision)
-
-				saveRequest := &alerts.SaveRequest{
-					Cfg: cfg,
-					SubKey: &alerts.SubKey{
-						SubName:     subscription.Name,
-						SubRevision: revision,
-					},
-				}
-				saveRequests = append(saveRequests, saveRequest)
+			query, err := buildQueryFromRules(match, anomalyConfig.Rules.Exclude)
+			if err != nil {
+				return nil, skerr.Wrap(err)
 			}
+			cfg := createAlert(query, anomalyConfig, subscription, revision)
+
+			saveRequest := &alerts.SaveRequest{
+				Cfg: cfg,
+				SubKey: &alerts.SubKey{
+					SubName:     subscription.Name,
+					SubRevision: revision,
+				},
+			}
+			saveRequests = append(saveRequests, saveRequest)
 		}
 	}
+
 	return saveRequests, nil
 }
 
-// Create Alert object.
+// createAlert creates Alert object.
 func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb.Subscription, revision string) *alerts.Alert {
 	// Apply defaults
 	radius := defaultRadius
@@ -254,7 +272,7 @@ func createAlert(query string, anomalyConfig *pb.AnomalyConfig, subscription *pb
 	return cfg
 }
 
-// Create query based on Sheriff Config rules.
+// buildQueryFromRules creates query based on Sheriff Config rules.
 func buildQueryFromRules(match string, excludes []string) (string, error) {
 	var queryParts []string
 	matchQuery, err := url.ParseQuery(match)
