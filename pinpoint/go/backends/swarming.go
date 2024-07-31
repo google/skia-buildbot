@@ -2,8 +2,6 @@ package backends
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -33,17 +31,10 @@ type SwarmingClient interface {
 	// GetStartTime returns the starting time of the swarming task.
 	GetStartTime(ctx context.Context, taskID string) (*timestamppb.Timestamp, error)
 
-	// GetStates returns the state of each task in a list of tasks.
-	GetStates(ctx context.Context, taskIDs []string) ([]string, error)
-
 	// GetStatus gets the current status of a swarming task.
 	GetStatus(ctx context.Context, taskID string) (string, error)
 
-	// ListPinpointTasks lists the Pinpoint swarming tasks.
-	ListPinpointTasks(ctx context.Context, jobID string, buildArtifact *apipb.CASReference) ([]string, error)
-
-	// TriggerTask is a literal wrapper around swarming.ApiClient TriggerTask
-	// TODO(jeffyoon@) remove once run_benchmark is refactored if no longer needed.
+	// TriggerTask is a wrapper around swarming.ApiClient TriggerTask
 	TriggerTask(ctx context.Context, req *apipb.NewTaskRequest) (*apipb.TaskRequestMetadataResponse, error)
 
 	// FetchFreeBots gets a list of available bots per specified builder configuration.
@@ -112,21 +103,6 @@ func (s *SwarmingClientImpl) GetStartTime(ctx context.Context, taskID string) (*
 	return res.StartedTs, skerr.Wrap(err)
 }
 
-// GetStates returns the state of each task in a list of tasks.
-func (s *SwarmingClientImpl) GetStates(ctx context.Context, taskIDs []string) ([]string, error) {
-	resp, err := s.SwarmingV2Client.ListTaskStates(ctx, &apipb.TaskStatesRequest{
-		TaskId: taskIDs,
-	})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	rv := make([]string, 0, len(resp.States))
-	for _, state := range resp.States {
-		rv = append(rv, state.String())
-	}
-	return rv, nil
-}
-
 // GetStatus gets the current status of a swarming task.
 func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (string, error) {
 	res, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{
@@ -142,34 +118,6 @@ func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (stri
 		return RunBenchmarkFailure, nil
 	}
 	return res.State.String(), nil
-}
-
-// ListPinpointTasks lists the Pinpoint swarming tasks of a given job and build identified by Swarming tags.
-func (s *SwarmingClientImpl) ListPinpointTasks(ctx context.Context, jobID string, buildArtifact *apipb.CASReference) ([]string, error) {
-	if jobID == "" {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing JobID")
-	}
-	if buildArtifact == nil || buildArtifact.Digest == nil {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing cas isolate")
-	}
-	start := time.Now().Add(-24 * time.Hour)
-	tags := []string{
-		fmt.Sprintf("pinpoint_job_id:%s", jobID),
-		fmt.Sprintf("build_cas:%s/%d", buildArtifact.Digest.Hash, buildArtifact.Digest.SizeBytes),
-	}
-	tasks, err := swarmingv2.ListTasksHelper(ctx, s.SwarmingV2Client, &apipb.TasksWithPerfRequest{
-		Start: timestamppb.New(start),
-		Tags:  tags,
-		State: apipb.StateQuery_QUERY_ALL,
-	})
-	if err != nil {
-		return nil, skerr.Wrapf(err, "error retrieving tasks")
-	}
-	taskIDs := make([]string, len(tasks))
-	for i, t := range tasks {
-		taskIDs[i] = t.TaskId
-	}
-	return taskIDs, nil
 }
 
 func (s *SwarmingClientImpl) TriggerTask(ctx context.Context, req *apipb.NewTaskRequest) (*apipb.TaskRequestMetadataResponse, error) {

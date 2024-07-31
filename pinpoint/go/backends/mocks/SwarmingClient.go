@@ -155,36 +155,6 @@ func (_m *SwarmingClient) GetStartTime(ctx context.Context, taskID string) (*tim
 	return r0, r1
 }
 
-// GetStates provides a mock function with given fields: ctx, taskIDs
-func (_m *SwarmingClient) GetStates(ctx context.Context, taskIDs []string) ([]string, error) {
-	ret := _m.Called(ctx, taskIDs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetStates")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]string, error)); ok {
-		return rf(ctx, taskIDs)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []string); ok {
-		r0 = rf(ctx, taskIDs)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, taskIDs)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetStatus provides a mock function with given fields: ctx, taskID
 func (_m *SwarmingClient) GetStatus(ctx context.Context, taskID string) (string, error) {
 	ret := _m.Called(ctx, taskID)
@@ -206,36 +176,6 @@ func (_m *SwarmingClient) GetStatus(ctx context.Context, taskID string) (string,
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, taskID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ListPinpointTasks provides a mock function with given fields: ctx, jobID, buildArtifact
-func (_m *SwarmingClient) ListPinpointTasks(ctx context.Context, jobID string, buildArtifact *apipb.CASReference) ([]string, error) {
-	ret := _m.Called(ctx, jobID, buildArtifact)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListPinpointTasks")
-	}
-
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *apipb.CASReference) ([]string, error)); ok {
-		return rf(ctx, jobID, buildArtifact)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *apipb.CASReference) []string); ok {
-		r0 = rf(ctx, jobID, buildArtifact)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, *apipb.CASReference) error); ok {
-		r1 = rf(ctx, jobID, buildArtifact)
 	} else {
 		r1 = ret.Error(1)
 	}
