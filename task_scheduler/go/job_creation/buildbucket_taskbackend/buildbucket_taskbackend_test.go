@@ -407,6 +407,7 @@ func TestTaskBackend_CancelTasks_Success(t *testing.T) {
 	beforeJob := makeJob(ctx)
 	afterJob := beforeJob.Copy()
 	d.On("GetJobById", testutils.AnyContext, "my-job-id").Return(beforeJob, nil)
+	afterJob.Finished = fakeCreateTime.Add(time.Minute)
 	afterJob.Status = types.JOB_STATUS_CANCELED
 	afterJob.StatusDetails = "Canceled by Buildbucket"
 	d.On("PutJobs", testutils.AnyContext, []*types.Job{afterJob}).Return(nil)
@@ -460,6 +461,7 @@ func TestTaskBackend_CancelTasks_FailedDBInsert(t *testing.T) {
 	beforeJob := makeJob(ctx)
 	afterJob := beforeJob.Copy()
 	d.On("GetJobById", testutils.AnyContext, "my-job-id").Return(beforeJob, nil)
+	afterJob.Finished = fakeCreateTime.Add(time.Minute)
 	afterJob.Status = types.JOB_STATUS_CANCELED
 	afterJob.StatusDetails = "Canceled by Buildbucket"
 	d.On("PutJobs", testutils.AnyContext, []*types.Job{afterJob}).Return(errors.New("DB error"))
@@ -478,6 +480,7 @@ func TestTaskBackend_CancelTasks_FailedDBInsert(t *testing.T) {
 func TestTaskBackend_CancelTasks_NoUpdates(t *testing.T) {
 	ctx, tb, d, _ := setup(t)
 	job := makeJob(ctx)
+	job.Finished = fakeCreateTime.Add(time.Minute)
 	job.Status = types.JOB_STATUS_CANCELED
 	job.StatusDetails = "Canceled by Buildbucket"
 	d.On("GetJobById", testutils.AnyContext, "my-job-id").Return(job, nil)
