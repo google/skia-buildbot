@@ -109,3 +109,30 @@ func (c *perfCASClient) ReadValuesByChart(ctx context.Context, benchmark string,
 	}
 	return values, nil
 }
+
+func (c *perfCASClient) ReadValuesForAllCharts(ctx context.Context, benchmark string, digests []*apipb.CASReference, agg string) (map[string][]float64, error) {
+	aggMethod, ok := aggregationMapping[agg]
+	if !ok && agg != "" {
+		return nil, skerr.Fmt("unsupported aggregation method (%s).", agg)
+	}
+
+	valuesByChart := map[string][]float64{}
+	// a digest is a CAS output from one swarming task
+	for _, digest := range digests {
+		res, err := c.provider.Fetch(ctx, digest)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "could not fetch results from CAS (%v)", digest)
+		}
+		pr := res[benchmark]
+		for k, sv := range pr.Histograms {
+			var values []float64
+			if aggMethod != nil && sv.SampleValues != nil {
+				values = []float64{aggMethod(perfresults.Histogram{SampleValues: sv.SampleValues})}
+			} else {
+				values = sv.SampleValues
+			}
+			valuesByChart[k.ChartName] = append(valuesByChart[k.ChartName], values...)
+		}
+	}
+	return valuesByChart, nil
+}
