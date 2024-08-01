@@ -286,6 +286,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
 		"--reset", "--force", "--ignore_locks", "--nohooks", "--noprehooks",
 		"--shallow",
+		"-v", "-v", "-v", // Delete this if/when logs are too verbose.
 	}
 	if ctx.Value(SkipDownloadTopicsKey) == nil {
 		cmd = append(cmd, "--download-topics")
