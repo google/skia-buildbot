@@ -7,8 +7,6 @@ import (
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
-	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
-	pp_pb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -40,7 +38,6 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		return nil, skerr.Wrap(err)
 	}
 
-	var be *pp_pb.BisectExecution
 	if anomalyGroupResponse.AnomalyGroup.GroupAction == ag_pb.GroupActionType_BISECT {
 		// Step 3. Load Anomaly data
 		var topAnomaliesResponse *ag_pb.FindTopAnomaliesResponse
@@ -64,33 +61,43 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		if err = workflow.ExecuteActivity(ctx, gsa.GetCommitRevision, topAnomaly.EndCommit).Get(ctx, &endHash); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		// Step 5. Invoke Bisection conditionally
-		if err := workflow.ExecuteChildWorkflow(ctx, pinpoint.CatapultBisect,
-			&pinpoint.BisectParams{
-				Request: &pp_pb.ScheduleBisectRequest{
-					ComparisonMode:       "performance",
-					StartGitHash:         startHash,
-					EndGitHash:           endHash,
-					Configuration:        topAnomaly.Paramset["bot"],
-					Benchmark:            topAnomaly.Paramset["benchmark"],
-					Story:                topAnomaly.Paramset["story"],
-					Chart:                topAnomaly.Paramset["measurement"],
-					AggregationMethod:    topAnomaly.Paramset["stat"],
-					ImprovementDirection: topAnomaly.ImprovementDirection,
-				},
-			}).Get(ctx, &be); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		var updateAnomalyGroupResponse *ag_pb.UpdateAnomalyGroupResponse
-		if err = workflow.ExecuteActivity(ctx, agsa.UpdateAnomalyGroup, input.AnomalyGroupServiceUrl, &ag_pb.UpdateAnomalyGroupRequest{
-			AnomalyGroupId: input.AnomalyGroupId,
-			BisectionId:    be.JobId,
-		}).Get(ctx, &updateAnomalyGroupResponse); err != nil {
-			return nil, skerr.Wrap(err)
-		}
 		return &workflows.MaybeTriggerBisectionResult{
-			JobId: be.JobId,
+			JobId: "Unknown yet",
 		}, nil
+		// TODO(wenbinzhang): invoke the bisection when we can have the
+		// bisection job id without waiting for its result.
+		// The following invoking logic will be commeted out for now.
+		// ======== start of bisection related steps ========
+		// // Step 5. Invoke Bisection conditionally
+		// var be *pp_pb.BisectExecution
+		// if err := workflow.ExecuteChildWorkflow(ctx, pinpoint.CatapultBisect,
+		// 	&pinpoint.BisectParams{
+		// 		Request: &pp_pb.ScheduleBisectRequest{
+		// 			ComparisonMode:       "performance",
+		// 			StartGitHash:         startHash,
+		// 			EndGitHash:           endHash,
+		// 			Configuration:        topAnomaly.Paramset["bot"],
+		// 			Benchmark:            topAnomaly.Paramset["benchmark"],
+		// 			Story:                topAnomaly.Paramset["story"],
+		// 			Chart:                topAnomaly.Paramset["measurement"],
+		// 			AggregationMethod:    topAnomaly.Paramset["stat"],
+		// 			ImprovementDirection: topAnomaly.ImprovementDirection,
+		// 		},
+		// 	}).Get(ctx, &be); err != nil {
+		// 	return nil, skerr.Wrap(err)
+		// }
+		// // Step 6. Update the anomaly group with the bisection id.
+		// var updateAnomalyGroupResponse *ag_pb.UpdateAnomalyGroupResponse
+		// if err = workflow.ExecuteActivity(ctx, agsa.UpdateAnomalyGroup, input.AnomalyGroupServiceUrl, &ag_pb.UpdateAnomalyGroupRequest{
+		// 	AnomalyGroupId: input.AnomalyGroupId,
+		// 	BisectionId:    be.JobId,
+		// }).Get(ctx, &updateAnomalyGroupResponse); err != nil {
+		// 	return nil, skerr.Wrap(err)
+		// }
+		// return &workflows.MaybeTriggerBisectionResult{
+		// 	JobId: be.JobId,
+		// }, nil
+		// ======== end of bisection related steps ========
 	} else if anomalyGroupResponse.AnomalyGroup.GroupAction == ag_pb.GroupActionType_REPORT {
 		var notifyUserOfAnomalyResponse *ag_pb.UpdateAnomalyGroupResponse
 		if err = workflow.ExecuteActivity(ctx, csa.NotifyUserOfAnomaly, input.CulpritServiceUrl, &c_pb.NotifyUserOfAnomalyRequest{

@@ -13,7 +13,6 @@ import (
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
 
-	pp_pb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 	"google.golang.org/grpc"
@@ -81,27 +80,28 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	mockEndRevision := "revision10"
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, endCommit).Return(mockEndRevision, nil).Once()
-	env.OnWorkflow(pinpoint.CatapultBisect, mock.Anything,
-		&pinpoint.BisectParams{
-			Request: &pp_pb.ScheduleBisectRequest{
-				ComparisonMode:       "performance",
-				StartGitHash:         mockStartRevision,
-				EndGitHash:           mockEndRevision,
-				Configuration:        mockAnomaly.Paramset["bot"],
-				Benchmark:            mockAnomaly.Paramset["benchmark"],
-				Story:                mockAnomaly.Paramset["story"],
-				Chart:                mockAnomaly.Paramset["measurement"],
-				AggregationMethod:    mockAnomaly.Paramset["stat"],
-				ImprovementDirection: mockAnomaly.ImprovementDirection,
-			},
-		}).Return(&pp_pb.BisectExecution{
-		JobId: "bisectionId",
-	}, nil).Once()
-	server.On("UpdateAnomalyGroup", mock.Anything, &ag_pb.UpdateAnomalyGroupRequest{
-		BisectionId:    "bisectionId",
-		AnomalyGroupId: anomalyGroupId}).
-		Return(
-			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
+	// TODO(wenbinzhang): re-enable when bisection invoke is updated.
+	// env.OnWorkflow(pinpoint.CatapultBisect, mock.Anything,
+	// 	&pinpoint.BisectParams{
+	// 		Request: &pp_pb.ScheduleBisectRequest{
+	// 			ComparisonMode:       "performance",
+	// 			StartGitHash:         mockStartRevision,
+	// 			EndGitHash:           mockEndRevision,
+	// 			Configuration:        mockAnomaly.Paramset["bot"],
+	// 			Benchmark:            mockAnomaly.Paramset["benchmark"],
+	// 			Story:                mockAnomaly.Paramset["story"],
+	// 			Chart:                mockAnomaly.Paramset["measurement"],
+	// 			AggregationMethod:    mockAnomaly.Paramset["stat"],
+	// 			ImprovementDirection: mockAnomaly.ImprovementDirection,
+	// 		},
+	// 	}).Return(&pp_pb.BisectExecution{
+	// 	JobId: "bisectionId",
+	// }, nil).Once()
+	// server.On("UpdateAnomalyGroup", mock.Anything, &ag_pb.UpdateAnomalyGroupRequest{
+	// 	BisectionId:    "bisectionId",
+	// 	AnomalyGroupId: anomalyGroupId}).
+	// 	Return(
+	// 		&ag_pb.UpdateAnomalyGroupResponse{}, nil)
 
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
