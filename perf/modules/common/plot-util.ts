@@ -1,3 +1,4 @@
+import { MISSING_DATA_SENTINEL } from '../const/const';
 import { ColumnHeader } from '../json';
 import { ChartAxisFormat, ChartData, DataPoint } from './plot-builder';
 
@@ -108,11 +109,17 @@ export function CreateChartDataFromTraceSet(
     const trace = traceSet[key];
     const traceDataPoints: DataPoint[] = [];
     for (let i = 0; i < trace.length; i++) {
-      const dataPoint: DataPoint = {
-        x: xLabels[i],
-        y: trace[i],
-      };
-      traceDataPoints.push(dataPoint);
+      // The MISSING_DATA_SENTINEL const is used to define missing data points
+      // at the given x value in the trace. We should ignore these points when
+      // we create the chart data since the charts library will automatically handle
+      // this scenario.
+      if (trace[i] !== MISSING_DATA_SENTINEL) {
+        const dataPoint: DataPoint = {
+          x: xLabels[i],
+          y: trace[i],
+        };
+        traceDataPoints.push(dataPoint);
+      }
     }
 
     chartData.lines[key] = traceDataPoints;

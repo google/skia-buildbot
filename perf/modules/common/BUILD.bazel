@@ -16,6 +16,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":plot-builder_ts_lib",
+        "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
 )
