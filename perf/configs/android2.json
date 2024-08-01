@@ -40,7 +40,7 @@
     "data_store_config": {
         "datastore_type": "cockroachdb",
         "connection_string": "postgresql://root@perf-cockroachdb-public:26257/androidx?sslmode=disable",
-        "tile_size": 8192
+        "tile_size": 300
     },
     "ingestion_config": {
         "source_config": {
