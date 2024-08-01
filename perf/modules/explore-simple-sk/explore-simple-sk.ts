@@ -136,6 +136,7 @@ import {
   ChartTooltipSk,
   Commit as ChartCommit,
 } from '../chart-tooltip-sk/chart-tooltip-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -541,6 +542,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceNameIdMap = new Map();
 
+  private pointToCommitDetailMap = new Map();
+
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
@@ -702,7 +705,7 @@ export class ExploreSimpleSk extends ElementSk {
     </div>
 
     <div id=spin-overlay>
-      <chart-tooltip-sk id="tooltip"></chart-tooltip-sk>
+      <chart-tooltip-sk></chart-tooltip-sk>
       <plot-simple-sk
         .summary=${ele._state.summary}
         id=plot
@@ -1436,7 +1439,16 @@ export class ExploreSimpleSk extends ElementSk {
     this.traceDetails!.textContent = formattedTrace;
 
     if (this._state.enable_chart_tooltip) {
-      this.enableTooltip(e.detail, null, false);
+      // if the commit details for a point is already loaded then
+      // show those commit details on hover
+      let c = null;
+      const commitPos = this._dataframe.header![e.detail.x]!.offset;
+      const key = JSON.stringify([e.detail.name, commitPos]);
+      if (this.pointToCommitDetailMap.has(key)) {
+        c = this.pointToCommitDetailMap.get(key) || null;
+      }
+
+      this.enableTooltip(e.detail, c, false);
     }
   }
 
@@ -1539,7 +1551,11 @@ export class ExploreSimpleSk extends ElementSk {
     commit: Commit | null,
     displayFileLinks: boolean
   ): void {
-    const tooltipElem = <ChartTooltipSk>document.querySelector('#tooltip');
+    // explore-simple-sk is used multiple times on the multi-graph view. To
+    // make sure that appropriate chart-tooltip-sk element is selected, we
+    // start the search from the explore-simple-sk that the user is hovering/
+    // clicking on
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
 
     const viewportWidth = Math.max(
       document.documentElement.clientWidth || 0,
@@ -1739,7 +1755,17 @@ export class ExploreSimpleSk extends ElementSk {
           this.ingestFileLinks!.load(cid, traceid);
         }
 
-        if (this._state.enable_chart_tooltip) {
+        // when the commit details are loaded, add those info to
+        // pointToCommitDetailMap map which can be used to fetch commit
+        // info on hover without making an API call
+        this.pointToCommitDetailMap.set(
+          JSON.stringify([e.detail.name, cid]),
+          json.commitSlice![0]
+        );
+
+        const hasValidTooltipPos =
+          e.detail.xPos !== undefined && e.detail.yPos !== undefined;
+        if (this._state.enable_chart_tooltip && hasValidTooltipPos) {
           this.enableTooltip(e.detail, json.commitSlice![0], true);
         }
       })
