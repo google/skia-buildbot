@@ -26,6 +26,7 @@ window.perf = {
   need_alert_action: false,
   bug_host_url: '',
   git_repo_url: '',
+  keys_for_commit_range: [],
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');

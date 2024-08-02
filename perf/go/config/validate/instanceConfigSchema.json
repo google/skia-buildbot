@@ -73,6 +73,18 @@
         "notifications"
       ]
     },
+    "DataPointConfig": {
+      "properties": {
+        "keys_for_commit_range": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "DataStoreConfig": {
       "properties": {
         "datastore_type": {
@@ -304,6 +316,9 @@
         },
         "temporal_config": {
           "$ref": "#/$defs/TemporalConfig"
+        },
+        "data_point_config": {
+          "$ref": "#/$defs/DataPointConfig"
         },
         "enable_sheriff_config": {
           "type": "boolean"

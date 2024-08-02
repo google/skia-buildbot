@@ -257,6 +257,7 @@ type SkPerfConfig struct {
 	NeedAlertAction            bool               `json:"need_alert_action"`               // Action to take for the alert.
 	BugHostURL                 string             `json:"bug_host_url"`                    // The URL for the bug host for the instance.
 	GitRepoUrl                 string             `json:"git_repo_url"`                    // The URL for the associated git repo.
+	KeysForCommitRange         []string           `json:"keys_for_commit_range"`           // The link keys for commit range url display of individual points.
 }
 
 // getPageContext returns the value of `window.perf` serialized as JSON.
@@ -284,6 +285,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		NeedAlertAction:            config.Config.NeedAlertAction,
 		BugHostURL:                 config.Config.BugHostUrl,
 		GitRepoUrl:                 config.Config.GitRepoConfig.URL,
+		KeysForCommitRange:         config.Config.DataPointConfig.KeysForCommitRange,
 	}
 	b, err := json.MarshalIndent(pc, "", "  ")
 	if err != nil {

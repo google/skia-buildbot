@@ -818,6 +818,12 @@ type TemporalConfig struct {
 	TaskQueue string `json:"task_queue,omitempty"`
 }
 
+// DataPointConfig contains config properties to customize how data for individual points is displayed.
+type DataPointConfig struct {
+	// The link keys to use for commit range urls.
+	KeysForCommitRange []string `json:"keys_for_commit_range,omitempty"`
+}
+
 // QueryConfig contains query customization info for the instance.
 type QueryConfig struct {
 	// IncludedParams defines the params that should be displayed in the query dialog.
@@ -927,6 +933,7 @@ type InstanceConfig struct {
 	AnomalyConfig       AnomalyConfig       `json:"anomaly_config,omitempty"`
 	QueryConfig         QueryConfig         `json:"query_config,omitempty"`
 	TemporalConfig      TemporalConfig      `json:"temporal_config,omitempty"`
+	DataPointConfig     DataPointConfig     `json:"data_point_config,omitempty"`
 
 	EnableSheriffConfig bool `json:"enable_sheriff_config,omitempty"`
 

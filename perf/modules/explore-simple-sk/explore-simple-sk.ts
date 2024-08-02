@@ -42,6 +42,7 @@ import '../pivot-query-sk';
 import '../pivot-table-sk';
 import '../plot-simple-sk';
 import '../plot-summary-sk';
+import '../point-links-sk';
 import '../query-count-sk';
 import '../window/window';
 
@@ -137,6 +138,7 @@ import {
   Commit as ChartCommit,
 } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
+import { PointLinksSk } from '../point-links-sk/point-links-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -465,6 +467,8 @@ export class ExploreSimpleSk extends ElementSk {
   private jsonsource: JSONSourceSk | null = null;
 
   private ingestFileLinks: IngestFileLinksSk | null = null;
+
+  private pointLinks: PointLinksSk | null = null;
 
   private logEntry: HTMLPreElement | null = null;
 
@@ -942,6 +946,7 @@ export class ExploreSimpleSk extends ElementSk {
             </div>
             <div>
               <commit-range-sk id="commit-range-link"></commit-range-sk>
+              <point-links-sk id="point-links"></point-links-sk>
               <commit-detail-panel-sk id=commits selectable .hide=${
                 window.perf.hide_list_of_commits_on_explore
               }></commit-detail-panel-sk>
@@ -977,6 +982,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.formula = this.querySelector('#formula');
     this.jsonsource = this.querySelector('#jsonsource');
     this.ingestFileLinks = this.querySelector('#ingest-file-links');
+    this.pointLinks = this.querySelector<PointLinksSk>('#point-links');
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
@@ -1753,6 +1759,13 @@ export class ExploreSimpleSk extends ElementSk {
           this.jsonsource!.cid = cid;
           this.jsonsource!.traceid = traceid;
           this.ingestFileLinks!.load(cid, traceid);
+          // Populate the point links element.
+          this.pointLinks!.load(
+            commit,
+            prevCommit,
+            e.detail.name,
+            window.perf.keys_for_commit_range!
+          );
         }
 
         // when the commit details are loaded, add those info to

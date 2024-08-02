@@ -33,6 +33,7 @@ sk_element(
         "//perf/modules/plot-summary-sk",
         "//perf/modules/picker-field-sk",
         "//perf/modules/chart-tooltip-sk",
+        "//perf/modules/point-links-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

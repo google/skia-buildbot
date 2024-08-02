@@ -83,6 +83,9 @@
             "cache_expiration_minutes": 300
         }
     },
+    "data_point_config": {
+        "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"]
+    },
     "temporal_config": {
         "host_port": "temporal.temporal:7233",
         "namespace": "perf-grouping",
