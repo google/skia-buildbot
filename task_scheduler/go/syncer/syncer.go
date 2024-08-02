@@ -267,7 +267,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		fmt.Sprintf("GIT_COOKIES_PATH=%s", types.GitCookiesPath),
 	}
 
-	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
+	spec := fmt.Sprintf("solutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", projectName, rs.Repo)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: vpythonBinary,
 		Args: []string{"-u", gclientPath, "config", fmt.Sprintf("--spec=%s", spec)},
