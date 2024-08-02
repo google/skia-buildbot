@@ -515,6 +515,9 @@
         },
         "task_queue": {
           "type": "string"
+        },
+        "pinpoint_task_queue": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

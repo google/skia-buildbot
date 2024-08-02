@@ -89,7 +89,8 @@
     "temporal_config": {
         "host_port": "temporal.temporal:7233",
         "namespace": "perf-grouping",
-        "task_queue": "perf.perf-chrome-internal.grouping"
+        "task_queue": "perf.perf-chrome-internal.grouping",
+        "pinpoint_task_queue": "perf.perf-chrome-public.bisect"
     },
     "enable_sheriff_config": true,
     "help_url_override": "http://go/chrome-perf-user-doc",

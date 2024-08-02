@@ -816,6 +816,9 @@ type TemporalConfig struct {
 
 	// The task queue name where the created workflows go to.
 	TaskQueue string `json:"task_queue,omitempty"`
+
+	// The task queue name where the *bisect* workflows go to.
+	PinpointTaskQueue string `json:"pinpoint_task_queue,omitempty"`
 }
 
 // DataPointConfig contains config properties to customize how data for individual points is displayed.
