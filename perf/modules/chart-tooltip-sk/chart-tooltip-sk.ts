@@ -91,7 +91,7 @@ export class ChartTooltipSk extends ElementSk {
   private _anomaly: Anomaly | null = null;
 
   // Host bug url, usually from window.perf.bug_host_url.
-  private _bug_host_url: string = 'https://bugs.chromium.org';
+  private _bug_host_url: string = window.perf.bug_host_url;
 
   // Commit range element. Values usually set by explore-simple-sk when a point
   // is selected.
@@ -129,6 +129,7 @@ export class ChartTooltipSk extends ElementSk {
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
     <div
+      class="container"
       style="display: ${ele.display ? 'block' : 'none'};
              left: ${ele.left}px; top: ${ele.top}px;">
       <h3>${ele.test_name}</h3>
@@ -142,6 +143,11 @@ export class ChartTooltipSk extends ElementSk {
           <span>${ele.commit_position}</span>
         </li>
       </ul>
+      <div class="revlink">
+        <a href="/v/?revisionId=${ele.commit_position}" target="_blank">
+          Regressions at ${ele.commit_position}
+        </a>
+      </div>
       ${ele.anomalyTemplate()} ${ele.commitTemplate()}
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       <ingest-file-links-sk

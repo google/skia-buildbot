@@ -3,7 +3,7 @@
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "trace_sample_proportion": 0.01,
   "fetch_chrome_perf_anomalies": true,
-  "bug_host_url": "https://bugs.chromium.org",
+  "bug_host_url": "https://issues.chromium.org",
   "feedback_url": "http://go/berf-skia-feedback",
   "chat_url": "http://go/berf-skia-chat",
   "notify_config": {

@@ -3,7 +3,7 @@
 chart-tooltip-sk {
   display: block;
 
-  div {
+  > div.container {
     position: absolute;
     z-index: 1;
     width: 420px;
@@ -45,6 +45,10 @@ chart-tooltip-sk {
           padding: 1px 6px;
         }
       }
+    }
+
+    .revlink {
+      margin-bottom: 26px;
     }
 
     button[hidden] {

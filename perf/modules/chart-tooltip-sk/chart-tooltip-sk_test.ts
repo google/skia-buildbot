@@ -15,6 +15,29 @@ describe('chart-tooltip-sk', () => {
     //   // before it is attached to the DOM (e.g. property setter calls,
     //   // document-level event listeners, etc.).
     // });
+
+    window.perf = {
+      commit_range_url: 'http://example.com/range/{begin}/{end}',
+      key_order: ['config'],
+      demo: true,
+      radius: 7,
+      num_shift: 10,
+      interesting: 25,
+      step_up_only: false,
+      display_group_by: true,
+      hide_list_of_commits_on_explore: false,
+      notifications: 'none',
+      fetch_chrome_perf_anomalies: false,
+      feedback_url: '',
+      chat_url: '',
+      help_url_override: '',
+      trace_format: '',
+      need_alert_action: false,
+      bug_host_url: 'https://example.bug.url',
+      git_repo_url: '',
+      keys_for_commit_range: [],
+    };
+
     element = newInstance();
   });
 
