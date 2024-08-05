@@ -43,6 +43,9 @@ func main() {
 	w.RegisterActivity(agsa)
 	w.RegisterWorkflowWithOptions(internal.MaybeTriggerBisectionWorkflow, workflow.RegisterOptions{Name: workflows.MaybeTriggerBisection})
 
+	gsa := &internal.GerritServiceActivity{}
+	w.RegisterActivity(gsa)
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)
