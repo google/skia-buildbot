@@ -58,13 +58,16 @@ func ProcessRegression(
 	}
 
 	groupAction := strings.ToUpper(string(alert.Action))
+	sklog.Debugf(
+		"Looking for groups for regression. SubName: %s, SubRev: %s, Action: %s, Start: %s, End: %s, Path: %s",
+		alert.SubscriptionName, alert.SubscriptionRevision, alert.Action, startCommit, endCommit, testPath)
 	resp, err := ag_client.FindExistingGroups(
 		ctx,
 		&ag.FindExistingGroupsRequest{
 			// Subscription info will be loaded from alerts.Alert in the future.
 			// Using hard coded values for now. Subscription name will diff from day to day.
-			SubscriptionName:     "Test Sub Name",
-			SubscriptionRevision: "Test Sub Rev " + time.Now().Format("2000-01-01"),
+			SubscriptionName:     alert.SubscriptionName,
+			SubscriptionRevision: alert.SubscriptionRevision,
 			Action:               ag.GroupActionType(ag.GroupActionType_value[groupAction]),
 			StartCommit:          startCommit,
 			EndCommit:            endCommit,
@@ -79,8 +82,8 @@ func ProcessRegression(
 		newGroupID, err := ag_client.CreateNewAnomalyGroup(
 			ctx,
 			&ag.CreateNewAnomalyGroupRequest{
-				SubscriptionName:     "Test Sub Name",
-				SubscriptionRevision: "Test Sub Rev " + time.Now().Format("2000-01-01"),
+				SubscriptionName:     alert.SubscriptionName,
+				SubscriptionRevision: alert.SubscriptionRevision,
 				Domain:               paramSet["master"],
 				Benchmark:            paramSet["benchmark"],
 				StartCommit:          startCommit,
