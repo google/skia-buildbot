@@ -55,7 +55,8 @@
     "default_url_values": {
       "plotSummary": "true",
       "showZero": "false",
-      "useTestPicker": "true"
+      "useTestPicker": "true",
+      "enable_chart_tooltip": "true"
     }
   }
 }
