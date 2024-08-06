@@ -40,6 +40,9 @@ customElements.whenDefined('explore-sk').then(() => {
     .insertAdjacentElement('afterend', document.createElement('explore-sk'));
 
   const explore = $$<ExploreSimpleSk>('explore-simple-sk');
+  if (explore) {
+    explore.state.enable_chart_tooltip = true;
+  }
 
   // Some utility functions used later.
 

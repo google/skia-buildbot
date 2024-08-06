@@ -75,7 +75,9 @@ describe('chart-tooltip-sk', () => {
         commit_position,
         dummyAnomaly(12345),
         null,
-        false
+        false,
+        false,
+        () => {}
       );
       assert.equal(element.test_name, test_name);
       assert.equal(element.y_value, y_value);

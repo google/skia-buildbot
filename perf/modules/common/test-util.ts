@@ -1,7 +1,7 @@
 // Functions to be used by test and demo files. These helps create dummy data and API mocks.
 import fetchMock, { restore } from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
-import { QueryConfig, GraphConfig, ParamSet } from '../json';
+import { QueryConfig } from '../json';
 
 export function setUpExploreDemoEnv() {
   const status: Status = {
@@ -368,7 +368,7 @@ export function setUpExploreDemoEnv() {
       skps: [],
       msg: '',
       display_mode: 'display_plot',
-      anomalymap: null,
+      anomalymap: {},
     },
     url: '/_/status/d25fedcc-7e36-47e4-83d5-58ab76b2d3d1',
   };

@@ -548,6 +548,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private pointToCommitDetailMap = new Map();
 
+  private tooltipFixed = false;
+
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
@@ -1444,7 +1446,7 @@ export class ExploreSimpleSk extends ElementSk {
     );
     this.traceDetails!.textContent = formattedTrace;
 
-    if (this._state.enable_chart_tooltip) {
+    if (this._state.enable_chart_tooltip && !this.tooltipFixed) {
       // if the commit details for a point is already loaded then
       // show those commit details on hover
       let c = null;
@@ -1454,7 +1456,7 @@ export class ExploreSimpleSk extends ElementSk {
         c = this.pointToCommitDetailMap.get(key) || null;
       }
 
-      this.enableTooltip(e.detail, c, false);
+      this.enableTooltip(e.detail, c, false, false);
     }
   }
 
@@ -1555,7 +1557,8 @@ export class ExploreSimpleSk extends ElementSk {
   enableTooltip(
     pointDetails: PlotSimpleSkTraceEventDetails,
     commit: Commit | null,
-    displayFileLinks: boolean
+    displayFileLinks: boolean,
+    fixTooltip: boolean
   ): void {
     // explore-simple-sk is used multiple times on the multi-graph view. To
     // make sure that appropriate chart-tooltip-sk element is selected, we
@@ -1610,13 +1613,24 @@ export class ExploreSimpleSk extends ElementSk {
     tooltipElem!.left = tooltipLeftPos;
     tooltipElem!.top = tooltipTopPos;
 
+    let closeBtnAction = () => {};
+    if (fixTooltip) {
+      closeBtnAction = () => {
+        this.tooltipFixed = false;
+        tooltipElem!.display = false;
+        this._render();
+      };
+    }
+
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
       pointDetails.y,
       commitPosition,
       anomaly,
       c,
-      displayFileLinks
+      displayFileLinks,
+      fixTooltip,
+      closeBtnAction
     );
   }
 
@@ -1776,10 +1790,13 @@ export class ExploreSimpleSk extends ElementSk {
           json.commitSlice![0]
         );
 
+        const tooltipEnabled = this._state.enable_chart_tooltip;
         const hasValidTooltipPos =
           e.detail.xPos !== undefined && e.detail.yPos !== undefined;
-        if (this._state.enable_chart_tooltip && hasValidTooltipPos) {
-          this.enableTooltip(e.detail, json.commitSlice![0], true);
+        if (tooltipEnabled && hasValidTooltipPos) {
+          this.tooltipFixed = true;
+
+          this.enableTooltip(e.detail, json.commitSlice![0], true, true);
         }
       })
       .catch(errorMessage);

@@ -78,7 +78,9 @@ window.customElements.whenDefined('chart-tooltip-sk').then(async () => {
     CommitNumber(12345),
     dummyAnomaly(12345),
     null,
-    false
+    false,
+    false,
+    () => {}
   );
 
   tooltip.commitRangeSk!.trace = [12, MISSING_DATA_SENTINEL, 13];

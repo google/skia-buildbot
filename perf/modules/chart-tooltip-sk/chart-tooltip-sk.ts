@@ -93,6 +93,10 @@ export class ChartTooltipSk extends ElementSk {
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf.bug_host_url;
 
+  _tooltip_fixed: boolean = false;
+
+  _close_button_action: Function = () => {};
+
   // Commit range element. Values usually set by explore-simple-sk when a point
   // is selected.
   commitRangeSk: CommitRangeSk | null = null;
@@ -103,7 +107,7 @@ export class ChartTooltipSk extends ElementSk {
   // Fields below are used for chart tooltip styling
 
   // If the tooltip is to be displayed or hidden
-  display: boolean = false;
+  _display: boolean = false;
 
   // The position from top of it's first position:relative parent in px
   top: number = 0;
@@ -130,7 +134,7 @@ export class ChartTooltipSk extends ElementSk {
   private static template = (ele: ChartTooltipSk) => html`
     <div
       class="container"
-      style="display: ${ele.display ? 'block' : 'none'};
+      style="display: ${ele._display ? 'block' : 'none'};
              left: ${ele.left}px; top: ${ele.top}px;">
       <h3>${ele.test_name}</h3>
       <ul class="table">
@@ -153,6 +157,13 @@ export class ChartTooltipSk extends ElementSk {
       <ingest-file-links-sk
         id="tooltip-ingest-file-links"></ingest-file-links-sk>
       ${ele.seeMoreText()}
+      <button
+        class="action"
+        id="close"
+        @click=${ele._close_button_action}
+        ?hidden=${!ele._tooltip_fixed}>
+        Close
+      </button>
     </div>
   `;
 
@@ -270,13 +281,17 @@ export class ChartTooltipSk extends ElementSk {
     commit_position: CommitNumber,
     anomaly: Anomaly | null,
     commit: Commit | null,
-    displayFileLinks: boolean
+    displayFileLinks: boolean,
+    tooltipFixed: boolean,
+    closeButtonAction: Function
   ): void {
     this._test_name = test_name;
     this._y_value = y_value;
     this._commit_position = commit_position;
     this._anomaly = anomaly;
     this._commit = commit;
+    this._tooltip_fixed = tooltipFixed;
+    this._close_button_action = closeButtonAction;
 
     if (displayFileLinks && commit_position != null && test_name !== '') {
       this.ingestFileLinks?.load(commit_position, test_name);
@@ -341,6 +356,11 @@ export class ChartTooltipSk extends ElementSk {
 
   set bug_host_url(val: string) {
     this._bug_host_url = val;
+    this._render();
+  }
+
+  set display(val: boolean) {
+    this._display = val;
     this._render();
   }
 }
