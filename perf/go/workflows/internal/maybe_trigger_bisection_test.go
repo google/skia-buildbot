@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	ag_mock "go.skia.org/infra/perf/go/anomalygroup/proto/v1/mocks"
-	"go.skia.org/infra/perf/go/config"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
@@ -103,12 +102,6 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
 			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
-	instanceConfig := &config.InstanceConfig{
-		TemporalConfig: config.TemporalConfig{
-			PinpointTaskQueue: "mock-bisect-task-queue",
-		},
-	}
-	config.Config = instanceConfig
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,

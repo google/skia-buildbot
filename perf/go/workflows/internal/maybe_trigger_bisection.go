@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/skerr"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
-	"go.skia.org/infra/perf/go/config"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
@@ -17,6 +16,8 @@ import (
 
 const (
 	_WAIT_TIME_FOR_ANOMALIES = 30 * time.Minute
+	// TODO(wenbinzhang): hardcoded for integration purposes. Will have a update to pass the value as part of the request.
+	_PINPOINT_TASK_QUEUE = "perf.perf-chrome-public.bisect"
 )
 
 // MaybeTriggerBisectionWorkflow is the entry point for the workflow which handles anomaly group
@@ -77,7 +78,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		//    					continue even if the parent workflow exits.
 		child_wf_options := workflow.ChildWorkflowOptions{
 			WorkflowID:        child_wf_id,
-			TaskQueue:         config.Config.TemporalConfig.PinpointTaskQueue,
+			TaskQueue:         _PINPOINT_TASK_QUEUE,
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		c_ctx := workflow.WithChildOptions(ctx, child_wf_options)

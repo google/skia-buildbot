@@ -17,7 +17,6 @@ go_library(
         "//go/skerr",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/client",
-        "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//perf/go/workflows",
         "//pinpoint/go/backends",
@@ -40,7 +39,6 @@ go_test(
     deps = [
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/anomalygroup/proto/v1/mocks",
-        "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//perf/go/culprit/proto/v1/mocks",
         "//perf/go/workflows",
