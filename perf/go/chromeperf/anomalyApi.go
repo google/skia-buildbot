@@ -22,6 +22,8 @@ const (
 	GetFuncName      = "get"
 )
 
+var invalidChars = []string{"?"}
+
 // CommitNumberAnomalyMap is a map of Anomaly, keyed by commit number.
 type CommitNumberAnomalyMap map[types.CommitNumber]Anomaly
 
@@ -465,6 +467,9 @@ func getParams(testPath string) map[string][]string {
 
 	i := 0
 	for _, testPart := range testPathParts {
+		for _, invalidChar := range invalidChars {
+			testPart = strings.ReplaceAll(testPart, invalidChar, "_")
+		}
 		if _, ok := params[paramKeys[i]]; !ok {
 			params[paramKeys[i]] = []string{testPart}
 		} else {

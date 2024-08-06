@@ -148,3 +148,36 @@ func TestGetAnomaly_Success(t *testing.T) {
 	assert.Equal(t, test, params["test"][0])
 	assert.Equal(t, subtest, params["subtest_1"][0])
 }
+
+func TestGetAnomaly_InvalidChar_Success(t *testing.T) {
+	master := "m"
+	bot := "testBot"
+	benchmark := "bench"
+	test := "myTest"
+	subtest := "mysubtest?withinvalidchar"
+	testPath := fmt.Sprintf("%s/%s/%s/%s/%s", master, bot, benchmark, test, subtest)
+	anomaly := Anomaly{
+		StartRevision: 1111,
+		EndRevision:   2222,
+		TestPath:      testPath,
+	}
+	anomalyResponse := &GetAnomaliesResponse{
+		Anomalies: map[string][]Anomaly{
+			testPath: {anomaly},
+		},
+	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(anomalyResponse)
+		require.NoError(t, err)
+	}))
+
+	ctx := context.Background()
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	assert.Nil(t, err, "No error expected when creating a new client.")
+	anomalyClient := newAnomalyApiClient(cpClient)
+
+	resp, err := anomalyClient.GetAnomaliesAroundRevision(ctx, 1234)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(resp))
+	assert.Equal(t, "mysubtest_withinvalidchar", resp[0].Params["subtest_1"][0])
+}
