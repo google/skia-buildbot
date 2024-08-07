@@ -33,8 +33,7 @@ The Web UI frontend to inspect the service.
 ## Run Temporal Workflow
 
 Note that these instructions use the pinpoint workflows, namespace, and task queue as examples.
-The default dev task queue is localhost.dev. The Pinpoint namespace is perf-internal and
-the alert grouping namespace is perf-grouping.
+The default dev task queue is localhost.dev. The namespace is perf-internal.
 
 ### Locally trigger temporal workflow in dev env
 
@@ -47,7 +46,7 @@ You need to redo steps 3-5 if you want to run your latest local changes.
    `kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233`
 3. Create a new terminal and run the worker. Make sure the taskqueue and namespace are correct:<br>
    `bazelisk run //pinpoint/go/workflows/worker -- --namespace perf-internal`
-4. (if needed) Change workflow parameters in `sample/sample.go`
+4. (if needed) Change workflow parameters in `sample/main.go`
 5. Create a new terminal and trigger the workflow:<br>
    `bazelisk run  //pinpoint/go/workflows/sample -- --namespace=perf-internal --[flag]=true`
 6. Check the workflow status on the dev deployment

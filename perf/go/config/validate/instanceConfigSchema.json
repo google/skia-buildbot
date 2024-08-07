@@ -513,7 +513,7 @@
         "namespace": {
           "type": "string"
         },
-        "task_queue": {
+        "grouping_task_queue": {
           "type": "string"
         },
         "pinpoint_task_queue": {

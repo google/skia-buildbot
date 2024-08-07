@@ -814,10 +814,10 @@ type TemporalConfig struct {
 	// The namespace used in the temporal config.
 	Namespace string `json:"namespace,omitempty"`
 
-	// The task queue name where the created workflows go to.
-	TaskQueue string `json:"task_queue,omitempty"`
+	// The task queue name where the grouping workflows go to.
+	GroupingTaskQueue string `json:"grouping_task_queue,omitempty"`
 
-	// The task queue name where the *bisect* workflows go to.
+	// The task queue name where the bisect workflows go to.
 	PinpointTaskQueue string `json:"pinpoint_task_queue,omitempty"`
 }
 

@@ -16,8 +16,6 @@ import (
 
 const (
 	_WAIT_TIME_FOR_ANOMALIES = 30 * time.Minute
-	// TODO(wenbinzhang): hardcoded for integration purposes. Will have a update to pass the value as part of the request.
-	_PINPOINT_TASK_QUEUE = "perf.perf-chrome-public.bisect"
 )
 
 // MaybeTriggerBisectionWorkflow is the entry point for the workflow which handles anomaly group
@@ -78,7 +76,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		//    					continue even if the parent workflow exits.
 		child_wf_options := workflow.ChildWorkflowOptions{
 			WorkflowID:        child_wf_id,
-			TaskQueue:         _PINPOINT_TASK_QUEUE,
+			TaskQueue:         input.PinpointTaskQueue,
 			ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
 		}
 		c_ctx := workflow.WithChildOptions(ctx, child_wf_options)

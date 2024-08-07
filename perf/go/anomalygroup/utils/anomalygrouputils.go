@@ -115,7 +115,7 @@ func ProcessRegression(
 		defer cleanup()
 
 		wo := client.StartWorkflowOptions{
-			TaskQueue: config.Config.TemporalConfig.TaskQueue,
+			TaskQueue: config.Config.TemporalConfig.GroupingTaskQueue,
 			// 30 minutes wait + handling time
 			WorkflowExecutionTimeout: 2 * time.Hour,
 			RetryPolicy: &temporal.RetryPolicy{
@@ -131,6 +131,8 @@ func ProcessRegression(
 				AnomalyGroupServiceUrl: config.Config.BackendServiceHostUrl,
 				CulpritServiceUrl:      config.Config.BackendServiceHostUrl,
 				AnomalyGroupId:         newGroupID.AnomalyGroupId,
+				GroupingTaskQueue:      config.Config.TemporalConfig.GroupingTaskQueue,
+				PinpointTaskQueue:      config.Config.TemporalConfig.PinpointTaskQueue,
 			})
 		if err != nil {
 			return "", status.Errorf(codes.Internal, "Unable to start grouping workflow (%v).", err)

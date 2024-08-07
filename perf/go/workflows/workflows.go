@@ -30,6 +30,8 @@ type MaybeTriggerBisectionParam struct {
 	AnomalyGroupServiceUrl string
 	CulpritServiceUrl      string
 	AnomalyGroupId         string
+	GroupingTaskQueue      string
+	PinpointTaskQueue      string
 }
 
 type MaybeTriggerBisectionResult struct {
