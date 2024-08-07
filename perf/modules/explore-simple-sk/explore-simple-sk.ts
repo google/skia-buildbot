@@ -2720,6 +2720,9 @@ export class ExploreSimpleSk extends ElementSk {
           case 'useTestPicker':
             this.useTestPicker = paramValue;
             break;
+          case 'enable_chart_tooltip':
+            this._state.enable_chart_tooltip = paramValue;
+            break;
           default:
             break;
         }
