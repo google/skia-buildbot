@@ -97,6 +97,7 @@ packages:
       TimeTicker:
   go.skia.org/infra/pinpoint/go/backends:
     interfaces:
+      BigQueryClient:
       BuildbucketClient:
       CrrevClient:
       IssueTracker:
