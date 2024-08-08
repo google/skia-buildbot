@@ -81,6 +81,13 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}
 		c_ctx := workflow.WithChildOptions(ctx, child_wf_options)
 
+		var aggregationMethod string
+		// "value" is not a valid aggregation method in pinpoint.
+		if topAnomaly.Paramset["stat"] == "value" {
+			aggregationMethod = "mean"
+		} else {
+			aggregationMethod = topAnomaly.Paramset["stat"]
+		}
 		find_culprit_wf := workflow.ExecuteChildWorkflow(c_ctx, pinpoint.CulpritFinderWorkflow,
 			&pinpoint.CulpritFinderParams{
 				Request: &pp_pb.ScheduleCulpritFinderRequest{
@@ -90,7 +97,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					Benchmark:            topAnomaly.Paramset["benchmark"],
 					Story:                topAnomaly.Paramset["story"],
 					Chart:                topAnomaly.Paramset["measurement"],
-					AggregationMethod:    topAnomaly.Paramset["stat"],
+					AggregationMethod:    aggregationMethod,
 					ImprovementDirection: topAnomaly.ImprovementDirection,
 				},
 			})
