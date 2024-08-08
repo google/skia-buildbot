@@ -30,6 +30,7 @@ const (
 	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
 	PairwiseWorkflow                  = "perf.pairwise"
 	BugUpdate                         = "perf.bug_update"
+	TestAndExport                     = "perf.test_and_export"
 )
 
 const defaultPairwiseAttemptCount int32 = 30

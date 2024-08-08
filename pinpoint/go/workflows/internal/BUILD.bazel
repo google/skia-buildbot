@@ -15,6 +15,7 @@ go_library(
         "pairwise.go",
         "pairwise_runner.go",
         "run_benchmark.go",
+        "test_and_upload.go",
     ],
     importpath = "go.skia.org/infra/pinpoint/go/workflows/internal",
     visibility = [
@@ -28,6 +29,7 @@ go_library(
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",
         "//pinpoint/go/clients/build",
+        "//pinpoint/go/clients/upload",
         "//pinpoint/go/common",
         "//pinpoint/go/compare",
         "//pinpoint/go/midpoint",

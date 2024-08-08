@@ -89,6 +89,10 @@ func main() {
 	w.RegisterWorkflowWithOptions(catapult.ConvertToCatapultResponseWorkflow, workflow.RegisterOptions{Name: workflows.ConvertToCatapultResponseWorkflow})
 	w.RegisterWorkflowWithOptions(catapult.CulpritFinderWorkflow, workflow.RegisterOptions{Name: workflows.CulpritFinderWorkflow})
 
+	// Activities and workflows for experiments
+	w.RegisterActivity(internal.UploadResultsActivity)
+	w.RegisterWorkflowWithOptions(internal.RunTestAndExportWorkflow, workflow.RegisterOptions{Name: workflows.TestAndExport})
+
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
 		sklog.Fatalf("Unable to start worker: %s", err)
