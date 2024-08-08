@@ -99,7 +99,9 @@ func (alertGroup *AlertGroupDetails) GetQueryParamsPerTrace(ctx context.Context)
 		parsedInfo[BotsKey] = []string{splits[1]}
 		parsedInfo[BenchmarksKey] = []string{splits[2]}
 		parsedInfo[TestsKey] = []string{splits[3]}
-		parsedInfo[Subtests1Key] = []string{splits[4]}
+		if len(splits) > 4 {
+			parsedInfo[Subtests1Key] = []string{splits[4]}
+		}
 		if len(splits) > 5 {
 			parsedInfo[Subtests2Key] = []string{splits[5]}
 		}
