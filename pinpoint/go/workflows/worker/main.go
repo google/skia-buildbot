@@ -81,7 +81,7 @@ func main() {
 	w.RegisterWorkflowWithOptions(internal.PostBugCommentWorkflow, workflow.RegisterOptions{Name: workflows.BugUpdate})
 
 	// TODO(b/322203189) - Remove Catapult workflows and activities once the backwards
-	// UIcompatibility is no longer needed and thus the catapult package is deprecated.
+	// UI compatibility is no longer needed and thus the catapult package is deprecated.
 	w.RegisterActivity(catapult.FetchTaskActivity)
 	w.RegisterActivity(catapult.FetchCommitActivity)
 	w.RegisterActivity(catapult.WriteBisectToCatapultActivity)
@@ -90,7 +90,10 @@ func main() {
 	w.RegisterWorkflowWithOptions(catapult.CulpritFinderWorkflow, workflow.RegisterOptions{Name: workflows.CulpritFinderWorkflow})
 
 	// Activities and workflows for experiments
+	w.RegisterActivity(internal.FetchAllSwarmingTasksActivity)
+	w.RegisterActivity(internal.GetAllSampleValuesActivity)
 	w.RegisterActivity(internal.UploadResultsActivity)
+	w.RegisterWorkflowWithOptions(internal.CollectAndUploadWorkflow, workflow.RegisterOptions{Name: workflows.CollectAndUpload})
 	w.RegisterWorkflowWithOptions(internal.RunTestAndExportWorkflow, workflow.RegisterOptions{Name: workflows.TestAndExport})
 
 	err = w.Run(worker.InterruptCh())

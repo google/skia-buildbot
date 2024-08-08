@@ -31,6 +31,7 @@ const (
 	PairwiseWorkflow                  = "perf.pairwise"
 	BugUpdate                         = "perf.bug_update"
 	TestAndExport                     = "perf.test_and_export"
+	CollectAndUpload                  = "perf.collect_and_upload"
 )
 
 const defaultPairwiseAttemptCount int32 = 30
