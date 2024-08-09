@@ -114,6 +114,66 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
+func TestMaybeTriggerBisection_GroupActionBisect_BadAggregation(t *testing.T) {
+	addr, server, cleanup := setupAnomalyGroupService(t)
+	defer cleanup()
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
+	gsa := &GerritServiceActivity{insecure_conn: true}
+	csa := &CulpritServiceActivity{insecure_conn: true}
+	env.RegisterActivity(agsa)
+	env.RegisterActivity(gsa)
+	env.RegisterActivity(csa)
+	env.RegisterWorkflowWithOptions(catapult.CulpritFinderWorkflow, workflow.RegisterOptions{Name: pinpoint.CulpritFinderWorkflow})
+
+	anomalyGroupId := "group_id1"
+	mockAnomalyIds := []string{"anomaly1"}
+	var startCommit int64 = 1
+	var endCommit int64 = 10
+	mockAnomaly := &ag_pb.Anomaly{
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
+		Paramset: map[string]string{
+			"bot":         "linux-perf",
+			"benchmark":   "speedometer",
+			"story":       "speedometer",
+			"measurement": "runsperminute",
+			"stat":        "error",
+		},
+		ImprovementDirection: "UP",
+	}
+	server.On("LoadAnomalyGroupByID", mock.Anything, &ag_pb.LoadAnomalyGroupByIDRequest{
+		AnomalyGroupId: anomalyGroupId}).
+		Return(
+			&ag_pb.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &ag_pb.AnomalyGroup{
+					GroupId:     anomalyGroupId,
+					GroupAction: ag_pb.GroupActionType_BISECT,
+					AnomalyIds:  mockAnomalyIds,
+				},
+			}, nil)
+	server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+		AnomalyGroupId: anomalyGroupId,
+		Limit:          1}).
+		Return(
+			&ag_pb.FindTopAnomaliesResponse{Anomalies: []*ag_pb.Anomaly{mockAnomaly}}, nil)
+	mockStartRevision := "revision1"
+	mockEndRevision := "revision10"
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
+	env.OnActivity(gsa.GetCommitRevision, mock.Anything, endCommit).Return(mockEndRevision, nil).Once()
+
+	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
+		AnomalyGroupServiceUrl: addr,
+		AnomalyGroupId:         anomalyGroupId,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	err := env.GetWorkflowError()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Invalid aggretation method")
+}
+
 func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 	ag_addr, ag_server, ag_cleanup := setupAnomalyGroupService(t)
 	defer ag_cleanup()

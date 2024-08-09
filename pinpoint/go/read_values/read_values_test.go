@@ -115,7 +115,7 @@ func TestAggData_NonBlankData_AggData(t *testing.T) {
 	}
 	test := func(name string, expected float64) {
 		t.Run(name, func(t *testing.T) {
-			ans, ok := aggregationMapping[name]
+			ans, ok := perfresults.AggregationMapping[name]
 			assert.True(t, ok)
 			assert.InDelta(t, expected, ans(testData), 1e-6)
 		})

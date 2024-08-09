@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	"go.skia.org/infra/perf/go/perfresults"
 	"go.skia.org/infra/perf/go/workflows"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
 	pp_pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -88,6 +89,9 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		} else {
 			aggregationMethod = topAnomaly.Paramset["stat"]
 		}
+		if !isAggregationMethodValid(aggregationMethod) {
+			return nil, skerr.Fmt("Invalid aggretation method: %s", aggregationMethod)
+		}
 		find_culprit_wf := workflow.ExecuteChildWorkflow(c_ctx, pinpoint.CulpritFinderWorkflow,
 			&pinpoint.CulpritFinderParams{
 				Request: &pp_pb.ScheduleCulpritFinderRequest{
@@ -128,4 +132,9 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 	}
 
 	return nil, skerr.Fmt("Unhandled GroupAction type %s", anomalyGroupResponse.AnomalyGroup.GroupAction)
+}
+
+func isAggregationMethodValid(s string) bool {
+	_, ok := perfresults.AggregationMapping[s]
+	return ok
 }
