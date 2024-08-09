@@ -18,7 +18,7 @@ func main() {
 	ctx := context.Background()
 	flag.Parse()
 	var coverageConfig config.CoverageConfig
-	config, err := coverageConfig.LoadCoverageConfig("config/demo.json")
+	config, err := coverageConfig.LoadCoverageConfig("demo.json")
 	if err != nil {
 		sklog.Fatal(err)
 	}

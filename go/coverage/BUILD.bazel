@@ -17,6 +17,7 @@ go_library(
         "//go/coverage/coveragestore",
         "//go/coverage/coveragestore/sqlcoveragestore",
         "//go/coverage/proto/v1",
+        "//go/coverage/service",
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",

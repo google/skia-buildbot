@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/coverage/config"
 	"go.skia.org/infra/go/coverage/coveragestore"
 	coverage_store "go.skia.org/infra/go/coverage/coveragestore/sqlcoveragestore"
+	coverage_service "go.skia.org/infra/go/coverage/service"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -93,7 +94,7 @@ func (c *Coverage) initialize(coverageStore coveragestore.Store) error {
 	reflection.Register(c.grpcServer)
 
 	services := []CoverageService{
-		NewCoverageService(coverageStore),
+		coverage_service.New(coverageStore),
 	}
 	c.registerServices(services)
 	c.lisGRPC, _ = net.Listen("tcp4", ":8006")

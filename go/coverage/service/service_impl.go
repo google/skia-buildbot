@@ -6,12 +6,8 @@ import (
 	"go.skia.org/infra/go/coverage/coveragestore"
 	pb "go.skia.org/infra/go/coverage/proto/v1"
 	"go.skia.org/infra/go/sklog"
+	"google.golang.org/grpc"
 )
-
-type server struct {
-	pb.UnimplementedCoverageServiceServer
-	store coveragestore.Store
-}
 
 const (
 	// Those should be configurable for each instance.
@@ -22,15 +18,33 @@ const (
 	failStatus    = "FAILED"
 )
 
-func New(store coveragestore.Store) *server {
-	return &server{
-		store: store,
+// coverageService implements coverage.CoverageService, provides a wrapper struct
+// for the coverage service implementation.
+type coverageService struct {
+	pb.UnimplementedCoverageServiceServer
+	coverageStore coveragestore.Store
+}
+
+// RegisterGrpc registers the grpc service with the server instance.
+func (service *coverageService) RegisterGrpc(grpcServer *grpc.Server) {
+	sklog.Info("Register Coverage Service")
+	pb.RegisterCoverageServiceServer(grpcServer, service)
+}
+
+// GetServiceDescriptor returns the service descriptor for the service.
+func (service *coverageService) GetServiceDescriptor() grpc.ServiceDesc {
+	return pb.CoverageService_ServiceDesc
+}
+
+func New(coverageStore coveragestore.Store) *coverageService {
+	return &coverageService{
+		coverageStore: coverageStore,
 	}
 }
 
 // Checks file/builder pair from Database and returns available test suites.
-func (s *server) GetTestSuite(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageListResponse, error) {
-	test_suites, err := s.store.List(ctx, req)
+func (s *coverageService) GetTestSuite(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageListResponse, error) {
+	test_suites, err := s.coverageStore.List(ctx, req)
 
 	status := successStatus
 	if err != nil || test_suites == nil {
@@ -45,8 +59,8 @@ func (s *server) GetTestSuite(ctx context.Context, req *pb.CoverageRequest) (*pb
 }
 
 // Inserts file/builder pair from Database.
-func (s *server) InsertFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
-	err := s.store.Add(ctx, req)
+func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
+	err := s.coverageStore.Add(ctx, req)
 	status := successStatus
 	message := "Add Successful"
 
@@ -64,8 +78,8 @@ func (s *server) InsertFile(ctx context.Context, req *pb.CoverageRequest) (*pb.C
 }
 
 // Deletes file/builder pair from Database.
-func (s *server) DeleteFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
-	err := s.store.Delete(ctx, req)
+func (s *coverageService) DeleteFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
+	err := s.coverageStore.Delete(ctx, req)
 	status := successStatus
 	message := "Delete Successful"
 

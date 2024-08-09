@@ -87,18 +87,18 @@ func main() {
 	if strings.HasPrefix(sampleFile, "get") {
 		var listResponse *pb.CoverageListResponse
 		listResponse, err = client.GetTestSuite(ctx, &request)
-		sklog.Debugf("Get Response: %s", listResponse)
+		sklog.Debugf(" Response: %s", listResponse)
 	} else {
 		if strings.HasPrefix(sampleFile, "add") {
 			response, err = client.InsertFile(ctx, &request)
 		} else {
 			response, err = client.DeleteFile(ctx, &request)
 		}
-	}
-	if err != nil {
-		sklog.Errorf("Error: %s", err.Error())
-	} else {
-		sklog.Debugf("Change Response: %s", response)
+		if err != nil {
+			sklog.Errorf("Error: %s", err.Error())
+		} else {
+			sklog.Debugf("Change Response: %s", response)
+		}
 	}
 	conn.Close()
 }
