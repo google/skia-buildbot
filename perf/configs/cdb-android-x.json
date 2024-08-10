@@ -38,15 +38,15 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/android_x?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/android_x?sslmode=disable",
     "tile_size": 512
   },
   "ingestion_config": {
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-android-x-production",
-      "subscription": "",
+      "topic": "perf-ingestion-android-x-production-restore",
+      "subscription": "perf-ingestion-android-x-production-restore-prod",
       "sources": [
         "gs://skia-perf/android-master-ingest"
       ],

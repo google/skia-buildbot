@@ -10,15 +10,15 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/v8?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/v8?sslmode=disable",
     "tile_size": 256
   },
   "ingestion_config": {
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-v8-production",
-      "subscription": "",
+      "topic": "perf-ingestion-v8-production-restore",
+      "subscription": "perf-ingestion-v8-production-restore-prod",
       "sources": [
         "gs://v8_perf_skia_prod/v8/cq/",
         "gs://v8_perf_skia_prod/v8/chromeperf/"

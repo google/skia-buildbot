@@ -11,15 +11,15 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/angle?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/angle?sslmode=disable",
     "tile_size": 256
   },
   "ingestion_config": {
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-angle",
-      "subscription": "perf-ingestion-angle-prod",
+      "topic": "perf-ingestion-angle-restore",
+      "subscription": "perf-ingestion-angle-restore-prod",
       "sources": [
         "gs://angle-perf-skia/angle_perftests"
       ]
