@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -89,8 +90,15 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		} else {
 			aggregationMethod = topAnomaly.Paramset["stat"]
 		}
+
 		if !isAggregationMethodValid(aggregationMethod) {
 			return nil, skerr.Fmt("Invalid aggretation method: %s", aggregationMethod)
+		}
+
+		benchmark := topAnomaly.Paramset["benchmark"]
+		story := topAnomaly.Paramset["story"]
+		if benchmarkStoriesNeedUpdate(benchmark) {
+			story = updateStoryDescriptorName(story)
 		}
 		find_culprit_wf := workflow.ExecuteChildWorkflow(c_ctx, pinpoint.CulpritFinderWorkflow,
 			&pinpoint.CulpritFinderParams{
@@ -98,8 +106,8 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					StartGitHash:         startHash,
 					EndGitHash:           endHash,
 					Configuration:        topAnomaly.Paramset["bot"],
-					Benchmark:            topAnomaly.Paramset["benchmark"],
-					Story:                topAnomaly.Paramset["story"],
+					Benchmark:            benchmark,
+					Story:                story,
 					Chart:                topAnomaly.Paramset["measurement"],
 					AggregationMethod:    aggregationMethod,
 					ImprovementDirection: topAnomaly.ImprovementDirection,
@@ -137,4 +145,36 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 func isAggregationMethodValid(s string) bool {
 	_, ok := perfresults.AggregationMapping[s]
 	return ok
+}
+
+// Mimic the story name update in the legacy descriptor logic.
+// The original source in catapult/dashboard/dashboard/common/descriptor.py
+func benchmarkStoriesNeedUpdate(b string) bool {
+	system_health_benchmark_prefix := "system_health"
+	legacy_complex_cases_benchmarks := []string{
+		"tab_switching.typical_25",
+
+		"v8:browsing_desktop",
+
+		"v8:browsing_desktop-future",
+
+		"v8:browsing_mobile",
+
+		"v8:browsing_mobile-future",
+
+		"heap_profiling.mobile.disabled",
+	}
+	if strings.HasPrefix(b, system_health_benchmark_prefix) {
+		return true
+	}
+	for _, benchmark := range legacy_complex_cases_benchmarks {
+		if benchmark == b {
+			return true
+		}
+	}
+	return false
+}
+
+func updateStoryDescriptorName(s string) string {
+	return strings.Replace(s, "_", ":", -1)
 }
