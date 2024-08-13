@@ -200,8 +200,66 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
+	mockAnomalies := []*ag_pb.Anomaly{
+		{
+			StartCommit: int64(100),
+			EndCommit:   int64(300),
+			Paramset: map[string]string{
+				"bot":         "linux-perf",
+				"benchmark":   "speedometer",
+				"story":       "speedometer",
+				"measurement": "runsperminute",
+				"stat":        "error",
+			},
+			ImprovementDirection: "UP",
+		},
+		{
+			StartCommit: int64(130),
+			EndCommit:   int64(500),
+			Paramset: map[string]string{
+				"bot":         "win-10-perf",
+				"benchmark":   "speedometer2",
+				"story":       "speedometer2",
+				"measurement": "runsperminute",
+				"stat":        "value",
+			},
+			ImprovementDirection: "UP",
+		},
+	}
+	mockCulpritAnomalies := []*c_pb.Anomaly{
+		{
+			StartCommit: int64(100),
+			EndCommit:   int64(300),
+			Paramset: map[string]string{
+				"bot":         "linux-perf",
+				"benchmark":   "speedometer",
+				"story":       "speedometer",
+				"measurement": "runsperminute",
+				"stat":        "error",
+			},
+			ImprovementDirection: "UP",
+		},
+		{
+			StartCommit: int64(130),
+			EndCommit:   int64(500),
+			Paramset: map[string]string{
+				"bot":         "win-10-perf",
+				"benchmark":   "speedometer2",
+				"story":       "speedometer2",
+				"measurement": "runsperminute",
+				"stat":        "value",
+			},
+			ImprovementDirection: "UP",
+		},
+	}
+	ag_server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+		AnomalyGroupId: anomalyGroupId,
+		Limit:          10}).
+		Return(
+			&ag_pb.FindTopAnomaliesResponse{Anomalies: mockAnomalies}, nil)
 	c_server.On("NotifyUserOfAnomaly", mock.Anything, &c_pb.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: anomalyGroupId,
+		Anomaly:        mockCulpritAnomalies,
 	}).Return(
 		&c_pb.NotifyUserOfAnomalyResponse{}, nil)
 

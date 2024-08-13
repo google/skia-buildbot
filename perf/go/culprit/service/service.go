@@ -101,3 +101,18 @@ func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.Notify
 	}
 	return &pb.NotifyUserOfCulpritResponse{IssueIds: issueIds}, nil
 }
+
+// File a bug to report a list of anomalies.
+func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.NotifyUserOfAnomalyRequest) (*pb.NotifyUserOfAnomalyResponse, error) {
+	var err error
+	anomalygroup, err := s.anomalygroupStore.LoadById(ctx, req.AnomalyGroupId)
+	if err != nil {
+		return nil, err
+	}
+	subscription, err := s.subscriptionStore.GetSubscription(ctx, anomalygroup.SubsciptionName, anomalygroup.SubscriptionRevision)
+	if err != nil {
+		return nil, err
+	}
+	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
+	return &pb.NotifyUserOfAnomalyResponse{IssueId: issueId}, nil
+}

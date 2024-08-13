@@ -53,12 +53,11 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}).Get(ctx, &topAnomaliesResponse); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		var topAnomaly *ag_pb.Anomaly
-		if len(topAnomaliesResponse.Anomalies) <= 0 {
+		if topAnomaliesResponse != nil && len(topAnomaliesResponse.Anomalies) == 0 {
 			return nil, skerr.Fmt("No anomalies found for anomalygroup %s", input.AnomalyGroupId)
-		} else {
-			topAnomaly = topAnomaliesResponse.Anomalies[0]
 		}
+		topAnomaly := topAnomaliesResponse.Anomalies[0]
+
 		// Step 4. Convert start and end commit postions to commit hash
 		var startHash, endHash string
 		if err = workflow.ExecuteActivity(ctx, gsa.GetCommitRevision, topAnomaly.StartCommit).Get(ctx, &startHash); err != nil {
@@ -130,9 +129,33 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 			JobId: child_wf_id,
 		}, nil
 	} else if anomalyGroupResponse.AnomalyGroup.GroupAction == ag_pb.GroupActionType_REPORT {
+		// Step 3. Load Anomalies data
+		var topAnomaliesResponse *ag_pb.FindTopAnomaliesResponse
+		if err = workflow.ExecuteActivity(ctx, agsa.FindTopAnomalies, input.AnomalyGroupServiceUrl, &ag_pb.FindTopAnomaliesRequest{
+			AnomalyGroupId: input.AnomalyGroupId,
+			Limit:          10,
+		}).Get(ctx, &topAnomaliesResponse); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if topAnomaliesResponse != nil && len(topAnomaliesResponse.Anomalies) == 0 {
+			return nil, skerr.Fmt("No anomalies found for anomalygroup %s", input.AnomalyGroupId)
+		}
+		topAnomalies := make([]*c_pb.Anomaly, len(topAnomaliesResponse.Anomalies))
+		// Currently the protos in culprit service and anomaly service are having two identical
+		// copies of definition on Anomaly. We should merge them into one.
+		for i, anomaly := range topAnomaliesResponse.Anomalies {
+			topAnomalies[i] = &c_pb.Anomaly{
+				StartCommit:          anomaly.StartCommit,
+				EndCommit:            anomaly.EndCommit,
+				Paramset:             anomaly.Paramset,
+				ImprovementDirection: anomaly.ImprovementDirection,
+			}
+		}
+		// Step 4. Notify the user of the top anomalies
 		var notifyUserOfAnomalyResponse *ag_pb.UpdateAnomalyGroupResponse
 		if err = workflow.ExecuteActivity(ctx, csa.NotifyUserOfAnomaly, input.CulpritServiceUrl, &c_pb.NotifyUserOfAnomalyRequest{
 			AnomalyGroupId: input.AnomalyGroupId,
+			Anomaly:        topAnomalies,
 		}).Get(ctx, &notifyUserOfAnomalyResponse); err != nil {
 			return nil, err
 		}

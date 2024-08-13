@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit/formatter"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -12,9 +13,13 @@ import (
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
 
+// TODO(wenbinzhang): considering using specific type for issue ID instead of 'string'.
 type CulpritNotifier interface {
 	// Sends out notification to users about the detected culprit.
 	NotifyCulpritFound(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, error)
+
+	// Sends out notification to users about the detected anomalies.
+	NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error)
 }
 
 // DefaultCulpritNotifier sends notifications.
@@ -25,6 +30,7 @@ type DefaultCulpritNotifier struct {
 
 // newNotifier returns a newNotifier Notifier.
 func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
+	// TODO(wenbinzhang): The term notifier here is overloaded. We can assume always filing issue without the cases.
 	switch cfg.CulpritNotifyConfig.Notifications {
 	case notifytypes.None:
 		return &DefaultCulpritNotifier{
@@ -60,4 +66,11 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 		return "", skerr.Wrapf(err, "sending new culprit message")
 	}
 	return bugId, nil
+}
+
+// Creates a bug in Buganizer about the detected anomalies.
+func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error) {
+	// TODO(wenbinzhang): implement the NotifyAnomaliesFound after the notifier is updated to support multiple purposes.
+	sklog.Debugf("NotifyAnomaliesFound not yet implemented: %s", subscription.Name)
+	return "nil", nil
 }
