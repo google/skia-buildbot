@@ -7,7 +7,7 @@
         "notifications": "markdown_issuetracker",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
-        "subject": "{{ .Alert.DisplayName }} - Regression found between {{ buildIDFromSubject .PreviousCommit.Subject }} and {{ buildIDFromSubject .Commit.Subject }}",
+        "subject": "{{ .Alert.DisplayName }} - Regression between {{ .PreviousCommit.Subject }} and {{ .Commit.Subject }}",
         "body": [
             "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
             "",
@@ -15,7 +15,7 @@
             "",
             "* [Graph on dashboard]({{ .ViewOnDashboard }})",
             "* [Alert details]({{ .URL }}/g/t/{{ .Commit.GitHash }})",
-            "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}\\]](https://android-build.corp.google.com/{{ buildIDFromSubject .Commit.Subject }}/branches/aosp-androidx-main/targets/androidx/cls?end={{ buildIDFromSubject .PreviousCommit.Subject }})",
+            "* [CLs in range](https://android.googlesource.com/platform/superproject/+log/{{ .PreviousCommit.GitHash }}..{{ .Commit.GitHash }})",
             "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
             "",
             "Tests affected:",
