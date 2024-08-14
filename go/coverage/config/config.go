@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
@@ -51,13 +49,8 @@ func (config *CoverageConfig) AsCliFlags() []cli.Flag {
 // returned also.
 func (config *CoverageConfig) LoadCoverageConfig(filename string) (*CoverageConfig, error) {
 
-	cwd, err := os.Getwd()
-	file := filepath.Join(cwd, "config", filename)
-	if err != nil {
-		sklog.Fatalf("Could not get working dir: %s, %s", err, file)
-	}
 	// Validate config here.
-	err = util.WithReadFile(file, func(r io.Reader) error {
+	err := util.WithReadFile(filename, func(r io.Reader) error {
 		c, err := io.ReadAll(r)
 		if err != nil {
 			return skerr.Wrapf(err, "failed to read bytes")
