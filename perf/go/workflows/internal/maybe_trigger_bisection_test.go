@@ -92,7 +92,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                mockAnomaly.Paramset["story"],
 				Chart:                mockAnomaly.Paramset["measurement"],
-				AggregationMethod:    mockAnomaly.Paramset["stat"],
+				AggregationMethod:    "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
 		}).Return(&pp_pb.CulpritFinderExecution{
@@ -113,7 +113,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
-func TestMaybeTriggerBisection_GroupActionBisect_BadAggregation(t *testing.T) {
+func TestMaybeTriggerBisection_GroupActionBisect_ParseChartAggregation(t *testing.T) {
 	addr, server, cleanup := setupAnomalyGroupService(t)
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -137,7 +137,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_BadAggregation(t *testing.T) {
 			"bot":         "linux-perf",
 			"benchmark":   "speedometer",
 			"story":       "speedometer",
-			"measurement": "runsperminute",
+			"measurement": "runs_per_minute_max",
 			"stat":        "error",
 		},
 		ImprovementDirection: "UP",
@@ -162,15 +162,35 @@ func TestMaybeTriggerBisection_GroupActionBisect_BadAggregation(t *testing.T) {
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, endCommit).Return(mockEndRevision, nil).Once()
 
+	env.OnWorkflow(pinpoint.CulpritFinderWorkflow,
+		mock.Anything,
+		&pinpoint.CulpritFinderParams{
+			Request: &pp_pb.ScheduleCulpritFinderRequest{
+				StartGitHash:         mockStartRevision,
+				EndGitHash:           mockEndRevision,
+				Configuration:        mockAnomaly.Paramset["bot"],
+				Benchmark:            mockAnomaly.Paramset["benchmark"],
+				Story:                mockAnomaly.Paramset["story"],
+				Chart:                "runs_per_minute",
+				AggregationMethod:    "max",
+				ImprovementDirection: mockAnomaly.ImprovementDirection,
+			},
+		}).Return(&pp_pb.CulpritFinderExecution{
+		JobId: "bisectionId",
+	}, nil).Once()
+	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
+		Return(
+			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
-	err := env.GetWorkflowError()
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid aggretation method")
+	require.NoError(t, env.GetWorkflowError())
+	var resp *workflows.MaybeTriggerBisectionResult
+	require.NoError(t, env.GetWorkflowResult(&resp))
+	env.AssertExpectations(t)
 }
 
 func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
@@ -335,7 +355,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                "system:health:story:name",
 				Chart:                mockAnomaly.Paramset["measurement"],
-				AggregationMethod:    mockAnomaly.Paramset["stat"],
+				AggregationMethod:    "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
 		}).Return(&pp_pb.CulpritFinderExecution{

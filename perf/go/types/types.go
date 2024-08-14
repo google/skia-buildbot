@@ -200,3 +200,10 @@ var (
 		Bisection,
 	}
 )
+
+// All valid stat suffix from perf measurements.
+var (
+	AllMeasurementStats = []string{
+		"avg", "count", "max", "min", "std", "sum",
+	}
+)

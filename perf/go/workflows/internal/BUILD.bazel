@@ -18,7 +18,7 @@ go_library(
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/client",
         "//perf/go/culprit/proto/v1",
-        "//perf/go/perfresults",
+        "//perf/go/types",
         "//perf/go/workflows",
         "//pinpoint/go/backends",
         "//pinpoint/go/workflows",

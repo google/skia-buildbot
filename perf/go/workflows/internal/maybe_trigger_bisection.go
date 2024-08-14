@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
-	"go.skia.org/infra/perf/go/perfresults"
+	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/workflows"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
 	pp_pb "go.skia.org/infra/pinpoint/proto/v1"
@@ -82,17 +82,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}
 		c_ctx := workflow.WithChildOptions(ctx, child_wf_options)
 
-		var aggregationMethod string
-		// "value" is not a valid aggregation method in pinpoint.
-		if topAnomaly.Paramset["stat"] == "value" {
-			aggregationMethod = "mean"
-		} else {
-			aggregationMethod = topAnomaly.Paramset["stat"]
-		}
-
-		if !isAggregationMethodValid(aggregationMethod) {
-			return nil, skerr.Fmt("Invalid aggretation method: %s", aggregationMethod)
-		}
+		chart, aggregationMethod := parseStatisticNameFromChart(topAnomaly.Paramset["measurement"])
 
 		benchmark := topAnomaly.Paramset["benchmark"]
 		story := topAnomaly.Paramset["story"]
@@ -107,7 +97,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					Configuration:        topAnomaly.Paramset["bot"],
 					Benchmark:            benchmark,
 					Story:                story,
-					Chart:                topAnomaly.Paramset["measurement"],
+					Chart:                chart,
 					AggregationMethod:    aggregationMethod,
 					ImprovementDirection: topAnomaly.ImprovementDirection,
 				},
@@ -165,11 +155,6 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 	return nil, skerr.Fmt("Unhandled GroupAction type %s", anomalyGroupResponse.AnomalyGroup.GroupAction)
 }
 
-func isAggregationMethodValid(s string) bool {
-	_, ok := perfresults.AggregationMapping[s]
-	return ok
-}
-
 // Mimic the story name update in the legacy descriptor logic.
 // The original source in catapult/dashboard/dashboard/common/descriptor.py
 func benchmarkStoriesNeedUpdate(b string) bool {
@@ -200,4 +185,18 @@ func benchmarkStoriesNeedUpdate(b string) bool {
 
 func updateStoryDescriptorName(s string) string {
 	return strings.Replace(s, "_", ":", -1)
+}
+
+func parseStatisticNameFromChart(chart_name string) (string, string) {
+	parts := strings.Split(chart_name, "_")
+	part_count := len(parts)
+	if part_count < 1 {
+		return chart_name, ""
+	}
+	for _, stat := range types.AllMeasurementStats {
+		if parts[part_count-1] == stat {
+			return strings.Join(parts[:part_count-1], "_"), parts[part_count-1]
+		}
+	}
+	return chart_name, ""
 }
