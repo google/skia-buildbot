@@ -177,13 +177,13 @@ func benchmarkStoriesNeedUpdate(b string) bool {
 	legacy_complex_cases_benchmarks := []string{
 		"tab_switching.typical_25",
 
-		"v8:browsing_desktop",
+		"v8.browsing_desktop",
 
-		"v8:browsing_desktop-future",
+		"v8.browsing_desktop-future",
 
-		"v8:browsing_mobile",
+		"v8.browsing_mobile",
 
-		"v8:browsing_mobile-future",
+		"v8.browsing_mobile-future",
 
 		"heap_profiling.mobile.disabled",
 	}
