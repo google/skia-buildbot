@@ -73,82 +73,95 @@ config-dev 3600    IN TXT "google-site-verification=xhhLX2KKlm_Eq8crnrbqSkAueTKV
 ;;; LUCI Analysis.
 ;;; Production hosted in GCP Project luci-analysis.
 ;;; Staging hosted in GCP Project luci-analysis-dev.
-analysis.api              300  IN A 34.36.210.79
-staging.analysis.api      300  IN A 35.244.170.126
-*.staging.analysis.api    300  IN A 35.244.170.126
+analysis.api                300  IN A 34.36.210.79
+staging.analysis.api        300  IN A 35.244.170.126
+*.staging.analysis.api      300  IN A 35.244.170.126
 
 ;;; LUCI Bisection.
 ;;; Production hosted in GCP Project luci-bisection.
 ;;; Staging hosted in GCP Project luci-bisection-dev.
-bisection.api             300  IN A 34.54.234.46
-staging.bisection.api     300  IN A 34.49.80.97
-*.staging.bisection.api   300  IN A 34.49.80.97
+bisection.api               300  IN A 34.54.234.46
+staging.bisection.api       300  IN A 34.49.80.97
+*.staging.bisection.api     300  IN A 34.49.80.97
 
 ;;; LUCI Milo.
 ;;; Production hosted in GCP Project luci-milo.
 ;;; Staging hosted in GCP Project luci-milo-dev.
-milo.api                  300  IN A 34.54.88.98
-staging.milo.api          300  IN A 34.54.86.131
-*.staging.milo.api        300  IN A 34.54.86.131
+milo.api                   300  IN A 34.54.88.98
+staging.milo.api           300  IN A 34.54.86.131
+*.staging.milo.api         300  IN A 34.54.86.131
 
 ;;; LUCI Notify.
 ;;; Production hosted in GCP Project luci-notify.
 ;;; Staging hosted in GCP Project luci-notify-dev.
-notify.api                300  IN A 34.102.138.22
-staging.notify.api        300  IN A 34.107.239.117
-*.staging.notify.api      300  IN A 34.107.239.117
+notify.api                 300  IN A 34.102.138.22
+staging.notify.api         300  IN A 34.107.239.117
+*.staging.notify.api       300  IN A 34.107.239.117
+
+;;; LUCI Source Index.
+;;; Production hosted in GCP Project luci-source-index.
+;;; Staging hosted in GCP Project luci-source-index-dev.
+sourceindex.api            300  IN A 34.144.246.9
+staging.sourceindex.api    300  IN A 35.190.0.117
+*.staging.sourceindex.api  300  IN A 35.190.0.117
 
 ;;; LUCI Teams.
 ;;; Production hosted in GCP Project luci-teams.
 ;;; Staging hosted in GCP Project luci-teams-dev.
-teams.api                 300  IN A 34.117.98.141
-staging.teams.api         300  IN A 35.190.79.93
-*.staging.teams.api       300  IN A 35.190.79.93
+teams.api                  300  IN A 34.117.98.141
+staging.teams.api          300  IN A 35.190.79.93
+*.staging.teams.api        300  IN A 35.190.79.93
 
 ;;; LUCI Tree Status.
 ;;; Production hosted in GCP Project luci-tree-status.
 ;;; Staging hosted in GCP Project luci-tree-status-dev.
-treestatus.api            300  IN A 34.49.214.220
-staging.treestatus.api    300  IN A 34.96.70.99
-*.staging.treestatus.api  300  IN A 34.96.70.99
+treestatus.api             300  IN A 34.49.214.220
+staging.treestatus.api     300  IN A 34.96.70.99
+*.staging.treestatus.api   300  IN A 34.96.70.99
 
 ;;; CNAME records for certificate domain ownership verification.
 ;;; See https://cloud.google.com/certificate-manager/docs/dns-authorizations
 
 ;;; LUCI Analysis.
-_acme-challenge.analysis.api            3600  IN CNAME (
+_acme-challenge.analysis.api             3600  IN CNAME (
     f741f022-b926-4023-a9ac-e99fbf5d54c1.15.authorize.certificatemanager.goog. )
-_acme-challenge.staging.analysis.api    3600  IN CNAME (
+_acme-challenge.staging.analysis.api     3600  IN CNAME (
     2c7f813c-1ce4-4c7a-96a5-53723121ca5b.12.authorize.certificatemanager.goog. )
 
 ;;; LUCI Bisection.
-_acme-challenge.bisection.api           3600  IN CNAME (
+_acme-challenge.bisection.api            3600  IN CNAME (
     4c8db828-0d74-48d9-b611-e71bd761c001.19.authorize.certificatemanager.goog. )
-_acme-challenge.staging.bisection.api   3600  IN CNAME (
+_acme-challenge.staging.bisection.api    3600  IN CNAME (
     d42a57d1-2db3-489f-ac12-ca66324b022a.14.authorize.certificatemanager.goog. )
 
 ;;; LUCI Milo.
-_acme-challenge.milo.api                3600  IN CNAME (
+_acme-challenge.milo.api                 3600  IN CNAME (
     cfe233c1-96a4-4644-8673-e931d5c06202.12.authorize.certificatemanager.goog. )
-_acme-challenge.staging.milo.api        3600  IN CNAME (
+_acme-challenge.staging.milo.api         3600  IN CNAME (
     2a8e87f3-baa9-40c8-a2f6-7e0a20828eec.1.authorize.certificatemanager.goog. )
 
 ;;; LUCI Notify.
-_acme-challenge.notify.api              3600  IN CNAME (
+_acme-challenge.notify.api               3600  IN CNAME (
     1918d404-6e4f-4651-ba6c-0b62f95a8f26.3.authorize.certificatemanager.goog. )
-_acme-challenge.staging.notify.api      3600  IN CNAME (
+_acme-challenge.staging.notify.api       3600  IN CNAME (
     c282b0fc-121a-4250-8559-7f83664d1d4a.16.authorize.certificatemanager.goog. )
 
+;;; LUCI Source Index.
+_acme-challenge.sourceindex.api          3600  IN CNAME (
+    33f244cb-7681-4c68-8cf0-c08f48f8572d.9.authorize.certificatemanager.goog. )
+_acme-challenge.staging.sourceindex.api  3600  IN CNAME (
+    41dffe04-7a9a-4e69-b7d2-e98e0c850812.13.authorize.certificatemanager.goog. )
+
 ;;; LUCI Teams.
-_acme-challenge.teams.api               3600  IN CNAME (
+_acme-challenge.teams.api                3600  IN CNAME (
     72f19f8f-83bc-4246-8b00-239bc89f332e.11.authorize.certificatemanager.goog. )
-_acme-challenge.staging.teams.api       3600  IN CNAME (
+_acme-challenge.staging.teams.api        3600  IN CNAME (
     008420fd-336b-4400-badc-b67880d1511d.2.authorize.certificatemanager.goog. )
 
 ;;; LUCI Tree Status.
-_acme-challenge.treestatus.api          3600  IN CNAME (
+_acme-challenge.treestatus.api           3600  IN CNAME (
     cf6f1189-c322-4fd8-b5fb-9826d6416a03.18.authorize.certificatemanager.goog. )
-_acme-challenge.staging.treestatus.api  3600  IN CNAME (
+_acme-challenge.staging.treestatus.api   3600  IN CNAME (
     da0fe0b0-4d10-41a3-82cb-73b7593b8866.19.authorize.certificatemanager.goog. )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
