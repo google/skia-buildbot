@@ -1,0 +1,44 @@
+{
+    "URL": "fuchsia-perf.luci.app",
+    "contact": "browser-perf-engprod@google.com",
+    "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
+    "trace_sample_proportion": 0.01,
+    "notify_config": {
+      "notifications": "html_email"
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "cockroachdb",
+      "connection_string": "postgresql://root@perf-cockroachdb-public:26257/fuchsia_pub?sslmode=disable",
+      "tile_size": 256
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-fuchsia-public",
+        "subscription": "perf-ingestion-fuchsia-public-prod",
+        "sources": [
+          "gs://fuchsia-perf-public/ingest"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+      "provider": "gitiles",
+      "url": "https://fuchsia.googlesource.com/integration",
+      "dir": "/tmp/checkout",
+      "debounce_commit_url": false,
+      "file_change_marker": "",
+      "start_commit": "a3b0fd61c1926bef019904ab5680aa2a78263711"
+    },
+    "query_config": {
+      "default_url_values": {
+        "plotSummary": "true",
+        "showZero": "false"
+      }
+    }
+  }

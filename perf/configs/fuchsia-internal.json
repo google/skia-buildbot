@@ -1,0 +1,45 @@
+{
+    "URL": "fuchsia-perf.corp.goog",
+    "contact": "browser-perf-engprod@google.com",
+    "chat_url": "http://go/berf-skia-chat",
+    "feedback_url": "http://go/berf-skia-feedback",
+    "trace_sample_proportion": 0.01,
+    "notify_config": {
+      "notifications": "html_email"
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "cockroachdb",
+      "connection_string": "postgresql://root@perf-cockroachdb-public:26257/fuchsia_int?sslmode=disable",
+      "tile_size": 256
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-fuchsia-internal",
+        "subscription": "perf-ingestion-fuchsia-internal-prod",
+        "sources": [
+          "gs://fuchsia-perf-non-public/ingest"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+      "provider": "gitiles",
+      "url": "https://turquoise-internal.googlesource.com/integration/",
+      "dir": "/tmp/checkout",
+      "debounce_commit_url": false,
+      "file_change_marker": "",
+        "start_commit": "a6d8ddf98b7419331049209ba89e3ac06455a016"
+    },
+    "query_config": {
+      "default_url_values": {
+        "plotSummary": "true",
+        "showZero": "false"
+      }
+    }
+  }
