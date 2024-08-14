@@ -44,6 +44,7 @@ import '../plot-simple-sk';
 import '../plot-summary-sk';
 import '../point-links-sk';
 import '../query-count-sk';
+import '../graph-title-sk';
 import '../window/window';
 
 import {
@@ -139,6 +140,7 @@ import {
 } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
+import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -321,6 +323,8 @@ export class State {
   highlight_anomalies: string[] = [];
 
   enable_chart_tooltip: boolean = false;
+
+  use_titles: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -550,6 +554,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private tooltipFixed = false;
 
+  private graphTitle: GraphTitleSk | null = null;
+
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
@@ -559,6 +565,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private static template = (ele: ExploreSimpleSk) => html`
   <div id=explore class=${ele.displayMode}>
+    <graph-title-sk id=graphTitle></graph-title-sk>
     <div id=buttons>
       <button
         id=open_query_dialog
@@ -566,7 +573,6 @@ export class ExploreSimpleSk extends ElementSk {
         @click=${ele.openQuery}>
         Query
       </button>
-
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
         <button
         id=query_highlighted
@@ -1018,6 +1024,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.summaryOptionsField = this.querySelector<PickerFieldSk>(
       '#selectSummaryTrace'
     );
+    this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -2443,6 +2450,10 @@ export class ExploreSimpleSk extends ElementSk {
       this.plot!.xbar = -1;
     }
 
+    if (this.state.use_titles) {
+      this.updateTitle();
+    }
+
     // Populate the paramset element.
     this.paramset!.paramsets = [mergedDataframe.paramset as CommonSkParamSet];
     if (tab) {
@@ -2969,6 +2980,43 @@ export class ExploreSimpleSk extends ElementSk {
     this.reShortCut(toShortcut);
   }
 
+  /**
+   * If there are tracesets in the Dataframe and IncludeParams config has been specified, we
+   * update the title using only the common parameters of all present traces.
+   *
+   * If there are less than 3 common parameters, we use the default title.
+   */
+  private updateTitle() {
+    const traceset = this.fullDataFrame?.traceset;
+    if (traceset == null) {
+      return;
+    }
+
+    const params = this._defaults?.include_params;
+    if (params == null) {
+      return;
+    }
+    const numTraces = Object.keys(traceset).length;
+    const titleEntries = new Map();
+
+    // For each param, we found out the unique values in each trace. If there's only 1 unique value,
+    // that means that they all share a value in common and we can add this to the title.
+    params!.forEach((param) => {
+      const uniqueValues = new Set(
+        Object.keys(traceset).map((traceId) => fromKey(traceId)[param])
+      );
+      if (uniqueValues.size === 1) {
+        titleEntries.set(param, uniqueValues.values().next().value);
+      }
+    });
+
+    if (titleEntries.size >= 3) {
+      this.graphTitle!.set(titleEntries, numTraces);
+    } else {
+      this.graphTitle!.set(new Map(), numTraces);
+    }
+  }
+
   /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
   private catch(msg: any) {
     this._requestId = '';
@@ -3102,6 +3150,7 @@ export class ExploreSimpleSk extends ElementSk {
     ) {
       this.openQuery();
     }
+
     this.applyQueryDefaultsIfMissing();
     this.zeroChanged();
     this.autoRefreshChanged();

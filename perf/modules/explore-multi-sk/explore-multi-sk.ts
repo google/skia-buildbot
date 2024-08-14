@@ -72,6 +72,8 @@ class State {
   highlight_anomalies: string[] = [];
 
   enable_chart_tooltip: boolean = false;
+
+  use_titles: boolean = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -394,6 +396,7 @@ export class ExploreMultiSk extends ElementSk {
       plotSummary: this.state.plotSummary,
       highlight_anomalies: this.state.highlight_anomalies,
       enable_chart_tooltip: this.state.enable_chart_tooltip,
+      use_titles: this.state.use_titles,
     };
     explore.state = newState;
   }

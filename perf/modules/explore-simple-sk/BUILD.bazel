@@ -34,6 +34,7 @@ sk_element(
         "//perf/modules/picker-field-sk",
         "//perf/modules/chart-tooltip-sk",
         "//perf/modules/point-links-sk",
+        "//perf/modules/graph-title-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

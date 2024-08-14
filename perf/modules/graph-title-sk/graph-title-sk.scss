@@ -1,0 +1,23 @@
+.body-sk graph-title-sk {
+  #container {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .column {
+    flex: 0 0 auto;
+    display: inline-block;
+    margin-right: 10px;
+    min-width: 75px;
+  }
+
+  .param {
+    font-size: 0.8em;
+    text-align: left;
+  }
+
+  .value {
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+}
