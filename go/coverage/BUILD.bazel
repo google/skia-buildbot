@@ -63,6 +63,6 @@ skia_app_container(
             ],
         ],
     },
-    entrypoint = "/usr/local/bin/coverageserver",
+    entrypoint = "/usr/local/bin/coverageserver/coverageserver",
     repository = "skia-public/coverageserver",
 )

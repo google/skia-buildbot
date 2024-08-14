@@ -20,25 +20,6 @@ func NewCoverageService(coverageStore coveragestore.Store) *coverageService {
 	return &coverageService{
 		coverageStore: coverageStore,
 	}
-	/*
-	   ctx := context.Background()
-	   db, err := pgxpool.Connect(ctx, config.GetConnectionString())
-
-	   	if err != nil {
-	   		sklog.Fatalf("Failed to connect to DB: %s", config.GetConnectionString())
-	   		return nil
-	   	}
-
-	   sqlcoveragestore, err := sqlcoveragestore.New(db)
-
-	   	if err != nil {
-	   		return nil
-	   	}
-
-	   	return &coverageService{
-	   		CoverageServiceServer: coverage_service.New(*sqlcoveragestore),
-	   	}
-	*/
 }
 
 // RegisterGrpc registers the grpc service with the server instance.
