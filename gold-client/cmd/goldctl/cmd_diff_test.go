@@ -26,7 +26,7 @@ func TestDiff_LegacyTestParamUsed_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	j, err := json.Marshal(frontend.DigestListResponse{Digests: []types.Digest{a05Digest, a09Digest}})
 	require.NoError(t, err)
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/digests?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
+	mh.On("Get", testutils.AnyContext, "https://my-instance-gold.skia.org/json/v2/digests?grouping=name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
 		httpResponse(string(j), "200 OK", http.StatusOK), nil)
 
 	a05Bytes, err := os.ReadFile(filepath.Join(td, a05Digest+".png"))
@@ -67,7 +67,7 @@ func TestDiff_GroupingParamUsed_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	j, err := json.Marshal(frontend.DigestListResponse{Digests: []types.Digest{a05Digest, a09Digest}})
 	require.NoError(t, err)
-	mh.On("Get", "https://my-instance-gold.skia.org/json/v2/digests?grouping=color_config%3DRGBA8888%26name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
+	mh.On("Get", testutils.AnyContext, "https://my-instance-gold.skia.org/json/v2/digests?grouping=color_config%3DRGBA8888%26name%3Dpixel-tests%26source_type%3Dmy_corpus").Return(
 		httpResponse(string(j), "200 OK", http.StatusOK), nil)
 
 	a05Bytes, err := os.ReadFile(filepath.Join(td, a05Digest+".png"))

@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
@@ -30,7 +31,7 @@ func TestWhoami_AuthedWithGSUtil_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	url := "https://my-test-instance-gold.skia.org/json/v1/whoami"
 	response := `{"whoami": "test@example.com"}`
-	mh.On("Get", url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
+	mh.On("Get", testutils.AnyContext, url).Return(httpResponse(response, "200 OK", http.StatusOK), nil)
 
 	ctx = goldclient.WithContext(ctx, nil, mh, nil)
 
@@ -63,8 +64,8 @@ func TestWhoami_ReallyPollServer_NotLoggedIn(t *testing.T) {
 // This returns a function that returns a fresh response. Returning a static response works for
 // the first mocked call to this function, but subsequent ones read nothing (because the string
 // reader has already read all its bytes).
-func httpResponse(body, status string, statusCode int) func(string) *http.Response {
-	return func(_ string) *http.Response {
+func httpResponse(body, status string, statusCode int) func(context.Context, string) *http.Response {
+	return func(context.Context, string) *http.Response {
 		return &http.Response{
 			Body:       io.NopCloser(strings.NewReader(body)),
 			Status:     status,

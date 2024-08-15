@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	context "context"
 	http "net/http"
 
 	io "io"
@@ -15,9 +16,9 @@ type HTTPClient struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: url
-func (_m *HTTPClient) Get(url string) (*http.Response, error) {
-	ret := _m.Called(url)
+// Get provides a mock function with given fields: ctx, url
+func (_m *HTTPClient) Get(ctx context.Context, url string) (*http.Response, error) {
+	ret := _m.Called(ctx, url)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -25,19 +26,19 @@ func (_m *HTTPClient) Get(url string) (*http.Response, error) {
 
 	var r0 *http.Response
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*http.Response, error)); ok {
-		return rf(url)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*http.Response, error)); ok {
+		return rf(ctx, url)
 	}
-	if rf, ok := ret.Get(0).(func(string) *http.Response); ok {
-		r0 = rf(url)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *http.Response); ok {
+		r0 = rf(ctx, url)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*http.Response)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(url)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, url)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -45,9 +46,9 @@ func (_m *HTTPClient) Get(url string) (*http.Response, error) {
 	return r0, r1
 }
 
-// Post provides a mock function with given fields: url, contentType, body
-func (_m *HTTPClient) Post(url string, contentType string, body io.Reader) (*http.Response, error) {
-	ret := _m.Called(url, contentType, body)
+// Post provides a mock function with given fields: ctx, url, contentType, body
+func (_m *HTTPClient) Post(ctx context.Context, url string, contentType string, body io.Reader) (*http.Response, error) {
+	ret := _m.Called(ctx, url, contentType, body)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Post")
@@ -55,19 +56,19 @@ func (_m *HTTPClient) Post(url string, contentType string, body io.Reader) (*htt
 
 	var r0 *http.Response
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, io.Reader) (*http.Response, error)); ok {
-		return rf(url, contentType, body)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader) (*http.Response, error)); ok {
+		return rf(ctx, url, contentType, body)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, io.Reader) *http.Response); ok {
-		r0 = rf(url, contentType, body)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, io.Reader) *http.Response); ok {
+		r0 = rf(ctx, url, contentType, body)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*http.Response)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, io.Reader) error); ok {
-		r1 = rf(url, contentType, body)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, io.Reader) error); ok {
+		r1 = rf(ctx, url, contentType, body)
 	} else {
 		r1 = ret.Error(1)
 	}

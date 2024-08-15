@@ -34,7 +34,7 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 		if err := ctx.Err(); err != nil {
 			return backoff.Permanent(err)
 		}
-		resp, err := httpClient.Get(url)
+		resp, err := httpClient.Get(ctx, url)
 		if err != nil {
 			return logAndReturn(skerr.Wrapf(err, "GET %s", url))
 		}
@@ -62,7 +62,7 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 // post makes a POST request to the specified URL with the given body.
 func post(ctx context.Context, url, contentType string, body io.Reader) ([]byte, error) {
 	httpClient := extractHTTPClient(ctx)
-	resp, err := httpClient.Post(url, contentType, body)
+	resp, err := httpClient.Post(ctx, url, contentType, body)
 	if err != nil {
 		return nil, skerr.Fmt("error on POST %s: %s", url, err)
 	}

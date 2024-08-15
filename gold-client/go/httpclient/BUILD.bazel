@@ -5,4 +5,5 @@ go_library(
     srcs = ["httpclient.go"],
     importpath = "go.skia.org/infra/gold-client/go/httpclient",
     visibility = ["//visibility:public"],
+    deps = ["//go/skerr"],
 )

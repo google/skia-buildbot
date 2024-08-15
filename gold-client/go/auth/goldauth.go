@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"net/http"
 	"path/filepath"
 
 	gstorage "cloud.google.com/go/storage"
@@ -68,7 +67,7 @@ func (a *authOpt) Validate() error {
 // GetHTTPClient implements the AuthOpt interface.
 func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if a.GSUtil || a.NoAuth {
-		return httputils.DefaultClientConfig().WithoutRetries().Client(), nil
+		return httpclient.WrapNative(httputils.DefaultClientConfig().WithoutRetries().Client()), nil
 	}
 	var tokenSrc oauth2.TokenSource
 	if a.Luci {
@@ -90,7 +89,8 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if _, err := tokenSrc.Token(); err != nil {
 		return nil, skerr.Wrapf(err, "retrieving initial auth token")
 	}
-	return httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(tokenSrc).Client(), nil
+	client := httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(tokenSrc).Client()
+	return httpclient.WrapNative(client), nil
 }
 
 // GetGCSUploader implements the AuthOpt interface.
@@ -120,8 +120,8 @@ func (a *authOpt) httpGCSImpl(ctx context.Context) (gcsuploader.GCSUploader, err
 	if httpClient, err := a.GetHTTPClient(); err != nil {
 		return nil, err
 	} else {
-		hc, ok := httpClient.(*http.Client)
-		if !ok {
+		hc := httpclient.Unwrap(httpClient)
+		if hc == nil {
 			// Should never happen, but is easier to debug than a panic
 			return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
 		}

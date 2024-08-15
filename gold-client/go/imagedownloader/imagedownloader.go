@@ -28,9 +28,9 @@ func New(hc httpclient.HTTPClient) *httpImageDownloader {
 
 // DownloadImage implements the ImageDownloader API. It downloads the image from the instance
 // (not from GCS itself), which removes the need for the service account to have read access.
-func (h *httpImageDownloader) DownloadImage(_ context.Context, goldURL string, digest types.Digest) ([]byte, error) {
+func (h *httpImageDownloader) DownloadImage(ctx context.Context, goldURL string, digest types.Digest) ([]byte, error) {
 	u := fmt.Sprintf("%s/img/images/%s.png", goldURL, digest)
-	resp, err := h.httpClient.Get(u)
+	resp, err := h.httpClient.Get(ctx, u)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting digest from url %s", u)
 	}
