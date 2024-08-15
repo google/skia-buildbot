@@ -5,9 +5,13 @@ import (
 	"fmt"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	culprit_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	perf_wf "go.skia.org/infra/perf/go/workflows"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -86,11 +90,44 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 		return nil, skerr.Wrap(err)
 	}
 
-	// TODO(b/340235131): call culprit processing
+	// call culprit processing
+	if err = InvokeCulpritProcessingWorkflow(ctx, cfp, verifiedCulprits); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &pinpoint_proto.CulpritFinderExecution{
 		RegressionVerified: true,
 		Culprits:           verifiedCulprits,
 	}, nil
+}
+
+func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderParams,
+	culprits []*pinpoint_proto.CombinedCommit) error {
+	if culprits == nil || len(culprits) == 0 {
+		sklog.Debug("No verified culprit is found. No need to invoke culprit processing.")
+		return nil
+	}
+	if cfp.CallbackParams == nil || cfp.CallbackParams.CulpritServiceUrl == "" || cfp.CallbackParams.TemporalTaskQueueName == "" {
+		sklog.Warningf("Not enough info to invoke culprit processing workflow: %s", cfp.CallbackParams)
+		return nil
+	}
+
+	child_wf_options := workflow.ChildWorkflowOptions{
+		// Assign to the perf task queue.
+		TaskQueue:         cfp.CallbackParams.TemporalTaskQueueName,
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+	c_ctx := workflow.WithChildOptions(ctx, child_wf_options)
+
+	wf := workflow.ExecuteChildWorkflow(c_ctx, perf_wf.ProcessCulprit, perf_wf.ProcessCulpritParam{
+		CulpritServiceUrl: cfp.CallbackParams.CulpritServiceUrl,
+		Commits:           []*culprit_pb.Commit{},
+		AnomalyGroupId:    cfp.CallbackParams.AnomalyGroupId,
+	})
+	if err := wf.GetChildWorkflowExecution().Get(ctx, nil); err != nil {
+		return skerr.Wrapf(err, "Culprit processing workflow failed to start.")
+	}
+	return nil
 }
 
 func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cfp *workflows.CulpritFinderParams) ([]*pinpoint_proto.CombinedCommit, error) {

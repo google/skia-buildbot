@@ -227,4 +227,6 @@ type CulpritFinderParams struct {
 	// and not the dev or staging environment.
 	// Used to determine whether to write to Pinpoint prod or staging.
 	Production bool
+	// A set of parameters used for callback to culprit service if any culprit is found.
+	CallbackParams *pb.CulpritProcessingCallbackParams
 }

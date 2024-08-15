@@ -36,6 +36,8 @@ func setupAnomalyGroupService(t *testing.T) (string, *ag_mock.AnomalyGroupServic
 func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	addr, server, cleanup := setupAnomalyGroupService(t)
 	defer cleanup()
+	c_addr, _, c_cleanup := setupCulpritService(t)
+	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
@@ -95,6 +97,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 				AggregationMethod:    "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
+			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+				AnomalyGroupId:    anomalyGroupId,
+				CulpritServiceUrl: c_addr,
+			},
 		}).Return(&pp_pb.CulpritFinderExecution{
 		JobId: "bisectionId",
 	}, nil).Once()
@@ -104,6 +110,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,
+		CulpritServiceUrl:      c_addr,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -299,6 +306,8 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *testing.T) {
 	addr, server, cleanup := setupAnomalyGroupService(t)
 	defer cleanup()
+	c_addr, _, c_cleanup := setupCulpritService(t)
+	defer c_cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 	agsa := &AnomalyGroupServiceActivity{insecure_conn: true}
@@ -358,6 +367,10 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 				AggregationMethod:    "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
+			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+				AnomalyGroupId:    anomalyGroupId,
+				CulpritServiceUrl: c_addr,
+			},
 		}).Return(&pp_pb.CulpritFinderExecution{
 		JobId: "bisectionId",
 	}, nil).Once()
@@ -367,6 +380,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,
+		CulpritServiceUrl:      c_addr,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())

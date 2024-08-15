@@ -101,6 +101,11 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					AggregationMethod:    aggregationMethod,
 					ImprovementDirection: topAnomaly.ImprovementDirection,
 				},
+				CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+					AnomalyGroupId:        input.AnomalyGroupId,
+					CulpritServiceUrl:     input.CulpritServiceUrl,
+					TemporalTaskQueueName: input.GroupingTaskQueue,
+				},
 			})
 		// This Get() call will wait for the child workflow to start.
 		if err = find_culprit_wf.GetChildWorkflowExecution().Get(ctx, nil); err != nil {

@@ -234,6 +234,20 @@ message ScheduleCulpritFinderRequest {
 	string bug_id = 11;
 }
 
+// When the culprit finding workflow finds one or more culprits, it will invoke
+// the ProcessCulpritWorkflow using the params below
+message CulpritProcessingCallbackParams {
+	// AnomalyGroupID is a string ID of the anomaly group for which an auto-bisection
+	// task is created.
+	string anomaly_group_id = 1;
+
+	// CulpritServiceUrl is a URL to call the culprit services.
+	string culprit_service_url = 2;
+
+	// Temporal task queue is where the culprit processing workflow should be put.
+	string temporal_task_queue_name = 3;
+}
+
 message CulpritFinderExecution {
 	string job_id = 1;
 	// If true, regression_verified means there is a regression
