@@ -1,0 +1,74 @@
+{
+    "URL": "https://androidx-perf.skia.org",
+    "contact": "http://go/androidx-discuss",
+    "trace_sample_proportion": 0.2,
+    "notify_config": {
+      "notifications": "markdown_issuetracker",
+      "issue_tracker_api_key_secret_project": "skia-infra-public",
+      "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
+      "subject": "{{ .Alert.DisplayName }} - Regression found between {{ buildIDFromSubject .PreviousCommit.Subject }} and {{ buildIDFromSubject .Commit.Subject }}",
+      "body": [
+        "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
+        "",
+        "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
+        "",
+        "* [Graph on dashboard]({{ .ViewOnDashboard }})",
+        "* [Alert details]({{ .URL }}/g/t/{{ .Commit.GitHash }})",
+        "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}\\]](https://android-build.corp.google.com/{{ buildIDFromSubject .Commit.Subject }}/branches/aosp-androidx-main/targets/androidx/cls?end={{ buildIDFromSubject .PreviousCommit.Subject }})",
+        "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
+        "",
+        "Tests affected:",
+        "```",
+        "{{ range index .ParamSet \"test\" }} {{ . }}",
+        "{{end}}```",
+        "",
+        "Devices affected:",
+        "```",
+        "{{ range index .ParamSet \"device_name\" }} {{ . }}",
+        "{{end}}```",
+        "API Level:",
+        "```",
+        "{{ range index .ParamSet \"sdk_release_name\" }} {{ . }}",
+        "{{end}}```",
+        ""
+      ]
+    },
+    "auth_config": {
+      "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+      "datastore_type": "cockroachdb",
+      "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/android_x_secondary?sslmode=disable",
+      "tile_size": 512
+    },
+    "ingestion_config": {
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-android-x-production-restore",
+        "subscription": "perf-ingestion-android-x-production-restore-prod",
+        "sources": [
+          "gs://skia-perf/android-master-ingest"
+        ],
+        "reject_if_name_matches": "/tx_log/",
+        "accept_if_name_matches": "androidx"
+      },
+      "branches": [
+        "aosp-androidx-master-dev",
+        "aosp-androidx-main",
+        "git_androidx-studio-integration"
+      ],
+      "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+      "git_auth_type": "gerrit",
+      "provider": "gitiles",
+      "url": "https://skia.googlesource.com/perf-buildid/android-master",
+      "dir": "/tmp/androidx",
+      "start_commit": "6f709a6c8eae56b5466ea999e733c4d6bc6d64ae",
+      "debounce_commit_url": true
+    },
+    "anomaly_config": {
+      "settling_time": "5h"
+    }
+  }
