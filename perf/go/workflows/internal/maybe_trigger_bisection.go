@@ -82,7 +82,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}
 		c_ctx := workflow.WithChildOptions(ctx, child_wf_options)
 
-		chart, aggregationMethod := parseStatisticNameFromChart(topAnomaly.Paramset["measurement"])
+		chart, stat := parseStatisticNameFromChart(topAnomaly.Paramset["measurement"])
 
 		benchmark := topAnomaly.Paramset["benchmark"]
 		story := topAnomaly.Paramset["story"]
@@ -98,7 +98,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 					Benchmark:            benchmark,
 					Story:                story,
 					Chart:                chart,
-					AggregationMethod:    aggregationMethod,
+					Statistic:            stat,
 					ImprovementDirection: topAnomaly.ImprovementDirection,
 				},
 				CallbackParams: &pp_pb.CulpritProcessingCallbackParams{

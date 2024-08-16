@@ -94,7 +94,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                mockAnomaly.Paramset["story"],
 				Chart:                mockAnomaly.Paramset["measurement"],
-				AggregationMethod:    "",
+				Statistic:            "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
 			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
@@ -120,7 +120,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.AssertExpectations(t)
 }
 
-func TestMaybeTriggerBisection_GroupActionBisect_ParseChartAggregation(t *testing.T) {
+func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 	addr, server, cleanup := setupAnomalyGroupService(t)
 	defer cleanup()
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -179,8 +179,11 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartAggregation(t *testin
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                mockAnomaly.Paramset["story"],
 				Chart:                "runs_per_minute",
-				AggregationMethod:    "max",
+				Statistic:            "max",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
+			},
+			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+				AnomalyGroupId: anomalyGroupId,
 			},
 		}).Return(&pp_pb.CulpritFinderExecution{
 		JobId: "bisectionId",
@@ -364,7 +367,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 				Benchmark:            mockAnomaly.Paramset["benchmark"],
 				Story:                "system:health:story:name",
 				Chart:                mockAnomaly.Paramset["measurement"],
-				AggregationMethod:    "",
+				Statistic:            "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
 			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
