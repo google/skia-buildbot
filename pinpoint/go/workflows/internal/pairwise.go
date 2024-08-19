@@ -57,7 +57,13 @@ func PairwiseWorkflow(ctx workflow.Context, p *workflows.PairwiseParams) (*pinpo
 		return nil, skerr.Wrap(err)
 	}
 
-	var significant bool
+	// significant variable is explciitly set to false.
+	// This value is used in CulpritFinder to determine whether to bisect.
+	// Significant = true means that there's indeed a regression and it should
+	// be investigated. If significant is not explicitly set to False, we see
+	// Temporal workflows with Significant and Culprit omitted because the resolve
+	// to nil.
+	significant := false
 	var culprit *pinpoint_proto.CombinedCommit
 	if res.Verdict == compare.Different {
 		significant = true
