@@ -307,22 +307,45 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		rollingFrom, err := arb.getRevision(ctx, current.RollingFrom)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		rollingTo, err := arb.getRevision(ctx, current.RollingTo)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
+		// Update our view of the active roll.
+
+		// We've encountered problems in the past where a dependency was
+		// specified incorrectly. The roller uploads a CL to change the wrong
+		// dependency, a human notices and fixes the roller config, but now
+		// there's an active roll whose RollingFrom and RollingTo revisions are
+		// not valid for the new, correct dependency. In this case, we need to
+		// temporarily ignore the error we get when we attempt to retrieve these
+		// revisions, retrieve the roll (relying on the fact that retrieveRoll
+		// doesn't actually make use of these revisions), then abandon it. This
+		// allows the roller to self-correct instead of crash-looping, requiring
+		// a human to make manual changes in the DB.
+		rollingFrom, rollingFromErr := arb.getRevision(ctx, current.RollingFrom)
+		rollingTo, rollingToErr := arb.getRevision(ctx, current.RollingTo)
 		roll, err := arb.retrieveRoll(ctx, current, rollingFrom, rollingTo)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to retrieve current roll")
+			return nil, skerr.Wrapf(err, "failed to retrieve current roll")
 		}
-		if err := roll.InsertIntoDB(ctx); err != nil {
-			return nil, err
+		if (rollingFromErr != nil || rollingToErr != nil) && !roll.IsClosed() {
+			retrieveErr := rollingFromErr
+			failedRev := current.RollingFrom
+			if retrieveErr == nil {
+				retrieveErr = rollingToErr
+				failedRev = current.RollingTo
+			}
+			msg := fmt.Sprintf("closing the active CL because we failed to retrieve revision %s", failedRev)
+			sklog.Errorf("%s: %s", msg, retrieveErr)
+			if err := roll.Close(ctx, autoroll.ROLL_RESULT_FAILURE, msg+" - see the roller logs for more information."); err != nil {
+				return nil, skerr.Wrapf(err, "failed to retrieve revision and failed to close the active CL")
+			}
+			// Note: we don't set arb.currentRoll here, so the state machine
+			// should transition to S_CURRENT_ROLL_MISSING and then carry on
+			// as normal.
+		} else {
+			if err := roll.InsertIntoDB(ctx); err != nil {
+				return nil, err
+			}
+			arb.currentRoll = roll
 		}
-		arb.currentRoll = roll
 	}
 	sklog.Info("Done creating autoroller")
 	return arb, nil
