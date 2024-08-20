@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+
+go_library(
+    name = "worker_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perfresults/workflows/worker",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common",
+        "//go/sklog",
+        "//temporal/go/metrics",
+        "@io_temporal_go_sdk//client",
+        "@io_temporal_go_sdk//worker",
+    ],
+)
+
+go_binary(
+    name = "worker",
+    embed = [":worker_lib"],
+    visibility = ["//visibility:public"],
+)
+
+skia_app_container(
+    name = "perf_upload_worker",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                ":worker",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/worker",
+    repository = "skia-public/perf_upload_worker",
+)
