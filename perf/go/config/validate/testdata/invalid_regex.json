@@ -29,7 +29,7 @@
         "notifications": "html_email"
     },
     "culprit_notify_config": {
-        "notifications": "none"
+        "notification_type": "none"
     },
     "git_repo_config": {
         "provider": "gitiles",

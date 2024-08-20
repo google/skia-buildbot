@@ -48,7 +48,7 @@
     },
     "CulpritNotifyConfig": {
       "properties": {
-        "notifications": {
+        "notification_type": {
           "type": "string"
         },
         "issue_tracker_api_key_secret_project": {
@@ -70,7 +70,7 @@
       "additionalProperties": false,
       "type": "object",
       "required": [
-        "notifications"
+        "notification_type"
       ]
     },
     "DataPointConfig": {

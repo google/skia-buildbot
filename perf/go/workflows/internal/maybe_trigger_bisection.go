@@ -166,15 +166,10 @@ func benchmarkStoriesNeedUpdate(b string) bool {
 	system_health_benchmark_prefix := "system_health"
 	legacy_complex_cases_benchmarks := []string{
 		"tab_switching.typical_25",
-
 		"v8.browsing_desktop",
-
 		"v8.browsing_desktop-future",
-
 		"v8.browsing_mobile",
-
 		"v8.browsing_mobile-future",
-
 		"heap_profiling.mobile.disabled",
 	}
 	if strings.HasPrefix(b, system_health_benchmark_prefix) {

@@ -9,8 +9,8 @@ import (
 	"go.skia.org/infra/perf/go/culprit/formatter"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/culprit/transport"
-	"go.skia.org/infra/perf/go/notifytypes"
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // TODO(wenbinzhang): considering using specific type for issue ID instead of 'string'.
@@ -30,14 +30,13 @@ type DefaultCulpritNotifier struct {
 
 // newNotifier returns a newNotifier Notifier.
 func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
-	// TODO(wenbinzhang): The term notifier here is overloaded. We can assume always filing issue without the cases.
-	switch cfg.CulpritNotifyConfig.Notifications {
-	case notifytypes.None:
+	switch cfg.CulpritNotifyConfig.NotificationType {
+	case types.NoneNotify:
 		return &DefaultCulpritNotifier{
 			formatter: formatter.NewNoopFormatter(),
 			transport: transport.NewNoopTransport(),
 		}, nil
-	case notifytypes.MarkdownIssueTracker:
+	case types.IssueNotify:
 		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.CulpritNotifyConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
@@ -51,7 +50,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 			transport: transport,
 		}, nil
 	default:
-		return nil, skerr.Fmt("invalid Notifier type: %s, must be of type MarkdownIssueTracker", cfg.CulpritNotifyConfig.Notifications)
+		return nil, skerr.Fmt("Unsupported Notifier type: %s", cfg.CulpritNotifyConfig.NotificationType)
 	}
 }
 

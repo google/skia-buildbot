@@ -10,6 +10,7 @@ go_library(
         "//go/cache/redis",
         "//go/skerr",
         "//perf/go/notifytypes",
+        "//perf/go/types",
         "@com_github_invopop_jsonschema//:jsonschema",
         "@com_github_urfave_cli_v2//:cli",
     ],

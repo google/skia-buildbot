@@ -73,12 +73,12 @@ func Validate(i config.InstanceConfig) error {
 		}
 	}
 
-	if i.CulpritNotifyConfig.Notifications == notifytypes.MarkdownIssueTracker {
+	if i.CulpritNotifyConfig.NotificationType == types.IssueNotify {
 		if i.CulpritNotifyConfig.IssueTrackerAPIKeySecretProject == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.Notifications)
+			return skerr.Fmt("issue_tracker_api_key_secret_project must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.NotificationType)
 		}
 		if i.CulpritNotifyConfig.IssueTrackerAPIKeySecretName == "" {
-			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.Notifications)
+			return skerr.Fmt("issue_tracker_api_key_secret_name must be supplied when `notifications` is set to %q", i.CulpritNotifyConfig.NotificationType)
 		}
 	}
 

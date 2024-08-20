@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/notifytypes"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
@@ -79,7 +80,7 @@ func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretNameNotSet_Re
 func TestInstanceConfigValidate_CulpritNotify_MarkdownIssueTrackerButAPIKeySecretProjectNotSet_ReturnsError(t *testing.T) {
 	i := config.InstanceConfig{
 		CulpritNotifyConfig: config.CulpritNotifyConfig{
-			Notifications: notifytypes.MarkdownIssueTracker,
+			NotificationType: types.IssueNotify,
 		},
 	}
 	require.Contains(t, Validate(i).Error(), "issue_tracker_api_key_secret_project must be supplied")
@@ -88,7 +89,7 @@ func TestInstanceConfigValidate_CulpritNotify_MarkdownIssueTrackerButAPIKeySecre
 func TestInstanceConfigValidate_CulpritNotify_MarkdownIssueTrackerButAPIKeySecretNameNotSet_ReturnsError(t *testing.T) {
 	i := config.InstanceConfig{
 		CulpritNotifyConfig: config.CulpritNotifyConfig{
-			Notifications:                   notifytypes.MarkdownIssueTracker,
+			NotificationType:                types.IssueNotify,
 			IssueTrackerAPIKeySecretProject: "skia-public",
 		},
 	}

@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/notifytypes"
+	"go.skia.org/infra/perf/go/types"
 )
 
 var errSchemaViolation = errors.New("schema violation")
@@ -88,8 +89,8 @@ type NotifyConfig struct {
 
 // NotifyConfig controls how notifications are sent, and their format.
 type CulpritNotifyConfig struct {
-	// Notifications chooses how notifications are sent when a regression is found.
-	Notifications notifytypes.Type `json:"notifications"`
+	// NotificationType chooses how notifications are sent when a regression is found.
+	NotificationType types.AnomalyDetectionNotifyType `json:"notification_type"`
 
 	// IssueTrackerAPIKeySecretProject is the name of the GCP project where the
 	// issue tracker API key is stored in the secret manager. Only required if
