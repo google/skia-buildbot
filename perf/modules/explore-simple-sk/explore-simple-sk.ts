@@ -3006,7 +3006,10 @@ export class ExploreSimpleSk extends ElementSk {
         Object.keys(traceset).map((traceId) => fromKey(traceId)[param])
       );
       if (uniqueValues.size === 1) {
-        titleEntries.set(param, uniqueValues.values().next().value);
+        const value = uniqueValues.values().next().value;
+        if (value) {
+          titleEntries.set(param, value);
+        }
       }
     });
 
