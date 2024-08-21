@@ -63,6 +63,7 @@ go_test(
         "//go/swarming",
         "//go/testutils",
         "//go/vcsinfo",
+        "//perf/go/workflows",
         "//pinpoint/go/backends",
         "//pinpoint/go/common",
         "//pinpoint/go/compare",

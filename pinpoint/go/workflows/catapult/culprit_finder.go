@@ -101,11 +101,17 @@ func CulpritFinderWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderPar
 }
 
 func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.CulpritFinderParams,
-	culprits []*pinpoint_proto.CombinedCommit) error {
-	if culprits == nil || len(culprits) == 0 {
+	verified_combined_culprits []*pinpoint_proto.CombinedCommit) error {
+	if verified_combined_culprits == nil || len(verified_combined_culprits) == 0 {
 		sklog.Debug("No verified culprit is found. No need to invoke culprit processing.")
 		return nil
 	}
+
+	verified_culprits := make([]*pinpoint_proto.Commit, len(verified_combined_culprits))
+	for i, verified_combined_culprit := range verified_combined_culprits {
+		verified_culprits[i] = findLastDepCommit(verified_combined_culprit)
+	}
+
 	if cfp.CallbackParams == nil || cfp.CallbackParams.CulpritServiceUrl == "" || cfp.CallbackParams.TemporalTaskQueueName == "" {
 		sklog.Warningf("Not enough info to invoke culprit processing workflow: %s", cfp.CallbackParams)
 		return nil
@@ -120,13 +126,23 @@ func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.Culpri
 
 	wf := workflow.ExecuteChildWorkflow(c_ctx, perf_wf.ProcessCulprit, perf_wf.ProcessCulpritParam{
 		CulpritServiceUrl: cfp.CallbackParams.CulpritServiceUrl,
-		Commits:           []*pinpoint_proto.Commit{},
+		Commits:           verified_culprits,
 		AnomalyGroupId:    cfp.CallbackParams.AnomalyGroupId,
 	})
 	if err := wf.GetChildWorkflowExecution().Get(ctx, nil); err != nil {
 		return skerr.Wrapf(err, "Culprit processing workflow failed to start.")
 	}
 	return nil
+}
+
+func findLastDepCommit(combined_commit *pinpoint_proto.CombinedCommit) *pinpoint_proto.Commit {
+	var last_dep_commit *pinpoint_proto.Commit
+	if combined_commit.ModifiedDeps != nil && len(combined_commit.ModifiedDeps) > 0 {
+		last_dep_commit = combined_commit.ModifiedDeps[len(combined_commit.ModifiedDeps)-1]
+	} else {
+		last_dep_commit = combined_commit.Main
+	}
+	return last_dep_commit
 }
 
 func verifyCulprits(ctx workflow.Context, be *pinpoint_proto.BisectExecution, cfp *workflows.CulpritFinderParams) ([]*pinpoint_proto.CombinedCommit, error) {
