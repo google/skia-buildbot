@@ -136,10 +136,19 @@ explore-simple-sk {
     button,
     checkbox-sk {
       margin: 0;
+      height: auto;
+      min-height: 40px;
     }
 
     [hidden] {
       display: none;
+    }
+  }
+
+  #traceButtons {
+    checkbox-sk {
+      display: flex;
+      align-items: center;
     }
   }
 
