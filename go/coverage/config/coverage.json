@@ -5,5 +5,5 @@
     "database_port": 26257,
     "service_host": "127.0.0.1",
     "service_port": "8006",
-    "prom_port": "20000"
+    "prom_port": ":20000"
 }
