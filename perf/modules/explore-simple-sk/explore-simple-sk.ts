@@ -716,7 +716,7 @@ export class ExploreSimpleSk extends ElementSk {
       </div>
     </div>
 
-    <div id=spin-overlay>
+    <div id=spin-overlay @mouseleave=${ele.disableTooltip}>
       <chart-tooltip-sk></chart-tooltip-sk>
       <plot-simple-sk
         .summary=${ele._state.summary}
@@ -1068,6 +1068,9 @@ export class ExploreSimpleSk extends ElementSk {
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {
+    // If chart tooltip is enabled do not show crosshair label
+    this.plot!.showCrosshairLabel = !this._state.enable_chart_tooltip;
+
     this.dispatchEvent(new CustomEvent('state_changed', {}));
   };
 
@@ -1639,6 +1642,15 @@ export class ExploreSimpleSk extends ElementSk {
       fixTooltip,
       closeBtnAction
     );
+  }
+
+  /** Hides the tooltip. Generally called when mouse moves out of the graph */
+  disableTooltip(): void {
+    if (this.tooltipFixed) return;
+
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    tooltipElem!.display = false;
+    this._render();
   }
 
   /** Highlight a trace when it is clicked on. */

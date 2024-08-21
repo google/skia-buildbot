@@ -478,6 +478,8 @@ export class PlotSimpleSk extends ElementSk {
 
   private _anomalyDataMap: { [key: string]: AnomalyData[] } = {};
 
+  private _showCrosshairLabel: boolean = true;
+
   /** A map of trace names to 'true' of traces that are highlighted. */
   private highlighted: { [key: string]: boolean } = {};
 
@@ -1690,7 +1692,7 @@ export class PlotSimpleSk extends ElementSk {
         ctx.stroke();
 
         // Y label at crosshair if shift is pressed.
-        if (this.crosshair.shift) {
+        if (this.showCrosshairLabel && this.crosshair.shift) {
           // Draw the label offset from the crosshair.
           ctx.font = this.LABEL_FONT;
           ctx.textBaseline = 'bottom';
@@ -1973,6 +1975,14 @@ export class PlotSimpleSk extends ElementSk {
   set anomalyDataMap(anomalyDataMap: { [key: string]: AnomalyData[] }) {
     this._anomalyDataMap = anomalyDataMap;
     this.drawOverlayCanvas();
+  }
+
+  get showCrosshairLabel(): boolean {
+    return this._showCrosshairLabel;
+  }
+
+  set showCrosshairLabel(show: boolean) {
+    this._showCrosshairLabel = show;
   }
 
   /** The zoom range, an array of two values in source x units. Can be set to
