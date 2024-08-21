@@ -15,6 +15,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/client",
         "//perf/go/culprit/proto/v1",

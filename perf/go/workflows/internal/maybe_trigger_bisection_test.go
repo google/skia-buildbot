@@ -6,25 +6,25 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
-	ag_mock "go.skia.org/infra/perf/go/anomalygroup/proto/v1/mocks"
-	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	anomalygroup_proto "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	anomalygroup_mock "go.skia.org/infra/perf/go/anomalygroup/proto/v1/mocks"
+	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/workflows"
 	pinpoint "go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/catapult"
-	pp_pb "go.skia.org/infra/pinpoint/proto/v1"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/workflow"
 	"google.golang.org/grpc"
 )
 
-func setupAnomalyGroupService(t *testing.T) (string, *ag_mock.AnomalyGroupServiceServer, func()) {
+func setupAnomalyGroupService(t *testing.T) (string, *anomalygroup_mock.AnomalyGroupServiceServer, func()) {
 	lis, err := net.Listen("tcp", "localhost:9001")
 	require.NoError(t, err)
 	s := grpc.NewServer()
-	service := ag_mock.NewAnomalyGroupServiceServer(t)
-	ag_pb.RegisterAnomalyGroupServiceServer(s, service)
+	service := anomalygroup_mock.NewAnomalyGroupServiceServer(t)
+	anomalygroup_proto.RegisterAnomalyGroupServiceServer(s, service)
 	go func() {
 		require.NoError(t, s.Serve(lis))
 	}()
@@ -52,7 +52,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	mockAnomalyIds := []string{"anomaly1"}
 	var startCommit int64 = 1
 	var endCommit int64 = 10
-	mockAnomaly := &ag_pb.Anomaly{
+	mockAnomaly := &anomalygroup_proto.Anomaly{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Paramset: map[string]string{
@@ -64,21 +64,21 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &ag_pb.LoadAnomalyGroupByIDRequest{
+	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&ag_pb.LoadAnomalyGroupByIDResponse{
-				AnomalyGroup: &ag_pb.AnomalyGroup{
+			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &anomalygroup_proto.AnomalyGroup{
 					GroupId:     anomalyGroupId,
-					GroupAction: ag_pb.GroupActionType_BISECT,
+					GroupAction: anomalygroup_proto.GroupActionType_BISECT,
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
-			&ag_pb.FindTopAnomaliesResponse{Anomalies: []*ag_pb.Anomaly{mockAnomaly}}, nil)
+			&anomalygroup_proto.FindTopAnomaliesResponse{Anomalies: []*anomalygroup_proto.Anomaly{mockAnomaly}}, nil)
 	mockStartRevision := "revision1"
 	mockEndRevision := "revision10"
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
@@ -87,7 +87,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 	env.OnWorkflow(pinpoint.CulpritFinderWorkflow,
 		mock.Anything,
 		&pinpoint.CulpritFinderParams{
-			Request: &pp_pb.ScheduleCulpritFinderRequest{
+			Request: &pinpoint_proto.ScheduleCulpritFinderRequest{
 				StartGitHash:         mockStartRevision,
 				EndGitHash:           mockEndRevision,
 				Configuration:        mockAnomaly.Paramset["bot"],
@@ -97,16 +97,16 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath(t *testing.T) {
 				Statistic:            "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
-			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+			CallbackParams: &pinpoint_proto.CulpritProcessingCallbackParams{
 				AnomalyGroupId:    anomalyGroupId,
 				CulpritServiceUrl: c_addr,
 			},
-		}).Return(&pp_pb.CulpritFinderExecution{
+		}).Return(&pinpoint_proto.CulpritFinderExecution{
 		JobId: "bisectionId",
 	}, nil).Once()
 	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
-			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
+			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,
@@ -137,7 +137,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 	mockAnomalyIds := []string{"anomaly1"}
 	var startCommit int64 = 1
 	var endCommit int64 = 10
-	mockAnomaly := &ag_pb.Anomaly{
+	mockAnomaly := &anomalygroup_proto.Anomaly{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Paramset: map[string]string{
@@ -149,21 +149,21 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &ag_pb.LoadAnomalyGroupByIDRequest{
+	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&ag_pb.LoadAnomalyGroupByIDResponse{
-				AnomalyGroup: &ag_pb.AnomalyGroup{
+			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &anomalygroup_proto.AnomalyGroup{
 					GroupId:     anomalyGroupId,
-					GroupAction: ag_pb.GroupActionType_BISECT,
+					GroupAction: anomalygroup_proto.GroupActionType_BISECT,
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
-			&ag_pb.FindTopAnomaliesResponse{Anomalies: []*ag_pb.Anomaly{mockAnomaly}}, nil)
+			&anomalygroup_proto.FindTopAnomaliesResponse{Anomalies: []*anomalygroup_proto.Anomaly{mockAnomaly}}, nil)
 	mockStartRevision := "revision1"
 	mockEndRevision := "revision10"
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
@@ -172,7 +172,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 	env.OnWorkflow(pinpoint.CulpritFinderWorkflow,
 		mock.Anything,
 		&pinpoint.CulpritFinderParams{
-			Request: &pp_pb.ScheduleCulpritFinderRequest{
+			Request: &pinpoint_proto.ScheduleCulpritFinderRequest{
 				StartGitHash:         mockStartRevision,
 				EndGitHash:           mockEndRevision,
 				Configuration:        mockAnomaly.Paramset["bot"],
@@ -182,15 +182,15 @@ func TestMaybeTriggerBisection_GroupActionBisect_ParseChartStat(t *testing.T) {
 				Statistic:            "max",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
-			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+			CallbackParams: &pinpoint_proto.CulpritProcessingCallbackParams{
 				AnomalyGroupId: anomalyGroupId,
 			},
-		}).Return(&pp_pb.CulpritFinderExecution{
+		}).Return(&pinpoint_proto.CulpritFinderExecution{
 		JobId: "bisectionId",
 	}, nil).Once()
 	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
-			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
+			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,
@@ -220,17 +220,17 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 
 	anomalyGroupId := "group_id1"
 	mockAnomalyIds := []string{"anomaly1"}
-	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &ag_pb.LoadAnomalyGroupByIDRequest{
+	ag_server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&ag_pb.LoadAnomalyGroupByIDResponse{
-				AnomalyGroup: &ag_pb.AnomalyGroup{
+			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &anomalygroup_proto.AnomalyGroup{
 					GroupId:     anomalyGroupId,
-					GroupAction: ag_pb.GroupActionType_REPORT,
+					GroupAction: anomalygroup_proto.GroupActionType_REPORT,
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	mockAnomalies := []*ag_pb.Anomaly{
+	mockAnomalies := []*anomalygroup_proto.Anomaly{
 		{
 			StartCommit: int64(100),
 			EndCommit:   int64(300),
@@ -256,7 +256,7 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 			ImprovementDirection: "UP",
 		},
 	}
-	mockCulpritAnomalies := []*c_pb.Anomaly{
+	mockCulpritAnomalies := []*culprit_proto.Anomaly{
 		{
 			StartCommit: int64(100),
 			EndCommit:   int64(300),
@@ -282,16 +282,16 @@ func TestMaybeTriggerBisection_GroupActionReport_HappyPath(t *testing.T) {
 			ImprovementDirection: "UP",
 		},
 	}
-	ag_server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+	ag_server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          10}).
 		Return(
-			&ag_pb.FindTopAnomaliesResponse{Anomalies: mockAnomalies}, nil)
-	c_server.On("NotifyUserOfAnomaly", mock.Anything, &c_pb.NotifyUserOfAnomalyRequest{
+			&anomalygroup_proto.FindTopAnomaliesResponse{Anomalies: mockAnomalies}, nil)
+	c_server.On("NotifyUserOfAnomaly", mock.Anything, &culprit_proto.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Anomaly:        mockCulpritAnomalies,
 	}).Return(
-		&c_pb.NotifyUserOfAnomalyResponse{}, nil)
+		&culprit_proto.NotifyUserOfAnomalyResponse{}, nil)
 
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: ag_addr,
@@ -325,7 +325,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	mockAnomalyIds := []string{"anomaly1"}
 	var startCommit int64 = 1
 	var endCommit int64 = 10
-	mockAnomaly := &ag_pb.Anomaly{
+	mockAnomaly := &anomalygroup_proto.Anomaly{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Paramset: map[string]string{
@@ -337,21 +337,21 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 		},
 		ImprovementDirection: "UP",
 	}
-	server.On("LoadAnomalyGroupByID", mock.Anything, &ag_pb.LoadAnomalyGroupByIDRequest{
+	server.On("LoadAnomalyGroupByID", mock.Anything, &anomalygroup_proto.LoadAnomalyGroupByIDRequest{
 		AnomalyGroupId: anomalyGroupId}).
 		Return(
-			&ag_pb.LoadAnomalyGroupByIDResponse{
-				AnomalyGroup: &ag_pb.AnomalyGroup{
+			&anomalygroup_proto.LoadAnomalyGroupByIDResponse{
+				AnomalyGroup: &anomalygroup_proto.AnomalyGroup{
 					GroupId:     anomalyGroupId,
-					GroupAction: ag_pb.GroupActionType_BISECT,
+					GroupAction: anomalygroup_proto.GroupActionType_BISECT,
 					AnomalyIds:  mockAnomalyIds,
 				},
 			}, nil)
-	server.On("FindTopAnomalies", mock.Anything, &ag_pb.FindTopAnomaliesRequest{
+	server.On("FindTopAnomalies", mock.Anything, &anomalygroup_proto.FindTopAnomaliesRequest{
 		AnomalyGroupId: anomalyGroupId,
 		Limit:          1}).
 		Return(
-			&ag_pb.FindTopAnomaliesResponse{Anomalies: []*ag_pb.Anomaly{mockAnomaly}}, nil)
+			&anomalygroup_proto.FindTopAnomaliesResponse{Anomalies: []*anomalygroup_proto.Anomaly{mockAnomaly}}, nil)
 	mockStartRevision := "revision1"
 	mockEndRevision := "revision10"
 	env.OnActivity(gsa.GetCommitRevision, mock.Anything, startCommit).Return(mockStartRevision, nil).Once()
@@ -360,7 +360,7 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 	env.OnWorkflow(pinpoint.CulpritFinderWorkflow,
 		mock.Anything,
 		&pinpoint.CulpritFinderParams{
-			Request: &pp_pb.ScheduleCulpritFinderRequest{
+			Request: &pinpoint_proto.ScheduleCulpritFinderRequest{
 				StartGitHash:         mockStartRevision,
 				EndGitHash:           mockEndRevision,
 				Configuration:        mockAnomaly.Paramset["bot"],
@@ -370,16 +370,16 @@ func TestMaybeTriggerBisection_GroupActionBisect_HappyPath_StoryNameUpdate(t *te
 				Statistic:            "",
 				ImprovementDirection: mockAnomaly.ImprovementDirection,
 			},
-			CallbackParams: &pp_pb.CulpritProcessingCallbackParams{
+			CallbackParams: &pinpoint_proto.CulpritProcessingCallbackParams{
 				AnomalyGroupId:    anomalyGroupId,
 				CulpritServiceUrl: c_addr,
 			},
-		}).Return(&pp_pb.CulpritFinderExecution{
+		}).Return(&pinpoint_proto.CulpritFinderExecution{
 		JobId: "bisectionId",
 	}, nil).Once()
 	server.On("UpdateAnomalyGroup", mock.Anything, mock.Anything).
 		Return(
-			&ag_pb.UpdateAnomalyGroupResponse{}, nil)
+			&anomalygroup_proto.UpdateAnomalyGroupResponse{}, nil)
 	env.ExecuteWorkflow(MaybeTriggerBisectionWorkflow, &workflows.MaybeTriggerBisectionParam{
 		AnomalyGroupServiceUrl: addr,
 		AnomalyGroupId:         anomalyGroupId,

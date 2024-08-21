@@ -22,7 +22,6 @@ go_library(
         "//go/sklog",
         "//go/swarming",
         "//go/vcsinfo",
-        "//perf/go/culprit/proto/v1",
         "//perf/go/workflows",
         "//pinpoint/go/backends",
         "//pinpoint/go/bot_configs",

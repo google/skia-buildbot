@@ -6,7 +6,6 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	culprit_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	perf_wf "go.skia.org/infra/perf/go/workflows"
 	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
@@ -121,7 +120,7 @@ func InvokeCulpritProcessingWorkflow(ctx workflow.Context, cfp *workflows.Culpri
 
 	wf := workflow.ExecuteChildWorkflow(c_ctx, perf_wf.ProcessCulprit, perf_wf.ProcessCulpritParam{
 		CulpritServiceUrl: cfp.CallbackParams.CulpritServiceUrl,
-		Commits:           []*culprit_pb.Commit{},
+		Commits:           []*pinpoint_proto.Commit{},
 		AnomalyGroupId:    cfp.CallbackParams.AnomalyGroupId,
 	})
 	if err := wf.GetChildWorkflowExecution().Get(ctx, nil); err != nil {

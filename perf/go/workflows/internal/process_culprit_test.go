@@ -9,6 +9,7 @@ import (
 	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
 	culprit_mock "go.skia.org/infra/perf/go/culprit/proto/v1/mocks"
 	"go.skia.org/infra/perf/go/workflows"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
 	"google.golang.org/grpc"
 )
@@ -34,16 +35,26 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 	csa := &CulpritServiceActivity{insecure_conn: true}
 	env.RegisterActivity(csa)
+	pp_commits := []*pinpoint_proto.Commit{
+		{
+			GitHash:    "123",
+			Repository: "https://chromium.googlesource.com/chromium/src.git",
+		},
+		{
+			GitHash:    "456",
+			Repository: "https://chromium.googlesource.com/chromium/src.git",
+		},
+	}
 	commits := []*culprit_proto.Commit{
 		{
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
-			Ref:      "refs/head/main",
+			Ref:      "",
 			Revision: "123",
 		}, {
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",
-			Ref:      "refs/head/main1",
+			Ref:      "",
 			Revision: "456",
 		},
 	}
@@ -66,7 +77,7 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 
 	env.ExecuteWorkflow(ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{
 		CulpritServiceUrl: addr,
-		Commits:           commits,
+		Commits:           pp_commits,
 		AnomalyGroupId:    anomalyGroupId,
 	})
 
@@ -77,4 +88,72 @@ func TestProcessCulprit_HappyPath_ShouldInvokeCulpritService(t *testing.T) {
 	require.Equal(t, resp.CulpritIds, mockCulpritIds)
 	require.Equal(t, resp.IssueIds, mockIssueIds)
 	env.AssertExpectations(t)
+}
+
+func TestProcessCulprit_HappyPath_InvalidCulpritRepo(t *testing.T) {
+	addr, _, cleanup := setupCulpritService(t)
+	defer cleanup()
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	csa := &CulpritServiceActivity{insecure_conn: true}
+	env.RegisterActivity(csa)
+	pp_commits := []*pinpoint_proto.Commit{
+		{
+			GitHash:    "123",
+			Repository: "https://chromium.googlesource.com",
+		},
+	}
+
+	env.ExecuteWorkflow(ProcessCulpritWorkflow, &workflows.ProcessCulpritParam{
+		CulpritServiceUrl: addr,
+		Commits:           pp_commits,
+		AnomalyGroupId:    "111",
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	err := env.GetWorkflowError()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Invalid commit repository")
+}
+
+func TestParsePinpointCommit_Success(t *testing.T) {
+	pinpoint_commit := &pinpoint_proto.Commit{
+		Repository: "https://chromium.googlesource.com/v8/v8.git",
+		GitHash:    "deadbeef1234",
+	}
+	culprit_commit, err := ParsePinpointCommit(pinpoint_commit)
+	require.NoError(t, err)
+	require.Equal(t, culprit_commit.Host, "chromium.googlesource.com")
+	require.Equal(t, culprit_commit.Project, "v8/v8")
+	require.Equal(t, culprit_commit.Revision, "deadbeef1234")
+}
+
+func TestParsePinpointCommit_ShortRepo(t *testing.T) {
+	pinpoint_commit := &pinpoint_proto.Commit{
+		Repository: "https://chromium",
+		GitHash:    "deadbeef1234",
+	}
+	_, err := ParsePinpointCommit(pinpoint_commit)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Invalid commit repository")
+}
+
+func TestParsePinpointCommit_EmptyProject(t *testing.T) {
+	pinpoint_commit := &pinpoint_proto.Commit{
+		Repository: "https://chromium.googlesource.com/",
+		GitHash:    "deadbeef1234",
+	}
+	_, err := ParsePinpointCommit(pinpoint_commit)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Empty values parsed")
+}
+
+func TestParsePinpointCommit_EmptyHash(t *testing.T) {
+	pinpoint_commit := &pinpoint_proto.Commit{
+		Repository: "https://chromium.googlesource.com/v8/v8.git",
+		GitHash:    "",
+	}
+	_, err := ParsePinpointCommit(pinpoint_commit)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Empty values parsed")
 }
