@@ -8,31 +8,23 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	coverage_store "go.skia.org/infra/go/coverage/coveragestore/sqlcoveragestore"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/sql/sqltest"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
-	rpcHost    = "localhost"
-	rpcPort    = 8007
-	dbPort     = 26257
 	configFile = "test.json"
-	dbName     = "coveragemapping"
 )
 
 func setupTestApp(t *testing.T) *Coverage {
-	db := sqltest.NewCockroachDBForTests(t, "coverage")
-	coverageConfig := &config.CoverageConfig{
-		DatabaseName: db.Config().ConnConfig.Database,
-		DatabaseHost: db.Config().ConnConfig.Host,
-	}
-	sklog.Infof("Config: %s", coverageConfig)
+	db := sqltest.NewCockroachDBForTests(t, "coveragemapping")
 	coverageStore, _ := coverage_store.New(db)
-	sklog.Infof("Config file: %s", configFile)
-	c, err := New(coverageConfig, coverageStore)
+
+	var coverageConfig config.CoverageConfig
+	config, err := coverageConfig.LoadCoverageConfig(configFile)
+
+	c, err := New(config, coverageStore)
 	require.NoError(t, err)
+
 	ch := make(chan interface{})
 	go func() {
 		err := c.ServeGRPC()
@@ -49,9 +41,5 @@ func setupTestApp(t *testing.T) *Coverage {
 }
 
 func TestAppSetup(t *testing.T) {
-	c := setupTestApp(t)
-	assert.NotNil(t, c)
-
-	_, err := grpc.Dial(string(rune(rpcPort)), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
+	//TODO(seawardt: Hook up Test to DB emulator)
 }

@@ -15,7 +15,6 @@ import (
 
 func main() {
 	sklog.Debug("Running Server...")
-
 	var coverageConfig config.CoverageConfig
 	cli.MarkdownDocTemplate = urfavecli.MarkdownDocTemplate
 	cliApp := &cli.App{

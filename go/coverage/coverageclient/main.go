@@ -47,14 +47,12 @@ func getJson(filename string) []byte {
 }
 
 func main() {
-	var request pb.CoverageRequest
-	var response *pb.CoverageChangeResponse
-
 	ctx := context.Background()
 	addBuilder := flag.Bool("addBuilder", false, "Add Builder to Database")
 	addFile := flag.Bool("addFile", false, "Add File to Database")
 	addTest := flag.Bool("addTest", false, "Add TestSuite to Database")
 	deleteFile := flag.Bool("delete", false, "Remove File from Database")
+	getAll := flag.Bool("getAll", false, "Get Full Database")
 	host := flag.String("host", "localhost", "Hostname/IP of gRPC Service")
 	port := flag.String("port", "8006", "Hostname/IP of gRPC Service")
 
@@ -73,11 +71,8 @@ func main() {
 	if *deleteFile {
 		sampleFile = "deleteFile.json"
 	}
-
-	err := json.Unmarshal(getJson(sampleFile), &request)
-	if err != nil {
-		sklog.Errorf("Unmarshal Error: %s", err)
-		return
+	if *getAll {
+		sampleFile = "getAll.json"
 	}
 
 	rpcHost := *host + ":" + *port
@@ -85,19 +80,46 @@ func main() {
 	client := pb.NewCoverageServiceClient(conn)
 
 	if strings.HasPrefix(sampleFile, "get") {
-		var listResponse *pb.CoverageListResponse
-		listResponse, err = client.GetTestSuite(ctx, &request)
-		sklog.Debugf(" Response: %s", listResponse)
-	} else {
-		if strings.HasPrefix(sampleFile, "add") {
-			response, err = client.InsertFile(ctx, &request)
+		if strings.HasPrefix(sampleFile, "getAll") {
+			var request pb.CoverageRequest
+			var response *pb.CoverageAllResponses
+			err := json.Unmarshal(getJson(sampleFile), &request)
+			if err != nil {
+				sklog.Errorf("Unmarshal Error: %s", err)
+				return
+			}
+			response, err = client.GetAllFiles(ctx, &request)
+			sklog.Debugf(" Response: %s", response)
 		} else {
-			response, err = client.DeleteFile(ctx, &request)
+			var listRequest pb.CoverageListRequest
+			var listResponse *pb.CoverageListResponse
+			err := json.Unmarshal(getJson(sampleFile), &listRequest)
+			if err != nil {
+				sklog.Errorf("Unmarshal Error: %s", err)
+				return
+			}
+			listResponse, err = client.GetTestSuite(ctx, &listRequest)
+			sklog.Debugf(" Response: %s", listResponse)
+		}
+	} else {
+		var changeRequest pb.CoverageChangeRequest
+		var changeResponse *pb.CoverageChangeResponse
+
+		err := json.Unmarshal(getJson(sampleFile), &changeRequest)
+		if err != nil {
+			sklog.Errorf("Unmarshal Error: %s", err)
+			return
+		}
+
+		if strings.HasPrefix(sampleFile, "add") {
+			changeResponse, err = client.InsertFile(ctx, &changeRequest)
+		} else {
+			changeResponse, err = client.DeleteFile(ctx, &changeRequest)
 		}
 		if err != nil {
 			sklog.Errorf("Error: %s", err.Error())
 		} else {
-			sklog.Debugf("Change Response: %s", response)
+			sklog.Debugf("Change Response: %s", changeResponse)
 		}
 	}
 	conn.Close()

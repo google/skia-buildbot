@@ -16,7 +16,7 @@ type Store struct {
 }
 
 // Add provides a mock function with given fields: ctx, req
-func (_m *Store) Add(ctx context.Context, req *v1.CoverageRequest) error {
+func (_m *Store) Add(ctx context.Context, req *v1.CoverageChangeRequest) error {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -24,7 +24,7 @@ func (_m *Store) Add(ctx context.Context, req *v1.CoverageRequest) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageChangeRequest) error); ok {
 		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
@@ -34,7 +34,7 @@ func (_m *Store) Add(ctx context.Context, req *v1.CoverageRequest) error {
 }
 
 // Delete provides a mock function with given fields: ctx, req
-func (_m *Store) Delete(ctx context.Context, req *v1.CoverageRequest) error {
+func (_m *Store) Delete(ctx context.Context, req *v1.CoverageChangeRequest) error {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -42,7 +42,7 @@ func (_m *Store) Delete(ctx context.Context, req *v1.CoverageRequest) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageChangeRequest) error); ok {
 		r0 = rf(ctx, req)
 	} else {
 		r0 = ret.Error(0)
@@ -52,7 +52,7 @@ func (_m *Store) Delete(ctx context.Context, req *v1.CoverageRequest) error {
 }
 
 // List provides a mock function with given fields: ctx, req
-func (_m *Store) List(ctx context.Context, req *v1.CoverageRequest) ([]string, error) {
+func (_m *Store) List(ctx context.Context, req *v1.CoverageListRequest) ([]string, error) {
 	ret := _m.Called(ctx, req)
 
 	if len(ret) == 0 {
@@ -61,14 +61,44 @@ func (_m *Store) List(ctx context.Context, req *v1.CoverageRequest) ([]string, e
 
 	var r0 []string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) ([]string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageListRequest) ([]string, error)); ok {
 		return rf(ctx, req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) []string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageListRequest) []string); ok {
 		r0 = rf(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *v1.CoverageListRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListAll provides a mock function with given fields: ctx, req
+func (_m *Store) ListAll(ctx context.Context, req *v1.CoverageRequest) ([]*v1.CoverageResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAll")
+	}
+
+	var r0 []*v1.CoverageResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) ([]*v1.CoverageResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *v1.CoverageRequest) []*v1.CoverageResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*v1.CoverageResponse)
 		}
 	}
 

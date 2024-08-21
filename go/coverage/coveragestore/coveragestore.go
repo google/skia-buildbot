@@ -23,11 +23,14 @@ type CoverageRequest struct {
 // Store is the interface used to persist Coverage.
 type Store interface {
 	// Add will insert a new file with associated builder information.
-	Add(ctx context.Context, req *pb.CoverageRequest) error
+	Add(ctx context.Context, req *pb.CoverageChangeRequest) error
 
 	// Delete removes the Filename with the given filename.
-	Delete(ctx context.Context, req *pb.CoverageRequest) error
+	Delete(ctx context.Context, req *pb.CoverageChangeRequest) error
 
 	// List retrieves all the Coverage mapppings.
-	List(ctx context.Context, req *pb.CoverageRequest) ([]string, error)
+	List(ctx context.Context, req *pb.CoverageListRequest) ([]string, error)
+
+	// List retrieves all the Coverage mapppings.
+	ListAll(ctx context.Context, req *pb.CoverageRequest) ([]*pb.CoverageResponse, error)
 }

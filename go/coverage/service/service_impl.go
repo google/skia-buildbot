@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"go.skia.org/infra/go/coverage/coveragestore"
 	pb "go.skia.org/infra/go/coverage/proto/v1"
@@ -42,24 +43,49 @@ func New(coverageStore coveragestore.Store) *coverageService {
 	}
 }
 
+func checkContextDeadline(ctx context.Context) context.Context {
+	_, status := ctx.Deadline()
+	if status {
+		return ctx
+	}
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	return ctxWithTimeout
+}
+
 // Checks file/builder pair from Database and returns available test suites.
-func (s *coverageService) GetTestSuite(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageListResponse, error) {
+func (s *coverageService) GetAllFiles(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageAllResponses, error) {
+	ctx = checkContextDeadline(ctx)
+
+	results, err := s.coverageStore.ListAll(ctx, req)
+	if err != nil {
+		sklog.Errorf("GetTestSuite Failed: %v with error: %v", req, err)
+	}
+	var allResults pb.CoverageAllResponses
+	allResults.Responses = results
+	return &allResults, err
+}
+
+// Checks file/builder pair from Database and returns available test suites.
+func (s *coverageService) GetTestSuite(ctx context.Context, req *pb.CoverageListRequest) (*pb.CoverageListResponse, error) {
+	ctx = checkContextDeadline(ctx)
+
 	test_suites, err := s.coverageStore.List(ctx, req)
 
 	status := successStatus
 	if err != nil || test_suites == nil {
-		test_suites = req.TestSuiteName
 		status = failStatus
-		sklog.Errorf("GetTestSuite Failed: %v with error: %v", test_suites, err)
+		sklog.Errorf("GetTestSuite Failed: %v with error: %v", req, err)
 	}
 
-	response := pb.CoverageListResponse{FileName: req.FileName, BuilderName: req.BuilderName,
-		TestSuites: test_suites, Status: &status}
+	response := pb.CoverageListResponse{TestSuites: test_suites, Status: &status}
 	return &response, err
 }
 
 // Inserts file/builder pair from Database.
-func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
+func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageChangeRequest) (*pb.CoverageChangeResponse, error) {
+	ctx = checkContextDeadline(ctx)
+
 	err := s.coverageStore.Add(ctx, req)
 	status := successStatus
 	message := "Add Successful"
@@ -78,7 +104,9 @@ func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageReques
 }
 
 // Deletes file/builder pair from Database.
-func (s *coverageService) DeleteFile(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageChangeResponse, error) {
+func (s *coverageService) DeleteFile(ctx context.Context, req *pb.CoverageChangeRequest) (*pb.CoverageChangeResponse, error) {
+	ctx = checkContextDeadline(ctx)
+
 	err := s.coverageStore.Delete(ctx, req)
 	status := successStatus
 	message := "Delete Successful"

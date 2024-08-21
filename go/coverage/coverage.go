@@ -28,6 +28,7 @@ type Coverage struct {
 	grpcServer     *grpc.Server
 	lisGRPC        net.Listener
 	coverageConfig *config.CoverageConfig
+	promPort       string
 }
 
 // pgxLogAdaptor allows bubbling pgx logs up into our application.
@@ -68,18 +69,19 @@ type CoverageService interface {
 
 // initialize initializes the Coverage application.
 func (c *Coverage) initialize(coverageStore coveragestore.Store) error {
-	common.InitWithMust(
-		appName,
-	)
+
 	ctx := context.Background()
 
-	// Use config file over passed in values
-	if c.coverageConfig.ConfigFilename != "" {
-		config, err := c.coverageConfig.LoadCoverageConfig(c.coverageConfig.ConfigFilename)
-		if err != nil || config == nil {
-			sklog.Fatal(err)
-		}
+	// Use config file to load vales
+	config, err := c.coverageConfig.LoadCoverageConfig(c.coverageConfig.ConfigFilename)
+	if err != nil || config == nil {
+		sklog.Fatal(err)
 	}
+
+	common.InitWithMust(
+		appName,
+		common.PrometheusOpt(&config.PromPort),
+	)
 
 	if coverageStore == nil {
 		var err error
@@ -89,7 +91,6 @@ func (c *Coverage) initialize(coverageStore coveragestore.Store) error {
 			return err
 		}
 	}
-
 	c.grpcServer = grpc.NewServer()
 	reflection.Register(c.grpcServer)
 
@@ -97,7 +98,8 @@ func (c *Coverage) initialize(coverageStore coveragestore.Store) error {
 		coverage_service.New(coverageStore),
 	}
 	c.registerServices(services)
-	c.lisGRPC, _ = net.Listen("tcp4", ":8006")
+
+	c.lisGRPC, _ = net.Listen("tcp4", config.ServicePort)
 	sklog.Info("Coverage server listening at ", c.lisGRPC.Addr())
 
 	cleanup.AtExit(c.Cleanup)
@@ -118,7 +120,6 @@ func NewCockroachDBFromConfig(ctx context.Context, coverageConfig *config.Covera
 		return nil, skerr.Wrapf(err, "Failed to parse database config: %q", coverageConfig.GetConnectionString())
 	}
 
-	sklog.Infof("%#v", *cfg)
 	cfg.MaxConns = maxPoolConnections
 	cfg.ConnConfig.Logger = pgxLogAdaptor{}
 	rawPool, err := pgxpool.ConnectConfig(ctx, cfg)
@@ -146,7 +147,6 @@ func NewCoverageStoreFromConfig(ctx context.Context, coverageConfig *config.Cove
 // registerServices registers all available services for Coverage.
 func (c *Coverage) registerServices(services []CoverageService) {
 	for _, service := range services {
-		sklog.Info("Registering Listen services: ", service)
 		service.RegisterGrpc(c.grpcServer)
 	}
 
@@ -168,6 +168,7 @@ func New(config *config.CoverageConfig,
 	coverageStore coveragestore.Store) (*Coverage, error) {
 	c := &Coverage{
 		coverageConfig: config,
+		promPort:       config.PromPort,
 	}
 	err := c.initialize(coverageStore)
 	return c, err

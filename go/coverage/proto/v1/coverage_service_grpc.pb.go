@@ -20,6 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	CoverageService_GetAllFiles_FullMethodName  = "/coverage.v1.CoverageService/GetAllFiles"
 	CoverageService_GetTestSuite_FullMethodName = "/coverage.v1.CoverageService/GetTestSuite"
 	CoverageService_InsertFile_FullMethodName   = "/coverage.v1.CoverageService/InsertFile"
 	CoverageService_DeleteFile_FullMethodName   = "/coverage.v1.CoverageService/DeleteFile"
@@ -29,9 +30,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoverageServiceClient interface {
-	GetTestSuite(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageListResponse, error)
-	InsertFile(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error)
-	DeleteFile(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error)
+	GetAllFiles(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageAllResponses, error)
+	GetTestSuite(ctx context.Context, in *CoverageListRequest, opts ...grpc.CallOption) (*CoverageListResponse, error)
+	InsertFile(ctx context.Context, in *CoverageChangeRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error)
+	DeleteFile(ctx context.Context, in *CoverageChangeRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error)
 }
 
 type coverageServiceClient struct {
@@ -42,7 +44,16 @@ func NewCoverageServiceClient(cc grpc.ClientConnInterface) CoverageServiceClient
 	return &coverageServiceClient{cc}
 }
 
-func (c *coverageServiceClient) GetTestSuite(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageListResponse, error) {
+func (c *coverageServiceClient) GetAllFiles(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageAllResponses, error) {
+	out := new(CoverageAllResponses)
+	err := c.cc.Invoke(ctx, CoverageService_GetAllFiles_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coverageServiceClient) GetTestSuite(ctx context.Context, in *CoverageListRequest, opts ...grpc.CallOption) (*CoverageListResponse, error) {
 	out := new(CoverageListResponse)
 	err := c.cc.Invoke(ctx, CoverageService_GetTestSuite_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -51,7 +62,7 @@ func (c *coverageServiceClient) GetTestSuite(ctx context.Context, in *CoverageRe
 	return out, nil
 }
 
-func (c *coverageServiceClient) InsertFile(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error) {
+func (c *coverageServiceClient) InsertFile(ctx context.Context, in *CoverageChangeRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error) {
 	out := new(CoverageChangeResponse)
 	err := c.cc.Invoke(ctx, CoverageService_InsertFile_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -60,7 +71,7 @@ func (c *coverageServiceClient) InsertFile(ctx context.Context, in *CoverageRequ
 	return out, nil
 }
 
-func (c *coverageServiceClient) DeleteFile(ctx context.Context, in *CoverageRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error) {
+func (c *coverageServiceClient) DeleteFile(ctx context.Context, in *CoverageChangeRequest, opts ...grpc.CallOption) (*CoverageChangeResponse, error) {
 	out := new(CoverageChangeResponse)
 	err := c.cc.Invoke(ctx, CoverageService_DeleteFile_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -73,9 +84,10 @@ func (c *coverageServiceClient) DeleteFile(ctx context.Context, in *CoverageRequ
 // All implementations must embed UnimplementedCoverageServiceServer
 // for forward compatibility
 type CoverageServiceServer interface {
-	GetTestSuite(context.Context, *CoverageRequest) (*CoverageListResponse, error)
-	InsertFile(context.Context, *CoverageRequest) (*CoverageChangeResponse, error)
-	DeleteFile(context.Context, *CoverageRequest) (*CoverageChangeResponse, error)
+	GetAllFiles(context.Context, *CoverageRequest) (*CoverageAllResponses, error)
+	GetTestSuite(context.Context, *CoverageListRequest) (*CoverageListResponse, error)
+	InsertFile(context.Context, *CoverageChangeRequest) (*CoverageChangeResponse, error)
+	DeleteFile(context.Context, *CoverageChangeRequest) (*CoverageChangeResponse, error)
 	mustEmbedUnimplementedCoverageServiceServer()
 }
 
@@ -83,13 +95,16 @@ type CoverageServiceServer interface {
 type UnimplementedCoverageServiceServer struct {
 }
 
-func (UnimplementedCoverageServiceServer) GetTestSuite(context.Context, *CoverageRequest) (*CoverageListResponse, error) {
+func (UnimplementedCoverageServiceServer) GetAllFiles(context.Context, *CoverageRequest) (*CoverageAllResponses, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllFiles not implemented")
+}
+func (UnimplementedCoverageServiceServer) GetTestSuite(context.Context, *CoverageListRequest) (*CoverageListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTestSuite not implemented")
 }
-func (UnimplementedCoverageServiceServer) InsertFile(context.Context, *CoverageRequest) (*CoverageChangeResponse, error) {
+func (UnimplementedCoverageServiceServer) InsertFile(context.Context, *CoverageChangeRequest) (*CoverageChangeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InsertFile not implemented")
 }
-func (UnimplementedCoverageServiceServer) DeleteFile(context.Context, *CoverageRequest) (*CoverageChangeResponse, error) {
+func (UnimplementedCoverageServiceServer) DeleteFile(context.Context, *CoverageChangeRequest) (*CoverageChangeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteFile not implemented")
 }
 func (UnimplementedCoverageServiceServer) mustEmbedUnimplementedCoverageServiceServer() {}
@@ -105,8 +120,26 @@ func RegisterCoverageServiceServer(s grpc.ServiceRegistrar, srv CoverageServiceS
 	s.RegisterService(&CoverageService_ServiceDesc, srv)
 }
 
-func _CoverageService_GetTestSuite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CoverageService_GetAllFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CoverageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoverageServiceServer).GetAllFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoverageService_GetAllFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoverageServiceServer).GetAllFiles(ctx, req.(*CoverageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CoverageService_GetTestSuite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CoverageListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -118,13 +151,13 @@ func _CoverageService_GetTestSuite_Handler(srv interface{}, ctx context.Context,
 		FullMethod: CoverageService_GetTestSuite_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoverageServiceServer).GetTestSuite(ctx, req.(*CoverageRequest))
+		return srv.(CoverageServiceServer).GetTestSuite(ctx, req.(*CoverageListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _CoverageService_InsertFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CoverageRequest)
+	in := new(CoverageChangeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -136,13 +169,13 @@ func _CoverageService_InsertFile_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: CoverageService_InsertFile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoverageServiceServer).InsertFile(ctx, req.(*CoverageRequest))
+		return srv.(CoverageServiceServer).InsertFile(ctx, req.(*CoverageChangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _CoverageService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CoverageRequest)
+	in := new(CoverageChangeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -154,7 +187,7 @@ func _CoverageService_DeleteFile_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: CoverageService_DeleteFile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoverageServiceServer).DeleteFile(ctx, req.(*CoverageRequest))
+		return srv.(CoverageServiceServer).DeleteFile(ctx, req.(*CoverageChangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -166,6 +199,10 @@ var CoverageService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "coverage.v1.CoverageService",
 	HandlerType: (*CoverageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAllFiles",
+			Handler:    _CoverageService_GetAllFiles_Handler,
+		},
 		{
 			MethodName: "GetTestSuite",
 			Handler:    _CoverageService_GetTestSuite_Handler,

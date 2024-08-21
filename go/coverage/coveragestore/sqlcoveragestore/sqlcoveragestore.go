@@ -22,6 +22,7 @@ const (
 	addTestSuite
 	deleteFile
 	listTestSuite
+	listAll
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
@@ -58,6 +59,8 @@ var statements = map[statement]string{
 	listTestSuite: `
 		SELECT * FROM testsuitemapping
 		WHERE file_name=$1 AND builder_name=$2`,
+	listAll: `
+		SELECT * FROM testsuitemapping`,
 }
 
 // coverageStore implements the coverage.Store interface.
@@ -72,7 +75,7 @@ func New(db pool.Pool) (*CoverageStore, error) {
 	}, nil
 }
 
-func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, req *pb.CoverageRequest) (int64, error) {
+func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
 	var result pgconn.CommandTag
 	var err error
 	var rows int64
@@ -89,7 +92,7 @@ func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, 
 	return rows, nil
 }
 
-func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, req *pb.CoverageRequest) (int64, error) {
+func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
 	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(),
 		req.GetBuilderName(), req.GetTestSuiteName())
 	if err != nil {
@@ -98,7 +101,7 @@ func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, 
 	return result.RowsAffected(), nil
 }
 
-func (s *CoverageStore) sqlExecDelete(ctx context.Context, sqlStatement string, req *pb.CoverageRequest) (int64, error) {
+func (s *CoverageStore) sqlExecDelete(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
 	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(), req.GetBuilderName())
 	if err != nil {
 		return 0, err
@@ -107,7 +110,7 @@ func (s *CoverageStore) sqlExecDelete(ctx context.Context, sqlStatement string, 
 }
 
 // Add implements the coverage.CoverageStore interface.
-func (s *CoverageStore) Add(ctx context.Context, req *pb.CoverageRequest) error {
+func (s *CoverageStore) Add(ctx context.Context, req *pb.CoverageChangeRequest) error {
 	rows, err := s.sqlExecInsert(ctx, statements[addFile], req)
 	if err != nil || rows > 0 {
 		return err
@@ -124,7 +127,7 @@ func (s *CoverageStore) Add(ctx context.Context, req *pb.CoverageRequest) error 
 }
 
 // Delete removes the Filename with the given filename.
-func (s *CoverageStore) Delete(ctx context.Context, req *pb.CoverageRequest) error {
+func (s *CoverageStore) Delete(ctx context.Context, req *pb.CoverageChangeRequest) error {
 	rows, err := s.sqlExecDelete(ctx, statements[deleteFile], req)
 	if err == nil && rows == 0 {
 		err = errors.New("No Rows Deleted")
@@ -133,7 +136,7 @@ func (s *CoverageStore) Delete(ctx context.Context, req *pb.CoverageRequest) err
 }
 
 // List retrieves all the Coverage mapppings.
-func (s *CoverageStore) List(ctx context.Context, req *pb.CoverageRequest) ([]string, error) {
+func (s *CoverageStore) List(ctx context.Context, req *pb.CoverageListRequest) ([]string, error) {
 	sklog.Debugf("List: %s", req)
 	var response struct {
 		id              string
@@ -164,4 +167,40 @@ func (s *CoverageStore) List(ctx context.Context, req *pb.CoverageRequest) ([]st
 		err = errors.New(fmt.Sprintf("No Rows Found for: %v", req.GetFileName()))
 	}
 	return response.test_suite_name, err
+}
+
+// List retrieves all the Coverage mapppings.
+func (s *CoverageStore) ListAll(ctx context.Context, req *pb.CoverageRequest) ([]*pb.CoverageResponse, error) {
+	sklog.Debugf("List: %s", req)
+
+	rows, err := s.db.Query(ctx, statements[listAll])
+	if err != nil {
+		sklog.Errorf("SQL: %s", statements[listAll])
+		return nil, err
+	}
+
+	defer rows.Close()
+	counter := 0
+	var responses []*pb.CoverageResponse
+
+	for rows.Next() {
+		var coverageResponse pb.CoverageResponse
+		counter++
+
+		var response struct {
+			id            string
+			last_modified time.Time
+		}
+		if err := rows.Scan(&response.id, &coverageResponse.FileName, &coverageResponse.BuilderName,
+			&coverageResponse.TestSuiteName, &response.last_modified); err != nil {
+			sklog.Debugf("Row Error: %s", err)
+		} else {
+			responses = append(responses, &coverageResponse)
+		}
+	}
+	if counter == 0 {
+		err = errors.New(fmt.Sprintf("No Rows Found for: %v", req))
+	}
+	sklog.Debugf("Responses: %s", responses)
+	return responses, err
 }

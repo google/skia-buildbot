@@ -2,8 +2,11 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	cli "github.com/urfave/cli/v2"
 	"go.skia.org/infra/go/skerr"
@@ -25,7 +28,8 @@ type CoverageConfig struct {
 	DatabaseHost   string `json:"database_host"`
 	DatabasePort   int    `json:"database_port"`
 	ServiceHost    string `json:"service_host"`
-	ServicePort    int    `json:"service_port"`
+	ServicePort    string `json:"service_port"`
+	PromPort       string `json:"prom_port"`
 }
 
 var Config *CoverageConfig
@@ -48,6 +52,13 @@ func (config *CoverageConfig) AsCliFlags() []cli.Flag {
 // If there was an error loading the file a list of schema violations may be
 // returned also.
 func (config *CoverageConfig) LoadCoverageConfig(filename string) (*CoverageConfig, error) {
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		cwd, err := os.Getwd()
+		filename = filepath.Join(cwd, "config", filename)
+		if err != nil {
+			sklog.Fatalf("Could not get working dir: %s, %s", err, filename)
+		}
+	}
 
 	// Validate config here.
 	err := util.WithReadFile(filename, func(r io.Reader) error {

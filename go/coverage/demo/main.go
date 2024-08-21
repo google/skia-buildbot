@@ -23,7 +23,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	databaseName := config.GetDatabaseName()
-	connectionString := coverageConfig.GetConnectionString()
+	connectionString := config.GetConnectionString()
 
 	// Connect to database.
 	conn, err := pgxpool.Connect(ctx, connectionString)
