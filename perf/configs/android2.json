@@ -84,7 +84,7 @@
             "metric": ["timeNs", "timeToInitialDisplayMs"],
             "device_name": ["sargo"],
             "os_version": ["API_31_S"],
-            "stat": ["min", "median"]
+            "stat": ["min"]
         },
         "default_url_values": {
             "plotSummary": "true",
