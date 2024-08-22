@@ -46,6 +46,17 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 
 	sklog.Infof("[AG] %d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 
+	// Debug logs on b/357628141: why the same anomaly id is added to the group multiple times?
+	if len(frame.DataFrame.TraceSet) > 1 {
+		traceset_keys := make([]string, len(frame.DataFrame.TraceSet))
+		i := 0
+		for traceset_key := range frame.DataFrame.TraceSet {
+			traceset_keys[i] = traceset_key
+			i++
+		}
+		sklog.Debugf("[AG] More than one keys found in anomaly's traceset. Anomaly: %s. Keys: %s", regressionID, traceset_keys)
+	}
+
 	for key := range frame.DataFrame.TraceSet {
 		paramset, err := query.ParseKey(key)
 		if err != nil {

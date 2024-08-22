@@ -8,7 +8,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
+        "//go/query",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/anomalygroup:store",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/shared",
