@@ -99,7 +99,7 @@ func (c *Coverage) initialize(coverageStore coveragestore.Store) error {
 	}
 	c.registerServices(services)
 
-	c.lisGRPC, _ = net.Listen("tcp4", config.ServicePort)
+	c.lisGRPC, _ = net.Listen("tcp4", ":"+config.ServicePort)
 	sklog.Info("Coverage server listening at ", c.lisGRPC.Addr())
 
 	cleanup.AtExit(c.Cleanup)
