@@ -494,6 +494,13 @@ container_pull(
     tag = "511fd84b36e4f449a7d05723de4f354effc28bf4",
 )
 
+container_pull(
+    name = "fiddler-build-skia",
+    digest = "sha256:56c79094ec502340eafe9c7a823a6c37f840d5cfc4c97292e0f1f099a046a68e",
+    registry = "gcr.io",
+    repository = "skia-public/fiddler-build-skia",
+)
+
 ##################
 # CIPD packages. #
 ##################
