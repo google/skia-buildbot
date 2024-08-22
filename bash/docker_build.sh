@@ -28,8 +28,8 @@
 # SKIP_BUILD
 # -----------
 # If SKIP_BUILD is set then do not run docker on the ROOT directory. This also
-# skips the upload step since nothing will have been built. Useful for cloud
-# builder steps.
+# skips the upload step since nothing will have been built. Useful for Louhi
+# steps.
 #
 # ROOT
 # ----
