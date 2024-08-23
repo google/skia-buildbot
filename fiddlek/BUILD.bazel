@@ -113,10 +113,6 @@ skia_app_container(
                 "//fiddlek:fiddler_restart.sh",
                 "0755",
             ],
-            [
-                "//fiddlek/cpp:fiddle_secwrap",
-                "0755",
-            ],
         ],
         # Note source is fiddle, not fiddler, to agree with the fiddle image.
         "/etc/fiddle/source": [

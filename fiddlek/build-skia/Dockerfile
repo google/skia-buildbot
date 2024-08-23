@@ -28,3 +28,35 @@ ENV PATH=${PATH}:/tmp/depot_tools
 
 ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
 ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libEGL.so /usr/local/lib/libEGL.so
+
+
+# Build the security wrapper
+COPY . /tmp/
+
+WORKDIR /tmp
+RUN clang fiddle_secwrap.cpp -lstdc++ -o fiddle_secwrap
+
+# compile test executables
+RUN mkdir /tmp/tests
+RUN clang success.cpp -lstdc++ -o ./tests/success
+RUN clang fail_socket.cpp -o ./tests/fail_socket
+RUN clang fail_execve.cpp -o ./tests/fail_execve
+RUN clang fail_link.cpp -o ./tests/fail_link
+RUN clang fail_rename.cpp -o ./tests/fail_rename
+RUN clang fail_mknod.cpp -o ./tests/fail_mknod
+
+# Make sure this binary runs on its own...
+RUN ./tests/success
+# ...and with the wrapper
+RUN ./fiddle_secwrap ./tests/success
+
+# If any of these don't work, the security wrapper is not blocking things correctly.
+RUN ./fiddle_secwrap ./tests/fail_socket; test $? -eq 1
+RUN ./fiddle_secwrap ./tests/fail_execve; test $? -eq 255
+RUN ./fiddle_secwrap ./tests/fail_link; test $? -eq 255
+RUN ./fiddle_secwrap ./tests/fail_rename; test $? -eq 255
+RUN ./fiddle_secwrap ./tests/fail_mknod; test $? -eq 255
+
+RUN mv ./fiddle_secwrap /usr/local/bin/fiddle_secwrap \
+    && rm -r /tmp \
+    && mkdir --mode=0777 /tmp
