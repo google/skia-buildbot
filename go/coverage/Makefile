@@ -20,7 +20,7 @@ run-demo-coverage:
 run-coverage:
 	$(BAZEL) build -c dbg //go/coverage/...
 	../../_bazel_bin/go/coverage/coverageserver/coverageserver_/coverageserver run \
-		--config_filename=./config/demo.json \
+		--config_filename=demo.json \
 
 run-cockroachdb-emulators:
 	../../scripts/run_emulators/run_emulators start

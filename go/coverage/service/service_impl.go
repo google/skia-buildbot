@@ -43,23 +43,25 @@ func New(coverageStore coveragestore.Store) *coverageService {
 	}
 }
 
-func checkContextDeadline(ctx context.Context) context.Context {
+func checkContextDeadline(ctx context.Context) (context.Context, context.CancelFunc) {
 	_, status := ctx.Deadline()
 	if status {
-		return ctx
+		return ctx, nil
 	}
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	return ctxWithTimeout
+	return ctxWithTimeout, cancel
 }
 
 // Checks file/builder pair from Database and returns available test suites.
 func (s *coverageService) GetAllFiles(ctx context.Context, req *pb.CoverageRequest) (*pb.CoverageAllResponses, error) {
-	ctx = checkContextDeadline(ctx)
+	updatedCtx, cancel := checkContextDeadline(ctx)
+	results, err := s.coverageStore.ListAll(updatedCtx, req)
+	if cancel != nil {
+		defer cancel()
+	}
 
-	results, err := s.coverageStore.ListAll(ctx, req)
 	if err != nil {
-		sklog.Errorf("GetTestSuite Failed: %v with error: %v", req, err)
+		sklog.Errorf("GetAllSuite Failed: %v with error: %v", req, err)
 	}
 	var allResults pb.CoverageAllResponses
 	allResults.Responses = results
@@ -68,9 +70,11 @@ func (s *coverageService) GetAllFiles(ctx context.Context, req *pb.CoverageReque
 
 // Checks file/builder pair from Database and returns available test suites.
 func (s *coverageService) GetTestSuite(ctx context.Context, req *pb.CoverageListRequest) (*pb.CoverageListResponse, error) {
-	ctx = checkContextDeadline(ctx)
-
-	test_suites, err := s.coverageStore.List(ctx, req)
+	updatedCtx, cancel := checkContextDeadline(ctx)
+	test_suites, err := s.coverageStore.List(updatedCtx, req)
+	if cancel != nil {
+		defer cancel()
+	}
 
 	status := successStatus
 	if err != nil || test_suites == nil {
@@ -84,9 +88,12 @@ func (s *coverageService) GetTestSuite(ctx context.Context, req *pb.CoverageList
 
 // Inserts file/builder pair from Database.
 func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageChangeRequest) (*pb.CoverageChangeResponse, error) {
-	ctx = checkContextDeadline(ctx)
+	updatedCtx, cancel := checkContextDeadline(ctx)
+	err := s.coverageStore.Add(updatedCtx, req)
+	if cancel != nil {
+		defer cancel()
+	}
 
-	err := s.coverageStore.Add(ctx, req)
 	status := successStatus
 	message := "Add Successful"
 
@@ -105,9 +112,12 @@ func (s *coverageService) InsertFile(ctx context.Context, req *pb.CoverageChange
 
 // Deletes file/builder pair from Database.
 func (s *coverageService) DeleteFile(ctx context.Context, req *pb.CoverageChangeRequest) (*pb.CoverageChangeResponse, error) {
-	ctx = checkContextDeadline(ctx)
+	updatedCtx, cancel := checkContextDeadline(ctx)
+	err := s.coverageStore.Delete(updatedCtx, req)
+	if cancel != nil {
+		defer cancel()
+	}
 
-	err := s.coverageStore.Delete(ctx, req)
 	status := successStatus
 	message := "Delete Successful"
 

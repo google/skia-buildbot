@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"io"
@@ -9,11 +10,26 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/auth"
 	pb "go.skia.org/infra/go/coverage/proto/v1"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials/oauth"
 )
+
+// getOauthCredentials returns a token source that will provide oauth tokens
+// for the service account running the client process.
+func getOauthCredentials(ctx context.Context) (oauth.TokenSource, error) {
+	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
+	if err != nil {
+		return oauth.TokenSource{}, skerr.Wrapf(err, "Failed to create oauth token source.")
+	}
+	return oauth.TokenSource{TokenSource: tokenSource}, nil
+}
 
 // getGrpcConnection returns a ClientConn object that can be used to create individual
 // service clients for the coverage service.
@@ -23,6 +39,19 @@ func getGrpcConnection(host string, insecure_conn bool) *grpc.ClientConn {
 
 	if insecure_conn {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	} else {
+		tlsCreds := credentials.NewTLS(&tls.Config{
+			// Since the communication is internal within the same GKE cluster,
+			// we do not need to verify the server certificate.
+			InsecureSkipVerify: true,
+		})
+		tokenSource, err := getOauthCredentials(context.Background())
+		if err != nil {
+			sklog.Errorf("Error Getting Token.")
+			return nil
+
+		}
+		opts = append(opts, grpc.WithTransportCredentials(tlsCreds), grpc.WithPerRPCCredentials(tokenSource))
 	}
 
 	conn, err := grpc.Dial(host, opts...)
@@ -55,6 +84,7 @@ func main() {
 	getAll := flag.Bool("getAll", false, "Get Full Database")
 	host := flag.String("host", "localhost", "Hostname/IP of gRPC Service")
 	port := flag.String("port", "8006", "Hostname/IP of gRPC Service")
+	insecure := flag.Bool("insecure", true, "Use TLS secure connection")
 
 	flag.Parse()
 
@@ -76,7 +106,7 @@ func main() {
 	}
 
 	rpcHost := *host + ":" + *port
-	conn := getGrpcConnection(rpcHost, true)
+	conn := getGrpcConnection(rpcHost, *insecure)
 	client := pb.NewCoverageServiceClient(conn)
 
 	if strings.HasPrefix(sampleFile, "get") {

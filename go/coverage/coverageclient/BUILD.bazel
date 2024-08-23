@@ -6,10 +6,15 @@ go_library(
     importpath = "go.skia.org/infra/go/coverage/coverageclient",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/auth",
         "//go/coverage/proto/v1",
+        "//go/skerr",
         "//go/sklog",
         "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//credentials",
         "@org_golang_google_grpc//credentials/insecure",
+        "@org_golang_google_grpc//credentials/oauth",
+        "@org_golang_x_oauth2//google",
     ],
 )
 

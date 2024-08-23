@@ -75,44 +75,11 @@ func New(db pool.Pool) (*CoverageStore, error) {
 	}, nil
 }
 
-func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
-	var result pgconn.CommandTag
-	var err error
-	var rows int64
-
-	for _, suite := range req.GetTestSuiteName() {
-		result, err = s.db.Exec(ctx, sqlStatement, req.GetFileName(),
-			req.GetBuilderName(), suite)
-		if err != nil {
-			sklog.Errorf("Update Failed")
-			return 0, err
-		}
-		rows += result.RowsAffected()
-	}
-	return rows, nil
-}
-
-func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
-	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(),
-		req.GetBuilderName(), req.GetTestSuiteName())
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
-}
-
-func (s *CoverageStore) sqlExecDelete(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
-	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(), req.GetBuilderName())
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
-}
-
 // Add implements the coverage.CoverageStore interface.
 func (s *CoverageStore) Add(ctx context.Context, req *pb.CoverageChangeRequest) error {
 	rows, err := s.sqlExecInsert(ctx, statements[addFile], req)
 	if err != nil || rows > 0 {
+		sklog.Errorf("Add Failed: %s", statements[addFile])
 		return err
 	}
 	rows, err = s.sqlExecInsert(ctx, statements[addBuilder], req)
@@ -203,4 +170,38 @@ func (s *CoverageStore) ListAll(ctx context.Context, req *pb.CoverageRequest) ([
 	}
 	sklog.Debugf("Responses: %s", responses)
 	return responses, err
+}
+
+func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
+	var result pgconn.CommandTag
+	var err error
+	var rows int64
+
+	for _, suite := range req.GetTestSuiteName() {
+		result, err = s.db.Exec(ctx, sqlStatement, req.GetFileName(),
+			req.GetBuilderName(), suite)
+		if err != nil {
+			sklog.Errorf("Update Failed")
+			return 0, err
+		}
+		rows += result.RowsAffected()
+	}
+	return rows, nil
+}
+
+func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
+	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(),
+		req.GetBuilderName(), req.GetTestSuiteName())
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+func (s *CoverageStore) sqlExecDelete(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {
+	result, err := s.db.Exec(ctx, sqlStatement, req.GetFileName(), req.GetBuilderName())
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
