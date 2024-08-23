@@ -175,10 +175,11 @@ func (s *anomalygroupService) FindTopAnomalies(
 	})
 
 	var count int
-	if req.Limit == 0 {
-		count = len(anomalies)
-	} else {
+	// If the request is 0 or is larger then the total of the group's anomalies, return all the anomalies.
+	if req.Limit > 0 && int(req.Limit) < len(anomalies) {
 		count = int(req.Limit)
+	} else {
+		count = len(anomalies)
 	}
 
 	top_regressions := []*ag.Anomaly{}
