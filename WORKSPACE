@@ -496,7 +496,7 @@ container_pull(
 
 container_pull(
     name = "fiddler-build-skia",
-    digest = "sha256:56c79094ec502340eafe9c7a823a6c37f840d5cfc4c97292e0f1f099a046a68e",
+    digest = "sha256:7aa418b0896ce69cf55aab8deff4349b4dffb4b6e36edac1b7d84398da6046d0",
     registry = "gcr.io",
     repository = "skia-public/fiddler-build-skia",
 )
