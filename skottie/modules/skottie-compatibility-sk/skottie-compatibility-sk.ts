@@ -34,12 +34,12 @@ export class SkottieCompatibilitySk extends ElementSk {
 
     this.schemas = [
       {
-        name: 'Low Power Profile',
+        name: 'Low Power Profile (WIP)',
         validator: new ProfileValidator(lowPowerLottieProfileSchema),
         featureErrorsOnly: true,
       },
       {
-        name: 'Lottie Specfication',
+        name: 'Lottie Specfication 1.0 (WIP)',
         validator: new ProfileValidator(lottieSchema),
       },
     ];

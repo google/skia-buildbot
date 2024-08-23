@@ -417,7 +417,7 @@ export class SkottieSk extends ElementSk {
       id="view-compatibility-report"
       @select=${this.toggleCompatibilityReport}
       type="outline"
-      .content=${'Compatibility Report'}
+      .content=${'Compatibility Report (Beta)'}
       .classes=${[
         'header__button',
         this.showCompatibilityReport ? 'active-dialog' : '',
