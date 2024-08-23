@@ -565,7 +565,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private static template = (ele: ExploreSimpleSk) => html`
   <div id=explore class=${ele.displayMode}>
-    <graph-title-sk id=graphTitle></graph-title-sk>
     <div id=buttons>
       <button
         id=open_query_dialog
@@ -715,6 +714,8 @@ export class ExploreSimpleSk extends ElementSk {
         </div>
       </div>
     </div>
+
+    <graph-title-sk id=graphTitle></graph-title-sk>
 
     <div id=spin-overlay @mouseleave=${ele.disableTooltip}>
       <chart-tooltip-sk></chart-tooltip-sk>
