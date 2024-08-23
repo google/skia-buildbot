@@ -18,6 +18,9 @@ export const lowPowerLottieProfileSchema =
                 "$ref": "#/$defs/features/effects/only-supported-effects"
               },
               {
+                "$ref": "#/$defs/features/layers/only-supported-layer-transforms"
+              },
+              {
                 "$ref": "#/$defs/features/layers/types/no-image-layer"
               },
               {
@@ -41,6 +44,44 @@ export const lowPowerLottieProfileSchema =
       }
     },
     "features": {
+      "transforms": {
+        "only-supported-transforms": {
+          "allOf": [
+            {"$ref": "#/$defs/features/transforms/no-skew"},
+            {"$ref": "#/$defs/features/transforms/no-skew-axis"}
+          ]
+        },
+        "no-skew": {
+          "feature-code": "transform-skew",
+          "type": "object",
+          "properties": {
+            "sk": {
+              "type": "object",
+              "properties": {
+                "k": {
+                  "type": "number",
+                  "const": 0
+                }
+              }
+            }
+          }
+        },
+        "no-skew-axis": {
+          "feature-code": "transform-skew-axis",
+          "type": "object",
+          "properties": {
+            "sa": {
+              "type": "object",
+              "properties": {
+                "k": {
+                  "type": "number",
+                  "const": 0
+                }
+              }
+            }
+          }
+        }
+      },
       "effects": {
         "only-supported-effects": {
           "type": "object",
@@ -328,6 +369,7 @@ export const lowPowerLottieProfileSchema =
           "no-animated-masks": {
             "feature-code": "animated-mask",
             "feature-link": "mask",
+            "type": "object",
             "properties": {
               "masksProperties": {
                 "type": "array",
@@ -369,6 +411,14 @@ export const lowPowerLottieProfileSchema =
               "$ref": "#/$defs/features/shape-layer"
             }
           ]
+        },
+        "only-supported-layer-transforms": {
+          "type": "object",
+          "properties": {
+            "ks": {
+              "$ref": "#/$defs/features/transforms/only-supported-transforms"
+            }
+          }
         }
       },
       "shapes": {
@@ -440,6 +490,19 @@ export const lowPowerLottieProfileSchema =
                 }
               }
             }
+          },
+          "only-supported-shape-transforms": {
+            "if": {
+              "type": "object",
+              "properties": {
+                "ty": {
+                  "const": "tr"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/$defs/features/transforms/only-supported-transforms"
+            }
           }
         },
         "all": {
@@ -463,6 +526,9 @@ export const lowPowerLottieProfileSchema =
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-gradient-stroke"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/only-supported-shape-transforms"
             }
           ]
         },
@@ -519,6 +585,7 @@ export const lowPowerLottieProfileSchema =
     },
     "animation": {
       "$ref": "#/$defs/composition",
+      "type": "object",
       "properties": {
         "assets": {
           "type": "array",

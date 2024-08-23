@@ -27,6 +27,7 @@ export class ProfileValidator {
   constructor(profileSchema: any) {
     const ajv = new Ajv({
       allErrors: true,
+      strict: true,
     });
 
     ajv.addKeyword({
