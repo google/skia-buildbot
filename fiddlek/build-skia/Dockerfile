@@ -21,15 +21,6 @@ RUN apt update && apt dist-upgrade -y && apt install -y \
 RUN groupadd -g 2000 skia \
   && useradd -u 2000 -g 2000 skia
 
-RUN cd /tmp \
-  && git clone --depth=1 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
-
-ENV PATH=${PATH}:/tmp/depot_tools
-
-ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
-ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libEGL.so /usr/local/lib/libEGL.so
-
-
 # Build the security wrapper
 COPY . /tmp/
 
@@ -60,3 +51,20 @@ RUN ./fiddle_secwrap ./tests/fail_mknod; test $? -eq 255
 RUN mv ./fiddle_secwrap /usr/local/bin/fiddle_secwrap \
     && rm -r /tmp \
     && mkdir --mode=0777 /tmp
+
+# We need depot_tools to build Skia with GN
+RUN cd /tmp \
+  && git clone --depth=1 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
+
+ENV PATH=${PATH}:/tmp/depot_tools
+
+# We build Skia against swiftshader so we can run fiddles against both the CPU and GPU backends.
+# In particular, we need the headers in swiftshader/include (e.g. the xcb and vulkan ones).
+RUN cd /tmp \
+  && git clone https://swiftshader.googlesource.com/SwiftShader swiftshader \
+  && cd /tmp/swiftshader && git checkout 3c4bdf66d81d01a215b88bfea3ac4cc8ca507779
+
+# These are pre-compiled because Swiftshader dropped official support for them so we won't be
+# able to compile these at head anymore.
+ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
+ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libEGL.so /usr/local/lib/libEGL.so
