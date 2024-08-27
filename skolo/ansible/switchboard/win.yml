@@ -5,6 +5,7 @@
   roles:
     - set_win_settings
     - install_win_gpu_drivers
+    - install_msvc_redist
     - copy_authorized_keys
     - copy_service_account_key
     - swarming_needs
