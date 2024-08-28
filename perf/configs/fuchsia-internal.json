@@ -1,5 +1,6 @@
 {
-    "URL": "fuchsia-perf.corp.goog",
+    "URL": "https://fuchsia-perf.corp.goog",
+    "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
     "chat_url": "http://go/berf-skia-chat",
     "feedback_url": "http://go/berf-skia-feedback",
