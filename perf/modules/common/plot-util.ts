@@ -117,6 +117,7 @@ export function CreateChartDataFromTraceSet(
         const dataPoint: DataPoint = {
           x: xLabels[i],
           y: trace[i],
+          anomaly: false,
         };
         traceDataPoints.push(dataPoint);
       }

@@ -5,6 +5,7 @@ import '@google-web-components/google-chart/';
 export interface DataPoint {
   x: number | Date;
   y: number;
+  anomaly: boolean;
 }
 
 export enum ChartAxisFormat {
