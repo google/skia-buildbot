@@ -9,8 +9,8 @@
  *         The "detail" field of the event contains the filter values entered by the user.
  */
 
-import { html } from 'lit-html';
-import { live } from 'lit-html/directives/live';
+import { html } from 'lit/html.js';
+import { live } from 'lit/directives/live.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { deepCopy } from '../../../infra-sk/modules/object';

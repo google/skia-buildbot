@@ -7,7 +7,7 @@
  *
  * The color uniform values are floats in [0, 1] and are in RGB order.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { $$ } from '../dom';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';

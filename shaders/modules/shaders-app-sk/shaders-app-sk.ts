@@ -6,8 +6,8 @@
  *
  */
 import CodeMirror from 'codemirror';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { html, TemplateResult } from 'lit-html';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { html, TemplateResult } from 'lit/html.js';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from '../../../elements-sk/modules/define';

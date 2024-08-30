@@ -11,7 +11,7 @@
  *      The updated state is submitted with all files attached to the form.
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

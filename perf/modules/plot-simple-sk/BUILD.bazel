@@ -38,7 +38,7 @@ sk_element(
         "//:node_modules/@types/d3-scale",
         "//:node_modules/d3-array",
         "//:node_modules/d3-scale",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

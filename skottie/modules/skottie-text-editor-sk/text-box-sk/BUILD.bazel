@@ -14,7 +14,7 @@ sk_element(
         "//skottie/modules/skottie-text-editor-sk:text-replace_ts_lib",
         "//skottie/modules/skottie-text-editor-sk:text-sanizite_ts_lib",
         "//skottie/modules:types_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

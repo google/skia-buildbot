@@ -5,7 +5,7 @@
  * An element to display information around a single commit.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';

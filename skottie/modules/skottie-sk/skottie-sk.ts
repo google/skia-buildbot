@@ -13,7 +13,7 @@ import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import Ajv from 'ajv/dist/2020';
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import {
   JSONEditor,
   toJSONContent,

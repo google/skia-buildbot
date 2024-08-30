@@ -1,4 +1,4 @@
-import { TemplateResult } from 'lit-html';
+import { TemplateResult } from 'lit/html.js';
 import { isOneOfDomains } from './domains';
 
 export function renderByDomain(

@@ -67,7 +67,7 @@ sk_element(
         "//infra-sk/modules:dom_ts_lib",
         "//:node_modules/@types/codemirror",
         "//:node_modules/codemirror",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

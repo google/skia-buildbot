@@ -6,7 +6,7 @@
  * labels applied to triaged diffs.
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

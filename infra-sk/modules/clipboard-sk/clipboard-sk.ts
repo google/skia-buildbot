@@ -12,7 +12,7 @@
  * @attr value - The content to put into the clipboard.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../dom';
 import { ElementSk } from '../ElementSk';

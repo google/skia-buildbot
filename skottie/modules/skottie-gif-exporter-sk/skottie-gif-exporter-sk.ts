@@ -9,7 +9,7 @@
  * @evt start - This event is generated when the saving process starts.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';
 import { bytes, diffDate } from '../../../infra-sk/modules/human';

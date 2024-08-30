@@ -34,7 +34,7 @@ sk_element(
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//perf/modules/plot-simple-sk:ticks_ts_lib",
     ],
     ts_srcs = [

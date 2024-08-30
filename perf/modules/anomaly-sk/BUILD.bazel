@@ -12,7 +12,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//perf/modules/cid:cid_ts_lib",
     ],
     ts_srcs = [
@@ -58,7 +58,7 @@ karma_test(
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/fetch-mock",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/plot-simple-sk",

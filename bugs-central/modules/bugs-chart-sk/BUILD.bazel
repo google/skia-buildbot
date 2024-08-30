@@ -11,7 +11,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "bugs-chart-sk.ts",

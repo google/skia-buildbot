@@ -7,7 +7,7 @@
  * TODO(jcgregorio) Needs working demo page and tests.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { equals, deepCopy } from '../../../infra-sk/modules/object';
 import { fromObject } from '../../../infra-sk/modules/query';

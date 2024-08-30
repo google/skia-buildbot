@@ -1,6 +1,6 @@
 import './index';
-import { html, render } from 'lit-html';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, render } from 'lit/html.js';
+import { repeat } from 'lit/directives/repeat.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { SortToggleSk } from './sort-toggle-sk';
 
@@ -62,7 +62,7 @@ const usingMap = html` <sort-toggle-sk
 </sort-toggle-sk>`;
 
 function renderTemplates() {
-  render(usingMap, $$('#container')!);
+  render(usingMap, $$<HTMLElement>('#container')!);
 }
 
 renderTemplates();

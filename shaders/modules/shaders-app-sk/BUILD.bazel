@@ -82,7 +82,7 @@ sk_element(
         "//shaders/wasm_libs:canvaskit_types",  # keep
         "//:node_modules/@types/codemirror",
         "//:node_modules/codemirror",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

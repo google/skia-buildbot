@@ -5,7 +5,7 @@
  *   The main application element for am.skia.org.
  *
  */
-import { html, render, TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -1555,7 +1555,7 @@ export class AlertManagerSk extends HTMLElement {
 
   private _render(): void {
     this.rationalize();
-    render(AlertManagerSk.template(this), this, { eventContext: this });
+    render(AlertManagerSk.template(this), this, { host: this });
     // Update the icon.
     const isInfraGardener = this.user === this.infra_gardener;
     const numActive = this.incidents.reduce(

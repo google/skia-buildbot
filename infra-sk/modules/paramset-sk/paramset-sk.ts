@@ -72,7 +72,7 @@
  * a checkbox to let the user select/unselect the specific value.
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ParamSet } from '../query';
 import { ElementSk } from '../ElementSk';

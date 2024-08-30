@@ -7,7 +7,7 @@
  * </p>
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

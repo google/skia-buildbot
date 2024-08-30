@@ -22,7 +22,7 @@ sk_element(
         "//golden/modules:common_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "image-compare-sk.ts",

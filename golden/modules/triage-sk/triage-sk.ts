@@ -13,7 +13,7 @@
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/cancel-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Label } from '../rpc_types';

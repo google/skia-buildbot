@@ -4,7 +4,7 @@
  *
  *  Allows trying out an alert by clustering over a range of commits.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

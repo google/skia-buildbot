@@ -10,7 +10,7 @@
  * @attr {string} algo - The algorithm name.
  */
 import '../../../elements-sk/modules/select-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $ } from '../../../infra-sk/modules/dom';
 import { SelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/select-sk/select-sk';

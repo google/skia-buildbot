@@ -11,7 +11,7 @@
  * @attr {number} minRows - Minimum (and initial) rows in the textarea.
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
 import '../autogrow-textarea-sk';

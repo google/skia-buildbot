@@ -5,7 +5,7 @@
  * This module is a modal that contains a form to capture user
  * input for adding/editing a new favorite.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';

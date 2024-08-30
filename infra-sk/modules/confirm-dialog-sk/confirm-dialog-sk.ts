@@ -22,7 +22,7 @@
  * </script>
  *
  */
-import { html, render } from 'lit-html';
+import { html, render } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
 export class ConfirmDialogSk extends HTMLElement {
@@ -77,7 +77,7 @@ export class ConfirmDialogSk extends HTMLElement {
   }
 
   private render() {
-    render(ConfirmDialogSk.template(this), this, { eventContext: this });
+    render(ConfirmDialogSk.template(this), this, { host: this });
   }
 }
 

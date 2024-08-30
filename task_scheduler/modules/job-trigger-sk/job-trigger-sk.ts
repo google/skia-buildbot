@@ -4,7 +4,7 @@
  *
  * Provides an interface for triggering jobs.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {

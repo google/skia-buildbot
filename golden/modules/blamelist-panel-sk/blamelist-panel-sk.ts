@@ -8,7 +8,7 @@
  *
  * This should typically go into some sort of dialog to show the user.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

@@ -10,7 +10,7 @@
  *    alert, cluster_type, full_summary, and triage.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

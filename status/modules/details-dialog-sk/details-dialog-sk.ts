@@ -5,8 +5,8 @@
  * @property repo {string} - The repo associated with the tasks/taskspecs/commits that will be
  * displayed.
  */
-import { html, TemplateResult } from 'lit-html';
-import { until } from 'lit-html/directives/until.js';
+import { html, TemplateResult } from 'lit/html.js';
+import { until } from 'lit/directives/until.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

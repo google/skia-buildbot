@@ -4,7 +4,7 @@
 
 import '../../../elements-sk/modules/tabs-sk';
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { DomReady } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

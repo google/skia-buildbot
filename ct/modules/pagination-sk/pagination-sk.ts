@@ -7,7 +7,7 @@ import '../../../elements-sk/modules/icons/last-page-icon-sk';
 import '../../../elements-sk/modules/icons/chevron-left-icon-sk';
 import '../../../elements-sk/modules/icons/chevron-right-icon-sk';
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

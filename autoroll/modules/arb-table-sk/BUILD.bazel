@@ -16,7 +16,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "arb-table-sk.ts",

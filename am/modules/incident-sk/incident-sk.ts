@@ -51,8 +51,8 @@
  *   </pre>
  *
  */
-import { html, render, TemplateResult } from 'lit-html';
-import { until } from 'lit-html/directives/until';
+import { html, render, TemplateResult } from 'lit/html.js';
+import { until } from 'lit/directives/until.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/icons/alarm-off-icon-sk';
 import '../../../elements-sk/modules/icons/delete-icon-sk';
@@ -413,7 +413,7 @@ export class IncidentSk extends HTMLElement {
     if (!this.state) {
       return;
     }
-    render(IncidentSk.template(this), this, { eventContext: this });
+    render(IncidentSk.template(this), this, { host: this });
   }
 }
 

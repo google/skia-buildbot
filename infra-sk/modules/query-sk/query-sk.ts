@@ -18,7 +18,7 @@
  *       available to the user.
  * @attr {boolean} values_only - If true then only display the values selection and hide the key selection.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ParamSet, toParamSet, fromParamSet } from '../query';
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';

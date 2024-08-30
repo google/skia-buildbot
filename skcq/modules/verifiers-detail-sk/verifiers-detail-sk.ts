@@ -11,7 +11,7 @@
  *
  */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 import { diffDate } from '../../../infra-sk/modules/human';

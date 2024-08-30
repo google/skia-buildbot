@@ -26,7 +26,7 @@ sk_element(
         "//debugger-app/wasm_libs:canvaskit_types",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:errormessage_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "debugger-page-sk.ts",

@@ -22,7 +22,7 @@
  *
  * "test" is ignored as its value is empty, and "subtest_1"'s value is truncated.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

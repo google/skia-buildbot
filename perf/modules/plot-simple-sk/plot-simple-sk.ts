@@ -90,7 +90,7 @@
  *
  * @attr summary {Boolean} - If present then display the summary bar.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import { Anomaly } from '../json';

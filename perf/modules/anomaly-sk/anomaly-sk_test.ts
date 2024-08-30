@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { TemplateResult, html } from 'lit-html';
+import { TemplateResult, html } from 'lit/html.js';
 import {
   Anomaly,
   AnomalyMap,

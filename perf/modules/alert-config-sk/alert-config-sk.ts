@@ -5,7 +5,7 @@
  * Control that allows editing an alert.Config.
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
 import '../../../elements-sk/modules/checkbox-sk';

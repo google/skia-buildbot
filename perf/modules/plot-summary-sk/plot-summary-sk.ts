@@ -8,7 +8,7 @@
  *
  * @example
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import * as d3Scale from 'd3-scale';
 import { load } from '@google-web-components/google-chart/loader';
 import { define } from '../../../elements-sk/modules/define';

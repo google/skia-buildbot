@@ -4,7 +4,7 @@
  *
  * Provides UI for manipulating rules to prevent triggering of matching tasks.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/multi-input-sk';

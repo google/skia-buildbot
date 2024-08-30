@@ -81,7 +81,7 @@ sk_element(
         "//skottie/modules/helpers:animation_ts_lib",
         "//skottie/modules/window:window_ts_lib",
         "//:node_modules/ajv",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/lottie-web",
         "//:node_modules/vanilla-jsoneditor",
         "//skottie/modules/skottie-compatibility-sk/schemas:lottie.schema_ts_lib",

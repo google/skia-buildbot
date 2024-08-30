@@ -5,7 +5,7 @@
  * UI wrapper for machineserver readouts which sticks them in tabs and has a
  * shared toolbar
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';

@@ -3,7 +3,7 @@
  * @description <h2><code>anomaly-sk</code></h2>
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {

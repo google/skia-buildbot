@@ -5,8 +5,8 @@
  */
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import CodeMirror, { EditorConfiguration } from 'codemirror';
-import { html, TemplateResult } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map';
+import { html, TemplateResult } from 'lit/html.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 

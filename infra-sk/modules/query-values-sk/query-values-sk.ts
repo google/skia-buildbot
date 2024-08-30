@@ -13,7 +13,7 @@
  * @attr {boolean} hide_regex - If the option to include regex in the query should be made
  *       available to the user.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import {

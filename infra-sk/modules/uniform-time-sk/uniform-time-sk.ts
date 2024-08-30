@@ -6,7 +6,7 @@
  *
  * Displays the play/pause and rewind buttons.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';

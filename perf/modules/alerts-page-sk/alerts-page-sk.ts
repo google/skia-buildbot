@@ -9,7 +9,7 @@ import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

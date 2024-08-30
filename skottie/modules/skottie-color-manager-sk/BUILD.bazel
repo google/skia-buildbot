@@ -10,7 +10,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//skottie/modules:types_ts_lib",
         "//skottie/modules/helpers:color_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

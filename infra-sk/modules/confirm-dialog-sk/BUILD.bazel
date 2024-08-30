@@ -6,7 +6,7 @@ sk_element(
     sass_srcs = ["confirm-dialog-sk.scss"],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "confirm-dialog-sk.ts",

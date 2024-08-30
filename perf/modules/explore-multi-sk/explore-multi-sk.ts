@@ -12,7 +12,7 @@
  * keeping the logic simple.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import {
   DEFAULT_RANGE_S,

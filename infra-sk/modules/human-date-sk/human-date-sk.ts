@@ -10,7 +10,7 @@
  * @property seconds - Indicates that the given date is expressed in seconds, not milliseconds.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../human';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';

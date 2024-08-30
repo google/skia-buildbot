@@ -26,8 +26,8 @@
  */
 import '../skottie-player-sk';
 import '../../../elements-sk/modules/error-toast-sk';
-import { html } from 'lit-html';
-import { until } from 'lit-html/directives/until.js';
+import { html } from 'lit/html.js';
+import { until } from 'lit/directives/until.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';

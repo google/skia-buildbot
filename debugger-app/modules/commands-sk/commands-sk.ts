@@ -21,7 +21,7 @@
  * the unfiltered command list for this frame.
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, HTMLTemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { PlaySk } from '../play-sk/play-sk';
@@ -562,7 +562,7 @@ Command types can also be filted by clicking on their names in the histogram"
     // An unlikely string meaning 'insert html template here'
     const magic = '546rftvyghbjjkjiuytre';
     // a list of templates to be used to replaces occurrences of magic.
-    const inserts: TemplateResult[] = [];
+    const inserts: HTMLTemplateResult[] = [];
     const replacer = function (name: string, value: any) {
       if (name === 'imageIndex') {
         // Show a clickable button that takes the user to the image resource viewer.
@@ -608,7 +608,7 @@ Command types can also be filted by clicking on their names in the histogram"
 
   // lit-html does not appear to support setting a tag's name with a ${} so here's
   // a crummy workaround
-  private _icon(item: PrefixItem): TemplateResult | null {
+  private _icon(item: PrefixItem): HTMLTemplateResult | null {
     if (item.icon === 'save-icon-sk') {
       return html`<save-icon-sk style="fill: ${item.color};" class="icon">
       </save-icon-sk>`;

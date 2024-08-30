@@ -103,7 +103,8 @@ describe('regressions-page-sk', () => {
   describe('RegressionsPageSK', () => {
     it('Loads associated regressions when subscription selected', async () => {
       const dropdown = document.getElementById('filter');
-      assert.equal(dropdown?.childNodes.length, 4);
+      // Three options and two additional node: the non-selected option and the Lit comment node
+      assert.equal(dropdown?.childNodes.length, 5);
       assert.equal(element.regressions.length, 0);
 
       await element.filterChange('Sheriff Config 2');

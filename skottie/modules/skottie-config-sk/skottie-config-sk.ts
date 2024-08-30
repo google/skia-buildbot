@@ -25,7 +25,7 @@
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { $$ } from '../../../infra-sk/modules/dom';

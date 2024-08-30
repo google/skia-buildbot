@@ -7,7 +7,7 @@
  *
  * See also https://pkg.go.dev/go.skia.org/infra/perf/go/ingest/format#Format
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

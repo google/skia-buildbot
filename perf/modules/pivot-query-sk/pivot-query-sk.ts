@@ -5,7 +5,7 @@
  * @evt pivot-changed - Emitted every time the control is changed by the user.
  * See PivotQueryChangedEventDetail.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { MultiSelectSkSelectionChangedEventDetail } from '../../../elements-sk/modules/multi-select-sk/multi-select-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

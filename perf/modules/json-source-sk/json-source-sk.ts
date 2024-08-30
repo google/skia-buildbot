@@ -7,7 +7,7 @@
  * id.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

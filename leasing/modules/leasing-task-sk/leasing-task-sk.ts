@@ -8,7 +8,7 @@
  *
  */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

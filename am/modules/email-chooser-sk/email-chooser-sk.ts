@@ -9,7 +9,7 @@
  * </p>
  *
  */
-import { html, render, TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 
@@ -90,7 +90,7 @@ export class EmailChooserSk extends HTMLElement {
   }
 
   private _render(): void {
-    render(EmailChooserSk.template(this), this, { eventContext: this });
+    render(EmailChooserSk.template(this), this, { host: this });
   }
 }
 

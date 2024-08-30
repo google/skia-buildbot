@@ -15,7 +15,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//skottie/modules/helpers:framecollectorfactory_ts_lib",
         "//:node_modules/@ffmpeg/ffmpeg",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

@@ -6,7 +6,7 @@
  *                          changes else displays only CQ runs.
  */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

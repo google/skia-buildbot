@@ -11,7 +11,7 @@
  * @evt refresh-page - This event bubbles, and is produced every time the data
  *   on the page should be refreshed.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/pause-icon-sk';

@@ -7,7 +7,7 @@
  *
  * It is a top level element.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';

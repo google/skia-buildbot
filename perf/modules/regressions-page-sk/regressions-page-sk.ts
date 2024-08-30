@@ -5,7 +5,7 @@
  * This module is a component that displays a list of regressions for a given
  * subscription.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -96,7 +96,7 @@ export class RegressionsPageSk extends ElementSk {
       @input=${(e: InputEvent) =>
         ele.filterChange((e.target as HTMLInputElement).value)}>
       <option disabled selected value>-- select an option --</option>
-      ${RegressionsPageSk.allSubscriptions(ele)}
+      ${RegressionsPageSk.allSubscriptions(ele)}]
     </select>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">

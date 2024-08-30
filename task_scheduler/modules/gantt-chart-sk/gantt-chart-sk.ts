@@ -3,7 +3,7 @@
  * @description Tools for displaying Gantt charts.
  */
 
-import { render, svg } from 'lit-html';
+import { render, svg } from 'lit/html.js';
 import { strDuration } from '../../../infra-sk/modules/human';
 import { $$ } from '../../../infra-sk/modules/dom';
 

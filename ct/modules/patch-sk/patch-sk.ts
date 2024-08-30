@@ -20,7 +20,7 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/toast-sk';
 import '../../../infra-sk/modules/expandable-textarea-sk';
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';

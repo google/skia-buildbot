@@ -4,7 +4,7 @@
  *
  * Main page of Perf, for exploring data.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ExploreSimpleSk, State } from '../explore-simple-sk/explore-simple-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';

@@ -20,7 +20,7 @@
  *
  * <a href='https://chromium.googlesource.com/v8/v8/+log/f052b8c4..47f420e>V8 Git Hash Range</a>
  */
-import { TemplateResult, html } from 'lit-html';
+import { TemplateResult, html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber, ingest } from '../json';

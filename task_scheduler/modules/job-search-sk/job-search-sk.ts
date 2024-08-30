@@ -4,7 +4,7 @@
  *
  * Provides UI for searching the jobs in the DB.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import {
   ParamSet,

@@ -21,7 +21,7 @@
  * detached to/from the appropriate containing element when it is used, for
  * example, a containing 'dialog' element.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/navigate-before-icon-sk';

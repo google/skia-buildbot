@@ -12,7 +12,7 @@
  * @attr {string} count_url - The  URL to POST the query to, passed down to quuery-count-sk.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

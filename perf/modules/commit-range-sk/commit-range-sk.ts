@@ -6,7 +6,7 @@
  * uses the global `window.perf.commit_range_url`, which can be set on Perf via
  * the command line.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { lookupCids } from '../cid/cid';

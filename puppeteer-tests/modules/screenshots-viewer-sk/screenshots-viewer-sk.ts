@@ -1,4 +1,4 @@
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { define } from '../../../elements-sk/modules/define';

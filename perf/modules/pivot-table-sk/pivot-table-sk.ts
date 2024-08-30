@@ -13,7 +13,7 @@
  * @evt Emits a change event with the sort history encoded as a string when the
  *    user sorts on a column.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { toParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

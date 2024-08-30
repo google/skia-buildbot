@@ -18,8 +18,8 @@
  *         Supported values are default and presentation
  *
  */
-import { html, TemplateResult } from 'lit-html';
-import { ifDefined } from 'lit-html/directives/if-defined';
+import { html, TemplateResult } from 'lit/html.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { define } from '../../../../elements-sk/modules/define';
 import { ElementSk } from '../../../../infra-sk/modules/ElementSk';
 import { ViewMode } from '../../types';

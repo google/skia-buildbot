@@ -8,7 +8,7 @@
  * @evt input - A CustomEvent<Date> with the new date.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/date-range-icon-sk';

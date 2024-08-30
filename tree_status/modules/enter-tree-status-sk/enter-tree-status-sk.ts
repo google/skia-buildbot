@@ -21,7 +21,7 @@
  *
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
 import '../list-autorollers-sk';
