@@ -25,6 +25,7 @@ sk_element(
         "//elements-sk/modules/icons/expand-less-icon-sk",
         "//elements-sk/modules/icons/expand-more-icon-sk",
         "//elements-sk/modules/icons/help-icon-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/tabs-panel-sk",
         "//elements-sk/modules/tabs-sk",

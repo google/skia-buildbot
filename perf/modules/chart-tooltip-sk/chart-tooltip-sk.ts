@@ -18,6 +18,7 @@ import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 
 export class Commit {
   commit_hash: string = '';
@@ -136,6 +137,12 @@ export class ChartTooltipSk extends ElementSk {
       class="container"
       style="display: ${ele._display ? 'block' : 'none'};
              left: ${ele.left}px; top: ${ele.top}px;">
+      <button
+        id="closeIcon"
+        @click=${ele._close_button_action}
+        ?hidden=${!ele._tooltip_fixed}>
+        <close-icon-sk></close-icon-sk>
+      </button>
       <h3>${ele.test_name}</h3>
       <ul class="table">
         <li>

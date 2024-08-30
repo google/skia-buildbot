@@ -20,6 +20,7 @@ sk_element(
     sass_srcs = ["favorites-dialog-sk.scss"],
     sk_element_deps = [
         "//elements-sk/modules/spinner-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

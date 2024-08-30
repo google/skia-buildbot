@@ -23,6 +23,7 @@ import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/icons/expand-less-icon-sk';
 import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
@@ -324,6 +325,8 @@ export class State {
 
   enable_chart_tooltip: boolean = false;
 
+  show_remove_all: boolean = true;
+
   use_titles: boolean = false;
 }
 
@@ -556,6 +559,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private graphTitle: GraphTitleSk | null = null;
 
+  private showRemoveAll = true;
+
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
@@ -585,6 +590,7 @@ export class ExploreSimpleSk extends ElementSk {
         </button>
 
         <button
+          ?hidden=${!ele.showRemoveAll}
           @click=${() => ele.removeAll(false)}
           title='Remove all the traces.'>
           Remove All
@@ -686,38 +692,48 @@ export class ExploreSimpleSk extends ElementSk {
             @click=${ele.openBisect}>
             Bisect
           </button>
-          <h3>Zoom/Pan:<h3>
-          <button
-            class=navigation
-            @click=${ele.zoomInKey}
-            title='Zoom In'>
-            <span class=icon-sk>add</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomOutKey}
-            title='Zoom Out'>
-            <span class=icon-sk>remove</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomLeftKey}
-            title='Pan Left'>
-            <span class=icon-sk>arrow_back</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomRightKey}
-            title='Pan Right'>
-            <span class=icon-sk>arrow_forward</span>
-          </button>
+          <div id="zoomPan">
+            <h3>Zoom/Pan:</h3>
+            <div id="btnContainer">
+              <button
+                class=navigation
+                @click=${ele.zoomInKey}
+                title='Zoom In'>
+                <span class=icon-sk>add</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomOutKey}
+                title='Zoom Out'>
+                <span class=icon-sk>remove</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomLeftKey}
+                title='Pan Left'>
+                <span class=icon-sk>arrow_back</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomRightKey}
+                title='Pan Right'>
+                <span class=icon-sk>arrow_forward</span>
+              </button>
+            </div>
+          </div>
         </div>
+        <button
+          id="removeAll"
+          @click=${() => ele.removeAll(false)}
+          title='Remove all the traces.'>
+          <close-icon-sk></close-icon-sk>
+        </button>
       </div>
     </div>
 
     <graph-title-sk id=graphTitle></graph-title-sk>
 
-    <div id=spin-overlay @mouseleave=${ele.disableTooltip}>
+    <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
       <chart-tooltip-sk></chart-tooltip-sk>
       <plot-simple-sk
         .summary=${ele._state.summary}
@@ -761,6 +777,9 @@ export class ExploreSimpleSk extends ElementSk {
           > </query-sk>
           <div id=selections>
             <h3>Selections</h3>
+            <button id="closeQueryIcon" @click=${ele.closeQueryDialog}>
+              <close-icon-sk></close-icon-sk>
+            </button>
             <paramset-sk id=summary removable_values @paramset-value-remove-click=${
               ele.paramsetRemoveClick
             }></paramset-sk>
@@ -832,6 +851,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     <dialog id='bisect-dialog'>
       <h2>Bisect</h2>
+      <button id="bisectCloseIcon" @click=${ele.closeBisectDialog}>
+        <close-icon-sk></close-icon-sk>
+      </button>
       <h3>Test Path</h3>
       <input id="testpath" type="text" value=${ele.testPath} readonly></input>
       <h3>Bug ID</h3>
@@ -1069,6 +1091,8 @@ export class ExploreSimpleSk extends ElementSk {
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {
+    this.showRemoveAll = this._state.show_remove_all;
+
     // If chart tooltip is enabled do not show crosshair label
     this.plot!.showCrosshairLabel = !this._state.enable_chart_tooltip;
 
@@ -1166,6 +1190,12 @@ export class ExploreSimpleSk extends ElementSk {
       case 'e': // dvorak
       case 'd':
         this.zoomRightKey();
+        break;
+      case `Escape`:
+        this.disableTooltip();
+        break;
+      case `Esc`:
+        this.disableTooltip();
         break;
       default:
         break;
@@ -1645,10 +1675,15 @@ export class ExploreSimpleSk extends ElementSk {
     );
   }
 
-  /** Hides the tooltip. Generally called when mouse moves out of the graph */
-  disableTooltip(): void {
+  // Triggered on mouseLeave event
+  mouseLeave(): void {
     if (this.tooltipFixed) return;
 
+    this.disableTooltip();
+  }
+
+  /** Hides the tooltip. Generally called when mouse moves out of the graph */
+  disableTooltip(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem!.display = false;
     this._render();

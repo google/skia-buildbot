@@ -13,6 +13,7 @@ sk_element(
         "//perf/modules/commit-detail-sk",
         "//perf/modules/domain-picker-sk",
         "//perf/modules/triage-status-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [

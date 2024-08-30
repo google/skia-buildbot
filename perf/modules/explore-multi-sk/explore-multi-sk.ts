@@ -73,6 +73,8 @@ class State {
 
   enable_chart_tooltip: boolean = false;
 
+  show_remove_all: boolean = true;
+
   use_titles: boolean = false;
 }
 
@@ -396,6 +398,7 @@ export class ExploreMultiSk extends ElementSk {
       plotSummary: this.state.plotSummary,
       highlight_anomalies: this.state.highlight_anomalies,
       enable_chart_tooltip: this.state.enable_chart_tooltip,
+      show_remove_all: this.state.show_remove_all,
       use_titles: this.state.use_titles,
     };
     explore.state = newState;

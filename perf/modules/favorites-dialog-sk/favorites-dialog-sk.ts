@@ -11,6 +11,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/spinner-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 
 // FavoritesDialogSk is a modal that contains a form to capture user
 // input for adding/editing a new favorite.
@@ -137,6 +138,10 @@ export class FavoritesDialogSk extends ElementSk {
   private static template = (ele: FavoritesDialogSk) => html`
       <dialog id="favDialog">
         <h2>Favorite</h2>
+
+        <button id="favCloseIcon" @click=${ele.dismiss}>
+          <close-icon-sk></close-icon-sk>
+        </button>
 
         <div id=spinContainer>
           <spinner-sk ?active=${ele.updatingFavorite}></spinner-sk>

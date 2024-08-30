@@ -11,6 +11,18 @@ explore-simple-sk {
 
   #selections {
     margin: 0 1em;
+
+    #closeQueryIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
   }
 
   #commits,
@@ -132,6 +144,7 @@ explore-simple-sk {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
 
     button,
     checkbox-sk {
@@ -143,6 +156,35 @@ explore-simple-sk {
     [hidden] {
       display: none;
     }
+
+    #zoomPan {
+      h3 {
+        font-size: 14px;
+        margin: 0;
+      }
+
+      #btnContainer {
+        button {
+          min-height: 0;
+
+          span {
+            font-size: 16px;
+            height: auto;
+            width: auto;
+          }
+        }
+      }
+    }
+  }
+
+  button#removeAll {
+    padding: 5px;
+    border: none;
+    cursor: pointer;
+    float: right;
+    margin-left: 10px;
+    margin-bottom: 30px;
+    margin-right: 30px;
   }
 
   #traceButtons {
@@ -274,6 +316,18 @@ explore-simple-sk {
   #bisect-dialog {
     overflow: auto;
     width: 45%;
+
+    #bisectCloseIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
 
     paramset-sk {
       display: inline-block;

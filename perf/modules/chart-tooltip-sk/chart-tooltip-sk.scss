@@ -14,6 +14,15 @@ chart-tooltip-sk {
     overflow: auto;
     background: var(--surface-2dp);
 
+    button#closeIcon {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
     h3 {
       margin: 0;
       margin-bottom: 16px;
@@ -53,6 +62,10 @@ chart-tooltip-sk {
 
     button[hidden] {
       display: None;
+    }
+
+    button {
+      float: right;
     }
 
     .see-more-text {
