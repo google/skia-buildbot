@@ -586,20 +586,26 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// livenessHandler is used by the front end service to verify
-// that cockroachDB connections are still working. This handler is
-// polled by kubernetes probes. If the connection is down, the pod
-// will restart and connection to CDB should re-establish.
-func (f *Frontend) livenessHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(r.Context(), livenessTimeout)
-	defer cancel()
+// liveness is used by the front end service to verify that cockroachDB
+// connections are still working. /liveness handler is polled by
+// kubernetes probes. If the connection is down, the pod will restart
+// and connection to CDB should re-establish.
+func (f *Frontend) liveness(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/liveness" {
+			ctx, cancel := context.WithTimeout(r.Context(), livenessTimeout)
+			defer cancel()
 
-	if _, err := f.regStore.GetOldestCommit(ctx); err != nil {
-		httputils.ReportError(w, err, "Health check - failed to connect to CockroachDB.", http.StatusInternalServerError)
-		return
+			if _, err := f.regStore.GetOldestCommit(ctx); err != nil {
+				httputils.ReportError(w, err, "Health check - failed to connect to CockroachDB.", http.StatusInternalServerError)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
+			return
+		}
+		h.ServeHTTP(w, r)
 	}
-
-	w.WriteHeader(http.StatusOK)
+	return http.HandlerFunc(s)
 }
 
 func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
@@ -879,7 +885,6 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/r2/", f.templateHandler("regressions.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
-	router.HandleFunc("/liveness", f.livenessHandler)
 
 	// TODO(ashwinpv): This should move to using the backend service.
 	// JSON handlers.
@@ -942,6 +947,7 @@ func (f *Frontend) Serve() {
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {
 		h = httputils.HealthzAndHTTPS(h)
+		h = f.liveness(h)
 	}
 	http.Handle("/", h)
 
