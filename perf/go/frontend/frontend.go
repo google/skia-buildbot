@@ -88,6 +88,12 @@ const (
 	// making a request that involves the database. For more complex requests
 	// use config.QueryMaxRuntime.
 	defaultDatabaseTimeout = time.Minute
+
+	// livenessTimeout is the context timeout used when checking the health
+	// status of the frontend to cockroachDB. If the health check fails,
+	// then the pod will restart. Queries to the CDB regressions table takes
+	// < 1 second.
+	livenessTimeout = 10 * time.Second
 )
 
 var (
@@ -580,6 +586,22 @@ func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// livenessHandler is used by the front end service to verify
+// that cockroachDB connections are still working. This handler is
+// polled by kubernetes probes. If the connection is down, the pod
+// will restart and connection to CDB should re-establish.
+func (f *Frontend) livenessHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), livenessTimeout)
+	defer cancel()
+
+	if _, err := f.regStore.GetOldestCommit(ctx); err != nil {
+		httputils.ReportError(w, err, "Health check - failed to connect to CockroachDB.", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (f *Frontend) trybotLoadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -857,6 +879,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.Get("/r2/", f.templateHandler("regressions.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
+	router.HandleFunc("/liveness", f.livenessHandler)
 
 	// TODO(ashwinpv): This should move to using the backend service.
 	// JSON handlers.
