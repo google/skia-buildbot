@@ -2747,6 +2747,9 @@ export class ExploreSimpleSk extends ElementSk {
           case 'enable_chart_tooltip':
             this._state.enable_chart_tooltip = paramValue;
             break;
+          case 'use_titles':
+            this._state.use_titles = paramValue;
+            break;
           default:
             break;
         }

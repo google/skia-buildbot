@@ -58,7 +58,8 @@
             "plotSummary": "true",
             "useTestPicker": "true",
             "showZero": "false",
-            "enable_chart_tooltip": "true"
+            "enable_chart_tooltip": "true",
+            "use_titles": "true"
         }
     },
     "favorites": {
