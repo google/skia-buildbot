@@ -328,6 +328,8 @@ export class State {
   show_remove_all: boolean = true;
 
   use_titles: boolean = false;
+
+  useTestPicker: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -547,7 +549,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   fullAnomalyMap: AnomalyMap | null = null;
 
-  private useTestPicker: boolean = false;
+  useTestPicker: boolean = false;
 
   private summaryOptionsField: PickerFieldSk | null = null;
 
@@ -1085,6 +1087,10 @@ export class ExploreSimpleSk extends ElementSk {
       'click',
       () => this.pinpointJobToast?.hide()
     );
+  }
+
+  render(): void {
+    this._render();
   }
 
   // Call this anytime something in private state is changed. Will be replaced

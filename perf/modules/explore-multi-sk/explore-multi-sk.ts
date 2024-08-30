@@ -25,7 +25,7 @@ import {
 
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 
-import { fromKey } from '../paramtools';
+import { queryFromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -327,7 +327,7 @@ export class ExploreMultiSk extends ElementSk {
       this.addEventListener('populate-query', (e) => {
         const trace_key = (e as CustomEvent).detail.key;
         this.testPicker!.populateFieldDataFromQuery(
-          this.queryFromKey(trace_key),
+          queryFromKey(trace_key),
           testPickerParams!
         );
         this.testPicker!.scrollIntoView();
@@ -400,6 +400,7 @@ export class ExploreMultiSk extends ElementSk {
       enable_chart_tooltip: this.state.enable_chart_tooltip,
       show_remove_all: this.state.show_remove_all,
       use_titles: this.state.use_titles,
+      useTestPicker: this.state.useTestPicker,
     };
     explore.state = newState;
   }
@@ -510,28 +511,6 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   /**
-   * Parse a structured key into a queries string.
-   *
-   * Since this is done on the frontend, this function does not do key or query validation.
-   *
-   * Example:
-   *
-   * Key ",a=1,b=2,c=3,"
-   *
-   * transforms into
-   *
-   * Query "a=1&b=2&c=3"
-   *
-   * @param {string} key - A structured trace key.
-   *
-   * @returns {string} - A query string that can be used in the queries property
-   * of explore-simple-sk's state.
-   */
-  private queryFromKey(key: string): string {
-    return new URLSearchParams(fromKey(key)).toString();
-  }
-
-  /**
    * Takes the traces of a single graph and create a separate graph for each of those
    * traces.
    *
@@ -570,7 +549,7 @@ export class ExploreMultiSk extends ElementSk {
     traceset.forEach((key, i) => {
       this.addEmptyGraph();
       if (key[0] === ',') {
-        const queries = this.queryFromKey(key);
+        const queries = queryFromKey(key);
         this.graphConfigs[i].queries = [queries];
       } else {
         const formulas = key;

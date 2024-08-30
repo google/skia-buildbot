@@ -77,3 +77,25 @@ export function addParamSet(
 export function toReadOnlyParamSet(ps: ParamSet): ReadOnlyParamSet {
   return ps as unknown as ReadOnlyParamSet;
 }
+
+/**
+ * Parse a structured key into a queries string.
+ *
+ * Since this is done on the frontend, this function does not do key or query validation.
+ *
+ * Example:
+ *
+ * Key ",a=1,b=2,c=3,"
+ *
+ * transforms into
+ *
+ * Query "a=1&b=2&c=3"
+ *
+ * @param {string} key - A structured trace key.
+ *
+ * @returns {string} - A query string that can be used in the queries property
+ * of explore-simple-sk's state.
+ */
+export function queryFromKey(key: string): string {
+  return new URLSearchParams(fromKey(key)).toString();
+}
