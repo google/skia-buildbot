@@ -947,6 +947,9 @@ func (f *Frontend) Serve() {
 	h = httputils.LoggingGzipRequestResponse(h)
 	if !f.flags.Local {
 		h = httputils.HealthzAndHTTPS(h)
+		// add liveness handler after https routing since these are applied in
+		// reverse order to ensure k8 pod can access the endpoint without
+		// 301 moved permanently status
 		h = f.liveness(h)
 	}
 	http.Handle("/", h)
