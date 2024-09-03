@@ -1628,6 +1628,7 @@ export class ExploreSimpleSk extends ElementSk {
     const commitPosition = this._dataframe.header![pointDetails.x]!.offset;
     let anomaly = null;
     if (
+      this.fullAnomalyMap !== null &&
       !(
         this.fullAnomalyMap![testName] === null ||
         this.fullAnomalyMap![testName] === undefined

@@ -70,38 +70,40 @@ export class PointLinksSk extends ElementSk {
     // Clear any existing links first.
     this.displayUrls = {};
     this.displayTexts = {};
-    const currentLinks = await this.getLinksForPoint(cid, traceid);
-    const prevLinks = await this.getLinksForPoint(prev_cid, traceid);
-    keysForCommitRange.forEach((key) => {
-      const currentCommitUrl = currentLinks[key];
-      if (
-        currentCommitUrl !== undefined &&
-        currentCommitUrl !== null &&
-        currentCommitUrl !== ''
-      ) {
-        const prevCommitUrl = prevLinks[key];
-        const currentCommitId = this.getCommitIdFromCommitUrl(
-          currentCommitUrl
-        ).substring(0, 7);
-        const prevCommitId = this.getCommitIdFromCommitUrl(
-          prevCommitUrl
-        ).substring(0, 7);
-        if (currentCommitId === prevCommitId) {
-          this.displayUrls[key] = currentCommitUrl;
-          this.displayTexts[key] = currentCommitId;
-        } else {
-          const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
-          const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
-          const displayKey = `${key} Range`;
-          this.displayUrls[displayKey] = commitRangeUrl;
-          this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
-            prevCommitId,
-            currentCommitId
-          );
+    if (keysForCommitRange !== null) {
+      const currentLinks = await this.getLinksForPoint(cid, traceid);
+      const prevLinks = await this.getLinksForPoint(prev_cid, traceid);
+      keysForCommitRange.forEach((key) => {
+        const currentCommitUrl = currentLinks[key];
+        if (
+          currentCommitUrl !== undefined &&
+          currentCommitUrl !== null &&
+          currentCommitUrl !== ''
+        ) {
+          const prevCommitUrl = prevLinks[key];
+          const currentCommitId = this.getCommitIdFromCommitUrl(
+            currentCommitUrl
+          ).substring(0, 7);
+          const prevCommitId = this.getCommitIdFromCommitUrl(
+            prevCommitUrl
+          ).substring(0, 7);
+          if (currentCommitId === prevCommitId) {
+            this.displayUrls[key] = currentCommitUrl;
+            this.displayTexts[key] = currentCommitId;
+          } else {
+            const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
+            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
+            const displayKey = `${key} Range`;
+            this.displayUrls[displayKey] = commitRangeUrl;
+            this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
+              prevCommitId,
+              currentCommitId
+            );
+          }
         }
-      }
-    });
-    this._render();
+      });
+      this._render();
+    }
   }
 
   /**
