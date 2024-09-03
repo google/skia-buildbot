@@ -73,9 +73,12 @@ config-dev 3600    IN TXT "google-site-verification=xhhLX2KKlm_Eq8crnrbqSkAueTKV
 ;;; LUCI Analysis.
 ;;; Production hosted in GCP Project luci-analysis.
 ;;; Staging hosted in GCP Project luci-analysis-dev.
+;;; Buganizer testing hosted in GCP Project chops-weetbix-dev.
 analysis.api                300  IN A 34.36.210.79
 staging.analysis.api        300  IN A 35.244.170.126
 *.staging.analysis.api      300  IN A 35.244.170.126
+staging.weetbix.api         300  IN A 34.54.113.219
+*.staging.weetbix.api       300  IN A 34.54.113.219
 
 ;;; LUCI Bisection.
 ;;; Production hosted in GCP Project luci-bisection.
@@ -127,6 +130,8 @@ _acme-challenge.analysis.api             3600  IN CNAME (
     f741f022-b926-4023-a9ac-e99fbf5d54c1.15.authorize.certificatemanager.goog. )
 _acme-challenge.staging.analysis.api     3600  IN CNAME (
     2c7f813c-1ce4-4c7a-96a5-53723121ca5b.12.authorize.certificatemanager.goog. )
+_acme-challenge.staging.weetbix.api      3600  IN CNAME (
+    6dd6bacc-7f06-4134-8ebe-d97f5e83713d.11.authorize.certificatemanager.goog. )
 
 ;;; LUCI Bisection.
 _acme-challenge.bisection.api            3600  IN CNAME (
