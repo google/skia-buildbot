@@ -46,7 +46,7 @@ explore-simple-sk {
 
   .query-parts {
     display: flex;
-    height: 450px;
+    height: 400px;
   }
 
   .query-counts {
@@ -58,7 +58,7 @@ explore-simple-sk {
     flex-direction: column;
 
     #values {
-      height: 20em;
+      height: 13em;
     }
   }
 
@@ -280,6 +280,8 @@ explore-simple-sk {
   #query-dialog {
     overflow: auto;
     width: 90%;
+    margin-top: 60px;
+    height: 68vh;
 
     paramset-sk {
       display: inline-block;
