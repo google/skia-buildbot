@@ -7,6 +7,7 @@ ts_library(
     deps = [
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
+        "//perf/modules/json:index_ts_lib",
     ],
 )
 
@@ -18,6 +19,7 @@ ts_library(
         ":plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/plot-simple-sk",
     ],
 )
 

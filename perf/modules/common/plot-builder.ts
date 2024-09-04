@@ -1,11 +1,12 @@
 // Contains functions to create plot data.
 
 import '@google-web-components/google-chart/';
+import { Anomaly } from '../json';
 
 export interface DataPoint {
   x: number | Date;
   y: number;
-  anomaly: boolean;
+  anomaly: Anomaly | null;
 }
 
 export enum ChartAxisFormat {

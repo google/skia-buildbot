@@ -2072,7 +2072,8 @@ export class ExploreSimpleSk extends ElementSk {
         chartData = CreateChartDataFromTraceSet(
           traceSet,
           xAxisLabelsCommitNum,
-          ChartAxisFormat.Commit
+          ChartAxisFormat.Commit,
+          this.plot!.anomalyDataMap
         );
         break;
       case LabelMode.Date:
@@ -2082,7 +2083,8 @@ export class ExploreSimpleSk extends ElementSk {
         chartData = CreateChartDataFromTraceSet(
           traceSet,
           xAxisLabelsDate,
-          ChartAxisFormat.Date
+          ChartAxisFormat.Date,
+          this.plot!.anomalyDataMap
         );
         break;
       default:
