@@ -3,15 +3,19 @@ package parent
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
@@ -51,7 +55,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 
 // NewGitCheckoutGerrit returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParentConfig, reg *config_vars.Registry, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
+func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParentConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, rollerName string, cr codereview.CodeReview) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -64,7 +68,36 @@ func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParent
 	// See documentation for GitCheckoutUploadRollFunc.
 	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
 
-	createRoll := gitCheckoutFileCreateRollFunc(c.GitCheckout.Dep)
+	preUploadSteps, err := GetPreUploadSteps(nil, c.PreUploadCommands)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	createRollHelper := gitCheckoutFileCreateRollFunc(c.GitCheckout.Dep)
+	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+		// Run the helper to set the new dependency version(s).
+		if _, err := createRollHelper(ctx, co, from, to, rolling, commitMsg); err != nil {
+			return "", skerr.Wrap(err)
+		}
+
+		// Run the pre-upload steps.
+		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
+		for _, s := range preUploadSteps {
+			if err := s(ctx, nil, client, co.Dir(), from, to); err != nil {
+				return "", skerr.Wrapf(err, "failed pre-upload step")
+			}
+		}
+
+		// Commit.
+		if _, err := co.Git(ctx, "commit", "-a", "--amend", "--no-edit"); err != nil {
+			return "", skerr.Wrap(err)
+		}
+		out, err := co.RevParse(ctx, "HEAD")
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return strings.TrimSpace(out), nil
+	}
 
 	// Create the GitCheckout Parent.
 	p, err := NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, nil, createRoll, uploadRoll)

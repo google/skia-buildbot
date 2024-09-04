@@ -416,10 +416,12 @@ interface GitCheckoutGitHubParentConfigJSON {
 
 export interface GitCheckoutGerritParentConfig {
   gitCheckout?: GitCheckoutParentConfig;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface GitCheckoutGerritParentConfigJSON {
   git_checkout?: GitCheckoutParentConfigJSON;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitCheckoutGitHubFileParentConfig {

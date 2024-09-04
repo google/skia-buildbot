@@ -401,6 +401,8 @@ message GitCheckoutGitHubParentConfig {
 // uses a local Git checkout and uploads CLs to Gerrit.
 message GitCheckoutGerritParentConfig {
     GitCheckoutParentConfig git_checkout = 1;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 2;
 }
 
 // GitCheckoutGitHubFileParentConfig provides configuration for a Parent which
