@@ -535,6 +535,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceDetails: HTMLSpanElement | null = null;
 
+  private traceDetailsCopy: HTMLDivElement | null = null;
+
   private traceFormatter: TraceFormatter | null = null;
 
   private originalTraceSet: TraceSet = TraceSet({});
@@ -760,7 +762,12 @@ export class ExploreSimpleSk extends ElementSk {
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
       </div>
-      <span id=traceDetails />
+      <div id="trace-details-container">
+        <div id="traceDetailsCopy" class="icon-sk copy-content">
+          content_copy
+        </div>
+        <span id=traceDetails />
+      </div>
     </div>
 
     <pivot-table-sk
@@ -1046,6 +1053,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.traceDetails = this.querySelector('#traceDetails');
+    this.traceDetailsCopy = this.querySelector('#traceDetailsCopy');
     this.summaryOptionsField = this.querySelector<PickerFieldSk>(
       '#selectSummaryTrace'
     );
@@ -1492,6 +1500,10 @@ export class ExploreSimpleSk extends ElementSk {
       fromKey(e.detail.name)
     );
     this.traceDetails!.textContent = formattedTrace;
+    this.traceDetailsCopy!.onclick = () => {
+      navigator.clipboard.writeText(formattedTrace);
+    };
+    this.traceDetailsCopy!.style.display = 'block';
 
     if (this._state.enable_chart_tooltip && !this.tooltipFixed) {
       // if the commit details for a point is already loaded then
