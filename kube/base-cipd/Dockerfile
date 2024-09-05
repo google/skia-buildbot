@@ -3,7 +3,9 @@ ARG CIPD_ROOT="/cipd"
 # Keep the tag for base-cipd in sync with the tag used here for debian.
 FROM debian:testing-slim AS base
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
-  adduser ca-certificates \
+  adduser \
+  ca-certificates \
+  curl \
   && rm -rf /var/lib/apt/lists/* \
   && addgroup --gid 2000 skia \
   && adduser --uid 2000 --gid 2000 skia
