@@ -59,6 +59,7 @@
             "useTestPicker": "true",
             "showZero": "false",
             "enable_chart_tooltip": "true",
+            "use_test_picker_query": "true",
             "use_titles": "true"
         }
     },

@@ -330,6 +330,8 @@ export class State {
   use_titles: boolean = false;
 
   useTestPicker: boolean = false;
+
+  use_test_picker_query: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -2798,6 +2800,10 @@ export class ExploreSimpleSk extends ElementSk {
           case 'useTestPicker':
             this.useTestPicker = paramValue;
             break;
+          case 'use_test_picker_query':
+            this._state.use_test_picker_query = paramValue;
+            this.openQueryByDefault = !paramValue;
+            break;
           case 'enable_chart_tooltip':
             this._state.enable_chart_tooltip = paramValue;
             break;
@@ -3215,6 +3221,7 @@ export class ExploreSimpleSk extends ElementSk {
       ];
     }
 
+    this.applyQueryDefaultsIfMissing();
     if (
       numQueries === 0 &&
       this._state.keys === '' &&
@@ -3224,7 +3231,6 @@ export class ExploreSimpleSk extends ElementSk {
       this.openQuery();
     }
 
-    this.applyQueryDefaultsIfMissing();
     this.zeroChanged();
     this.autoRefreshChanged();
     this.rangeChangeImpl();

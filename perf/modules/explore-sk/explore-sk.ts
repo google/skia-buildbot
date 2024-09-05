@@ -59,10 +59,10 @@ export class ExploreSk extends ElementSk {
       () => this.exploreSimpleSk!.state as unknown as HintableObject,
       async (hintableState) => {
         const state = hintableState as unknown as ExploreSimpleSkState;
-        this.exploreSimpleSk!.openQueryByDefault = !state.useTestPicker;
+        this.exploreSimpleSk!.openQueryByDefault = true;
         this.exploreSimpleSk!.state = state;
         this.exploreSimpleSk!.useTestPicker = false;
-        if (state.useTestPicker) {
+        if (state.use_test_picker_query) {
           await this.initializeTestPicker();
         }
         this.exploreSimpleSk!.render();

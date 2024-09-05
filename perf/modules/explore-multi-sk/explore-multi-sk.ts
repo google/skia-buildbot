@@ -401,6 +401,7 @@ export class ExploreMultiSk extends ElementSk {
       show_remove_all: this.state.show_remove_all,
       use_titles: this.state.use_titles,
       useTestPicker: this.state.useTestPicker,
+      use_test_picker_query: false,
     };
     explore.state = newState;
   }
