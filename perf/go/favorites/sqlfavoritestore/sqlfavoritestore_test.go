@@ -305,3 +305,11 @@ func TestList_ForUserId_EmptyList(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, favFromDb, 0)
 }
+
+func TestLiveness_GivenNoData_ReturnsNoError(t *testing.T) {
+	ctx := context.Background()
+	store, _ := setUp(t)
+
+	err := store.Liveness(ctx)
+	require.NoError(t, err)
+}

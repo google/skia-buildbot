@@ -37,4 +37,10 @@ type Store interface {
 
 	// List retrieves all the Favorites by user id (email).
 	List(ctx context.Context, userId string) ([]*Favorite, error)
+
+	// Liveness checks if the front end is still connected to
+	// cockroachDB. This function does not have anything to do with
+	// the store's function. The Favorites Store was arbitrarily
+	// picked because of its lack of essential function.
+	Liveness(ctx context.Context) error
 }

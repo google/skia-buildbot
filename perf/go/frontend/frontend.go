@@ -596,7 +596,7 @@ func (f *Frontend) liveness(h http.Handler) http.Handler {
 			ctx, cancel := context.WithTimeout(r.Context(), livenessTimeout)
 			defer cancel()
 
-			if _, err := f.regStore.GetOldestCommit(ctx); err != nil {
+			if err := f.favStore.Liveness(ctx); err != nil {
 				httputils.ReportError(w, err, "Health check - failed to connect to CockroachDB.", http.StatusInternalServerError)
 			} else {
 				w.WriteHeader(http.StatusOK)

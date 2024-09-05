@@ -21,6 +21,7 @@ const (
 	updateFavorite
 	deleteFavorite
 	listFavorites
+	liveness // verifies the front end is still in connection to cockroachDB
 )
 
 // statements holds all the raw SQL statemens.
@@ -39,7 +40,6 @@ var statements = map[statement]string{
 		VALUES
 			($1, $2, $3, $4, $5)
 	`,
-
 	updateFavorite: `
 		UPDATE
 			Favorites
@@ -65,6 +65,14 @@ var statements = map[statement]string{
 			Favorites
 		WHERE
 			user_id=$1
+	`,
+	liveness: `
+		EXPLAIN
+		SELECT
+			*
+		FROM
+			Favorites
+		LIMIT 1;
 	`,
 }
 
@@ -145,4 +153,12 @@ func (s *FavoriteStore) List(ctx context.Context, userId string) ([]*favorites.F
 		ret = append(ret, f)
 	}
 	return ret, nil
+}
+
+func (s *FavoriteStore) Liveness(ctx context.Context) error {
+	var live string
+	if err := s.db.QueryRow(ctx, statements[liveness]).Scan(&live); err != nil {
+		return skerr.Wrapf(err, "cockroachDB connection is lost")
+	}
+	return nil
 }
