@@ -162,6 +162,10 @@ export interface Anomaly {
 	segment_size_before: number;
 	std_dev_before_anomaly: number;
 	t_statistic: number;
+	subscription_name: string;
+	bug_component: string;
+	bug_labels: string[] | null;
+	bug_cc_emails: string[] | null;
 }
 
 export interface FrameResponse {

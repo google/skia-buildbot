@@ -119,10 +119,16 @@ func TestGetAnomaly_Success(t *testing.T) {
 	test := "myTest"
 	subtest := "mysubtest"
 	testPath := fmt.Sprintf("%s/%s/%s/%s/%s", master, bot, benchmark, test, subtest)
+	subscription_name := "sub_name"
+	bug_component := "bug_component"
+	bug_labels := []string{"label1", "label2", "label3"}
 	anomaly := Anomaly{
-		StartRevision: 1111,
-		EndRevision:   2222,
-		TestPath:      testPath,
+		StartRevision:    1111,
+		EndRevision:      2222,
+		TestPath:         testPath,
+		SubscriptionName: subscription_name,
+		BugComponent:     bug_component,
+		BugLabels:        bug_labels,
 	}
 	anomalyResponse := &GetAnomaliesResponse{
 		Anomalies: map[string][]Anomaly{
@@ -147,6 +153,10 @@ func TestGetAnomaly_Success(t *testing.T) {
 	assert.Equal(t, benchmark, params["benchmark"][0])
 	assert.Equal(t, test, params["test"][0])
 	assert.Equal(t, subtest, params["subtest_1"][0])
+	assert.Equal(t, subscription_name, anomalyResp.SubscriptionName)
+	assert.Equal(t, bug_component, anomalyResp.BugComponent)
+	assert.Equal(t, 3, len(anomalyResp.BugLabels))
+	assert.Equal(t, 0, len(anomalyResp.BugCcEmails))
 }
 
 func TestGetAnomaly_InvalidChar_Success(t *testing.T) {

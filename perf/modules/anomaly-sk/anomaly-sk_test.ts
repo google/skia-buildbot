@@ -35,6 +35,10 @@ const dummyAnomaly = (): Anomaly => ({
   segment_size_before: 0,
   std_dev_before_anomaly: 0,
   t_statistic: 0,
+  subscription_name: '',
+  bug_component: '',
+  bug_labels: [],
+  bug_cc_emails: [],
 });
 
 describe('getAnomalyDataMap', () => {
