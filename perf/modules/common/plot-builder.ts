@@ -66,6 +66,9 @@ export function DrawSummaryChart(
     curveType: 'function',
     hAxis: {
       textPosition: 'out',
+      textStyle: {
+        color: style.color,
+      },
       gridlines: {
         count: 10,
       },
