@@ -312,6 +312,7 @@ packages:
       Store:
   go.skia.org/infra/perf/go/notify:
     interfaces:
+      NotificationDataProvider:
       Notifier:
         config:
       Transport:

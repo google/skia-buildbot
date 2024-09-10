@@ -366,6 +366,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "data_provider": {
+          "type": "string"
         }
       },
       "additionalProperties": false,

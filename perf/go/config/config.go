@@ -85,6 +85,10 @@ type NotifyConfig struct {
 	// formatted as Markdow. Sent when a detected regression is no longer
 	// detectable.
 	MissingBody []string `json:"missing_body,omitempty"`
+
+	// NotificationDataProvider defines the data provider to generate the subject
+	// and body for the notification whenever a regression is detected.
+	NotificationDataProvider string `json:"data_provider,omitempty"`
 }
 
 // NotifyConfig controls how notifications are sent, and their format.
