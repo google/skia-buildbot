@@ -26,6 +26,7 @@ sk_element(
         "//elements-sk/modules/icons/multiline-chart-icon-sk",
         "//elements-sk/modules/icons/sort-icon-sk",
         "//elements-sk/modules/icons/trending-up-icon-sk",
+        "//elements-sk/modules/icons/bug-report-icon-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
