@@ -6,6 +6,7 @@ import {
   PlotSummarySkSelectionEventDetails,
 } from './plot-summary-sk';
 import { ChartAxisFormat, ChartData } from '../common/plot-builder';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 document
   .querySelector('plot-summary-sk')!

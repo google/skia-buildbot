@@ -8,11 +8,13 @@
  *
  * @example
  */
-import { html } from 'lit/html.js';
+import { html, css } from 'lit';
+import { LitElement, PropertyValues } from 'lit';
+import { ref, Ref, createRef } from 'lit/directives/ref.js';
+import { until } from 'lit/directives/until.js';
 import * as d3Scale from 'd3-scale';
 import { load } from '@google-web-components/google-chart/loader';
 import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import '@google-web-components/google-chart/';
 import { ChartData, DrawSummaryChart } from '../common/plot-builder';
@@ -28,22 +30,37 @@ export interface PlotSummarySkSelectionEventDetails {
   valueEnd: number | Date;
 }
 
-export class PlotSummarySk extends ElementSk {
+export class PlotSummarySk extends LitElement {
+  static styles = css`
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .plot {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  `;
+
   constructor() {
-    super(PlotSummarySk.template);
+    super();
 
-    this._upgradeProperty('width');
-    this._upgradeProperty('height');
+    this.loadPromise = load({ packages: ['corechart'] });
+    this.addEventListeners();
   }
 
-  static get observedAttributes(): string[] {
-    return ['width', 'height'];
+  // The promise to wait for the google chart lib is loaded.
+  private loadPromise: Promise<void>;
+
+  get overlayCtx() {
+    return this.overlayCanvas.value?.getContext('2d');
   }
-
-  private overlayCtx: CanvasRenderingContext2D | null = null;
-
-  /** The window.devicePixelRatio. */
-  private scale: number = 1.0;
 
   // This contains a mapping of the coordinates on the summary bar to
   // the corresponding values. This helps us translate the position of
@@ -77,73 +94,80 @@ export class PlotSummarySk extends ElementSk {
   private currentMousePosition: MousePosition | null = null;
 
   // The div element that will host the plot on the summary.
-  private plotElement: HTMLElement | null = null;
+  private plotElement: Ref<HTMLElement> = createRef();
 
   // The canvas element that is used for the selection overlay.
-  private overlayCanvas: HTMLCanvasElement | null = null;
+  private overlayCanvas: Ref<HTMLCanvasElement> = createRef();
+
+  // The chart element that is initialized later.
+  private lineChart: google.visualization.LineChart | null = null;
 
   // Keeps a track of the current chart data being displayed.
   private currentChartData: ChartData | null = null;
 
-  private static template = (ele: PlotSummarySk) => html`
-    <div
-      id="plot"
-      class="plot"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0;"></div>
-    <canvas
-      id="overlay"
-      class="overlay"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0;"></canvas>
-  `;
+  protected render() {
+    return html`
+      <div ${ref(this.plotElement)} class="plot" style="transform-origin: 0 0;">
+        ${until(this.drawChart())}
+      </div>
+      <canvas
+        ${ref(this.overlayCanvas)}
+        class="overlay"
+        style="transform-origin: 0 0;"></canvas>
+    `;
+  }
 
-  async connectedCallback(): Promise<void> {
+  connectedCallback() {
     super.connectedCallback();
     const resizeObserver = new ResizeObserver(
       (entries: ResizeObserverEntry[]) => {
         entries.forEach((entry) => {
-          this.width = entry.contentRect.width;
-          this.height = entry.contentRect.height;
-          if (this.currentChartData !== null) {
-            this.render();
-          }
+          // The google chart needs to redraw when it is resized.
+          this.requestUpdate();
         });
       }
     );
     resizeObserver.observe(this);
-    this.render();
-
-    window.requestAnimationFrame(this.raf.bind(this));
   }
 
-  attributeChangedCallback(
-    _: string,
-    oldValue: string,
-    newValue: string
-  ): void {
-    if (oldValue !== newValue) {
-      this.render();
-    }
-  }
+  protected firstUpdated(_changedProperties: PropertyValues): void {
+    const resizeObserver = new ResizeObserver(
+      (entries: ResizeObserverEntry[]) => {
+        entries.forEach((entry) => {
+          if (entry.target !== this.overlayCanvas.value) {
+            return;
+          }
 
-  render(): void {
-    this._render();
-    this.plotElement = this.querySelector<HTMLElement>('#plot')!;
-    this.overlayCanvas = this.querySelector<HTMLCanvasElement>('#overlay')!;
-    this.overlayCtx = this.overlayCanvas.getContext('2d');
+          // We need to resize the canvas after its bounding rect is changed,
+          const boundingRect = entry.contentRect;
+          this.overlayCanvas.value!.width = boundingRect!.width;
+          this.overlayCanvas.value!.height = boundingRect!.height;
+          this.overlayCtx!.globalAlpha = 0.5;
+        });
+      }
+    );
+    resizeObserver.observe(this.overlayCanvas.value!);
 
     // globalAlpha denotes the transparency of the fill. Setting this to 50%
     // allows us to show the highlight plus the portion of the plot highlighted.
     this.overlayCtx!.globalAlpha = 0.5;
 
-    this.addEventListeners();
     this.drawSummaryRect();
+    requestAnimationFrame(() => this.raf());
+  }
+
+  private async drawChart() {
+    await this.loadPromise;
+    this.lineChart = new google.visualization.LineChart(
+      this.plotElement.value!
+    );
+
+    await this._renderChart();
   }
 
   private async _renderChart() {
+    await this.updateComplete;
+
     if (this.isCommitScale) {
       this.commitsStart = this.currentChartData!.start as number;
       this.commitsEnd = this.currentChartData!.end as number;
@@ -160,9 +184,8 @@ export class PlotSummarySk extends ElementSk {
         .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
     }
 
-    await load({ packages: ['corechart'] });
     DrawSummaryChart(
-      this.plotElement!,
+      this.lineChart,
       this.currentChartData!,
       this.width,
       this.height,
@@ -191,7 +214,8 @@ export class PlotSummarySk extends ElementSk {
   public async DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
     this.currentChartData = chartData;
     this.isCommitScale = isCommitScale;
-    this._renderChart();
+    await this.loadPromise;
+    await this._renderChart();
   }
 
   // Clear the current selection.
@@ -199,8 +223,8 @@ export class PlotSummarySk extends ElementSk {
     this.overlayCtx!.clearRect(
       0,
       0,
-      this.overlayCanvas!.width,
-      this.overlayCanvas!.height
+      this.overlayCanvas.value!.width,
+      this.overlayCanvas.value!.height
     );
   }
 
@@ -281,8 +305,7 @@ export class PlotSummarySk extends ElementSk {
   private addEventListeners(): void {
     // If the user toggles the theme to/from darkmode then redraw.
     document.addEventListener('theme-chooser-toggle', () => {
-      this.render();
-      this._renderChart();
+      this.requestUpdate();
     });
     this.addEventListener('mousedown', this.mouseDownListener);
     this.addEventListener('mouseup', this.mouseUpListener);
@@ -301,20 +324,12 @@ export class PlotSummarySk extends ElementSk {
 
   /** Mirrors the width attribute. */
   get width(): number {
-    return +(this.getAttribute('width') || '0');
-  }
-
-  set width(val: number) {
-    this.setAttribute('width', val.toString());
+    return this.getBoundingClientRect().width;
   }
 
   /** Mirrors the height attribute. */
   get height(): number {
-    return +(this.getAttribute('height') || '0');
-  }
-
-  set height(val: number) {
-    this.setAttribute('height', val.toString());
+    return this.getBoundingClientRect().height;
   }
 
   /** Mirrors the highlight_color attribute. */
@@ -330,16 +345,16 @@ export class PlotSummarySk extends ElementSk {
   set hidden(val: boolean) {
     super.hidden = val;
     // Update the attribute to the child elements as well.
-    this.overlayCanvas!.hidden = val;
-    this.plotElement!.hidden = val;
+    this.overlayCanvas.value!.hidden = val;
+    this.plotElement.value!.hidden = val;
   }
 
   // Converts an event to a specific point
   private eventToCanvasPt(e: MousePosition) {
-    const clientRect = this.overlayCtx!.canvas.getBoundingClientRect();
+    const clientRect = this.overlayCanvas.value!.getBoundingClientRect();
     return {
-      x: (e.clientX - clientRect.left) * this.scale,
-      y: (e.clientY - clientRect.top) * this.scale,
+      x: e.clientX - clientRect!.left,
+      y: e.clientY - clientRect!.top,
     };
   }
 

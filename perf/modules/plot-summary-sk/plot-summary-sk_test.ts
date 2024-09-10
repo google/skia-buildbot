@@ -25,7 +25,7 @@ describe('plot-summary-sk', () => {
       });
     });
 
-    it('Select an area', () => {
+    it('Select an area', async () => {
       const chartData: ChartData = {
         lines: {
           test: [
@@ -46,15 +46,18 @@ describe('plot-summary-sk', () => {
         start: 1,
         end: 9,
       };
-      element.width = 10;
-      element.DisplayChartData(chartData, true);
+      element.style.width = '10px';
+      element.style.display = 'inline-block';
+      element.requestUpdate();
+      await element.updateComplete;
+      await element.DisplayChartData(chartData, true);
       element.Select(3, 7);
 
       // Because of how d3scale works, we will not get the exact
       // values in the event
       const selectionRange = element['selectionRange'];
-      assert.isTrue(Math.abs(3 - Math.floor(selectionRange![0])) <= 1);
-      assert.isTrue(Math.abs(7 - Math.ceil(selectionRange![1])) <= 1);
+      assert.approximately(3, Math.floor(selectionRange![0]), 1);
+      assert.approximately(7, Math.floor(selectionRange![1]), 1);
     });
   });
 });

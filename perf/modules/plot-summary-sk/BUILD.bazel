@@ -12,7 +12,6 @@ sk_element(
     sk_element_deps = ["//perf/modules/plot-simple-sk"],
     ts_deps = [
         "//:node_modules/lit",
-        "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//:node_modules/@types/d3-scale",
         "//:node_modules/d3-scale",
@@ -31,7 +30,10 @@ sk_page(
     name = "plot-summary-sk-demo",
     html_file = "plot-summary-sk-demo.html",
     scss_entry_point = "plot-summary-sk-demo.scss",
-    sk_element_deps = [":plot-summary-sk"],
+    sk_element_deps = [
+        ":plot-summary-sk",
+        "//infra-sk/modules/theme-chooser-sk",
+    ],
     ts_deps = [
         "//infra-sk/modules:dom_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",

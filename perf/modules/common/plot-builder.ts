@@ -24,7 +24,7 @@ export interface ChartData {
 }
 
 export function DrawSummaryChart(
-  canvas: HTMLElement,
+  chart: google.visualization.LineChart | null,
   chartData: ChartData,
   width: number,
   height: number,
@@ -95,6 +95,5 @@ export function DrawSummaryChart(
   };
 
   const dataForChart = google.visualization.arrayToDataTable(rows);
-  const chart = new google.visualization.LineChart(canvas);
-  chart.draw(dataForChart, options);
+  chart?.draw(dataForChart, options);
 }
