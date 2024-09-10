@@ -635,6 +635,7 @@ export class ExploreSimpleSk extends ElementSk {
           name=summary
           @change=${ele.summaryChangeHandler}
           ?checked=${ele._state.summary}
+          ?hidden=${ele._state.plotSummary}
           label='Summary'
           title='Toggle the presence of the summary pane.'>
         </checkbox-sk>
