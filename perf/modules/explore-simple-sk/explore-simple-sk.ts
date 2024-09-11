@@ -2836,6 +2836,13 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
+
+    // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
+    // the removeAll button from "remove all" or "X" will call invoke removeAll()
+    // with skipHistory = false, so state should be updated.
+    this._state.autoRefresh = false;
+    this.autoRefreshChanged();
+
     this._render();
     if (!skipHistory) {
       this.clearSelectedState();
