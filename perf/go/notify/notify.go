@@ -217,7 +217,6 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 	var notificationDataProvider NotificationDataProvider
 	switch cfg.NotificationDataProvider {
 	case "":
-	default:
 		notificationDataProvider = newDefaultNotificationProvider(formatter)
 	}
 

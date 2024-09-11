@@ -20,21 +20,28 @@ type defaultNotificationDataProvider struct {
 }
 
 func (prov *defaultNotificationDataProvider) GetNotificationDataRegressionFound(ctx context.Context, metadata common.RegressionMetadata) (*common.NotificationData, error) {
-	body, subject, err := prov.formatter.FormatNewRegression(
-		ctx,
-		metadata.CurrentCommit,
-		metadata.PreviousCommit,
-		metadata.AlertConfig,
-		metadata.Cl,
-		metadata.InstanceUrl,
-		metadata.Frame)
-	if err != nil {
-		return nil, err
+	if prov.formatter != nil {
+		body, subject, err := prov.formatter.FormatNewRegression(
+			ctx,
+			metadata.CurrentCommit,
+			metadata.PreviousCommit,
+			metadata.AlertConfig,
+			metadata.Cl,
+			metadata.InstanceUrl,
+			metadata.Frame)
+		if err != nil {
+			return nil, err
+		}
+
+		return &common.NotificationData{
+			Body:    body,
+			Subject: subject,
+		}, nil
 	}
 
 	return &common.NotificationData{
-		Body:    body,
-		Subject: subject,
+		Body:    "",
+		Subject: "",
 	}, nil
 }
 
