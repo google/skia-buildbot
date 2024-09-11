@@ -3857,7 +3857,7 @@ func TestMatchingCLTracesStatement_ValidInputs_Success(t *testing.T) {
 	}, false)
 	require.NoError(t, err)
 	assert.Equal(t, `MatchingTraces AS (
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)
 ),`, statement)
 
 	statement, err = matchingCLTracesStatement(paramtools.ParamSet{
@@ -3879,7 +3879,7 @@ MatchingTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U1
 	INTERSECT
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)
 ),
 `, statement)
 
@@ -3902,7 +3902,7 @@ MatchingTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U1
 	INTERSECT
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule IS NOT NULL
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule IS NOT NULL)
 ),
 `, statement)
 }

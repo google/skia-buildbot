@@ -2476,11 +2476,11 @@ func matchingCLTracesStatement(ps paramtools.ParamSet, includeIgnored bool) (str
 	if corpus != sql.Sanitize(corpus) {
 		return "", skerr.Fmt("Invalid corpus: %q", corpus)
 	}
-	corpusStatement := `SELECT trace_id FROM Traces WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule `
+	corpusStatement := `SELECT trace_id FROM Traces WHERE corpus = '` + corpus + `' AND (matches_any_ignore_rule `
 	if includeIgnored {
-		corpusStatement += "IS NOT NULL"
+		corpusStatement += "IS NOT NULL)"
 	} else {
-		corpusStatement += "= FALSE"
+		corpusStatement += "= FALSE OR matches_any_ignore_rule is NULL)"
 	}
 	if len(ps) == 1 {
 		return "MatchingTraces AS (\n\t" + corpusStatement + "\n),", nil
