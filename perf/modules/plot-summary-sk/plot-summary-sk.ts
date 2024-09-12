@@ -17,7 +17,11 @@ import { load } from '@google-web-components/google-chart/loader';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import '@google-web-components/google-chart/';
-import { ChartData, DrawSummaryChart } from '../common/plot-builder';
+import {
+  ChartData,
+  DrawSummaryChart,
+  chartLoadPromise,
+} from '../common/plot-builder';
 
 const ZOOM_RECT_COLOR = '#0007';
 
@@ -51,12 +55,8 @@ export class PlotSummarySk extends LitElement {
   constructor() {
     super();
 
-    this.loadPromise = load({ packages: ['corechart'] });
     this.addEventListeners();
   }
-
-  // The promise to wait for the google chart lib is loaded.
-  private loadPromise: Promise<void>;
 
   get overlayCtx() {
     return this.overlayCanvas.value?.getContext('2d');
@@ -157,7 +157,7 @@ export class PlotSummarySk extends LitElement {
   }
 
   private async drawChart() {
-    await this.loadPromise;
+    await chartLoadPromise;
     this.lineChart = new google.visualization.LineChart(
       this.plotElement.value!
     );
@@ -214,7 +214,7 @@ export class PlotSummarySk extends LitElement {
   public async DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
     this.currentChartData = chartData;
     this.isCommitScale = isCommitScale;
-    await this.loadPromise;
+    await chartLoadPromise;
     await this._renderChart();
   }
 

@@ -1,7 +1,10 @@
 // Contains functions to create plot data.
 
 import '@google-web-components/google-chart/';
+import { load } from '@google-web-components/google-chart/loader';
 import { Anomaly } from '../json';
+
+export const chartLoadPromise = load({ packages: ['corechart'] });
 
 export interface DataPoint {
   x: number | Date;
