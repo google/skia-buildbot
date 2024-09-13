@@ -163,6 +163,12 @@ export class ExploreMultiSk extends ElementSk {
         this.addGraphsToCurrentPage();
 
         this.updateButtons();
+
+        document.addEventListener('keydown', (e) => {
+          this.exploreElements.forEach((exp) => {
+            exp.keyDown(e);
+          });
+        });
       }
     );
 
