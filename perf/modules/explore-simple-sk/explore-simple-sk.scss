@@ -25,6 +25,10 @@ explore-simple-sk {
     }
   }
 
+  #settings-button {
+    font-family: 'Material Icons';
+  }
+
   #commits,
   #paramset {
     display: inline-block;
@@ -145,6 +149,7 @@ explore-simple-sk {
     align-items: center;
     gap: 8px;
     height: 90px;
+    flex-grow: 1;
 
     button,
     checkbox-sk {

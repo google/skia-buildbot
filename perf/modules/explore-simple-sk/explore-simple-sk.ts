@@ -5,6 +5,8 @@
  * Element for exploring data.
  */
 import { html } from 'lit/html.js';
+import { MdDialog } from '@material/web/dialog/dialog.js';
+import { MdSwitch } from '@material/web/switch/switch.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
@@ -17,6 +19,12 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
+
+import '@material/web/button/outlined-button.js';
+import '@material/web/icon/icon.js';
+import '@material/web/iconbutton/outlined-icon-button.js';
+import '@material/web/switch/switch.js';
+import '@material/web/dialog/dialog.js';
 
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
@@ -567,6 +575,9 @@ export class ExploreSimpleSk extends ElementSk {
 
   private showRemoveAll = true;
 
+  // material UI
+  private settingsDialog: MdDialog | null = null;
+
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
@@ -584,39 +595,25 @@ export class ExploreSimpleSk extends ElementSk {
         Query
       </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
-        <button
-        id=query_highlighted
-        ?hidden=${!(
-          ele.plot &&
-          ele.plot!.highlight.length &&
-          ele.useTestPicker
-        )}
-        @click=${ele.queryHighlighted}>
+        <md-outlined-button
+          ?disabled=${!(
+            ele.plot &&
+            ele.plot!.highlight.length &&
+            ele.useTestPicker
+          )}
+          @click=${ele.queryHighlighted}>
           Query Highlighted
-        </button>
-
-        <button
-          ?hidden=${!ele.showRemoveAll}
-          @click=${() => ele.removeAll(false)}
-          title='Remove all the traces.'>
-          Remove All
-        </button>
-
-        <button
+        </md-outlined-button>
+        <md-outlined-button
           @click=${ele.removeHighlighted}
-          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-          title='Remove all the highlighted traces.'>
+          ?disabled=${!(ele.plot && ele.plot!.highlight.length)}>
           Remove Highlighted
-        </button>
-
-        <button
+        </md-outlined-button>
+        <md-outlined-button
           @click=${ele.highlightedOnly}
-          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-          title='Remove all but the highlighted traces.'
-          id=highlighted-only
-          >
+          ?disabled=${!(ele.plot && ele.plot!.highlight.length)}>
           Highlighted Only
-        </button>
+        </md-outlined-button>
 
         <span
           title='Number of commits skipped between each point displayed.'
@@ -624,81 +621,39 @@ export class ExploreSimpleSk extends ElementSk {
           id=skip>
             ${ele._dataframe.skip}
         </span>
-        <checkbox-sk
-          name=zero
-          @change=${ele.zeroChangeHandler}
-          ?checked=${ele._state.showZero}
-          label='Zero'
-          title='Toggle the presence of the zero line.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=summary
-          @change=${ele.summaryChangeHandler}
-          ?checked=${ele._state.summary}
-          ?hidden=${ele._state.plotSummary}
-          label='Summary'
-          title='Toggle the presence of the summary pane.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=dots
-          @change=${ele.toggleDotsHandler}
-          ?checked=${ele._state.dots}
-          label='Dots'
-          title='Toggle the presence of dots at each commit.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.autoRefreshHandler}
-          ?checked=${ele._state.autoRefresh}
-          label='Auto-refresh'
-          title='Auto-refresh the data displayed in the graph.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.enableIncrementalDataFrameFetchHandler}
-          ?checked=${ele._state._incremental}
-          label='Incremental data fetch'
-          title='Only fetch deltas when panning left or right.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.enableCommitLabel}
-          ?checked=${ele._state.labelMode === LabelMode.CommitPosition}
-          label='Commit Label'
-          title='Show Commit Numbers on x axis.'
-          ?hidden=${!window.perf.fetch_chrome_perf_anomalies}>
-        </checkbox-sk>
+
+        <md-outlined-button
+          ?hidden=${!ele.showRemoveAll}
+          @click=${() => ele.removeAll(false)}>
+          Remove All
+        </md-outlined-button>
         <div
           id=calcButtons
           class="hide_on_query_only">
-          <button
-            @click=${() => ele.applyFuncToTraces('norm')}
-            title='Apply norm() to all the traces.'>
+          <md-outlined-button
+            @click=${() => ele.applyFuncToTraces('norm')}>
             Normalize
-          </button>
-          <button
-            @click=${() => ele.applyFuncToTraces('scale_by_avg')}
-            title='Apply scale_by_avg() to all the traces.'>
+          </md-outlined-button>
+          <md-outlined-button
+            @click=${() => ele.applyFuncToTraces('scale_by_avg')}>
             Scale By Avg
-          </button>
-          <button
+          </md-outlined-button>
+          <md-outlined-button
             @click=${() => {
               ele.applyFuncToTraces('iqrr');
-            }}
-            title='Apply iqrr() to all the traces.'>
+            }}>
             Remove outliers
-          </button>
-          <button
-            @click=${ele.csv}
-            title='Download all displayed data as a CSV file.'>
+          </md-outlined-button>
+          <md-outlined-button
+            @click=${ele.csv}>
             CSV
-          </button>
+          </md-outlined-button>
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
-          <button
+          <md-outlined-button
             ?hidden=${!window.perf.fetch_chrome_perf_anomalies}
             @click=${ele.openBisect}>
             Bisect
-          </button>
+          </md-outlined-button>
           <div id="zoomPan">
             <h3>Zoom/Pan:</h3>
             <div id="btnContainer">
@@ -729,13 +684,96 @@ export class ExploreSimpleSk extends ElementSk {
             </div>
           </div>
         </div>
-        <button
-          id="removeAll"
-          @click=${() => ele.removeAll(false)}
-          title='Remove all the traces.'>
-          <close-icon-sk></close-icon-sk>
-        </button>
       </div>
+      <md-outlined-icon-button
+        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
+        @click=${ele.showSettingsDialog}>
+          <md-icon id="settings-button">settings</md-icon>
+      </md-outlined-icon-button>
+      <md-dialog
+        aria-label='Settings dialog'
+        id='settings-dialog'
+        <form id="form" slot="content" method="dialog">
+        </form>
+        <div slot="actions">
+          <ul style="list-style-type:none; padding-left: 0;">
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="commit-switch"
+                  ?selected=${ele._state.labelMode === LabelMode.CommitPosition}
+                  @change=${(e: InputEvent) =>
+                    ele.switchXAxis(e.target as MdSwitch)}></md-switch>
+                X-Axis as Commit Positions
+              </label>
+            <li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="dots-switch"
+                  ?selected=${ele._state!.dots}
+                  @change=${() => ele.toggleDotsHandler()}></md-switch>
+                Dots on graph
+              </label>
+            </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="zero-switch"
+                  ?selected=${ele._state.showZero}
+                  @change=${(e: InputEvent) =>
+                    ele.zeroChangeHandler(e.target as MdSwitch)}></md-switch>
+                Draw against "zero" line
+              </label>
+            </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="auto-refresh-switch"
+                  ?selected=${ele._state.autoRefresh}
+                  @change=${(e: InputEvent) =>
+                    ele.autoRefreshHandler(e.target as MdSwitch)}></md-switch>
+                Auto refresh data
+              </label>
+            </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="incremental-fetch-switch"
+                  ?selected=${ele._state._incremental}
+                  @change=${(e: InputEvent) =>
+                    ele.enableIncrementalDataFrameFetchHandler(
+                      e.target as MdSwitch
+                    )}></md-switch>
+                Only fetch delta when panning left/right
+              </label>
+            </li>
+            <li ?hidden=${ele._state.plotSummary}>
+              <label>
+                <md-switch
+                  form="form"
+                  id="summary-bar-switch"
+                  ?selected=${ele._state.summary}
+                  @change=${(e: InputEvent) =>
+                    ele.summaryChangeHandler(e.target as MdSwitch)}></md-switch>
+                Summary Bar at Top of Plot
+              </label>
+            </li>
+          </ul>
+        </div>
+      </md-dialog>
+      <button
+        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
+        id="removeAll"
+        @click=${() => ele.removeAll(false)}
+        title='Remove all the traces.'>
+        <close-icon-sk></close-icon-sk>
+      </button>
     </div>
 
     <graph-title-sk id=graphTitle></graph-title-sk>
@@ -1062,6 +1100,9 @@ export class ExploreSimpleSk extends ElementSk {
     );
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
 
+    // material UI stuff
+    this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
+
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     LoggedIn()
@@ -1101,6 +1142,34 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   render(): void {
+    this._render();
+  }
+
+  showSettingsDialog(event: Event) {
+    this.settingsDialog!.show();
+  }
+
+  switchXAxis(target: MdSwitch | null) {
+    if (target!.selected) {
+      this._state.labelMode = LabelMode.CommitPosition;
+    } else {
+      this._state.labelMode = LabelMode.Date;
+    }
+
+    const anomalyMap = this.plot!.anomalyDataMap;
+    this.plot!.removeAll();
+    this.AddPlotLines(
+      this._dataframe.traceset,
+      this.getLabels(this._dataframe.header!)
+    );
+    this.plot!.anomalyDataMap = anomalyMap;
+    this._stateHasChanged();
+  }
+
+  private summaryChangeHandler(target: MdSwitch | null) {
+    this._state.summary = target!.selected;
+    this._userSpecifiedCustomizationParams.add('summary');
+    this._stateHasChanged();
     this._render();
   }
 
@@ -2278,17 +2347,10 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
-  private zeroChangeHandler(e: MouseEvent) {
-    this._state.showZero = (e.target! as HTMLInputElement).checked;
+  private zeroChangeHandler(target: MdSwitch | null) {
+    this._state.showZero = target!.selected;
     this._stateHasChanged();
     this.zeroChanged();
-  }
-
-  private summaryChangeHandler(e: MouseEvent) {
-    this._state.summary = (e.target! as HTMLInputElement).checked;
-    this._userSpecifiedCustomizationParams.add('summary');
-    this._stateHasChanged();
-    this._render();
   }
 
   private toggleDotsHandler() {
@@ -2310,8 +2372,8 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private autoRefreshHandler(e: MouseEvent) {
-    this._state.autoRefresh = (e.target! as HTMLInputElement).checked;
+  private autoRefreshHandler(target: MdSwitch | null) {
+    this._state.autoRefresh = target!.selected;
     this._stateHasChanged();
     this.autoRefreshChanged();
   }
@@ -2341,27 +2403,8 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
-  private enableIncrementalDataFrameFetchHandler(e: MouseEvent) {
-    this._state._incremental = (e.target! as HTMLInputElement).checked;
-    this._stateHasChanged();
-  }
-
-  private enableCommitLabel(e: MouseEvent) {
-    const isCommitLabelEnabled = (e.target! as HTMLInputElement).checked;
-    if (isCommitLabelEnabled) {
-      this._state.labelMode = LabelMode.CommitPosition;
-    } else {
-      this._state.labelMode = LabelMode.Date;
-    }
-    // Since we are only changing the labels, keep track of the anomaly map
-    // to add to the plot after it is refreshed.
-    const anomalyMap = this.plot!.anomalyDataMap;
-    this.plot!.removeAll();
-    this.AddPlotLines(
-      this._dataframe.traceset,
-      this.getLabels(this._dataframe.header!)
-    );
-    this.plot!.anomalyDataMap = anomalyMap;
+  private enableIncrementalDataFrameFetchHandler(target: MdSwitch | null) {
+    this._state._incremental = target!.selected;
     this._stateHasChanged();
   }
 

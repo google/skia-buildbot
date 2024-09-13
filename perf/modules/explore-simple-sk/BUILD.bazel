@@ -61,6 +61,8 @@ sk_element(
         "//perf/modules/plot-simple-sk:ticks_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/common:plot-util_ts_lib",
+        "//:node_modules/@material/web",
+        "//:node_modules/lit-html",  # keep
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
