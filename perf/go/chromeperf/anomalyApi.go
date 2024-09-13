@@ -198,7 +198,7 @@ type anomalyApiClientImpl struct {
 
 // NewAnomalyApiClient returns a new AnomalyApiClient instance.
 func NewAnomalyApiClient(ctx context.Context) (AnomalyApiClient, error) {
-	cpClient, err := newChromePerfClient(ctx, "")
+	cpClient, err := newChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}

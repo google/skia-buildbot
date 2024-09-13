@@ -28,6 +28,7 @@ go_test(
     srcs = [
         "alertGroupApi_test.go",
         "anomalyApi_test.go",
+        "chromeperfClient_test.go",
     ],
     embed = [":chromeperf"],
     deps = [

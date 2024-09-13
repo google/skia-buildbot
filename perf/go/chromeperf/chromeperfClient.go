@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	chromePerfBaseUrl = "https://skia-bridge-dot-chromeperf.appspot.com/"
+	chromePerfBaseUrl       = "https://skia-bridge-dot-chromeperf.appspot.com"
+	chromePerfLegacyBaseUrl = "https://chromeperf.appspot.com"
 )
 
 // chromePerfClient defines an interface for accessing chromeperf apis.
@@ -39,28 +40,27 @@ type chromePerfClient interface {
 type chromePerfClientImpl struct {
 	httpClient  *http.Client
 	urlOverride string
+	// If true, requests are sent to chromeperf without skia-bridge
+	directCallLegacy bool
 }
 
 // NewChromePerfClient creates a new instance of ChromePerfClient.
-func newChromePerfClient(ctx context.Context, urlOverride string) (chromePerfClient, error) {
+func newChromePerfClient(ctx context.Context, urlOverride string, directCall bool) (chromePerfClient, error) {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf client.")
 	}
 	return &chromePerfClientImpl{
-		httpClient:  httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(),
-		urlOverride: urlOverride,
+		httpClient:       httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(),
+		urlOverride:      urlOverride,
+		directCallLegacy: directCall,
 	}, nil
 }
 
 // sendGetRequest sends a GET request to chromeperf api with the specified parameters.
 func (client *chromePerfClientImpl) sendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error {
-	var targetUrl string
-	if client.urlOverride != "" {
-		targetUrl = client.urlOverride
-	} else {
-		targetUrl = fmt.Sprintf("%s/%s/%s?%s", chromePerfBaseUrl, apiName, functionName, queryParams.Encode())
-	}
+	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
+	targetUrl = fmt.Sprintf("%s?%s", targetUrl, queryParams.Encode())
 
 	httpResponse, err := httputils.GetWithContext(ctx, client.httpClient, targetUrl)
 	if err != nil {
@@ -82,12 +82,7 @@ func (client *chromePerfClientImpl) sendGetRequest(ctx context.Context, apiName 
 
 // sendPostRequest sends a POST request to chromeperf api with the specified parameters.
 func (client *chromePerfClientImpl) sendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error {
-	var targetUrl string
-	if len(client.urlOverride) > 0 {
-		targetUrl = client.urlOverride
-	} else {
-		targetUrl = fmt.Sprintf("%s/%s/%s", chromePerfBaseUrl, apiName, functionName)
-	}
+	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
 
 	requestBodyJSONStr, err := json.Marshal(requestObj)
 	if err != nil {
@@ -111,4 +106,15 @@ func (client *chromePerfClientImpl) sendPostRequest(ctx context.Context, apiName
 	}
 
 	return nil
+}
+
+func generateTargetUrl(urlOverride string, directCallLegacy bool, apiName string, functionName string) string {
+	if len(urlOverride) > 0 {
+		return urlOverride
+	}
+
+	if directCallLegacy {
+		return fmt.Sprintf("%s/%s", chromePerfLegacyBaseUrl, apiName)
+	}
+	return fmt.Sprintf("%s/%s/%s", chromePerfBaseUrl, apiName, functionName)
 }

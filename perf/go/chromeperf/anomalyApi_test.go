@@ -23,7 +23,7 @@ func TestSendRegression_RequestIsValid_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient)
 	response, err := anomalyClient.ReportRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
@@ -39,7 +39,7 @@ func TestSendRegression_ServerReturnsError_ReturnsError(t *testing.T) {
 
 	defer ts.Close()
 	ctx := context.Background()
-	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient)
 	response, err := anomalyClient.ReportRegression(ctx, "/some/path", 1, 10, "proj", false, "bot", false, 5, 10)
@@ -141,7 +141,7 @@ func TestGetAnomaly_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient)
 	params, anomalyResp, err := anomalyClient.GetAnomalyFromUrlSafeKey(ctx, "someKey")
@@ -182,7 +182,7 @@ func TestGetAnomaly_InvalidChar_Success(t *testing.T) {
 	}))
 
 	ctx := context.Background()
-	cpClient, err := newChromePerfClient(context.Background(), ts.URL)
+	cpClient, err := newChromePerfClient(context.Background(), ts.URL, false)
 	assert.Nil(t, err, "No error expected when creating a new client.")
 	anomalyClient := newAnomalyApiClient(cpClient)
 

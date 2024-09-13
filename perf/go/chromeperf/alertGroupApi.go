@@ -144,7 +144,7 @@ func addToSetIfNotExists(set util.StringSet, value string, parsedInfo map[string
 
 // NewAlertGroupApiClient returns a new instance of AlertGroupApiClient
 func NewAlertGroupApiClient(ctx context.Context) (AlertGroupApiClient, error) {
-	cpClient, err := newChromePerfClient(ctx, "")
+	cpClient, err := newChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}
