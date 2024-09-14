@@ -5,7 +5,6 @@ ts_library(
     srcs = ["plot-builder.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
         "//perf/modules/json:index_ts_lib",
     ],

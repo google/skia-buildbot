@@ -1,10 +1,6 @@
 // Contains functions to create plot data.
 
-import '@google-web-components/google-chart/';
-import { load } from '@google-web-components/google-chart/loader';
 import { Anomaly } from '../json';
-
-export const chartLoadPromise = load({ packages: ['corechart'] });
 
 export interface DataPoint {
   x: number | Date;
@@ -26,13 +22,7 @@ export interface ChartData {
   end: number | Date;
 }
 
-export function DrawSummaryChart(
-  chart: google.visualization.LineChart | null,
-  chartData: ChartData,
-  width: number,
-  height: number,
-  style: CSSStyleDeclaration
-) {
+export function ConvertData(chartData: ChartData) {
   /*
     The data in the plot needs to be in the following format.
     [
@@ -61,12 +51,16 @@ export function DrawSummaryChart(
 
     rows[i + 1] = row;
   }
+  return rows;
+}
 
+export function SummaryChartOptions(
+  style: CSSStyleDeclaration,
+  chartData: ChartData
+): google.visualization.LineChartOptions {
   const format =
     chartData.chartAxisFormat === ChartAxisFormat.Commit ? '#' : 'MMM dd, yy';
-  const options: google.visualization.LineChartOptions = {
-    width: width,
-    height: height,
+  return {
     curveType: 'function',
     hAxis: {
       textPosition: 'out',
@@ -96,7 +90,4 @@ export function DrawSummaryChart(
     backgroundColor: style.backgroundColor,
     colors: [style.color],
   };
-
-  const dataForChart = google.visualization.arrayToDataTable(rows);
-  chart?.draw(dataForChart, options);
 }

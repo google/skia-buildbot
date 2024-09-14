@@ -50,7 +50,9 @@ describe('plot-summary-sk', () => {
       element.style.display = 'inline-block';
       element.requestUpdate();
       await element.updateComplete;
-      await element.DisplayChartData(chartData, true);
+
+      element.DisplayChartData(chartData, true);
+      await element.updateComplete;
       element.Select(3, 7);
 
       // Because of how d3scale works, we will not get the exact

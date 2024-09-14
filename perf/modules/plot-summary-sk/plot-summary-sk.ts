@@ -8,19 +8,19 @@
  *
  * @example
  */
+import '@google-web-components/google-chart';
+import { GoogleChart } from '@google-web-components/google-chart';
+
 import { html, css } from 'lit';
 import { LitElement, PropertyValues } from 'lit';
 import { ref, Ref, createRef } from 'lit/directives/ref.js';
-import { until } from 'lit/directives/until.js';
 import * as d3Scale from 'd3-scale';
-import { load } from '@google-web-components/google-chart/loader';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
-import '@google-web-components/google-chart/';
 import {
   ChartData,
-  DrawSummaryChart,
-  chartLoadPromise,
+  ConvertData,
+  SummaryChartOptions,
 } from '../common/plot-builder';
 
 const ZOOM_RECT_COLOR = '#0007';
@@ -94,22 +94,18 @@ export class PlotSummarySk extends LitElement {
   private currentMousePosition: MousePosition | null = null;
 
   // The div element that will host the plot on the summary.
-  private plotElement: Ref<HTMLElement> = createRef();
+  private plotElement: Ref<GoogleChart> = createRef();
 
   // The canvas element that is used for the selection overlay.
   private overlayCanvas: Ref<HTMLCanvasElement> = createRef();
-
-  // The chart element that is initialized later.
-  private lineChart: google.visualization.LineChart | null = null;
 
   // Keeps a track of the current chart data being displayed.
   private currentChartData: ChartData | null = null;
 
   protected render() {
     return html`
-      <div ${ref(this.plotElement)} class="plot" style="transform-origin: 0 0;">
-        ${until(this.drawChart())}
-      </div>
+      <google-chart ${ref(this.plotElement)} class="plot" type="line">
+      </google-chart>
       <canvas
         ${ref(this.overlayCanvas)}
         class="overlay"
@@ -123,6 +119,7 @@ export class PlotSummarySk extends LitElement {
       (entries: ResizeObserverEntry[]) => {
         entries.forEach((entry) => {
           // The google chart needs to redraw when it is resized.
+          this.plotElement.value?.redraw();
           this.requestUpdate();
         });
       }
@@ -156,43 +153,6 @@ export class PlotSummarySk extends LitElement {
     requestAnimationFrame(() => this.raf());
   }
 
-  private async drawChart() {
-    await chartLoadPromise;
-    this.lineChart = new google.visualization.LineChart(
-      this.plotElement.value!
-    );
-
-    await this._renderChart();
-  }
-
-  private async _renderChart() {
-    await this.updateComplete;
-
-    if (this.isCommitScale) {
-      this.commitsStart = this.currentChartData!.start as number;
-      this.commitsEnd = this.currentChartData!.end as number;
-      this.valuesRangeCommit = d3Scale
-        .scaleLinear()
-        .domain([0, this.width])
-        .range([this.commitsStart, this.commitsEnd]);
-    } else {
-      this.dateStart = this.currentChartData!.start as Date;
-      this.dateEnd = this.currentChartData!.end as Date;
-      this.valuesRangeDate = d3Scale
-        .scaleLinear()
-        .domain([0, this.width])
-        .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
-    }
-
-    DrawSummaryChart(
-      this.lineChart,
-      this.currentChartData!,
-      this.width,
-      this.height,
-      getComputedStyle(this)
-    );
-  }
-
   // Select the provided range on the plot-summary.
   public Select(valueStart: number, valuesEnd: number | Date) {
     if (this.isCommitScale) {
@@ -211,11 +171,32 @@ export class PlotSummarySk extends LitElement {
   }
 
   // Display the chart data on the plot.
-  public async DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
+  public DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
     this.currentChartData = chartData;
     this.isCommitScale = isCommitScale;
-    await chartLoadPromise;
-    await this._renderChart();
+
+    if (this.isCommitScale) {
+      this.commitsStart = this.currentChartData!.start as number;
+      this.commitsEnd = this.currentChartData!.end as number;
+      this.valuesRangeCommit = d3Scale
+        .scaleLinear()
+        .domain([0, this.width])
+        .range([this.commitsStart, this.commitsEnd]);
+    } else {
+      this.dateStart = this.currentChartData!.start as Date;
+      this.dateEnd = this.currentChartData!.end as Date;
+      this.valuesRangeDate = d3Scale
+        .scaleLinear()
+        .domain([0, this.width])
+        .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
+    }
+
+    this.plotElement.value!.data = ConvertData(chartData);
+    this.plotElement.value!.options = SummaryChartOptions(
+      getComputedStyle(this),
+      chartData
+    );
+    this.requestUpdate();
   }
 
   // Clear the current selection.
@@ -305,6 +286,13 @@ export class PlotSummarySk extends LitElement {
   private addEventListeners(): void {
     // If the user toggles the theme to/from darkmode then redraw.
     document.addEventListener('theme-chooser-toggle', () => {
+      // Update the options to trigger the redraw.
+      if (this.plotElement.value && this.currentChartData) {
+        this.plotElement.value!.options = SummaryChartOptions(
+          getComputedStyle(this),
+          this.currentChartData!
+        );
+      }
       this.requestUpdate();
     });
     this.addEventListener('mousedown', this.mouseDownListener);
