@@ -88,10 +88,10 @@ describe('ingest-file-links-sk', () => {
       await element.load(validCommitID, validTraceID);
       const linkElements = $<HTMLLinkElement>('a', element);
       assert.equal(2, linkElements.length);
-      assert.include(linkElements[0].textContent, 'Benchmark Config');
-      assert.include(linkElements[1].textContent, 'Perfetto Results');
-      assert.include(linkElements[0].href, 'https://skia.org');
-      assert.include(linkElements[1].href, 'https://perfetto.results.org');
+      assert.equal(linkElements[0].textContent, 'Benchmark Config');
+      assert.equal(linkElements[1].textContent, 'Perfetto Results');
+      assert.equal(linkElements[0].href, 'https://skia.org/');
+      assert.equal(linkElements[1].href, 'https://perfetto.results.org/');
     });
   });
 });

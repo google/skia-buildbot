@@ -17,9 +17,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 
 function isUrl(link: string): boolean {
-  // filter out links from markdown like [benchmark config](foo.com)
-  // the regex will convert [benchmark config](foo.com) to foo.com
-  link = String(link).replace(/\[.*?\]\((.*?)\)/gm, '$1');
   try {
     // eslint-disable-next-line no-new
     new URL(link);
@@ -28,6 +25,13 @@ function isUrl(link: string): boolean {
     console.warn((e as Error).message);
     return false;
   }
+}
+
+// filter out links from markdown like [benchmark config](foo.com)
+// the regex will convert [benchmark config](foo.com) to foo.com
+// and will leave other strings unaffected
+function removeMarkdown(link: string): string {
+  return String(link).replace(/\[.*?\]\((.*?)\)/gm, '$1');
 }
 
 export class IngestFileLinksSk extends ElementSk {
@@ -42,7 +46,7 @@ export class IngestFileLinksSk extends ElementSk {
   private static displayLinks = (ele: IngestFileLinksSk): TemplateResult[] => {
     const keys = Object.keys(ele.links || {}).sort();
     const getHtml = (key: string): TemplateResult => {
-      const link = ele.links![key];
+      const link = removeMarkdown(ele.links![key]);
       if (isUrl(link)) {
         return html`<li><a href="${link}">${key}</a></li>`;
       }
