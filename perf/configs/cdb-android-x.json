@@ -45,8 +45,8 @@
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-android-x-production-restore",
-      "subscription": "perf-ingestion-android-x-production-restore-prod",
+      "topic": "perf-ingestion-android-x-production",
+      "subscription": "perf-ingestion-android-x-production-prod",
       "sources": [
         "gs://skia-perf/android-master-ingest"
       ],
