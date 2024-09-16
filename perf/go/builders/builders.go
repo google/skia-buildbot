@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/file/gcssource"
 	"go.skia.org/infra/perf/go/filestore/gcs"
+	localfilestore "go.skia.org/infra/perf/go/filestore/local"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/graphsshortcut/graphsshortcutstore"
@@ -258,7 +259,13 @@ func NewSourceFromConfig(ctx context.Context, instanceConfig *config.InstanceCon
 // provides access to ingested files.
 //
 // If local is true then we aren't running in production.
-func NewIngestedFSFromConfig(ctx context.Context, _ *config.InstanceConfig, local bool) (fs.FS, error) {
+func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig, local bool) (fs.FS, error) {
+	switch cfg.IngestionConfig.SourceConfig.SourceType {
+	case config.GCSSourceType:
+		return gcs.New(ctx, local)
+	case config.DirSourceType:
+		return localfilestore.New(cfg.IngestionConfig.SourceConfig.Sources[0])
+	}
 	// We currently default to Google Cloud Storage, but Config options could be
 	// added to use other systems, such as S3.
 	return gcs.New(ctx, local)

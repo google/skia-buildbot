@@ -231,15 +231,20 @@ func (api graphApi) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer util.Close(reader)
-	res := map[string]interface{}{}
-	if err := json.NewDecoder(reader).Decode(&res); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON source file", http.StatusInternalServerError)
+	formattedData, err := format.Parse(reader)
+	if err != nil {
+		httputils.ReportError(w, err, "Error parsing source file format.", http.StatusInternalServerError)
 		return
 	}
+
+	pointLinks := formattedData.GetLinksForMeasurement(dr.TraceID)
+
 	if !includeResults {
-		delete(res, "results")
+		formattedData.Results = nil
 	}
-	b, err := json.MarshalIndent(res, "", "  ")
+
+	formattedData.Links = pointLinks
+	b, err := json.MarshalIndent(formattedData, "", "  ")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to re-encode JSON source file", http.StatusInternalServerError)
 		return

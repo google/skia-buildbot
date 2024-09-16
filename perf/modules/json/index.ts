@@ -449,6 +449,7 @@ export namespace ingest {
 	export interface SingleMeasurement {
 		value: string;
 		measurement: number;
+		links?: { [key: string]: string } | null;
 	}
 }
 

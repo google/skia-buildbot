@@ -86,6 +86,14 @@
         },
         "measurement": {
           "type": "number"
+        },
+        "links": {
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
+          "type": "object"
         }
       },
       "additionalProperties": false,

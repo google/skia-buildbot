@@ -29,6 +29,7 @@ go_library(
         "//perf/go/file/dirsource",
         "//perf/go/file/gcssource",
         "//perf/go/filestore/gcs",
+        "//perf/go/filestore/local",
         "//perf/go/git",
         "//perf/go/graphsshortcut",
         "//perf/go/graphsshortcut/graphsshortcutstore",
