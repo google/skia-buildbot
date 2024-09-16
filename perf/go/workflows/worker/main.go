@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/workflows"
 	"go.skia.org/infra/perf/go/workflows/internal"
@@ -16,12 +17,17 @@ var (
 	// Run the following command to portforward Temporal service so the client can connect to it.
 	// kubectl port-forward service/temporal --address 0.0.0.0 -n temporal 7233:7233
 	hostPort  = flag.String("hostPort", "localhost:7233", "Host the worker connects to.")
+	promPort  = flag.String("promPort", ":8000", "Prometheus port that it listens on.")
 	namespace = flag.String("namespace", "default", "The namespace the worker registered to.")
 	taskQueue = flag.String("taskQueue", "localhost.dev", "Task queue name registered to worker services.")
 )
 
 func main() {
 	flag.Parse()
+	common.InitWithMust(
+		"grouping-worker",
+		common.PrometheusOpt(promPort),
+	)
 
 	// The client is a heavyweight object that should be created once per process.
 	c, err := client.Dial(client.Options{
