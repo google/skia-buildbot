@@ -76,5 +76,22 @@ describe('ingest-file-links-sk', () => {
       await element.load(validCommitID, validTraceID);
       assert.isEmpty($<HTMLLinkElement>('a', element));
     });
+
+    it('markdown links are filtered to url and regular urls are unaffected', async () => {
+      fetchMock.post('/_/details/?results=false', () => ({
+        version: 1,
+        links: {
+          'Benchmark Config': '[Benchmark Config](https://skia.org)',
+          'Perfetto Results': 'https://perfetto.results.org',
+        },
+      }));
+      await element.load(validCommitID, validTraceID);
+      const linkElements = $<HTMLLinkElement>('a', element);
+      assert.equal(2, linkElements.length);
+      assert.include(linkElements[0].textContent, 'Benchmark Config');
+      assert.include(linkElements[1].textContent, 'Perfetto Results');
+      assert.include(linkElements[0].href, 'https://skia.org');
+      assert.include(linkElements[1].href, 'https://perfetto.results.org');
+    });
   });
 });

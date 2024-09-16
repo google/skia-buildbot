@@ -17,11 +17,15 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetailsRequest, CommitNumber, ingest } from '../json';
 
 function isUrl(link: string): boolean {
+  // filter out links from markdown like [benchmark config](foo.com)
+  // the regex will convert [benchmark config](foo.com) to foo.com
+  link = String(link).replace(/\[.*?\]\((.*?)\)/gm, '$1');
   try {
     // eslint-disable-next-line no-new
     new URL(link);
     return true;
   } catch (e) {
+    console.warn((e as Error).message);
     return false;
   }
 }
