@@ -77,7 +77,6 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//infra-sk/modules/uniform:uniform_ts_lib",
         "//shaders/modules/shadernode:index_ts_lib",
-        "//shaders/modules/sksl-constants:sksl-constants_ts_lib",
         "//shaders/modules/window:window_ts_lib",
         "//shaders/wasm_libs:canvaskit_types",  # keep
         "//:node_modules/@types/codemirror",

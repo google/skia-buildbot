@@ -5,6 +5,8 @@
     "module": "commonjs",
     "lib": ["DOM", "ES2017"],
     "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "strict": true,

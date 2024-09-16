@@ -13,7 +13,6 @@ import { define } from '../../../elements-sk/modules/define';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import * as SkSLConstants from '../sksl-constants/sksl-constants';
 
 import { Convert, DebugTrace } from '../debug-trace/debug-trace';
 import {
@@ -28,17 +27,7 @@ declare const SKIA_VERSION: string;
 
 // Define a new mode and mime-type for SkSL shaders. We follow the shader naming
 // convention found in CodeMirror.
-CodeMirror.defineMIME('x-shader/x-sksl', {
-  name: 'clike',
-  keywords: SkSLConstants.keywords,
-  types: SkSLConstants.types,
-  builtin: SkSLConstants.builtins,
-  blockKeywords: SkSLConstants.blockKeywords,
-  defKeywords: SkSLConstants.defKeywords,
-  typeFirstDefinitions: true,
-  atoms: SkSLConstants.atoms,
-  modeProps: { fold: ['brace', 'include'] },
-});
+CodeMirror.defineMIME('x-shader/x-sksl', { name: 'clike' });
 
 enum ErrorReporting {
   Yes = 1,
@@ -287,7 +276,7 @@ export class DebuggerAppSk extends ElementSk {
         reader.addEventListener('load', () => {
           try {
             this.loadJSONData(reader.result as string);
-          } catch (ex) {
+          } catch (_e) {
             this.codeMirror!.setValue('Unable to read JSON trace file.');
           }
         });
@@ -332,7 +321,7 @@ export class DebuggerAppSk extends ElementSk {
     this.codeMirror!.clearGutter('cm-breakpoints');
     this.player
       .getLineNumbersReached()
-      .forEach((timesReached: number, line: number) => {
+      .forEach((_timesReached: number, line: number) => {
         this.codeMirror!.setGutterMarker(
           line - 1,
           'cm-breakpoints',
