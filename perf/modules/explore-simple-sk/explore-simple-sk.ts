@@ -124,8 +124,6 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { join, timestampBounds } from '../dataframe';
-import { TryJob_Status } from '../../../autoroll/modules/rpc';
-import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import {
   TraceFormatter,
   GetTraceFormatter,
@@ -135,7 +133,7 @@ import {
   PlotSummarySk,
   PlotSummarySkSelectionEventDetails,
 } from '../plot-summary-sk/plot-summary-sk';
-import { ChartAxisFormat, ChartData, DataPoint } from '../common/plot-builder';
+import { ChartAxisFormat, ChartData } from '../common/plot-builder';
 import {
   CreateChartDataFromTraceSet,
   GetSelectionCommitIndicesFromColumnHeader,
@@ -975,7 +973,7 @@ export class ExploreSimpleSk extends ElementSk {
     </dialog>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
-      <button class="collapser" id="collapseButton" @click=${(e: Event) =>
+      <button class="collapser" id="collapseButton" @click=${(_e: Event) =>
         ele.toggleDetails()}>
       ${
         ele.navOpen
@@ -1145,7 +1143,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
   }
 
-  showSettingsDialog(event: Event) {
+  showSettingsDialog(_event: Event) {
     this.settingsDialog!.show();
   }
 
@@ -1614,7 +1612,6 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected(e: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
-    const totalCommits = this.fullDataFrame!.header!.length;
     let selectionIndices: number[];
     if (this.state.labelMode === LabelMode.Date) {
       const selectionStartDate = e.detail.valueStart as Date;
@@ -1845,9 +1842,23 @@ export class ExploreSimpleSk extends ElementSk {
     const paramset = ParamSet({});
     this.simpleParamset!.paramsets = [];
 
-    if (validKey(e.detail.name)) {
-      // Convert the trace id into a paramset to display.
-      const params: { [key: string]: string } = fromKey(e.detail.name);
+    // If the trace name is a function key like norm(,a=1,b=2,)
+    // extract the actual trace name ,a=1,b=1, from it to display
+    // the params and values on the paramset table
+    const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
+    const isFuncKey = e.detail.name.match(funcKeyRegex);
+
+    // Convert the trace id (if valid) into a paramset to display.
+    let tName = '';
+    if (isFuncKey) {
+      const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
+      tName = e.detail.name.match(keyRegex)![0];
+    } else if (validKey(e.detail.name)) {
+      tName = e.detail.name;
+    }
+
+    if (tName !== '') {
+      const params: { [key: string]: string } = fromKey(tName);
       Object.keys(params).forEach((key) => {
         paramset[key] = [params[key]];
       });
@@ -2323,7 +2334,7 @@ export class ExploreSimpleSk extends ElementSk {
     const switchToTab =
       body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      if (json == null) {
+      if (json === null || json === undefined) {
         errorMessage('Failed to find any matching traces.');
         return;
       }
@@ -2645,7 +2656,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private isEmptyMap(map: Object | null | undefined): boolean {
+  private isEmptyMap(map: object | null | undefined): boolean {
     return map === null || map === undefined || Object.keys(map).length === 0;
   }
 
@@ -3117,12 +3128,12 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private updateTitle() {
     const traceset = this.fullDataFrame?.traceset;
-    if (traceset == null) {
+    if (traceset === null || traceset === undefined) {
       return;
     }
 
     const params = this._defaults?.include_params;
-    if (params == null) {
+    if (params === null || params === undefined) {
       return;
     }
     const numTraces = Object.keys(traceset).length;
