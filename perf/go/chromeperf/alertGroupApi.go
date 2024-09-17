@@ -38,7 +38,7 @@ type AlertGroupApiClient interface {
 
 // alertGroupApiClientImpl implements AlertGroupApiClient.
 type alertGroupApiClientImpl struct {
-	chromeperfClient           chromePerfClient
+	chromeperfClient           ChromePerfClient
 	getAlertGroupDetailsCalled metrics2.Counter
 	getAlertGroupDetailsFailed metrics2.Counter
 }
@@ -52,7 +52,7 @@ func (client *alertGroupApiClientImpl) GetAlertGroupDetails(ctx context.Context,
 	client.getAlertGroupDetailsCalled.Inc(1)
 	// Call Chrome Perf API to fetch alert group details
 	alertgroupResponse := AlertGroupDetails{}
-	err := client.chromeperfClient.sendGetRequest(ctx, AlertGroupAPIName, DetailsFuncName, url.Values{"key": {groupKey}}, &alertgroupResponse)
+	err := client.chromeperfClient.SendGetRequest(ctx, AlertGroupAPIName, DetailsFuncName, url.Values{"key": {groupKey}}, &alertgroupResponse)
 	if err != nil {
 		client.getAlertGroupDetailsFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
@@ -144,7 +144,7 @@ func addToSetIfNotExists(set util.StringSet, value string, parsedInfo map[string
 
 // NewAlertGroupApiClient returns a new instance of AlertGroupApiClient
 func NewAlertGroupApiClient(ctx context.Context) (AlertGroupApiClient, error) {
-	cpClient, err := newChromePerfClient(ctx, "", false)
+	cpClient, err := NewChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func NewAlertGroupApiClient(ctx context.Context) (AlertGroupApiClient, error) {
 }
 
 // newAlertGroupApiClient returns a new instance of AlertGroupApiClient with the given chromeperf client
-func newAlertGroupApiClient(cpClient chromePerfClient) AlertGroupApiClient {
+func newAlertGroupApiClient(cpClient ChromePerfClient) AlertGroupApiClient {
 	return &alertGroupApiClientImpl{
 		chromeperfClient:           cpClient,
 		getAlertGroupDetailsCalled: metrics2.GetCounter("chrome_perf_get_alertgroup_details_called"),

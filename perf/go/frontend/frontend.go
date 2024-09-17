@@ -170,6 +170,8 @@ type Frontend struct {
 
 	anomalyApiClient chromeperf.AnomalyApiClient
 
+	chromeperfClient chromeperf.ChromePerfClient
+
 	urlProvider *urlprovider.URLProvider
 }
 
@@ -487,6 +489,11 @@ func (f *Frontend) initialize() {
 		f.alertGroupClient, err = chromeperf.NewAlertGroupApiClient(ctx)
 		if err != nil {
 			sklog.Fatal("Failed to build alert group client: %s", err)
+		}
+
+		f.chromeperfClient, err = chromeperf.NewChromePerfClient(ctx, "", true)
+		if err != nil {
+			sklog.Fatal("Failed to build chromeperf client: %s", err)
 		}
 	}
 
@@ -928,6 +935,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
+		api.NewTriageApi(f.loginProvider, f.chromeperfClient),
 	}
 }
 

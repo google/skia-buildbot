@@ -189,7 +189,7 @@ type AnomalyApiClient interface {
 
 // anomalyApiClientImpl implements AnomalyApiClient
 type anomalyApiClientImpl struct {
-	chromeperfClient   chromePerfClient
+	chromeperfClient   ChromePerfClient
 	sendAnomalyCalled  metrics2.Counter
 	sendAnomalyFailed  metrics2.Counter
 	getAnomaliesCalled metrics2.Counter
@@ -198,7 +198,7 @@ type anomalyApiClientImpl struct {
 
 // NewAnomalyApiClient returns a new AnomalyApiClient instance.
 func NewAnomalyApiClient(ctx context.Context) (AnomalyApiClient, error) {
-	cpClient, err := newChromePerfClient(ctx, "", false)
+	cpClient, err := NewChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func NewAnomalyApiClient(ctx context.Context) (AnomalyApiClient, error) {
 	return newAnomalyApiClient(cpClient), nil
 }
 
-func newAnomalyApiClient(cpClient chromePerfClient) AnomalyApiClient {
+func newAnomalyApiClient(cpClient ChromePerfClient) AnomalyApiClient {
 	return &anomalyApiClientImpl{
 		chromeperfClient:   cpClient,
 		sendAnomalyCalled:  metrics2.GetCounter("chrome_perf_send_anomaly_called"),
@@ -245,7 +245,7 @@ func (cp *anomalyApiClientImpl) ReportRegression(
 		404, // NotFound - This is returned if the param value names are different.
 	}
 	response := ReportRegressionResponse{}
-	err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, AddFuncName, request, &response, acceptedStatusCodes)
+	err := cp.chromeperfClient.SendPostRequest(ctx, AnomalyAPIName, AddFuncName, request, &response, acceptedStatusCodes)
 	if err != nil {
 		cp.sendAnomalyFailed.Inc(1)
 		return nil, skerr.Wrapf(err, "Failed to get chrome perf response when sending anomalies.")
@@ -259,7 +259,7 @@ func (cp *anomalyApiClientImpl) ReportRegression(
 func (cp *anomalyApiClientImpl) GetAnomalyFromUrlSafeKey(ctx context.Context, key string) (map[string][]string, Anomaly, error) {
 	getAnomaliesResp := &GetAnomaliesResponse{}
 	var anomaly Anomaly
-	err := cp.chromeperfClient.sendGetRequest(ctx, AnomalyAPIName, GetFuncName, url.Values{"key": {key}}, getAnomaliesResp)
+	err := cp.chromeperfClient.SendGetRequest(ctx, AnomalyAPIName, GetFuncName, url.Values{"key": {key}}, getAnomaliesResp)
 	if err != nil {
 		return nil, anomaly, skerr.Wrapf(err, "Failed to get anomaly data based on url safe key: %s", key)
 	}
@@ -301,7 +301,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 			MinRevision: strconv.Itoa(startCommitPosition),
 		}
 		getAnomaliesResp := &GetAnomaliesResponse{}
-		err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
+		err := cp.chromeperfClient.SendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}
@@ -334,7 +334,7 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 			EndTime:   endTime,
 		}
 		getAnomaliesResp := &GetAnomaliesResponse{}
-		err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, FindTimeFuncName, *request, getAnomaliesResp, []int{200})
+		err := cp.chromeperfClient.SendPostRequest(ctx, AnomalyAPIName, FindTimeFuncName, *request, getAnomaliesResp, []int{200})
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}
@@ -351,7 +351,7 @@ func (cp *anomalyApiClientImpl) GetAnomaliesAroundRevision(ctx context.Context, 
 	}
 
 	getAnomaliesResp := &GetAnomaliesResponse{}
-	err := cp.chromeperfClient.sendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
+	err := cp.chromeperfClient.SendPostRequest(ctx, AnomalyAPIName, FindFuncName, *request, getAnomaliesResp, []int{200})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 	}

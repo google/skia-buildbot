@@ -13,6 +13,7 @@ go_library(
         "regressionsApi.go",
         "sheriffConfigApi.go",
         "shortcutsApi.go",
+        "triageApi.go",
     ],
     importpath = "go.skia.org/infra/perf/go/frontend/api",
     visibility = ["//visibility:public"],
