@@ -97,7 +97,7 @@ import { Anomaly } from '../json';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
-import { tick, ticks } from './ticks';
+import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
@@ -691,6 +691,8 @@ export class PlotSimpleSk extends ElementSk {
 
   private ANOMALY_HIGHLIGHT_COLOR!: string; // CSS color.
 
+  private UNTRIAGED_COLOR!: string; // CSS color.
+
   private REGRESSION_COLOR!: string; // CSS color.
 
   private IMPROVEMENT_COLOR!: string; // CSS color.
@@ -1121,6 +1123,7 @@ export class PlotSimpleSk extends ElementSk {
     this.LABEL_BACKGROUND = style.backgroundColor;
 
     this.ANOMALY_BACKGROUND = style.getPropertyValue('--on-surface');
+    this.UNTRIAGED_COLOR = style.getPropertyValue('--surface');
     this.IMPROVEMENT_COLOR = style.getPropertyValue('--success');
     this.REGRESSION_COLOR = style.getPropertyValue('--failure');
     this.ANOMALY_HIGHLIGHT_COLOR = style.getPropertyValue('--warning');
@@ -1786,6 +1789,14 @@ export class PlotSimpleSk extends ElementSk {
     keys.forEach((key) => {
       this._anomalyDataMap[key].forEach((anomalyData) => {
         const anomaly = anomalyData.anomaly;
+
+        // Anomaly is Ignored or marked as Invalid.
+        if (anomaly.bug_id < 0 || anomaly.recovered) {
+          ctx.globalAlpha = 0.5;
+        } else {
+          ctx.globalAlpha = 1.0;
+        }
+
         const cx = area.range.x(anomalyData.x);
         const cy = area.range.y(anomalyData.y);
         const anomalyPath = new Path2D();
@@ -1809,14 +1820,19 @@ export class PlotSimpleSk extends ElementSk {
           ctx.fill(highlightPath);
         }
 
-        let symbol = '';
-        if (anomaly.is_improvement) {
-          ctx.fillStyle = this.IMPROVEMENT_COLOR;
-          symbol = String.fromCharCode(0xe86c);
+        if (anomaly.bug_id <= 0) {
+          ctx.fillStyle = this.UNTRIAGED_COLOR;
         } else {
-          ctx.fillStyle = this.REGRESSION_COLOR;
-          symbol = String.fromCharCode(0xe000);
+          ctx.fillStyle = anomaly.is_improvement
+            ? this.IMPROVEMENT_COLOR
+            : this.REGRESSION_COLOR;
         }
+
+        const regression_symbol = String.fromCharCode(0xe000);
+        const improvement_symbol = String.fromCharCode(0xe86c);
+        const symbol = anomaly.is_improvement
+          ? improvement_symbol
+          : regression_symbol;
 
         // Draw anomaly icon.
         ctx.textAlign = 'center';
