@@ -16,6 +16,8 @@ import { Anomaly, CommitNumber } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
+import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
+import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
@@ -96,7 +98,7 @@ export class ChartTooltipSk extends ElementSk {
 
   _tooltip_fixed: boolean = false;
 
-  _close_button_action: Function = () => {};
+  _close_button_action: () => void = () => {};
 
   // Commit range element. Values usually set by explore-simple-sk when a point
   // is selected.
@@ -104,6 +106,9 @@ export class ChartTooltipSk extends ElementSk {
 
   // Ingest file links element. Provides links based on cid and
   ingestFileLinks: IngestFileLinksSk | null = null;
+
+  // New Bug Dialog.
+  newBugDialog: NewBugDialogSk | null = null;
 
   // Fields below are used for chart tooltip styling
 
@@ -164,6 +169,17 @@ export class ChartTooltipSk extends ElementSk {
       <ingest-file-links-sk
         id="tooltip-ingest-file-links"></ingest-file-links-sk>
       ${ele.seeMoreText()}
+      <new-bug-dialog-sk></new-bug-dialog-sk>
+      <button
+        id="new-bug"
+        @click=${ele.openNewBugDialog}
+        ?hidden=${!(
+          ele._tooltip_fixed &&
+          ele.anomaly &&
+          ele.anomaly!.bug_id === 0
+        )}>
+        New Bug
+      </button>
       <button
         class="action"
         id="close"
@@ -178,7 +194,7 @@ export class ChartTooltipSk extends ElementSk {
   // data is provided. Commit information is usually provided by the
   // results of POST /_/cid response.
   private commitTemplate() {
-    if (this.commit == null) {
+    if (this.commit === null) {
       return html``;
     }
 
@@ -200,8 +216,11 @@ export class ChartTooltipSk extends ElementSk {
   // point is an anomaly. Usually set by the results of POST /_/cid
   // correlated against anomaly map.
   private anomalyTemplate() {
-    if (this.anomaly == null) {
+    if (this.anomaly === null) {
       return html``;
+    }
+    if (this.anomaly.bug_id === 0) {
+      this.newBugDialog!.setAnomalies([this.anomaly]);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
@@ -255,6 +274,7 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'bug_host_url');
     this._render();
 
+    this.newBugDialog = this.querySelector('new-bug-dialog-sk');
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
   }
@@ -290,7 +310,7 @@ export class ChartTooltipSk extends ElementSk {
     commit: Commit | null,
     displayFileLinks: boolean,
     tooltipFixed: boolean,
-    closeButtonAction: Function
+    closeButtonAction: () => void
   ): void {
     this._test_name = test_name;
     this._y_value = y_value;
@@ -300,11 +320,15 @@ export class ChartTooltipSk extends ElementSk {
     this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
 
-    if (displayFileLinks && commit_position != null && test_name !== '') {
+    if (displayFileLinks && commit_position !== null && test_name !== '') {
       this.ingestFileLinks?.load(commit_position, test_name);
     }
 
     this._render();
+  }
+
+  private openNewBugDialog() {
+    this.newBugDialog!.open();
   }
 
   get test_name(): string {

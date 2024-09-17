@@ -144,7 +144,7 @@ export class AnomalySk extends ElementSk {
   };
 
   formatRevisionRange = async (): Promise<void> => {
-    if (this.anomaly == null) return;
+    if (this.anomaly === null) return;
 
     const start_rev = this.anomaly.start_revision;
     const end_rev = this.anomaly.end_revision;
@@ -170,8 +170,14 @@ export class AnomalySk extends ElementSk {
   };
 
   static formatBug(bugHostUrl: string, bugId: number): TemplateResult {
-    if (bugId === -1) {
+    if (bugId === 0) {
       return html``;
+    }
+    if (bugId === -1) {
+      return html`Invalid Alert`;
+    }
+    if (bugId === -2) {
+      return html`Ignored Alert`;
     }
     return html`<a href="${`${bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
   }

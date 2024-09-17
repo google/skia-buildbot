@@ -1,0 +1,50 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "new-bug-dialog-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+    ],
+    sass_srcs = ["new-bug-dialog-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/alogin-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/spinner-sk",
+    ],
+    ts_deps = [
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//:node_modules/lit",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "new-bug-dialog-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":new-bug-dialog-sk-demo",
+)
+
+sk_page(
+    name = "new-bug-dialog-sk-demo",
+    html_file = "new-bug-dialog-sk-demo.html",
+    sk_element_deps = [
+        ":new-bug-dialog-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//:node_modules/fetch-mock",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_entry_point = "new-bug-dialog-sk-demo.ts",
+)
