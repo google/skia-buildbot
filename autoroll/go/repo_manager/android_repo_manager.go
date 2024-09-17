@@ -573,7 +573,8 @@ third_party {
 	}
 
 	// Upload the CL to Gerrit.
-	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify", "--yes"}
+	uploadArgs := []string{r.repoToolPath, "upload", "--no-verify", "--yes",
+		"-o", "banned-words~skip"}
 	if rollEmails != nil && len(rollEmails) > 0 {
 		uploadArgs = append(uploadArgs, fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")))
 	}
