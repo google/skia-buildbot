@@ -64,7 +64,7 @@ export class NewBugDialogSk extends ElementSk {
         <h3>Description</h3>
           <textarea id="description" rows="10"></textarea>
         </input>
-        <h3>Labels</h3>
+        ${ele.hasLabels() ? html`<h3>Labels</h3>` : ''}
         ${ele.getLabelCheckboxes()}
         <h3>Component</h3>
         ${ele.getComponentRadios()}
@@ -74,7 +74,7 @@ export class NewBugDialogSk extends ElementSk {
           type="text"
           >
         </input>
-        <h3>CC's</h3>
+        <h3>CC's (comma-separated e-mails)</h3>
         <input
           id="ccs"
           type="text"
@@ -108,6 +108,15 @@ export class NewBugDialogSk extends ElementSk {
       e.preventDefault();
       this.fileNewBug();
     });
+  }
+
+  /**
+   * Checks if any of the anomalies have labels.
+   */
+  private hasLabels(): boolean {
+    return this._anomalies.some(
+      (anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0
+    );
   }
 
   /**
@@ -385,6 +394,18 @@ export class NewBugDialogSk extends ElementSk {
         // Open the bug page in new window.
         const bug_url = `https://issues.chromium.org/issues/${json.bug_id}`;
         window.open(bug_url, '_blank');
+
+        // Update anomalies to reflected new Bug Id.
+        for (let i = 0; i < this._anomalies.length; i++) {
+          this._anomalies[i].bug_id = json.bug_id;
+        }
+
+        // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
+        this.dispatchEvent(
+          new CustomEvent('bug-filed', {
+            bubbles: true,
+          })
+        );
       })
       .catch((msg: any) => {
         this._spinner!.active = false;

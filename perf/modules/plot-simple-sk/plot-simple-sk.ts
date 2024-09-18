@@ -1940,6 +1940,13 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   /**
+   * Helper to trigger re-draw of overlay canvas from parent element.
+   */
+  redrawOverlayCanvas() {
+    this.drawOverlayCanvas();
+  }
+
+  /**
    *  An array of trace ids to highlight. Set to [] to remove all highlighting.
    */
   get highlight(): string[] {

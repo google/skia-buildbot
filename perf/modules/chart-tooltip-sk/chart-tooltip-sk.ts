@@ -277,6 +277,11 @@ export class ChartTooltipSk extends ElementSk {
     this.newBugDialog = this.querySelector('new-bug-dialog-sk');
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
+
+    // If a new bug has been filed, it means the anomaly's bug_id has been updated. We should re-render.
+    this.newBugDialog!.addEventListener('bug-filed', () => {
+      this._render();
+    });
   }
 
   // fetch_details triggers an event that executes the POST /_/cid call to

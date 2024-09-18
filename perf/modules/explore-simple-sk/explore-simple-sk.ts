@@ -1139,6 +1139,10 @@ export class ExploreSimpleSk extends ElementSk {
       'click',
       () => this.pinpointJobToast?.hide()
     );
+
+    this.addEventListener('bug-filed', () => {
+      this.plot!.redrawOverlayCanvas();
+    });
   }
 
   render(): void {
