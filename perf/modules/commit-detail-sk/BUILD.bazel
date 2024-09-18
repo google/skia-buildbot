@@ -12,7 +12,6 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//elements-sk/modules:upgradeproperty_ts_lib",
-        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:human_ts_lib",
         "//:node_modules/lit",
     ],
