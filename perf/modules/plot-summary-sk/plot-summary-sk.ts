@@ -117,9 +117,10 @@ export class PlotSummarySk extends LitElement {
     super.connectedCallback();
     const resizeObserver = new ResizeObserver(
       (entries: ResizeObserverEntry[]) => {
-        entries.forEach((entry) => {
+        entries.forEach(() => {
           // The google chart needs to redraw when it is resized.
           this.plotElement.value?.redraw();
+          this.recomputeRange();
           this.requestUpdate();
         });
       }
@@ -170,11 +171,7 @@ export class PlotSummarySk extends LitElement {
     this.drawSelection();
   }
 
-  // Display the chart data on the plot.
-  public DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
-    this.currentChartData = chartData;
-    this.isCommitScale = isCommitScale;
-
+  private recomputeRange() {
     if (this.isCommitScale) {
       this.commitsStart = this.currentChartData!.start as number;
       this.commitsEnd = this.currentChartData!.end as number;
@@ -190,12 +187,19 @@ export class PlotSummarySk extends LitElement {
         .domain([0, this.width])
         .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
     }
+  }
+
+  // Display the chart data on the plot.
+  public DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
+    this.currentChartData = chartData;
+    this.isCommitScale = isCommitScale;
 
     this.plotElement.value!.data = ConvertData(chartData);
     this.plotElement.value!.options = SummaryChartOptions(
       getComputedStyle(this),
       chartData
     );
+    this.recomputeRange();
     this.requestUpdate();
   }
 
@@ -237,7 +241,7 @@ export class PlotSummarySk extends LitElement {
   }
 
   // Listener for the mouse up event.
-  private mouseUpListener(e: MouseEvent) {
+  private mouseUpListener() {
     // Releasing the mouse means selection/dragging is done.
     this.isCurrentlySelecting = false;
     this.lockedSelectionDiffs = null;
