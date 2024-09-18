@@ -43,6 +43,8 @@ export class NewBugDialogSk extends ElementSk {
 
   private _user: string = '';
 
+  private _opened: boolean = false;
+
   private INFINITY_PERCENT_CHANGE: string = 'zero-to-nonzero';
 
   private static template = (ele: NewBugDialogSk) => html`
@@ -400,6 +402,7 @@ export class NewBugDialogSk extends ElementSk {
   }
 
   open(): void {
+    this._opened = true;
     // If user is logged in, automatically add the e-mail to CC.
     LoggedIn().then((loginstatus: Status) => {
       this._user = loginstatus.email;
@@ -410,7 +413,12 @@ export class NewBugDialogSk extends ElementSk {
   }
 
   private closeDialog(): void {
+    this._opened = false;
     this._dialog!.close();
+  }
+
+  get opened() {
+    return this._opened;
   }
 }
 

@@ -54,6 +54,7 @@ import '../plot-summary-sk';
 import '../point-links-sk';
 import '../query-count-sk';
 import '../graph-title-sk';
+import '../new-bug-dialog-sk';
 import '../window/window';
 
 import {
@@ -148,6 +149,7 @@ import {
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
+import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -1256,6 +1258,13 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._dialogOn || e.isComposing || e.keyCode === 229) {
       return;
     }
+
+    // Allow user to type and not pan graph if the New Bug Dialog is showing.
+    const new_bug_dialog = $$<NewBugDialogSk>('new-bug-dialog-sk', this);
+    if (new_bug_dialog && new_bug_dialog.opened) {
+      return;
+    }
+
     switch (e.key) {
       case '?':
         this.helpDialog!.showModal();
