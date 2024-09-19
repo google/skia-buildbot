@@ -37,6 +37,7 @@ sk_element(
         "//perf/modules/point-links-sk",
         "//perf/modules/graph-title-sk",
         "//perf/modules/new-bug-dialog-sk",
+        "//perf/modules/plot-google-chart-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

@@ -1,0 +1,63 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":plot-google-chart-sk-demo",
+)
+
+sk_element(
+    name = "plot-google-chart-sk",
+    ts_deps = [
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "plot-google-chart-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "plot-google-chart-sk-demo",
+    html_file = "plot-google-chart-sk-demo.html",
+    scss_entry_point = "plot-google-chart-sk-demo.scss",
+    sk_element_deps = [":plot-google-chart-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_entry_point = "plot-google-chart-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "plot-google-chart-sk_puppeteer_test",
+    src = "plot-google-chart-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "plot-google-chart-sk_test",
+    src = "plot-google-chart-sk_test.ts",
+    deps = [
+        ":plot-google-chart-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
+)

@@ -49,6 +49,7 @@ import '../ingest-file-links-sk';
 import '../picker-field-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';
+import '../plot-google-chart-sk';
 import '../plot-simple-sk';
 import '../plot-summary-sk';
 import '../point-links-sk';
@@ -150,6 +151,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
+import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -340,6 +342,8 @@ export class State {
   useTestPicker: boolean = false;
 
   use_test_picker_query: boolean = false;
+
+  show_google_plot = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -496,6 +500,8 @@ export class ExploreSimpleSk extends ElementSk {
   private percent: HTMLSpanElement | null = null;
 
   private plot: PlotSimpleSk | null = null;
+
+  private googleChartPlot: PlotGoogleChartSk | null = null;
 
   private plotSummary: PlotSummarySk | null = null;
 
@@ -780,6 +786,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
       <chart-tooltip-sk></chart-tooltip-sk>
+      <div id="googlePlotDiv" ?hidden=${!ele._state.show_google_plot}>
+        <plot-google-chart-sk id="googlePlot"></plot-google-chart-sk>
+      </div>
       <plot-simple-sk
         .summary=${ele._state.summary}
         id=plot
@@ -1068,6 +1077,8 @@ export class ExploreSimpleSk extends ElementSk {
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
+    // google chart plot is the replacement for plot-simple-sk
+    this.googleChartPlot = this.querySelector<PlotGoogleChartSk>('#googlePlot');
     this.plotSummary = this.querySelector('#plotSummary');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
@@ -1842,6 +1853,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Find if selected point is an anomaly.
     let selected_anomaly: Anomaly | null = null;
+    // TODO(b/362831653) - Update this to Google Chart once plot-simple-sk is deprecated.
     if (e.detail.name in this.plot!.anomalyDataMap) {
       const anomalyData = this.plot!.anomalyDataMap[e.detail.name];
       for (let i = 0; i < anomalyData.length; i++) {
@@ -2060,6 +2072,12 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plot!.addLines(traceSet, labels);
+    // create data points for feeding to google chart library
+    // then feed that into the google chart plot.
+    if (this._state.show_google_plot) {
+      const chartData = this.createChartData(traceSet);
+      this.googleChartPlot!.updateChartData(chartData);
+    }
     if (this._state.plotSummary) {
       this.summaryOptionsField!.hidden = false;
       this.addPlotSummaryOptions();
@@ -2879,6 +2897,9 @@ export class ExploreSimpleSk extends ElementSk {
             break;
           case 'use_titles':
             this._state.use_titles = paramValue;
+            break;
+          case 'show_google_plot':
+            this._state.show_google_plot = paramValue;
             break;
           default:
             break;

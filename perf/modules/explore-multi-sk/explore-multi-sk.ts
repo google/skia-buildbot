@@ -318,6 +318,7 @@ export class ExploreMultiSk extends ElementSk {
       // Event listener for when the Test Picker plot button is clicked.
       // This will create a new empty Graph at the top and plot it with the
       // selected test values.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       this.addEventListener('plot-button-clicked', (e) => {
         const explore = this.addEmptyGraph(true);
         if (explore) {
@@ -408,6 +409,7 @@ export class ExploreMultiSk extends ElementSk {
       use_titles: this.state.use_titles,
       useTestPicker: this.state.useTestPicker,
       use_test_picker_query: false,
+      show_google_plot: false,
     };
     explore.state = newState;
   }
