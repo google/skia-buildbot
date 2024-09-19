@@ -17,6 +17,9 @@ dependencies:
   '@google-web-components/google-chart':
     specifier: ^4.0.2
     version: 4.0.2
+  '@lit/context':
+    specifier: ^1.1.2
+    version: 1.1.2
   '@material/material-color-utilities':
     specifier: ^0.2.7
     version: 0.2.7
@@ -697,6 +700,12 @@ packages:
 
   /@lit-labs/ssr-dom-shim@1.2.0:
     resolution: {integrity: sha512-yWJKmpGE6lUURKAaIltoPIE/wrbY3TEkqQt+X0m+7fQNnAv0keydnYvbiJFP1PnMhizmIWRWOG5KLhYyc/xl+g==}
+    dev: false
+
+  /@lit/context@1.1.2:
+    resolution: {integrity: sha512-S0nw2C6Tkm7fVX5TGYqeROGD+Z9Coa2iFpW+ysYBDH3YvCqOY3wVQvSgwbaliLJkjTnSEYCBe9qFqKV8WUFpVw==}
+    dependencies:
+      '@lit/reactive-element': 2.0.4
     dev: false
 
   /@lit/reactive-element@1.6.3:

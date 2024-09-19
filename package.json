@@ -11,6 +11,7 @@
     "@ffmpeg/ffmpeg": "^0.11.6",
     "@google-web-components/google-apis": "^3.0.1",
     "@google-web-components/google-chart": "^4.0.2",
+    "@lit/context": "^1.1.2",
     "@material/material-color-utilities": "^0.2.7",
     "@material/web": "^2.1.0",
     "@puppeteer/browsers": "^1.7.1",
