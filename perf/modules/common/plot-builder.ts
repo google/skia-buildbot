@@ -1,6 +1,6 @@
 // Contains functions to create plot data.
 
-import { Anomaly } from '../json';
+import { Anomaly, DataFrame } from '../json';
 
 export interface DataPoint {
   x: number | Date;
@@ -21,6 +21,42 @@ export interface ChartData {
   start: number | Date;
   end: number | Date;
 }
+
+// convertFromDataframe converts DataFrame to any[][]  that can be plugged into
+// GoogleChart.data.
+export const convertFromDataframe = (
+  df?: DataFrame,
+  domain: 'commit' | 'date' = 'commit'
+) => {
+  if ((df?.header?.length || 0) === 0) {
+    return null;
+  }
+
+  const keys = Object.keys(df!.traceset);
+
+  const firstRow: any[] = [];
+  if (domain === 'commit') {
+    firstRow.push({ type: 'number', role: 'domain', label: 'Commit Position' });
+  } else {
+    firstRow.push({ type: 'date', role: 'domain', label: 'Date' });
+  }
+  keys.forEach(() => firstRow.push('number'));
+
+  const rows: any[][] = [firstRow];
+  df!.header?.forEach((column, idx) => {
+    const row: any[] = [];
+    if (domain === 'commit') {
+      row.push(column!.offset);
+    } else {
+      row.push(new Date(column!.timestamp * 1000));
+    }
+    keys.forEach((k) => {
+      row.push(df!.traceset[k][idx]);
+    });
+    rows.push(row);
+  });
+  return rows;
+};
 
 // ConvertMainData takes the chartData, formats it for Google Chart library.
 // The primary difference between this and CovertData is the inclusion of
