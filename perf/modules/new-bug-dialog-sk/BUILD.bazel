@@ -11,6 +11,7 @@ sk_element(
         "//infra-sk/modules/alogin-sk",
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
+        "//elements-sk/modules/toast-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",

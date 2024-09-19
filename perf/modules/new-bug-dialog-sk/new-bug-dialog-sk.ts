@@ -31,9 +31,14 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
+import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 
 export class NewBugDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
+
+  private _toast: ToastSk | null = null;
+
+  private _bugUrl: string = '';
 
   private _spinner: SpinnerSk | null = null;
 
@@ -89,6 +94,12 @@ export class NewBugDialogSk extends ElementSk {
         </div>
       </form>
     </dialog>
+    <toast-sk id="bug-url-toast" duration=0>
+      New Bug created: <a href=${ele._bugUrl} target=_blank>${ele._bugUrl}</a>
+      <button id="hide-toast" class="action" @click=${
+        ele.closeToast
+      }>Close</button>
+    </toast-sk>
   `;
 
   constructor() {
@@ -103,6 +114,7 @@ export class NewBugDialogSk extends ElementSk {
 
     this._dialog = this.querySelector('#new-bug-dialog');
     this._spinner = this.querySelector('#dialog-spinner');
+    this._toast = this.querySelector('#bug-url-toast');
     this._form = this.querySelector('#new-bug-form');
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -392,8 +404,10 @@ export class NewBugDialogSk extends ElementSk {
         this.closeDialog();
 
         // Open the bug page in new window.
-        const bug_url = `https://issues.chromium.org/issues/${json.bug_id}`;
-        window.open(bug_url, '_blank');
+        this._bugUrl = `https://issues.chromium.org/issues/${json.bug_id}`;
+        window.open(this._bugUrl, '_blank');
+        this._render();
+        this._toast!.show();
 
         // Update anomalies to reflected new Bug Id.
         for (let i = 0; i < this._anomalies.length; i++) {
@@ -440,6 +454,10 @@ export class NewBugDialogSk extends ElementSk {
 
   get opened() {
     return this._opened;
+  }
+
+  private closeToast(): void {
+    this._toast!.hide();
   }
 }
 
