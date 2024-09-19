@@ -38,9 +38,23 @@
         "start_commit": "a6d8ddf98b7419331049209ba89e3ac06455a016"
     },
     "query_config": {
+      "include_params": [
+        "benchmark",
+	"bot",
+	"test",
+	"subtest_1",
+	"subtest_2",
+	"subtest_3"
+      ],
+      "default_param_selections": {
+	"stat": ["value"]
+      },
       "default_url_values": {
         "plotSummary": "true",
-        "showZero": "false"
+	"useTestPicker": "true",
+	"showZero": "false",
+	"enable_chart_tooltip": "true",
+	"use_titles": "true"
       }
     }
   }
