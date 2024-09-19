@@ -172,6 +172,10 @@ export class PlotSummarySk extends LitElement {
   }
 
   private recomputeRange() {
+    if (!this.currentChartData) {
+      return;
+    }
+
     if (this.isCommitScale) {
       this.commitsStart = this.currentChartData!.start as number;
       this.commitsEnd = this.currentChartData!.end as number;
