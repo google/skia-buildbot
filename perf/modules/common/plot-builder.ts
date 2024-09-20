@@ -1,5 +1,6 @@
 // Contains functions to create plot data.
 
+import { MISSING_DATA_SENTINEL } from '../const/const';
 import { Anomaly, DataFrame } from '../json';
 
 export interface DataPoint {
@@ -51,7 +52,8 @@ export const convertFromDataframe = (
       row.push(new Date(column!.timestamp * 1000));
     }
     keys.forEach((k) => {
-      row.push(df!.traceset[k][idx]);
+      const val = df!.traceset[k][idx];
+      row.push(val === MISSING_DATA_SENTINEL ? null : val);
     });
     rows.push(row);
   });

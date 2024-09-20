@@ -6,6 +6,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/@types/google.visualization",  # keep
+        "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
 )
