@@ -1,14 +1,6 @@
 // Contains DataFrame merge logic, similar to //perf/go/dataframe/dataframe.go
 
-import {
-  DataFrame,
-  ParamSet,
-  Params,
-  ColumnHeader,
-  TraceSet,
-  ReadOnlyParamSet,
-  Trace,
-} from '../json';
+import { DataFrame, ParamSet, ColumnHeader, TraceSet, Trace } from '../json';
 import {
   addParamSet,
   addParamsToParamSet,
@@ -16,6 +8,42 @@ import {
   toReadOnlyParamSet,
 } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+
+// Simple type denoting the begin and end of the range.
+export type range = { begin: number; end: number };
+
+/**
+ * Find the subrange in the header.
+ * @param header The subfield of DataFrame, containing the time stamps.
+ * @param range The range to search for within the given header.
+ * @param domain Whether timestamp or offset.
+ * @returns The range [inclusive start, exclusive end) matching the given range
+ *  in the given header.
+ *  [0, 0) is returned when the range is before the header and,
+ *  [length, length) is returned when the range is beyond the header.
+ *
+ * @example
+ *  header = [0,10,20,30,40], [10,20] ==> [1, 3) because header[3] is the first
+ *  element that is larger than 20. And it contains two elements.
+ *  header = [0,10,20,30,40], [10,10] ==> [1, 2) because header[2] is the first
+ *  element that is larger than 10. And it contains one element.
+ */
+export const findSubDataframe = (
+  header: { offset: number; timestamp: number }[],
+  range: range,
+  domain: 'timestamp' | 'offset' = 'timestamp'
+): range => {
+  const begin = header.findIndex((v) => {
+    return range.begin <= v![domain];
+  });
+  const end = header.findIndex((v) => {
+    return range.end < v![domain];
+  });
+  return {
+    begin: begin < 0 ? header.length : begin,
+    end: end < 0 ? header.length : end,
+  };
+};
 
 /** mergeColumnHeaders creates a merged header from the two given headers.
  *
@@ -164,7 +192,7 @@ export function timestampBounds(df: DataFrame | null): [number, number] {
 }
 
 function normalize(ps: ParamSet): void {
-  for (const [k, v] of Object.entries(ps)) {
+  for (const [_, v] of Object.entries(ps)) {
     (v as string[]).sort();
   }
 }

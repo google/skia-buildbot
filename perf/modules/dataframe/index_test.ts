@@ -8,11 +8,11 @@ import {
   mergeColumnHeaders,
   join,
   timestampBounds,
+  range,
+  findSubDataframe,
 } from './index';
 import {
   DataFrame,
-  ParamSet,
-  Params,
   ColumnHeader,
   TraceSet,
   ReadOnlyParamSet,
@@ -23,6 +23,75 @@ import {
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 const e = MISSING_DATA_SENTINEL;
+
+describe('find subrange from dataframe header', () => {
+  const generateHeaders = (range: range) => {
+    return Array.from({ length: range.end - range.begin }, (_, k) => {
+      return {
+        offset: k,
+        timestamp: k * 2 + 1,
+      };
+    });
+  };
+
+  it('find subrange inside the header', () => {
+    // offset: [0, 1, 2, 3, 4, ..., 10]
+    // timestamp: [1, 3, 5, 7, ..., 21]
+    const header = generateHeaders({ begin: 0, end: 10 });
+    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 2 }, 'offset'), {
+      begin: 1,
+      end: 3,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 6 }), {
+      begin: 0,
+      end: 3,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 3, end: 7 }), {
+      begin: 1,
+      end: 4,
+    });
+  });
+
+  it('find subrange outside the header', () => {
+    const header = generateHeaders({ begin: 0, end: 10 });
+    assert.deepEqual(
+      findSubDataframe(header, { begin: -1, end: 2 }, 'offset'),
+      { begin: 0, end: 3 }
+    );
+    assert.deepEqual(
+      findSubDataframe(header, { begin: 9, end: 11 }, 'offset'),
+      { begin: 9, end: 10 }
+    );
+    assert.deepEqual(findSubDataframe(header, { begin: -1, end: 6 }), {
+      begin: 0,
+      end: 3,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 19, end: 22 }), {
+      begin: 9,
+      end: 10,
+    });
+  });
+
+  it('find subrange not in the header', () => {
+    const header = generateHeaders({ begin: 0, end: 10 });
+    assert.deepEqual(
+      findSubDataframe(header, { begin: -10, end: -1 }, 'offset'),
+      { begin: 0, end: 0 }
+    );
+    assert.deepEqual(
+      findSubDataframe(header, { begin: 100, end: 101 }, 'offset'),
+      { begin: 10, end: 10 }
+    );
+    assert.deepEqual(findSubDataframe(header, { begin: -10, end: -1 }), {
+      begin: 0,
+      end: 0,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 100, end: 120 }), {
+      begin: 10,
+      end: 10,
+    });
+  });
+});
 
 describe('mergeColumnHeaders', () => {
   it('merges simple case', () => {

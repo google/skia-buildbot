@@ -1,3 +1,4 @@
+import { range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 import { ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import {
@@ -8,9 +9,6 @@ import {
   ReadOnlyParamSet,
 } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
-
-// Simple type denoting the begin and end of the range.
-export type range = { begin: number; end: number };
 
 // Shift the range by offset.
 // Note, shitf [0, 10] by 10 will give [1, 11].

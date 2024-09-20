@@ -4,9 +4,9 @@ import { DataFrameRepository } from './dataframe_context';
 import './dataframe_context';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 
-import { range } from './dataframe_context';
 import { ColumnHeader, ReadOnlyParamSet, FrameRequest } from '../json';
 import fetchMock from 'fetch-mock';
+import { findSubDataframe, range } from './index';
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
@@ -32,19 +32,6 @@ const generateFullDataFrame = (
       timestamp: time + v * timeSpan,
     })),
   } as dataframe;
-};
-
-const findDataframe = (dataframe: dataframe, range: range): range => {
-  // TODO(haowoo): if begin == -1, it should return an invalid range. We need
-  //  to add test cases for invalid responses.
-  const begin = dataframe.header.findIndex((v) => {
-    return range.begin <= v.timestamp;
-  });
-  const end =
-    dataframe.header.findIndex((v) => {
-      return range.end < v.timestamp;
-    }) || dataframe.header.length;
-  return { begin, end };
 };
 
 const generateDataframe = (dataframe: dataframe, range: range) => {
@@ -85,7 +72,7 @@ describe('dataframe-repository', () => {
       },
       (_, req) => {
         const body: FrameRequest = JSON.parse(req.body!.toString());
-        const subrange = findDataframe(dataframe, {
+        const subrange = findSubDataframe(dataframe.header, {
           begin: body.begin,
           end: body.end,
         });
@@ -108,8 +95,8 @@ describe('dataframe-repository', () => {
 
   it('initialize w/ no data', () => {
     const dfRepo = new DataFrameRepository();
-    assert.notStrictEqual(dfRepo.commitRange, { begin: 0, end: 0 });
-    assert.notStrictEqual(dfRepo.timeRange, { begin: 0, end: 0 });
+    assert.deepEqual(dfRepo.commitRange, { begin: 0, end: 0 });
+    assert.deepEqual(dfRepo.timeRange, { begin: 0, end: 0 });
     assert.isTrue(dfRepo.isEmpty);
     assert.isEmpty(dfRepo.header);
     assert.isEmpty(dfRepo.traces);

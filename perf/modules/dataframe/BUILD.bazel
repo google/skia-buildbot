@@ -28,6 +28,7 @@ karma_test(
     src = "dataframe_context_test.ts",
     deps = [
         ":dataframe_context_ts_lib",
+        ":index_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/fetch-mock",
@@ -41,6 +42,7 @@ ts_library(
     srcs = ["dataframe_context.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        ":index_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
