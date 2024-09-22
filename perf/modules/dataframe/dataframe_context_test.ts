@@ -6,6 +6,7 @@ import { fromParamSet } from '../../../infra-sk/modules/query';
 
 import { ColumnHeader, ReadOnlyParamSet, FrameRequest } from '../json';
 import fetchMock from 'fetch-mock';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { findSubDataframe, range } from './index';
 
 const now = 1726081856; // an arbitrary UNIX time;
@@ -53,6 +54,10 @@ const sorted = (a: (ColumnHeader | null)[]) => {
 };
 
 describe('dataframe-repository', () => {
+  const newEl = setUpElementUnderTest<DataFrameRepository>(
+    'dataframe-repository-sk'
+  );
+
   const paramset = ReadOnlyParamSet({
     benchmark: ['Compile'],
     bot: ['MacM1'],
@@ -94,7 +99,7 @@ describe('dataframe-repository', () => {
   });
 
   it('initialize w/ no data', () => {
-    const dfRepo = new DataFrameRepository();
+    const dfRepo = newEl();
     assert.deepEqual(dfRepo.commitRange, { begin: 0, end: 0 });
     assert.deepEqual(dfRepo.timeRange, { begin: 0, end: 0 });
     assert.isTrue(dfRepo.isEmpty);
@@ -105,7 +110,7 @@ describe('dataframe-repository', () => {
   it('initialize w/ data', async () => {
     const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
 
-    const dfRepo = new DataFrameRepository();
+    const dfRepo = newEl();
     assert.equal(
       await dfRepo.resetTraces(
         {
@@ -126,7 +131,7 @@ describe('dataframe-repository', () => {
   it('init data and extend range', async () => {
     const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
 
-    const dfRepo = new DataFrameRepository();
+    const dfRepo = newEl();
     assert.equal(
       await dfRepo.resetTraces(
         {
@@ -150,7 +155,7 @@ describe('dataframe-repository', () => {
   it('init data and extend range both ways', async () => {
     const df = fetchMockFrameStart({ begin: 100, end: 201 }, now);
 
-    const dfRepo = new DataFrameRepository();
+    const dfRepo = newEl();
     assert.equal(
       await dfRepo.resetTraces(
         {
@@ -194,7 +199,7 @@ describe('dataframe-repository', () => {
   it('init data and reset repo', async () => {
     const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
 
-    const dfRepo = new DataFrameRepository();
+    const dfRepo = newEl();
     assert.equal(
       await dfRepo.resetTraces(
         {

@@ -1,7 +1,39 @@
+/**
+ * @module modules/dataframe/dataframe_context
+ * @description <dataframe-repository-sk/>
+ *
+ * DataFrameRepository manages a local cache of the traces.
+ *
+ * The class loads the traces with the initial paramset and extends using the
+ * same paramset. The paramset can only be reset by reloading the entire
+ * traces, that is, paramset being immutable.
+ *
+ * @provide
+ * dataframeContext: the DataFrame storing the current available data.
+ *
+ * @provide
+ * dataframeLoadingContext: whether there is a request in flight.
+ *
+ * @provide
+ * dataframeRepoContext: the repo object itself to manage data.
+ *
+ * @example
+ * In the html page, you attach the <dataframe-repository-sk> as a parent node,
+ * then in the child node implementation, you can request the context by:
+ * @consume({context:dataframeContext})
+ * dataframe: DataFrame
+ *
+ * this.dataframe will be assigned whenever there is a change.
+ */
+import { createContext, provide } from '@lit/context';
+import { LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+
 import { range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 import { ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import {
+  DataFrame,
   FrameRequest,
   FrameResponse,
   Trace,
@@ -42,21 +74,24 @@ const sliceRange = ({ begin, end }: range, chuckSize: number) => {
   );
 };
 
-/**
- * DataFrameRepository manages a local cache of the traces.
- *
- * The class loads the traces with the initial paramset and extends using the
- * same paramset. The paramset can only be reset by reloading the entire
- * traces, that is, paramset being immutable.
- *
- * Note: this is still WIP.
- *
- * TODO(haowoo):
- *  1. Errors are not handled, the responses errors will propogage.
- *  2. The ranges should also be merged.
- *  3. Upgrade to LitElement and "provides" dataframe.
- */
-export class DataFrameRepository {
+// This context provides the dataframe when it is ready to use from the data
+// store, typically a remote server or a local mock.
+export const dataframeContext = createContext<DataFrame>(
+  Symbol('dataframe-context')
+);
+
+// This context indicates whether there is an ongoing dataframe request.
+export const dataframeLoadingContext = createContext<boolean>(
+  Symbol('dataframe-loading-context')
+);
+
+// This context prodides the data repository to query the data.
+export const dataframeRepoContext = createContext<DataFrameRepository>(
+  Symbol('dataframe-repo-context')
+);
+
+@customElement('dataframe-repository-sk')
+export class DataFrameRepository extends LitElement {
   // baseUrl is used to set locally and test against sandbox services.
   private static baseUrl = '';
 
@@ -73,6 +108,27 @@ export class DataFrameRepository {
   // When the requests are more than this size, we slice into separate requests
   // so they run concurrently to improve data fetching performance.
   private chunkSize = 30 * 24 * 60 * 60; // 1 month in seconds.
+
+  @provide({ context: dataframeContext })
+  dataframe: DataFrame = {
+    traceset: TraceSet({}),
+    header: [],
+    paramset: ReadOnlyParamSet({}),
+    skip: 0,
+  };
+
+  @provide({ context: dataframeLoadingContext })
+  loading = false;
+
+  @provide({ context: dataframeRepoContext })
+  dfRepo = this;
+
+  // This element doesn't render anything and all the children should be
+  // attached to itself directly.
+  // Note, <slot></slot> is not needed if there is no shadow root.
+  protected createRenderRoot(): HTMLElement | DocumentFragment {
+    return this;
+  }
 
   get paramset() {
     return this._paramset;
@@ -171,9 +227,26 @@ export class DataFrameRepository {
       DataFrameRepository.frameStartUrl,
       req,
       1000
-    );
-    if (resp.status !== 'Finished') {
-      return Promise.reject(resp.messages);
+    ).catch(() => {
+      return null;
+    });
+    if (resp === null) {
+      // We silently fails when the server returns an error for now.
+      console.log('fetch frame response failed.');
+      return {} as FrameResponse;
+    }
+    if (resp?.status !== 'Finished') {
+      // This usually happens when there is no commits for the  given date,
+      // We emit an empty range so the UI still functions just w/o any data,
+      // The caller may handle this empty return gracefully on its own.
+      console.log(
+        'request range (',
+        new Date(range.begin * 1000),
+        new Date(range.end * 1000),
+        ') failed with msg:',
+        resp?.messages
+      );
+      return {} as FrameResponse;
     }
     const msg = messageByName(resp.messages, 'Message');
     if (msg) {
@@ -191,20 +264,31 @@ export class DataFrameRepository {
    *  request completes.
    */
   async resetTraces(range: range, param: ReadOnlyParamSet) {
-    let resolver = (_: number) => {};
+    let resolver = (_1: number, _2: DataFrame) => {};
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = resolve;
+      resolver = (n, df) => {
+        this.dataframe = df;
+        this.loading = false;
+        resolve(n);
+      };
     });
+
     await curRequest;
 
+    this.loading = true;
     this._paramset = param;
     const resp = await this.requestNewRange(range);
     this._traceset = resp.dataframe?.traceset || TraceSet({});
     this._header = resp.dataframe?.header || [];
 
     const totalTraces = resp.dataframe?.header?.length || 0;
-    resolver(totalTraces);
+    resolver(totalTraces, {
+      traceset: this._traceset,
+      header: this._header,
+      paramset: this._paramset,
+      skip: 0,
+    });
     return totalTraces;
   }
 
@@ -218,12 +302,17 @@ export class DataFrameRepository {
    *  the request completes.
    */
   async extendRange(offsetInSeconds: number) {
-    let resolver = (_: number) => {};
+    let resolver = (_1: number, _2: DataFrame) => {};
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = resolve;
+      resolver = (n, df) => {
+        this.loading = false;
+        this.dataframe = df;
+        resolve(n);
+      };
     });
     await curRequest;
+    this.loading = true;
     const range = deltaRange(this.timeRange, offsetInSeconds);
     const ranges = sliceRange(range, this.chunkSize);
     const allResponses: Promise<FrameResponse>[] = [];
@@ -232,13 +321,16 @@ export class DataFrameRepository {
     }
 
     // Fetch and sort the frame responses so they can appended consecutively.
-    const sortedResponses = (await Promise.all(allResponses)).sort(
-      (a: FrameResponse, b: FrameResponse) => {
+    const sortedResponses = (await Promise.all(allResponses))
+      .filter(
+        // Filter responses with dataframes.
+        (fr) => fr.dataframe
+      )
+      .sort((a: FrameResponse, b: FrameResponse) => {
         return (
           a.dataframe!.header![0]!.offset - b.dataframe!.header![0]!.offset
         );
-      }
-    );
+      });
     const totalTraces = sortedResponses
       .map((resp) => resp.dataframe!.header?.length || 0)
       .reduce((count, cur) => count + cur, 0);
@@ -255,7 +347,12 @@ export class DataFrameRepository {
     });
     this.addTraceset(header, traceset);
 
-    resolver(totalTraces);
+    resolver(totalTraces, {
+      traceset: this._traceset,
+      header: this._header,
+      paramset: this._paramset,
+      skip: 0,
+    });
     return totalTraces;
   }
 
