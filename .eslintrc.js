@@ -59,7 +59,10 @@ module.exports = {
 
       // Start with the recommended rules, but turn some of them off in the
       // 'rules' section below.
-      extends: ['plugin:@typescript-eslint/recommended'],
+      extends: [
+        'plugin:@typescript-eslint/recommended',
+        'plugin:lit/recommended',
+      ],
       settings: {
         'import/resolver': {
           node: {
