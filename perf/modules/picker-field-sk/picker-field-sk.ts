@@ -48,10 +48,21 @@ export class PickerFieldSk extends ElementSk {
         .items=${ele.options}
         theme="small"
         clear-button-visible
+        @value-changed=${ele.onValueChanged}
         autoselect>
       </vaadin-combo-box>
     </div>
   `;
+
+  private onValueChanged(e: Event) {
+    this.dispatchEvent(
+      new CustomEvent('value-changed', {
+        detail: {
+          value: (e as CustomEvent).detail.value,
+        },
+      })
+    );
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -126,10 +137,6 @@ export class PickerFieldSk extends ElementSk {
   set label(v: string) {
     this._label = v;
     this._render();
-  }
-
-  get comboBox(): HTMLElement | null {
-    return this._comboBox;
   }
 }
 

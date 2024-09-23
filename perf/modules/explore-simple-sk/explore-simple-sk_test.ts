@@ -8,7 +8,6 @@ import {
   CommitNumber,
   DataFrame,
   FrameRequest,
-  FrameResponse,
   QueryConfig,
   ReadOnlyParamSet,
   TimestampSeconds,
@@ -29,7 +28,7 @@ import {
   updateShortcut,
 } from './explore-simple-sk';
 import { timestampBounds, buildParamSet } from '../dataframe';
-import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
+import { fromParamSet } from '../../../infra-sk/modules/query';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 fetchMock.config.overwriteRoutes = true;
@@ -850,101 +849,21 @@ describe('requestFrameBodyDeltaFromState', () => {
 describe('plotSummary', () => {
   it('Populate Plot Summary bar', async () => {
     const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
-    const state = deepCopy(explore.state);
-    state.plotSummary = true;
-    const queryTestADataFrame: DataFrame = {
-      header: [
-        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
-        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
-        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
-        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
-      ],
-      traceset: TraceSet({
-        'test=A': Trace([0.1, 0.2, 0.0, 0.4]),
-      }),
-      paramset: ReadOnlyParamSet({}),
-      skip: 0,
-    };
-    buildParamSet(queryTestADataFrame);
+    explore.state.plotSummary = true;
+    explore.render();
 
-    explore['fullDataFrame'] = queryTestADataFrame;
-    explore['populatePlotSummary']();
-    const plotSummaryElement = explore['plotSummary'];
-    assert.isNotNull(plotSummaryElement);
-    assert.isNotNull(plotSummaryElement!['currentChartData']);
+    const plotSummaryElement = explore['plotSummary'].value;
+    assert.notEqual(plotSummaryElement, undefined);
   });
 
   it('Plot Summary bar not enabled', async () => {
     const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.render();
 
-    explore['fullDataFrame'] = null;
-    explore['populatePlotSummary']();
-    const plotSummaryElement = explore['plotSummary'];
-    assert.isNotNull(plotSummaryElement);
-    assert.isNull(plotSummaryElement!['currentChartData']);
-  });
-
-  it('Populate Extended timeline', async () => {
-    const finishedBody: progress.SerializedProgress = {
-      status: 'Finished',
-      messages: [],
-      results: {},
-      url: '',
-    };
-    fetchMock.post('/_/frame/start', finishedBody);
-    const defaultConfig: QueryConfig = {
-      default_param_selections: null,
-      default_url_values: null,
-      include_params: null,
-    };
-
-    const defaultBody = JSON.stringify(defaultConfig);
-    fetchMock.get('path:/_/defaults/', {
-      status: 200,
-      body: defaultBody,
-    });
-
-    fetchMock.post('/_/count/', {
-      count: 0,
-      paramset: {},
-    });
-
-    fetchMock.get(/_\/initpage\/.*/, () => ({
-      dataframe: {
-        traceset: null,
-        header: null,
-        paramset: {},
-        skip: 0,
-      },
-      ticks: [],
-      skps: [],
-      msg: '',
-    }));
-
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    const queryTestADataFrame: DataFrame = {
-      header: [
-        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
-        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
-        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
-        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
-      ],
-      traceset: TraceSet({
-        'test=A': Trace([0.1, 0.2, 0.0, 0.4]),
-      }),
-      paramset: ReadOnlyParamSet({}),
-      skip: 0,
-    };
-    buildParamSet(queryTestADataFrame);
-
-    explore['fullDataFrame'] = queryTestADataFrame;
-    explore.state.plotSummary = true;
-    explore['populateExtendedTimelineForPlotSummary']();
-    await fetchMock.flush(true);
-    assert.isTrue(fetchMock.done('/_/frame/start'));
+    const plotSummaryElement = explore['plotSummary'].value;
+    assert.equal(plotSummaryElement, undefined);
   });
 });

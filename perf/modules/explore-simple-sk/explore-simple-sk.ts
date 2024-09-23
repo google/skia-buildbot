@@ -5,6 +5,8 @@
  * Element for exploring data.
  */
 import { html } from 'lit/html.js';
+import { when } from 'lit/directives/when.js';
+import { ref, createRef, Ref } from 'lit/directives/ref.js';
 import { MdDialog } from '@material/web/dialog/dialog.js';
 import { MdSwitch } from '@material/web/switch/switch.js';
 import { define } from '../../../elements-sk/modules/define';
@@ -503,7 +505,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private googleChartPlot: PlotGoogleChartSk | null = null;
 
-  private plotSummary: PlotSummarySk | null = null;
+  private plotSummary: Ref<PlotSummarySk> = createRef();
 
   private query: QuerySk | null = null;
 
@@ -569,7 +571,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   useTestPicker: boolean = false;
 
-  private summaryOptionsField: PickerFieldSk | null = null;
+  private summaryOptionsField: Ref<PickerFieldSk> = createRef();
 
   private traceNameIdMap = new Map();
 
@@ -698,7 +700,7 @@ export class ExploreSimpleSk extends ElementSk {
       </md-outlined-icon-button>
       <md-dialog
         aria-label='Settings dialog'
-        id='settings-dialog'
+        id='settings-dialog'>
         <form id="form" slot="content" method="dialog">
         </form>
         <div slot="actions">
@@ -799,15 +801,7 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
-      <div id="summaryPicker">
-          <picker-field-sk id=selectSummaryTrace hidden></picker-field-sk>
-          <label>${ele.getPlotSummaryTraceLabel()}</label>
-      </div>
-      <plot-summary-sk id=plotSummary highlight_color="#CED0CE"
-      @summary_selected=${
-        ele.summarySelected
-      } class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
-      </plot-summary-sk>
+      ${when(ele._state.plotSummary, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
@@ -816,7 +810,7 @@ export class ExploreSimpleSk extends ElementSk {
         <div id="traceDetailsCopy" class="icon-sk copy-content">
           content_copy
         </div>
-        <span id=traceDetails />
+        <span id=traceDetails></span>
       </div>
     </div>
 
@@ -1057,6 +1051,28 @@ export class ExploreSimpleSk extends ElementSk {
   </toast-sk>
   `;
 
+  private plotSummaryTemplate() {
+    return html` <div id="summaryPicker">
+        <picker-field-sk
+          ${ref(this.summaryOptionsField)}
+          @value-changed=${this.onSummaryPickerChanged}>
+        </picker-field-sk>
+        <label>${this.getPlotSummaryTraceLabel()}</label>
+      </div>
+      <plot-summary-sk
+        ${ref(this.plotSummary)}
+        highlight_color="#CED0CE"
+        @summary_selected=${this.summarySelected}
+        class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
+      </plot-summary-sk>`;
+  }
+
+  private onSummaryPickerChanged(e: CustomEvent) {
+    const selectedTrace = e.detail.value;
+    this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace) || '';
+    this.populatePlotSummary();
+  }
+
   connectedCallback(): void {
     super.connectedCallback();
     if (this._initialized) {
@@ -1079,7 +1095,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.plot = this.querySelector('#plot');
     // google chart plot is the replacement for plot-simple-sk
     this.googleChartPlot = this.querySelector<PlotGoogleChartSk>('#googlePlot');
-    this.plotSummary = this.querySelector('#plotSummary');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
@@ -1106,9 +1121,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.collapseButton = this.querySelector('#collapseButton');
     this.traceDetails = this.querySelector('#traceDetails');
     this.traceDetailsCopy = this.querySelector('#traceDetailsCopy');
-    this.summaryOptionsField = this.querySelector<PickerFieldSk>(
-      '#selectSummaryTrace'
-    );
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
 
     // material UI stuff
@@ -2079,12 +2091,8 @@ export class ExploreSimpleSk extends ElementSk {
       this.googleChartPlot!.updateChartData(chartData);
     }
     if (this._state.plotSummary) {
-      this.summaryOptionsField!.hidden = false;
       this.addPlotSummaryOptions();
       this.populatePlotSummary();
-    } else {
-      this.plotSummary!.hidden = true;
-      this.summaryOptionsField!.hidden = true;
     }
   }
 
@@ -2114,17 +2122,10 @@ export class ExploreSimpleSk extends ElementSk {
         }
       });
 
-      this.summaryOptionsField!.options = traceIds;
-      this.summaryOptionsField!.label = 'Trace for summary bar';
-      this.summaryOptionsField!.comboBox!.addEventListener(
-        'value-changed',
-        (e) => {
-          const selectedTrace = (e as CustomEvent).detail.value;
-          this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace);
-          this.populatePlotSummary();
-          this._render();
-        }
-      );
+      if (this.summaryOptionsField.value) {
+        this.summaryOptionsField.value!.options = traceIds;
+        this.summaryOptionsField.value!.label = 'Trace for summary bar';
+      }
     }
   }
 
@@ -2138,11 +2139,11 @@ export class ExploreSimpleSk extends ElementSk {
       if (this.state.labelMode === LabelMode.CommitPosition) {
         const start = this._dataframe!.header![0]!.offset;
         const end = this._dataframe!.header![length - 1]!.offset;
-        this.plotSummary!.Select(start, end);
+        this.plotSummary.value?.Select(start, end);
       } else {
         const start = this._dataframe!.header![0]!.timestamp * 1000;
         const end = this._dataframe!.header![length - 1]!.timestamp * 1000;
-        this.plotSummary!.Select(start, end);
+        this.plotSummary.value?.Select(start, end);
       }
     }
   }
@@ -2159,7 +2160,7 @@ export class ExploreSimpleSk extends ElementSk {
       const selectedTrace = TraceSet({});
       selectedTrace[this.traceKeyForSummary] =
         this.fullDataFrame!.traceset[this.traceKeyForSummary];
-      this.plotSummary!.DisplayChartData(
+      this.plotSummary.value?.DisplayChartData(
         this.createChartData(selectedTrace),
         this.state.labelMode === LabelMode.CommitPosition
       );

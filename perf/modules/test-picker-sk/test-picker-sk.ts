@@ -154,7 +154,7 @@ export class TestPickerSk extends ElementSk {
   private addValueChangedEventToField(index: number) {
     const fieldInfo = this._fieldData[index];
 
-    fieldInfo.field!.comboBox!.addEventListener('value-changed', (e) => {
+    fieldInfo.field!.addEventListener('value-changed', (e) => {
       const value = (e as CustomEvent).detail.value;
       fieldInfo.value = value;
 
@@ -300,10 +300,6 @@ export class TestPickerSk extends ElementSk {
    * selection has.
    */
   private fetchCount() {
-    const body: NextParamListHandlerRequest = {
-      q: this.createQueryFromFieldData(),
-    };
-
     const handler = (json: NextParamListHandlerResponse) => {
       this._requestInProgress = false;
       this.updateCount(json.count);

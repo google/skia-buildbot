@@ -36,6 +36,9 @@ export interface PlotSummarySkSelectionEventDetails {
 
 export class PlotSummarySk extends LitElement {
   static styles = css`
+    :host {
+      display: block;
+    }
     .overlay {
       position: absolute;
       top: 0;
