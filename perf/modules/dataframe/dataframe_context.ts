@@ -92,14 +92,16 @@ export const dataframeRepoContext = createContext<DataFrameRepository>(
 
 @customElement('dataframe-repository-sk')
 export class DataFrameRepository extends LitElement {
-  // baseUrl is used to set locally and test against sandbox services.
-  private static baseUrl = '';
+  private static shiftUrl = '/_/shift/';
 
-  private static shiftUrl = DataFrameRepository.baseUrl + '/_/shift/';
-
-  private static frameStartUrl = DataFrameRepository.baseUrl + '/_/frame/start';
+  private static frameStartUrl = '/_/frame/start';
 
   private _paramset = ReadOnlyParamSet({});
+
+  // Most of logic to create the request is still in explore-simple-sk, we make
+  // it simple to refactor that takes whatever it has and simply extending its
+  // range.
+  private _baseRequest?: FrameRequest;
 
   private _traceset = TraceSet({});
 
@@ -222,7 +224,12 @@ export class DataFrameRepository extends LitElement {
   }
 
   private async requestNewRange(range: range) {
-    const req = this.generateFrameRequest(range);
+    if (!this._baseRequest) {
+      this._baseRequest = this.generateFrameRequest(range);
+    }
+    const req = structuredClone(this._baseRequest);
+    req.begin = range.begin;
+    req.end = range.end;
     const resp = await startRequest(
       DataFrameRepository.frameStartUrl,
       req,
@@ -253,6 +260,27 @@ export class DataFrameRepository extends LitElement {
       return Promise.reject(msg);
     }
     return resp.results as FrameResponse;
+  }
+
+  /**
+   * Reset the dataframe and its corresponding FrameRequest.
+   *
+   * This can be used to refill the data if it is from a different source, and this
+   * can take over and extend the time frame.
+   *
+   * @param dataframe The full dataframe from the request.
+   * @param request The completed FrameRequet that was sent for the dataframe.
+   */
+  async resetWithDataframeAndRequest(
+    dataframe: DataFrame,
+    request: FrameRequest
+  ) {
+    this._baseRequest = request;
+    this._baseRequest.request_type = 0; // change to timestamp-based query.
+
+    this.dataframe = dataframe;
+    this._header = dataframe.header || [];
+    this._traceset = dataframe.traceset;
   }
 
   /**
