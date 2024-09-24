@@ -63,3 +63,24 @@ karma_test(
         "//perf/modules/common:plot-builder_ts_lib",
     ],
 )
+
+karma_test(
+    name = "h_resizable_box_sk_test",
+    src = "h_resizable_box_sk_test.ts",
+    deps = [
+        ":h_resizable_box_sk_ts_lib",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)
+
+sk_element(
+    name = "h_resizable_box_sk_ts_lib",
+    ts_deps = [
+        "//:node_modules/lit",
+        "//perf/modules/dataframe:index_ts_lib",
+    ],
+    ts_srcs = ["h_resizable_box_sk.ts"],
+    visibility = ["//visibility:public"],
+)
