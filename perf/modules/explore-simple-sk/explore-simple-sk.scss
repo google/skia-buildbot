@@ -165,6 +165,22 @@ explore-simple-sk {
     display: block;
   }
 
+  md-outlined-button {
+    --md-outlined-button-container-shape: 4px;
+  }
+
+  md-dialog {
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+
+      md-switch {
+        margin-right: 8px;
+      }
+    }
+  }
+
   #buttons,
   #traceButtons,
   #calcButtons {
