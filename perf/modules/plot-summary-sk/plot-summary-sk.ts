@@ -11,9 +11,9 @@
 import '@google-web-components/google-chart';
 import { GoogleChart } from '@google-web-components/google-chart';
 
-import { html, css } from 'lit';
+import { html } from 'lit';
 import { LitElement, PropertyValues } from 'lit';
-import { ref, Ref, createRef } from 'lit/directives/ref.js';
+import { ref, createRef } from 'lit/directives/ref.js';
 import * as d3Scale from 'd3-scale';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
@@ -22,6 +22,7 @@ import {
   ConvertData,
   SummaryChartOptions,
 } from '../common/plot-builder';
+import { style } from './plot-summary-sk.css';
 
 const ZOOM_RECT_COLOR = '#0007';
 
@@ -35,25 +36,7 @@ export interface PlotSummarySkSelectionEventDetails {
 }
 
 export class PlotSummarySk extends LitElement {
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .plot {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-  `;
+  static styles = style;
 
   constructor() {
     super();
@@ -97,10 +80,10 @@ export class PlotSummarySk extends LitElement {
   private currentMousePosition: MousePosition | null = null;
 
   // The div element that will host the plot on the summary.
-  private plotElement: Ref<GoogleChart> = createRef();
+  private plotElement = createRef<GoogleChart>();
 
   // The canvas element that is used for the selection overlay.
-  private overlayCanvas: Ref<HTMLCanvasElement> = createRef();
+  private overlayCanvas = createRef<HTMLCanvasElement>();
 
   // Keeps a track of the current chart data being displayed.
   private currentChartData: ChartData | null = null;

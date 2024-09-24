@@ -7,9 +7,10 @@ sk_demo_page_server(
 
 sk_element(
     name = "plot-summary-sk",
-    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
-    sass_srcs = ["plot-summary-sk.scss"],
-    sk_element_deps = ["//perf/modules/plot-simple-sk"],
+    sk_element_deps = [
+        "//perf/modules/plot-simple-sk",
+        ":plot-summary-sk.css_ts_lib",
+    ],
     ts_deps = [
         "//:node_modules/d3-scale",
         "//:node_modules/lit",
@@ -82,5 +83,12 @@ sk_element(
         "//perf/modules/dataframe:index_ts_lib",
     ],
     ts_srcs = ["h_resizable_box_sk.ts"],
+    visibility = ["//visibility:public"],
+)
+
+sk_element(
+    name = "plot-summary-sk.css_ts_lib",
+    ts_deps = ["//:node_modules/lit"],
+    ts_srcs = ["plot-summary-sk.css.ts"],
     visibility = ["//visibility:public"],
 )
