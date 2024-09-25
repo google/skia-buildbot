@@ -45,7 +45,7 @@ export const convertFromDataframe = (
   } else {
     firstRow.push({ type: 'date', role: 'domain', label: 'Date' });
   }
-  keys.forEach(() => firstRow.push('number'));
+  keys.forEach((k) => firstRow.push(k));
 
   const rows: any[][] = [firstRow];
   df!.header?.forEach((column, idx) => {
