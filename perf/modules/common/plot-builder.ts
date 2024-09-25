@@ -25,6 +25,7 @@ export interface ChartData {
 
 // convertFromDataframe converts DataFrame to any[][]  that can be plugged into
 // GoogleChart.data.
+// TODO(b/362831653): fix legend in the dataframe
 export const convertFromDataframe = (
   df?: DataFrame,
   domain: 'commit' | 'date' = 'commit'
@@ -87,7 +88,6 @@ export function convertMainData(chartData: ChartData) {
 
   // then add the rows. first row defines the columns.
   const rows: [any] = [columns];
-
   const rowCount = chartData.lines[lineKeys[0]].length;
   for (let i = 0; i < rowCount; i++) {
     // Add the xValue which is the same for all lines
@@ -141,12 +141,11 @@ export function ConvertData(chartData: ChartData) {
 
 export function mainChartOptions(
   style: CSSStyleDeclaration,
-  chartData: ChartData
+  domain: string
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
-  const format =
-    chartData.chartAxisFormat === ChartAxisFormat.Commit ? '#' : 'MM/dd/yy';
+  const format = domain === 'commit' ? '#' : 'MM/dd/yy';
   return {
     // interpolateNulls will continue a line from the last known point to the
     // next available if there's nulls inbetween.
@@ -164,6 +163,7 @@ export function mainChartOptions(
     pointSize: 2,
     hAxis: {
       textPosition: 'out',
+      textStyle: { color: style.color },
       gridlines: {
         color: 'transparent',
       },
@@ -171,6 +171,7 @@ export function mainChartOptions(
     },
     vAxis: {
       textPosition: 'out',
+      textStyle: { color: style.color },
       gridlines: {
         color: 'transparent',
       },
@@ -184,7 +185,10 @@ export function mainChartOptions(
       axis: 'horizontal',
       actions: ['dragToZoom', 'rightClickToReset'],
     },
-    legend: { position: 'top' },
+    legend: {
+      position: 'top',
+      textStyle: { color: style.color },
+    },
     backgroundColor: style.backgroundColor,
     series: {},
   };

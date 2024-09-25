@@ -154,6 +154,7 @@ import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
+import { DataFrameRepository } from '../dataframe/dataframe_context';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -585,6 +586,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   // material UI
   private settingsDialog: MdDialog | null = null;
+
+  private dfRepo?: DataFrameRepository;
 
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
@@ -1125,6 +1128,10 @@ export class ExploreSimpleSk extends ElementSk {
 
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
+
+    if (this.parentNode?.nodeName.toLowerCase() === 'dataframe-repository-sk') {
+      this.dfRepo = this.parentNode as DataFrameRepository;
+    }
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -2084,12 +2091,6 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plot!.addLines(traceSet, labels);
-    // create data points for feeding to google chart library
-    // then feed that into the google chart plot.
-    if (this._state.show_google_plot) {
-      const chartData = this.createChartData(traceSet);
-      this.googleChartPlot!.updateChartData(chartData);
-    }
     if (this._state.plotSummary) {
       this.addPlotSummaryOptions();
       this.populatePlotSummary();
@@ -2370,6 +2371,7 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
       // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
       // this.plot!.removeAll();
       this.addTraces(json, switchToTab);
@@ -2441,6 +2443,7 @@ export class ExploreSimpleSk extends ElementSk {
     const switchToTab =
       body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
     });
@@ -2835,6 +2838,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
       this.addTraces(json, true);
     });
   }

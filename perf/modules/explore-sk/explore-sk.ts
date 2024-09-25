@@ -16,6 +16,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryConfig } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
+import '../dataframe/dataframe_context';
 import '../explore-simple-sk';
 import '../favorites-dialog-sk';
 import '../test-picker-sk';
@@ -112,7 +113,9 @@ export class ExploreSk extends ElementSk {
       </button>
     </div>
     <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
-    <explore-simple-sk></explore-simple-sk>
+    <dataframe-repository-sk>
+      <explore-simple-sk></explore-simple-sk>
+    </dataframe-repository-sk>
   `;
 
   /**
@@ -154,7 +157,7 @@ export class ExploreSk extends ElementSk {
     // Event listener for when the Test Picker plot button is clicked.
     // This will create a new empty Graph at the top and plot it with the
     // selected test values.
-    this.addEventListener('plot-button-clicked', (e) => {
+    this.addEventListener('plot-button-clicked', (_e) => {
       const explore = this.exploreSimpleSk!;
       if (explore) {
         const query = this.testPicker!.createQueryFromFieldData();

@@ -64,6 +64,7 @@ sk_element(
         "//perf/modules/common:plot-util_ts_lib",
         "//:node_modules/@material/web",
         "//:node_modules/lit-html",  # keep
+        "//perf/modules/dataframe:dataframe_context_ts_lib",
     ],
     ts_srcs = [
         "explore-simple-sk.ts",
