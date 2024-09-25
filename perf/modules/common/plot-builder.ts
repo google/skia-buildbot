@@ -25,6 +25,9 @@ export interface ChartData {
 
 // convertFromDataframe converts DataFrame to any[][]  that can be plugged into
 // GoogleChart.data.
+// This function effectively transposes the traceset so that the keys
+// (i.e. jetstream2/box2D/etc) become the columns and the individual data points
+// are the rows
 // TODO(b/362831653): fix legend in the dataframe
 export const convertFromDataframe = (
   df?: DataFrame,
@@ -189,7 +192,7 @@ export function mainChartOptions(
       position: 'top',
       textStyle: { color: style.color },
     },
-    backgroundColor: style.backgroundColor,
+    backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     series: {},
   };
 }
@@ -227,7 +230,8 @@ export function SummaryChartOptions(
         strokeWidth: 1,
       },
     },
-    backgroundColor: style.backgroundColor,
+    // this value is inherited from plot-google-chart-sk
+    backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     colors: [style.color],
   };
 }

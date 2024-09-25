@@ -33,6 +33,10 @@ export class PlotGoogleChartSk extends LitElement {
   static styles = css`
     :host {
       display: block;
+      background-color: var(
+        --plot-background-color-sk,
+        var(--md-sys-color-background, 'white')
+      );
     }
     .plot {
       position: absolute;
@@ -52,6 +56,8 @@ export class PlotGoogleChartSk extends LitElement {
 
   constructor() {
     super();
+
+    this.addEventListeners();
   }
 
   // The div element that will host the plot on the summary.
@@ -95,6 +101,21 @@ export class PlotGoogleChartSk extends LitElement {
       // TODO(b/362831653): add event listener for dark mode
       plot.options = mainChartOptions(getComputedStyle(this), this.domain);
     }
+  }
+
+  // Add all the event listeners.
+  private addEventListeners(): void {
+    // If the user toggles the theme to/from darkmode then redraw.
+    document.addEventListener('theme-chooser-toggle', () => {
+      // Update the options to trigger the redraw.
+      if (this.plotElement.value) {
+        this.plotElement.value!.options = mainChartOptions(
+          getComputedStyle(this),
+          this.domain
+        );
+      }
+      this.requestUpdate();
+    });
   }
 
   // TODO(b/362831653): deprecate this, no longer needed
