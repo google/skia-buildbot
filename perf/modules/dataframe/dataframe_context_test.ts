@@ -2,50 +2,14 @@ import { assert } from 'chai';
 
 import { DataFrameRepository } from './dataframe_context';
 import './dataframe_context';
-import { fromParamSet } from '../../../infra-sk/modules/query';
 
-import { ColumnHeader, ReadOnlyParamSet, FrameRequest } from '../json';
+import { ColumnHeader, ReadOnlyParamSet } from '../json';
 import fetchMock from 'fetch-mock';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { findSubDataframe, range } from './index';
+import { generateFullDataFrame, mockFrameStart } from './test_utils';
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
-
-interface dataframe {
-  traceset: { [key: string]: number[] };
-  header: { offset: number; timestamp: number }[];
-}
-
-const generateFullDataFrame = (
-  range: range,
-  time: number,
-  tracesCount: number
-) => {
-  const offsets = Array(range.end - range.begin).fill(0);
-  const traces = Array(tracesCount).fill(0);
-  return {
-    traceset: Object.fromEntries(
-      traces.map((_, v) => [',key=' + v, offsets.map(() => Math.random())])
-    ),
-    header: offsets.map((_, v) => ({
-      offset: range.begin + v,
-      timestamp: time + v * timeSpan,
-    })),
-  } as dataframe;
-};
-
-const generateDataframe = (dataframe: dataframe, range: range) => {
-  return {
-    header: dataframe.header.slice(range.begin, range.end),
-    traceset: Object.fromEntries(
-      Object.keys(dataframe.traceset).map((k) => [
-        k,
-        dataframe.traceset[k].slice(range.begin, range.end),
-      ])
-    ),
-  };
-};
 
 const sorted = (a: (ColumnHeader | null)[]) => {
   return a.every((v, idx, arr) => {
@@ -64,36 +28,7 @@ describe('dataframe-repository', () => {
     ref_mode: ['head'],
   });
 
-  function fetchMockFrameStart(commitRange: range, startTime: number) {
-    const dataframe = generateFullDataFrame(commitRange, startTime, 1);
-    fetchMock.post(
-      {
-        url: '/_/frame/start',
-        method: 'POST',
-        matchPartialBody: true,
-        body: {
-          queries: [fromParamSet(paramset)],
-        },
-      },
-      (_, req) => {
-        const body: FrameRequest = JSON.parse(req.body!.toString());
-        const subrange = findSubDataframe(dataframe.header, {
-          begin: body.begin,
-          end: body.end,
-        });
-
-        return {
-          status: 'Finished',
-          messages: [{ key: 'Loading', value: 'Finished' }],
-          results: {
-            dataframe: generateDataframe(dataframe, subrange),
-          },
-        };
-      }
-    );
-    return dataframe;
-  }
-
+  const df = generateFullDataFrame({ begin: 90, end: 120 }, now, 1, timeSpan);
   afterEach(() => {
     fetchMock.reset();
   });
@@ -108,7 +43,7 @@ describe('dataframe-repository', () => {
   });
 
   it('initialize w/ data', async () => {
-    const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
+    mockFrameStart(df, paramset);
 
     const dfRepo = newEl();
     assert.equal(
@@ -129,7 +64,7 @@ describe('dataframe-repository', () => {
   });
 
   it('init data and extend range', async () => {
-    const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
+    mockFrameStart(df, paramset);
 
     const dfRepo = newEl();
     assert.equal(
@@ -153,7 +88,13 @@ describe('dataframe-repository', () => {
   });
 
   it('init data and extend range both ways', async () => {
-    const df = fetchMockFrameStart({ begin: 100, end: 201 }, now);
+    const df = generateFullDataFrame(
+      { begin: 100, end: 201 },
+      now,
+      1,
+      timeSpan
+    );
+    mockFrameStart(df, paramset);
 
     const dfRepo = newEl();
     assert.equal(
@@ -197,7 +138,7 @@ describe('dataframe-repository', () => {
   });
 
   it('init data and reset repo', async () => {
-    const df = fetchMockFrameStart({ begin: 90, end: 120 }, now);
+    mockFrameStart(df, paramset);
 
     const dfRepo = newEl();
     assert.equal(

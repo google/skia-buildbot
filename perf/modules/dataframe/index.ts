@@ -29,7 +29,7 @@ export type range = { begin: number; end: number };
  *  element that is larger than 10. And it contains one element.
  */
 export const findSubDataframe = (
-  header: { offset: number; timestamp: number }[],
+  header: (ColumnHeader | null)[],
   range: range,
   domain: 'timestamp' | 'offset' = 'timestamp'
 ): range => {

@@ -8,7 +8,6 @@ import {
   mergeColumnHeaders,
   join,
   timestampBounds,
-  range,
   findSubDataframe,
 } from './index';
 import {
@@ -21,31 +20,25 @@ import {
   TimestampSeconds,
 } from '../json';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { generateFullDataFrame } from './test_utils';
 
 const e = MISSING_DATA_SENTINEL;
 
 describe('find subrange from dataframe header', () => {
-  const generateHeaders = (range: range) => {
-    return Array.from({ length: range.end - range.begin }, (_, k) => {
-      return {
-        offset: k,
-        timestamp: k * 2 + 1,
-      };
-    });
-  };
-
   it('find subrange inside the header', () => {
-    // offset: [0, 1, 2, 3, 4, ..., 10]
-    // timestamp: [1, 3, 5, 7, ..., 21]
-    const header = generateHeaders({ begin: 0, end: 10 });
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+      .header!;
     assert.deepEqual(findSubDataframe(header, { begin: 1, end: 2 }, 'offset'), {
       begin: 1,
       end: 3,
     });
-    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 6 }), {
-      begin: 0,
-      end: 3,
-    });
+    assert.deepEqual(
+      findSubDataframe(header, { begin: 1, end: 6 }, 'timestamp'),
+      {
+        begin: 0,
+        end: 3,
+      }
+    );
     assert.deepEqual(findSubDataframe(header, { begin: 3, end: 7 }), {
       begin: 1,
       end: 4,
@@ -53,7 +46,8 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange outside the header', () => {
-    const header = generateHeaders({ begin: 0, end: 10 });
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+      .header!;
     assert.deepEqual(
       findSubDataframe(header, { begin: -1, end: 2 }, 'offset'),
       { begin: 0, end: 3 }
@@ -73,7 +67,8 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange not in the header', () => {
-    const header = generateHeaders({ begin: 0, end: 10 });
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+      .header!;
     assert.deepEqual(
       findSubDataframe(header, { begin: -10, end: -1 }, 'offset'),
       { begin: 0, end: 0 }
