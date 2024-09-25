@@ -78,6 +78,9 @@ export class ChartTooltipSk extends ElementSk {
   // Full name (id) of the point in question (e.detail.name)
   private _test_name: string = '';
 
+  // Trace Name to pass to NewBugDialog.
+  private _trace_name: string = '';
+
   // The y value of the selected point on the chart.
   private _y_value: number = -1;
 
@@ -220,7 +223,7 @@ export class ChartTooltipSk extends ElementSk {
       return html``;
     }
     if (this.anomaly.bug_id === 0) {
-      this.newBugDialog!.setAnomalies([this.anomaly]);
+      this.newBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
@@ -309,6 +312,7 @@ export class ChartTooltipSk extends ElementSk {
   // this chart on hover.
   load(
     test_name: string,
+    trace_name: string,
     y_value: number,
     commit_position: CommitNumber,
     anomaly: Anomaly | null,
@@ -318,6 +322,7 @@ export class ChartTooltipSk extends ElementSk {
     closeButtonAction: () => void
   ): void {
     this._test_name = test_name;
+    this._trace_name = trace_name;
     this._y_value = y_value;
     this._commit_position = commit_position;
     this._anomaly = anomaly;

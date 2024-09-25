@@ -935,7 +935,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
-		api.NewTriageApi(f.loginProvider, f.chromeperfClient),
+		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore),
 	}
 }
 

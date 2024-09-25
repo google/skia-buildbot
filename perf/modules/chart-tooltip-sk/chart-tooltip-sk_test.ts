@@ -75,6 +75,7 @@ describe('chart-tooltip-sk', () => {
     it('anomalies should be set', () => {
       element.load(
         test_name,
+        '',
         y_value,
         commit_position,
         dummyAnomaly(12345),

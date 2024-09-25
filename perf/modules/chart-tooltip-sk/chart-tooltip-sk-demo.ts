@@ -4,7 +4,6 @@ import fetchMock from 'fetch-mock';
 import { Anomaly, CommitNumber, TimestampSeconds } from '../json';
 import { ChartTooltipSk } from './chart-tooltip-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
-import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 
 window.perf = {
   commit_range_url: 'http://example.com/range/{begin}/{end}',
@@ -78,6 +77,7 @@ window.customElements.whenDefined('chart-tooltip-sk').then(async () => {
   const tooltip = <ChartTooltipSk>document.querySelector('chart-tooltip-sk');
   tooltip!.load(
     'ChromiumPerf/win-11-perf/webrtc/cpuTimeMetric_duration_std/multiple_peerconnections',
+    '',
     100,
     CommitNumber(12345),
     dummyAnomaly(12345),

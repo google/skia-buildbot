@@ -1796,6 +1796,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
+      testName,
       pointDetails.y,
       commitPosition,
       anomaly,

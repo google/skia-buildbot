@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/chromeperf"
 )
 
@@ -24,6 +25,7 @@ type triageApi struct {
 	// the triage toolchain when skia backend is ready.
 	chromeperfClient chromeperf.ChromePerfClient
 	loginProvider    alogin.Login
+	anomalyStore     anomalies.Store
 }
 
 // Request object for the request from new bug UI.
@@ -35,6 +37,7 @@ type FileBugRequest struct {
 	Assignee    string   `json:"assignee,omitempty"`
 	Ccs         []string `json:"ccs,omitempty"`
 	Labels      []string `json:"labels,omitempty"`
+	TraceNames  []string `json:"trace_names,omitempty"`
 }
 
 // Response object for Skia UI.
@@ -52,10 +55,11 @@ func (api triageApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/triage/file_bug", api.FileNewBug)
 }
 
-func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient) triageApi {
+func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, anomalyStore anomalies.Store) triageApi {
 	return triageApi{
 		loginProvider:    loginProvider,
 		chromeperfClient: chromeperfClient,
+		anomalyStore:     anomalyStore,
 	}
 }
 
@@ -96,6 +100,11 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sklog.Debugf("[SkiaTriage] b/%s is created.", chromeperfResponse.BugId)
+
+	for _, traceName := range fileBugRequest.TraceNames {
+		sklog.Debugf("[SkiaTriage] Invalidated the following traceName in cache: %s", traceName)
+		api.anomalyStore.InvalidateTestsCacheForTraceName(ctx, traceName)
+	}
 
 	return
 }

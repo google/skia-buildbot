@@ -46,6 +46,8 @@ export class NewBugDialogSk extends ElementSk {
 
   private _anomalies: Anomaly[] = [];
 
+  private _traceNames: string[] = [];
+
   private _user: string = '';
 
   private _opened: boolean = false;
@@ -387,6 +389,7 @@ export class NewBugDialogSk extends ElementSk {
       labels: labels,
       component: component,
       keys: keys,
+      trace_names: this._traceNames,
     };
 
     fetch('/_/triage/file_bug', {
@@ -430,8 +433,9 @@ export class NewBugDialogSk extends ElementSk {
       });
   }
 
-  setAnomalies(anomalies: Anomaly[]): void {
+  setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
     this._anomalies = anomalies;
+    this._traceNames = traceNames;
     this._form!.reset();
     this._render();
   }

@@ -17,4 +17,7 @@ type Store interface {
 
 	// GetAnomaliesAroundRevision retrieves traces with anomalies that were generated around a specific commit
 	GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]chromeperf.AnomalyForRevision, error)
+
+	// InvalidateTestsCacheForTraceName invalidates a specific traceName from the test cache.
+	InvalidateTestsCacheForTraceName(ctx context.Context, traceName string)
 }
