@@ -1,12 +1,9 @@
 # Role Name
 
-Loads secrets from [berglas](https://github.com/GoogleCloudPlatform/berglas) and
-makes them available as a variable. See
-[//kube/secrets](https://skia.googlesource.com/buildbot/+/refs/heads/main/kube/secrets/)
-for more details on berglas and Skia secrets.
+Loads secrets from GCP Secrets and makes them available as a variable.
 
-The secrets are stored as a single file, `secrets.yml`, in berglas secrets for
-the cluster `etc` and the secret name `ansible-secret-vars`.
+The secrets are stored as a single file, `secrets.yml`, in the secret named
+`ansible-secret-vars`.
 
 You can see this secret in the list of all secrets for the `etc` cluster:
 

@@ -31,8 +31,8 @@ type vmsToCreateTestCase struct {
 func testVMsToCreate(t *testing.T, tc vmsToCreateTestCase) {
 	require.Equal(t, len(tc.nums), len(tc.expectedNames))
 
-	// Windows machine creation shells out to Berglas to get the Skolo password.
-	ctx := instance_types_testing.NewBerglasContextForTesting(t, context.Background())
+	// Windows machine creation shells out to GCloud to get the Skolo password.
+	ctx := instance_types_testing.NewSecretsContextForTesting(t, context.Background())
 
 	vmsToCreate, err := makeVMsToCreate(ctx, tc.kind, tc.instanceType, false /* =forceInstanceType */, tc.nums)
 

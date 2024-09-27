@@ -17,7 +17,7 @@ SECRET_NAME=$2
 REL=$(dirname "$0")
 source ${REL}/config.sh
 
-# bergals only understands a single line, so we base64 encode the whole file,
+# berglas only understands a single line, so we base64 encode the whole file,
 # and then use awk to add a single newline to the end of the base64, which
 # berglas also needs.
 base64 --wrap=0 \

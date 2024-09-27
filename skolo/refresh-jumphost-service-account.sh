@@ -2,7 +2,7 @@
 
 set -e
 
-../kube/secrets/generate-new-key-for-service-account.sh skia-public etc skolo-jumphost
+../kube/secrets/generate-new-key-for-service-account.sh skia-public skolo-jumphost
 
 printf 'You should now run:\n'
 printf '    cd ansible\n'

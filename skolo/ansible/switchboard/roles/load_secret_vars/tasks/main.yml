@@ -10,10 +10,8 @@
   delegate_to: 127.0.0.1
   command:
     argv:
-      - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
-      - etc
+      - '{{ all.repo_root }}/kube/secrets/download-gcp-secret.sh'
       - ansible-secret-vars
-      - '.data."secrets.yml"'
       - '{{ secrets_dir.path }}/secrets.yml'
     creates: '{{ secrets_dir.path }}/secrets.yml'
 

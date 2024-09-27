@@ -29,3 +29,34 @@ function confirm_cluster() {
     fi
 }
 
+# Derives a GCP secret name from a project and service account name by adding
+# the project name (without "google.com:") as a prefix and "-sa-key" as suffix.
+function service_account_secret_name() {
+    if [ $# -ne 2 ]; then
+        echo "service_account_secret_name <project id> <service-account-name>" >&2
+        exit 1
+    fi
+    PROJECT="$1"
+    SA_NAME="$2"
+    echo "${PROJECT#"google.com:"}-${SA_NAME}-sa-key"
+}
+
+# Converts a berglas secret path of the form $cluster/$secret to a GCP secret name.
+function berglas_to_gcp_secret_name() {
+    srcSecretName="$(echo "$line" | awk '{print $1;}')"
+    cluster="$(echo $srcSecretName | cut -d "/" -f 1)"
+    srcSecretBaseName="$(echo $srcSecretName | cut -d "/" -f 2)"
+
+    dstSecretName="${srcSecretBaseName%-service-account}"
+    if [ -z "${dstSecretName##*-token}" ] || [ -z "${dstSecretName##*-secret}" ] || [ -z "${dstSecretName##*-secrets}" ]; then
+        dstSecretName="${dstSecretName}"
+    else
+        dstSecretName="${dstSecretName}-sa-key"
+    fi
+    if [[ "$dstSecretName" == $cluster-* ]] || [[ "$cluster" == "etc" ]]; then
+        dstSecretName="$dstSecretName"
+    else
+        dstSecretName="$cluster-$dstSecretName"
+    fi
+    echo "$dstSecretName"
+}

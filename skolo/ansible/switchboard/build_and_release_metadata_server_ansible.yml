@@ -25,10 +25,9 @@
       run_once: true
       command:
         argv:
-          - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
-          - etc
+          - '{{ all.repo_root }}/kube/secrets/download-service-account-key.sh'
+          - skia-swarming-bots
           - chromium-swarm-bots
-          - '.data."key.json"'
           - '{{ service_account_key_filename }}'
         creates: '{{ service_account_key_filename }}'
 
@@ -37,10 +36,9 @@
       run_once: true
       command:
         argv:
-          - '{{ all.repo_root }}/kube/secrets/get-secret-at-path.sh'
-          - etc
+          - '{{ all.repo_root }}/kube/secrets/download-service-account-key.sh'
+          - skia-swarming-bots-internal
           - chrome-swarming-bots
-          - '.data."key.json"'
           - '{{ internal_service_account_key_filename }}'
         creates: '{{ internal_service_account_key_filename }}'
 

@@ -3,7 +3,6 @@ package instance_types
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
@@ -192,45 +191,26 @@ func getWindowsSetupScript(ctx context.Context) (string, error) {
 	return setupScript, nil
 }
 
-// getChromeBotSkoloPassword retrieves the chrome-bot Skolo password from Berglas.
+// getChromeBotSkoloPassword retrieves the chrome-bot Skolo password from GCP Secrets.
 func getChromeBotSkoloPassword(ctx context.Context) (string, error) {
-	// Read secret using Berglas.
-	berglasOutput := bytes.Buffer{}
+	// Read secret using GCP Secrets.
+	secretsOutput := bytes.Buffer{}
 	cmd := &exec.Command{
-		Name:           "berglas",
-		Args:           []string{"access", "skia-secrets/etc/ansible-secret-vars"},
-		CombinedOutput: &berglasOutput,
+		Name:           "gcloud",
+		Args:           []string{"--project=skia-infra-public", "secrets", "versions", "access", "latest", "--secret=ansible-secret-vars"},
+		CombinedOutput: &secretsOutput,
 	}
 	if err := exec.Run(ctx, cmd); err != nil {
 		return "", skerr.Wrap(err)
 	}
 
-	// Parse Berglas output.
-	base64DecodedBerglasOutput, err := base64.StdEncoding.DecodeString(berglasOutput.String())
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
-	berglasSecret := struct {
-		ApiVersion string `yaml:"apiVersion"`
-		Data       struct {
-			SecretsYml string `yaml:"secrets.yml"`
-		} `yaml:"data"`
-	}{}
-	if err := yaml.Unmarshal(base64DecodedBerglasOutput, &berglasSecret); err != nil {
-		return "", skerr.Wrap(err)
-	}
-
-	// Decode and parse the secrets.yml file inside the Berglas secret.
-	secretsYmlBytes, err := base64.StdEncoding.DecodeString(berglasSecret.Data.SecretsYml)
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
+	// Parse the secrets.yml file inside the secret.
 	secretsYml := struct {
 		Secrets struct {
 			SkoloPassword string `yaml:"skolo_password"`
 		} `yaml:"secrets"`
 	}{}
-	if err := yaml.Unmarshal(secretsYmlBytes, &secretsYml); err != nil {
+	if err := yaml.Unmarshal(secretsOutput.Bytes(), &secretsYml); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return secretsYml.Secrets.SkoloPassword, nil

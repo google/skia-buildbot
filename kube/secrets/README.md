@@ -1,3 +1,13 @@
+# NOTICE
+
+Usage of Berglas is deprecated in favor of GCP Secret Manager. Scripts
+dealing with service account keys have been updated accordingly. Other scripts
+still function using Berglas, but Kubernetes Secrets are disallowed in all new
+clusters so utility will be limited outside of `skia-public` (`skia-corp` has
+been turned down). Any new secrets should live in GCP Secret Manager in the
+`skia-infra-public` project. If you are updating existing secrets, consider
+migrating them and updating call sites.
+
 # Secrets
 
 Secrets for all clusters are stored encrypted in Google Cloud Storage with the
@@ -12,10 +22,6 @@ All commands move the secrets through stdin/stdout, except `edit-secrets.sh`
 which uses a temporary ramdisk to store the files which gets unmounted
 immediately after editing. In all cases secrets never sit on the developer's
 drive.
-
-The `add-service-account.sh` script emits the full service account email address
-on stdout, which is useful for scripts that need to do further processing, such
-as giving that service account access to a specific PubSub topic.
 
 ## Access control
 
