@@ -41,7 +41,7 @@ export const addEventListenersToPuppeteerPage = async (
   eventNames: EventName[]
 ) => {
   // Maps event names to FIFO queues of promise resolver functions.
-  const resolverFnQueues = new Map<EventName, Function[]>();
+  const resolverFnQueues = new Map<EventName, ((evt: any) => void)[]>();
   eventNames.forEach((eventName) => resolverFnQueues.set(eventName, []));
 
   // Use an unlikely prefix to reduce chances of name collision.
@@ -246,6 +246,21 @@ export async function loadCachedTestBed(showBrowser?: boolean) {
 function setBeforeAfterHooks() {
   beforeEach(async () => {
     testBed.page = await browser.newPage(); // Make page available to tests.
+
+    testBed.page.on('console', (msg) =>
+      console.log(`PAGE LOG[${msg.type()}]: ${msg.text()}`)
+    );
+    testBed.page.on('pageerror', (message) =>
+      console.log('PAGE ERROR: ', message)
+    );
+    testBed.page.on('response', (response) =>
+      console.log(`RESPONSE LOG[${response.status()}]: ${response.url()}`)
+    );
+    testBed.page.on('requestfailed', (request) =>
+      console.log(
+        `REQUEST FAILED: [${request.url()}] ${request.failure()?.errorText}`
+      )
+    );
 
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
     // latency, render animations or exhibit any other non-deterministic
