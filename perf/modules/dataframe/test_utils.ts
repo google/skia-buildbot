@@ -16,7 +16,7 @@ const generateTraceFromTemplate = (template: number[], size: number) => {
     .fill(template)
     .flat()
     .filter((v) => typeof v === 'number')
-    .slice(0, length);
+    .slice(0, size);
 };
 
 // Check if the given array contains at least one number.
