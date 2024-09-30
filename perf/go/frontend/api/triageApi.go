@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	defaultFileBugTimeout     = time.Second * 30
-	defaultEditAnomalyTimeout = time.Second * 5
+	defaultRequestProcessTimeout = time.Second * 30
+	defaultEditAnomalyTimeout    = time.Second * 5
 )
 
 type triageApi struct {
@@ -41,12 +41,30 @@ type FileBugRequest struct {
 	TraceNames  []string `json:"trace_names,omitempty"`
 }
 
+// Existing bug request object to asscociate alerts from new bug UI.
+type SkiaAssociateBugRequest struct {
+	BugId      string   `json:"bug_id"`
+	ProjectId  string   `json:"project_id"`
+	Keys       []int    `json:"keys"`
+	TraceNames []string `json:"trace_names"`
+}
+
 // Response object for Skia UI.
 type SkiaFileBugResponse struct {
+	BugId int `json:"bug_id,omitempty"`
+}
+
+// Existing bug response object for Skia UI.
+type SkiaAssociateBugResponse struct {
 	BugId int `json:"bug_id"`
 }
 
-// Response object from the chromeperf file bug request.
+// Response object from the chromeperf associate alerts to existing bug response.
+type ChromeperfAssociateBugResponse struct {
+	Error string `json:"error,omitempty"`
+}
+
+// Response object from the chromeperf file bug response.
 type ChromeperfFileBugResponse struct {
 	BugId int    `json:"bug_id"`
 	Error string `json:"error"`
@@ -72,6 +90,7 @@ type EditAnomaliesResponse struct {
 func (api triageApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/triage/file_bug", api.FileNewBug)
 	router.Post("/_/triage/edit_anomalies", api.EditAnomalies)
+	router.Post("/_/triage/associate_alerts", api.AssociateAlerts)
 }
 
 func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, anomalyStore anomalies.Store) triageApi {
@@ -97,9 +116,8 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	ctx, cancel := context.WithTimeout(r.Context(), defaultFileBugTimeout)
+	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
 	defer cancel()
-
 	chromeperfResponse := &ChromeperfFileBugResponse{}
 
 	err := api.chromeperfClient.SendPostRequest(ctx, "file_bug_skia", "", fileBugRequest, chromeperfResponse, []int{200, 400, 401, 500})
@@ -117,7 +135,6 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to write bug id to SkiaFileBugResponse.", http.StatusInternalServerError)
 		return
 	}
-
 	sklog.Debugf("[SkiaTriage] b/%s is created.", chromeperfResponse.BugId)
 
 	api.markTracesForCacheInvalidation(ctx, fileBugRequest.TraceNames)
@@ -162,6 +179,44 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	api.markTracesForCacheInvalidation(ctx, editAnomaliesRequest.TraceNames)
 
 	return
+}
+
+func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
+	if api.loginProvider.LoggedInAs(r) == "" {
+		httputils.ReportError(w, errors.New("not logged in"), fmt.Sprint("You must be logged in to complete this action."), http.StatusUnauthorized)
+		return
+	}
+
+	var associateBugRequest SkiaAssociateBugRequest
+	if err := json.NewDecoder(r.Body).Decode(&associateBugRequest); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON on associate bug request.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] Associate bug request received from frontend: %s", associateBugRequest)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
+	defer cancel()
+
+	skiaExistingBugResponse := &ChromeperfAssociateBugResponse{}
+	err := api.chromeperfClient.SendPostRequest(ctx, "associate_alerts_skia", "", associateBugRequest, skiaExistingBugResponse, []int{200, 400, 401, 500})
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to send request to associate_alerts_skia.", http.StatusInternalServerError)
+		return
+	}
+	if error := json.NewEncoder(w).Encode(skiaExistingBugResponse); error != nil {
+		httputils.ReportError(w, error, "Failed to enode JSON on associate bug response.", http.StatusInternalServerError)
+		return
+	}
+
+	if skiaExistingBugResponse.Error != "" {
+		httputils.ReportError(w, errors.New(skiaExistingBugResponse.Error), "Associate alerts with existing bug request returned error message.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
+
+	api.markTracesForCacheInvalidation(ctx, associateBugRequest.TraceNames)
 }
 
 // For each trace name, mark it as invalidated in the anomalystore's tests cache.
