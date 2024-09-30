@@ -155,6 +155,7 @@ export class NewBugDialogSk extends ElementSk {
               <div>
                 <input
                   type="checkbox"
+                  class="buglabel"
                   id=${`label-checkbox-${counter}`}
                   checked
                   value="${label}">
@@ -362,7 +363,7 @@ export class NewBugDialogSk extends ElementSk {
     const ccs = ccs_value.split(',').map((s: string) => s.trim());
 
     // Extract labels.
-    const label_fields = document.querySelectorAll('input[type=checkbox]');
+    const label_fields = document.querySelectorAll('input.buglabel');
     const labels: string[] = [];
     label_fields.forEach((field) => {
       if ((field as HTMLInputElement).checked) {
