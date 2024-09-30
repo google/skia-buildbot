@@ -26,7 +26,7 @@ const e = MISSING_DATA_SENTINEL;
 
 describe('find subrange from dataframe header', () => {
   it('find subrange inside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
       .header!;
     assert.deepEqual(findSubDataframe(header, { begin: 1, end: 2 }, 'offset'), {
       begin: 1,
@@ -46,7 +46,7 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange outside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
       .header!;
     assert.deepEqual(
       findSubDataframe(header, { begin: -1, end: 2 }, 'offset'),
@@ -67,7 +67,7 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange not in the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, 2)
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
       .header!;
     assert.deepEqual(
       findSubDataframe(header, { begin: -10, end: -1 }, 'offset'),

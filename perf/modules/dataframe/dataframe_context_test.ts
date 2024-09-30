@@ -28,7 +28,7 @@ describe('dataframe-repository', () => {
     ref_mode: ['head'],
   });
 
-  const df = generateFullDataFrame({ begin: 90, end: 120 }, now, 1, timeSpan);
+  const df = generateFullDataFrame({ begin: 90, end: 120 }, now, 1, [timeSpan]);
   afterEach(() => {
     fetchMock.reset();
   });
@@ -88,12 +88,9 @@ describe('dataframe-repository', () => {
   });
 
   it('init data and extend range both ways', async () => {
-    const df = generateFullDataFrame(
-      { begin: 100, end: 201 },
-      now,
-      1,
-      timeSpan
-    );
+    const df = generateFullDataFrame({ begin: 100, end: 201 }, now, 1, [
+      timeSpan,
+    ]);
     mockFrameStart(df, paramset);
 
     const dfRepo = newEl();

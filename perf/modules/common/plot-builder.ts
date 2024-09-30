@@ -1,7 +1,7 @@
 // Contains functions to create plot data.
 
 import { MISSING_DATA_SENTINEL } from '../const/const';
-import { Anomaly, DataFrame } from '../json';
+import { Anomaly, ColumnHeader, TraceSet } from '../json';
 
 export interface DataPoint {
   x: number | Date;
@@ -30,14 +30,21 @@ export interface ChartData {
 // are the rows
 // TODO(b/362831653): fix legend in the dataframe
 export const convertFromDataframe = (
-  df?: DataFrame,
-  domain: 'commit' | 'date' = 'commit'
+  df: {
+    traceset: TraceSet;
+    header: (ColumnHeader | null)[] | null;
+  } | null,
+  domain: 'commit' | 'date' = 'commit',
+  traceKey?: string
 ) => {
   if ((df?.header?.length || 0) === 0) {
     return null;
   }
+  if (traceKey && !(traceKey in df!.traceset)) {
+    return null;
+  }
 
-  const keys = Object.keys(df!.traceset);
+  const keys = traceKey ? [traceKey] : Object.keys(df!.traceset);
 
   const firstRow: any[] = [];
   if (domain === 'commit') {

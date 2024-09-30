@@ -10,6 +10,19 @@ import {
 import { findSubDataframe, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 
+// Generates an array where the values are repeated from the template.
+const generateTraceFromTemplate = (template: number[], size: number) => {
+  return Array(Math.ceil(size / template.length))
+    .fill(template)
+    .flat()
+    .filter((v) => typeof v === 'number')
+    .slice(0, length);
+};
+
+// Check if the given array contains at least one number.
+const containsAtLeastOneNumber = (values: any[] | null) =>
+  values?.filter((v) => typeof v === 'number').length || 0 > 0;
+
 /**
  * Generate a dataframe set as followings:
  * {
@@ -19,39 +32,58 @@ import { fromParamSet } from '../../../infra-sk/modules/query';
  *  } ...],
  *  traceset: {
  *    ",key=0": [rand()...],
- *    ",key=(range.end-range.begin)": [rand()...],
+ *    ",key=(tracesCount)": [rand()...],
  *  },
  * }
  *
  * There will be [range.end - range.begin] number of consecutive offsets and
- * timestamped with timeSpan intervals.
+ * timestamped with timeSpan intervals. The data can be filled with the given
+ * array by repeating itself to fill the number of commits.
  *
+ * The generated trace values can be controlled by the optional traceValues.
+ * The traceValues provides a template trace values to copy from. If not given,
+ * the trace values will be generated randomly, which will be different in each
+ * run. This can be used to test a stable trace that produce the same chart, or
+ * a specific trace values you need to validate.
  * @param range The start and end commit position (offset range)
  * @param time  The start of the timestamp
  * @param tracesCount The number of traces
- * @param timeSpan The time interval for timestamp
+ * @param timeSpans The time intervals for timestamp, multiple spans will make
+ *  each offset advance in a different stamp
+ * @param traceValues The trace template numbers to copy from, or random if
+ *  not given. See above.
  * @returns DataFrame
  */
 export const generateFullDataFrame = (
   range: range,
   time: number,
   tracesCount: number,
-  timeSpan: number
+  timeSpans: number[],
+  traceValues: (number[] | null)[] = []
 ): DataFrame => {
   const offsets = Array(range.end - range.begin).fill(0);
   const traces = Array(tracesCount).fill(0);
+
+  // A helper function to generate the timestamp at index.
+  // The timeSpans are accumulated one by one.
+  const timeSpan = (idx: number) =>
+    Array(idx)
+      .fill(0)
+      .reduce((pre, _, idx) => pre + timeSpans[idx % timeSpans.length], 0);
   return {
     header: offsets.map(
       (_, v) =>
         ({
           offset: range.begin + v,
-          timestamp: time + v * timeSpan,
+          timestamp: time + timeSpan(v),
         }) as ColumnHeader
     ),
     traceset: Object.fromEntries(
       traces.map((_, v) => [
         ',key=' + v,
-        offsets.map(() => Math.random()) as Trace,
+        containsAtLeastOneNumber(traceValues[v])
+          ? generateTraceFromTemplate(traceValues[v]!, offsets.length)
+          : (offsets.map(() => Math.random()) as Trace),
       ])
     ) as TraceSet,
     skip: 0,
@@ -87,6 +119,7 @@ export const generateSubDataframe = (
 export const mockFrameStart = (
   df: DataFrame,
   paramset: ReadOnlyParamSet,
+  delayInMS: number = 0,
   mock: FetchMockStatic = fetchMock
 ) => {
   mock.post(
@@ -94,6 +127,7 @@ export const mockFrameStart = (
       url: '/_/frame/start',
       method: 'POST',
       matchPartialBody: true,
+      delay: delayInMS,
       body: {
         queries: [fromParamSet(paramset)],
       },
