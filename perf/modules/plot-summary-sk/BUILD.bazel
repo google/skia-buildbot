@@ -12,13 +12,12 @@ sk_element(
         ":plot-summary-sk.css_ts_lib",
     ],
     ts_deps = [
-        "//:node_modules/d3-scale",
         "//:node_modules/lit",
-        "//:node_modules/@types/d3-scale",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "plot-summary-sk.ts",
@@ -60,8 +59,10 @@ karma_test(
         ":plot-summary-sk",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//:node_modules/lit",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
 )
 

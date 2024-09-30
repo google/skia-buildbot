@@ -1,28 +1,31 @@
 /* eslint-disable dot-notation */
 import './index';
 import { assert } from 'chai';
-import {
-  PlotSummarySk,
-  PlotSummarySkSelectionEventDetails,
-} from './plot-summary-sk';
+import { PlotSummarySk } from './plot-summary-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ChartAxisFormat, ChartData } from '../common/plot-builder';
+import { ColumnHeader } from '../json';
+import { LitElement } from 'lit';
 
 describe('plot-summary-sk', () => {
   const newInstance = setUpElementUnderTest<PlotSummarySk>('plot-summary-sk');
 
   let element: PlotSummarySk;
 
-  describe('Selection', () => {
-    let lastEvent: PlotSummarySkSelectionEventDetails;
-    beforeEach(() => {
-      element = newInstance((el: PlotSummarySk) => {
-        el.addEventListener('summary_selected', (e) => {
-          lastEvent = (e as CustomEvent<PlotSummarySkSelectionEventDetails>)
-            .detail;
-        });
+  const chartReady = (cb: () => LitElement) =>
+    new Promise<LitElement>((resolve) => {
+      const el = cb();
+      el.addEventListener('google-chart-ready', () => {
+        resolve(el);
       });
+    }).then((el) => {
+      return el.updateComplete;
+    });
+
+  describe('Selection', () => {
+    beforeEach(() => {
+      element = newInstance();
     });
 
     it('Select an area', async () => {
@@ -53,7 +56,11 @@ describe('plot-summary-sk', () => {
 
       element.DisplayChartData(chartData, true);
       await element.updateComplete;
-      element.Select(3, 7);
+      await chartReady(() => element);
+      element.Select(
+        { offset: 3 } as ColumnHeader,
+        { offset: 7 } as ColumnHeader
+      );
 
       // Because of how d3scale works, we will not get the exact
       // values in the event

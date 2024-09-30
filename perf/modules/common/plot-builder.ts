@@ -160,10 +160,9 @@ export function mainChartOptions(
 
 export function SummaryChartOptions(
   style: CSSStyleDeclaration,
-  chartData: ChartData
+  domain: 'commit' | 'date'
 ): google.visualization.LineChartOptions {
-  const format =
-    chartData.chartAxisFormat === ChartAxisFormat.Commit ? '#' : 'MMM dd, yy';
+  const format = domain === 'commit' ? '#' : 'MMM dd, yy';
   return {
     curveType: 'function',
     hAxis: {

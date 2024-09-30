@@ -10,11 +10,8 @@
  */
 import '@google-web-components/google-chart';
 import { GoogleChart } from '@google-web-components/google-chart';
-
-import { html } from 'lit';
-import { LitElement, PropertyValues } from 'lit';
+import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
-import * as d3Scale from 'd3-scale';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import {
@@ -22,80 +19,50 @@ import {
   ConvertData,
   SummaryChartOptions,
 } from '../common/plot-builder';
+import { ColumnHeader } from '../json';
 import { style } from './plot-summary-sk.css';
+import { property } from 'lit/decorators.js';
 
 const ZOOM_RECT_COLOR = '#0007';
 
 // Describes the zoom in terms of x-axis source values.
 export type ZoomRange = [number, number] | null;
+
 export interface PlotSummarySkSelectionEventDetails {
   start: number;
   end: number;
   valueStart: number | Date;
   valueEnd: number | Date;
+  domain: 'commit' | 'date';
 }
 
 export class PlotSummarySk extends LitElement {
   static styles = style;
 
+  @property({ reflect: true })
+  domain: 'commit' | 'date' = 'commit';
+
   constructor() {
     super();
-
     this.addEventListeners();
   }
-
-  get overlayCtx() {
-    return this.overlayCanvas.value?.getContext('2d');
-  }
-
-  // This contains a mapping of the coordinates on the summary bar to
-  // the corresponding values. This helps us translate the position of
-  // the selected area to the corresponding values that they represent.
-  private valuesRangeCommit: d3Scale.ScaleLinear<number, number> | null = null;
-
-  private commitsStart: number = 0;
-
-  private commitsEnd: number = 0;
-
-  private valuesRangeDate: d3Scale.ScaleLinear<number, number> | null = null;
-
-  private dateStart: Date = new Date();
-
-  private dateEnd: Date = new Date();
-
-  private isCommitScale: boolean = false;
-
-  // Array denoting the start and end points of the current selection.
-  private selectionRange: ZoomRange = null;
-
-  // Array denoting the diffs between the currently clicked point and
-  // the start and end points of the current selection. This is used
-  // to maintain the size of the selection when user drags it left/right.
-  private lockedSelectionDiffs: [number, number] | null = null;
-
-  // Denotes if the user is currently making a selection.
-  private isCurrentlySelecting: boolean = false;
-
-  // Tracks the mouse position.
-  private currentMousePosition: MousePosition | null = null;
 
   // The div element that will host the plot on the summary.
   private plotElement = createRef<GoogleChart>();
 
-  // The canvas element that is used for the selection overlay.
-  private overlayCanvas = createRef<HTMLCanvasElement>();
-
-  // Keeps a track of the current chart data being displayed.
-  private currentChartData: ChartData | null = null;
-
   protected render() {
     return html`
-      <google-chart ${ref(this.plotElement)} class="plot" type="line">
-      </google-chart>
-      <canvas
-        ${ref(this.overlayCanvas)}
-        class="overlay"
-        style="transform-origin: 0 0;"></canvas>
+      <div class="container">
+        <google-chart ${ref(this.plotElement)} class="plot" type="line">
+        </google-chart>
+        <canvas
+          ${ref(this.overlayCanvas)}
+          class="overlay"
+          @mousedown=${(e: MouseEvent) => this.mouseDownListener(e)}
+          @mousemove=${(e: MouseEvent) => this.mouseMoveListener(e)}
+          @mouseleave=${() => this.mouseUpListener()}
+          @mouseup=${() => this.mouseUpListener()}></canvas>
+      </div>
     `;
   }
 
@@ -106,7 +73,6 @@ export class PlotSummarySk extends LitElement {
         entries.forEach(() => {
           // The google chart needs to redraw when it is resized.
           this.plotElement.value?.redraw();
-          this.recomputeRange();
           this.requestUpdate();
         });
       }
@@ -115,6 +81,10 @@ export class PlotSummarySk extends LitElement {
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
+    if (!this.overlayCanvas.value) {
+      return;
+    }
+
     const resizeObserver = new ResizeObserver(
       (entries: ResizeObserverEntry[]) => {
         entries.forEach((entry) => {
@@ -141,65 +111,99 @@ export class PlotSummarySk extends LitElement {
   }
 
   // Select the provided range on the plot-summary.
-  public Select(valueStart: number, valuesEnd: number | Date) {
-    if (this.isCommitScale) {
-      this.selectionRange = [
-        this.valuesRangeCommit!.invert(valueStart),
-        this.valuesRangeCommit!.invert(valuesEnd),
-      ];
-    } else {
-      this.selectionRange = [
-        this.valuesRangeDate!.invert(valueStart),
-        this.valuesRangeDate!.invert(valuesEnd),
-      ];
-    }
+  public Select(begin: ColumnHeader, end: ColumnHeader) {
+    const isCommitScale = this.domain === 'commit';
+    const col = isCommitScale ? 'offset' : 'timestamp';
 
+    const chart = this.chartLayout;
+    const startX = chart?.getXLocation(
+      isCommitScale ? begin[col] : (new Date(begin[col] * 1000) as any)
+    );
+    const endX = chart?.getXLocation(
+      isCommitScale ? end[col] : (new Date(end[col] * 1000) as any)
+    );
+    this.selectionRange = [startX || 0, endX || 0];
     this.drawSelection();
-  }
-
-  private recomputeRange() {
-    if (!this.currentChartData) {
-      return;
-    }
-
-    if (this.isCommitScale) {
-      this.commitsStart = this.currentChartData!.start as number;
-      this.commitsEnd = this.currentChartData!.end as number;
-      this.valuesRangeCommit = d3Scale
-        .scaleLinear()
-        .domain([0, this.width])
-        .range([this.commitsStart, this.commitsEnd]);
-    } else {
-      this.dateStart = this.currentChartData!.start as Date;
-      this.dateEnd = this.currentChartData!.end as Date;
-      this.valuesRangeDate = d3Scale
-        .scaleLinear()
-        .domain([0, this.width])
-        .range([this.dateStart.getTime(), this.dateEnd.getTime()]);
-    }
   }
 
   // Display the chart data on the plot.
   public DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
-    this.currentChartData = chartData;
-    this.isCommitScale = isCommitScale;
+    this.domain = isCommitScale ? 'commit' : 'date';
 
     this.plotElement.value!.data = ConvertData(chartData);
     this.plotElement.value!.options = SummaryChartOptions(
       getComputedStyle(this),
-      chartData
+      this.domain
     );
-    this.recomputeRange();
     this.requestUpdate();
   }
 
+  // Get the underlying ChartLayoutInterface.
+  // This provides API to inspect the traces and coordinates.
+  private get chartLayout(): google.visualization.ChartLayoutInterface | null {
+    const gchart = this.plotElement.value;
+    if (!gchart) {
+      return null;
+    }
+    const wrapper = gchart['chartWrapper'] as google.visualization.ChartWrapper;
+    if (!wrapper) {
+      return null;
+    }
+    const chart = wrapper.getChart();
+    return (
+      chart &&
+      (chart as google.visualization.CoreChartBase).getChartLayoutInterface()
+    );
+  }
+
+  // Add all the event listeners.
+  private addEventListeners(): void {
+    // If the user toggles the theme to/from darkmode then redraw.
+    document.addEventListener('theme-chooser-toggle', () => {
+      // Update the options to trigger the redraw.
+      if (this.plotElement.value) {
+        this.plotElement.value!.options = SummaryChartOptions(
+          getComputedStyle(this),
+          this.domain
+        );
+      }
+      this.requestUpdate();
+    });
+  }
+
+  // ======== Selection using Canvas =========
+  // Below is using the canvas to track and draw user selections.
+  // This gives us ability to draw our own stylish UIs and also requires to
+  // manage user interaction ourselves. The canvas does require a bit more
+  // frequent update and draws than native HTML elements w/o optimizations.
+  private get overlayCtx() {
+    return this.overlayCanvas.value?.getContext('2d');
+  }
+
+  // Array denoting the start and end points of the current selection.
+  private selectionRange: ZoomRange = null;
+
+  // Array denoting the diffs between the currently clicked point and
+  // the start and end points of the current selection. This is used
+  // to maintain the size of the selection when user drags it left/right.
+  private lockedSelectionDiffs: [number, number] | null = null;
+
+  // Denotes if the user is currently making a selection.
+  private isCurrentlySelecting: boolean = false;
+
+  // Tracks the mouse position.
+  private currentMousePosition: MousePosition | null = null;
+
+  // The canvas element that is used for the selection overlay.
+  private overlayCanvas = createRef<HTMLCanvasElement>();
+
   // Clear the current selection.
   private clearSelection(): void {
-    this.overlayCtx!.clearRect(
+    this.overlayCtx?.clearRect(
       0,
       0,
-      this.overlayCanvas.value!.width,
-      this.overlayCanvas.value!.height
+      this.overlayCanvas.value?.width || 0,
+      this.overlayCanvas.value?.height || 0
     );
   }
 
@@ -207,12 +211,10 @@ export class PlotSummarySk extends LitElement {
   private mouseDownListener(e: MouseEvent) {
     e.preventDefault();
     const point = this.eventToCanvasPt(e);
-    this.currentMousePosition = {
-      clientX: point.x,
-      clientY: point.y,
-    };
 
-    if (this.inSelectedArea(point)) {
+    this.currentMousePosition = point;
+
+    if (this.inSelectedArea({ x: point.clientX, y: point.clientY })) {
       // Implement the drag functionality to drag the selected area around.
       // This means the user is dragging the current selection around.
       // Let's get the left and right diffs between the current mouse position
@@ -225,7 +227,7 @@ export class PlotSummarySk extends LitElement {
       this.lockedSelectionDiffs = [leftDiff, rightDiff];
     } else {
       // User is starting a new selection.
-      this.selectionRange = [point.x, point.x + 0.1];
+      this.selectionRange = [point.clientX, point.clientX + 0.1];
       this.isCurrentlySelecting = true;
     }
   }
@@ -240,15 +242,9 @@ export class PlotSummarySk extends LitElement {
 
   private summarySelected() {
     if (this.selectionRange !== null) {
-      let start: number | Date;
-      let end: number | Date;
-      if (this.isCommitScale) {
-        start = this.valuesRangeCommit!(this.selectionRange[0]);
-        end = this.valuesRangeCommit!(this.selectionRange[1]);
-      } else {
-        start = new Date(this.valuesRangeDate!(this.selectionRange[0]));
-        end = new Date(this.valuesRangeDate!(this.selectionRange[1]));
-      }
+      const start =
+        this.chartLayout?.getHAxisValue(this.selectionRange[0]) || 0;
+      const end = this.chartLayout?.getHAxisValue(this.selectionRange[1]) || 0;
       this.dispatchEvent(
         new CustomEvent<PlotSummarySkSelectionEventDetails>(
           'summary_selected',
@@ -256,8 +252,13 @@ export class PlotSummarySk extends LitElement {
             detail: {
               start: this.selectionRange[0],
               end: this.selectionRange[1],
-              valueStart: start,
-              valueEnd: end,
+              valueStart:
+                this.domain === 'date'
+                  ? (start as any).getTime() / 1000
+                  : start,
+              valueEnd:
+                this.domain === 'date' ? (end as any).getTime() / 1000 : end,
+              domain: this.domain,
             },
             bubbles: true,
           }
@@ -270,33 +271,14 @@ export class PlotSummarySk extends LitElement {
   private mouseMoveListener(e: MouseEvent) {
     // Keep track of the user's mouse movements.
     const point = this.eventToCanvasPt(e);
-    this.currentMousePosition = {
-      clientX: point.x,
-      clientY: point.y,
-    };
-  }
-
-  // Add all the event listeners.
-  private addEventListeners(): void {
-    // If the user toggles the theme to/from darkmode then redraw.
-    document.addEventListener('theme-chooser-toggle', () => {
-      // Update the options to trigger the redraw.
-      if (this.plotElement.value && this.currentChartData) {
-        this.plotElement.value!.options = SummaryChartOptions(
-          getComputedStyle(this),
-          this.currentChartData!
-        );
-      }
-      this.requestUpdate();
-    });
-    this.addEventListener('mousedown', this.mouseDownListener);
-    this.addEventListener('mouseup', this.mouseUpListener);
-    this.addEventListener('mouseleave', this.mouseUpListener);
-    this.addEventListener('mousemove', this.mouseMoveListener);
+    this.currentMousePosition = point;
   }
 
   // Draw the summary rectangle outline.
   private drawSummaryRect(): void {
+    if (!this.overlayCanvas) {
+      return;
+    }
     const style = getComputedStyle(this);
     this.overlayCtx!.lineWidth = 3.0;
     this.overlayCtx!.strokeStyle = style.color;
@@ -323,27 +305,19 @@ export class PlotSummarySk extends LitElement {
     this.setAttribute('highlight_color', val);
   }
 
-  /** Set's the hidden attribute. */
-  set hidden(val: boolean) {
-    super.hidden = val;
-    // Update the attribute to the child elements as well.
-    this.overlayCanvas.value!.hidden = val;
-    this.plotElement.value!.hidden = val;
-  }
-
   // Converts an event to a specific point
   private eventToCanvasPt(e: MousePosition) {
-    const clientRect = this.overlayCanvas.value!.getBoundingClientRect();
+    const clientRect = this.plotElement.value!.getBoundingClientRect();
     return {
-      x: e.clientX - clientRect!.left,
-      y: e.clientY - clientRect!.top,
+      clientX: e.clientX - clientRect!.left,
+      clientY: e.clientY - clientRect!.top,
     };
   }
 
   // Draws the selection area.
   private drawSelection(): void {
     this.clearSelection();
-    if (this.selectionRange !== null) {
+    if (this.overlayCanvas.value && this.selectionRange !== null) {
       // Draw left line.
       const startx = this.selectionRange[0];
       this.drawVerticalLineAtPosition(startx);
@@ -426,3 +400,13 @@ export class PlotSummarySk extends LitElement {
 }
 
 define('plot-summary-sk', PlotSummarySk);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'plot-summary-sk': PlotSummarySk;
+  }
+
+  interface GlobalEventHandlersEventMap {
+    summary_selected: CustomEvent<PlotSummarySkSelectionEventDetails>;
+  }
+}

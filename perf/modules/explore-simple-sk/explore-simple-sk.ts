@@ -127,7 +127,7 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { join, timestampBounds } from '../dataframe';
+import { findSubDataframe, join, timestampBounds } from '../dataframe';
 import {
   TraceFormatter,
   GetTraceFormatter,
@@ -138,11 +138,7 @@ import {
   PlotSummarySkSelectionEventDetails,
 } from '../plot-summary-sk/plot-summary-sk';
 import { ChartAxisFormat, ChartData } from '../common/plot-builder';
-import {
-  CreateChartDataFromTraceSet,
-  GetSelectionCommitIndicesFromColumnHeader,
-  GetSelectionDateIndicesFromColumnHeader,
-} from '../common/plot-util';
+import { CreateChartDataFromTraceSet } from '../common/plot-util';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
 import {
@@ -1655,36 +1651,28 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected(e: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
-    let selectionIndices: number[];
-    if (this.state.labelMode === LabelMode.Date) {
-      const selectionStartDate = e.detail.valueStart as Date;
-      const selectionEndDate = e.detail.valueEnd as Date;
-      selectionIndices = GetSelectionDateIndicesFromColumnHeader(
-        this.fullDataFrame!.header!,
-        selectionStartDate,
-        selectionEndDate
-      );
-    } else {
-      selectionIndices = GetSelectionCommitIndicesFromColumnHeader(
-        this.fullDataFrame!.header!,
-        e.detail.valueStart as number,
-        e.detail.valueEnd as number
-      );
-    }
+    const selected = findSubDataframe(
+      this.fullDataFrame!.header!,
+      {
+        begin: e.detail.valueStart as number,
+        end: e.detail.valueEnd as number,
+      },
+      e.detail.domain === 'commit' ? 'offset' : 'timestamp'
+    );
 
     const traceKeys = Object.keys(this.fullDataFrame!.traceset);
     const selectedTraceSet: TraceSet = TraceSet({});
     traceKeys.forEach((key) => {
       const fullTrace: number[] = this.fullDataFrame!.traceset[key];
       selectedTraceSet[key] = fullTrace.slice(
-        selectionIndices[0],
-        selectionIndices[1]
+        selected.begin,
+        selected.end
       ) as Trace;
     });
 
     const columnHeader = this.fullDataFrame!.header!.slice(
-      selectionIndices[0],
-      selectionIndices[1]
+      selected.begin,
+      selected.end
     );
 
     // Let's make sure the anomalies are supplied for the selection.
@@ -2136,17 +2124,10 @@ export class ExploreSimpleSk extends ElementSk {
    * region specific to the currently rendered chart.
    */
   private addSelectionOnPlotSummary() {
-    const length = this._dataframe!.header!.length;
+    const length = this._dataframe?.header?.length || 0;
     if (length > 0) {
-      if (this.state.labelMode === LabelMode.CommitPosition) {
-        const start = this._dataframe!.header![0]!.offset;
-        const end = this._dataframe!.header![length - 1]!.offset;
-        this.plotSummary.value?.Select(start, end);
-      } else {
-        const start = this._dataframe!.header![0]!.timestamp * 1000;
-        const end = this._dataframe!.header![length - 1]!.timestamp * 1000;
-        this.plotSummary.value?.Select(start, end);
-      }
+      const header = this._dataframe!.header!;
+      this.plotSummary.value?.Select(header[0]!, header[header.length - 1]!);
     }
   }
 
