@@ -174,7 +174,7 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 	}
 	type sum struct {
 		count int
-		total time.Duration
+		total float64
 	}
 	type jobSums struct {
 		normal sum
@@ -204,7 +204,7 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 			jobSum = &entry.normal
 		}
 		jobSum.count++
-		jobSum.total += job.Finished.Sub(job.Created)
+		jobSum.total += job.Finished.Sub(job.Created).Seconds()
 	}
 
 	rvTags := make([]map[string]string, 0, len(byJob)*3)
@@ -213,7 +213,7 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 		if jobSum.count == 0 {
 			return
 		}
-		value := float64(jobSum.total) / float64(jobSum.count)
+		value := jobSum.total / float64(jobSum.count)
 		rvTags = append(rvTags, map[string]string{
 			"job_name": jobName,
 			"job_type": string(jobType),
@@ -299,9 +299,9 @@ func isPeriodic(job *types.Job) bool {
 	return false
 }
 
-// computeJobLagTime is an events.ObservationsFn that computes the average time
+// computeJobCreationLagTime is an events.ObservationsFn that computes the average time
 // between a commit landing and jobs being created for it.
-func computeJobLagTime(ev []*events.Event) ([]float64, error) {
+func computeJobCreationLagTime(ev []*events.Event) ([]float64, error) {
 	if len(ev) == 0 {
 		return []float64{}, nil
 	}
@@ -329,14 +329,14 @@ func computeJobLagTime(ev []*events.Event) ([]float64, error) {
 			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
 			continue
 		}
-		observations = append(observations, float64(job.Created.Sub(job.Requested)))
+		observations = append(observations, job.Created.Sub(job.Requested).Seconds())
 	}
 	return observations, nil
 }
 
-// computeTryJobLagTime is an events.ObservationsFn that computes the average
+// computeTryJobCreationLagTime is an events.ObservationsFn that computes the average
 // time between a try request being triggered and a job being created for it.
-func computeTryJobLagTime(ev []*events.Event) ([]float64, error) {
+func computeTryJobCreationLagTime(ev []*events.Event) ([]float64, error) {
 	if len(ev) == 0 {
 		return []float64{}, nil
 	}
@@ -363,7 +363,7 @@ func computeTryJobLagTime(ev []*events.Event) ([]float64, error) {
 			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
 			continue
 		}
-		observations = append(observations, float64(job.Created.Sub(job.Requested)))
+		observations = append(observations, job.Created.Sub(job.Requested).Seconds())
 	}
 	return observations, nil
 }
@@ -394,7 +394,7 @@ func computeCreatedToStartedLatencies(ev []*events.Event) ([]float64, error) {
 			sklog.Warningf("Job %s has a Started timestamp before its Created timestamp", job.Id)
 			continue
 		}
-		observations = append(observations, float64(job.Started.Sub(job.Created)))
+		observations = append(observations, job.Started.Sub(job.Created).Seconds())
 	}
 	return observations, nil
 }
@@ -434,7 +434,7 @@ func computeStartedToFirstTaskLatencies(ev []*events.Event) ([]float64, error) {
 			sklog.Warningf("Job %s has a first-task-triggered timestamp before its Started timestamp", job.Id)
 			continue
 		}
-		observations = append(observations, float64(firstTaskTriggered.Sub(job.Started)))
+		observations = append(observations, firstTaskTriggered.Sub(job.Started).Seconds())
 	}
 	return observations, nil
 }
@@ -460,7 +460,7 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
 			"job_type": string(jobType_Normal),
-		}, period, computeJobLagTime); err != nil {
+		}, period, computeJobCreationLagTime); err != nil {
 			return err
 		}
 
@@ -472,7 +472,7 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
 			"job_type": string(jobType_TryJob),
-		}, period, computeTryJobLagTime); err != nil {
+		}, period, computeTryJobCreationLagTime); err != nil {
 			return err
 		}
 

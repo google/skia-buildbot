@@ -223,7 +223,7 @@ func TestComputeAvgJobDuration(t *testing.T) {
 	expect := func(jobName string, jobType jobTypeString, jobs []*types.Job) {
 		var totalDur float64 = 0
 		for _, j := range jobs {
-			totalDur += float64(j.Finished.Sub(j.Created))
+			totalDur += j.Finished.Sub(j.Created).Seconds()
 		}
 		tester.AddAssert(map[string]string{
 			"job_name": jobName,
