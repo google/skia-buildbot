@@ -58,6 +58,7 @@ import '../point-links-sk';
 import '../query-count-sk';
 import '../graph-title-sk';
 import '../new-bug-dialog-sk';
+import '../existing-bug-dialog-sk';
 import '../window/window';
 
 import {
@@ -151,6 +152,7 @@ import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { DataFrameRepository } from '../dataframe/dataframe_context';
+import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -1166,7 +1168,8 @@ export class ExploreSimpleSk extends ElementSk {
       () => this.pinpointJobToast?.hide()
     );
 
-    this.addEventListener('bug-filed', () => {
+    // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
+    this.addEventListener('anomaly-changed', () => {
       this.plot!.redrawOverlayCanvas();
     });
   }
@@ -1286,6 +1289,15 @@ export class ExploreSimpleSk extends ElementSk {
   keyDown(e: KeyboardEvent) {
     // Ignore IME composition events.
     if (this._dialogOn || e.isComposing || e.keyCode === 229) {
+      return;
+    }
+
+    // Allow user to type and not pan graph if the Existing Bug Dialog is showing.
+    const existing_bug_dialog = $$<ExistingBugDialogSk>(
+      'existing-bug-dialog-sk',
+      this
+    );
+    if (existing_bug_dialog && existing_bug_dialog.isActive) {
       return;
     }
 
@@ -2471,6 +2483,7 @@ export class ExploreSimpleSk extends ElementSk {
     // If this is data returned from a panning-triggered dataframe fetch, then
     // we want to try to preserve the existing zoom *size* so the zoomed data range
     // only pans left or right, without re-sizing the zoomed range.
+
     const previousZoom = this.plot!.zoom;
 
     const dataframe = json.dataframe!;

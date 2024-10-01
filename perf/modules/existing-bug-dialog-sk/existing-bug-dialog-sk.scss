@@ -1,0 +1,44 @@
+@import '../../../elements-sk/modules/styles/buttons';
+@import '../themes/themes.scss';
+
+existing-bug-dialog-sk {
+  #existing-bug-dialog {
+    overflow: auto;
+    width: 25%;
+    #closeIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
+    .footer {
+      display: flex;
+      justify-content: right;
+    }
+
+    #existing-bug-dialog-select-project:focus {
+      outline-style: none;
+    }
+
+    #bug_id {
+      position: relative;
+      line-height: 25px;
+      width: 125px;
+      box-sizing: content-box;
+      padding-left: 8px;
+    }
+  }
+
+  .iron-selected {
+    background: #eee;
+  }
+
+  #add-to-existing-bug {
+    display: block;
+  }
+}

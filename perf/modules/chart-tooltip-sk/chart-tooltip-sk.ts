@@ -18,6 +18,8 @@ import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
+import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
+import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
@@ -113,6 +115,9 @@ export class ChartTooltipSk extends ElementSk {
   // New Bug Dialog.
   newBugDialog: NewBugDialogSk | null = null;
 
+  // Existing Bug Dialog.
+  existingBugDialog: ExistingBugDialogSk | null = null;
+
   // Fields below are used for chart tooltip styling
 
   // If the tooltip is to be displayed or hidden
@@ -183,6 +188,17 @@ export class ChartTooltipSk extends ElementSk {
         )}>
         New Bug
       </button>
+      <existing-bug-dialog-sk></existing-bug-dialog-sk>
+      <button
+        id="existing-bug"
+        @click=${ele.openExistingBugDialog}
+        ?hidden=${!(
+          ele._tooltip_fixed &&
+          ele.anomaly &&
+          ele.anomaly!.bug_id === 0
+        )}>
+        Existing Bug
+      </button>
       <button
         class="action"
         id="close"
@@ -224,6 +240,7 @@ export class ChartTooltipSk extends ElementSk {
     }
     if (this.anomaly.bug_id === 0) {
       this.newBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
+      this.existingBugDialog!.setAnomalies([this.anomaly]);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
@@ -278,11 +295,17 @@ export class ChartTooltipSk extends ElementSk {
     this._render();
 
     this.newBugDialog = this.querySelector('new-bug-dialog-sk');
+    this.existingBugDialog = this.querySelector('existing-bug-dialog-sk');
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
 
     // If a new bug has been filed, it means the anomaly's bug_id has been updated. We should re-render.
-    this.newBugDialog!.addEventListener('bug-filed', () => {
+    this.newBugDialog!.addEventListener('anomaly-changed', () => {
+      this._render();
+    });
+
+    // If the existing bug has been submitted, it means the anomaly's bug_id has been updated. We should re-render.
+    this.existingBugDialog!.addEventListener('anomaly-changed', () => {
       this._render();
     });
   }
@@ -339,6 +362,10 @@ export class ChartTooltipSk extends ElementSk {
 
   private openNewBugDialog() {
     this.newBugDialog!.open();
+  }
+
+  private openExistingBugDialog() {
+    this.existingBugDialog!.open();
   }
 
   get test_name(): string {

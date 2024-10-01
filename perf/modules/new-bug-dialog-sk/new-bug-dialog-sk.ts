@@ -419,7 +419,7 @@ export class NewBugDialogSk extends ElementSk {
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
         this.dispatchEvent(
-          new CustomEvent('bug-filed', {
+          new CustomEvent('anomaly-changed', {
             bubbles: true,
           })
         );
