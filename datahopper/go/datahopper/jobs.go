@@ -31,26 +31,34 @@ import (
 var (
 	// Time periods over which to compute metrics. Assumed to be sorted in
 	// increasing order.
-	TIME_PERIODS = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
-
-	// Measurement name for overdue job specs. Records the age of the oldest commit for which the
-	// job has not completed (nor for any later commit), for each job spec and for each repo.
-	MEASUREMENT_OVERDUE_JOB_SPECS = "overdue_job_specs_s"
-
-	// Measurement indicating the age of the most-recently created job, by
-	// name, in seconds.
-	MEASUREMENT_LATEST_JOB_AGE = "latest_job_age_s"
-
-	// Measurement indicating the lag time between a job being requested
-	// (eg. a commit landing or tryjob requested) and a job being added.
-	MEASUREMENT_JOB_CREATION_LAG = "job_creation_lag_s"
+	timePeriods = []time.Duration{24 * time.Hour, 7 * 24 * time.Hour}
 )
 
 const (
-	JOB_STREAM = "job_metrics"
+	// Measurement name for overdue job specs. Records the age of the oldest commit for which the
+	// job has not completed (nor for any later commit), for each job spec and for each repo.
+	measurementOverdueJobSpecs = "overdue_job_specs_s"
 
-	OVERDUE_JOB_METRICS_PERIOD      = 8 * 24 * time.Hour
-	OVERDUE_JOB_METRICS_NUM_COMMITS = 5
+	// Measurement indicating the age of the most-recently created job, by
+	// name, in seconds.
+	measurementLatestJobAge = "latest_job_age_s"
+
+	// Measurement indicating the lag time between a job being requested
+	// (eg. a commit landing or tryjob requested) and a job being added.
+	measurementJobCreationLag = "job_creation_lag_s"
+
+	// Measurement indicating the lag time between a job being created and the
+	// job being started.
+	measurementJobStartedLag = "job_started_lag_s"
+
+	// Measurement indicating the lag time between a job being started and its
+	// first task being triggered.
+	measurementFirstTaskTriggeredLag = "first_task_lag_s"
+
+	jobStream = "job_metrics"
+
+	overdueJobMetricsPeriod     = 8 * 24 * time.Hour
+	overdueJobMetricsNumCommits = 5
 )
 
 // jobTypeString is an enum of the types of Jobs that computeAvgJobDuration will aggregate separately.
@@ -58,9 +66,9 @@ const (
 type jobTypeString string
 
 const (
-	NORMAL jobTypeString = "normal"
-	FORCED jobTypeString = "forced"
-	TRYJOB jobTypeString = "tryjob"
+	jobType_Normal jobTypeString = "normal"
+	jobType_Forced jobTypeString = "forced"
+	jobType_TryJob jobTypeString = "tryjob"
 )
 
 // jobEventDB implements the events.EventDB interface.
@@ -126,7 +134,7 @@ func (j *jobEventDB) update() error {
 		return err
 	}
 	now := time.Now()
-	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
+	longestPeriod := timePeriods[len(timePeriods)-1]
 	jobs, err := j.jCache.GetJobsFromDateRange(now.Add(-longestPeriod), now)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to load jobs from %s to %s", now.Add(-longestPeriod), now)
@@ -142,7 +150,7 @@ func (j *jobEventDB) update() error {
 			return skerr.Wrapf(err, "Failed to encode %#v to GOB", job)
 		}
 		ev := &events.Event{
-			Stream:    JOB_STREAM,
+			Stream:    jobStream,
 			Timestamp: job.Created,
 			Data:      buf.Bytes(),
 		}
@@ -213,9 +221,9 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 		rvVals = append(rvVals, value)
 	}
 	for jobName, jobSums := range byJob {
-		add(jobName, NORMAL, jobSums.normal)
-		add(jobName, TRYJOB, jobSums.tryjob)
-		add(jobName, FORCED, jobSums.forced)
+		add(jobName, jobType_Normal, jobSums.normal)
+		add(jobName, jobType_TryJob, jobSums.tryjob)
+		add(jobName, jobType_Forced, jobSums.forced)
 	}
 	return rvTags, rvVals, nil
 }
@@ -291,58 +299,149 @@ func isPeriodic(job *types.Job) bool {
 	return false
 }
 
-// computeJobLagTime is an events.AggregateFn that computes the average time
+// computeJobLagTime is an events.ObservationsFn that computes the average time
 // between a commit landing and jobs being created for it.
-func computeJobLagTime(ev []*events.Event) (float64, error) {
+func computeJobLagTime(ev []*events.Event) ([]float64, error) {
 	if len(ev) == 0 {
-		return 0.0, nil
+		return []float64{}, nil
 	}
-	count := 0
-	total := time.Duration(0)
+	var observations []float64
 	for _, e := range ev {
 		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
-			return 0.0, skerr.Wrapf(err, "Failed to decode job")
+			return nil, skerr.Wrapf(err, "Failed to decode job")
 		}
 		// Tryjobs, forced jobs, and periodic jobs will incorrectly skew
 		// the average.
 		if job.IsTryJob() || job.IsForce || isPeriodic(&job) {
 			continue
 		}
-		lag := job.Created.Sub(job.Requested)
-		total += lag
-		count++
+		// Guard against missing or incorrect Created or Requested timestamps.
+		if util.TimeIsZero(job.Created) {
+			sklog.Warningf("Job %s has an empty Created timestamp", job.Id)
+			continue
+		}
+		if util.TimeIsZero(job.Requested) {
+			sklog.Warningf("Job %s has an empty Requested timestamp", job.Id)
+			continue
+		}
+		if job.Created.Before(job.Requested) {
+			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
+			continue
+		}
+		observations = append(observations, float64(job.Created.Sub(job.Requested)))
 	}
-	return float64(total) / float64(count), nil
+	return observations, nil
 }
 
-// computeTryJobLagTime is an events.AggregateFn that computes the average time
-// between a try request being triggered and a job being created for it.
-func computeTryJobLagTime(ev []*events.Event) (float64, error) {
+// computeTryJobLagTime is an events.ObservationsFn that computes the average
+// time between a try request being triggered and a job being created for it.
+func computeTryJobLagTime(ev []*events.Event) ([]float64, error) {
 	if len(ev) == 0 {
-		return 0.0, nil
+		return []float64{}, nil
 	}
-	count := 0
-	total := time.Duration(0)
+	var observations []float64
 	for _, e := range ev {
 		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
-			return 0.0, skerr.Wrapf(err, "Failed to decode job")
+			return nil, skerr.Wrapf(err, "Failed to decode job")
 		}
 		// Only consider try jobs.
 		if !job.IsTryJob() {
 			continue
 		}
-		lag := job.Created.Sub(job.Requested)
-		total += lag
-		count++
+		// Guard against missing or incorrect Created or Requested timestamps.
+		if util.TimeIsZero(job.Created) {
+			sklog.Warningf("Job %s has an empty Created timestamp", job.Id)
+			continue
+		}
+		if util.TimeIsZero(job.Requested) {
+			sklog.Warningf("Job %s has an empty Requested timestamp", job.Id)
+			continue
+		}
+		if job.Created.Before(job.Requested) {
+			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
+			continue
+		}
+		observations = append(observations, float64(job.Created.Sub(job.Requested)))
 	}
-	return float64(total) / float64(count), nil
+	return observations, nil
+}
+
+// computeCreatedToStartedLatencies is an events.ObservationsFn that computes
+// the average latency between a job's Created and Started timestamps.
+func computeCreatedToStartedLatencies(ev []*events.Event) ([]float64, error) {
+	if len(ev) == 0 {
+		return []float64{}, nil
+	}
+	var observations []float64
+	for _, e := range ev {
+		var job types.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to decode job")
+		}
+		// Guard against missing or incorrect Created or Started timestamps.
+		if util.TimeIsZero(job.Created) {
+			sklog.Warningf("Job %s has an empty Created timestamp", job.Id)
+			continue
+		}
+		if util.TimeIsZero(job.Started) {
+			// We may have Jobs in the DB that aren't Started yet; this is
+			// normal.
+			continue
+		}
+		if job.Started.Before(job.Created) {
+			sklog.Warningf("Job %s has a Started timestamp before its Created timestamp", job.Id)
+			continue
+		}
+		observations = append(observations, float64(job.Started.Sub(job.Created)))
+	}
+	return observations, nil
+}
+
+// computeStartedToFirstTaskLatencies is an events.ObservationsFn that computes
+// the average time between a job's Started timestamp and the time that its
+// first task was triggered.
+func computeStartedToFirstTaskLatencies(ev []*events.Event) ([]float64, error) {
+	if len(ev) == 0 {
+		return []float64{}, nil
+	}
+	var observations []float64
+	for _, e := range ev {
+		var job types.Job
+		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to decode job")
+		}
+		if util.TimeIsZero(job.Started) {
+			// We may have Jobs in the DB that aren't Started yet; this is
+			// normal.
+			continue
+		}
+		firstTaskTriggered := time.Time{}
+		for _, tasks := range job.Tasks {
+			for _, task := range tasks {
+				if util.TimeIsZero(firstTaskTriggered) || task.Created.Before(firstTaskTriggered) {
+					firstTaskTriggered = task.Created
+				}
+			}
+		}
+		if util.TimeIsZero(firstTaskTriggered) {
+			// We may have Jobs in the DB whose first task hasn't been triggered
+			// yet; this is normal.
+			continue
+		}
+		if firstTaskTriggered.Before(job.Started) {
+			sklog.Warningf("Job %s has a first-task-triggered timestamp before its Started timestamp", job.Id)
+			continue
+		}
+		observations = append(observations, float64(firstTaskTriggered.Sub(job.Started)))
+	}
+	return observations, nil
 }
 
 // addJobAggregates adds aggregation functions for job events to the EventStream.
 func addJobAggregates(s *events.EventStream, instance string) error {
-	for _, period := range TIME_PERIODS {
+	for _, period := range timePeriods {
 		// Average job duration.
 		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration", "instance": instance}, period, computeAvgJobDuration); err != nil {
 			return err
@@ -353,27 +452,51 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 			return err
 		}
 
-		// Average lag time between commit landing and job creation.
-		if err := s.AggregateMetric(map[string]string{
-			"metric":   MEASUREMENT_JOB_CREATION_LAG,
+		// Lag time between commit landing and job creation.
+		if err := s.ComputeStatsMetric(map[string]string{
+			"metric":   measurementJobCreationLag,
 			"instance": instance,
 			// The metrics package crashes if we don't use the same
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
-			"job_type": string(NORMAL),
+			"job_type": string(jobType_Normal),
 		}, period, computeJobLagTime); err != nil {
 			return err
 		}
 
-		// Average lag time between try request and job creation.
-		if err := s.AggregateMetric(map[string]string{
-			"metric":   MEASUREMENT_JOB_CREATION_LAG,
+		// Lag time between try request and job creation.
+		if err := s.ComputeStatsMetric(map[string]string{
+			"metric":   measurementJobCreationLag,
 			"instance": instance,
 			// The metrics package crashes if we don't use the same
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
-			"job_type": string(TRYJOB),
+			"job_type": string(jobType_TryJob),
 		}, period, computeTryJobLagTime); err != nil {
+			return err
+		}
+
+		// Lag time between job creation and job starting.
+		if err := s.ComputeStatsMetric(map[string]string{
+			"metric":   measurementJobStartedLag,
+			"instance": instance,
+			// The metrics package crashes if we don't use the same
+			// set of tags for every Aggregate/Dynamic metric...
+			"job_name": "",
+			"job_type": "",
+		}, period, computeCreatedToStartedLatencies); err != nil {
+			return err
+		}
+
+		// Lag time between job starting and first task triggered.
+		if err := s.ComputeStatsMetric(map[string]string{
+			"metric":   measurementFirstTaskTriggeredLag,
+			"instance": instance,
+			// The metrics package crashes if we don't use the same
+			// set of tags for every Aggregate/Dynamic metric...
+			"job_name": "",
+			"job_type": "",
+		}, period, computeStartedToFirstTaskLatencies); err != nil {
 			return err
 		}
 	}
@@ -393,7 +516,7 @@ func StartJobMetrics(ctx context.Context, jCache cache.JobCache, w window.Window
 	}
 	edb.em = em
 
-	s := em.GetEventStream(JOB_STREAM)
+	s := em.GetEventStream(jobStream)
 	if err := addJobAggregates(s, instance); err != nil {
 		return err
 	}
@@ -603,7 +726,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			}
 			metric, ok := m.overdueMetrics[key]
 			if !ok {
-				metric = metrics2.GetInt64Metric(MEASUREMENT_OVERDUE_JOB_SPECS, map[string]string{
+				metric = metrics2.GetInt64Metric(measurementOverdueJobSpecs, map[string]string{
 					"repo":        key.Repo,
 					"job_name":    key.Job,
 					"job_trigger": key.Trigger,
@@ -638,7 +761,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 					latest = job.Created
 				}
 			}
-			metric := metrics2.GetInt64Metric(MEASUREMENT_LATEST_JOB_AGE, map[string]string{
+			metric := metrics2.GetInt64Metric(measurementLatestJobAge, map[string]string{
 				"repo":        key.Repo,
 				"job_name":    key.Job,
 				"job_trigger": key.Trigger,

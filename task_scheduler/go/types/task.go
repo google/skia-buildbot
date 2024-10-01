@@ -379,6 +379,7 @@ func (task *Task) Valid() bool {
 // TaskSummary is a subset of the information found in a Task.
 type TaskSummary struct {
 	Attempt        int        `json:"attempt"`
+	Created        time.Time  `json:"created"`
 	Id             string     `json:"id"`
 	MaxAttempts    int        `json:"max_attempts"`
 	Status         TaskStatus `json:"status"`
@@ -389,6 +390,7 @@ type TaskSummary struct {
 func (t *Task) MakeTaskSummary() *TaskSummary {
 	return &TaskSummary{
 		Attempt:        t.Attempt,
+		Created:        t.Created,
 		Id:             t.Id,
 		MaxAttempts:    t.MaxAttempts,
 		Status:         t.Status,
@@ -400,6 +402,7 @@ func (t *Task) MakeTaskSummary() *TaskSummary {
 func (t *TaskSummary) Copy() *TaskSummary {
 	return &TaskSummary{
 		Attempt:        t.Attempt,
+		Created:        t.Created,
 		Id:             t.Id,
 		MaxAttempts:    t.MaxAttempts,
 		Status:         t.Status,

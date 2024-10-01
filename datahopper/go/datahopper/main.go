@@ -125,7 +125,7 @@ func main() {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 	go util.RepeatCtx(ctx, 30*time.Minute, func(ctx context.Context) {
-		if err := tcc.Cleanup(ctx, OVERDUE_JOB_METRICS_PERIOD); err != nil {
+		if err := tcc.Cleanup(ctx, overdueJobMetricsPeriod); err != nil {
 			sklog.Errorf("Failed to cleanup TaskCfgCache: %s", err)
 		}
 	})
@@ -160,14 +160,14 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
-	period := TIME_PERIODS[len(TIME_PERIODS)-1]
-	if OVERDUE_JOB_METRICS_PERIOD > period {
-		period = OVERDUE_JOB_METRICS_PERIOD
+	period := timePeriods[len(timePeriods)-1]
+	if overdueJobMetricsPeriod > period {
+		period = overdueJobMetricsPeriod
 	}
 	if bot_metrics.MAX_TIME_PERIOD > period {
 		period = bot_metrics.MAX_TIME_PERIOD
 	}
-	w, err := window.New(ctx, period, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
+	w, err := window.New(ctx, period, overdueJobMetricsNumCommits, repos)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
 	}
