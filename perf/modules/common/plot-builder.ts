@@ -164,6 +164,7 @@ export function SummaryChartOptions(
 ): google.visualization.LineChartOptions {
   const format = domain === 'commit' ? '#' : 'MMM dd, yy';
   return {
+    interpolateNulls: true,
     curveType: 'function',
     hAxis: {
       textPosition: 'out',

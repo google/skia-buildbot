@@ -9,21 +9,20 @@
  * @example
  */
 import '@google-web-components/google-chart';
+import '../dataframe/dataframe_context';
+
 import { GoogleChart } from '@google-web-components/google-chart';
 import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import {
-  ChartData,
-  ConvertData,
   SummaryChartOptions,
+  convertFromDataframe,
 } from '../common/plot-builder';
-import { ColumnHeader } from '../json';
-import { style } from './plot-summary-sk.css';
+import { ColumnHeader, DataFrame } from '../json';
 import { property } from 'lit/decorators.js';
-
-const ZOOM_RECT_COLOR = '#0007';
+import { style } from './plot-summary-sk.css';
 
 // Describes the zoom in terms of x-axis source values.
 export type ZoomRange = [number, number] | null;
@@ -42,9 +41,55 @@ export class PlotSummarySk extends LitElement {
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
 
+  @property({ attribute: false })
+  dataframe?: DataFrame;
+
+  @property({ attribute: true })
+  selectedTrace: string | null = null;
+
+  // The current selected value saved for re-adjusting selection box.
+  // The google chart reloads and redraws themselves asynchronously, we need to
+  // save the selection range and apply it after we received the `ready` event.
+  private _selectedValueRange: {
+    begin: ColumnHeader;
+    end: ColumnHeader;
+  } | null = null;
+
   constructor() {
     super();
     this.addEventListeners();
+  }
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (
+      changedProperties.has('dataframe') ||
+      changedProperties.has('selectedTrace') ||
+      changedProperties.has('domain')
+    ) {
+      this.updateDataframe(this.dataframe!, this.selectedTrace);
+    }
+  }
+
+  private async updateDataframe(df: DataFrame | null, trace: string | null) {
+    const plot = this.plotElement.value;
+    if (!plot) {
+      if (df) {
+        console.warn(
+          'The dataframe is not assigned because the element is not ready. Try call `await this.updateComplete` first.'
+        );
+      }
+      return;
+    }
+
+    const rows = convertFromDataframe(
+      df,
+      this.domain,
+      trace || Object.keys(df?.traceset || {})[0]
+    );
+    if (rows) {
+      plot.data = rows;
+      plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
+    }
   }
 
   // The div element that will host the plot on the summary.
@@ -53,15 +98,21 @@ export class PlotSummarySk extends LitElement {
   protected render() {
     return html`
       <div class="container">
-        <google-chart ${ref(this.plotElement)} class="plot" type="line">
+        <google-chart
+          ${ref(this.plotElement)}
+          class="plot"
+          type="line"
+          @google-chart-ready=${this.onGoogleChartReady}>
+        </google-chart>
         </google-chart>
         <canvas
           ${ref(this.overlayCanvas)}
           class="overlay"
-          @mousedown=${(e: MouseEvent) => this.mouseDownListener(e)}
-          @mousemove=${(e: MouseEvent) => this.mouseMoveListener(e)}
-          @mouseleave=${() => this.mouseUpListener()}
-          @mouseup=${() => this.mouseUpListener()}></canvas>
+          @mousedown=${this.mouseDownListener}
+          @mousemove=${this.mouseMoveListener}
+          @mouseleave=${this.mouseUpListener}
+          @mouseup=${this.mouseUpListener}>
+        </canvas>
       </div>
     `;
   }
@@ -78,6 +129,15 @@ export class PlotSummarySk extends LitElement {
       }
     );
     resizeObserver.observe(this);
+  }
+
+  private onGoogleChartReady() {
+    // Update the selectionBox because the chart might get updated.
+    if (!this._selectedValueRange) {
+      this.clearSelection();
+      return;
+    }
+    this.Select(this._selectedValueRange.begin, this._selectedValueRange.end);
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -123,19 +183,8 @@ export class PlotSummarySk extends LitElement {
       isCommitScale ? end[col] : (new Date(end[col] * 1000) as any)
     );
     this.selectionRange = [startX || 0, endX || 0];
+    this._selectedValueRange = { begin, end };
     this.drawSelection();
-  }
-
-  // Display the chart data on the plot.
-  public DisplayChartData(chartData: ChartData, isCommitScale: boolean) {
-    this.domain = isCommitScale ? 'commit' : 'date';
-
-    this.plotElement.value!.data = ConvertData(chartData);
-    this.plotElement.value!.options = SummaryChartOptions(
-      getComputedStyle(this),
-      this.domain
-    );
-    this.requestUpdate();
   }
 
   // Get the underlying ChartLayoutInterface.
@@ -161,7 +210,7 @@ export class PlotSummarySk extends LitElement {
     // If the user toggles the theme to/from darkmode then redraw.
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
-      if (this.plotElement.value) {
+      if (this.plotElement.value && this.dataframe) {
         this.plotElement.value!.options = SummaryChartOptions(
           getComputedStyle(this),
           this.domain
@@ -296,15 +345,6 @@ export class PlotSummarySk extends LitElement {
     return this.getBoundingClientRect().height;
   }
 
-  /** Mirrors the highlight_color attribute. */
-  get highlightColor(): string {
-    return this.getAttribute('highlight_color') || ZOOM_RECT_COLOR;
-  }
-
-  set highlightColor(val: string) {
-    this.setAttribute('highlight_color', val);
-  }
-
   // Converts an event to a specific point
   private eventToCanvasPt(e: MousePosition) {
     const clientRect = this.plotElement.value!.getBoundingClientRect();
@@ -327,7 +367,9 @@ export class PlotSummarySk extends LitElement {
 
       // Shade the selected section.
       this.overlayCtx!.beginPath();
-      this.overlayCtx!.fillStyle = this.highlightColor;
+      this.overlayCtx!.fillStyle = getComputedStyle(this).getPropertyValue(
+        '--sk-summary-highlight'
+      );
       this.overlayCtx!.rect(startx, 0, endx - startx, this.height);
       this.overlayCtx!.fill();
     }

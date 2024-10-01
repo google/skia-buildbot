@@ -1,17 +1,17 @@
-/* eslint-disable dot-notation */
 import './index';
 import { assert } from 'chai';
 import { PlotSummarySk } from './plot-summary-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { ChartAxisFormat, ChartData } from '../common/plot-builder';
-import { ColumnHeader } from '../json';
+import { generateFullDataFrame } from '../dataframe/test_utils';
 import { LitElement } from 'lit';
 
 describe('plot-summary-sk', () => {
-  const newInstance = setUpElementUnderTest<PlotSummarySk>('plot-summary-sk');
-
-  let element: PlotSummarySk;
+  const now = new Date('2024/9/20').getTime();
+  const timeSpans = [6 * 60 * 60]; // 6 hours
+  const commitRange = { begin: 100, end: 110 };
+  const df = generateFullDataFrame(commitRange, now, 1, timeSpans);
+  const newEl = setUpElementUnderTest<PlotSummarySk>('plot-summary-sk');
 
   const chartReady = (cb: () => LitElement) =>
     new Promise<LitElement>((resolve) => {
@@ -24,49 +24,67 @@ describe('plot-summary-sk', () => {
     });
 
   describe('Selection', () => {
-    beforeEach(() => {
-      element = newInstance();
+    it('select an area in default canvas mode', async () => {
+      const element = newEl((el) => {
+        el.style.width = '10px';
+      });
+      await element.updateComplete;
+      await chartReady(() => {
+        element.dataframe = df;
+        return element;
+      });
+
+      const header = df.header!,
+        start = 2,
+        end = 4;
+      element.Select(header![start]!, header![end]!);
+
+      const selectionRange = element['selectionRange'];
+      assert.approximately(start, Math.floor(selectionRange![0]), 1);
+      assert.approximately(end, Math.floor(selectionRange![1]), 1);
     });
 
-    it('Select an area', async () => {
-      const chartData: ChartData = {
-        lines: {
-          test: [
-            { x: 1, y: 1, anomaly: null },
-            { x: 2, y: 2, anomaly: null },
-            { x: 3, y: 3, anomaly: null },
-            { x: 4, y: 4, anomaly: null },
-            { x: 5, y: 5, anomaly: null },
-            { x: 6, y: 6, anomaly: null },
-            { x: 7, y: 7, anomaly: null },
-            { x: 8, y: 8, anomaly: null },
-            { x: 9, y: 9, anomaly: null },
-          ],
-        },
-        chartAxisFormat: ChartAxisFormat.Commit,
-        xLabel: 'xLabel',
-        yLabel: 'yLabel',
-        start: 1,
-        end: 9,
-      };
-      element.style.width = '10px';
-      element.style.display = 'inline-block';
-      element.requestUpdate();
+    it('select an area before the chart is ready', async () => {
+      const element = newEl((el) => {
+        el.style.width = '10px';
+      });
       await element.updateComplete;
 
-      element.DisplayChartData(chartData, true);
-      await element.updateComplete;
-      await chartReady(() => element);
-      element.Select(
-        { offset: 3 } as ColumnHeader,
-        { offset: 7 } as ColumnHeader
-      );
+      const header = df.header!,
+        start = 2,
+        end = 4;
+      element.dataframe = df;
+      element.Select(header![start]!, header![end]!);
 
-      // Because of how d3scale works, we will not get the exact
-      // values in the event
-      const selectionRange = element['selectionRange'];
-      assert.approximately(3, Math.floor(selectionRange![0]), 1);
-      assert.approximately(7, Math.floor(selectionRange![1]), 1);
+      assert.isNull(element['chartLayout']);
+      assert.approximately(0, Math.floor(element['selectionRange']![0]), 1);
+
+      await chartReady(() => {
+        return element;
+      });
+
+      assert.approximately(2, Math.floor(element['selectionRange']![0]), 1);
+      assert.approximately(4, Math.floor(element['selectionRange']![1]), 1);
+    });
+
+    it('select an area in date mode', async () => {
+      const element = newEl((el) => {
+        el.style.width = '10px';
+        // Enable date mode, the underlying data should stay the same.
+        el.domain = 'date';
+      });
+      await element.updateComplete;
+      await chartReady(() => {
+        element.dataframe = df;
+        return element;
+      });
+
+      const header = df.header!,
+        start = 3,
+        end = 9;
+      element.Select(header![start]!, header![end]!);
+      assert.approximately(start, Math.floor(element['selectionRange']![0]), 1);
+      assert.approximately(end, Math.floor(element['selectionRange']![1]), 1);
     });
   });
 });

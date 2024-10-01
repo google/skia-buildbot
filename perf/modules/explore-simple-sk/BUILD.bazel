@@ -61,8 +61,6 @@ sk_element(
         "//:node_modules/lit",
         "//infra-sk/modules:object_ts_lib",
         "//perf/modules/plot-simple-sk:ticks_ts_lib",
-        "//perf/modules/common:plot-builder_ts_lib",
-        "//perf/modules/common:plot-util_ts_lib",
         "//:node_modules/@material/web",
         "//:node_modules/lit-html",  # keep
         "//perf/modules/dataframe:dataframe_context_ts_lib",

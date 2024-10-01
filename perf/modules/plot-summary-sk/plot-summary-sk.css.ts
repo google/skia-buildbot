@@ -6,6 +6,7 @@ export const style = css`
     position: relative;
     width: 100%;
     height: 100px;
+    --sk-summary-highlight: var(--md-sys-color-primary-container, #ced0ce);
   }
   .load-btn {
     width: 20px;

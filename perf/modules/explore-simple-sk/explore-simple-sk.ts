@@ -138,8 +138,6 @@ import {
   PlotSummarySk,
   PlotSummarySkSelectionEventDetails,
 } from '../plot-summary-sk/plot-summary-sk';
-import { ChartAxisFormat, ChartData } from '../common/plot-builder';
-import { CreateChartDataFromTraceSet } from '../common/plot-util';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
 import {
@@ -504,7 +502,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private googleChartPlot: PlotGoogleChartSk | null = null;
 
-  private plotSummary: Ref<PlotSummarySk> = createRef();
+  private plotSummary = createRef<PlotSummarySk>();
 
   private query: QuerySk | null = null;
 
@@ -1062,7 +1060,6 @@ export class ExploreSimpleSk extends ElementSk {
       </div>
       <plot-summary-sk
         ${ref(this.plotSummary)}
-        highlight_color="#CED0CE"
         @summary_selected=${this.summarySelected}
         class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
       </plot-summary-sk>`;
@@ -2148,57 +2145,13 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private populatePlotSummary() {
     if (this.fullDataFrame !== null && this.fullDataFrame!.traceset !== null) {
-      if (this.traceKeyForSummary === '') {
-        this.traceKeyForSummary = Object.keys(this.fullDataFrame!.traceset)[0];
+      // TODO(b/361354421): Remove this, it should be assigned automatically.
+      const plot = this.plotSummary.value;
+      if (plot) {
+        plot.selectedTrace = this.traceKeyForSummary;
+        plot.dataframe = this.fullDataFrame;
       }
-
-      const selectedTrace = TraceSet({});
-      selectedTrace[this.traceKeyForSummary] =
-        this.fullDataFrame!.traceset[this.traceKeyForSummary];
-      this.plotSummary.value?.DisplayChartData(
-        this.createChartData(selectedTrace),
-        this.state.labelMode === LabelMode.CommitPosition
-      );
     }
-  }
-
-  /**
-   * Create the chart data from the input traceset
-   * @param traceSet input trace set
-   * @returns ChartData output.
-   */
-  private createChartData(traceSet: { [key: string]: number[] }): ChartData {
-    let chartData: ChartData;
-    const xAxisLabelsCommitNum: number[] = [];
-    const xAxisLabelsDate: Date[] = [];
-    switch (this.state.labelMode) {
-      case LabelMode.CommitPosition:
-        this.fullDataFrame!.header!.forEach((header) => {
-          xAxisLabelsCommitNum.push(header!.offset as number);
-        });
-        chartData = CreateChartDataFromTraceSet(
-          traceSet,
-          xAxisLabelsCommitNum,
-          ChartAxisFormat.Commit,
-          this.plot!.anomalyDataMap
-        );
-        break;
-      case LabelMode.Date:
-        this.fullDataFrame!.header!.forEach((header) => {
-          xAxisLabelsDate.push(new Date(header!.timestamp * 1000));
-        });
-        chartData = CreateChartDataFromTraceSet(
-          traceSet,
-          xAxisLabelsDate,
-          ChartAxisFormat.Date,
-          this.plot!.anomalyDataMap
-        );
-        break;
-      default:
-        break;
-    }
-
-    return chartData!;
   }
 
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {
@@ -2446,21 +2399,6 @@ export class ExploreSimpleSk extends ElementSk {
   private enableIncrementalDataFrameFetchHandler(target: MdSwitch | null) {
     this._state._incremental = target!.selected;
     this._stateHasChanged();
-  }
-
-  /**
-   * Wrapper for reShortcut and addTraces. It takes in a list of trace keys, creates
-   * a shortcut, and renders the traces into the display. If there's already traces
-   * being displayed, the graph will conain the union of the existing traces and the
-   * traces from keys.
-   *
-   * @param {string[]} keys - The list of keys to display in the frame.
-   */
-  public async addTracesFromList(keys: string[]) {
-    await this.reShortCut(keys);
-    await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
-      this.addTraces(json, false);
-    });
   }
 
   /**
@@ -3014,6 +2952,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.removeAll(true);
     this._state.formulas = updatedFormulas;
     this._stateHasChanged();
+
     await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
       this.addTraces(json, false);
     });
