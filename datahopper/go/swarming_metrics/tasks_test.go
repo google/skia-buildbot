@@ -244,12 +244,13 @@ func TestMetrics(t *testing.T) {
 
 	checkMetricVal := func(metric string, expect float64) {
 		tags := map[string]string{
-			"metric":    metric,
-			"os":        "Ubuntu",
-			"period":    "24h0m0s",
-			"pool":      "Skia",
-			"stream":    streamForPool("Skia"),
-			"task_name": "my-task",
+			"metric":      metric,
+			"os":          "Ubuntu",
+			"period":      "24h0m0s",
+			"pool":        "Skia",
+			"stream":      streamForPool("Skia"),
+			"task_name":   "my-task",
+			"aggregation": "",
 		}
 		for k := range includeDimensions {
 			if _, ok := tags[k]; !ok {

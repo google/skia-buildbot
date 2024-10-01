@@ -25,6 +25,10 @@ import (
 )
 
 const (
+	// Tag key indicating what aggregation function was used to derive the
+	// metric.
+	tagAggregation = "aggregation"
+
 	// Tag key indicating the time period over which a metric is calculated.
 	tagPeriod = "period"
 
@@ -167,8 +171,9 @@ func (m *EventMetrics) AggregateMetric(stream string, tags map[string]string, pe
 	mx := &metric{
 		measurement: m.measurement,
 		tags: map[string]string{
-			tagPeriod: fmt.Sprintf("%s", period),
-			tagStream: stream,
+			tagPeriod:      fmt.Sprintf("%s", period),
+			tagStream:      stream,
+			tagAggregation: "",
 		},
 		stream: stream,
 		period: period,
@@ -210,8 +215,9 @@ func (m *EventMetrics) DynamicMetric(stream string, tags map[string]string, peri
 	mx := &dynamicMetric{
 		measurement: m.measurement,
 		tags: map[string]string{
-			tagPeriod: fmt.Sprintf("%s", period),
-			tagStream: stream,
+			tagPeriod:      fmt.Sprintf("%s", period),
+			tagStream:      stream,
+			tagAggregation: "",
 		},
 		stream: stream,
 		period: period,
@@ -264,9 +270,9 @@ func (m *EventMetrics) ComputeStatsMetric(stream string, tags map[string]string,
 		mx := &metric{
 			measurement: m.measurement,
 			tags: map[string]string{
-				tagPeriod:     period.String(),
-				tagStream:     stream,
-				"aggregation": aggregationName,
+				tagPeriod:      period.String(),
+				tagStream:      stream,
+				tagAggregation: aggregationName,
 			},
 			stream: stream,
 			period: period,
