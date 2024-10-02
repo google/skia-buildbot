@@ -128,7 +128,7 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { findSubDataframe, join, timestampBounds } from '../dataframe';
+import { findSubDataframe, join } from '../dataframe';
 import {
   TraceFormatter,
   GetTraceFormatter,
@@ -747,19 +747,6 @@ export class ExploreSimpleSk extends ElementSk {
                   @change=${(e: InputEvent) =>
                     ele.autoRefreshHandler(e.target as MdSwitch)}></md-switch>
                 Auto refresh data
-              </label>
-            </li>
-            <li>
-              <label>
-                <md-switch
-                  form="form"
-                  id="incremental-fetch-switch"
-                  ?selected=${ele._state._incremental}
-                  @change=${(e: InputEvent) =>
-                    ele.enableIncrementalDataFrameFetchHandler(
-                      e.target as MdSwitch
-                    )}></md-switch>
-                Only fetch delta when panning left/right
               </label>
             </li>
             <li ?hidden=${ele._state.plotSummary}>
@@ -1431,9 +1418,7 @@ export class ExploreSimpleSk extends ElementSk {
         .then((json: ShiftResponse) => {
           this._state.begin = json.begin;
           this._state.end = json.end;
-          if (!this._state._incremental) {
-            this._state.requestType = 0;
-          }
+          this._state.requestType = 0;
           this._stateHasChanged();
           this.rangeChangeImpl();
         })
@@ -2182,79 +2167,7 @@ export class ExploreSimpleSk extends ElementSk {
    *  but is not yet present in this._dataframe.
    */
   private requestFrameBodyDeltaFromState(): FrameRequest {
-    // Make this optional until we iron out any bugs that surface in production.
-    if (!this._state._incremental) {
-      return this.requestFrameBodyFullFromState();
-    }
-    // If there's nothing loaded in the current dataframe, go ahead and fetch the entire
-    // timestamp range in this._state.begin/end.
-    if (this._dataframe === null || this._dataframe!.header!.length === 0) {
-      return this.requestFrameBodyFullFromState();
-    }
-
-    // If the queries have changed, just fetch a full dataframe rather than try to merge
-    // dataframes with different queries.
-    const existingQueries = fromParamSet(this._dataframe.paramset)
-      .split('&')
-      .sort();
-    const stateQueries = this._state.queries.sort();
-    if (
-      existingQueries.length !== stateQueries.length ||
-      !existingQueries.every((val, i) => stateQueries[i] === val)
-    ) {
-      return this.requestFrameBodyFullFromState();
-    }
-
-    // Now compare the existing dataframe's bounds to the begin and end values in this._state
-    // to determine what the fetchable difference is, if there is any.
-    const existingBounds = timestampBounds(this._dataframe);
-    const newBounds = [this._state.begin, this._state.end];
-
-    if (newBounds[0] < existingBounds[0] && newBounds[1] > existingBounds[1]) {
-      // Zoom out. newBounds completely contains existingBounds.
-      // We'd have to make two separate dataframe fetches for the data missing on either side.
-      // That's more complex than we want to handle yet, so just do a full data fetch instead.
-      return this.requestFrameBodyFullFromState();
-    }
-
-    if (newBounds[0] > existingBounds[1] || newBounds[1] < existingBounds[0]) {
-      // No overlap. newBounds is entirely outside of existingBounds.
-      return this.requestFrameBodyFullFromState();
-    }
-
-    const fetchRange = [0, 0];
-
-    if (newBounds[0] < existingBounds[0]) {
-      // Pan left.
-      fetchRange[0] = Math.min(existingBounds[0], newBounds[0]);
-      fetchRange[1] = Math.max(existingBounds[0], newBounds[0]);
-    } else if (newBounds[1] > existingBounds[1]) {
-      // Pan right.
-      fetchRange[0] = Math.min(existingBounds[1], newBounds[1]);
-      fetchRange[1] = Math.max(existingBounds[1], newBounds[1]);
-    } else {
-      console.error(
-        'unexpected new vs existing bounds condition',
-        existingBounds,
-        newBounds
-      );
-    }
-
-    return {
-      begin: fetchRange[0],
-      end: fetchRange[1],
-      num_commits: this._state.numCommits,
-      request_type: this._state.requestType,
-      formulas: this._state.formulas,
-      queries: this._state.queries,
-      keys: this._state.keys,
-      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      pivot:
-        validatePivotRequest(this._state.pivotRequest) === ''
-          ? this._state.pivotRequest
-          : null,
-      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
-    };
+    return this.requestFrameBodyFullFromState();
   }
 
   /** Create a FrameRequest that will re-create the current state of the page. */
@@ -2408,11 +2321,6 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
-  private enableIncrementalDataFrameFetchHandler(target: MdSwitch | null) {
-    this._state._incremental = target!.selected;
-    this._stateHasChanged();
-  }
-
   /**
    * Add traces to the display. Always called from within the
    * this._requestFrame() callback.
@@ -2430,12 +2338,6 @@ export class ExploreSimpleSk extends ElementSk {
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
   private addTraces(json: FrameResponse, tab: boolean) {
-    // If this is data returned from a panning-triggered dataframe fetch, then
-    // we want to try to preserve the existing zoom *size* so the zoomed data range
-    // only pans left or right, without re-sizing the zoomed range.
-
-    const previousZoom = this.plot!.zoom;
-
     const dataframe = json.dataframe!;
     if (
       dataframe.traceset === null ||
@@ -2467,14 +2369,7 @@ export class ExploreSimpleSk extends ElementSk {
       );
     }
 
-    const exsitingBounds = timestampBounds(this._dataframe);
-    const newBounds = timestampBounds(dataframe);
-
-    let mergedDataframe = dataframe;
-    if (this._dataframe !== null && this._state._incremental) {
-      mergedDataframe = join(this._dataframe, dataframe);
-    }
-
+    const mergedDataframe = dataframe;
     this.fullDataFrame = mergedDataframe;
     this.traceKeyForSummary = '';
     this.fullAnomalyMap = json.anomalymap;
@@ -2492,30 +2387,6 @@ export class ExploreSimpleSk extends ElementSk {
     // the plot render only the zoomed portion on the first try here.
     this.AddPlotLines(mergedDataframe.traceset, labels);
     this.originalTraceSet = deepCopy(mergedDataframe.traceset);
-
-    // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
-    // for panning.
-    if (this._state._incremental && previousZoom !== null) {
-      if (
-        exsitingBounds[0] > newBounds[0] &&
-        exsitingBounds[1] >= newBounds[1]
-      ) {
-        // Pan left: Just re-use previousZoom, since it's indexed starting from 0 on the
-        // left and should be the same when you pan that direction.
-        this.plot!.zoom = previousZoom;
-      } else if (
-        exsitingBounds[1] < newBounds[1] &&
-        exsitingBounds[0] <= newBounds[0]
-      ) {
-        // Pan right. Adjust the start and end zoom bounds because the size of dataframe
-        // into which we are zooming has changed, and we'll need to push the zoom window
-        // indexes back out to the right edge of the newly merged dataframe.
-        this.plot!.zoom = [
-          this.plot!.zoom![1] - (previousZoom![1] - previousZoom![0]),
-          this.plot!.zoom![1],
-        ];
-      }
-    }
 
     // TODO(seanmccullough): merge logic for anomalymap - without merging, the incremental
     // fetch might invalidate or erase already loaded data from whatever is in anomalymap.
