@@ -299,44 +299,18 @@ func isPeriodic(job *types.Job) bool {
 	return false
 }
 
-// computeJobCreationLagTime is an events.ObservationsFn that computes the average time
-// between a commit landing and jobs being created for it.
-func computeJobCreationLagTime(ev []*events.Event) ([]float64, error) {
-	if len(ev) == 0 {
-		return []float64{}, nil
+// makeObservationsFn takes the given function, which applies to either try jobs
+// or normal jobs, and returns an events.ObservationsFn.
+func makeObservationsFn(fn func([]*events.Event, bool) ([]float64, error), tryjobs bool) func([]*events.Event) ([]float64, error) {
+	return func(ev []*events.Event) ([]float64, error) {
+		return fn(ev, tryjobs)
 	}
-	var observations []float64
-	for _, e := range ev {
-		var job types.Job
-		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to decode job")
-		}
-		// Tryjobs, forced jobs, and periodic jobs will incorrectly skew
-		// the average.
-		if job.IsTryJob() || job.IsForce || isPeriodic(&job) {
-			continue
-		}
-		// Guard against missing or incorrect Created or Requested timestamps.
-		if util.TimeIsZero(job.Created) {
-			sklog.Warningf("Job %s has an empty Created timestamp", job.Id)
-			continue
-		}
-		if util.TimeIsZero(job.Requested) {
-			sklog.Warningf("Job %s has an empty Requested timestamp", job.Id)
-			continue
-		}
-		if job.Created.Before(job.Requested) {
-			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
-			continue
-		}
-		observations = append(observations, job.Created.Sub(job.Requested).Seconds())
-	}
-	return observations, nil
 }
 
-// computeTryJobCreationLagTime is an events.ObservationsFn that computes the average
-// time between a try request being triggered and a job being created for it.
-func computeTryJobCreationLagTime(ev []*events.Event) ([]float64, error) {
+// computeJobCreationLatencies is an events.ObservationsFn that computes the
+// latency between the Requested timestamp (time at which the commit landed) and
+// the Creation timestamp.
+func computeJobCreationLatencies(ev []*events.Event, tryjobs bool) ([]float64, error) {
 	if len(ev) == 0 {
 		return []float64{}, nil
 	}
@@ -346,8 +320,12 @@ func computeTryJobCreationLagTime(ev []*events.Event) ([]float64, error) {
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to decode job")
 		}
-		// Only consider try jobs.
-		if !job.IsTryJob() {
+		// Forced jobs and periodic jobs will incorrectly skew the average.
+		if job.IsForce || isPeriodic(&job) {
+			continue
+		}
+		// Filter out try jobs or normal jobs as appropriate.
+		if tryjobs != job.IsTryJob() {
 			continue
 		}
 		// Guard against missing or incorrect Created or Requested timestamps.
@@ -370,7 +348,7 @@ func computeTryJobCreationLagTime(ev []*events.Event) ([]float64, error) {
 
 // computeCreatedToStartedLatencies is an events.ObservationsFn that computes
 // the average latency between a job's Created and Started timestamps.
-func computeCreatedToStartedLatencies(ev []*events.Event) ([]float64, error) {
+func computeCreatedToStartedLatencies(ev []*events.Event, tryjobs bool) ([]float64, error) {
 	if len(ev) == 0 {
 		return []float64{}, nil
 	}
@@ -379,6 +357,14 @@ func computeCreatedToStartedLatencies(ev []*events.Event) ([]float64, error) {
 		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to decode job")
+		}
+		// Forced jobs and periodic jobs will incorrectly skew the average.
+		if job.IsForce || isPeriodic(&job) {
+			continue
+		}
+		// Filter out try jobs or normal jobs as appropriate.
+		if tryjobs != job.IsTryJob() {
+			continue
 		}
 		// Guard against missing or incorrect Created or Started timestamps.
 		if util.TimeIsZero(job.Created) {
@@ -411,6 +397,10 @@ func computeStartedToFirstTaskLatencies(ev []*events.Event) ([]float64, error) {
 		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to decode job")
+		}
+		// Forced jobs and periodic jobs will incorrectly skew the average.
+		if job.IsForce || isPeriodic(&job) {
+			continue
 		}
 		if util.TimeIsZero(job.Started) {
 			// We may have Jobs in the DB that aren't Started yet; this is
@@ -460,7 +450,7 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
 			"job_type": string(jobType_Normal),
-		}, period, computeJobCreationLagTime); err != nil {
+		}, period, makeObservationsFn(computeJobCreationLatencies, false)); err != nil {
 			return err
 		}
 
@@ -472,19 +462,31 @@ func addJobAggregates(s *events.EventStream, instance string) error {
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
 			"job_type": string(jobType_TryJob),
-		}, period, computeTryJobCreationLagTime); err != nil {
+		}, period, makeObservationsFn(computeJobCreationLatencies, true)); err != nil {
 			return err
 		}
 
 		// Lag time between job creation and job starting.
+		// Normal jobs.
 		if err := s.ComputeStatsMetric(map[string]string{
 			"metric":   measurementJobStartedLag,
 			"instance": instance,
 			// The metrics package crashes if we don't use the same
 			// set of tags for every Aggregate/Dynamic metric...
 			"job_name": "",
-			"job_type": "",
-		}, period, computeCreatedToStartedLatencies); err != nil {
+			"job_type": string(jobType_Normal),
+		}, period, makeObservationsFn(computeCreatedToStartedLatencies, false)); err != nil {
+			return err
+		}
+		// Try jobs.
+		if err := s.ComputeStatsMetric(map[string]string{
+			"metric":   measurementJobStartedLag,
+			"instance": instance,
+			// The metrics package crashes if we don't use the same
+			// set of tags for every Aggregate/Dynamic metric...
+			"job_name": "",
+			"job_type": string(jobType_TryJob),
+		}, period, makeObservationsFn(computeCreatedToStartedLatencies, true)); err != nil {
 			return err
 		}
 
