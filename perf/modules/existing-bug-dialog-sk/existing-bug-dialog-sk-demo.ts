@@ -104,7 +104,7 @@ window.customElements.whenDefined('existing-bug-dialog-sk').then(() => {
     },
   ];
 
-  ele.setAnomalies(anomalies);
+  ele.setAnomalies(anomalies, []);
 });
 
 $$('#demo-open')?.addEventListener('click', () => {

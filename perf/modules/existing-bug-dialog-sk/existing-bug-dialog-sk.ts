@@ -45,6 +45,8 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private _anomalies: Anomaly[] = [];
 
+  private _traceNames: string[] = [];
+
   private allProjectIdOptions: ProjectId[] = [];
 
   private _toast: ToastSk | null = null;
@@ -180,14 +182,15 @@ export class ExistingBugDialogSk extends ElementSk {
 
     // Extract project_id.
     const projectId = document.getElementById(
-      'project_id'
+      'existing-bug-dialog-select-project'
     )! as HTMLInputElement;
 
     const alertKeys: number[] = this._anomalies.map((a) => a.id);
     const requestBody = {
-      bug_id: bugId.value,
-      project_id: projectId.value,
+      bug_id: bugId?.value,
+      project_id: projectId?.value,
       keys: alertKeys,
+      trace_names: this._traceNames,
     };
 
     fetch('/_/triage/associate_alerts', {
@@ -231,8 +234,9 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  setAnomalies(anomalies: Anomaly[]): void {
+  setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
     this._anomalies = anomalies;
+    this._traceNames = traceNames;
     this._form!.reset();
     this._render();
   }

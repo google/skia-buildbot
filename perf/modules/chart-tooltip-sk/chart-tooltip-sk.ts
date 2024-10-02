@@ -240,7 +240,7 @@ export class ChartTooltipSk extends ElementSk {
     }
     if (this.anomaly.bug_id === 0) {
       this.newBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
-      this.existingBugDialog!.setAnomalies([this.anomaly]);
+      this.existingBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
