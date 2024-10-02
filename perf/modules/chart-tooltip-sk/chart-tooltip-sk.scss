@@ -23,6 +23,11 @@ chart-tooltip-sk {
       padding: 4px;
     }
 
+    close-icon-sk#unassociate-bug-button {
+      fill: var(--negative);
+      cursor: pointer;
+    }
+
     h3 {
       margin: 0;
       margin-bottom: 16px;
@@ -54,6 +59,10 @@ chart-tooltip-sk {
           padding: 1px 6px;
         }
       }
+    }
+
+    ul.table#anomaly-details {
+      margin-bottom: 5px;
     }
 
     .revlink {

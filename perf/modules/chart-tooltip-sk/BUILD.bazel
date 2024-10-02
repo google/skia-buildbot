@@ -22,8 +22,7 @@ sk_element(
         "//perf/modules/anomaly-sk",
         "//perf/modules/commit-range-sk",
         "//perf/modules/ingest-file-links-sk",
-        "//perf/modules/existing-bug-dialog-sk",
-        "//perf/modules/new-bug-dialog-sk",
+        "//perf/modules/triage-menu-sk",
         "//elements-sk/modules/icons/close-icon-sk",
     ],
     ts_deps = [

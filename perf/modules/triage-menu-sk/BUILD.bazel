@@ -1,0 +1,36 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":triage-menu-sk-demo",
+)
+
+sk_element(
+    name = "triage-menu-sk",
+    sass_srcs = ["triage-menu-sk.scss"],
+    sk_element_deps = [
+        "//perf/modules/new-bug-dialog-sk",
+        "//perf/modules/existing-bug-dialog-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+    ],
+    ts_srcs = [
+        "triage-menu-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "triage-menu-sk-demo",
+    html_file = "triage-menu-sk-demo.html",
+    scss_entry_point = "triage-menu-sk-demo.scss",
+    sk_element_deps = [":triage-menu-sk"],
+    ts_entry_point = "triage-menu-sk-demo.ts",
+)

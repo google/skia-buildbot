@@ -16,12 +16,10 @@ import { Anomaly, CommitNumber } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
-import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
-import '../new-bug-dialog-sk/new-bug-dialog-sk';
-import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
-import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
+import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
+import '../triage-menu-sk/triage-menu-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 
 export class Commit {
@@ -101,6 +99,8 @@ export class ChartTooltipSk extends ElementSk {
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf.bug_host_url;
 
+  private triageMenu: TriageMenuSk | null = null;
+
   _tooltip_fixed: boolean = false;
 
   _close_button_action: () => void = () => {};
@@ -111,12 +111,6 @@ export class ChartTooltipSk extends ElementSk {
 
   // Ingest file links element. Provides links based on cid and
   ingestFileLinks: IngestFileLinksSk | null = null;
-
-  // New Bug Dialog.
-  newBugDialog: NewBugDialogSk | null = null;
-
-  // Existing Bug Dialog.
-  existingBugDialog: ExistingBugDialogSk | null = null;
 
   // Fields below are used for chart tooltip styling
 
@@ -172,33 +166,19 @@ export class ChartTooltipSk extends ElementSk {
           Regressions at ${ele.commit_position}
         </a>
       </div>
-      ${ele.anomalyTemplate()} ${ele.commitTemplate()}
+      ${ele.commitTemplate()}
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       <ingest-file-links-sk
         id="tooltip-ingest-file-links"></ingest-file-links-sk>
-      ${ele.seeMoreText()}
-      <new-bug-dialog-sk></new-bug-dialog-sk>
-      <button
-        id="new-bug"
-        @click=${ele.openNewBugDialog}
+      ${ele.seeMoreText()} ${ele.anomalyTemplate()}
+      <triage-menu-sk
+        id="triage-menu"
         ?hidden=${!(
           ele._tooltip_fixed &&
           ele.anomaly &&
           ele.anomaly!.bug_id === 0
         )}>
-        New Bug
-      </button>
-      <existing-bug-dialog-sk></existing-bug-dialog-sk>
-      <button
-        id="existing-bug"
-        @click=${ele.openExistingBugDialog}
-        ?hidden=${!(
-          ele._tooltip_fixed &&
-          ele.anomaly &&
-          ele.anomaly!.bug_id === 0
-        )}>
-        Existing Bug
-      </button>
+      </triage-menu-sk>
       <button
         class="action"
         id="close"
@@ -238,15 +218,15 @@ export class ChartTooltipSk extends ElementSk {
     if (this.anomaly === null) {
       return html``;
     }
+
     if (this.anomaly.bug_id === 0) {
-      this.newBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
-      this.existingBugDialog!.setAnomalies([this.anomaly], [this._trace_name]);
+      this.triageMenu!.setAnomalies([this.anomaly!], [this._trace_name]);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
     return html`
       <h4>Anomaly Details</h4>
-      <ul class="table">
+      <ul class="table" id="anomaly-details">
         <li>
           <span>Score:</span>
           <span>
@@ -274,10 +254,14 @@ export class ChartTooltipSk extends ElementSk {
           <span>Improvement:</span>
           <span>${this.anomaly!.is_improvement}</span>
         </li>
-        <li>
+        <li ?hidden=${this.anomaly!.bug_id === 0}>
           <span>Bug Id:</span>
           <span>
             ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
+            <close-icon-sk
+              id="unassociate-bug-button"
+              @click=${this.unassociateBug}>
+            </close-icon-sk>
           </span>
         </li>
       </ul>
@@ -294,18 +278,11 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'bug_host_url');
     this._render();
 
-    this.newBugDialog = this.querySelector('new-bug-dialog-sk');
-    this.existingBugDialog = this.querySelector('existing-bug-dialog-sk');
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
+    this.triageMenu = this.querySelector('#triage-menu');
 
-    // If a new bug has been filed, it means the anomaly's bug_id has been updated. We should re-render.
-    this.newBugDialog!.addEventListener('anomaly-changed', () => {
-      this._render();
-    });
-
-    // If the existing bug has been submitted, it means the anomaly's bug_id has been updated. We should re-render.
-    this.existingBugDialog!.addEventListener('anomaly-changed', () => {
+    this.addEventListener('anomaly-changed', () => {
       this._render();
     });
   }
@@ -360,12 +337,15 @@ export class ChartTooltipSk extends ElementSk {
     this._render();
   }
 
-  private openNewBugDialog() {
-    this.newBugDialog!.open();
-  }
-
-  private openExistingBugDialog() {
-    this.existingBugDialog!.open();
+  private unassociateBug() {
+    const bug_id = 0;
+    this.triageMenu!.makeEditAnomalyRequest(
+      [this._anomaly!],
+      [this._trace_name],
+      bug_id,
+      null,
+      null
+    );
   }
 
   get test_name(): string {

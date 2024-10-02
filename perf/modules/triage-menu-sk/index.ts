@@ -1,0 +1,1 @@
+import './triage-menu-sk';
