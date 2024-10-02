@@ -2318,7 +2318,11 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
+      this.dfRepo?.resetWithDataframeAndRequest(
+        json.dataframe!,
+        json.anomalymap,
+        body
+      );
       // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
       // this.plot!.removeAll();
       this.addTraces(json, switchToTab);
@@ -2390,7 +2394,11 @@ export class ExploreSimpleSk extends ElementSk {
     const switchToTab =
       body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
+      this.dfRepo?.resetWithDataframeAndRequest(
+        json.dataframe!,
+        json.anomalymap,
+        body
+      );
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
     });
@@ -2771,7 +2779,11 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, body);
+      this.dfRepo?.resetWithDataframeAndRequest(
+        json.dataframe!,
+        json.anomalymap,
+        body
+      );
       this.addTraces(json, true);
     });
   }

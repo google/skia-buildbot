@@ -6,8 +6,10 @@ import {
   Trace,
   TraceSet,
   FrameRequest,
+  AnomalyMap,
+  Anomaly,
 } from '../json';
-import { findSubDataframe, range } from './index';
+import { findAnomalyInRange, findSubDataframe, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 
 // Generates an array where the values are repeated from the template.
@@ -116,9 +118,39 @@ export const generateSubDataframe = (
   };
 };
 
+/**
+ * Generates the AnomalyMap from the DataFrame using simple input.
+ * @param df The dataframe used for the base commit and trace.
+ * @param data The list of anomaly data
+ * @returns The AnomalyMap
+ */
+export const generateAnomalyMap = (
+  df: DataFrame,
+  data: {
+    trace?: number; // The trace index in DataFrame
+    commit: number; // The commit offset from the first commit in DataFrame
+    bugId?: number; // The bugId that can be used to validate test.
+  }[]
+) => {
+  if ((df.header?.length || 0) <= 0) {
+    return {};
+  }
+  const firstCommit = df.header![0]!.offset;
+  const anomaly: AnomalyMap = {};
+  data.forEach((each) => {
+    const traceKey = `,key=${each.trace || 0}`;
+    anomaly[traceKey] = anomaly[traceKey] || {};
+    anomaly[traceKey]![firstCommit + each.commit] = {
+      bug_id: each.bugId || 0,
+    } as Anomaly;
+  });
+  return anomaly;
+};
+
 export const mockFrameStart = (
   df: DataFrame,
   paramset: ReadOnlyParamSet,
+  anomaly: AnomalyMap = null,
   delayInMS: number = 0,
   mock: FetchMockStatic = fetchMock
 ) => {
@@ -144,6 +176,10 @@ export const mockFrameStart = (
         messages: [{ key: 'Loading', value: 'Finished' }],
         results: {
           dataframe: generateSubDataframe(df, subrange),
+          anomalymap: findAnomalyInRange(anomaly, {
+            begin: df.header![subrange.begin]?.offset || 0,
+            end: df.header![subrange.end]?.offset || 0,
+          }),
         },
       };
     }

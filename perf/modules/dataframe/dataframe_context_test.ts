@@ -6,7 +6,11 @@ import './dataframe_context';
 import { ColumnHeader, ReadOnlyParamSet } from '../json';
 import fetchMock from 'fetch-mock';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { generateFullDataFrame, mockFrameStart } from './test_utils';
+import {
+  generateAnomalyMap,
+  generateFullDataFrame,
+  mockFrameStart,
+} from './test_utils';
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
@@ -28,7 +32,12 @@ describe('dataframe-repository', () => {
     ref_mode: ['head'],
   });
 
-  const df = generateFullDataFrame({ begin: 90, end: 120 }, now, 1, [timeSpan]);
+  const df = generateFullDataFrame({ begin: 90, end: 120 }, now, 3, [timeSpan]);
+  const anomaly = generateAnomalyMap(df, [
+    { commit: 5, bugId: 555 },
+    { commit: 15, bugId: 1515 },
+    { commit: 25, bugId: 2525 },
+  ]);
   afterEach(() => {
     fetchMock.reset();
   });
@@ -43,7 +52,7 @@ describe('dataframe-repository', () => {
   });
 
   it('initialize w/ data', async () => {
-    mockFrameStart(df, paramset);
+    mockFrameStart(df, paramset, anomaly);
 
     const dfRepo = newEl();
     assert.equal(
@@ -56,15 +65,18 @@ describe('dataframe-repository', () => {
       ),
       10
     );
+    // The trace key generated from generateFullDataFrame.
+    const traceKey = ',key=0';
     assert.isTrue(sorted(dfRepo.header));
     assert.sameOrderedMembers(
-      df.traceset[',key=0'].slice(1, 11),
-      dfRepo.traces[',key=0']
+      df.traceset[traceKey].slice(1, 11),
+      dfRepo.traces[traceKey]
     );
+    assert.equal(dfRepo.anomaly[traceKey]![95].bug_id, 555);
   });
 
   it('init data and extend range', async () => {
-    mockFrameStart(df, paramset);
+    mockFrameStart(df, paramset, anomaly);
 
     const dfRepo = newEl();
     assert.equal(
@@ -78,13 +90,18 @@ describe('dataframe-repository', () => {
       10
     );
 
+    // The trace key generated from generateFullDataFrame.
+    const traceKey = ',key=0';
+    assert.isUndefined(dfRepo.anomaly[traceKey]![105]);
+
     assert.equal(await dfRepo.extendRange(timeSpan * 10), 10);
     assert.isTrue(sorted(dfRepo.header));
     assert.lengthOf(dfRepo.header, 20);
     assert.sameOrderedMembers(
-      df.traceset[',key=0'].slice(0, 20),
-      dfRepo.traces[',key=0']
+      df.traceset[traceKey].slice(0, 20),
+      dfRepo.traces[traceKey]
     );
+    assert.equal(dfRepo.anomaly[traceKey]![105].bug_id, 1515);
   });
 
   it('init data and extend range both ways', async () => {

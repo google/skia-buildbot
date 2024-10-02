@@ -29,9 +29,15 @@ import { createContext, provide } from '@lit/context';
 import { LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { range } from './index';
+import { mergeAnomaly, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
-import { ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
+import {
+  AnomalyMap,
+  ColumnHeader,
+  CommitNumberAnomalyMap,
+  ShiftRequest,
+  ShiftResponse,
+} from '../json';
 import {
   DataFrame,
   FrameRequest,
@@ -90,6 +96,8 @@ export const dataframeRepoContext = createContext<DataFrameRepository>(
   Symbol('dataframe-repo-context')
 );
 
+const emptyResolver = (_1: number, _2: DataFrame, _3: AnomalyMap) => {};
+
 @customElement('dataframe-repository-sk')
 export class DataFrameRepository extends LitElement {
   private static shiftUrl = '/_/shift/';
@@ -124,6 +132,8 @@ export class DataFrameRepository extends LitElement {
 
   @provide({ context: dataframeRepoContext })
   dfRepo = this;
+
+  anomaly: { [key: string]: CommitNumberAnomalyMap } = {};
 
   // This element doesn't render anything and all the children should be
   // attached to itself directly.
@@ -273,12 +283,14 @@ export class DataFrameRepository extends LitElement {
    */
   async resetWithDataframeAndRequest(
     dataframe: DataFrame,
+    anomalies: AnomalyMap,
     request: FrameRequest
   ) {
     this._baseRequest = request;
     this._baseRequest.request_type = 0; // change to timestamp-based query.
 
     this.dataframe = dataframe;
+    this.anomaly = mergeAnomaly(this.anomaly, anomalies);
     this._header = dataframe.header || [];
     this._traceset = dataframe.traceset;
   }
@@ -292,11 +304,12 @@ export class DataFrameRepository extends LitElement {
    *  request completes.
    */
   async resetTraces(range: range, param: ReadOnlyParamSet) {
-    let resolver = (_1: number, _2: DataFrame) => {};
+    let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = (n, df) => {
+      resolver = (n, df, anomaly) => {
         this.dataframe = df;
+        this.anomaly = mergeAnomaly(this.anomaly, anomaly);
         this.loading = false;
         resolve(n);
       };
@@ -311,12 +324,16 @@ export class DataFrameRepository extends LitElement {
     this._header = resp.dataframe?.header || [];
 
     const totalTraces = resp.dataframe?.header?.length || 0;
-    resolver(totalTraces, {
-      traceset: this._traceset,
-      header: this._header,
-      paramset: this._paramset,
-      skip: 0,
-    });
+    resolver(
+      totalTraces,
+      {
+        traceset: this._traceset,
+        header: this._header,
+        paramset: this._paramset,
+        skip: 0,
+      },
+      resp.anomalymap
+    );
     return totalTraces;
   }
 
@@ -330,12 +347,13 @@ export class DataFrameRepository extends LitElement {
    *  the request completes.
    */
   async extendRange(offsetInSeconds: number) {
-    let resolver = (_1: number, _2: DataFrame) => {};
+    let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = (n, df) => {
+      resolver = (n, df, anomaly) => {
         this.loading = false;
         this.dataframe = df;
+        this.anomaly = mergeAnomaly(this.anomaly, anomaly);
         resolve(n);
       };
     });
@@ -375,12 +393,20 @@ export class DataFrameRepository extends LitElement {
     });
     this.addTraceset(header, traceset);
 
-    resolver(totalTraces, {
-      traceset: this._traceset,
-      header: this._header,
-      paramset: this._paramset,
-      skip: 0,
-    });
+    const anomaly = sortedResponses.reduce(
+      (pre, cur) => mergeAnomaly(pre, cur.anomalymap),
+      {}
+    );
+    resolver(
+      totalTraces,
+      {
+        traceset: this._traceset,
+        header: this._header,
+        paramset: this._paramset,
+        skip: 0,
+      },
+      anomaly
+    );
     return totalTraces;
   }
 

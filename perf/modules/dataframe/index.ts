@@ -1,6 +1,14 @@
 // Contains DataFrame merge logic, similar to //perf/go/dataframe/dataframe.go
 
-import { DataFrame, ParamSet, ColumnHeader, TraceSet, Trace } from '../json';
+import {
+  DataFrame,
+  ParamSet,
+  ColumnHeader,
+  TraceSet,
+  Trace,
+  AnomalyMap,
+  CommitNumberAnomalyMap,
+} from '../json';
 import {
   addParamSet,
   addParamsToParamSet,
@@ -43,6 +51,80 @@ export const findSubDataframe = (
     begin: begin < 0 ? header.length : begin,
     end: end < 0 ? header.length : end,
   };
+};
+
+/**
+ * Merge two AnomalyMap and return a new AnomalyMap.
+ *
+ * This function always returns a non-nil AnomalyMap.
+ * @param anomaly1 The first anomaly.
+ * @param anomalies The list of anomaly to be merged.
+ * @returns The new AnomalyMap.
+ */
+export const mergeAnomaly = (
+  anomaly1: AnomalyMap,
+  ...anomalies: AnomalyMap[]
+) => {
+  const anomaly = structuredClone(anomaly1 || {});
+  if (anomalies.length <= 0) {
+    return structuredClone(anomaly1 || {});
+  }
+
+  /**
+   * {
+   *  ',trace=key1': {
+   *    commit_position1: Anomaly 1,
+   *    commit_position2: Anomaly 2,
+   *    ...
+   *  },
+   *  `,trace=key2': {...}
+   * }
+   */
+  anomalies.forEach((anomaly2) => {
+    for (const trace in anomaly2) {
+      // Merge the anomaly from anomaly2 for the trace.
+      // First we use the existing merged anomaly as the base, and then add
+      // or update the anomaly data at each commit.
+      const commitAnomaly = anomaly[trace] || {};
+      const commitAnomaly2 = anomaly2[trace];
+
+      // In each trace, the anomaly is in the sparsed array, so it's more
+      // efficient to iterater using keys.
+      for (const commit in commitAnomaly2) {
+        const commitNum = Number(commit);
+
+        // The anomaly at commitNum will either be ovrridden and added to the
+        // anomaly for the current trace.
+        commitAnomaly[commitNum] = commitAnomaly2![commitNum];
+      }
+
+      // Override with the updated anomaly for the trace.
+      anomaly[trace] = commitAnomaly;
+    }
+  });
+  return anomaly;
+};
+
+export const findAnomalyInRange = (
+  allAnomaly: AnomalyMap,
+  range: range
+): AnomalyMap => {
+  const anomaly: AnomalyMap = {};
+  for (const trace in allAnomaly) {
+    const commitAnomaly: CommitNumberAnomalyMap = {};
+    const traceAnomaly = allAnomaly![trace];
+    for (const commit in traceAnomaly) {
+      const commitNum = Number(commit);
+      if (commitNum >= range.begin && commitNum <= range.end) {
+        commitAnomaly[commitNum] = traceAnomaly[commitNum];
+      }
+    }
+
+    if (Object.keys(commitAnomaly).length > 0) {
+      anomaly[trace] = commitAnomaly;
+    }
+  }
+  return anomaly;
 };
 
 /** mergeColumnHeaders creates a merged header from the two given headers.
