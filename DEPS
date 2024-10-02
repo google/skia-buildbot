@@ -3,7 +3,7 @@ use_relative_paths = True
 vars = {
   'cpython_version':    'version:2@2.7.18.chromium.47',
   'cpython3_version':   'version:3@3.11.9.chromium.35',
-  'luci_tools_version': 'git_revision:4c19702a5b266d6e7927f6c1460c448537e982f0',
+  'luci_tools_version': 'git_revision:1837cd76a8824c076f49c20d8b6f3ab8d2347f22',
   'skia_tools_version': 'git_revision:ff7821c285f9be2a4c82a8c3a53482e7600043db',
   'tools_git_version':  'version:3@2.46.2.chromium.11',
 }
