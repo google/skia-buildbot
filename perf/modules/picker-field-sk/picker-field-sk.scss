@@ -10,6 +10,7 @@ picker-field-sk {
     --vaadin-combo-box-overlay-width: 250px;
     --vaadin-combo-box-overlay-max-height: 200px;
     --lumo-text-field-size: var(--lumo-size-xs);
+    padding: 0;
   }
   input {
     border: none;

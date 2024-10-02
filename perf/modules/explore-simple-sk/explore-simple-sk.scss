@@ -466,6 +466,9 @@ explore-simple-sk {
     display: flex;
     flex-direction: row;
     align-items: end;
+    padding-top: 16px;
+    height: 55px;
+    box-sizing: content-box;
 
     label {
       margin-bottom: 10px;

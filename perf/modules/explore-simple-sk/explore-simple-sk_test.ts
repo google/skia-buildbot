@@ -852,6 +852,7 @@ describe('plotSummary', () => {
       setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     explore.state.plotSummary = true;
+    explore.tracesRendered = true;
     explore.render();
 
     const plotSummaryElement = explore['plotSummary'].value;

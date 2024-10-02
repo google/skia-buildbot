@@ -580,6 +580,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private showRemoveAll = true;
 
+  private _tracesRendered = false;
+
   // material UI
   private settingsDialog: MdDialog | null = null;
 
@@ -800,7 +802,9 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
-      ${when(ele._state.plotSummary, () => ele.plotSummaryTemplate())}
+      ${when(ele._state.plotSummary && ele.tracesRendered, () =>
+        ele.plotSummaryTemplate()
+      )}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
@@ -2562,6 +2566,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
     this._dataframe = mergedDataframe;
+    this.tracesRendered = true;
     this._renderedTraces();
     this.populateExtendedTimelineForPlotSummary();
   }
@@ -2876,6 +2881,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
+    this.tracesRendered = false;
 
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
@@ -3168,6 +3174,14 @@ export class ExploreSimpleSk extends ElementSk {
 
   get spinning(): boolean {
     return this._spinning;
+  }
+
+  get tracesRendered(): boolean {
+    return this._tracesRendered;
+  }
+
+  set tracesRendered(b: boolean) {
+    this._tracesRendered = b;
   }
 
   /**
