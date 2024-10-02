@@ -29,6 +29,7 @@ karma_test(
     src = "dataframe_context_test.ts",
     deps = [
         ":dataframe_context_ts_lib",
+        ":index_ts_lib",
         ":test_utils_ts_lib",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",

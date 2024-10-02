@@ -20,6 +20,9 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 // Simple type denoting the begin and end of the range.
 export type range = { begin: number; end: number };
 
+// Helper function to create range shortcut.
+export const range = (begin: number, end: number) => ({ begin, end }) as range;
+
 /**
  * Find the subrange in the header.
  * @param header The subfield of DataFrame, containing the time stamps.

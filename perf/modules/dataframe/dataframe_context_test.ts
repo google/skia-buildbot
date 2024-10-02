@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 
 import { DataFrameRepository } from './dataframe_context';
+import { range } from './index';
 import './dataframe_context';
 
 import { ColumnHeader, ReadOnlyParamSet } from '../json';
@@ -105,9 +106,7 @@ describe('dataframe-repository', () => {
   });
 
   it('init data and extend range both ways', async () => {
-    const df = generateFullDataFrame({ begin: 100, end: 201 }, now, 1, [
-      timeSpan,
-    ]);
+    const df = generateFullDataFrame(range(100, 201), now, 1, [timeSpan]);
     mockFrameStart(df, paramset);
 
     const dfRepo = newEl();
@@ -186,6 +185,38 @@ describe('dataframe-repository', () => {
     assert.sameOrderedMembers(
       df.traceset[',key=0'].slice(11, 26),
       dfRepo.traces[',key=0']
+    );
+  });
+
+  it('extend range w/ chunks', async () => {
+    const df = generateFullDataFrame(range(100, 150), now, 3, [timeSpan]);
+    mockFrameStart(df, paramset);
+    const start = range(now + timeSpan * 20, now + timeSpan * 30 - 1);
+    const key1 = ',key=0',
+      key2 = ',key=1';
+
+    // Stress test different slice chunks.
+    [10, timeSpan, timeSpan - 1, timeSpan * 3].every((chunkSize) =>
+      it(`chunk size ${chunkSize}`, async () => {
+        const dfRepo = newEl((el) => (el['chunkSize'] = chunkSize));
+        assert.equal(await dfRepo.resetTraces(start, paramset), 10);
+        assert.isTrue(sorted(dfRepo.header));
+        assert.sameOrderedMembers(
+          df.traceset[key1].slice(0, 10),
+          dfRepo.traces[key1]
+        );
+
+        assert.equal(await dfRepo.extendRange(timeSpan * 20), 20);
+        assert.isTrue(sorted(dfRepo.header));
+        assert.lengthOf(dfRepo.header, 30);
+
+        assert.equal(await dfRepo.extendRange(-timeSpan * 20), 20);
+        assert.isTrue(sorted(dfRepo.header));
+        assert.lengthOf(dfRepo.header, 30);
+
+        assert.sameOrderedMembers(df.traceset[key1], dfRepo.traces[key1]);
+        assert.sameOrderedMembers(df.traceset[key2], dfRepo.traces[key2]);
+      })
     );
   });
 });

@@ -59,25 +59,35 @@ const deltaRange = (range: range, offset: number) => {
   }
 };
 
-const sliceRange = ({ begin, end }: range, chuckSize: number) => {
-  if (chuckSize <= 0) {
+// Slice a range into smaller ranges with each size being chunkSize.
+// The range is inclusive on both ends, the lengh is (end - begin) + 1.
+// e.g. sliceRange({begin: 0, end:20}, 10) yields:
+//  {begin: 0, end: 9}
+//  {begin: 10, end: 19}
+//  {begin: 20, end: 20}
+// And each subrange is also inclusive on both ends.
+export const sliceRange = ({ begin, end }: range, chunkSize: number) => {
+  if (chunkSize <= 0) {
     return [{ begin, end }];
   }
 
-  const span = end - begin;
-  const slices = Math.ceil(span / chuckSize);
+  // The range is inclusive on both ends
+  const span = end - begin + 1;
+  const slices = Math.ceil(span / chunkSize);
+
+  // Shortcut as this will be most of cases.
   if (slices === 1) {
     return [{ begin, end }];
   }
 
-  return [{ begin, end: begin + chuckSize }].concat(
-    Array.from({ length: slices - 1 }, (_, k): range => {
-      return {
-        begin: begin + (k - 1) * chuckSize + 1,
-        end: begin + k * chuckSize,
-      };
-    })
-  );
+  // The first (n - 1) slices and then concat the last slice as the last one
+  // usually doesn't have the same length.
+  return Array.from({ length: slices - 1 }, (_, k): range => {
+    return {
+      begin: begin + k * chunkSize,
+      end: begin + (k + 1) * chunkSize - 1,
+    };
+  }).concat({ begin: begin + (slices - 1) * chunkSize, end: end });
 };
 
 // This context provides the dataframe when it is ready to use from the data
@@ -369,14 +379,16 @@ export class DataFrameRepository extends LitElement {
     // Fetch and sort the frame responses so they can appended consecutively.
     const sortedResponses = (await Promise.all(allResponses))
       .filter(
-        // Filter responses with dataframes.
-        (fr) => fr.dataframe
+        // Filter responses with valid dataframes with actual traces.
+        (fr) =>
+          fr.dataframe &&
+          (fr.dataframe.header?.length || 0) > 0 &&
+          Object.keys(fr.dataframe.traceset).length > 0
       )
-      .sort((a: FrameResponse, b: FrameResponse) => {
-        return (
+      .sort(
+        (a: FrameResponse, b: FrameResponse) =>
           a.dataframe!.header![0]!.offset - b.dataframe!.header![0]!.offset
-        );
-      });
+      );
     const totalTraces = sortedResponses
       .map((resp) => resp.dataframe!.header?.length || 0)
       .reduce((count, cur) => count + cur, 0);
