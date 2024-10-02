@@ -315,6 +315,11 @@ func computeJobCreationLatencies(ev []*events.Event, tryjobs bool) ([]float64, e
 		return []float64{}, nil
 	}
 	var observations []float64
+	forcedOrPeriodic := 0
+	notTryjobMatch := 0
+	emptyCreatedTs := 0
+	emptyRequestedTs := 0
+	createdBeforeRequested := 0
 	for _, e := range ev {
 		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
@@ -322,27 +327,37 @@ func computeJobCreationLatencies(ev []*events.Event, tryjobs bool) ([]float64, e
 		}
 		// Forced jobs and periodic jobs will incorrectly skew the average.
 		if job.IsForce || isPeriodic(&job) {
+			forcedOrPeriodic++
 			continue
 		}
 		// Filter out try jobs or normal jobs as appropriate.
 		if tryjobs != job.IsTryJob() {
+			notTryjobMatch++
 			continue
 		}
 		// Guard against missing or incorrect Created or Requested timestamps.
 		if util.TimeIsZero(job.Created) {
 			sklog.Warningf("Job %s has an empty Created timestamp", job.Id)
+			emptyCreatedTs++
 			continue
 		}
 		if util.TimeIsZero(job.Requested) {
 			sklog.Warningf("Job %s has an empty Requested timestamp", job.Id)
+			emptyRequestedTs++
 			continue
 		}
 		if job.Created.Before(job.Requested) {
 			sklog.Warningf("Job %s has a Created timestamp before its Requested timestamp", job.Id)
+			createdBeforeRequested++
 			continue
 		}
 		observations = append(observations, job.Created.Sub(job.Requested).Seconds())
 	}
+	tryjobsStr := ""
+	if tryjobs {
+		tryjobsStr = "not "
+	}
+	sklog.Infof("Computed %d job creation latencies from %d jobs (%d forced or periodic, %d %stryjobs, %d empty created ts, %d empty requested ts, %d created before requested)", len(observations), len(ev), forcedOrPeriodic, notTryjobMatch, tryjobsStr, emptyCreatedTs, emptyRequestedTs, createdBeforeRequested)
 	return observations, nil
 }
 

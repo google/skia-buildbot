@@ -260,6 +260,7 @@ func (m *EventMetrics) ComputeStatsMetric(stream string, tags map[string]string,
 	}
 	metrics := []*metric{}
 	for aggregationName, aggregationFn := range computeStatsAggregationFuncs {
+		aggregationFn := aggregationFn // https://golang.org/doc/faq#closures_and_goroutines
 		agg := func(ev []*Event) (float64, error) {
 			observations, err := obs(ev)
 			if err != nil {
