@@ -233,11 +233,14 @@ export class ChartTooltipSk extends ElementSk {
           <span>Improvement:</span>
           <span>${this.anomaly!.is_improvement}</span>
         </li>
-        <li ?hidden=${this.anomaly!.bug_id === 0}>
+        <li>
           <span>Bug Id:</span>
           <span>
             ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
-            <close-icon-sk id="unassociate-bug-button" @click=${this.unassociateBug}>
+            <close-icon-sk
+              id="unassociate-bug-button"
+              @click=${this.unassociateBug}
+              ?hidden=${this.anomaly!.bug_id === 0}>
             </close-icon-sk>
           </span>
         </li>
