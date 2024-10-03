@@ -38,9 +38,7 @@ export class TriageMenuSk extends ElementSk {
       <new-bug-dialog-sk></new-bug-dialog-sk>
       <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
       <existing-bug-dialog-sk></existing-bug-dialog-sk>
-      <button id="existing-bug" @click=${ele.openExistingBugDialog}>
-        Existing Bug
-      </button>
+      <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
       <button id="ignore" @click=${ele.ignoreAnomaly}>Ignore</button>
     </div>`;
 
@@ -62,13 +60,7 @@ export class TriageMenuSk extends ElementSk {
 
   private ignoreAnomaly() {
     const bug_id = -2;
-    this.makeEditAnomalyRequest(
-      this._anomalies,
-      this._trace_names,
-      bug_id,
-      null,
-      null
-    );
+    this.makeEditAnomalyRequest(this._anomalies, this._trace_names, bug_id, null, null);
   }
 
   /**
@@ -92,7 +84,7 @@ export class TriageMenuSk extends ElementSk {
   makeEditAnomalyRequest(
     anomalies: Anomaly[],
     traceNames: string[],
-    bug_id: number | null,
+    bug_id: number | undefined,
     start_revision: number | null,
     end_revision: number | null
   ): void {

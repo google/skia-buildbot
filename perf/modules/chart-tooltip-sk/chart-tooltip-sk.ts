@@ -31,12 +31,7 @@ export class Commit {
 
   commit_url: string = '';
 
-  constructor(
-    commit_hash: string,
-    timestamp: number,
-    author: string,
-    commit_url: string
-  ) {
+  constructor(commit_hash: string, timestamp: number, author: string, commit_url: string) {
     this.commit_hash = commit_hash;
     // timestamp is in seconds, so we need to multiply by 1000 to get ms
     this.timestamp = new Date(timestamp * 1000).toDateString();
@@ -52,9 +47,7 @@ export class Commit {
         <li>
           <span>Commit:</span>
           <span>
-            <a href="${this.commit_url}" target="_blank">
-              ${this.commit_hash.substring(0, 7)}
-            </a>
+            <a href="${this.commit_url}" target="_blank"> ${this.commit_hash.substring(0, 7)} </a>
           </span>
         </li>
         <li>
@@ -144,10 +137,7 @@ export class ChartTooltipSk extends ElementSk {
       class="container"
       style="display: ${ele._display ? 'block' : 'none'};
              left: ${ele.left}px; top: ${ele.top}px;">
-      <button
-        id="closeIcon"
-        @click=${ele._close_button_action}
-        ?hidden=${!ele._tooltip_fixed}>
+      <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
       <h3>${ele.test_name}</h3>
@@ -168,16 +158,11 @@ export class ChartTooltipSk extends ElementSk {
       </div>
       ${ele.commitTemplate()}
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
-      <ingest-file-links-sk
-        id="tooltip-ingest-file-links"></ingest-file-links-sk>
+      <ingest-file-links-sk id="tooltip-ingest-file-links"></ingest-file-links-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
-        ?hidden=${!(
-          ele._tooltip_fixed &&
-          ele.anomaly &&
-          ele.anomaly!.bug_id === 0
-        )}>
+        ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
       <button
         class="action"
@@ -206,9 +191,7 @@ export class ChartTooltipSk extends ElementSk {
       return html``;
     }
 
-    return html`
-      <span class="see-more-text">*Click on the point to see more details</span>
-    `;
+    return html` <span class="see-more-text">*Click on the point to see more details</span> `;
   }
 
   // HTML template for Anomaly information, only shown when the data
@@ -229,15 +212,11 @@ export class ChartTooltipSk extends ElementSk {
       <ul class="table" id="anomaly-details">
         <li>
           <span>Score:</span>
-          <span>
-            ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
-          </span>
+          <span> ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)} </span>
         </li>
         <li>
           <span>Prior Score:</span>
-          <span>
-            ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
-          </span>
+          <span> ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)} </span>
         </li>
         <li>
           <span>Percentage Change:</span>
@@ -258,9 +237,7 @@ export class ChartTooltipSk extends ElementSk {
           <span>Bug Id:</span>
           <span>
             ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
-            <close-icon-sk
-              id="unassociate-bug-button"
-              @click=${this.unassociateBug}>
+            <close-icon-sk id="unassociate-bug-button" @click=${this.unassociateBug}>
             </close-icon-sk>
           </span>
         </li>
@@ -300,12 +277,7 @@ export class ChartTooltipSk extends ElementSk {
     const details = json.commitSlice![0];
 
     // Setter will re-render component.
-    this.commit = new Commit(
-      details.hash,
-      details.ts,
-      details.author,
-      details.url
-    );
+    this.commit = new Commit(details.hash, details.ts, details.author, details.url);
   };
 
   // load function sets the value of the fields minimally required to display
@@ -338,11 +310,10 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   private unassociateBug() {
-    const bug_id = 0;
     this.triageMenu!.makeEditAnomalyRequest(
       [this._anomaly!],
       [this._trace_name],
-      bug_id,
+      this._anomaly!.bug_id,
       null,
       null
     );
