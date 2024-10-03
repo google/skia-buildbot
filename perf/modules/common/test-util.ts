@@ -3,7 +3,14 @@ import fetchMock from 'fetch-mock';
 import { Status } from '../../../infra-sk/modules/json';
 import { QueryConfig } from '../json';
 
+const getCookieValue = (name: string) =>
+  document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || '';
+
 export function setUpExploreDemoEnv() {
+  // The demo server will inject this cookie if there is a backend.
+  if (getCookieValue('proxy_endpoint')) {
+    return;
+  }
   const status: Status = {
     email: 'user@google.com',
     roles: ['viewer', 'admin', 'editor', 'bisecter'],
