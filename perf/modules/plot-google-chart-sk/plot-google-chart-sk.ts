@@ -20,6 +20,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { Anomaly, DataFrame } from '../json';
 import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
 import { dataframeContext } from '../dataframe/dataframe_context';
+import { DataTableLike } from '@google-web-components/google-chart/loader';
 
 export interface AnomalyData {
   x: number;
@@ -28,22 +29,53 @@ export interface AnomalyData {
   highlight: boolean;
 }
 
+interface Selection {
+  row: string;
+  column: string;
+}
+
 export class PlotGoogleChartSk extends LitElement {
   // TODO(b/362831653): Adjust height to 100% once plot-summary-sk is deprecated
   static styles = css`
     :host {
-      display: block;
       background-color: var(
         --plot-background-color-sk,
         var(--md-sys-color-background, 'white')
       );
     }
-    .plot {
-      position: absolute;
-      top: 200;
-      left: 0;
+    .container {
+      display: grid;
+      grid-template-columns: 4fr 1fr;
+      height: 100%;
       width: 100%;
-      height: 40%;
+    }
+    .plot {
+      height: 100%;
+      width: 100%;
+    }
+    .plot-panel {
+      font-family: 'Roboto', system-ui, sans-serif;
+    }
+    ul.table {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+
+      li {
+        display: table-row;
+
+        span {
+          &:first-child {
+            font-weight: bold;
+          }
+
+          display: table-cell;
+          padding: 1px 6px;
+        }
+      }
     }
   `;
 
@@ -53,6 +85,14 @@ export class PlotGoogleChartSk extends LitElement {
 
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
+
+  @property()
+  private tooltip?: {
+    traceName: string;
+    value: number;
+    commit: string;
+    date: string;
+  };
 
   constructor() {
     super();
@@ -78,9 +118,37 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   protected render() {
+    // TODO(b/370804498): Break out plot panel into a separate module
+    // and create a new module that combines google chart and the
+    // tooltip module.
     return html`
-      <google-chart ${ref(this.plotElement)} class="plot" type="line">
-      </google-chart>
+      <div class="container">
+        <google-chart
+          ${ref(this.plotElement)}
+          class="plot"
+          type="line"
+          @google-chart-select=${this.onSelectDataPoint}>
+        </google-chart>
+        <div class="plot-panel" ?hidden=${!this.tooltip}>
+          <h3>${this.tooltip?.traceName}</h3>
+          <ul class="table">
+            <li>
+              <span>Value:</span>
+              <span>${this.tooltip?.value}</span>
+            </li>
+          </ul>
+          <ul class="table">
+            <li>
+              <span>Commit Position:</span>
+              <span>${this.tooltip?.commit}</span>
+            </li>
+            <li>
+              <span>Commit Date:</span>
+              <span>${this.tooltip?.date}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
     `;
   }
 
@@ -116,6 +184,28 @@ export class PlotGoogleChartSk extends LitElement {
       }
       this.requestUpdate();
     });
+  }
+
+  private onSelectDataPoint() {
+    const chart = this.plotElement.value;
+    if (!chart) {
+      return;
+    }
+    const selection = chart.selection?.pop() as Selection;
+    const data = chart.data as DataTableLike;
+    const df = this.dataframe!;
+    if (Array.isArray(data)) {
+      const row = Number(selection.row);
+      const column = Number(selection.column);
+
+      this.tooltip = {
+        traceName: String(data[0][column]),
+        // header row is row 0, so need to add row data by 1
+        value: Number(data[row + 1][column]),
+        commit: String(df.header![row]?.offset),
+        date: new Date(df.header![row]!.timestamp * 1000).toDateString(),
+      };
+    }
   }
 
   // TODO(b/362831653): deprecate this, no longer needed
