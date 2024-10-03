@@ -11,6 +11,8 @@ import {
   findSubDataframe,
   mergeAnomaly,
   findAnomalyInRange,
+  range,
+  generateSubDataframe,
 } from './index';
 import {
   DataFrame,
@@ -26,61 +28,39 @@ import { generateAnomalyMap, generateFullDataFrame } from './test_utils';
 
 const e = MISSING_DATA_SENTINEL;
 
+describe('generate subrange from dataframe', () => {
+  it('slice range', () => {
+    const df = generateFullDataFrame(range(0, 10), 1, 3, [2]);
+    const sub = generateSubDataframe(df, range(0, 3));
+    assert.deepEqual(sub.header, df.header?.slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=1'], df.traceset[',key=1'].slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=2'], df.traceset[',key=2'].slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=0'], df.traceset[',key=0'].slice(0, 3));
+  });
+});
+
 describe('find subrange from dataframe header', () => {
   it('find subrange inside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
-    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 2 }, 'offset'), {
-      begin: 1,
-      end: 3,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 6 }, 'timestamp'), {
-      begin: 0,
-      end: 3,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 3, end: 7 }), {
-      begin: 1,
-      end: 4,
-    });
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(1, 2), 'offset'), range(1, 3));
+    assert.deepEqual(findSubDataframe(header, range(1, 6), 'timestamp'), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(3, 7)), range(1, 4));
   });
 
   it('find subrange outside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
-    assert.deepEqual(findSubDataframe(header, { begin: -1, end: 2 }, 'offset'), {
-      begin: 0,
-      end: 3,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 9, end: 11 }, 'offset'), {
-      begin: 9,
-      end: 10,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: -1, end: 6 }), {
-      begin: 0,
-      end: 3,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 19, end: 22 }), {
-      begin: 9,
-      end: 10,
-    });
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(-1, 2), 'offset'), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(9, 11), 'offset'), range(9, 10));
+    assert.deepEqual(findSubDataframe(header, range(-1, 6)), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(19, 22)), range(9, 10));
   });
 
   it('find subrange not in the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
-    assert.deepEqual(findSubDataframe(header, { begin: -10, end: -1 }, 'offset'), {
-      begin: 0,
-      end: 0,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 100, end: 101 }, 'offset'), {
-      begin: 10,
-      end: 10,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: -10, end: -1 }), {
-      begin: 0,
-      end: 0,
-    });
-    assert.deepEqual(findSubDataframe(header, { begin: 100, end: 120 }), {
-      begin: 10,
-      end: 10,
-    });
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(-10, -1), 'offset'), range(0, 0));
+    assert.deepEqual(findSubDataframe(header, range(100, 101), 'offset'), range(10, 10));
+    assert.deepEqual(findSubDataframe(header, range(-10, -1)), range(0, 0));
+    assert.deepEqual(findSubDataframe(header, range(100, 120)), range(10, 10));
   });
 });
 

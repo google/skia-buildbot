@@ -8,6 +8,7 @@ import {
   Trace,
   AnomalyMap,
   CommitNumberAnomalyMap,
+  ReadOnlyParamSet,
 } from '../json';
 import { addParamSet, addParamsToParamSet, fromKey, toReadOnlyParamSet } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
@@ -37,17 +38,40 @@ export const range = (begin: number, end: number) => ({ begin, end }) as range;
 export const findSubDataframe = (
   header: (ColumnHeader | null)[],
   range: range,
-  domain: 'timestamp' | 'offset' = 'timestamp'
+  domain: 'timestamp' | 'offset' | 'commit' | 'date' = 'timestamp'
 ): range => {
+  const prop = domain === 'date' || domain === 'timestamp' ? 'timestamp' : 'offset';
   const begin = header.findIndex((v) => {
-    return range.begin <= v![domain];
+    return range.begin <= v![prop];
   });
   const end = header.findIndex((v) => {
-    return range.end < v![domain];
+    return range.end < v![prop];
   });
   return {
     begin: begin < 0 ? header.length : begin,
     end: end < 0 ? header.length : end,
+  };
+};
+
+/**
+ * Generate a new sub DataFrame from another DataFrame.
+ *
+ * @param dataframe The full dataframe
+ * @param range The index range of the dataframe
+ * @returns
+ *  The new copy of DataFrame containing the subrange from the full Dataframe.
+ */
+export const generateSubDataframe = (dataframe: DataFrame, range: range): DataFrame => {
+  return {
+    header: dataframe.header!.slice(range.begin, range.end),
+    traceset: Object.fromEntries(
+      Object.keys(dataframe.traceset).map((k) => [
+        k,
+        dataframe.traceset[k].slice(range.begin, range.end),
+      ])
+    ) as TraceSet,
+    skip: 0,
+    paramset: ReadOnlyParamSet({}),
   };
 };
 

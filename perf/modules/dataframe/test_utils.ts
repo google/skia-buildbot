@@ -9,7 +9,7 @@ import {
   AnomalyMap,
   Anomaly,
 } from '../json';
-import { findAnomalyInRange, findSubDataframe, range } from './index';
+import { findAnomalyInRange, findSubDataframe, generateSubDataframe, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 
 // Generates an array where the values are repeated from the template.
@@ -86,28 +86,6 @@ export const generateFullDataFrame = (
         containsAtLeastOneNumber(traceValues[v])
           ? generateTraceFromTemplate(traceValues[v]!, offsets.length)
           : (offsets.map(() => Math.random()) as Trace),
-      ])
-    ) as TraceSet,
-    skip: 0,
-    paramset: ReadOnlyParamSet({}),
-  };
-};
-
-/**
- * Generate a new sub DataFrame from another DataFrame.
- *
- * @param dataframe The full dataframe
- * @param range The index range of the dataframe
- * @returns
- *  The new copy of DataFrame containing the subrange from the full Dataframe.
- */
-export const generateSubDataframe = (dataframe: DataFrame, range: range): DataFrame => {
-  return {
-    header: dataframe.header!.slice(range.begin, range.end),
-    traceset: Object.fromEntries(
-      Object.keys(dataframe.traceset).map((k) => [
-        k,
-        dataframe.traceset[k].slice(range.begin, range.end),
       ])
     ) as TraceSet,
     skip: 0,
