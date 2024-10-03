@@ -55,7 +55,6 @@ var (
 
 const (
 	secretProject     = "skia-infra-public"
-	secretMonorailKey = "bugs-central-monorail-sa-key"
 	secretGithubToken = "bugs-central-github-token"
 )
 
@@ -77,28 +76,11 @@ func New() (baseapp.App, error) {
 		sklog.Fatalf("Could not init DB: %s", err)
 	}
 
-	// Get monorail SA key from secrets to send to poller.
-	// TODO(rmistry): Remove this after oss-fuzz migrates to Buganizer.
+	// Get github token from secrets to send to poller.
 	secretClient, err := secret.NewClient(ctx)
 	if err != nil {
 		sklog.Fatalf("Could not init secrets manager: %s", err)
 	}
-	monorailKey, err := secretClient.Get(ctx, secretProject, secretMonorailKey, secret.VersionLatest)
-	if err != nil {
-		sklog.Fatalf("Failed to retrieve secret %s: %s", secretMonorailKey, err)
-	}
-	monorailKey = strings.TrimSpace(monorailKey)
-	// Put the key into a file for bugs/monorail/monorail.go to read from.
-	monorailKeyFile, err := os.CreateTemp("", "monorail-key-")
-	if err != nil {
-		sklog.Fatalf("Could not create tmp file for monorail key: %s", err)
-	}
-	defer monorailKeyFile.Close()
-	if _, err := monorailKeyFile.Write([]byte(monorailKey)); err != nil {
-		sklog.Fatalf("Could not write monorail key to tmp file: %s", err)
-	}
-
-	// Get github token from secrets to send to poller.
 	githubToken, err := secretClient.Get(ctx, secretProject, secretGithubToken, secret.VersionLatest)
 	if err != nil {
 		sklog.Fatalf("Failed to retrieve secret %s: %s", secretGithubToken, err)
@@ -114,7 +96,7 @@ func New() (baseapp.App, error) {
 	}
 
 	// Instantiate poller and turn it on.
-	pollerClient, err := poller.New(ctx, ts, monorailKeyFile.Name(), githubTokenFile.Name(), dbClient)
+	pollerClient, err := poller.New(ctx, ts, githubTokenFile.Name(), dbClient)
 	if err != nil {
 		sklog.Fatalf("Could not init poller: %s", err)
 	}

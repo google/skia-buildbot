@@ -26,16 +26,15 @@ import (
 
 // IssuesPoller will be used to poll the different issue frameworks.
 type IssuesPoller struct {
-	storageClient            *storage.Client
-	pathToGithubToken        string
-	pathToServiceAccountFile string
+	storageClient     *storage.Client
+	pathToGithubToken string
 
 	dbClient   types.BugsDB
 	openIssues *bugs.OpenIssues
 }
 
 // New returns an instance of IssuesPoller.
-func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
+func New(ctx context.Context, ts oauth2.TokenSource, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
@@ -55,11 +54,10 @@ func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile, p
 	openIssues := bugs.InitOpenIssues()
 
 	return &IssuesPoller{
-		storageClient:            storageClient,
-		pathToGithubToken:        pathToGithubToken,
-		pathToServiceAccountFile: pathToServiceAccountFile,
-		dbClient:                 dbClient,
-		openIssues:               openIssues,
+		storageClient:     storageClient,
+		pathToGithubToken: pathToGithubToken,
+		dbClient:          dbClient,
+		openIssues:        openIssues,
 	}, nil
 }
 
