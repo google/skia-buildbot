@@ -174,6 +174,11 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if error := json.NewEncoder(w).Encode(editAnomalyResponse); error != nil {
+		httputils.ReportError(w, error, "Failed to enode JSON on edit anomalies response.", http.StatusInternalServerError)
+		return
+	}
+
 	sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: bug_id: %d, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.BugId, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
 
 	api.markTracesForCacheInvalidation(ctx, editAnomaliesRequest.TraceNames)

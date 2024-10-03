@@ -84,12 +84,12 @@ export class TriageMenuSk extends ElementSk {
   makeEditAnomalyRequest(
     anomalies: Anomaly[],
     traceNames: string[],
-    bug_id: number | undefined,
+    bug_id: number | null,
     start_revision: number | null,
     end_revision: number | null
   ): void {
     const keys: number[] = anomalies.map((a) => a.id);
-    const body: any = { keys: keys, traceNames: traceNames };
+    const body: any = { keys: keys, trace_names: traceNames };
 
     if (bug_id) {
       body.bug_id = bug_id;

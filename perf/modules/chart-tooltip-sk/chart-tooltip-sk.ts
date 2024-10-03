@@ -313,10 +313,11 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   private unassociateBug() {
+    const bug_id = 0;
     this.triageMenu!.makeEditAnomalyRequest(
       [this._anomaly!],
       [this._trace_name],
-      this._anomaly!.bug_id,
+      bug_id,
       null,
       null
     );
