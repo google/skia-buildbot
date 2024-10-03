@@ -14,9 +14,7 @@ import '../../../elements-sk/modules/multi-select-sk';
 import '../../../elements-sk/modules/select-sk';
 import { operationDescriptions, validatePivotRequest } from '../pivotutil';
 
-const sortedOps = Object.keys(
-  operationDescriptions
-).sort() as pivot.Operation[];
+const sortedOps = Object.keys(operationDescriptions).sort() as pivot.Operation[];
 
 /** CustomEvent details sent when the control is changed by the user. */
 export type PivotQueryChangedEventDetail = pivot.Request | null;
@@ -111,9 +109,7 @@ export class PivotQuerySk extends ElementSk {
   private operationOptions(): TemplateResult[] {
     return sortedOps.map(
       (key: pivot.Operation): TemplateResult =>
-        html`<option
-          value="${key}"
-          .selected=${this._pivotRequest?.operation === key}>
+        html`<option value="${key}" .selected=${this._pivotRequest?.operation === key}>
           ${operationDescriptions[key]}
         </option>`
     );
@@ -123,20 +119,14 @@ export class PivotQuerySk extends ElementSk {
     const selections = this._pivotRequest?.summary || [];
     return sortedOps.map(
       (key: pivot.Operation): TemplateResult =>
-        html`<div ?selected=${selections.includes(key)}>
-          ${operationDescriptions[key]}
-        </div>`
+        html`<div ?selected=${selections.includes(key)}>${operationDescriptions[key]}</div>`
     );
   }
 
-  private groupByChanged(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
-  ): void {
+  private groupByChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
     this.createDefaultPivotRequestIfNull();
     const allOptions = this.allGroupByOptions();
-    this._pivotRequest!.group_by = e.detail.selection.map(
-      (index: number) => allOptions[index]
-    );
+    this._pivotRequest!.group_by = e.detail.selection.map((index: number) => allOptions[index]);
     this.emitChangeEvent();
   }
 
@@ -146,25 +136,18 @@ export class PivotQuerySk extends ElementSk {
     this.emitChangeEvent();
   }
 
-  private summaryChanged(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
-  ): void {
+  private summaryChanged(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>): void {
     this.createDefaultPivotRequestIfNull();
-    this._pivotRequest!.summary = e.detail.selection.map(
-      (index: number) => sortedOps[index]
-    );
+    this._pivotRequest!.summary = e.detail.selection.map((index: number) => sortedOps[index]);
     this.emitChangeEvent();
   }
 
   private emitChangeEvent(): void {
     this.dispatchEvent(
-      new CustomEvent<PivotQueryChangedEventDetail>(
-        PivotQueryChangedEventName,
-        {
-          detail: this.pivotRequest,
-          bubbles: true,
-        }
-      )
+      new CustomEvent<PivotQueryChangedEventDetail>(PivotQueryChangedEventName, {
+        detail: this.pivotRequest,
+        bubbles: true,
+      })
     );
   }
 

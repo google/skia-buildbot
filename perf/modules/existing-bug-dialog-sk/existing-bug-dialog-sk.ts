@@ -75,9 +75,7 @@ export class ExistingBugDialogSk extends ElementSk {
           <close-icon-sk></close-icon-sk>
         </button>
         <form id="existing-bug-form">
-          <select id="existing-bug-dialog-select-project" @input=${
-            ele.projectIdToggle
-          }>
+          <select id="existing-bug-dialog-select-project" @input=${ele.projectIdToggle}>
             ${ExistingBugDialogSk.allProjectIds(ele)}
           </select>
             <input
@@ -91,20 +89,14 @@ export class ExistingBugDialogSk extends ElementSk {
           <div class="footer">
             <spinner-sk id="dialog-spinner"></spinner-sk>
             <button id="file-button" type="submit">Submit</button>
-            <button id="close-button" @click=${
-              ele.closeDialog
-            } type="button">Close</button>
+            <button id="close-button" @click=${ele.closeDialog} type="button">Close</button>
           </div>
         </form>
       </header>
     </dialog>
         <toast-sk id="bug-url-toast" duration=0>
-      Existing Bug update: <a href=${ele.bug_url} target=_blank>${
-        ele.bug_url
-      }</a>
-      <button id="hide-toast" class="action" @click=${
-        ele.closeToast
-      }>Close</button>
+      Existing Bug update: <a href=${ele.bug_url} target=_blank>${ele.bug_url}</a>
+      <button id="hide-toast" class="action" @click=${ele.closeToast}>Close</button>
     </toast-sk>
   `;
 

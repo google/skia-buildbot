@@ -138,9 +138,7 @@ describe('applyFuncToTraces', () => {
   };
 
   // Create a common element-sk to be used by all the tests.
-  const explore = document.createElement(
-    'explore-simple-sk'
-  ) as ExploreSimpleSk;
+  const explore = document.createElement('explore-simple-sk') as ExploreSimpleSk;
   document.body.appendChild(explore);
 
   const finishedBody: progress.SerializedProgress = {
@@ -166,9 +164,7 @@ describe('applyFuncToTraces', () => {
     assert.isTrue(fetchMock.done());
 
     // Confirm the formula is wrapped in iqrr().
-    const body = JSON.parse(
-      fetchMock.lastOptions(startURL)?.body as unknown as string
-    ) as any;
+    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
   });
@@ -289,8 +285,7 @@ describe('updateShortcut', () => {
 
 describe('addToAnomalyMap', () => {
   it('should set fullAnomalyMap if null', () => {
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     assert.equal(explore.fullAnomalyMap, null);
 
     const anomalymap: AnomalyMap = {
@@ -303,8 +298,7 @@ describe('addToAnomalyMap', () => {
   });
 
   it('should set fullAnomalyMap if empty', () => {
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore.fullAnomalyMap = {};
     assert.deepEqual(explore.fullAnomalyMap, {});
 
@@ -318,8 +312,7 @@ describe('addToAnomalyMap', () => {
   });
 
   it('should update fullAnomalyMap if non-empty', () => {
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     const anomalymap: AnomalyMap = {
       traceA: { 101: { ...dummyAnomaly } },
@@ -360,8 +353,7 @@ describe('createGraphConfigs', () => {
       ',config=565,arch=x86,': Trace([0.0, 0.0, 3.3, 3.4]),
       ',config=565,arch=arm,': Trace([0.0, 0.0, 4.3, 4.4]),
     });
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     const result = explore.createGraphConfigs(traceset);
     const expected: GraphConfig[] = [
       {
@@ -394,8 +386,7 @@ describe('createGraphConfigs', () => {
       'func1(,config=8888,arch=x86,)': Trace([0.1, 0.2, 0.0, 0.4]),
       'func2(,config=8888,arch=arm,)': Trace([1.1, 1.2, 0.0, 1.4]),
     });
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     const result = explore.createGraphConfigs(traceset);
     const expected: GraphConfig[] = [
       {
@@ -449,8 +440,7 @@ describe('Default values', () => {
       body: defaultBody,
     });
 
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await fetchMock.flush(true);
     const originalState = deepCopy(explore!.state);
     await explore['applyQueryDefaultsIfMissing']();
@@ -468,27 +458,21 @@ describe('Default values', () => {
       include_params: null,
     };
 
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore['_defaults'] = defaultConfig;
 
     const originalState = deepCopy(explore.state);
     await explore['applyQueryDefaultsIfMissing']();
 
     const newState = explore.state;
-    assert.notDeepEqual(
-      newState,
-      originalState,
-      'new state should not equal original state'
-    );
+    assert.notDeepEqual(newState, originalState, 'new state should not equal original state');
     assert.isTrue(newState.summary);
   });
 });
 
 describe('plotSummary', () => {
   it('Populate Plot Summary bar', async () => {
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
     explore.state.plotSummary = true;
     explore.tracesRendered = true;
@@ -499,8 +483,7 @@ describe('plotSummary', () => {
   });
 
   it('Plot Summary bar not enabled', async () => {
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore.render();
 
     const plotSummaryElement = explore['plotSummary'].value;

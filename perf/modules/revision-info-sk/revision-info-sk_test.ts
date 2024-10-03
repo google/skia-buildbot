@@ -11,7 +11,7 @@ describe('revision-info-sk', () => {
 
   let element: RevisionInfoSk;
   beforeEach(() => {
-    element = newInstance((el: RevisionInfoSk) => {
+    element = newInstance((_el: RevisionInfoSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
@@ -63,8 +63,7 @@ describe('revision-info-sk', () => {
           is_improvement: false,
           master: 'm1',
           test: 't1/t2/t3',
-          query:
-            'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
+          query: 'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
           anomaly_ids: ['123', '456'],
         },
         {
@@ -86,9 +85,7 @@ describe('revision-info-sk', () => {
 
       const resp: GraphConfig[] = [
         {
-          queries: [
-            'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
-          ],
+          queries: ['master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3'],
           formulas: [],
           keys: '',
         },
@@ -117,8 +114,7 @@ describe('revision-info-sk', () => {
           is_improvement: false,
           master: 'm1',
           test: 't1/t2/t3',
-          query:
-            'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
+          query: 'master=m1&bot=bot1&benchmark=b1&test=t1&subtest_1=t2&subtest_2=t3',
           anomaly_ids: ['123', '456'],
         },
         {
@@ -141,13 +137,11 @@ describe('revision-info-sk', () => {
       fetchMock.post(`/_/shortcut/update`, { id: '1234567' });
 
       const url = await element.getMultiGraphUrl(revisionInfos);
-      const expected =
-        'begin=1712026352&end=1713408752&shortcut=1234567&totalGraphs=2';
+      const expected = 'begin=1712026352&end=1713408752&shortcut=1234567&totalGraphs=2';
 
       assert.include(url, expected);
 
-      const highlight_params =
-        '&highlight_anomalies=123&highlight_anomalies=456';
+      const highlight_params = '&highlight_anomalies=123&highlight_anomalies=456';
       assert.include(url, highlight_params);
     });
   });

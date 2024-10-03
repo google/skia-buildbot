@@ -27,8 +27,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
   const anomalies: Anomaly[] = [
     {
       id: 1,
-      test_path:
-        'internal.client.v8/x64/v8/JetStream2/maglev-future/async-fs/Average',
+      test_path: 'internal.client.v8/x64/v8/JetStream2/maglev-future/async-fs/Average',
       bug_id: 0,
       start_revision: 95942,
       end_revision: 95942,
@@ -52,8 +51,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
     },
     {
       id: 2,
-      test_path:
-        'internal.client.v8/x64/v8/JetStream2/maglev-future/async-fs/Wall-Time',
+      test_path: 'internal.client.v8/x64/v8/JetStream2/maglev-future/async-fs/Wall-Time',
       bug_id: 0,
       start_revision: 95940,
       end_revision: 95944,
@@ -77,8 +75,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
     },
     {
       id: 3,
-      test_path:
-        'internal.client.v8/x64/v8/JetStream2/maglev/async-fs/Average-Score',
+      test_path: 'internal.client.v8/x64/v8/JetStream2/maglev/async-fs/Average-Score',
       bug_id: 0,
       start_revision: 95944,
       end_revision: 95945,

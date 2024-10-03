@@ -14,10 +14,7 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/checkbox-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
-import {
-  GraphConfig,
-  updateShortcut,
-} from '../explore-simple-sk/explore-simple-sk';
+import { GraphConfig, updateShortcut } from '../explore-simple-sk/explore-simple-sk';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { errorMessage } from '../errorMessage';
 
@@ -64,20 +61,16 @@ export class RevisionInfoSk extends ElementSk {
   public async viewMultiGraph(): Promise<void> {
     const selectedRevs: RevisionInfo[] = [];
 
-    this.querySelectorAll<HTMLInputElement>('#selectRevision').forEach(
-      (ele, i) => {
-        if (this.revisionInfos && this.revisionInfos[i] && ele.checked) {
-          selectedRevs.push(this.revisionInfos[i]);
-        }
+    this.querySelectorAll<HTMLInputElement>('#selectRevision').forEach((ele, i) => {
+      if (this.revisionInfos && this.revisionInfos[i] && ele.checked) {
+        selectedRevs.push(this.revisionInfos[i]);
       }
-    );
+    });
 
     const url = await this.getMultiGraphUrl(selectedRevs);
 
     if (url === '') {
-      errorMessage(
-        `Failed to view graph. Please file a bug at ${window.perf.feedback_url}`
-      );
+      errorMessage(`Failed to view graph. Please file a bug at ${window.perf.feedback_url}`);
       return;
     }
 
@@ -162,7 +155,7 @@ export class RevisionInfoSk extends ElementSk {
     `;
 
   private getRevInfosTemplate() {
-    if (this.revisionInfos == null) {
+    if (this.revisionInfos === null) {
       return html``;
     }
     return html`
@@ -189,8 +182,7 @@ export class RevisionInfoSk extends ElementSk {
 
   private updateMultiGraphStatus = () => {
     const hasCheckedRevs =
-      this.querySelectorAll<HTMLInputElement>('#selectRevision input:checked')
-        .length > 0;
+      this.querySelectorAll<HTMLInputElement>('#selectRevision input:checked').length > 0;
 
     if (!hasCheckedRevs) {
       this.selectAll = false;
@@ -204,13 +196,10 @@ export class RevisionInfoSk extends ElementSk {
   private revInfoRowTemplate = (revInfo: RevisionInfo) => html`
     <tr>
       <td>
-        <checkbox-sk id="selectRevision" @change=${this.updateMultiGraphStatus}>
-        </checkbox-sk>
+        <checkbox-sk id="selectRevision" @change=${this.updateMultiGraphStatus}> </checkbox-sk>
       </td>
       <td>
-        <a target="_blank" href="http://crbug/${revInfo.bug_id}"
-          >${revInfo.bug_id}</a
-        >
+        <a target="_blank" href="http://crbug/${revInfo.bug_id}">${revInfo.bug_id}</a>
       </td>
       <td>
         <a target="_blank" href="${revInfo.explore_url}"

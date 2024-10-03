@@ -67,16 +67,12 @@ export class AlgoSelectSk extends ElementSk {
     return ['algo'];
   }
 
-  private _selectionChanged(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>
-  ) {
+  private _selectionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
     let index = e.detail.selection;
     if (index < 0) {
       index = 0;
     }
-    this.algo = toClusterAlgo(
-      $('div', this)[index].getAttribute('value') || ''
-    );
+    this.algo = toClusterAlgo($('div', this)[index].getAttribute('value') || '');
     const detail = {
       algo: this.algo,
     };

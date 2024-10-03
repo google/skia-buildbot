@@ -57,10 +57,7 @@ export function paramsToParamSet(p: Params): ParamSet {
 }
 
 /** addParamSet adds the ParamSet or ReadOnlyParamSet to this ParamSet. */
-export function addParamSet(
-  p: ParamSet,
-  ps: ParamSet | ReadOnlyParamSet
-): void {
+export function addParamSet(p: ParamSet, ps: ParamSet | ReadOnlyParamSet): void {
   for (const [k, arr] of Object.entries(ps)) {
     if (!p[k]) {
       p[k] = (arr as string[]).slice(0);

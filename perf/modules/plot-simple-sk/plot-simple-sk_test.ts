@@ -1,12 +1,7 @@
 import './index';
 import { assert } from 'chai';
 import * as d3Scale from 'd3-scale';
-import {
-  PlotSimpleSk,
-  Range,
-  rectFromRange,
-  rectFromRangeInvert,
-} from './plot-simple-sk';
+import { PlotSimpleSk, Range, rectFromRange, rectFromRangeInvert } from './plot-simple-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ticks } from './ticks';
@@ -23,11 +18,7 @@ describe('plot-simple-sk', () => {
     it('lists those lines, but not special_zero', () => {
       element.addLines(
         { line1: [1, 2, 3] },
-        ticks([
-          new Date(2020, 4, 1),
-          new Date(2020, 4, 2),
-          new Date(2020, 4, 3),
-        ])
+        ticks([new Date(2020, 4, 1), new Date(2020, 4, 2), new Date(2020, 4, 3)])
       );
       element.addLines({ special_zero: [0, 0, 0] }, []);
       assert.deepEqual(['line1'], element.getLineNames());

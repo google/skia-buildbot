@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { LitElement } from 'lit';
 
 describe('plot-summary-sk', () => {
@@ -30,8 +26,7 @@ describe('plot-summary-sk', () => {
   const waitPlotSummary = (sel: string) =>
     testBed.page.$eval(sel, (plot) => (plot as LitElement).updateComplete);
 
-  const getEventJSON = () =>
-    testBed.page.$eval('#events', (node) => node.textContent);
+  const getEventJSON = () => testBed.page.$eval('#events', (node) => node.textContent);
 
   ['#plot1'].forEach((plot, idx) =>
     describe(`the element ${plot}`, () => {

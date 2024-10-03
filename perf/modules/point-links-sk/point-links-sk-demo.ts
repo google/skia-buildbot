@@ -3,7 +3,7 @@ import { CommitNumber } from '../json';
 import './index';
 import { PointLinksSk } from './point-links-sk';
 
-fetchMock.post('/_/details/?results=false', (url, request) => {
+fetchMock.post('/_/details/?results=false', (_url, request) => {
   const requestObj = JSON.parse(request.body!.toString());
   switch (requestObj.cid) {
     case 12:

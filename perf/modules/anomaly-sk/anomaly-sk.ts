@@ -6,13 +6,7 @@
 import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  Anomaly,
-  AnomalyMap,
-  ColumnHeader,
-  CommitNumber,
-  TraceSet,
-} from '../json';
+import { Anomaly, AnomalyMap, ColumnHeader, CommitNumber, TraceSet } from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
 import { lookupCids } from '../cid/cid';
 import '../window/window';
@@ -105,9 +99,7 @@ export const getAnomalyDataMap = (
   return anomalyDataMap;
 };
 
-const commitNumberToHashes = async (
-  cids: CommitNumber[]
-): Promise<string[]> => {
+const commitNumberToHashes = async (cids: CommitNumber[]): Promise<string[]> => {
   const json = await lookupCids(cids);
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
@@ -134,10 +126,7 @@ export class AnomalySk extends ElementSk {
       signDisplay: 'exceptZero',
     });
 
-  static getPercentChange = (
-    median_before: number,
-    median_after: number
-  ): number => {
+  static getPercentChange = (median_before: number, median_after: number): number => {
     const difference = median_after - median_before;
     // Division by zero is represented by infinity symbol.
     return (100 * difference) / median_before;
@@ -149,10 +138,7 @@ export class AnomalySk extends ElementSk {
     const start_rev = this.anomaly.start_revision;
     const end_rev = this.anomaly.end_revision;
 
-    const cids: CommitNumber[] = [
-      CommitNumber(start_rev),
-      CommitNumber(end_rev),
-    ];
+    const cids: CommitNumber[] = [CommitNumber(start_rev), CommitNumber(end_rev)];
 
     const hashes = await commitNumberToHashes(cids);
 

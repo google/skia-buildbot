@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('regressions-page-sk', () => {
   let testBed: TestBed;
@@ -32,11 +28,7 @@ describe('regressions-page-sk', () => {
 
     it('displays table if some regressions present for selected subscription', async () => {
       await testBed.page.select('#filter', 'Sheriff Config 2');
-      await takeScreenshot(
-        testBed.page,
-        'perf',
-        'regressions-page-sk-some-regs'
-      );
+      await takeScreenshot(testBed.page, 'perf', 'regressions-page-sk-some-regs');
     });
   });
 });

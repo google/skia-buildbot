@@ -7,11 +7,7 @@ import './dataframe_context';
 import { ColumnHeader, ReadOnlyParamSet } from '../json';
 import fetchMock from 'fetch-mock';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import {
-  generateAnomalyMap,
-  generateFullDataFrame,
-  mockFrameStart,
-} from './test_utils';
+import { generateAnomalyMap, generateFullDataFrame, mockFrameStart } from './test_utils';
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
@@ -23,9 +19,7 @@ const sorted = (a: (ColumnHeader | null)[]) => {
 };
 
 describe('dataframe-repository', () => {
-  const newEl = setUpElementUnderTest<DataFrameRepository>(
-    'dataframe-repository-sk'
-  );
+  const newEl = setUpElementUnderTest<DataFrameRepository>('dataframe-repository-sk');
 
   const paramset = ReadOnlyParamSet({
     benchmark: ['Compile'],
@@ -69,10 +63,7 @@ describe('dataframe-repository', () => {
     // The trace key generated from generateFullDataFrame.
     const traceKey = ',key=0';
     assert.isTrue(sorted(dfRepo.header));
-    assert.sameOrderedMembers(
-      df.traceset[traceKey].slice(1, 11),
-      dfRepo.traces[traceKey]
-    );
+    assert.sameOrderedMembers(df.traceset[traceKey].slice(1, 11), dfRepo.traces[traceKey]);
     assert.equal(dfRepo.anomaly[traceKey]![95].bug_id, 555);
   });
 
@@ -98,10 +89,7 @@ describe('dataframe-repository', () => {
     assert.equal(await dfRepo.extendRange(timeSpan * 10), 10);
     assert.isTrue(sorted(dfRepo.header));
     assert.lengthOf(dfRepo.header, 20);
-    assert.sameOrderedMembers(
-      df.traceset[traceKey].slice(0, 20),
-      dfRepo.traces[traceKey]
-    );
+    assert.sameOrderedMembers(df.traceset[traceKey].slice(0, 20), dfRepo.traces[traceKey]);
     assert.equal(dfRepo.anomaly[traceKey]![105].bug_id, 1515);
   });
 
@@ -122,32 +110,13 @@ describe('dataframe-repository', () => {
       'init 20 traces'
     );
 
-    assert.equal(
-      await dfRepo.extendRange(-timeSpan * 20),
-      20,
-      'extend backward first 20'
-    );
-    assert.equal(
-      await dfRepo.extendRange(timeSpan * 20),
-      20,
-      'extend forward first 20'
-    );
-    assert.equal(
-      await dfRepo.extendRange(-timeSpan * 20),
-      20,
-      'extend backward second 20'
-    );
-    assert.equal(
-      await dfRepo.extendRange(timeSpan * 20),
-      20,
-      'extend forward second 20'
-    );
+    assert.equal(await dfRepo.extendRange(-timeSpan * 20), 20, 'extend backward first 20');
+    assert.equal(await dfRepo.extendRange(timeSpan * 20), 20, 'extend forward first 20');
+    assert.equal(await dfRepo.extendRange(-timeSpan * 20), 20, 'extend backward second 20');
+    assert.equal(await dfRepo.extendRange(timeSpan * 20), 20, 'extend forward second 20');
     assert.isTrue(sorted(dfRepo.header));
     assert.lengthOf(dfRepo.header, 100);
-    assert.sameOrderedMembers(
-      df.traceset[',key=0'].slice(0, 100),
-      dfRepo.traces[',key=0']
-    );
+    assert.sameOrderedMembers(df.traceset[',key=0'].slice(0, 100), dfRepo.traces[',key=0']);
   });
 
   it('init data and reset repo', async () => {
@@ -165,10 +134,7 @@ describe('dataframe-repository', () => {
       10
     );
     assert.isTrue(sorted(dfRepo.header));
-    assert.sameOrderedMembers(
-      df.traceset[',key=0'].slice(1, 11),
-      dfRepo.traces[',key=0']
-    );
+    assert.sameOrderedMembers(df.traceset[',key=0'].slice(1, 11), dfRepo.traces[',key=0']);
 
     assert.equal(
       await dfRepo.resetTraces(
@@ -182,10 +148,7 @@ describe('dataframe-repository', () => {
     );
     assert.isTrue(sorted(dfRepo.header));
     assert.lengthOf(dfRepo.header, 15);
-    assert.sameOrderedMembers(
-      df.traceset[',key=0'].slice(11, 26),
-      dfRepo.traces[',key=0']
-    );
+    assert.sameOrderedMembers(df.traceset[',key=0'].slice(11, 26), dfRepo.traces[',key=0']);
   });
 
   it('extend range w/ chunks', async () => {
@@ -201,10 +164,7 @@ describe('dataframe-repository', () => {
         const dfRepo = newEl((el) => (el['chunkSize'] = chunkSize));
         assert.equal(await dfRepo.resetTraces(start, paramset), 10);
         assert.isTrue(sorted(dfRepo.header));
-        assert.sameOrderedMembers(
-          df.traceset[key1].slice(0, 10),
-          dfRepo.traces[key1]
-        );
+        assert.sameOrderedMembers(df.traceset[key1].slice(0, 10), dfRepo.traces[key1]);
 
         assert.equal(await dfRepo.extendRange(timeSpan * 20), 20);
         assert.isTrue(sorted(dfRepo.header));

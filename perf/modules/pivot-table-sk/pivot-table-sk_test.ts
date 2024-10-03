@@ -3,10 +3,7 @@ import './index';
 import { assert } from 'chai';
 import { $$ } from '../../../infra-sk/modules/dom';
 
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DataFrame, pivot, ReadOnlyParamSet, Trace, TraceSet } from '../json';
 import {
   KeyValues,
@@ -50,13 +47,9 @@ describe('pivot-table-sk', () => {
   describe('click sort icon on first column', () => {
     it('sorts column descending', async () => {
       let firstSortSelection = element['sortHistory']!.history[0];
-      assert.deepEqual(
-        firstSortSelection,
-        new SortSelection(0, 'summaryValues', 'up')
-      );
+      assert.deepEqual(firstSortSelection, new SortSelection(0, 'summaryValues', 'up'));
 
-      const event =
-        eventPromise<CustomEvent<PivotTableSkChangeEventDetail>>('change');
+      const event = eventPromise<CustomEvent<PivotTableSkChangeEventDetail>>('change');
 
       // Click on the sort up icon that appears over the 'config' column.
       $$<HTMLElement>('sort-icon-sk', element)!.click();
@@ -68,10 +61,7 @@ describe('pivot-table-sk', () => {
 
       // Confirm sort state has changed.
       firstSortSelection = element['sortHistory']!.history[0];
-      assert.deepEqual(
-        firstSortSelection,
-        new SortSelection(0, 'keyValues', 'down')
-      );
+      assert.deepEqual(firstSortSelection, new SortSelection(0, 'keyValues', 'down'));
       assert.isTrue(encodedHistory.startsWith(firstSortSelection.encode()));
     });
   });

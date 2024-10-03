@@ -93,15 +93,12 @@ export class RegressionsPageSk extends ElementSk {
     <label for="filter">Sheriff:</label>
     <select
       id="filter"
-      @input=${(e: InputEvent) =>
-        ele.filterChange((e.target as HTMLInputElement).value)}>
+      @input=${(e: InputEvent) => ele.filterChange((e.target as HTMLInputElement).value)}>
       <option disabled selected value>-- select an option --</option>
       ${RegressionsPageSk.allSubscriptions(ele)}]
     </select>
     ${ele.regressions.length > 0
-      ? html` <div id="regressions_container">
-          ${ele.getRegTemplate(ele.regressions)}
-        </div>`
+      ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
       : null}
   `;
 
@@ -125,8 +122,7 @@ export class RegressionsPageSk extends ElementSk {
     );
 
   static isRegressionImprovement = (reg: Regression): boolean => {
-    const improvementDirection =
-      reg.frame?.dataframe?.paramset.improvement_direction[0];
+    const improvementDirection = reg.frame?.dataframe?.paramset.improvement_direction[0];
     const isDownImprovement =
       improvementDirection === 'down' &&
       reg.cluster_type === 'low' &&
@@ -149,8 +145,7 @@ export class RegressionsPageSk extends ElementSk {
         ${regInfo.frame?.dataframe?.paramset.improvement_direction[0]}
       </td>
       <td class="${this.isRegressionImprovement(regInfo) ? 'green' : 'red'}">
-        ${((regInfo.median_after - regInfo.median_before) * 100) /
-        regInfo.median_before}
+        ${((regInfo.median_after - regInfo.median_before) * 100) / regInfo.median_before}
       </td>
       <td class="${this.isRegressionImprovement(regInfo) ? 'green' : 'red'}">
         ${regInfo.median_after - regInfo.median_before}

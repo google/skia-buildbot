@@ -21,15 +21,7 @@ export class ChromeTraceFormatter implements TraceFormatter {
   // formatTrace formats the param set in the form
   // master/bot/benchmark/test/subtest_1/subtest_2/subtest_3
   formatTrace(params: Params): string {
-    const keys = [
-      'master',
-      'bot',
-      'benchmark',
-      'test',
-      'subtest_1',
-      'subtest_2',
-      'subtest_3',
-    ];
+    const keys = ['master', 'bot', 'benchmark', 'test', 'subtest_1', 'subtest_2', 'subtest_3'];
     const resultParts = [];
     for (const key of keys) {
       if (key in params) {

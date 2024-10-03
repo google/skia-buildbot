@@ -61,11 +61,7 @@ const paramset = {
     'link_invalidation_document_rules.html',
     'link_invalidation_document_rules_sparse.html',
   ],
-  subtest2: [
-    'AdsAdSenseAsyncAds_cold',
-    'AdsAdSenseAsyncAds_hot',
-    'AdsAdSenseAsyncAds_warm',
-  ],
+  subtest2: ['AdsAdSenseAsyncAds_cold', 'AdsAdSenseAsyncAds_hot', 'AdsAdSenseAsyncAds_warm'],
 };
 
 window.customElements.whenDefined('test-picker-sk').then(() => {
@@ -107,9 +103,7 @@ $$('#populate-partial-query')?.addEventListener('click', () => {
 });
 
 fetchMock.post('/_/nextParamList/', async (_, opts) => {
-  const request = JSON.parse(
-    opts.body!.toString()
-  ) as NextParamListHandlerRequest;
+  const request = JSON.parse(opts.body!.toString()) as NextParamListHandlerRequest;
   const paramSet = toParamSet(request.q);
   let emptyValues = 0;
   params.forEach((param) => {

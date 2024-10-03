@@ -90,17 +90,13 @@ export class NewBugDialogSk extends ElementSk {
         <div class="footer">
           <spinner-sk id="dialog-spinner"></spinner-sk>
           <button id="file-button" type="submit">Submit</button>
-          <button id="close-button" @click=${
-            ele.closeDialog
-          } type="button">Close</button>
+          <button id="close-button" @click=${ele.closeDialog} type="button">Close</button>
         </div>
       </form>
     </dialog>
     <toast-sk id="bug-url-toast" duration=0>
       New Bug created: <a href=${ele._bugUrl} target=_blank>${ele._bugUrl}</a>
-      <button id="hide-toast" class="action" @click=${
-        ele.closeToast
-      }>Close</button>
+      <button id="hide-toast" class="action" @click=${ele.closeToast}>Close</button>
     </toast-sk>
   `;
 
@@ -128,9 +124,7 @@ export class NewBugDialogSk extends ElementSk {
    * Checks if any of the anomalies have labels.
    */
   private hasLabels(): boolean {
-    return this._anomalies.some(
-      (anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0
-    );
+    return this._anomalies.some((anomaly) => anomaly.bug_labels && anomaly.bug_labels!.length > 0);
   }
 
   /**
@@ -219,8 +213,7 @@ export class NewBugDialogSk extends ElementSk {
       return Number.MAX_VALUE;
     }
 
-    const difference =
-      anomaly.median_after_anomaly - anomaly.median_before_anomaly;
+    const difference = anomaly.median_after_anomaly - anomaly.median_before_anomaly;
     return (100 * difference) / anomaly.median_before_anomaly;
   }
 
@@ -230,9 +223,7 @@ export class NewBugDialogSk extends ElementSk {
    * If percentChange is infinite or undefined, set it to this.INFINITY_PERCENT_CHANGE.
    */
   private getDisplayPercentChanged(anomaly: Anomaly): string {
-    if (
-      Math.abs(this.getPercentChangeForAnomaly(anomaly)) === Number.MAX_VALUE
-    ) {
+    if (Math.abs(this.getPercentChangeForAnomaly(anomaly)) === Number.MAX_VALUE) {
       return this.INFINITY_PERCENT_CHANGE;
     }
     return `${Math.abs(this.getPercentChangeForAnomaly(anomaly)).toFixed(1)}%`;
@@ -246,11 +237,7 @@ export class NewBugDialogSk extends ElementSk {
   private getSuiteNameForAlert(anomaly: Anomaly) {
     const test_path_parts = anomaly.test_path.split('/');
     const testsuite = test_path_parts[2];
-    const SUITES_WITH_SUBTEST_ENTRY = [
-      'rendering.desktop',
-      'rendering.mobile',
-      'v8',
-    ];
+    const SUITES_WITH_SUBTEST_ENTRY = ['rendering.desktop', 'rendering.mobile', 'v8'];
     if (!SUITES_WITH_SUBTEST_ENTRY.includes(testsuite)) {
       return testsuite;
     }
@@ -281,8 +268,7 @@ export class NewBugDialogSk extends ElementSk {
       }
       let percent = Infinity;
       if (
-        this.getDisplayPercentChanged(anomaly) ===
-          this.INFINITY_PERCENT_CHANGE &&
+        this.getDisplayPercentChanged(anomaly) === this.INFINITY_PERCENT_CHANGE &&
         !maxRegressionFound
       ) {
         maxRegressionFound = true;
@@ -350,16 +336,13 @@ export class NewBugDialogSk extends ElementSk {
     const title = document.getElementById('title')! as HTMLInputElement;
 
     // Extract description.
-    const description = document.getElementById(
-      'description'
-    )! as HTMLInputElement;
+    const description = document.getElementById('description')! as HTMLInputElement;
 
     // Extract assignee
     const assignee = document.getElementById('assignee')! as HTMLInputElement;
 
     //  Extract CCs
-    const ccs_value = (document.getElementById('ccs')! as HTMLInputElement)
-      .value;
+    const ccs_value = (document.getElementById('ccs')! as HTMLInputElement).value;
     const ccs = ccs_value.split(',').map((s: string) => s.trim());
 
     // Extract labels.

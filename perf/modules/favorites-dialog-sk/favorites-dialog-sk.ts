@@ -92,12 +92,7 @@ export class FavoritesDialogSk extends ElementSk {
   }
 
   // open shows the popup dialog when called.
-  public open(
-    favId?: string,
-    name?: string,
-    description?: string,
-    url?: string
-  ): Promise<void> {
+  public open(favId?: string, name?: string, description?: string, url?: string): Promise<void> {
     this.favId = favId || '';
     this.name = name || '';
     this.description = description || '';
@@ -183,12 +178,8 @@ export class FavoritesDialogSk extends ElementSk {
         </div>
 
         <div class="buttons">
-          <button ?disabled="${ele.updatingFavorite}" @click=${
-            ele.dismiss
-          }>Cancel</button>
-          <button ?disabled="${ele.updatingFavorite}" @click=${
-            ele.confirm
-          }>Save</button>
+          <button ?disabled="${ele.updatingFavorite}" @click=${ele.dismiss}>Cancel</button>
+          <button ?disabled="${ele.updatingFavorite}" @click=${ele.confirm}>Save</button>
         </div>
       </dialog>`;
 }

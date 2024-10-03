@@ -45,10 +45,7 @@ sk_page(
         ":explore-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//perf/modules/json:index_ts_lib",
-        "//:node_modules/fetch-mock",
         "//perf/modules/common:test-util_ts_lib",
     ],
     ts_entry_point = "explore-sk-demo.ts",

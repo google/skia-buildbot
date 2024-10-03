@@ -31,9 +31,8 @@ export class CommitDetailSk extends ElementSk {
   private static template = (ele: CommitDetailSk) => html`
     <div class="linkish">
       <pre>
-${ele.cid.hash.slice(0, 8)} - ${ele.cid.author} - ${diffDate(
-          ele.cid.ts * 1000
-        )} - ${ele.cid.message}</pre
+${ele.cid.hash.slice(0, 8)} - ${ele.cid.author} - ${diffDate(ele.cid.ts * 1000)} - ${ele.cid
+          .message}</pre
       >
       <div class="tip">
         <a href="/g/e/${ele.cid.hash}">Explore</a>

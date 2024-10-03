@@ -101,10 +101,7 @@ export const generateFullDataFrame = (
  * @returns
  *  The new copy of DataFrame containing the subrange from the full Dataframe.
  */
-export const generateSubDataframe = (
-  dataframe: DataFrame,
-  range: range
-): DataFrame => {
+export const generateSubDataframe = (dataframe: DataFrame, range: range): DataFrame => {
   return {
     header: dataframe.header!.slice(range.begin, range.end),
     traceset: Object.fromEntries(

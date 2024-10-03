@@ -7,8 +7,7 @@ import { generateFullDataFrame } from '../dataframe/test_utils';
 document.querySelectorAll('plot-summary-sk').forEach((e) =>
   e.addEventListener('summary_selected', (e) => {
     const plotDetails = e.detail;
-    document.querySelector('#events')!.textContent =
-      JSON.stringify(plotDetails);
+    document.querySelector('#events')!.textContent = JSON.stringify(plotDetails);
   })
 );
 

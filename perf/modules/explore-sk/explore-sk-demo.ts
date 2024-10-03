@@ -1,12 +1,8 @@
 /* eslint-disable dot-notation */
 import './index';
 import '../../../elements-sk/modules/error-toast-sk';
-import fetchMock, { restore } from 'fetch-mock';
-import { Status } from '../../../infra-sk/modules/json';
 import { $$ } from '../../../infra-sk/modules/dom';
-import { ExploreSk } from './explore-sk';
 import { ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
-import { QueryConfig } from '../json';
 import { setUpExploreDemoEnv } from '../common/test-util';
 
 setUpExploreDemoEnv();
@@ -48,9 +44,7 @@ customElements.whenDefined('explore-sk').then(() => {
 
   // Clicks inside the canvas element inside the plot-simple-sk element.
   const clickOnPlot = () => {
-    const rect = explore!
-      .querySelector<HTMLCanvasElement>('canvas')!
-      .getBoundingClientRect();
+    const rect = explore!.querySelector<HTMLCanvasElement>('canvas')!.getBoundingClientRect();
     // eslint-disable-next-line dot-notation
     explore!['plot']!.dispatchEvent(
       new MouseEvent('click', {

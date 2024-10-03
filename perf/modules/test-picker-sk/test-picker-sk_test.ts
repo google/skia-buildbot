@@ -9,7 +9,7 @@ describe('test-picker-sk', () => {
 
   let element: TestPickerSk;
   beforeEach(() => {
-    element = newInstance((el: TestPickerSk) => {
+    element = newInstance((_el: TestPickerSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
@@ -18,6 +18,7 @@ describe('test-picker-sk', () => {
 
   describe('some action', () => {
     it('some result', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(element).to.not.be.null;
     });
   });

@@ -119,12 +119,10 @@ fetchMock.get('path:/_/initpage/', () => ({
   msg: '',
 }));
 
-document.querySelector('.component-goes-here')!.innerHTML =
-  '<trybot-page-sk></trybot-page-sk>';
+document.querySelector('.component-goes-here')!.innerHTML = '<trybot-page-sk></trybot-page-sk>';
 
 $$<QuerySk>('query-sk')!.current_query = 'config=8888';
-$$<CommitDetailPickerSk>('commit-detail-picker-sk')!.selection =
-  CommitNumber(43390);
+$$<CommitDetailPickerSk>('commit-detail-picker-sk')!.selection = CommitNumber(43390);
 fetchMock.flush(true).then(() => {
   $$<HTMLDivElement>('#load-complete')!.innerHTML = '<pre>Finished</pre>';
 });

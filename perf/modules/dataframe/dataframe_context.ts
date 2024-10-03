@@ -38,14 +38,7 @@ import {
   ShiftRequest,
   ShiftResponse,
 } from '../json';
-import {
-  DataFrame,
-  FrameRequest,
-  FrameResponse,
-  Trace,
-  TraceSet,
-  ReadOnlyParamSet,
-} from '../json';
+import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
 
 // Shift the range by offset.
@@ -92,14 +85,10 @@ export const sliceRange = ({ begin, end }: range, chunkSize: number) => {
 
 // This context provides the dataframe when it is ready to use from the data
 // store, typically a remote server or a local mock.
-export const dataframeContext = createContext<DataFrame>(
-  Symbol('dataframe-context')
-);
+export const dataframeContext = createContext<DataFrame>(Symbol('dataframe-context'));
 
 // This context indicates whether there is an ongoing dataframe request.
-export const dataframeLoadingContext = createContext<boolean>(
-  Symbol('dataframe-loading-context')
-);
+export const dataframeLoadingContext = createContext<boolean>(Symbol('dataframe-loading-context'));
 
 // This context prodides the data repository to query the data.
 export const dataframeRepoContext = createContext<DataFrameRepository>(
@@ -250,11 +239,7 @@ export class DataFrameRepository extends LitElement {
     const req = structuredClone(this._baseRequest);
     req.begin = range.begin;
     req.end = range.end;
-    const resp = await startRequest(
-      DataFrameRepository.frameStartUrl,
-      req,
-      1000
-    ).catch(() => {
+    const resp = await startRequest(DataFrameRepository.frameStartUrl, req, 1000).catch(() => {
       return null;
     });
     if (resp === null) {
@@ -405,10 +390,7 @@ export class DataFrameRepository extends LitElement {
     });
     this.addTraceset(header, traceset);
 
-    const anomaly = sortedResponses.reduce(
-      (pre, cur) => mergeAnomaly(pre, cur.anomalymap),
-      {}
-    );
+    const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
     resolver(
       totalTraces,
       {

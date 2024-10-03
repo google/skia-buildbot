@@ -45,11 +45,9 @@ const commitinfo: Commit[] = [
 
 const evt = document.querySelector('#evt')!;
 
-document
-  .querySelectorAll<CommitDetailPanelSk>('commit-detail-panel-sk')
-  .forEach((panel) => {
-    panel.details = commitinfo;
-    panel.addEventListener('commit-selected', (e: Event) => {
-      evt.textContent = JSON.stringify((e as CustomEvent).detail, null, '  ');
-    });
+document.querySelectorAll<CommitDetailPanelSk>('commit-detail-panel-sk').forEach((panel) => {
+  panel.details = commitinfo;
+  panel.addEventListener('commit-selected', (e: Event) => {
+    evt.textContent = JSON.stringify((e as CustomEvent).detail, null, '  ');
   });
+});

@@ -136,7 +136,7 @@ export function ticks(dates: Date[]): tick[] {
 export function fixTicksLength(ticks: tick[]): tick[] {
   // Drop every other tick repeatedly until we get less than MAX_TICKS tick marks.
   while (ticks.length > MAX_TICKS) {
-    ticks = ticks.filter((t, i) => i % 2);
+    ticks = ticks.filter((_t, i) => i % 2);
   }
 
   return ticks;

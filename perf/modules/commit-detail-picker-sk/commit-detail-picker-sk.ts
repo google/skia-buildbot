@@ -140,9 +140,7 @@ export class CommitDetailPickerSk extends ElementSk {
   }
 
   private panelSelect(e: Event) {
-    this.selected = (
-      e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
-    ).detail.selected;
+    this.selected = (e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>).detail.selected;
     this._render();
     this.close();
   }

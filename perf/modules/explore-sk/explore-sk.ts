@@ -70,9 +70,7 @@ export class ExploreSk extends ElementSk {
       }
     );
 
-    document.addEventListener('keydown', (e) =>
-      this.exploreSimpleSk!.keyDown(e)
-    );
+    document.addEventListener('keydown', (e) => this.exploreSimpleSk!.keyDown(e));
 
     this.exploreSimpleSk!.addEventListener('state_changed', () => {
       this.stateHasChanged!();
@@ -139,10 +137,7 @@ export class ExploreSk extends ElementSk {
     this.exploreSimpleSk!.useTestPicker = true;
     this.testPicker!.classList.remove('hidden');
 
-    if (
-      this.exploreSimpleSk!.state.queries &&
-      this.exploreSimpleSk!.state.queries.length > 0
-    ) {
+    if (this.exploreSimpleSk!.state.queries && this.exploreSimpleSk!.state.queries.length > 0) {
       this.testPicker!.populateFieldDataFromQuery(
         this.exploreSimpleSk!.state.queries.join('&'),
         testPickerParams!
@@ -170,10 +165,7 @@ export class ExploreSk extends ElementSk {
     // trace.
     this.addEventListener('populate-query', (e) => {
       const trace_key = (e as CustomEvent).detail.key;
-      this.testPicker!.populateFieldDataFromQuery(
-        queryFromKey(trace_key),
-        testPickerParams!
-      );
+      this.testPicker!.populateFieldDataFromQuery(queryFromKey(trace_key), testPickerParams!);
       this.testPicker!.scrollIntoView();
     });
   }

@@ -22,12 +22,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
       const keysForCommitRange: string[] = [];
-      element.load(
-        currentCommitId,
-        prevCommitId,
-        'my trace',
-        keysForCommitRange
-      );
+      element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       assert.isEmpty(element.displayUrls, 'No display urls expected.');
       assert.isEmpty(element.displayTexts, 'No display texts expected.');
     });
@@ -46,12 +41,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
-      await element.load(
-        currentCommitId,
-        prevCommitId,
-        'my trace',
-        keysForCommitRange
-      );
+      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
@@ -60,7 +50,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
-      fetchMock.post('/_/details/?results=false', (url, request) => {
+      fetchMock.post('/_/details/?results=false', (_url, request) => {
         const requestObj = JSON.parse(request.body!.toString());
         switch (requestObj.cid) {
           case currentCommitId:
@@ -84,12 +74,7 @@ describe('point-links-sk', () => {
         }
       });
 
-      await element.load(
-        currentCommitId,
-        prevCommitId,
-        'my trace',
-        keysForCommitRange
-      );
+      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
         'key1 Range': 'https://repoHost/repo1/+log/preLink..curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
@@ -102,7 +87,7 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
-      fetchMock.post('/_/details/?results=false', (url, request) => {
+      fetchMock.post('/_/details/?results=false', (_url, request) => {
         const requestObj = JSON.parse(request.body!.toString());
         switch (requestObj.cid) {
           case currentCommitId:
@@ -126,12 +111,7 @@ describe('point-links-sk', () => {
         }
       });
 
-      await element.load(
-        currentCommitId,
-        prevCommitId,
-        'my trace',
-        keysForCommitRange
-      );
+      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
         key1: 'https://repoHost/repo1/+/curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',

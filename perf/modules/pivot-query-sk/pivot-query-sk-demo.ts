@@ -19,8 +19,6 @@ const valid = $$<PivotQuerySk>('#valid')!;
 valid.pivotRequest = validPivotRequest;
 valid.paramset = paramSet;
 
-document.addEventListener('pivot-changed', ((
-  e: CustomEvent<PivotQueryChangedEventDetail>
-) => {
+document.addEventListener('pivot-changed', ((e: CustomEvent<PivotQueryChangedEventDetail>) => {
   $$('#results')!.textContent = JSON.stringify(e.detail, null, '  ');
 }) as EventListener);

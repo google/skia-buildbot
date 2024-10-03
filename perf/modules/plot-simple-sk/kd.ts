@@ -141,10 +141,7 @@ export class KDTree<Point extends KDPoint> {
 
       // If the hyperplane is closer than the current best point then we
       // need to search down the other side of the tree.
-      if (
-        otherChild !== null &&
-        this.metric(pointOnHyperplane, node.obj) < bestNode.distance
-      ) {
+      if (otherChild !== null && this.metric(pointOnHyperplane, node.obj) < bestNode.distance) {
         nearestSearch(otherChild);
       }
     };

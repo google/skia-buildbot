@@ -2,9 +2,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { FavoritesDialogSk } from './favorites-dialog-sk';
 import './index';
 
-const elem: FavoritesDialogSk | null = document.querySelector(
-  'favorites-dialog-sk'
-);
+const elem: FavoritesDialogSk | null = document.querySelector('favorites-dialog-sk');
 $$('#newFav')!.addEventListener('click', () => {
   elem!.open('', '', '', 'a.com');
 });

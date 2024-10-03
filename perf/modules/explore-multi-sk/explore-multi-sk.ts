@@ -291,9 +291,7 @@ export class ExploreMultiSk extends ElementSk {
           const stringToBool = function (str: string): boolean {
             return str.toLowerCase() === 'true';
           };
-          this.state.useTestPicker = stringToBool(
-            this.defaults!.default_url_values.useTestPicker
-          );
+          this.state.useTestPicker = stringToBool(this.defaults!.default_url_values.useTestPicker);
         }
       }
     }
@@ -333,10 +331,7 @@ export class ExploreMultiSk extends ElementSk {
       // trace.
       this.addEventListener('populate-query', (e) => {
         const trace_key = (e as CustomEvent).detail.key;
-        this.testPicker!.populateFieldDataFromQuery(
-          queryFromKey(trace_key),
-          testPickerParams!
-        );
+        this.testPicker!.populateFieldDataFromQuery(queryFromKey(trace_key), testPickerParams!);
         this.testPicker!.scrollIntoView();
       });
     }
@@ -379,10 +374,7 @@ export class ExploreMultiSk extends ElementSk {
     this._render();
   }
 
-  private addStateToExplore(
-    explore: ExploreSimpleSk,
-    graphConfig: GraphConfig
-  ) {
+  private addStateToExplore(explore: ExploreSimpleSk, graphConfig: GraphConfig) {
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
@@ -415,10 +407,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(
-      true,
-      this.useTestPicker
-    );
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(true, this.useTestPicker);
     const graphConfig = new GraphConfig();
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
@@ -606,9 +595,7 @@ export class ExploreMultiSk extends ElementSk {
    * @returns - List of Graph Configs matching the shortcut ID in the GraphsShortcut table
    * or undefined if the ID doesn't exist.
    */
-  private getConfigsFromShortcut(
-    shortcut: string
-  ): Promise<GraphConfig[]> | undefined {
+  private getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> | undefined {
     const body = {
       ID: shortcut,
     };

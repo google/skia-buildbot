@@ -1,9 +1,5 @@
 import { assert } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('explore-sk', () => {
   let testBed: TestBed;
@@ -49,11 +45,7 @@ describe('explore-sk', () => {
       await testBed.page.waitForSelector('#traceButtons', {
         visible: true,
       });
-      await takeScreenshot(
-        testBed.page,
-        'perf',
-        'explore-sk_display_bisect_button'
-      );
+      await takeScreenshot(testBed.page, 'perf', 'explore-sk_display_bisect_button');
     });
 
     it('highlights a trace when the plot is clicked on', async () => {
@@ -69,11 +61,7 @@ describe('explore-sk', () => {
       await testBed.page.waitForSelector('#details', {
         visible: true,
       });
-      await takeScreenshot(
-        testBed.page,
-        'perf',
-        'explore-sk_trace_calc_selected'
-      );
+      await takeScreenshot(testBed.page, 'perf', 'explore-sk_trace_calc_selected');
     });
 
     it('loads shows the help dialog on a keypress of ?', async () => {

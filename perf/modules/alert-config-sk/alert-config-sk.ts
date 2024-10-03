@@ -161,8 +161,7 @@ export class AlertConfigSk extends ElementSk {
       id="category"
       type="text"
       .value=${ele._config.category}
-      @input=${(e: InputEvent) =>
-        (ele._config.category = (e.target! as HTMLInputElement).value)} />
+      @input=${(e: InputEvent) => (ele._config.category = (e.target! as HTMLInputElement).value)} />
 
     <h3>Which traces should be monitored</h3>
     <query-chooser-sk
@@ -175,9 +174,7 @@ export class AlertConfigSk extends ElementSk {
         (ele._config.query = e.detail.q)}></query-chooser-sk>
 
     <div>
-      <a
-        href="/e/?queries=${encodeURIComponent(ele._config.query)}"
-        target="_blank">
+      <a href="/e/?queries=${encodeURIComponent(ele._config.query)}" target="_blank">
         Preview traces that match the query
       </a>
     </div>
@@ -185,8 +182,8 @@ export class AlertConfigSk extends ElementSk {
     <h3>What triggers an alert</h3>
     <h4>Grouping</h4>
     <label for="grouping">
-      Are the traces k-means clustered and Step Detection done on the centroid,
-      or is Step Detection done on each trace individually.
+      Are the traces k-means clustered and Step Detection done on the centroid, or is Step Detection
+      done on each trace individually.
     </label>
     <algo-select-sk
       id="grouping"
@@ -211,9 +208,7 @@ export class AlertConfigSk extends ElementSk {
       <div value="mannwhitneyu">Mann-Whitney U (Wilcoxon rank-sum)</div>
     </select-sk>
     <h4>Threshold</h4>
-    <label for="threshold">
-      ${thresholdDescriptors[ele._config.step].label}
-    </label>
+    <label for="threshold"> ${thresholdDescriptors[ele._config.step].label} </label>
     <input
       id="threshold"
       .value=${ele._config.interesting.toString()}
@@ -223,16 +218,14 @@ export class AlertConfigSk extends ElementSk {
 
     <h4>K</h4>
     <label for="k">
-      The number of clusters. Only used when Grouping is K-Means. 0 = use a
-      server chosen value.
+      The number of clusters. Only used when Grouping is K-Means. 0 = use a server chosen value.
     </label>
     <input
       id="k"
       type="number"
       min="0"
       .value=${ele._config.k.toString()}
-      @input=${(e: InputEvent) =>
-        (ele._config.k = +(e.target! as HTMLInputElement).value)} />
+      @input=${(e: InputEvent) => (ele._config.k = +(e.target! as HTMLInputElement).value)} />
 
     <h4>Radius</h4>
     <label for="radius"> Number of commits on either side to consider. </label>
@@ -241,34 +234,25 @@ export class AlertConfigSk extends ElementSk {
       type="number"
       min="0"
       .value=${ele._config.radius.toString()}
-      @input=${(e: InputEvent) =>
-        (ele._config.radius = +(e.target! as HTMLInputElement).value)} />
+      @input=${(e: InputEvent) => (ele._config.radius = +(e.target! as HTMLInputElement).value)} />
 
     <h4>Step Direction</h4>
     <select-sk
-      @selection-changed=${(
-        e: CustomEvent<SelectSkSelectionChangedEventDetail>
-      ) =>
+      @selection-changed=${(e: CustomEvent<SelectSkSelectionChangedEventDetail>) =>
         (ele._config.direction = toDirection(
-          (e.target! as HTMLDivElement).children[
-            e.detail.selection
-          ].getAttribute('value')
+          (e.target! as HTMLDivElement).children[e.detail.selection].getAttribute('value')
         ))}>
       <div value="BOTH" ?selected=${ele._config.direction === 'BOTH'}>
         Either step up or step down trigger an alert.
       </div>
-      <div value="UP" ?selected=${ele._config.direction === 'UP'}>
-        Step up triggers an alert.
-      </div>
+      <div value="UP" ?selected=${ele._config.direction === 'UP'}>Step up triggers an alert.</div>
       <div value="DOWN" ?selected=${ele._config.direction === 'DOWN'}>
         Step down triggers an alert.
       </div>
     </select-sk>
 
     <h4>Minimum</h4>
-    <label for="min">
-      Minimum number of interesting traces to trigger an alert.
-    </label>
+    <label for="min"> Minimum number of interesting traces to trigger an alert. </label>
     <input
       id="min"
       type="number"
@@ -279,16 +263,13 @@ export class AlertConfigSk extends ElementSk {
     <h4>Sparse</h4>
     <checkbox-sk
       ?checked=${ele._config.sparse}
-      @input=${(e: InputEvent) =>
-        (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
+      @input=${(e: InputEvent) => (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
       label="Data is sparse, so only include commits that have data."></checkbox-sk>
 
     ${window.perf.need_alert_action === true
       ? html`
           <h3>What action to take</h3>
-          <label for="action">
-            Choose the action to take if a regression has occurred.
-          </label>
+          <label for="action"> Choose the action to take if a regression has occurred. </label>
           <select-sk
             id="action"
             @selection-changed=${ele.alertActionChanged}
@@ -297,11 +278,7 @@ export class AlertConfigSk extends ElementSk {
               : ele._config.action === 'bisect'
                 ? 2
                 : 0}>
-            <div
-              value="noaction"
-              ?selected=${ele._config.action === 'noaction'}>
-              No action.
-            </div>
+            <div value="noaction" ?selected=${ele._config.action === 'noaction'}>No action.</div>
             <div value="report" ?selected=${ele._config.action === 'report'}>
               File an issue and assign to corresponding component.
             </div>
@@ -314,9 +291,7 @@ export class AlertConfigSk extends ElementSk {
     ${window.perf.notifications === 'html_email'
       ? html`
           <h3>Where are alerts sent</h3>
-          <label for="sent">
-            Alert Destination: Comma separated list of email addresses.
-          </label>
+          <label for="sent"> Alert Destination: Comma separated list of email addresses. </label>
           <input
             id="sent"
             .value=${ele._config.alert}
@@ -328,10 +303,7 @@ export class AlertConfigSk extends ElementSk {
       : html``}
     ${window.perf.notifications === 'markdown_issuetracker'
       ? html`
-          <h3>
-            Which component should receive issues for regressions that are
-            found.
-          </h3>
+          <h3>Which component should receive issues for regressions that are found.</h3>
           <label for="component"> Issue Tracker Component ID. </label>
           <input
             type="text"
@@ -364,9 +336,7 @@ export class AlertConfigSk extends ElementSk {
             id="template"
             .value=${ele._config.bug_uri_template}
             @input=${(e: InputEvent) =>
-              (ele._config.bug_uri_template = (
-                e.target! as HTMLInputElement
-              ).value)} />
+              (ele._config.bug_uri_template = (e.target! as HTMLInputElement).value)} />
           <button @click=${ele.testBugTemplate}>Test</button>
           <spinner-sk id="bugSpinner"></spinner-sk> `}
 
@@ -375,27 +345,18 @@ export class AlertConfigSk extends ElementSk {
     <input
       id="owner"
       .value=${ele._config.owner}
-      @input=${(e: InputEvent) =>
-        (ele._config.owner = (e.target! as HTMLInputElement).value)} />
+      @input=${(e: InputEvent) => (ele._config.owner = (e.target! as HTMLInputElement).value)} />
 
     ${AlertConfigSk._groupBy(ele)}
 
     <h3>Status</h3>
     <select-sk
       .selection=${ele._config.state === 'ACTIVE' ? 0 : 1}
-      @selection-changed=${(
-        e: CustomEvent<SelectSkSelectionChangedEventDetail>
-      ) =>
+      @selection-changed=${(e: CustomEvent<SelectSkSelectionChangedEventDetail>) =>
         (ele._config.state = toConfigState(
-          (e.target! as HTMLDivElement).children[
-            e.detail.selection
-          ].getAttribute('value')
+          (e.target! as HTMLDivElement).children[e.detail.selection].getAttribute('value')
         ))}>
-      <div
-        value="ACTIVE"
-        title="Clusters that match this will generate alerts.">
-        Active
-      </div>
+      <div value="ACTIVE" title="Clusters that match this will generate alerts.">Active</div>
       <div value="DELETED" title="Currently inactive.">Deleted</div>
     </select-sk>
   `;
@@ -406,16 +367,10 @@ export class AlertConfigSk extends ElementSk {
     }
     return html`
       <h3>Group By</h3>
-      <label for="groupby">
-        Group clusters by these parameters. (Multiselect)
-      </label>
+      <label for="groupby"> Group clusters by these parameters. (Multiselect) </label>
       <multi-select-sk
-        @selection-changed=${(
-          e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
-        ) =>
-          (ele._config.group_by = e.detail.selection
-            .map((i) => ele.paramkeys[i])
-            .join(','))}
+        @selection-changed=${(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>) =>
+          (ele._config.group_by = e.detail.selection.map((i) => ele.paramkeys[i]).join(','))}
         id="groupby">
         ${AlertConfigSk._groupByChoices(ele)}
       </multi-select-sk>
@@ -424,9 +379,7 @@ export class AlertConfigSk extends ElementSk {
 
   private static _groupByChoices = (ele: AlertConfigSk): TemplateResult[] => {
     const groups = ele._config.group_by.split(',');
-    return ele.paramkeys.map(
-      (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`
-    );
+    return ele.paramkeys.map((p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`);
   };
 
   connectedCallback(): void {
@@ -459,22 +412,18 @@ export class AlertConfigSk extends ElementSk {
     return -1;
   }
 
-  private stepSelectionChanged(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>
-  ) {
-    const valueAsString = (e.target! as HTMLDivElement).children[
-      e.detail.selection
-    ].getAttribute('value');
+  private stepSelectionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+    const valueAsString = (e.target! as HTMLDivElement).children[e.detail.selection].getAttribute(
+      'value'
+    );
     this._config.step = valueAsString as StepDetection;
     this._render();
   }
 
-  private alertActionChanged(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>
-  ) {
-    const valueAsString = (e.target! as HTMLDivElement).children[
-      e.detail.selection
-    ].getAttribute('value');
+  private alertActionChanged(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
+    const valueAsString = (e.target! as HTMLDivElement).children[e.detail.selection].getAttribute(
+      'value'
+    );
     this._config.action = valueAsString as AlertAction;
     this._render();
   }

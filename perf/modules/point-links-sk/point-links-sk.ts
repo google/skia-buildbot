@@ -81,12 +81,8 @@ export class PointLinksSk extends ElementSk {
           currentCommitUrl !== ''
         ) {
           const prevCommitUrl = prevLinks[key];
-          const currentCommitId = this.getCommitIdFromCommitUrl(
-            currentCommitUrl
-          ).substring(0, 7);
-          const prevCommitId = this.getCommitIdFromCommitUrl(
-            prevCommitUrl
-          ).substring(0, 7);
+          const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 7);
+          const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 7);
           if (currentCommitId === prevCommitId) {
             this.displayUrls[key] = currentCommitUrl;
             this.displayTexts[key] = currentCommitId;

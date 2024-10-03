@@ -101,13 +101,11 @@ $$('#show_alert_actions')!.addEventListener('click', () => {
 
 const keyOrder = ['test', 'units'];
 
-document
-  .querySelectorAll<AlertConfigSk>('alert-config-sk')
-  .forEach((element) => {
-    element.paramset = paramset;
-    element.config = config;
-    element.key_order = keyOrder;
-  });
+document.querySelectorAll<AlertConfigSk>('alert-config-sk').forEach((element) => {
+  element.paramset = paramset;
+  element.config = config;
+  element.key_order = keyOrder;
+});
 
 const state = document.querySelector('#state')!;
 

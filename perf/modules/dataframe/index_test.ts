@@ -28,19 +28,15 @@ const e = MISSING_DATA_SENTINEL;
 
 describe('find subrange from dataframe header', () => {
   it('find subrange inside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
-      .header!;
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
     assert.deepEqual(findSubDataframe(header, { begin: 1, end: 2 }, 'offset'), {
       begin: 1,
       end: 3,
     });
-    assert.deepEqual(
-      findSubDataframe(header, { begin: 1, end: 6 }, 'timestamp'),
-      {
-        begin: 0,
-        end: 3,
-      }
-    );
+    assert.deepEqual(findSubDataframe(header, { begin: 1, end: 6 }, 'timestamp'), {
+      begin: 0,
+      end: 3,
+    });
     assert.deepEqual(findSubDataframe(header, { begin: 3, end: 7 }), {
       begin: 1,
       end: 4,
@@ -48,16 +44,15 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange outside the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
-      .header!;
-    assert.deepEqual(
-      findSubDataframe(header, { begin: -1, end: 2 }, 'offset'),
-      { begin: 0, end: 3 }
-    );
-    assert.deepEqual(
-      findSubDataframe(header, { begin: 9, end: 11 }, 'offset'),
-      { begin: 9, end: 10 }
-    );
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, { begin: -1, end: 2 }, 'offset'), {
+      begin: 0,
+      end: 3,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 9, end: 11 }, 'offset'), {
+      begin: 9,
+      end: 10,
+    });
     assert.deepEqual(findSubDataframe(header, { begin: -1, end: 6 }), {
       begin: 0,
       end: 3,
@@ -69,16 +64,15 @@ describe('find subrange from dataframe header', () => {
   });
 
   it('find subrange not in the header', () => {
-    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2])
-      .header!;
-    assert.deepEqual(
-      findSubDataframe(header, { begin: -10, end: -1 }, 'offset'),
-      { begin: 0, end: 0 }
-    );
-    assert.deepEqual(
-      findSubDataframe(header, { begin: 100, end: 101 }, 'offset'),
-      { begin: 10, end: 10 }
-    );
+    const header = generateFullDataFrame({ begin: 0, end: 10 }, 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, { begin: -10, end: -1 }, 'offset'), {
+      begin: 0,
+      end: 0,
+    });
+    assert.deepEqual(findSubDataframe(header, { begin: 100, end: 101 }, 'offset'), {
+      begin: 10,
+      end: 10,
+    });
     assert.deepEqual(findSubDataframe(header, { begin: -10, end: -1 }), {
       begin: 0,
       end: 0,
@@ -91,12 +85,7 @@ describe('find subrange from dataframe header', () => {
 });
 
 describe('merge anomaly', () => {
-  const df = generateFullDataFrame(
-    { begin: 0, end: 20 },
-    1,
-    5,
-    [1, 3, 6, 4, 2]
-  );
+  const df = generateFullDataFrame({ begin: 0, end: 20 }, 1, 5, [1, 3, 6, 4, 2]);
   const anomaly = generateAnomalyMap(df, [
     { trace: 1, commit: 4, bugId: 4001 },
     { trace: 2, commit: 4, bugId: 4002 },
@@ -114,10 +103,7 @@ describe('merge anomaly', () => {
   });
 
   it('merge empty w/ non-empty', () => {
-    const anomaly1 = mergeAnomaly(
-      null,
-      findAnomalyInRange(anomaly, { begin: 5, end: 10 })
-    );
+    const anomaly1 = mergeAnomaly(null, findAnomalyInRange(anomaly, { begin: 5, end: 10 }));
     assert.isUndefined(anomaly1[',key=1']);
     assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
   });
@@ -128,10 +114,7 @@ describe('merge anomaly', () => {
     assert.equal(anomaly1[',key=2']![4].bug_id, 4002);
     assert.isUndefined(anomaly1[',key=2']![7]);
 
-    const anomaly2 = mergeAnomaly(
-      anomaly1,
-      findAnomalyInRange(anomaly, { begin: 5, end: 10 })
-    );
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(anomaly, { begin: 5, end: 10 }));
     assert.equal(anomaly2[',key=1']![4].bug_id, 4001);
     assert.equal(anomaly2[',key=2']![7].bug_id, 7002);
   });
@@ -140,10 +123,7 @@ describe('merge anomaly', () => {
     const anomaly1 = findAnomalyInRange(anomaly, { begin: 0, end: 5 })!;
     assert.equal(anomaly1[',key=1']![4].bug_id, 4001);
 
-    const anomaly2 = mergeAnomaly(
-      anomaly1,
-      findAnomalyInRange(updated, { begin: 0, end: 10 })!
-    );
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(updated, { begin: 0, end: 10 })!);
     assert.equal(anomaly2[',key=1']![4].bug_id, 4101);
     assert.equal(anomaly2[',key=2']![7].bug_id, 7102);
   });
@@ -153,10 +133,7 @@ describe('merge anomaly', () => {
     assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
     assert.isUndefined(anomaly1[',key=1']);
 
-    const anomaly2 = mergeAnomaly(
-      anomaly1,
-      findAnomalyInRange(anomaly, { begin: 0, end: 5 })!
-    );
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(anomaly, { begin: 0, end: 5 })!);
     assert.equal(anomaly2[',key=1']![4].bug_id, 4001);
     assert.equal(anomaly2[',key=2']![4].bug_id, 4002);
   });
@@ -166,10 +143,7 @@ describe('merge anomaly', () => {
     assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
     assert.isUndefined(anomaly1[',key=1']);
 
-    const anomaly2 = mergeAnomaly(
-      anomaly1,
-      findAnomalyInRange(updated, { begin: 0, end: 10 })!
-    );
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(updated, { begin: 0, end: 10 })!);
     assert.equal(anomaly2[',key=1']![4].bug_id, 4101);
     assert.equal(anomaly2[',key=2']![7].bug_id, 7102);
   });

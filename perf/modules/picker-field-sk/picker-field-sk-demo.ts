@@ -5,10 +5,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 window.customElements.whenDefined('picker-field-sk').then(() => {
   document.querySelectorAll<PickerFieldSk>('picker-field-sk').forEach((ele) => {
     ele.label = 'Benchmark';
-    ele.options = Array.from(
-      { length: 3000 },
-      (_, index) => `speedometer${index + 1}`
-    );
+    ele.options = Array.from({ length: 3000 }, (_, index) => `speedometer${index + 1}`);
   });
 });
 

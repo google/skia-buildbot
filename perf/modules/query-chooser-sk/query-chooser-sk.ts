@@ -41,9 +41,7 @@ export class QueryChooserSk extends ElementSk {
   private static template = (ele: QueryChooserSk) => html`
     <div class="row">
       <button @click=${ele._editClick}>Edit</button>
-      <paramset-sk
-        id="summary"
-        .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
+      <paramset-sk id="summary" .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
     </div>
     <div id="dialog">
       <query-sk
@@ -53,9 +51,7 @@ export class QueryChooserSk extends ElementSk {
         @query-change=${ele._queryChange}></query-sk>
       <div class="matches">
         Matches:
-        <query-count-sk
-          url=${ele.count_url}
-          current_query=${ele.current_query}></query-count-sk>
+        <query-count-sk url=${ele.count_url} current_query=${ele.current_query}></query-count-sk>
       </div>
       <button @click=${ele._closeClick}>Close</button>
     </div>

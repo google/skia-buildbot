@@ -4,15 +4,9 @@ import { PlotGoogleChartSk } from './plot-google-chart-sk';
 import { ChartAxisFormat, ChartData } from '../common/plot-builder';
 import { Anomaly } from '../json';
 
-document
-  .querySelector('plot-google-chart-sk')!
-  .addEventListener('some-event-name', (e) => {
-    document.querySelector('#events')!.textContent = JSON.stringify(
-      e,
-      null,
-      '  '
-    );
-  });
+document.querySelector('plot-google-chart-sk')!.addEventListener('some-event-name', (e) => {
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+});
 
 const dummyAnomaly = (): Anomaly => ({
   id: 0,

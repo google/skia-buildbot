@@ -107,11 +107,7 @@ export class HResizableBoxSk extends LitElement {
     const parentRt = this.getBoundingClientRect();
     box.style.left = clamp(range.begin, 0, parentRt.width) + 'px';
     box.style.width =
-      clamp(
-        range.end - range.begin,
-        this.minWidth,
-        parentRt.width - range.begin
-      ) + 'px';
+      clamp(range.end - range.begin, this.minWidth, parentRt.width - range.begin) + 'px';
   }
 
   // current selection box range.
@@ -168,31 +164,20 @@ export class HResizableBoxSk extends LitElement {
     if (this.action === 'draw') {
       // we drag the mouse to the left, and then we draw a box with a minWidth.
       if (e.x < this.startX) {
-        const left = clamp(
-          e.x - parentRt.left,
-          0,
-          this.startX - parentRt.left - this.minWidth
-        );
+        const left = clamp(e.x - parentRt.left, 0, this.startX - parentRt.left - this.minWidth);
         box.style.left = left + 'px';
-        box.style.width =
-          clamp(this.startX - e.x, this.minWidth, parentRt.width - left) + 'px';
+        box.style.width = clamp(this.startX - e.x, this.minWidth, parentRt.width - left) + 'px';
       } else {
         // We drag the mouse to the right.
-        const left = clamp(
-          this.startX - parentRt.left,
-          0,
-          parentRt.width - this.minWidth
-        );
+        const left = clamp(this.startX - parentRt.left, 0, parentRt.width - this.minWidth);
         box.style.left = left + 'px';
-        box.style.width =
-          clamp(e.x - this.startX, this.minWidth, parentRt.width - left) + 'px';
+        box.style.width = clamp(e.x - this.startX, this.minWidth, parentRt.width - left) + 'px';
       }
     }
 
     if (this.action === 'drag') {
       // We drag and move the selection box.
-      box.style.left =
-        clamp(localLeft - delta, 0, parentRt.width - rect.width) + 'px';
+      box.style.left = clamp(localLeft - delta, 0, parentRt.width - rect.width) + 'px';
       box.style.width = rect.width + 'px';
     } else if (this.action === 'left') {
       // We drag the left edge of the box to resize it.
@@ -203,9 +188,7 @@ export class HResizableBoxSk extends LitElement {
       // We drag the right edge of the box to resize it.
       const newLeft = rect.left - parentRt.left;
       box.style.left = rect.left - parentRt.left + 'px';
-      box.style.width =
-        clamp(rect.width - delta, this.minWidth, parentRt.width - newLeft) +
-        'px';
+      box.style.width = clamp(rect.width - delta, this.minWidth, parentRt.width - newLeft) + 'px';
     }
     this.lastX = e.x;
   }
@@ -223,9 +206,7 @@ export class HResizableBoxSk extends LitElement {
   }
 
   protected render() {
-    return html`<div
-      class="container"
-      @mousedown=${(e: MouseEvent) => this.onMouseDown(e)}>
+    return html`<div class="container" @mousedown=${(e: MouseEvent) => this.onMouseDown(e)}>
       <div class="surface" ${ref(this.selection)}>
         <md-elevation></md-elevation>
       </div>

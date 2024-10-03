@@ -29,8 +29,5 @@ window.perf = {
 customElements.whenDefined('explore-multi-sk').then(() => {
   document
     .querySelector('h1')!
-    .insertAdjacentElement(
-      'afterend',
-      document.createElement('explore-multi-sk')
-    );
+    .insertAdjacentElement('afterend', document.createElement('explore-multi-sk'));
 });

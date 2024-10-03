@@ -15,9 +15,7 @@ fetchMock.post('/_/details/?results=false', () => ({
 }));
 
 window.customElements.whenDefined('ingest-file-links-sk').then(() => {
-  const sources = document.querySelectorAll<IngestFileLinksSk>(
-    'ingest-file-links-sk'
-  )!;
+  const sources = document.querySelectorAll<IngestFileLinksSk>('ingest-file-links-sk')!;
   sources.forEach((source) => {
     source.load(CommitNumber(12), 'foo');
   });

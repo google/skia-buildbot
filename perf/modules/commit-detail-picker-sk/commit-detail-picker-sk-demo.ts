@@ -42,14 +42,10 @@ document.querySelector('.lightmode-example')!.innerHTML =
 document.querySelector('.darkmode-example')!.innerHTML =
   `<commit-detail-picker-sk id="darkmode-picker"></commit-detail-picker-sk>`;
 
-document
-  .querySelectorAll<CommitDetailPickerSk>('commit-detail-picker-sk')
-  .forEach((panel) => {
-    panel.addEventListener('commit-selected', (e: Event) => {
-      evt.textContent = JSON.stringify((e as CustomEvent).detail, null, '  ');
-    });
+document.querySelectorAll<CommitDetailPickerSk>('commit-detail-picker-sk').forEach((panel) => {
+  panel.addEventListener('commit-selected', (e: Event) => {
+    evt.textContent = JSON.stringify((e as CustomEvent).detail, null, '  ');
   });
+});
 
-document
-  .querySelector<CommitDetailPickerSk>('#darkmode-picker button')!
-  .click();
+document.querySelector<CommitDetailPickerSk>('#darkmode-picker button')!.click();

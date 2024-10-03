@@ -354,10 +354,7 @@ class SearchBuilder {
 // Returns true if pt is in rect.
 function inRect(pt: Point, rect: Rect): boolean {
   return (
-    pt.x >= rect.x &&
-    pt.x < rect.x + rect.width &&
-    pt.y >= rect.y &&
-    pt.y < rect.y + rect.height
+    pt.x >= rect.x && pt.x < rect.x + rect.width && pt.y >= rect.y && pt.y < rect.y + rect.height
   );
 }
 
@@ -756,14 +753,12 @@ export class PlotSimpleSk extends ElementSk {
       class="traces"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+      style="transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});"></canvas>
     <canvas
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+      style="transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});"></canvas>
   `;
 
   connectedCallback(): void {
@@ -773,14 +768,12 @@ export class PlotSimpleSk extends ElementSk {
 
     // We need to dynamically resize the canvas elements since they don't do
     // that themselves.
-    const resizeObserver = new ResizeObserver(
-      (entries: ResizeObserverEntry[]) => {
-        entries.forEach((entry) => {
-          this.width = entry.contentRect.width;
-          this.height = entry.contentRect.height;
-        });
-      }
-    );
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach((entry) => {
+        this.width = entry.contentRect.width;
+        this.height = entry.contentRect.height;
+      });
+    });
     resizeObserver.observe(this);
 
     this.addEventListener('mousemove', (e: MouseEvent) => {
@@ -855,16 +848,12 @@ export class PlotSimpleSk extends ElementSk {
             if (this.inactiveDetailsZoomRangesStack.length === 0) {
               return;
             }
-            this.detailsZoomRangesStack.push(
-              this.inactiveDetailsZoomRangesStack.pop()!
-            );
+            this.detailsZoomRangesStack.push(this.inactiveDetailsZoomRangesStack.pop()!);
           } else {
             if (this.detailsZoomRangesStack.length === 0) {
               return;
             }
-            this.inactiveDetailsZoomRangesStack.push(
-              this.detailsZoomRangesStack.pop()!
-            );
+            this.inactiveDetailsZoomRangesStack.push(this.detailsZoomRangesStack.pop()!);
           }
           this._zoomImpl();
         }
@@ -903,11 +892,7 @@ export class PlotSimpleSk extends ElementSk {
     window.requestAnimationFrame(this.raf.bind(this));
   }
 
-  attributeChangedCallback(
-    _: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this.render();
     }
@@ -917,8 +902,7 @@ export class PlotSimpleSk extends ElementSk {
   render(): void {
     this._render();
     const canvas = this.querySelector<HTMLCanvasElement>('canvas.traces')!;
-    const overlayCanvas =
-      this.querySelector<HTMLCanvasElement>('canvas.overlay')!;
+    const overlayCanvas = this.querySelector<HTMLCanvasElement>('canvas.overlay')!;
     if (canvas) {
       this.ctx = canvas.getContext('2d');
       this.overlayCtx = overlayCanvas.getContext('2d');
@@ -997,9 +981,7 @@ export class PlotSimpleSk extends ElementSk {
    * @param {Array<string>} ids - The trace ids to remove.
    */
   deleteLines(ids: string[]): void {
-    this.lineData = this.lineData.filter(
-      (line) => ids.indexOf(line.name) === -1
-    );
+    this.lineData = this.lineData.filter((line) => ids.indexOf(line.name) === -1);
     if (this.anomalyDataMap !== null) {
       ids.forEach((id) => {
         if (id in this.anomalyDataMap) {
@@ -1007,9 +989,7 @@ export class PlotSimpleSk extends ElementSk {
         }
       });
     }
-    const onlySpecialLinesRemaining = this.lineData.every((line) =>
-      line.name.startsWith(SPECIAL)
-    );
+    const onlySpecialLinesRemaining = this.lineData.every((line) => line.name.startsWith(SPECIAL));
     if (onlySpecialLinesRemaining) {
       this.removeAll();
     } else {
@@ -1380,10 +1360,7 @@ export class PlotSimpleSk extends ElementSk {
     const yAxisPath = new Path2D();
     const thinX = Math.floor(this.detailArea.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
     yAxisPath.moveTo(thinX, this.detailArea.rect.y);
-    yAxisPath.lineTo(
-      thinX,
-      this.detailArea.rect.y + this.detailArea.rect.height
-    );
+    yAxisPath.lineTo(thinX, this.detailArea.rect.y + this.detailArea.rect.height);
     area.yaxis.labels = [];
     area.range.y.ticks(NUM_Y_TICKS).forEach((t) => {
       const label = {
@@ -1436,10 +1413,7 @@ export class PlotSimpleSk extends ElementSk {
     const domain = this.detailArea.range.x.domain();
     domain[0] = Math.floor(domain[0] - 0.1);
     domain[1] = Math.ceil(domain[1] + 0.1);
-    const searchBuilder = new SearchBuilder(
-      this.detailArea.range.x,
-      this.detailArea.range.y
-    );
+    const searchBuilder = new SearchBuilder(this.detailArea.range.x, this.detailArea.range.y);
     this.lineData.forEach((line) => {
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -1481,16 +1455,9 @@ export class PlotSimpleSk extends ElementSk {
     // If detailsZoomRangeStacks is not empty then it overrides the detail
     // range.
     if (this.detailsZoomRangesStack.length > 0) {
-      const zoom =
-        this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
-      this.detailArea.range.x = this.detailArea.range.x.domain([
-        zoom.x,
-        zoom.x + zoom.width,
-      ]);
-      this.detailArea.range.y = this.detailArea.range.y.domain([
-        zoom.y,
-        zoom.y + zoom.height,
-      ]);
+      const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+      this.detailArea.range.x = this.detailArea.range.x.domain([zoom.x, zoom.x + zoom.width]);
+      this.detailArea.range.y = this.detailArea.range.y.domain([zoom.y, zoom.y + zoom.height]);
     }
   }
 
@@ -1542,9 +1509,7 @@ export class PlotSimpleSk extends ElementSk {
     ) {
       return;
     }
-    this.detailsZoomRangesStack.push(
-      rectFromRangeInvert(this.detailArea.range, this.zoomRect)
-    );
+    this.detailsZoomRangesStack.push(rectFromRangeInvert(this.detailArea.range, this.zoomRect));
 
     // We added a new zoom range, which means all the inactive zoom ranges are
     // no longer valid.
@@ -1578,8 +1543,7 @@ export class PlotSimpleSk extends ElementSk {
         // If detailsZoomRangeStacks is not empty then draw a box to indicate
         // the zoomed region.
         if (this.detailsZoomRangesStack.length > 0) {
-          const zoom =
-            this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+          const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
           this.drawZoomRect(ctx, rectFromRange(this.summaryArea.range, zoom));
         }
 
@@ -1592,18 +1556,12 @@ export class PlotSimpleSk extends ElementSk {
           const leftx = this.summaryArea.range.x(this._zoom[0]);
           ctx.beginPath();
           ctx.moveTo(leftx, this.summaryArea.rect.y);
-          ctx.lineTo(
-            leftx,
-            this.summaryArea.rect.y + this.summaryArea.rect.height
-          );
+          ctx.lineTo(leftx, this.summaryArea.rect.y + this.summaryArea.rect.height);
 
           // Draw right bar.
           const rightx = this.summaryArea.range.x(this._zoom[1]);
           ctx.moveTo(rightx, this.summaryArea.rect.y);
-          ctx.lineTo(
-            rightx,
-            this.summaryArea.rect.y + this.summaryArea.rect.height
-          );
+          ctx.lineTo(rightx, this.summaryArea.rect.y + this.summaryArea.rect.height);
           ctx.stroke();
 
           // Draw gray boxes.
@@ -1719,21 +1677,11 @@ export class PlotSimpleSk extends ElementSk {
           }
 
           ctx.beginPath();
-          ctx.rect(
-            x - this.LABEL_MARGIN,
-            y + this.LABEL_MARGIN,
-            labelWidth,
-            -labelHeight
-          );
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.fill();
           ctx.strokeStyle = this.LABEL_COLOR;
           ctx.beginPath();
-          ctx.rect(
-            x - this.LABEL_MARGIN,
-            y + this.LABEL_MARGIN,
-            labelWidth,
-            -labelHeight
-          );
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.stroke();
 
           // Now draw text on top.
@@ -1823,16 +1771,12 @@ export class PlotSimpleSk extends ElementSk {
         if (anomaly.bug_id <= 0) {
           ctx.fillStyle = this.UNTRIAGED_COLOR;
         } else {
-          ctx.fillStyle = anomaly.is_improvement
-            ? this.IMPROVEMENT_COLOR
-            : this.REGRESSION_COLOR;
+          ctx.fillStyle = anomaly.is_improvement ? this.IMPROVEMENT_COLOR : this.REGRESSION_COLOR;
         }
 
         const regression_symbol = String.fromCharCode(0xe000);
         const improvement_symbol = String.fromCharCode(0xe86c);
-        const symbol = anomaly.is_improvement
-          ? improvement_symbol
-          : regression_symbol;
+        const symbol = anomaly.is_improvement ? improvement_symbol : regression_symbol;
 
         // Draw anomaly icon.
         ctx.textAlign = 'center';

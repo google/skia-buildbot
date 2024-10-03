@@ -114,10 +114,7 @@ export class PickerFieldSk extends ElementSk {
         maxLength = option.length;
       }
     });
-    this._comboBox!.style.setProperty(
-      '--vaadin-combo-box-overlay-width',
-      `${maxLength + 5}ch`
-    );
+    this._comboBox!.style.setProperty('--vaadin-combo-box-overlay-width', `${maxLength + 5}ch`);
   }
 
   get options(): string[] {

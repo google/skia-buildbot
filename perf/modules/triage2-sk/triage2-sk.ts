@@ -81,11 +81,7 @@ export class TriageSk extends ElementSk {
     this.setAttribute('value', val);
   }
 
-  attributeChangedCallback(
-    _name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this._render();
       this.dispatchEvent(

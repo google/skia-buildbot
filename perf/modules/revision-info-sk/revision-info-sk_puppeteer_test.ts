@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('revision-info-sk', () => {
   let testBed: TestBed;
@@ -28,11 +24,7 @@ describe('revision-info-sk', () => {
     it('Adds some data to display', async () => {
       await testBed.page.type('#revision_id', '12345');
       await testBed.page.click('#getRevisionInfo');
-      await takeScreenshot(
-        testBed.page,
-        'perf',
-        'revision-info-sk data loaded'
-      );
+      await takeScreenshot(testBed.page, 'perf', 'revision-info-sk data loaded');
     });
   });
 });

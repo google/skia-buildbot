@@ -136,7 +136,7 @@ export class PerfScaffoldSk extends ElementSk {
     this._help = this.querySelector('#help');
     this._chat = this.querySelector('#chat');
 
-    if (this._chat != null) {
+    if (this._chat !== null) {
       this.addUrlToElement(this._chat, 'Ask the team', window.perf.chat_url);
     }
 
@@ -153,11 +153,7 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   // addUrlToElement adds the provided url data inside the given html element.
-  private addUrlToElement(
-    element: HTMLElement,
-    urlText: string,
-    urlHref: string
-  ) {
+  private addUrlToElement(element: HTMLElement, urlText: string, urlHref: string) {
     element.hidden = true;
     if (urlHref && urlHref !== '') {
       element.innerHTML = `<a target="_blank" href="${urlHref}"

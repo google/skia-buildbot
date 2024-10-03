@@ -73,11 +73,7 @@ class CalendarDate {
   }
 
   equal(d: CalendarDate) {
-    return (
-      this.year === d.year &&
-      this.monthIndex === d.monthIndex &&
-      this.date === d.date
-    );
+    return this.year === d.year && this.monthIndex === d.monthIndex && this.date === d.date;
   }
 }
 
@@ -106,17 +102,11 @@ export class CalendarSk extends ElementSk {
         </th>
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-year">
-            ${new Intl.DateTimeFormat(ele._locale, { year: 'numeric' }).format(
-              ele._displayDate
-            )}
+            ${new Intl.DateTimeFormat(ele._locale, { year: 'numeric' }).format(ele._displayDate)}
           </h2>
         </th>
         <th>
-          <button
-            @click=${ele.incYear}
-            aria-label="Next year"
-            title="Next year"
-            id="next-year">
+          <button @click=${ele.incYear} aria-label="Next year" title="Next year" id="next-year">
             <navigate-next-icon-sk></navigate-next-icon-sk>
           </button>
         </th>
@@ -133,23 +123,16 @@ export class CalendarSk extends ElementSk {
         </th>
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-month">
-            ${new Intl.DateTimeFormat(ele._locale, { month: 'long' }).format(
-              ele._displayDate
-            )}
+            ${new Intl.DateTimeFormat(ele._locale, { month: 'long' }).format(ele._displayDate)}
           </h2>
         </th>
         <th>
-          <button
-            @click=${ele.incMonth}
-            aria-label="Next month"
-            title="Next month"
-            id="next-month">
+          <button @click=${ele.incMonth} aria-label="Next month" title="Next month" id="next-month">
             <navigate-next-icon-sk></navigate-next-icon-sk>
           </button>
         </th>
       </tr>
-      ${ele._weekDayHeader}
-      ${sixWeeks.map((i) => CalendarSk.rowTemplate(ele, i))}
+      ${ele._weekDayHeader} ${sixWeeks.map((i) => CalendarSk.rowTemplate(ele, i))}
     </table>
   `;
 
@@ -198,12 +181,7 @@ export class CalendarSk extends ElementSk {
             ${currentDate.equal(today) ? 'today' : ''}
             ${selected ? 'selected' : ''}
           ">
-              ${CalendarSk.buttonForDateTemplate(
-                ele,
-                date,
-                daysInMonth,
-                selected
-              )}
+              ${CalendarSk.buttonForDateTemplate(ele, date, daysInMonth, selected)}
             </td>
           `;
         })}
@@ -258,9 +236,7 @@ export class CalendarSk extends ElementSk {
     if (keyHandled) {
       e.stopPropagation();
       e.preventDefault();
-      this.querySelector<HTMLButtonElement>(
-        'button[aria-selected="true"]'
-      )!.focus();
+      this.querySelector<HTMLButtonElement>('button[aria-selected="true"]')!.focus();
     }
   }
 

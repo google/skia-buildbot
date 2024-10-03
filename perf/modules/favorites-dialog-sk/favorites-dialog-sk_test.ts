@@ -5,13 +5,11 @@ import { FavoritesDialogSk } from './favorites-dialog-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('favorites-dialog-sk', () => {
-  const newInstance = setUpElementUnderTest<FavoritesDialogSk>(
-    'favorites-dialog-sk'
-  );
+  const newInstance = setUpElementUnderTest<FavoritesDialogSk>('favorites-dialog-sk');
 
   let element: FavoritesDialogSk;
   beforeEach(() => {
-    element = newInstance((el: FavoritesDialogSk) => {
+    element = newInstance((_el: FavoritesDialogSk) => {
       // Place here any code that must run after the element is instantiated but
       // before it is attached to the DOM (e.g. property setter calls,
       // document-level event listeners, etc.).
@@ -19,6 +17,7 @@ describe('favorites-dialog-sk', () => {
   });
 
   it('renders for new', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(element).to.not.be.null;
     element.open('12345', '', '', 'url1.com').then(() => {
       const n = document.getElementById('name');
@@ -29,6 +28,7 @@ describe('favorites-dialog-sk', () => {
   });
 
   it('renders for update', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(element).to.not.be.null;
     element.open('', 'Fav', 'Fav Desc', 'url.com').then(() => {
       const n = document.getElementById('name');

@@ -2,15 +2,9 @@ import fetchMock from 'fetch-mock';
 import { RevisionInfo } from '../json';
 import './index';
 
-document
-  .querySelector('revision-info-sk')!
-  .addEventListener('some-event-name', (e) => {
-    document.querySelector('#events')!.textContent = JSON.stringify(
-      e,
-      null,
-      '  '
-    );
-  });
+document.querySelector('revision-info-sk')!.addEventListener('some-event-name', (e) => {
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+});
 const revId = '12345';
 const response: RevisionInfo[] = [
   {

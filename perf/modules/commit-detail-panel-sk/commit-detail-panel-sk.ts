@@ -77,11 +77,7 @@ export class CommitDetailPanelSk extends ElementSk {
     this._render();
   }
 
-  attributeChangedCallback(
-    _: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this._render();
     }
@@ -117,10 +113,10 @@ export class CommitDetailPanelSk extends ElementSk {
       commit,
     };
     this.dispatchEvent(
-      new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>(
-        'commit-selected',
-        { detail, bubbles: true }
-      )
+      new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>('commit-selected', {
+        detail,
+        bubbles: true,
+      })
     );
   }
 

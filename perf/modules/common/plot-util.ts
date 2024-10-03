@@ -61,12 +61,7 @@ export function CreateChartDataFromTraceSet(
       // interface. Adding this loop should not impact performance significantly because
       // it becomes O(n * (m + x)) where n = # traces, m = # y axis coordinates and x = #
       // of anomalies for the trace.
-      const anomaly_data = findMatchingAnomaly(
-        key,
-        x_coordinate,
-        y_coordinate,
-        anomalies
-      );
+      const anomaly_data = findMatchingAnomaly(key, x_coordinate, y_coordinate, anomalies);
 
       // The MISSING_DATA_SENTINEL const is used to define missing data points
       // at the given x value in the trace. We should ignore these points when

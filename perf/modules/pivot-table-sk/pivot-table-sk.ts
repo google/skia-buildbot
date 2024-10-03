@@ -75,10 +75,7 @@ export class SortSelection {
 
   /** Returns a compareFunc that sorts based on the state of this SortSelection.
    */
-  buildCompare(
-    traceset: TraceSet,
-    keyValues: { [key: string]: string[] }
-  ): compareFunc {
+  buildCompare(traceset: TraceSet, keyValues: { [key: string]: string[] }): compareFunc {
     const compare = (a: string, b: string): number => {
       let ret = 0;
       if (this.kind === 'keyValues') {
@@ -173,10 +170,7 @@ export class SortHistory {
   /** Returns a compareFunc that sorts based on the state of all the
    *  SortSelections in history.
    */
-  buildCompare(
-    traceset: TraceSet,
-    keyValues: { [key: string]: string[] }
-  ): compareFunc {
+  buildCompare(traceset: TraceSet, keyValues: { [key: string]: string[] }): compareFunc {
     const compares = this.history.map((sel: SortSelection) =>
       sel.buildCompare(traceset, keyValues)
     );
@@ -208,16 +202,11 @@ export class SortHistory {
   decode(s: string): void {
     this.history = s
       .split('-')
-      .map((encodedSortSelection: string) =>
-        SortSelection.decode(encodedSortSelection)
-      );
+      .map((encodedSortSelection: string) => SortSelection.decode(encodedSortSelection));
   }
 }
 
-export function keyValuesFromTraceSet(
-  traceset: TraceSet,
-  req: pivot.Request
-): KeyValues {
+export function keyValuesFromTraceSet(traceset: TraceSet, req: pivot.Request): KeyValues {
   const ret: KeyValues = {};
   Object.keys(traceset).forEach((traceKey) => {
     // Parse the key.
@@ -274,27 +263,16 @@ export class PivotTableSk extends ElementSk {
     this._render();
   }
 
-  set(
-    df: DataFrame,
-    req: pivot.Request,
-    query: string,
-    encodedHistory: string = ''
-  ): void {
+  set(df: DataFrame, req: pivot.Request, query: string, encodedHistory: string = ''): void {
     this.df = df;
     this.req = req;
     this.query = query;
     this.keyValues = keyValuesFromTraceSet(this.df.traceset, this.req);
-    this.sortHistory = new SortHistory(
-      req.group_by!.length,
-      req.summary!.length
-    );
+    this.sortHistory = new SortHistory(req.group_by!.length, req.summary!.length);
     if (encodedHistory !== '') {
       this.sortHistory.decode(encodedHistory);
     }
-    this.compare = this.sortHistory.buildCompare(
-      this.df.traceset,
-      this.keyValues
-    );
+    this.compare = this.sortHistory.buildCompare(this.df.traceset, this.keyValues);
     this._render();
   }
 
@@ -318,9 +296,7 @@ export class PivotTableSk extends ElementSk {
       </div>
       <div>
         <span class="title">Summaries:</span>
-        ${this.req!.summary!.map(
-          (op: pivot.Operation) => operationDescriptions[op]
-        ).join(', ')}
+        ${this.req!.summary!.map((op: pivot.Operation) => operationDescriptions[op]).join(', ')}
       </div>
     </div>`;
   }
@@ -342,8 +318,7 @@ export class PivotTableSk extends ElementSk {
     return this.req!.summary!.map(
       (summaryOperation, index) =>
         html`<th>
-          ${this.sortArrow(index, 'summaryValues')}
-          ${operationDescriptions[summaryOperation]}
+          ${this.sortArrow(index, 'summaryValues')} ${operationDescriptions[summaryOperation]}
         </th>`
     );
   }
@@ -355,13 +330,11 @@ export class PivotTableSk extends ElementSk {
         if (firstSortSelection.dir === 'up') {
           return html`<arrow-drop-up-icon-sk
             title="Change sort order to descending."
-            @click=${() =>
-              this.changeSort(column, kind)}></arrow-drop-up-icon-sk>`;
+            @click=${() => this.changeSort(column, kind)}></arrow-drop-up-icon-sk>`;
         }
         return html`<arrow-drop-down-icon-sk
           title="Change sort order to ascending."
-          @click=${() =>
-            this.changeSort(column, kind)}></arrow-drop-down-icon-sk>`;
+          @click=${() => this.changeSort(column, kind)}></arrow-drop-down-icon-sk>`;
       }
     }
     return html`<sort-icon-sk
@@ -371,10 +344,7 @@ export class PivotTableSk extends ElementSk {
 
   private changeSort(column: number, kind: columnKind) {
     this.sortHistory!.selectColumnToSortOn(column, kind);
-    this.compare = this.sortHistory!.buildCompare(
-      this.df!.traceset,
-      this.keyValues
-    );
+    this.compare = this.sortHistory!.buildCompare(this.df!.traceset, this.keyValues);
     this.dispatchEvent(
       new CustomEvent<PivotTableSkChangeEventDetail>('change', {
         detail: this.sortHistory!.encode(),
@@ -399,9 +369,7 @@ export class PivotTableSk extends ElementSk {
   }
 
   private keyRowValues(traceKey: string): TemplateResult[] {
-    return this.keyValues[traceKey].map(
-      (value) => html`<th class="key">${value}</th>`
-    );
+    return this.keyValues[traceKey].map((value) => html`<th class="key">${value}</th>`);
   }
 
   private summaryRowValues(key: string): TemplateResult[] {

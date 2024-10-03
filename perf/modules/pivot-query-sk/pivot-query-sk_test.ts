@@ -7,10 +7,7 @@ import {
   PivotQuerySk,
 } from './pivot-query-sk';
 
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ParamSet, pivot } from '../json';
 
 describe('pivot-query-sk', () => {

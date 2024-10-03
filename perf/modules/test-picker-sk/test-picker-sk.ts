@@ -29,16 +29,9 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  ParamSet,
-  fromParamSet,
-  toParamSet,
-} from '../../../infra-sk/modules/query';
+import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
 
-import {
-  NextParamListHandlerRequest,
-  NextParamListHandlerResponse,
-} from '../json';
+import { NextParamListHandlerRequest, NextParamListHandlerResponse } from '../json';
 import '../picker-field-sk';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
@@ -227,9 +220,7 @@ export class TestPickerSk extends ElementSk {
    *
    * @param handler
    */
-  private callNextParamList(
-    handler: (json: NextParamListHandlerResponse) => void
-  ) {
+  private callNextParamList(handler: (json: NextParamListHandlerResponse) => void) {
     this.updateCount(-1);
     this._requestInProgress = true;
     this.setReadOnly(true);
@@ -313,9 +304,7 @@ export class TestPickerSk extends ElementSk {
     const detail = {
       query: this.createQueryFromFieldData(),
     };
-    this.dispatchEvent(
-      new CustomEvent('plot-button-clicked', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('plot-button-clicked', { detail: detail, bubbles: true }));
   }
 
   /**
@@ -447,10 +436,7 @@ export class TestPickerSk extends ElementSk {
    * queries will automatically get "bot=linux-perf" appended. The exception
    * is if bot is already specified in the query, then no defaults are applied.
    */
-  initializeTestPicker(
-    params: string[],
-    defaultParams: { [key: string]: string[] | null }
-  ) {
+  initializeTestPicker(params: string[], defaultParams: { [key: string]: string[] | null }) {
     this.initializeFieldData(params);
     this._defaultParams = defaultParams;
     this.addChildField();

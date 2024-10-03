@@ -37,7 +37,6 @@ import {
   RegressionDetectionResponse,
   progress,
   SerializesToString,
-  ReadOnlyParamSet,
 } from '../json';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
 import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
@@ -110,9 +109,7 @@ export class ClusterPageSk extends ElementSk {
       id="commit"></commit-detail-picker-sk>
 
     <h2>Algorithm</h2>
-    <algo-select-sk
-      algo=${ele.state.algo}
-      @algo-change=${ele.algoChange}></algo-select-sk>
+    <algo-select-sk algo=${ele.state.algo} @algo-change=${ele.algoChange}></algo-select-sk>
 
     <h2>Query</h2>
     <div class="query-action">
@@ -123,9 +120,7 @@ export class ClusterPageSk extends ElementSk {
         current_query=${ele.state.query}></query-sk>
       <div id="selections">
         <h3>Selections</h3>
-        <paramset-sk
-          id="summary"
-          .paramsets=${[toParamSet(ele.state.query)]}></paramset-sk>
+        <paramset-sk id="summary" .paramsets=${[toParamSet(ele.state.query)]}></paramset-sk>
         <div>
           Matches:
           <query-count-sk
@@ -156,15 +151,11 @@ export class ClusterPageSk extends ElementSk {
         </label>
         <label>
           Number of commits to include on either side.
-          <input
-            .value=${ele.state.radius.toString()}
-            @input=${ele.radiusChange} />
+          <input .value=${ele.state.radius.toString()} @input=${ele.radiusChange} />
         </label>
         <label>
           Clusters are interesting if regression score &gt;= this.
-          <input
-            .value=${ele.state.interesting.toString()}
-            @input=${ele.interestingChange} />
+          <input .value=${ele.state.interesting.toString()} @input=${ele.interestingChange} />
         </label>
         <checkbox-sk
           ?checked=${ele.state.sparse}
@@ -181,17 +172,13 @@ export class ClusterPageSk extends ElementSk {
       <button data-key="stepsize">Step Size</button>
       <button data-key="steplse">Least Squares</button>
     </sort-sk>
-    <div id="clusters" @open-keys=${ele.openKeys}>
-      ${ClusterPageSk._summaryRows(ele)}
-    </div>
+    <div id="clusters" @open-keys=${ele.openKeys}>${ClusterPageSk._summaryRows(ele)}</div>
   `;
 
   private static _summaryRows = (ele: ClusterPageSk) => {
     const ret = ele.summaries.map(
       (summary) => html`
-        <cluster-summary2-sk
-          .full_summary=${summary}
-          notriage></cluster-summary2-sk>
+        <cluster-summary2-sk .full_summary=${summary} notriage></cluster-summary2-sk>
       `
     );
     if (!ret.length) {
@@ -276,9 +263,7 @@ export class ClusterPageSk extends ElementSk {
     window.open(`/e/?${fromObject(query)}`, '_blank');
   }
 
-  private commitSelected(
-    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
-  ) {
+  private commitSelected(e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>) {
     this.state.offset = (e.detail.commit as unknown as Commit).offset;
     this.stateHasChanged();
   }
@@ -342,9 +327,7 @@ export class ClusterPageSk extends ElementSk {
         300,
         this.spinner!,
         (prog: progress.SerializedProgress) => {
-          this.runningStatus = prog.messages
-            .map((msg) => `${msg.key}: ${msg.value}`)
-            .join('\n');
+          this.runningStatus = prog.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
         }
       );
@@ -353,20 +336,17 @@ export class ClusterPageSk extends ElementSk {
       }
 
       this.summaries = [];
-      const regressionDetectionResponse =
-        prog.results as RegressionDetectionResponse;
-      regressionDetectionResponse.summary!.Clusters!.forEach(
-        (clusterSummary) => {
-          this.summaries.push({
-            summary: clusterSummary!,
-            frame: regressionDetectionResponse.frame!,
-            triage: {
-              status: '',
-              message: '',
-            },
-          });
-        }
-      );
+      const regressionDetectionResponse = prog.results as RegressionDetectionResponse;
+      regressionDetectionResponse.summary!.Clusters!.forEach((clusterSummary) => {
+        this.summaries.push({
+          summary: clusterSummary!,
+          frame: regressionDetectionResponse.frame!,
+          triage: {
+            status: '',
+            message: '',
+          },
+        });
+      });
     } catch (error: any) {
       this.catch(error);
     } finally {

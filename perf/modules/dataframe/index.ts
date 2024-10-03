@@ -9,12 +9,7 @@ import {
   AnomalyMap,
   CommitNumberAnomalyMap,
 } from '../json';
-import {
-  addParamSet,
-  addParamsToParamSet,
-  fromKey,
-  toReadOnlyParamSet,
-} from '../paramtools';
+import { addParamSet, addParamsToParamSet, fromKey, toReadOnlyParamSet } from '../paramtools';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 
 // Simple type denoting the begin and end of the range.
@@ -64,10 +59,7 @@ export const findSubDataframe = (
  * @param anomalies The list of anomaly to be merged.
  * @returns The new AnomalyMap.
  */
-export const mergeAnomaly = (
-  anomaly1: AnomalyMap,
-  ...anomalies: AnomalyMap[]
-) => {
+export const mergeAnomaly = (anomaly1: AnomalyMap, ...anomalies: AnomalyMap[]) => {
   const anomaly = structuredClone(anomaly1 || {});
   if (anomalies.length <= 0) {
     return structuredClone(anomaly1 || {});
@@ -108,10 +100,7 @@ export const mergeAnomaly = (
   return anomaly;
 };
 
-export const findAnomalyInRange = (
-  allAnomaly: AnomalyMap,
-  range: range
-): AnomalyMap => {
+export const findAnomalyInRange = (allAnomaly: AnomalyMap, range: range): AnomalyMap => {
   const anomaly: AnomalyMap = {};
   for (const trace in allAnomaly) {
     const commitAnomaly: CommitNumberAnomalyMap = {};
@@ -137,11 +126,7 @@ export const findAnomalyInRange = (
 export function mergeColumnHeaders(
   a: (ColumnHeader | null)[] | null,
   b: (ColumnHeader | null)[] | null
-): [
-  (ColumnHeader | null)[] | null,
-  { [key: number]: number },
-  { [key: number]: number },
-] {
+): [(ColumnHeader | null)[] | null, { [key: number]: number }, { [key: number]: number }] {
   if (a === null || a.length === 0) {
     return [b, simpleMap(0), simpleMap(b!.length)];
   }
@@ -226,9 +211,7 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
 
   for (const [key, sourceTrace] of Object.entries(a.traceset)) {
     if (!ret.traceset[key]) {
-      ret.traceset[key] = Trace(
-        new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL)
-      );
+      ret.traceset[key] = Trace(new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL));
     }
     const destTrace = ret.traceset[key];
     (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {
@@ -238,9 +221,7 @@ export function join(a: DataFrame, b: DataFrame): DataFrame {
 
   for (const [key, sourceTrace] of Object.entries(b.traceset)) {
     if (!ret.traceset[key]) {
-      ret.traceset[key] = Trace(
-        new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL)
-      );
+      ret.traceset[key] = Trace(new Array<number>(traceLen).fill(MISSING_DATA_SENTINEL));
     }
     const destTrace = ret.traceset[key];
     (sourceTrace as number[]).forEach((sourceValue, sourceOffset) => {

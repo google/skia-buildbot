@@ -47,15 +47,10 @@ export class FavoritesSk extends ElementSk {
     await this.fetchFavorites();
   };
 
-  private deleteFavoriteConfirm = async (
-    id: string | undefined,
-    name: string
-  ) => {
+  private deleteFavoriteConfirm = async (id: string | undefined, name: string) => {
     if (id === undefined) return;
 
-    const confirmed = window.confirm(
-      `Deleting favorite: ${name}. Are you sure?`
-    );
+    const confirmed = window.confirm(`Deleting favorite: ${name}. Are you sure?`);
     if (!confirmed) {
       return;
     }
@@ -91,6 +86,7 @@ export class FavoritesSk extends ElementSk {
 
   private getSectionsTemplate() {
     const sections = this.favoritesConfig?.sections;
+    // eslint-disable-next-line eqeqeq
     if (sections == null || sections.length === 0) {
       return html`No favorites have been configured for this instance.`;
     }
@@ -112,17 +108,10 @@ export class FavoritesSk extends ElementSk {
                     <td>
                       <button
                         @click=${() =>
-                          this.editFavorite(
-                            link.id,
-                            link.text,
-                            link.description,
-                            link.href
-                          )}>
+                          this.editFavorite(link.id, link.text, link.description, link.href)}>
                         Edit
                       </button>
-                      <button
-                        @click=${() =>
-                          this.deleteFavoriteConfirm(link.id, link.text)}>
+                      <button @click=${() => this.deleteFavoriteConfirm(link.id, link.text)}>
                         Delete
                       </button>
                     </td>
@@ -166,7 +155,7 @@ export class FavoritesSk extends ElementSk {
   async connectedCallback(): Promise<void> {
     super.connectedCallback();
     this._render();
-    if (this.favoritesConfig == null) {
+    if (this.favoritesConfig === null) {
       try {
         this.fetchFavorites();
       } catch (error) {

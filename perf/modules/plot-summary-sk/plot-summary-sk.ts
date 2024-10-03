@@ -16,10 +16,7 @@ import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
-import {
-  SummaryChartOptions,
-  convertFromDataframe,
-} from '../common/plot-builder';
+import { SummaryChartOptions, convertFromDataframe } from '../common/plot-builder';
 import { ColumnHeader, DataFrame } from '../json';
 import { property } from 'lit/decorators.js';
 import { style } from './plot-summary-sk.css';
@@ -81,11 +78,7 @@ export class PlotSummarySk extends LitElement {
       return;
     }
 
-    const rows = convertFromDataframe(
-      df,
-      this.domain,
-      trace || Object.keys(df?.traceset || {})[0]
-    );
+    const rows = convertFromDataframe(df, this.domain, trace || Object.keys(df?.traceset || {})[0]);
     if (rows) {
       plot.data = rows;
       plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
@@ -119,15 +112,13 @@ export class PlotSummarySk extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    const resizeObserver = new ResizeObserver(
-      (entries: ResizeObserverEntry[]) => {
-        entries.forEach(() => {
-          // The google chart needs to redraw when it is resized.
-          this.plotElement.value?.redraw();
-          this.requestUpdate();
-        });
-      }
-    );
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach(() => {
+        // The google chart needs to redraw when it is resized.
+        this.plotElement.value?.redraw();
+        this.requestUpdate();
+      });
+    });
     resizeObserver.observe(this);
   }
 
@@ -145,21 +136,19 @@ export class PlotSummarySk extends LitElement {
       return;
     }
 
-    const resizeObserver = new ResizeObserver(
-      (entries: ResizeObserverEntry[]) => {
-        entries.forEach((entry) => {
-          if (entry.target !== this.overlayCanvas.value) {
-            return;
-          }
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.target !== this.overlayCanvas.value) {
+          return;
+        }
 
-          // We need to resize the canvas after its bounding rect is changed,
-          const boundingRect = entry.contentRect;
-          this.overlayCanvas.value!.width = boundingRect!.width;
-          this.overlayCanvas.value!.height = boundingRect!.height;
-          this.overlayCtx!.globalAlpha = 0.5;
-        });
-      }
-    );
+        // We need to resize the canvas after its bounding rect is changed,
+        const boundingRect = entry.contentRect;
+        this.overlayCanvas.value!.width = boundingRect!.width;
+        this.overlayCanvas.value!.height = boundingRect!.height;
+        this.overlayCtx!.globalAlpha = 0.5;
+      });
+    });
     resizeObserver.observe(this.overlayCanvas.value!);
 
     // globalAlpha denotes the transparency of the fill. Setting this to 50%
@@ -179,9 +168,7 @@ export class PlotSummarySk extends LitElement {
     const startX = chart?.getXLocation(
       isCommitScale ? begin[col] : (new Date(begin[col] * 1000) as any)
     );
-    const endX = chart?.getXLocation(
-      isCommitScale ? end[col] : (new Date(end[col] * 1000) as any)
-    );
+    const endX = chart?.getXLocation(isCommitScale ? end[col] : (new Date(end[col] * 1000) as any));
     this.selectionRange = [startX || 0, endX || 0];
     this._selectedValueRange = { begin, end };
     this.drawSelection();
@@ -199,10 +186,7 @@ export class PlotSummarySk extends LitElement {
       return null;
     }
     const chart = wrapper.getChart();
-    return (
-      chart &&
-      (chart as google.visualization.CoreChartBase).getChartLayoutInterface()
-    );
+    return chart && (chart as google.visualization.CoreChartBase).getChartLayoutInterface();
   }
 
   // Add all the event listeners.
@@ -211,10 +195,7 @@ export class PlotSummarySk extends LitElement {
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
       if (this.plotElement.value && this.dataframe) {
-        this.plotElement.value!.options = SummaryChartOptions(
-          getComputedStyle(this),
-          this.domain
-        );
+        this.plotElement.value!.options = SummaryChartOptions(getComputedStyle(this), this.domain);
       }
       this.requestUpdate();
     });
@@ -269,10 +250,8 @@ export class PlotSummarySk extends LitElement {
       // Let's get the left and right diffs between the current mouse position
       // and the ends of the selection range. As the mouse moves, we will update
       // the selection range so that these diffs remain constant.
-      const leftDiff =
-        this.currentMousePosition.clientX - this.selectionRange![0];
-      const rightDiff =
-        this.selectionRange![1] - this.currentMousePosition.clientX;
+      const leftDiff = this.currentMousePosition.clientX - this.selectionRange![0];
+      const rightDiff = this.selectionRange![1] - this.currentMousePosition.clientX;
       this.lockedSelectionDiffs = [leftDiff, rightDiff];
     } else {
       // User is starting a new selection.
@@ -291,27 +270,19 @@ export class PlotSummarySk extends LitElement {
 
   private summarySelected() {
     if (this.selectionRange !== null) {
-      const start =
-        this.chartLayout?.getHAxisValue(this.selectionRange[0]) || 0;
+      const start = this.chartLayout?.getHAxisValue(this.selectionRange[0]) || 0;
       const end = this.chartLayout?.getHAxisValue(this.selectionRange[1]) || 0;
       this.dispatchEvent(
-        new CustomEvent<PlotSummarySkSelectionEventDetails>(
-          'summary_selected',
-          {
-            detail: {
-              start: this.selectionRange[0],
-              end: this.selectionRange[1],
-              valueStart:
-                this.domain === 'date'
-                  ? (start as any).getTime() / 1000
-                  : start,
-              valueEnd:
-                this.domain === 'date' ? (end as any).getTime() / 1000 : end,
-              domain: this.domain,
-            },
-            bubbles: true,
-          }
-        )
+        new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
+          detail: {
+            start: this.selectionRange[0],
+            end: this.selectionRange[1],
+            valueStart: this.domain === 'date' ? (start as any).getTime() / 1000 : start,
+            valueEnd: this.domain === 'date' ? (end as any).getTime() / 1000 : end,
+            domain: this.domain,
+          },
+          bubbles: true,
+        })
       );
     }
   }
@@ -367,9 +338,8 @@ export class PlotSummarySk extends LitElement {
 
       // Shade the selected section.
       this.overlayCtx!.beginPath();
-      this.overlayCtx!.fillStyle = getComputedStyle(this).getPropertyValue(
-        '--sk-summary-highlight'
-      );
+      this.overlayCtx!.fillStyle =
+        getComputedStyle(this).getPropertyValue('--sk-summary-highlight');
       this.overlayCtx!.rect(startx, 0, endx - startx, this.height);
       this.overlayCtx!.fill();
     }
@@ -402,8 +372,7 @@ export class PlotSummarySk extends LitElement {
 
       // Figure out the closest end of the selection to the current position.
       // This tells us the direction in which the user is highlighting.
-      const isMovingOnLeft =
-        Math.abs(currentx - startx) < Math.abs(currentx - endx);
+      const isMovingOnLeft = Math.abs(currentx - startx) < Math.abs(currentx - endx);
       if (isMovingOnLeft) {
         // If the mouse is towards the left side, we update the start values.
         startx = currentx;

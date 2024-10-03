@@ -110,10 +110,7 @@ describe('messageByName', () => {
   it('retrieves the default string if the key does not exist', () => {
     assert.equal(
       '',
-      messageByName(
-        [{ key: 'SomeKey', value: 'This is the value' }],
-        'NotAKeyInTheMessages'
-      )
+      messageByName([{ key: 'SomeKey', value: 'This is the value' }], 'NotAKeyInTheMessages')
     );
   });
 });
