@@ -21,6 +21,7 @@ import { Anomaly, DataFrame } from '../json';
 import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
 import { dataframeContext } from '../dataframe/dataframe_context';
 import { DataTableLike } from '@google-web-components/google-chart/loader';
+import { range } from '../dataframe/index';
 
 export interface AnomalyData {
   x: number;
@@ -38,10 +39,7 @@ export class PlotGoogleChartSk extends LitElement {
   // TODO(b/362831653): Adjust height to 100% once plot-summary-sk is deprecated
   static styles = css`
     :host {
-      background-color: var(
-        --plot-background-color-sk,
-        var(--md-sys-color-background, 'white')
-      );
+      background-color: var(--plot-background-color-sk, var(--md-sys-color-background, 'white'));
     }
     .container {
       display: grid;
@@ -86,6 +84,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
 
+  @property({ attribute: false })
+  selectedRange?: range;
+
   @property()
   private tooltip?: {
     traceName: string;
@@ -106,14 +107,12 @@ export class PlotGoogleChartSk extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
 
-    const resizeObserver = new ResizeObserver(
-      (entries: ResizeObserverEntry[]) => {
-        entries.forEach(() => {
-          // The google chart needs to redraw when it is resized.
-          this.plotElement.value?.redraw();
-        });
-      }
-    );
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach(() => {
+        // The google chart needs to redraw when it is resized.
+        this.plotElement.value?.redraw();
+      });
+    });
     resizeObserver.observe(this);
   }
 
@@ -155,7 +154,8 @@ export class PlotGoogleChartSk extends LitElement {
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
       // TODO(b/362831653): incorporate domain changes into dataframe update
-      changedProperties.has('dataframe')
+      changedProperties.has('dataframe') ||
+      changedProperties.has('selectedRange')
     ) {
       this.updateDataframe(this.dataframe!);
     }
@@ -166,7 +166,6 @@ export class PlotGoogleChartSk extends LitElement {
     if (rows) {
       const plot = this.plotElement!.value!;
       plot.data = rows;
-      // TODO(b/362831653): add event listener for dark mode
       plot.options = mainChartOptions(getComputedStyle(this), this.domain);
     }
   }
@@ -177,10 +176,7 @@ export class PlotGoogleChartSk extends LitElement {
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
       if (this.plotElement.value) {
-        this.plotElement.value!.options = mainChartOptions(
-          getComputedStyle(this),
-          this.domain
-        );
+        this.plotElement.value!.options = mainChartOptions(getComputedStyle(this), this.domain);
       }
       this.requestUpdate();
     });

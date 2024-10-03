@@ -22,6 +22,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//:node_modules/@lit/context",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
+        "//perf/modules/dataframe:index_ts_lib",
     ],
     ts_srcs = [
         "index.ts",

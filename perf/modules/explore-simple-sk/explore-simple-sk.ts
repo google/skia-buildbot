@@ -86,10 +86,7 @@ import {
   AnomalyMap,
   CommitNumberAnomalyMap,
 } from '../json';
-import {
-  PlotSimpleSk,
-  PlotSimpleSkTraceEventDetails,
-} from '../plot-simple-sk/plot-simple-sk';
+import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 import {
@@ -114,14 +111,8 @@ import {
 } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
-import {
-  PivotQueryChangedEventDetail,
-  PivotQuerySk,
-} from '../pivot-query-sk/pivot-query-sk';
-import {
-  PivotTableSk,
-  PivotTableSkChangeEventDetail,
-} from '../pivot-table-sk/pivot-table-sk';
+import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
+import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet, validKey } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
@@ -129,10 +120,7 @@ import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { findSubDataframe, join } from '../dataframe';
-import {
-  TraceFormatter,
-  GetTraceFormatter,
-} from '../trace-details-formatter/traceformatter';
+import { TraceFormatter, GetTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
 import {
   PlotSummarySk,
@@ -140,10 +128,7 @@ import {
 } from '../plot-summary-sk/plot-summary-sk';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
-import {
-  ChartTooltipSk,
-  Commit as ChartCommit,
-} from '../chart-tooltip-sk/chart-tooltip-sk';
+import { ChartTooltipSk, Commit as ChartCommit } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
@@ -267,9 +252,7 @@ export class GraphConfig {
  * Creates a shortcut ID for the given Graph Configs.
  *
  */
-export const updateShortcut = async (
-  graphConfigs: GraphConfig[]
-): Promise<string> => {
+export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<string> => {
   if (graphConfigs.length === 0) {
     return '';
   }
@@ -403,10 +386,7 @@ export function calculateRangeChange(
     // shift left
     return {
       rangeChange: true,
-      newOffsets: [
-        clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber,
-        offsets[1],
-      ],
+      newOffsets: [clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber, offsets[1]],
     };
   }
   if (exceedsRightEdge) {
@@ -605,11 +585,7 @@ export class ExploreSimpleSk extends ElementSk {
       </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
         <md-outlined-button
-          ?disabled=${!(
-            ele.plot &&
-            ele.plot!.highlight.length &&
-            ele.useTestPicker
-          )}
+          ?disabled=${!(ele.plot && ele.plot!.highlight.length && ele.useTestPicker)}
           @click=${ele.queryHighlighted}>
           Query Highlighted
         </md-outlined-button>
@@ -712,8 +688,7 @@ export class ExploreSimpleSk extends ElementSk {
                   form="form"
                   id="commit-switch"
                   ?selected=${ele._state.labelMode === LabelMode.CommitPosition}
-                  @change=${(e: InputEvent) =>
-                    ele.switchXAxis(e.target as MdSwitch)}></md-switch>
+                  @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
                 X-Axis as Commit Positions
               </label>
             <li>
@@ -789,9 +764,7 @@ export class ExploreSimpleSk extends ElementSk {
         .scrollable=${ele.scrollable}
         >
       </plot-simple-sk>
-      ${when(ele._state.plotSummary && ele.tracesRendered, () =>
-        ele.plotSummaryTemplate()
-      )}
+      ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
@@ -827,9 +800,7 @@ export class ExploreSimpleSk extends ElementSk {
               ele.paramsetRemoveClick
             }></paramset-sk>
             <div class=query-counts>
-              Matches: <query-count-sk url='/_/count/' @paramset-changed=${
-                ele.paramsetChanged
-              }>
+              Matches: <query-count-sk url='/_/count/' @paramset-changed=${ele.paramsetChanged}>
               </query-count-sk>
             </div>
           </div>
@@ -848,8 +819,7 @@ export class ExploreSimpleSk extends ElementSk {
       </tabs-sk>
       <tabs-panel-sk>
         <div>
-          <button @click=${() =>
-            ele.add(true, 'query')} class=action>Plot</button>
+          <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
           <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
         </div>
         <div>
@@ -859,10 +829,8 @@ export class ExploreSimpleSk extends ElementSk {
               <textarea id=formula rows=3 cols=80></textarea>
             </label>
             <div>
-              <button @click=${() =>
-                ele.add(true, 'formula')} class=action>Plot</button>
-              <button @click=${() =>
-                ele.add(false, 'formula')}>Add to Plot</button>
+              <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
+              <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
               <a href=/help/ target=_blank>
                 <help-icon-sk></help-icon-sk>
               </a>
@@ -886,9 +854,7 @@ export class ExploreSimpleSk extends ElementSk {
         </div>
       </tabs-panel-sk>
       <div class=footer>
-        <button @click=${
-          ele.closeQueryDialog
-        } id='close_query_dialog'>Close</button>
+        <button @click=${ele.closeQueryDialog} id='close_query_dialog'>Close</button>
       </div>
     </dialog>
 
@@ -968,8 +934,7 @@ export class ExploreSimpleSk extends ElementSk {
     </dialog>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
-      <button class="collapser" id="collapseButton" @click=${(_e: Event) =>
-        ele.toggleDetails()}>
+      <button class="collapser" id="collapseButton" @click=${(_e: Event) => ele.toggleDetails()}>
       ${
         ele.navOpen
           ? html`<expand-less-icon-sk></expand-less-icon-sk>`
@@ -991,9 +956,7 @@ export class ExploreSimpleSk extends ElementSk {
               id=paramset
               clickable_values
               checkbox_values
-              @paramset-key-value-click=${(
-                e: CustomEvent<ParamSetSkClickEventDetail>
-              ) => {
+              @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
                 ele.paramsetKeyValueClick(e);
               }}
               @paramset-checkbox-click=${ele.paramsetCheckboxClick}
@@ -1007,9 +970,7 @@ export class ExploreSimpleSk extends ElementSk {
                 clickable_plus
                 clickable_values
                 copy_content
-                @paramset-key-value-click=${(
-                  e: CustomEvent<ParamSetSkClickEventDetail>
-                ) => {
+                @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
                   ele.paramsetKeyValueClick(e);
                 }}
                 @plus-click=${ele.plusClick}
@@ -1034,9 +995,7 @@ export class ExploreSimpleSk extends ElementSk {
     </div>
   </div>
   <toast-sk id="pinpoint-job-toast" duration=10000>
-    Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${
-      ele.jobId
-    }</a>.
+    Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${ele.jobId}</a>.
     <button id="hide-toast" class="action">Close</button>
   </toast-sk>
   `;
@@ -1099,9 +1058,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
     this.bisectDialog = this.querySelector('#bisect-dialog');
-    this.fromParamsQueryDialog = this.querySelector(
-      '#from-params-query-dialog'
-    );
+    this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
     this.commitRangeSk = this.querySelector('#commit-range-link');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
@@ -1151,10 +1108,7 @@ export class ExploreSimpleSk extends ElementSk {
       })
       .catch(errorMessage);
 
-    this.closeToastButton!.addEventListener(
-      'click',
-      () => this.pinpointJobToast?.hide()
-    );
+    this.closeToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
 
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
     this.addEventListener('anomaly-changed', () => {
@@ -1179,10 +1133,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     const anomalyMap = this.plot!.anomalyDataMap;
     this.plot!.removeAll();
-    this.AddPlotLines(
-      this._dataframe.traceset,
-      this.getLabels(this._dataframe.header!)
-    );
+    this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
     this.plot!.anomalyDataMap = anomalyMap;
     this._stateHasChanged();
   }
@@ -1222,20 +1173,15 @@ export class ExploreSimpleSk extends ElementSk {
 
   private postBisect(): void {
     this.bisectButton!.disabled = true;
-    const parts: string[] =
-      this.simpleParamset!.paramsets[0]!.test[0].split('_');
+    const parts: string[] = this.simpleParamset!.paramsets[0]!.test[0].split('_');
     const tail: string = parts.pop()!;
     const chart = STATISTIC_VALUES.includes(tail)
       ? parts.join('_')
       : this.simpleParamset!.paramsets[0]!.test[0];
     const statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
     const bugId = document.getElementById('bug-id')! as HTMLInputElement;
-    const startCommit = document.getElementById(
-      'start-commit'
-    )! as HTMLInputElement;
-    const endCommit = document.getElementById(
-      'end-commit'
-    )! as HTMLInputElement;
+    const startCommit = document.getElementById('start-commit')! as HTMLInputElement;
+    const endCommit = document.getElementById('end-commit')! as HTMLInputElement;
     const story = document.getElementById('story')! as HTMLInputElement;
     const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
@@ -1281,10 +1227,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Allow user to type and not pan graph if the Existing Bug Dialog is showing.
-    const existing_bug_dialog = $$<ExistingBugDialogSk>(
-      'existing-bug-dialog-sk',
-      this
-    );
+    const existing_bug_dialog = $$<ExistingBugDialogSk>('existing-bug-dialog-sk', this);
     if (existing_bug_dialog && existing_bug_dialog.isActive) {
       return;
     }
@@ -1432,8 +1375,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Only enable the Display button if we have a valid pivot.Request and a
     // query.
     this.pivotDisplayButton!.disabled =
-      validatePivotRequest(e.detail) !== '' ||
-      this.query!.current_query.trim() === '';
+      validatePivotRequest(e.detail) !== '' || this.query!.current_query.trim() === '';
     if (!e.detail || e.detail.summary!.length === 0) {
       this.pivotDisplayButton!.textContent = 'Display';
     } else {
@@ -1492,9 +1434,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.queryDialog!.showModal();
     // If there is a query already plotted, update the counts on the query dialog.
     if (this._state.queries.length > 0) {
-      this.queryCount!.current_query = this.applyDefaultsToQuery(
-        this.query!.current_query
-      );
+      this.queryCount!.current_query = this.applyDefaultsToQuery(this.query!.current_query);
     }
   }
 
@@ -1527,18 +1467,11 @@ export class ExploreSimpleSk extends ElementSk {
     // This query only contains the key this.fromParamsKey and it's values, so we need
     // to construct the full query using the traceID.
     // Note:  toParamSet(s: string) returns CommonSkParamSet, not ParamSet. Hence the cast.
-    const updatedParamValues = ParamSet(
-      toParamSet(this.fromParamsQuery!.current_query)
-    );
-    const traceIDAsQuery: ParamSet = paramsToParamSet(
-      fromKey(this._state.selected.name)
-    );
+    const updatedParamValues = ParamSet(toParamSet(this.fromParamsQuery!.current_query));
+    const traceIDAsQuery: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
 
     // Merge the two ParamSets.
-    const newQuery: ParamSet = Object.assign(
-      traceIDAsQuery,
-      updatedParamValues
-    );
+    const newQuery: ParamSet = Object.assign(traceIDAsQuery, updatedParamValues);
     this.addFromQueryOrFormula(false, 'query', fromParamSet(newQuery), '');
     this.fromParamsQueryDialog!.close();
   }
@@ -1549,9 +1482,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.fromParamsKey = e.detail.key;
 
     // Convert the traceID into a ParamSet.
-    const keyAsParamSet: ParamSet = paramsToParamSet(
-      fromKey(this._state.selected.name)
-    );
+    const keyAsParamSet: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
 
     // And remove the Params key that was clicked on.
     keyAsParamSet[this.fromParamsKey] = [];
@@ -1571,9 +1502,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.fromParamsQueryDialog?.showModal();
   }
 
-  private queryChangeDelayedHandler(
-    e: CustomEvent<QuerySkQueryChangeEventDetail>
-  ) {
+  private queryChangeDelayedHandler(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     this.queryCount!.current_query = this.applyDefaultsToQuery(e.detail.q);
   }
 
@@ -1590,9 +1519,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private pivotTableSortChange(
-    e: CustomEvent<PivotTableSkChangeEventDetail>
-  ): void {
+  private pivotTableSortChange(e: CustomEvent<PivotTableSkChangeEventDetail>): void {
     this._state.sort = e.detail;
     this._stateHasChanged();
   }
@@ -1603,9 +1530,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitTime!.textContent = new Date(
       this._dataframe.header![e.detail.x]!.timestamp * 1000
     ).toLocaleString();
-    const formattedTrace = this.traceFormatter!.formatTrace(
-      fromKey(e.detail.name)
-    );
+    const formattedTrace = this.traceFormatter!.formatTrace(fromKey(e.detail.name));
     this.traceDetails!.textContent = formattedTrace;
     this.traceDetailsCopy!.onclick = () => {
       navigator.clipboard.writeText(formattedTrace);
@@ -1657,21 +1582,16 @@ export class ExploreSimpleSk extends ElementSk {
       },
       e.detail.domain === 'commit' ? 'offset' : 'timestamp'
     );
+    this.googleChartPlot!.selectedRange = selected;
 
     const traceKeys = Object.keys(this.fullDataFrame!.traceset);
     const selectedTraceSet: TraceSet = TraceSet({});
     traceKeys.forEach((key) => {
       const fullTrace: number[] = this.fullDataFrame!.traceset[key];
-      selectedTraceSet[key] = fullTrace.slice(
-        selected.begin,
-        selected.end
-      ) as Trace;
+      selectedTraceSet[key] = fullTrace.slice(selected.begin, selected.end) as Trace;
     });
 
-    const columnHeader = this.fullDataFrame!.header!.slice(
-      selected.begin,
-      selected.end
-    );
+    const columnHeader = this.fullDataFrame!.header!.slice(selected.begin, selected.end);
 
     // Let's make sure the anomalies are supplied for the selection.
     const anomalyMap: AnomalyMap = {};
@@ -1745,18 +1665,12 @@ export class ExploreSimpleSk extends ElementSk {
     let anomaly = null;
     if (
       this.fullAnomalyMap !== null &&
-      !(
-        this.fullAnomalyMap![testName] === null ||
-        this.fullAnomalyMap![testName] === undefined
-      )
+      !(this.fullAnomalyMap![testName] === null || this.fullAnomalyMap![testName] === undefined)
     ) {
       const traceAnomalies = this.fullAnomalyMap![testName];
 
       if (
-        !(
-          traceAnomalies![commitPosition] === null ||
-          traceAnomalies![commitPosition] === undefined
-        )
+        !(traceAnomalies![commitPosition] === null || traceAnomalies![commitPosition] === undefined)
       ) {
         anomaly = traceAnomalies![commitPosition];
       }
@@ -1820,8 +1734,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commit: CommitNumber = this._dataframe.header![x]
-      ?.offset as CommitNumber;
+    const commit: CommitNumber = this._dataframe.header![x]?.offset as CommitNumber;
     if (!commit) {
       return;
     }
@@ -1973,14 +1886,10 @@ export class ExploreSimpleSk extends ElementSk {
         // when the commit details are loaded, add those info to
         // pointToCommitDetailMap map which can be used to fetch commit
         // info on hover without making an API call
-        this.pointToCommitDetailMap.set(
-          JSON.stringify([e.detail.name, cid]),
-          json.commitSlice![0]
-        );
+        this.pointToCommitDetailMap.set(JSON.stringify([e.detail.name, cid]), json.commitSlice![0]);
 
         const tooltipEnabled = this._state.enable_chart_tooltip;
-        const hasValidTooltipPos =
-          e.detail.xPos !== undefined && e.detail.yPos !== undefined;
+        const hasValidTooltipPos = e.detail.xPos !== undefined && e.detail.yPos !== undefined;
         if (tooltipEnabled && hasValidTooltipPos) {
           this.tooltipFixed = true;
 
@@ -2031,9 +1940,7 @@ export class ExploreSimpleSk extends ElementSk {
    * Handler for the event when the remove paramset value button is clicked
    * @param e Remove event
    */
-  private paramsetRemoveClick(
-    e: CustomEvent<ParamSetSkRemoveClickEventDetail>
-  ) {
+  private paramsetRemoveClick(e: CustomEvent<ParamSetSkRemoveClickEventDetail>) {
     // Remove the specified value from the query
     this.query?.removeKeyValue(e.detail.key, e.detail.value);
   }
@@ -2042,9 +1949,7 @@ export class ExploreSimpleSk extends ElementSk {
    * Handler for the event when the paramset checkbox is clicked.
    * @param e Checkbox click event
    */
-  private paramsetCheckboxClick(
-    e: CustomEvent<ParamSetSkCheckboxClickEventDetail>
-  ) {
+  private paramsetCheckboxClick(e: CustomEvent<ParamSetSkCheckboxClickEventDetail>) {
     if (!e.detail.selected) {
       // Find the matching traces and remove them from the dataframe's traceset.
       const keys: string[] = [];
@@ -2172,10 +2077,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** Create a FrameRequest that will re-create the current state of the page. */
   private requestFrameBodyFullFromState(): FrameRequest {
-    return this.requestFrameBodyFullForRange(
-      this._state.begin,
-      this._state.end
-    );
+    return this.requestFrameBodyFullForRange(this._state.begin, this._state.end);
   }
 
   /**
@@ -2185,10 +2087,7 @@ export class ExploreSimpleSk extends ElementSk {
    * @param end End time.
    * @returns FrameRequest object.
    */
-  private requestFrameBodyFullForRange(
-    begin: number,
-    end: number
-  ): FrameRequest {
+  private requestFrameBodyFullForRange(begin: number, end: number): FrameRequest {
     return {
       begin: begin,
       end: end,
@@ -2199,9 +2098,7 @@ export class ExploreSimpleSk extends ElementSk {
       keys: this._state.keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       pivot:
-        validatePivotRequest(this._state.pivotRequest) === ''
-          ? this._state.pivotRequest
-          : null,
+        validatePivotRequest(this._state.pivotRequest) === '' ? this._state.pivotRequest : null,
       disable_filter_parent_traces: this._state.disable_filter_parent_traces,
     };
   }
@@ -2222,33 +2119,23 @@ export class ExploreSimpleSk extends ElementSk {
     const body = this.requestFrameBodyDeltaFromState();
 
     if (body.begin === body.end) {
-      console.log(
-        'skipped fetching this dataframe because it would be empty anyways'
-      );
+      console.log('skipped fetching this dataframe because it would be empty anyways');
       return;
     }
     this.commitTime!.textContent = '';
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       if (json === null || json === undefined) {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      this.dfRepo?.resetWithDataframeAndRequest(
-        json.dataframe!,
-        json.anomalymap,
-        body
-      );
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
       // this.plot!.removeAll();
       this.addTraces(json, switchToTab);
       this._render();
       if (isValidSelection(this._state.selected)) {
-        const e = selectionToEvent(
-          this._state.selected,
-          this._dataframe.header
-        );
+        const e = selectionToEvent(this._state.selected, this._dataframe.header);
         // If the range has moved to no longer include the selected commit then
         // clear the selection.
         if (e.detail.x === -1) {
@@ -2297,10 +2184,7 @@ export class ExploreSimpleSk extends ElementSk {
         clearInterval(this._refreshId);
       }
     } else {
-      this._refreshId = window.setInterval(
-        () => this.autoRefresh(),
-        REFRESH_TIMEOUT
-      );
+      this._refreshId = window.setInterval(() => this.autoRefresh(), REFRESH_TIMEOUT);
     }
   }
 
@@ -2308,14 +2192,9 @@ export class ExploreSimpleSk extends ElementSk {
     // Update end to be now.
     this._state.end = Math.floor(Date.now() / 1000);
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(
-        json.dataframe!,
-        json.anomalymap,
-        body
-      );
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
     });
@@ -2339,10 +2218,7 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private addTraces(json: FrameResponse, tab: boolean) {
     const dataframe = json.dataframe!;
-    if (
-      dataframe.traceset === null ||
-      Object.keys(dataframe.traceset).length === 0
-    ) {
+    if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
       this.displayMode = 'display_query_only';
       this._render();
       return;
@@ -2364,9 +2240,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Add in the 0-trace.
     if (this._state.showZero) {
-      dataframe.traceset[ZERO_NAME] = Trace(
-        Array(dataframe.header!.length).fill(0)
-      );
+      dataframe.traceset[ZERO_NAME] = Trace(Array(dataframe.header!.length).fill(0));
     }
 
     const mergedDataframe = dataframe;
@@ -2456,8 +2330,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.plotSummary) {
       const dfLength = this.fullDataFrame!.header!.length;
       let currentStart = this.fullDataFrame!.header![0]!.timestamp as number;
-      let currentEnd = this.fullDataFrame!.header![dfLength - 1]!
-        .timestamp as number;
+      let currentEnd = this.fullDataFrame!.header![dfLength - 1]!.timestamp as number;
 
       const monthsToLook = 3;
 
@@ -2490,8 +2363,7 @@ export class ExploreSimpleSk extends ElementSk {
       }
 
       // Let's fetch data after the current time window.
-      currentEnd = this.fullDataFrame!.header![dfLength - 1]!
-        .timestamp as number;
+      currentEnd = this.fullDataFrame!.header![dfLength - 1]!.timestamp as number;
 
       const now = Math.floor(Date.now() / 1000);
       for (let i = 0; i < monthsToLook; i++) {
@@ -2592,12 +2464,7 @@ export class ExploreSimpleSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  addFromQueryOrFormula(
-    replace: boolean,
-    plotType: addPlotType,
-    q: string,
-    f: string
-  ) {
+  addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
     this.queryDialog!.close();
     this._dialogOn = false;
 
@@ -2655,11 +2522,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(
-        json.dataframe!,
-        json.anomalymap,
-        body
-      );
+      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       this.addTraces(json, true);
     });
   }
@@ -2669,8 +2532,7 @@ export class ExploreSimpleSk extends ElementSk {
     const paramSet = toParamSet(queryString);
     for (const defaultParamKey in this._defaults?.default_param_selections) {
       if (!(defaultParamKey in paramSet)) {
-        paramSet[defaultParamKey] =
-          this._defaults!.default_param_selections![defaultParamKey]!;
+        paramSet[defaultParamKey] = this._defaults!.default_param_selections![defaultParamKey]!;
       }
     }
 
@@ -2698,9 +2560,7 @@ export class ExploreSimpleSk extends ElementSk {
         return str.toLowerCase() === 'true';
       };
       if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
-        const paramValue = stringToBool(
-          this._defaults!.default_url_values![urlKey]
-        );
+        const paramValue = stringToBool(this._defaults!.default_url_values![urlKey]);
         switch (urlKey) {
           case 'summary':
             this._state.summary = paramValue;
@@ -2834,9 +2694,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Also apply the func to any existing formulas.
-    updatedFormulas = updatedFormulas.concat(
-      this._state.formulas.map((f) => `${funcName}(${f})`)
-    );
+    updatedFormulas = updatedFormulas.concat(this._state.formulas.map((f) => `${funcName}(${f})`));
 
     this.removeAll(true);
     this._state.formulas = updatedFormulas;
@@ -2871,9 +2729,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   public async viewMultiGraph(): Promise<void> {
     const pageSize = 11;
-    const graphConfigs: GraphConfig[] = this.createGraphConfigs(
-      this._dataframe.traceset
-    );
+    const graphConfigs: GraphConfig[] = this.createGraphConfigs(this._dataframe.traceset);
     const newShortcut = await updateShortcut(graphConfigs);
 
     if (newShortcut === '') {
@@ -2892,9 +2748,7 @@ export class ExploreSimpleSk extends ElementSk {
     const detail = {
       key: this.plot!.highlight[0],
     };
-    this.dispatchEvent(
-      new CustomEvent('populate-query', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('populate-query', { detail: detail, bubbles: true }));
   }
 
   private removeHighlighted() {
@@ -2962,9 +2816,7 @@ export class ExploreSimpleSk extends ElementSk {
     });
 
     if (toremove.length === totalNonSpecialKeys) {
-      errorMessage(
-        "At least one trace much be selected for 'Highlighted Only' to work."
-      );
+      errorMessage("At least one trace much be selected for 'Highlighted Only' to work.");
       return;
     }
 
@@ -3004,9 +2856,7 @@ export class ExploreSimpleSk extends ElementSk {
     // For each param, we found out the unique values in each trace. If there's only 1 unique value,
     // that means that they all share a value in common and we can add this to the title.
     params!.forEach((param) => {
-      const uniqueValues = new Set(
-        Object.keys(traceset).map((traceId) => fromKey(traceId)[param])
-      );
+      const uniqueValues = new Set(Object.keys(traceset).map((traceId) => fromKey(traceId)[param]));
       if (uniqueValues.size === 1) {
         const value = uniqueValues.values().next().value;
         if (value) {
@@ -3150,9 +3000,7 @@ export class ExploreSimpleSk extends ElementSk {
     if (numQueries >= 1) {
       this.query!.paramset = toParamSet(this._state.queries[numQueries - 1]);
       this.query!.current_query = this._state.queries[numQueries - 1];
-      this.summary!.paramsets = [
-        toParamSet(this._state.queries[numQueries - 1]),
-      ];
+      this.summary!.paramsets = [toParamSet(this._state.queries[numQueries - 1])];
     }
 
     this.applyQueryDefaultsIfMissing();
