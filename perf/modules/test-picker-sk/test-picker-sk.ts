@@ -72,7 +72,7 @@ export class TestPickerSk extends ElementSk {
     <div id="testPicker">
       <div id="fieldContainer"></div>
       <div id="queryCount">
-        <div>
+        <div class="test-picker-sk-matches-container">
           Matches: <span>${ele._count}</span
           ><spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
         </div>

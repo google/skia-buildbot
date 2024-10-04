@@ -18,8 +18,21 @@
   }
 
   #queryCount {
+    .test-picker-sk-matches-container {
+      height: 30px;
+      display: flex;
+      align-items: flex-end;
+
+      spinner-sk {
+        margin: 0;
+        margin-left: 8px;
+        margin-top: 7px;
+      }
+    }
+
     button {
       z-index: 1;
+      margin-bottom: 0;
     }
     display: grid;
     place-items: center;
