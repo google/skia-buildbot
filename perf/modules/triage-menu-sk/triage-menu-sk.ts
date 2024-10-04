@@ -91,15 +91,15 @@ export class TriageMenuSk extends ElementSk {
     const keys: number[] = anomalies.map((a) => a.id);
     const body: any = { keys: keys, trace_names: traceNames };
 
-    if (bug_id) {
+    if (bug_id !== null) {
       body.bug_id = bug_id;
     }
 
-    if (start_revision) {
+    if (start_revision !== null) {
       body.start_revision = start_revision;
     }
 
-    if (end_revision) {
+    if (end_revision !== null) {
       body.end_revision = end_revision;
     }
 
