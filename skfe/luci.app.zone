@@ -79,6 +79,13 @@ staging.analysis.api        300  IN A 35.244.170.126
 *.staging.analysis.api      300  IN A 35.244.170.126
 staging.weetbix.api         300  IN A 34.54.113.219
 *.staging.weetbix.api       300  IN A 34.54.113.219
+;; Do not use the address 2600:1901:0:489:: (ending in all zeroes)
+;; as this IP can be used as the anycast address for the subnet.
+staging.analysis.api        300  IN AAAA 2600:1901:0:489::10
+*.staging.analysis.api      300  IN AAAA 2600:1901:0:489::10
+staging.weetbix.api         300  IN AAAA 2600:1901:0:4897::10
+*.staging.weetbix.api       300  IN AAAA 2600:1901:0:4897::10
+
 
 ;;; LUCI Bisection.
 ;;; Production hosted in GCP Project luci-bisection.
@@ -86,6 +93,8 @@ staging.weetbix.api         300  IN A 34.54.113.219
 bisection.api               300  IN A 34.54.234.46
 staging.bisection.api       300  IN A 34.49.80.97
 *.staging.bisection.api     300  IN A 34.49.80.97
+staging.bisection.api       300  IN AAAA 2600:1901:0:7e33::10
+*.staging.bisection.api     300  IN AAAA 2600:1901:0:7e33::10
 
 ;;; LUCI Milo.
 ;;; Production hosted in GCP Project luci-milo.
@@ -93,6 +102,8 @@ staging.bisection.api       300  IN A 34.49.80.97
 milo.api                   300  IN A 34.54.88.98
 staging.milo.api           300  IN A 34.54.86.131
 *.staging.milo.api         300  IN A 34.54.86.131
+staging.milo.api           300  IN AAAA 2600:1901:0:6207::10
+*.staging.milo.api         300  IN AAAA 2600:1901:0:6207::10
 
 ;;; LUCI Notify.
 ;;; Production hosted in GCP Project luci-notify.
@@ -100,6 +111,8 @@ staging.milo.api           300  IN A 34.54.86.131
 notify.api                 300  IN A 34.102.138.22
 staging.notify.api         300  IN A 34.107.239.117
 *.staging.notify.api       300  IN A 34.107.239.117
+staging.notify.api         300  IN AAAA 2600:1901:0:afd7::10
+*.staging.notify.api       300  IN AAAA 2600:1901:0:afd7::10
 
 ;;; LUCI Source Index.
 ;;; Production hosted in GCP Project luci-source-index.
@@ -107,6 +120,8 @@ staging.notify.api         300  IN A 34.107.239.117
 sourceindex.api            300  IN A 34.144.246.9
 staging.sourceindex.api    300  IN A 35.190.0.117
 *.staging.sourceindex.api  300  IN A 35.190.0.117
+staging.sourceindex.api    300  IN AAAA 2600:1901:0:670e::10
+*.staging.sourceindex.api  300  IN AAAA 2600:1901:0:670e::10
 
 ;;; LUCI Teams.
 ;;; Production hosted in GCP Project luci-teams.
@@ -114,6 +129,8 @@ staging.sourceindex.api    300  IN A 35.190.0.117
 teams.api                  300  IN A 34.117.98.141
 staging.teams.api          300  IN A 35.190.79.93
 *.staging.teams.api        300  IN A 35.190.79.93
+staging.teams.api          300  IN AAAA 2600:1901:0:68c1::10
+*.staging.teams.api        300  IN AAAA 2600:1901:0:68c1::10
 
 ;;; LUCI Tree Status.
 ;;; Production hosted in GCP Project luci-tree-status.
@@ -121,6 +138,8 @@ staging.teams.api          300  IN A 35.190.79.93
 treestatus.api             300  IN A 34.49.214.220
 staging.treestatus.api     300  IN A 34.96.70.99
 *.staging.treestatus.api   300  IN A 34.96.70.99
+staging.treestatus.api     300  IN AAAA 2600:1901:0:a74e::10
+*.staging.treestatus.api   300  IN AAAA 2600:1901:0:a74e::10
 
 ;;; CNAME records for certificate domain ownership verification.
 ;;; See https://cloud.google.com/certificate-manager/docs/dns-authorizations
