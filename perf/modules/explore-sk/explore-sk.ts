@@ -16,7 +16,6 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryConfig } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
-import '../dataframe/dataframe_context';
 import '../explore-simple-sk';
 import '../favorites-dialog-sk';
 import '../test-picker-sk';
@@ -111,9 +110,7 @@ export class ExploreSk extends ElementSk {
       </button>
     </div>
     <test-picker-sk id="test-picker" class="hidden explore-padding"></test-picker-sk>
-    <dataframe-repository-sk>
-      <explore-simple-sk></explore-simple-sk>
-    </dataframe-repository-sk>
+    <explore-simple-sk></explore-simple-sk>
   `;
 
   /**

@@ -126,6 +126,7 @@ import {
 } from '../plot-summary-sk/plot-summary-sk';
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
+import '../dataframe/dataframe_context';
 import { ChartTooltipSk, Commit as ChartCommit } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
@@ -561,7 +562,7 @@ export class ExploreSimpleSk extends ElementSk {
   // material UI
   private settingsDialog: MdDialog | null = null;
 
-  private dfRepo?: DataFrameRepository;
+  private dfRepo = createRef<DataFrameRepository>();
 
   constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
@@ -571,6 +572,7 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private static template = (ele: ExploreSimpleSk) => html`
+  <dataframe-repository-sk ${ref(ele.dfRepo)}>
   <div id=explore class=${ele.displayMode}>
     <div id=buttons>
       <button
@@ -990,6 +992,7 @@ export class ExploreSimpleSk extends ElementSk {
       </collapse-sk>
     </div>
   </div>
+  </dataframe-repository-sk>
   <toast-sk id="pinpoint-job-toast" duration=10000>
     Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${ele.jobId}</a>.
     <button id="hide-toast" class="action">Close</button>
@@ -1071,10 +1074,6 @@ export class ExploreSimpleSk extends ElementSk {
 
     // material UI stuff
     this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
-
-    if (this.parentNode?.nodeName.toLowerCase() === 'dataframe-repository-sk') {
-      this.dfRepo = this.parentNode as DataFrameRepository;
-    }
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -1526,7 +1525,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** Reflect the focused trace in the paramset. */
   private plotTraceFocused({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    const header = this.dfRepo?.dataframe.header;
+    const header = this.dfRepo.value?.dataframe.header;
     const selected = header![(this.selectedRange?.begin || 0) + detail.x]!;
     this.paramset!.highlight = fromKey(detail.name);
     this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
@@ -1576,13 +1575,13 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
-    const df = this.dfRepo?.dataframe;
+    const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, detail.value, detail.domain);
     this.selectedRange = selected;
 
     const subDataframe = generateSubDataframe(df!, selected);
-    const anomalyMap = findAnomalyInRange(this.dfRepo?.anomaly || {}, {
+    const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {
       begin: header[Math.min(selected.begin, header.length - 1)]!.offset,
       end: header[Math.min(selected.end, header.length - 1)]!.offset,
     });
@@ -1634,9 +1633,9 @@ export class ExploreSimpleSk extends ElementSk {
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
     const tooltipTopPos = (pointDetails.yPos || 0) + tooltipMargin;
     const testName = pointDetails.name;
-    const commitPosition = this.dfRepo!.dataframe.header![x]!.offset;
+    const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
 
-    const anomalyMap = this.dfRepo?.anomaly;
+    const anomalyMap = this.dfRepo.value?.anomaly;
     let anomaly: Anomaly | null = null;
     if (anomalyMap) {
       const traceAnomalies = anomalyMap[testName];
@@ -1701,7 +1700,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commit: CommitNumber = this.dfRepo?.dataframe.header![x]?.offset as CommitNumber;
+    const commit: CommitNumber = this.dfRepo.value?.dataframe.header![x]?.offset as CommitNumber;
     if (!commit) {
       return;
     }
@@ -1717,8 +1716,8 @@ export class ExploreSimpleSk extends ElementSk {
     // commit is returned.
 
     // First skip back to the next point with data.
-    const trace = this.dfRepo?.dataframe.traceset[detail.name] || [];
-    const header = this.dfRepo?.header || [];
+    const trace = this.dfRepo.value?.dataframe.traceset[detail.name] || [];
+    const header = this.dfRepo.value?.header || [];
     let prevCommit: CommitNumber = CommitNumber(-1);
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
@@ -1971,11 +1970,11 @@ export class ExploreSimpleSk extends ElementSk {
    * Adds the option list for the plot summary selection.
    */
   private addPlotSummaryOptions() {
-    if (!this.dfRepo?.dataframe) {
+    if (!this.dfRepo.value?.dataframe) {
       return;
     }
     const traceIds: string[] = [];
-    Object.keys(this.dfRepo.dataframe.traceset!).forEach((traceId) => {
+    Object.keys(this.dfRepo.value.dataframe.traceset!).forEach((traceId) => {
       // Ignore the zero trace if present.
       if (traceId !== ZERO_NAME) {
         const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
@@ -2083,7 +2082,7 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
+      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
       // this.plot!.removeAll();
       this.addTraces(json, switchToTab);
@@ -2148,7 +2147,7 @@ export class ExploreSimpleSk extends ElementSk {
     const body = this.requestFrameBodyFullFromState();
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
+      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       this.plot!.removeAll();
       this.addTraces(json, switchToTab);
     });
@@ -2268,7 +2267,7 @@ export class ExploreSimpleSk extends ElementSk {
       const header = dataframe.header!;
       this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
 
-      this.dfRepo?.extendRange(-3 * monthInSec);
+      this.dfRepo.value?.extendRange(-3 * monthInSec);
     }
   }
 
@@ -2386,7 +2385,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.dfRepo?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
+      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
       this.addTraces(json, true);
     });
   }
@@ -2705,7 +2704,7 @@ export class ExploreSimpleSk extends ElementSk {
    * If there are less than 3 common parameters, we use the default title.
    */
   private updateTitle() {
-    const traceset = this.dfRepo?.dataframe.traceset;
+    const traceset = this.dfRepo.value?.dataframe.traceset;
     if (traceset === null || traceset === undefined) {
       return;
     }
