@@ -50,7 +50,6 @@ func generateTags(jobID string, hash string, sizeBytes int64) []string {
 func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASReference, dimensions []map[string]string) *apipb.NewTaskRequest {
 	return &apipb.NewTaskRequest{
 		BotPingToleranceSecs: 1200,
-		ExpirationSecs:       PendingTimeoutSecs,
 		// EvaluateOnly omitted
 		Name: "Pinpoint bisection run benchmark task",
 		// ParentTaskId omitted
@@ -69,7 +68,12 @@ func createSwarmingRequest(jobID string, command []string, casRef *apipb.CASRefe
 		User: "Pinpoint",
 		// ForceSendFields: omitted
 		// NullFields: omitted
-		Properties: generateProperties(command, casRef, convertDimensions(dimensions)),
-		Tags:       generateTags(jobID, casRef.Digest.Hash, casRef.Digest.SizeBytes),
+		TaskSlices: []*apipb.TaskSlice{
+			{
+				ExpirationSecs: PendingTimeoutSecs,
+				Properties:     generateProperties(command, casRef, convertDimensions(dimensions)),
+			},
+		},
+		Tags: generateTags(jobID, casRef.Digest.Hash, casRef.Digest.SizeBytes),
 	}
 }
