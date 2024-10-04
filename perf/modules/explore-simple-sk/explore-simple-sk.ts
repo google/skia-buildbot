@@ -557,7 +557,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private showRemoveAll = true;
 
-  private _tracesRendered = false;
+  private tracesRendered = false;
 
   // material UI
   private settingsDialog: MdDialog | null = null;
@@ -2758,14 +2758,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   get spinning(): boolean {
     return this._spinning;
-  }
-
-  get tracesRendered(): boolean {
-    return this._tracesRendered;
-  }
-
-  set tracesRendered(b: boolean) {
-    this._tracesRendered = b;
   }
 
   /**
