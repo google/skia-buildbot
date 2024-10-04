@@ -55,6 +55,8 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private _active: boolean = false;
 
+  private bug_id: number | undefined;
+
   private static allProjectIds = (ele: ExistingBugDialogSk) =>
     ele.allProjectIdOptions.map(
       (p) => html`
@@ -171,6 +173,7 @@ export class ExistingBugDialogSk extends ElementSk {
 
     // Extract bug_id.
     const bugId = document.getElementById('bug_id')! as HTMLInputElement;
+    this.bug_id = +bugId?.value as number;
 
     // Extract project_id.
     const projectId = document.getElementById(
@@ -193,21 +196,21 @@ export class ExistingBugDialogSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then(() => {
         this._spinner!.active = false;
         document.getElementById('file-button')!.removeAttribute('disabled');
         document.getElementById('close-button')!.removeAttribute('disabled');
         this.closeDialog();
 
         // Open the bug page in new window.
-        this.bug_url = `https://issues.chromium.org/issues/${json.bug_id}`;
+        this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
         window.open(this.bug_url, '_blank');
         this._render();
         this._toast!.show();
 
         // Update anomalies to reflected the existing Bug Id.
         for (let i = 0; i < this._anomalies.length; i++) {
-          this._anomalies[i].bug_id = json.bug_id;
+          this._anomalies[i].bug_id = this.bug_id as number;
         }
 
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.

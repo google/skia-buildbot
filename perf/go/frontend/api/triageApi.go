@@ -43,7 +43,7 @@ type FileBugRequest struct {
 
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
-	BugId      string   `json:"bug_id"`
+	BugId      int      `json:"bug_id"`
 	ProjectId  string   `json:"project_id"`
 	Keys       []int    `json:"keys"`
 	TraceNames []string `json:"trace_names"`
@@ -56,7 +56,7 @@ type SkiaFileBugResponse struct {
 
 // Existing bug response object for Skia UI.
 type SkiaAssociateBugResponse struct {
-	BugId int `json:"bug_id"`
+	BugId int `json:"bug_id,omitempty"`
 }
 
 // Response object from the chromeperf associate alerts to existing bug response.
