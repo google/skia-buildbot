@@ -94,7 +94,7 @@ export class ExploreSk extends ElementSk {
   };
 
   private static template = (ele: ExploreSk) => html`
-    <div ?hidden=${!ele.showMultiViewButton}>
+    <div class="explore-padding" ?hidden=${!ele.showMultiViewButton}>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <button
         @click=${() => {
@@ -110,7 +110,7 @@ export class ExploreSk extends ElementSk {
         Add to Favorites
       </button>
     </div>
-    <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
+    <test-picker-sk id="test-picker" class="hidden explore-padding"></test-picker-sk>
     <dataframe-repository-sk>
       <explore-simple-sk></explore-simple-sk>
     </dataframe-repository-sk>
