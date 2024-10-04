@@ -118,7 +118,7 @@ export class TriageMenuSk extends ElementSk {
             anomalies[i].bug_id = bug_id;
           }
         }
-        dispatchEvent(
+        this.dispatchEvent(
           new CustomEvent('anomaly-changed', {
             bubbles: true,
           })
