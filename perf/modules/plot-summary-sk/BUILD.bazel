@@ -13,11 +13,13 @@ sk_element(
     ],
     ts_deps = [
         "//:node_modules/lit",
+        "//:node_modules/@lit/context",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:dataframe_context_ts_lib",
+        "//perf/modules/dataframe:index_ts_lib",
         "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
@@ -44,6 +46,7 @@ sk_element_puppeteer_test(
     src = "plot-summary-sk_puppeteer_test.ts",
     sk_demo_page_server = ":demo_page_server",
     deps = [
+        ":plot-summary-sk",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/lit",

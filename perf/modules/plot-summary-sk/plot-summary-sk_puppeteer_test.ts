@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { LitElement } from 'lit';
+import { PlotSummarySkSelectionEventDetails } from './plot-summary-sk';
 
 describe('plot-summary-sk', () => {
   let testBed: TestBed;
@@ -44,9 +45,9 @@ describe('plot-summary-sk', () => {
         await waitPlotSummary(plot);
         await select(100, 120, idx);
         const json = await getEventJSON();
-        const detail = JSON.parse(json!);
-        expect(detail.valueStart).to.be.approximately(start, tolerance);
-        expect(detail.valueEnd).to.be.approximately(end, tolerance);
+        const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
+        expect(detail.value.begin).to.be.approximately(start, tolerance);
+        expect(detail.value.end).to.be.approximately(end, tolerance);
         expect(detail.domain).to.be.equal('date');
       });
 
@@ -54,9 +55,9 @@ describe('plot-summary-sk', () => {
         await waitPlotSummary(plot);
         await select(220, -120, idx);
         const json = await getEventJSON();
-        const detail = JSON.parse(json!);
-        expect(detail.valueStart).to.be.approximately(start, tolerance);
-        expect(detail.valueEnd).to.be.approximately(end, tolerance);
+        const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
+        expect(detail.value.begin).to.be.approximately(start, tolerance);
+        expect(detail.value.end).to.be.approximately(end, tolerance);
       });
 
       it('draw and move the selection', async () => {
@@ -64,9 +65,9 @@ describe('plot-summary-sk', () => {
         await select(240, -120, idx);
         await select(200, -20, idx);
         const json = await getEventJSON();
-        const detail = JSON.parse(json!);
-        expect(detail.valueStart).to.be.approximately(start, tolerance);
-        expect(detail.valueEnd).to.be.approximately(end, tolerance);
+        const detail = JSON.parse(json!) as PlotSummarySkSelectionEventDetails;
+        expect(detail.value.begin).to.be.approximately(start, tolerance);
+        expect(detail.value.end).to.be.approximately(end, tolerance);
       });
     })
   );

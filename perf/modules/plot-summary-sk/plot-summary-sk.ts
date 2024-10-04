@@ -20,6 +20,9 @@ import { SummaryChartOptions, convertFromDataframe } from '../common/plot-builde
 import { ColumnHeader, DataFrame } from '../json';
 import { property } from 'lit/decorators.js';
 import { style } from './plot-summary-sk.css';
+import { range } from '../dataframe';
+import { consume } from '@lit/context';
+import { dataframeContext } from '../dataframe/dataframe_context';
 
 // Describes the zoom in terms of x-axis source values.
 export type ZoomRange = [number, number] | null;
@@ -27,8 +30,7 @@ export type ZoomRange = [number, number] | null;
 export interface PlotSummarySkSelectionEventDetails {
   start: number;
   end: number;
-  valueStart: number | Date;
-  valueEnd: number | Date;
+  value: range;
   domain: 'commit' | 'date';
 }
 
@@ -38,6 +40,7 @@ export class PlotSummarySk extends LitElement {
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
 
+  @consume({ context: dataframeContext, subscribe: true })
   @property({ attribute: false })
   dataframe?: DataFrame;
 
@@ -68,6 +71,7 @@ export class PlotSummarySk extends LitElement {
   }
 
   private async updateDataframe(df: DataFrame | null, trace: string | null) {
+    await this.updateComplete;
     const plot = this.plotElement.value;
     if (!plot) {
       if (df) {
@@ -277,8 +281,10 @@ export class PlotSummarySk extends LitElement {
           detail: {
             start: this.selectionRange[0],
             end: this.selectionRange[1],
-            valueStart: this.domain === 'date' ? (start as any).getTime() / 1000 : start,
-            valueEnd: this.domain === 'date' ? (end as any).getTime() / 1000 : end,
+            value: {
+              begin: this.domain === 'date' ? (start as any).getTime() / 1000 : start,
+              end: this.domain === 'date' ? (end as any).getTime() / 1000 : end,
+            },
             domain: this.domain,
           },
           bubbles: true,

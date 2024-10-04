@@ -2,8 +2,6 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
 import {
-  Anomaly,
-  AnomalyMap,
   ColumnHeader,
   CommitNumber,
   QueryConfig,
@@ -27,31 +25,6 @@ import {
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 fetchMock.config.overwriteRoutes = true;
-
-const dummyAnomaly: Anomaly = {
-  id: 0,
-  test_path: '',
-  bug_id: -1,
-  start_revision: 0,
-  end_revision: 3,
-  is_improvement: false,
-  recovered: true,
-  state: '',
-  statistic: '',
-  units: '',
-  degrees_of_freedom: 0,
-  median_before_anomaly: 0,
-  median_after_anomaly: 0,
-  p_value: 0,
-  segment_size_after: 0,
-  segment_size_before: 0,
-  std_dev_before_anomaly: 0,
-  t_statistic: 0,
-  subscription_name: '',
-  bug_component: '',
-  bug_labels: [],
-  bug_cc_emails: [],
-};
 
 describe('calculateRangeChange', () => {
   const offsets: CommitRange = [100, 120] as CommitRange;
@@ -280,68 +253,6 @@ describe('updateShortcut', () => {
     ] as GraphConfig[]);
 
     assert.deepEqual(shortcut, '12345');
-  });
-});
-
-describe('addToAnomalyMap', () => {
-  it('should set fullAnomalyMap if null', () => {
-    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    assert.equal(explore.fullAnomalyMap, null);
-
-    const anomalymap: AnomalyMap = {
-      traceA: { 101: { ...dummyAnomaly } },
-      traceB: { 101: { ...dummyAnomaly } },
-    };
-
-    explore.addToAnomalyMap(anomalymap);
-    assert.deepEqual(explore.fullAnomalyMap, anomalymap);
-  });
-
-  it('should set fullAnomalyMap if empty', () => {
-    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    explore.fullAnomalyMap = {};
-    assert.deepEqual(explore.fullAnomalyMap, {});
-
-    const anomalymap: AnomalyMap = {
-      traceA: { 101: { ...dummyAnomaly } },
-      traceB: { 101: { ...dummyAnomaly } },
-    };
-
-    explore.addToAnomalyMap(anomalymap);
-    assert.deepEqual(explore.fullAnomalyMap, anomalymap);
-  });
-
-  it('should update fullAnomalyMap if non-empty', () => {
-    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    const anomalymap: AnomalyMap = {
-      traceA: { 101: { ...dummyAnomaly } },
-      traceB: { 101: { ...dummyAnomaly } },
-    };
-
-    explore.fullAnomalyMap = anomalymap;
-
-    const newAnomalyMap: AnomalyMap = {
-      // Trace B has updated Anomaly for key 101 and a new anomaly for key 102
-      traceB: {
-        101: { ...dummyAnomaly, id: 1 },
-        102: { ...dummyAnomaly, id: 2 },
-      },
-      // Introduce a new trace
-      traceC: { 101: { ...dummyAnomaly, id: 2 } },
-    };
-
-    explore.addToAnomalyMap(newAnomalyMap);
-
-    const expectedAnomalyMap: AnomalyMap = {
-      traceA: { 101: { ...dummyAnomaly } },
-      traceB: {
-        101: { ...dummyAnomaly, id: 1 },
-        102: { ...dummyAnomaly, id: 2 },
-      },
-      traceC: { 101: { ...dummyAnomaly, id: 2 } },
-    };
-    assert.deepEqual(explore.fullAnomalyMap, expectedAnomalyMap);
   });
 });
 

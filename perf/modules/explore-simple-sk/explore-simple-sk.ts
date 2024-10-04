@@ -83,8 +83,6 @@ import {
   Commit,
   Trace,
   ReadOnlyParamSet,
-  AnomalyMap,
-  CommitNumberAnomalyMap,
 } from '../json';
 import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
@@ -119,7 +117,7 @@ import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { findSubDataframe, join } from '../dataframe';
+import { findAnomalyInRange, findSubDataframe, range } from '../dataframe';
 import { TraceFormatter, GetTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
 import {
@@ -136,6 +134,7 @@ import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { DataFrameRepository } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
+import { generateSubDataframe } from '../dataframe/index';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -171,9 +170,10 @@ const MIN_ZOOM_RANGE = 0.1;
 
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
+const monthInSec = 30 * 24 * 60 * 60;
+
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
-type PlotSummaryRequestCallback = (start: number, end: number) => Promise<void>;
 export interface ZoomWithDelta {
   zoom: CommitRange;
   delta: CommitNumber;
@@ -538,13 +538,9 @@ export class ExploreSimpleSk extends ElementSk {
 
   private scrollable: boolean = false;
 
-  private fullDataFrame: DataFrame | null = null;
-
   private traceKeyForSummary: string = '';
 
   chartTooltip: ChartTooltipSk | null = null;
-
-  fullAnomalyMap: AnomalyMap | null = null;
 
   useTestPicker: boolean = false;
 
@@ -1018,7 +1014,11 @@ export class ExploreSimpleSk extends ElementSk {
   private onSummaryPickerChanged(e: CustomEvent) {
     const selectedTrace = e.detail.value;
     this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace) || '';
-    this.populatePlotSummary();
+
+    const plot = this.plotSummary.value;
+    if (plot) {
+      plot.selectedTrace = this.traceKeyForSummary;
+    }
   }
 
   connectedCallback(): void {
@@ -1525,12 +1525,12 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /** Reflect the focused trace in the paramset. */
-  private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    this.paramset!.highlight = fromKey(e.detail.name);
-    this.commitTime!.textContent = new Date(
-      this._dataframe.header![e.detail.x]!.timestamp * 1000
-    ).toLocaleString();
-    const formattedTrace = this.traceFormatter!.formatTrace(fromKey(e.detail.name));
+  private plotTraceFocused({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>) {
+    const header = this.dfRepo?.dataframe.header;
+    const selected = header![(this.selectedRange?.begin || 0) + detail.x]!;
+    this.paramset!.highlight = fromKey(detail.name);
+    this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
+    const formattedTrace = this.traceFormatter!.formatTrace(fromKey(detail.name));
     this.traceDetails!.textContent = formattedTrace;
     this.traceDetailsCopy!.onclick = () => {
       navigator.clipboard.writeText(formattedTrace);
@@ -1541,13 +1541,13 @@ export class ExploreSimpleSk extends ElementSk {
       // if the commit details for a point is already loaded then
       // show those commit details on hover
       let c = null;
-      const commitPos = this._dataframe.header![e.detail.x]!.offset;
-      const key = JSON.stringify([e.detail.name, commitPos]);
+      const commitPos = selected.offset;
+      const key = JSON.stringify([detail.name, commitPos]);
       if (this.pointToCommitDetailMap.has(key)) {
         c = this.pointToCommitDetailMap.get(key) || null;
       }
 
-      this.enableTooltip(e.detail, c, false, false);
+      this.enableTooltip(detail, c, false, false);
     }
   }
 
@@ -1569,65 +1569,37 @@ export class ExploreSimpleSk extends ElementSk {
     return tmp ? tmp[0] : '';
   }
 
+  private selectedRange?: range;
+
   /**
    * React to the summary_selected event.
    * @param e Event object.
    */
-  summarySelected(e: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
-    const selected = findSubDataframe(
-      this.fullDataFrame!.header!,
-      {
-        begin: e.detail.valueStart as number,
-        end: e.detail.valueEnd as number,
-      },
-      e.detail.domain === 'commit' ? 'offset' : 'timestamp'
-    );
-    this.googleChartPlot!.selectedRange = selected;
+  summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    const df = this.dfRepo?.dataframe;
+    const header = df?.header || [];
+    const selected = findSubDataframe(header!, detail.value, detail.domain);
+    this.selectedRange = selected;
 
-    const traceKeys = Object.keys(this.fullDataFrame!.traceset);
-    const selectedTraceSet: TraceSet = TraceSet({});
-    traceKeys.forEach((key) => {
-      const fullTrace: number[] = this.fullDataFrame!.traceset[key];
-      selectedTraceSet[key] = fullTrace.slice(selected.begin, selected.end) as Trace;
+    const subDataframe = generateSubDataframe(df!, selected);
+    const anomalyMap = findAnomalyInRange(this.dfRepo?.anomaly || {}, {
+      begin: header[Math.min(selected.begin, header.length - 1)]!.offset,
+      end: header[Math.min(selected.end, header.length - 1)]!.offset,
     });
 
-    const columnHeader = this.fullDataFrame!.header!.slice(selected.begin, selected.end);
-
-    // Let's make sure the anomalies are supplied for the selection.
-    const anomalyMap: AnomalyMap = {};
-    if (this.fullAnomalyMap !== null) {
-      const commitCount = columnHeader.length;
-      Object.keys(this.fullAnomalyMap).forEach((key) => {
-        const anomalies = this.fullAnomalyMap![key];
-        const filteredAnomalies: CommitNumberAnomalyMap = {};
-        Object.keys(anomalies!)
-          .map(Number)
-          .forEach((commit) => {
-            // Add the anomaly only if the commit is in the selected range.
-            if (
-              commit >= columnHeader[0]!.offset &&
-              commit <= columnHeader[commitCount - 1]!.offset
-            ) {
-              filteredAnomalies[commit] = anomalies![commit];
-            }
-          });
-        anomalyMap![key] = filteredAnomalies;
-      });
-    }
-    this.plot!.removeAll();
-
     // Update the current dataframe to reflect the selection.
-    this._dataframe.traceset = selectedTraceSet;
-    this._dataframe.header = columnHeader;
-    this.AddPlotLines(selectedTraceSet, this.getLabels(columnHeader));
+    this._dataframe.traceset = subDataframe.traceset;
+    this._dataframe.header = subDataframe.header;
+
+    this.plot!.removeAll();
+    this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
     if (anomalyMap !== null) {
-      const anomalyDataMap = getAnomalyDataMap(
-        selectedTraceSet,
-        columnHeader,
+      this.plot!.anomalyDataMap = getAnomalyDataMap(
+        subDataframe.traceset,
+        subDataframe.header!,
         anomalyMap,
         this.state.highlight_anomalies
       );
-      this.plot!.anomalyDataMap = anomalyDataMap;
     }
   }
 
@@ -1659,27 +1631,21 @@ export class ExploreSimpleSk extends ElementSk {
     if (tooltipLeftPos + tooltipWidth > viewportWidth) {
       tooltipLeftPos = (pointDetails.xPos || 0) - tooltipWidth - tooltipMargin;
     }
+    const x = (this.selectedRange?.begin || 0) + pointDetails.x;
     const tooltipTopPos = (pointDetails.yPos || 0) + tooltipMargin;
     const testName = pointDetails.name;
-    const commitPosition = this._dataframe.header![pointDetails.x]!.offset;
-    let anomaly = null;
-    if (
-      this.fullAnomalyMap !== null &&
-      !(this.fullAnomalyMap![testName] === null || this.fullAnomalyMap![testName] === undefined)
-    ) {
-      const traceAnomalies = this.fullAnomalyMap![testName];
+    const commitPosition = this.dfRepo!.dataframe.header![x]!.offset;
 
-      if (
-        !(traceAnomalies![commitPosition] === null || traceAnomalies![commitPosition] === undefined)
-      ) {
+    const anomalyMap = this.dfRepo?.anomaly;
+    let anomaly: Anomaly | null = null;
+    if (anomalyMap) {
+      const traceAnomalies = anomalyMap[testName];
+      if (traceAnomalies && traceAnomalies[commitPosition]) {
         anomaly = traceAnomalies![commitPosition];
       }
     }
 
-    let c = null;
-    if (commit !== null) {
-      c = new ChartCommit(commit.hash, commit.ts, commit.author, commit.url);
-    }
+    const c = commit ? new ChartCommit(commit.hash, commit.ts, commit.author, commit.url) : null;
 
     tooltipElem!.display = true;
     tooltipElem!.left = tooltipLeftPos;
@@ -1722,19 +1688,20 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   /** Highlight a trace when it is clicked on. */
-  traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
-    this.plot!.highlight = [e.detail.name];
-    this.plot!.xbar = e.detail.x;
+  traceSelected({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
+    this.plot!.highlight = [detail.name];
+    this.plot!.xbar = detail.x;
     this.commits!.details = [];
 
-    const x = e.detail.x;
+    const selected = this.selectedRange?.begin || 0;
+    const x = selected + detail.x;
 
     if (x < 0) {
       return;
     }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commit: CommitNumber = this._dataframe.header![x]?.offset as CommitNumber;
+    const commit: CommitNumber = this.dfRepo?.dataframe.header![x]?.offset as CommitNumber;
     if (!commit) {
       return;
     }
@@ -1750,19 +1717,20 @@ export class ExploreSimpleSk extends ElementSk {
     // commit is returned.
 
     // First skip back to the next point with data.
-    const trace = this._dataframe.traceset[e.detail.name];
+    const trace = this.dfRepo?.dataframe.traceset[detail.name] || [];
+    const header = this.dfRepo?.header || [];
     let prevCommit: CommitNumber = CommitNumber(-1);
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
-        prevCommit = this._dataframe.header![i]!.offset as CommitNumber;
+        prevCommit = header[i]!.offset as CommitNumber;
         break;
       }
     }
 
     // Populate the commit-range-sk element.
     this.commitRangeSk!.trace = trace;
-    this.commitRangeSk!.commitIndex = e.detail.x;
-    this.commitRangeSk!.header = this._dataframe.header;
+    this.commitRangeSk!.commitIndex = detail.x;
+    this.commitRangeSk!.header = header;
 
     if (prevCommit !== -1) {
       for (let c = commit - 1; c > prevCommit; c--) {
@@ -1773,10 +1741,10 @@ export class ExploreSimpleSk extends ElementSk {
     // Find if selected point is an anomaly.
     let selected_anomaly: Anomaly | null = null;
     // TODO(b/362831653) - Update this to Google Chart once plot-simple-sk is deprecated.
-    if (e.detail.name in this.plot!.anomalyDataMap) {
-      const anomalyData = this.plot!.anomalyDataMap[e.detail.name];
+    if (detail.name in this.plot!.anomalyDataMap) {
+      const anomalyData = this.plot!.anomalyDataMap[detail.name];
       for (let i = 0; i < anomalyData.length; i++) {
-        if (anomalyData[i].x === e.detail.x) {
+        if (anomalyData[i].x === detail.x) {
           selected_anomaly = anomalyData[i].anomaly;
           break;
         }
@@ -1790,15 +1758,15 @@ export class ExploreSimpleSk extends ElementSk {
     // extract the actual trace name ,a=1,b=1, from it to display
     // the params and values on the paramset table
     const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
-    const isFuncKey = e.detail.name.match(funcKeyRegex);
+    const isFuncKey = detail.name.match(funcKeyRegex);
 
     // Convert the trace id (if valid) into a paramset to display.
     let tName = '';
     if (isFuncKey) {
       const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
-      tName = e.detail.name.match(keyRegex)![0];
-    } else if (validKey(e.detail.name)) {
-      tName = e.detail.name;
+      tName = detail.name.match(keyRegex)![0];
+    } else if (validKey(detail.name)) {
+      tName = detail.name;
     }
 
     if (tName !== '') {
@@ -1812,7 +1780,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     this._render();
 
-    this._state.selected.name = e.detail.name;
+    this._state.selected.name = detail.name;
     this._state.selected.commit = commit;
     this._stateHasChanged();
 
@@ -1834,7 +1802,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
-        const traceid = e.detail.name;
+        const traceid = detail.name;
         const parts = [];
         this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!);
         if (
@@ -1878,7 +1846,7 @@ export class ExploreSimpleSk extends ElementSk {
           this.pointLinks!.load(
             commit,
             prevCommit,
-            e.detail.name,
+            detail.name,
             window.perf.keys_for_commit_range!
           );
         }
@@ -1886,14 +1854,14 @@ export class ExploreSimpleSk extends ElementSk {
         // when the commit details are loaded, add those info to
         // pointToCommitDetailMap map which can be used to fetch commit
         // info on hover without making an API call
-        this.pointToCommitDetailMap.set(JSON.stringify([e.detail.name, cid]), json.commitSlice![0]);
+        this.pointToCommitDetailMap.set(JSON.stringify([detail.name, cid]), json.commitSlice![0]);
 
         const tooltipEnabled = this._state.enable_chart_tooltip;
-        const hasValidTooltipPos = e.detail.xPos !== undefined && e.detail.yPos !== undefined;
+        const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
         if (tooltipEnabled && hasValidTooltipPos) {
           this.tooltipFixed = true;
 
-          this.enableTooltip(e.detail, json.commitSlice![0], true, true);
+          this.enableTooltip(detail, json.commitSlice![0], true, true);
         }
       })
       .catch(errorMessage);
@@ -1985,7 +1953,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.plot!.addLines(traceSet, labels);
     if (this._state.plotSummary) {
       this.addPlotSummaryOptions();
-      this.populatePlotSummary();
     }
   }
 
@@ -2004,21 +1971,22 @@ export class ExploreSimpleSk extends ElementSk {
    * Adds the option list for the plot summary selection.
    */
   private addPlotSummaryOptions() {
-    if (this.fullDataFrame !== null) {
-      const traceIds: string[] = [];
-      Object.keys(this.fullDataFrame!.traceset).forEach((traceId) => {
-        // Ignore the zero trace if present.
-        if (traceId !== ZERO_NAME) {
-          const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
-          this.traceNameIdMap.set(traceName, traceId);
-          traceIds.push(traceName);
-        }
-      });
-
-      if (this.summaryOptionsField.value) {
-        this.summaryOptionsField.value!.options = traceIds;
-        this.summaryOptionsField.value!.label = 'Trace for summary bar';
+    if (!this.dfRepo?.dataframe) {
+      return;
+    }
+    const traceIds: string[] = [];
+    Object.keys(this.dfRepo.dataframe.traceset!).forEach((traceId) => {
+      // Ignore the zero trace if present.
+      if (traceId !== ZERO_NAME) {
+        const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
+        this.traceNameIdMap.set(traceName, traceId);
+        traceIds.push(traceName);
       }
+    });
+
+    if (this.summaryOptionsField.value) {
+      this.summaryOptionsField.value!.options = traceIds;
+      this.summaryOptionsField.value!.label = 'Trace for summary bar';
     }
   }
 
@@ -2031,20 +1999,6 @@ export class ExploreSimpleSk extends ElementSk {
     if (length > 0) {
       const header = this._dataframe!.header!;
       this.plotSummary.value?.Select(header[0]!, header[header.length - 1]!);
-    }
-  }
-
-  /**
-   * Populate the plot summary with the data in the fullDataFrame.
-   */
-  private populatePlotSummary() {
-    if (this.fullDataFrame !== null && this.fullDataFrame!.traceset !== null) {
-      // TODO(b/361354421): Remove this, it should be assigned automatically.
-      const plot = this.plotSummary.value;
-      if (plot) {
-        plot.selectedTrace = this.traceKeyForSummary;
-        plot.dataframe = this.fullDataFrame;
-      }
     }
   }
 
@@ -2224,6 +2178,7 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
+    this.tracesRendered = true;
     this.displayMode = json.display_mode;
     this._render();
 
@@ -2244,9 +2199,7 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     const mergedDataframe = dataframe;
-    this.fullDataFrame = mergedDataframe;
     this.traceKeyForSummary = '';
-    this.fullAnomalyMap = json.anomalymap;
 
     // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
     // before it called this method. Why does it do this twice? Is it a bug?
@@ -2310,101 +2263,12 @@ export class ExploreSimpleSk extends ElementSk {
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
-    this._dataframe = mergedDataframe;
-    this.tracesRendered = true;
     this._renderedTraces();
-    this.populateExtendedTimelineForPlotSummary();
-  }
-
-  /**
-   * Populate the summary bar over an extended time line. This involves the following steps.
-   *
-   * 1. Define a chunkSize for the data being fetched (eg: 1 month).
-   * 2. Define how many chunks before and after the queried timeline we want to populate.
-   * 3. For each chunk, query for the relevant data and populate the summary bar.
-   *
-   * Eg: If the user queried for a trace from t1 to tn, we go back to t1 - 3 months
-   * querying 1 month at a time and go tn + 3 months querying 1 month at a time.
-   */
-  async populateExtendedTimelineForPlotSummary(): Promise<void> {
     if (this._state.plotSummary) {
-      const dfLength = this.fullDataFrame!.header!.length;
-      let currentStart = this.fullDataFrame!.header![0]!.timestamp as number;
-      let currentEnd = this.fullDataFrame!.header![dfLength - 1]!.timestamp as number;
+      const header = dataframe.header!;
+      this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
 
-      const monthsToLook = 3;
-
-      const chunkSize = 30 * 24 * 60 * 60; // 1 month in seconds.
-      const processChunk: PlotSummaryRequestCallback = async (start, end) => {
-        const frameRequest = this.requestFrameBodyFullForRange(start, end);
-        // Set the request type explicitly to 0 (time range). If the current request type is
-        // 1 (compact), this will only return a fixed no of commits in the response and we end
-        // up missing data points in the time range.
-        frameRequest.request_type = 0;
-        await this.sendFrameRequest(frameRequest, (json) => {
-          if (json.dataframe !== undefined && json.dataframe !== null) {
-            const traceKeys = Object.keys(json.dataframe!.traceset);
-            if (traceKeys !== null && traceKeys.length > 0) {
-              this.fullDataFrame = join(this.fullDataFrame!, json.dataframe!);
-              this.populatePlotSummary();
-              this.addSelectionOnPlotSummary();
-              this.addToAnomalyMap(json.anomalymap);
-            }
-          }
-        });
-      };
-
-      // Let's fetch the data before the current time window.
-      const tasksToAwait: Promise<void>[] = [];
-      for (let i = 0; i < monthsToLook; i++) {
-        currentEnd = currentStart;
-        currentStart -= chunkSize;
-        tasksToAwait.push(processChunk(currentStart, currentEnd));
-      }
-
-      // Let's fetch data after the current time window.
-      currentEnd = this.fullDataFrame!.header![dfLength - 1]!.timestamp as number;
-
-      const now = Math.floor(Date.now() / 1000);
-      for (let i = 0; i < monthsToLook; i++) {
-        currentStart = currentEnd;
-        currentEnd = currentStart + chunkSize;
-
-        // Exit if we have reached the current time.
-        if (currentStart > now) {
-          break;
-        }
-        tasksToAwait.push(processChunk(currentStart, currentEnd));
-      }
-      await Promise.all(tasksToAwait);
-    }
-  }
-
-  private isEmptyMap(map: object | null | undefined): boolean {
-    return map === null || map === undefined || Object.keys(map).length === 0;
-  }
-
-  /**
-   * Add the newAnomalyMap to the full anomaly map.
-   * @param newAnomalyMap
-   */
-  addToAnomalyMap(newAnomalyMap: AnomalyMap): void {
-    if (this.isEmptyMap(this.fullAnomalyMap)) {
-      this.fullAnomalyMap = newAnomalyMap;
-    } else if (!this.isEmptyMap(newAnomalyMap)) {
-      Object.keys(newAnomalyMap!).forEach((key) => {
-        const existingMap = this.fullAnomalyMap![key];
-        if (this.isEmptyMap(existingMap)) {
-          this.fullAnomalyMap![key] = newAnomalyMap![key];
-        } else {
-          const newAnomalies = newAnomalyMap![key];
-          Object.keys(newAnomalies!)
-            .map(Number)
-            .forEach((commit) => {
-              this.fullAnomalyMap![key]![commit] = newAnomalies![commit];
-            });
-        }
-      });
+      this.dfRepo?.extendRange(-3 * monthInSec);
     }
   }
 
@@ -2841,7 +2705,7 @@ export class ExploreSimpleSk extends ElementSk {
    * If there are less than 3 common parameters, we use the default title.
    */
   private updateTitle() {
-    const traceset = this.fullDataFrame?.traceset;
+    const traceset = this.dfRepo?.dataframe.traceset;
     if (traceset === null || traceset === undefined) {
       return;
     }
