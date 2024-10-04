@@ -182,7 +182,7 @@ export class ExistingBugDialogSk extends ElementSk {
 
     const alertKeys: number[] = this._anomalies.map((a) => a.id);
     const requestBody = {
-      bug_id: bugId?.value,
+      bug_id: this.bug_id,
       project_id: projectId?.value,
       keys: alertKeys,
       trace_names: this._traceNames,
