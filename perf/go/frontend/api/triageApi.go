@@ -76,7 +76,7 @@ type ChromeperfFileBugResponse struct {
 //   - Nudge (move the anomaly position to adjacent datapoints)
 type EditAnomaliesRequest struct {
 	Keys          []int    `json:"keys"`
-	BugId         int      `json:"bug_id,omitempty"`
+	Action        string   `json:"action"`
 	StartRevision int      `json:"start_revision,omitempty"`
 	EndRevision   int      `json:"end_revision,omitempty"`
 	TraceNames    []string `json:"trace_names"`
@@ -179,7 +179,7 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: bug_id: %d, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.BugId, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
+	sklog.Debugf("[SkiaTriage] Anomalies (%d) are updated with: action: %s, start_revision: %d, end_revision: %d", editAnomaliesRequest.Keys, editAnomaliesRequest.Action, editAnomaliesRequest.StartRevision, editAnomaliesRequest.EndRevision)
 
 	api.markTracesForCacheInvalidation(ctx, editAnomaliesRequest.TraceNames)
 

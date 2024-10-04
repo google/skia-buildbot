@@ -59,8 +59,7 @@ export class TriageMenuSk extends ElementSk {
   }
 
   private ignoreAnomaly() {
-    const bug_id = -2;
-    this.makeEditAnomalyRequest(this._anomalies, this._trace_names, bug_id, null, null);
+    this.makeEditAnomalyRequest(this._anomalies, this._trace_names, 'IGNORE', null, null);
   }
 
   /**
@@ -84,16 +83,12 @@ export class TriageMenuSk extends ElementSk {
   makeEditAnomalyRequest(
     anomalies: Anomaly[],
     traceNames: string[],
-    bug_id: number | null,
+    editAction: string,
     start_revision: number | null,
     end_revision: number | null
   ): void {
     const keys: number[] = anomalies.map((a) => a.id);
-    const body: any = { keys: keys, trace_names: traceNames };
-
-    if (bug_id !== null) {
-      body.bug_id = bug_id;
-    }
+    const body: any = { keys: keys, trace_names: traceNames, action: editAction };
 
     if (start_revision !== null) {
       body.start_revision = start_revision;
@@ -112,7 +107,13 @@ export class TriageMenuSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((_) => {
-        if (bug_id) {
+        let bug_id = null;
+        if (editAction === 'RESET') {
+          bug_id = 0;
+        } else if (editAction === 'IGNORE') {
+          bug_id = -2;
+        }
+        if (bug_id !== null) {
           for (let i = 0; i < anomalies.length; i++) {
             anomalies[i].bug_id = bug_id;
           }
