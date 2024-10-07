@@ -312,6 +312,7 @@ export interface SkPerfConfig {
 	bug_host_url: string;
 	git_repo_url: string;
 	keys_for_commit_range: string[] | null;
+	image_tag: string;
 }
 
 export interface TriageRequest {

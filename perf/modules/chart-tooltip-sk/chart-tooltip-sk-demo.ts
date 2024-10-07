@@ -25,6 +25,7 @@ window.perf = {
   bug_host_url: '',
   git_repo_url: '',
   keys_for_commit_range: [],
+  image_tag: 'fake-tag',
 };
 
 const dummyAnomaly = (bugId: number): Anomaly => ({

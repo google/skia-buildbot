@@ -108,6 +108,7 @@ describe('applyFuncToTraces', () => {
     bug_host_url: '',
     git_repo_url: '',
     keys_for_commit_range: [],
+    image_tag: 'fake-tag',
   };
 
   // Create a common element-sk to be used by all the tests.
