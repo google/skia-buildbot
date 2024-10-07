@@ -365,7 +365,6 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				// Gather all containers across all deployments, statefulsets,
 				// and cron jobs.
 				containers := []v1.Container{}
-				containers = append(containers)
 				for _, config := range k8sConfigs.Deployment {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
