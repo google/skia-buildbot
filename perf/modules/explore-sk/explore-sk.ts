@@ -157,6 +157,15 @@ export class ExploreSk extends ElementSk {
       }
     });
 
+    // Event listener for when the Remove All button is clicked.
+    // This will hide the Multiview and favorites buttons since we
+    // essentially don't have any graph on the explore page basically
+    // rendering these buttons useless.
+    this.addEventListener('remove-all', () => {
+      this.showMultiViewButton = false;
+      this._render();
+    });
+
     // Event listener for when the "Query Highlighted" button is clicked.
     // It will populate the Test Picker with the keys from the highlighted
     // trace.

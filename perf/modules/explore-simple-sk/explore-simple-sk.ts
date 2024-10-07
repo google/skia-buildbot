@@ -2476,6 +2476,12 @@ export class ExploreSimpleSk extends ElementSk {
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
     this.tracesRendered = false;
+    this.graphTitle!.innerHTML = '';
+    this.traceDetailsCopy!.style.display = 'none';
+    this.traceDetails!.textContent = '';
+    this.tooltipFixed = false;
+    this.disableTooltip();
+    this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
 
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
