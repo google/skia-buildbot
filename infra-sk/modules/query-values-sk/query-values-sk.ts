@@ -45,16 +45,14 @@ export class QueryValuesSk extends ElementSk {
       title="Match items via regular expression."
       label="Regex"
       ?hidden=${ele.hide_regex}></checkbox-sk>
-    <input
-      type="text"
-      id="regexValue"
-      class="hidden"
-      @input=${ele._regexInputChange} />
+    <input type="text" id="regexValue" class="hidden" @input=${ele._regexInputChange} />
     <div class="filtering">
       <input
         id="filter"
         @input=${ele._fastFilter}
-        placeholder="Filter Values" />
+        placeholder="Filter Values"
+        name="query-value-sk-filter-val"
+        autocomplete="off" />
       ${QueryValuesSk.clearFilterButton(ele)}
     </div>
     <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
@@ -64,9 +62,7 @@ export class QueryValuesSk extends ElementSk {
 
   private static valuesTemplate = (ele: QueryValuesSk) =>
     ele.options.map(
-      (v) => html`
-        <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
-      `
+      (v) => html` <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div> `
     );
 
   private static clearFilterButton(ele: QueryValuesSk) {
@@ -74,12 +70,7 @@ export class QueryValuesSk extends ElementSk {
       return html``;
     }
     return html`
-      <button
-        @click=${ele._clearFilter}
-        class="clear_filters"
-        title="Clear filter">
-        &cross;
-      </button>
+      <button @click=${ele._clearFilter} class="clear_filters" title="Clear filter">&cross;</button>
     `;
   }
 
@@ -175,9 +166,7 @@ export class QueryValuesSk extends ElementSk {
     this._fireEvent();
   }
 
-  private _selectionChange(
-    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
-  ) {
+  private _selectionChange(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>) {
     this._selected = e.detail.selection.map((i) => this.options[i]);
     this._render();
     this._fireEvent();
@@ -190,17 +179,14 @@ export class QueryValuesSk extends ElementSk {
       selected = [`~${this._regexValue!.value}`];
     }
     this.dispatchEvent(
-      new CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>(
-        'query-values-changed',
-        {
-          detail: {
-            invert: this._invert!.checked,
-            regex: this._regex!.checked,
-            values: selected,
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>('query-values-changed', {
+        detail: {
+          invert: this._invert!.checked,
+          regex: this._regex!.checked,
+          values: selected,
+        },
+        bubbles: true,
+      })
     );
   }
 
@@ -257,12 +243,8 @@ export class QueryValuesSk extends ElementSk {
 
   set selected(val) {
     this._selected = val;
-    this._invert!.checked = !!(
-      this._selected.length >= 1 && this._selected[0][0] === '!'
-    );
-    this._regex!.checked = !!(
-      this._selected.length === 1 && this._selected[0][0] === '~'
-    );
+    this._invert!.checked = !!(this._selected.length >= 1 && this._selected[0][0] === '!');
+    this._regex!.checked = !!(this._selected.length === 1 && this._selected[0][0] === '~');
     this._cleanSelected();
     if (this._selected!.length && this._regex!.checked) {
       this._regexValue!.value = this._selected[0];
