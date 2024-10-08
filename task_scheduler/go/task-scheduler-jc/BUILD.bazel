@@ -17,6 +17,7 @@ go_library(
         "//go/gitstore/pubsub",
         "//go/httputils",
         "//go/human",
+        "//go/metrics2",
         "//go/periodic",
         "//go/pubsub",
         "//go/sklog",

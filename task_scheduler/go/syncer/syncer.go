@@ -29,7 +29,7 @@ import (
 const (
 	DefaultNumWorkers = 10
 
-	syncTimeout       = 15 * time.Minute
+	syncTimeout       = 30 * time.Minute
 	metricSyncing     = "task_scheduler_jc_syncing"
 	metricSyncTimeout = "task_scheduler_sync_timeout"
 	metricWorkerBusy  = "task_scheduler_jc_worker_busy"
@@ -111,7 +111,7 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*g
 		cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
 		gr, err := tempGitRepoGclient(ctx, rs, s.depotToolsDir, cacheDir, tmp)
 		if err != nil {
-			rvErr <- err
+			rvErr <- skerr.Wrap(err)
 			return
 		}
 		defer gr.Delete()
@@ -337,7 +337,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 				"repo":     rs.Repo,
 			}).Update(1)
 		}
-		return nil, err
+		return nil, skerr.Wrapf(err, "syncing to %s", cmd[len(cmd)-1])
 	}
 	if dur > 5*time.Minute {
 		sklog.Warningf("'gclient sync' took %s for %v; output: %s", dur, rs, out)
@@ -352,16 +352,16 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 		},
 	}
 	if _, err := co.Git(ctx, "remote", "set-url", git.DefaultRemote, rs.Repo); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
 	// Self-check.
 	head, err := co.RevParse(ctx, "HEAD")
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if head != rs.Revision {
-		return nil, fmt.Errorf("TempGitRepo ended up at the wrong revision. Wanted %q but got %q", rs.Revision, head)
+		return nil, skerr.Fmt("TempGitRepo ended up at the wrong revision. Wanted %q but got %q", rs.Revision, head)
 	}
 
 	return co, nil

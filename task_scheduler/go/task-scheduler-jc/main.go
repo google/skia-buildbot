@@ -26,6 +26,7 @@ import (
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/sklog"
@@ -175,6 +176,7 @@ func main() {
 	// Create caches.
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, tokenSource)
 	if err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 
@@ -183,6 +185,7 @@ func main() {
 	if *buildbucketPubSubProject != "" {
 		pubsubClient, err = pubsub.NewClient(ctx, *buildbucketPubSubProject, option.WithTokenSource(tokenSource))
 		if err != nil {
+			_ = metrics2.GetDefaultClient().Flush()
 			sklog.Fatal(err)
 		}
 	}
@@ -191,11 +194,13 @@ func main() {
 	sklog.Infof("Creating JobCreator.")
 	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient, *numSyncWorkers)
 	if err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Created JobCreator. Starting loop.")
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, jc.HandleRepoUpdate); err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
 	}
 	jc.Start(ctx, !*disableTryjobs)
