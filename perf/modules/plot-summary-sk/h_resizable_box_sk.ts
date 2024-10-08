@@ -53,7 +53,8 @@ export class HResizableBoxSk extends LitElement {
       cursor: move;
       --md-elevation-level: 1;
       z-index: 10;
-      background-color: #627eb02f;
+      opacity: 0.5;
+      background-color: var(--md-sys-color-primary-container, #ced0ce);
     }
     .surface::after {
       content: '';

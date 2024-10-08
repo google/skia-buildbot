@@ -314,6 +314,8 @@ export class State {
 
   plotSummary: boolean = false;
 
+  useMaterial?: boolean = false;
+
   highlight_anomalies: string[] = [];
 
   enable_chart_tooltip: boolean = false;
@@ -1010,6 +1012,8 @@ export class ExploreSimpleSk extends ElementSk {
       <plot-summary-sk
         ${ref(this.plotSummary)}
         @summary_selected=${this.summarySelected}
+        selectionType=${this._state.useMaterial ? 'material' : 'canvas'}
+        ?hasControl=${this._state.useMaterial}
         class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
       </plot-summary-sk>`;
   }
@@ -2412,6 +2416,9 @@ export class ExploreSimpleSk extends ElementSk {
             break;
           case 'plotSummary':
             this._state.plotSummary = paramValue;
+            break;
+          case 'useMaterial':
+            this._state.useMaterial = paramValue;
             break;
           case 'showZero':
             this._state.showZero = paramValue;

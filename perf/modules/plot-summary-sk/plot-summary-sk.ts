@@ -9,20 +9,31 @@
  * @example
  */
 import '@google-web-components/google-chart';
+import '@material/web/iconbutton/icon-button';
 import '../dataframe/dataframe_context';
 
 import { GoogleChart } from '@google-web-components/google-chart';
+import { MdIconButton } from '@material/web/iconbutton/icon-button.js';
+import { consume } from '@lit/context';
 import { html, LitElement, PropertyValues } from 'lit';
 import { ref, createRef } from 'lit/directives/ref.js';
-import { define } from '../../../elements-sk/modules/define';
-import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
+import { property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
+
 import { SummaryChartOptions, convertFromDataframe } from '../common/plot-builder';
 import { ColumnHeader, DataFrame } from '../json';
-import { property } from 'lit/decorators.js';
+import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
+import {
+  dataframeContext,
+  dataframeLoadingContext,
+  dataframeRepoContext,
+  DataFrameRepository,
+} from '../dataframe/dataframe_context';
+import { range } from '../dataframe/index';
+import { define } from '../../../elements-sk/modules/define';
+
 import { style } from './plot-summary-sk.css';
-import { range } from '../dataframe';
-import { consume } from '@lit/context';
-import { dataframeContext } from '../dataframe/dataframe_context';
+import { HResizableBoxSk } from './h_resizable_box_sk';
 
 // Describes the zoom in terms of x-axis source values.
 export type ZoomRange = [number, number] | null;
@@ -34,8 +45,17 @@ export interface PlotSummarySkSelectionEventDetails {
   domain: 'commit' | 'date';
 }
 
+const dayInSeconds = 60 * 60 * 24;
+
 export class PlotSummarySk extends LitElement {
   static styles = style;
+
+  @consume({ context: dataframeRepoContext })
+  private dfRepo?: DataFrameRepository;
+
+  @consume({ context: dataframeLoadingContext, subscribe: true })
+  @property({ reflect: true, type: Boolean })
+  private loading = false;
 
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
@@ -44,16 +64,17 @@ export class PlotSummarySk extends LitElement {
   @property({ attribute: false })
   dataframe?: DataFrame;
 
+  @property({ reflect: true })
+  selectionType: 'canvas' | 'material' = 'canvas';
+
   @property({ attribute: true })
   selectedTrace: string | null = null;
 
-  // The current selected value saved for re-adjusting selection box.
-  // The google chart reloads and redraws themselves asynchronously, we need to
-  // save the selection range and apply it after we received the `ready` event.
-  private _selectedValueRange: {
-    begin: ColumnHeader;
-    end: ColumnHeader;
-  } | null = null;
+  @property({ type: Number })
+  loadingChunk = 45 * dayInSeconds;
+
+  @property({ type: Boolean })
+  hasControl: boolean = false;
 
   constructor() {
     super();
@@ -92,25 +113,68 @@ export class PlotSummarySk extends LitElement {
   // The div element that will host the plot on the summary.
   private plotElement = createRef<GoogleChart>();
 
+  // The resizable selection box to draw the selection.
+  private selectionBox = createRef<HResizableBoxSk>();
+
+  // The current selected value saved for re-adjusting selection box.
+  // The google chart reloads and redraws themselves asynchronously, we need to
+  // save the selection range and apply it after we received the `ready` event.
+  private cachedSelectedValueRange: range | null = null;
+
+  private controlTemplate(side: 'right' | 'left') {
+    const chunk = this.loadingChunk;
+    const direction = side === 'left' ? -1 : 1;
+
+    const onClickLoad = async ({ target }: Event) => {
+      const btn = target as MdIconButton;
+      await this.dfRepo?.extendRange(chunk * direction);
+      btn.selected = false;
+    };
+
+    return html`
+      ${when(
+        this.hasControl && this.dfRepo,
+        () =>
+          html` <md-icon-button
+            toggle
+            ?disabled="${this.loading}"
+            class="load-btn"
+            @click=${onClickLoad}>
+            <md-icon>keyboard_double_arrow_${side}</md-icon>
+            <div slot="selected" class="loader"></div>
+          </md-icon-button>`
+      )}
+    `;
+  }
+
   protected render() {
     return html`
-      <div class="container">
+      ${this.controlTemplate('left')}
+      <div class="container hover-to-show-link">
         <google-chart
           ${ref(this.plotElement)}
           class="plot"
-          type="line"
+          type="area"
           @google-chart-ready=${this.onGoogleChartReady}>
         </google-chart>
-        </google-chart>
-        <canvas
-          ${ref(this.overlayCanvas)}
-          class="overlay"
-          @mousedown=${this.mouseDownListener}
-          @mousemove=${this.mouseMoveListener}
-          @mouseleave=${this.mouseUpListener}
-          @mouseup=${this.mouseUpListener}>
-        </canvas>
+        ${when(
+          this.selectionType === 'canvas',
+          () =>
+            html`<canvas
+              ${ref(this.overlayCanvas)}
+              class="overlay"
+              @mousedown=${this.mouseDownListener}
+              @mousemove=${this.mouseMoveListener}
+              @mouseleave=${this.mouseUpListener}
+              @mouseup=${this.mouseUpListener}>
+            </canvas>`,
+          () =>
+            html`<h-resizable-box-sk
+              ${ref(this.selectionBox)}
+              @selection-changed=${this.onSelectionChanged}></h-resizable-box-sk>`
+        )}
       </div>
+      ${this.controlTemplate('right')}
     `;
   }
 
@@ -128,11 +192,11 @@ export class PlotSummarySk extends LitElement {
 
   private onGoogleChartReady() {
     // Update the selectionBox because the chart might get updated.
-    if (!this._selectedValueRange) {
+    if (!this.cachedSelectedValueRange) {
       this.clearSelection();
       return;
     }
-    this.Select(this._selectedValueRange.begin, this._selectedValueRange.end);
+    this.selectedValueRange = this.cachedSelectedValueRange;
   }
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
@@ -163,19 +227,94 @@ export class PlotSummarySk extends LitElement {
     requestAnimationFrame(() => this.raf());
   }
 
+  private onSelectionChanged(e: CustomEvent) {
+    const valueRange = this.convertToValueRange(e.detail, this.domain) || range(0, 0);
+    this.cachedSelectedValueRange = valueRange;
+    this.dispatchEvent(
+      new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
+        detail: { start: 0, end: 0, value: valueRange, domain: this.domain },
+        bubbles: true,
+      })
+    );
+  }
+
+  // Converts from the value range to the coordinates range.
+  private convertToCoordsRange(valueRange: range | null, domain: 'date' | 'commit') {
+    const chart = this.chartLayout;
+    if (!chart || !valueRange) {
+      return null;
+    }
+    const isCommitScale = domain === 'commit';
+    const startX = chart?.getXLocation(
+      isCommitScale ? valueRange.begin : (new Date(valueRange.begin * 1000) as any)
+    );
+    const endX = chart?.getXLocation(
+      isCommitScale ? valueRange.end : (new Date(valueRange.end * 1000) as any)
+    );
+
+    return range(startX, endX);
+  }
+
+  // Converts from the value range to the coordinates range.
+  private convertToValueRange(coordsRange: range | null, domain: 'date' | 'commit') {
+    const chart = this.chartLayout;
+    if (!chart || !coordsRange) {
+      return null;
+    }
+    const range: range = {
+      begin: chart.getHAxisValue(coordsRange.begin),
+      end: chart.getHAxisValue(coordsRange.end),
+    };
+    // The date is saved in Date, we need to convert to the UNIX timestamp.
+    if (domain === 'date') {
+      range.begin = (range.begin as any).getTime() / 1000;
+      range.end = (range.end as any).getTime() / 1000;
+    }
+    return range;
+  }
+
+  // Get the current selected value range.
+  get selectedValueRange(): range | null {
+    const chart = this.chartLayout;
+    if (!chart) {
+      return { begin: 0, end: 0 };
+    }
+
+    const coordsRange =
+      this.selectionBox.value?.selectionRange ??
+      (this.selectionRange ? range(this.selectionRange![0], this.selectionRange![1]) : null);
+    const valueRange = this.convertToValueRange(coordsRange, this.domain);
+    if (valueRange) {
+      return valueRange;
+    } else {
+      return null;
+    }
+  }
+
+  // Set the current selected value range.
+  set selectedValueRange(range: range | null) {
+    this.cachedSelectedValueRange = range;
+
+    const chartRange = this.convertToCoordsRange(range, this.domain);
+    const box = this.selectionBox.value;
+    if (box) {
+      box.selectionRange = chartRange;
+    }
+
+    // Legace canvas selection.
+    if (chartRange) {
+      this.selectionRange = [chartRange.begin, chartRange.end];
+      this.drawSelection();
+    } else {
+      this.clearSelection();
+    }
+  }
+
   // Select the provided range on the plot-summary.
   public Select(begin: ColumnHeader, end: ColumnHeader) {
     const isCommitScale = this.domain === 'commit';
     const col = isCommitScale ? 'offset' : 'timestamp';
-
-    const chart = this.chartLayout;
-    const startX = chart?.getXLocation(
-      isCommitScale ? begin[col] : (new Date(begin[col] * 1000) as any)
-    );
-    const endX = chart?.getXLocation(isCommitScale ? end[col] : (new Date(end[col] * 1000) as any));
-    this.selectionRange = [startX || 0, endX || 0];
-    this._selectedValueRange = { begin, end };
-    this.drawSelection();
+    this.selectedValueRange = { begin: begin[col], end: end[col] };
   }
 
   // Get the underlying ChartLayoutInterface.
@@ -273,24 +412,24 @@ export class PlotSummarySk extends LitElement {
   }
 
   private summarySelected() {
-    if (this.selectionRange !== null) {
-      const start = this.chartLayout?.getHAxisValue(this.selectionRange[0]) || 0;
-      const end = this.chartLayout?.getHAxisValue(this.selectionRange[1]) || 0;
-      this.dispatchEvent(
-        new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
-          detail: {
-            start: this.selectionRange[0],
-            end: this.selectionRange[1],
-            value: {
-              begin: this.domain === 'date' ? (start as any).getTime() / 1000 : start,
-              end: this.domain === 'date' ? (end as any).getTime() / 1000 : end,
-            },
-            domain: this.domain,
-          },
-          bubbles: true,
-        })
-      );
+    if (!this.selectionRange) {
+      return;
     }
+    this.dispatchEvent(
+      new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
+        detail: {
+          start: this.selectionRange[0],
+          end: this.selectionRange[1],
+          value:
+            this.convertToValueRange(
+              range(this.selectionRange[0], this.selectionRange[1]),
+              this.domain
+            ) || range(0, 0),
+          domain: this.domain,
+        },
+        bubbles: true,
+      })
+    );
   }
 
   // Listener for the mouse move event.

@@ -170,6 +170,7 @@ export function SummaryChartOptions(
       textPosition: 'out',
       textStyle: {
         color: style.color,
+        fontSize: 8,
       },
       gridlines: {
         count: 10,
@@ -183,9 +184,13 @@ export function SummaryChartOptions(
       },
       viewWindowMode: 'maximized',
     },
+    tooltip: {
+      trigger: 'none',
+    },
     chartArea: {
       width: '100%',
-      height: '50%',
+      bottom: 24,
+      top: 24,
       backgroundColor: {
         stroke: 'black',
         strokeWidth: 1,

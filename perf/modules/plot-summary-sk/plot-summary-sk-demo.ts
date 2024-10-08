@@ -39,6 +39,13 @@ const frames = [
     [45 * 60, 45 * 60 * 3],
     [Array.from({ length: 24 }, (_, k) => k)]
   ),
+  generateFullDataFrame(
+    { begin: 100, end: 200 },
+    now,
+    2,
+    [35 * 60, 35 * 60 * 2],
+    [Array.from({ length: 37 }, (_, k) => 2 * k * k + 3 * k)]
+  ),
 ];
 
 window.customElements
@@ -49,11 +56,25 @@ window.customElements
     plots.forEach((plot) => {
       readys.push(plot.updateComplete);
     });
-    return Promise.all(readys);
+    return Promise.all(readys).then(() => Array.from(plots));
   })
+  .then((plots) =>
+    Promise.all(
+      Array.from(plots).map((plot, idx) => {
+        const chartReady = new Promise<PlotSummarySk>((resolve) => {
+          const el = plot;
+          el.addEventListener('google-chart-ready', () => {
+            resolve(el);
+          });
+        }).then((el) => {
+          return el.updateComplete;
+        });
+        plot.dataframe = frames[idx % frames.length];
+        return chartReady;
+      })
+    )
+  )
   .then(() => {
-    const plots = document.querySelectorAll<PlotSummarySk>('plot-summary-sk');
-    plots.forEach((plot, idx) => {
-      plot.dataframe = frames[idx % frames.length];
-    });
+    console.log('chart fully loaded.');
+    document.querySelector('#events')!.textContent = 'ready';
   });

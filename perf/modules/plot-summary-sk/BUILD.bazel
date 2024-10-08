@@ -8,12 +8,15 @@ sk_demo_page_server(
 sk_element(
     name = "plot-summary-sk",
     sk_element_deps = [
-        "//perf/modules/plot-simple-sk",
+        ":h_resizable_box_sk_ts_lib",
         ":plot-summary-sk.css_ts_lib",
+        "//perf/modules/plot-simple-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
         "//:node_modules/@lit/context",
+        "//:node_modules/@material/web",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
         "//elements-sk/modules:define_ts_lib",
