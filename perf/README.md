@@ -71,6 +71,17 @@ of the web component you want to view, for example:
 
     ./demopage.sh perf/modules/day-range-sk
 
+Additionally, the remote backend can be reverse-proxied such that the demo page
+server will forward APIs under `/_/` to the remote backend (`ENV_REMOTE_ENDPOINT`)
+
+    ENV_REMOTE_ENDPOINT='https://v8-perf.skia.org' ./demopage.sh perf/modules/day-range-sk
+
+or
+
+    ENV_REMOTE_ENDPOINT='https://v8-perf.skia.org' bazelisk run //perf/modules/plot-summary-sk:demo_page_server
+
+This will allow the demo page to fetch the real data.
+
 Note you need to have `entr` installed for this to work:
 
     sudo apt install entr
