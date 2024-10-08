@@ -29,7 +29,7 @@ import (
 const (
 	DefaultNumWorkers = 10
 
-	syncTimeout       = 30 * time.Minute
+	syncTimeout       = 15 * time.Minute
 	metricSyncing     = "task_scheduler_jc_syncing"
 	metricSyncTimeout = "task_scheduler_sync_timeout"
 	metricWorkerBusy  = "task_scheduler_jc_worker_busy"
