@@ -1575,9 +1575,17 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+  }
+
+  private updateSelectedRangeWithUpdatedDataframe(
+    range: range,
+    domain: 'commit' | 'date',
+    replot = true
+  ) {
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
-    const selected = findSubDataframe(header!, detail.value, detail.domain);
+    const selected = findSubDataframe(header!, range, domain);
     this.selectedRange = selected;
 
     const subDataframe = generateSubDataframe(df!, selected);
@@ -1590,9 +1598,12 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
 
-    this.plot!.removeAll();
-    this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
-    if (anomalyMap !== null) {
+    if (replot) {
+      this.plot!.removeAll();
+      this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
+    }
+
+    if (anomalyMap) {
       this.plot!.anomalyDataMap = getAnomalyDataMap(
         subDataframe.traceset,
         subDataframe.header!,
@@ -1989,18 +2000,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  /**
-   * This function tells the plot summary module to select the
-   * region specific to the currently rendered chart.
-   */
-  private addSelectionOnPlotSummary() {
-    const length = this._dataframe?.header?.length || 0;
-    if (length > 0) {
-      const header = this._dataframe!.header!;
-      this.plotSummary.value?.Select(header[0]!, header[header.length - 1]!);
-    }
-  }
-
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {
     const keys: string[] = [];
     Object.keys(this._dataframe.traceset).forEach((key) => {
@@ -2200,31 +2199,11 @@ export class ExploreSimpleSk extends ElementSk {
     const mergedDataframe = dataframe;
     this.traceKeyForSummary = '';
 
-    // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
-    // before it called this method. Why does it do this twice? Is it a bug?
-    this.plot!.removeAll();
-    const labels = this.getLabels(mergedDataframe.header!);
-    // TODO(seanmccullough): verify the order of addLines and setting the zoom on this.plot.
-    // Turns out that with real-life dataframe sizes, this "empty the plot and add all the
-    // data again" generates a lot of visual noise.  For the case of zoomed plots, this
-    // is really noticeable. It first renders the entire merged dataframe, flashes all those
-    // series squished into the main plot, then zooms it back in to just the previously-set
-    // zoom window.  I'm sure this is also quite inneficient compared to just having
-    // the plot render only the zoomed portion on the first try here.
-    this.AddPlotLines(mergedDataframe.traceset, labels);
     this.originalTraceSet = deepCopy(mergedDataframe.traceset);
 
-    // TODO(seanmccullough): merge logic for anomalymap - without merging, the incremental
-    // fetch might invalidate or erase already loaded data from whatever is in anomalymap.
-    if (json.anomalymap !== null) {
-      const anomalyDataMap = getAnomalyDataMap(
-        mergedDataframe.traceset,
-        mergedDataframe.header!,
-        json.anomalymap,
-        this.state.highlight_anomalies
-      );
-      this.plot!.anomalyDataMap = anomalyDataMap;
-    }
+    const header = dataframe.header;
+    const selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+    this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
 
     // Normalize bands to be just offsets.
     const bands: number[] = [];
@@ -2267,7 +2246,10 @@ export class ExploreSimpleSk extends ElementSk {
       const header = dataframe.header!;
       this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
 
-      this.dfRepo.value?.extendRange(-3 * monthInSec);
+      this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
+        // Already plotted, just need to update the data.
+        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
+      });
     }
   }
 
