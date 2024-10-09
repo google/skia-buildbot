@@ -5,7 +5,7 @@ vars = {
   'cpython3_version':   'version:3@3.11.9.chromium.35',
   'luci_tools_version': 'git_revision:eca00fed40cfd5ce02cffb893d0d52066a2fd796',
   'skia_tools_version': 'git_revision:09baf58309a3eb25460267fe3e720818bee5f679',
-  'tools_git_version':  'version:3@2.46.2.chromium.11',
+  'tools_git_version':  'version:3@2.47.0.chromium.11',
 }
 
 deps = {
