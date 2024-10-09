@@ -104,7 +104,6 @@ func main() {
 	)
 
 	// TODO(jcgregorio) Switch to generator.AddMultipleUnionToNamespace().
-	// TOTO (jiaxindong) b/369899222 Remove ProjectId type
 	addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},

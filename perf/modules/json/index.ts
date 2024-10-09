@@ -648,6 +648,6 @@ export function CL(v: string): CL {
 
 export type ProcessState = 'Running' | 'Success' | 'Error';
 
-export type ProjectId = 'angleproject' | 'aomedia' | 'apvi' | 'boringssl' | 'chromedriver' | 'chromium' | 'crashpad' | 'dawn' | 'gerrit' | 'gn' | 'google-breakpad' | 'gvp' | 'libyuv' | 'linux-syscall-support' | 'monorail' | 'nativeclient' | 'openscreen' | 'oss-fuzz' | 'pdfium' | 'pigweed' | 'project-zero' | 'skia' | 'swiftshader' | 'tint' | 'v8' | 'webm' | 'webp' | 'webports' | 'webrtc';
+export type ProjectId = 'chromium';
 
 export namespace progress { export type Status = 'Running' | 'Finished' | 'Error'; }

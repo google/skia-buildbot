@@ -105,36 +105,7 @@ export class ExistingBugDialogSk extends ElementSk {
   constructor() {
     super(ExistingBugDialogSk.template);
     this._projectId = 'chromium';
-
     this.allProjectIdOptions.push('chromium');
-    this.allProjectIdOptions.push('angleproject');
-    this.allProjectIdOptions.push('aomedia');
-    this.allProjectIdOptions.push('apvi');
-    this.allProjectIdOptions.push('boringssl');
-    this.allProjectIdOptions.push('chromedriver');
-    this.allProjectIdOptions.push('crashpad');
-    this.allProjectIdOptions.push('dawn');
-    this.allProjectIdOptions.push('gerrit');
-    this.allProjectIdOptions.push('gn');
-    this.allProjectIdOptions.push('google-breakpad');
-    this.allProjectIdOptions.push('gvp');
-    this.allProjectIdOptions.push('libyuv');
-    this.allProjectIdOptions.push('linux-syscall-support');
-    this.allProjectIdOptions.push('monorail');
-    this.allProjectIdOptions.push('nativeclient');
-    this.allProjectIdOptions.push('openscreen');
-    this.allProjectIdOptions.push('oss-fuzz');
-    this.allProjectIdOptions.push('pdfium');
-    this.allProjectIdOptions.push('pigweed');
-    this.allProjectIdOptions.push('project-zero');
-    this.allProjectIdOptions.push('skia');
-    this.allProjectIdOptions.push('swiftshader');
-    this.allProjectIdOptions.push('tint');
-    this.allProjectIdOptions.push('v8');
-    this.allProjectIdOptions.push('webm');
-    this.allProjectIdOptions.push('webp');
-    this.allProjectIdOptions.push('webports');
-    this.allProjectIdOptions.push('webrtc');
   }
 
   connectedCallback() {
@@ -175,15 +146,9 @@ export class ExistingBugDialogSk extends ElementSk {
     const bugId = document.getElementById('bug_id')! as HTMLInputElement;
     this.bug_id = +bugId?.value as number;
 
-    // Extract project_id.
-    const projectId = document.getElementById(
-      'existing-bug-dialog-select-project'
-    )! as HTMLInputElement;
-
     const alertKeys: number[] = this._anomalies.map((a) => a.id);
     const requestBody = {
       bug_id: this.bug_id,
-      project_id: projectId?.value,
       keys: alertKeys,
       trace_names: this._traceNames,
     };

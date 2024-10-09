@@ -222,14 +222,12 @@ const (
 // AllAnomalyDetectionNotifyTypes is the list of all valid AnomalyDetectionNotifyTypes.
 var AllAnomalyDetectionNotifyTypes []AnomalyDetectionNotifyType = []AnomalyDetectionNotifyType{IssueNotify, NoneNotify}
 
-// TOTO (jiaxindong) b/369899222 Remove ProjectId type
 // ProjectId defines the action to trigger.
 type ProjectId string
 
 var (
 	// AllProjectIds is a list of all project ids.
 	AllProjectIds = []ProjectId{
-		"angleproject", "aomedia", "apvi", "boringssl", "chromedriver", "chromium", "crashpad", "dawn", "gerrit", "gn", "google-breakpad", "gvp", "libyuv", "linux-syscall-support", "monorail", "nativeclient", "openscreen", "oss-fuzz", "pdfium", "pigweed", "project-zero", "skia", "swiftshader",
-		"tint", "v8", "webm", "webp", "webports", "webrtc",
+		"chromium",
 	}
 )

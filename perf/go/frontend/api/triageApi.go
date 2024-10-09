@@ -44,7 +44,6 @@ type FileBugRequest struct {
 // Existing bug request object to asscociate alerts from new bug UI.
 type SkiaAssociateBugRequest struct {
 	BugId      int      `json:"bug_id"`
-	ProjectId  string   `json:"project_id"`
 	Keys       []int    `json:"keys"`
 	TraceNames []string `json:"trace_names"`
 }
