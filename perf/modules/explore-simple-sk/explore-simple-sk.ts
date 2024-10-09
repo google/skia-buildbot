@@ -314,7 +314,7 @@ export class State {
 
   plotSummary: boolean = false;
 
-  useMaterial?: boolean = false;
+  useMaterial?: boolean = true;
 
   highlight_anomalies: string[] = [];
 
