@@ -77,13 +77,13 @@ export class ExistingBugDialogSk extends ElementSk {
           <select id="existing-bug-dialog-select-project" @input=${ele.projectIdToggle}>
             ${ExistingBugDialogSk.allProjectIds(ele)}
           </select>
-            <input
-              id="bug_id"
-              type="text"
-              name="bug_id"
-              required placeholder="Bug ID"
-              pattern="[0-9]+">
-              <br><br>
+          <input type="text"
+            id="bug_id"
+            placeholder="Bug ID"
+            pattern="[0-9]{5,9}"
+            title="Bug ID must be a number, between 5 and 9 digits."
+            required autocomplete="off">
+          <br><br>
           </div>
           <div class="footer">
             <spinner-sk id="dialog-spinner"></spinner-sk>
