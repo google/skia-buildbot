@@ -32,7 +32,6 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
-import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
 
 export class ExistingBugDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
@@ -48,8 +47,6 @@ export class ExistingBugDialogSk extends ElementSk {
   private _traceNames: string[] = [];
 
   private allProjectIdOptions: ProjectId[] = [];
-
-  private _toast: ToastSk | null = null;
 
   private bug_url: string = '';
 
@@ -96,10 +93,6 @@ export class ExistingBugDialogSk extends ElementSk {
         </form>
       </header>
     </dialog>
-        <toast-sk id="bug-url-toast" duration=0>
-      Existing Bug update: <a href=${ele.bug_url} target=_blank>${ele.bug_url}</a>
-      <button id="hide-toast" class="action" @click=${ele.closeToast}>Close</button>
-    </toast-sk>
   `;
 
   constructor() {
@@ -113,7 +106,6 @@ export class ExistingBugDialogSk extends ElementSk {
     upgradeProperty(this, '_anomalies');
     this._render();
 
-    this._toast = this.querySelector('#bug-url-toast');
     this._dialog = this.querySelector('#existing-bug-dialog');
     this._spinner = this.querySelector('#dialog-spinner');
     this._form = this.querySelector('#existing-bug-form');
@@ -171,7 +163,6 @@ export class ExistingBugDialogSk extends ElementSk {
         this.bug_url = `https://issues.chromium.org/issues/${this.bug_id as number}`;
         window.open(this.bug_url, '_blank');
         this._render();
-        this._toast!.show();
 
         // Update anomalies to reflected the existing Bug Id.
         for (let i = 0; i < this._anomalies.length; i++) {
@@ -181,6 +172,10 @@ export class ExistingBugDialogSk extends ElementSk {
         // Let explore-simple-sk and chart-tooltip-sk that anomalies have changed and we need to re-render.
         this.dispatchEvent(
           new CustomEvent('anomaly-changed', {
+            detail: {
+              newBug: false,
+              bugId: this.bug_id,
+            },
             bubbles: true,
           })
         );
@@ -205,10 +200,6 @@ export class ExistingBugDialogSk extends ElementSk {
     this._render();
     this._dialog!.showModal();
     this._active = true;
-  }
-
-  private closeToast(): void {
-    this._toast!.hide();
   }
 
   get isActive() {

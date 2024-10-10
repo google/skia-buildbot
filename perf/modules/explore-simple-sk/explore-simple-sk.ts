@@ -523,9 +523,14 @@ export class ExploreSimpleSk extends ElementSk {
 
   private commitRangeSk: CommitRangeSk | null = null;
 
+  // TODO(b/372694234): consolidate the pinpoint and triage toasts.
   private pinpointJobToast: ToastSk | null = null;
 
-  private closeToastButton: HTMLButtonElement | null = null;
+  private triageResultToast: ToastSk | null = null;
+
+  private closePinpointToastButton: HTMLButtonElement | null = null;
+
+  private closeTriageToastButton: HTMLButtonElement | null = null;
 
   private bisectButton: HTMLButtonElement | null = null;
 
@@ -997,7 +1002,11 @@ export class ExploreSimpleSk extends ElementSk {
   </dataframe-repository-sk>
   <toast-sk id="pinpoint-job-toast" duration=10000>
     Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${ele.jobId}</a>.
-    <button id="hide-toast" class="action">Close</button>
+    <button id="hide-pinpoint-toast" class="action">Close</button>
+  </toast-sk>
+  <toast-sk id="triage-result-toast" duration=0>
+    <span id="triage-result-text"></span><a id="triage-result-link"></a>
+    <button id="hide-triage-toast" class="action">Close</button>
   </toast-sk>
   `;
 
@@ -1069,7 +1078,9 @@ export class ExploreSimpleSk extends ElementSk {
     this.helpDialog = this.querySelector('#help');
     this.commitRangeSk = this.querySelector('#commit-range-link');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
-    this.closeToastButton = this.querySelector('#hide-toast');
+    this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
+    this.triageResultToast = this.querySelector('#triage-result-toast');
+    this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
     this.traceDetails = this.querySelector('#traceDetails');
@@ -1111,11 +1122,29 @@ export class ExploreSimpleSk extends ElementSk {
       })
       .catch(errorMessage);
 
-    this.closeToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
+    this.closePinpointToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
+    this.closeTriageToastButton!.addEventListener('click', () => this.triageResultToast?.hide());
 
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
-    this.addEventListener('anomaly-changed', () => {
+    this.addEventListener('anomaly-changed', (e) => {
       this.plot!.redrawOverlayCanvas();
+      const detail = (e as CustomEvent).detail;
+      if (!detail) {
+        this.triageResultToast?.hide();
+        return;
+      }
+      const bugId = (e as CustomEvent).detail.bugId;
+      const newBug = (e as CustomEvent).detail.newBug;
+      const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
+      const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
+      if (newBug === true) {
+        toastText.textContent = `New bug created: `;
+      } else {
+        toastText.textContent = `Anomalies associated with: `;
+      }
+      toastLink.setAttribute('href', `b/${bugId}`);
+      toastLink.innerText = `b/${bugId}`;
+      this.triageResultToast?.show();
     });
   }
 
