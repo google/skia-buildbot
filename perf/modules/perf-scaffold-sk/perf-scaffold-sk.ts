@@ -7,6 +7,7 @@
  *
  */
 import { html } from 'lit/html.js';
+import { choose } from 'lit/directives/choose.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -24,11 +25,13 @@ import '../../../elements-sk/modules/icons/trending-up-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import '../window/window';
+import { getBuildTag } from '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
 // the right hand side nav bar.
 const SIDEBAR_HELP_ID = 'sidebar_help';
+
+const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+/';
 
 /**
  * Moves the elements from a list to be the children of the target element.
@@ -74,7 +77,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
         <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
-        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
+        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
         ${this.revisionLinkTemplate()}
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
@@ -82,6 +85,7 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="${ele._reportBugUrl}" target="_blank" tab-index=0 >
           <bug-report-icon-sk></bug-report-icon-sk><span>Report Bug</span>
         </a>
+        ${ele.buildTagTemplate()}
       </div>
       <div id=help>
       </div>
@@ -98,11 +102,30 @@ export class PerfScaffoldSk extends ElementSk {
 
   private static revisionLinkTemplate = () => {
     if (window.perf.fetch_chrome_perf_anomalies) {
-      return html`<a href="/v/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info<span></a>`;
+      return html`<a href="/v/" tab-index="0"
+        ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info</span></a
+      >`;
     }
 
     return html``;
   };
+
+  private buildTagLinkTemplate(tag: string) {
+    return html`<a href="${BUILDBOT_GIT}${tag}" target="_blank">Build: ${tag}</a>`;
+  }
+
+  private buildTagTemplate() {
+    const buildTag = getBuildTag();
+    return html`${choose(
+      buildTag.type,
+      [
+        ['git', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['louhi', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['tag', () => html`<a>Build: ${buildTag.tag}</a>`],
+      ],
+      () => html`<a>Build: No Tag</a>`
+    )}`;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
