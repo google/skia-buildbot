@@ -31,7 +31,7 @@ import { getBuildTag } from '../window/window';
 // the right hand side nav bar.
 const SIDEBAR_HELP_ID = 'sidebar_help';
 
-const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+/';
+const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+/log/';
 
 /**
  * Moves the elements from a list to be the children of the target element.
