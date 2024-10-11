@@ -1142,8 +1142,10 @@ export class ExploreSimpleSk extends ElementSk {
       } else {
         toastText.textContent = `Anomalies associated with: `;
       }
-      toastLink.setAttribute('href', `b/${bugId}`);
-      toastLink.innerText = `b/${bugId}`;
+      const link = `https://issues.chromium.org/issues/${bugId}`;
+      toastLink.setAttribute('href', `${link}`);
+      toastLink.setAttribute('target', '_blank');
+      toastLink.innerText = `${bugId}`;
       this.triageResultToast?.show();
     });
   }
