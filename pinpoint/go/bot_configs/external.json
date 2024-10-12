@@ -552,6 +552,43 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
+  "mac-intel-perf": {
+    "browser": "release",
+    "bucket": "luci.chrome.try",
+    "builder": "Mac Builder Perf",
+    "dimensions": [
+      {
+        "key": "pool",
+        "value": "chrome.tests.pinpoint"
+      },
+      {
+        "key": "mac_model",
+        "value": "Macmini8,1"
+      },
+      {
+        "key": "os",
+        "value": "Mac-15"
+      },
+      {
+        "key": "gpu",
+        "value": "8086:3e9b"
+      },
+      {
+        "key": "synthetic_product_name",
+        "value": "Macmini8,1_x86-64-i7-8700B_Intel UHD Graphics 630_65536_APPLE SSD AP1024M"
+      }
+    ],
+    "repository": "chromium",
+    "scheduler": {
+      "budget": 5.0,
+      "costs": {
+        "functional": 0.5,
+        "performance": 1.0,
+        "try": 0.3
+      }
+    },
+    "swarming_server": "https://chrome-swarming.appspot.com"
+  },
   "mac-laptop_high_end-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",
