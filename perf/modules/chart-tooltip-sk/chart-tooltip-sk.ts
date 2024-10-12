@@ -8,11 +8,12 @@
  *
  * @example
  */
-import { html, TemplateResult } from 'lit/html.js';
+import { html, css, LitElement } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
-import { Anomaly, CommitNumber } from '../json';
+import { Anomaly, Commit, CommitNumber } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
@@ -22,41 +23,63 @@ import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 
-export class Commit {
-  commit_hash: string = '';
+@customElement('commit-info-sk')
+export class CommitInfoSk extends LitElement {
+  static styles = css`
+    ul.table {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
 
-  timestamp: string = '';
+      li {
+        display: table-row;
 
-  author: string = '';
+        span {
+          &:first-child {
+            font-weight: bold;
+          }
 
-  commit_url: string = '';
+          display: table-cell;
+          padding: 1px 6px;
+        }
+      }
+    }
 
-  constructor(commit_hash: string, timestamp: number, author: string, commit_url: string) {
-    this.commit_hash = commit_hash;
-    // timestamp is in seconds, so we need to multiply by 1000 to get ms
-    this.timestamp = new Date(timestamp * 1000).toDateString();
-    this.author = author;
-    this.commit_url = commit_url;
-  }
+    ul.table#anomaly-details {
+      margin-bottom: 5px;
+    }
+  `;
+
+  @property({ attribute: false })
+  commitInfo: Commit | null = null;
 
   // render generates commit information into a list. note that this does not
   // include the header.
-  render(): TemplateResult {
+  render() {
+    if (!this.commitInfo) {
+      return;
+    }
+
     return html`
       <ul class="table">
         <li>
           <span>Commit:</span>
           <span>
-            <a href="${this.commit_url}" target="_blank"> ${this.commit_hash.substring(0, 7)} </a>
+            <a href="${this.commitInfo.url}" target="_blank">
+              ${this.commitInfo.hash.substring(0, 7)}
+            </a>
           </span>
         </li>
         <li>
           <span>Date:</span>
-          <span>${this.timestamp}</span>
+          <span>${new Date(this.commitInfo.ts * 1000).toDateString()}</span>
         </li>
         <li>
           <span>Author:</span>
-          <span>${this.author}</span>
+          <span>${this.commitInfo.author}</span>
         </li>
       </ul>
     `;
@@ -81,8 +104,7 @@ export class ChartTooltipSk extends ElementSk {
   // usually curated through explore-simple-sk._dataframe.header[x].
   private _commit_position: CommitNumber | null = null;
 
-  // Commit details
-  private _commit: Commit | null = null;
+  commitInfo: Commit | null = null;
 
   // Anomaly information, set only when the data point is an anomaly.
   // Usually determined by content in anomaly map referenced against the result
@@ -156,7 +178,7 @@ export class ChartTooltipSk extends ElementSk {
           Regressions at ${ele.commit_position}
         </a>
       </div>
-      ${ele.commitTemplate()}
+      <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       <ingest-file-links-sk id="tooltip-ingest-file-links"></ingest-file-links-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
@@ -174,24 +196,12 @@ export class ChartTooltipSk extends ElementSk {
     </div>
   `;
 
-  // HTML template for Commit information, only displayed when commit
-  // data is provided. Commit information is usually provided by the
-  // results of POST /_/cid response.
-  private commitTemplate() {
-    if (this.commit === null) {
-      return html``;
-    }
-
-    return html` <h4>Commit Details</h4>
-      ${this.commit.render()}`;
-  }
-
   private seeMoreText() {
-    if (this._commit !== null) {
-      return html``;
+    if (this.commitInfo !== null) {
+      return;
     }
 
-    return html` <span class="see-more-text">*Click on the point to see more details</span> `;
+    return html`<span class="see-more-text">*Click on the point to see more details</span>`;
   }
 
   // HTML template for Anomaly information, only shown when the data
@@ -280,7 +290,7 @@ export class ChartTooltipSk extends ElementSk {
     const details = json.commitSlice![0];
 
     // Setter will re-render component.
-    this.commit = new Commit(details.hash, details.ts, details.author, details.url);
+    this.commitInfo = details;
   };
 
   // load function sets the value of the fields minimally required to display
@@ -301,9 +311,9 @@ export class ChartTooltipSk extends ElementSk {
     this._y_value = y_value;
     this._commit_position = commit_position;
     this._anomaly = anomaly;
-    this._commit = commit;
     this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
+    this.commitInfo = commit;
 
     if (displayFileLinks && commit_position !== null && test_name !== '') {
       this.ingestFileLinks?.load(commit_position, test_name);
@@ -360,15 +370,6 @@ export class ChartTooltipSk extends ElementSk {
     if (val && this.test_name !== '') {
       this.ingestFileLinks?.load(val, this.test_name);
     }
-    this._render();
-  }
-
-  get commit(): Commit | null {
-    return this._commit;
-  }
-
-  set commit(val: Commit | null) {
-    this._commit = val;
     this._render();
   }
 

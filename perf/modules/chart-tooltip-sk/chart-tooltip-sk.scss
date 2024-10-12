@@ -39,32 +39,6 @@ chart-tooltip-sk {
       text-decoration: underline;
     }
 
-    ul.table {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-
-      li {
-        display: table-row;
-
-        span {
-          &:first-child {
-            font-weight: bold;
-          }
-
-          display: table-cell;
-          padding: 1px 6px;
-        }
-      }
-    }
-
-    ul.table#anomaly-details {
-      margin-bottom: 5px;
-    }
-
     .revlink {
       margin-bottom: 26px;
     }

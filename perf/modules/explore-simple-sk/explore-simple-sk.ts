@@ -127,7 +127,7 @@ import {
 import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
 import '../dataframe/dataframe_context';
-import { ChartTooltipSk, Commit as ChartCommit } from '../chart-tooltip-sk/chart-tooltip-sk';
+import { ChartTooltipSk } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
@@ -1690,8 +1690,6 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    const c = commit ? new ChartCommit(commit.hash, commit.ts, commit.author, commit.url) : null;
-
     tooltipElem!.display = true;
     tooltipElem!.left = tooltipLeftPos;
     tooltipElem!.top = tooltipTopPos;
@@ -1711,7 +1709,7 @@ export class ExploreSimpleSk extends ElementSk {
       pointDetails.y,
       commitPosition,
       anomaly,
-      c,
+      commit,
       displayFileLinks,
       fixTooltip,
       closeBtnAction
