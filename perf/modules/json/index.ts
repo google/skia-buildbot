@@ -206,14 +206,14 @@ export interface RegressionAtCommit {
 export interface FrameRequest {
 	begin: number;
 	end: number;
-	formulas: string[] | null;
-	queries: string[] | null;
-	keys: string;
+	formulas?: string[] | null;
+	queries?: string[] | null;
+	keys?: string;
 	tz: string;
-	num_commits: number;
-	request_type: RequestType;
-	disable_filter_parent_traces: boolean;
-	pivot: pivot.Request | null;
+	num_commits?: number;
+	request_type?: RequestType;
+	disable_filter_parent_traces?: boolean;
+	pivot?: pivot.Request | null;
 }
 
 export interface AlertUpdateResponse {
