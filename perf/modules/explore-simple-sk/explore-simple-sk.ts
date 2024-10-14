@@ -1660,24 +1660,7 @@ export class ExploreSimpleSk extends ElementSk {
     // clicking on
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
 
-    const viewportWidth = Math.max(
-      document.documentElement.clientWidth || 0,
-      window.innerWidth || 0
-    );
-
-    const tooltipMargin = 10;
-
-    const tooltipWidth = 420;
-
-    let tooltipLeftPos = (pointDetails.xPos || 0) + tooltipMargin;
-
-    // If tooltip falls beyond viewport width move it to left so that
-    // it is always visible
-    if (tooltipLeftPos + tooltipWidth > viewportWidth) {
-      tooltipLeftPos = (pointDetails.xPos || 0) - tooltipWidth - tooltipMargin;
-    }
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
-    const tooltipTopPos = (pointDetails.yPos || 0) + tooltipMargin;
     const testName = pointDetails.name;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
 
@@ -1690,18 +1673,14 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    tooltipElem!.display = true;
-    tooltipElem!.left = tooltipLeftPos;
-    tooltipElem!.top = tooltipTopPos;
+    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
 
-    let closeBtnAction = () => {};
-    if (fixTooltip) {
-      closeBtnAction = () => {
-        this.tooltipFixed = false;
-        tooltipElem!.display = false;
-        this._render();
-      };
-    }
+    const closeBtnAction = fixTooltip
+      ? () => {
+          this.tooltipFixed = false;
+          tooltipElem!.moveTo(null);
+        }
+      : () => {};
 
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
@@ -1726,7 +1705,7 @@ export class ExploreSimpleSk extends ElementSk {
   /** Hides the tooltip. Generally called when mouse moves out of the graph */
   disableTooltip(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
-    tooltipElem!.display = false;
+    tooltipElem!.moveTo(null);
     this._render();
   }
 

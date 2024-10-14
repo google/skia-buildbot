@@ -10,6 +10,7 @@
  */
 import { html, css, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { createRef, ref } from 'lit/directives/ref.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
@@ -127,16 +128,10 @@ export class ChartTooltipSk extends ElementSk {
   // Ingest file links element. Provides links based on cid and
   ingestFileLinks: IngestFileLinksSk | null = null;
 
-  // Fields below are used for chart tooltip styling
+  // Cached margin to compute once.
+  private margin: { left?: number; right?: number } = {};
 
-  // If the tooltip is to be displayed or hidden
-  _display: boolean = false;
-
-  // The position from top of it's first position:relative parent in px
-  top: number = 0;
-
-  // The position from left of it's first position:relative parent in px
-  left: number = 0;
+  private containerDiv = createRef<HTMLDivElement>();
 
   // The overall html template for outlining the contents needed in
   // chart-tooltip.
@@ -155,10 +150,7 @@ export class ChartTooltipSk extends ElementSk {
   //
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
-    <div
-      class="container"
-      style="display: ${ele._display ? 'block' : 'none'};
-             left: ${ele.left}px; top: ${ele.top}px;">
+    <div class="container" ${ref(ele.containerDiv)}>
       <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -195,6 +187,42 @@ export class ChartTooltipSk extends ElementSk {
       </button>
     </div>
   `;
+
+  /**
+   * Move the tooltip to the given position.
+   * @param position The position relative to its parent; hidden if null.
+   */
+  moveTo(position: { x: number; y: number } | null): void {
+    const div = this.containerDiv.value;
+    if (!div) {
+      return;
+    }
+    if (!position) {
+      div!.style.display = 'none';
+      return;
+    }
+
+    const viewportWidth = Math.max(
+      document.documentElement.clientWidth || 0,
+      window.innerWidth || 0
+    );
+
+    this.margin.left = this.margin.left ?? parseInt(getComputedStyle(div!).marginLeft);
+    this.margin.right = this.margin.right ?? parseInt(getComputedStyle(div!).marginRight);
+
+    const parentLeft = div.parentElement?.getBoundingClientRect().left || 0;
+    const rect = div!.getBoundingClientRect();
+    const left = parentLeft + position.x + this.margin.right! + rect.width;
+
+    // Shift to the left if the element exceeds the viewport.
+    const adjustedX =
+      left > viewportWidth
+        ? position.x - (rect.width + this.margin.left! + this.margin.right!)
+        : position.x;
+    div!.style.display = 'block';
+    div!.style.left = `${adjustedX}px`;
+    div!.style.top = `${position.y}px`;
+  }
 
   private seeMoreText() {
     if (this.commitInfo !== null) {
@@ -379,11 +407,6 @@ export class ChartTooltipSk extends ElementSk {
 
   set bug_host_url(val: string) {
     this._bug_host_url = val;
-    this._render();
-  }
-
-  set display(val: boolean) {
-    this._display = val;
     this._render();
   }
 }
