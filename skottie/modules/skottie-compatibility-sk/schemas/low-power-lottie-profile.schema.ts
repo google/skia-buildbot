@@ -458,24 +458,45 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
-          "no-gradient-fill": {
-            "feature-code": "shape-fill-gradient",
+          "no-gradient-fill-radial": {
+            "feature-code": "shape-fill-gradient-radial",
+            "feature-link": "shape-fill-gradient",
             "not": {
               "type": "object",
               "properties": {
                 "ty": {
                   "const": "gf"
+                },
+                "t": {
+                  "const": 2
                 }
               }
             }
           },
           "no-gradient-stroke": {
             "feature-code": "shape-stroke-gradient",
+            "feature-level": "partial",
+            "feature-details": "If Stroke is animated, may cause framerate issues",
             "not": {
               "type": "object",
               "properties": {
                 "ty": {
                   "const": "gs"
+                }
+              }
+            }
+          },
+          "no-gradient-stroke-radial": {
+            "feature-code": "shape-stroke-gradient-radial",
+            "feature-link": "shape-stroke-gradient",
+            "not": {
+              "type": "object",
+              "properties": {
+                "ty": {
+                  "const": "gs"
+                },
+                "t": {
+                  "const": 2
                 }
               }
             }
@@ -525,7 +546,13 @@ export const lowPowerLottieProfileSchema =
               "$ref": "#/$defs/features/shapes/types/no-stroke"
             },
             {
+              "$ref": "#/$defs/features/shapes/types/no-gradient-fill-radial"
+            },
+            {
               "$ref": "#/$defs/features/shapes/types/no-gradient-stroke"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-radial"
             },
             {
               "$ref": "#/$defs/features/shapes/types/only-supported-shape-transforms"
