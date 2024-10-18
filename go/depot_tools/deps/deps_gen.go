@@ -154,17 +154,17 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia/tools/bazel_build_all": {
 		Id:      "skia/tools/bazel_build_all",
-		Version: "git_revision:70e3e4feed088277314718aa7e64121d5e2c46ff",
+		Version: "git_revision:e81b15c8854a18d57d15c0c334cc2f6557ceec65",
 		Path:    "task_drivers",
 	},
 	"skia/tools/bazel_test_all": {
 		Id:      "skia/tools/bazel_test_all",
-		Version: "git_revision:70e3e4feed088277314718aa7e64121d5e2c46ff",
+		Version: "git_revision:e81b15c8854a18d57d15c0c334cc2f6557ceec65",
 		Path:    "task_drivers",
 	},
 	"skia/tools/command_wrapper": {
 		Id:      "skia/tools/command_wrapper",
-		Version: "git_revision:70e3e4feed088277314718aa7e64121d5e2c46ff",
+		Version: "git_revision:e81b15c8854a18d57d15c0c334cc2f6557ceec65",
 		Path:    "task_drivers",
 	},
 	"skia/tools/goldctl": {
@@ -174,7 +174,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia/tools/presubmit": {
 		Id:      "skia/tools/presubmit",
-		Version: "git_revision:70e3e4feed088277314718aa7e64121d5e2c46ff",
+		Version: "git_revision:e81b15c8854a18d57d15c0c334cc2f6557ceec65",
 		Path:    "task_drivers",
 	},
 }
