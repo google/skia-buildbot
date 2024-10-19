@@ -79,7 +79,7 @@
     "streamx": "^2.15.5",
     "typescript": "5.4.5",
     "ua-parser-js": "^0.7.34",
-    "vanilla-jsoneditor": "^0.23.2"
+    "vanilla-jsoneditor": "^1.0.8"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
