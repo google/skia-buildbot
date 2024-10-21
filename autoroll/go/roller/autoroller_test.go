@@ -2,16 +2,31 @@ package roller
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/config"
+	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/roller_cleanup"
-	"go.skia.org/infra/autoroll/go/roller_cleanup/mocks"
+	roller_cleanup_mocks "go.skia.org/infra/autoroll/go/roller_cleanup/mocks"
+	"go.skia.org/infra/autoroll/go/status"
+	"go.skia.org/infra/email/go/emailclient"
+	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcs"
+	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
+	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/now"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestAutoRollerRolledPast(t *testing.T) {
@@ -69,7 +84,7 @@ func TestDeleteCheckoutAndExit(t *testing.T) {
 	}
 
 	// Create the roller.
-	mockCleanup := &mocks.DB{}
+	mockCleanup := &roller_cleanup_mocks.DB{}
 	r := &AutoRoller{
 		cleanup: mockCleanup,
 		roller:  "my-roller",
@@ -109,4 +124,145 @@ func TestDeleteCheckoutAndExit(t *testing.T) {
 		_, err := os.Stat(file)
 		require.True(t, os.IsNotExist(err))
 	}
+}
+
+func TestRepoManagerInitFailed(t *testing.T) {
+	// Ensure that we delete local data when repo manager creation fails.
+	gerritConfig := &config.GerritConfig{
+		Url:     "fake.gerrit.url",
+		Project: "fake-gerrit-project",
+	}
+	cfg := &config.Config{
+		RollerName:        "fake-roller",
+		ChildDisplayName:  "child",
+		ParentDisplayName: "parent",
+		ParentWaterfall:   "fake",
+		OwnerPrimary:      "me",
+		OwnerSecondary:    "you",
+		Contacts:          []string{"me@google.com"},
+		ServiceAccount:    "fake-service-account@",
+		Reviewer:          []string{"me@google.com"},
+		CommitMsg:         &config.CommitMsgConfig{},
+		CodeReview: &config.Config_Gerrit{
+			Gerrit: gerritConfig,
+		},
+		Kubernetes: &config.KubernetesConfig{
+			Cpu:    "1",
+			Disk:   "128",
+			Memory: "1",
+			Image:  "fake-docker-image",
+		},
+		RepoManager: &config.Config_ParentChildRepoManager{
+			ParentChildRepoManager: &config.ParentChildRepoManagerConfig{
+				Parent: &config.ParentChildRepoManagerConfig_DepsLocalGerritParent{
+					DepsLocalGerritParent: &config.DEPSLocalGerritParentConfig{
+						DepsLocal: &config.DEPSLocalParentConfig{
+							GitCheckout: &config.GitCheckoutParentConfig{
+								GitCheckout: &config.GitCheckoutConfig{
+									Branch:  "main",
+									RepoUrl: "fake.parent.url",
+								},
+								Dep: &config.DependencyConfig{
+									Primary: &config.VersionFileConfig{
+										Id:   "fake.child.url",
+										Path: "DEPS",
+									},
+								},
+							},
+						},
+						Gerrit: gerritConfig,
+					},
+				},
+				Child: &config.ParentChildRepoManagerConfig_GitCheckoutChild{
+					GitCheckoutChild: &config.GitCheckoutChildConfig{
+						GitCheckout: &config.GitCheckoutConfig{
+							Branch:  "main",
+							RepoUrl: "fake.child.url",
+						},
+					},
+				},
+			},
+		},
+	}
+	urlmock := mockhttpclient.NewURLMock()
+	httpClient := urlmock.Client()
+	chatbotCfgReader := func() string { return "" }
+	emailer := emailclient.Client{}
+	gerritClient := &gerrit_mocks.GerritInterface{}
+	githubClient := (*github.GitHub)(nil)
+	workdir := t.TempDir()
+	serverURL := ""
+	gcsClient := gcs.GCSClient(nil)
+	rollerName := cfg.RollerName
+	local := true
+	statusDB := status.DB(nil)
+	manualRollDB := manual.DB(nil)
+	cleanupDB := &roller_cleanup_mocks.DB{}
+
+	// Set up mocks.
+	nowProvider := func() time.Time {
+		return time.Unix(1729524544, 0) // Arbitrary timestamp.
+	}
+	gitPath := "/path/to/fake/git"
+	ctx := context.Background()
+	ctx = git_common.WithGitFinder(ctx, func() (string, error) {
+		return gitPath, nil
+	})
+	ctx = exec.NewContext(ctx, func(ctx context.Context, cmd *exec.Command) error {
+		// Mocks needed for git_common.FindGit.
+		if err := git_common.MocksForFindGit(ctx, cmd); err != nil {
+			return err
+		}
+
+		// Fail all gclient commands. This ensures that RepoManager creation
+		// will fail, as required by this test.
+		isGclientCmd := false
+		for _, arg := range append([]string{cmd.Name}, cmd.Args...) {
+			if strings.Contains(arg, "gclient") {
+				isGclientCmd = true
+			}
+		}
+		if isGclientCmd {
+			return errors.New("mocked gclient error")
+		}
+
+		// Misc Git mocks.
+		sklog.Errorf("%s %v", cmd.Name, cmd.Args)
+		if cmd.Name == gitPath {
+			// This is for syncing depot tools. Just return the expected hash.
+			if cmd.Args[0] == "rev-parse" {
+				depotToolsVersion, err := depot_tools.FindVersion()
+				if err != nil {
+					return err
+				}
+				_, err = cmd.CombinedOutput.Write([]byte(depotToolsVersion))
+				return err
+			}
+		}
+
+		return nil
+	})
+	ctx = context.WithValue(ctx, now.ContextKey, now.NowProvider(nowProvider))
+
+	gerritClient.On("GetUserEmail", testutils.AnyContext).Return("me@google.com", nil)
+	urlmock.Mock("https://chromiumdash.appspot.com/fetch_milestones", mockhttpclient.MockGetDialogue([]byte(`[
+{"chromium_branch":"6778","milestone":131,"schedule_active":true,"schedule_phase":"beta"},
+{"chromium_branch":"6723","milestone":130,"schedule_active":true,"schedule_phase":"stable"}
+]`)))
+	cleanupDB.On("RequestCleanup", testutils.AnyContext, &roller_cleanup.CleanupRequest{
+		RollerID:      "fake-roller",
+		NeedsCleanup:  false,
+		User:          "fake-roller",
+		Timestamp:     now.Now(ctx),
+		Justification: "Deleted local data",
+	}).Return(nil)
+
+	// Attempt to create the roller, ensure that it fails.
+	_, err := NewAutoRoller(ctx, cfg, emailer, chatbotCfgReader, gerritClient, githubClient, workdir, serverURL, gcsClient, httpClient, rollerName, local, statusDB, manualRollDB, cleanupDB)
+	require.ErrorContains(t, err, "mocked gclient error")
+
+	// Ensure all of our mocks were called.
+	gerritClient.AssertExpectations(t)
+	require.True(t, urlmock.Empty())
+	cleanupDB.AssertExpectations(t)
 }

@@ -111,7 +111,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Client, chatBotConfigReader chatbot.ConfigReader, g gerrit.GerritInterface, githubClient *github.GitHub, workdir, serverURL string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool, statusDB status.DB, manualRollDB manual.DB, cleanupDB roller_cleanup.DB) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to validate config")
@@ -133,17 +133,45 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		return nil, skerr.Wrapf(err, "Failed to create config var registry")
 	}
 
+	// Create the AutoRoller struct.
+	arb := &AutoRoller{
+		cfg:                c,
+		cleanup:            cleanupDB,
+		client:             client,
+		codereview:         cr,
+		liveness:           metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
+		manualRollDB:       manualRollDB,
+		reg:                reg,
+		roller:             rollerName,
+		rollUploadAttempts: metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
+		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
+		serverURL:          serverURL,
+		reviewers:          c.Reviewer,
+		reviewersBackup:    c.ReviewerBackup,
+		throttle:           unthrottle.NewDatastore(ctx),
+		workdir:            workdir,
+	}
+
 	// Create the RepoManager.
 	rm, err := repo_manager.New(ctx, c.GetRepoManagerConfig(), reg, workdir, rollerName, serverURL, c.ServiceAccount, client, cr, c.IsInternal, local)
 	if err != nil {
+		// If this failed, it's possible that we're in a broken state. Let's try
+		// deleting the local data before we fail out.
+		sklog.Errorf("RepoManager creation failed; deleting local data...")
+		if cleanupErr := arb.DeleteLocalData(ctx); cleanupErr != nil {
+			sklog.Errorf("Failed to delete local data: %s", cleanupErr)
+		}
 		return nil, skerr.Wrap(err)
 	}
+	arb.rm = rm
 
 	sklog.Info("Creating strategy history.")
 	sh, err := strategy.NewDatastoreStrategyHistory(ctx, rollerName, c.ValidStrategies())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create strategy history")
 	}
+	arb.strategyHistory = sh
+
 	currentStrategy := sh.CurrentStrategy()
 	if currentStrategy == nil {
 		// If there's no history, set the initial strategy.
@@ -153,21 +181,29 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 		}
 		currentStrategy = sh.CurrentStrategy()
 	}
+
 	sklog.Info("Setting strategy.")
 	strat, err := strategy.GetNextRollStrategy(currentStrategy.Strategy)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get next roll strategy")
 	}
+	arb.strategy = strat
 
 	sklog.Info("Running repo_manager.Update()")
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed initial repo manager update")
 	}
+	arb.lastRollRev = lastRollRev
+	arb.tipRev = tipRev
+	arb.notRolledRevs = notRolledRevs
+
 	nextRollRev := strat.GetNextRollRev(notRolledRevs)
 	if nextRollRev == nil {
 		nextRollRev = lastRollRev
 	}
+	arb.nextRollRev = nextRollRev
+
 	// Adding notRolledRevs to reportedRevs here prevents double reporting
 	// of latencies across the roller going offline and starting up. This approach
 	// increases the accuracy of the revision detection latency metric at the cost
@@ -176,12 +212,15 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	for _, rev := range notRolledRevs {
 		reportedRevs[rev.Id] = rev.Timestamp
 	}
+	arb.reportedRevs = reportedRevs
 
 	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, recent_rolls.NewDatastoreRollsDB(ctx), rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create recent rolls DB")
 	}
+	arb.recent = recent
+
 	sklog.Info("Creating mode history")
 	mh, err := modes.NewDatastoreModeHistory(ctx, rollerName)
 	if err != nil {
@@ -193,6 +232,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 			return nil, skerr.Wrapf(err, "Failed to set initial mode")
 		}
 	}
+	arb.modeHistory = mh
 
 	// Throttling counters.
 	sklog.Info("Creating throttlers")
@@ -208,11 +248,13 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create safety throttler")
 	}
+	arb.safetyThrottle = safetyThrottle
 
 	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/fail_counter", time.Hour, 1)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create failure throttler")
 	}
+	arb.failureThrottle = failureThrottle
 
 	rollCooldown := defaultRollCooldown
 	if c.RollCooldown != "" {
@@ -225,6 +267,7 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
+	arb.successThrottle = successThrottle
 
 	var dryRunCooldown time.Duration
 	if c.DryRunCooldown != "" {
@@ -237,20 +280,26 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 	if err != nil {
 		return nil, skerr.Wrapf(err, "failed to create dry run success throttler")
 	}
+	arb.dryRunSuccessThrottle = dryRunSuccessThrottle
 
 	sklog.Info("Getting reviewers")
 	emails := GetReviewers(client, c.RollerName, c.Reviewer, c.ReviewerBackup)
+	arb.emails = emails
 	sklog.Info("Creating notifier")
 	configCopies := replaceReviewersPlaceholder(c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildDisplayName, c.ParentDisplayName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create notifier")
 	}
+	arb.notifier = n
+
 	sklog.Info("Creating status cache.")
 	statusCache, err := status.NewCache(ctx, statusDB, rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create status cache")
 	}
+	arb.status = statusCache
+
 	sklog.Info("Creating TimeWindow.")
 	var tw *time_window.TimeWindow
 	if c.TimeWindow != "" {
@@ -259,52 +308,21 @@ func NewAutoRoller(ctx context.Context, c *config.Config, emailer emailclient.Cl
 			return nil, skerr.Wrapf(err, "Failed to create TimeWindow")
 		}
 	}
+	arb.timeWindow = tw
+
 	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsg, reg, c.ChildDisplayName, c.ParentDisplayName, serverURL, c.ChildBugLink, c.ParentBugLink, c.TransitiveDeps)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	arb := &AutoRoller{
-		cfg:                   c,
-		cleanup:               cleanupDB,
-		client:                client,
-		codereview:            cr,
-		commitMsgBuilder:      commitMsgBuilder,
-		dryRunSuccessThrottle: dryRunSuccessThrottle,
-		emails:                emails,
-		failureThrottle:       failureThrottle,
-		lastRollRev:           lastRollRev,
-		liveness:              metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
-		manualRollDB:          manualRollDB,
-		modeHistory:           mh,
-		nextRollRev:           nextRollRev,
-		notifier:              n,
-		notRolledRevs:         notRolledRevs,
-		recent:                recent,
-		reg:                   reg,
-		rm:                    rm,
-		roller:                rollerName,
-		rollUploadAttempts:    metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
-		rollUploadFailures:    metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
-		safetyThrottle:        safetyThrottle,
-		serverURL:             serverURL,
-		reportedRevs:          reportedRevs,
-		reviewers:             c.Reviewer,
-		reviewersBackup:       c.ReviewerBackup,
-		status:                statusCache,
-		strategy:              strat,
-		strategyHistory:       sh,
-		successThrottle:       successThrottle,
-		throttle:              unthrottle.NewDatastore(ctx),
-		timeWindow:            tw,
-		tipRev:                tipRev,
-		workdir:               workdir,
-	}
+	arb.commitMsgBuilder = commitMsgBuilder
+
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create state machine")
 	}
 	arb.sm = sm
+
 	current := recent.CurrentRoll()
 	if current != nil {
 		// Update our view of the active roll.
