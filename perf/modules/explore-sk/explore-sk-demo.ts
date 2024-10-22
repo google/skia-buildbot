@@ -47,7 +47,7 @@ customElements.whenDefined('explore-sk').then(() => {
   const clickOnPlot = () => {
     const rect = explore!.querySelector<HTMLCanvasElement>('canvas')!.getBoundingClientRect();
     // eslint-disable-next-line dot-notation
-    explore!['plot']!.dispatchEvent(
+    explore!['plotSimple'].value!.dispatchEvent(
       new MouseEvent('click', {
         // Pick a point in the middle of the canvas.
         clientX: rect.left + rect.width / 2,
@@ -60,7 +60,7 @@ customElements.whenDefined('explore-sk').then(() => {
   // has traces loaded, at which point it calls clickOnPlot.
   const checkIfLoaded = () => {
     // eslint-disable-next-line dot-notation
-    if (explore!['plot']!.getLineNames().length > 1) {
+    if (explore!['plotSimple'].value!.getLineNames().length > 1) {
       clickOnPlot();
     } else {
       setTimeout(checkIfLoaded, 100);

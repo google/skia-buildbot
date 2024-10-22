@@ -481,7 +481,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private percent: HTMLSpanElement | null = null;
 
-  private plot: PlotSimpleSk | null = null;
+  private plotSimple = createRef<PlotSimpleSk>();
 
   private googleChartPlot = createRef<PlotGoogleChartSk>();
 
@@ -590,18 +590,22 @@ export class ExploreSimpleSk extends ElementSk {
       </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
         <md-outlined-button
-          ?disabled=${!(ele.plot && ele.plot!.highlight.length && ele.useTestPicker)}
+          ?disabled=${!(
+            ele.plotSimple.value &&
+            ele.plotSimple.value!.highlight.length &&
+            ele.useTestPicker
+          )}
           @click=${ele.queryHighlighted}>
           Query Highlighted
         </md-outlined-button>
         <md-outlined-button
           @click=${ele.removeHighlighted}
-          ?disabled=${!(ele.plot && ele.plot!.highlight.length)}>
+          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
           Remove Highlighted
         </md-outlined-button>
         <md-outlined-button
           @click=${ele.highlightedOnly}
-          ?disabled=${!(ele.plot && ele.plot!.highlight.length)}>
+          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
           Highlighted Only
         </md-outlined-button>
 
@@ -756,19 +760,21 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
       <chart-tooltip-sk></chart-tooltip-sk>
-      <div id="googlePlotDiv" ?hidden=${!ele._state.show_google_plot}>
-        <plot-google-chart-sk ${ref(ele.googleChartPlot)}></plot-google-chart-sk>
-      </div>
-      <plot-simple-sk
-        .summary=${ele._state.summary}
-        id=plot
-        @trace_selected=${ele.traceSelected}
-        @zoom=${ele.plotZoom}
-        @trace_focused=${ele.plotTraceFocused}
-        class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
-        .scrollable=${ele.scrollable}
-        >
-      </plot-simple-sk>
+    ${when(
+      ele._state.show_google_plot,
+      () => html`<plot-google-chart-sk ${ref(ele.googleChartPlot)}></plot-google-chart-sk>`,
+      () => html`
+        <plot-simple-sk
+          .summary=${ele._state.summary}
+          ${ref(ele.plotSimple)}
+          @trace_selected=${ele.traceSelected}
+          @zoom=${ele.plotZoom}
+          @trace_focused=${ele.plotTraceFocused}
+          class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
+          .scrollable=${ele.scrollable}>
+        </plot-simple-sk>
+      `
+    )}
       ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
@@ -1056,7 +1062,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
-    this.plot = this.querySelector('#plot');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
@@ -1125,7 +1130,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
     this.addEventListener('anomaly-changed', (e) => {
-      this.plot!.redrawOverlayCanvas();
+      this.plotSimple.value?.redrawOverlayCanvas();
       const detail = (e as CustomEvent).detail;
       if (!detail) {
         this.triageResultToast?.hide();
@@ -1157,16 +1162,20 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   switchXAxis(target: MdSwitch | null) {
+    const plot = this.plotSimple.value;
+    if (!plot) {
+      return;
+    }
     if (target!.selected) {
       this._state.labelMode = LabelMode.CommitPosition;
     } else {
       this._state.labelMode = LabelMode.Date;
     }
 
-    const anomalyMap = this.plot!.anomalyDataMap;
-    this.plot!.removeAll();
+    const anomalyMap = plot.anomalyDataMap;
+    plot.removeAll();
     this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
-    this.plot!.anomalyDataMap = anomalyMap;
+    plot.anomalyDataMap = anomalyMap;
     this._stateHasChanged();
   }
 
@@ -1184,7 +1193,9 @@ export class ExploreSimpleSk extends ElementSk {
     this.showRemoveAll = this._state.show_remove_all;
 
     // If chart tooltip is enabled do not show crosshair label
-    this.plot!.showCrosshairLabel = !this._state.enable_chart_tooltip;
+    if (this.plotSimple.value) {
+      this.plotSimple.value.showCrosshairLabel = !this._state.enable_chart_tooltip;
+    }
 
     this.dispatchEvent(new CustomEvent('state_changed', {}));
   };
@@ -1310,8 +1321,8 @@ export class ExploreSimpleSk extends ElementSk {
    *   }
    */
   private getCurrentZoom(): ZoomWithDelta {
-    let zoom = this.plot!.zoom;
-    if (zoom === null) {
+    let zoom = this.plotSimple.value?.zoom;
+    if (!zoom) {
       zoom = [0, this._dataframe.header!.length - 1];
     }
     let delta = zoom[1] - zoom[0];
@@ -1399,7 +1410,9 @@ export class ExploreSimpleSk extends ElementSk {
         })
         .catch(errorMessage);
     } else {
-      this.plot!.zoom = zoom;
+      if (this.plotSimple.value) {
+        this.plotSimple.value.zoom = zoom;
+      }
     }
   }
 
@@ -1621,6 +1634,7 @@ export class ExploreSimpleSk extends ElementSk {
       this.googleChartPlot.value.selectedRange = range;
     }
 
+    const plot = this.plotSimple.value;
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, range, domain);
@@ -1636,13 +1650,17 @@ export class ExploreSimpleSk extends ElementSk {
     this._dataframe.traceset = subDataframe.traceset;
     this._dataframe.header = subDataframe.header;
 
+    if (!plot) {
+      return;
+    }
+
     if (replot) {
-      this.plot!.removeAll();
+      plot.removeAll();
       this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
     }
 
     if (anomalyMap) {
-      this.plot!.anomalyDataMap = getAnomalyDataMap(
+      plot.anomalyDataMap = getAnomalyDataMap(
         subDataframe.traceset,
         subDataframe.header!,
         anomalyMap,
@@ -1714,8 +1732,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   /** Highlight a trace when it is clicked on. */
   traceSelected({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
-    this.plot!.highlight = [detail.name];
-    this.plot!.xbar = detail.x;
+    this.plotSimple.value!.highlight = [detail.name];
+    this.plotSimple.value!.xbar = detail.x;
     this.commits!.details = [];
 
     const selected = this.selectedRange?.begin || 0;
@@ -1766,8 +1784,8 @@ export class ExploreSimpleSk extends ElementSk {
     // Find if selected point is an anomaly.
     let selected_anomaly: Anomaly | null = null;
     // TODO(b/362831653) - Update this to Google Chart once plot-simple-sk is deprecated.
-    if (detail.name in this.plot!.anomalyDataMap) {
-      const anomalyData = this.plot!.anomalyDataMap[detail.name];
+    if (detail.name in this.plotSimple.value!.anomalyDataMap) {
+      const anomalyData = this.plotSimple.value!.anomalyDataMap[detail.name];
       for (let i = 0; i < anomalyData.length; i++) {
         if (anomalyData[i].x === detail.x) {
           selected_anomaly = anomalyData[i].anomaly;
@@ -1898,12 +1916,17 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private clearSelectedState() {
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.highlight = [];
+      plot.xbar = -1;
+    }
+
     // Switch back to the params tab since we are about to hide the details tab.
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.commitsTab!.disabled = true;
     this.logEntry!.textContent = '';
-    this.plot!.highlight = [];
-    this.plot!.xbar = -1;
+
     this._state.selected = defaultPointSelected();
     this._stateHasChanged();
   }
@@ -1975,7 +1998,7 @@ export class ExploreSimpleSk extends ElementSk {
    * @param labels The xAxis labels.
    */
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
-    this.plot!.addLines(traceSet, labels);
+    this.plotSimple.value?.addLines(traceSet, labels);
     if (this._state.plotSummary) {
       this.addPlotSummaryOptions();
     }
@@ -2022,11 +2045,14 @@ export class ExploreSimpleSk extends ElementSk {
         keys.push(key);
       }
     });
-    // Additively highlight if the ctrl key is pressed.
-    if (e.detail.ctrl) {
-      this.plot!.highlight = this.plot!.highlight.concat(keys);
-    } else {
-      this.plot!.highlight = keys;
+
+    if (this.plotSimple.value) {
+      // Additively highlight if the ctrl key is pressed.
+      if (e.detail.ctrl) {
+        this.plotSimple.value!.highlight = this.plotSimple.value!.highlight.concat(keys);
+      } else {
+        this.plotSimple.value!.highlight = keys;
+      }
     }
     this._render();
   }
@@ -2123,7 +2149,9 @@ export class ExploreSimpleSk extends ElementSk {
   private toggleDotsHandler() {
     this._state.dots = !this._state.dots;
     this._stateHasChanged();
-    this.plot!.dots = this._state.dots;
+    if (this.plotSimple.value) {
+      this.plotSimple.value.dots = this._state.dots;
+    }
   }
 
   private zeroChanged() {
@@ -2135,7 +2163,7 @@ export class ExploreSimpleSk extends ElementSk {
       lines[ZERO_NAME] = Array(this._dataframe.header.length).fill(0);
       this.AddPlotLines(lines, []);
     } else {
-      this.plot!.deleteLines([ZERO_NAME]);
+      this.plotSimple.value?.deleteLines([ZERO_NAME]);
     }
   }
 
@@ -2162,7 +2190,7 @@ export class ExploreSimpleSk extends ElementSk {
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
       this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
-      this.plot!.removeAll();
+      this.plotSimple.value?.removeAll();
       this.addTraces(json, switchToTab);
     });
   }
@@ -2227,7 +2255,11 @@ export class ExploreSimpleSk extends ElementSk {
         bands.push(i);
       }
     });
-    this.plot!.bands = bands;
+
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.bands = bands;
+    }
 
     // Populate the xbar if present.
     if (this._state.xbaroffset !== -1) {
@@ -2238,13 +2270,14 @@ export class ExploreSimpleSk extends ElementSk {
           xbar = i;
         }
       });
-      if (xbar !== -1) {
-        this.plot!.xbar = xbar;
-      } else {
-        this.plot!.xbar = -1;
+
+      if (plot) {
+        plot.xbar = xbar;
       }
     } else {
-      this.plot!.xbar = -1;
+      if (plot) {
+        plot.xbar = -1;
+      }
     }
 
     if (this.state.use_titles) {
@@ -2468,7 +2501,7 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.formulas = [];
     this._state.queries = [];
     this._state.keys = '';
-    this.plot!.removeAll();
+    this.plotSimple.value?.removeAll();
     this._dataframe.header = [];
     this._dataframe.traceset = TraceSet({});
     this.paramset!.paramsets = [];
@@ -2615,13 +2648,13 @@ export class ExploreSimpleSk extends ElementSk {
 
   private queryHighlighted() {
     const detail = {
-      key: this.plot!.highlight[0],
+      key: this.plotSimple.value!.highlight[0],
     };
     this.dispatchEvent(new CustomEvent('populate-query', { detail: detail, bubbles: true }));
   }
 
   private removeHighlighted() {
-    const ids = this.plot!.highlight;
+    const ids = this.plotSimple.value!.highlight;
     this.removeKeys(ids, true);
   }
 
@@ -2648,8 +2681,12 @@ export class ExploreSimpleSk extends ElementSk {
         delete this._dataframe.traceset[key];
       }
     });
-    this.plot!.deleteLines(keysToRemove);
-    this.plot!.highlight = [];
+
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.deleteLines(keysToRemove);
+      plot.highlight = [];
+    }
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
@@ -2660,7 +2697,8 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private highlightedOnly() {
-    const ids = this.plot!.highlight;
+    const plot = this.plotSimple.value!;
+    const ids = plot.highlight;
     const toremove: string[] = [];
     const toShortcut: string[] = [];
 
@@ -2694,8 +2732,8 @@ export class ExploreSimpleSk extends ElementSk {
       delete this._dataframe.traceset[key];
     });
 
-    this.plot!.deleteLines(toremove);
-    this.plot!.highlight = [];
+    plot.deleteLines(toremove);
+    plot.highlight = [];
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
@@ -2854,7 +2892,10 @@ export class ExploreSimpleSk extends ElementSk {
     };
 
     this._render();
-    this.plot!.dots = this._state.dots;
+
+    if (this.plotSimple.value) {
+      this.plotSimple.value!.dots = this._state.dots;
+    }
     // If there is at least one query, the use the last one to repopulate the
     // query-sk dialog.
     const numQueries = this._state.queries.length;
