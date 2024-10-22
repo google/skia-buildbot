@@ -20,6 +20,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { Anomaly, DataFrame } from '../json';
 import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
 import { dataframeContext } from '../dataframe/dataframe_context';
+import { getTitle, titleFormatter } from '../dataframe/traceset';
 import { DataTableLike } from '@google-web-components/google-chart/loader';
 import { range } from '../dataframe/index';
 
@@ -120,6 +121,7 @@ export class PlotGoogleChartSk extends LitElement {
     // TODO(b/370804498): Break out plot panel into a separate module
     // and create a new module that combines google chart and the
     // tooltip module.
+    // TODO(b/370804689): Add legend to side panel
     return html`
       <div class="container">
         <google-chart
@@ -166,7 +168,11 @@ export class PlotGoogleChartSk extends LitElement {
     if (rows) {
       const plot = this.plotElement!.value!;
       plot.data = rows;
-      plot.options = mainChartOptions(getComputedStyle(this), this.domain);
+      plot.options = mainChartOptions(
+        getComputedStyle(this),
+        this.domain,
+        titleFormatter(getTitle(this.dataframe!))
+      );
     }
   }
 
@@ -176,7 +182,11 @@ export class PlotGoogleChartSk extends LitElement {
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
       if (this.plotElement.value) {
-        this.plotElement.value!.options = mainChartOptions(getComputedStyle(this), this.domain);
+        this.plotElement.value!.options = mainChartOptions(
+          getComputedStyle(this),
+          this.domain,
+          titleFormatter(getTitle(this.dataframe!))
+        );
       }
       this.requestUpdate();
     });

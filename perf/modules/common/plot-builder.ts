@@ -28,7 +28,6 @@ export interface ChartData {
 // This function effectively transposes the traceset so that the keys
 // (i.e. jetstream2/box2D/etc) become the columns and the individual data points
 // are the rows
-// TODO(b/362831653): fix legend in the dataframe
 export const convertFromDataframe = (
   df: {
     traceset: TraceSet;
@@ -105,7 +104,8 @@ export function ConvertData(chartData: ChartData) {
 
 export function mainChartOptions(
   style: CSSStyleDeclaration,
-  domain: string
+  domain: string,
+  title: string
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
@@ -125,6 +125,8 @@ export function mainChartOptions(
     aggregationTarget: 'none',
     tooltip: { trigger: 'selection' },
     pointSize: 2,
+    title: title,
+    titleTextStyle: { color: style.color },
     hAxis: {
       textPosition: 'out',
       textStyle: { color: style.color },

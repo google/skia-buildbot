@@ -61,11 +61,12 @@ export const generateFullDataFrame = (
   time: number,
   tracesCount: number,
   timeSpans: number[],
-  traceValues: (number[] | null)[] = []
+  traceValues: (number[] | null)[] = [],
+  keys?: string[]
 ): DataFrame => {
   const offsets = Array(range.end - range.begin).fill(0);
   const traces = Array(tracesCount).fill(0);
-
+  const traceKeys = keys ?? traces.map((_, v) => `,key=${v}`);
   // A helper function to generate the timestamp at index.
   // The timeSpans are accumulated one by one.
   const timeSpan = (idx: number) =>
@@ -82,7 +83,7 @@ export const generateFullDataFrame = (
     ),
     traceset: Object.fromEntries(
       traces.map((_, v) => [
-        ',key=' + v,
+        traceKeys[v],
         containsAtLeastOneNumber(traceValues[v])
           ? generateTraceFromTemplate(traceValues[v]!, offsets.length)
           : (offsets.map(() => Math.random()) as Trace),
