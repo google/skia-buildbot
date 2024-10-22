@@ -759,7 +759,6 @@ export class ExploreSimpleSk extends ElementSk {
     <graph-title-sk id=graphTitle></graph-title-sk>
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
-      <chart-tooltip-sk></chart-tooltip-sk>
     ${when(
       ele._state.show_google_plot,
       () =>
@@ -781,6 +780,7 @@ export class ExploreSimpleSk extends ElementSk {
       `
     )}
       ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
+      <chart-tooltip-sk></chart-tooltip-sk>
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
