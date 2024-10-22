@@ -18,7 +18,6 @@ sk_element(
         "//:node_modules/@lit/context",
         "//:node_modules/@material/web",
         "//:node_modules/@google-web-components/google-chart",
-        "//:node_modules/@types/google.visualization",  # keep
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:dataframe_context_ts_lib",

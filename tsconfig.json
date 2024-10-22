@@ -13,6 +13,9 @@
     "target": "es2017",
     "declaration": true
   },
+  "types": [
+    "google.visualization",
+  ],
   "exclude": [
     // Exclude the //_bazel_* symlinks. This Prevents the following VSCode error:
     //
