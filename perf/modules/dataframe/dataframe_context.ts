@@ -31,13 +31,7 @@ import { customElement } from 'lit/decorators.js';
 
 import { mergeAnomaly, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
-import {
-  AnomalyMap,
-  ColumnHeader,
-  CommitNumberAnomalyMap,
-  ShiftRequest,
-  ShiftResponse,
-} from '../json';
+import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
 
@@ -87,6 +81,10 @@ export const sliceRange = ({ begin, end }: range, chunkSize: number) => {
 // store, typically a remote server or a local mock.
 export const dataframeContext = createContext<DataFrame>(Symbol('dataframe-context'));
 
+export const dataframeAnomalyContext = createContext<AnomalyMap>(
+  Symbol('dataframe-anomaly-context')
+);
+
 // This context indicates whether there is an ongoing dataframe request.
 export const dataframeLoadingContext = createContext<boolean>(Symbol('dataframe-loading-context'));
 
@@ -132,7 +130,8 @@ export class DataFrameRepository extends LitElement {
   @provide({ context: dataframeRepoContext })
   dfRepo = this;
 
-  anomaly: { [key: string]: CommitNumberAnomalyMap } = {};
+  @provide({ context: dataframeAnomalyContext })
+  anomaly: AnomalyMap = null;
 
   // This element doesn't render anything and all the children should be
   // attached to itself directly.

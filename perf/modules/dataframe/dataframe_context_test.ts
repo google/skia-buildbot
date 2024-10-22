@@ -64,7 +64,7 @@ describe('dataframe-repository', () => {
     const traceKey = ',key=0';
     assert.isTrue(sorted(dfRepo.header));
     assert.sameOrderedMembers(df.traceset[traceKey].slice(1, 11), dfRepo.traces[traceKey]);
-    assert.equal(dfRepo.anomaly[traceKey]![95].bug_id, 555);
+    assert.equal(dfRepo.anomaly![traceKey]![95].bug_id, 555);
   });
 
   it('init data and extend range', async () => {
@@ -84,13 +84,13 @@ describe('dataframe-repository', () => {
 
     // The trace key generated from generateFullDataFrame.
     const traceKey = ',key=0';
-    assert.isUndefined(dfRepo.anomaly[traceKey]![105]);
+    assert.isUndefined(dfRepo.anomaly![traceKey]![105]);
 
     assert.equal(await dfRepo.extendRange(timeSpan * 10), 10);
     assert.isTrue(sorted(dfRepo.header));
     assert.lengthOf(dfRepo.header, 20);
     assert.sameOrderedMembers(df.traceset[traceKey].slice(0, 20), dfRepo.traces[traceKey]);
-    assert.equal(dfRepo.anomaly[traceKey]![105].bug_id, 1515);
+    assert.equal(dfRepo.anomaly![traceKey]![105].bug_id, 1515);
   });
 
   it('init data and extend range both ways', async () => {

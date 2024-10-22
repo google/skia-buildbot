@@ -17,9 +17,9 @@ import { LitElement, PropertyValues } from 'lit';
 import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { define } from '../../../elements-sk/modules/define';
-import { Anomaly, DataFrame } from '../json';
+import { Anomaly, AnomalyMap, DataFrame } from '../json';
 import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
-import { dataframeContext } from '../dataframe/dataframe_context';
+import { dataframeAnomalyContext, dataframeContext } from '../dataframe/dataframe_context';
 import { getTitle, titleFormatter } from '../dataframe/traceset';
 import { DataTableLike } from '@google-web-components/google-chart/loader';
 import { range } from '../dataframe/index';
@@ -42,6 +42,9 @@ export class PlotGoogleChartSk extends LitElement {
     :host {
       background-color: var(--plot-background-color-sk, var(--md-sys-color-background, 'white'));
     }
+    slot {
+      display: none;
+    }
     .container {
       display: grid;
       grid-template-columns: 4fr 1fr;
@@ -55,6 +58,35 @@ export class PlotGoogleChartSk extends LitElement {
     .plot-panel {
       font-family: 'Roboto', system-ui, sans-serif;
     }
+    .anomaly {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+
+      md-icon {
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        pointer-events: none;
+        font-weight: bolder;
+        font-size: 24px;
+        color: darkblue;
+      }
+
+      md-icon.improvement {
+        background-color: rgba(3, 151, 3, 1);
+        font-weight: bolder;
+        border: black 1px solid;
+      }
+      md-icon.untriage {
+        background-color: yellow;
+        border: magenta 1px solid;
+      }
+      md-icon.regression {
+        background-color: violet;
+        border: orange 1px solid;
+      }
+    }
+
     ul.table {
       list-style: none;
       padding: 0;
@@ -82,11 +114,18 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private dataframe?: DataFrame;
 
+  @property({})
+  selectedTraces: string[] | null = null;
+
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
 
   @property({ attribute: false })
   selectedRange?: range;
+
+  @consume({ context: dataframeAnomalyContext, subscribe: true })
+  @property({ attribute: false })
+  private anomalyMap: AnomalyMap = {};
 
   @property()
   private tooltip?: {
@@ -94,6 +133,13 @@ export class PlotGoogleChartSk extends LitElement {
     value: number;
     commit: string;
     date: string;
+  };
+
+  // The slots to place in the templated icons for anomalies.
+  private slots = {
+    untriage: createRef<HTMLSlotElement>(),
+    regression: createRef<HTMLSlotElement>(),
+    improvement: createRef<HTMLSlotElement>(),
   };
 
   constructor() {
@@ -104,6 +150,9 @@ export class PlotGoogleChartSk extends LitElement {
 
   // The div element that will host the plot on the summary.
   private plotElement: Ref<GoogleChart> = createRef();
+
+  // The div container for anomaly overlays.
+  private anomalyDiv = createRef<HTMLDivElement>();
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -128,8 +177,10 @@ export class PlotGoogleChartSk extends LitElement {
           ${ref(this.plotElement)}
           class="plot"
           type="line"
+          @google-chart-ready=${this.onChartReady}
           @google-chart-select=${this.onSelectDataPoint}>
         </google-chart>
+        <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <div class="plot-panel" ?hidden=${!this.tooltip}>
           <h3>${this.tooltip?.traceName}</h3>
           <ul class="table">
@@ -150,6 +201,9 @@ export class PlotGoogleChartSk extends LitElement {
           </ul>
         </div>
       </div>
+      <slot name="untriage" ${ref(this.slots.untriage)}></slot>
+      <slot name="regression" ${ref(this.slots.regression)}></slot>
+      <slot name="improvement" ${ref(this.slots.improvement)}></slot>
     `;
   }
 
@@ -157,7 +211,12 @@ export class PlotGoogleChartSk extends LitElement {
     // TODO(b/362831653): incorporate domain changes into dataframe update.
     if (changedProperties.has('dataframe')) {
       this.updateDataframe(this.dataframe!);
+    } else if (changedProperties.has('anomalyMap')) {
+      // If the anomalyMap is getting updated,
+      // trigger the chart to redraw and plot the anomaly.
+      this.plotElement.value?.redraw();
     } else if (changedProperties.has('selectedRange')) {
+      // If only the selectedRange is updated, then we only update the viewWindow.
       this.updateOptions();
     }
   }
@@ -220,6 +279,104 @@ export class PlotGoogleChartSk extends LitElement {
         date: new Date(df.header![row]!.timestamp * 1000).toDateString(),
       };
     }
+  }
+
+  private drawAnomaly(chart: google.visualization.CoreChartBase) {
+    const layout = chart.getChartLayoutInterface();
+    if (!this.anomalyMap) {
+      return;
+    }
+
+    const anomalyDiv = this.anomalyDiv.value;
+    if (!anomalyDiv) {
+      return;
+    }
+
+    const traceset = this.dataframe?.traceset;
+    const header = this.dataframe?.header;
+    const traceKeys = this.selectedTraces ?? Object.keys(this.anomalyMap);
+    const chartRect = layout.getChartAreaBoundingBox();
+    const left = chartRect.left,
+      top = chartRect.top;
+    const right = left + chartRect.width,
+      bottom = top + chartRect.height;
+    const allDivs: Node[] = [];
+
+    // Clone from the given template icons in the named slots.
+    // Each anomaly will clone a new icon element from the template slots and be placed in the
+    // anomaly container.
+    const slots = this.slots;
+    const cloneSlot = (
+      name: 'untriage' | 'improvement' | 'regression',
+      traceKey: string,
+      commit: number
+    ) => {
+      const assigned = slots[name].value!.assignedElements();
+      if (!assigned) {
+        console.warn(
+          'could not find anomaly template for commit',
+          `at ${commit} of ${traceKey} (${name}).`
+        );
+        return null;
+      }
+      if (assigned.length > 1) {
+        console.warn(
+          'multiple children found but only use the first one for commit',
+          `at ${commit} of ${traceKey} (${name}).`
+        );
+      }
+      const cloned = assigned[0].cloneNode(true) as HTMLElement;
+      cloned.className = `anomaly ${name}`;
+      return cloned;
+    };
+
+    traceKeys.forEach((key) => {
+      const anomalies = this.anomalyMap![key];
+      const trace = traceset![key];
+      for (const cp in anomalies) {
+        const offset = Number(cp);
+        const idx = header!.findIndex((v) => v?.offset === offset);
+        if (idx < 0) {
+          console.warn('anomaly data is out of existing dataframe, ignored.');
+          continue;
+        }
+        const value = trace[idx];
+        const x = layout.getXLocation(offset);
+        const y = layout.getYLocation(value);
+        // We only place the anomaly icons if they are within the chart boundary.
+        // p.s. the top and bottom are reversed-coordinated.
+        if (x < left || x > right || y < top || y > bottom) {
+          continue;
+        }
+
+        const anomaly = anomalies[offset];
+        let cloned: HTMLElement | null;
+        if (anomaly.bug_id <= 0) {
+          // no bug assigned, untriaged anomaly
+          cloned = cloneSlot('untriage', key, offset);
+        } else if (anomaly.is_improvement) {
+          cloned = cloneSlot('improvement', key, offset);
+        } else {
+          cloned = cloneSlot('regression', key, offset);
+        }
+
+        if (cloned) {
+          cloned.style.top = `${y}px`;
+          cloned.style.left = `${x}px`;
+          allDivs.push(cloned);
+        }
+      }
+    });
+    // replaceChildren API could be already the most efficient API to replace all the children
+    // nodes. Alternatively, we could cache all the existing elements for each buckets and place
+    // them to the new locations, but the rendering internal may already do this for us.
+    // We should only do this optimization if we see a performance issue.
+    anomalyDiv.replaceChildren(...allDivs);
+  }
+
+  private onChartReady(e: CustomEvent) {
+    // Only draw the anomaly when the chart is ready.
+    this.drawAnomaly(e.detail.chart);
   }
 
   // TODO(b/362831653): deprecate this, no longer needed

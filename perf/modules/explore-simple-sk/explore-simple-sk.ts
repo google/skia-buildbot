@@ -762,7 +762,12 @@ export class ExploreSimpleSk extends ElementSk {
       <chart-tooltip-sk></chart-tooltip-sk>
     ${when(
       ele._state.show_google_plot,
-      () => html`<plot-google-chart-sk ${ref(ele.googleChartPlot)}></plot-google-chart-sk>`,
+      () =>
+        html` <plot-google-chart-sk ${ref(ele.googleChartPlot)}>
+          <md-icon slot="untriage">question_exchange</md-icon>
+          <md-icon slot="regression">report</md-icon>
+          <md-icon slot="improvement">check</md-icon>
+        </plot-google-chart-sk>`,
       () => html`
         <plot-simple-sk
           .summary=${ele._state.summary}
