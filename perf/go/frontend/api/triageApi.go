@@ -121,12 +121,12 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 
 	err := api.chromeperfClient.SendPostRequest(ctx, "file_bug_skia", "", fileBugRequest, chromeperfResponse, []int{200, 400, 401, 500})
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to finish new bug request.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "File new bug request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
 		return
 	}
 
 	if chromeperfResponse.Error != "" {
-		httputils.ReportError(w, errors.New(chromeperfResponse.Error), "New bug request returned error message.", http.StatusInternalServerError)
+		httputils.ReportError(w, errors.New(chromeperfResponse.Error), fmt.Sprintf("Error when filing a new bug. Please double check each request parameter, and try again: %v", chromeperfResponse.Error), http.StatusInternalServerError)
 		return
 	}
 
@@ -161,15 +161,34 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 
 	editAnomalyResponse := &EditAnomaliesResponse{}
 
+	if editAnomaliesRequest.StartRevision < 0 || editAnomaliesRequest.EndRevision < 0 {
+		http.Error(w, "Invalid start or end revision.", http.StatusBadRequest)
+		return
+	} else if editAnomaliesRequest.EndRevision < editAnomaliesRequest.StartRevision {
+		http.Error(w, "End revision cannot be less than start revision.", http.StatusBadRequest)
+		return
+	} else if len(editAnomaliesRequest.Action) == 0 {
+		http.Error(w, "Action must be a nonempty string.", http.StatusBadRequest)
+		return
+	}
+
 	err := api.chromeperfClient.SendPostRequest(ctx, "edit_anomalies_skia", "", editAnomaliesRequest, editAnomalyResponse, []int{200, 400, 401, 500})
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to finish edit anomalies request.", http.StatusInternalServerError)
+		httputils.ReportError(
+			w,
+			err,
+			"Edit anomalies request failed due to an internal server error. Please try again.",
+			http.StatusInternalServerError)
 		return
 	}
 
 	if editAnomalyResponse.Error != "" {
-		// TODO(wenbinzhang): Should update all end-user facing messages to be more informative and actionable. b/369622563.
-		httputils.ReportError(w, errors.New(editAnomalyResponse.Error), "Edit anomalies request returned error message.", http.StatusInternalServerError)
+		httputils.ReportError(
+			w,
+			errors.New(editAnomalyResponse.Error),
+			fmt.Sprintf("Error when editing anomalies. Please double check each request parameter, and try again. %v",
+				editAnomalyResponse.Error),
+			http.StatusInternalServerError)
 		return
 	}
 
@@ -206,7 +225,11 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 	skiaExistingBugResponse := &ChromeperfAssociateBugResponse{}
 	err := api.chromeperfClient.SendPostRequest(ctx, "associate_alerts_skia", "", associateBugRequest, skiaExistingBugResponse, []int{200, 400, 401, 500})
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to send request to associate_alerts_skia.", http.StatusInternalServerError)
+		httputils.ReportError(
+			w,
+			err,
+			"Associate alerts request failed due to an internal server error. Please try again.",
+			http.StatusInternalServerError)
 		return
 	}
 	if error := json.NewEncoder(w).Encode(skiaExistingBugResponse); error != nil {
@@ -215,7 +238,11 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if skiaExistingBugResponse.Error != "" {
-		httputils.ReportError(w, errors.New(skiaExistingBugResponse.Error), "Associate alerts with existing bug request returned error message.", http.StatusInternalServerError)
+		httputils.ReportError(
+			w,
+			errors.New(skiaExistingBugResponse.Error),
+			fmt.Sprintf("Error when associating alerts with an existing bug. Please double check each request parameter, and try again. %v", skiaExistingBugResponse.Error),
+			http.StatusInternalServerError)
 		return
 	}
 	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
