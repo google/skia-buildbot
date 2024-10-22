@@ -27,16 +27,16 @@ const redisInstanceNameFormat = "projects/%s/locations/%s/instances/%s"
 // RedisConfig contains properties of a redis instance.
 type RedisConfig struct {
 	// The GCP Project of the Redis instance
-	Project string `json:"project,omitempty"`
+	Project string `json:"project,omitempty" optional:"true"`
 
 	// The Zone (Region) of the Redis instance.
-	Zone string `json:"zone,omitempty"`
+	Zone string `json:"zone,omitempty" optional:"true"`
 
 	// The name of the Redis instance.
-	Instance string `json:"instance,omitempty"`
+	Instance string `json:"instance,omitempty" optional:"true"`
 
 	// Cache expiration for the given keys.
-	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty"`
+	CacheExpirationInMinutes int `json:"cache_expiration_minutes,omitempty" optional:"true"`
 }
 
 // redisCache implements RedisWrapper

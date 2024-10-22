@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -68,6 +69,9 @@ type Common struct {
 	// GroupingParamKeysByCorpus is a map from corpus name to the list of keys that comprise the
 	// corpus' grouping.
 	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
+
+	// RedisConfig provides configuration for redis instance to be used for caching.
+	RedisConfig redis.RedisConfig `json:"redis_config" optional:"true"`
 }
 
 // CodeReviewSystem represents the details needed to interact with a CodeReviewSystem (e.g.
