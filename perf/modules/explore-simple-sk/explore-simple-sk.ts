@@ -483,7 +483,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private plot: PlotSimpleSk | null = null;
 
-  private googleChartPlot: PlotGoogleChartSk | null = null;
+  private googleChartPlot = createRef<PlotGoogleChartSk>();
 
   private plotSummary = createRef<PlotSummarySk>();
 
@@ -757,7 +757,7 @@ export class ExploreSimpleSk extends ElementSk {
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
       <chart-tooltip-sk></chart-tooltip-sk>
       <div id="googlePlotDiv" ?hidden=${!ele._state.show_google_plot}>
-        <plot-google-chart-sk id="googlePlot"></plot-google-chart-sk>
+        <plot-google-chart-sk ${ref(ele.googleChartPlot)}></plot-google-chart-sk>
       </div>
       <plot-simple-sk
         .summary=${ele._state.summary}
@@ -1057,8 +1057,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
     this.plot = this.querySelector('#plot');
-    // google chart plot is the replacement for plot-simple-sk
-    this.googleChartPlot = this.querySelector<PlotGoogleChartSk>('#googlePlot');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
@@ -1618,6 +1616,11 @@ export class ExploreSimpleSk extends ElementSk {
     domain: 'commit' | 'date',
     replot = true
   ) {
+    // Only supports commit value range.
+    if (this.googleChartPlot.value && domain === 'commit') {
+      this.googleChartPlot.value.selectedRange = range;
+    }
+
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, range, domain);

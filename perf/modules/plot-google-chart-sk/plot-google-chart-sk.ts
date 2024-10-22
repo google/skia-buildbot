@@ -154,26 +154,34 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    if (
-      // TODO(b/362831653): incorporate domain changes into dataframe update
-      changedProperties.has('dataframe') ||
-      changedProperties.has('selectedRange')
-    ) {
+    // TODO(b/362831653): incorporate domain changes into dataframe update.
+    if (changedProperties.has('dataframe')) {
       this.updateDataframe(this.dataframe!);
+    } else if (changedProperties.has('selectedRange')) {
+      this.updateOptions();
     }
   }
 
   private updateDataframe(df: DataFrame) {
     const rows = convertFromDataframe(df, this.domain);
-    if (rows) {
-      const plot = this.plotElement!.value!;
-      plot.data = rows;
-      plot.options = mainChartOptions(
-        getComputedStyle(this),
-        this.domain,
-        titleFormatter(getTitle(this.dataframe!))
-      );
+    if (!rows) {
+      return;
     }
+    this.plotElement.value!.data = rows;
+    this.updateOptions();
+  }
+
+  private updateOptions() {
+    const options = mainChartOptions(
+      getComputedStyle(this),
+      this.domain,
+      titleFormatter(getTitle(this.dataframe!))
+    );
+    options.hAxis!.viewWindow = {
+      min: this.selectedRange?.begin,
+      max: this.selectedRange?.end,
+    };
+    this.plotElement.value!.options = options;
   }
 
   // Add all the event listeners.
