@@ -5,6 +5,7 @@ go_library(
     name = "api",
     srcs = [
         "alertsApi.go",
+        "anomaliesApi.go",
         "api.go",
         "favoritesApi.go",
         "graphApi.go",
