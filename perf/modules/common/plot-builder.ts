@@ -33,7 +33,7 @@ export const convertFromDataframe = (
     traceset: TraceSet;
     header: (ColumnHeader | null)[] | null;
   } | null,
-  domain: 'commit' | 'date' = 'commit',
+  domain: 'commit' | 'date' | 'both' = 'commit',
   traceKey?: string
 ) => {
   if ((df?.header?.length || 0) === 0) {
@@ -46,9 +46,10 @@ export const convertFromDataframe = (
   const keys = traceKey ? [traceKey] : Object.keys(df!.traceset);
 
   const firstRow: any[] = [];
-  if (domain === 'commit') {
+  if (domain === 'commit' || domain === 'both') {
     firstRow.push({ type: 'number', role: 'domain', label: 'Commit Position' });
-  } else {
+  }
+  if (domain === 'date' || domain === 'both') {
     firstRow.push({ type: 'date', role: 'domain', label: 'Date' });
   }
   keys.forEach((k) => firstRow.push(k));
@@ -56,9 +57,10 @@ export const convertFromDataframe = (
   const rows: any[][] = [firstRow];
   df!.header?.forEach((column, idx) => {
     const row: any[] = [];
-    if (domain === 'commit') {
+    if (domain === 'commit' || domain === 'both') {
       row.push(column!.offset);
-    } else {
+    }
+    if (domain === 'date' || domain === 'both') {
       row.push(new Date(column!.timestamp * 1000));
     }
     keys.forEach((k) => {

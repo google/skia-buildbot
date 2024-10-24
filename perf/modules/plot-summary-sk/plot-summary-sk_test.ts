@@ -1,10 +1,13 @@
 import './index';
-import { assert } from 'chai';
-import { PlotSummarySk } from './plot-summary-sk';
 
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { generateFullDataFrame } from '../dataframe/test_utils';
+import { load } from '@google-web-components/google-chart/loader';
+import { assert } from 'chai';
 import { LitElement } from 'lit';
+
+import { PlotSummarySk } from './plot-summary-sk';
+import { generateFullDataFrame } from '../dataframe/test_utils';
+import { convertFromDataframe } from '../common/plot-builder';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('plot-summary-sk', () => {
   const now = new Date('2024/9/20').getTime();
@@ -12,6 +15,15 @@ describe('plot-summary-sk', () => {
   const commitRange = { begin: 100, end: 110 };
   const df = generateFullDataFrame(commitRange, now, 1, timeSpans);
   const newEl = setUpElementUnderTest<PlotSummarySk>('plot-summary-sk');
+
+  // `describe` doesn't support async setup, so we need to move this into `before` block.
+  // The Google Chart API is being loaded async'ly.
+  let dt: google.visualization.DataTable | null = null;
+  before(async () => {
+    // Load Google Chart API for DataTable.
+    await load();
+    dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+  });
 
   const chartReady = (cb: () => LitElement) =>
     new Promise<LitElement>((resolve) => {
@@ -32,7 +44,7 @@ describe('plot-summary-sk', () => {
         });
         await element.updateComplete;
         await chartReady(() => {
-          element.dataframe = df;
+          element.data = dt;
           return element;
         });
 
@@ -55,7 +67,7 @@ describe('plot-summary-sk', () => {
         const header = df.header!,
           start = 2,
           end = 6;
-        element.dataframe = df;
+        element.data = dt;
         element.Select(header![start]!, header![end]!);
 
         assert.isNull(element['chartLayout']);
@@ -79,7 +91,7 @@ describe('plot-summary-sk', () => {
         });
         await element.updateComplete;
         await chartReady(() => {
-          element.dataframe = df;
+          element.data = dt;
           return element;
         });
 

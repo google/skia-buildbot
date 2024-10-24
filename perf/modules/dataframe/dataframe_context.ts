@@ -25,6 +25,7 @@
  *
  * this.dataframe will be assigned whenever there is a change.
  */
+import { load } from '@google-web-components/google-chart/loader';
 import { createContext, provide } from '@lit/context';
 import { LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
@@ -34,6 +35,7 @@ import { fromParamSet } from '../../../infra-sk/modules/query';
 import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
+import { convertFromDataframe } from '../common/plot-builder';
 
 // Shift the range by offset.
 // Note, shitf [0, 10] by 10 will give [1, 11].
@@ -77,9 +79,13 @@ export const sliceRange = ({ begin, end }: range, chunkSize: number) => {
   }).concat({ begin: begin + (slices - 1) * chunkSize, end: end });
 };
 
+export type DataTable = google.visualization.DataTable | null;
+
 // This context provides the dataframe when it is ready to use from the data
 // store, typically a remote server or a local mock.
 export const dataframeContext = createContext<DataFrame>(Symbol('dataframe-context'));
+
+export const dataTableContext = createContext<DataTable>(Symbol('datatable-context'));
 
 export const dataframeAnomalyContext = createContext<AnomalyMap>(
   Symbol('dataframe-anomaly-context')
@@ -93,13 +99,16 @@ export const dataframeRepoContext = createContext<DataFrameRepository>(
   Symbol('dataframe-repo-context')
 );
 
-const emptyResolver = (_1: number, _2: DataFrame, _3: AnomalyMap) => {};
+const emptyResolver = (_1: number) => {};
 
 @customElement('dataframe-repository-sk')
 export class DataFrameRepository extends LitElement {
   private static shiftUrl = '/_/shift/';
 
   private static frameStartUrl = '/_/frame/start';
+
+  // The promise that resolves when the Google Chart API is loaded.
+  private static loadPromise = load();
 
   private _paramset = ReadOnlyParamSet({});
 
@@ -123,6 +132,9 @@ export class DataFrameRepository extends LitElement {
     paramset: ReadOnlyParamSet({}),
     skip: 0,
   };
+
+  @provide({ context: dataTableContext })
+  data: DataTable = null;
 
   @provide({ context: dataframeLoadingContext })
   loading = false;
@@ -266,6 +278,15 @@ export class DataFrameRepository extends LitElement {
     return resp.results as FrameResponse;
   }
 
+  private async setDataFrame(df: DataFrame) {
+    this.dataframe = df;
+
+    await DataFrameRepository.loadPromise;
+
+    // We could possibly merge with new data w/o recreating the entire table.
+    this.data = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+  }
+
   /**
    * Reset the dataframe and its corresponding FrameRequest.
    *
@@ -283,10 +304,11 @@ export class DataFrameRepository extends LitElement {
     this._baseRequest = request;
     this._baseRequest.request_type = 0; // change to timestamp-based query.
 
-    this.dataframe = dataframe;
     this.anomaly = mergeAnomaly(this.anomaly, anomalies);
     this._header = dataframe.header || [];
     this._traceset = dataframe.traceset;
+
+    await this.setDataFrame(dataframe);
   }
 
   /**
@@ -301,12 +323,7 @@ export class DataFrameRepository extends LitElement {
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = (n, df, anomaly) => {
-        this.dataframe = df;
-        this.anomaly = mergeAnomaly(this.anomaly, anomaly);
-        this.loading = false;
-        resolve(n);
-      };
+      resolver = resolve;
     });
 
     await curRequest;
@@ -318,16 +335,16 @@ export class DataFrameRepository extends LitElement {
     this._header = resp.dataframe?.header || [];
 
     const totalTraces = resp.dataframe?.header?.length || 0;
-    resolver(
-      totalTraces,
-      {
-        traceset: this._traceset,
-        header: this._header,
-        paramset: this._paramset,
-        skip: 0,
-      },
-      resp.anomalymap
-    );
+    await this.setDataFrame({
+      traceset: this._traceset,
+      header: this._header,
+      paramset: this._paramset,
+      skip: 0,
+    });
+
+    this.anomaly = mergeAnomaly(this.anomaly, resp.anomalymap);
+    this.loading = false;
+    resolver(totalTraces);
     return totalTraces;
   }
 
@@ -344,12 +361,7 @@ export class DataFrameRepository extends LitElement {
     let resolver = emptyResolver;
     const curRequest = this._requestComplete;
     this._requestComplete = new Promise((resolve) => {
-      resolver = (n, df, anomaly) => {
-        this.loading = false;
-        this.dataframe = df;
-        this.anomaly = mergeAnomaly(this.anomaly, anomaly);
-        resolve(n);
-      };
+      resolver = resolve;
     });
     await curRequest;
     this.loading = true;
@@ -390,16 +402,16 @@ export class DataFrameRepository extends LitElement {
     this.addTraceset(header, traceset);
 
     const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
-    resolver(
-      totalTraces,
-      {
-        traceset: this._traceset,
-        header: this._header,
-        paramset: this._paramset,
-        skip: 0,
-      },
-      anomaly
-    );
+    await this.setDataFrame({
+      traceset: this._traceset,
+      header: this._header,
+      paramset: this._paramset,
+      skip: 0,
+    });
+
+    this.anomaly = mergeAnomaly(this.anomaly, anomaly);
+    this.loading = false;
+    resolver(totalTraces);
     return totalTraces;
   }
 

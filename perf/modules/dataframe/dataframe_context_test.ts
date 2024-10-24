@@ -50,16 +50,8 @@ describe('dataframe-repository', () => {
     mockFrameStart(df, paramset, anomaly);
 
     const dfRepo = newEl();
-    assert.equal(
-      await dfRepo.resetTraces(
-        {
-          begin: now + 1,
-          end: now + timeSpan * 10,
-        },
-        paramset
-      ),
-      10
-    );
+    assert.equal(await dfRepo.resetTraces(range(now + 1, now + timeSpan * 10), paramset), 10);
+
     // The trace key generated from generateFullDataFrame.
     const traceKey = ',key=0';
     assert.isTrue(sorted(dfRepo.header));
@@ -71,16 +63,7 @@ describe('dataframe-repository', () => {
     mockFrameStart(df, paramset, anomaly);
 
     const dfRepo = newEl();
-    assert.equal(
-      await dfRepo.resetTraces(
-        {
-          begin: now,
-          end: now + timeSpan * 10 - 1,
-        },
-        paramset
-      ),
-      10
-    );
+    assert.equal(await dfRepo.resetTraces(range(now, now + timeSpan * 10 - 1), paramset), 10);
 
     // The trace key generated from generateFullDataFrame.
     const traceKey = ',key=0';

@@ -1,8 +1,10 @@
 import './index';
+import { load } from '@google-web-components/google-chart/loader';
 
 import { PlotSummarySk } from './plot-summary-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import { generateFullDataFrame } from '../dataframe/test_utils';
+import { convertFromDataframe } from '../common/plot-builder';
 
 document.querySelectorAll('plot-summary-sk').forEach((e) =>
   e.addEventListener('summary_selected', (e) => {
@@ -56,7 +58,7 @@ window.customElements
     plots.forEach((plot) => {
       readys.push(plot.updateComplete);
     });
-    return Promise.all(readys).then(() => Array.from(plots));
+    return load().then(() => Promise.all(readys).then(() => Array.from(plots)));
   })
   .then((plots) =>
     Promise.all(
@@ -69,7 +71,10 @@ window.customElements
         }).then((el) => {
           return el.updateComplete;
         });
-        plot.dataframe = frames[idx % frames.length];
+        plot.selectedTrace = ',key=0';
+        plot.data = google.visualization.arrayToDataTable(
+          convertFromDataframe(frames[idx % frames.length], 'both')!
+        );
         return chartReady;
       })
     )

@@ -2127,21 +2127,22 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
-      // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
-      // this.plot!.removeAll();
-      this.addTraces(json, switchToTab);
-      this._render();
-      if (isValidSelection(this._state.selected)) {
-        const e = selectionToEvent(this._state.selected, this._dataframe.header);
-        // If the range has moved to no longer include the selected commit then
-        // clear the selection.
-        if (e.detail.x === -1) {
-          this.clearSelectedState();
-        } else {
-          this.traceSelected(e);
-        }
-      }
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.addTraces(json, switchToTab);
+          this._render();
+          if (isValidSelection(this._state.selected)) {
+            const e = selectionToEvent(this._state.selected, this._dataframe.header);
+            // If the range has moved to no longer include the selected commit then
+            // clear the selection.
+            if (e.detail.x === -1) {
+              this.clearSelectedState();
+            } else {
+              this.traceSelected(e);
+            }
+          }
+        });
     });
   }
 
@@ -2194,9 +2195,12 @@ export class ExploreSimpleSk extends ElementSk {
     const body = this.requestFrameBodyFullFromState();
     const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
-      this.plotSimple.value?.removeAll();
-      this.addTraces(json, switchToTab);
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.plotSimple.value?.removeAll();
+          this.addTraces(json, switchToTab);
+        });
     });
   }
 
@@ -2420,8 +2424,11 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.dfRepo.value?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body);
-      this.addTraces(json, true);
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.addTraces(json, true);
+        });
     });
   }
 

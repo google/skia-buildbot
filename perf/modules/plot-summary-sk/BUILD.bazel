@@ -39,7 +39,11 @@ sk_page(
         ":plot-summary-sk",
         "//infra-sk/modules/theme-chooser-sk",
     ],
-    ts_deps = ["//perf/modules/dataframe:test_utils_ts_lib"],
+    ts_deps = [
+        "//:node_modules/@google-web-components/google-chart",
+        "//perf/modules/dataframe:test_utils_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+    ],
     ts_entry_point = "plot-summary-sk-demo.ts",
 )
 
@@ -61,10 +65,12 @@ karma_test(
     src = "plot-summary-sk_test.ts",
     deps = [
         ":plot-summary-sk",
+        "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
         "//:node_modules/lit",
         "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/dataframe:test_utils_ts_lib",
     ],
 )

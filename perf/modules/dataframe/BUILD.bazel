@@ -45,9 +45,11 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         ":index_ts_lib",
+        "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@lit/context",
         "//:node_modules/lit",
         "//infra-sk/modules:query_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/progress:progress_ts_lib",
     ],

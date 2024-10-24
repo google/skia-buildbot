@@ -20,14 +20,15 @@ import { ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { SummaryChartOptions, convertFromDataframe } from '../common/plot-builder';
-import { ColumnHeader, DataFrame } from '../json';
+import { SummaryChartOptions } from '../common/plot-builder';
+import { ColumnHeader } from '../json';
 import { MousePosition, Point } from '../plot-simple-sk/plot-simple-sk';
 import {
-  dataframeContext,
   dataframeLoadingContext,
   dataframeRepoContext,
   DataFrameRepository,
+  DataTable,
+  dataTableContext,
 } from '../dataframe/dataframe_context';
 import { range } from '../dataframe/index';
 import { define } from '../../../elements-sk/modules/define';
@@ -60,9 +61,9 @@ export class PlotSummarySk extends LitElement {
   @property({ reflect: true })
   domain: 'commit' | 'date' = 'commit';
 
-  @consume({ context: dataframeContext, subscribe: true })
+  @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
-  dataframe?: DataFrame;
+  data: DataTable = null;
 
   @property({ reflect: true })
   selectionType: 'canvas' | 'material' = 'canvas';
@@ -83,19 +84,19 @@ export class PlotSummarySk extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     if (
-      changedProperties.has('dataframe') ||
+      changedProperties.has('data') ||
       changedProperties.has('selectedTrace') ||
       changedProperties.has('domain')
     ) {
-      this.updateDataframe(this.dataframe!, this.selectedTrace);
+      this.updateDataView(this.data, this.selectedTrace);
     }
   }
 
-  private async updateDataframe(df: DataFrame | null, trace: string | null) {
+  private async updateDataView(dt: DataTable, trace: string | null) {
     await this.updateComplete;
     const plot = this.plotElement.value;
-    if (!plot) {
-      if (df) {
+    if (!plot || !dt) {
+      if (dt) {
         console.warn(
           'The dataframe is not assigned because the element is not ready. Try call `await this.updateComplete` first.'
         );
@@ -103,11 +104,21 @@ export class PlotSummarySk extends LitElement {
       return;
     }
 
-    const rows = convertFromDataframe(df, this.domain, trace || Object.keys(df?.traceset || {})[0]);
-    if (rows) {
-      plot.data = rows;
-      plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
+    const view = new google.visualization.DataView(dt!);
+    const ncols = view.getNumberOfColumns();
+
+    // The first two columns are the commit position and the date.
+    const cols = [this.domain === 'commit' ? 0 : 1];
+    for (let index = 2; index < ncols; index++) {
+      const traceKey = view.getColumnLabel(index);
+      if (!trace || trace === traceKey) {
+        cols.push(index);
+      }
     }
+
+    view.setColumns(cols);
+    plot.view = view;
+    plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
   }
 
   // The div element that will host the plot on the summary.
@@ -337,7 +348,7 @@ export class PlotSummarySk extends LitElement {
     // If the user toggles the theme to/from darkmode then redraw.
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
-      if (this.plotElement.value && this.dataframe) {
+      if (this.plotElement.value && this.data) {
         this.plotElement.value!.options = SummaryChartOptions(getComputedStyle(this), this.domain);
       }
       this.requestUpdate();
