@@ -137,7 +137,10 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
-import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
+import {
+  PlotGoogleChartSk,
+  PlotSelectionEventDetails,
+} from '../plot-google-chart-sk/plot-google-chart-sk';
 import { DataFrameRepository } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { generateSubDataframe } from '../dataframe/index';
@@ -770,7 +773,10 @@ export class ExploreSimpleSk extends ElementSk {
     ${when(
       ele._state.show_google_plot,
       () =>
-        html` <plot-google-chart-sk ${ref(ele.googleChartPlot)}>
+        html` <plot-google-chart-sk
+          ${ref(ele.googleChartPlot)}
+          @selection-changing=${ele.OnSelectionRange}
+          @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">question_exchange</md-icon>
           <md-icon slot="regression">report</md-icon>
           <md-icon slot="improvement">check</md-icon>
@@ -1635,6 +1641,30 @@ export class ExploreSimpleSk extends ElementSk {
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+  }
+
+  private extendRange(range: range) {
+    const dfRepo = this.dfRepo.value;
+    const header = dfRepo?.dataframe?.header;
+    if (!dfRepo || !header || dfRepo.loading) {
+      return;
+    }
+
+    if (range.begin < header[0]!.offset) {
+      dfRepo.extendRange(-monthInSec);
+    } else if (range.end > header[header.length - 1]!.offset) {
+      dfRepo.extendRange(monthInSec);
+    }
+  }
+
+  private OnSelectionRange({ type, detail }: CustomEvent<PlotSelectionEventDetails>): void {
+    if (type === 'selection-changed') {
+      this.extendRange(detail.value);
+    }
+
+    if (this.plotSummary.value) {
+      this.plotSummary.value.selectedValueRange = detail.value;
+    }
   }
 
   private updateSelectedRangeWithUpdatedDataframe(

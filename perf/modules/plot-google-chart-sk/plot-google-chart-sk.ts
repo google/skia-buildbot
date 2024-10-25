@@ -36,6 +36,11 @@ interface Selection {
   column: string;
 }
 
+export interface PlotSelectionEventDetails {
+  value: range;
+  domain: 'commit' | 'date';
+}
+
 export class PlotGoogleChartSk extends LitElement {
   // TODO(b/362831653): Adjust height to 100% once plot-summary-sk is deprecated
   static styles = css`
@@ -142,6 +147,19 @@ export class PlotGoogleChartSk extends LitElement {
     improvement: createRef<HTMLSlotElement>(),
   };
 
+  // How to pan or zoom the chart, we only have panning now.
+  private navigationMode: 'pan' | null = null;
+
+  private lastMouse = { x: 0, y: 0 };
+
+  // The value distance when moving by 1px on the screen.
+  private valueDelta = 1;
+
+  private cachedChartArea = { left: 0, top: 0, width: 0, height: 0 };
+
+  // Whether we are interacting with the chart that takes higher prioritiy than navigations.
+  private chartInteracting = false;
+
   constructor() {
     super();
 
@@ -177,6 +195,10 @@ export class PlotGoogleChartSk extends LitElement {
           ${ref(this.plotElement)}
           class="plot"
           type="line"
+          .events=${['onmouseover', 'onmouseout']}
+          @mousedown=${this.onChartMouseDown}
+          @google-chart-onmouseover=${this.onChartMouseOver}
+          @google-chart-onmouseout=${this.onChartMouseOut}
           @google-chart-ready=${this.onChartReady}
           @google-chart-select=${this.onSelectDataPoint}>
         </google-chart>
@@ -257,6 +279,78 @@ export class PlotGoogleChartSk extends LitElement {
       }
       this.requestUpdate();
     });
+
+    // We add listeners on the window so we can still track even the mouse is outside the chart
+    // area.
+    window.addEventListener('mousemove', (e) => {
+      this.onWindowMouseMove(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      this.onWindowMouseUp();
+    });
+  }
+
+  private onChartMouseDown(e: MouseEvent) {
+    // If the chart emits onmouoseover/out events, meaning the mouse is hovering over a data point,
+    // we will not try to initiate the panning action.
+    if (this.chartInteracting) {
+      return;
+    }
+
+    // This disable system events like selecting texts.
+    e.preventDefault();
+    this.navigationMode = 'pan';
+    this.lastMouse = { x: e.x, y: e.y };
+  }
+
+  private onChartMouseOver() {
+    this.chartInteracting = true;
+  }
+
+  private onChartMouseOut() {
+    this.chartInteracting = false;
+  }
+
+  private onWindowMouseMove(e: MouseEvent) {
+    if (this.navigationMode !== 'pan') {
+      return;
+    }
+
+    const deltaX = (this.lastMouse.x - e.x) * this.valueDelta;
+    this.lastMouse.x = e.x;
+
+    this.selectedRange!.begin += deltaX;
+    this.selectedRange!.end += deltaX;
+    this.updateOptions();
+
+    this.dispatchEvent(
+      new CustomEvent<PlotSelectionEventDetails>('selection-changing', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value: this.selectedRange!,
+          domain: 'commit', // Currently, it is always commit as y-axis.
+        },
+      })
+    );
+  }
+
+  private onWindowMouseUp() {
+    if (this.navigationMode === 'pan') {
+      this.dispatchEvent(
+        new CustomEvent<PlotSelectionEventDetails>('selection-changed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: this.selectedRange!,
+            domain: 'commit', // Currently, it is always commit as y-axis.
+          },
+        })
+      );
+    }
+    this.navigationMode = null;
+    this.chartInteracting = false;
   }
 
   private onSelectDataPoint() {
@@ -375,8 +469,22 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartReady(e: CustomEvent) {
+    const chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
-    this.drawAnomaly(e.detail.chart);
+    this.drawAnomaly(chart);
+
+    const layout = chart.getChartLayoutInterface();
+    const area = layout.getChartAreaBoundingBox();
+
+    if (
+      area.left !== this.cachedChartArea.left ||
+      area.top !== this.cachedChartArea.top ||
+      area.height !== this.cachedChartArea.height ||
+      area.width !== this.cachedChartArea.width
+    ) {
+      this.cachedChartArea = area;
+      this.valueDelta = layout.getHAxisValue(area.left + 1) - layout.getHAxisValue(area.left);
+    }
   }
 
   // TODO(b/362831653): deprecate this, no longer needed
@@ -384,3 +492,14 @@ export class PlotGoogleChartSk extends LitElement {
 }
 
 define('plot-google-chart-sk', PlotGoogleChartSk);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'plot-google-chart-sk': PlotGoogleChartSk;
+  }
+
+  interface GlobalEventHandlersEventMap {
+    'selection-changing': CustomEvent<PlotSelectionEventDetails>;
+    'selection-changed': CustomEvent<PlotSelectionEventDetails>;
+  }
+}

@@ -149,10 +149,6 @@ export function mainChartOptions(
       width: '80%',
       height: '85%',
     },
-    explorer: {
-      axis: 'horizontal',
-      actions: ['dragToZoom', 'rightClickToReset'],
-    },
     legend: {
       position: 'top',
       textStyle: { color: style.color },
