@@ -34,6 +34,7 @@ sk_element(
         "//perf/modules/plot-summary-sk",
         "//perf/modules/picker-field-sk",
         "//perf/modules/chart-tooltip-sk",
+        "//perf/modules/triage-menu-sk",
         "//perf/modules/point-links-sk",
         "//perf/modules/graph-title-sk",
         "//perf/modules/new-bug-dialog-sk",

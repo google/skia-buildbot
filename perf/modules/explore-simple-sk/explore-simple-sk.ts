@@ -84,7 +84,11 @@ import {
   Trace,
   ReadOnlyParamSet,
 } from '../json';
-import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
+import {
+  AnomalyData,
+  PlotSimpleSk,
+  PlotSimpleSkTraceEventDetails,
+} from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 import {
@@ -128,6 +132,7 @@ import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
 import '../chart-tooltip-sk/chart-tooltip-sk';
 import '../dataframe/dataframe_context';
 import { ChartTooltipSk } from '../chart-tooltip-sk/chart-tooltip-sk';
+import { NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
@@ -168,6 +173,9 @@ const RANGE_CHANGE_ON_ZOOM_PERCENT = 0.5;
 
 // The minimum length [right - left] of a zoom range.
 const MIN_ZOOM_RANGE = 0.1;
+
+// The max number of points a user can nudge an anomaly by.
+const NUDGE_RANGE = 2;
 
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
@@ -1690,12 +1698,42 @@ export class ExploreSimpleSk extends ElementSk {
     const testName = pointDetails.name;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
 
-    const anomalyMap = this.dfRepo.value?.anomaly;
-    let anomaly: Anomaly | null = null;
-    if (anomalyMap) {
-      const traceAnomalies = anomalyMap[testName];
-      if (traceAnomalies && traceAnomalies[commitPosition]) {
-        anomaly = traceAnomalies![commitPosition];
+    const anomalyDataMap = this.plotSimple.value!.anomalyDataMap;
+    let anomalyData: AnomalyData | null = null;
+
+    if (anomalyDataMap) {
+      const traceAnomalies = anomalyDataMap[testName];
+      if (traceAnomalies) {
+        for (let i = 0; i < traceAnomalies.length; i++) {
+          if (pointDetails.x === traceAnomalies[i].x) {
+            anomalyData = traceAnomalies[i];
+            break;
+          }
+        }
+      }
+    }
+
+    // Map an anomaly ID to a list of Nudge Entries.
+    // TODO(b/375678060): Reflect anomaly coordinate changes unto summary bar.
+    const nudgeList: NudgeEntry[] = [];
+    if (anomalyData) {
+      const headerLength = this.dfRepo.value!.dataframe.header!.length;
+      for (let i = -NUDGE_RANGE; i <= NUDGE_RANGE; i++) {
+        if (x + i <= 0 || x + i >= headerLength) {
+          continue;
+        }
+        const start_revision = this.dfRepo.value!.dataframe.header![x + i - 1]!.offset + 1;
+        const end_revision = this.dfRepo.value!.dataframe.header![x + i]!.offset;
+        const y = this.dfRepo.value!.dataframe.traceset![testName][x + i];
+        nudgeList.push({
+          display_index: i,
+          anomaly_data: anomalyData,
+          selected: i === 0,
+          start_revision: start_revision,
+          end_revision: end_revision,
+          x: pointDetails.x + i,
+          y: y,
+        });
       }
     }
 
@@ -1713,7 +1751,8 @@ export class ExploreSimpleSk extends ElementSk {
       testName,
       pointDetails.y,
       commitPosition,
-      anomaly,
+      anomalyData ? anomalyData.anomaly : null,
+      nudgeList,
       commit,
       displayFileLinks,
       fixTooltip,

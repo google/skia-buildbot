@@ -20,7 +20,7 @@ import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
-import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
+import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 
@@ -111,6 +111,8 @@ export class ChartTooltipSk extends ElementSk {
   // Usually determined by content in anomaly map referenced against the result
   // of POST /_/cid.
   private _anomaly: Anomaly | null = null;
+
+  private _nudgeList: NudgeEntry[] | null = null;
 
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf.bug_host_url;
@@ -241,7 +243,7 @@ export class ChartTooltipSk extends ElementSk {
     }
 
     if (this.anomaly.bug_id === 0) {
-      this.triageMenu!.setAnomalies([this.anomaly!], [this._trace_name]);
+      this.triageMenu!.setAnomalies([this.anomaly!], [this._trace_name], this._nudgeList);
     }
 
     // TOOD(jeffyoon@) - add revision range formatting
@@ -329,6 +331,7 @@ export class ChartTooltipSk extends ElementSk {
     y_value: number,
     commit_position: CommitNumber,
     anomaly: Anomaly | null,
+    nudgeList: NudgeEntry[] | null,
     commit: Commit | null,
     displayFileLinks: boolean,
     tooltipFixed: boolean,
@@ -339,6 +342,7 @@ export class ChartTooltipSk extends ElementSk {
     this._y_value = y_value;
     this._commit_position = commit_position;
     this._anomaly = anomaly;
+    this._nudgeList = nudgeList;
     this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
     this.commitInfo = commit;
@@ -351,13 +355,7 @@ export class ChartTooltipSk extends ElementSk {
   }
 
   private unassociateBug() {
-    this.triageMenu!.makeEditAnomalyRequest(
-      [this._anomaly!],
-      [this._trace_name],
-      'RESET',
-      null,
-      null
-    );
+    this.triageMenu!.makeEditAnomalyRequest([this._anomaly!], [this._trace_name], 'RESET');
   }
 
   get test_name(): string {

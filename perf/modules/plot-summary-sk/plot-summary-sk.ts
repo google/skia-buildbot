@@ -416,10 +416,12 @@ export class PlotSummarySk extends LitElement {
 
   // Listener for the mouse up event.
   private mouseUpListener() {
-    // Releasing the mouse means selection/dragging is done.
-    this.isCurrentlySelecting = false;
-    this.lockedSelectionDiffs = null;
-    this.summarySelected();
+    if (this.isCurrentlySelecting || this.lockedSelectionDiffs !== null) {
+      // Releasing the mouse means selection/dragging is done.
+      this.isCurrentlySelecting = false;
+      this.lockedSelectionDiffs = null;
+      this.summarySelected();
+    }
   }
 
   private summarySelected() {

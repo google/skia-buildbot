@@ -81,6 +81,7 @@ describe('chart-tooltip-sk', () => {
         commit_position,
         dummyAnomaly(12345),
         null,
+        null,
         false,
         false,
         () => {}

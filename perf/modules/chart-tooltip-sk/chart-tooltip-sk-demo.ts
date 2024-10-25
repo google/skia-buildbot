@@ -83,6 +83,7 @@ window.customElements.whenDefined('chart-tooltip-sk').then(async () => {
     CommitNumber(12345),
     dummyAnomaly(12345),
     null,
+    null,
     false,
     false,
     () => {}
