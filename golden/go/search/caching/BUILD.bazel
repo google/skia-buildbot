@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "caching",
+    srcs = [
+        "byblame.go",
+        "common.go",
+        "keys.go",
+        "searchCache.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/search/caching",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cache",
+        "//go/skerr",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_test(
+    name = "caching_test",
+    srcs = ["searchCache_test.go"],
+    embed = [":caching"],
+    deps = [
+        "//go/cache/mock",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/sqltest",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	gcp_redis "cloud.google.com/go/redis/apiv1"
 	gstorage "cloud.google.com/go/storage"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgtype"
@@ -18,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -35,6 +37,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
+	searchCache "go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/storage"
@@ -82,6 +85,12 @@ type periodicTasksConfig struct {
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"update_traces_ignore_period"` // TODO(kjlubick) change JSON
+
+	// List of corpora to be enabled for caching.
+	CachingCorpora []string `json:"cache_corpora" optional:"true"`
+
+	// Caching frequency in minutes.
+	CachingFrequencyMinutes int `json:"caching_frequency_minutes" optional:"true"`
 }
 
 type perfSummariesConfig struct {
@@ -99,6 +108,7 @@ func main() {
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to the periodic tasks server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
+		enableCache          = flag.Bool("enable_cache", false, "Set to true if the cache should be populated.")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -146,6 +156,11 @@ func main() {
 	startKnownDigestsSync(ctx, db, ptc)
 	if ptc.PerfSummaries != nil {
 		startPerfSummarization(ctx, db, ptc.PerfSummaries)
+	}
+
+	if *enableCache {
+		sklog.Infof("Starting cache population tasks.")
+		runCachingTasks(ctx, ptc, db)
 	}
 
 	sklog.Infof("periodic tasks have been started")
@@ -1152,4 +1167,28 @@ func uploadDataToPerf(ctx context.Context, tuple summaryTuple, data summaryData,
 	}
 	sklog.Infof("Uploaded summary to perf %s", perfPath)
 	return nil
+}
+
+// Runs the caching tasks.
+func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
+	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
+		populateSearchCache(ctx, ptc, db)
+	})
+}
+
+// Runs the caching tasks related to the search functionality.
+func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
+	if ptc.RedisConfig.Instance == "" {
+		sklog.Fatalf("Redis config not specified in the instance config.")
+	}
+	gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
+	cache, err := redis.NewRedisCache(ctx, gcpClient, &ptc.RedisConfig)
+	if err != nil {
+		sklog.Fatalf("Error creating a new redis cache instance: %v", err)
+	}
+	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
+	err = searchCacheManager.RunCachePopulation(ctx)
+	if err != nil {
+		sklog.Fatalf("Error running cache population: %v", err)
+	}
 }
