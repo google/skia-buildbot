@@ -5,6 +5,7 @@
     "chat_url": "http://go/berf-skia-chat",
     "feedback_url": "http://go/berf-skia-feedback",
     "trace_sample_proportion": 0.01,
+    "fetch_chrome_perf_anomalies": true,
     "notify_config": {
       "notifications": "html_email"
     },
