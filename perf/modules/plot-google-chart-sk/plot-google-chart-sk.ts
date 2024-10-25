@@ -9,6 +9,7 @@
  * @example
  */
 import '@google-web-components/google-chart';
+import '@material/web/progress/linear-progress';
 import { GoogleChart } from '@google-web-components/google-chart';
 
 import { consume } from '@lit/context';
@@ -16,10 +17,15 @@ import { html, css } from 'lit';
 import { LitElement, PropertyValues } from 'lit';
 import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
 import { Anomaly, AnomalyMap, DataFrame } from '../json';
 import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
-import { dataframeAnomalyContext, dataframeContext } from '../dataframe/dataframe_context';
+import {
+  dataframeAnomalyContext,
+  dataframeContext,
+  dataframeLoadingContext,
+} from '../dataframe/dataframe_context';
 import { getTitle, titleFormatter } from '../dataframe/traceset';
 import { DataTableLike } from '@google-web-components/google-chart/loader';
 import { range } from '../dataframe/index';
@@ -92,6 +98,14 @@ export class PlotGoogleChartSk extends LitElement {
       }
     }
 
+    md-linear-progress {
+      position: absolute;
+      width: 100%;
+      --md-linear-progress-active-indicator-height: 8px;
+      --md-linear-progress-track-height: 8px;
+      --md-linear-progress-track-shape: 8px;
+    }
+
     ul.table {
       list-style: none;
       padding: 0;
@@ -114,6 +128,9 @@ export class PlotGoogleChartSk extends LitElement {
       }
     }
   `;
+
+  @consume({ context: dataframeLoadingContext, subscribe: true })
+  private loading = false;
 
   @consume({ context: dataframeContext, subscribe: true })
   @property({ attribute: false })
@@ -202,6 +219,7 @@ export class PlotGoogleChartSk extends LitElement {
           @google-chart-ready=${this.onChartReady}
           @google-chart-select=${this.onSelectDataPoint}>
         </google-chart>
+        ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <div class="plot-panel" ?hidden=${!this.tooltip}>
           <h3>${this.tooltip?.traceName}</h3>
