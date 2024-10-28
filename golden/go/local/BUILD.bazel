@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "local_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/golden/go/local",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)
+
+go_binary(
+    name = "local",
+    embed = [":local_lib"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,24 @@
+{
+  authorized_users: [
+    "google.com", "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
+  ],
+  client_secret_file: "/etc/skia.org/login.json",
+  force_login: true, // This instance requires authentication. It has a public view (skia-public)
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    defaultCorpus: "round",
+    title: "Skia Gold",
+  },
+  materialized_view_corpora: ["round", "corners"],
+  negatives_max_age: "4320h", // 180 days
+  positives_max_age: "720h", // 30 days
+  prom_port: ":20000",
+  ready_port: ":8000",
+  debug_port: ":7001",
+  resources_path: "../_bazel_bin/golden/pages/development",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 1,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "2Gi",
+}

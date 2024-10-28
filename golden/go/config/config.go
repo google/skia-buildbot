@@ -1,14 +1,26 @@
 package config
 
 import (
+	"context"
 	"io"
 	"reflect"
 
+	gcp_redis "cloud.google.com/go/redis/apiv1"
 	"github.com/flynn/json5"
+	"go.skia.org/infra/go/cache"
+	"go.skia.org/infra/go/cache/local"
 	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+)
+
+// CacheType defines the available types for caches.
+type CacheType string
+
+const (
+	RedisCacheType CacheType = "redis"
+	LocalCacheType CacheType = "local"
 )
 
 // The Common struct is a set of configuration values that are the same across all instances.
@@ -70,8 +82,30 @@ type Common struct {
 	// corpus' grouping.
 	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
 
+	// Type of cache to use.
+	CacheType CacheType `json:"cache_type" optional:"true"`
+
 	// RedisConfig provides configuration for redis instance to be used for caching.
 	RedisConfig redis.RedisConfig `json:"redis_config" optional:"true"`
+}
+
+// GetCacheClient returns a cache client based on the configuration.
+func (cfg Common) GetCacheClient(ctx context.Context) (cache.Cache, error) {
+	switch cfg.CacheType {
+	case "":
+		return nil, nil
+	case LocalCacheType:
+		return local.New(100)
+	case RedisCacheType:
+		gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		return redis.NewRedisCache(ctx, gcpClient, &cfg.RedisConfig)
+	}
+
+	return nil, skerr.Fmt("Invalid cache_type %s specified in the config.", cfg.CacheType)
 }
 
 // CodeReviewSystem represents the details needed to interact with a CodeReviewSystem (e.g.

@@ -143,7 +143,7 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	err := util.ChunkIter(numRows, 3000, func(startIdx int, endIdx int) error {
 		argBatch := arguments[startIdx*numCols : endIdx*numCols]
 		vp := sqlutil.ValuesPlaceholders(numCols, endIdx-startIdx)
-		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
+		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s ON CONFLICT DO NOTHING`, name, strings.Join(colNames, ","), vp)
 
 		_, err := db.Exec(ctx, insert, argBatch...)
 		return skerr.Wrapf(err, "batch: %d-%d (%d-%d)", startIdx, endIdx, startIdx*numCols, endIdx*numCols)

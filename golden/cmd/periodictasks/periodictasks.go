@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	gcp_redis "cloud.google.com/go/redis/apiv1"
 	gstorage "cloud.google.com/go/storage"
 	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbpgx"
 	"github.com/jackc/pgtype"
@@ -19,7 +18,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/cache/redis"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -109,6 +107,7 @@ func main() {
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to the periodic tasks server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
 		enableCache          = flag.Bool("enable_cache", false, "Set to true if the cache should be populated.")
+		local                = flag.Bool("local", false, "Set to true if running locally.")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -153,7 +152,11 @@ func main() {
 	startChangelistsDiffWork(ctx, gatherer, ptc)
 	startDiffWorkMetrics(ctx, db)
 	startBackupStatusCheck(ctx, db, ptc)
-	startKnownDigestsSync(ctx, db, ptc)
+
+	if !*local {
+		startKnownDigestsSync(ctx, db, ptc)
+	}
+
 	if ptc.PerfSummaries != nil {
 		startPerfSummarization(ctx, db, ptc.PerfSummaries)
 	}
@@ -1178,13 +1181,9 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 
 // Runs the caching tasks related to the search functionality.
 func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
-	if ptc.RedisConfig.Instance == "" {
-		sklog.Fatalf("Redis config not specified in the instance config.")
-	}
-	gcpClient, err := gcp_redis.NewCloudRedisClient(ctx)
-	cache, err := redis.NewRedisCache(ctx, gcpClient, &ptc.RedisConfig)
+	cache, err := ptc.GetCacheClient(ctx)
 	if err != nil {
-		sklog.Fatalf("Error creating a new redis cache instance: %v", err)
+		sklog.Fatalf("Error creating a new cache instance: %v", err)
 	}
 	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
 	err = searchCacheManager.RunCachePopulation(ctx)
