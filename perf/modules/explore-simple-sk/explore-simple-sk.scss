@@ -143,10 +143,16 @@ explore-simple-sk {
     display: none;
   }
 
+  .chart-container {
+    display: block;
+    height: 600px;
+    width: 100%;
+  }
+
   plot-simple-sk,
   plot-google-chart-sk {
     display: block;
-    height: 600px;
+    height: 100%;
     width: 100%;
   }
 

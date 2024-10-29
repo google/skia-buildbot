@@ -770,11 +770,13 @@ export class ExploreSimpleSk extends ElementSk {
     <graph-title-sk id=graphTitle></graph-title-sk>
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
+    <div class="chart-container">
     ${when(
       ele._state.show_google_plot,
       () =>
         html` <plot-google-chart-sk
           ${ref(ele.googleChartPlot)}
+          @google-chart-onmouseover=${ele.onChartOver}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">question_exchange</md-icon>
@@ -793,8 +795,9 @@ export class ExploreSimpleSk extends ElementSk {
         </plot-simple-sk>
       `
     )}
-      ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <chart-tooltip-sk></chart-tooltip-sk>
+      </div>
+      ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
@@ -1060,6 +1063,37 @@ export class ExploreSimpleSk extends ElementSk {
     if (plot) {
       plot.selectedTrace = this.traceKeyForSummary;
     }
+  }
+
+  // TODO(b/370804498): create onChartSelect for @google-chart-select.
+  // onChartSelect shows the tooltip whenever a user clicks on a data
+  // point and the tooltip will lock in place until it is closed.
+
+  // onChartOver shows the tooltip whenever a user hovers their mouse
+  // over a data point in the google chart
+  private onChartOver(e: CustomEvent) {
+    const chart = this.googleChartPlot!.value!;
+    const index = {
+      row: e.detail.data.row,
+      col: e.detail.data.column,
+    };
+    const commitPos = chart.getCommitPosition(index.row);
+    const position = chart.getPositionByIndex(index);
+    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+    const commit = this.pointToCommitDetailMap.get(key) || null;
+
+    this.enableTooltip(
+      {
+        x: index.row - (this.selectedRange?.begin || 0),
+        y: chart.getYValue(index),
+        xPos: position.x,
+        yPos: position.y,
+        name: chart.getTraceName(index.col),
+      },
+      commit,
+      false,
+      true
+    );
   }
 
   connectedCallback(): void {
@@ -1728,7 +1762,7 @@ export class ExploreSimpleSk extends ElementSk {
     const testName = pointDetails.name;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
 
-    const anomalyDataMap = this.plotSimple.value!.anomalyDataMap;
+    const anomalyDataMap = this.plotSimple.value?.anomalyDataMap;
     let anomalyData: AnomalyData | null = null;
 
     if (anomalyDataMap) {

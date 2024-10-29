@@ -23,6 +23,7 @@ import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk'
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
+import '@material/web/elevation/elevation.js';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -131,7 +132,7 @@ export class ChartTooltipSk extends ElementSk {
   ingestFileLinks: IngestFileLinksSk | null = null;
 
   // Cached margin to compute once.
-  private margin: { left?: number; right?: number } = {};
+  private margin: { left?: number; right?: number; bottom?: number; top?: number } = {};
 
   private containerDiv = createRef<HTMLDivElement>();
 
@@ -153,6 +154,7 @@ export class ChartTooltipSk extends ElementSk {
   // TODO(b/338440689) - make commit number a link to gitiles
   private static template = (ele: ChartTooltipSk) => html`
     <div class="container" ${ref(ele.containerDiv)}>
+      <md-elevation style="--md-elevation-level: 3"></md-elevation>
       <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -191,7 +193,9 @@ export class ChartTooltipSk extends ElementSk {
   `;
 
   /**
-   * Move the tooltip to the given position.
+   * Move the tooltip to the given position. Width uses viewport while
+   * height ensures the tooltip tries to stay within the confines of
+   * the chart.
    * @param position The position relative to its parent; hidden if null.
    */
   moveTo(position: { x: number; y: number } | null): void {
@@ -203,6 +207,9 @@ export class ChartTooltipSk extends ElementSk {
       div!.style.display = 'none';
       return;
     }
+    // displaying the element here allows us to fetch the correct
+    // rectangle dimensions for the tooltip
+    div!.style.display = 'block';
 
     const viewportWidth = Math.max(
       document.documentElement.clientWidth || 0,
@@ -211,19 +218,29 @@ export class ChartTooltipSk extends ElementSk {
 
     this.margin.left = this.margin.left ?? parseInt(getComputedStyle(div!).marginLeft);
     this.margin.right = this.margin.right ?? parseInt(getComputedStyle(div!).marginRight);
+    this.margin.top = this.margin.top ?? parseInt(getComputedStyle(div!).marginTop);
+    this.margin.bottom = this.margin.bottom ?? parseInt(getComputedStyle(div!).marginBottom);
 
     const parentLeft = div.parentElement?.getBoundingClientRect().left || 0;
-    const rect = div!.getBoundingClientRect();
+    const parentBottom = parseInt(getComputedStyle(this.parentElement!).height, 10);
+    const rect = div.getBoundingClientRect();
     const left = parentLeft + position.x + this.margin.right! + rect.width;
+    const bottom = position.y + rect.height;
 
     // Shift to the left if the element exceeds the viewport.
     const adjustedX =
       left > viewportWidth
         ? position.x - (rect.width + this.margin.left! + this.margin.right!)
         : position.x;
-    div!.style.display = 'block';
+
+    // Shift to the top if the element exceeds the chart height.
+    const adjustedY =
+      bottom > parentBottom
+        ? position.y - (rect.height + this.margin.bottom! + this.margin.top!)
+        : position.y;
+
     div!.style.left = `${adjustedX}px`;
-    div!.style.top = `${position.y}px`;
+    div!.style.top = `${adjustedY}px`;
   }
 
   private seeMoreText() {

@@ -125,8 +125,8 @@ export function mainChartOptions(
     // for selectionMode: single, this should be none, such that we only allow
     // one tooltip per seelction
     aggregationTarget: 'none',
-    tooltip: { trigger: 'selection' },
-    pointSize: 2,
+    tooltip: { trigger: 'none' },
+    pointSize: 4,
     title: title,
     titleTextStyle: { color: style.color },
     hAxis: {
@@ -146,7 +146,7 @@ export function mainChartOptions(
       viewWindowMode: 'maximized',
     },
     chartArea: {
-      width: '80%',
+      width: '90%',
       height: '85%',
     },
     legend: {

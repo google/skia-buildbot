@@ -27,7 +27,6 @@ import {
   dataframeLoadingContext,
 } from '../dataframe/dataframe_context';
 import { getTitle, titleFormatter } from '../dataframe/traceset';
-import { DataTableLike } from '@google-web-components/google-chart/loader';
 import { range } from '../dataframe/index';
 
 export interface AnomalyData {
@@ -35,11 +34,6 @@ export interface AnomalyData {
   y: number;
   anomaly: Anomaly;
   highlight: boolean;
-}
-
-interface Selection {
-  row: string;
-  column: string;
 }
 
 export interface PlotSelectionEventDetails {
@@ -56,9 +50,13 @@ export class PlotGoogleChartSk extends LitElement {
     slot {
       display: none;
     }
+    .anomaly {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+    }
     .container {
-      display: grid;
-      grid-template-columns: 4fr 1fr;
+      display: flex;
       height: 100%;
       width: 100%;
     }
@@ -149,14 +147,6 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private anomalyMap: AnomalyMap = {};
 
-  @property()
-  private tooltip?: {
-    traceName: string;
-    value: number;
-    commit: string;
-    date: string;
-  };
-
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -176,6 +166,9 @@ export class PlotGoogleChartSk extends LitElement {
 
   // Whether we are interacting with the chart that takes higher prioritiy than navigations.
   private chartInteracting = false;
+
+  // cache the googleChart object within the module
+  private chart: google.visualization.CoreChartBase | null = null;
 
   constructor() {
     super();
@@ -216,30 +209,10 @@ export class PlotGoogleChartSk extends LitElement {
           @mousedown=${this.onChartMouseDown}
           @google-chart-onmouseover=${this.onChartMouseOver}
           @google-chart-onmouseout=${this.onChartMouseOut}
-          @google-chart-ready=${this.onChartReady}
-          @google-chart-select=${this.onSelectDataPoint}>
+          @google-chart-ready=${this.onChartReady}>
         </google-chart>
         ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
-        <div class="plot-panel" ?hidden=${!this.tooltip}>
-          <h3>${this.tooltip?.traceName}</h3>
-          <ul class="table">
-            <li>
-              <span>Value:</span>
-              <span>${this.tooltip?.value}</span>
-            </li>
-          </ul>
-          <ul class="table">
-            <li>
-              <span>Commit Position:</span>
-              <span>${this.tooltip?.commit}</span>
-            </li>
-            <li>
-              <span>Commit Date:</span>
-              <span>${this.tooltip?.date}</span>
-            </li>
-          </ul>
-        </div>
       </div>
       <slot name="untriage" ${ref(this.slots.untriage)}></slot>
       <slot name="regression" ${ref(this.slots.regression)}></slot>
@@ -371,28 +344,6 @@ export class PlotGoogleChartSk extends LitElement {
     this.chartInteracting = false;
   }
 
-  private onSelectDataPoint() {
-    const chart = this.plotElement.value;
-    if (!chart) {
-      return;
-    }
-    const selection = chart.selection?.pop() as Selection;
-    const data = chart.data as DataTableLike;
-    const df = this.dataframe!;
-    if (Array.isArray(data)) {
-      const row = Number(selection.row);
-      const column = Number(selection.column);
-
-      this.tooltip = {
-        traceName: String(data[0][column]),
-        // header row is row 0, so need to add row data by 1
-        value: Number(data[row + 1][column]),
-        commit: String(df.header![row]?.offset),
-        date: new Date(df.header![row]!.timestamp * 1000).toDateString(),
-      };
-    }
-  }
-
   private drawAnomaly(chart: google.visualization.CoreChartBase) {
     const layout = chart.getChartLayoutInterface();
     if (!this.anomalyMap) {
@@ -487,11 +438,11 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartReady(e: CustomEvent) {
-    const chart = e.detail.chart as google.visualization.CoreChartBase;
+    this.chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
-    this.drawAnomaly(chart);
+    this.drawAnomaly(this.chart);
 
-    const layout = chart.getChartLayoutInterface();
+    const layout = this.chart.getChartLayoutInterface();
     const area = layout.getChartAreaBoundingBox();
 
     if (
@@ -507,6 +458,63 @@ export class PlotGoogleChartSk extends LitElement {
 
   // TODO(b/362831653): deprecate this, no longer needed
   public updateChartData(_chartData: any) {}
+
+  /**
+   * Get the (x,y) position in the chart given row and column
+   * of the dataframe.
+   * @param index An index containing the row and column indexes.
+   */
+  getPositionByIndex(index: { row: number; col: number }): { x: number; y: number } {
+    if (!this.chart) {
+      return { x: 0, y: 0 };
+    }
+    const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
+    const rows = this.plotElement.value!.data! as any[][];
+    const row = rows[index.row + 1];
+    const commitPos = row[0];
+    return {
+      x: layout.getXLocation(commitPos),
+      y: layout.getYLocation(row[index.col]),
+    };
+  }
+
+  /**
+   * Get the commit position of a trace given the row index
+   * of the dataframe. The row index represents the x-position
+   * of the data. The commit position is always in the first
+   * in the first column.
+   * @param row The row index
+   */
+  getCommitPosition(row: number) {
+    const rows = this.plotElement.value!.data! as any[][];
+    const commitPos = rows[row + 1][0];
+    return commitPos;
+  }
+
+  /**
+   * Get the trace name of a trace given the column index
+   * of the dataframe. The trace name is always in the first
+   * row. This method makes no modifications to the trace name.
+   * @param col The col index
+   */
+  getTraceName(col: number): string {
+    // TODO(b/370804498): Create another getTraceName method that
+    // returns a prettified version of the name. i.e.
+    // ,arch=x86,config=8888,test=decode,units=kb, becomes
+    // x86/8888/decode/kb.
+    const rows = this.plotElement.value!.data! as any[][];
+    return rows[0][col];
+  }
+
+  /**
+   * Get the Y value of a trace given the row and column index
+   * of the dataframe.
+   * @param index An index containing the row and column indexes.
+   */
+  getYValue(index: { row: number; col: number }): number {
+    const rows = this.plotElement.value!.data! as any[][];
+    return rows[index.row + 1][index.col];
+  }
 }
 
 define('plot-google-chart-sk', PlotGoogleChartSk);
