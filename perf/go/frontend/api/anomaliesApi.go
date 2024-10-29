@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/config"
 )
 
 const (
@@ -37,6 +38,7 @@ type GetAnomaliesRequest struct {
 	IncludeTriaged      bool   `json:"triaged"`
 	IncludeImprovements bool   `json:"improvements"`
 	QueryCursor         string `json:"anomaly_cursor"`
+	Host                string `json:"host"`
 }
 
 // Request object for the request from the anomaly table UI.
@@ -105,6 +107,9 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&getAnoamliesRequest); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON on get anomalies request.", http.StatusInternalServerError)
 		return
+	}
+	if getAnoamliesRequest.Host == "" {
+		getAnoamliesRequest.Host = config.Config.URL
 	}
 	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %s", getAnoamliesRequest)
 
