@@ -169,9 +169,19 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	}
 
 	s2a := search.New(sqlDB, fsc.WindowSize)
+	cacheClient, err := fsc.GetCacheClient(ctx)
+	if err != nil {
+		// TODO(ashwinpv): Once we are fully onboarded, this error should cause a failure.
+		sklog.Warningf("Error while trying to create a new cache client: %v", err)
+	}
+	if cacheClient != nil {
+		sklog.Debugf("Enabling cache for search.")
+		s2a.EnableCache(cacheClient, fsc.CachingCorpora)
+	}
+
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
-	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
+	err = s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
 	}

@@ -21,12 +21,14 @@ import (
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
+	"go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -204,6 +206,7 @@ type Impl struct {
 	paramsetCache        *ttlcache.Cache
 
 	materializedViews map[string]bool
+	cacheManager      *caching.SearchCacheManager
 }
 
 // New returns an implementation of API.
@@ -231,6 +234,11 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 		paramsetCache:        pc,
 		reviewSystemMapping:  map[string]string{},
 	}
+}
+
+// EnableCache enables reading data from cache for search.
+func (s *Impl) EnableCache(cacheClient cache.Cache, cache_corpora []string) {
+	s.cacheManager = caching.New(cacheClient, s.db, cache_corpora, s.windowLength)
 }
 
 // SetReviewSystemTemplates sets the URL templates that are used to link to the code review system.
@@ -2819,6 +2827,31 @@ type traceData []types.Digest
 func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[groupingDigestKey][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
 	defer span.End()
+
+	// Caching is enabled.
+	if s.cacheManager != nil {
+		sklog.Debugf("Search cache is enabled.")
+		byBlameData, err := s.cacheManager.GetByBlameData(ctx, corpus)
+		if err != nil {
+			sklog.Errorf("Error encountered when retrieving ByBlame data from cache: %v", err)
+			return nil, err
+		}
+
+		sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
+		rv := map[groupingDigestKey][]schema.TraceID{}
+		var key groupingDigestKey
+		groupingKey := key.groupingID[:]
+		digestKey := key.digest[:]
+		for _, data := range byBlameData {
+			copy(groupingKey, data.GroupingID)
+			copy(digestKey, data.Digest)
+			rv[key] = append(rv[key], data.TraceID)
+		}
+
+		return rv, nil
+	}
+
+	sklog.Debugf("Search cache is not enabled. Proceeding with regular search.")
 	statement := `WITH
 UntriagedDigests AS (
 	SELECT grouping_id, digest FROM Expectations

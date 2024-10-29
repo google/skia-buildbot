@@ -25,6 +25,7 @@ go_test(
     embed = [":caching"],
     deps = [
         "//go/cache/mock",
+        "//go/deepequal/assertdeep",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//pgxpool",

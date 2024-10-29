@@ -5,7 +5,6 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 // This query collects untriaged image digests within the specified commit window for the given
@@ -33,13 +32,6 @@ JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.g
 	 UntriagedDigests.digest = UnignoredDataAtHead.digest`
 )
 
-// ByBlameData provides a struct to hold data for the entry in by blame cache.
-type ByBlameData struct {
-	TraceID    schema.TraceID     `json:"traceID"`
-	GroupingID schema.GroupingID  `json:"groupingID"`
-	Digest     schema.DigestBytes `json:"digest"`
-}
-
 // ByBlameDataProvider implements cacheDataProvider.
 type ByBlameDataProvider struct {
 	db           *pgxpool.Pool
@@ -55,27 +47,36 @@ func NewByBlameDataProvider(db *pgxpool.Pool, corpora []string, commitWindow int
 	}
 }
 
+// GetDataForCorpus returns the byblame data for the given corpus.
+func (prov ByBlameDataProvider) GetDataForCorpus(ctx context.Context, corpus string) ([]ByBlameData, error) {
+	cacheData := []ByBlameData{}
+	rows, err := prov.db.Query(ctx, ByBlameQuery, prov.commitWindow, corpus)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		byBlameData := ByBlameData{}
+		if err := rows.Scan(&byBlameData.TraceID, &byBlameData.GroupingID, &byBlameData.Digest); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		cacheData = append(cacheData, byBlameData)
+	}
+
+	return cacheData, nil
+}
+
 // GetCacheData implements cacheDataProvider.
 func (prov ByBlameDataProvider) GetCacheData(ctx context.Context) (map[string]string, error) {
 	cacheMap := map[string]string{}
 
 	// For each of the corpora, execute the sql query and add the results to the map.
 	for _, corpus := range prov.corpora {
-		key := ByBlameKey(corpus)
-		cacheData := []ByBlameData{}
-		rows, err := prov.db.Query(ctx, ByBlameQuery, prov.commitWindow, corpus)
+		cacheData, err := prov.GetDataForCorpus(ctx, corpus)
 		if err != nil {
 			return nil, err
 		}
-		for rows.Next() {
-			byBlameData := ByBlameData{}
-			if err := rows.Scan(&byBlameData.TraceID, &byBlameData.GroupingID, &byBlameData.Digest); err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			cacheData = append(cacheData, byBlameData)
-		}
-
 		if len(cacheData) > 0 {
+			key := ByBlameKey(corpus)
 			cacheDataStr, err := toJSON(cacheData)
 			if err != nil {
 				return nil, skerr.Wrap(err)

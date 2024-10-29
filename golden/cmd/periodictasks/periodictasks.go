@@ -83,12 +83,6 @@ type periodicTasksConfig struct {
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"update_traces_ignore_period"` // TODO(kjlubick) change JSON
-
-	// List of corpora to be enabled for caching.
-	CachingCorpora []string `json:"cache_corpora" optional:"true"`
-
-	// Caching frequency in minutes.
-	CachingFrequencyMinutes int `json:"caching_frequency_minutes" optional:"true"`
 }
 
 type perfSummariesConfig struct {

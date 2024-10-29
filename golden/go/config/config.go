@@ -87,6 +87,12 @@ type Common struct {
 
 	// RedisConfig provides configuration for redis instance to be used for caching.
 	RedisConfig redis.RedisConfig `json:"redis_config" optional:"true"`
+
+	// List of corpora to be enabled for caching.
+	CachingCorpora []string `json:"cache_corpora" optional:"true"`
+
+	// Caching frequency in minutes.
+	CachingFrequencyMinutes int `json:"caching_frequency_minutes" optional:"true"`
 }
 
 // GetCacheClient returns a cache client based on the configuration.
