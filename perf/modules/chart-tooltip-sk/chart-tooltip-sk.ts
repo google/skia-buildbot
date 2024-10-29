@@ -215,6 +215,10 @@ export class ChartTooltipSk extends ElementSk {
       document.documentElement.clientWidth || 0,
       window.innerWidth || 0
     );
+    const viewportHeight = Math.max(
+      document.documentElement.clientHeight || 0,
+      window.innerHeight || 0
+    );
 
     this.margin.left = this.margin.left ?? parseInt(getComputedStyle(div!).marginLeft);
     this.margin.right = this.margin.right ?? parseInt(getComputedStyle(div!).marginRight);
@@ -222,10 +226,10 @@ export class ChartTooltipSk extends ElementSk {
     this.margin.bottom = this.margin.bottom ?? parseInt(getComputedStyle(div!).marginBottom);
 
     const parentLeft = div.parentElement?.getBoundingClientRect().left || 0;
-    const parentBottom = parseInt(getComputedStyle(this.parentElement!).height, 10);
+    const parentTop = this.parentElement?.getBoundingClientRect().top || 0;
     const rect = div.getBoundingClientRect();
-    const left = parentLeft + position.x + this.margin.right! + rect.width;
-    const bottom = position.y + rect.height;
+    const left = parentLeft + position.x + this.margin.left! + rect.width;
+    const top = parentTop + position.y + this.margin.top! + rect.height;
 
     // Shift to the left if the element exceeds the viewport.
     const adjustedX =
@@ -234,10 +238,10 @@ export class ChartTooltipSk extends ElementSk {
         : position.x;
 
     // Shift to the top if the element exceeds the chart height.
-    const adjustedY =
-      bottom > parentBottom
-        ? position.y - (rect.height + this.margin.bottom! + this.margin.top!)
-        : position.y;
+    // Rather than show the tooltip directly above or directly below the
+    // data point, shift it by how much the the tooltip exceeds the viewport.
+    // This prevents the tooltip from appearing out of the viewport.
+    const adjustedY = top > viewportHeight ? position.y - (top - viewportHeight) : position.y;
 
     div!.style.left = `${adjustedX}px`;
     div!.style.top = `${adjustedY}px`;
