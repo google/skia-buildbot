@@ -15,6 +15,7 @@ sk_demo_page_server(
 sk_element(
     name = "regressions-page-sk",
     sass_srcs = ["regressions-page-sk.scss"],
+    sk_element_deps = ["//perf/modules/anomalies-table-sk"],
     ts_deps = [
         "//:node_modules/lit",
         "//infra-sk/modules/ElementSk:index_ts_lib",

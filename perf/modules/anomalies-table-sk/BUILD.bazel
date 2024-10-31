@@ -1,0 +1,40 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_element(
+    name = "anomalies-table-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+    ],
+    sass_srcs = ["anomalies-table-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/checkbox-sk",
+    ],
+    ts_deps = [
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//:node_modules/lit",
+    ],
+    ts_srcs = [
+        "anomalies-table-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "anomalies-table-sk-demo",
+    html_file = "anomalies-table-sk-demo.html",
+    sk_element_deps = [
+        ":anomalies-table-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
+    ts_deps = ["//:node_modules/fetch-mock"],
+    ts_entry_point = "anomalies-table-sk-demo.ts",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":anomalies-table-sk-demo",
+)

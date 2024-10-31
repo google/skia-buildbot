@@ -12,6 +12,7 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Regression, Subscription } from '../json';
+import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 // State is the local UI state of regressions-page-sk
 interface State {
@@ -33,11 +34,17 @@ export class RegressionsPageSk extends ElementSk {
 
   private stateHasChanged = () => {};
 
+  // Anomalies table
+  anomaliesTableSk: AnomaliesTableSk | null = null;
+
   constructor() {
     super(RegressionsPageSk.template);
     this.state = {
       selectedSubscription: '',
     };
+
+    // TODO(jiaxindong) uncomment when this is fetching from backend, not dummy data
+    // this.anomaliesTableSk = new AnomaliesTableSk();
 
     this.init();
   }
@@ -51,7 +58,7 @@ export class RegressionsPageSk extends ElementSk {
       /* getState */ () => this.state as unknown as HintableObject,
       /* setState */ async (state) => {
         this.state = state as unknown as State;
-        if (this.state.selectedSubscription !== '') {
+        if (this.state.selectedSubscription === '') {
           await this.fetchRegressions();
           this._render();
         }
