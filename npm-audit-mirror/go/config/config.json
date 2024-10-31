@@ -37,21 +37,6 @@
         "owner": "dlf@google.com"
       }
     },
-    "chops-monorail": {
-      "repo_url": "https://chromium.googlesource.com/infra/infra.git",
-      "git_branch": "main",
-      "package_json_dir": "appengine/monorail",
-      "packages_allow_list": [
-        {
-          "name": "@babel/traverse",
-          "version": "7.23.2"
-        }
-      ],
-      "trusted_scopes": [],
-      "issue_tracker_config": {
-        "owner": "dtu@google.com"
-      }
-    },
     "chops-dash": {
       "repo_url": "https://chromium.googlesource.com/infra/infra.git",
       "git_branch": "main",
