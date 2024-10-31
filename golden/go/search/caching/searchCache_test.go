@@ -30,7 +30,7 @@ func TestPopulateCache_WithData(t *testing.T) {
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)
-	cacheClient.AssertNumberOfCalls(t, "SetValue", 1)
+	cacheClient.AssertNumberOfCalls(t, "SetValue", 2)
 }
 
 func TestPopulateCache_NoData(t *testing.T) {
@@ -44,13 +44,9 @@ func TestPopulateCache_NoData(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestReadFromCache_CacheHit_Success(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-	cacheClient := mockCache.NewCache(t)
+func TestReadFromCache_ByBlame_CacheHit_Success(t *testing.T) {
 	corpus := dks.RoundCorpus
-	cacheResults := []ByBlameData{
+	cacheResults := []SearchCacheData{
 		{
 			TraceID:    []byte("trace1"),
 			GroupingID: []byte("group1"),
@@ -62,27 +58,80 @@ func TestReadFromCache_CacheHit_Success(t *testing.T) {
 			Digest:     []byte("d2"),
 		},
 	}
-	cacheClient.On("GetValue", ctx, ByBlameKey(corpus)).Return(toJSON(cacheResults))
-
-	searchCacheManager := New(cacheClient, db, []string{corpus}, 5)
-	data, err := searchCacheManager.GetByBlameData(ctx, corpus)
-	assert.Nil(t, err)
-	assert.NotNil(t, data)
-	assertdeep.Equal(t, cacheResults, data)
-	cacheClient.AssertNumberOfCalls(t, "GetValue", 1)
+	validateCacheHit(t, cacheResults, corpus, ByBlameKey(corpus), ByBlame_Corpus)
 }
 
-func TestReadFromCache_CacheMiss_Success(t *testing.T) {
+func TestReadFromCache_ByBlame_CacheMiss_Success(t *testing.T) {
+	corpus := dks.RoundCorpus
+	validateCacheMiss(t, corpus, ByBlameKey(corpus), ByBlame_Corpus)
+}
+
+func TestReadFromCache_Unignored_CacheHit_Success(t *testing.T) {
+	corpus := dks.RoundCorpus
+	cacheResults := []SearchCacheData{
+		{
+			TraceID:    []byte("trace1"),
+			GroupingID: []byte("group1"),
+			Digest:     []byte("d1"),
+		},
+		{
+			TraceID:    []byte("trace2"),
+			GroupingID: []byte("group2"),
+			Digest:     []byte("d2"),
+		},
+	}
+	validateCacheHit(t, cacheResults, corpus, UnignoredKey(corpus), Unignored_Corpus)
+}
+
+func TestReadFromCache_Unignored_CacheMiss_Success(t *testing.T) {
+	corpus := dks.RoundCorpus
+	validateCacheMiss(t, corpus, UnignoredKey(corpus), Unignored_Corpus)
+}
+
+func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, cacheKey string, searchCacheType SearchCacheType) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
-	corpus := dks.RoundCorpus
 
-	cacheClient.On("GetValue", ctx, ByBlameKey(corpus)).Return("", nil)
+	cacheClient.On("GetValue", ctx, cacheKey).Return(toJSON(cacheData))
 
 	searchCacheManager := New(cacheClient, db, []string{corpus}, 5)
-	data, err := searchCacheManager.GetByBlameData(ctx, corpus)
+	var data []SearchCacheData
+	var err error
+	switch searchCacheType {
+	case ByBlame_Corpus:
+		data, err = searchCacheManager.GetByBlameData(ctx, corpus)
+	case Unignored_Corpus:
+		data, err = searchCacheManager.GetUnignoredTracesData(ctx, corpus)
+	default:
+		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
+	}
+
+	assert.Nil(t, err)
+	assert.NotNil(t, data)
+	assertdeep.Equal(t, cacheData, data)
+	cacheClient.AssertNumberOfCalls(t, "GetValue", 1)
+}
+
+func validateCacheMiss(t *testing.T, corpus string, cacheKey string, searchCacheType SearchCacheType) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+	cacheClient := mockCache.NewCache(t)
+	cacheClient.On("GetValue", ctx, cacheKey).Return("", nil)
+
+	searchCacheManager := New(cacheClient, db, []string{corpus}, 5)
+	var data []SearchCacheData
+	var err error
+	switch searchCacheType {
+	case ByBlame_Corpus:
+		data, err = searchCacheManager.GetByBlameData(ctx, corpus)
+	case Unignored_Corpus:
+		data, err = searchCacheManager.GetUnignoredTracesData(ctx, corpus)
+	default:
+		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
+	}
 	assert.Nil(t, err)
 	assert.NotNil(t, data)
 	// Even when there is a cache miss, we should have data since it will fall back to db query.

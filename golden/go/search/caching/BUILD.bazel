@@ -4,9 +4,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "caching",
     srcs = [
-        "byblame.go",
         "common.go",
+        "dataprovider.go",
         "keys.go",
+        "queries.go",
         "searchCache.go",
     ],
     importpath = "go.skia.org/infra/golden/go/search/caching",

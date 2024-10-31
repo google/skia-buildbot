@@ -14,6 +14,8 @@ type SearchCacheType int
 const (
 	// ByBlame_Corpus denotes the cache type for untriaged images by commits for a given corpus.
 	ByBlame_Corpus SearchCacheType = iota
+	// Unignored_Corpus denotes the cache type for traces without ignore rules.
+	Unignored_Corpus
 )
 
 // SearchCacheManager provides a struct to handle the cache operations for gold search.
@@ -33,7 +35,8 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 		corpora:      corpora,
 		commitWindow: commitWindow,
 		dataProviders: map[SearchCacheType]cacheDataProvider{
-			ByBlame_Corpus: NewByBlameDataProvider(db, corpora, commitWindow),
+			ByBlame_Corpus:   NewCacheDataProvider(db, corpora, commitWindow, ByBlameQuery),
+			Unignored_Corpus: NewCacheDataProvider(db, corpora, commitWindow, UnignoredQuery),
 		},
 	}
 }
@@ -43,7 +46,7 @@ func (s SearchCacheManager) RunCachePopulation(ctx context.Context) error {
 	for _, prov := range s.dataProviders {
 		data, err := prov.GetCacheData(ctx)
 		if err != nil {
-			return skerr.Wrapf(err, "Error while running cache population with provider %s", prov)
+			return skerr.Wrapf(err, "Error while running cache population with provider %v", prov)
 		}
 
 		for key, val := range data {
@@ -58,17 +61,33 @@ func (s SearchCacheManager) RunCachePopulation(ctx context.Context) error {
 }
 
 // GetByBlameData returns the by blame data for the given corpus from cache.
-func (s SearchCacheManager) GetByBlameData(ctx context.Context, corpus string) ([]ByBlameData, error) {
+func (s SearchCacheManager) GetByBlameData(ctx context.Context, corpus string) ([]SearchCacheData, error) {
 	cacheKey := ByBlameKey(corpus)
-	data := []ByBlameData{}
+	return s.getDataFromCache(ctx, corpus, cacheKey, ByBlame_Corpus)
+}
+
+// GetUnignoredTracesData returns the unignored traces data for the given corpus from cache.
+func (s SearchCacheManager) GetUnignoredTracesData(ctx context.Context, corpus string) ([]SearchCacheData, error) {
+	cacheKey := UnignoredKey(corpus)
+	return s.getDataFromCache(ctx, corpus, cacheKey, Unignored_Corpus)
+}
+
+// getDataFromCache returns cached data for the given parameters from the configured cache. If there is a cache miss,
+// it will return the data from the database instead.
+func (s SearchCacheManager) getDataFromCache(ctx context.Context, corpus string, cacheKey string, cacheType SearchCacheType) ([]SearchCacheData, error) {
+	data := []SearchCacheData{}
 	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
 	if err != nil {
-		return data, skerr.Wrapf(err, "Error retrieving by blame data from cache for key %s corpus %s", cacheKey, corpus)
+		return data, skerr.Wrapf(err, "Error retrieving data from cache for key %s corpus %s", cacheKey, corpus)
 	}
 
 	// This is the case when there is a cache miss.
 	if jsonStr == "" {
-		provider := s.dataProviders[ByBlame_Corpus].(ByBlameDataProvider)
+		var provider cacheDataProvider
+		var ok bool
+		if provider, ok = s.dataProviders[cacheType]; !ok {
+			return nil, skerr.Fmt("Invalid cache type %d specified.", cacheType)
+		}
 		return provider.GetDataForCorpus(ctx, corpus)
 	}
 
