@@ -38,7 +38,7 @@ func Init(ctx context.Context, local bool, gerritUrl string) (gerrit.GerritInter
 
 // UploadCL uploads a CL containing any changes to the given git.Checkout. This
 // is a no-op if there are no changes.
-func UploadCL(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout, project, branch, baseRevision, baseChangeID, commitMsg string, reviewers []string, isTryJob bool) error {
+func UploadCL(ctx context.Context, g gerrit.GerritInterface, co git.Checkout, project, branch, baseRevision, baseChangeID, commitMsg string, reviewers []string, isTryJob bool) error {
 	diff, err := co.Git(ctx, "diff", "--name-only")
 	if err != nil {
 		return err

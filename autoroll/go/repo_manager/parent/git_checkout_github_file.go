@@ -26,7 +26,7 @@ func NewGitCheckoutGithubFile(ctx context.Context, c *config.GitCheckoutGitHubFi
 	}
 
 	createRollHelper := gitCheckoutFileCreateRollFunc(c.GitCheckout.GitCheckout.Dep)
-	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to add commits pointing to each of the Revision in the
 		// roll.
 		// TODO(borenet): This should be optional and configured in

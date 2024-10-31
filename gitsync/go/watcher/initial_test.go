@@ -34,7 +34,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
-	gd := git.GitDir(gb.Dir())
+	gd := git.CheckoutDir(gb.Dir())
 
 	commit := func() *vcsinfo.LongCommit {
 		h := gb.CommitGen(ctx, uuid.New().String())
@@ -133,17 +133,17 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 func setupTestInitial(t *testing.T) (context.Context, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *repoImpl, func() *vcsinfo.LongCommit, func(int, int), func()) {
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
+	gd := git.CheckoutDir(g.Dir())
 	gs := mocks.GitStore{}
 	gs.On("RangeByTime", ctx, vcsinfo.MinTime, vcsinfo.MaxTime, gitstore.ALL_BRANCHES).Return(nil, nil)
 	gs.On("GetBranches", ctx).Return(nil, nil)
 	urlMock := mockhttpclient.NewURLMock()
-	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), gd, urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := mem_gcsclient.New("fake-bucket")
 	ri, err := newRepoImpl(ctx, &gs, repo, gcsClient, "repo-ingestion", nil, nil, nil)
 	require.NoError(t, err)
 
-	gd := git.GitDir(g.Dir())
 	commit := func() *vcsinfo.LongCommit {
 		h := g.CommitGen(ctx, uuid.New().String())
 		c, err := gd.Details(ctx, h)

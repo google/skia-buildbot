@@ -108,7 +108,7 @@ func commit(ctx context.Context, repoDir, message string) {
 }
 
 func makeCommits(ctx context.Context, repoDir string, numCommits int) {
-	gd := git.GitDir(repoDir)
+	gd := git.CheckoutDir(repoDir)
 	_, err := gd.Git(ctx, "checkout", git.MainBranch)
 	assertNoError(err)
 	fakeFile := path.Join(repoDir, "fakefile.txt")
@@ -125,7 +125,7 @@ func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 
 func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(os.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
-	_, err := git.GitDir(repoDir).Git(ctx, "add", subPath)
+	_, err := git.CheckoutDir(repoDir).Git(ctx, "add", subPath)
 	assertNoError(err)
 }
 
@@ -163,7 +163,7 @@ func main() {
 	repoName := "skia.git"
 	repoDir := filepath.Join(workdir, repoName)
 	assertNoError(os.Mkdir(repoDir, os.ModePerm))
-	gd := git.GitDir(repoDir)
+	gd := git.CheckoutDir(repoDir)
 	_, err = gd.Git(ctx, "init")
 	assertNoError(err)
 	// This sets the remote repo to be the repo itself, which prevents us

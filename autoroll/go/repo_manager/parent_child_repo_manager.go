@@ -34,7 +34,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 
 	// Some Child implementations require that they are created by the Parent,
 	// so we have to create the Parent first.
-	var childCheckout *git.Checkout
+	var childCheckout git.Checkout
 	if c.GetDepsLocalGerritParent() != nil {
 		parentCfg := c.GetDepsLocalGerritParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -42,7 +42,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 			childPath = filepath.Join(parentCfg.DepsLocal.ChildSubdir, childPath)
 		}
 		childFullPath := filepath.Join(workdir, childPath)
-		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
+		childCheckout = git.CheckoutDir(childFullPath)
 		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetDepsLocalGithubParent() != nil {
 		parentCfg := c.GetDepsLocalGithubParent()
@@ -51,7 +51,7 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 			childPath = filepath.Join(parentCfg.DepsLocal.ChildSubdir, childPath)
 		}
 		childFullPath := filepath.Join(workdir, childPath)
-		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
+		childCheckout = git.CheckoutDir(childFullPath)
 		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGerritParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, client, serverURL, workdir, rollerName, cr)

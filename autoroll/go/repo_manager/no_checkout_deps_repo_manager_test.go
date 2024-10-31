@@ -42,7 +42,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 
 	urlmock := mockhttpclient.NewURLMock()
 
-	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.CheckoutDir(child.Dir()), urlmock)
 
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
@@ -51,7 +51,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(context.Background())
 
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 
@@ -79,7 +79,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -145,7 +145,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -174,7 +174,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.Parent
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -300,7 +300,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -322,7 +322,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock the initial change creation.
 	logStr := ""
-	childGitRepo := git.GitDir(childRepo.Dir())
+	childGitRepo := git.CheckoutDir(childRepo.Dir())
 	for _, c := range notRolledRevs {
 		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)

@@ -35,7 +35,7 @@ var (
 	// Various paths.
 	workDir string
 
-	gitDir *git.Checkout
+	gitDir git.Checkout
 )
 
 func main() {

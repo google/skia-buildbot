@@ -273,7 +273,7 @@ func cmdAdd(ctx context.Context, name string) error {
 	}
 
 	// "git add" the new directory.
-	if _, err := git.GitDir(".").Git(ctx, "add", assetDir); err != nil {
+	if _, err := git.CheckoutDir(".").Git(ctx, "add", assetDir); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -285,7 +285,7 @@ func cmdRemove(ctx context.Context, name string) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	if _, err := git.GitDir(".").Git(ctx, "rm", "-rf", assetDir); err != nil {
+	if _, err := git.CheckoutDir(".").Git(ctx, "rm", "-rf", assetDir); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil

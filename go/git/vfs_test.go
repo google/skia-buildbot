@@ -13,7 +13,7 @@ import (
 func TestFS(t *testing.T) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	tmp := shared_tests.MakeTestFiles(t)
-	gd := GitDir(tmp)
+	gd := CheckoutDir(tmp)
 	_, err := gd.Git(ctx, "init")
 	require.NoError(t, err)
 	_, err = gd.Git(ctx, "add", ".")
@@ -31,7 +31,7 @@ func TestFS(t *testing.T) {
 func TestVFS_ReadOnly(t *testing.T) {
 	ctx := cipd_git.UseGitFinder(context.Background())
 	tmp := shared_tests.MakeTestFiles(t)
-	gd := GitDir(tmp)
+	gd := CheckoutDir(tmp)
 	_, err := gd.Git(ctx, "init")
 	require.NoError(t, err)
 	_, err = gd.Git(ctx, "add", ".")

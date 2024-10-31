@@ -73,13 +73,13 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 // localRepoImpl is an implementation of the RepoImpl interface which uses a local
 // git.Repo to interact with a git repo.
 type localRepoImpl struct {
-	*git.Repo
+	git.Repo
 	branches []*git.Branch
 	commits  map[string]*vcsinfo.LongCommit
 }
 
 // NewLocalRepoImpl returns a RepoImpl backed by a local git repo.
-func NewLocalRepoImpl(ctx context.Context, repo *git.Repo) (RepoImpl, error) {
+func NewLocalRepoImpl(ctx context.Context, repo git.Repo) (RepoImpl, error) {
 	return &localRepoImpl{
 		Repo:     repo,
 		branches: []*git.Branch{},
@@ -90,11 +90,11 @@ func NewLocalRepoImpl(ctx context.Context, repo *git.Repo) (RepoImpl, error) {
 // See documentation for RepoImpl interface.
 func (r *localRepoImpl) Update(ctx context.Context) error {
 	if err := r.Repo.Update(ctx); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	branches, err := r.Repo.Branches(ctx)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	r.branches = branches
 	return nil
@@ -107,7 +107,7 @@ func (r *localRepoImpl) Details(ctx context.Context, hash string) (*vcsinfo.Long
 	}
 	rv, err := r.Repo.Details(ctx, hash)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	r.commits[hash] = rv
 	return rv, nil

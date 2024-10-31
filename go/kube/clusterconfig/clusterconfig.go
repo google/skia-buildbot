@@ -91,7 +91,7 @@ func NewFromEmbeddedConfig() (*ClusterConfig, error) {
 // source file will be loaded.
 //
 // See /infra/kube/README.md for a description of the config.json file format.
-func NewWithCheckout(ctx context.Context, configFile string) (ClusterConfig, *git.Checkout, error) {
+func NewWithCheckout(ctx context.Context, configFile string) (ClusterConfig, git.Checkout, error) {
 	cfg, err := New(configFile)
 	if err != nil {
 		return cfg, nil, skerr.Wrap(err)

@@ -112,13 +112,13 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 	g := setupFakeGerrit(t, cfg.GetCopyParent().Gitiles.Gerrit, urlmock)
 
 	// Mock requests for Update.
-	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.CheckoutDir(child.Dir()), urlmock)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 	mockParent.MockGetCommit(ctx, git.MainBranch)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
 
@@ -256,7 +256,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	// Mock the requests to modify the copied files.
 	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockUpdateFile := func(src, dst string) {
-		contents, err := git.GitDir(childRepo.Dir()).GetFile(ctx, src, tipRev.Id)
+		contents, err := git.CheckoutDir(childRepo.Dir()).GetFile(ctx, src, tipRev.Id)
 		require.NoError(t, err)
 		reqBody := []byte(contents)
 		url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(dst))

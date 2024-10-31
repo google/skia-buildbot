@@ -135,7 +135,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		Transitive:     c.GitCheckout.Dep.Transitive,
 		FindAndReplace: c.GitCheckout.Dep.FindAndReplace,
 	})
-	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to set the new dependency version(s).
 		if _, err := createRollHelper(ctx, co, from, to, rolling, commitMsg); err != nil {
 			return "", skerr.Wrap(err)
@@ -195,7 +195,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
+	co := git.CheckoutDir(checkoutPath)
 	return NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, co, createRoll, uploadRoll)
 }
 

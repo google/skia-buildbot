@@ -50,10 +50,11 @@ func GitSetup(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilde
 	t0 := time.Unix(1564963200, 0) // Arbitrary time to fix commit hashes.
 	ts := t0
 	fileNum := 0
+	co := git.CheckoutDir(g.Dir())
 	doGit := func(hash string) *vcsinfo.LongCommit {
 		ts = ts.Add(time.Second)
 		fileNum++
-		details, err := git.GitDir(g.Dir()).Details(ctx, hash)
+		details, err := co.Details(ctx, hash)
 		require.NoError(t, err)
 		return details
 	}
@@ -337,7 +338,7 @@ func TestRecurseAllBranches(t sktest.TestingT, ctx context.Context, g *git_testu
 	// its commits too.
 	g.CreateBranchTrackBranch(ctx, "mybranch", git.DefaultRemoteBranch)
 	c5 := g.CommitGen(ctx, "anotherfile.txt")
-	c5details, err := git.GitDir(g.Dir()).Details(ctx, c5)
+	c5details, err := git.CheckoutDir(g.Dir()).Details(ctx, c5)
 	require.NoError(t, err)
 	rf.Refresh(c5details)
 	require.NoError(t, repo.Update(ctx))
@@ -390,7 +391,7 @@ func TestLogLinear(t sktest.TestingT, ctx context.Context, g *git_testutils.GitB
 	c4 := commits[3]
 	c5 := commits[4]
 
-	gitdir := git.GitDir(g.Dir())
+	gitdir := git.CheckoutDir(g.Dir())
 	test := func(from, to string, checkAgainstGit bool, expect ...*repograph.Commit) {
 		if checkAgainstGit {
 			// Ensure that our expectations match actual git results.
@@ -427,6 +428,7 @@ func TestLogLinear(t sktest.TestingT, ctx context.Context, g *git_testutils.GitB
 
 func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
 	commits := GitSetup(t, ctx, g, repo, rf)
+	co := git.CheckoutDir(g.Dir())
 
 	// c3 is the one commit on branch2.
 	c3 := repo.Get("branch2")
@@ -438,7 +440,7 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	g.Reset(ctx, "--hard", commits[3].Hash) // c4 from setup()
 	f := "myfile"
 	c6hash := g.CommitGen(ctx, f)
-	c6details, err := git.GitDir(g.Dir()).Details(ctx, c6hash)
+	c6details, err := co.Details(ctx, c6hash)
 	require.NoError(t, err)
 	rf.Refresh(c6details)
 	require.NoError(t, repo.Update(ctx))
@@ -463,9 +465,9 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 	c8 := g.CommitGen(ctx, "blah")
 	g.CheckoutBranch(ctx, git.MainBranch)
 	g.Reset(ctx, "--hard", c8)
-	c7details, err := git.GitDir(g.Dir()).Details(ctx, c7)
+	c7details, err := co.Details(ctx, c7)
 	require.NoError(t, err)
-	c8details, err := git.GitDir(g.Dir()).Details(ctx, c8)
+	c8details, err := co.Details(ctx, c8)
 	require.NoError(t, err)
 	rf.Refresh(c7details, c8details)
 	require.NoError(t, repo.Update(ctx))
@@ -508,6 +510,7 @@ func TestUpdateHistoryChanged(t sktest.TestingT, ctx context.Context, g *git_tes
 
 func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *git_testutils.GitBuilder, repo *repograph.Graph, rf RepoImplRefresher) {
 	GitSetup(t, ctx, g, repo, rf)
+	co := git.CheckoutDir(g.Dir())
 
 	// The repo has commits, but GitSetup has already run Update(), so
 	// there's nothing new.
@@ -529,9 +532,9 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	f := "myfile"
 	new1 := g.CommitGen(ctx, f)
 	new2 := g.CommitGen(ctx, f)
-	new1details, err := git.GitDir(g.Dir()).Details(ctx, new1)
+	new1details, err := co.Details(ctx, new1)
 	require.NoError(t, err)
-	new2details, err := git.GitDir(g.Dir()).Details(ctx, new2)
+	new2details, err := co.Details(ctx, new2)
 	require.NoError(t, err)
 	rf.Refresh(new1details, new2details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -549,9 +552,9 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	new1 = g.CommitGen(ctx, f)
 	g.CheckoutBranch(ctx, "branch2")
 	new2 = g.CommitGen(ctx, "file2")
-	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	new1details, err = co.Details(ctx, new1)
 	require.NoError(t, err)
-	new2details, err = git.GitDir(g.Dir()).Details(ctx, new2)
+	new2details, err = co.Details(ctx, new2)
 	require.NoError(t, err)
 	rf.Refresh(new1details, new2details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -594,7 +597,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Add a commit on the new branch.
 	new1 = g.CommitGen(ctx, f)
-	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	new1details, err = co.Details(ctx, new1)
 	require.NoError(t, err)
 	rf.Refresh(new1details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -609,7 +612,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// the branch head changed.
 	g.CheckoutBranch(ctx, git.MainBranch)
 	mergeCommit := g.MergeBranch(ctx, "branch4")
-	mergeCommitDetails, err := git.GitDir(g.Dir()).Details(ctx, mergeCommit)
+	mergeCommitDetails, err := co.Details(ctx, mergeCommit)
 	require.NoError(t, err)
 	rf.Refresh(mergeCommitDetails)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -629,7 +632,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Add a commit on the new branch.
 	new1 = g.CommitGen(ctx, f)
-	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	new1details, err = co.Details(ctx, new1)
 	require.NoError(t, err)
 	rf.Refresh(new1details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -641,7 +644,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	// Add a commit on the main branch.
 	g.CheckoutBranch(ctx, git.MainBranch)
 	new1 = g.CommitGen(ctx, "file2")
-	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	new1details, err = co.Details(ctx, new1)
 	require.NoError(t, err)
 	rf.Refresh(new1details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -652,7 +655,7 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 
 	// Merge "branch5" into main. This should result in a new commit.
 	mergeCommit = g.MergeBranch(ctx, "branch5")
-	mergeCommitDetails, err = git.GitDir(g.Dir()).Details(ctx, mergeCommit)
+	mergeCommitDetails, err = co.Details(ctx, mergeCommit)
 	require.NoError(t, err)
 	rf.Refresh(mergeCommitDetails)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
@@ -688,9 +691,9 @@ func TestUpdateAndReturnCommitDiffs(t sktest.TestingT, ctx context.Context, g *g
 	g.CheckoutBranch(ctx, "branch2")
 	g.Reset(ctx, "--hard", shared)
 	branch2 := g.CommitGen(ctx, "f2")
-	sharedDetails, err := git.GitDir(g.Dir()).Details(ctx, shared)
-	mainDetails, err := git.GitDir(g.Dir()).Details(ctx, main)
-	branch2Details, err := git.GitDir(g.Dir()).Details(ctx, branch2)
+	sharedDetails, err := co.Details(ctx, shared)
+	mainDetails, err := co.Details(ctx, main)
+	branch2Details, err := co.Details(ctx, branch2)
 	rf.Refresh(sharedDetails, mainDetails, branch2Details)
 	added, removed, err = repo.UpdateAndReturnCommitDiffs(ctx)
 	require.NoError(t, err)
@@ -748,6 +751,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 	c3 := commits[2]
 	c4 := commits[3]
 	c5 := commits[4]
+	co := git.CheckoutDir(gb.Dir())
 	test := func(c *repograph.Commit, branches ...string) {
 		require.Equal(t, len(branches), len(c.Branches))
 		for _, b := range branches {
@@ -843,7 +847,7 @@ func TestBranchMembership(t sktest.TestingT, ctx context.Context, gb *git_testut
 
 	// Add a commit.
 	c6hash := gb.CommitGenAt(ctx, "blah", c5.Timestamp.Add(time.Second))
-	c6details, err := git.GitDir(gb.Dir()).Details(ctx, c6hash)
+	c6details, err := co.Details(ctx, c6hash)
 	require.NoError(t, err)
 	rf.Refresh(c6details)
 	require.NoError(t, repo.Update(ctx))

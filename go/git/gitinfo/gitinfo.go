@@ -27,7 +27,7 @@ var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
-	dir          git.GitDir
+	dir          git.Checkout
 	hashes       []string
 	timestamps   map[string]time.Time           // The git hash is the key.
 	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
@@ -49,7 +49,7 @@ func (g *GitInfo) GetBranch() string {
 // for history.
 func NewGitInfo(ctx context.Context, dir string, pull, allBranches bool) (*GitInfo, error) {
 	g := &GitInfo{
-		dir:          git.GitDir(dir),
+		dir:          git.CheckoutDir(dir),
 		hashes:       []string{},
 		detailsCache: map[string]*vcsinfo.LongCommit{},
 	}
@@ -456,7 +456,7 @@ func (g *GitInfo) InitialCommit(ctx context.Context) (string, error) {
 
 // GetBranches returns a slice of strings naming the branches in the repo.
 func (g *GitInfo) GetBranches(ctx context.Context) ([]*GitBranch, error) {
-	return GetBranches(ctx, string(g.dir))
+	return GetBranches(ctx, g.dir)
 }
 
 // ShortCommits stores a slice of ShortCommit struct.
@@ -519,8 +519,8 @@ var includeBranchPrefixes = []string{
 // GetBranches returns the list of branch heads in a Git repository.
 // In order to separate local working branches from published branches, only
 // remote branches in 'origin' are returned.
-func GetBranches(ctx context.Context, dir string) ([]*GitBranch, error) {
-	output, err := git.GitDir(dir).Git(ctx, "show-ref")
+func GetBranches(ctx context.Context, co git.Checkout) ([]*GitBranch, error) {
+	output, err := co.Git(ctx, "show-ref")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branch list: %v", err)
 	}
@@ -582,8 +582,8 @@ func readCommitsFromGit(ctx context.Context, gd git.GitDir, branch string) ([]st
 // and only with the first parent (omitting commits from branches that are merged in).
 // The earliest commits are returned first.
 // Note: Primarily used for testing and will probably be removed in the future.
-func GetBranchCommits(ctx context.Context, dir, branch string) ([]*vcsinfo.IndexCommit, error) {
-	output, err := git.GitDir(dir).Git(ctx, "log", "--format=format:%H%x20%ci", "--first-parent", "--topo-order", "--reverse", branch)
+func GetBranchCommits(ctx context.Context, co git.Checkout, branch string) ([]*vcsinfo.IndexCommit, error) {
+	output, err := co.Git(ctx, "log", "--format=format:%H%x20%ci", "--first-parent", "--topo-order", "--reverse", branch)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to execute git log: %s", err)
 	}
@@ -608,8 +608,8 @@ func GetBranchCommits(ctx context.Context, dir, branch string) ([]*vcsinfo.Index
 	return ret, nil
 }
 
-func readCommitsFromGitAllBranches(ctx context.Context, gd git.GitDir) ([]string, map[string]time.Time, error) {
-	branches, err := GetBranches(ctx, gd.Dir())
+func readCommitsFromGitAllBranches(ctx context.Context, gd git.Checkout) ([]string, map[string]time.Time, error) {
+	branches, err := GetBranches(ctx, gd)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not read commits; unable to get branch list: %v", err)
 	}

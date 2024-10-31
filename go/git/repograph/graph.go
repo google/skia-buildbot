@@ -945,18 +945,18 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 		newGraph := r.shallowCopy()
 		sklog.Info("Updating RepoImpl...")
 		if err := r.repoImpl.Update(ctx); err != nil {
-			return nil, nil, err
+			return nil, nil, skerr.Wrap(err)
 		}
 		a, r, err := newGraph.updateFrom(ctx, r.repoImpl)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, skerr.Wrap(err)
 		}
 		added[repoUrl] = a
 		removed[repoUrl] = r
 		newGraphs[repoUrl] = newGraph
 		if cb != nil {
 			if err := cb(repoUrl, newGraph); err != nil {
-				return nil, nil, err
+				return nil, nil, skerr.Wrap(err)
 			}
 		}
 	}
@@ -973,7 +973,7 @@ func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[str
 // Update all Graphs in the Map.
 func (m Map) Update(ctx context.Context) error {
 	_, _, err := m.update(ctx, nil)
-	return err
+	return skerr.Wrap(err)
 }
 
 // UpdateAndReturnCommitDiffs updates all Graphs in the Map. Returns maps of

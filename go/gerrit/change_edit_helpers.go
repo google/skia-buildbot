@@ -134,7 +134,7 @@ func CreateCLWithChanges(ctx context.Context, g GerritInterface, project, branch
 // CreateCLFromLocalDiffs is a helper which creates a Change based on the
 // diffs from the provided branch in a local checkout. Note that the diff is
 // performed against the given branch on "origin", and not any local version.
-func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, branch, commitMsg string, reviewers []string, co *git.Checkout) (*ChangeInfo, error) {
+func CreateCLFromLocalDiffs(ctx context.Context, g GerritInterface, project, branch, commitMsg string, reviewers []string, co git.Checkout) (*ChangeInfo, error) {
 	baseCommit, err := co.Git(ctx, "rev-parse", fmt.Sprintf("origin/%s", branch))
 	if err != nil {
 		return nil, skerr.Wrap(err)

@@ -40,7 +40,7 @@ type PopRepoI interface {
 
 // PopRepo implements PopRepoI.
 type PopRepo struct {
-	checkout  *git.Checkout
+	checkout  git.Checkout
 	workdir   string
 	local     bool
 	subdomain string
@@ -51,7 +51,7 @@ type PopRepo struct {
 //
 // If not 'local' then the HOME environment variable is set for running on the
 // server.
-func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
+func NewPopRepo(checkout git.Checkout, local bool, subdomain string) *PopRepo {
 	return &PopRepo{
 		checkout:  checkout,
 		workdir:   checkout.Dir(),

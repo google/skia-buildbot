@@ -34,7 +34,7 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutParentConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -80,7 +80,7 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 // a local Git checkout and pins dependencies using a file checked into the
 // repo.
 func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.CreateRollFunc {
-	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+	return func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Determine what changes need to be made.
 		getFileWrapped := func(ctx context.Context, path string) (string, error) {
 			return getFile(ctx, co, path)
@@ -107,7 +107,7 @@ func gitCheckoutFileCreateRollFunc(dep *config.DependencyConfig) git_common.Crea
 		return strings.TrimSpace(out), nil
 	}
 }
-func getFile(ctx context.Context, co *git.Checkout, path string) (string, error) {
+func getFile(ctx context.Context, co git.Checkout, path string) (string, error) {
 	sklog.Infof("Getting file \"%s\".", path)
 	if ok, err := co.IsSubmodule(ctx, path, gitHeadRef); ok && err == nil {
 		sklog.Infof("File \"%s\" is submodule.", path)
@@ -116,7 +116,7 @@ func getFile(ctx context.Context, co *git.Checkout, path string) (string, error)
 	return co.GetFile(ctx, path, gitHeadRef)
 }
 
-func writeFile(ctx context.Context, co *git.Checkout, path, contents string) error {
+func writeFile(ctx context.Context, co git.Checkout, path, contents string) error {
 	if ok, _ := co.IsSubmodule(ctx, path, gitHeadRef); ok {
 		sklog.Infof("Writing to submodule \"%s\".", path)
 		return co.UpdateSubmodule(ctx, path, contents)

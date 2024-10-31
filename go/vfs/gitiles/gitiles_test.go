@@ -26,7 +26,7 @@ func TestFS(t *testing.T) {
 	urlMock := mockhttpclient.NewURLMock()
 	repo := gitiles.NewRepo(repoURL, urlMock.Client())
 	tmp := shared_tests.MakeTestFiles(t)
-	gd := git.GitDir(tmp)
+	gd := git.CheckoutDir(tmp)
 	_, err := gd.Git(ctx, "init")
 	require.NoError(t, err)
 	_, err = gd.Git(ctx, "add", ".")

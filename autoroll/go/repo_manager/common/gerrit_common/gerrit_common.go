@@ -71,7 +71,7 @@ func UnsetWIP(ctx context.Context, g gerrit.GerritInterface, change *gerrit.Chan
 
 // DownloadCommitMsgHook downloads the Gerrit Change-Id hook and installs it in
 // the given git checkout.
-func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout) error {
+func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co git.Checkout) error {
 	out, err := co.Git(ctx, "rev-parse", "--git-dir")
 	if err != nil {
 		return skerr.Wrap(err)
@@ -95,7 +95,7 @@ func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co *gi
 // TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
 // they need to pass in a GitCheckoutUploadRollFunc but can't do other
 // initialization. Find a way to make this unnecessary.
-func SetupGerrit(ctx context.Context, co *git.Checkout, g gerrit.GerritInterface) error {
+func SetupGerrit(ctx context.Context, co git.Checkout, g gerrit.GerritInterface) error {
 	// Install the Gerrit Change-Id hook.
 	if err := DownloadCommitMsgHook(ctx, g, co); err != nil {
 		return skerr.Wrap(err)

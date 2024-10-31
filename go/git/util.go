@@ -70,20 +70,20 @@ func Clone(ctx context.Context, repoUrl, dest string, mirror bool) error {
 		// the refspec to only sync the branches, but that would force the
 		// initial clone step to sync every ref.
 		if _, err := exec.RunCwd(ctx, ".", git, "clone", "--bare", repoUrl, dest); err != nil {
-			return fmt.Errorf("Failed to clone repo: %s", err)
+			return skerr.Fmt("failed to clone repo: %s", err)
 		}
-		if _, err := exec.RunCwd(ctx, dest, git, "config", "remote.origin.mirror", "true"); err != nil {
-			return fmt.Errorf("Failed to set git mirror config: %s", err)
+		if _, err := exec.RunCwd(ctx, dest, git, "--git-dir=.", "config", "remote.origin.mirror", "true"); err != nil {
+			return skerr.Fmt("failed to set git mirror config: %s", err)
 		}
-		if _, err := exec.RunCwd(ctx, dest, git, "config", "remote.origin.fetch", "refs/heads/*:refs/heads/*"); err != nil {
-			return fmt.Errorf("Failed to set git mirror config: %s", err)
+		if _, err := exec.RunCwd(ctx, dest, git, "--git-dir=.", "config", "remote.origin.fetch", "refs/heads/*:refs/heads/*"); err != nil {
+			return skerr.Fmt("failed to set git mirror config: %s", err)
 		}
-		if _, err := exec.RunCwd(ctx, dest, git, "fetch", "--force", "--all"); err != nil {
-			return fmt.Errorf("Failed to set git mirror config: %s", err)
+		if _, err := exec.RunCwd(ctx, dest, git, "--git-dir=.", "fetch", "--force", "--all"); err != nil {
+			return skerr.Fmt("failed to set git mirror config: %s", err)
 		}
 	} else {
 		if _, err := exec.RunCwd(ctx, ".", git, "clone", repoUrl, dest); err != nil {
-			return fmt.Errorf("Failed to clone repo: %s", err)
+			return skerr.Fmt("failed to clone repo: %s", err)
 		}
 	}
 	return nil

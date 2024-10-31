@@ -22,7 +22,7 @@ const (
 
 // Checkout provides common functionality for git checkouts.
 type Checkout struct {
-	*git.Checkout
+	git.Checkout
 	Branch            *config_vars.Template
 	defaultBugProject string
 	Dependencies      []*config.VersionFileConfig
@@ -31,7 +31,7 @@ type Checkout struct {
 }
 
 // NewCheckout returns a Checkout instance.
-func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*Checkout, error) {
+func NewCheckout(ctx context.Context, c *config.GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co git.Checkout) (*Checkout, error) {
 	// Clean up any lockfiles, in case the process was interrupted.
 	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 		return nil, skerr.Wrap(err)
@@ -128,16 +128,16 @@ func (c *Checkout) LogRevisions(ctx context.Context, from, to *revision.Revision
 // ApplyExternalChangeFunc applies the specified ExternalChangeId in whichever
 // way makes sense for the implementation. Example: git_checkout_github uses
 // the ExternalChangeId as a Github PR and cherry-picks the PR patch locally.
-type ApplyExternalChangeFunc func(context.Context, *git.Checkout, string) error
+type ApplyExternalChangeFunc func(context.Context, git.Checkout, string) error
 
 // CreateRollFunc generates commit(s) in the local Git checkout to
 // be used in the next roll and returns the hash of the commit to be uploaded.
 // GitCheckoutParent handles creation of the roll branch.
-type CreateRollFunc func(context.Context, *git.Checkout, *revision.Revision, *revision.Revision, []*revision.Revision, string) (string, error)
+type CreateRollFunc func(context.Context, git.Checkout, *revision.Revision, *revision.Revision, []*revision.Revision, string) (string, error)
 
 // UploadRollFunc uploads a CL using the given commit hash and
 // returns its ID.
-type UploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool, string) (int64, error)
+type UploadRollFunc func(context.Context, git.Checkout, string, string, []string, bool, string) (int64, error)
 
 // CreateNewRoll uploads a new roll using the given createRoll and uploadRoll
 // functions.
@@ -198,7 +198,7 @@ func Clone(ctx context.Context, repoUrl, dest string, rev *revision.Revision) er
 	}
 
 	// Fetch and reset to the given revision.
-	co := &git.Checkout{GitDir: git.GitDir(dest)}
+	co := git.CheckoutDir(dest)
 	if err := co.Fetch(ctx); err != nil {
 		return skerr.Wrap(err)
 	}

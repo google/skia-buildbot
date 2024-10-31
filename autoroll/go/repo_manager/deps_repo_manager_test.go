@@ -114,7 +114,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	ctx = exec.NewContext(ctx, mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
-			d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
+			d, err := git.CheckoutDir(cmd.Dir).Details(ctx, "HEAD")
 			if err != nil {
 				return skerr.Wrap(err)
 			}

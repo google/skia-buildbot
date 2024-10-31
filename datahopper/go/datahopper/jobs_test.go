@@ -404,17 +404,18 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 
-	c1, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD^")
+	co := git.CheckoutDir(gb.Dir())
+	c1, err := co.RevParse(ctx, "HEAD^")
 	require.NoError(t, err)
 	c1time := repo.Get(c1).Timestamp
-	c2, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD")
+	c2, err := co.RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	// c2 is 5 seconds after c1
 	c2time := repo.Get(c2).Timestamp
 
 	// Load the TasksCfg for each commit into the cache.
 	insertTasksCfg := func(commit string) {
-		out, err := git.GitDir(gb.Dir()).Git(ctx, "show", fmt.Sprintf("%s:infra/bots/tasks.json", commit))
+		out, err := co.Git(ctx, "show", fmt.Sprintf("%s:infra/bots/tasks.json", commit))
 		require.NoError(t, err)
 		cfg, err := specs.ParseTasksCfg(out)
 		require.NoError(t, err)
@@ -512,7 +513,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
-	content, err := git.GitDir(gb.Dir()).GetFile(ctx, "infra/bots/tasks.json", c1)
+	content, err := co.GetFile(ctx, "infra/bots/tasks.json", c1)
 	require.NoError(t, err)
 	gb.Add(ctx, "infra/bots/tasks.json", content)
 	c3 := gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2

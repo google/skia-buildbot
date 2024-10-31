@@ -55,13 +55,13 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 			child.Add(ctx, path.Join(parent.FtIncludeSrc, h), fmt.Sprintf(ftIncludeTmpl, "child", idx, i))
 		}
 		childCommits = append(childCommits, child.Commit(ctx))
-		_, err = git.GitDir(child.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
+		_, err = git.CheckoutDir(child.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
 		require.NoError(t, err)
 	}
 
 	urlmock := mockhttpclient.NewURLMock()
 
-	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.CheckoutDir(child.Dir()), urlmock)
 
 	parentRepo := git_testutils.GitInit(t, ctx)
 	parentRepo.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
@@ -73,7 +73,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	}
 	parentRepo.Commit(ctx)
 
-	mockParent := gitiles_testutils.NewMockRepo(t, parentRepo.RepoUrl(), git.GitDir(parentRepo.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parentRepo.RepoUrl(), git.CheckoutDir(parentRepo.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
@@ -121,7 +121,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -148,7 +148,7 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -170,7 +170,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)

@@ -71,7 +71,7 @@ type androidRepoManager struct {
 	childBranch      *config_vars.Template
 	childDir         string
 	childPath        string
-	childRepo        *git.Checkout
+	childRepo        git.Checkout
 	childRevLinkTmpl string
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
@@ -112,7 +112,7 @@ func NewAndroidRepoManager(ctx context.Context, c *config.AndroidRepoManagerConf
 	if c.ChildSubdir != "" {
 		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
 	}
-	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+	childRepo := git.CheckoutDir(childDir)
 
 	if _, err := os.Stat(workdir); err == nil {
 		if err := git.DeleteLockFiles(ctx, workdir); err != nil {

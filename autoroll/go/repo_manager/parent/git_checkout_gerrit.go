@@ -21,7 +21,7 @@ import (
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
 // uploads a CL to Gerrit.
 func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.UploadRollFunc {
-	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
+	return func(ctx context.Context, co git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 		// Find the change ID in the commit message.
 		out, err := co.Git(ctx, "log", "-n1", hash)
 		if err != nil {
@@ -74,7 +74,7 @@ func NewGitCheckoutGerrit(ctx context.Context, c *config.GitCheckoutGerritParent
 	}
 
 	createRollHelper := gitCheckoutFileCreateRollFunc(c.GitCheckout.Dep)
-	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Run the helper to set the new dependency version(s).
 		if _, err := createRollHelper(ctx, co, from, to, rolling, commitMsg); err != nil {
 			return "", skerr.Wrap(err)

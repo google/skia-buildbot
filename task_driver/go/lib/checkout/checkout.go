@@ -74,7 +74,7 @@ func GetRepoState(f *Flags) (types.RepoState, error) {
 // dir is in a reasonable state. Assumes that the dest dir exists.
 func ValidateCheckout(ctx context.Context, dest string, rs types.RepoState) (bool, error) {
 	if _, err := os_steps.Stat(ctx, filepath.Join(dest, ".git")); err == nil {
-		gd := git.GitDir(dest)
+		gd := git.CheckoutDir(dest)
 
 		// Run "git status" and log the result, in case it's needed for
 		// forensics.
@@ -156,7 +156,7 @@ func ValidateCheckout(ctx context.Context, dest string, rs types.RepoState) (boo
 
 // EnsureGitCheckout obtains a clean git checkout of the given repo, at the
 // given commit, in the given destination dir.
-func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*git.Checkout, error) {
+func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (git.Checkout, error) {
 	ctx = td.StartStep(ctx, td.Props("Ensure Git Checkout").Infra())
 	defer td.EndStep(ctx)
 
@@ -199,7 +199,7 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 		}
 	}
 	// Create the checkout object.
-	co := &git.Checkout{GitDir: git.GitDir(dest)}
+	co := git.CheckoutDir(dest)
 
 	// Now we know we have a git checkout of the correct repo in the dest
 	// dir, but it could be in any state. co.UpdateBranch() will forcibly clean
@@ -238,7 +238,7 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 // EnsureGitCheckoutWithDEPS obtains a clean git checkout of the given repo,
 // at the given commit, in the given workdir, and syncs the DEPS as well. The
 // checkout itself will be a subdirectory of the workdir.
-func EnsureGitCheckoutWithDEPS(ctx context.Context, workdir string, rs types.RepoState) (co *git.Checkout, err error) {
+func EnsureGitCheckoutWithDEPS(ctx context.Context, workdir string, rs types.RepoState) (co git.Checkout, err error) {
 	ctx = td.StartStep(ctx, td.Props("Ensure Git Checkout (with DEPS)").Infra())
 	defer td.EndStep(ctx)
 	// TODO(borenet): Implement this code using gclient or bot_update.

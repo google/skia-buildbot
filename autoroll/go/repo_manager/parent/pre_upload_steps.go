@@ -232,7 +232,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 			return fmt.Errorf("Error when copying %s from out to golden dir: %s", foundLicenseFileName, err)
 		}
 		// Step6: Capture diff of licenses_golden/${licenseFileName}.
-		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, foundLicenseFileName))
+		licensesDiffOutput, err := git.CheckoutDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, foundLicenseFileName))
 		if err != nil {
 			return fmt.Errorf("Error when seeing diff of golden %s: %s", foundLicenseFileName, err)
 		}
@@ -334,7 +334,7 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 		return fmt.Errorf("Error when running gn_to_bp: %s", err)
 	}
 	for _, genFile := range android_skia_checkout.FilesGeneratedByGnToGp {
-		if _, err := git.GitDir(skiaDir).Git(ctx, "add", genFile); err != nil {
+		if _, err := git.CheckoutDir(skiaDir).Git(ctx, "add", genFile); err != nil {
 			// Some generated files may be ready in canaries but not
 			// submitted yet. So log warnings instead of returning
 			// errors here.

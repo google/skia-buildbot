@@ -347,9 +347,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	// "real" upstream, in case the caller cares about the remote URL. Note
 	// that this doesn't change the remote URLs for the DEPS.
 	co := &git.TempCheckout{
-		Checkout: &git.Checkout{
-			GitDir: git.GitDir(path.Join(tmp, projectName)),
-		},
+		Checkout: git.CheckoutDir(filepath.Join(tmp, projectName)),
 	}
 	if _, err := co.Git(ctx, "remote", "set-url", git.DefaultRemote, rs.Repo); err != nil {
 		return nil, skerr.Wrap(err)
