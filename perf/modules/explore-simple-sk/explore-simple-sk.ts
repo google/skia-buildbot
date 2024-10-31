@@ -665,7 +665,7 @@ export class ExploreSimpleSk extends ElementSk {
             @click=${ele.openBisect}>
             Bisect
           </md-outlined-button>
-          <div id="zoomPan">
+          <div id="zoomPan" ?hidden=${ele.plotSummary}>
             <h3>Zoom/Pan:</h3>
             <div id="btnContainer">
               <button
