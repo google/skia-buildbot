@@ -11,13 +11,15 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { Regression, Subscription } from '../json';
+import { Regression, GetSheriffListResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 // State is the local UI state of regressions-page-sk
 interface State {
   selectedSubscription: string;
 }
+
+const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list';
 
 /**
  * RegressionsPageSk is a component that displays a list of regressions
@@ -26,7 +28,7 @@ interface State {
 export class RegressionsPageSk extends ElementSk {
   state: State;
 
-  private subscriptionList: Subscription[] = [];
+  private subscriptionList: string[] = [];
 
   regressions: Regression[] = [];
 
@@ -81,14 +83,14 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   private async init() {
-    const response = await fetch('/_/subscriptions', {
+    const response = await fetch(SHERIFF_LIST_ENDPOINT, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    const json = await jsonOrThrow(response);
-    const subscriptions: Subscription[] = json;
+    const json: GetSheriffListResponse = await jsonOrThrow(response);
+    const subscriptions: string[] = json.sheriff_list || [];
 
     this.subscriptionList = [...subscriptions];
     this.regressions = [];
@@ -119,11 +121,8 @@ export class RegressionsPageSk extends ElementSk {
   private static allSubscriptions = (ele: RegressionsPageSk) =>
     ele.subscriptionList.map(
       (s) => html`
-        <option
-          ?selected=${ele.state.selectedSubscription === s.name}
-          value=${s.name}
-          title=${s.name}>
-          ${s.name}
+        <option ?selected=${ele.state.selectedSubscription === s} value=${s} title=${s}>
+          ${s}
         </option>
       `
     );

@@ -251,6 +251,11 @@ export interface GetGraphsShortcutRequest {
 	id: string;
 }
 
+export interface GetSheriffListResponse {
+	sheriff_list: string[] | null;
+	error: string;
+}
+
 export interface NextParamListHandlerRequest {
 	q: string;
 }
