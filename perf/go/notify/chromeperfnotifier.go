@@ -26,7 +26,7 @@ type ChromePerfNotifier struct {
 func NewChromePerfNotifier(ctx context.Context, anomalyApiClient chromeperf.AnomalyApiClient) (*ChromePerfNotifier, error) {
 	var err error
 	if anomalyApiClient == nil {
-		anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx)
+		anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx, nil)
 		if err != nil {
 			return nil, err
 		}

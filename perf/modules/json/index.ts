@@ -149,6 +149,8 @@ export interface Anomaly {
 	bug_id: number;
 	start_revision: number;
 	end_revision: number;
+	start_revision_hash?: string;
+	end_revision_hash?: string;
 	is_improvement: boolean;
 	recovered: boolean;
 	state: string;

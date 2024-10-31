@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -32,11 +33,18 @@ type AnomalyMap map[string]CommitNumberAnomalyMap
 
 // Anomaly defines the object return from Chrome Perf API.
 type Anomaly struct {
-	Id                  int      `json:"id"`
-	TestPath            string   `json:"test_path"`
-	BugId               int      `json:"bug_id"`
-	StartRevision       int      `json:"start_revision"`
-	EndRevision         int      `json:"end_revision"`
+	Id            int    `json:"id"`
+	TestPath      string `json:"test_path"`
+	BugId         int    `json:"bug_id"`
+	StartRevision int    `json:"start_revision"`
+	EndRevision   int    `json:"end_revision"`
+
+	// The hashes below are needed for cases where the commit numbers are
+	// different in chromeperf and in the perf instance. We can use these
+	// hashes to look up the correct commit number from the database.
+	StartRevisionHash string `json:"start_revision_hash,omitempty"`
+	EndRevisionHash   string `json:"end_revision_hash,omitempty"`
+
 	IsImprovement       bool     `json:"is_improvement"`
 	Recovered           bool     `json:"recovered"`
 	State               string   `json:"state"`
@@ -190,6 +198,7 @@ type AnomalyApiClient interface {
 // anomalyApiClientImpl implements AnomalyApiClient
 type anomalyApiClientImpl struct {
 	chromeperfClient   ChromePerfClient
+	perfGit            perfgit.Git
 	sendAnomalyCalled  metrics2.Counter
 	sendAnomalyFailed  metrics2.Counter
 	getAnomaliesCalled metrics2.Counter
@@ -197,18 +206,19 @@ type anomalyApiClientImpl struct {
 }
 
 // NewAnomalyApiClient returns a new AnomalyApiClient instance.
-func NewAnomalyApiClient(ctx context.Context) (AnomalyApiClient, error) {
+func NewAnomalyApiClient(ctx context.Context, git perfgit.Git) (AnomalyApiClient, error) {
 	cpClient, err := NewChromePerfClient(ctx, "", false)
 	if err != nil {
 		return nil, err
 	}
 
-	return newAnomalyApiClient(cpClient), nil
+	return newAnomalyApiClient(cpClient, git), nil
 }
 
-func newAnomalyApiClient(cpClient ChromePerfClient) AnomalyApiClient {
+func newAnomalyApiClient(cpClient ChromePerfClient, git perfgit.Git) AnomalyApiClient {
 	return &anomalyApiClientImpl{
 		chromeperfClient:   cpClient,
+		perfGit:            git,
 		sendAnomalyCalled:  metrics2.GetCounter("chrome_perf_send_anomaly_called"),
 		sendAnomalyFailed:  metrics2.GetCounter("chrome_perf_send_anomaly_failed"),
 		getAnomaliesCalled: metrics2.GetCounter("chrome_perf_get_anomalies_called"),
@@ -305,7 +315,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}
-		return getAnomalyMapFromChromePerfResult(getAnomaliesResp, testPathTraceNameMap), nil
+		return cp.getAnomalyMapFromChromePerfResult(ctx, getAnomaliesResp, testPathTraceNameMap), nil
 	}
 
 	return AnomalyMap{}, nil
@@ -338,7 +348,7 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to call chrome perf endpoint.")
 		}
-		return getAnomalyMapFromChromePerfResult(getAnomaliesResp, testPathTraceNameMap), nil
+		return cp.getAnomalyMapFromChromePerfResult(ctx, getAnomaliesResp, testPathTraceNameMap), nil
 	}
 
 	return AnomalyMap{}, nil
@@ -441,7 +451,7 @@ func traceNameToTestPath(traceName string) (string, string, error) {
 	return testPath, statistics, nil
 }
 
-func getAnomalyMapFromChromePerfResult(getAnomaliesResp *GetAnomaliesResponse, testPathTraceNameMap map[string]string) AnomalyMap {
+func (cp *anomalyApiClientImpl) getAnomalyMapFromChromePerfResult(ctx context.Context, getAnomaliesResp *GetAnomaliesResponse, testPathTraceNameMap map[string]string) AnomalyMap {
 	result := AnomalyMap{}
 	for testPath, anomalyArr := range getAnomaliesResp.Anomalies {
 		if traceName, ok := testPathTraceNameMap[testPath]; !ok {
@@ -449,7 +459,18 @@ func getAnomalyMapFromChromePerfResult(getAnomaliesResp *GetAnomaliesResponse, t
 		} else {
 			commitNumberAnomalyMap := CommitNumberAnomalyMap{}
 			for _, anomaly := range anomalyArr {
-				commitNumberAnomalyMap[types.CommitNumber(anomaly.EndRevision)] = anomaly
+				if anomaly.EndRevisionHash == "" {
+					commitNumberAnomalyMap[types.CommitNumber(anomaly.EndRevision)] = anomaly
+				} else {
+					commitNum, err := cp.perfGit.CommitNumberFromGitHash(ctx, anomaly.EndRevisionHash)
+					if err != nil {
+						sklog.Errorf("Unable to find commit number for git hash %s", anomaly.EndRevisionHash)
+						continue
+					}
+
+					commitNumberAnomalyMap[commitNum] = anomaly
+				}
+
 			}
 			result[traceName] = commitNumberAnomalyMap
 		}

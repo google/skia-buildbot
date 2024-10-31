@@ -508,7 +508,26 @@ func (rApi regressionsApi) alertGroupQueryHandler(w http.ResponseWriter, r *http
 				queryParams := alertGroupDetails.GetQueryParams(ctx)
 				redirectUrl = rApi.urlProvider.Explore(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), queryParams, false, highlightAnomalyParams)
 			} else {
-				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(alertGroupDetails.StartCommitNumber), int(alertGroupDetails.EndCommitNumber), shortcutId, false, highlightAnomalyParams)
+				startCommit := alertGroupDetails.StartCommitNumber
+				endCommit := alertGroupDetails.EndCommitNumber
+				if alertGroupDetails.StartCommitHash != "" && alertGroupDetails.EndCommitHash != "" {
+					commitNum, err := rApi.perfGit.CommitNumberFromGitHash(ctx, alertGroupDetails.StartCommitHash)
+					if err != nil {
+						httputils.ReportError(w, err, fmt.Sprintf("Invalid git hash %s received for commit number %d from chromeperf", alertGroupDetails.StartCommitHash, startCommit), http.StatusInternalServerError)
+						return
+					} else {
+						startCommit = int32(commitNum)
+					}
+
+					commitNum, err = rApi.perfGit.CommitNumberFromGitHash(ctx, alertGroupDetails.EndCommitHash)
+					if err != nil {
+						httputils.ReportError(w, err, fmt.Sprintf("Invalid git hash %s received for commit number %d from chromeperf", alertGroupDetails.EndCommitHash, endCommit), http.StatusInternalServerError)
+						return
+					} else {
+						endCommit = int32(commitNum)
+					}
+				}
+				redirectUrl = rApi.urlProvider.MultiGraph(ctx, int(startCommit), int(endCommit), shortcutId, false, highlightAnomalyParams)
 			}
 
 		} else {

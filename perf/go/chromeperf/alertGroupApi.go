@@ -28,6 +28,12 @@ type AlertGroupDetails struct {
 	Anomalies         map[string]string `json:"anomalies"`
 	StartCommitNumber int32             `json:"start_commit"`
 	EndCommitNumber   int32             `json:"end_commit"`
+
+	// The hashes below are needed for cases where the commit numbers are
+	// different in chromeperf and in the perf instance. We can use these
+	// hashes to look up the correct commit number from the database.
+	StartCommitHash string `json:"start_commit_hash,omitempty"`
+	EndCommitHash   string `json:"end_commit_hash,omitempty"`
 }
 
 // AlertGroupApiClient provides an interface to interact with the alert_group api in chromeperf.

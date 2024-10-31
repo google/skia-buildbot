@@ -474,7 +474,7 @@ func (f *Frontend) initialize() {
 	}
 
 	if config.Config.FetchChromePerfAnomalies {
-		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx)
+		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx, f.perfGit)
 		if err != nil {
 			sklog.Fatal("Failed to build chrome anomaly api client: %s", err)
 		}
