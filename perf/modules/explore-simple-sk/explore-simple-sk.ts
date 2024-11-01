@@ -325,7 +325,7 @@ export class State {
 
   plotSummary: boolean = false;
 
-  useMaterial?: boolean = true;
+  disableMaterial?: boolean = false;
 
   highlight_anomalies: string[] = [];
 
@@ -1056,8 +1056,8 @@ export class ExploreSimpleSk extends ElementSk {
       <plot-summary-sk
         ${ref(this.plotSummary)}
         @summary_selected=${this.summarySelected}
-        selectionType=${this._state.useMaterial ? 'material' : 'canvas'}
-        ?hasControl=${this._state.useMaterial}
+        selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
+        ?hasControl=${!this._state.disableMaterial}
         class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
       </plot-summary-sk>`;
   }
@@ -2627,8 +2627,8 @@ export class ExploreSimpleSk extends ElementSk {
           case 'plotSummary':
             this._state.plotSummary = paramValue;
             break;
-          case 'useMaterial':
-            this._state.useMaterial = paramValue;
+          case 'disableMaterial':
+            this._state.disableMaterial = paramValue;
             break;
           case 'showZero':
             this._state.showZero = paramValue;
