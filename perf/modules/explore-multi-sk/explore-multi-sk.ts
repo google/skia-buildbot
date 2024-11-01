@@ -76,6 +76,8 @@ class State {
   show_remove_all: boolean = true;
 
   use_titles: boolean = false;
+
+  show_google_plot = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -401,7 +403,7 @@ export class ExploreMultiSk extends ElementSk {
       use_titles: this.state.use_titles,
       useTestPicker: this.state.useTestPicker,
       use_test_picker_query: false,
-      show_google_plot: false,
+      show_google_plot: this.state.show_google_plot,
     };
     explore.state = newState;
   }
