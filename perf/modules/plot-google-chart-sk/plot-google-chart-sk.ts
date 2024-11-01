@@ -28,6 +28,7 @@ import {
 } from '../dataframe/dataframe_context';
 import { getTitle, titleFormatter } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
+import { VResizableBoxSk } from './v-resizable-box-sk';
 
 export interface AnomalyData {
   x: number;
@@ -49,11 +50,6 @@ export class PlotGoogleChartSk extends LitElement {
     }
     slot {
       display: none;
-    }
-    .anomaly {
-      position: absolute;
-      top: 0px;
-      left: 0px;
     }
     .container {
       display: flex;
@@ -93,6 +89,19 @@ export class PlotGoogleChartSk extends LitElement {
       md-icon.regression {
         background-color: violet;
         border: orange 1px solid;
+      }
+    }
+
+    .delta {
+      position: absolute;
+      border: 1px solid purple;
+      background-color: rgba(255, 255, 0, 0.2); /* semi-transparent yellow */
+      top: 0px;
+
+      p {
+        position: relative;
+        top: 10px;
+        left: 10px;
       }
     }
 
@@ -154,8 +163,14 @@ export class PlotGoogleChartSk extends LitElement {
     improvement: createRef<HTMLSlotElement>(),
   };
 
-  // How to pan or zoom the chart, we only have panning now.
-  private navigationMode: 'pan' | null = null;
+  // Modes for chart interaction with mouse.
+  // We only have panning and deltaY for now.
+  // Default behavior is null.
+  // - panning (enabled by dragging) pans the chart to the left or right
+  // - deltaY (enabled with shift-click) calculates the delta on the
+  // y-axis between the start and end cursor.
+  @property({ attribute: false })
+  private navigationMode: 'pan' | 'deltaY' | null = null;
 
   private lastMouse = { x: 0, y: 0 };
 
@@ -182,6 +197,9 @@ export class PlotGoogleChartSk extends LitElement {
   // The div container for anomaly overlays.
   private anomalyDiv = createRef<HTMLDivElement>();
 
+  // The div container for delta y selection range.
+  private deltaRangeBox = createRef<VResizableBoxSk>();
+
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -207,12 +225,15 @@ export class PlotGoogleChartSk extends LitElement {
           type="line"
           .events=${['onmouseover', 'onmouseout']}
           @mousedown=${this.onChartMouseDown}
+          @mouseup=${this.onChartMouseUp}
           @google-chart-onmouseover=${this.onChartMouseOver}
           @google-chart-onmouseout=${this.onChartMouseOut}
           @google-chart-ready=${this.onChartReady}>
         </google-chart>
         ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
+        <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
+        </v-resizable-box-sk>
       </div>
       <slot name="untriage" ${ref(this.slots.untriage)}></slot>
       <slot name="regression" ${ref(this.slots.regression)}></slot>
@@ -283,9 +304,23 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseDown(e: MouseEvent) {
-    // If the chart emits onmouoseover/out events, meaning the mouse is hovering over a data point,
-    // we will not try to initiate the panning action.
+    // If the chart emits onmouseover/out events, meaning the mouse is hovering over a data point,
+    // we will not try to initiate other chart navigation modes.
     if (this.chartInteracting) {
+      return;
+    }
+
+    // if user holds down shift-click, enable delta range calculation
+    if (e.shiftKey) {
+      e.preventDefault(); // disable system events
+      this.navigationMode = 'deltaY';
+      const layout = this.chart!.getChartLayoutInterface();
+      const area = layout.getChartAreaBoundingBox();
+      const deltaRangeBox = this.deltaRangeBox.value!;
+      deltaRangeBox.show(
+        { top: area.top, left: area.left, width: area.width },
+        { coord: e.offsetY, value: layout.getVAxisValue(e.offsetY) }
+      );
       return;
     }
 
@@ -299,11 +334,30 @@ export class PlotGoogleChartSk extends LitElement {
     this.chartInteracting = true;
   }
 
+  private onChartMouseUp() {
+    this.chartInteracting = false;
+    this.navigationMode = null;
+    this.deltaRangeBox.value?.hide();
+  }
+
   private onChartMouseOut() {
     this.chartInteracting = false;
+    this.navigationMode = null;
+    this.deltaRangeBox.value?.hide();
   }
 
   private onWindowMouseMove(e: MouseEvent) {
+    if (this.navigationMode === 'deltaY') {
+      e.preventDefault(); // disable system events
+      const layout = this.chart!.getChartLayoutInterface();
+      const deltaRangeBox = this.deltaRangeBox.value!;
+      deltaRangeBox.updateSelection({
+        coord: e.offsetY,
+        value: layout.getVAxisValue(e.offsetY),
+      });
+      return;
+    }
+
     if (this.navigationMode !== 'pan') {
       return;
     }
