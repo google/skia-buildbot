@@ -247,6 +247,12 @@ export interface CountHandlerResponse {
 	paramset: ReadOnlyParamSet;
 }
 
+export interface GetAnomaliesResponse {
+	anomaly_list: Anomaly[] | null;
+	anomaly_cursor: string;
+	error: string;
+}
+
 export interface GetGraphsShortcutRequest {
 	id: string;
 }

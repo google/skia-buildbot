@@ -103,15 +103,11 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var getAnoamliesRequest GetAnomaliesRequest
-	if err := json.NewDecoder(r.Body).Decode(&getAnoamliesRequest); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON on get anomalies request.", http.StatusInternalServerError)
-		return
+	query_values := r.URL.Query()
+	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %s", query_values)
+	if query_values.Get("host") == "" {
+		query_values["host"] = []string{config.Config.URL}
 	}
-	if getAnoamliesRequest.Host == "" {
-		getAnoamliesRequest.Host = config.Config.URL
-	}
-	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %s", getAnoamliesRequest)
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -119,7 +115,7 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	getAnoamliesResponse := &GetAnomaliesResponse{}
 
-	err := api.chromeperfClient.SendPostRequest(ctx, "alerts_skia", "", getAnoamliesRequest, getAnoamliesResponse, []int{200, 400})
+	err := api.chromeperfClient.SendGetRequest(ctx, "alerts_skia", "", query_values, getAnoamliesResponse)
 	if err != nil {
 		httputils.ReportError(w, err, "Get anomalies request failed due to an internal server error. Please try again.", http.StatusInternalServerError)
 		return

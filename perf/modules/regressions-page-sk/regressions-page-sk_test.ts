@@ -5,7 +5,7 @@ import { RegressionsPageSk } from './regressions-page-sk';
 
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
-import { GetSheriffListResponse } from '../json';
+import { GetSheriffListResponse, GetAnomaliesResponse } from '../json';
 
 describe('regressions-page-sk', () => {
   const sheriffListResponse: GetSheriffListResponse = {
@@ -14,50 +14,39 @@ describe('regressions-page-sk', () => {
   };
   fetchMock.get('/_/anomalies/sheriff_list', { body: sheriffListResponse });
 
-  fetchMock.get(`/_/regressions?sub_name=Sheriff%20Config%202&limit=10&offset=0`, () => [
-    {
-      id: 'id2',
-      commit_number: 1235,
-      prev_commit_number: 1237,
-      alert_id: 1,
-      creation_time: '',
-      median_before: 123,
-      median_after: 135,
-      is_improvement: true,
-      cluster_type: 'high',
-      frame: {
-        dataframe: {
-          paramset: {
-            bot: ['bot1'],
-            benchmark: ['benchmark1'],
-            test: ['test1'],
-            improvement_direction: ['up'],
-          },
-          traceset: {},
-          header: null,
-          skip: 1,
-        },
-        skps: [1],
-        msg: '',
-        anomalymap: null,
+  const anomalyListResponse: GetAnomaliesResponse = {
+    anomaly_list: [
+      {
+        id: 123,
+        test_path: 'mm/bb/kk/tt',
+        bug_id: 789,
+        start_revision: 1235,
+        end_revision: 1237,
+        median_before_anomaly: 123,
+        median_after_anomaly: 135,
+        is_improvement: true,
+        recovered: true,
+        state: '',
+        statistic: 'max',
+        units: 'ms',
+        degrees_of_freedom: 1.0,
+        p_value: 0.1,
+        segment_size_before: 6,
+        segment_size_after: 16,
+        std_dev_before_anomaly: 0.2,
+        t_statistic: 3.3,
+        subscription_name: 'V8 Perf Sheriff',
+        bug_component: 'v8',
+        bug_labels: [],
+        bug_cc_emails: [],
       },
-      high: {
-        centroid: null,
-        shortcut: 'shortcut 1',
-        param_summaries2: null,
-        step_fit: {
-          status: 'High',
-          least_squares: 123,
-          regression: 12,
-          step_size: 345,
-          turning_point: 1234,
-        },
-        step_point: null,
-        num: 156,
-        ts: 'test',
-      },
-    },
-  ]);
+    ],
+    anomaly_cursor: '',
+    error: '',
+  };
+  fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202', {
+    body: anomalyListResponse,
+  });
 
   describe('RegressionsPageSK', () => {
     const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
@@ -68,10 +57,10 @@ describe('regressions-page-sk', () => {
       const dropdown = document.getElementById('filter') as HTMLSelectElement;
       // 3 loaded configs and the default options
       assert.equal(dropdown?.options.length, 4);
-      assert.equal(element.regressions.length, 0);
+      assert.equal(element.cpAnomalies.length, 0);
 
       await element.filterChange('Sheriff Config 2');
-      assert.equal(element.regressions.length, 1);
+      assert.equal(element.cpAnomalies.length, 1);
     });
   });
 });

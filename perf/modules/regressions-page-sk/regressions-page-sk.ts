@@ -11,7 +11,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { Regression, GetSheriffListResponse } from '../json';
+import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 // State is the local UI state of regressions-page-sk
@@ -20,6 +20,7 @@ interface State {
 }
 
 const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list';
+const ANOMALY_LIST_ENDPOINT = '/_/anomalies/anomaly_list';
 
 /**
  * RegressionsPageSk is a component that displays a list of regressions
@@ -29,6 +30,8 @@ export class RegressionsPageSk extends ElementSk {
   state: State;
 
   private subscriptionList: string[] = [];
+
+  cpAnomalies: Anomaly[] = [];
 
   regressions: Regression[] = [];
 
@@ -69,17 +72,30 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   private async fetchRegressions(): Promise<void> {
-    const s = this.state.selectedSubscription;
-    const url = `/_/regressions?sub_name=${s}&limit=${10}&offset=${0}`;
+    const queryMap = new Map();
+    const s = encodeURIComponent(this.state.selectedSubscription);
+    if (s !== '') {
+      queryMap.set('sheriff', s);
+    }
+    const queryPairs = [];
+    let queryStr = '';
+    if (queryMap.size > 0) {
+      for (const [key, value] of queryMap.entries()) {
+        queryPairs.push(`${key}=${value}`);
+      }
+      queryStr = '?' + queryPairs.join('&');
+    }
+
+    const url = ANOMALY_LIST_ENDPOINT + queryStr;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    const json = await jsonOrThrow(response);
-    const regs: Regression[] = json;
-    this.regressions = [...regs];
+    const json: GetAnomaliesResponse = await jsonOrThrow(response);
+    const regs: Anomaly[] = json.anomaly_list || [];
+    this.cpAnomalies = [...regs];
   }
 
   private async init() {
@@ -94,6 +110,7 @@ export class RegressionsPageSk extends ElementSk {
 
     this.subscriptionList = [...subscriptions];
     this.regressions = [];
+    this.cpAnomalies = [];
     this.stateHasChanged();
     this._render();
   }
