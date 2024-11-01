@@ -569,7 +569,12 @@ export class ExploreSimpleSk extends ElementSk {
 
   private pointToCommitDetailMap = new Map();
 
-  private tooltipFixed = false;
+  // tooltipSelected tracks whether someone has turned on the tooltip
+  // by selecting a data point. A new tooltip will not be created on
+  // mouseover unless the current selected tooltip is closed.
+  // true - the tooltip is selected
+  // false - the tooltip is not selected but could be on via mouse hover
+  private tooltipSelected = false;
 
   private graphTitle: GraphTitleSk | null = null;
 
@@ -776,6 +781,8 @@ export class ExploreSimpleSk extends ElementSk {
       () =>
         html` <plot-google-chart-sk
           ${ref(ele.googleChartPlot)}
+          @mousedown=${ele.onChartMouseDown}
+          @google-chart-select=${ele.onChartSelect}
           @google-chart-onmouseover=${ele.onChartOver}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
@@ -1065,13 +1072,54 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  // TODO(b/370804498): create onChartSelect for @google-chart-select.
   // onChartSelect shows the tooltip whenever a user clicks on a data
   // point and the tooltip will lock in place until it is closed.
+  private onChartSelect(e: CustomEvent) {
+    const chart = this.googleChartPlot!.value!;
+    const selection = e.detail.chart.getSelection()[0];
+    const index = {
+      row: selection.row,
+      col: selection.column,
+    };
+
+    const commitPos = chart.getCommitPosition(index.row);
+    const position = chart.getPositionByIndex(index);
+    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+    const commit = this.pointToCommitDetailMap.get(key) || null;
+
+    this.enableTooltip(
+      {
+        x: index.row - (this.selectedRange?.begin || 0),
+        y: chart.getYValue(index),
+        xPos: position.x,
+        yPos: position.y,
+        name: chart.getTraceName(index.col),
+      },
+      commit,
+      false,
+      true
+    );
+
+    this.tooltipSelected = true;
+  }
+
+  // if the tooltip is opened, close it when clicking on the chart
+  // i.e. clicking away from the tooltip closes it
+  private onChartMouseDown(_e: CustomEvent) {
+    if (!this.tooltipSelected) {
+      return;
+    }
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    this.tooltipSelected = false;
+    tooltipElem!.moveTo(null);
+  }
 
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
   private onChartOver(e: CustomEvent) {
+    if (this.tooltipSelected) {
+      return;
+    }
     const chart = this.googleChartPlot!.value!;
     const index = {
       row: e.detail.data.row,
@@ -1635,7 +1683,7 @@ export class ExploreSimpleSk extends ElementSk {
     };
     this.traceDetailsCopy!.style.display = 'block';
 
-    if (this._state.enable_chart_tooltip && !this.tooltipFixed) {
+    if (this._state.enable_chart_tooltip && !this.tooltipSelected) {
       // if the commit details for a point is already loaded then
       // show those commit details on hover
       let c = null;
@@ -1805,7 +1853,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     const closeBtnAction = fixTooltip
       ? () => {
-          this.tooltipFixed = false;
+          this.tooltipSelected = false;
           tooltipElem!.moveTo(null);
         }
       : () => {};
@@ -1824,9 +1872,12 @@ export class ExploreSimpleSk extends ElementSk {
     );
   }
 
-  // Triggered on mouseLeave event
+  // if the user's cursor leaves the graph, close the tooltip
+  // unless the tooltip is 'fixed', meaning the user has anchored it.
   mouseLeave(): void {
-    if (this.tooltipFixed) return;
+    if (this.tooltipSelected) {
+      return;
+    }
 
     this.disableTooltip();
   }
@@ -2010,7 +2061,7 @@ export class ExploreSimpleSk extends ElementSk {
         const tooltipEnabled = this._state.enable_chart_tooltip;
         const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
         if (tooltipEnabled && hasValidTooltipPos) {
-          this.tooltipFixed = true;
+          this.tooltipSelected = true;
 
           this.enableTooltip(detail, json.commitSlice![0], true, true);
         }
@@ -2627,7 +2678,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.graphTitle!.innerHTML = '';
     this.traceDetailsCopy!.style.display = 'none';
     this.traceDetails!.textContent = '';
-    this.tooltipFixed = false;
+    this.tooltipSelected = false;
     this.disableTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
 
