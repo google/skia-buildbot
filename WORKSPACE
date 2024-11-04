@@ -563,6 +563,15 @@ cipd_install(
     tag = "version:2@3.11.7.chromium.31",
 )
 
+cipd_install(
+    name = "patch_amd64_linux",
+    build_file_content = all_cipd_files(),
+    cipd_package = "skia/bots/patch_linux_amd64",
+    # From https://chrome-infra-packages.appspot.com/p/skia/bots/patch/+/version:0
+    sha256 = "757fd36db06f291f77a91aa314b855af449665a606d627ce16c36813464e1df6",
+    tag = "version:0",
+)
+
 #############################################################
 # Google Cloud SDK (needed for the Google Cloud Emulators). #
 #############################################################
