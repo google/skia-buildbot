@@ -13,7 +13,6 @@ import (
 	cipd_git "go.skia.org/infra/bazel/external/cipd/git"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
@@ -130,10 +129,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	require.NoError(t, err)
-
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
+	s := New(ctx, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 	rs := types.RepoState{
 		Repo:     gb.RepoUrl(),
