@@ -457,7 +457,7 @@ type GerritInterface interface {
 	GetFileNames(ctx context.Context, issue int64, patch string) ([]string, error)
 	GetFilesToContent(ctx context.Context, issue int64, revision string) (map[string]string, error)
 	GetIssueProperties(context.Context, int64) (*ChangeInfo, error)
-	GetPatch(context.Context, int64, string) (string, error)
+	GetPatch(context.Context, int64, string, string) (string, error)
 	GetRepoUrl() string
 	GetTrybotResults(context.Context, int64, int64) ([]*buildbucketpb.Build, error)
 	GetUserEmail(context.Context) (string, error)
@@ -686,13 +686,16 @@ func (ci *ChangeInfo) GetPatchsetIDs() []int64 {
 
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
-func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (string, error) {
+func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision, path string) (string, error) {
 	// Respect the rate limit.
 	if err := g.rl.Wait(ctx); err != nil {
 		return "", skerr.Wrap(err)
 	}
 
 	u := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.apiUrl, issue, revision)
+	if path != "" {
+		u += "?path=" + url.QueryEscape(path)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return "", skerr.Wrap(err)
@@ -717,13 +720,19 @@ func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (st
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not base64 decode response body")
 	}
-	// Extract out only the patch.
-	tokens := strings.SplitN(string(data), "---", 2)
-	if len(tokens) != 2 {
-		return "", skerr.Fmt("Gerrit patch response was invalid: %s", string(data))
+	// By default the response contains metadata in email format with a "---"
+	// separating the metadata from the patch itself. This metadata is not
+	// present when the "path" parameter is provided. Strip out the metadata
+	// if necessary.
+	if path == "" {
+		tokens := strings.SplitN(string(data), "---", 2)
+		if len(tokens) != 2 {
+			return "", skerr.Fmt("Gerrit patch response was invalid: %s", string(data))
+		}
+		patch := tokens[1]
+		return patch, nil
 	}
-	patch := tokens[1]
-	return patch, nil
+	return string(data), nil
 }
 
 // CommitInfo captures information about the commit of a revision (patchset)
