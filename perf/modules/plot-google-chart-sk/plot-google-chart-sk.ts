@@ -26,9 +26,10 @@ import {
   dataframeContext,
   dataframeLoadingContext,
 } from '../dataframe/dataframe_context';
-import { getTitle, titleFormatter } from '../dataframe/traceset';
+import { getTitle, titleFormatter, isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
+import { SidePanelSk } from './side-panel-sk';
 
 export interface AnomalyData {
   x: number;
@@ -54,14 +55,13 @@ export class PlotGoogleChartSk extends LitElement {
     .container {
       display: flex;
       height: 100%;
-      width: 100%;
+    }
+    .side {
+      max-width: 20%;
     }
     .plot {
       height: 100%;
-      width: 100%;
-    }
-    .plot-panel {
-      font-family: 'Roboto', system-ui, sans-serif;
+      flex-grow: 1;
     }
     .anomaly {
       position: absolute;
@@ -76,7 +76,6 @@ export class PlotGoogleChartSk extends LitElement {
         font-size: 24px;
         color: darkblue;
       }
-
       md-icon.improvement {
         background-color: rgba(3, 151, 3, 1);
         font-weight: bolder;
@@ -111,28 +110,6 @@ export class PlotGoogleChartSk extends LitElement {
       --md-linear-progress-active-indicator-height: 8px;
       --md-linear-progress-track-height: 8px;
       --md-linear-progress-track-shape: 8px;
-    }
-
-    ul.table {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-
-      li {
-        display: table-row;
-
-        span {
-          &:first-child {
-            font-weight: bold;
-          }
-
-          display: table-cell;
-          padding: 1px 6px;
-        }
-      }
     }
   `;
 
@@ -200,6 +177,9 @@ export class PlotGoogleChartSk extends LitElement {
   // The div container for delta y selection range.
   private deltaRangeBox = createRef<VResizableBoxSk>();
 
+  // The div container for the legend
+  private sidePanel = createRef<SidePanelSk>();
+
   connectedCallback(): void {
     super.connectedCallback();
 
@@ -234,6 +214,10 @@ export class PlotGoogleChartSk extends LitElement {
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
+        <div class="side" ?hidden=${isSingleTrace(this.dataframe) ?? true}>
+          <side-panel-sk ${ref(this.sidePanel)} @side-panel-toggle=${this.onSidePanelToggle}>
+          </side-panel-sk>
+        </div>
       </div>
       <slot name="untriage" ${ref(this.slots.untriage)}></slot>
       <slot name="regression" ${ref(this.slots.regression)}></slot>
@@ -301,6 +285,10 @@ export class PlotGoogleChartSk extends LitElement {
     window.addEventListener('mouseup', () => {
       this.onWindowMouseUp();
     });
+  }
+
+  private onSidePanelToggle() {
+    this.plotElement.value?.redraw();
   }
 
   private onChartMouseDown(e: MouseEvent) {

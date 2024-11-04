@@ -116,3 +116,16 @@ export function titleFormatter(title: object): string {
 export function legendFormatter(legend: object[]): string[] {
   return legend.map((entry) => Object.values(entry).join('/'));
 }
+
+/**
+ * isSingleTrace identifies if there is only one trace in the Dataframe
+ * @param df: Dataframe or undefined dataframe
+ * @returns: null if undefined dataframe. Otherwise true/false.
+ */
+export function isSingleTrace(df: DataFrame | undefined): boolean | null {
+  if (!df) {
+    return null;
+  }
+  const traceKeys = Object.keys(df.traceset);
+  return traceKeys.length === 1;
+}

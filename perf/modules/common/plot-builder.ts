@@ -3,6 +3,30 @@
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { Anomaly, ColumnHeader, TraceSet } from '../json';
 
+// Google chart's default color palette
+export const defaultColors = [
+  '#3366CC',
+  '#DC3912',
+  '#FF9900',
+  '#109618',
+  '#990099',
+  '#3B3EAC',
+  '#0099C6',
+  '#DD4477',
+  '#66AA00',
+  '#B82E2E',
+  '#316395',
+  '#994499',
+  '#22AA99',
+  '#AAAA11',
+  '#6633CC',
+  '#E67300',
+  '#8B0707',
+  '#329262',
+  '#5574A6',
+  '#3B3EAC',
+];
+
 export interface DataPoint {
   x: number | Date;
   y: number;
@@ -149,9 +173,9 @@ export function mainChartOptions(
       width: '90%',
       height: '85%',
     },
+    colors: defaultColors,
     legend: {
-      position: 'top',
-      textStyle: { color: style.color },
+      position: 'none',
     },
     backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     series: {},
