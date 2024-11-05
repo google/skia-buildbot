@@ -1809,26 +1809,42 @@ export class ExploreSimpleSk extends ElementSk {
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
     const testName = pointDetails.name;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
+    const anomaly = this.dfRepo.value?.getAnomaly(testName, commitPosition) || null;
 
+    // TODO(b/370804498): To be refactored into google plot / dataframe.
+    // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
+    // updated in place in triage popup. This may cause the data inconsistency to manipulate
+    // data in several places.
+    // Ideally, dataframe_context should nudge anomaly data.
     const anomalyDataMap = this.plotSimple.value?.anomalyDataMap;
-    let anomalyData: AnomalyData | null = null;
-
+    let anomalyDataInPlot: AnomalyData | null = null;
     if (anomalyDataMap) {
       const traceAnomalies = anomalyDataMap[testName];
       if (traceAnomalies) {
         for (let i = 0; i < traceAnomalies.length; i++) {
           if (pointDetails.x === traceAnomalies[i].x) {
-            anomalyData = traceAnomalies[i];
+            anomalyDataInPlot = traceAnomalies[i];
             break;
           }
         }
       }
     }
+    // -- to be refactored. see above--
 
     // Map an anomaly ID to a list of Nudge Entries.
     // TODO(b/375678060): Reflect anomaly coordinate changes unto summary bar.
     const nudgeList: NudgeEntry[] = [];
-    if (anomalyData) {
+    if (anomaly) {
+      // This is only to be backward compatible with anomaly data in simple-plot.
+      const anomalyData = this.plotSimple.value
+        ? anomalyDataInPlot
+        : {
+            anomaly: anomaly,
+            x: commitPosition,
+            y: pointDetails.y,
+            highlight: false,
+          };
+
       const headerLength = this.dfRepo.value!.dataframe.header!.length;
       for (let i = -NUDGE_RANGE; i <= NUDGE_RANGE; i++) {
         if (x + i <= 0 || x + i >= headerLength) {
@@ -1863,7 +1879,7 @@ export class ExploreSimpleSk extends ElementSk {
       testName,
       pointDetails.y,
       commitPosition,
-      anomalyData ? anomalyData.anomaly : null,
+      anomaly,
       nudgeList,
       commit,
       displayFileLinks,

@@ -288,6 +288,22 @@ export class DataFrameRepository extends LitElement {
   }
 
   /**
+   * Get the Anomaly.
+   *
+   * @param trace The trace name, typically this is the test name.
+   * @param commit The commit position
+   * @returns The Anomaly if it exits at given position, null otherwise.
+   */
+  getAnomaly(trace: string, commit: number) {
+    if (!this.anomaly) {
+      return null;
+    }
+
+    const traceAnomalies = this.anomaly[trace];
+    return (traceAnomalies && traceAnomalies![commit]) ?? null;
+  }
+
+  /**
    * Reset the dataframe and its corresponding FrameRequest.
    *
    * This can be used to refill the data if it is from a different source, and this
