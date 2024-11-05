@@ -10,7 +10,6 @@ sk_element(
     sk_element_deps = [
         ":h_resizable_box_sk_ts_lib",
         ":plot-summary-sk.css_ts_lib",
-        "//perf/modules/plot-simple-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

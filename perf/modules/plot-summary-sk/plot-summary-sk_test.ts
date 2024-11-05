@@ -35,12 +35,11 @@ describe('plot-summary-sk', () => {
       return el.updateComplete;
     });
 
-  ['canvas', 'material'].forEach((mode) =>
+  ['material'].forEach((mode) =>
     describe(`selection in mode ${mode}`, () => {
       it('select an area', async () => {
         const element = newEl((el) => {
           el.style.width = '100px';
-          el.selectionType = mode as any;
         });
         await element.updateComplete;
         await chartReady(() => {
@@ -60,7 +59,6 @@ describe('plot-summary-sk', () => {
       it('select an area before the chart is ready', async () => {
         const element = newEl((el) => {
           el.style.width = '100px';
-          el.selectionType = mode as any;
         });
         await element.updateComplete;
 
@@ -71,7 +69,6 @@ describe('plot-summary-sk', () => {
         element.Select(header![start]!, header![end]!);
 
         assert.isNull(element['chartLayout']);
-        assert.isNull(element['selectionRange']);
         assert.approximately(element.selectedValueRange!.begin!, 0, 1e-3);
 
         await chartReady(() => {
@@ -85,7 +82,6 @@ describe('plot-summary-sk', () => {
       it('select an area in date mode', async () => {
         const element = newEl((el) => {
           el.style.width = '100px';
-          el.selectionType = mode as any;
           // Enable date mode, the underlying data should stay the same.
           el.domain = 'date';
         });

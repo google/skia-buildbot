@@ -38,10 +38,10 @@ describe('plot-summary-sk', () => {
   // the span of 3 days, the tolerance here should be negligible.
   // The offset/commit tolerance should be more rigid as there is only a few numbers.
   [
-    { id: '#plot1', start: 1696180344, end: 1696255100, tolerance: 120 },
-    { id: '#plot2', start: 104.738, end: 110.452, tolerance: 1e-2 },
-    { id: '#plot3', start: 1696143312, end: 1696173357, tolerance: 120 },
-    { id: '#plot4', start: 124.687, end: 154.462, tolerance: 1e-2 },
+    { id: '#plot1', start: 1696177743, end: 1696255571, tolerance: 120 },
+    { id: '#plot2', start: 104.539, end: 110.492, tolerance: 1e-2 },
+    { id: '#plot3', start: 1696142266, end: 1696173566, tolerance: 120 },
+    { id: '#plot4', start: 123.651, end: 154.669, tolerance: 1e-2 },
   ].forEach((plot, idx) =>
     describe(`the element ${plot.id}`, () => {
       // We move the selection box that always ends up with those two
