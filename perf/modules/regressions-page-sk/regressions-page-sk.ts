@@ -14,9 +14,13 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
+import '@material/web/button/outlined-button.js';
+
 // State is the local UI state of regressions-page-sk
 interface State {
   selectedSubscription: string;
+  showTriaged: boolean;
+  showImprovements: boolean;
 }
 
 const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list';
@@ -46,6 +50,8 @@ export class RegressionsPageSk extends ElementSk {
     super(RegressionsPageSk.template);
     this.state = {
       selectedSubscription: '',
+      showTriaged: false,
+      showImprovements: false,
     };
 
     // TODO(jiaxindong) uncomment when this is fetching from backend, not dummy data
@@ -76,6 +82,12 @@ export class RegressionsPageSk extends ElementSk {
     const s = encodeURIComponent(this.state.selectedSubscription);
     if (s !== '') {
       queryMap.set('sheriff', s);
+    }
+    if (this.state.showTriaged === true) {
+      queryMap.set('triaged', this.state.showTriaged);
+    }
+    if (this.state.showImprovements === true) {
+      queryMap.set('improvements', this.state.showImprovements);
     }
     const queryPairs = [];
     let queryStr = '';
@@ -123,10 +135,42 @@ export class RegressionsPageSk extends ElementSk {
       <option disabled selected value>-- select an option --</option>
       ${RegressionsPageSk.allSubscriptions(ele)}]
     </select>
+    <md-outlined-button id="btnTriaged" @click=${() => ele.triagedChange()}>
+      Show Triaged
+    </md-outlined-button>
+    <md-outlined-button id="btnImprovements" @click=${() => ele.improvementChange()}>
+      Show Improvements
+    </md-outlined-button>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
       : null}
   `;
+
+  async improvementChange(): Promise<void> {
+    const btn = document.getElementById('btnImprovements') as HTMLButtonElement;
+    this.state.showImprovements = !this.state.showImprovements;
+    if (this.state.showImprovements) {
+      btn.textContent = 'Hide Improvements';
+    } else {
+      btn.textContent = 'Show Improvements';
+    }
+    this.stateHasChanged();
+    await this.fetchRegressions();
+    this._render();
+  }
+
+  async triagedChange(): Promise<void> {
+    const btn = document.getElementById('btnTriaged') as HTMLButtonElement;
+    this.state.showTriaged = !this.state.showTriaged;
+    if (this.state.showTriaged) {
+      btn.textContent = 'Hide Triaged';
+    } else {
+      btn.textContent = 'Show Triaged';
+    }
+    this.stateHasChanged();
+    await this.fetchRegressions();
+    this._render();
+  }
 
   async filterChange(sub: string): Promise<void> {
     this.state.selectedSubscription = sub;

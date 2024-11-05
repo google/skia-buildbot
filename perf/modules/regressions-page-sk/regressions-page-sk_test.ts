@@ -47,20 +47,44 @@ describe('regressions-page-sk', () => {
   fetchMock.get('/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202', {
     body: anomalyListResponse,
   });
+  fetchMock.get('/_/anomalies/anomaly_list', {
+    body: anomalyListResponse,
+  });
+  fetchMock.get('/_/anomalies/anomaly_list?triaged=true', {
+    body: anomalyListResponse,
+  });
+  fetchMock.get('/_/anomalies/anomaly_list?improvements=true', {
+    body: anomalyListResponse,
+  });
 
   describe('RegressionsPageSK', () => {
     const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
 
     const element = newInstance((_el: RegressionsPageSk) => {});
 
+    const dropdown = document.getElementById('filter') as HTMLSelectElement;
+
     it('Loads associated regressions when subscription selected', async () => {
-      const dropdown = document.getElementById('filter') as HTMLSelectElement;
       // 3 loaded configs and the default options
       assert.equal(dropdown?.options.length, 4);
-      assert.equal(element.cpAnomalies.length, 0);
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
+
+      await element.triagedChange();
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list?triaged=true');
+      await element.triagedChange();
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
+
+      await element.improvementChange();
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list?improvements=true');
+      await element.improvementChange();
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
 
       await element.filterChange('Sheriff Config 2');
       assert.equal(element.cpAnomalies.length, 1);
+      assert.equal(
+        fetchMock.lastCall()![0],
+        '/_/anomalies/anomaly_list?sheriff=Sheriff%20Config%202'
+      );
     });
   });
 });
