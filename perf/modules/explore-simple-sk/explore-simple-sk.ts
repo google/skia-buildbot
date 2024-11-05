@@ -140,6 +140,7 @@ import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import {
   PlotGoogleChartSk,
   PlotSelectionEventDetails,
+  PlotShowTooltipEventDetails,
 } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { DataFrameRepository } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
@@ -781,9 +782,9 @@ export class ExploreSimpleSk extends ElementSk {
       () =>
         html` <plot-google-chart-sk
           ${ref(ele.googleChartPlot)}
-          @mousedown=${ele.onChartMouseDown}
           @google-chart-select=${ele.onChartSelect}
-          @google-chart-onmouseover=${ele.onChartOver}
+          @plot-data-mouseover=${ele.onChartOver}
+          @plot-chart-mousedown=${ele.onChartMouseDown}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">question_exchange</md-icon>
@@ -1077,6 +1078,9 @@ export class ExploreSimpleSk extends ElementSk {
   private onChartSelect(e: CustomEvent) {
     const chart = this.googleChartPlot!.value!;
     const selection = e.detail.chart.getSelection()[0];
+    // TODO(b/370804498): Clicking on the same data point to show tooltip
+    // and then clicking on it again to close it will create errors because
+    // selection.row will be empty. Handle this use case.
     const index = {
       row: selection.row,
       col: selection.column,
@@ -1103,28 +1107,24 @@ export class ExploreSimpleSk extends ElementSk {
     this.tooltipSelected = true;
   }
 
-  // if the tooltip is opened, close it when clicking on the chart
+  // if the tooltip is opened and the user is not shift-clicking,
+  // close it when clicking on the chart
   // i.e. clicking away from the tooltip closes it
-  private onChartMouseDown(_e: CustomEvent) {
-    if (!this.tooltipSelected) {
-      return;
-    }
+  private onChartMouseDown(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     this.tooltipSelected = false;
-    tooltipElem!.moveTo(null);
+    tooltipElem?.moveTo(null);
   }
 
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
-  private onChartOver(e: CustomEvent) {
+  private onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): void {
+    // do not show tooltip if tooltip is selected
     if (this.tooltipSelected) {
       return;
     }
     const chart = this.googleChartPlot!.value!;
-    const index = {
-      row: e.detail.data.row,
-      col: e.detail.data.column,
-    };
+    const index = detail;
     const commitPos = chart.getCommitPosition(index.row);
     const position = chart.getPositionByIndex(index);
     const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);

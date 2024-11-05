@@ -43,6 +43,11 @@ export interface PlotSelectionEventDetails {
   domain: 'commit' | 'date';
 }
 
+export interface PlotShowTooltipEventDetails {
+  row: number;
+  col: number;
+}
+
 export class PlotGoogleChartSk extends LitElement {
   // TODO(b/362831653): Adjust height to 100% once plot-summary-sk is deprecated
   static styles = css`
@@ -292,11 +297,20 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseDown(e: MouseEvent) {
-    // If the chart emits onmouseover/out events, meaning the mouse is hovering over a data point,
-    // we will not try to initiate other chart navigation modes.
-    if (this.chartInteracting) {
-      return;
-    }
+    // This interaction is tricky. When the tooltip is selected
+    // when should the tooltip disappear?
+    // One potential user journey is that a user might click on an anomaly
+    // and then try to shift click around it to estimate the size of the anomaly.
+    // While having the tooltip is helpful, other indicators should help users
+    // locate the anomaly they were targeting.
+    // We dispatch this event as if the tooltip were a popover.
+    this.dispatchEvent(
+      new CustomEvent('plot-chart-mousedown', {
+        bubbles: true,
+        composed: true,
+        detail: {},
+      })
+    );
 
     // if user holds down shift-click, enable delta range calculation
     if (e.shiftKey) {
@@ -318,8 +332,21 @@ export class PlotGoogleChartSk extends LitElement {
     this.lastMouse = { x: e.x, y: e.y };
   }
 
-  private onChartMouseOver() {
+  private onChartMouseOver(e: CustomEvent) {
+    if (this.navigationMode === 'deltaY') {
+      return;
+    }
     this.chartInteracting = true;
+    this.dispatchEvent(
+      new CustomEvent<PlotShowTooltipEventDetails>('plot-data-mouseover', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          row: e.detail.data.row,
+          col: e.detail.data.column,
+        },
+      })
+    );
   }
 
   private onChartMouseUp() {
@@ -330,8 +357,7 @@ export class PlotGoogleChartSk extends LitElement {
 
   private onChartMouseOut() {
     this.chartInteracting = false;
-    this.navigationMode = null;
-    this.deltaRangeBox.value?.hide();
+    this.navigationMode = this.navigationMode === 'deltaY' ? 'deltaY' : null;
   }
 
   private onWindowMouseMove(e: MouseEvent) {
@@ -569,5 +595,7 @@ declare global {
   interface GlobalEventHandlersEventMap {
     'selection-changing': CustomEvent<PlotSelectionEventDetails>;
     'selection-changed': CustomEvent<PlotSelectionEventDetails>;
+    'plot-data-mouseover': CustomEvent<PlotShowTooltipEventDetails>;
+    'plot-chart-mousedown': CustomEvent;
   }
 }

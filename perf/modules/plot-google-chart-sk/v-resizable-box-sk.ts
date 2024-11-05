@@ -121,7 +121,11 @@ export class VResizableBoxSk extends LitElement {
   updateSelection(update: { coord: number; value: number }) {
     this.updateDelta(update.value);
     this.updateBox(update.coord);
-    this.lowerFont = update.coord + fontPosition.upper < this.topBoundary!;
+
+    // lower the font if the selection's upper boundary is too close to the top
+    // boundary of the graph
+    const selectionTopCoord = Math.min(this.start.coord, update.coord);
+    this.lowerFont = selectionTopCoord + fontPosition.upper < this.topBoundary!;
   }
 
   // update the height of the box relative to the cursor start point
