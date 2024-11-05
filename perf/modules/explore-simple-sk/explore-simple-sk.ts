@@ -2807,7 +2807,8 @@ export class ExploreSimpleSk extends ElementSk {
     window.open(
       `/m/?begin=${this._state.begin}&end=${this._state.end}` +
         `&pageSize=${pageSize}&shortcut=${newShortcut}` +
-        `&totalGraphs=${graphConfigs.length}`,
+        `&totalGraphs=${graphConfigs.length}` +
+        (this.state.show_google_plot ? `&show_google_plot=true` : ``),
       '_self'
     );
   }
