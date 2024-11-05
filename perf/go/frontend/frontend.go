@@ -523,7 +523,7 @@ func (f *Frontend) initialize() {
 	if f.flags.NoEmail {
 		config.Config.NotifyConfig.Notifications = notifytypes.None
 	}
-	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, config.Config.URL, f.flags.CommitRangeURL)
+	f.notifier, err = notify.New(ctx, &config.Config.NotifyConfig, config.Config.URL, f.flags.CommitRangeURL, f.traceStore, f.ingestedFS)
 	if err != nil {
 		sklog.Fatal(err)
 	}

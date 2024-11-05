@@ -24,3 +24,14 @@ const (
 
 // AllNotifierTypes is the list of all valid NotifyTypes.
 var AllNotifierTypes []Type = []Type{HTMLEmail, MarkdownIssueTracker, None}
+
+// NotificationDataProviderType denotes the type of notification data provider to use.
+type NotificationDataProviderType string
+
+const (
+	// DefaultNotificationProvider notification dataprovider.
+	DefaultNotificationProvider NotificationDataProviderType = ""
+
+	// Android notification dataprovider.
+	AndroidNotificationProvider NotificationDataProviderType = "android"
+)

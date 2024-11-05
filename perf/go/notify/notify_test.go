@@ -101,7 +101,7 @@ func TestExampleSendWithHTMLFormatter_HappyPath(t *testing.T) {
 		Body:    missingHTMLMessage,
 		Subject: missingHTMLSubject,
 	}, nil)
-	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestExampleSendWithMarkdownFormatter_HappyPath(t *testing.T) {
 		Body:    missingMarkdownMessage,
 		Subject: missingMarkdownSubject,
 	}, nil)
-	n := newNotifier(ndp, f, tr, instanceURL)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -146,7 +146,7 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplate_HappyPath(t 
 		Body:    missingMarkdownMessage,
 		Subject: missingMarkdownSubject,
 	}, nil)
-	n := newNotifier(ndp, f, tr, instanceURL)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -190,7 +190,7 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplateAndCustomized
 		Body:    missingMessage,
 		Subject: missingSubject,
 	}, nil)
-	n := newNotifier(ndp, f, tr, instanceURL)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -210,7 +210,7 @@ func TestExampleSendWithHTMLFormatter_SendRegressionMissingReturnsError_ReturnsE
 		Body:    missingHTMLMessage,
 		Subject: missingHTMLSubject,
 	}, nil)
-	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.ErrorIs(t, err, errMock)
@@ -226,7 +226,7 @@ func TestExampleSendWithHTMLFormatter_SendNewRegressionReturnsError_ReturnsError
 		Body:    newHTMLMessage,
 		Subject: newHTMLSubject,
 	}, nil)
-	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.ErrorIs(t, err, errMock)
@@ -261,7 +261,7 @@ func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 		Body:    missingHTMLMessage,
 		Subject: missingHTMLSubject,
 	}, nil)
-	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)

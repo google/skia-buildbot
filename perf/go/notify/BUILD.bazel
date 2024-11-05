@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "notify",
     srcs = [
+        "android_notification_provider.go",
         "chromeperfnotifier.go",
         "commitrange.go",
         "email.go",
@@ -26,6 +27,7 @@ go_library(
         "//go/secret",
         "//go/skerr",
         "//go/sklog",
+        "//go/util",
         "//go/vec32",
         "//perf/go/alerts",
         "//perf/go/anomalygroup/notifier",
@@ -34,9 +36,12 @@ go_library(
         "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/git/provider",
+        "//perf/go/ingest/format",
         "//perf/go/notify/common",
         "//perf/go/notifytypes",
         "//perf/go/stepfit",
+        "//perf/go/tracestore",
+        "//perf/go/types",
         "//perf/go/ui/frame",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",
@@ -46,6 +51,7 @@ go_library(
 go_test(
     name = "notify_test",
     srcs = [
+        "android_notification_provider_test.go",
         "chromeperfnotifier_test.go",
         "commitrange_test.go",
         "email_test.go",

@@ -160,6 +160,11 @@ func (h MarkdownFormatter) FormatNewRegression(ctx context.Context, commit, prev
 		ParamSet:        frame.DataFrame.ParamSet,
 	}
 
+	return h.FormatNewRegressionWithContext(templateContext)
+}
+
+// FormatNewRegressionWithContext formats the bug data for a new regression using the given templateContext instance.
+func (h MarkdownFormatter) FormatNewRegressionWithContext(templateContext interface{}) (string, string, error) {
 	var body bytes.Buffer
 	if err := h.markdownTemplateNewRegression.Execute(&body, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format Markdown body for a new regression")
@@ -185,6 +190,11 @@ func (h MarkdownFormatter) FormatRegressionMissing(ctx context.Context, commit, 
 		ParamSet:        frame.DataFrame.ParamSet,
 	}
 
+	return h.FormatRegressionMissingWithContext(templateContext)
+}
+
+// FormatRegressionMissingWithContext formats the bug data for a missing regression using the given template context instance.
+func (h MarkdownFormatter) FormatRegressionMissingWithContext(templateContext interface{}) (string, string, error) {
 	var body bytes.Buffer
 	if err := h.markdownTemplateRegressionMissing.Execute(&body, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format Markdown body for a regression that has gone missing")

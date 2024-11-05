@@ -88,7 +88,7 @@ type NotifyConfig struct {
 
 	// NotificationDataProvider defines the data provider to generate the subject
 	// and body for the notification whenever a regression is detected.
-	NotificationDataProvider string `json:"data_provider,omitempty"`
+	NotificationDataProvider notifytypes.NotificationDataProviderType `json:"data_provider,omitempty"`
 }
 
 // NotifyConfig controls how notifications are sent, and their format.

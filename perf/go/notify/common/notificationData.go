@@ -17,10 +17,15 @@ type NotificationData struct {
 
 // RegressionMetadata provides a struct to hold metadata related to the regression for notification generation.
 type RegressionMetadata struct {
-	CurrentCommit  provider.Commit
-	PreviousCommit provider.Commit
-	AlertConfig    *alerts.Alert
-	Cl             *clustering2.ClusterSummary
-	Frame          *frame.FrameResponse
-	InstanceUrl    string
+	RegressionCommit provider.Commit
+	PreviousCommit   provider.Commit
+	AlertConfig      *alerts.Alert
+	Cl               *clustering2.ClusterSummary
+	Frame            *frame.FrameResponse
+	InstanceUrl      string
+
+	// The fields below are only available when detection mode is Individual
+	RegressionCommitLinks map[string]string
+	PreviousCommitLinks   map[string]string
+	TraceID               string
 }

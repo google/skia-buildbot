@@ -23,7 +23,7 @@ func (prov *defaultNotificationDataProvider) GetNotificationDataRegressionFound(
 	if prov.formatter != nil {
 		body, subject, err := prov.formatter.FormatNewRegression(
 			ctx,
-			metadata.CurrentCommit,
+			metadata.RegressionCommit,
 			metadata.PreviousCommit,
 			metadata.AlertConfig,
 			metadata.Cl,
