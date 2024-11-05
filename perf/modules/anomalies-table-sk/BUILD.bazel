@@ -10,11 +10,15 @@ sk_element(
     sass_srcs = ["anomalies-table-sk.scss"],
     sk_element_deps = [
         "//elements-sk/modules/checkbox-sk",
+        "//perf/modules/anomaly-sk",
     ],
     ts_deps = [
+        "//:node_modules/@types/google.visualization",  # keep
+        "//:node_modules/lit",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
-        "//:node_modules/lit",
+        "//perf/modules/window:window_ts_lib",
+        "//perf/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
@@ -30,7 +34,7 @@ sk_page(
         ":anomalies-table-sk",
         "//elements-sk/modules/error-toast-sk",
     ],
-    ts_deps = ["//:node_modules/fetch-mock"],
+    ts_deps = ["//infra-sk/modules:dom_ts_lib"],
     ts_entry_point = "anomalies-table-sk-demo.ts",
 )
 

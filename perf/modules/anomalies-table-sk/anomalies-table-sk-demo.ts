@@ -1,51 +1,136 @@
 import './index';
+import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/error-toast-sk';
-import fetchMock from 'fetch-mock';
-import { AnomaliesTableRow, AnomaliesTableColumn } from '../anomalies-table-sk';
+import { AnomaliesTableSk } from './anomalies-table-sk';
 
-// window.perf = window.perf || {};
-// window.perf.key_order = [];
-// window.perf.display_group_by = true;
-// window.perf.notifications = 'markdown_issuetracker';
+window.perf = {
+  commit_range_url: 'http://example.com/range/{begin}/{end}',
+  key_order: ['config'],
+  demo: true,
+  radius: 7,
+  num_shift: 10,
+  interesting: 25,
+  step_up_only: false,
+  display_group_by: true,
+  hide_list_of_commits_on_explore: false,
+  notifications: 'none',
+  fetch_chrome_perf_anomalies: false,
+  feedback_url: '',
+  chat_url: '',
+  help_url_override: '',
+  trace_format: '',
+  need_alert_action: false,
+  bug_host_url: 'b',
+  git_repo_url: '',
+  keys_for_commit_range: [],
+  image_tag: 'fake-tag',
+};
 
-fetchMock.get('/_/login/status', {
-  email: 'someone@example.org',
-  roles: ['editor'],
+const anomaly_table = [
+  {
+    id: 1,
+    test_path: 'ChromePerf/linux-perf/Speed/Total/Jet',
+    bug_id: 12345,
+    start_revision: 1234,
+    end_revision: 1239,
+    is_improvement: false,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 75.209091,
+    median_after_anomaly: 100.5023,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+    subscription_name: '',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+  },
+  {
+    id: 2,
+    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
+    bug_id: -1,
+    start_revision: 1234,
+    end_revision: 1234,
+    is_improvement: false,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 1.345,
+    median_after_anomaly: 2.403,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+    subscription_name: '',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+  },
+  {
+    id: 3,
+    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
+    bug_id: 12345,
+    start_revision: 34567,
+    end_revision: 34569,
+    is_improvement: true,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 72.209091,
+    median_after_anomaly: 73.5023,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+    subscription_name: '',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+  },
+  {
+    id: 4,
+    test_path: 'ChromePerf/mac-m1/Motion/Score/Motion',
+    bug_id: -1,
+    start_revision: 1234,
+    end_revision: 1239,
+    is_improvement: false,
+    recovered: true,
+    state: '',
+    statistic: '',
+    units: '',
+    degrees_of_freedom: 0,
+    median_before_anomaly: 75.209091,
+    median_after_anomaly: 100.5023,
+    p_value: 0,
+    segment_size_after: 0,
+    segment_size_before: 0,
+    std_dev_before_anomaly: 0,
+    t_statistic: 0,
+    subscription_name: '',
+    bug_component: '',
+    bug_labels: [],
+    bug_cc_emails: [],
+  },
+];
+
+window.customElements.whenDefined('anomalies-table-sk').then(async () => {
+  // await load({ packages: ['table'] });
 });
 
-function delay(time: number) {
-  return new Promise((resolve) => setTimeout(resolve, time));
-}
-
-// Python backend (reference): /chromium/src/third_party/catapult/dashboard/dashboard/alerts.py
-// Backend proxy (use): https://skia-review.googlesource.com/c/buildbot/+/912874
-fetchMock.post('/_/alerts/get_anomaly_list', async () => {
-  await delay(2000);
-
-  console.log('mock backend get_anomaly_list');
-
-  const column: AnomaliesTableColumn = {
-    check_header: false,
-    graph_header: null,
-    bug_id: '12345',
-    end_revision: 'endrevise',
-    master: 'master',
-    bot: 'bot',
-    test_suite: 'test_suite',
-    test: 'test',
-    change_direction: 'changedirection',
-    percent_changed: 'percentChanged',
-    absolute_delta: 'absoluteDelta',
-  };
-
-  const row: AnomaliesTableRow = {
-    columns: [column],
-  };
-
-  return {
-    header: [],
-    table: [row],
-  };
+$$('#populate-tables')?.addEventListener('click', () => {
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
+    ele.populateTable(anomaly_table);
+  });
 });
-
-document.querySelector('#anomalies')!.innerHTML = '<anomalies-table-sk></anomalies-table-sk>';
