@@ -33,6 +33,11 @@ export class VResizableBoxSk extends LitElement {
       position: absolute;
       left: 30px;
       font-size: 16px;
+      text-shadow:
+        -1px -1px 0 var(--md-sys-color-background, 'white'),
+        1px -1px 0 var(--md-sys-color-background, 'white'),
+        -1px 1px 0 var(--md-sys-color-background, 'white'),
+        1px 1px 0 var(--md-sys-color-background, 'white');
     }
     /* show the delta calculation slightly above the box */
     p.upper {
