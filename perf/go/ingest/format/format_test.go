@@ -102,7 +102,7 @@ func TestLinks_ExampleWithDataMeasurementLinks_Success(t *testing.T) {
 		"results": [
 			{
 				"key": {
-					"test": "some_test_name"
+					"test": "some=test$name"
 				},
 				"measurements": {
 					"ms": [

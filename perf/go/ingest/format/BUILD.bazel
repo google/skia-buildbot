@@ -13,6 +13,7 @@ go_library(
     deps = [
         "//go/jsonschema",
         "//go/paramtools",
+        "//go/query",
         "//go/skerr",
         "//perf/go/types",
     ],

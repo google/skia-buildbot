@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/jsonschema"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/types"
 
@@ -213,6 +214,7 @@ func (f Format) GetLinksForMeasurement(traceID string) map[string]string {
 			for _, measurement := range measurements {
 				singleParam := p.Copy()
 				singleParam[key] = measurement.Value
+				singleParam = query.ForceValid(singleParam)
 				measurementParamSet := paramtools.NewParamSet(singleParam)
 				// At this point we have gathered all the params for the given measurement.
 				// Now we can simply check if these params match the ones in the traceID to
