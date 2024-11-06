@@ -1382,6 +1382,12 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
+    // Allow user to type and not pan graph if an input box is active.
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLInputElement) {
+      return;
+    }
+
     switch (e.key) {
       case '?':
         this.helpDialog!.showModal();
