@@ -44,7 +44,7 @@ export class RegressionsPageSk extends ElementSk {
   private stateHasChanged = () => {};
 
   // Anomalies table
-  anomaliesTableSk: AnomaliesTableSk | null = null;
+  anomaliesTable: AnomaliesTableSk | null = null;
 
   constructor() {
     super(RegressionsPageSk.template);
@@ -54,8 +54,7 @@ export class RegressionsPageSk extends ElementSk {
       showImprovements: false,
     };
 
-    // TODO(jiaxindong) uncomment when this is fetching from backend, not dummy data
-    // this.anomaliesTableSk = new AnomaliesTableSk();
+    this.anomaliesTable = new AnomaliesTableSk();
 
     this.init();
   }
@@ -75,6 +74,7 @@ export class RegressionsPageSk extends ElementSk {
         }
       }
     );
+    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
   }
 
   private async fetchRegressions(): Promise<void> {
@@ -108,6 +108,8 @@ export class RegressionsPageSk extends ElementSk {
     const json: GetAnomaliesResponse = await jsonOrThrow(response);
     const regs: Anomaly[] = json.anomaly_list || [];
     this.cpAnomalies = [...regs];
+
+    this.anomaliesTable!.populateTable(this.cpAnomalies);
   }
 
   private async init() {
@@ -141,6 +143,7 @@ export class RegressionsPageSk extends ElementSk {
     <md-outlined-button id="btnImprovements" @click=${() => ele.improvementChange()}>
       Show Improvements
     </md-outlined-button>
+    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
       : null}
