@@ -18,6 +18,8 @@ import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { Anomaly } from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+import '../new-bug-dialog-sk/new-bug-dialog-sk';
+import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 
 export class NudgeEntry {
   // Whether the nudge entry should be marked as selected in UI.
@@ -51,6 +53,8 @@ export class TriageMenuSk extends ElementSk {
   private _anomalies: Anomaly[] = [];
 
   private _nudgeList: NudgeEntry[] | null = null;
+
+  private _allowNudge: boolean = true;
 
   // New Bug Dialog.
   newBugDialog: NewBugDialogSk | null = null;
@@ -92,7 +96,22 @@ export class TriageMenuSk extends ElementSk {
     this.makeEditAnomalyRequest(this._anomalies, this._trace_names, 'IGNORE');
   }
 
+  disableNudge() {
+    this._allowNudge = false;
+  }
+
+  toggleButtons(enable: boolean) {
+    const buttons = ['#new-bug', '#existing-bug', '#ignore'];
+    buttons.forEach((btn) => {
+      const b = this.querySelector(btn) as HTMLButtonElement;
+      b.disabled = !enable;
+    });
+  }
+
   generateNudgeButtons(): TemplateResult {
+    if (this._allowNudge === false) {
+      return html``;
+    }
     if (this._nudgeList === null) {
       return html``;
     }

@@ -12,6 +12,10 @@ import '../../../elements-sk/modules/checkbox-sk';
 import { Anomaly } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
+import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
+import '../triage-menu-sk/triage-menu-sk';
+import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
+import '@material/web/button/outlined-button.js';
 
 class AnomalyGroup {
   anomalies: Anomaly[] = [];
@@ -27,6 +31,10 @@ export class AnomaliesTableSk extends ElementSk {
 
   private anomalyGroups: AnomalyGroup[] = [];
 
+  private checkedAnomaliesSet: Set<Anomaly> = new Set<Anomaly>();
+
+  private triageMenu: TriageMenuSk | null = null;
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
@@ -34,9 +42,21 @@ export class AnomaliesTableSk extends ElementSk {
   async connectedCallback() {
     super.connectedCallback();
     this._render();
+
+    this.triageMenu = this.querySelector('#triage-menu');
+    this.triageMenu!.disableNudge();
+    this.checkedAnomaliesChanged();
   }
 
-  private static template = (ele: AnomaliesTableSk) => html` ${ele.generateTable()} `;
+  private checkedAnomaliesChanged() {
+    this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
+    this.triageMenu!.setAnomalies(Array.from(this.checkedAnomaliesSet), [], []);
+  }
+
+  private static template = (ele: AnomaliesTableSk) => html`
+    <triage-menu-sk id="triage-menu"> </triage-menu-sk>
+    ${ele.generateTable()}
+  `;
 
   private rangeIntersects(aMin: number, aMax: number, bMin: number, bMax: number) {
     return aMin <= bMax && bMin <= aMax;
@@ -116,6 +136,15 @@ export class AnomaliesTableSk extends ElementSk {
     return groups;
   }
 
+  private anomalyChecked(chkbox: CheckOrRadio, a: Anomaly) {
+    if (chkbox.checked === true) {
+      this.checkedAnomaliesSet.add(a);
+    } else {
+      this.checkedAnomaliesSet.delete(a);
+    }
+    this.checkedAnomaliesChanged();
+  }
+
   private generateRows(anomalyGroup: AnomalyGroup) {
     const rows = [];
     const length = anomalyGroup.anomalies.length;
@@ -132,7 +161,9 @@ export class AnomaliesTableSk extends ElementSk {
             </button>
           </td>
           <td>
-            <checkbox-sk></checkbox-sk>
+            <checkbox-sk
+              @change=${(e: InputEvent) =>
+                this.anomalyChecked(e.target as CheckOrRadio, anomaly)}></checkbox-sk>
           </td>
           <td></td>
           <td>${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}</td>

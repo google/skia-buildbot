@@ -11,14 +11,17 @@ sk_element(
     sk_element_deps = [
         "//elements-sk/modules/checkbox-sk",
         "//perf/modules/anomaly-sk",
+        "//perf/modules/triage-menu-sk",
     ],
     ts_deps = [
         "//:node_modules/@types/google.visualization",  # keep
         "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//perf/modules/window:window_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//:node_modules/@material/web",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",
