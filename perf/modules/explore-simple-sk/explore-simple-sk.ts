@@ -55,6 +55,7 @@ import '../plot-google-chart-sk';
 import '../plot-simple-sk';
 import '../plot-summary-sk';
 import '../point-links-sk';
+import '../split-chart-menu-sk';
 import '../query-count-sk';
 import '../graph-title-sk';
 import '../new-bug-dialog-sk';
@@ -145,6 +146,7 @@ import {
 import { DataFrameRepository } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { generateSubDataframe } from '../dataframe/index';
+import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -184,6 +186,9 @@ const NUDGE_RANGE = 2;
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
 
 const monthInSec = 30 * 24 * 60 * 60;
+
+// max number of charts to show on a page
+const chartsPerPage = 11;
 
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
@@ -606,6 +611,9 @@ export class ExploreSimpleSk extends ElementSk {
         Query
       </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
+        <split-chart-menu-sk
+          @split-chart-selection=${ele.splitByAttribute}>
+        </split-chart-menu-sk>
         <md-outlined-button
           ?disabled=${!(
             ele.plotSimple.value &&
@@ -2471,7 +2479,6 @@ export class ExploreSimpleSk extends ElementSk {
         plot.xbar = -1;
       }
     }
-
     if (this.state.use_titles) {
       this.updateTitle();
     }
@@ -2802,7 +2809,7 @@ export class ExploreSimpleSk extends ElementSk {
     });
   }
 
-  public createGraphConfigs(traceSet: TraceSet): GraphConfig[] {
+  public createGraphConfigs(traceSet: TraceSet, attribute?: string): GraphConfig[] {
     const graphConfigs = [] as GraphConfig[];
     Object.keys(traceSet).forEach((key) => {
       const conf: GraphConfig = {
@@ -2811,7 +2818,7 @@ export class ExploreSimpleSk extends ElementSk {
         queries: [],
       };
       if (key[0] === ',') {
-        conf.queries = [new URLSearchParams(fromKey(key)).toString()];
+        conf.queries = [new URLSearchParams(fromKey(key, attribute)).toString()];
       } else {
         if (key.startsWith('special')) {
           return;
@@ -2824,8 +2831,33 @@ export class ExploreSimpleSk extends ElementSk {
     return graphConfigs;
   }
 
+  // TODO(b/377772220): When splitting a chart with multiple traces,
+  // this function will perform the split operation on every trace.
+  // If a trace is selected, the chart should only split on that trace.
+  // If no trace is selected, then default to splitting on every trace.
+  public async splitByAttribute({
+    detail,
+  }: CustomEvent<SplitChartSelectionEventDetails>): Promise<void> {
+    const graphConfigs: GraphConfig[] = this.createGraphConfigs(
+      this._dataframe.traceset,
+      detail.attribute
+    );
+    const newShortcut = await updateShortcut(graphConfigs);
+
+    if (newShortcut === '') {
+      return;
+    }
+
+    window.open(
+      `/m/?begin=${this._state.begin}&end=${this._state.end}` +
+        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
+        `&totalGraphs=${graphConfigs.length}` +
+        (this.state.show_google_plot ? `&show_google_plot=true` : ``),
+      '_self'
+    );
+  }
+
   public async viewMultiGraph(): Promise<void> {
-    const pageSize = 11;
     const graphConfigs: GraphConfig[] = this.createGraphConfigs(this._dataframe.traceset);
     const newShortcut = await updateShortcut(graphConfigs);
 
@@ -2835,7 +2867,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     window.open(
       `/m/?begin=${this._state.begin}&end=${this._state.end}` +
-        `&pageSize=${pageSize}&shortcut=${newShortcut}` +
+        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
         `&totalGraphs=${graphConfigs.length}` +
         (this.state.show_google_plot ? `&show_google_plot=true` : ``),
       '_self'

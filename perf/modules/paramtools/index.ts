@@ -15,13 +15,16 @@ export function makeKey(params: Params | { [key: string]: string }): string {
 }
 
 /** Parse a structured key into a Params. */
-export function fromKey(structuredKey: string): Params {
+export function fromKey(structuredKey: string, attribute?: string): Params {
   const ret = Params({});
   structuredKey.split(',').forEach((keyValue) => {
     if (!keyValue) {
       return;
     }
     const [key, value] = keyValue.split('=');
+    if (key === attribute) {
+      return;
+    }
     ret[key] = value;
   });
   return ret;

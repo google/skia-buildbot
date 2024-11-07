@@ -1,6 +1,24 @@
 import { DataFrame } from '../json';
 
 /**
+ * getAttributes extracts the attributes from the traceKeys
+ * The attributes are the keys to the trace.
+ * i.e. benchmark, test, story, subtest.
+ *
+ * The dataframe can have inconsistent attributes from one
+ * trace to the other. This function gets all unique attributes
+ * across every trace.
+ */
+// TODO(b/362831653): Create or modify this function to match
+// the functionality of fromKey(): Params.
+export const getAttributes = (df: DataFrame): string[] => {
+  const traceKeys = Object.keys(df.traceset);
+  const pairs = convertKeysToPairs(traceKeys);
+  const attributes = pairs.map((p) => p.split('=')[0]);
+  return Array.from(new Set(attributes));
+};
+
+/**
  * getTitle converts the traceKeys into the title.
  * The title is all common traceKey key-value pairs
  * @param df The dataframe

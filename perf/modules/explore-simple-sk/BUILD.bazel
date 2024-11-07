@@ -40,6 +40,7 @@ sk_element(
         "//perf/modules/new-bug-dialog-sk",
         "//perf/modules/plot-google-chart-sk",
         "//perf/modules/existing-bug-dialog-sk",
+        "//perf/modules/split-chart-menu-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",
