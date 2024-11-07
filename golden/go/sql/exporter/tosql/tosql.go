@@ -16,13 +16,19 @@ import (
 func main() {
 	outputFile := flag.String("output_file", "", "The name of the file to write to.")
 	outputPkg := flag.String("output_pkg", "", "The name of the package to output to.")
+	schemaTarget := flag.String("schemaTarget", "cockroachdb", "Target for the generated schema. Eg: CockroachDB, Spanner")
 	flag.Parse()
+
+	schemaTargetDB := exporter.CockroachDB
+	if *schemaTarget == "spanner" {
+		schemaTargetDB = exporter.Spanner
+	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		sklog.Fatalf("Could not get working dir")
 	}
 
-	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly)
+	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly, schemaTargetDB)
 	out := filepath.Join(cwd, *outputFile)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {

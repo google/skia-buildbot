@@ -5,8 +5,10 @@
 package main
 
 //go:generate bazelisk run --config=mayberemote //:go -- run ../tosql
+//go:generate bazelisk run --config=mayberemote //:go -- run ../tosql --schemaTarget spanner
 
 import (
+	"flag"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,6 +20,14 @@ import (
 )
 
 func main() {
+	// Command line flags.
+	var (
+		schemaTarget = flag.String("schemaTarget", "cockroachdb", "Target for the generated schema. Eg: CockroachDB, Spanner")
+	)
+
+	// Parse the cmdline flags.
+	flag.Parse()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		sklog.Fatalf("Could not get working dir: %s, %s", err, cwd)
@@ -28,8 +38,18 @@ func main() {
 		panic("No caller information")
 	}
 
-	generatedText := exporter.GenerateSQL(coverageschema.Tables{}, "coverageschema", exporter.SchemaAndColumnNames)
-	out := filepath.Join(path.Dir(path.Dir(filename)), "coverageschema", "coverageschema.go")
+	outputFileName := "coverageschema.go"
+	packageName := "coverageschema"
+	packagePath := "coverageschema"
+	schemaTargetDB := exporter.CockroachDB
+	if *schemaTarget == "spanner" {
+		outputFileName = "coverageschema_spanner.go"
+		schemaTargetDB = exporter.Spanner
+		packageName = "spanner"
+		packagePath = filepath.Join(packagePath, "spanner")
+	}
+	generatedText := exporter.GenerateSQL(coverageschema.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB)
+	out := filepath.Join(path.Dir(path.Dir(filename)), packagePath, outputFileName)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)

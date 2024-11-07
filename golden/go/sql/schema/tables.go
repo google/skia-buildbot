@@ -123,6 +123,7 @@ const (
 // is missing or silently not backup new tables).
 //
 //go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file sql.go --output_pkg schema
+//go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file ./spanner/sql_spanner.go --output_pkg spanner --schemaTarget spanner
 type Tables struct {
 	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
 	CommitsWithData                    []CommitWithDataRow                 `sql_backup:"daily"`
