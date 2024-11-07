@@ -21,6 +21,14 @@
     infra: ["name", "source_type"],
   },
 
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-skia-infra",
+    "cache_expiration_minutes": 10
+  },
+
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: false
 }
