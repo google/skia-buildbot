@@ -28,7 +28,7 @@
     svg: ["name", "source_type"],
   },
 
-  cache_type: "redis",
+  cache_type: "",
   redis_config: {
     "project": "skia-public",
     "zone": "us-central1",

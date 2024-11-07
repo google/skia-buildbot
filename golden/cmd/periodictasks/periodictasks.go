@@ -1179,9 +1179,11 @@ func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpo
 	if err != nil {
 		sklog.Fatalf("Error creating a new cache instance: %v", err)
 	}
-	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
-	err = searchCacheManager.RunCachePopulation(ctx)
-	if err != nil {
-		sklog.Fatalf("Error running cache population: %v", err)
+	if cache != nil {
+		searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
+		err = searchCacheManager.RunCachePopulation(ctx)
+		if err != nil {
+			sklog.Fatalf("Error running cache population: %v", err)
+		}
 	}
 }
