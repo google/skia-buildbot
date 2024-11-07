@@ -49,23 +49,12 @@
 - name: Install the rest of swarming needs.
   when: swarming_needs__needs_mobile_tools
   block:
-    - name: Install adb and python 2.7.
+    - name: Install adb
       become: true
       apt:
         pkg:
           - adb
           - aapt
-          - python2.7  # still needed for iOS swarming recipes
-
-    # iOS recipes need a /usr/bin/python2.
-    - name: link /usr/bin/python2 to /usr/bin/python2.7
-      become: true
-      file:
-        src: /usr/bin/python2.7
-        dest: /usr/bin/python2
-        owner: root
-        group: root
-        state: link
 
     # Our recipes hard-code a specific adb.
     - name: link adb to /usr/bin/adb.1.0.35
