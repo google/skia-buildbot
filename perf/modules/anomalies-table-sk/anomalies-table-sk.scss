@@ -6,6 +6,10 @@ anomalies-table-sk {
   display: block;
   padding: 16px;
 
+  .expand-button[hidden] {
+    display: none;
+  }
+
   > dialog {
     z-index: 2;
     background: var(--background);

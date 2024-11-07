@@ -38,17 +38,49 @@ export class AnomaliesTableSk extends ElementSk {
 
   private static template = (ele: AnomaliesTableSk) => html` ${ele.generateTable()} `;
 
-  private groupAnomalies() {
-    this.anomalyGroups = [];
+  private rangeIntersects(aMin: number, aMax: number, bMin: number, bMax: number) {
+    return aMin <= bMax && bMin <= aMax;
+  }
 
-    // TODO(eduardoyap): Modify logic to group anomalies correctly.
+  private shouldMerge(a: Anomaly, b: Anomaly) {
+    return this.rangeIntersects(a.start_revision, a.end_revision, b.start_revision, b.end_revision);
+  }
+
+  /**
+   * Merge anomalies into groups.
+   *
+   * The criteria for merging two anomalies A and B is if A.start_revision and A.end_revision
+   * intersect with B.start_revision and B.end_revision.
+   */
+  private groupAnomalies() {
+    const groups = [];
+
     for (let i = 0; i < this.anomalyList.length; i++) {
+      let merged = false;
       const anomaly = this.anomalyList[i];
-      this.anomalyGroups.push({
-        anomalies: [anomaly, anomaly],
-        expanded: false,
-      });
+      for (const group of groups) {
+        let doMerge = true;
+        for (const other of group.anomalies) {
+          const should = this.shouldMerge(anomaly, other);
+          if (!should) {
+            doMerge = false;
+            break;
+          }
+        }
+        if (doMerge) {
+          group.anomalies.push(anomaly);
+          merged = true;
+          break;
+        }
+      }
+      if (!merged) {
+        groups.push({
+          anomalies: [anomaly],
+          expanded: false,
+        });
+      }
     }
+    this.anomalyGroups = groups;
   }
 
   private generateTable() {
@@ -92,7 +124,10 @@ export class AnomaliesTableSk extends ElementSk {
       rows.push(html`
         <tr ?hidden=${!anomalyGroup.expanded && i !== 0}>
           <td>
-            <button @click=${() => this.expandGroup(anomalyGroup)} ?hidden=${length === 1 || i > 0}>
+            <button
+              class="expand-button"
+              @click=${() => this.expandGroup(anomalyGroup)}
+              ?hidden=${length === 1 || i > 0}>
               ${length}
             </button>
           </td>

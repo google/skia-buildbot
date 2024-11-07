@@ -125,10 +125,6 @@ const anomaly_table = [
   },
 ];
 
-window.customElements.whenDefined('anomalies-table-sk').then(async () => {
-  // await load({ packages: ['table'] });
-});
-
 $$('#populate-tables')?.addEventListener('click', () => {
   document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
     ele.populateTable(anomaly_table);
