@@ -1917,6 +1917,13 @@ export class ExploreSimpleSk extends ElementSk {
     this.plotSimple.value!.xbar = detail.x;
     this.commits!.details = [];
 
+    // If traces are rendered and summary bar is enabled, show
+    // summary for the trace clicked on the graph.
+    if (this.summaryOptionsField.value) {
+      const formattedTraceId = this.traceFormatter!.formatTrace(fromKey(detail.name));
+      this.summaryOptionsField.value!.setValue(formattedTraceId);
+    }
+
     const selected = this.selectedRange?.begin || 0;
     const x = selected + detail.x;
 

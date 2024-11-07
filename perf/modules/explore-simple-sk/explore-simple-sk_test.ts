@@ -23,6 +23,7 @@ import {
   updateShortcut,
 } from './explore-simple-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { fromKey } from '../paramtools';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -254,6 +255,47 @@ describe('updateShortcut', () => {
     ] as GraphConfig[]);
 
     assert.deepEqual(shortcut, '12345');
+  });
+});
+
+describe('traceSelected', () => {
+  it('should update the summary dropdown value', () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.state.plotSummary = true;
+    explore['tracesRendered'] = true;
+    explore.render();
+
+    const traceIds = [
+      ',config=8888,arch=x86,',
+      ',config=8888,arch=arm,',
+      ',config=565,arch=x86,',
+      ',config=565,arch=arm,',
+    ];
+    explore['summaryOptionsField'].value!.options = Object.keys(traceIds);
+
+    const fakePoints = [
+      [99, 1],
+      [100, 2],
+      [101, 3],
+    ];
+    const header: ColumnHeader[] = [];
+    fakePoints.forEach((p) => {
+      header.push({
+        offset: CommitNumber(p[0]),
+        timestamp: TimestampSeconds(p[1]),
+      });
+    });
+
+    const p: PointSelected = {
+      commit: CommitNumber(100),
+      name: traceIds[1],
+    };
+    const ev = selectionToEvent(p, header);
+    explore.traceSelected(ev);
+
+    const expected = explore['traceFormatter']!.formatTrace(fromKey(traceIds[1]));
+    const actual = explore['summaryOptionsField'].value!.getValue();
+    assert.equal(actual, expected);
   });
 });
 

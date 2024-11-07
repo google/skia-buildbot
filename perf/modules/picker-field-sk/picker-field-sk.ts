@@ -100,6 +100,10 @@ export class PickerFieldSk extends ElementSk {
     this._render();
   }
 
+  getValue() {
+    return this._comboBox!.getAttribute('value');
+  }
+
   /**
    * Set the overlay width based on the ComboBox's options.
    *

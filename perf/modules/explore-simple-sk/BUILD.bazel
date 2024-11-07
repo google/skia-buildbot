@@ -84,5 +84,6 @@ karma_test(
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:test_util_ts_lib",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
 )
