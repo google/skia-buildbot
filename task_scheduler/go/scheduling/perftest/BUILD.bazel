@@ -14,7 +14,6 @@ go_library(
         "//go/exec",
         "//go/git",
         "//go/git/repograph",
-        "//go/gitiles",
         "//go/httputils",
         "//go/now",
         "//go/pubsub/mocks",

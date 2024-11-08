@@ -13,7 +13,6 @@ go_library(
         "//go/depot_tools",
         "//go/gerrit",
         "//go/gitauth",
-        "//go/gitiles",
         "//go/gitstore/bt_gitstore",
         "//go/gitstore/pubsub",
         "//go/httputils",

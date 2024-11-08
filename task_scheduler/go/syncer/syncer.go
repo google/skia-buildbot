@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/git_common"
+	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -41,16 +42,18 @@ const (
 // Syncer is a struct used for syncing code to particular RepoStates.
 type Syncer struct {
 	depotToolsDir string
+	repos         repograph.Map
 	queue         chan func(int)
 	workdir       string
 }
 
 // New returns a Syncer instance.
-func New(ctx context.Context, depotToolsDir, workdir string, numWorkers int) *Syncer {
+func New(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) *Syncer {
 	queue := make(chan func(int))
 	s := &Syncer{
 		depotToolsDir: depotToolsDir,
 		queue:         queue,
+		repos:         repos,
 		workdir:       workdir,
 	}
 	for i := 0; i < numWorkers; i++ {
