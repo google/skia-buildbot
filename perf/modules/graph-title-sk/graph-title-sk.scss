@@ -2,13 +2,14 @@
   #container {
     color: var(--primary);
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   .column {
     flex: 0 0 auto;
     display: inline-block;
     margin-right: 10px;
+    margin-bottom: 10px;
     min-width: 75px;
   }
 
@@ -20,5 +21,11 @@
   .value {
     font-size: 1.4em;
     font-weight: bold;
+  }
+
+  .showMore {
+    text-decoration: underline;
+    align-self: center;
+    cursor: pointer;
   }
 }

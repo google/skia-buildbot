@@ -37,7 +37,9 @@
   "query_config": {
     "default_url_values": {
       "plotSummary": "true",
-      "showZero": "false"
+      "showZero": "false",
+      "enable_chart_tooltip": "true",
+      "use_titles": "true"
     }
   }
 }

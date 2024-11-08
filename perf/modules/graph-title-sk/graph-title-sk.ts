@@ -31,6 +31,8 @@ export class GraphTitleSk extends ElementSk {
 
   private numTraces: number = 0;
 
+  private showShortTitle = true;
+
   constructor() {
     super(GraphTitleSk.template);
   }
@@ -49,7 +51,7 @@ export class GraphTitleSk extends ElementSk {
   /**
    * Public function to set title entries and render.
    */
-  set(titleEntries: Map<string, string>, numTraces: number): void {
+  set(titleEntries: Map<string, string> | null, numTraces: number): void {
     this.titleEntries = titleEntries;
     this.numTraces = numTraces;
     this._render();
@@ -73,7 +75,15 @@ export class GraphTitleSk extends ElementSk {
 
     const elems: TemplateResult[] = [];
 
+    const showShort = this.showShortTitle && this.titleEntries.size > 3;
+
+    let index = 0;
     this.titleEntries!.forEach((value, key) => {
+      if (showShort && index >= 3) {
+        return;
+      }
+      index++;
+
       if (value !== '' && key !== '') {
         // Crop value if it's too long and add '...'.
         if (value.length > 25) {
@@ -94,7 +104,21 @@ export class GraphTitleSk extends ElementSk {
         elems.push(elem);
       }
     });
+
+    if (showShort) {
+      const elem = html`
+        <md-text-button class="showMore" @click=${this.showFullTitle}>
+          Show Full Title
+        </md-text-button>
+      `;
+      elems.push(elem);
+    }
     return elems;
+  }
+
+  private showFullTitle() {
+    this.showShortTitle = false;
+    this._render();
   }
 }
 

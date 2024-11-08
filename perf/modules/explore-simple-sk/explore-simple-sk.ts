@@ -2711,7 +2711,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
     this.tracesRendered = false;
-    this.graphTitle!.innerHTML = '';
+    this.graphTitle!.set(null, 0);
     this.traceDetailsCopy!.style.display = 'none';
     this.traceDetails!.textContent = '';
     this.tooltipSelected = false;
@@ -2981,9 +2981,16 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    const params = this._defaults?.include_params;
+    // If the params are not included in the json config key "include_params",
+    // we pull the paramset from the dataframe response.
+    // https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/configs/v8-perf.json
+    let params = this._defaults?.include_params;
     if (params === null || params === undefined) {
-      return;
+      const paramset = this.dfRepo.value?.dataframe.paramset;
+      if (paramset === null || paramset === undefined) {
+        return;
+      }
+      params = Object.keys(paramset).sort();
     }
     const numTraces = Object.keys(traceset).length;
     const titleEntries = new Map();
