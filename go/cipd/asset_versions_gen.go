@@ -178,6 +178,11 @@ var PACKAGES = map[string]*Package{
 		Name:    "skia/bots/node",
 		Version: "version:2",
 	},
+	"skia/bots/patch_linux_amd64": {
+		Path:    "cipd_bin_packages",
+		Name:    "skia/bots/patch_linux_amd64",
+		Version: "version:0",
+	},
 	"skia/bots/protoc": {
 		Path:    "protoc",
 		Name:    "skia/bots/protoc",

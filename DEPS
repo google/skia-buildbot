@@ -72,6 +72,10 @@ deps = {
         'version': 'version:6',
       },
       {
+        'package': 'skia/bots/patch_linux_amd64',
+        'version': 'version:0',
+      },
+      {
         'package': 'skia/tools/goldctl/${{platform}}',
         'version': Var('luci_tools_version'),
       },

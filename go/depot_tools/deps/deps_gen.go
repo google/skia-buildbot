@@ -152,6 +152,11 @@ var deps = deps_parser.DepsEntries{
 		Version: "version:6",
 		Path:    "cipd_bin_packages",
 	},
+	"skia/bots/patch_linux_amd64": {
+		Id:      "skia/bots/patch_linux_amd64",
+		Version: "version:0",
+		Path:    "cipd_bin_packages",
+	},
 	"skia/tools/bazel_build_all": {
 		Id:      "skia/tools/bazel_build_all",
 		Version: "git_revision:6082ccfc822c2b9884401a921417fff65b86aafd",
