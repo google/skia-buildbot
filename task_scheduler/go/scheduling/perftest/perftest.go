@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/now"
 	pubsub_mocks "go.skia.org/infra/go/pubsub/mocks"
@@ -318,6 +319,7 @@ func main() {
 	swarmingClient := testutils.NewTestClient()
 
 	repos := repograph.Map{repoDir: repo}
+	gitilesRepos := map[string]gitiles.GitilesRepo{repoDir: nil}
 
 	btProject := "test-project"
 	btInstance := "test-instance"
@@ -344,7 +346,7 @@ func main() {
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers, gitilesRepos)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.

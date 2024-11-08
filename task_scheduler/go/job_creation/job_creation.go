@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/pubsub"
@@ -63,7 +64,7 @@ type JobCreator struct {
 }
 
 // NewJobCreator returns a JobCreator instance.
-func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketProject, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client, numSyncWorkers int) (*JobCreator, error) {
+func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, rbe cas.CAS, c *http.Client, buildbucketProject, buildbucketTarget, buildbucketBucket string, projectRepoMapping map[string]string, depotTools string, gerrit gerrit.GerritInterface, taskCfgCache task_cfg_cache.TaskCfgCache, pubsubClient pubsub.Client, numSyncWorkers int, gitilesRepos map[string]gitiles.GitilesRepo) (*JobCreator, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -79,11 +80,11 @@ func NewJobCreator(ctx context.Context, d db.DB, period time.Duration, numCommit
 	// Create caches.
 	jCache, err := cache.NewJobCache(ctx, d, w, nil)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "fFailed to create JobCache")
+		return nil, skerr.Wrapf(err, "failed to create JobCache")
 	}
 
-	sc := syncer.New(ctx, repos, depotTools, workdir, numSyncWorkers)
-	chr := cacher.New(sc, taskCfgCache, rbe)
+	sc := syncer.New(ctx, depotTools, workdir, numSyncWorkers)
+	chr := cacher.New(sc, taskCfgCache, rbe, gitilesRepos, gerrit)
 
 	tryjobs, err := tryjobs.NewTryJobIntegrator(ctx, buildbucketProject, buildbucketTarget, buildbucketBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit, pubsubClient)
 	if err != nil {
@@ -136,7 +137,7 @@ func (jc *JobCreator) putJobsInChunks(ctx context.Context, j []*types.Job) error
 
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
-func (jc *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
+func (jc *JobCreator) recurseAllBranches(_ context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
 	skipBranches := ignoreBranches[repoUrl]
 	skipCommits := make(map[*repograph.Commit]string, len(skipBranches))
 	for _, b := range skipBranches {
