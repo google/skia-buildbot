@@ -10,11 +10,21 @@ anomalies-table-sk {
     display: none;
   }
 
-  > dialog {
-    z-index: 2;
-    background: var(--background);
-    color: var(--on-background);
-    border: solid 1px var(--on-background);
+  #anomalies-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: small;
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  #anomalies-table thead {
+    cursor: pointer;
+  }
+
+  #anomalies-table thead th {
+    font-weight: bold;
+    text-align: left;
   }
 
   header {

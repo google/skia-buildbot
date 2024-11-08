@@ -15,7 +15,6 @@ import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } fro
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 import '@material/web/button/outlined-button.js';
-
 // State is the local UI state of regressions-page-sk
 interface State {
   selectedSubscription: string;
@@ -53,9 +52,7 @@ export class RegressionsPageSk extends ElementSk {
       showTriaged: false,
       showImprovements: false,
     };
-
     this.anomaliesTable = new AnomaliesTableSk();
-
     this.init();
   }
 

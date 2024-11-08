@@ -5,7 +5,7 @@
  * Display table of anomalies
  */
 
-import { html } from 'lit/html.js';
+import { html, TemplateResult } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
@@ -35,12 +35,15 @@ export class AnomaliesTableSk extends ElementSk {
 
   private triageMenu: TriageMenuSk | null = null;
 
+  private sortBy: string | null = null;
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
 
   async connectedCallback() {
     super.connectedCallback();
+    this.sortBy = 'end_revision';
     this._render();
 
     this.triageMenu = this.querySelector('#triage-menu');
@@ -105,22 +108,76 @@ export class AnomaliesTableSk extends ElementSk {
 
   private generateTable() {
     return html`
-      <table>
-        <tr>
+      <table id="anomalies-table">
+        <tr class="headers">
           <th></th>
           <th>
             <checkbox-sk></checkbox-sk>
           </th>
-          <th></th>
-          <th>Bug ID</th>
-          <th>Revisions</th>
-          <th>Main</th>
-          <th>Bot</th>
-          <th>Test Suite</th>
-          <th>Test</th>
-          <th>Change Direction</th>
-          <th>Delta %</th>
-          <th>Abs Delta</th>
+          <th
+            id="graph_header"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Graph
+          </th>
+          <th
+            id="bug_id"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Bug ID
+          </th>
+          <th
+            id="end_revision"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Revisions
+          </th>
+          <th
+            id="master"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Master
+          </th>
+          <th
+            id="bot"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Bot
+          </th>
+          <th
+            id="testsuite"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Test Suite
+          </th>
+          <th
+            id="test"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Test
+          </th>
+          <th id="change_direction">Change Direction</th>
+          <th
+            id="percent_changed"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Delta %
+          </th>
+          <th
+            id="absolute_delta"
+            @click=${() => {
+              this.columnHeaderClicked();
+            }}>
+            Abs Delta
+          </th>
         </tr>
         ${this.generateGroups()}
       </table>
@@ -166,13 +223,21 @@ export class AnomaliesTableSk extends ElementSk {
                 this.anomalyChecked(e.target as CheckOrRadio, anomaly)}></checkbox-sk>
           </td>
           <td></td>
+          <!--TODO(jiaxindong) update graph link to real dashboard link-->
+          <td>
+            <trending-up-icon-sk></trending-up-icon-sk>
+          </td>
+          <!--TODO(jiaxindong) update key value to anomaly id in the group-report link-->
           <td>${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}</td>
-          <td>${anomaly.start_revision} - ${anomaly.end_revision}</td>
+          <td>
+            <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
+          </td>
           <td>${anomaly.test_path.split('/')[0]}</td>
           <td>${anomaly.test_path.split('/')[1]}</td>
           <td>${anomaly.test_path.split('/')[2]}</td>
           <td>${anomaly.test_path.split('/')[3]}</td>
           <td>${anomaly.is_improvement}</td>
+          ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           <td>
             ${AnomalySk.getPercentChange(
               anomaly.median_before_anomaly,
@@ -191,6 +256,40 @@ export class AnomaliesTableSk extends ElementSk {
   private expandGroup(anomalyGroup: AnomalyGroup) {
     anomalyGroup.expanded = !anomalyGroup.expanded;
     this._render();
+  }
+
+  /**
+   * Callback for the click event for a column header.
+   * @param {Event} event Clicked event.
+   * @param {Object} detail Detail Object.
+   */
+  private columnHeaderClicked(): void {
+    this.sort();
+  }
+
+  // TODO(jiaxindong)
+  // b/375640853 Group anomalies and sort with the revision range in either high or low direction
+  /**
+   * Sorts the alert list according to the current values of the properties
+   * sortDirection and sortBy.
+   */
+  private sort() {}
+
+  private computeRevisionRange(start: number | null, end: number | null): string {
+    if (start === null || end === null) {
+      return '';
+    }
+    if (start === end) {
+      return '' + end;
+    }
+    return start + ' - ' + end;
+  }
+
+  private getDirectionSign(medianBefore: number, medianAfter: number): TemplateResult {
+    if (medianBefore < medianAfter) {
+      return html`<td><trending-up-icon-sk></trending-up-icon-sk></td>`;
+    }
+    return html`<td><trending-down-icon-sk></trending-down-icon-sk></td>`;
   }
 
   populateTable(anomalyList: Anomaly[]) {
