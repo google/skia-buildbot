@@ -47,7 +47,7 @@ const anomaly_table = [
     std_dev_before_anomaly: 0,
     t_statistic: 0,
     subscription_name: '',
-    bug_component: '',
+    bug_component: 'Component A',
     bug_labels: [],
     bug_cc_emails: [],
   },
@@ -71,7 +71,7 @@ const anomaly_table = [
     std_dev_before_anomaly: 0,
     t_statistic: 0,
     subscription_name: '',
-    bug_component: '',
+    bug_component: 'Component B',
     bug_labels: [],
     bug_cc_emails: [],
   },
@@ -95,7 +95,7 @@ const anomaly_table = [
     std_dev_before_anomaly: 0,
     t_statistic: 0,
     subscription_name: '',
-    bug_component: '',
+    bug_component: 'Component B',
     bug_labels: [],
     bug_cc_emails: [],
   },
@@ -119,7 +119,7 @@ const anomaly_table = [
     std_dev_before_anomaly: 0,
     t_statistic: 0,
     subscription_name: '',
-    bug_component: '',
+    bug_component: 'Component C',
     bug_labels: [],
     bug_cc_emails: [],
   },
@@ -128,5 +128,11 @@ const anomaly_table = [
 $$('#populate-tables')?.addEventListener('click', () => {
   document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
     ele.populateTable(anomaly_table);
+  });
+});
+
+$$('#get-checked')?.addEventListener('click', () => {
+  document.querySelectorAll<AnomaliesTableSk>('anomalies-table-sk').forEach((ele) => {
+    console.log(ele.getCheckedAnomalies());
   });
 });
