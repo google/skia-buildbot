@@ -13,15 +13,15 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
 );
 CREATE TABLE IF NOT EXISTS CommitsWithData (
   commit_id TEXT PRIMARY KEY,
-  tile_id INT4 NOT NULL
+  tile_id INT8 NOT NULL
 );
 CREATE TABLE IF NOT EXISTS DiffMetrics (
   left_digest BYTEA,
   right_digest BYTEA,
-  num_pixels_diff INT4 NOT NULL,
+  num_pixels_diff INT8 NOT NULL,
   percent_pixels_diff FLOAT4 NOT NULL,
-  max_rgba_diffs INT2[] NOT NULL,
-  max_channel_diff INT2 NOT NULL,
+  max_rgba_diffs INT8[] NOT NULL,
+  max_channel_diff INT8 NOT NULL,
   combined_metric FLOAT4 NOT NULL,
   dimensions_differ BOOL NOT NULL,
   ts TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS ExpectationDeltas (
   expectation_record_id TEXT,
   grouping_id BYTEA,
   digest BYTEA,
-  label_before CHAR NOT NULL,
-  label_after CHAR NOT NULL,
+  label_before VARCHAR(1) NOT NULL,
+  label_after VARCHAR(1) NOT NULL,
   PRIMARY KEY (expectation_record_id, grouping_id, digest)
 );
 CREATE TABLE IF NOT EXISTS ExpectationRecords (
@@ -40,12 +40,12 @@ CREATE TABLE IF NOT EXISTS ExpectationRecords (
   branch_name TEXT,
   user_name TEXT NOT NULL,
   triage_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  num_changes INT4 NOT NULL
+  num_changes INT8 NOT NULL
 );
 CREATE TABLE IF NOT EXISTS Expectations (
   grouping_id BYTEA,
   digest BYTEA,
-  label CHAR NOT NULL,
+  label VARCHAR(1) NOT NULL,
   expectation_record_id TEXT,
   PRIMARY KEY (grouping_id, digest)
 );
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   patchset_id TEXT PRIMARY KEY,
   system TEXT NOT NULL,
   changelist_id TEXT NOT NULL REFERENCES Changelists (changelist_id),
-  ps_order INT2 NOT NULL,
+  ps_order INT8 NOT NULL,
   git_hash TEXT NOT NULL,
   commented_on_cl BOOL NOT NULL,
   created_ts TIMESTAMP WITH TIME ZONE
@@ -91,14 +91,14 @@ CREATE TABLE IF NOT EXISTS PrimaryBranchDiffCalculationWork (
   calculation_lease_ends TIMESTAMP WITH TIME ZONE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS PrimaryBranchParams (
-  tile_id INT4,
+  tile_id INT8,
   key TEXT,
   value TEXT,
   PRIMARY KEY (tile_id, key, value)
 );
 CREATE TABLE IF NOT EXISTS ProblemImages (
   digest TEXT PRIMARY KEY,
-  num_errors INT2 NOT NULL,
+  num_errors INT8 NOT NULL,
   latest_error TEXT NOT NULL,
   error_ts TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchExpectations (
   branch_name TEXT,
   grouping_id BYTEA,
   digest BYTEA,
-  label CHAR NOT NULL,
+  label VARCHAR(1) NOT NULL,
   expectation_record_id TEXT NOT NULL,
   PRIMARY KEY (branch_name, grouping_id, digest)
 );
@@ -144,13 +144,13 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
 );
 CREATE TABLE IF NOT EXISTS TiledTraceDigests (
   trace_id BYTEA,
-  tile_id INT4,
+  tile_id INT8,
   digest BYTEA NOT NULL,
   grouping_id BYTEA NOT NULL,
   PRIMARY KEY (trace_id, tile_id, digest)
 );
 CREATE TABLE IF NOT EXISTS TraceValues (
-  shard INT2,
+  shard INT8,
   trace_id BYTEA,
   commit_id TEXT,
   digest BYTEA NOT NULL,
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS TraceValues (
 );
 CREATE TABLE IF NOT EXISTS Traces (
   trace_id BYTEA PRIMARY KEY,
-  corpus TEXT AS (keys->>'source_type') STORED NOT NULL,
+  corpus TEXT GENERATED ALWAYS AS (keys->>'source_type') STORED NOT NULL,
   grouping_id BYTEA NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS ValuesAtHead (
   digest BYTEA NOT NULL,
   options_id BYTEA NOT NULL,
   grouping_id BYTEA NOT NULL,
-  corpus TEXT AS (keys->>'source_type') STORED NOT NULL,
+  corpus TEXT GENERATED ALWAYS AS (keys->>'source_type') STORED NOT NULL,
   keys JSONB NOT NULL,
   matches_any_ignore_rule BOOL
 );
@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS DeprecatedIngestedFiles (
   last_ingested TIMESTAMP WITH TIME ZONE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS DeprecatedExpectationUndos (
-  id SERIAL PRIMARY KEY,
+  id INT8 PRIMARY KEY,
   expectation_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
   ts TIMESTAMP WITH TIME ZONE NOT NULL
@@ -209,12 +209,12 @@ CREATE INDEX calculated_idx on PrimaryBranchDiffCalculationWork (last_calculated
 CREATE INDEX calculated_idx on SecondaryBranchDiffCalculationWork (last_calculated_ts);
 CREATE INDEX grouping_digest_idx on TiledTraceDigests (grouping_id, digest);
 CREATE INDEX tile_trace_idx on TiledTraceDigests (tile_id, trace_id);
-CREATE INDEX trace_commit_idx on TraceValues (trace_id, commit_id) STORING (digest, options_id, grouping_id);
+CREATE INDEX trace_commit_idx on TraceValues (trace_id, commit_id) INCLUDE (digest, options_id, grouping_id);
 CREATE INDEX grouping_ignored_idx on Traces (grouping_id, matches_any_ignore_rule);
 CREATE INDEX ignored_grouping_idx on Traces (matches_any_ignore_rule, grouping_id);
 CREATE INDEX keys_idx on Traces (keys);
 CREATE INDEX cl_idx on Tryjobs (changelist_id);
 CREATE INDEX ignored_grouping_idx on ValuesAtHead (matches_any_ignore_rule, grouping_id);
-CREATE INDEX corpus_commit_ignore_idx on ValuesAtHead (corpus, most_recent_commit_id, matches_any_ignore_rule) STORING (grouping_id, digest);
+CREATE INDEX corpus_commit_ignore_idx on ValuesAtHead (corpus, most_recent_commit_id, matches_any_ignore_rule) INCLUDE (grouping_id, digest);
 CREATE INDEX keys_idx on ValuesAtHead (keys);
 `

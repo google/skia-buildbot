@@ -19,14 +19,14 @@ const Schema = `CREATE TABLE IF NOT EXISTS Description (
   running_swarmingTask BOOL NOT NULL DEFAULT FALSE,
   launched_swarming BOOL NOT NULL DEFAULT FALSE,
   recovery_start TIMESTAMPTZ NOT NULL,
-  device_uptime INT4 DEFAULT 0,
+  device_uptime INT8 DEFAULT 0,
   ssh_user_ip TEXT NOT NULL DEFAULT '',
   supplied_dimensions JSONB NOT NULL,
   dimensions JSONB NOT NULL,
   task_request JSONB,
   task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ,
-  machine_id TEXT PRIMARY KEY AS (dimensions->'id'->>0) STORED,
-  running_task bool AS (task_request IS NOT NULL) STORED
+  machine_id TEXT PRIMARY KEY GENERATED ALWAYS AS (dimensions->'id'->>0) STORED,
+  running_task bool GENERATED ALWAYS AS (task_request IS NOT NULL) STORED
 );
 CREATE TABLE IF NOT EXISTS TaskResult (
   result JSONB NOT NULL,

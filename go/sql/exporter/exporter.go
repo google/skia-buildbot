@@ -64,11 +64,15 @@ func (sc *spannerConverter) getIndexDeclarations() string {
 // compatible with Spanner postgres.
 func (sc *spannerConverter) updateColumnTypesForSpanner(sqlColumnText string, tableName string) string {
 	typeReplacements := map[string]string{
+		"INT2":              "INT8",
+		"INT4":              "INT8",
+		"CHAR":              "VARCHAR(1)",
 		"STRING":            "TEXT",
 		"UUID":              "TEXT",
 		"BYTES":             "BYTEA",
 		"gen_random_uuid()": "spanner.generate_uuid()",
 		"UNIQUE":            "",
+		"SERIAL":            "INT8",
 	}
 
 	// unique_rowid() generates a unique integer identifier for int columns. This does not work in spanner.
@@ -90,11 +94,24 @@ func (sc *spannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		splits := strings.SplitAfterN(indexSpec, " ", 2)
 		indexName := strings.TrimSpace(splits[0])
 		indexDetails := strings.TrimSpace(splits[1])
+
+		if strings.Contains(indexDetails, "STORING") {
+			indexDetails = strings.ReplaceAll(indexDetails, "STORING", "INCLUDE")
+		}
+
 		// Spanner expects the index definition to be "CREATE INDEX <index_name> on <table_name> (<columns>)"
 		sc.indices = append(sc.indices, fmt.Sprintf("%s on %s %s", indexName, tableName, indexDetails))
 
 		// The index is not specified in the schema as a column, so return empty string.
 		return ""
+	}
+
+	// Check if this is a computed column in CDB schema.
+	// Eg: corpus TEXT AS (keys->>'source_type') STORED NOT NULL
+	// This should be written as "corpus TEXT GENERATED ALWAYS AS (keys->>'source_type') STORED NOT NULL" for Spanner.
+	if strings.Contains(sqlColumnText, "AS (") {
+		insertIndex := strings.Index(sqlColumnText, "AS (")
+		sqlColumnText = sqlColumnText[:insertIndex-1] + " GENERATED ALWAYS " + sqlColumnText[insertIndex:]
 	}
 
 	updatedString := sqlColumnText
