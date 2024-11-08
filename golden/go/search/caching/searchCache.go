@@ -35,8 +35,8 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 		corpora:      corpora,
 		commitWindow: commitWindow,
 		dataProviders: map[SearchCacheType]cacheDataProvider{
-			ByBlame_Corpus:   NewCacheDataProvider(db, corpora, commitWindow, ByBlameQuery),
-			Unignored_Corpus: NewCacheDataProvider(db, corpora, commitWindow, UnignoredQuery),
+			ByBlame_Corpus:   NewCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
+			Unignored_Corpus: NewCacheDataProvider(db, corpora, commitWindow, UnignoredQuery, UnignoredKey),
 		},
 	}
 }

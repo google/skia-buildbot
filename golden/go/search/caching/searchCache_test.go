@@ -27,6 +27,7 @@ func TestPopulateCache_WithData(t *testing.T) {
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
 	cacheClient.On("SetValue", ctx, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
+	cacheClient.On("SetValue", ctx, UnignoredKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)

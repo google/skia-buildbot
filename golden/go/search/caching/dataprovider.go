@@ -13,15 +13,17 @@ type cacheDataProvider struct {
 	corpora      []string
 	commitWindow int
 	query        string
+	cacheKeyFunc func(string) string
 }
 
 // NewCacheDataProvider returns a new instance of the cacheDataProvider struct.
-func NewCacheDataProvider(db *pgxpool.Pool, corpora []string, commitWindow int, sqlQuery string) cacheDataProvider {
+func NewCacheDataProvider(db *pgxpool.Pool, corpora []string, commitWindow int, sqlQuery string, cacheKeyFunc func(string) string) cacheDataProvider {
 	return cacheDataProvider{
 		db:           db,
 		corpora:      corpora,
 		commitWindow: commitWindow,
 		query:        sqlQuery,
+		cacheKeyFunc: cacheKeyFunc,
 	}
 }
 
@@ -54,7 +56,7 @@ func (prov cacheDataProvider) GetCacheData(ctx context.Context) (map[string]stri
 			return nil, err
 		}
 		if len(cacheData) > 0 {
-			key := ByBlameKey(corpus)
+			key := prov.cacheKeyFunc(corpus)
 			cacheDataStr, err := toJSON(cacheData)
 			if err != nil {
 				return nil, skerr.Wrap(err)
