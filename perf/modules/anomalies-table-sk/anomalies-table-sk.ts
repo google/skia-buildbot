@@ -264,13 +264,12 @@ export class AnomaliesTableSk extends ElementSk {
               id="anomaly-row-${anomaly.id}">
             </checkbox-sk>
           </td>
-          <td></td>
           <!--TODO(jiaxindong) update graph link to real dashboard link-->
           <td>
             <trending-up-icon-sk></trending-up-icon-sk>
           </td>
-          <!--TODO(jiaxindong) update key value to anomaly id in the group-report link-->
           <td>${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}</td>
+          <!--TODO(jiaxindong) update key value to anomaly id in the group-report link-->
           <td>
             <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
           </td>
@@ -278,7 +277,6 @@ export class AnomaliesTableSk extends ElementSk {
           <td>${anomaly.test_path.split('/')[1]}</td>
           <td>${anomaly.test_path.split('/')[2]}</td>
           <td>${anomaly.test_path.split('/')[3]}</td>
-          <td>${anomaly.is_improvement}</td>
           ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           <td>
             ${AnomalySk.getPercentChange(
