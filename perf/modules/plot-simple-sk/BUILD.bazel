@@ -31,6 +31,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         ":kd_ts_lib",
         ":ticks_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",

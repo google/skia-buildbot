@@ -99,6 +99,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
 import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { defaultColors } from '../common/plot-builder';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
@@ -117,21 +118,6 @@ const DETAIL_LINE_WIDTH = 1; // px
 const AXIS_LINE_WIDTH = 1; // px
 
 const MIN_MOUSE_MOVE_FOR_ZOOM = 5; // px
-
-/**
- * @constant {Array} - Colors used for traces.
- */
-const COLORS = [
-  '#000000',
-  '#1B9E77',
-  '#D95F02',
-  '#7570B3',
-  '#E7298A',
-  '#66A61E',
-  '#E6AB02',
-  '#A6761D',
-  '#666666',
-];
 
 // Contains linear scales to convert from source coordinates into
 // device/destination coordinates.
@@ -1269,7 +1255,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = COLORS[(this.hashString(line.name) % 8) + 1];
+        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
       }
 
       const summaryBuilder = new PathBuilder(
@@ -1301,7 +1287,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = COLORS[(this.hashString(line.name) % 8) + 1];
+        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
       }
 
       const detailBuilder = new PathBuilder(
