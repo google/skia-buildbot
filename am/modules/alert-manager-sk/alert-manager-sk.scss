@@ -147,6 +147,8 @@ alert-manager-sk {
 
   .auditlogs,
   .stats,
+  .infra-incidents,
+  .skia-incidents,
   .incidents,
   .mine,
   .silences {
@@ -154,6 +156,8 @@ alert-manager-sk {
   }
 
   .mine.selected,
+  .infra-incidents,
+  .skia-incidents,
   .incidents.selected {
     display: grid;
   }
@@ -167,7 +171,9 @@ alert-manager-sk {
   .auditlogs,
   .stats,
   .mine,
-  .incidents {
+  .incidents,
+  .infra-incidents,
+  .skia-incidents {
     checkbox-sk {
       display: inline-block;
 
