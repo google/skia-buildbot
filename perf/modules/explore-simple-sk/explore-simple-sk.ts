@@ -2711,6 +2711,9 @@ export class ExploreSimpleSk extends ElementSk {
     this.tooltipSelected = false;
     this.disableTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
+    // Remove the explore object from the list in `explore-multi-sk.ts`.
+    const detail = { elem: this };
+    this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
 
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()

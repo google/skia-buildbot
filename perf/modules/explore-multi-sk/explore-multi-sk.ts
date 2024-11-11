@@ -326,6 +326,18 @@ export class ExploreMultiSk extends ElementSk {
         this.defaults?.default_param_selections ?? {}
       );
 
+      // Event listener to remove the explore object from the list if the user
+      // close it in a Multiview window.
+      this.addEventListener('remove-explore', (e) => {
+        const exploreElem = (e as CustomEvent).detail.elem;
+        this.graphDiv!.removeChild(exploreElem);
+        this.currentPageExploreElements = this.currentPageExploreElements.filter(
+          (elem) => elem !== exploreElem
+        );
+        this.state.totalGraphs--;
+        e.stopPropagation();
+      });
+
       // Event listener for when the Test Picker plot button is clicked.
       // This will create a new empty Graph at the top and plot it with the
       // selected test values.
