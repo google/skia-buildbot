@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
@@ -127,7 +126,7 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	// Gerrit API client.
-	gerritClient, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httpClient)
+	gerrit, err := gerrit.NewGerrit(gerrit.GerritSkiaURL, httpClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -156,6 +155,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 	repos := autoUpdateRepos.Map
+
+	// Initialize Swarming client.
+	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
+	cfg.RequestTimeout = time.Minute
 
 	// Find depot_tools.
 	// TODO(borenet): Package depot_tools in the Docker image.
@@ -189,11 +192,7 @@ func main() {
 
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	gitilesRepos := make(map[string]gitiles.GitilesRepo, len(repos))
-	for repoURL := range repos {
-		gitilesRepos[repoURL] = gitiles.NewRepo(repoURL, httpClient)
-	}
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerritClient, taskCfgCache, pubsubClient, *numSyncWorkers, gitilesRepos)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient, *numSyncWorkers)
 	if err != nil {
 		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
