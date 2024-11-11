@@ -32,13 +32,6 @@ anomalies-table-sk {
     z-index: 100;
   }
 
-  > dialog {
-    z-index: 2;
-    background: var(--background);
-    color: var(--on-background);
-    border: solid 1px var(--on-background);
-  }
-
   header {
     display: flex;
   }
@@ -55,10 +48,6 @@ anomalies-table-sk {
     margin-right: 8px;
   }
 
-  tr:nth-child(even) {
-    background-color: var(--surface);
-  }
-
   table {
     border-collapse: collapse;
     border-spacing: 0;
@@ -70,5 +59,14 @@ anomalies-table-sk {
 
   a {
     color: var(--primary);
+  }
+
+  .parent-expanded-row,
+  .child-expanded-row > td:not(:first-child) {
+    background-color: var(--surface-2dp);
+  }
+
+  .child-expanded-row > td:first-child {
+    background-color: var(--background);
   }
 }

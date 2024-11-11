@@ -240,7 +240,7 @@ export class AnomaliesTableSk extends ElementSk {
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
       const anomaly = anomalyGroup.anomalies[i];
       rows.push(html`
-        <tr ?hidden=${!anomalyGroup.expanded && i !== 0}>
+        <tr class=${this.getRowClass(i, anomalyGroup)} ?hidden=${!anomalyGroup.expanded && i !== 0}>
           <td>
             <button
               class="expand-button"
@@ -291,6 +291,17 @@ export class AnomaliesTableSk extends ElementSk {
       `);
     }
     return rows;
+  }
+
+  private getRowClass(index: number, anomalyGroup: AnomalyGroup) {
+    if (anomalyGroup.expanded) {
+      if (index === 0) {
+        return 'parent-expanded-row';
+      } else {
+        return 'child-expanded-row';
+      }
+    }
+    return '';
   }
 
   private expandGroup(anomalyGroup: AnomalyGroup) {
