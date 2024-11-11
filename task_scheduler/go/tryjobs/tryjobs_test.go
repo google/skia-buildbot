@@ -516,7 +516,7 @@ func TestStartJobV2_NormalJob_Succeeds(t *testing.T) {
 	j1.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j1))
 	oldToken := j1.BuildbucketToken
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.Id, j1.BuildbucketToken).Return(bbFakeUpdateToken, nil)
 	require.NoError(t, trybots.startJob(ctx, j1))
 	j1, err := trybots.db.GetJobById(ctx, j1.Id)
@@ -538,7 +538,7 @@ func TestStartJobV2_RevisionAlreadySet_Succeeds(t *testing.T) {
 	j1.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j1))
 	oldToken := j1.BuildbucketToken
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.Id, j1.BuildbucketToken).Return(bbFakeUpdateToken, nil)
 	require.NoError(t, trybots.startJob(ctx, j1))
 	j1, err := trybots.db.GetJobById(ctx, j1.Id)
@@ -560,7 +560,7 @@ func TestStartJobV2_NormalJob_Failed(t *testing.T) {
 	j1.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j1))
 	oldToken := j1.BuildbucketToken
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.Id, j1.BuildbucketToken).Return("", errors.New("can't start this build"))
 	err := trybots.startJob(ctx, j1)
 	require.ErrorContains(t, err, "can't start this build")
@@ -582,7 +582,7 @@ func TestStartJobV2_InvalidJobSpec_Failed(t *testing.T) {
 	j1.Revision = "" // No revision is set initially; it's derived in startJob.
 	j1.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j1))
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.Id, j1.BuildbucketToken).Return(bbFakeUpdateToken, nil)
 	err := trybots.startJob(ctx, j1)
 	require.ErrorContains(t, err, "no such job: bogus-job")
@@ -597,7 +597,7 @@ func TestStartJobV2_InvalidJobSpec_Failed(t *testing.T) {
 	mockBB.AssertExpectations(t)
 }
 
-func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, project, branch string) {
+func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, project, branch string) {
 	ci := &gerrit.ChangeInfo{
 		Id:      strconv.FormatInt(gerritIssue, 10),
 		Project: project,
@@ -612,14 +612,14 @@ func mockGetChangeInfo(t *testing.T, mock *mockhttpclient.URLMock, id int, proje
 func TestRetryV2(t *testing.T) {
 	ctx, trybots, mock, mockBB, _ := setup(t)
 
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 
 	// Insert one try job.
 	j1 := tryjobV2(ctx)
 	j1.Revision = "" // No revision is set initially; it's derived in startJob.
 	j1.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j1))
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j1.BuildbucketBuildId, j1.Id, j1.BuildbucketToken).Return(bbFakeUpdateToken, nil)
 	require.NoError(t, trybots.startJob(ctx, j1))
 	mockBB.AssertExpectations(t)
@@ -629,7 +629,7 @@ func TestRetryV2(t *testing.T) {
 	j2.Revision = "" // No revision is set initially; it's derived in startJob.
 	j2.Status = types.JOB_STATUS_REQUESTED
 	require.NoError(t, trybots.db.PutJob(ctx, j2))
-	mockGetChangeInfo(t, mock, gerritIssue, patchProject, git.MainBranch)
+	mockGetChangeInfo(t, mock, patchProject, git.MainBranch)
 	mockBB.On("StartBuild", testutils.AnyContext, j2.BuildbucketBuildId, j2.Id, j2.BuildbucketToken).Return(bbFakeUpdateToken, nil)
 	require.NoError(t, trybots.startJob(ctx, j2))
 	j2, err := trybots.db.GetJobById(ctx, j2.Id)

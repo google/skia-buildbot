@@ -11,7 +11,6 @@ import (
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/testutils"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -46,10 +45,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	require.NoError(t, err)
-
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
+	s := New(ctx, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 
 	// gclient will fail to apply the issue if we don't fake it in Git.
@@ -81,9 +77,6 @@ func TestLazyTempGitRepo(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
-	require.NoError(t, err)
-
 	syncCount := 0
 	mockRun := exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -104,7 +97,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 	})
 	ctx = exec.NewContext(context.Background(), mockRun.Run)
 
-	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
+	s := New(ctx, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DefaultNumWorkers)
 	defer testutils.AssertCloses(t, s)
 
 	rs1 := types.RepoState{
