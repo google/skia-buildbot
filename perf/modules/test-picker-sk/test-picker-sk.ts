@@ -117,6 +117,7 @@ export class TestPickerSk extends ElementSk {
 
       if (param in json.paramset && json.paramset[param] !== null) {
         const options = json.paramset[param];
+        options.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
         const field: PickerFieldSk = new PickerFieldSk(param);
         currentFieldInfo.field = field;
         this._containerDiv!.appendChild(field);
