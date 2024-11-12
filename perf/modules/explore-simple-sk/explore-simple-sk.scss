@@ -266,8 +266,9 @@ explore-simple-sk {
   }
 
   #trace-details-container {
-    align-items: center;
     display: flex;
+    margin-bottom: 60px;
+    height: 40px;
 
     div.icon-sk {
       margin-right: 5px;
@@ -456,6 +457,9 @@ explore-simple-sk {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
     color: var(--on-surface);
+    white-space: break-spaces;
+    word-wrap: break-word;
+    width: 90%;
   }
 
   button.navigation {
@@ -466,12 +470,12 @@ explore-simple-sk {
     display: flex;
     flex-direction: row;
     align-items: end;
-    padding-top: 16px;
+    padding-bottom: 16px;
     height: 55px;
     box-sizing: content-box;
 
     label {
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       margin-left: 10px;
     }
   }

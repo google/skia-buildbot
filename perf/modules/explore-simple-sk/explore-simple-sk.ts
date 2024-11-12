@@ -809,18 +809,16 @@ export class ExploreSimpleSk extends ElementSk {
         </plot-simple-sk>
       <chart-tooltip-sk></chart-tooltip-sk>
       </div>
+      <div id="trace-details-container">
+        <div id="traceDetailsCopy" class="icon-sk copy-content">content_copy</div>
+        <span id=traceDetails></span>
+      </div>
       ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
       </div>
-      <div id="trace-details-container">
-        <div id="traceDetailsCopy" class="icon-sk copy-content">
-          content_copy
-        </div>
-        <span id=traceDetails></span>
-      </div>
-    </div>
+  </div>
 
     <pivot-table-sk
       @change=${ele.pivotTableSortChange}
@@ -1051,20 +1049,20 @@ export class ExploreSimpleSk extends ElementSk {
   `;
 
   private plotSummaryTemplate() {
-    return html` <div id="summaryPicker">
-        <picker-field-sk
-          ${ref(this.summaryOptionsField)}
-          @value-changed=${this.onSummaryPickerChanged}>
-        </picker-field-sk>
-        <label>${this.getPlotSummaryTraceLabel()}</label>
-      </div>
-      <plot-summary-sk
+    return html`<plot-summary-sk
         ${ref(this.plotSummary)}
         @summary_selected=${this.summarySelected}
         selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
         ?hasControl=${!this._state.disableMaterial}
         class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
-      </plot-summary-sk>`;
+      </plot-summary-sk>
+      <div id="summaryPicker">
+        <picker-field-sk
+          ${ref(this.summaryOptionsField)}
+          @value-changed=${this.onSummaryPickerChanged}>
+        </picker-field-sk>
+        <label>${this.getPlotSummaryTraceLabel()}</label>
+      </div>`;
   }
 
   private onSummaryPickerChanged(e: CustomEvent) {
