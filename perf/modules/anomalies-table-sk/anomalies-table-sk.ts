@@ -8,7 +8,8 @@
 import { html, TemplateResult } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { define } from '../../../elements-sk/modules/define';
-import '../../../elements-sk/modules/checkbox-sk/';
+import '../../../elements-sk/modules/checkbox-sk';
+import '../../../infra-sk/modules/sort-sk';
 import { Anomaly } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
@@ -39,15 +40,12 @@ export class AnomaliesTableSk extends ElementSk {
 
   private headerCheckbox: CheckOrRadio | null = null;
 
-  private sortBy: string | null = null;
-
   constructor() {
     super(AnomaliesTableSk.template);
   }
 
   async connectedCallback() {
     super.connectedCallback();
-    this.sortBy = 'end_revision';
     this._render();
 
     this.triageMenu = this.querySelector('#triage-menu');
@@ -135,77 +133,29 @@ export class AnomaliesTableSk extends ElementSk {
 
   private generateTable() {
     return html`
-      <table id="anomalies-table">
-        <tr class="headers">
-          <th id="group"></th>
-          <th id="checkbox">
-            <checkbox-sk id="header-checkbox" @change=${this.toggleAllCheckboxes}> </checkbox-sk>
-          </th>
-          <th
-            id="graph_header"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}></th>
-          <th
-            id="bug_id"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Bug ID
-          </th>
-          <th
-            id="revision_range"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Revisions
-          </th>
-          <th
-            id="master"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Master
-          </th>
-          <th
-            id="bot"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Bot
-          </th>
-          <th
-            id="testsuite"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Test Suite
-          </th>
-          <th
-            id="test"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Test
-          </th>
-          <th id="change_direction" class="minimal-width-column">Change Direction</th>
-          <th
-            id="percent_changed"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Delta %
-          </th>
-          <th
-            id="absolute_delta"
-            @click=${() => {
-              this.columnHeaderClicked();
-            }}>
-            Abs Delta
-          </th>
-        </tr>
-        ${this.generateGroups()}
-      </table>
+      <sort-sk id="as_table" target="rows">
+        <table class="anomalies-table">
+          <tr class="headers">
+            <th id="group"></th>
+            <th id="checkbox">
+              <checkbox-sk id="header-checkbox" @change=${this.toggleAllCheckboxes}> </checkbox-sk>
+            </th>
+            <th id="graph_header"></th>
+            <th id="bug_id" data-key="bugid">Bug ID</th>
+            <th id="revision_range" data-key="revisions" data-default="up">Revisions</th>
+            <th id="master" data-key="master" data-sort-type="alpha">Main</th>
+            <th id="bot" data-key="bot" data-sort-type="alpha">Bot</th>
+            <th id="testsuite" data-key="testsuite" data-sort-type="alpha">Test Suite</th>
+            <th id="test" data-key="test" data-sort-type="alpha">Test</th>
+            <th id="change_direction" data-key="direction">Change Direction</th>
+            <th id="percent_changed" data-key="delta">Delta %</th>
+            <th id="absolute_delta" data-key="absdelta">Abs Delta</th>
+          </tr>
+          <tbody id="rows">
+            ${this.generateGroups()}
+          </tbody>
+        </table>
+      </sort-sk>
     `;
   }
 
@@ -235,10 +185,37 @@ export class AnomaliesTableSk extends ElementSk {
   private generateRows(anomalyGroup: AnomalyGroup) {
     const rows = [];
     const length = anomalyGroup.anomalies.length;
+    const bugId = anomalyGroup.anomalies[0].bug_id;
+    const master = anomalyGroup.anomalies[0].test_path.split('/')[0];
+    const bot = anomalyGroup.anomalies[0].test_path.split('/')[1];
+    const testsuite = anomalyGroup.anomalies[0].test_path.split('/')[2];
+    const test = anomalyGroup.anomalies[0].test_path.split('/')[3];
+    const revision = anomalyGroup.anomalies[0].end_revision;
+    const direction =
+      anomalyGroup.anomalies[0].median_before_anomaly -
+      anomalyGroup.anomalies[0].median_after_anomaly;
+    const delta = AnomalySk.getPercentChange(
+      anomalyGroup.anomalies[0].median_before_anomaly,
+      anomalyGroup.anomalies[0].median_after_anomaly
+    );
+    const absDelta =
+      anomalyGroup.anomalies[0].median_after_anomaly -
+      anomalyGroup.anomalies[0].median_before_anomaly;
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
       const anomaly = anomalyGroup.anomalies[i];
       rows.push(html`
-        <tr class=${this.getRowClass(i, anomalyGroup)} ?hidden=${!anomalyGroup.expanded && i !== 0}>
+        <tr
+          data-bugid="${bugId}"
+          data-revisions="${revision}"
+          data-master="${master}"
+          data-bot="${bot}"
+          data-testsuite="${testsuite}"
+          data-test="${test}"
+          data-direction=${direction}
+          data-delta="${delta}"
+          data-absdelta="${absDelta}"
+          class=${this.getRowClass(i, anomalyGroup)}
+          ?hidden=${!anomalyGroup.expanded && i !== 0}>
           <td>
             <button
               class="expand-button"
@@ -271,25 +248,15 @@ export class AnomaliesTableSk extends ElementSk {
           <td>
             <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
           </td>
-          <td>${anomaly.test_path.split('/')[0]}</td>
-          <td>${anomaly.test_path.split('/')[1]}</td>
-          <td>${anomaly.test_path.split('/')[2]}</td>
-          <td>${anomaly.test_path.split('/')[3]}</td>
+          <td>${master}</td>
+          <td>${bot}</td>
+          <td>${testsuite}</td>
+          <td>${test}</td>
           <td>
             ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           </td>
-          <td>
-            ${AnomalySk.formatPercentage(
-              AnomalySk.getPercentChange(
-                anomaly.median_before_anomaly,
-                anomaly.median_after_anomaly
-              )
-            )}%
-          </td>
-          <td>
-            ${AnomalySk.formatNumber(anomaly.median_after_anomaly - anomaly.median_before_anomaly)}
-            ${anomaly.units}
-          </td>
+          <td>${AnomalySk.formatPercentage(delta)}</td>
+          <td>${AnomalySk.formatNumber(absDelta)} ${anomaly.units}</td>
         </tr>
       `);
     }
@@ -312,23 +279,6 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  /**
-   * Callback for the click event for a column header.
-   * @param {Event} event Clicked event.
-   * @param {Object} detail Detail Object.
-   */
-  private columnHeaderClicked(): void {
-    this.sort();
-  }
-
-  // TODO(jiaxindong)
-  // b/375640853 Group anomalies and sort with the revision range in either high or low direction
-  /**
-   * Sorts the alert list according to the current values of the properties
-   * sortDirection and sortBy.
-   */
-  private sort() {}
-
   private computeRevisionRange(start: number | null, end: number | null): string {
     if (start === null || end === null) {
       return '';
@@ -339,8 +289,9 @@ export class AnomaliesTableSk extends ElementSk {
     return start + ' - ' + end;
   }
 
+  //TODO(jiaxindong) replace icon with traingle icon
   private getDirectionSign(medianBefore: number, medianAfter: number): TemplateResult {
-    if (medianBefore < medianAfter) {
+    if (medianBefore <= medianAfter) {
       return html`<trending-up-icon-sk></trending-up-icon-sk>`;
     }
     return html`<trending-down-icon-sk></trending-down-icon-sk>`;
