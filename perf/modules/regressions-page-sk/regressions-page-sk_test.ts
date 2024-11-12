@@ -67,7 +67,8 @@ describe('regressions-page-sk', () => {
     it('Loads associated regressions when subscription selected', async () => {
       // 3 loaded configs and the default options
       assert.equal(dropdown?.options.length, 4);
-      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list');
+      // /anomaly_list is not called without a sheriff selected.
+      assert.equal(fetchMock.lastCall()![0], '/_/anomalies/sheriff_list');
 
       await element.triagedChange();
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/anomaly_list?triaged=true');

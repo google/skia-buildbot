@@ -45,6 +45,10 @@ export class RegressionsPageSk extends ElementSk {
   // Anomalies table
   anomaliesTable: AnomaliesTableSk | null = null;
 
+  btnTriaged: HTMLButtonElement | null = null;
+
+  btnImprovement: HTMLButtonElement | null = null;
+
   constructor() {
     super(RegressionsPageSk.template);
     this.state = {
@@ -59,19 +63,27 @@ export class RegressionsPageSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
+
+    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
+    this.btnTriaged = document.getElementById('btnTriaged') as HTMLButtonElement;
+    this.btnTriaged!.disabled = true;
+    this.btnImprovement = document.getElementById('btnImprovements') as HTMLButtonElement;
+    this.btnImprovement!.disabled = true;
+
     // Set up the state reflector to update the selected subscription
     // in the url as well as the sheriff dropdown.
     this.stateHasChanged = stateReflector(
       /* getState */ () => this.state as unknown as HintableObject,
       /* setState */ async (state) => {
         this.state = state as unknown as State;
-        if (this.state.selectedSubscription === '') {
+        if (this.state.selectedSubscription !== '') {
+          this.btnTriaged!.disabled = false;
+          this.btnImprovement!.disabled = false;
           await this.fetchRegressions();
           this._render();
         }
       }
     );
-    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
   }
 
   private async fetchRegressions(): Promise<void> {
@@ -134,12 +146,8 @@ export class RegressionsPageSk extends ElementSk {
       <option disabled selected value>-- select an option --</option>
       ${RegressionsPageSk.allSubscriptions(ele)}]
     </select>
-    <md-outlined-button id="btnTriaged" @click=${() => ele.triagedChange()}>
-      Show Triaged
-    </md-outlined-button>
-    <md-outlined-button id="btnImprovements" @click=${() => ele.improvementChange()}>
-      Show Improvements
-    </md-outlined-button>
+    <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
+    <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
@@ -147,12 +155,11 @@ export class RegressionsPageSk extends ElementSk {
   `;
 
   async improvementChange(): Promise<void> {
-    const btn = document.getElementById('btnImprovements') as HTMLButtonElement;
     this.state.showImprovements = !this.state.showImprovements;
     if (this.state.showImprovements) {
-      btn.textContent = 'Hide Improvements';
+      this.btnImprovement!.textContent = 'Hide Improvements';
     } else {
-      btn.textContent = 'Show Improvements';
+      this.btnImprovement!.textContent = 'Show Improvements';
     }
     this.stateHasChanged();
     await this.fetchRegressions();
@@ -160,12 +167,11 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   async triagedChange(): Promise<void> {
-    const btn = document.getElementById('btnTriaged') as HTMLButtonElement;
     this.state.showTriaged = !this.state.showTriaged;
     if (this.state.showTriaged) {
-      btn.textContent = 'Hide Triaged';
+      this.btnTriaged!.textContent = 'Hide Triaged';
     } else {
-      btn.textContent = 'Show Triaged';
+      this.btnTriaged!.textContent = 'Show Triaged';
     }
     this.stateHasChanged();
     await this.fetchRegressions();
@@ -174,6 +180,8 @@ export class RegressionsPageSk extends ElementSk {
 
   async filterChange(sub: string): Promise<void> {
     this.state.selectedSubscription = sub;
+    this.btnTriaged!.disabled = false;
+    this.btnImprovement!.disabled = false;
     this.stateHasChanged();
     await this.fetchRegressions();
     this._render();
