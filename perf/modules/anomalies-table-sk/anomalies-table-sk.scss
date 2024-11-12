@@ -14,7 +14,20 @@ anomalies-table-sk {
     border-collapse: collapse;
     border-spacing: 0;
     font-size: small;
-    table-layout: fixed;
+    width: 100%;
+    th,
+    td {
+      text-align: center;
+    }
+    #group,
+    #checkbox,
+    #graph_header,
+    #change_direction {
+      width: 50px;
+    }
+    #bug_id {
+      width: 130px;
+    }
   }
 
   .popup-container {

@@ -137,17 +137,15 @@ export class AnomaliesTableSk extends ElementSk {
     return html`
       <table id="anomalies-table">
         <tr class="headers">
-          <th></th>
-          <th>
+          <th id="group"></th>
+          <th id="checkbox">
             <checkbox-sk id="header-checkbox" @change=${this.toggleAllCheckboxes}> </checkbox-sk>
           </th>
           <th
             id="graph_header"
             @click=${() => {
               this.columnHeaderClicked();
-            }}>
-            Graph
-          </th>
+            }}></th>
           <th
             id="bug_id"
             @click=${() => {
@@ -156,7 +154,7 @@ export class AnomaliesTableSk extends ElementSk {
             Bug ID
           </th>
           <th
-            id="end_revision"
+            id="revision_range"
             @click=${() => {
               this.columnHeaderClicked();
             }}>
@@ -190,7 +188,7 @@ export class AnomaliesTableSk extends ElementSk {
             }}>
             Test
           </th>
-          <th id="change_direction">Change Direction</th>
+          <th id="change_direction" class="minimal-width-column">Change Direction</th>
           <th
             id="percent_changed"
             @click=${() => {
@@ -277,15 +275,20 @@ export class AnomaliesTableSk extends ElementSk {
           <td>${anomaly.test_path.split('/')[1]}</td>
           <td>${anomaly.test_path.split('/')[2]}</td>
           <td>${anomaly.test_path.split('/')[3]}</td>
-          ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           <td>
-            ${AnomalySk.getPercentChange(
-              anomaly.median_before_anomaly,
-              anomaly.median_after_anomaly
-            )}
+            ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
+          </td>
+          <td>
+            ${AnomalySk.formatPercentage(
+              AnomalySk.getPercentChange(
+                anomaly.median_before_anomaly,
+                anomaly.median_after_anomaly
+              )
+            )}%
           </td>
           <td>
             ${AnomalySk.formatNumber(anomaly.median_after_anomaly - anomaly.median_before_anomaly)}
+            ${anomaly.units}
           </td>
         </tr>
       `);
@@ -338,9 +341,9 @@ export class AnomaliesTableSk extends ElementSk {
 
   private getDirectionSign(medianBefore: number, medianAfter: number): TemplateResult {
     if (medianBefore < medianAfter) {
-      return html`<td><trending-up-icon-sk></trending-up-icon-sk></td>`;
+      return html`<trending-up-icon-sk></trending-up-icon-sk>`;
     }
-    return html`<td><trending-down-icon-sk></trending-down-icon-sk></td>`;
+    return html`<trending-down-icon-sk></trending-down-icon-sk>`;
   }
 
   populateTable(anomalyList: Anomaly[]) {
