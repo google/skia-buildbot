@@ -186,6 +186,11 @@ export class ExploreMultiSk extends ElementSk {
     return this.userEmail !== null && this.userEmail !== '';
   }
 
+  private toggleChartStyle() {
+    this.state.show_google_plot = !this.state.show_google_plot;
+    this.addGraphsToCurrentPage();
+  }
+
   private openAddFavoriteDialog = async () => {
     const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
     await d!.open();
@@ -221,6 +226,12 @@ export class ExploreMultiSk extends ElementSk {
         }}
         title="Merge all graphs into a single graph.">
         Merge Graphs
+      </button>
+      <button
+        @click=${() => {
+          ele.toggleChartStyle();
+        }}>
+        Toggle Chart Style
       </button>
       <button
         id="favBtn"

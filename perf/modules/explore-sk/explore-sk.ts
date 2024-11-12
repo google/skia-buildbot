@@ -108,6 +108,12 @@ export class ExploreSk extends ElementSk {
         }}>
         Add to Favorites
       </button>
+      <button
+        @click=${() => {
+          ele.exploreSimpleSk?.toggleGoogleChart();
+        }}>
+        Toggle Chart Style
+      </button>
     </div>
     <test-picker-sk id="test-picker" class="hidden explore-padding"></test-picker-sk>
     <explore-simple-sk></explore-simple-sk>

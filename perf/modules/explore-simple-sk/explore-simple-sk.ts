@@ -785,10 +785,8 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
     <div class="chart-container">
-    ${when(
-      ele._state.show_google_plot,
-      () =>
-        html` <plot-google-chart-sk
+        <plot-google-chart-sk
+          style="display:${ele._state.show_google_plot ? 'block' : 'none'}"
           ${ref(ele.googleChartPlot)}
           @google-chart-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
@@ -798,9 +796,9 @@ export class ExploreSimpleSk extends ElementSk {
           <md-icon slot="untriage">question_exchange</md-icon>
           <md-icon slot="regression">report</md-icon>
           <md-icon slot="improvement">check</md-icon>
-        </plot-google-chart-sk>`,
-      () => html`
+        </plot-google-chart-sk>
         <plot-simple-sk
+          style="display:${ele._state.show_google_plot ? 'none' : 'block'}"
           .summary=${ele._state.summary}
           ${ref(ele.plotSimple)}
           @trace_selected=${ele.traceSelected}
@@ -809,8 +807,6 @@ export class ExploreSimpleSk extends ElementSk {
           class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
           .scrollable=${ele.scrollable}>
         </plot-simple-sk>
-      `
-    )}
       <chart-tooltip-sk></chart-tooltip-sk>
       </div>
       ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
@@ -2829,6 +2825,11 @@ export class ExploreSimpleSk extends ElementSk {
     });
 
     return graphConfigs;
+  }
+
+  public toggleGoogleChart() {
+    this.state.show_google_plot = !this.state.show_google_plot;
+    this._render();
   }
 
   // TODO(b/377772220): When splitting a chart with multiple traces,

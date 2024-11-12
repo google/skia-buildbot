@@ -752,12 +752,19 @@ export class PlotSimpleSk extends ElementSk {
 
     this.render();
 
-    // We need to dynamically resize the canvas elements since they don't do
-    // that themselves.
     const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
-      entries.forEach((entry) => {
-        this.width = entry.contentRect.width;
-        this.height = entry.contentRect.height;
+      // We add this to avoid resizeObserver loop limit errors in unit tests
+      // https://stackoverflow.com/a/58701523
+      window.requestAnimationFrame(() => {
+        if (!Array.isArray(entries) || !entries.length) {
+          return;
+        }
+        // We need to dynamically resize the canvas elements since they don't do
+        // that themselves.
+        entries.forEach((entry) => {
+          this.width = entry.contentRect.width;
+          this.height = entry.contentRect.height;
+        });
       });
     });
     resizeObserver.observe(this);
