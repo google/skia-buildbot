@@ -75,6 +75,7 @@ export class AnomaliesTableSk extends ElementSk {
       </div>
     </div>
     ${ele.generateTable()}
+    <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
   `;
 
   private togglePopup() {
@@ -134,7 +135,7 @@ export class AnomaliesTableSk extends ElementSk {
   private generateTable() {
     return html`
       <sort-sk id="as_table" target="rows">
-        <table id="anomalies-table">
+        <table id="anomalies-table" hidden>
           <tr class="headers">
             <th id="group"></th>
             <th id="checkbox">
@@ -301,9 +302,18 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   populateTable(anomalyList: Anomaly[]) {
-    this.anomalyList = anomalyList;
-    this.groupAnomalies();
-    this._render();
+    const msg = document.getElementById('clear-msg') as HTMLHeadingElement;
+    const table = document.getElementById('anomalies-table') as HTMLTableElement;
+    if (anomalyList.length > 0) {
+      msg.hidden = true;
+      table.hidden = false;
+      this.anomalyList = anomalyList;
+      this.groupAnomalies();
+      this._render();
+    } else {
+      msg.hidden = false;
+      table.hidden = true;
+    }
   }
 
   /**
