@@ -207,9 +207,9 @@ export class AlertManagerSk extends HTMLElement {
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele.tabSwitch} selected=${ele.state.tab}>
     <button>Mine</button>
-    <button>Infra Alerts</button>
-    <button>Skia Alerts</button>
-    <button>All Alerts</button>
+    <button>Infra</button>
+    <button>Skia</button>
+    <button>All</button>
     <button>Silences</button>
     <button>Stats</button>
     <button>Audit</button>
@@ -223,7 +223,6 @@ export class AlertManagerSk extends HTMLElement {
       ${ele.incidentList(ele.getMyIncidents(), false)}
     </section>
     <section class=infra-incidents>
-      ${ele.botCentricBtn()}
       <span class=selection-buttons>
         ${ele.displayAssignMultiple()}
         ${ele.displayClearSelections()}
@@ -378,17 +377,11 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private getInfraIncidents(): Incident[] {
-    return this.incidents.filter(
-      (i: Incident) =>
-        i.active && i.params.__silence_state !== 'silenced' && i.params['category'] === 'infra'
-    );
+    return this.incidents.filter((i: Incident) => i.params['category'] === 'infra');
   }
 
   private getSkiaIncidents(): Incident[] {
-    return this.incidents.filter(
-      (i: Incident) =>
-        i.active && i.params.__silence_state !== 'silenced' && i.params['category'] === 'skia'
-    );
+    return this.incidents.filter((i: Incident) => i.params['category'] === 'skia');
   }
 
   private keyDown(e: KeyboardEvent) {
@@ -987,12 +980,12 @@ export class AlertManagerSk extends HTMLElement {
     this.filterAuditLogsVal = '';
 
     // If tab is stats then load stats.
-    if (e.detail.index === 3) {
+    if (e.detail.index === 5) {
       this.getStats();
     }
     // If tab is silences then display empty silence to populate from scratch.
     // This will go away if any existing silence is clicked on.
-    if (e.detail.index === 2) {
+    if (e.detail.index === 4) {
       fetch('/_/new_silence', {
         credentials: 'include',
       })
@@ -1004,7 +997,7 @@ export class AlertManagerSk extends HTMLElement {
           this._render();
         })
         .catch(errorMessage);
-    } else if (e.detail.index === 4) {
+    } else if (e.detail.index === 6) {
       // If tab is audit logs then load them.
       this.getAuditLogs();
       this.rhs_state = VIEW_AUDITLOG;

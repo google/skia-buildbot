@@ -156,8 +156,8 @@ alert-manager-sk {
   }
 
   .mine.selected,
-  .infra-incidents,
-  .skia-incidents,
+  .infra-incidents.selected,
+  .skia-incidents.selected,
   .incidents.selected {
     display: grid;
   }
