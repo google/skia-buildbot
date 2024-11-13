@@ -8,13 +8,15 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../elements-sk/modules/spinner-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 import '@material/web/button/outlined-button.js';
+import { HintableObject } from '../../../infra-sk/modules/hintable';
+
 // State is the local UI state of regressions-page-sk
 interface State {
   selectedSubscription: string;
@@ -49,6 +51,12 @@ export class RegressionsPageSk extends ElementSk {
 
   btnImprovement: HTMLButtonElement | null = null;
 
+  private showMoreAnomalies: boolean | null = null;
+
+  private anomalyCursor: string | null = null;
+
+  private anomaliesLoadingSpinner = false;
+
   constructor() {
     super(RegressionsPageSk.template);
     this.state = {
@@ -64,7 +72,6 @@ export class RegressionsPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
     this.btnTriaged = document.getElementById('btnTriaged') as HTMLButtonElement;
     this.btnTriaged!.disabled = true;
     this.btnImprovement = document.getElementById('btnImprovements') as HTMLButtonElement;
@@ -74,16 +81,18 @@ export class RegressionsPageSk extends ElementSk {
     // in the url as well as the sheriff dropdown.
     this.stateHasChanged = stateReflector(
       /* getState */ () => this.state as unknown as HintableObject,
-      /* setState */ async (state) => {
-        this.state = state as unknown as State;
+      /* setState */ async (newState) => {
+        this.state = newState as unknown as State;
         if (this.state.selectedSubscription !== '') {
           this.btnTriaged!.disabled = false;
           this.btnImprovement!.disabled = false;
+          this.cpAnomalies = [];
           await this.fetchRegressions();
           this._render();
         }
       }
     );
+    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
   }
 
   private async fetchRegressions(): Promise<void> {
@@ -98,6 +107,9 @@ export class RegressionsPageSk extends ElementSk {
     if (this.state.showImprovements === true) {
       queryMap.set('improvements', this.state.showImprovements);
     }
+    if (this.anomalyCursor) {
+      queryMap.set('anomaly_cursor', this.anomalyCursor);
+    }
     const queryPairs = [];
     let queryStr = '';
     if (queryMap.size > 0) {
@@ -108,17 +120,28 @@ export class RegressionsPageSk extends ElementSk {
     }
 
     const url = ANOMALY_LIST_ENDPOINT + queryStr;
-    const response = await fetch(url, {
+    this.anomaliesLoadingSpinner = true;
+    await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-    });
-    const json: GetAnomaliesResponse = await jsonOrThrow(response);
-    const regs: Anomaly[] = json.anomaly_list || [];
-    this.cpAnomalies = [...regs];
-
-    this.anomaliesTable!.populateTable(this.cpAnomalies);
+    })
+      .then(jsonOrThrow)
+      .then((response) => {
+        const json: GetAnomaliesResponse = response;
+        const regs: Anomaly[] = json.anomaly_list || [];
+        this.cpAnomalies = this.cpAnomalies.concat([...regs]);
+        this.showMoreAnomalies = json.anomaly_cursor !== null;
+        this.anomalyCursor = json.anomaly_cursor;
+        this.anomaliesLoadingSpinner = false;
+        this.anomaliesTable!.populateTable(this.cpAnomalies);
+        this._render();
+      })
+      .catch(() => {
+        this.anomaliesLoadingSpinner = false;
+        this._render();
+      });
   }
 
   private async init() {
@@ -134,6 +157,7 @@ export class RegressionsPageSk extends ElementSk {
     this.subscriptionList = [...subscriptions];
     this.regressions = [];
     this.cpAnomalies = [];
+    this.showMoreAnomalies = false;
     this.stateHasChanged();
     this._render();
   }
@@ -148,7 +172,14 @@ export class RegressionsPageSk extends ElementSk {
     </select>
     <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
     <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
+    <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
+      <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>
+        <div class>Show More</div>
+      </button>
+      <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
+    </div>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
       : null}
@@ -182,6 +213,9 @@ export class RegressionsPageSk extends ElementSk {
     this.state.selectedSubscription = sub;
     this.btnTriaged!.disabled = false;
     this.btnImprovement!.disabled = false;
+    this.cpAnomalies = [];
+    this.showMoreAnomalies = false;
+    this.anomalyCursor = null;
     this.stateHasChanged();
     await this.fetchRegressions();
     this._render();

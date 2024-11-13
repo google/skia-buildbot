@@ -22,6 +22,7 @@ anomalies-table-sk {
     th {
       // Make the header look clicky on hover.
       cursor: pointer;
+      font-weight: bold;
     }
     #group,
     #checkbox,
@@ -38,21 +39,10 @@ anomalies-table-sk {
     .regression {
       color: var(--failure);
     }
-  }
-
-  .popup-container {
-    position: relative;
-  }
-
-  .popup-container .popup {
-    position: absolute;
-    left: 0;
-    top: 100%;
-    background-color: var(--background);
-    padding: 20px;
-    border: var(--on-background);
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-    z-index: 100;
+    #change_direction {
+      text-align: center;
+      width: var(--percent-changed-width, 50px);
+    }
   }
 
   header {
@@ -91,5 +81,19 @@ anomalies-table-sk {
 
   .child-expanded-row > td:first-child {
     background-color: var(--background);
+  }
+  .popup-container {
+    position: relative;
+  }
+
+  .popup-container .popup {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background-color: var(--background);
+    padding: 20px;
+    border: var(--on-background);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    z-index: 100;
   }
 }
