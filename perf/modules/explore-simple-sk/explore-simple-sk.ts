@@ -786,7 +786,7 @@ export class ExploreSimpleSk extends ElementSk {
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
     <div class="chart-container">
         <plot-google-chart-sk
-          style="display:${ele._state.show_google_plot ? 'block' : 'none'}"
+          style="${ele._state.show_google_plot ? '' : 'display: none'}"
           ${ref(ele.googleChartPlot)}
           @google-chart-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
@@ -798,7 +798,7 @@ export class ExploreSimpleSk extends ElementSk {
           <md-icon slot="improvement">check</md-icon>
         </plot-google-chart-sk>
         <plot-simple-sk
-          style="display:${ele._state.show_google_plot ? 'none' : 'block'}"
+        style="${!ele._state.show_google_plot ? '' : 'display: none'}"
           .summary=${ele._state.summary}
           ${ref(ele.plotSimple)}
           @trace_selected=${ele.traceSelected}
