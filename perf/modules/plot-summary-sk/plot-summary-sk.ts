@@ -64,8 +64,11 @@ export class PlotSummarySk extends LitElement {
   @property({ attribute: true })
   selectedTrace: string | null = null;
 
+  // load ~1Q worth of data as developer cycles tend to
+  // revolve around quarterly milestones. Users are likely
+  // to want to see historical data in this increment.
   @property({ type: Number })
-  loadingChunk = 45 * dayInSeconds;
+  loadingChunk = 90 * dayInSeconds;
 
   @property({ type: Boolean })
   hasControl: boolean = false;
