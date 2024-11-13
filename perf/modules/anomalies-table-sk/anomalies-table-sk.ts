@@ -186,10 +186,11 @@ export class AnomaliesTableSk extends ElementSk {
     const rows = [];
     const length = anomalyGroup.anomalies.length;
     const bugId = anomalyGroup.anomalies[0].bug_id;
-    const master = anomalyGroup.anomalies[0].test_path.split('/')[0];
-    const bot = anomalyGroup.anomalies[0].test_path.split('/')[1];
-    const testsuite = anomalyGroup.anomalies[0].test_path.split('/')[2];
-    const test = anomalyGroup.anomalies[0].test_path.split('/')[3];
+    const testPathPieces = anomalyGroup.anomalies[0].test_path.split('/');
+    const master = testPathPieces[0];
+    const bot = testPathPieces[1];
+    const testsuite = testPathPieces[2];
+    const test = testPathPieces.slice(3, testPathPieces.length).join('/');
     const revision = anomalyGroup.anomalies[0].end_revision;
     const direction =
       anomalyGroup.anomalies[0].median_before_anomaly -
@@ -290,12 +291,13 @@ export class AnomaliesTableSk extends ElementSk {
     return start + ' - ' + end;
   }
 
-  //TODO(jiaxindong) replace icon with traingle icon
+  // return up or down triangle.
+  // also suppressed the 'Non ASCII character found' error.
   private getDirectionSign(medianBefore: number, medianAfter: number): TemplateResult {
     if (medianBefore <= medianAfter) {
-      return html`<trending-up-icon-sk></trending-up-icon-sk>`;
+      return html`\u25B2`; // prettier-ignore
     }
-    return html`<trending-down-icon-sk></trending-down-icon-sk>`;
+    return html`\u25BC`; // prettier-ignore
   }
 
   populateTable(anomalyList: Anomaly[]) {
