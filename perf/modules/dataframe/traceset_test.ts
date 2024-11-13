@@ -144,11 +144,11 @@ describe('getLegend', () => {
     assert.deepEqual(legend, [{}]);
   });
 
-  it('missing key returns unique keys', () => {
+  it('missing keys return none', () => {
     const keys = [
       ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,',
       ',benchmark=JetStream2,ref_mode=ref,',
-      ',benchmark=JetStream2,ref_mode=avg,',
+      ',benchmark=JetStream2,ref_mode=avg,subtest=jetstream2',
     ];
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },
@@ -165,12 +165,50 @@ describe('getLegend', () => {
       {
         bot: 'MacM1',
         ref_mode: 'ref',
+        subtest: '-',
       },
       {
+        bot: '-',
+        ref_mode: 'ref',
+        subtest: '-',
+      },
+      {
+        bot: '-',
+        ref_mode: 'avg',
+        subtest: 'jetstream2',
+      },
+    ]);
+  });
+
+  it('blank keys return none', () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=,ref_mode=ref,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=avg,',
+      ',benchmark=JetStream2,bot=win-10-perf,ref_mode=',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+
+    const legend = getLegend(df);
+    assert.equal(legend.length, keys.length);
+    assert.deepEqual(legend, [
+      {
+        bot: '-',
         ref_mode: 'ref',
       },
       {
+        bot: 'MacM1',
         ref_mode: 'avg',
+      },
+      {
+        bot: 'win-10-perf',
+        ref_mode: '-',
       },
     ]);
   });
@@ -189,7 +227,10 @@ describe('getLegend', () => {
     const legend = getLegend(df);
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
-      {},
+      {
+        benchmark: '-',
+        ref_mode: '-',
+      },
       {
         benchmark: 'JetStream2',
         ref_mode: 'ref',

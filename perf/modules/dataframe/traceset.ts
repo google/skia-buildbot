@@ -63,26 +63,30 @@ export const getTitle = (df: DataFrame): object => {
  * a df with keys = [
  *   ",benchmark=JetStream2,story=Total,test=avg",
  *   ",benchmark=JetStream2,story=Air,test=std"
+ *   ",benchmark=JetStream2,story=Air"
  * ]
  * legend = [{
  *   "story":"Total",
- *   "test":"avg"
+ *   "test":"avg",
  *  }, {
- *   "story":"Air"
- *   "test":"std"
+ *   "story":"Air",
+ *   "test":"std",
+ *  }, {
+ *   "story":"Air",
+ *   "test":"-",
  *  }]
  */
 export const getLegend = (df: DataFrame): object[] => {
   const traceKeys = Object.keys(df!.traceset);
   const pairs = convertKeysToPairs(traceKeys);
 
-  const legend = [];
+  const uniqKVP = [];
   // for each key, split the traceKey into key-value pairs
   // and filter for entries that do not appear across all traceKeys
   for (const key of traceKeys) {
     const kvp = key.split(',').filter((pair) => pair.length);
     const uniq = kvp.filter((item) => pairs.filter((x) => x === item).length < traceKeys.length);
-    legend.push(
+    uniqKVP.push(
       Object.fromEntries(
         uniq.map((item) => {
           return item.split('=');
@@ -90,6 +94,20 @@ export const getLegend = (df: DataFrame): object[] => {
       )
     );
   }
+
+  // Get all unique keys from the objects in the array
+  const allKeys = new Set(uniqKVP.flatMap(Object.keys));
+
+  // Fill in missing or blank keys with "-"
+  const legend = uniqKVP.map((obj) => {
+    const newObj: { [key: string]: string } = {};
+    Array.from(allKeys)
+      .sort() // Sort the keys alphabetically
+      .forEach((key) => {
+        newObj[key] = obj[key] ? obj[key] : '-';
+      });
+    return newObj;
+  });
 
   return legend;
 };
