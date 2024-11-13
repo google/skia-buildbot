@@ -26,8 +26,9 @@ const (
 // in the schema to be compatible with Spanner postgres.
 // TODO(ashwinpv): This will replace the other schema gen once spanner is fully rolled out.
 type spannerConverter struct {
-	sequences []string
-	indices   []string
+	sequences   []string
+	indices     []string
+	primaryKeys map[string]string
 }
 
 // getSequenceDeclarations returns the sequence creation statements for all
@@ -36,7 +37,7 @@ func (sc *spannerConverter) getSequenceDeclarations() string {
 	if len(sc.sequences) > 0 {
 		sequenceBuilder := strings.Builder{}
 		for _, seq := range sc.sequences {
-			sequenceBuilder.WriteString("CREATE SEQUENCE " + seq + " bit_reversed_positive;\n")
+			sequenceBuilder.WriteString("CREATE SEQUENCE IF NOT EXISTS " + seq + " bit_reversed_positive;\n")
 		}
 
 		return sequenceBuilder.String()
@@ -51,7 +52,7 @@ func (sc *spannerConverter) getIndexDeclarations() string {
 	if len(sc.indices) > 0 {
 		indexBuilder := strings.Builder{}
 		for _, idx := range sc.indices {
-			indexBuilder.WriteString("CREATE INDEX " + idx + ";\n")
+			indexBuilder.WriteString("CREATE INDEX IF NOT EXISTS " + idx + ";\n")
 		}
 
 		return indexBuilder.String()
@@ -85,6 +86,13 @@ func (sc *spannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		sc.sequences = append(sc.sequences, sequenceName)
 
 		typeReplacements[uniqueRowIdentifier] = fmt.Sprintf("nextval('%s')", sequenceName)
+		if strings.Contains(sqlColumnText, "PRIMARY KEY") {
+			// The primary key statement should come after the columns when we
+			// are using nextval for generating unique row ids.
+			columnName := strings.Split(sqlColumnText, " ")[0]
+			sc.primaryKeys[tableName] = columnName
+			sqlColumnText = strings.Replace(sqlColumnText, " PRIMARY KEY", "", -1)
+		}
 	}
 
 	if strings.Contains(sqlColumnText, "INDEX") {
@@ -134,8 +142,9 @@ func GenerateSQL(inputType interface{}, pkg string, opt Options, schemaTarget Sc
 	var sc *spannerConverter
 	if schemaTarget == Spanner {
 		sc = &spannerConverter{
-			sequences: []string{},
-			indices:   []string{},
+			sequences:   []string{},
+			indices:     []string{},
+			primaryKeys: map[string]string{},
 		}
 	}
 	body := strings.Builder{}
@@ -170,6 +179,11 @@ func GenerateSQL(inputType interface{}, pkg string, opt Options, schemaTarget Sc
 				body.WriteString("\n  ")
 
 				body.WriteString(strings.TrimSpace(sqlText))
+			}
+		}
+		if sc != nil {
+			if pk, ok := sc.primaryKeys[table.Name]; ok {
+				body.WriteString(",\n  PRIMARY KEY (" + pk + ")")
 			}
 		}
 		body.WriteString("\n);\n")

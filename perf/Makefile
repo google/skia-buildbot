@@ -33,6 +33,11 @@ release_backup:
 push_backup: release_backup
 	$(BAZEL) run --config=mayberemote //perf:pushk_perf-cockroachdb-backup
 
+# Run a spanner emulator locally.
+run-spanner-emulator:
+	docker ps -q | xargs -r docker rm -vf
+	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
+
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
 
@@ -210,6 +215,27 @@ run-demo-instance:
 		--display_group_by=false \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
+
+run-demo-instance-spanner:
+	$(BAZEL) build --config=mayberemote -c dbg //perf/...
+	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- \
+		--database_url=postgresql://localhost:5432/demo?sslmode=disable \
+		--spanner
+
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
+		--local \
+		--config_filename=./configs/demo_spanner.json \
+		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
+
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
+		--local \
+		--do_clustering=false \
+		--port=:8002 \
+		--prom_port=:20001 \
+		--config_filename=./configs/demo_spanner.json \
+		--display_group_by=false \
+		--resources_dir=../_bazel_bin/perf/pages/development/ \
+		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
 
 
 # Before running this target you need to have a local single-instance of

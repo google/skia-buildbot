@@ -141,14 +141,8 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 		return nil, skerr.Fmt("A connection_string must always be supplied.")
 	}
 
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-	default:
-		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
-	}
-
 	// Now create the appropriate db.
-	db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+	db, err := getDBPool(ctx, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -164,28 +158,20 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 //
 // If local is true then we aren't running in production.
 func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqltracestore.New(db, instanceConfig.DataStoreConfig)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return sqltracestore.New(db, instanceConfig.DataStoreConfig)
 }
 
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
 func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqlalertstore.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return sqlalertstore.New(db)
 }
 
 // NewRegressionStoreFromConfig creates a new regression.RegressionStore from
@@ -193,48 +179,36 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 //
 // If local is true then we aren't running in production.
 func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig, alertsConfigProvider alerts.ConfigProvider) (regression.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		if instanceConfig.UseRegression2 {
-			return sqlregression2store.New(db, alertsConfigProvider)
-		} else {
-			return sqlregressionstore.New(db)
-		}
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+
+	if instanceConfig.UseRegression2 {
+		return sqlregression2store.New(db, alertsConfigProvider)
+	} else {
+		return sqlregressionstore.New(db)
+	}
 }
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
 func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqlshortcutstore.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return sqlshortcutstore.New(db)
 }
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
 func NewGraphsShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (graphsshortcut.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return graphsshortcutstore.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return graphsshortcutstore.New(db)
 }
 
 // NewSourceFromConfig creates a new file.Source from the InstanceConfig.
@@ -274,57 +248,41 @@ func NewIngestedFSFromConfig(ctx context.Context, cfg *config.InstanceConfig, lo
 // NewAnomalyGroupStoreFromConfig creates a new anomalygroup.Store from the
 // InstanceConfig which provides access to the anomalygroup data.
 func NewAnomalyGroupStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (anomalygroup.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return ag_store.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return ag_store.New(db)
 }
 
 // NewCulpritStoreFromConfig creates a new culprit.Store from the
 // InstanceConfig which provides access to the culprit data.
 func NewCulpritStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (culprit.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return culprit_store.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return culprit_store.New(db)
 }
 
 // NewSubscriptionStoreFromConfig creates a new subscription.Store from the
 // InstanceConfig which provides access to the subscription data.
 func NewSubscriptionStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (subscription.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return subscription_store.New(db)
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return subscription_store.New(db)
 }
 
 // NewFavoriteStoreFromConfig creates a new favorites.Store from the
 // InstanceConfig which provides access to the favorite data.
 func NewFavoriteStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (favorites.Store, error) {
-	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return favorite_store.New(db), nil
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
 	}
-	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	return favorite_store.New(db), nil
 }
 
 // GetCacheFromConfig returns a cache.Cache instance based on the given configuration.
@@ -352,4 +310,23 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 	}
 
 	return cache, err
+}
+
+// getDBPool returns a pool.Pool object based on the target database configured.
+func getDBPool(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.CockroachDBDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return db, nil
+	case config.SpannerDataStoreType:
+		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, false)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return db, nil
+	}
+	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

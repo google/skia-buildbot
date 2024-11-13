@@ -126,6 +126,9 @@ type DataStoreType string
 const (
 	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
+
+	// SpannerDataStoreType is for storing all data in a Spanner database.
+	SpannerDataStoreType DataStoreType = "spanner"
 )
 
 // CacheConfig is the config for LRU caches in the trace store.

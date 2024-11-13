@@ -199,22 +199,22 @@ CREATE TABLE IF NOT EXISTS DeprecatedExpectationUndos (
   user_id TEXT NOT NULL,
   ts TIMESTAMP WITH TIME ZONE NOT NULL
 );
-CREATE INDEX system_status_ingested_idx on Changelists (system, status, last_ingested_data);
-CREATE INDEX status_ingested_idx on Changelists (status, last_ingested_data DESC);
-CREATE INDEX branch_ts_idx on ExpectationRecords (branch_name, triage_time);
-CREATE INDEX label_idx on Expectations (label);
-CREATE INDEX commit_idx on GitCommits (commit_id);
-CREATE INDEX cl_order_idx on Patchsets (changelist_id, ps_order);
-CREATE INDEX calculated_idx on PrimaryBranchDiffCalculationWork (last_calculated_ts);
-CREATE INDEX calculated_idx on SecondaryBranchDiffCalculationWork (last_calculated_ts);
-CREATE INDEX grouping_digest_idx on TiledTraceDigests (grouping_id, digest);
-CREATE INDEX tile_trace_idx on TiledTraceDigests (tile_id, trace_id);
-CREATE INDEX trace_commit_idx on TraceValues (trace_id, commit_id) INCLUDE (digest, options_id, grouping_id);
-CREATE INDEX grouping_ignored_idx on Traces (grouping_id, matches_any_ignore_rule);
-CREATE INDEX ignored_grouping_idx on Traces (matches_any_ignore_rule, grouping_id);
-CREATE INDEX keys_idx on Traces (keys);
-CREATE INDEX cl_idx on Tryjobs (changelist_id);
-CREATE INDEX ignored_grouping_idx on ValuesAtHead (matches_any_ignore_rule, grouping_id);
-CREATE INDEX corpus_commit_ignore_idx on ValuesAtHead (corpus, most_recent_commit_id, matches_any_ignore_rule) INCLUDE (grouping_id, digest);
-CREATE INDEX keys_idx on ValuesAtHead (keys);
+CREATE INDEX IF NOT EXISTS system_status_ingested_idx on Changelists (system, status, last_ingested_data);
+CREATE INDEX IF NOT EXISTS status_ingested_idx on Changelists (status, last_ingested_data DESC);
+CREATE INDEX IF NOT EXISTS branch_ts_idx on ExpectationRecords (branch_name, triage_time);
+CREATE INDEX IF NOT EXISTS label_idx on Expectations (label);
+CREATE INDEX IF NOT EXISTS commit_idx on GitCommits (commit_id);
+CREATE INDEX IF NOT EXISTS cl_order_idx on Patchsets (changelist_id, ps_order);
+CREATE INDEX IF NOT EXISTS calculated_idx on PrimaryBranchDiffCalculationWork (last_calculated_ts);
+CREATE INDEX IF NOT EXISTS calculated_idx on SecondaryBranchDiffCalculationWork (last_calculated_ts);
+CREATE INDEX IF NOT EXISTS grouping_digest_idx on TiledTraceDigests (grouping_id, digest);
+CREATE INDEX IF NOT EXISTS tile_trace_idx on TiledTraceDigests (tile_id, trace_id);
+CREATE INDEX IF NOT EXISTS trace_commit_idx on TraceValues (trace_id, commit_id) INCLUDE (digest, options_id, grouping_id);
+CREATE INDEX IF NOT EXISTS grouping_ignored_idx on Traces (grouping_id, matches_any_ignore_rule);
+CREATE INDEX IF NOT EXISTS ignored_grouping_idx on Traces (matches_any_ignore_rule, grouping_id);
+CREATE INDEX IF NOT EXISTS keys_idx on Traces (keys);
+CREATE INDEX IF NOT EXISTS cl_idx on Tryjobs (changelist_id);
+CREATE INDEX IF NOT EXISTS ignored_grouping_idx on ValuesAtHead (matches_any_ignore_rule, grouping_id);
+CREATE INDEX IF NOT EXISTS corpus_commit_ignore_idx on ValuesAtHead (corpus, most_recent_commit_id, matches_any_ignore_rule) INCLUDE (grouping_id, digest);
+CREATE INDEX IF NOT EXISTS keys_idx on ValuesAtHead (keys);
 `

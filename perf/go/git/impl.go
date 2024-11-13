@@ -77,7 +77,7 @@ var statements = map[statement]string{
 			Commits (commit_number, git_hash, commit_time, author, subject)
 		VALUES
 			($1, $2, $3, $4, $5)
-		ON CONFLICT
+		ON CONFLICT (commit_number)
 		DO NOTHING
 		`,
 	getCommitNumberFromGitHash: `

@@ -659,6 +659,9 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
+	// statements are already constructed SQL statements.
+	statements map[statement]string
+
 	// And from md5(trace_name)+tile_number -> true if the trace_name has
 	// already been written to the Postings table.
 	//
@@ -697,7 +700,12 @@ type SQLTraceStore struct {
 // called.
 func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
 	unpreparedStatements := map[statement]*template.Template{}
-	for key, tmpl := range templates {
+	queryTemplates := templates
+	if datastoreConfig.DataStoreType == config.SpannerDataStoreType {
+		statements = spannerStatements
+		queryTemplates = spannerTemplates
+	}
+	for key, tmpl := range queryTemplates {
 		t, err := template.New("").Parse(tmpl)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "parsing template %v, %q", key, tmpl)
@@ -724,6 +732,7 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, 
 	ret := &SQLTraceStore{
 		db:                                     db,
 		unpreparedStatements:                   unpreparedStatements,
+		statements:                             statements,
 		tileSize:                               datastoreConfig.TileSize,
 		cache:                                  cache,
 		orderedParamSetCache:                   paramSetCache,
@@ -782,7 +791,7 @@ func (s *SQLTraceStore) GetLatestTile(ctx context.Context) (types.TileNumber, er
 	defer span.End()
 
 	tileNumber := types.BadTileNumber
-	if err := s.db.QueryRow(ctx, statements[getLatestTile]).Scan(&tileNumber); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[getLatestTile]).Scan(&tileNumber); err != nil {
 		return types.BadTileNumber, skerr.Wrap(err)
 	}
 	return tileNumber, nil
@@ -895,7 +904,7 @@ func (s *SQLTraceStore) GetLastNSources(ctx context.Context, traceID string, n i
 	defer span.End()
 
 	traceIDAsBytes := traceIDForSQLInBytesFromTraceName(traceID)
-	rows, err := s.db.Query(ctx, statements[getLastNSources], traceIDAsBytes[:], n)
+	rows, err := s.db.Query(ctx, s.statements[getLastNSources], traceIDAsBytes[:], n)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for traceID=%q and n=%d", traceID, n)
 	}
@@ -923,7 +932,7 @@ func (s *SQLTraceStore) GetTraceIDsBySource(ctx context.Context, sourceFilename 
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.GetTraceIDsBySource")
 	defer span.End()
 
-	rows, err := s.db.Query(ctx, statements[getTraceIDsBySource], sourceFilename, tileNumber)
+	rows, err := s.db.Query(ctx, s.statements[getTraceIDsBySource], sourceFilename, tileNumber)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for sourceFilename=%q and tileNumber=%d", sourceFilename, tileNumber)
 	}
@@ -989,7 +998,7 @@ func (s *SQLTraceStore) countCommitInCommitNumberRange(ctx context.Context, begi
 	defer span.End()
 
 	var count int
-	if err := s.db.QueryRow(ctx, statements[countCommitInCommitNumberRange], begin, end).Scan(&count); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[countCommitInCommitNumberRange], begin, end).Scan(&count); err != nil {
 		return 0, skerr.Wrap(err)
 	}
 	return count, nil
@@ -1690,7 +1699,7 @@ func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNum
 	defer span.End()
 
 	var ret int64
-	err := s.db.QueryRow(ctx, statements[traceCount], tileNumber).Scan(&ret)
+	err := s.db.QueryRow(ctx, s.statements[traceCount], tileNumber).Scan(&ret)
 	span.AddAttributes(trace.Int64Attribute("count", ret))
 	return ret, skerr.Wrap(err)
 }
@@ -1702,11 +1711,11 @@ func (s *SQLTraceStore) updateSourceFile(ctx context.Context, filename string) (
 	defer span.End()
 
 	ret := badSourceFileIDFromSQL
-	_, err := s.db.Exec(ctx, statements[insertIntoSourceFiles], filename)
+	_, err := s.db.Exec(ctx, s.statements[insertIntoSourceFiles], filename)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}
-	err = s.db.QueryRow(ctx, statements[getSourceFileID], filename).Scan(&ret)
+	err = s.db.QueryRow(ctx, s.statements[getSourceFileID], filename).Scan(&ret)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}
@@ -1884,7 +1893,7 @@ func (s *SQLTraceStore) commitSliceFromCommitNumberRange(ctx context.Context, be
 	defer span.End()
 
 	s.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := s.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
+	rows, err := s.db.Query(ctx, s.statements[getCommitsFromCommitNumberRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
@@ -1903,7 +1912,7 @@ func (s *SQLTraceStore) commitSliceFromCommitNumberRange(ctx context.Context, be
 // deleteCommit delete a commit from Commits table.
 // this method is for testing only.
 func (s *SQLTraceStore) deleteCommit(ctx context.Context, commitNumber types.CommitNumber) error {
-	commandTag, err := s.db.Exec(ctx, statements[deleteCommit], commitNumber)
+	commandTag, err := s.db.Exec(ctx, s.statements[deleteCommit], commitNumber)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to delete the commit %v", commitNumber)
 	}

@@ -5,6 +5,7 @@ go_library(
     name = "sqltracestore",
     srcs = [
         "intersect.go",
+        "spanner.go",
         "sqltracestore.go",
     ],
     importpath = "go.skia.org/infra/perf/go/tracestore/sqltracestore",

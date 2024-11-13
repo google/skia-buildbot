@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS TaskResult (
   finished TIMESTAMPTZ NOT NULL,
   status TEXT NOT NULL DEFAULT ''
 );
-CREATE INDEX dimensions_gin on Description (dimensions);
-CREATE INDEX by_powercycle on Description (powercycle);
-CREATE INDEX by_running_task on Description (running_task);
-CREATE INDEX by_machine_id on TaskResult (machine_id);
-CREATE INDEX by_status on TaskResult (status);
+CREATE INDEX IF NOT EXISTS dimensions_gin on Description (dimensions);
+CREATE INDEX IF NOT EXISTS by_powercycle on Description (powercycle);
+CREATE INDEX IF NOT EXISTS by_running_task on Description (running_task);
+CREATE INDEX IF NOT EXISTS by_machine_id on TaskResult (machine_id);
+CREATE INDEX IF NOT EXISTS by_status on TaskResult (status);
 `
 
 var Description = []string{
