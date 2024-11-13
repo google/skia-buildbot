@@ -5,6 +5,16 @@ new-bug-dialog-sk {
   #new-bug-dialog {
     overflow: auto;
     width: 45%;
+    padding: 16px;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
+    textarea {
+      background: var(--background);
+      color: var(--on-surface);
+      border: solid 1px var(--on-surface);
+    }
+
     #closeIcon {
       position: absolute;
       right: 0;

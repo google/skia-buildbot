@@ -134,7 +134,7 @@ export class AnomaliesTableSk extends ElementSk {
   private generateTable() {
     return html`
       <sort-sk id="as_table" target="rows">
-        <table class="anomalies-table">
+        <table id="anomalies-table">
           <tr class="headers">
             <th id="group"></th>
             <th id="checkbox">
@@ -203,6 +203,7 @@ export class AnomaliesTableSk extends ElementSk {
       anomalyGroup.anomalies[0].median_before_anomaly;
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
       const anomaly = anomalyGroup.anomalies[i];
+      const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
       rows.push(html`
         <tr
           data-bugid="${bugId}"
@@ -252,11 +253,11 @@ export class AnomaliesTableSk extends ElementSk {
           <td>${bot}</td>
           <td>${testsuite}</td>
           <td>${test}</td>
-          <td>
+          <td class=${anomalyClass}>
             ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           </td>
-          <td>${AnomalySk.formatPercentage(delta)}</td>
-          <td>${AnomalySk.formatNumber(absDelta)} ${anomaly.units}</td>
+          <td class=${anomalyClass}>${AnomalySk.formatPercentage(delta)}</td>
+          <td class=${anomalyClass}>${AnomalySk.formatNumber(absDelta)} ${anomaly.units}</td>
         </tr>
       `);
     }

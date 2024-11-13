@@ -19,6 +19,10 @@ anomalies-table-sk {
     td {
       text-align: center;
     }
+    th {
+      // Make the header look clicky on hover.
+      cursor: pointer;
+    }
     #group,
     #checkbox,
     #graph_header,
@@ -27,6 +31,12 @@ anomalies-table-sk {
     }
     #bug_id {
       width: 130px;
+    }
+    .improvement {
+      color: var(--secondary);
+    }
+    .regression {
+      color: var(--failure);
     }
   }
 
@@ -64,7 +74,6 @@ anomalies-table-sk {
   table {
     border-collapse: collapse;
     border-spacing: 0;
-    width: 100%;
   }
 
   .cluster {
@@ -82,10 +91,5 @@ anomalies-table-sk {
 
   .child-expanded-row > td:first-child {
     background-color: var(--background);
-  }
-
-  table.anomalies-table th {
-    // Make the header look clicky on hover.
-    cursor: pointer;
   }
 }
