@@ -183,40 +183,53 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
-  private generateRows(anomalyGroup: AnomalyGroup) {
-    const rows = [];
-    const length = anomalyGroup.anomalies.length;
-    const bugId = anomalyGroup.anomalies[0].bug_id;
-    const testPathPieces = anomalyGroup.anomalies[0].test_path.split('/');
+  private getProcessedAnomaly(anomaly: Anomaly) {
+    const bugId = anomaly.bug_id;
+    const testPathPieces = anomaly.test_path.split('/');
     const master = testPathPieces[0];
     const bot = testPathPieces[1];
     const testsuite = testPathPieces[2];
     const test = testPathPieces.slice(3, testPathPieces.length).join('/');
-    const revision = anomalyGroup.anomalies[0].end_revision;
-    const direction =
-      anomalyGroup.anomalies[0].median_before_anomaly -
-      anomalyGroup.anomalies[0].median_after_anomaly;
+    const revision = anomaly.end_revision;
+    const direction = anomaly.median_before_anomaly - anomaly.median_after_anomaly;
     const delta = AnomalySk.getPercentChange(
-      anomalyGroup.anomalies[0].median_before_anomaly,
-      anomalyGroup.anomalies[0].median_after_anomaly
+      anomaly.median_before_anomaly,
+      anomaly.median_after_anomaly
     );
-    const absDelta =
-      anomalyGroup.anomalies[0].median_after_anomaly -
-      anomalyGroup.anomalies[0].median_before_anomaly;
+    const absDelta = anomaly.median_after_anomaly - anomaly.median_before_anomaly;
+    return {
+      bugId,
+      revision,
+      master,
+      bot,
+      testsuite,
+      test,
+      direction,
+      delta,
+      absDelta,
+    };
+  }
+
+  private generateRows(anomalyGroup: AnomalyGroup) {
+    const rows = [];
+    const length = anomalyGroup.anomalies.length;
+
+    const anomalySortValues = this.getProcessedAnomaly(anomalyGroup.anomalies[0]);
     for (let i = 0; i < anomalyGroup.anomalies.length; i++) {
       const anomaly = anomalyGroup.anomalies[i];
+      const processedAnomaly = this.getProcessedAnomaly(anomaly);
       const anomalyClass = anomaly.is_improvement ? 'improvement' : 'regression';
       rows.push(html`
         <tr
-          data-bugid="${bugId}"
-          data-revisions="${revision}"
-          data-master="${master}"
-          data-bot="${bot}"
-          data-testsuite="${testsuite}"
-          data-test="${test}"
-          data-direction=${direction}
-          data-delta="${delta}"
-          data-absdelta="${absDelta}"
+          data-bugid="${anomalySortValues.bugId}"
+          data-revisions="${anomalySortValues.revision}"
+          data-master="${anomalySortValues.master}"
+          data-bot="${anomalySortValues.bot}"
+          data-testsuite="${anomalySortValues.testsuite}"
+          data-test="${anomalySortValues.test}"
+          data-direction=${anomalySortValues.direction}
+          data-delta="${anomalySortValues.delta}"
+          data-absdelta="${anomalySortValues.absDelta}"
           class=${this.getRowClass(i, anomalyGroup)}
           ?hidden=${!anomalyGroup.expanded && i !== 0}>
           <td>
@@ -231,7 +244,7 @@ export class AnomaliesTableSk extends ElementSk {
             <checkbox-sk
               @change=${(e: Event) => {
                 // If we just need to check 1 anomaly, just mark it as checked.
-                if (i !== 0 || anomalyGroup.anomalies.length === 1 || anomalyGroup.expanded) {
+                if (i !== 0 || length === 1 || anomalyGroup.expanded) {
                   this.anomalyChecked(e.target as CheckOrRadio, anomaly);
                 } else {
                   // If the top anomaly in a group gets checked and the
@@ -251,15 +264,17 @@ export class AnomaliesTableSk extends ElementSk {
           <td>
             <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
           </td>
-          <td>${master}</td>
-          <td>${bot}</td>
-          <td>${testsuite}</td>
-          <td>${test}</td>
+          <td>${processedAnomaly.master}</td>
+          <td>${processedAnomaly.bot}</td>
+          <td>${processedAnomaly.testsuite}</td>
+          <td>${processedAnomaly.test}</td>
           <td class=${anomalyClass}>
             ${this.getDirectionSign(anomaly.median_before_anomaly, anomaly.median_after_anomaly)}
           </td>
-          <td class=${anomalyClass}>${AnomalySk.formatPercentage(delta)}</td>
-          <td class=${anomalyClass}>${AnomalySk.formatNumber(absDelta)} ${anomaly.units}</td>
+          <td class=${anomalyClass}>${AnomalySk.formatPercentage(processedAnomaly.delta)}%</td>
+          <td class=${anomalyClass}>
+            ${AnomalySk.formatNumber(processedAnomaly.absDelta)} ${anomaly.units}
+          </td>
         </tr>
       `);
     }
