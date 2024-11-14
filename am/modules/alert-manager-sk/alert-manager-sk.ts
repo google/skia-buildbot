@@ -206,13 +206,13 @@ export class AlertManagerSk extends HTMLElement {
 </dialog>
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele.tabSwitch} selected=${ele.state.tab}>
-    <button>Mine</button>
-    <button>Infra</button>
-    <button>Skia</button>
-    <button>All</button>
-    <button>Silences</button>
-    <button>Stats</button>
-    <button>Audit</button>
+    <button class="tab">Mine</button>
+    <button class="tab">Infra</button>
+    <button class="tab">Skia</button>
+    <button class="tab">All</button>
+    <button class="tab">Silences</button>
+    <button class="tab">Stats</button>
+    <button class="tab">Audit</button>
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
@@ -612,8 +612,8 @@ export class AlertManagerSk extends HTMLElement {
     }
     const fullIncident = ret.join(' ');
     let displayIncident = fullIncident;
-    if (!this.inSelectionMode && displayIncident.length > 33) {
-      displayIncident = `${displayIncident.slice(0, 30)}...`;
+    if (!this.inSelectionMode && displayIncident.length > 48) {
+      displayIncident = `${displayIncident.slice(0, 45)}...`;
     }
     return html`<span title="${fullIncident}">${displayIncident}</span>`;
   }

@@ -117,11 +117,12 @@ alert-manager-sk {
     padding: 5px 0 0 5px;
     border-bottom: dotted var(--on-background) 1px;
 
-    button {
+    button.tab {
       border: none;
       background: var(--surface);
       color: var(--on-surface);
       fill: var(--on-surface);
+      padding: 0px 6px;
     }
   }
 
