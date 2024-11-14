@@ -51,9 +51,9 @@ export class RegressionsPageSk extends ElementSk {
 
   btnImprovement: HTMLButtonElement | null = null;
 
-  private showMoreAnomalies: boolean | null = null;
+  showMoreAnomalies: boolean | null = null;
 
-  private anomalyCursor: string | null = null;
+  anomalyCursor: string | null = null;
 
   private anomaliesLoadingSpinner = false;
 
@@ -95,7 +95,7 @@ export class RegressionsPageSk extends ElementSk {
     this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
   }
 
-  private async fetchRegressions(): Promise<void> {
+  async fetchRegressions(): Promise<void> {
     const queryMap = new Map();
     const s = encodeURIComponent(this.state.selectedSubscription);
     if (s !== '') {
@@ -131,8 +131,12 @@ export class RegressionsPageSk extends ElementSk {
       .then((response) => {
         const json: GetAnomaliesResponse = response;
         const regs: Anomaly[] = json.anomaly_list || [];
+        if (json.anomaly_cursor) {
+          this.showMoreAnomalies = true;
+        } else {
+          this.showMoreAnomalies = false;
+        }
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
-        this.showMoreAnomalies = json.anomaly_cursor !== null;
         this.anomalyCursor = json.anomaly_cursor;
         this.anomaliesLoadingSpinner = false;
         this.anomaliesTable!.populateTable(this.cpAnomalies);
@@ -172,11 +176,11 @@ export class RegressionsPageSk extends ElementSk {
     </select>
     <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
     <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
-    <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
       <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>
-        <div class>Show More</div>
+        <div>Show More</div>
       </button>
       <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     </div>
