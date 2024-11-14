@@ -69,6 +69,11 @@ alert-manager-sk {
     padding: 0;
     font-size: 14px;
     cursor: pointer;
+
+    alarm-off-icon-sk,
+    comment-icon-sk {
+      padding: 0px;
+    }
   }
 
   h2.bot-centric {
@@ -266,7 +271,7 @@ alert-manager-sk {
 
   display: grid;
   height: 100vh;
-  grid-template-columns: 24em 1fr;
+  grid-template-columns: 28em 1fr;
   grid-template-rows: 36px 1fr 5px;
   grid-template-areas:
     'nav header'
