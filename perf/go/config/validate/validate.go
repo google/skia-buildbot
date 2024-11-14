@@ -167,13 +167,29 @@ func Validate(i config.InstanceConfig) error {
 				},
 			},
 		}
-		_, _, err = f.FormatNewRegression(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
-		if err != nil {
-			return skerr.Wrapf(err, "formatting regression")
-		}
-		_, _, err = f.FormatRegressionMissing(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
-		if err != nil {
-			return skerr.Wrapf(err, "formatting regression missing")
+		if i.NotifyConfig.NotificationDataProvider != notifytypes.AndroidNotificationProvider {
+			_, _, err = f.FormatNewRegression(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
+			if err != nil {
+				return skerr.Wrapf(err, "formatting regression")
+			}
+			_, _, err = f.FormatRegressionMissing(ctx, prevCommit, commit, alert, clusterSummary, "https://example.com", frame)
+			if err != nil {
+				return skerr.Wrapf(err, "formatting regression missing")
+			}
+		} else {
+			templateContext := notify.AndroidBugTemplateContext{
+				URL:              "https://example.com",
+				DashboardUrl:     "",
+				PreviousCommit:   prevCommit,
+				RegressionCommit: commit,
+				Cluster:          clusterSummary,
+				ParamSet:         frame.DataFrame.ParamSet,
+				Alert:            alert,
+			}
+			_, _, err = f.FormatNewRegressionWithContext(templateContext)
+			if err != nil {
+				return skerr.Wrapf(err, "formatting regression")
+			}
 		}
 	}
 
