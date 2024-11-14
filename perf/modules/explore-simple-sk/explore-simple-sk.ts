@@ -1234,6 +1234,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
     this.addEventListener('anomaly-changed', (e) => {
       this.plotSimple.value?.redrawOverlayCanvas();
+      this.googleChartPlot.value?.requestUpdate();
       const detail = (e as CustomEvent).detail;
       if (!detail) {
         this.triageResultToast?.hide();
