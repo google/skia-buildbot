@@ -45,6 +45,11 @@ anomalies-table-sk {
     }
   }
 
+  close-icon-sk#btnUnassociate {
+    fill: var(--negative);
+    cursor: pointer;
+  }
+
   header {
     display: flex;
   }

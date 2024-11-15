@@ -25,8 +25,7 @@ class AnomalyGroup {
 }
 
 export class AnomaliesTableSk extends ElementSk {
-  // TODO(eduardoyap): change to window.perf.bug_host_url.
-  private bug_host_url: string = 'b';
+  private bug_host_url: string = window.perf.bug_host_url;
 
   private anomalyList: Anomaly[] = [];
 
@@ -259,7 +258,16 @@ export class AnomaliesTableSk extends ElementSk {
           <td>
             <trending-up-icon-sk></trending-up-icon-sk>
           </td>
-          <td>${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}</td>
+          <td>
+            ${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}
+            <close-icon-sk
+              id="btnUnassociate"
+              @click=${() => {
+                this.triageMenu!.makeEditAnomalyRequest([anomaly], [], 'RESET');
+              }}
+              ?hidden=${anomaly!.bug_id === 0}>
+            </close-icon-sk>
+          </td>
           <!--TODO(jiaxindong) update key value to anomaly id in the group-report link-->
           <td>
             <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
