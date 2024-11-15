@@ -34,6 +34,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	getMostRecentGitHashAndCommitNumber statement = iota
 	insert
+	insertSpanner
 	getCommitNumberFromGitHash
 	getCommitNumberFromTime
 	getCommitsFromTimeRange
@@ -78,6 +79,13 @@ var statements = map[statement]string{
 		VALUES
 			($1, $2, $3, $4, $5)
 		ON CONFLICT
+		DO NOTHING
+		`,
+	insertSpanner: `INSERT INTO
+			Commits (commit_number, git_hash, commit_time, author, subject)
+		VALUES
+			($1, $2, $3, $4, $5)
+		ON CONFLICT (commit_number)
 		DO NOTHING
 		`,
 	getCommitNumberFromGitHash: `
@@ -312,7 +320,11 @@ func (g *Impl) Update(ctx context.Context) error {
 		}
 
 		// Add p to the database starting at nextCommitNumber.
-		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
+		insertStmt := insert
+		if g.instanceConfig.DataStoreConfig.DataStoreType == config.SpannerDataStoreType {
+			insertStmt = insertSpanner
+		}
+		_, err := g.db.Exec(ctx, statements[insertStmt], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
