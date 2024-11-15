@@ -100,9 +100,11 @@ func main() {
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to the periodic tasks server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
-		enableCache          = flag.Bool("enable_cache", false, "Set to true if the cache should be populated.")
 		local                = flag.Bool("local", false, "Set to true if running locally.")
 	)
+
+	// TODO(ashwinpv): Remove the line below after we have removed this flag from k8s-config yamls
+	_ = flag.Bool("enable_cache", false, "Set to true if the cache should be populated.")
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
@@ -155,10 +157,8 @@ func main() {
 		startPerfSummarization(ctx, db, ptc.PerfSummaries)
 	}
 
-	if *enableCache {
-		sklog.Infof("Starting cache population tasks.")
-		runCachingTasks(ctx, ptc, db)
-	}
+	sklog.Infof("Starting cache population tasks.")
+	runCachingTasks(ctx, ptc, db)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)

@@ -83,7 +83,7 @@ type Common struct {
 	GroupingParamKeysByCorpus map[string][]string `json:"grouping_param_keys_by_corpus"`
 
 	// Type of cache to use.
-	CacheType CacheType `json:"cache_type" optional:"true"`
+	CacheType CacheType `json:"cache_type"`
 
 	// RedisConfig provides configuration for redis instance to be used for caching.
 	RedisConfig redis.RedisConfig `json:"redis_config" optional:"true"`
