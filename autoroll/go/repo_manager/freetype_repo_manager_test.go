@@ -97,8 +97,10 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   child.RepoUrl(),
-						Path: deps_parser.DepsFileName,
+						Id: child.RepoUrl(),
+						File: []*config.VersionFileConfig_File{
+							{Path: deps_parser.DepsFileName},
+						},
 					},
 				},
 				Gerrit: &config.GerritConfig{

@@ -129,8 +129,10 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	// See documentation for GitCheckoutCreateRollFunc.
 	createRollHelper := gitCheckoutFileCreateRollFunc(&config.DependencyConfig{
 		Primary: &config.VersionFileConfig{
-			Id:   c.GitCheckout.Dep.Primary.Id,
-			Path: deps_parser.DepsFileName,
+			Id: c.GitCheckout.Dep.Primary.Id,
+			File: []*config.VersionFileConfig_File{
+				{Path: deps_parser.DepsFileName},
+			},
 		},
 		Transitive:     c.GitCheckout.Dep.Transitive,
 		FindAndReplace: c.GitCheckout.Dep.FindAndReplace,

@@ -49,8 +49,10 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "todo.git",
-								Path: deps_parser.DepsFileName,
+								Id: "todo.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},
@@ -256,20 +258,26 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	parentCfg.DepsLocal.GitCheckout.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
 			Child: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-child",
-				Path: "DEPS",
+				Id: "https://grandchild-in-child",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-parent",
-				Path: "DEPS",
+				Id: "https://grandchild-in-parent",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 	}
 	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
 	childCfg.GitCheckout.GitCheckout.Dependencies = []*config.VersionFileConfig{
 		{
-			Id:   "https://grandchild-in-child",
-			Path: "DEPS",
+			Id: "https://grandchild-in-child",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 	}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)

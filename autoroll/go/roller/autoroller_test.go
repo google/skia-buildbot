@@ -164,8 +164,12 @@ func TestRepoManagerInitFailed(t *testing.T) {
 								},
 								Dep: &config.DependencyConfig{
 									Primary: &config.VersionFileConfig{
-										Id:   "fake.child.url",
-										Path: "DEPS",
+										Id: "fake.child.url",
+										File: []*config.VersionFileConfig_File{
+											{
+												Path: "DEPS",
+											},
+										},
 									},
 								},
 							},

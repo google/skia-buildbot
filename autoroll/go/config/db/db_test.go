@@ -109,8 +109,10 @@ parent_child_repo_manager:  {
 	}
 	dep:  {
 		primary:  {
-		id:  "https://skia.googlesource.com/skia.git"
-		path:  "DEPS"
+			id:  "https://skia.googlesource.com/skia.git"
+			file:  {
+				path:  "DEPS"
+			}
 		}
 	}
 	gerrit:  {

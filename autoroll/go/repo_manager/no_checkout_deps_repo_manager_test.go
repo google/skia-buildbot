@@ -116,8 +116,10 @@ func noCheckoutDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "todo.git",
-						Path: deps_parser.DepsFileName,
+						Id: "todo.git",
+						File: []*config.VersionFileConfig_File{
+							{Path: deps_parser.DepsFileName},
+						},
 					},
 				},
 				Gerrit: &config.GerritConfig{
@@ -279,20 +281,26 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	parentCfg.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
 			Child: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-child",
-				Path: "DEPS",
+				Id: "https://grandchild-in-child",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-parent",
-				Path: "DEPS",
+				Id: "https://grandchild-in-parent",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 	}
 	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
 	childCfg.Gitiles.Dependencies = []*config.VersionFileConfig{
 		{
-			Id:   "https://grandchild-in-child",
-			Path: "DEPS",
+			Id: "https://grandchild-in-child",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 	}
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)

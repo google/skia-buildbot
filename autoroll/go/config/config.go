@@ -477,12 +477,17 @@ func (c *VersionFileConfig) Validate() error {
 	if c.Id == "" {
 		return skerr.Fmt("Id is required.")
 	}
-	if c.Path == "" {
-		return skerr.Fmt("Path is required.")
+	if len(c.File) == 0 {
+		return skerr.Fmt("File is required.")
 	}
-	if c.Regex != "" {
-		if _, err := regexp.Compile(c.Regex); err != nil {
-			return skerr.Wrapf(err, "Invalid Regex")
+	for _, file := range c.File {
+		if file.Path == "" {
+			return skerr.Fmt("Path is required.")
+		}
+		if file.Regex != "" {
+			if _, err := regexp.Compile(file.Regex); err != nil {
+				return skerr.Wrapf(err, "Invalid Regex")
+			}
 		}
 	}
 	return nil
@@ -1199,10 +1204,19 @@ func (c *TransitiveDepConfig) Copy() *TransitiveDepConfig {
 
 // Copy returns a deep copy.
 func (c *VersionFileConfig) Copy() *VersionFileConfig {
+	var files []*VersionFileConfig_File
+	if len(c.File) > 0 {
+		files = make([]*VersionFileConfig_File, 0, len(c.File))
+	}
+	for _, file := range c.File {
+		files = append(files, &VersionFileConfig_File{
+			Path:  file.Path,
+			Regex: file.Regex,
+		})
+	}
 	return &VersionFileConfig{
-		Id:    c.Id,
-		Path:  c.Path,
-		Regex: c.Regex,
+		Id:   c.Id,
+		File: files,
 	}
 }
 

@@ -58,8 +58,10 @@ func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "AFDO",
-						Path: afdoVersionFilePath,
+						Id: "AFDO",
+						File: []*config.VersionFileConfig_File{
+							{Path: afdoVersionFilePath},
+						},
 					},
 				},
 				Gerrit: &config.GerritConfig{

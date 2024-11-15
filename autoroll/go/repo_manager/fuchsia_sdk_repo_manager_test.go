@@ -58,18 +58,24 @@ func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "FuchsiaSDK",
-						Path: fuchsiaSDKVersionFilePathLinux,
+						Id: "FuchsiaSDK",
+						File: []*config.VersionFileConfig_File{
+							{Path: fuchsiaSDKVersionFilePathLinux},
+						},
 					},
 					Transitive: []*config.TransitiveDepConfig{
 						{
 							Child: &config.VersionFileConfig{
-								Id:   child.FuchsiaSdkChild.LatestMacPath,
-								Path: fuchsiaSDKVersionFilePathMac,
+								Id: child.FuchsiaSdkChild.LatestMacPath,
+								File: []*config.VersionFileConfig_File{
+									{Path: fuchsiaSDKVersionFilePathMac},
+								},
 							},
 							Parent: &config.VersionFileConfig{
-								Id:   child.FuchsiaSdkChild.LatestLinuxPath,
-								Path: fuchsiaSDKVersionFilePathMac,
+								Id: child.FuchsiaSdkChild.LatestLinuxPath,
+								File: []*config.VersionFileConfig_File{
+									{Path: fuchsiaSDKVersionFilePathMac},
+								},
 							},
 						},
 					},

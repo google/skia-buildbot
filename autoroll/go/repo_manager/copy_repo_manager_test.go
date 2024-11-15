@@ -35,8 +35,10 @@ func copyCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 					},
 					Dep: &config.DependencyConfig{
 						Primary: &config.VersionFileConfig{
-							Id:   "http://fake.child",
-							Path: filepath.Join(childPath, "version.sha1"),
+							Id: "http://fake.child",
+							File: []*config.VersionFileConfig_File{
+								{Path: filepath.Join(childPath, "version.sha1")},
+							},
 						},
 					},
 					Gerrit: &config.GerritConfig{
@@ -120,7 +122,7 @@ func setupCopy(t *testing.T) (context.Context, *config.ParentChildRepoManagerCon
 	}
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.File[0].Path, parentHead)
 
 	// Create the RepoManager.
 	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
@@ -160,7 +162,7 @@ func TestCopyRepoManager(t *testing.T) {
 	}
 	parentHead := strings.TrimSpace(parent.Git(ctx, "rev-parse", git.MainBranch))
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.File[0].Path, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -184,7 +186,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	}
 	parentHead := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", git.MainBranch))
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.File[0].Path, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -214,7 +216,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), tipRev.Id)
 	mockChild.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].SrcRelPath, "c"), tipRev.Id)
 
-	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.Path, parentHead)
+	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Gitiles.Dep.Primary.File[0].Path, parentHead)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Copies[0].DstRelPath, parentHead)
 	mockParent.MockReadFile(ctx, cfg.GetCopyParent().Copies[1].DstRelPath, parentHead)
 	mockParent.MockReadFile(ctx, path.Join(cfg.GetCopyParent().Copies[1].DstRelPath, "a"), parentHead)
@@ -269,7 +271,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock the request to update the version file.
 	reqBody = []byte(tipRev.Id + "\n")
-	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(cfg.GetCopyParent().Gitiles.Dep.Primary.Path))
+	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(cfg.GetCopyParent().Gitiles.Dep.Primary.File[0].Path))
 	urlMock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.

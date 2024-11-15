@@ -51,8 +51,10 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "todo.git",
-								Path: githubVersionFile,
+								Id: "todo.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: githubVersionFile},
+								},
 							},
 						},
 					},

@@ -15,22 +15,30 @@ func makeConfig() *Config {
 	transitiveDeps := []*TransitiveDepConfig{
 		{
 			Child: &VersionFileConfig{
-				Id:   "transitive-dep-1",
-				Path: "DEPS",
+				Id: "transitive-dep-1",
+				File: []*VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &VersionFileConfig{
-				Id:   "transitive-dep-1",
-				Path: "DEPS",
+				Id: "transitive-dep-1",
+				File: []*VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 		{
 			Child: &VersionFileConfig{
-				Id:   "transitive-dep-2",
-				Path: "DEPS",
+				Id: "transitive-dep-2",
+				File: []*VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &VersionFileConfig{
-				Id:   "transitive-dep-2",
-				Path: "DEPS",
+				Id: "transitive-dep-2",
+				File: []*VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 	}
@@ -72,8 +80,10 @@ func makeConfig() *Config {
 								},
 								Dep: &DependencyConfig{
 									Primary: &VersionFileConfig{
-										Id:   "primary-dep-id",
-										Path: "DEPS",
+										Id: "primary-dep-id",
+										File: []*VersionFileConfig_File{
+											{Path: "DEPS"},
+										},
 									},
 									Transitive: transitiveDepConfigSlice(transitiveDeps).Copy(),
 								},

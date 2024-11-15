@@ -62,8 +62,10 @@ func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   githubCIPDAssetName,
-								Path: deps_parser.DepsFileName,
+								Id: githubCIPDAssetName,
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},

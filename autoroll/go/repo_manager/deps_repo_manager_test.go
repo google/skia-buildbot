@@ -55,12 +55,14 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
 							Branch:  git.MainBranch,
-							RepoUrl: "TODO",
+							RepoUrl: "fake.git",
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "TODO",
-								Path: deps_parser.DepsFileName,
+								Id: "fake.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},
@@ -77,7 +79,7 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 			GitCheckoutChild: &config.GitCheckoutChildConfig{
 				GitCheckout: &config.GitCheckoutConfig{
 					Branch:  git.MainBranch,
-					RepoUrl: "TODO",
+					RepoUrl: "fake.git",
 				},
 			},
 		},
