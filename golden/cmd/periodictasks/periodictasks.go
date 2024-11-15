@@ -103,9 +103,6 @@ func main() {
 		local                = flag.Bool("local", false, "Set to true if running locally.")
 	)
 
-	// TODO(ashwinpv): Remove the line below after we have removed this flag from k8s-config yamls
-	_ = flag.Bool("enable_cache", false, "Set to true if the cache should be populated.")
-
 	// Parse the options. So we can configure logging.
 	flag.Parse()
 

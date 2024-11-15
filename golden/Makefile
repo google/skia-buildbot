@@ -69,5 +69,4 @@ run_local_periodictasks:
 	../_bazel_bin/golden/cmd/periodictasks/periodictasks_/periodictasks \
 		--common_instance_config=./k8s-instances/local/local.json5 \
 		--config=./k8s-instances/local/local-periodictasks.json5 \
-		--enable_cache \
 		--local
