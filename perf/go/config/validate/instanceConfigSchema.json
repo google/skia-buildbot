@@ -242,6 +242,9 @@
         "URL": {
           "type": "string"
         },
+        "landing_page_rel_path": {
+          "type": "string"
+        },
         "backend_host_url": {
           "type": "string"
         },

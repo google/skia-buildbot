@@ -68,6 +68,7 @@ go_test(
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/roles",
+        "//go/testutils",
         "//perf/go/config",
         "@com_github_stretchr_testify//require",
     ],

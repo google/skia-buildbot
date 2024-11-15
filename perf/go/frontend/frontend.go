@@ -823,7 +823,12 @@ func (f *Frontend) makeDistHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func oldMainHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/e/", http.StatusMovedPermanently)
+	instanceConf := config.Config
+	landingPath := instanceConf.LandingPageRelPath
+	if landingPath == "" {
+		landingPath = "/e/"
+	}
+	http.Redirect(w, r, landingPath, http.StatusMovedPermanently)
 }
 
 func oldClustersHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,5 +1,6 @@
 {
     "URL": "https://webrtc-perf.luci.app",
+    "landing_page_rel_path": "/m/",
     "allowed_hosts": [],
     "trace_sample_proportion": 0.2,
     "contact": "browser-perf-engprod@google.com",

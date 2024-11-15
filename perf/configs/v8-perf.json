@@ -1,5 +1,6 @@
 {
   "URL": "https://v8-perf.corp.goog",
+  "landing_page_rel_path": "/m/",
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
   "trace_sample_proportion": 0.01,
   "fetch_chrome_perf_anomalies": true,

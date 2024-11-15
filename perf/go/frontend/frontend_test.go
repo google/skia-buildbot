@@ -2,6 +2,7 @@
 package frontend
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/alogin/mocks"
 	"go.skia.org/infra/go/roles"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/config"
 )
 
@@ -67,4 +69,31 @@ func TestFrontend_RoleEnforced_ReportsOK(t *testing.T) {
 	h.ServeHTTP(w, r)
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.Equal(t, expected_body, w.Body.String())
+}
+
+func TestFrontend_UnspecifiedRedirectUrl_Redirects(t *testing.T) {
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	require.NoError(t, err)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+	oldMainHandler(w, r)
+
+	require.Equal(t, http.StatusMovedPermanently, w.Result().StatusCode)
+	require.Equal(t, "/e/", w.Result().Header.Get("Location"))
+}
+
+func TestFrontend_SpecifiedRedirectUrl_Redirects(t *testing.T) {
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	config.Config.LandingPageRelPath = "/m/"
+	require.NoError(t, err)
+
+	r := httptest.NewRequest("GET", "/", nil)
+	w := httptest.NewRecorder()
+	oldMainHandler(w, r)
+
+	require.Equal(t, http.StatusMovedPermanently, w.Result().StatusCode)
+	require.Equal(t, "/m/", w.Result().Header.Get("Location"))
 }

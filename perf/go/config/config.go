@@ -888,6 +888,10 @@ type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`
 
+	// LandingPageRelPath is the relative path to the landing page.
+	// This path is used to redirect the user when they access the root URL.
+	LandingPageRelPath string `json:"landing_page_rel_path,omitempty"`
+
 	BackendServiceHostUrl string `json:"backend_host_url,omitempty"`
 
 	// Other domain names that are allowed to make cross-site requests to this instance.
