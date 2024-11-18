@@ -16,6 +16,14 @@ run-demo-coverage:
 	../../_bazel_bin/go/coverage/coverageserver/coverageserver_/coverageserver run \
 		--config_filename=demo.json \
 
+run-demo-coverage-spanner:
+	docker ps -q | xargs -r docker rm -vf
+	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
+	$(BAZEL) build -c dbg //go/coverage/...
+	../../_bazel_bin/go/coverage/demo/coveragedemo_/coveragedemo --config_filename=demo_spanner.json
+	../../_bazel_bin/go/coverage/coverageserver/coverageserver_/coverageserver run \
+		--config_filename=demo_spanner.json
+
 # Run from go/coverage
 run-coverage:
 	$(BAZEL) build -c dbg //go/coverage/...

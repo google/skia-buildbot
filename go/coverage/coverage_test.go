@@ -17,11 +17,9 @@ const (
 
 func setupTestApp(t *testing.T) *Coverage {
 	db := sqltest.NewCockroachDBForTests(t, "coveragemapping")
-	coverageStore, _ := coverage_store.New(db)
-
 	var coverageConfig config.CoverageConfig
 	config, err := coverageConfig.LoadCoverageConfig(configFile)
-
+	coverageStore, _ := coverage_store.New(db, config)
 	c, err := New(config, coverageStore)
 	require.NoError(t, err)
 

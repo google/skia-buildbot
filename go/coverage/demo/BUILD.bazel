@@ -8,6 +8,7 @@ go_library(
     deps = [
         "//go/coverage/config",
         "//go/coverage/coveragestore/sqlcoveragestore/coverageschema",
+        "//go/coverage/coveragestore/sqlcoveragestore/coverageschema/spanner",
         "//go/sklog",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],

@@ -119,7 +119,7 @@ func main() {
 				return
 			}
 			response, err = client.GetAllFiles(ctx, &request)
-			sklog.Debugf(" Response: %s", response)
+			sklog.Debugf(" Response: %v Length: %d", response.Responses, len(response.Responses))
 		} else {
 			var listRequest pb.CoverageListRequest
 			var listResponse *pb.CoverageListResponse

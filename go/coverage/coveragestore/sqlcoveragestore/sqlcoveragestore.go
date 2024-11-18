@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
+	"go.skia.org/infra/go/coverage/config"
 	pb "go.skia.org/infra/go/coverage/proto/v1"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -23,6 +24,12 @@ const (
 	deleteFile
 	listTestSuite
 	listAll
+	listBuilder
+)
+
+const (
+	CockroachDB string = "cockroachdb"
+	Spanner     string = "spanner"
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
@@ -66,36 +73,79 @@ var statements = map[statement]string{
 // coverageStore implements the coverage.Store interface.
 type CoverageStore struct {
 	// db is the database interface.
-	db pool.Pool
+	db         pool.Pool
+	statements map[statement]string
+	dbType     string
 }
 
-func New(db pool.Pool) (*CoverageStore, error) {
+func New(db pool.Pool, config *config.CoverageConfig) (*CoverageStore, error) {
+	sqlStatements := statements
+	if config.DatabaseType == Spanner {
+		sqlStatements = statements_spanner
+	}
 	return &CoverageStore{
-		db: db,
+		db:         db,
+		statements: sqlStatements,
+		dbType:     config.DatabaseType,
 	}, nil
 }
 
 // Add implements the coverage.CoverageStore interface.
 func (s *CoverageStore) Add(ctx context.Context, req *pb.CoverageChangeRequest) error {
-	rows, err := s.sqlExecInsert(ctx, statements[addFile], req)
-	if err != nil || rows > 0 {
-		sklog.Errorf("Add Failed: %s", statements[addFile])
+	if s.dbType == Spanner {
+		id, _, builderName, suiteNames, _, err := s.readData(ctx, req)
+		if err != nil {
+			return err
+		}
+		if id == "" || builderName != req.GetBuilderName() {
+			// This is either a case where no row exists or there is a row but
+			// it's for a different builder. In both situations, we insert a new entry.
+			rows, err := s.sqlExecInsert(ctx, s.statements[addFile], req)
+			if err != nil || rows > 0 {
+				sklog.Errorf("Add Failed: %s", s.statements[addFile])
+				return err
+			}
+		} else {
+			// Here we only need to add a new test suite.
+			allSuiteNames := map[string]bool{}
+			for _, suite := range suiteNames {
+				allSuiteNames[suite] = true
+			}
+			for _, suite := range req.GetTestSuiteName() {
+				allSuiteNames[suite] = true
+			}
+
+			allSuites := []string{}
+			for suite := range allSuiteNames {
+				allSuites = append(allSuites, suite)
+			}
+			_, err = s.db.Exec(ctx, s.statements[addTestSuite], req.GetFileName(), req.GetBuilderName(), allSuites)
+			return err
+		}
+	} else {
+		// This is the CockroachDB implementation.
+		rows, err := s.sqlExecInsert(ctx, s.statements[addFile], req)
+		if err != nil || rows > 0 {
+			sklog.Errorf("Add Failed: %s", s.statements[addFile])
+			return err
+		}
+		rows, err = s.sqlExecInsert(ctx, s.statements[addBuilder], req)
+		if err != nil || rows > 0 {
+			return err
+		}
+		rows, err = s.sqlExecUpdate(ctx, s.statements[addTestSuite], req)
+		if err == nil && rows == 0 {
+			err = errors.New("No Rows Added")
+		}
 		return err
 	}
-	rows, err = s.sqlExecInsert(ctx, statements[addBuilder], req)
-	if err != nil || rows > 0 {
-		return err
-	}
-	rows, err = s.sqlExecUpdate(ctx, statements[addTestSuite], req)
-	if err == nil && rows == 0 {
-		err = errors.New("No Rows Added")
-	}
-	return err
+
+	return nil
 }
 
 // Delete removes the Filename with the given filename.
 func (s *CoverageStore) Delete(ctx context.Context, req *pb.CoverageChangeRequest) error {
-	rows, err := s.sqlExecDelete(ctx, statements[deleteFile], req)
+	rows, err := s.sqlExecDelete(ctx, s.statements[deleteFile], req)
 	if err == nil && rows == 0 {
 		err = errors.New("No Rows Deleted")
 	}
@@ -112,9 +162,9 @@ func (s *CoverageStore) List(ctx context.Context, req *pb.CoverageListRequest) (
 		test_suite_name []string
 		last_modified   time.Time
 	}
-	rows, err := s.db.Query(ctx, statements[listTestSuite], req.GetFileName(), req.GetBuilderName())
+	rows, err := s.db.Query(ctx, s.statements[listTestSuite], req.GetFileName(), req.GetBuilderName())
 	if err != nil {
-		sklog.Errorf("SQL: %s", statements[listTestSuite])
+		sklog.Errorf("SQL: %s", s.statements[listTestSuite])
 		return nil, err
 	}
 
@@ -140,9 +190,9 @@ func (s *CoverageStore) List(ctx context.Context, req *pb.CoverageListRequest) (
 func (s *CoverageStore) ListAll(ctx context.Context, req *pb.CoverageRequest) ([]*pb.CoverageResponse, error) {
 	sklog.Debugf("List: %s", req)
 
-	rows, err := s.db.Query(ctx, statements[listAll])
+	rows, err := s.db.Query(ctx, s.statements[listAll])
 	if err != nil {
-		sklog.Errorf("SQL: %s", statements[listAll])
+		sklog.Errorf("SQL: %s", s.statements[listAll])
 		return nil, err
 	}
 
@@ -187,6 +237,26 @@ func (s *CoverageStore) sqlExecUpdate(ctx context.Context, sqlStatement string, 
 		rows += result.RowsAffected()
 	}
 	return rows, nil
+}
+
+func (s *CoverageStore) readData(ctx context.Context, req *pb.CoverageChangeRequest) (string, string, string, []string, time.Time, error) {
+	results, err := s.db.Query(ctx, s.statements[listBuilder], req.GetFileName(), req.GetBuilderName())
+	if err != nil {
+		return "", "", "", nil, time.Time{}, err
+	}
+
+	var id, fileName, builderName string
+	var suiteNames []string
+	var lastModified time.Time
+	for results.Next() {
+		if err = results.Scan(&id, &fileName, &builderName, &suiteNames, &lastModified); err != nil {
+			sklog.Debugf("Row Error: %s", err)
+		}
+
+		break
+	}
+
+	return id, fileName, builderName, suiteNames, lastModified, err
 }
 
 func (s *CoverageStore) sqlExecInsert(ctx context.Context, sqlStatement string, req *pb.CoverageChangeRequest) (int64, error) {

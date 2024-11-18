@@ -141,7 +141,7 @@ func NewCoverageStoreFromConfig(ctx context.Context, coverageConfig *config.Cove
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return coverage_store.New(db)
+	return coverage_store.New(db, coverageConfig)
 }
 
 // registerServices registers all available services for Coverage.
