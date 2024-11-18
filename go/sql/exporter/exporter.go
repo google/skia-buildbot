@@ -3,6 +3,7 @@ package exporter
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 )
 
@@ -28,6 +29,7 @@ const (
 type spannerConverter struct {
 	sequences   []string
 	indices     []string
+	indexNames  []string
 	primaryKeys map[string]string
 }
 
@@ -96,6 +98,14 @@ func (sc *spannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 	}
 
 	if strings.Contains(sqlColumnText, "INDEX") {
+
+		// This is a list of indices to ignore. When we switch to spanner,
+		// these will either be removed or updated with a compatible replacement.
+		ignoreIndices := map[string][]string{
+			// These are not supported since spanner does not support indexing on JSONB objects.
+			"Traces":       {"keys_idx", "keys_idx_1"},
+			"ValuesAtHead": {"keys_idx"},
+		}
 		// Index is specified as "INDEX <index_name> (index columns)"
 		indexSpecStartIdx := strings.Index(sqlColumnText, "INDEX") + 6
 		indexSpec := sqlColumnText[indexSpecStartIdx:]
@@ -106,6 +116,17 @@ func (sc *spannerConverter) updateColumnTypesForSpanner(sqlColumnText string, ta
 		if strings.Contains(indexDetails, "STORING") {
 			indexDetails = strings.ReplaceAll(indexDetails, "STORING", "INCLUDE")
 		}
+
+		if slices.Contains(sc.indexNames, indexName) {
+			indexName = indexName + "_1"
+		}
+
+		if excludeIndices, ok := ignoreIndices[tableName]; ok {
+			if slices.Contains(excludeIndices, indexName) {
+				return ""
+			}
+		}
+		sc.indexNames = append(sc.indexNames, indexName)
 
 		// Spanner expects the index definition to be "CREATE INDEX <index_name> on <table_name> (<columns>)"
 		sc.indices = append(sc.indices, fmt.Sprintf("%s on %s %s", indexName, tableName, indexDetails))
@@ -144,6 +165,7 @@ func GenerateSQL(inputType interface{}, pkg string, opt Options, schemaTarget Sc
 		sc = &spannerConverter{
 			sequences:   []string{},
 			indices:     []string{},
+			indexNames:  []string{},
 			primaryKeys: map[string]string{},
 		}
 	}

@@ -295,10 +295,9 @@ func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int)
 		return 0, nil
 	}
 	row := s.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
-AS OF SYSTEM TIME '-0.1s'
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
-	var lc pgtype.Int4
+	var lc pgtype.Int8
 	if err := row.Scan(&lc); err != nil {
 		if err == pgx.ErrNoRows {
 			return 0, nil // not enough commits seen, so start at tile 0.
@@ -4099,7 +4098,6 @@ func (s *Impl) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 
 	var gs frontend.GUIStatus
 	row := s.db.QueryRow(ctx, `SELECT commit_id FROM CommitsWithData
-AS OF SYSTEM TIME '-0.1s'
 ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
 	if err := row.Scan(&gs.LastCommit.ID); err != nil {
 		return frontend.GUIStatus{}, skerr.Wrap(err)

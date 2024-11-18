@@ -23,6 +23,14 @@ const (
 	LocalCacheType CacheType = "local"
 )
 
+// DatabaseType defines the available database types.
+type DatabaseType string
+
+const (
+	CockroachDB DatabaseType = "cockroachdb"
+	Spanner     DatabaseType = "spanner"
+)
+
 // The Common struct is a set of configuration values that are the same across all instances.
 // Not all instances will use every field in Common, but every field in Common is used in at least
 // two instances (otherwise, it can be deferred to the config specific to its only user). Common
@@ -57,6 +65,9 @@ type Common struct {
 
 	// URL where this app is hosted.
 	SiteURL string `json:"site_url"`
+
+	// The SQL Database type. Eg: cockroachdb, spanner
+	SQLDatabaseType DatabaseType `json:"sql_database_type" optional:"true"`
 
 	// SQL username, host and port; typically root@localhost:26234 or root@gold-cockroachdb:26234
 	SQLConnection string `json:"sql_connection" optional:"true"`

@@ -9,13 +9,15 @@ import (
 	"go.skia.org/infra/go/sklog"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
+	"go.skia.org/infra/golden/go/sql/schema/spanner"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
 // flags
 var (
-	databaseName = flag.String("databasename", "gold", "Name of the database.")
-	databaseUrl  = flag.String("database_url", "postgresql://root@127.0.0.1:26257/?sslmode=disable", "Connection url to the database.")
+	databaseName  = flag.String("databasename", "gold", "Name of the database.")
+	databaseUrl   = flag.String("database_url", "postgresql://root@127.0.0.1:26257/?sslmode=disable", "Connection url to the database.")
+	enableSpanner = flag.Bool("spanner", false, "Set to true if running against the spanner emulator.")
 )
 
 func main() {
@@ -35,13 +37,19 @@ func main() {
 		sklog.Infof("Database %s already exists.", databaseName)
 	}
 
-	_, err = conn.Exec(ctx, fmt.Sprintf(`SET DATABASE = %s;`, *databaseName))
-	if err != nil {
-		sklog.Fatal(err)
+	if !*enableSpanner {
+		_, err = conn.Exec(ctx, fmt.Sprintf(`SET DATABASE = %s;`, *databaseName))
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
+	dbSchema := schema.Schema
+	if *enableSpanner {
+		dbSchema = spanner.Schema
+	}
 	// Apply the schema.
-	_, err = conn.Exec(ctx, schema.Schema)
+	_, err = conn.Exec(ctx, dbSchema)
 	if err != nil {
 		sklog.Fatal(err)
 	}

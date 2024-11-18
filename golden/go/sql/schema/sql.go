@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
   grouping_id BYTES NOT NULL,
   options_id BYTES NOT NULL,
   source_file_id BYTES NOT NULL,
-  tryjob_id string,
+  tryjob_id STRING,
   PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)
 );
 CREATE TABLE IF NOT EXISTS SourceFiles (

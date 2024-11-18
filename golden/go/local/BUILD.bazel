@@ -9,6 +9,7 @@ go_library(
         "//go/sklog",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
+        "//golden/go/sql/schema/spanner",
         "//golden/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],

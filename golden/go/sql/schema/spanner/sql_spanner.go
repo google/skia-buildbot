@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS SecondaryBranchValues (
   grouping_id BYTEA NOT NULL,
   options_id BYTEA NOT NULL,
   source_file_id BYTEA NOT NULL,
-  tryjob_id string,
+  tryjob_id TEXT,
   PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)
 );
 CREATE TABLE IF NOT EXISTS SourceFiles (
@@ -206,15 +206,13 @@ CREATE INDEX IF NOT EXISTS label_idx on Expectations (label);
 CREATE INDEX IF NOT EXISTS commit_idx on GitCommits (commit_id);
 CREATE INDEX IF NOT EXISTS cl_order_idx on Patchsets (changelist_id, ps_order);
 CREATE INDEX IF NOT EXISTS calculated_idx on PrimaryBranchDiffCalculationWork (last_calculated_ts);
-CREATE INDEX IF NOT EXISTS calculated_idx on SecondaryBranchDiffCalculationWork (last_calculated_ts);
+CREATE INDEX IF NOT EXISTS calculated_idx_1 on SecondaryBranchDiffCalculationWork (last_calculated_ts);
 CREATE INDEX IF NOT EXISTS grouping_digest_idx on TiledTraceDigests (grouping_id, digest);
 CREATE INDEX IF NOT EXISTS tile_trace_idx on TiledTraceDigests (tile_id, trace_id);
 CREATE INDEX IF NOT EXISTS trace_commit_idx on TraceValues (trace_id, commit_id) INCLUDE (digest, options_id, grouping_id);
 CREATE INDEX IF NOT EXISTS grouping_ignored_idx on Traces (grouping_id, matches_any_ignore_rule);
 CREATE INDEX IF NOT EXISTS ignored_grouping_idx on Traces (matches_any_ignore_rule, grouping_id);
-CREATE INDEX IF NOT EXISTS keys_idx on Traces (keys);
 CREATE INDEX IF NOT EXISTS cl_idx on Tryjobs (changelist_id);
-CREATE INDEX IF NOT EXISTS ignored_grouping_idx on ValuesAtHead (matches_any_ignore_rule, grouping_id);
+CREATE INDEX IF NOT EXISTS ignored_grouping_idx_1 on ValuesAtHead (matches_any_ignore_rule, grouping_id);
 CREATE INDEX IF NOT EXISTS corpus_commit_ignore_idx on ValuesAtHead (corpus, most_recent_commit_id, matches_any_ignore_rule) INCLUDE (grouping_id, digest);
-CREATE INDEX IF NOT EXISTS keys_idx on ValuesAtHead (keys);
 `
