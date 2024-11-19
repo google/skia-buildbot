@@ -48,6 +48,10 @@ export class CommitInfoSk extends LitElement {
           padding: 1px 6px;
         }
       }
+
+      a {
+        color: var(--primary);
+      }
     }
 
     ul.table#anomaly-details {
