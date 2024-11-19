@@ -605,7 +605,7 @@ export class PlotGoogleChartSk extends LitElement {
     }
     const domainColumn = this.domain === 'commit' ? 0 : 1;
     const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
-    const xValue = this.data!.getValue(index.row + 1, domainColumn);
+    const xValue = this.data!.getValue(index.row, domainColumn);
     const yValue = this.data!.getValue(index.row, index.col + 1);
     return {
       x: layout.getXLocation(xValue),
