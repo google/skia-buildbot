@@ -1,4 +1,7 @@
+import '@google-web-components/google-chart';
+
 import { DataFrame } from '../json';
+import { DataTable } from './dataframe_context';
 
 /**
  * getAttributes extracts the attributes from the traceKeys
@@ -33,8 +36,18 @@ export const getAttributes = (df: DataFrame): string[] => {
  *  "benchmark": "JetStream2"
  * }
  */
-export const getTitle = (df: DataFrame): object => {
-  const traceKeys = Object.keys(df!.traceset);
+// One option with getTitle and getLegend is to create separate versions
+// for DataTable and DataFrame. They would use the same logic. The only
+// difference is getting the traceKeys:
+// const traceKeys = Object.keys(df!.traceset);
+// Just depends on whether explore-simple-sk needs to invoke this logic
+export const getTitle = (dt: DataTable): object => {
+  const numCols = dt!.getNumberOfColumns();
+  const traceKeys = [];
+  // skip the first two columns since they are domains
+  for (let i = 2; i < numCols; i++) {
+    traceKeys.push(dt!.getColumnLabel(i));
+  }
   const pairs = convertKeysToPairs(traceKeys);
 
   // filters key-value pairs that appear across all keys
@@ -76,8 +89,13 @@ export const getTitle = (df: DataFrame): object => {
  *   "test":"-",
  *  }]
  */
-export const getLegend = (df: DataFrame): object[] => {
-  const traceKeys = Object.keys(df!.traceset);
+export const getLegend = (dt: DataTable): object[] => {
+  const numCols = dt!.getNumberOfColumns();
+  const traceKeys = [];
+  // skip the first two columns since they are domains
+  for (let i = 2; i < numCols; i++) {
+    traceKeys.push(dt!.getColumnLabel(i));
+  }
   const pairs = convertKeysToPairs(traceKeys);
 
   const uniqKVP = [];
@@ -158,10 +176,10 @@ export function legendFormatter(legend: object[]): string[] {
  * @param df: Dataframe or undefined dataframe
  * @returns: null if undefined dataframe. Otherwise true/false.
  */
-export function isSingleTrace(df: DataFrame | undefined): boolean | null {
-  if (!df) {
+export function isSingleTrace(dt: DataTable | undefined): boolean | null {
+  if (!dt) {
     return null;
   }
-  const traceKeys = Object.keys(df.traceset);
-  return traceKeys.length === 1;
+  // first two cols are domains (commit position / date)
+  return dt!.getNumberOfColumns() === 3;
 }

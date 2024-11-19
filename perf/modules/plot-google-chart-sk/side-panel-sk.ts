@@ -18,9 +18,8 @@ import { customElement, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { consume } from '@lit/context';
 
-import { dataframeContext } from '../dataframe/dataframe_context';
+import { dataTableContext, DataTable } from '../dataframe/dataframe_context';
 import { legendFormatter, getLegend } from '../dataframe/traceset';
-import { DataFrame } from '../json';
 import { defaultColors } from '../common/plot-builder';
 
 import '@material/web/button/outlined-button.js';
@@ -80,10 +79,9 @@ export class SidePanelSk extends LitElement {
   @property({ reflect: true, type: Boolean })
   opened = true;
 
-  // TODO(b/361365957): replace dataframeContext with datatableContext
-  @consume({ context: dataframeContext, subscribe: true })
+  @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
-  private dataframe?: DataFrame;
+  private data?: DataTable;
 
   render() {
     return html`
@@ -119,8 +117,8 @@ export class SidePanelSk extends LitElement {
   }
 
   private getLegend() {
-    if (this.dataframe) {
-      const legend = legendFormatter(getLegend(this.dataframe));
+    if (this.data) {
+      const legend = legendFormatter(getLegend(this.data));
       return legend;
     }
     return [];

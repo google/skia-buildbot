@@ -19,11 +19,10 @@ import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
-import { Anomaly, AnomalyMap, DataFrame } from '../json';
+import { Anomaly, AnomalyMap } from '../json';
 import { mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
-  dataframeContext,
   dataframeLoadingContext,
   DataTable,
   dataTableContext,
@@ -123,11 +122,6 @@ export class PlotGoogleChartSk extends LitElement {
   @consume({ context: dataframeLoadingContext, subscribe: true })
   private loading = false;
 
-  // TODO(b/362831653): Deprecate dataframe
-  @consume({ context: dataframeContext, subscribe: true })
-  @property({ attribute: false })
-  private dataframe?: DataFrame;
-
   @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
   data: DataTable = null;
@@ -226,7 +220,7 @@ export class PlotGoogleChartSk extends LitElement {
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
-        <div class="side" ?hidden=${isSingleTrace(this.dataframe) ?? true}>
+        <div class="side" ?hidden=${isSingleTrace(this.data) ?? true}>
           <side-panel-sk ${ref(this.sidePanel)} @side-panel-toggle=${this.onSidePanelToggle}>
           </side-panel-sk>
         </div>
