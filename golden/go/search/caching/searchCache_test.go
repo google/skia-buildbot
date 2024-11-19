@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/testutils"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
@@ -26,8 +27,8 @@ func TestPopulateCache_WithData(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
-	cacheClient.On("SetValue", ctx, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
-	cacheClient.On("SetValue", ctx, UnignoredKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
+	cacheClient.On("SetValue", testutils.AnyContext, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
+	cacheClient.On("SetValue", testutils.AnyContext, UnignoredKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)
@@ -102,9 +103,9 @@ func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, 
 	var err error
 	switch searchCacheType {
 	case ByBlame_Corpus:
-		data, err = searchCacheManager.GetByBlameData(ctx, corpus)
+		data, err = searchCacheManager.GetByBlameData(ctx, "0", corpus)
 	case Unignored_Corpus:
-		data, err = searchCacheManager.GetUnignoredTracesData(ctx, corpus)
+		data, err = searchCacheManager.GetUnignoredTracesData(ctx, "0", corpus)
 	default:
 		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
 	}
@@ -127,9 +128,9 @@ func validateCacheMiss(t *testing.T, corpus string, cacheKey string, searchCache
 	var err error
 	switch searchCacheType {
 	case ByBlame_Corpus:
-		data, err = searchCacheManager.GetByBlameData(ctx, corpus)
+		data, err = searchCacheManager.GetByBlameData(ctx, "0", corpus)
 	case Unignored_Corpus:
-		data, err = searchCacheManager.GetUnignoredTracesData(ctx, corpus)
+		data, err = searchCacheManager.GetUnignoredTracesData(ctx, "0", corpus)
 	default:
 		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
 	}

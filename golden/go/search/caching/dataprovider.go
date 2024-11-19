@@ -28,9 +28,9 @@ func NewCacheDataProvider(db *pgxpool.Pool, corpora []string, commitWindow int, 
 }
 
 // GetDataForCorpus returns the byblame data for the given corpus.
-func (prov cacheDataProvider) GetDataForCorpus(ctx context.Context, corpus string) ([]SearchCacheData, error) {
+func (prov cacheDataProvider) GetDataForCorpus(ctx context.Context, firstCommitId string, corpus string) ([]SearchCacheData, error) {
 	var cacheData []SearchCacheData
-	rows, err := prov.db.Query(ctx, prov.query, prov.commitWindow, corpus)
+	rows, err := prov.db.Query(ctx, prov.query, firstCommitId, corpus)
 	if err != nil {
 		return nil, err
 	}
@@ -46,12 +46,12 @@ func (prov cacheDataProvider) GetDataForCorpus(ctx context.Context, corpus strin
 }
 
 // GetCacheData implements cacheDataProvider.
-func (prov cacheDataProvider) GetCacheData(ctx context.Context) (map[string]string, error) {
+func (prov cacheDataProvider) GetCacheData(ctx context.Context, firstCommitId string) (map[string]string, error) {
 	cacheMap := map[string]string{}
 
 	// For each of the corpora, execute the sql query and add the results to the map.
 	for _, corpus := range prov.corpora {
-		cacheData, err := prov.GetDataForCorpus(ctx, corpus)
+		cacheData, err := prov.GetDataForCorpus(ctx, firstCommitId, corpus)
 		if err != nil {
 			return nil, err
 		}

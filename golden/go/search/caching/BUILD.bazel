@@ -15,6 +15,7 @@ go_library(
     deps = [
         "//go/cache",
         "//go/skerr",
+        "//golden/go/search/common",
         "//golden/go/sql/schema",
         "@com_github_jackc_pgx_v4//pgxpool",
     ],
@@ -27,6 +28,7 @@ go_test(
     deps = [
         "//go/cache/mock",
         "//go/deepequal/assertdeep",
+        "//go/testutils",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//pgxpool",

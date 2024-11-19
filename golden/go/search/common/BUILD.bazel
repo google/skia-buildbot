@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["commits.go"],
+    importpath = "go.skia.org/infra/golden/go/search/common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/search/query",
+        "//golden/go/sql/schema",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
+    ],
+)
