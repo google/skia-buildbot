@@ -297,7 +297,7 @@ func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int)
 	row := s.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
-	var lc pgtype.Int8
+	var lc pgtype.Int4
 	if err := row.Scan(&lc); err != nil {
 		if err == pgx.ErrNoRows {
 			return 0, nil // not enough commits seen, so start at tile 0.
