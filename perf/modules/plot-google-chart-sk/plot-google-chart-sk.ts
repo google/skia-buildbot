@@ -164,7 +164,8 @@ export class PlotGoogleChartSk extends LitElement {
   private lastMouse = { x: 0, y: 0 };
 
   // The value distance when moving by 1px on the screen.
-  private valueDelta = 1;
+  // Commits and dates operate on different scales, so adjust accordingly.
+  private valueDelta = { commit: 1, date: 1000 };
 
   private cachedChartArea = { left: 0, top: 0, width: 0, height: 0 };
 
@@ -237,7 +238,6 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   protected willUpdate(changedProperties: PropertyValues): void {
-    // TODO(b/362831653): incorporate domain changes into dataframe update.
     if (changedProperties.has('anomalyMap')) {
       // If the anomalyMap is getting updated,
       // trigger the chart to redraw and plot the anomaly.
@@ -245,6 +245,9 @@ export class PlotGoogleChartSk extends LitElement {
     } else if (changedProperties.has('selectedRange')) {
       // If only the selectedRange is updated, then we only update the viewWindow.
       this.updateOptions();
+    } else if (changedProperties.has('domain')) {
+      this.toggleSelectionRange();
+      this.updateDataView(this.data);
     } else if (changedProperties.has('data')) {
       this.updateDataView(this.data);
     }
@@ -274,13 +277,67 @@ export class PlotGoogleChartSk extends LitElement {
     this.updateOptions();
   }
 
+  // if new domain is commit, convert from date to commit and vice-versa
+  // the way this function works is imperfect. The ideal way to do this
+  // is for explore-simple-sk to be aware of the selection range from
+  // plot-summary-sk and can pass that to plot-google-chart. However,
+  // explore-simple-sk is not a lit module and toggling the domain using
+  // event listeners could create more complications
+  // Instead, we use the existing range and query the data to determine
+  // the new range
+  // TODO(b/362831653): Fix frame shifting from toggling domain
+  // Not sure the cause, could be the timezone?
+  private toggleSelectionRange() {
+    const newScale = this.domain === 'commit';
+    const currBegin = newScale
+      ? (new Date(this.selectedRange!.begin! * 1000) as any)
+      : this.selectedRange!.begin!;
+    const currEnd = newScale
+      ? (new Date(this.selectedRange!.end! * 1000) as any)
+      : this.selectedRange!.end!;
+    const fromCol = newScale ? 1 : 0;
+    const toCol = newScale ? 0 : 1;
+    const rows = this.data!.getFilteredRows([
+      {
+        column: fromCol,
+        minValue: currBegin,
+        maxValue: currEnd,
+      },
+    ]);
+    const begin = this.data!.getValue(rows[0], toCol);
+    const end = this.data!.getValue(rows[rows.length - 1], toCol);
+    this.selectedRange = {
+      begin: newScale ? begin : (begin as any).getTime() / 1000,
+      end: newScale ? end : (end as any).getTime() / 1000,
+    };
+  }
+
   private updateOptions() {
     const options = mainChartOptions(getComputedStyle(this), this.domain);
+    const begin = this.selectedRange?.begin;
+    const end = this.selectedRange?.end;
+    const commitScale = this.domain === 'commit';
+
     options.hAxis!.viewWindow = {
-      min: this.selectedRange?.begin,
-      max: this.selectedRange?.end,
+      min: commitScale ? begin : (new Date(begin! * 1000) as any),
+      max: commitScale ? end : (new Date(end! * 1000) as any),
     };
     this.plotElement.value!.options = options;
+  }
+
+  // Get the underlying ChartLayoutInterface.
+  // This provides API to inspect the traces and coordinates.
+  private get chartLayout(): google.visualization.ChartLayoutInterface | null {
+    const gchart = this.plotElement.value;
+    if (!gchart) {
+      return null;
+    }
+    const wrapper = gchart['chartWrapper'] as google.visualization.ChartWrapper;
+    if (!wrapper) {
+      return null;
+    }
+    const chart = wrapper.getChart();
+    return chart && (chart as google.visualization.CoreChartBase).getChartLayoutInterface();
   }
 
   // Add all the event listeners.
@@ -389,7 +446,8 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
 
-    const deltaX = (this.lastMouse.x - e.x) * this.valueDelta;
+    const valueDelta = this.domain === 'commit' ? this.valueDelta.commit : this.valueDelta.date;
+    const deltaX = (this.lastMouse.x - e.x) * valueDelta;
     this.lastMouse.x = e.x;
 
     this.selectedRange!.begin += deltaX;
@@ -402,7 +460,7 @@ export class PlotGoogleChartSk extends LitElement {
         composed: true,
         detail: {
           value: this.selectedRange!,
-          domain: 'commit', // Currently, it is always commit as y-axis.
+          domain: this.domain,
         },
       })
     );
@@ -416,7 +474,7 @@ export class PlotGoogleChartSk extends LitElement {
           composed: true,
           detail: {
             value: this.selectedRange!,
-            domain: 'commit', // Currently, it is always commit as y-axis.
+            domain: this.domain,
           },
         })
       );
@@ -436,8 +494,8 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
 
-    const traceset = this.dataframe?.traceset;
-    const header = this.dataframe?.header;
+    const data = this.data!;
+
     const traceKeys = this.selectedTraces ?? Object.keys(this.anomalyMap);
     const chartRect = layout.getChartAreaBoundingBox();
     const left = chartRect.left,
@@ -476,17 +534,19 @@ export class PlotGoogleChartSk extends LitElement {
 
     traceKeys.forEach((key) => {
       const anomalies = this.anomalyMap![key];
-      const trace = traceset![key];
+      const traceCol = this.data!.getColumnIndex(key)!;
       for (const cp in anomalies) {
         const offset = Number(cp);
-        const idx = header!.findIndex((v) => v?.offset === offset);
-        if (idx < 0) {
+        const rows = data.getFilteredRows([{ column: 0, value: offset }]);
+        if (rows.length < 0) {
           console.warn('anomaly data is out of existing dataframe, ignored.');
           continue;
         }
-        const value = trace[idx];
-        const x = layout.getXLocation(offset);
-        const y = layout.getYLocation(value);
+        const xValue =
+          this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
+        const yValue = data.getValue(rows[0], traceCol);
+        const x = layout.getXLocation(xValue);
+        const y = layout.getYLocation(yValue);
         // We only place the anomaly icons if they are within the chart boundary.
         // p.s. the top and bottom are reversed-coordinated.
         if (x < left || x > right || y < top || y > bottom) {
@@ -495,6 +555,7 @@ export class PlotGoogleChartSk extends LitElement {
 
         const anomaly = anomalies[offset];
         let cloned: HTMLElement | null;
+        // TODO(b/377751454): add separate anomaly icon for "ignored"
         if (anomaly.bug_id <= 0) {
           // no bug assigned, untriaged anomaly
           cloned = cloneSlot('untriage', key, offset);
@@ -533,7 +594,6 @@ export class PlotGoogleChartSk extends LitElement {
       area.width !== this.cachedChartArea.width
     ) {
       this.cachedChartArea = area;
-      this.valueDelta = layout.getHAxisValue(area.left + 1) - layout.getHAxisValue(area.left);
     }
   }
 
@@ -549,11 +609,12 @@ export class PlotGoogleChartSk extends LitElement {
     if (!this.chart) {
       return { x: 0, y: 0 };
     }
+    const domainColumn = this.domain === 'commit' ? 0 : 1;
     const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
-    const commitPos = this.data!.getValue(index.row + 1, 0);
+    const xValue = this.data!.getValue(index.row + 1, domainColumn);
     const yValue = this.data!.getValue(index.row, index.col + 1);
     return {
-      x: layout.getXLocation(commitPos),
+      x: layout.getXLocation(xValue),
       y: layout.getYLocation(yValue),
     };
   }

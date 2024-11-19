@@ -1266,6 +1266,14 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   switchXAxis(target: MdSwitch | null) {
+    const googleChart = this.googleChartPlot.value;
+    const plotSummary = this.plotSummary.value;
+    if (plotSummary) {
+      plotSummary.domain = target!.selected ? 'commit' : 'date';
+    }
+    if (googleChart) {
+      googleChart.domain = target!.selected ? 'commit' : 'date';
+    }
     const plot = this.plotSimple.value;
     if (!plot) {
       return;
@@ -1763,16 +1771,14 @@ export class ExploreSimpleSk extends ElementSk {
     domain: 'commit' | 'date',
     replot = true
   ) {
-    // Only supports commit value range.
-    if (this.googleChartPlot.value && domain === 'commit') {
-      this.googleChartPlot.value.selectedRange = range;
-    }
-
     const plot = this.plotSimple.value;
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, range, domain);
     this.selectedRange = selected;
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.selectedRange = range;
+    }
 
     const subDataframe = generateSubDataframe(df!, selected);
     const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {
