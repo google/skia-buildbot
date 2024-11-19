@@ -20,13 +20,15 @@ import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
 import { Anomaly, AnomalyMap, DataFrame } from '../json';
-import { convertFromDataframe, mainChartOptions } from '../common/plot-builder';
+import { mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
   dataframeContext,
   dataframeLoadingContext,
+  DataTable,
+  dataTableContext,
 } from '../dataframe/dataframe_context';
-import { getTitle, titleFormatter, isSingleTrace } from '../dataframe/traceset';
+import { isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelSk } from './side-panel-sk';
@@ -121,9 +123,14 @@ export class PlotGoogleChartSk extends LitElement {
   @consume({ context: dataframeLoadingContext, subscribe: true })
   private loading = false;
 
+  // TODO(b/362831653): Deprecate dataframe
   @consume({ context: dataframeContext, subscribe: true })
   @property({ attribute: false })
   private dataframe?: DataFrame;
+
+  @consume({ context: dataTableContext, subscribe: true })
+  @property({ attribute: false })
+  data: DataTable = null;
 
   @property({})
   selectedTraces: string[] | null = null;
@@ -201,7 +208,6 @@ export class PlotGoogleChartSk extends LitElement {
     // TODO(b/370804498): Break out plot panel into a separate module
     // and create a new module that combines google chart and the
     // tooltip module.
-    // TODO(b/370804689): Add legend to side panel
     return html`
       <div class="container">
         <google-chart
@@ -232,33 +238,44 @@ export class PlotGoogleChartSk extends LitElement {
 
   protected willUpdate(changedProperties: PropertyValues): void {
     // TODO(b/362831653): incorporate domain changes into dataframe update.
-    if (changedProperties.has('dataframe')) {
-      this.updateDataframe(this.dataframe!);
-    } else if (changedProperties.has('anomalyMap')) {
+    if (changedProperties.has('anomalyMap')) {
       // If the anomalyMap is getting updated,
       // trigger the chart to redraw and plot the anomaly.
       this.plotElement.value?.redraw();
     } else if (changedProperties.has('selectedRange')) {
       // If only the selectedRange is updated, then we only update the viewWindow.
       this.updateOptions();
+    } else if (changedProperties.has('data')) {
+      this.updateDataView(this.data);
     }
   }
 
-  private updateDataframe(df: DataFrame) {
-    const rows = convertFromDataframe(df, this.domain);
-    if (!rows) {
+  private async updateDataView(dt: DataTable) {
+    await this.updateComplete;
+    const plot = this.plotElement.value;
+    if (!plot || !dt) {
+      if (dt) {
+        console.warn('The datatable is not assigned because the element is not ready.');
+      }
       return;
     }
-    this.plotElement.value!.data = rows;
+
+    const view = new google.visualization.DataView(dt!);
+    const ncols = view.getNumberOfColumns();
+
+    // The first two columns are the commit position and the date.
+    const cols = [this.domain === 'commit' ? 0 : 1];
+    for (let index = 2; index < ncols; index++) {
+      cols.push(index);
+    }
+
+    view.setColumns(cols);
+    plot.view = view;
     this.updateOptions();
   }
 
   private updateOptions() {
-    const options = mainChartOptions(
-      getComputedStyle(this),
-      this.domain,
-      titleFormatter(getTitle(this.dataframe!))
-    );
+    const options = mainChartOptions(getComputedStyle(this), this.domain);
     options.hAxis!.viewWindow = {
       min: this.selectedRange?.begin,
       max: this.selectedRange?.end,
@@ -272,11 +289,7 @@ export class PlotGoogleChartSk extends LitElement {
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
       if (this.plotElement.value) {
-        this.plotElement.value!.options = mainChartOptions(
-          getComputedStyle(this),
-          this.domain,
-          titleFormatter(getTitle(this.dataframe!))
-        );
+        this.plotElement.value!.options = mainChartOptions(getComputedStyle(this), this.domain);
       }
       this.requestUpdate();
     });
@@ -537,31 +550,28 @@ export class PlotGoogleChartSk extends LitElement {
       return { x: 0, y: 0 };
     }
     const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
-    const rows = this.plotElement.value!.data! as any[][];
-    const row = rows[index.row + 1];
-    const commitPos = row[0];
+    const commitPos = this.data!.getValue(index.row + 1, 0);
+    const yValue = this.data!.getValue(index.row, index.col + 1);
     return {
       x: layout.getXLocation(commitPos),
-      y: layout.getYLocation(row[index.col]),
+      y: layout.getYLocation(yValue),
     };
   }
 
   /**
    * Get the commit position of a trace given the row index
-   * of the dataframe. The row index represents the x-position
+   * of the DataTable. The row index represents the x-position
    * of the data. The commit position is always in the first
    * in the first column.
    * @param row The row index
    */
   getCommitPosition(row: number) {
-    const rows = this.plotElement.value!.data! as any[][];
-    const commitPos = rows[row + 1][0];
-    return commitPos;
+    return this.data!.getValue(row + 1, 0);
   }
 
   /**
    * Get the trace name of a trace given the column index
-   * of the dataframe. The trace name is always in the first
+   * of the DataTable. The trace name is always in the first
    * row. This method makes no modifications to the trace name.
    * @param col The col index
    */
@@ -570,8 +580,8 @@ export class PlotGoogleChartSk extends LitElement {
     // returns a prettified version of the name. i.e.
     // ,arch=x86,config=8888,test=decode,units=kb, becomes
     // x86/8888/decode/kb.
-    const rows = this.plotElement.value!.data! as any[][];
-    return rows[0][col];
+    // first two columns of DataTable are commit position and date
+    return this.data!.getColumnLabel(col + 1);
   }
 
   /**
@@ -580,8 +590,8 @@ export class PlotGoogleChartSk extends LitElement {
    * @param index An index containing the row and column indexes.
    */
   getYValue(index: { row: number; col: number }): number {
-    const rows = this.plotElement.value!.data! as any[][];
-    return rows[index.row + 1][index.col];
+    // first two columns of DataTable are commit position and date
+    return this.data!.getValue(index.row, index.col + 1);
   }
 }
 

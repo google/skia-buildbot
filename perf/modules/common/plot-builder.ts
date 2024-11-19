@@ -130,8 +130,7 @@ export function ConvertData(chartData: ChartData) {
 
 export function mainChartOptions(
   style: CSSStyleDeclaration,
-  domain: string,
-  title: string
+  domain: string
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
@@ -151,7 +150,6 @@ export function mainChartOptions(
     aggregationTarget: 'none',
     tooltip: { trigger: 'none' },
     pointSize: 4,
-    title: title,
     titleTextStyle: { color: style.color },
     hAxis: {
       textPosition: 'out',
