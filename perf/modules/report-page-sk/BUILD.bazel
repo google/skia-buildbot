@@ -1,0 +1,28 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":report-page-sk-demo",
+)
+
+sk_element(
+    name = "report-page-sk",
+    sass_srcs = ["report-page-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+    ],
+    ts_srcs = [
+        "report-page-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "report-page-sk-demo",
+    html_file = "report-page-sk-demo.html",
+    sk_element_deps = [":report-page-sk"],
+    ts_entry_point = "report-page-sk-demo.ts",
+)
