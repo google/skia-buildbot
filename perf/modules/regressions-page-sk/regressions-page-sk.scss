@@ -7,15 +7,22 @@ regressions-page-sk {
     color: var(--positive);
   }
 
-  .showMoreAnomalies {
+  #showmore {
     position: absolute;
   }
 
   #filter:focus {
     outline-style: none;
   }
-}
 
-md-outlined-button {
-  --md-outlined-button-container-shape: 4px;
+  spinner-sk {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-10dp);
+  }
+
+  #upper-spin {
+    margin-left: 280px;
+  }
 }

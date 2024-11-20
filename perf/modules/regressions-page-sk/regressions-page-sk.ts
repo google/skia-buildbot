@@ -16,6 +16,7 @@ import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
+import { errorMessage } from '../errorMessage';
 
 // State is the local UI state of regressions-page-sk
 interface State {
@@ -57,6 +58,8 @@ export class RegressionsPageSk extends ElementSk {
 
   private anomaliesLoadingSpinner = false;
 
+  private showMoreLoadingSpinner = false;
+
   constructor() {
     super(RegressionsPageSk.template);
     this.state = {
@@ -93,6 +96,12 @@ export class RegressionsPageSk extends ElementSk {
       }
     );
     this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
+    const showMoreClick = document.getElementById('showMoreAnomalies');
+    showMoreClick!.onclick = () => {
+      this.anomaliesLoadingSpinner = false;
+      this.showMoreLoadingSpinner = true;
+      this._render();
+    };
   }
 
   async fetchRegressions(): Promise<void> {
@@ -120,7 +129,9 @@ export class RegressionsPageSk extends ElementSk {
     }
 
     const url = ANOMALY_LIST_ENDPOINT + queryStr;
+
     this.anomaliesLoadingSpinner = true;
+    this._render();
     await fetch(url, {
       method: 'GET',
       headers: {
@@ -128,6 +139,12 @@ export class RegressionsPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
+      .catch((msg) => {
+        errorMessage(msg);
+        this.anomaliesLoadingSpinner = false;
+        this.showMoreLoadingSpinner = false;
+        this._render();
+      })
       .then((response) => {
         const json: GetAnomaliesResponse = response;
         const regs: Anomaly[] = json.anomaly_list || [];
@@ -138,14 +155,11 @@ export class RegressionsPageSk extends ElementSk {
         }
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
         this.anomalyCursor = json.anomaly_cursor;
-        this.anomaliesLoadingSpinner = false;
         this.anomaliesTable!.populateTable(this.cpAnomalies);
-        this._render();
-      })
-      .catch(() => {
-        this.anomaliesLoadingSpinner = false;
-        this._render();
       });
+    this.anomaliesLoadingSpinner = false;
+    this.showMoreLoadingSpinner = false;
+    this._render();
   }
 
   private async init() {
@@ -162,6 +176,7 @@ export class RegressionsPageSk extends ElementSk {
     this.regressions = [];
     this.cpAnomalies = [];
     this.showMoreAnomalies = false;
+    this.anomaliesLoadingSpinner = false;
     this.stateHasChanged();
     this._render();
   }
@@ -174,15 +189,15 @@ export class RegressionsPageSk extends ElementSk {
       <option disabled selected value>-- select an option --</option>
       ${RegressionsPageSk.allSubscriptions(ele)}]
     </select>
+    <spinner-sk id="upper-spin" ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
     <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
-    <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
       <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>
         <div>Show More</div>
       </button>
-      <spinner-sk ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
+      <spinner-sk ?active=${ele.showMoreLoadingSpinner}></spinner-sk>
     </div>
     ${ele.regressions.length > 0
       ? html` <div id="regressions_container">${ele.getRegTemplate(ele.regressions)}</div>`
