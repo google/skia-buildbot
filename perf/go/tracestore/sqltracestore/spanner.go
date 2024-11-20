@@ -26,6 +26,7 @@ var spannerTemplates = map[statement]string{
                     '{{ $trace_id }}'
                 {{ end -}}
             )
+        ORDER BY trace_id
     `,
 	queryTraceIDs: `
         {{ $key := .Key }}
