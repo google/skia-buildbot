@@ -1234,7 +1234,6 @@ export class ExploreSimpleSk extends ElementSk {
     // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
     this.addEventListener('anomaly-changed', (e) => {
       this.plotSimple.value?.redrawOverlayCanvas();
-      this.googleChartPlot.value?.requestUpdate();
       const detail = (e as CustomEvent).detail;
       if (!detail) {
         this.triageResultToast?.hide();
@@ -1266,6 +1265,8 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   switchXAxis(target: MdSwitch | null) {
+    // TODO(b/362831653): It's probably better to toggle the domain
+    // with an event listener than to interact with the chart elements
     const googleChart = this.googleChartPlot.value;
     const plotSummary = this.plotSummary.value;
     if (plotSummary) {
@@ -1771,14 +1772,15 @@ export class ExploreSimpleSk extends ElementSk {
     domain: 'commit' | 'date',
     replot = true
   ) {
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.selectedRange = range;
+    }
+
     const plot = this.plotSimple.value;
     const df = this.dfRepo.value?.dataframe;
     const header = df?.header || [];
     const selected = findSubDataframe(header!, range, domain);
     this.selectedRange = selected;
-    if (this.googleChartPlot.value) {
-      this.googleChartPlot.value.selectedRange = range;
-    }
 
     const subDataframe = generateSubDataframe(df!, selected);
     const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {

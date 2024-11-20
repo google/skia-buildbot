@@ -307,6 +307,10 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private updateOptions() {
+    const plot = this.plotElement.value;
+    if (!plot) {
+      return;
+    }
     const options = mainChartOptions(getComputedStyle(this), this.domain);
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
@@ -316,22 +320,8 @@ export class PlotGoogleChartSk extends LitElement {
       min: commitScale ? begin : (new Date(begin! * 1000) as any),
       max: commitScale ? end : (new Date(end! * 1000) as any),
     };
-    this.plotElement.value!.options = options;
-  }
 
-  // Get the underlying ChartLayoutInterface.
-  // This provides API to inspect the traces and coordinates.
-  private get chartLayout(): google.visualization.ChartLayoutInterface | null {
-    const gchart = this.plotElement.value;
-    if (!gchart) {
-      return null;
-    }
-    const wrapper = gchart['chartWrapper'] as google.visualization.ChartWrapper;
-    if (!wrapper) {
-      return null;
-    }
-    const chart = wrapper.getChart();
-    return chart && (chart as google.visualization.CoreChartBase).getChartLayoutInterface();
+    plot.options = options;
   }
 
   // Add all the event listeners.
