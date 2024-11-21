@@ -26,15 +26,17 @@ const Schema = `CREATE TABLE IF NOT EXISTS Description (
   task_request JSONB,
   task_started TIMESTAMPTZ NOT NULL DEFAULT (0)::TIMESTAMPTZ,
   machine_id TEXT PRIMARY KEY GENERATED ALWAYS AS (dimensions->'id'->>0) STORED,
-  running_task bool GENERATED ALWAYS AS (task_request IS NOT NULL) STORED
-);
+  running_task bool GENERATED ALWAYS AS (task_request IS NOT NULL) STORED,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS TaskResult (
   result JSONB NOT NULL,
   id TEXT NOT NULL PRIMARY KEY,
   machine_id TEXT NOT NULL,
   finished TIMESTAMPTZ NOT NULL,
-  status TEXT NOT NULL DEFAULT ''
-);
+  status TEXT NOT NULL DEFAULT '',
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS dimensions_gin on Description (dimensions);
 CREATE INDEX IF NOT EXISTS by_powercycle on Description (powercycle);
 CREATE INDEX IF NOT EXISTS by_running_task on Description (running_task);

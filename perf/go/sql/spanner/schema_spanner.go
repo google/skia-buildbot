@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS Alerts (
   last_modified INT,
   sub_name TEXT,
   sub_revision TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS AnomalyGroups (
@@ -26,15 +27,17 @@ CREATE TABLE IF NOT EXISTS AnomalyGroups (
   bisection_id TEXT,
   reported_issue_id TEXT,
   culprit_ids TEXT ARRAY,
-  last_modified_time TIMESTAMPTZ
-);
+  last_modified_time TIMESTAMPTZ,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Commits (
   commit_number INT PRIMARY KEY,
   git_hash TEXT  NOT NULL,
   commit_time INT,
   author TEXT,
-  subject TEXT
-);
+  subject TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Culprits (
   id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
   host TEXT,
@@ -44,40 +47,46 @@ CREATE TABLE IF NOT EXISTS Culprits (
   last_modified INT,
   anomaly_group_ids TEXT ARRAY,
   issue_ids TEXT ARRAY,
-  group_issue_map JSONB
-);
+  group_issue_map JSONB,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Favorites (
   id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
   user_id TEXT NOT NULL,
   name TEXT,
   url TEXT NOT NULL,
   description TEXT,
-  last_modified INT
+  last_modified INT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS GraphsShortcuts (
   id TEXT  NOT NULL PRIMARY KEY,
-  graphs TEXT
-);
+  graphs TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS ParamSets (
   tile_number INT,
   param_key TEXT,
   param_value TEXT,
-  PRIMARY KEY (tile_number, param_key, param_value)
-);
+  PRIMARY KEY (tile_number, param_key, param_value),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Postings (
   tile_number INT,
   key_value TEXT NOT NULL,
   trace_id BYTEA,
-  PRIMARY KEY (tile_number, key_value, trace_id)
-);
+  PRIMARY KEY (tile_number, key_value, trace_id),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Regressions (
   commit_number INT,
   alert_id INT,
   regression TEXT,
   migrated BOOL,
   regression_id TEXT,
-  PRIMARY KEY (commit_number, alert_id)
-);
+  PRIMARY KEY (commit_number, alert_id),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Regressions2 (
   id TEXT PRIMARY KEY DEFAULT spanner.generate_uuid(),
   commit_number INT,
@@ -91,17 +100,20 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   cluster_summary JSONB,
   frame JSONB,
   triage_status TEXT,
-  triage_message TEXT
-);
+  triage_message TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Shortcuts (
   id TEXT  NOT NULL PRIMARY KEY,
-  trace_ids TEXT
-);
+  trace_ids TEXT,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS SourceFiles (
   source_file_id INT DEFAULT nextval('SourceFiles_seq'),
   source_file TEXT  NOT NULL,
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (source_file_id)
-);
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Subscriptions (
   name TEXT  NOT NULL,
   revision TEXT NOT NULL,
@@ -112,15 +124,17 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   bug_severity INT,
   bug_cc_emails TEXT ARRAY,
   contact_email TEXT,
-  PRIMARY KEY(name, revision)
+  PRIMARY KEY(name, revision),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE IF NOT EXISTS TraceValues (
   trace_id BYTEA,
   commit_number INT,
   val REAL,
   source_file_id INT,
-  PRIMARY KEY (trace_id, commit_number)
-);
+  PRIMARY KEY (trace_id, commit_number),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS by_revision on Culprits (revision, host, project, ref);
 CREATE INDEX IF NOT EXISTS by_user_id on Favorites (user_id);
 CREATE INDEX IF NOT EXISTS by_tile_number on ParamSets (tile_number DESC);

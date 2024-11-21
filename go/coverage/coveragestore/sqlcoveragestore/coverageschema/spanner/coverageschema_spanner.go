@@ -8,8 +8,9 @@ const Schema = `CREATE TABLE IF NOT EXISTS TestSuiteMapping (
   file_name TEXT NOT NULL,
   builder_name TEXT NOT NULL,
   test_suite_name TEXT ARRAY NOT NULL,
-  last_modified TIMESTAMPTZ DEFAULT now()
-);
+  last_modified TIMESTAMPTZ DEFAULT now(),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 `
 
 var TestSuiteMapping = []string{

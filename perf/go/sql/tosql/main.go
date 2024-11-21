@@ -37,7 +37,12 @@ func main() {
 		packagePath = filepath.Join(packagePath, "spanner")
 	}
 
-	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB)
+	ttlExcludeTables := []string{
+		"Alerts",
+		"Favorites",
+		"Subscriptions",
+	}
+	generatedText := exporter.GenerateSQL(sql.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, ttlExcludeTables)
 	out := filepath.Join(packagePath, outputFileName)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
