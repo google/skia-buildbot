@@ -35,7 +35,7 @@ const ANOMALY_LIST_ENDPOINT = '/_/anomalies/anomaly_list';
 export class RegressionsPageSk extends ElementSk {
   state: State;
 
-  private subscriptionList: string[] = [];
+  subscriptionList: string[] = [];
 
   cpAnomalies: Anomaly[] = [];
 
@@ -171,8 +171,11 @@ export class RegressionsPageSk extends ElementSk {
     });
     const json: GetSheriffListResponse = await jsonOrThrow(response);
     const subscriptions: string[] = json.sheriff_list || [];
+    const sortedSubscriptions: string[] = subscriptions.sort((a, b) =>
+      a.toLowerCase().localeCompare(b.toLowerCase())
+    );
 
-    this.subscriptionList = [...subscriptions];
+    this.subscriptionList = [...sortedSubscriptions];
     this.regressions = [];
     this.cpAnomalies = [];
     this.showMoreAnomalies = false;

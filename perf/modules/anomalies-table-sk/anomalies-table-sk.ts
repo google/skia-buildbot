@@ -142,7 +142,7 @@ export class AnomaliesTableSk extends ElementSk {
             </th>
             <th id="graph_header"></th>
             <th id="bug_id" data-key="bugid">Bug ID</th>
-            <th id="revision_range" data-key="revisions" data-default="up">Revisions</th>
+            <th id="revision_range" data-key="revisions" data-default="down">Revisions</th>
             <th id="master" data-key="master" data-sort-type="alpha">Main</th>
             <th id="bot" data-key="bot" data-sort-type="alpha">Bot</th>
             <th id="testsuite" data-key="testsuite" data-sort-type="alpha">Test Suite</th>

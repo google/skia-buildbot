@@ -35,6 +35,22 @@ describe('regressions-page-sk', () => {
     sheriff_list: ['Sheriff Config 1', 'Sheriff Config 2', 'Sheriff Config 3'],
     error: '',
   };
+
+  const sheriffListResponseUnSorted: GetSheriffListResponse = {
+    sheriff_list: [
+      'Chrome Perf Sheriff 3',
+      'Blink Config 3',
+      'Angle Sheriff Perf ',
+      'Angle Perf 1',
+    ],
+    error: '',
+  };
+  const sheriffListResponseSorted: string[] = [
+    'Angle Perf 1',
+    'Angle Sheriff Perf 2',
+    'Blink Config 3',
+    'Chrome Perf Sheriff 3',
+  ];
   fetchMock.get('/_/anomalies/sheriff_list', { body: sheriffListResponse });
 
   const anomalyListResponse: GetAnomaliesResponse = {
@@ -183,6 +199,24 @@ describe('regressions-page-sk', () => {
       );
       assert.equal(element.anomalyCursor, 'query_cursor');
       assert.equal(element.showMoreAnomalies, true);
+    });
+  });
+
+  describe('RegressionsPageSK', () => {
+    fetchMock.config.overwriteRoutes = true;
+    fetchMock.getOnce('/_/anomalies/sheriff_list', { body: sheriffListResponseUnSorted });
+    const newInstance = setUpElementUnderTest<RegressionsPageSk>('regressions-page-sk');
+
+    const element = newInstance((_el: RegressionsPageSk) => {});
+
+    const dropdown = document.getElementById('filter') as HTMLSelectElement;
+
+    it('Sheriff List is displayed in an rescending way', async () => {
+      // 4 loaded configs and the default options
+      assert.equal(dropdown?.options.length, 4);
+      element.subscriptionList.every((sheriff, index) => {
+        assert.equal(sheriff, sheriffListResponseSorted.at(index));
+      });
     });
   });
 });
