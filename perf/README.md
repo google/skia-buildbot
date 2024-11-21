@@ -27,7 +27,7 @@ In addition you will also need to install the full executable `cockroach`. In or
 
   - After that, run
 
-        cockroach start-single-node --insecure ---listen-addr=127.0.0.1:26257
+        cockroach start-single-node --insecure --listen-addr=127.0.0.1:26257
 
     (nit: listen-address is set by default)
 
