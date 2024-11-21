@@ -70,7 +70,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 
 	// Migrate regression schema if specified.
 	if flags.MigrateRegressions {
-		migrator, err := migration.New(ctx, db)
+		migrator, err := migration.New(ctx, db, instanceConfig.DataStoreConfig.DataStoreType)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build regression schema migrator.")
 		}
@@ -129,7 +129,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	if flags.DeleteShortcutsAndRegressions {
-		deleter, err := deletion.New(db)
+		deleter, err := deletion.New(db, instanceConfig.DataStoreConfig.DataStoreType)
 		if err != nil {
 			return skerr.Wrapf(err, "Error creating new Deleter")
 		}

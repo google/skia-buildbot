@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregression2store"
@@ -21,8 +22,8 @@ import (
 func setup(t *testing.T) (context.Context, *RegressionMigrator, *sqlregressionstore.SQLRegressionStore, *sqlregression2store.SQLRegression2Store) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(t, "regstore")
-	migrator, _ := New(ctx, db)
-	legacyStore, _ := sqlregressionstore.New(db)
+	migrator, _ := New(ctx, db, config.CockroachDBDataStoreType)
+	legacyStore, _ := sqlregressionstore.New(db, config.CockroachDBDataStoreType)
 	newStore, _ := sqlregression2store.New(db, nil)
 	return ctx, migrator, legacyStore, newStore
 }

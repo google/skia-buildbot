@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sqlalertstore",
-    srcs = ["sqlalertstore.go"],
+    srcs = [
+        "spanner.go",
+        "sqlalertstore.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/alerts/sqlalertstore",
     visibility = ["//visibility:public"],
     deps = [
@@ -11,6 +14,7 @@ go_library(
         "//go/sklog",
         "//go/sql/pool",
         "//perf/go/alerts",
+        "//perf/go/config",
     ],
 )
 
@@ -31,6 +35,7 @@ go_test(
     deps = [
         "//go/sql/pool",
         "//perf/go/alerts",
+        "//perf/go/config",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

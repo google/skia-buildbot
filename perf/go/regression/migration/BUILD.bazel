@@ -12,6 +12,7 @@ go_library(
         "//go/sql/pool",
         "//perf/go/alerts",
         "//perf/go/alerts/sqlalertstore",
+        "//perf/go/config",
         "//perf/go/regression/sqlregression2store",
         "//perf/go/regression/sqlregressionstore",
     ],
@@ -23,6 +24,7 @@ go_test(
     embed = [":migration"],
     deps = [
         "//perf/go/clustering2",
+        "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/regression",
         "//perf/go/regression/sqlregression2store",

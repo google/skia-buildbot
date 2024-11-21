@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "sqlregressionstore",
-    srcs = ["sqlregressionstore.go"],
+    srcs = [
+        "spanner.go",
+        "sqlregressionstore.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/regression/sqlregressionstore",
     visibility = ["//visibility:public"],
     deps = [
@@ -13,6 +16,7 @@ go_library(
         "//go/sql/pool",
         "//perf/go/alerts",
         "//perf/go/clustering2",
+        "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/types",
         "//perf/go/ui/frame",
@@ -35,6 +39,7 @@ go_test(
     # https://docs.bazel.build/versions/master/be/common-definitions.html#common-attributes-tests
     flaky = True,
     deps = [
+        "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/regression/regressiontest",
         "//perf/go/sql/sqltest",

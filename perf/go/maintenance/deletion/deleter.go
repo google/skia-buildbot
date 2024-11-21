@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -22,8 +23,8 @@ type Deleter struct {
 	shortcutStore   shortcut.Store
 }
 
-func New(db pool.Pool) (*Deleter, error) {
-	regressionStore, err := sqlregressionstore.New(db)
+func New(db pool.Pool, dbType config.DataStoreType) (*Deleter, error) {
+	regressionStore, err := sqlregressionstore.New(db, dbType)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "could not create regressions store")
 	}

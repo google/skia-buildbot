@@ -171,7 +171,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 	if err != nil {
 		return nil, err
 	}
-	return sqlalertstore.New(db)
+	return sqlalertstore.New(db, instanceConfig.DataStoreConfig.DataStoreType)
 }
 
 // NewRegressionStoreFromConfig creates a new regression.RegressionStore from
@@ -187,7 +187,7 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfi
 	if instanceConfig.UseRegression2 {
 		return sqlregression2store.New(db, alertsConfigProvider)
 	} else {
-		return sqlregressionstore.New(db)
+		return sqlregressionstore.New(db, instanceConfig.DataStoreConfig.DataStoreType)
 	}
 }
 

@@ -64,7 +64,7 @@ var statementFormats = map[statementFormat]string{
 		SELECT
 			{{ .Columns }}
 		FROM
-			Regressions2@by_commit_alert
+			Regressions2
 		WHERE
 			commit_number=$1 AND alert_id=$2
 		`,

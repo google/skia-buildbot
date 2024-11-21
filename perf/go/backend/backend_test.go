@@ -23,7 +23,7 @@ import (
 
 func setupTestApp(t *testing.T) *Backend {
 	db := sqltest.NewCockroachDBForTests(t, "backend")
-	alertStore, _ := alert_store.New(db)
+	alertStore, _ := alert_store.New(db, config.CockroachDBDataStoreType)
 	configProvider, _ := alerts.NewConfigProvider(context.Background(), alertStore, 600)
 	anomalygroupStore, _ := ag_store.New(db)
 	culpritStore, _ := culprit_store.New(db)

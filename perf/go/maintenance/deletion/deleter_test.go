@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
@@ -21,8 +22,8 @@ import (
 func setup(t *testing.T) (context.Context, *Deleter, *sqlregressionstore.SQLRegressionStore, *sqlshortcutstore.SQLShortcutStore) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTests(t, "delStore")
-	deleter, _ := New(db)
-	regressionStore, _ := sqlregressionstore.New(db)
+	deleter, _ := New(db, config.CockroachDBDataStoreType)
+	regressionStore, _ := sqlregressionstore.New(db, config.CockroachDBDataStoreType)
 	shortcutStore, _ := sqlshortcutstore.New(db)
 
 	return ctx, deleter, regressionStore, shortcutStore

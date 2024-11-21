@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 )
 
 // statement is an SQL statement identifier.
@@ -83,15 +84,22 @@ var statements = map[statement]string{
 type SQLAlertStore struct {
 	// db is the database interface.
 	db pool.Pool
+	// statements is the SQL statements to use.
+	statements map[statement]string
 }
 
 // New returns a new *SQLAlertStore.
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool) (*SQLAlertStore, error) {
+func New(db pool.Pool, dbType config.DataStoreType) (*SQLAlertStore, error) {
+	stmts := statements
+	if dbType == config.SpannerDataStoreType {
+		stmts = spannerStatements
+	}
 	return &SQLAlertStore{
-		db: db,
+		db:         db,
+		statements: stmts,
 	}, nil
 }
 
@@ -108,7 +116,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 	if cfg.IDAsString == alerts.BadAlertIDAsAsString {
 		newID := alerts.BadAlertID
 		// Not a valid ID, so this should be an insert, not an update.
-		if err := s.db.QueryRow(ctx, statements[insertAlert], string(b), now, nil, nil).Scan(&newID); err != nil {
+		if err := s.db.QueryRow(ctx, s.statements[insertAlert], string(b), now, nil, nil).Scan(&newID); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 		cfg.SetIDFromInt64(newID)
@@ -122,7 +130,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 			revisionOrNull.String = req.SubKey.SubRevision
 			revisionOrNull.Valid = true
 		}
-		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now, nameOrNull, revisionOrNull); err != nil {
+		if _, err := s.db.Exec(ctx, s.statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now, nameOrNull, revisionOrNull); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%s", cfg.IDAsString)
 		}
 	}
@@ -139,7 +147,7 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 	}
 
 	now := time.Now().Unix()
-	if _, err := tx.Exec(ctx, statements[deleteAllAlerts], now); err != nil {
+	if _, err := tx.Exec(ctx, s.statements[deleteAllAlerts], now); err != nil {
 		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}
@@ -156,7 +164,7 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 			return skerr.Wrap(err)
 		}
 
-		if _, err := tx.Exec(ctx, statements[insertAlert], string(b), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
+		if _, err := tx.Exec(ctx, s.statements[insertAlert], string(b), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
 			if err := tx.Rollback(ctx); err != nil {
 				sklog.Errorf("Failed on rollback: %s", err)
 			}
@@ -169,7 +177,7 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 // Delete implements the alerts.Store interface.
 func (s *SQLAlertStore) Delete(ctx context.Context, id int) error {
 	now := time.Now().Unix()
-	if _, err := s.db.Exec(ctx, statements[deleteAlert], now, id); err != nil {
+	if _, err := s.db.Exec(ctx, s.statements[deleteAlert], now, id); err != nil {
 		return skerr.Wrapf(err, "Failed to mark Alert as deleted with ID=%d", id)
 	}
 	return nil
@@ -192,7 +200,7 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 	if includeDeleted {
 		stmt = listAllAlerts
 	}
-	rows, err := s.db.Query(ctx, statements[stmt])
+	rows, err := s.db.Query(ctx, s.statements[stmt])
 	if err != nil {
 		return nil, err
 	}

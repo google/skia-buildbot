@@ -10,6 +10,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/sql/pool",
+        "//perf/go/config",
         "//perf/go/regression",
         "//perf/go/regression/sqlregressionstore",
         "//perf/go/shortcut",
@@ -24,6 +25,7 @@ go_test(
     embed = [":deletion"],
     deps = [
         "//perf/go/clustering2",
+        "//perf/go/config",
         "//perf/go/dataframe",
         "//perf/go/regression",
         "//perf/go/regression/sqlregressionstore",

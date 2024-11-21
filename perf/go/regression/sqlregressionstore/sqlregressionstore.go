@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -98,6 +99,7 @@ var statements = map[statement]string{
 type SQLRegressionStore struct {
 	// db is the underlying database.
 	db                         pool.Pool
+	statements                 map[statement]string
 	regressionFoundCounterLow  metrics2.Counter
 	regressionFoundCounterHigh metrics2.Counter
 }
@@ -106,9 +108,14 @@ type SQLRegressionStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db pool.Pool) (*SQLRegressionStore, error) {
+func New(db pool.Pool, dbType config.DataStoreType) (*SQLRegressionStore, error) {
+	stmts := statements
+	if dbType == config.SpannerDataStoreType {
+		stmts = spannerStatements
+	}
 	return &SQLRegressionStore{
 		db:                         db,
+		statements:                 stmts,
 		regressionFoundCounterLow:  metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "low"}),
 		regressionFoundCounterHigh: metrics2.GetCounter("perf_regression_store_found", map[string]string{"direction": "high"}),
 	}, nil
@@ -122,7 +129,7 @@ func (s *SQLRegressionStore) GetRegressionsBySubName(ctx context.Context, sub_na
 // Range implements the regression.Store interface.
 func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}
-	rows, err := s.db.Query(ctx, statements[readRange], begin, end)
+	rows, err := s.db.Query(ctx, s.statements[readRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
@@ -240,7 +247,7 @@ func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.Commi
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := s.db.Exec(ctx, statements[write], commitNumber, alertID, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, s.statements[write], commitNumber, alertID, string(b)); err != nil {
 		return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
 	return nil
@@ -254,7 +261,7 @@ func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.Commit
 	}
 	alertID := alerts.IDAsStringToInt(alertIDString)
 	var jsonString string
-	if err := s.db.QueryRow(ctx, statements[read], commitNumber, alertID).Scan(&jsonString); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[read], commitNumber, alertID).Scan(&jsonString); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regression for alertID: %d commitNumber=%d", alertID, commitNumber)
 	}
 	r := regression.NewRegression()
@@ -289,7 +296,7 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	// Read the regression from the database. If any part of that fails then
 	// just use the default regression we've already constructed.
 	var jsonString string
-	if err := tx.QueryRow(ctx, statements[read], commitNumber, alertID).Scan(&jsonString); err == nil {
+	if err := tx.QueryRow(ctx, s.statements[read], commitNumber, alertID).Scan(&jsonString); err == nil {
 		if err := json.Unmarshal([]byte(jsonString), r); err != nil {
 			sklog.Warningf("Failed to deserialize the JSON Regression: %s", err)
 		}
@@ -311,7 +318,7 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 		}
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := tx.Exec(ctx, statements[write], commitNumber, alertID, string(b)); err != nil {
+	if _, err := tx.Exec(ctx, s.statements[write], commitNumber, alertID, string(b)); err != nil {
 		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}
@@ -326,7 +333,7 @@ func (s *SQLRegressionStore) GetRegressionsToMigrate(ctx context.Context, batchS
 	regressions := []*regression.Regression{}
 	var rows pgx.Rows
 	var err error
-	if rows, err = s.db.Query(ctx, statements[batchReadMigration], batchSize); err != nil {
+	if rows, err = s.db.Query(ctx, s.statements[batchReadMigration], batchSize); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions for migration")
 	}
 	for rows.Next() {
@@ -355,7 +362,7 @@ func (s *SQLRegressionStore) GetRegressionsToMigrate(ctx context.Context, batchS
 
 // MarkMigrated marks a specific row in the regressions table as migrated.
 func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId string, commitNumber types.CommitNumber, alertID int64, tx pgx.Tx) error {
-	if _, err := tx.Exec(ctx, statements[markMigrated], regressionId, commitNumber, alertID); err != nil {
+	if _, err := tx.Exec(ctx, s.statements[markMigrated], regressionId, commitNumber, alertID); err != nil {
 		return skerr.Wrapf(err, "Failed to mark regression migrated for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
 
@@ -370,7 +377,7 @@ func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*reg
 // GetOldestCommit implements the regression.Store interface. Gets the oldest commit in the table.
 func (s *SQLRegressionStore) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
 	var num int
-	if err := s.db.QueryRow(ctx, statements[readOldest]).Scan(&num); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[readOldest]).Scan(&num); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to fetch oldest commit.")
 	}
 	commitNumber := types.CommitNumber(num)
@@ -381,9 +388,9 @@ func (s *SQLRegressionStore) GetOldestCommit(ctx context.Context) (*types.Commit
 func (s *SQLRegressionStore) DeleteByCommit(ctx context.Context, num types.CommitNumber, tx pgx.Tx) error {
 	var err error
 	if tx == nil {
-		_, err = s.db.Exec(ctx, statements[deleteByCommit], num)
+		_, err = s.db.Exec(ctx, s.statements[deleteByCommit], num)
 	} else {
-		_, err = tx.Exec(ctx, statements[deleteByCommit], num)
+		_, err = tx.Exec(ctx, s.statements[deleteByCommit], num)
 	}
 
 	return err

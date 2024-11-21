@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -18,7 +19,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			db := sqltest.NewCockroachDBForTests(t, "regstore")
 
-			store, err := New(db)
+			store, err := New(db, config.CockroachDBDataStoreType)
 			require.NoError(t, err)
 			subTest(t, store)
 		})
@@ -29,7 +30,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			db := sqltest.NewCockroachDBForTests(t, "regstore")
 
-			store, err := New(db)
+			store, err := New(db, config.CockroachDBDataStoreType)
 			require.NoError(t, err)
 			subTest(t, store)
 		})
