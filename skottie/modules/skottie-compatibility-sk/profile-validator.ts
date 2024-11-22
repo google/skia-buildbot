@@ -18,6 +18,7 @@ const FEATURE_CODE_KEYWORD = 'feature-code';
 const FEATURE_LINK_KEYWORD = 'feature-link';
 const FEATURE_LEVEL_KEYWORD = 'feature-level';
 const FEATURE_DETAILS_KEYWORD = 'feature-details';
+const VERSION_KEYWORD = '$version';
 
 const NAME_PROPERTY_PATH = 'nm';
 
@@ -27,7 +28,6 @@ export class ProfileValidator {
   constructor(profileSchema: any) {
     const ajv = new Ajv({
       allErrors: true,
-      strict: true,
     });
 
     ajv.addKeyword({
@@ -48,6 +48,11 @@ export class ProfileValidator {
     ajv.addKeyword({
       keyword: FEATURE_DETAILS_KEYWORD,
       schemaType: 'string',
+    });
+
+    ajv.addKeyword({
+      keyword: VERSION_KEYWORD,
+      schemaType: 'number',
     });
 
     this.validateFunction = ajv.compile(profileSchema);
@@ -81,10 +86,7 @@ function processErrors(
   }
 
   const enhancedErrors = errors.map((error: LottieError) => {
-    const featureNode: any = getSchemaPathFeatureNode(
-      error.schemaPath,
-      validate
-    );
+    const featureNode: any = getSchemaPathFeatureNode(error.schemaPath, validate);
 
     if (featureNode) {
       error.featureCode = featureNode[FEATURE_CODE_KEYWORD];
@@ -138,15 +140,8 @@ function processErrors(
   });
 }
 
-function getSchemaPathFeatureNode(
-  schemaPath: string,
-  validate: ValidateFunction
-): Object | null {
-  const codes = findNodesWithProperty(
-    validate.schema,
-    schemaPath,
-    FEATURE_CODE_KEYWORD
-  );
+function getSchemaPathFeatureNode(schemaPath: string, validate: ValidateFunction): string | null {
+  const codes = findNodesWithProperty(validate.schema, schemaPath, FEATURE_CODE_KEYWORD);
 
   return codes[0] ?? null;
 }
@@ -159,11 +154,7 @@ function getNameHierarchy(obj: any, instancePath: string): string[] {
  * Given a '/' separated path, will attempt to traverse the object tree and
  * return the values of the target property from all objects in the tree path
  */
-function extractPropertiesFromPath(
-  obj: any,
-  path: string,
-  property: string
-): string[] {
+function extractPropertiesFromPath(obj: any, path: string, property: string): string[] {
   const pathParts = path.split('/');
 
   const values: string[] = [];
@@ -186,11 +177,7 @@ function extractPropertiesFromPath(
   return values;
 }
 
-function findNodesWithProperty(
-  obj: any,
-  path: string,
-  property: string
-): Object[] {
+function findNodesWithProperty(obj: any, path: string, property: string): string[] {
   const pathParts = path.split('/');
 
   const values: string[] = [];
