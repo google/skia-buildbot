@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/cache/local"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
@@ -41,7 +42,9 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS))
 	require.NoError(t, err)
@@ -68,7 +71,9 @@ func TestNewAndUntriagedSummaryForCL_OnePatchsetWithMultipleDatapointsOnSameTrac
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, dks.ChangelistIDWithMultipleDatapointsPerTrace))
 	require.NoError(t, err)
@@ -93,7 +98,9 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
@@ -162,7 +169,9 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -193,9 +202,11 @@ func TestNewAndUntriagedSummaryForCL_CLDoesNotExist_ReturnsError(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
-	_, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
+	_, err = s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
@@ -263,7 +274,9 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -351,7 +364,9 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -434,7 +449,9 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	rv, err := s.NewAndUntriagedSummaryForCL(ctx, sql.Qualify(dks.GerritCRS, clID))
 	require.NoError(t, err)
@@ -471,7 +488,9 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	// Update the caches aggressively to be writing to the shared cache while reading from it.
 	require.NoError(t, s.StartCacheProcess(ctx, 100*time.Millisecond, 100))
 
@@ -507,7 +526,9 @@ func TestChangelistLastUpdated_ValidCL_ReturnsLatestTS(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, dks.ChangelistIDThatAddsNewTests))
 	require.NoError(t, err)
 	assert.Equal(t, changelistTSForNewTests, ts)
@@ -518,7 +539,9 @@ func TestChangelistLastUpdated_NonExistentCL_ReturnsZeroTime(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	ts, err := s.ChangelistLastUpdated(ctx, sql.Qualify(dks.GerritInternalCRS, "does not exist"))
 	require.NoError(t, err)
 	assert.True(t, ts.IsZero())
@@ -529,7 +552,9 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -553,7 +578,9 @@ func TestSearch_UntriagedDigestsAtHead_WithMaterializedViews(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
@@ -799,7 +826,9 @@ func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 10)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
 	assertNumRows(t, db, "mv_corners_traces", 21)
@@ -811,7 +840,9 @@ func TestStartMaterializedViews_ViewsGetUpdated(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	s := New(db, 10)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Second))
 	// no data yet
 	assertNumRows(t, db, "mv_corners_traces", 0)
@@ -836,7 +867,9 @@ func TestSearch_IncludeIgnoredAtHead_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -951,7 +984,9 @@ func TestSearch_RespectMinMaxRGBAFilter_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -1041,7 +1076,9 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           true,
@@ -1486,7 +1523,9 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           true,
@@ -1512,7 +1551,9 @@ func TestSearch_FilterLeftSideByKeys_WithMaterializedViews(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
@@ -1754,7 +1795,9 @@ func TestSearch_FilterLeftSideByKeysAndOptions_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           true,
@@ -1881,7 +1924,9 @@ func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: false,
 		IncludePositiveDigests:           false,
@@ -1905,7 +1950,9 @@ func TestSearch_FilteredAcrossAllHistory_WithMaterializedView(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: false,
@@ -2307,7 +2354,9 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: false,
 		IncludePositiveDigests:           false,
@@ -2334,7 +2383,9 @@ func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: false,
@@ -2474,7 +2525,9 @@ func TestSearch_DifferentTestsDrawTheSame_SearchResultsAreSeparate(t *testing.T)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, b.Build()))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -2637,7 +2690,9 @@ func TestSearch_RespectsPublicParams_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
@@ -2669,7 +2724,9 @@ func TestSearch_RespectsPublicParams_WithMaterializedViews(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 10) // Otherwise there's no commit for the materialized views
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
@@ -2823,7 +2880,9 @@ func TestSearch_RespectsRightSideFilter_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -3032,7 +3091,9 @@ func TestSearch_ReturnsCLData_ShowsOnlyDataNewToPrimaryBranch(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -3205,7 +3266,9 @@ func TestSearch_DisallowTriagingOnPrimaryBranch_DigestExcludedFromBulkTriageInfo
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartCacheProcess(ctx, time.Minute, 100))
 	res, err := s.Search(ctx, &query.Search{
 		IncludePositiveDigests:  true,
@@ -3462,7 +3525,9 @@ func TestSearch_DisallowTriagingOnCL_DigestExcludedFromBulkTriageInfos(t *testin
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -3584,7 +3649,9 @@ func TestSearch_CLAndPatchsetWithMultipleDatapointsOnSameTrace_ReturnsAllDatapoi
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -3936,7 +4003,9 @@ func TestSearch_ReturnsFilteredCLData_Success(t *testing.T) {
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -4175,7 +4244,9 @@ func TestSearch_ResultHasNoReferenceDiffsNorExistingTraces_Success(t *testing.T)
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -4305,7 +4376,9 @@ func TestGetPrimaryBranchParamset_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	ps, err := s.GetPrimaryBranchParamset(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
@@ -4333,7 +4406,9 @@ func TestGetPrimaryBranchParamset_RespectsPublicParams_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 
 	ps, err := s.GetPrimaryBranchParamset(ctx)
@@ -4352,7 +4427,9 @@ func TestGetChangelistParamset_ValidCLs_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	ps, err := s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ReadOnlyParamSet{
@@ -4389,8 +4466,10 @@ func TestGetChangelistParamset_InvalidCL_ReturnsError(t *testing.T) {
 	ctx := context.Background()
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 
-	s := New(db, 100)
-	_, err := s.GetChangelistParamset(ctx, "does not", "exist")
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	_, err = s.GetChangelistParamset(ctx, "does not", "exist")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Could not find")
 }
@@ -4414,7 +4493,9 @@ func TestGetChangelistParamset_RespectsPublicView_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	ps, err := s.GetChangelistParamset(ctx, dks.GerritCRS, dks.ChangelistIDThatAttemptsToFixIOS)
 	require.NoError(t, err)
@@ -4441,7 +4522,9 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
 	require.NoError(t, err)
@@ -4453,7 +4536,9 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMateria
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 9)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 9, cache, nil)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
@@ -4510,7 +4595,9 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.Search(ctx, &query.Search{
 		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
@@ -4539,7 +4626,9 @@ func TestSearchByBlameThenTriageAndSearchAgain_Success(t *testing.T) {
 			ctx := context.Background()
 			db := useKitchenSinkData(ctx, t)
 
-			s := New(db, 10)
+			cache, err := local.New(100)
+			require.NoError(t, err)
+			s := New(db, 10, cache, nil)
 
 			if withMaterializedView {
 				// Ensure the materialized view does not get updated for the duration of this test.
@@ -4684,7 +4773,9 @@ func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 10)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 10, cache, nil)
 	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 
 	res, err := s.Search(ctx, &query.Search{
@@ -4839,7 +4930,9 @@ func TestSearch_IncludesBlameCommit_MultipleNewTraces_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	// We want to assert that searching with the given blameID, we return exactly one result
 	// corresponding to the given digest. This makes sure we can take the results of
@@ -4878,7 +4971,9 @@ func TestGetBlamesForUntriagedDigests_MultipleNewTraces_Success(t *testing.T) {
 	betaGrouping := paramtools.Params{types.PrimaryKeyField: "beta", types.CorpusField: "test_corpus"}
 	gammaGrouping := paramtools.Params{types.PrimaryKeyField: "gamma", types.CorpusField: "test_corpus"}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.GetBlamesForUntriagedDigests(ctx, "test_corpus")
 	require.NoError(t, err)
@@ -4970,7 +5065,9 @@ func TestSearch_IncludesBlameRange_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.Search(ctx, &query.Search{
 		BlameGroupID: "0000000106:0000000108",
@@ -5099,7 +5196,9 @@ func TestSearch_BlameRespectsPublicParams_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		BlameGroupID: "0000000106:0000000109",
@@ -5198,7 +5297,9 @@ func TestSearch_BlameCommitInCorpusWithNoUntriaged_ReturnsEmptyResult(t *testing
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.Search(ctx, &query.Search{
 		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
@@ -5226,7 +5327,9 @@ func TestSearch_PrimaryBranch_NoReferenceImages_ReturnsEmptyResult(t *testing.T)
 	_, err := db.Exec(ctx, "DELETE FROM DiffMetrics")
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.Search(ctx, &query.Search{
 		IncludePositiveDigests:     true,
 		MustIncludeReferenceFilter: true,
@@ -5266,7 +5369,9 @@ func TestSearch_SecondaryBranch_NoReferenceImages_ReturnsEmptyResult(t *testing.
 		ChangelistURL: "http://example.com/public/CL_fix_ios",
 	})
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -5307,7 +5412,9 @@ func TestGetBlamesForUntriagedDigests_RespectsPublicParams_Success(t *testing.T)
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 
 	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
@@ -5346,7 +5453,9 @@ func TestGetBlamesForUntriagedDigests_NoUntriagedDigestsAtHead_Success(t *testin
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	// None of the traces for the corner tests have unignored, untriaged digests at head.
 	// As a result, the blame returned should be empty.
@@ -6218,7 +6327,9 @@ func TestGetCluster_ShowAllDataFromPrimaryBranch_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
 			types.CorpusField:     dks.CornersCorpus,
@@ -6298,7 +6409,9 @@ func TestGetCluster_RespectsTriageStatuses_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
 			types.CorpusField:     dks.CornersCorpus,
@@ -6319,7 +6432,9 @@ func TestGetCluster_RespectsFilters_Success(t *testing.T) {
 
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
 			types.CorpusField:     dks.RoundCorpus,
@@ -6384,7 +6499,9 @@ func TestGetCluster_RespectsPublicParams_Success(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	res, err := s.GetCluster(ctx, ClusterOptions{
 		Grouping: paramtools.Params{
@@ -6524,7 +6641,9 @@ func TestGetCommitsInWindow_GitCommits_ReturnsAllCommitsWithData(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	commits, err := s.GetCommitsInWindow(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, makeKitchenSinkCommits(), commits)
@@ -6538,7 +6657,9 @@ func TestGetCommitsInWindow_RespectsWindow_ReturnsMostRecentCommitsWithData(t *t
 	allCommits := makeKitchenSinkCommits()
 	mostRecentCommits := allCommits[len(allCommits)-3:]
 
-	s := New(db, 3)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 3, cache, nil)
 	commits, err := s.GetCommitsInWindow(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, mostRecentCommits, commits)
@@ -6549,7 +6670,9 @@ func TestGetDigestsForGrouping_ValidGrouping_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
 		types.PrimaryKeyField: dks.CircleTest,
 		types.CorpusField:     dks.RoundCorpus,
@@ -6567,7 +6690,9 @@ func TestGetDigestsForGrouping_InvalidGrouping_EmptyResponseReturned(t *testing.
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	digests, err := s.GetDigestsForGrouping(ctx, paramtools.Params{
 		types.PrimaryKeyField: "not a real test",
 		types.CorpusField:     "not a real corpus",
@@ -6585,7 +6710,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_Success(t *testing.T) 
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestDetails{
@@ -6703,7 +6830,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_PublicView_SomeTracesM
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, "", "")
 	require.NoError(t, err)
@@ -6805,7 +6934,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnPrimary_PublicView_NoTracesMat
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	_, err = s.GetDigestDetails(ctx, inputGrouping, dks.DigestC02Pos, "", "")
 	require.Error(t, err)
@@ -6822,7 +6953,9 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnPrimary_ReturnsPartialResult
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	// This digest is not seen in that grouping on the primary branch.
 	details, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, "", "")
 	require.NoError(t, err)
@@ -6871,7 +7004,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_Success(t *testing.T) {
 		Subject:       "Fix iOS",
 		ChangelistURL: "http://example.com/public/CL_fix_ios",
 	})
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -6975,7 +7110,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_PublicView_SomeTracesMatchP
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
@@ -7064,7 +7201,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_PublicView_NoTracesMatchPub
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
@@ -7095,7 +7234,9 @@ func TestGetDigestDetails_ValidDigestAndGroupingOnCL_OnePatchsetWithMultipleData
 		Subject:       "multiple datapoints",
 		ChangelistURL: "http://example.com/public/CLmultipledatapoints",
 	})
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
@@ -7190,13 +7331,15 @@ func TestGetDigestDetails_InvalidDigestAndGroupingOnCL_ReturnsError(t *testing.T
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	s.SetReviewSystemTemplates(map[string]string{
 		dks.GerritCRS:         "http://example.com/public/%s",
 		dks.GerritInternalCRS: "http://example.com/internal/%s",
 	})
 
-	_, err := s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
+	_, err = s.GetDigestDetails(ctx, inputGrouping, dks.DigestE03Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "No results found")
 }
@@ -7211,7 +7354,9 @@ func TestGetDigestsDiff_TwoKnownDigests_Success(t *testing.T) {
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC03Unt, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestComparison{
@@ -7257,8 +7402,10 @@ func TestGetDigestsDiff_UnknownDigests_ReturnsError(t *testing.T) {
 	}
 	const notARealDigest = `ffffffffffffffffffffffffffffffff`
 
-	s := New(db, 100)
-	_, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, notARealDigest, "", "")
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	_, err = s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, notARealDigest, "", "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "missing")
 
@@ -7281,7 +7428,9 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_Success(t *testing.T) {
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestComparison{
@@ -7325,7 +7474,9 @@ func TestGetDigestsDiff_UntriagedDigestOnKnownCL_ReturnsDiffAndParamset(t *testi
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC07Unt_CL, dks.ChangelistIDThatAttemptsToFixIOS, dks.GerritCRS)
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestComparison{
@@ -7369,7 +7520,9 @@ func TestGetDigestsDiff_TwoKnownDigestsOnACL_OnePatchsetWithMultipleDatapointsOn
 		types.CorpusField:     dks.CornersCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	// In this CL a tryjob was executed multiple times at the last patchset, generating multiple
 	// datapoints for the same trace at the last patchset. DigestC01Pos was drawn on the last two
 	// tryjob runs.
@@ -7419,7 +7572,9 @@ func TestGetDigestsDiff_DigestsExistOnPrimaryInvalidCL_ReturnDiffAndPrimaryParam
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC03Unt, "not a real CL", dks.GerritCRS)
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestComparison{
@@ -7464,7 +7619,9 @@ func TestGetDigestsDiff_UntriagedDigestOnUnknownCL_ReturnsDiffButNoRightParamset
 		types.CorpusField:     dks.RoundCorpus,
 	}
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	rv, err := s.GetDigestsDiff(ctx, inputGrouping, dks.DigestC01Pos, dks.DigestC06Pos_CL, "not a real CL", dks.GerritCRS)
 	require.NoError(t, err)
 	assert.Equal(t, frontend.DigestComparison{
@@ -7506,7 +7663,9 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
 		Corpus:      dks.CornersCorpus,
 		IgnoreState: types.ExcludeIgnoredTraces,
@@ -7562,7 +7721,9 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
 		Corpus:      dks.CornersCorpus,
 		IgnoreState: types.IncludeIgnoredTraces,
@@ -7621,7 +7782,9 @@ func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	resp, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
 		Corpus:      dks.CornersCorpus,
 		IgnoreState: types.ExcludeIgnoredTraces,
@@ -7661,8 +7824,10 @@ func TestCountDigestsByTest_FilteredByParamset_NotImplemented(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
-	_, err := s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	_, err = s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
 		Corpus:      dks.CornersCorpus,
 		IgnoreState: types.ExcludeIgnoredTraces,
 		TraceValues: paramtools.ParamSet{
@@ -7680,7 +7845,9 @@ func TestComputeGUIStatus_Success(t *testing.T) {
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.ComputeGUIStatus(ctx)
 	require.NoError(t, err)
@@ -7717,7 +7884,9 @@ func TestComputeGUIStatus_GitCommitIDsDoNotMatch_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, data))
 	waitForSystemTime()
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 
 	res, err := s.ComputeGUIStatus(ctx)
 	require.NoError(t, err)
@@ -7753,7 +7922,9 @@ func TestComputeGUIStatus_RespectsPublicParams_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := New(db, 100)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
 
 	res, err := s.ComputeGUIStatus(ctx)
@@ -7827,8 +7998,10 @@ func TestGetCommits_StandardGitIDs_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	waitForSystemTime()
 
-	s := New(db, 100)
-	ctx, err := s.addCommitsData(ctx)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
 	fec, err := s.getCommits(ctx)
 	require.NoError(t, err)
@@ -7880,8 +8053,10 @@ func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, existingData))
 	waitForSystemTime()
 
-	s := New(db, 100)
-	ctx, err := s.addCommitsData(ctx)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
 	fec, err := s.getCommits(ctx)
 	require.NoError(t, err)
@@ -7902,8 +8077,10 @@ func TestGetDigestsForGrouping_NoRightTraceKeys_ReturnsDigestsFromTracesOnPrimar
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
-	ctx, err := s.addCommitsData(ctx)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
 
 	test := func(name string, grouping schema.GroupingID, expectedDigests ...types.Digest) {
@@ -7932,8 +8109,10 @@ func TestGetDigestsForGrouping_WithRightTraceKeys_ReturnsDigestsFromThoseTracesO
 	ctx := context.Background()
 	db := useKitchenSinkData(ctx, t)
 
-	s := New(db, 100)
-	ctx, err := s.addCommitsData(ctx)
+	cache, err := local.New(100)
+	require.NoError(t, err)
+	s := New(db, 100, cache, nil)
+	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
 
 	test := func(name string, rightTraceKeys paramtools.ParamSet, expectedDigests ...types.Digest) {

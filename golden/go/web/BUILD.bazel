@@ -54,6 +54,7 @@ go_test(
         "//go/alogin",
         "//go/alogin/mocks",
         "//go/alogin/proxylogin",
+        "//go/cache/local",
         "//go/now",
         "//go/paramtools",
         "//go/roles",

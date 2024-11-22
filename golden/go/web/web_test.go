@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	ttlcache "github.com/patrickmn/go-cache"
+	"go.skia.org/infra/go/cache/local"
 	"go.skia.org/infra/go/roles"
 
 	"github.com/google/uuid"
@@ -1210,9 +1211,12 @@ func TestStartCLCacheProcess_Success(t *testing.T) {
 	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
 	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
 
+	cache, err := local.New(100)
+	require.NoError(t, err)
+
 	wh := initCaches(&Handlers{
 		HandlersConfig: HandlersConfig{
-			Search2API: search.New(db, 10),
+			Search2API: search.New(db, 10, cache, nil),
 			DB:         db,
 		},
 	})

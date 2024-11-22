@@ -168,16 +168,15 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 		templates[crs.ID] = crs.URLTemplate
 	}
 
-	s2a := search.New(sqlDB, fsc.WindowSize)
 	cacheClient, err := fsc.GetCacheClient(ctx)
 	if err != nil {
-		// TODO(ashwinpv): Once we are fully onboarded, this error should cause a failure.
-		sklog.Warningf("Error while trying to create a new cache client: %v", err)
+		sklog.Fatalf("Error while trying to create a new cache client: %v", err)
 	}
-	if cacheClient != nil {
-		sklog.Debugf("Enabling cache for search.")
-		s2a.EnableCache(cacheClient, fsc.CachingCorpora)
+	if cacheClient == nil {
+		sklog.Fatalf("Cache is not configured correctly for this instance.")
 	}
+
+	s2a := search.New(sqlDB, fsc.WindowSize, cacheClient, fsc.CachingCorpora)
 
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)

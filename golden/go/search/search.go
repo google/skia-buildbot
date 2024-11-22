@@ -211,7 +211,7 @@ type Impl struct {
 }
 
 // New returns an implementation of API.
-func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
+func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_corpora []string) *Impl {
 	cc, err := lru.New(commitCacheSize)
 	if err != nil {
 		panic(err) // should only happen if commitCacheSize is negative.
@@ -234,12 +234,8 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 		traceCache:           tc,
 		paramsetCache:        pc,
 		reviewSystemMapping:  map[string]string{},
+		cacheManager:         caching.New(cacheClient, sqlDB, cache_corpora, windowLength),
 	}
-}
-
-// EnableCache enables reading data from cache for search.
-func (s *Impl) EnableCache(cacheClient cache.Cache, cache_corpora []string) {
-	s.cacheManager = caching.New(cacheClient, s.db, cache_corpora, s.windowLength)
 }
 
 // SetReviewSystemTemplates sets the URL templates that are used to link to the code review system.
@@ -2739,82 +2735,23 @@ func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus s
 	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
 	defer span.End()
 
-	// Caching is enabled.
-	if s.cacheManager != nil {
-		sklog.Debugf("Search cache is enabled.")
-		byBlameData, err := s.cacheManager.GetByBlameData(ctx, string(common.GetFirstCommitID(ctx)), corpus)
-		if err != nil {
-			sklog.Errorf("Error encountered when retrieving ByBlame data from cache: %v", err)
-			return nil, err
-		}
-
-		sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
-		rv := map[groupingDigestKey][]schema.TraceID{}
-		var key groupingDigestKey
-		groupingKey := key.groupingID[:]
-		digestKey := key.digest[:]
-		for _, data := range byBlameData {
-			copy(groupingKey, data.GroupingID)
-			copy(digestKey, data.Digest)
-			rv[key] = append(rv[key], data.TraceID)
-		}
-
-		return rv, nil
-	}
-
-	sklog.Debugf("Search cache is not enabled. Proceeding with regular search.")
-	statement := `WITH
-UntriagedDigests AS (
-	SELECT grouping_id, digest FROM Expectations
-	WHERE label = 'u'
-),
-UnignoredDataAtHead AS (
-	SELECT trace_id, grouping_id, digest FROM ValuesAtHead@corpus_commit_ignore_idx
-	WHERE matches_any_ignore_rule = FALSE AND most_recent_commit_id >= $1 AND corpus = $2
-)
-SELECT UnignoredDataAtHead.trace_id, UnignoredDataAtHead.grouping_id, UnignoredDataAtHead.digest FROM
-UntriagedDigests
-JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
-	 UntriagedDigests.digest = UnignoredDataAtHead.digest
-`
-	arguments := []interface{}{common.GetFirstCommitID(ctx), corpus}
-	if mv := s.getMaterializedView(byBlameView, corpus); mv != "" {
-		// While using the by blame view, it's important that we filter out digests that have since
-		// been triaged, or the user might notice a delay of several minutes between the moment they
-		// perform a triage action and the moment their action seemingly takes effect.
-		statement = `WITH
-		ByBlameMaterializedView AS (
-			SELECT * FROM ` + mv + `
-		)
-		SELECT ByBlameMaterializedView.trace_id,
-		       ByBlameMaterializedView.grouping_id,
-					 ByBlameMaterializedView.digest
-		FROM ByBlameMaterializedView
-		JOIN Expectations USING (grouping_id, digest)
-		WHERE Expectations.label = '` + string(schema.LabelUntriaged) + `'`
-		arguments = nil
-	}
-
-	rows, err := s.db.Query(ctx, statement, arguments...)
+	byBlameData, err := s.cacheManager.GetByBlameData(ctx, string(common.GetFirstCommitID(ctx)), corpus)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Errorf("Error encountered when retrieving ByBlame data from cache: %v", err)
+		return nil, err
 	}
-	defer rows.Close()
+
+	sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
 	rv := map[groupingDigestKey][]schema.TraceID{}
 	var key groupingDigestKey
 	groupingKey := key.groupingID[:]
 	digestKey := key.digest[:]
-	for rows.Next() {
-		var traceID schema.TraceID
-		var groupingID schema.GroupingID
-		var digest schema.DigestBytes
-		if err := rows.Scan(&traceID, &groupingID, &digest); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		copy(groupingKey, groupingID)
-		copy(digestKey, digest)
-		rv[key] = append(rv[key], traceID)
+	for _, data := range byBlameData {
+		copy(groupingKey, data.GroupingID)
+		copy(digestKey, data.Digest)
+		rv[key] = append(rv[key], data.TraceID)
 	}
+
 	return rv, nil
 }
 
