@@ -143,10 +143,11 @@ import {
   PlotSelectionEventDetails,
   PlotShowTooltipEventDetails,
 } from '../plot-google-chart-sk/plot-google-chart-sk';
-import { DataFrameRepository } from '../dataframe/dataframe_context';
+import { DataFrameRepository, DataTable } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
+import { getLegend, getTitle, isSingleTrace } from '../dataframe/traceset';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -571,7 +572,13 @@ export class ExploreSimpleSk extends ElementSk {
 
   private summaryOptionsField: Ref<PickerFieldSk> = createRef();
 
-  private traceNameIdMap = new Map();
+  // Map with displayed summary bar option as key and trace key
+  // as value. For example, {'...k1=v1,k2=v2' => ',ck1=>cv1,ck2=>cv2,k1=v1,k2=v2,'}
+  private summaryOptionTraceMap: Map<string, string> = new Map();
+
+  // Map with displayed trace key as key and summary bar option
+  // as value. For example, {',ck1=>cv1,ck2=>cv2,k1=v1,k2=v2,' => '...k1=v1,k2=v2'}
+  private traceIdSummaryOptionMap: Map<string, string> = new Map();
 
   private pointToCommitDetailMap = new Map();
 
@@ -1067,7 +1074,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private onSummaryPickerChanged(e: CustomEvent) {
     const selectedTrace = e.detail.value;
-    this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace) || '';
+    this.traceKeyForSummary = this.summaryOptionTraceMap.get(selectedTrace) || '';
 
     const plot = this.plotSummary.value;
     if (plot) {
@@ -1931,8 +1938,8 @@ export class ExploreSimpleSk extends ElementSk {
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
     if (this.summaryOptionsField.value) {
-      const formattedTraceId = this.traceFormatter!.formatTrace(fromKey(detail.name));
-      this.summaryOptionsField.value!.setValue(formattedTraceId);
+      const option = this.traceIdSummaryOptionMap.get(detail.name) || '';
+      this.summaryOptionsField.value!.setValue(option);
     }
 
     const selected = this.selectedRange?.begin || 0;
@@ -2198,8 +2205,12 @@ export class ExploreSimpleSk extends ElementSk {
    */
   private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
     this.plotSimple.value?.addLines(traceSet, labels);
-    if (this._state.plotSummary) {
-      this.addPlotSummaryOptions();
+
+    const dt = this.dfRepo.value?.data;
+    const df = this.dfRepo.value?.dataframe;
+    const shouldAddSummaryOptions = this._state.plotSummary && df !== undefined && dt !== undefined;
+    if (shouldAddSummaryOptions) {
+      this.addPlotSummaryOptions(df, dt);
     }
   }
 
@@ -2216,25 +2227,66 @@ export class ExploreSimpleSk extends ElementSk {
 
   /**
    * Adds the option list for the plot summary selection.
+   * @param df The dataframe object from dataframe context.
+   * @param df The dataTable object from dataframe context.
    */
-  private addPlotSummaryOptions() {
-    if (!this.dfRepo.value?.dataframe) {
+  private addPlotSummaryOptions(df: DataFrame, dt: DataTable) {
+    if (!this.summaryOptionsField.value) {
       return;
     }
-    const traceIds: string[] = [];
-    Object.keys(this.dfRepo.value.dataframe.traceset!).forEach((traceId) => {
-      // Ignore the zero trace if present.
-      if (traceId !== ZERO_NAME) {
-        const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
-        this.traceNameIdMap.set(traceName, traceId);
-        traceIds.push(traceName);
-      }
+
+    if (isSingleTrace(dt)) {
+      this.summaryOptionsField.value!.style.display = 'none';
+      return;
+    }
+
+    const titleObj = getTitle(dt);
+    let commonTitle = '';
+    for (const [key, value] of Object.entries(titleObj)) {
+      commonTitle += `${key}=${value},`;
+    }
+
+    // getLegend returns trace Ids which are not common in all the graphs.
+    // Since it is an object we convert it to the standard key format a=A,b=B,
+    // so that it could be fed to the traceFormatter.
+    //
+    // Also note that some values in the legend object has "-" as value which is
+    // used to signify a trace not having any values for a particular param.
+    // We ignore this.
+    const shortTraceIds: string[] = [];
+    getLegend(dt).forEach((traceObject: { [key: string]: any }) => {
+      let shortTraceId = '';
+      Object.keys(traceObject).forEach((k) => {
+        const v = String(traceObject[k]);
+        shortTraceId += v !== '-' ? `${k}=${v},` : '';
+      });
+
+      let formattedShortTrace = this.traceFormatter!.formatTrace(fromKey(shortTraceId));
+      // Since this text is just the uncommon part of trace Id we want to remove
+      // the label from the formatted trace id so the user doesn't get confused.
+      formattedShortTrace = formattedShortTrace.replace('Trace ID: ', '');
+      shortTraceIds.push(formattedShortTrace);
     });
 
-    if (this.summaryOptionsField.value) {
-      this.summaryOptionsField.value!.options = traceIds;
-      this.summaryOptionsField.value!.label = 'Trace for summary bar';
-    }
+    const displayOptions: string[] = [];
+    const traceIds = Object.keys(df.traceset);
+    shortTraceIds.forEach((shortTraceId, i) => {
+      const traceId = traceIds[i];
+      const op = `...${shortTraceId}`;
+      // These maps are useful to find summary drop down options from the trace key
+      // and vice versa. The trace key's format is constant across the tool.
+      // Hence these maps come in handy for that purpose. They're used primarily
+      // when the summary drop down changes and when a trace is selected from
+      // the graph.
+      this.summaryOptionTraceMap.set(op, traceId);
+      this.traceIdSummaryOptionMap.set(traceId, op);
+      displayOptions.push(op);
+    });
+
+    const formattedTitle = this.traceFormatter!.formatTrace(fromKey(commonTitle));
+    this.summaryOptionsField.value!.helperText = formattedTitle;
+    this.summaryOptionsField.value!.options = displayOptions;
+    this.summaryOptionsField.value!.label = 'Trace for summary bar';
   }
 
   private paramsetKeyValueClick(e: CustomEvent<ParamSetSkClickEventDetail>) {

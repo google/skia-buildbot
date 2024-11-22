@@ -22,6 +22,10 @@ picker-field-sk {
     transition: color 0.3s ease;
     color: var(--on-disabled);
   }
+  vaadin-combo-box::part(helper-text) {
+    transition: color 0.3s ease;
+    color: var(--on-disabled);
+  }
   vaadin-combo-box:hover::part(label) {
     transition: color 0.3s ease;
     color: var(--on-surface);

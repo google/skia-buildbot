@@ -23,9 +23,15 @@ import {
   updateShortcut,
 } from './explore-simple-sk';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { fromKey } from '../paramtools';
+import { generateFullDataFrame } from '../dataframe/test_utils';
+import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
+import { load } from '@google-web-components/google-chart/loader';
+import { convertFromDataframe } from '../common/plot-builder';
 
 fetchMock.config.overwriteRoutes = true;
+
+const now = 1726081856; // an arbitrary UNIX time;
+const timeSpan = 89; // an arbitrary prime number for time span between commits .
 
 describe('calculateRangeChange', () => {
   const offsets: CommitRange = [100, 120] as CommitRange;
@@ -259,43 +265,111 @@ describe('updateShortcut', () => {
 });
 
 describe('traceSelected', () => {
-  it('should update the summary dropdown value', () => {
+  it('should update the summary dropdown value', async () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [Array.from({ length: 4 }, (_, k) => k)],
+      keys
+    );
+
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
     const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     explore.state.plotSummary = true;
     explore['tracesRendered'] = true;
     explore.render();
 
-    const traceIds = [
-      ',config=8888,arch=x86,',
-      ',config=8888,arch=arm,',
-      ',config=565,arch=x86,',
-      ',config=565,arch=arm,',
-    ];
-    explore['summaryOptionsField'].value!.options = Object.keys(traceIds);
-
-    const fakePoints = [
-      [99, 1],
-      [100, 2],
-      [101, 3],
-    ];
-    const header: ColumnHeader[] = [];
-    fakePoints.forEach((p) => {
-      header.push({
-        offset: CommitNumber(p[0]),
-        timestamp: TimestampSeconds(p[1]),
-      });
-    });
+    explore['addPlotSummaryOptions'](df, dt);
+    explore.render();
 
     const p: PointSelected = {
       commit: CommitNumber(100),
-      name: traceIds[1],
+      name: keys[1],
     };
-    const ev = selectionToEvent(p, header);
+    const ev = selectionToEvent(p, df.header);
     explore.traceSelected(ev);
 
-    const expected = explore['traceFormatter']!.formatTrace(fromKey(traceIds[1]));
+    const expected = '...,ref_mode=ref,subtest=Average,v8_mode=default,';
     const actual = explore['summaryOptionsField'].value!.getValue();
     assert.equal(actual, expected);
+  });
+});
+
+describe('addSummaryOptions', () => {
+  it('should hide if single trace', async () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.state.plotSummary = true;
+    explore['tracesRendered'] = true;
+    explore.render();
+
+    explore['addPlotSummaryOptions'](df, dt);
+
+    assert.equal(explore['summaryOptionsField'].value?.style.display, 'none');
+    assert.equal(explore['summaryOptionsField'].value?.helperText, '');
+    assert.deepEqual(explore['summaryOptionsField'].value?.options, []);
+  });
+
+  it('should show short names for multiple traces', async () => {
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.state.plotSummary = true;
+    explore['tracesRendered'] = true;
+    explore.render();
+
+    explore['addPlotSummaryOptions'](df, dt);
+
+    const expectedHelperText = 'Trace ID: ,benchmark=JetStream2,bot=MacM1,test=Total,';
+    assert.equal(explore['summaryOptionsField'].value?.helperText, expectedHelperText);
+
+    const expectedOptions = [
+      '...,ref_mode=head,subtest=Average,v8_mode=pgo,',
+      '...,ref_mode=ref,subtest=Average,v8_mode=default,',
+      '...,ref_mode=ref,subtest=Normal,v8_mode=default,',
+      '...,ref_mode=ref,subtest=Normal,',
+    ];
+    assert.deepEqual(explore['summaryOptionsField'].value?.options, expectedOptions);
   });
 });
 

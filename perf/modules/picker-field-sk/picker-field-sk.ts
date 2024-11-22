@@ -31,6 +31,8 @@ import '@vaadin/combo-box/theme/lumo/vaadin-combo-box.js';
 export class PickerFieldSk extends ElementSk {
   private _label: string = '';
 
+  private _helper_text: string = '';
+
   private _options: string[] = [];
 
   private _comboBox: HTMLElement | null = null;
@@ -44,9 +46,10 @@ export class PickerFieldSk extends ElementSk {
     <div>
       <vaadin-combo-box
         label="${ele.label}"
+        helper-text="${ele.helperText}"
         placeholder="${ele.label}"
         .items=${ele.options}
-        theme="small"
+        theme="small helper-above-field"
         clear-button-visible
         @value-changed=${ele.onValueChanged}
         autoselect>
@@ -137,6 +140,15 @@ export class PickerFieldSk extends ElementSk {
 
   set label(v: string) {
     this._label = v;
+    this._render();
+  }
+
+  get helperText(): string {
+    return this._helper_text;
+  }
+
+  set helperText(v: string) {
+    this._helper_text = v;
     this._render();
   }
 }
