@@ -6,4 +6,23 @@ regressions-page-sk {
   .green {
     color: var(--positive);
   }
+
+  #showmore {
+    position: absolute;
+  }
+
+  #filter:focus {
+    outline-style: none;
+  }
+
+  spinner-sk {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-10dp);
+  }
+
+  #upper-spin {
+    margin-left: 280px;
+  }
 }

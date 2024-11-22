@@ -3,7 +3,7 @@
  * @description <h2><code>ElementSk</code></h2>
  *
  */
-import { render } from 'lit-html';
+import { render } from 'lit/html.js';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 
 /**
@@ -67,7 +67,7 @@ export class ElementSk extends HTMLElement {
    */
   protected _render() {
     if (this._connected && !!this._template) {
-      render(this._template(this), this, { eventContext: this });
+      render(this._template(this), this, { host: this });
     }
   }
 }

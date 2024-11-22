@@ -134,7 +134,7 @@ func TestCommandRepoManager(t *testing.T) {
 
 		// Don't perform "git push".
 		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
-			d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
+			d, err := git.CheckoutDir(cmd.Dir).Details(ctx, "HEAD")
 			if err != nil {
 				return skerr.Wrap(err)
 			}

@@ -24,11 +24,11 @@ import (
 )
 
 func TestFindRegexesAndReplaces_ReplacesTargetImageOnly(t *testing.T) {
-	test := func(name, imageName, newImageID, beforeContents, expectedContents string) {
+	test := func(name, imageName, newImageID, newImageTag, beforeContents, expectedContents string) {
 		t.Run(name, func(t *testing.T) {
 			image := &SingleImageInfo{
 				Image: imageName,
-				Tag:   "unused",
+				Tag:   newImageTag,
 			}
 			regexes, replaces := findRegexesAndReplaces(image, newImageID)
 			require.Len(t, regexes, len(replaces))
@@ -40,7 +40,7 @@ func TestFindRegexesAndReplaces_ReplacesTargetImageOnly(t *testing.T) {
 		})
 	}
 
-	test("container_pull one affected", "gcr.io/skia-public/cd-base", "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71",
+	test("container_pull one affected", "gcr.io/skia-public/cd-base", "sha256:f5f1c8737cd424ada212bac65e965ebf44e7a8237b03c2ec2614a83246181e71", "unused",
 		`# Pulls the gcr.io/skia-public/base-cipd container, needed by some apps that use the
 # skia_app_container macro.
 container_pull(
@@ -78,7 +78,7 @@ container_pull(
 
 	// This is a snippet of a yaml file used to configure an app. It should be changed because
 	// it matches the target image.
-	test("yaml_file matches", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+	test("yaml_file matches", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff", "git-621749e49293c7c5dd07823a24670891288c2c0a",
 		`
     spec:
       automountServiceAccountToken: false
@@ -89,6 +89,7 @@ container_pull(
         - name: ctfe
           image: gcr.io/skia-public/ctfe@sha256:01b3fbdff648bb45020da10ab2ddecd7665a15e24b45ccc1fcacc06cbef1648c
           args:
+            - '--tag=gcr.io/skia-public/ctfe@tag:git-1aed62db5e3052e8b00a5eb32f4539386f83e765'
             - '--namespace=cluster-telemetry'
             - '--project_name=skia-public'
             - '--host=ct.skia.org'
@@ -107,6 +108,7 @@ container_pull(
         - name: ctfe
           image: gcr.io/skia-public/ctfe@sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
           args:
+            - '--tag=gcr.io/skia-public/ctfe@tag:git-621749e49293c7c5dd07823a24670891288c2c0a'
             - '--namespace=cluster-telemetry'
             - '--project_name=skia-public'
             - '--host=ct.skia.org'
@@ -126,9 +128,10 @@ container_pull(
             - '--resources_dir=/usr/local/share/codesizeserver/dist'
             - '--port=:8000'
             - '--prom_port=:20000'
+            - '--tag=gcr.io/skia-public/codesizeserver@tag:git-1aed62db5e3052e8b00a5eb32f4539386f83e765'
           ports:
             - containerPort: 20000`
-	test("yaml_file no match", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+	test("yaml_file no match", "gcr.io/skia-public/ctfe", "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff", "git-621749e49293c7c5dd07823a24670891288c2c0a",
 		shouldBeUnchanged, shouldBeUnchanged)
 
 }

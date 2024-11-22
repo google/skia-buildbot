@@ -27,9 +27,11 @@ const (
 	// The identifiers for all the SQL statements used.
 	write statement = iota
 	read
+	readOldest
 	readRange
 	batchReadMigration
 	markMigrated
+	deleteByCommit
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
@@ -48,6 +50,15 @@ var statements = map[statement]string{
 		WHERE
 			commit_number=$1 AND
 			alert_id=$2`,
+	readOldest: `
+		SELECT
+			commit_number
+		FROM
+			Regressions
+		ORDER BY
+			commit_number ASC
+		LIMIT 1
+		`,
 	readRange: `
 		SELECT
 			commit_number, alert_id, regression
@@ -73,6 +84,13 @@ var statements = map[statement]string{
 			migrated=true, regression_id=$1
 		WHERE
 			commit_number=$2 AND alert_id=$3
+		`,
+	deleteByCommit: `
+		DELETE
+		FROM
+			Regressions
+		WHERE
+			commit_number=$1
 		`,
 }
 
@@ -131,7 +149,7 @@ func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitN
 }
 
 // SetHigh implements the regression.Store interface.
-func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
 	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
@@ -144,12 +162,12 @@ func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.Com
 		}
 	})
 	s.regressionFoundCounterHigh.Inc(1)
-	return ret, err
+	return ret, "", err
 
 }
 
 // SetLow implements the regression.Store interface.
-func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error) {
 	ret := false
 	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
@@ -162,7 +180,7 @@ func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.Comm
 		}
 	})
 	s.regressionFoundCounterLow.Inc(1)
-	return ret, err
+	return ret, "", err
 }
 
 // TriageLow implements the regression.Store interface.
@@ -177,6 +195,25 @@ func (s *SQLRegressionStore) TriageHigh(ctx context.Context, commitNumber types.
 	return s.readModifyWrite(ctx, commitNumber, alertID, true /* mustExist*/, func(r *regression.Regression) {
 		r.HighStatus = tr
 	})
+}
+
+// GetNotificationId returns the notificationID for the regression at the given commit for specific alert.
+func (s *SQLRegressionStore) GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error) {
+	regression, err := s.read(ctx, commitNumber, alertID)
+	if err != nil {
+		return "", err
+	}
+
+	// The notification id is stored in the High/Low cluster summary of the regression object.
+	if regression.High != nil && regression.High.NotificationID != "" {
+		return regression.High.NotificationID, nil
+	}
+
+	if regression.Low != nil && regression.Low.NotificationID != "" {
+		return regression.Low.NotificationID, nil
+	}
+
+	return "", nil
 }
 
 // Write implements the regression.Store interface.
@@ -328,6 +365,28 @@ func (s *SQLRegressionStore) MarkMigrated(ctx context.Context, regressionId stri
 // Not implemented as old regression schema does not have id.
 func (s *SQLRegressionStore) GetByIDs(ctx context.Context, ids []string) ([]*regression.Regression, error) {
 	return nil, skerr.Fmt("GetByIDs are not implemented in old version of regression store.")
+}
+
+// GetOldestCommit implements the regression.Store interface. Gets the oldest commit in the table.
+func (s *SQLRegressionStore) GetOldestCommit(ctx context.Context) (*types.CommitNumber, error) {
+	var num int
+	if err := s.db.QueryRow(ctx, statements[readOldest]).Scan(&num); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to fetch oldest commit.")
+	}
+	commitNumber := types.CommitNumber(num)
+	return &commitNumber, nil
+}
+
+// DeleteByCommit implements the regression.Store interface. Deletes a regression via commit number.
+func (s *SQLRegressionStore) DeleteByCommit(ctx context.Context, num types.CommitNumber, tx pgx.Tx) error {
+	var err error
+	if tx == nil {
+		_, err = s.db.Exec(ctx, statements[deleteByCommit], num)
+	} else {
+		_, err = tx.Exec(ctx, statements[deleteByCommit], num)
+	}
+
+	return err
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

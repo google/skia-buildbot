@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 )
 
 func TestParse_InvalidJSON(t *testing.T) {
@@ -88,4 +89,60 @@ func TestValidate_ExampleWithData_Success(t *testing.T) {
 	schemaViolations, err := Validate(r)
 	require.NoError(t, err)
 	require.Empty(t, schemaViolations)
+}
+
+func TestLinks_ExampleWithDataMeasurementLinks_Success(t *testing.T) {
+	r := strings.NewReader(`{
+		"version": 1,
+		"git_hash": "cd5...663",
+		"key": {
+			"config": "8888",
+			"arch": "x86"
+		},
+		"results": [
+			{
+				"key": {
+					"test": "some=test$name"
+				},
+				"measurements": {
+					"ms": [
+						{
+							"value": "min",
+							"measurement": 1.2,
+							"links": {
+								"l1": "http://myfirstlink"
+							}
+						},
+						{
+							"value": "max",
+							"measurement": 2.4
+						},
+						{
+							"value": "median",
+							"measurement": 1.5
+						}
+					]
+				}
+			}
+		],
+		"links": {
+			"l2": "http://mygloballink"
+		}
+	}`)
+	f, err := Parse(r)
+	require.NoError(t, err)
+	links := f.GetLinksForMeasurement(",config=8888,arch=x86,test=some_test_name,ms=min,")
+	require.NotNil(t, links)
+	expectedLinks := map[string]string{
+		"l1": "http://myfirstlink",
+		"l2": "http://mygloballink",
+	}
+	assertdeep.Equal(t, expectedLinks, links)
+
+	links = f.GetLinksForMeasurement(",config=8888,arch=x86,test=some_test_name,ms=max,")
+	require.NotNil(t, links)
+	expectedLinks = map[string]string{
+		"l2": "http://mygloballink",
+	}
+	assertdeep.Equal(t, expectedLinks, links)
 }

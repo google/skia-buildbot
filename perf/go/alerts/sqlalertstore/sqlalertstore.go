@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 )
@@ -23,6 +24,7 @@ const (
 	insertAlert statement = iota
 	updateAlert
 	deleteAlert
+	deleteAllAlerts
 	listActiveAlerts
 	listAllAlerts
 )
@@ -31,9 +33,9 @@ const (
 var statements = map[statement]string{
 	insertAlert: `
 		INSERT INTO
-			Alerts (alert, last_modified)
+			Alerts (alert, last_modified, sub_name, sub_revision)
 		VALUES
-			($1, $2)
+			($1, $2, $3, $4)
 		RETURNING
 			id
 		`,
@@ -52,6 +54,15 @@ var statements = map[statement]string{
 		WHERE
 			id=$2
 		`,
+	deleteAllAlerts: `
+		UPDATE
+			Alerts
+		SET
+			config_state=1, -- alerts.DELETED
+			last_modified=$1
+		WHERE
+			config_state=0 -- alerts.ACTIVE
+	`,
 	listActiveAlerts: `
 		SELECT
 			id, alert
@@ -97,7 +108,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 	if cfg.IDAsString == alerts.BadAlertIDAsAsString {
 		newID := alerts.BadAlertID
 		// Not a valid ID, so this should be an insert, not an update.
-		if err := s.db.QueryRow(ctx, statements[insertAlert], string(b), now).Scan(&newID); err != nil {
+		if err := s.db.QueryRow(ctx, statements[insertAlert], string(b), now, nil, nil).Scan(&newID); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 		cfg.SetIDFromInt64(newID)
@@ -117,6 +128,42 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 	}
 
 	return nil
+}
+
+// ReplaceAll implements the alerts.Store interface.
+// TODO(eduardoyap): Modify to execute one Insert statement, instead of multiple.
+func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveRequest) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	now := time.Now().Unix()
+	if _, err := tx.Exec(ctx, statements[deleteAllAlerts], now); err != nil {
+		if err := tx.Rollback(ctx); err != nil {
+			sklog.Errorf("Failed on rollback: %s", err)
+		}
+		return skerr.Wrap(err)
+	}
+
+	for _, req := range reqs {
+		cfg := req.Cfg
+		b, err := json.Marshal(cfg)
+		if err != nil {
+			if err := tx.Rollback(ctx); err != nil {
+				sklog.Errorf("Failed on rollback: %s", err)
+			}
+			return skerr.Wrap(err)
+		}
+
+		if _, err := tx.Exec(ctx, statements[insertAlert], string(b), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
+			if err := tx.Rollback(ctx); err != nil {
+				sklog.Errorf("Failed on rollback: %s", err)
+			}
+			return skerr.Wrap(err)
+		}
+	}
+	return tx.Commit(ctx)
 }
 
 // Delete implements the alerts.Store interface.

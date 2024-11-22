@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -22,7 +21,7 @@ type GitCheckoutChild struct {
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
 // checkout.
-func NewGitCheckout(ctx context.Context, c *config.GitCheckoutChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co *git.Checkout) (*GitCheckoutChild, error) {
+func NewGitCheckout(ctx context.Context, c *config.GitCheckoutChildConfig, reg *config_vars.Registry, workdir string, cr codereview.CodeReview, co git.Checkout) (*GitCheckoutChild, error) {
 	checkout, err := git_common.NewCheckout(ctx, c.GitCheckout, reg, workdir, cr.UserName(), cr.UserEmail(), co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -39,19 +38,6 @@ func (c *GitCheckoutChild) Update(ctx context.Context, lastRollRev *revision.Rev
 	notRolledRevs, err := c.LogRevisions(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
-	}
-	if len(c.Dependencies) > 0 {
-		for _, rev := range notRolledRevs {
-			if len(rev.Dependencies) != len(c.Dependencies) {
-				missing := []string{}
-				for _, dep := range c.Dependencies {
-					if _, ok := rev.Dependencies[dep.Id]; !ok {
-						missing = append(missing, dep.Id)
-					}
-				}
-				sklog.Errorf("Didn't find all dependencies of %s; missing: %v", rev.Id, missing)
-			}
-		}
 	}
 	return tipRev, notRolledRevs, nil
 }

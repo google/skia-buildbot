@@ -24,3 +24,8 @@ func (e NoopTransport) SendNewRegression(ctx context.Context, alert *alerts.Aler
 func (e NoopTransport) SendRegressionMissing(ctx context.Context, threadingReference string, alert *alerts.Alert, body, subject string) error {
 	return nil
 }
+
+// UpdateRegressionNotification implements Transport.
+func (e NoopTransport) UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body, notificationId string) error {
+	return nil
+}

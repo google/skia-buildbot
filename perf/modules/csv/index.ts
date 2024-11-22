@@ -13,9 +13,7 @@ export function parseIdsIntoParams(ids: string[]): { [key: string]: Params } {
   return ret;
 }
 
-export function allParamKeysSorted(allParams: {
-  [key: string]: Params;
-}): string[] {
+export function allParamKeysSorted(allParams: { [key: string]: Params }): string[] {
   const paramKeys: Set<string> = new Set();
 
   Object.keys(allParams).forEach((key) => {

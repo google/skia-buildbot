@@ -1,4 +1,4 @@
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { assert } from 'chai';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from './ElementSk';

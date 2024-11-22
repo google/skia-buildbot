@@ -1,0 +1,9 @@
+{
+    "file_name": "test_file1",
+    "builder_name": "test_builder2",
+    "test_suite_name": [
+        "test_suite1",
+        "test_suite2",
+        "test_suite3"
+    ]
+}

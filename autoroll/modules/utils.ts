@@ -1,6 +1,6 @@
 // Utilities for autoroll frontend modules.
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { diffDate } from '../../infra-sk/modules/human';
 import { AutoRollMiniStatus } from './rpc';
 

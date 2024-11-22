@@ -65,6 +65,9 @@ packages:
   go.skia.org/infra/go/cipd:
     interfaces:
       CIPDClient:
+  go.skia.org/infra/go/coverage/coveragestore:
+    interfaces:
+      Store:
   go.skia.org/infra/go/docker:
     interfaces:
       Client:
@@ -94,13 +97,11 @@ packages:
       TimeTicker:
   go.skia.org/infra/pinpoint/go/backends:
     interfaces:
+      BigQueryClient:
       BuildbucketClient:
       CrrevClient:
       IssueTracker:
       SwarmingClient:
-  go.skia.org/infra/pinpoint/go/build_chrome:
-    interfaces:
-      BuildChromeClient:
   go.skia.org/infra/go/luciconfig:
     interfaces:
       ApiClient:
@@ -262,6 +263,11 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       AnomalyGrouper:
+  go.skia.org/infra/go/cache:
+    config:
+      dir: "{{.InterfaceDir}}/mock"
+    interfaces:
+      Cache:
   go.skia.org/infra/perf/go/chromeperf:
     config:
       dir: "{{.InterfaceDir}}/mock"
@@ -306,6 +312,7 @@ packages:
       Store:
   go.skia.org/infra/perf/go/notify:
     interfaces:
+      NotificationDataProvider:
       Notifier:
         config:
       Transport:
@@ -315,6 +322,9 @@ packages:
   go.skia.org/infra/perf/go/psrefresh:
     interfaces:
       OPSProvider:
+  go.skia.org/infra/perf/go/redis:
+    interfaces:
+      RedisWrapper:
   go.skia.org/infra/perf/go/regression:
     interfaces:
       Store:
@@ -326,13 +336,18 @@ packages:
       dir: "{{.InterfaceDir}}/mocks"
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/favorites:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      Store:
   go.skia.org/infra/perf/go/tracestore:
     interfaces:
       TraceStore:
   go.skia.org/infra/perf/go/trybot/store:
     interfaces:
       TryBotStore:
-  go.skia.org/infra/pinpoint/go/service:
+  go.skia.org/infra/temporal/go/client:
     interfaces:
       TemporalProvider:
   go.skia.org/infra/scrap/go/scrap:

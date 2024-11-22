@@ -16,6 +16,10 @@ type MockStore struct {
 	mutex     sync.Mutex
 }
 
+func (store *MockStore) ReplaceAll(ctx context.Context, req []*SaveRequest) error {
+	return nil
+}
+
 func (store *MockStore) Save(ctx context.Context, req *SaveRequest) error {
 	return nil
 }

@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["notificationData.go"],
+    importpath = "go.skia.org/infra/perf/go/notify/common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/alerts",
+        "//perf/go/clustering2",
+        "//perf/go/git/provider",
+        "//perf/go/ui/frame",
+    ],
+)

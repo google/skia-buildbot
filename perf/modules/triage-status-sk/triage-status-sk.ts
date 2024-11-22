@@ -10,7 +10,7 @@
  *    alert, cluster_type, full_summary, and triage.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -48,10 +48,7 @@ export class TriageStatusSk extends ElementSk {
   }
 
   private static template = (ele: TriageStatusSk) => html`
-    <button
-      title=${ele.triage.message}
-      @click=${ele._start_triage}
-      class=${ele.triage.status}>
+    <button title=${ele.triage.message} @click=${ele._start_triage} class=${ele.triage.status}>
       <tricon2-sk class="inside_status" value=${ele.triage.status}></tricon2-sk>
     </button>
   `;

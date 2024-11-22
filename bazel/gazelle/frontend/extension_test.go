@@ -24,7 +24,7 @@ func makeBasicWorkspace() []testtools.FileSpec {
     "@google-web-components/google-chart": "^4.0.2",
     "common-sk": "^3.4.1",
     "elements-sk": "^4.0.0",
-    "lit-html": "~1.1.2"
+    "lit": "~3.0"
   },
   "devDependencies": {
     "@types/puppeteer": "^3.0.0",
@@ -59,7 +59,7 @@ import './b/charlie';                         // Resolves to a/b/charlie.ts.
 import '../c';                                // Resolves to c/index.ts.
 import '../c/delta';                          // Resolves to c/delta.ts.
 import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -77,7 +77,8 @@ import './b/charlie';                         // Resolves to a/b/charlie.ts.
 import '../c';                                // Resolves to c/index.ts.
 import '../c/delta';                          // Resolves to c/delta.ts.
 import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -94,7 +95,7 @@ import './b/charlie';                         // Resolves to a/b/charlie.ts.
 import '../c';                                // Resolves to c/index.ts.
 import '../c/delta';                          // Resolves to c/delta.ts.
 import '../d_ts_lib/d';                       // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -143,7 +144,7 @@ import '../hotel-sk/hotel-sk';                  // Resolves to myapp/modules/hot
 import '../subdirectory/juliett-sk/juliett-sk'; // Resolves to myapp/modules/subdirectory/juliett-sk/juliett-sk.ts.
 import '../../../c';                            // Resolves to c/index.ts.
 import '../../../d_ts_lib/d';                   // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                              // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                           // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                             // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart';   // Scoped NPM import.
 import 'net'                                    // Built-in Node.js module.
@@ -174,7 +175,7 @@ import './wobble/wubble';                     // Resolves to myapp/modules/foxtr
 import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
 import '../../../c';                          // Resolves to c/index.ts.
 import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -191,7 +192,7 @@ import './wobble/wubble';                     // Resolves to myapp/modules/foxtr
 import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
 import '../../../c';                          // Resolves to c/index.ts.
 import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -208,7 +209,7 @@ import './wobble/wubble';                     // Resolves to myapp/modules/foxtr
 import '../hotel-sk/hotel-sk';                // Resolves to myapp/modules/hotel-sk/hotel-sk.ts.
 import '../../../c';                          // Resolves to c/index.ts.
 import '../../../d_ts_lib/d';                 // Resolves to d_ts_lib/d.ts.
-import 'lit-html';                            // NPM import with built-in TypeScript annotations.
+import 'lit/html.js';                         // NPM import with built-in TypeScript annotations.
 import 'puppeteer';                           // NPM import with a separate @types/puppeteer package.
 import '@google-web-components/google-chart'; // Scoped NPM import.
 import 'net'                                  // Built-in Node.js module.
@@ -279,7 +280,7 @@ nodejs_test(
         ":bravo_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
@@ -308,7 +309,7 @@ karma_test(
         ":bravo_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
@@ -325,7 +326,7 @@ ts_library(
         ":bravo_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//a/b:charlie_ts_lib",
         "//c:delta_ts_lib",
@@ -463,7 +464,7 @@ sk_element(
     ts_deps = [
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
@@ -494,7 +495,7 @@ sk_page(
     ts_deps = [
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
@@ -513,7 +514,7 @@ sk_element_puppeteer_test(
         ":wibble_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
@@ -530,7 +531,7 @@ karma_test(
         ":wibble_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/puppeteer",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/puppeteer",
         "//c:index_ts_lib",
         "//d_ts_lib",
@@ -784,7 +785,7 @@ sass_library(
 			Path: "a/alfa.ts",
 			Content: `
 import 'elements-sk/checkbox-sk';  // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 		{
@@ -792,7 +793,7 @@ import 'lit-html';                 // New import. Gazelle should add this dep.
 			Content: `
 import './alfa';                   // Existing import.
 import 'elements-sk/checkbox-sk';  // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 		{
@@ -800,7 +801,7 @@ import 'lit-html';                 // New import. Gazelle should add this dep.
 			Content: `
 import './alfa';                   // Existing import.
 import 'elements-sk/checkbox-sk';  // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 		{Path: "a/bravo.scss"},
@@ -829,7 +830,7 @@ sk_element(
     ts_deps = [
         # Not imported from echo-sk.ts. Gazelle should remove this dep.
         "//:node_modules/common-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = ["echo-sk.ts"],
     visibility = ["//visibility:public"],
@@ -907,7 +908,7 @@ sk_demo_page_server(
 import '../golf-sk/golf-sk';       // Existing import.
 import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
 import 'elements-sk/checkbox-sk';  // New import. Gazelle should add this dep.
-import 'lit-html';                 // Existing import.
+import 'lit/html.js';              // Existing import.
 `,
 		},
 		{Path: "myapp/modules/echo-sk/index.ts"}, // This new file should be added to ts_srcs.
@@ -928,7 +929,7 @@ import './echo-sk';                // Existing import.
 import '../golf-sk/golf-sk';       // Existing import.
 import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
 import 'common-sk';                // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 		{
@@ -938,7 +939,7 @@ import './echo-sk';                // Existing import.
 import '../golf-sk/golf-sk';       // Existing import.
 import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
 import 'elements-sk/checkbox-sk';  // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 		{
@@ -948,7 +949,7 @@ import './echo-sk';                // Existing import.
 import '../golf-sk/golf-sk';       // Existing import.
 import '../hotel-sk/hotel-sk';     // New import. Gazelle should add this dep.
 import 'elements-sk/checkbox-sk';  // Existing import.
-import 'lit-html';                 // New import. Gazelle should add this dep.
+import 'lit/html.js';              // New import. Gazelle should add this dep.
 `,
 		},
 
@@ -1016,7 +1017,7 @@ nodejs_test(
     deps = [
         ":alfa_ts_lib",
         "//:node_modules/elements-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
 )
 
@@ -1036,7 +1037,7 @@ karma_test(
     deps = [
         ":alfa_ts_lib",
         "//:node_modules/elements-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
 )
 
@@ -1046,7 +1047,7 @@ ts_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:node_modules/elements-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
 )
 
@@ -1086,7 +1087,7 @@ sk_element(
         "//myapp/modules/hotel-sk",
     ],
     ts_deps = [
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//:node_modules/elements-sk",
     ],
     ts_srcs = [
@@ -1111,7 +1112,7 @@ sk_page(
     ],
     ts_deps = [
         "//:node_modules/common-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_entry_point = "echo-sk-demo.ts",
 )
@@ -1123,7 +1124,7 @@ sk_element_puppeteer_test(
     deps = [
         ":echo-sk",
         "//:node_modules/elements-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//myapp/modules/golf-sk",
         "//myapp/modules/hotel-sk",
     ],
@@ -1135,7 +1136,7 @@ karma_test(
     deps = [
         ":echo-sk",
         "//:node_modules/elements-sk",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//myapp/modules/golf-sk",
         "//myapp/modules/hotel-sk",
     ],

@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//bazel/go:go_test.bzl", "go_test")
+
+skia_app_container(
+    name = "zone-apply-container",
+    base_image = "@cloudsdk//image",
+    default_user = "root",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                "//skfe/go/zone-apply:zone-apply",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/zone-apply",
+    repository = "skia-public/zone-apply",
+)
+
+go_binary(
+    name = "zone-apply",
+    embed = [":zone-apply_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "zone-apply_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/skfe/go/zone-apply",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth",
+        "//go/common",
+        "//go/executil",
+        "//go/gitiles",
+        "//go/metrics2",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "zone-apply_test",
+    srcs = ["main_test.go"],
+    embed = [":zone-apply_lib"],
+    deps = [
+        "//go/executil",
+        "@com_github_stretchr_testify//require",
+    ],
+)

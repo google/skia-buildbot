@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "pyocd",
+    srcs = ["pyocd.go"],
+    importpath = "go.skia.org/infra/machine/go/test_machine_monitor/pyocd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "@com_github_flynn_json5//:json5",
+    ],
+)
+
+go_test(
+    name = "pyocd_test",
+    srcs = ["pyocd_test.go"],
+    embed = [":pyocd"],
+    deps = [
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)

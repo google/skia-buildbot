@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
+	"go.skia.org/infra/machine/go/test_machine_monitor/pyocd"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 )
 
@@ -345,6 +346,34 @@ func TestTryInterrogatingIOSDevice_DeviceTypeFails_DeviceConsideredUnattached(t 
 	m := &Machine{ios: ios.New()}
 	_, err := m.tryInterrogatingIOSDevice(ctx)
 	require.Error(t, err)
+}
+
+func TestInterrogate_EVKDeviceAttached_Success(t *testing.T) {
+	ctx := context.Background()
+
+	m := &Machine{
+		pyocd:     pyocd.WithHardcodedMachine("STM32U5"),
+		MachineID: "some-machine",
+		description: machine.Description{
+			AttachedDevice: machine.AttachedDevicePyOCD,
+		},
+		Version:          "some-version",
+		startTime:        time.Date(2024, time.July, 7, 7, 7, 7, 0, time.UTC),
+		interrogateTimer: noop.Float64SummaryMetric{},
+	}
+	actual, err := m.interrogate(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "some-machine",
+			Version:   "some-version",
+			StartTime: time.Date(2024, time.July, 7, 7, 7, 7, 0, time.UTC),
+		},
+		PyOCD: machine.PyOCD{
+			DeviceType: "STM32U5",
+		},
+	}, actual)
 }
 
 func TestInterrogate_ChromeOSDeviceAttached_Success(t *testing.T) {

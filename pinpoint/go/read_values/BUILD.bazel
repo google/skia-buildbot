@@ -23,6 +23,7 @@ go_test(
     deps = [
         "//perf/go/perfresults",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
         "@org_chromium_go_luci//swarming/proto/api_v2",
     ],
 )

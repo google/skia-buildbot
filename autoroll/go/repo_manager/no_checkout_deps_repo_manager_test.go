@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -20,7 +19,6 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -44,7 +42,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 
 	urlmock := mockhttpclient.NewURLMock()
 
-	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.CheckoutDir(child.Dir()), urlmock)
 
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
@@ -53,7 +51,7 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(context.Background())
 
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 
@@ -74,15 +72,14 @@ func setupNoCheckout(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (co
 	parentCfg.Dep.Primary.Id = child.RepoUrl()
 	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
 	childCfg.Gitiles.RepoUrl = child.RepoUrl()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	// Create the RepoManager.
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -119,8 +116,10 @@ func noCheckoutDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "todo.git",
-						Path: deps_parser.DepsFileName,
+						Id: "todo.git",
+						File: []*config.VersionFileConfig_File{
+							{Path: deps_parser.DepsFileName},
+						},
 					},
 				},
 				Gerrit: &config.GerritConfig{
@@ -148,7 +147,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -177,7 +176,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *config.Parent
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -282,20 +281,26 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	parentCfg.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
 			Child: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-child",
-				Path: "DEPS",
+				Id: "https://grandchild-in-child",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-parent",
-				Path: "DEPS",
+				Id: "https://grandchild-in-parent",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 	}
 	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitilesChild).GitilesChild
 	childCfg.Gitiles.Dependencies = []*config.VersionFileConfig{
 		{
-			Id:   "https://grandchild-in-child",
-			Path: "DEPS",
+			Id: "https://grandchild-in-child",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 	}
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
@@ -303,7 +308,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 	mockChild.MockGetCommit(ctx, git.MainBranch)
@@ -325,7 +330,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Mock the initial change creation.
 	logStr := ""
-	childGitRepo := git.GitDir(childRepo.Dir())
+	childGitRepo := git.CheckoutDir(childRepo.Dir())
 	for _, c := range notRolledRevs {
 		details, err := childGitRepo.Details(ctx, c.Id)
 		require.NoError(t, err)

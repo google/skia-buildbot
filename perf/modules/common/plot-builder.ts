@@ -1,59 +1,225 @@
 // Contains functions to create plot data.
 
-import '@google-web-components/google-chart/';
+import { MISSING_DATA_SENTINEL } from '../const/const';
+import { Anomaly, ColumnHeader, TraceSet } from '../json';
+
+// Google chart's default color palette
+export const defaultColors = [
+  '#3366CC',
+  '#DC3912',
+  '#FF9900',
+  '#109618',
+  '#990099',
+  '#3B3EAC',
+  '#0099C6',
+  '#DD4477',
+  '#66AA00',
+  '#B82E2E',
+  '#316395',
+  '#994499',
+  '#22AA99',
+  '#AAAA11',
+  '#6633CC',
+  '#E67300',
+  '#8B0707',
+  '#329262',
+  '#5574A6',
+  '#3B3EAC',
+];
 
 export interface DataPoint {
   x: number | Date;
   y: number;
+  anomaly: Anomaly | null;
+}
+
+export enum ChartAxisFormat {
+  Commit,
+  Date,
 }
 
 export interface ChartData {
   xLabel: string;
   yLabel: string;
-  data: DataPoint[];
+  chartAxisFormat: ChartAxisFormat;
+  lines: { [key: string]: DataPoint[] };
+  start: number | Date;
+  end: number | Date;
 }
 
-export function DrawSummaryChart(
-  canvas: HTMLElement,
-  chartData: ChartData,
-  width: number,
-  height: number,
-  style: CSSStyleDeclaration
-) {
-  const data: [any] = [[chartData.xLabel, chartData.yLabel]];
-  chartData.data.forEach((datapoint) => {
-    data.push([datapoint.x, datapoint.y]);
-  });
-
-  const dataForChart = google.visualization.arrayToDataTable(data);
-
-  let background = style.getPropertyValue('--background');
-  if (background === '') {
-    background = 'white';
+// convertFromDataframe converts DataFrame to any[][]  that can be plugged into
+// GoogleChart.data.
+// This function effectively transposes the traceset so that the keys
+// (i.e. jetstream2/box2D/etc) become the columns and the individual data points
+// are the rows
+export const convertFromDataframe = (
+  df: {
+    traceset: TraceSet;
+    header: (ColumnHeader | null)[] | null;
+  } | null,
+  domain: 'commit' | 'date' | 'both' = 'commit',
+  traceKey?: string
+) => {
+  if ((df?.header?.length || 0) === 0) {
+    return null;
   }
-  const options: google.visualization.LineChartOptions = {
-    legend: 'none',
-    width: width,
-    height: height,
+  if (traceKey && !(traceKey in df!.traceset)) {
+    return null;
+  }
+
+  const keys = traceKey ? [traceKey] : Object.keys(df!.traceset);
+
+  const firstRow: any[] = [];
+  if (domain === 'commit' || domain === 'both') {
+    firstRow.push({ type: 'number', role: 'domain', label: 'Commit Position' });
+  }
+  if (domain === 'date' || domain === 'both') {
+    firstRow.push({ type: 'date', role: 'domain', label: 'Date' });
+  }
+  keys.forEach((k) => firstRow.push(k));
+
+  const rows: any[][] = [firstRow];
+  df!.header?.forEach((column, idx) => {
+    const row: any[] = [];
+    if (domain === 'commit' || domain === 'both') {
+      row.push(column!.offset);
+    }
+    if (domain === 'date' || domain === 'both') {
+      row.push(new Date(column!.timestamp * 1000));
+    }
+    keys.forEach((k) => {
+      const val = df!.traceset[k][idx];
+      row.push(val === MISSING_DATA_SENTINEL ? null : val);
+    });
+    rows.push(row);
+  });
+  return rows;
+};
+
+export function ConvertData(chartData: ChartData) {
+  /*
+    The data in the plot needs to be in the following format.
+    [
+      [x-axis_label, line1_label, line2_label, ...],
+      [x_value, line1_value, line2_value, ...], // first point
+      [x_value, line1_value, line2_value, ...], // second point
+      ...
+      ...
+    ]
+  */
+  const columns = [chartData.xLabel];
+  const lineKeys = Object.keys(chartData.lines);
+  lineKeys.forEach((key) => {
+    columns.push(key);
+  });
+  // The first row needs to be the column names
+  const rows: [any] = [columns];
+  const rowCount = chartData.lines[lineKeys[0]].length;
+  for (let i = 0; i < rowCount; i++) {
+    // Add the xValue which is the same for all lines
+    const row = [chartData.lines[lineKeys[0]][i].x];
+    lineKeys.forEach((key) => {
+      // For each line, add the y value for datapoint at index i.
+      row.push(chartData.lines[key][i].y);
+    });
+
+    rows[i + 1] = row;
+  }
+  return rows;
+}
+
+export function mainChartOptions(
+  style: CSSStyleDeclaration,
+  domain: string
+): google.visualization.LineChartOptions {
+  // The X axis can support either commit, or dates. Change the format
+  // based on the current chart's format.
+  const format = domain === 'commit' ? '#' : 'MM/dd/yy';
+  return {
+    // interpolateNulls will continue a line from the last known point to the
+    // next available if there's nulls inbetween.
+    interpolateNulls: true,
+    // selectionMode multiple allows you to select multiple points on a plot.
+    // we are going to only allow single so that on selection over an area, we
+    // can estimate the delta range. note that the default is single.
+    selectionMode: 'single',
+    // https://developers.google.com/chart/interactive/docs/gallery/areachart
+    // Defines how multiple data selections are rolled into the tooltip.
+    // for selectionMode: single, this should be none, such that we only allow
+    // one tooltip per seelction
+    aggregationTarget: 'none',
+    tooltip: { trigger: 'none' },
+    pointSize: 4,
+    titleTextStyle: { color: style.color },
     hAxis: {
-      textPosition: 'none',
+      textPosition: 'out',
+      textStyle: { color: style.color },
       gridlines: {
         color: 'transparent',
       },
+      format: format,
     },
     vAxis: {
-      textPosition: 'none',
+      textPosition: 'out',
+      textStyle: { color: style.color },
       gridlines: {
         color: 'transparent',
       },
+      viewWindowMode: 'maximized',
+    },
+    chartArea: {
+      width: '90%',
+      height: '85%',
+    },
+    colors: defaultColors,
+    legend: {
+      position: 'none',
+    },
+    backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
+    series: {},
+  };
+}
+
+export function SummaryChartOptions(
+  style: CSSStyleDeclaration,
+  domain: 'commit' | 'date'
+): google.visualization.LineChartOptions {
+  const format = domain === 'commit' ? '#' : 'MMM dd, yy';
+  return {
+    interpolateNulls: true,
+    curveType: 'function',
+    hAxis: {
+      textPosition: 'out',
+      textStyle: {
+        color: style.color,
+        fontSize: 8,
+      },
+      gridlines: {
+        count: 10,
+      },
+      format: format,
+    },
+    vAxis: {
+      textPosition: 'out',
+      gridlines: {
+        color: 'transparent',
+      },
+      viewWindowMode: 'maximized',
+    },
+    tooltip: {
+      trigger: 'none',
     },
     chartArea: {
       width: '100%',
-      height: '100%',
+      bottom: 24,
+      top: 24,
+      backgroundColor: {
+        stroke: 'black',
+        strokeWidth: 1,
+      },
     },
-    backgroundColor: background,
+    // this value is inherited from plot-google-chart-sk
+    backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     colors: [style.color],
   };
-  const chart = new google.visualization.LineChart(canvas);
-  chart.draw(dataForChart, options);
 }

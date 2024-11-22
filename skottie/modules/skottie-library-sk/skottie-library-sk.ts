@@ -16,7 +16,7 @@
  *
  */
 import '../skottie-player-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import JSZip, { JSZipObject } from 'jszip';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';

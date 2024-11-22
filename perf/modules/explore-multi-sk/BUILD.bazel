@@ -1,11 +1,14 @@
-load("//infra-sk:index.bzl", "sk_element")
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
 
 sk_element(
     name = "explore-multi-sk",
     sass_srcs = ["explore-multi-sk.scss"],
     sk_element_deps = [
         "//perf/modules/explore-simple-sk",
+        "//perf/modules/test-picker-sk",
         "//golden/modules/pagination-sk",
+        "//perf/modules/favorites-dialog-sk",
+        "//infra-sk/modules/alogin-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
@@ -14,12 +17,32 @@ sk_element(
         "//infra-sk/modules:statereflector_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
     ],
     ts_srcs = [
         "explore-multi-sk.ts",
         "index.ts",
     ],
     visibility = ["//visibility:public"],
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":explore-multi-sk-demo",
+)
+
+sk_page(
+    name = "explore-multi-sk-demo",
+    html_file = "explore-multi-sk-demo.html",
+    scss_entry_point = "explore-multi-sk-demo.scss",
+    sk_element_deps = [
+        "//elements-sk/modules/error-toast-sk",
+        ":explore-multi-sk",
+    ],
+    ts_deps = ["//perf/modules/common:test-util_ts_lib"],
+    ts_entry_point = "explore-multi-sk-demo.ts",
 )

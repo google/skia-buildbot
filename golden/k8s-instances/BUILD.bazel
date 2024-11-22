@@ -23,13 +23,17 @@ PUBLIC_MIRRORS = [
 filegroup(
     name = "baseline_configs",
     srcs = config_files("baselineserver", FULL_INSTANCES),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )
 
 filegroup(
     name = "diffcalculator_configs",
     srcs = config_files("diffcalculator", FULL_INSTANCES),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )
 
 filegroup(
@@ -38,23 +42,31 @@ filegroup(
         "frontend",
         FULL_INSTANCES + PUBLIC_MIRRORS,
     ),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )
 
 filegroup(
     name = "gitilesfollower_configs",
     srcs = config_files("gitilesfollower", FULL_INSTANCES),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )
 
 filegroup(
     name = "ingestion_configs",
     srcs = config_files("ingestion", FULL_INSTANCES),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )
 
 filegroup(
     name = "periodictasks_configs",
     srcs = config_files("periodictasks", FULL_INSTANCES),
-    visibility = ["//golden:__pkg__"],
+    visibility = [
+        "//golden:__subpackages__",
+    ],
 )

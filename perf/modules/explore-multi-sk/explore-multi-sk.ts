@@ -12,7 +12,7 @@
  * keeping the logic simple.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import {
   DEFAULT_RANGE_S,
@@ -23,16 +23,25 @@ import {
   updateShortcut,
 } from '../explore-simple-sk/explore-simple-sk';
 
-import { fromKey } from '../paramtools';
+import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
+
+import { queryFromKey } from '../paramtools';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { QueryConfig } from '../json';
 
 import '../explore-simple-sk';
+import '../favorites-dialog-sk';
+import '../test-picker-sk';
 import '../../../golden/modules/pagination-sk/pagination-sk';
 
+import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
+import { Status as LoginStatus } from '../../../infra-sk/modules/json';
+import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 import { PaginationSkPageChangedEventDetail } from '../../../golden/modules/pagination-sk/pagination-sk';
 
 class State {
@@ -42,7 +51,7 @@ class State {
 
   shortcut: string = '';
 
-  showZero: boolean = true;
+  showZero: boolean = false;
 
   dots: boolean = true;
 
@@ -55,6 +64,20 @@ class State {
   pageOffset: number = 0;
 
   totalGraphs: number = 0;
+
+  plotSummary: boolean = false;
+
+  useTestPicker: boolean = false;
+
+  highlight_anomalies: string[] = [];
+
+  enable_chart_tooltip: boolean = false;
+
+  show_remove_all: boolean = true;
+
+  use_titles: boolean = false;
+
+  show_google_plot = false;
 }
 
 export class ExploreMultiSk extends ElementSk {
@@ -74,19 +97,34 @@ export class ExploreMultiSk extends ElementSk {
 
   private mergeGraphsButton: HTMLButtonElement | null = null;
 
+  private addGraphButton: HTMLButtonElement | null = null;
+
   private graphDiv: Element | null = null;
+
+  private useTestPicker: boolean = false;
+
+  private testPicker: TestPickerSk | null = null;
+
+  private defaults: QueryConfig | null = null;
+
+  private userEmail: string = '';
 
   constructor() {
     super(ExploreMultiSk.template);
   }
 
-  connectedCallback(): void {
+  async connectedCallback() {
     super.connectedCallback();
+
     this._render();
 
     this.graphDiv = this.querySelector('#graphContainer');
     this.splitGraphButton = this.querySelector('#split-graph-button');
     this.mergeGraphsButton = this.querySelector('#merge-graphs-button');
+    this.addGraphButton = this.querySelector('#add-graph-button');
+    this.testPicker = this.querySelector('#test-picker');
+
+    await this.initializeDefaults();
 
     this.stateHasChanged = stateReflector(
       () => this.state as unknown as HintableObject,
@@ -94,6 +132,10 @@ export class ExploreMultiSk extends ElementSk {
         const state = hintableState as unknown as State;
 
         const numElements = this.exploreElements.length;
+
+        if (state.useTestPicker) {
+          this.initializeTestPicker();
+        }
 
         let graphConfigs: GraphConfig[] | undefined = [];
         if (state.shortcut !== '') {
@@ -123,14 +165,42 @@ export class ExploreMultiSk extends ElementSk {
         this.addGraphsToCurrentPage();
 
         this.updateButtons();
+
+        document.addEventListener('keydown', (e) => {
+          this.exploreElements.forEach((exp) => {
+            exp.keyDown(e);
+          });
+        });
       }
     );
+
+    LoggedIn()
+      .then((status: LoginStatus) => {
+        this.userEmail = status.email;
+        this._render();
+      })
+      .catch(errorMessage);
   }
+
+  private canAddFav(): boolean {
+    return this.userEmail !== null && this.userEmail !== '';
+  }
+
+  private toggleChartStyle() {
+    this.state.show_google_plot = !this.state.show_google_plot;
+    this.addGraphsToCurrentPage();
+  }
+
+  private openAddFavoriteDialog = async () => {
+    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
+    await d!.open();
+  };
 
   private static template = (ele: ExploreMultiSk) => html`
     <div id="menu">
       <h1>MultiGraph Menu</h1>
       <button
+        id="add-graph-button"
         @click=${() => {
           const explore = ele.addEmptyGraph();
           if (explore) {
@@ -157,6 +227,22 @@ export class ExploreMultiSk extends ElementSk {
         title="Merge all graphs into a single graph.">
         Merge Graphs
       </button>
+      <button
+        @click=${() => {
+          ele.toggleChartStyle();
+        }}>
+        Toggle Chart Style
+      </button>
+      <button
+        id="favBtn"
+        ?disabled=${!ele.canAddFav()}
+        @click=${() => {
+          ele.openAddFavoriteDialog();
+        }}>
+        Add to Favorites
+      </button>
+      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
+      <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
     </div>
     <hr />
 
@@ -184,6 +270,97 @@ export class ExploreMultiSk extends ElementSk {
       @page-changed=${ele.pageChanged}>
     </pagination-sk>
   `;
+
+  /**
+   * Fetch defaults from backend.
+   *
+   * Defaults are used in multiple ways by downstream elements:
+   * - TestPickerSk uses include_params to initialize only the fields
+   *   specified and in the given order.
+   * - ExploreSimpleSk and TestPickerSk use default_param_selections to
+   *   apply default param values to queries before making backend
+   *   requests.
+   */
+  private async initializeDefaults() {
+    await fetch(`/_/defaults/`, {
+      method: 'GET',
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.defaults = json;
+      });
+
+    if (this.defaults !== null) {
+      if (
+        this.defaults.default_url_values !== undefined &&
+        this.defaults.default_url_values !== null
+      ) {
+        const defaultKeys = Object.keys(this.defaults.default_url_values);
+        if (
+          defaultKeys !== null &&
+          defaultKeys !== undefined &&
+          defaultKeys.indexOf('useTestPicker') > -1
+        ) {
+          const stringToBool = function (str: string): boolean {
+            return str.toLowerCase() === 'true';
+          };
+          this.state.useTestPicker = stringToBool(this.defaults!.default_url_values.useTestPicker);
+        }
+      }
+    }
+  }
+
+  /**
+   * Initialize TestPickerSk only if include_params has been specified.
+   *
+   * If so, hide the default "Add Graph" button and display the Test Picker.
+   */
+  private async initializeTestPicker() {
+    const testPickerParams = this.defaults?.include_params ?? null;
+    if (testPickerParams !== null) {
+      this.useTestPicker = true;
+      this.addGraphButton!.classList.add('hidden');
+      this.testPicker!.classList.remove('hidden');
+      this.testPicker!.initializeTestPicker(
+        testPickerParams!,
+        this.defaults?.default_param_selections ?? {}
+      );
+
+      // Event listener to remove the explore object from the list if the user
+      // close it in a Multiview window.
+      this.addEventListener('remove-explore', (e) => {
+        const exploreElem = (e as CustomEvent).detail.elem;
+        this.graphDiv!.removeChild(exploreElem);
+        this.currentPageExploreElements = this.currentPageExploreElements.filter(
+          (elem) => elem !== exploreElem
+        );
+        this.state.totalGraphs--;
+        e.stopPropagation();
+      });
+
+      // Event listener for when the Test Picker plot button is clicked.
+      // This will create a new empty Graph at the top and plot it with the
+      // selected test values.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.addEventListener('plot-button-clicked', (e) => {
+        const explore = this.addEmptyGraph(true);
+        if (explore) {
+          this.addGraphsToCurrentPage();
+          const query = this.testPicker!.createQueryFromFieldData();
+          explore.addFromQueryOrFormula(true, 'query', query, '');
+        }
+      });
+
+      // Event listener for when the "Query Highlighted" button is clicked.
+      // It will populate the Test Picker with the keys from the highlighted
+      // trace.
+      this.addEventListener('populate-query', (e) => {
+        const trace_key = (e as CustomEvent).detail.key;
+        this.testPicker!.populateFieldDataFromQuery(queryFromKey(trace_key), testPickerParams!);
+        this.testPicker!.scrollIntoView();
+      });
+    }
+  }
 
   private clearGraphs() {
     this.exploreElements = [];
@@ -222,10 +399,7 @@ export class ExploreMultiSk extends ElementSk {
     this._render();
   }
 
-  private addStateToExplore(
-    explore: ExploreSimpleSk,
-    graphConfig: GraphConfig
-  ) {
+  private addStateToExplore(explore: ExploreSimpleSk, graphConfig: GraphConfig) {
     const newState: ExploreState = {
       formulas: graphConfig.formulas || [],
       queries: graphConfig.queries || [],
@@ -245,25 +419,35 @@ export class ExploreMultiSk extends ElementSk {
       _incremental: false,
       labelMode: LabelMode.Date,
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,
+      plotSummary: this.state.plotSummary,
+      highlight_anomalies: this.state.highlight_anomalies,
+      enable_chart_tooltip: this.state.enable_chart_tooltip,
+      show_remove_all: this.state.show_remove_all,
+      use_titles: this.state.use_titles,
+      useTestPicker: this.state.useTestPicker,
+      use_test_picker_query: false,
+      show_google_plot: this.state.show_google_plot,
     };
     explore.state = newState;
   }
 
-  private addEmptyGraph(): ExploreSimpleSk | null {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(true);
-
+  private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(true, this.useTestPicker);
+    const graphConfig = new GraphConfig();
+    explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
-    this.exploreElements.push(explore);
+    if (unshift) {
+      this.exploreElements.unshift(explore);
+      this.graphConfigs.unshift(graphConfig);
+    } else {
+      this.exploreElements.push(explore);
+      this.graphConfigs.push(graphConfig);
+    }
     this.updateButtons();
-    this.graphConfigs.push(new GraphConfig());
-
-    const index = this.exploreElements.length - 1;
 
     explore.addEventListener('state_changed', () => {
       const elemState = explore.state;
-
-      const graphConfig = this.graphConfigs[index];
 
       graphConfig.formulas = elemState.formulas || [];
 
@@ -350,28 +534,6 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   /**
-   * Parse a structured key into a queries string.
-   *
-   * Since this is done on the frontend, this function does not do key or query validation.
-   *
-   * Example:
-   *
-   * Key ",a=1,b=2,c=3,"
-   *
-   * transforms into
-   *
-   * Query "a=1&b=2&c=3"
-   *
-   * @param {string} key - A structured trace key.
-   *
-   * @returns {string} - A query string that can be used in the queries property
-   * of explore-simple-sk's state.
-   */
-  private queryFromKey(key: string): string {
-    return new URLSearchParams(fromKey(key)).toString();
-  }
-
-  /**
    * Takes the traces of a single graph and create a separate graph for each of those
    * traces.
    *
@@ -410,7 +572,7 @@ export class ExploreMultiSk extends ElementSk {
     traceset.forEach((key, i) => {
       this.addEmptyGraph();
       if (key[0] === ',') {
-        const queries = this.queryFromKey(key);
+        const queries = queryFromKey(key);
         this.graphConfigs[i].queries = [queries];
       } else {
         const formulas = key;
@@ -458,9 +620,7 @@ export class ExploreMultiSk extends ElementSk {
    * @returns - List of Graph Configs matching the shortcut ID in the GraphsShortcut table
    * or undefined if the ID doesn't exist.
    */
-  private getConfigsFromShortcut(
-    shortcut: string
-  ): Promise<GraphConfig[]> | undefined {
+  private getConfigsFromShortcut(shortcut: string): Promise<GraphConfig[]> | undefined {
     const body = {
       ID: shortcut,
     };

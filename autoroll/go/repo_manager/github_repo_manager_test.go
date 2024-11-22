@@ -22,7 +22,6 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -52,8 +51,10 @@ func githubRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "todo.git",
-								Path: githubVersionFile,
+								Id: "todo.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: githubVersionFile},
+								},
 							},
 						},
 					},
@@ -126,10 +127,8 @@ func setupGithub(t *testing.T, cfg *config.ParentChildRepoManagerConfig) (contex
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
 	g, urlMock := setupFakeGithub(ctx, t, childCommits)
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "rollerName", recipesCfg, "fake.server.com", urlMock.Client(), githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "rollerName", "fake.server.com", urlMock.Client(), githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {

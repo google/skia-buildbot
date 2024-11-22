@@ -11,7 +11,6 @@ go_library(
         "//go/cleanup",
         "//go/gerrit",
         "//go/git/repograph",
-        "//go/human",
         "//go/metrics2",
         "//go/now",
         "//go/pubsub",
@@ -40,7 +39,6 @@ go_test(
         "tryjobs_test.go",
         "utils_test.go",
     ],
-    data = ["//infra/config:recipes.cfg"],
     embed = [":tryjobs"],
     deps = [
         "//go/buildbucket/mocks",

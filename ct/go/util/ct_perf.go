@@ -129,7 +129,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults,
 
 // commitToSyntheticRepo creates a file with the same name as the uniqueID and commits
 // it into the specified repo. Returns the full hash of the commit.
-func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec string, checkout *git.Checkout) (string, error) {
+func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID, gitExec string, checkout git.Checkout) (string, error) {
 	// Create a new file using the uniqueID and commit it to the synthetic repo.
 	if err := os.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
 		return "", skerr.Fmt("Failed to write %s: %s", uniqueID, err)

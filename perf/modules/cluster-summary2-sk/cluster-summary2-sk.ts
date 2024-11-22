@@ -33,7 +33,7 @@
  *
  * @example
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/collapse-sk';
 import '../commit-detail-panel-sk';
@@ -50,18 +50,15 @@ import {
   FrameResponse,
   ClusterSummary,
   TriageStatus,
-  CommitNumber,
   Status,
   ColumnHeader,
   Alert,
   StepDetection,
-  CIDHandlerResponse,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 import '../window/window';
-import { MISSING_DATA_SENTINEL } from '../const/const';
 import { lookupCids } from '../cid/cid';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { ticks } from '../plot-simple-sk/ticks';
@@ -219,11 +216,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
       ${ele.labels.regression}
-      <span
-        >${ele.labels.regressionFormatter(
-          ele.summary!.step_fit!.regression
-        )}</span
-      >
+      <span>${ele.labels.regressionFormatter(ele.summary!.step_fit!.regression)}</span>
     </div>
     <div class="stats">
       <div class="labelled">
@@ -233,18 +226,12 @@ export class ClusterSummary2Sk extends ElementSk {
       ${ClusterSummary2Sk.leastSquares(ele)}
       <div class="labelled">
         ${ele.labels.stepSize}
-        <span
-          >${ele.labels.stepSizeFormatter(
-            ele.summary!.step_fit!.step_size
-          )}</span
-        >
+        <span>${ele.labels.stepSizeFormatter(ele.summary!.step_fit!.step_size)}</span>
       </div>
       ${ele.summary.notification_id
         ? html` <div>
             Bug:
-            <a href="http://b/${ele.summary.notification_id}"
-              >b/${ele.summary.notification_id}</a
-            >
+            <a href="http://b/${ele.summary.notification_id}">b/${ele.summary.notification_id}</a>
           </div>`
         : html``}
     </div>
@@ -265,22 +252,16 @@ export class ClusterSummary2Sk extends ElementSk {
         type="text"
         .value=${ele.triageStatus.message}
         @change=${(e: InputEvent) => {
-          ele.triageStatus.message = (
-            e.currentTarget! as HTMLInputElement
-          ).value;
+          ele.triageStatus.message = (e.currentTarget! as HTMLInputElement).value;
         }}
         label="Message" />
       <button class="action" @click=${ele.update}>Update</button>
     </div>
     <commit-detail-panel-sk id="commits" selectable></commit-detail-panel-sk>
     <div class="actions">
-      <button id="shortcut" @click=${ele.openShortcut}>
-        View on dashboard
-      </button>
+      <button id="shortcut" @click=${ele.openShortcut}>View on dashboard</button>
       <button @click=${ele.toggleWordCloud}>Word Cloud</button>
-      <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}>
-        Permlink
-      </a>
+      <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}> Permlink </a>
       <commit-range-sk
         .trace=${ele.summary.centroid}
         .commitIndex=${ele.graph?.xbar || -1}
@@ -294,9 +275,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private static leastSquares = (ele: ClusterSummary2Sk) => html`
     <div class="labelled">
       ${ele.labels.lse}
-      <span
-        >${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span
-      >
+      <span>${ele.labels.lseFormatter(ele.summary!.step_fit!.least_squares)}</span>
     </div>
   `;
 
@@ -312,10 +291,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.commits = this.querySelector('#commits');
     LoggedIn()
       .then((status: LoginStatus) => {
-        this.status!.classList.toggle(
-          'disabled',
-          !(status.roles || []).includes('editor')
-        );
+        this.status!.classList.toggle('disabled', !(status.roles || []).includes('editor'));
       })
       .catch(errorMessage);
 
@@ -343,10 +319,7 @@ export class ClusterSummary2Sk extends ElementSk {
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
       begin: this.frame!.dataframe!.header![0]!.timestamp,
-      end:
-        this.frame!.dataframe!.header![
-          this.frame!.dataframe!.header!.length - 1
-        ]!.timestamp + 1,
+      end: this.frame!.dataframe!.header![this.frame!.dataframe!.header!.length - 1]!.timestamp + 1,
       xbar: this.summary.step_point!,
     };
     this.dispatchEvent(
@@ -423,8 +396,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.dataset.clustersize = this.summary.num.toString();
     this.dataset.steplse = this.summary!.step_fit!.least_squares.toPrecision(2);
     this.dataset.stepsize = this.summary!.step_fit!.step_size.toPrecision(2);
-    this.dataset.stepregression =
-      this.summary!.step_fit!.regression.toPrecision(2);
+    this.dataset.stepregression = this.summary!.step_fit!.regression.toPrecision(2);
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
     this.graph.removeAll();

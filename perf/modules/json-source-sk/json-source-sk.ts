@@ -7,7 +7,7 @@
  * id.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -37,9 +37,7 @@ export class JSONSourceSk extends ElementSk {
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls" ?hidden=${!ele.validTraceID()}>
       <button @click=${ele._loadSource}>View Source File</button>
-      <button @click=${ele._loadSourceSmall}>
-        View Source File Without Results
-      </button>
+      <button @click=${ele._loadSourceSmall}>View Source File Without Results</button>
       <spinner-sk id="spinner"></spinner-sk>
     </div>
     <pre>${ele._json}</pre>

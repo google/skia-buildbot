@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 )
@@ -63,8 +62,10 @@ func githubCipdDEPSRmCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   githubCIPDAssetName,
-								Path: deps_parser.DepsFileName,
+								Id: githubCIPDAssetName,
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},
@@ -91,18 +92,16 @@ func setupGithubCipdDEPS(t *testing.T, cfg *config.ParentChildRepoManagerConfig)
 	require.NoError(t, err)
 	ctx := cipd_git.UseGitFinder(context.Background())
 
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
 	// Under Bazel and RBE, there is no pre-existing depot_tools repository checkout for tests to use,
 	// so depot_tools.Get() will try to clone the depot_tools repository. However, the delegate "run"
 	// function of the exec.CommandCollector below skips any "git clone" commands. For this reason, we
 	// clone said repository here before setting up the aforementioned delegate "run" function, and
 	// make the checkout available to the caller test case via the corresponding environment variable.
-	originalDepotToolsTestEnvVar := os.Getenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR)
+	originalDepotToolsTestEnvVar := os.Getenv(depot_tools.DepotToolsTestEnvVar)
 	if bazel.InBazelTestOnRBE() {
-		depotToolsDir, err := depot_tools.Sync(ctx, filepath.Join(wd, "depot_tools"), recipesCfg)
+		depotToolsDir, err := depot_tools.Sync(ctx, filepath.Join(wd, "depot_tools"))
 		require.NoError(t, err)
-		require.NoError(t, os.Setenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR, depotToolsDir))
+		require.NoError(t, os.Setenv(depot_tools.DepotToolsTestEnvVar, depotToolsDir))
 	}
 
 	// Create parent repo.
@@ -149,14 +148,14 @@ deps = {
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_DepsLocalGithubParent).DepsLocalGithubParent
 	parentCfg.DepsLocal.GitCheckout.GitCheckout.RepoUrl = parent.RepoUrl()
 	parentCfg.ForkRepoUrl = fork.RepoUrl()
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.Child.(*child.CIPDChild).SetClientForTesting(mockCipd)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
-		require.NoError(t, os.Setenv(depot_tools.DEPOT_TOOLS_TEST_ENV_VAR, originalDepotToolsTestEnvVar))
+		require.NoError(t, os.Setenv(depot_tools.DepotToolsTestEnvVar, originalDepotToolsTestEnvVar))
 		parent.Cleanup()
 	}
 

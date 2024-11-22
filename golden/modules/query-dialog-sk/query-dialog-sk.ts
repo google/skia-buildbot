@@ -15,7 +15,7 @@
  *         the url-encoded selections.
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ParamSet, toParamSet } from '../../../infra-sk/modules/query';

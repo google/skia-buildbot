@@ -22,12 +22,6 @@
         "Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64"
       ]
     },
-    "Housekeeper-Weekly-UpdateCIPDPackages": {
-      "tasks": [
-        "Housekeeper-Weekly-UpdateCIPDPackages"
-      ],
-      "trigger": "weekly"
-    },
     "Infra-PerCommit-Build": {
       "tasks": [
         "Infra-PerCommit-Build"
@@ -46,7 +40,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -60,13 +54,13 @@
         "--workdir",
         ".",
         "--cipd",
-        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:2@2.45.1.chromium.11",
+        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:3@2.47.0.chromium.11",
         "--cipd",
-        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
         "--cipd",
-        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
         "--cipd",
-        "task_drivers:skia/tools/presubmit/${platform}@git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e",
+        "task_drivers:skia/tools/presubmit/${platform}@git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -118,7 +112,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -161,7 +155,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -204,7 +198,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -241,103 +235,13 @@
       "idempotent": true,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Housekeeper-Weekly-UpdateCIPDPackages": {
-      "caches": [
-        {
-          "name": "go_cache",
-          "path": "cache/go_cache"
-        },
-        {
-          "name": "gopath",
-          "path": "cache/gopath"
-        }
-      ],
-      "casSpec": "empty",
-      "cipd_packages": [
-        {
-          "name": "skia/tools/command_wrapper/${platform}",
-          "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
-        }
-      ],
-      "command": [
-        "./task_drivers/command_wrapper",
-        "--project_id",
-        "skia-swarming-bots",
-        "--task_id",
-        "<(TASK_ID)",
-        "--task_name",
-        "Housekeeper-Weekly-UpdateCIPDPackages",
-        "--workdir",
-        ".",
-        "--cipd",
-        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:2@2.45.1.chromium.11",
-        "--cipd",
-        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
-        "--cipd",
-        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
-        "--cipd",
-        "go:skia/bots/go@version:17",
-        "--cipd",
-        "protoc:skia/bots/protoc@version:0",
-        "--cipd",
-        "bazelisk:skia/bots/bazelisk@version:0",
-        "--command-is-task-driver",
-        "--",
-        "./roll_cipd_packages",
-        "--project_id",
-        "skia-swarming-bots",
-        "--task_id",
-        "<(TASK_ID)",
-        "--task_name",
-        "Housekeeper-Weekly-UpdateCIPDPackages",
-        "--workdir",
-        ".",
-        "--gerrit_project",
-        "buildbot",
-        "--gerrit_url",
-        "https://skia-review.googlesource.com",
-        "--repo",
-        "<(REPO)",
-        "--revision",
-        "<(REVISION)",
-        "--patch_issue",
-        "<(ISSUE)",
-        "--patch_set",
-        "<(PATCHSET)",
-        "--patch_server",
-        "<(CODEREVIEW_SERVER)",
-        "--skip",
-        "cpython3"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
-      ],
-      "dimensions": [
-        "pool:Skia",
-        "os:Debian-10.3",
-        "gpu:none",
-        "cpu:x86-64-Haswell_GCE",
-        "machine_type:n1-standard-16",
-        "docker_installed:true"
-      ],
-      "env_prefixes": {
-        "PATH": [
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "go/go/bin",
-          "bazelisk"
-        ]
-      },
-      "service_account": "skia-recreate-skps@skia-swarming-bots.iam.gserviceaccount.com"
-    },
     "Infra-PerCommit-Build": {
       "casSpec": "empty",
       "cipd_packages": [
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -351,16 +255,18 @@
         "--workdir",
         ".",
         "--cipd",
-        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:2@2.45.1.chromium.11",
+        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:3@2.47.0.chromium.11",
         "--cipd",
-        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
         "--cipd",
-        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
+        "--cipd",
+        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
         "--",
-        "./bazel_build_all",
+        "./task_drivers/bazel_build_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -384,9 +290,6 @@
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
       ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
-      ],
       "dimensions": [
         "pool:Skia",
         "os:Debian-10.3",
@@ -409,7 +312,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:56b6ffdc489aaee9d9f3797523e77c55cff77b1e"
+          "version": "git_revision:808d8a5c3b8780879d93c0ff5bb5058b97982ec5"
         }
       ],
       "command": [
@@ -423,18 +326,20 @@
         "--workdir",
         ".",
         "--cipd",
-        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:2@2.45.1.chromium.11",
+        "cipd_bin_packages:infra/3pp/tools/git/linux-amd64@version:3@2.47.0.chromium.11",
         "--cipd",
-        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/git/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
         "--cipd",
-        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
         "--cipd",
-        "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:e3cb27b691350cbeceda01fbe42d4feef78f7c9d",
+        "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:dc0b8fd6a9218ce32fbe767150707c0eb082a1f4",
+        "--cipd",
+        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
         "--",
-        "./bazel_test_all",
+        "./task_drivers/bazel_test_all",
         "--project_id",
         "skia-swarming-bots",
         "--task_id",
@@ -459,9 +364,6 @@
         "/dev/shm/bazel_cache",
         "--bazel_repo_cache_dir",
         "/mnt/pd0/bazel_repo_cache"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
       ],
       "dimensions": [
         "pool:Skia",

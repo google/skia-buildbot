@@ -37,6 +37,20 @@ describe('diff-page-sk', () => {
       });
       await takeScreenshot(testBed.page, 'gold', 'diff-page-sk');
     });
+
+    it('should show the full width comparison view', async () => {
+      const diffPageSkPO = await navigateTo(
+        testBed.page,
+        testBed.baseUrl,
+        baseParams
+      );
+      await testBed.page.setViewport({
+        width: 1300,
+        height: 700,
+      });
+      await diffPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
+      await takeScreenshot(testBed.page, 'gold', 'diff-page-sk-full-width');
+    });
   });
 
   describe('url params', () => {

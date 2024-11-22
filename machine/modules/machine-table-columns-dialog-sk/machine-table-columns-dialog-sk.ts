@@ -7,7 +7,7 @@
  *
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';

@@ -77,9 +77,7 @@ export function byParams(res: TryBotResponse): AveForParam[] {
   });
 
   // Sort by aveStdDevRatio.
-  ret.sort(
-    (a: AveForParam, b: AveForParam) => b.aveStdDevRatio - a.aveStdDevRatio
-  );
+  ret.sort((a: AveForParam, b: AveForParam) => b.aveStdDevRatio - a.aveStdDevRatio);
 
   return ret;
 }

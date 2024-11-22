@@ -94,7 +94,7 @@ func NewGoModParent(ctx context.Context, c *config.GoModParentConfig, reg *confi
 		return exec.RunCwd(ctx, dir, append(goCmd, cmd...)...)
 	}
 
-	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+	createRoll := func(ctx context.Context, co git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Update the Go module.
 		if _, err := runGo(ctx, co.Dir(), "get", fmt.Sprintf("%s@%s", c.ModulePath, to.Id)); err != nil {
 			return "", skerr.Wrap(err)

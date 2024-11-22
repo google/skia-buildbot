@@ -17,6 +17,8 @@ import (
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
+
+	"go.skia.org/infra/golden/go/config/validation"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diff/mocks"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
@@ -561,6 +563,13 @@ func TestHighContentionSecondaryBranch_DiffComputationFails_ReturnsError(t *test
 		CalculationLeaseEnds: ts("2021-02-02T02:40:00Z"), // This is the timeout + fakeNow
 		DigestsNotOnPrimary:  alphaDigests,
 	})
+}
+
+func TestLoadExistingConfigs_Valid(t *testing.T) {
+	var cfg diffCalculatorConfig
+	err := validation.ValidateServiceConfigs("diffcalculator", validation.PrimaryInstances, &cfg)
+	require.NoError(t, err)
+	assert.NotZero(t, cfg, "Config object should not be nil.")
 }
 
 func processorForTest(c diff.Calculator, db *pgxpool.Pool) *processor {

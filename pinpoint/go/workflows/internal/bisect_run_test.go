@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	"go.temporal.io/sdk/testsuite"
@@ -16,8 +16,8 @@ import (
 func generateSingleCommitRuns(hash string, count int) *CommitRun {
 	return &CommitRun{
 		Build: &workflows.Build{
-			BuildChromeParams: workflows.BuildChromeParams{
-				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash)),
+			BuildParams: workflows.BuildParams{
+				Commit: common.NewCombinedCommit(common.NewChromiumCommit(hash)),
 			},
 		},
 		Runs: make([]*workflows.TestRun, count),
@@ -37,7 +37,7 @@ func TestBisectRun_ScheduleZeroOrLessRun_ReturnNil(t *testing.T) {
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun, nil)
 
-	br := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("fake-hash")))
+	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		f, err := br.scheduleRuns(ctx, jobID, bp, 0)
 		require.Nil(t, f)
@@ -69,7 +69,7 @@ func TestBisectRun_TotalRuns_WithScheduled_ReturnTotal(t *testing.T) {
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun)
 
-	br := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("fake-hash")))
+	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		require.Len(t, br.Runs, 0)
 		require.EqualValues(t, 0, br.totalRuns())
@@ -99,7 +99,7 @@ func TestBisectRun_ScheduleAndUpdate(t *testing.T) {
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun, nil)
 
-	br := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("fake-hash")))
+	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit("fake-hash")))
 	const (
 		firstRuns  = 10
 		secondRuns = 5
@@ -156,7 +156,7 @@ func TestBisectRun_WithIncompleteRun_ReturnRuns(t *testing.T) {
 	env.RegisterWorkflowWithOptions(SingleCommitRunner, workflow.RegisterOptions{Name: workflows.SingleCommitRunner})
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(generateSingleCommitRuns(hash1, partialComplete), nil)
 
-	br := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash1)))
+	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		f1, err := br.scheduleRuns(ctx, jobID, bp, schedule)
 		require.NoError(t, err)
@@ -194,8 +194,8 @@ func TestBisectRun_UnmatchedCommit_ShouldError(t *testing.T) {
 	const hash1 = "fake-ffcaaab85ecf1a896da1d635aeca929edbe"
 	const other = "other-e0c1a4e8cae6103adbd4c2feacbf0c99bb"
 
-	br1 := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash1)))
-	br2 := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(other)))
+	br1 := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
+	br2 := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(other)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		f1, err := br1.scheduleRuns(ctx, jobID, bp, 10)
 		require.NoError(t, err)
@@ -222,7 +222,7 @@ func TestBisectRun_WithAlreadyUpdated_ShouldError(t *testing.T) {
 	env.OnWorkflow(workflows.SingleCommitRunner, mock.Anything, mock.Anything).Return(mockedSingleCommitRun, nil)
 
 	const hash1 = "fake-ffcaaab85ecf1a896da1d635aeca929edbe"
-	br := newBisectRun(midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(hash1)))
+	br := newBisectRun(common.NewCombinedCommit(common.NewChromiumCommit(hash1)))
 	env.ExecuteWorkflow(func(ctx workflow.Context) error {
 		f1, err := br.scheduleRuns(ctx, jobID, bp, 10)
 		require.EqualValues(t, 10, br.totalScheduledRuns())

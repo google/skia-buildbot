@@ -9,7 +9,7 @@ module.exports = {
     browser: true,
     es6: true,
   },
-  extends: ['airbnb-base', 'prettier'],
+  extends: ['prettier'],
   globals: {
     Atomics: 'readonly',
     SharedArrayBuffer: 'readonly',
@@ -59,7 +59,10 @@ module.exports = {
 
       // Start with the recommended rules, but turn some of them off in the
       // 'rules' section below.
-      extends: ['plugin:@typescript-eslint/recommended'],
+      extends: [
+        'plugin:@typescript-eslint/recommended',
+        'plugin:lit/recommended',
+      ],
       settings: {
         'import/resolver': {
           node: {
@@ -67,7 +70,11 @@ module.exports = {
           },
         },
       },
-      plugins: ['@typescript-eslint'],
+      plugins: [
+        '@stylistic/eslint-plugin',
+        '@typescript-eslint',
+        'eslint-plugin-import',
+      ],
       rules: {
         // Allow ! non-null assertions.
         '@typescript-eslint/no-non-null-assertion': 'off',
@@ -94,7 +101,7 @@ module.exports = {
 
         '@typescript-eslint/no-empty-function': 'off',
 
-        '@typescript-eslint/type-annotation-spacing': [
+        '@stylistic/type-annotation-spacing': [
           'error',
           {
             before: false,
@@ -108,9 +115,7 @@ module.exports = {
           },
         ],
 
-        // note you must disable the base rule as it can report incorrect errors
-        'lines-between-class-members': 'off',
-        '@typescript-eslint/lines-between-class-members': [
+        '@stylistic/lines-between-class-members': [
           'error',
           'always',
           { exceptAfterOverload: true },
@@ -125,6 +130,19 @@ module.exports = {
         // All of these should be turned back to errors once all the instances are
         // found and fixed.
         '@typescript-eslint/ban-types': 'off',
+
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            args: 'all',
+            argsIgnorePattern: '^_',
+            caughtErrors: 'all',
+            caughtErrorsIgnorePattern: '^_',
+            destructuredArrayIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+            ignoreRestSiblings: true,
+          },
+        ],
       },
     },
     {

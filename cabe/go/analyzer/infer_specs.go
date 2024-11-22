@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	cpb "go.skia.org/infra/cabe/go/proto"
 	"go.skia.org/infra/go/sklog"
@@ -314,7 +314,7 @@ func buildSpecForChangeString(s string) (*cpb.BuildSpec, error) {
 }
 
 // Returns an ArmSpec proto populated with fields matching the details of s.
-func inferArmSpec(s *swarming.SwarmingRpcsTaskRequestMetadata) (*cpb.ArmSpec, error) {
+func inferArmSpec(s *apipb.TaskRequestMetadataResponse) (*cpb.ArmSpec, error) {
 	ret := &cpb.ArmSpec{}
 
 	ppc := pinpointChangeTagForTask(s)

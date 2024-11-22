@@ -13,8 +13,8 @@ import '../../../elements-sk/modules/icons/pause-icon-sk';
 import '../../../elements-sk/modules/icons/play-arrow-icon-sk';
 import '../../../elements-sk/modules/icons/settings-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
-import { html, TemplateResult } from 'lit-html';
-import { repeat } from 'lit-html/directives/repeat';
+import { html, TemplateResult } from 'lit/html.js';
+import { repeat } from 'lit/directives/repeat.js';
 import {
   Canvas,
   CanvasKit,

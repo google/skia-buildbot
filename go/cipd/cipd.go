@@ -43,6 +43,9 @@ const (
 	// Placeholder for target platform.
 	PlatformPlaceholder = "${platform}"
 
+	// This is the CIPD package containing CIPD itself.
+	PkgNameCIPD = "infra/tools/cipd/${os}-${arch}"
+
 	// Template for Git CIPD package for a particular platform.
 	pkgGitTmpl = "infra/3pp/tools/git/%s"
 
@@ -52,8 +55,18 @@ const (
 )
 
 var (
+	// Platforms are the known CIPD platforms.
+	Platforms = []string{
+		PlatformLinuxAmd64,
+		PlatformLinuxArm64,
+		PlatformLinuxArmv6l,
+		PlatformMacAmd64,
+		PlatformWindows386,
+		PlatformWindowsAmd64,
+	}
+
 	// CIPD package for CIPD itself.
-	PkgCIPD = MustGetPackage("infra/tools/cipd/${os}-${arch}")
+	PkgCIPD = MustGetPackage(PkgNameCIPD)
 
 	// CIPD package for the Go installation.
 	PkgGo = MustGetPackage("skia/bots/go")

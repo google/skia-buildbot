@@ -8,11 +8,14 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/paramtools",
+        "//go/query",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/anomalygroup:store",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/shared",
         "//perf/go/regression",
+        "@io_temporal_go_sdk//client",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -30,5 +33,6 @@ go_test(
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//mock",
+        "@io_temporal_go_sdk//mocks",
     ],
 )

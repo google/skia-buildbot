@@ -4,7 +4,11 @@
  *
  * Element for exploring data.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
+import { when } from 'lit/directives/when.js';
+import { ref, createRef, Ref } from 'lit/directives/ref.js';
+import { MdDialog } from '@material/web/dialog/dialog.js';
+import { MdSwitch } from '@material/web/switch/switch.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
@@ -18,11 +22,18 @@ import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkifyToString } from '../../../infra-sk/modules/linkify';
 
+import '@material/web/button/outlined-button.js';
+import '@material/web/icon/icon.js';
+import '@material/web/iconbutton/outlined-icon-button.js';
+import '@material/web/switch/switch.js';
+import '@material/web/dialog/dialog.js';
+
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/icons/expand-less-icon-sk';
 import '../../../elements-sk/modules/icons/expand-more-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/tabs-sk';
@@ -37,10 +48,18 @@ import '../commit-range-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
 import '../ingest-file-links-sk';
+import '../picker-field-sk';
 import '../pivot-query-sk';
 import '../pivot-table-sk';
+import '../plot-google-chart-sk';
 import '../plot-simple-sk';
+import '../plot-summary-sk';
+import '../point-links-sk';
+import '../split-chart-menu-sk';
 import '../query-count-sk';
+import '../graph-title-sk';
+import '../new-bug-dialog-sk';
+import '../existing-bug-dialog-sk';
 import '../window/window';
 
 import {
@@ -67,6 +86,7 @@ import {
   ReadOnlyParamSet,
 } from '../json';
 import {
+  AnomalyData,
   PlotSimpleSk,
   PlotSimpleSkTraceEventDetails,
 } from '../plot-simple-sk/plot-simple-sk';
@@ -94,28 +114,39 @@ import {
 } from '../progress/progress';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
-import {
-  PivotQueryChangedEventDetail,
-  PivotQuerySk,
-} from '../pivot-query-sk/pivot-query-sk';
-import {
-  PivotTableSk,
-  PivotTableSkChangeEventDetail,
-} from '../pivot-table-sk/pivot-table-sk';
+import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
+import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
 import { fromKey, paramsToParamSet, validKey } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
-import { join, timestampBounds } from '../dataframe';
-import { TryJob_Status } from '../../../autoroll/modules/rpc';
-import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
-import {
-  TraceFormatter,
-  GetTraceFormatter,
-} from '../trace-details-formatter/traceformatter';
+import { findAnomalyInRange, findSubDataframe, range } from '../dataframe';
+import { TraceFormatter, GetTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { fixTicksLength, tick, ticks } from '../plot-simple-sk/ticks';
+import {
+  PlotSummarySk,
+  PlotSummarySkSelectionEventDetails,
+} from '../plot-summary-sk/plot-summary-sk';
+import { PickerFieldSk } from '../picker-field-sk/picker-field-sk';
+import '../chart-tooltip-sk/chart-tooltip-sk';
+import '../dataframe/dataframe_context';
+import { ChartTooltipSk } from '../chart-tooltip-sk/chart-tooltip-sk';
+import { NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
+import { $$ } from '../../../infra-sk/modules/dom';
+import { PointLinksSk } from '../point-links-sk/point-links-sk';
+import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
+import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
+import {
+  PlotGoogleChartSk,
+  PlotSelectionEventDetails,
+  PlotShowTooltipEventDetails,
+} from '../plot-google-chart-sk/plot-google-chart-sk';
+import { DataFrameRepository } from '../dataframe/dataframe_context';
+import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
+import { generateSubDataframe } from '../dataframe/index';
+import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -149,7 +180,15 @@ const RANGE_CHANGE_ON_ZOOM_PERCENT = 0.5;
 // The minimum length [right - left] of a zoom range.
 const MIN_ZOOM_RANGE = 0.1;
 
+// The max number of points a user can nudge an anomaly by.
+const NUDGE_RANGE = 2;
+
 const STATISTIC_VALUES = ['avg', 'count', 'max', 'min', 'std', 'sum'];
+
+const monthInSec = 30 * 24 * 60 * 60;
+
+// max number of charts to show on a page
+const chartsPerPage = 11;
 
 type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
@@ -231,9 +270,7 @@ export class GraphConfig {
  * Creates a shortcut ID for the given Graph Configs.
  *
  */
-export const updateShortcut = async (
-  graphConfigs: GraphConfig[]
-): Promise<string> => {
+export const updateShortcut = async (graphConfigs: GraphConfig[]): Promise<string> => {
   if (graphConfigs.length === 0) {
     return '';
   }
@@ -291,6 +328,24 @@ export class State {
   _incremental: boolean = false; // Enables a data fetching optimization.
 
   disable_filter_parent_traces: boolean = false;
+
+  plotSummary: boolean = false;
+
+  disableMaterial?: boolean = false;
+
+  highlight_anomalies: string[] = [];
+
+  enable_chart_tooltip: boolean = false;
+
+  show_remove_all: boolean = true;
+
+  use_titles: boolean = false;
+
+  useTestPicker: boolean = false;
+
+  use_test_picker_query: boolean = false;
+
+  show_google_plot = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -351,10 +406,7 @@ export function calculateRangeChange(
     // shift left
     return {
       rangeChange: true,
-      newOffsets: [
-        clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber,
-        offsets[1],
-      ],
+      newOffsets: [clampToNonNegative(offsets[0] - offsetDelta) as CommitNumber, offsets[1]],
     };
   }
   if (exceedsRightEdge) {
@@ -420,7 +472,7 @@ export class ExploreSimpleSk extends ElementSk {
 
   private user: string = '';
 
-  private defaults: QueryConfig | null = null;
+  private _defaults: QueryConfig | null = null;
 
   private _initialized: boolean = false;
 
@@ -438,13 +490,19 @@ export class ExploreSimpleSk extends ElementSk {
 
   private ingestFileLinks: IngestFileLinksSk | null = null;
 
+  private pointLinks: PointLinksSk | null = null;
+
   private logEntry: HTMLPreElement | null = null;
 
   private paramset: ParamSetSk | null = null;
 
   private percent: HTMLSpanElement | null = null;
 
-  private plot: PlotSimpleSk | null = null;
+  private plotSimple = createRef<PlotSimpleSk>();
+
+  private googleChartPlot = createRef<PlotGoogleChartSk>();
+
+  private plotSummary = createRef<PlotSummarySk>();
 
   private query: QuerySk | null = null;
 
@@ -482,17 +540,22 @@ export class ExploreSimpleSk extends ElementSk {
 
   private commitRangeSk: CommitRangeSk | null = null;
 
+  // TODO(b/372694234): consolidate the pinpoint and triage toasts.
   private pinpointJobToast: ToastSk | null = null;
 
-  private closeToastButton: HTMLButtonElement | null = null;
+  private triageResultToast: ToastSk | null = null;
+
+  private closePinpointToastButton: HTMLButtonElement | null = null;
+
+  private closeTriageToastButton: HTMLButtonElement | null = null;
 
   private bisectButton: HTMLButtonElement | null = null;
 
   private collapseButton: HTMLButtonElement | null = null;
 
-  private collapseDetails: CollapseSk | null = null;
-
   private traceDetails: HTMLSpanElement | null = null;
+
+  private traceDetailsCopy: HTMLDivElement | null = null;
 
   private traceFormatter: TraceFormatter | null = null;
 
@@ -500,38 +563,76 @@ export class ExploreSimpleSk extends ElementSk {
 
   private scrollable: boolean = false;
 
-  constructor(scrollable: boolean) {
+  private traceKeyForSummary: string = '';
+
+  chartTooltip: ChartTooltipSk | null = null;
+
+  useTestPicker: boolean = false;
+
+  private summaryOptionsField: Ref<PickerFieldSk> = createRef();
+
+  private traceNameIdMap = new Map();
+
+  private pointToCommitDetailMap = new Map();
+
+  // tooltipSelected tracks whether someone has turned on the tooltip
+  // by selecting a data point. A new tooltip will not be created on
+  // mouseover unless the current selected tooltip is closed.
+  // true - the tooltip is selected
+  // false - the tooltip is not selected but could be on via mouse hover
+  private tooltipSelected = false;
+
+  private graphTitle: GraphTitleSk | null = null;
+
+  private showRemoveAll = true;
+
+  private tracesRendered = false;
+
+  // material UI
+  private settingsDialog: MdDialog | null = null;
+
+  private dfRepo = createRef<DataFrameRepository>();
+
+  constructor(scrollable: boolean, useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
     this.scrollable = scrollable;
     this.traceFormatter = GetTraceFormatter();
+    this.useTestPicker = useTestPicker ?? false;
   }
 
   private static template = (ele: ExploreSimpleSk) => html`
+  <dataframe-repository-sk ${ref(ele.dfRepo)}>
   <div id=explore class=${ele.displayMode}>
     <div id=buttons>
-      <button id=open_query_dialog @click=${ele.openQuery}>Query</button>
+      <button
+        id=open_query_dialog
+        ?hidden=${ele.useTestPicker}
+        @click=${ele.openQuery}>
+        Query
+      </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
-        <button
-          @click=${() => ele.removeAll(false)}
-          title='Remove all the traces.'>
-          Remove All
-        </button>
-
-        <button
+        <split-chart-menu-sk
+          @split-chart-selection=${ele.splitByAttribute}>
+        </split-chart-menu-sk>
+        <md-outlined-button
+          ?disabled=${!(
+            ele.plotSimple.value &&
+            ele.plotSimple.value!.highlight.length &&
+            ele.useTestPicker
+          )}
+          @click=${ele.queryHighlighted}>
+          Query Highlighted
+        </md-outlined-button>
+        <md-outlined-button
           @click=${ele.removeHighlighted}
-          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-          title='Remove all the highlighted traces.'>
+          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
           Remove Highlighted
-        </button>
-
-        <button
+        </md-outlined-button>
+        <md-outlined-button
           @click=${ele.highlightedOnly}
-          ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
-          title='Remove all but the highlighted traces.'
-          id=highlighted-only
-          >
+          ?disabled=${!(ele.plotSimple.value && ele.plotSimple.value!.highlight.length)}>
           Highlighted Only
-        </button>
+        </md-outlined-button>
 
         <span
           title='Number of commits skipped between each point displayed.'
@@ -539,126 +640,185 @@ export class ExploreSimpleSk extends ElementSk {
           id=skip>
             ${ele._dataframe.skip}
         </span>
-        <checkbox-sk
-          name=zero
-          @change=${ele.zeroChangeHandler}
-          ?checked=${ele._state.showZero}
-          label='Zero'
-          title='Toggle the presence of the zero line.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=summary
-          @change=${ele.summaryChangeHandler}
-          ?checked=${ele._state.summary}
-          label='Summary'
-          title='Toggle the presence of the summary pane.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=dots
-          @change=${ele.toggleDotsHandler}
-          ?checked=${ele._state.dots}
-          label='Dots'
-          title='Toggle the presence of dots at each commit.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.autoRefreshHandler}
-          ?checked=${ele._state.autoRefresh}
-          label='Auto-refresh'
-          title='Auto-refresh the data displayed in the graph.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.enableIncrementalDataFrameFetchHandler}
-          ?checked=${ele._state._incremental}
-          label='Incremental data fetch'
-          title='Only fetch deltas when panning left or right.'>
-        </checkbox-sk>
-        <checkbox-sk
-          name=auto
-          @change=${ele.enableCommitLabel}
-          ?checked=${ele._state.labelMode === LabelMode.CommitPosition}
-          label='Commit Label'
-          title='Show Commit Numbers on x axis.'
-          ?hidden=${!window.perf.fetch_chrome_perf_anomalies}>
-        </checkbox-sk>
+
+        <md-outlined-button
+          ?hidden=${!ele.showRemoveAll}
+          @click=${() => ele.removeAll(false)}>
+          Remove All
+        </md-outlined-button>
         <div
           id=calcButtons
           class="hide_on_query_only">
-          <button
-            @click=${() => ele.applyFuncToTraces('norm')}
-            title='Apply norm() to all the traces.'>
+          <md-outlined-button
+            @click=${() => ele.applyFuncToTraces('norm')}>
             Normalize
-          </button>
-          <button
-            @click=${() => ele.applyFuncToTraces('scale_by_avg')}
-            title='Apply scale_by_avg() to all the traces.'>
+          </md-outlined-button>
+          <md-outlined-button
+            @click=${() => ele.applyFuncToTraces('scale_by_avg')}>
             Scale By Avg
-          </button>
-          <button
+          </md-outlined-button>
+          <md-outlined-button
             @click=${() => {
               ele.applyFuncToTraces('iqrr');
-            }}
-            title='Apply iqrr() to all the traces.'>
+            }}>
             Remove outliers
-          </button>
-          <button
-            @click=${ele.csv}
-            title='Download all displayed data as a CSV file.'>
+          </md-outlined-button>
+          <md-outlined-button
+            @click=${ele.csv}>
             CSV
-          </button>
+          </md-outlined-button>
           <a href='' target=_blank download='traces.csv' id=csv_download></a>
-          <button
+          <md-outlined-button
             ?hidden=${!window.perf.fetch_chrome_perf_anomalies}
             @click=${ele.openBisect}>
             Bisect
-          </button>
-          <h3>Zoom/Pan:<h3>
-          <button
-            class=navigation
-            @click=${ele.zoomInKey}
-            title='Zoom In'>
-            <span class=icon-sk>add</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomOutKey}
-            title='Zoom Out'>
-            <span class=icon-sk>remove</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomLeftKey}
-            title='Pan Left'>
-            <span class=icon-sk>arrow_back</span>
-          </button>
-          <button
-            class=navigation
-            @click=${ele.zoomRightKey}
-            title='Pan Right'>
-            <span class=icon-sk>arrow_forward</span>
-          </button>
+          </md-outlined-button>
+          <div id="zoomPan" ?hidden=${ele.plotSummary}>
+            <h3>Zoom/Pan:</h3>
+            <div id="btnContainer">
+              <button
+                class=navigation
+                @click=${ele.zoomInKey}
+                title='Zoom In'>
+                <span class=icon-sk>add</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomOutKey}
+                title='Zoom Out'>
+                <span class=icon-sk>remove</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomLeftKey}
+                title='Pan Left'>
+                <span class=icon-sk>arrow_back</span>
+              </button>
+              <button
+                class=navigation
+                @click=${ele.zoomRightKey}
+                title='Pan Right'>
+                <span class=icon-sk>arrow_forward</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+      <md-outlined-icon-button
+        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
+        @click=${ele.showSettingsDialog}>
+          <md-icon id="settings-button">settings</md-icon>
+      </md-outlined-icon-button>
+      <md-dialog
+        aria-label='Settings dialog'
+        id='settings-dialog'>
+        <form id="form" slot="content" method="dialog">
+        </form>
+        <div slot="actions">
+          <ul style="list-style-type:none; padding-left: 0;">
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="commit-switch"
+                  ?selected=${ele._state.labelMode === LabelMode.CommitPosition}
+                  @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
+                X-Axis as Commit Positions
+              </label>
+            <li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="dots-switch"
+                  ?selected=${ele._state!.dots}
+                  @change=${() => ele.toggleDotsHandler()}></md-switch>
+                Dots on graph
+              </label>
+            </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="zero-switch"
+                  ?selected=${ele._state.showZero}
+                  @change=${(e: InputEvent) =>
+                    ele.zeroChangeHandler(e.target as MdSwitch)}></md-switch>
+                Draw against "zero" line
+              </label>
+            </li>
+            <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="auto-refresh-switch"
+                  ?selected=${ele._state.autoRefresh}
+                  @change=${(e: InputEvent) =>
+                    ele.autoRefreshHandler(e.target as MdSwitch)}></md-switch>
+                Auto refresh data
+              </label>
+            </li>
+            <li ?hidden=${ele._state.plotSummary}>
+              <label>
+                <md-switch
+                  form="form"
+                  id="summary-bar-switch"
+                  ?selected=${ele._state.summary}
+                  @change=${(e: InputEvent) =>
+                    ele.summaryChangeHandler(e.target as MdSwitch)}></md-switch>
+                Summary Bar at Top of Plot
+              </label>
+            </li>
+          </ul>
+        </div>
+      </md-dialog>
+      <button
+        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
+        id="removeAll"
+        @click=${() => ele.removeAll(false)}
+        title='Remove all the traces.'>
+        <close-icon-sk></close-icon-sk>
+      </button>
     </div>
 
-    <div id=spin-overlay>
-      <plot-simple-sk
-        .summary=${ele._state.summary}
-        id=plot
-        @trace_selected=${ele.traceSelected}
-        @zoom=${ele.plotZoom}
-        @trace_focused=${ele.plotTraceFocused}
-        class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
-        .scrollable=${ele.scrollable}
-        >
-      </plot-simple-sk>
+    <graph-title-sk id=graphTitle></graph-title-sk>
+
+    <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
+    <div class="chart-container">
+        <plot-google-chart-sk
+          style="${ele._state.show_google_plot ? '' : 'display: none'}"
+          ${ref(ele.googleChartPlot)}
+          @google-chart-select=${ele.onChartSelect}
+          @plot-data-mouseover=${ele.onChartOver}
+          @plot-chart-mousedown=${ele.onChartMouseDown}
+          @selection-changing=${ele.OnSelectionRange}
+          @selection-changed=${ele.OnSelectionRange}>
+          <md-icon slot="untriage">question_exchange</md-icon>
+          <md-icon slot="regression">report</md-icon>
+          <md-icon slot="improvement">check</md-icon>
+        </plot-google-chart-sk>
+        <plot-simple-sk
+        style="${!ele._state.show_google_plot ? '' : 'display: none'}"
+          .summary=${ele._state.summary}
+          ${ref(ele.plotSimple)}
+          @trace_selected=${ele.traceSelected}
+          @zoom=${ele.plotZoom}
+          @trace_focused=${ele.plotTraceFocused}
+          class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
+          .scrollable=${ele.scrollable}>
+        </plot-simple-sk>
+      <chart-tooltip-sk></chart-tooltip-sk>
+      </div>
+      <div id="trace-details-container">
+        <div id="traceDetailsCopy" class="icon-sk copy-content">content_copy</div>
+        <span id=traceDetails></span>
+      </div>
+      ${when(ele._state.plotSummary && ele.tracesRendered, () => ele.plotSummaryTemplate())}
       <div id=spin-container class="hide_on_query_only hide_on_pivot_table hide_on_pivot_plot hide_on_plot">
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
       </div>
-      <span id=traceDetails />
-    </div>
+  </div>
 
     <pivot-table-sk
       @change=${ele.pivotTableSortChange}
@@ -676,13 +836,14 @@ export class ExploreSimpleSk extends ElementSk {
           > </query-sk>
           <div id=selections>
             <h3>Selections</h3>
+            <button id="closeQueryIcon" @click=${ele.closeQueryDialog}>
+              <close-icon-sk></close-icon-sk>
+            </button>
             <paramset-sk id=summary removable_values @paramset-value-remove-click=${
               ele.paramsetRemoveClick
             }></paramset-sk>
             <div class=query-counts>
-              Matches: <query-count-sk url='/_/count/' @paramset-changed=${
-                ele.paramsetChanged
-              }>
+              Matches: <query-count-sk url='/_/count/' @paramset-changed=${ele.paramsetChanged}>
               </query-count-sk>
             </div>
           </div>
@@ -701,8 +862,7 @@ export class ExploreSimpleSk extends ElementSk {
       </tabs-sk>
       <tabs-panel-sk>
         <div>
-          <button @click=${() =>
-            ele.add(true, 'query')} class=action>Plot</button>
+          <button @click=${() => ele.add(true, 'query')} class=action>Plot</button>
           <button @click=${() => ele.add(false, 'query')}>Add to Plot</button>
         </div>
         <div>
@@ -712,10 +872,8 @@ export class ExploreSimpleSk extends ElementSk {
               <textarea id=formula rows=3 cols=80></textarea>
             </label>
             <div>
-              <button @click=${() =>
-                ele.add(true, 'formula')} class=action>Plot</button>
-              <button @click=${() =>
-                ele.add(false, 'formula')}>Add to Plot</button>
+              <button @click=${() => ele.add(true, 'formula')} class=action>Plot</button>
+              <button @click=${() => ele.add(false, 'formula')}>Add to Plot</button>
               <a href=/help/ target=_blank>
                 <help-icon-sk></help-icon-sk>
               </a>
@@ -739,14 +897,15 @@ export class ExploreSimpleSk extends ElementSk {
         </div>
       </tabs-panel-sk>
       <div class=footer>
-        <button @click=${
-          ele.closeQueryDialog
-        } id='close_query_dialog'>Close</button>
+        <button @click=${ele.closeQueryDialog} id='close_query_dialog'>Close</button>
       </div>
     </dialog>
 
     <dialog id='bisect-dialog'>
       <h2>Bisect</h2>
+      <button id="bisectCloseIcon" @click=${ele.closeBisectDialog}>
+        <close-icon-sk></close-icon-sk>
+      </button>
       <h3>Test Path</h3>
       <input id="testpath" type="text" value=${ele.testPath} readonly></input>
       <h3>Bug ID</h3>
@@ -818,8 +977,7 @@ export class ExploreSimpleSk extends ElementSk {
     </dialog>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
-      <button class="collapser" id="collapseButton" @click=${(e: Event) =>
-        ele.toggleDetails()}>
+      <button class="collapser" id="collapseButton" @click=${(_e: Event) => ele.toggleDetails()}>
       ${
         ele.navOpen
           ? html`<expand-less-icon-sk></expand-less-icon-sk>`
@@ -841,9 +999,7 @@ export class ExploreSimpleSk extends ElementSk {
               id=paramset
               clickable_values
               checkbox_values
-              @paramset-key-value-click=${(
-                e: CustomEvent<ParamSetSkClickEventDetail>
-              ) => {
+              @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
                 ele.paramsetKeyValueClick(e);
               }}
               @paramset-checkbox-click=${ele.paramsetCheckboxClick}
@@ -857,9 +1013,7 @@ export class ExploreSimpleSk extends ElementSk {
                 clickable_plus
                 clickable_values
                 copy_content
-                @paramset-key-value-click=${(
-                  e: CustomEvent<ParamSetSkClickEventDetail>
-                ) => {
+                @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
                   ele.paramsetKeyValueClick(e);
                 }}
                 @plus-click=${ele.plusClick}
@@ -869,7 +1023,8 @@ export class ExploreSimpleSk extends ElementSk {
               <anomaly-sk id=anomaly></anomaly-sk>
             </div>
             <div>
-              <commit-range-sk></commit-range-sk>
+              <commit-range-sk id="commit-range-link"></commit-range-sk>
+              <point-links-sk id="point-links"></point-links-sk>
               <commit-detail-panel-sk id=commits selectable .hide=${
                 window.perf.hide_list_of_commits_on_explore
               }></commit-detail-panel-sk>
@@ -882,13 +1037,114 @@ export class ExploreSimpleSk extends ElementSk {
       </collapse-sk>
     </div>
   </div>
+  </dataframe-repository-sk>
   <toast-sk id="pinpoint-job-toast" duration=10000>
-    Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${
-      ele.jobId
-    }</a>.
-    <button id="hide-toast" class="action">Close</button>
+    Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${ele.jobId}</a>.
+    <button id="hide-pinpoint-toast" class="action">Close</button>
+  </toast-sk>
+  <toast-sk id="triage-result-toast" duration=0>
+    <span id="triage-result-text"></span><a id="triage-result-link"></a>
+    <button id="hide-triage-toast" class="action">Close</button>
   </toast-sk>
   `;
+
+  private plotSummaryTemplate() {
+    return html`<plot-summary-sk
+        ${ref(this.plotSummary)}
+        @summary_selected=${this.summarySelected}
+        selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
+        ?hasControl=${!this._state.disableMaterial}
+        class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
+      </plot-summary-sk>
+      <div id="summaryPicker">
+        <picker-field-sk
+          ${ref(this.summaryOptionsField)}
+          @value-changed=${this.onSummaryPickerChanged}>
+        </picker-field-sk>
+        <label>${this.getPlotSummaryTraceLabel()}</label>
+      </div>`;
+  }
+
+  private onSummaryPickerChanged(e: CustomEvent) {
+    const selectedTrace = e.detail.value;
+    this.traceKeyForSummary = this.traceNameIdMap.get(selectedTrace) || '';
+
+    const plot = this.plotSummary.value;
+    if (plot) {
+      plot.selectedTrace = this.traceKeyForSummary;
+    }
+  }
+
+  // onChartSelect shows the tooltip whenever a user clicks on a data
+  // point and the tooltip will lock in place until it is closed.
+  private onChartSelect(e: CustomEvent) {
+    const chart = this.googleChartPlot!.value!;
+    const selection = e.detail.chart.getSelection()[0];
+    // TODO(b/370804498): Clicking on the same data point to show tooltip
+    // and then clicking on it again to close it will create errors because
+    // selection.row will be empty. Handle this use case.
+    const index = {
+      row: selection.row,
+      col: selection.column,
+    };
+
+    const commitPos = chart.getCommitPosition(index.row);
+    const position = chart.getPositionByIndex(index);
+    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+    const commit = this.pointToCommitDetailMap.get(key) || null;
+
+    this.enableTooltip(
+      {
+        x: index.row - (this.selectedRange?.begin || 0),
+        y: chart.getYValue(index),
+        xPos: position.x,
+        yPos: position.y,
+        name: chart.getTraceName(index.col),
+      },
+      commit,
+      false,
+      true
+    );
+
+    this.tooltipSelected = true;
+  }
+
+  // if the tooltip is opened and the user is not shift-clicking,
+  // close it when clicking on the chart
+  // i.e. clicking away from the tooltip closes it
+  private onChartMouseDown(): void {
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    this.tooltipSelected = false;
+    tooltipElem?.moveTo(null);
+  }
+
+  // onChartOver shows the tooltip whenever a user hovers their mouse
+  // over a data point in the google chart
+  private onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): void {
+    // do not show tooltip if tooltip is selected
+    if (this.tooltipSelected) {
+      return;
+    }
+    const chart = this.googleChartPlot!.value!;
+    const index = detail;
+    const commitPos = chart.getCommitPosition(index.row);
+    const position = chart.getPositionByIndex(index);
+    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+    const commit = this.pointToCommitDetailMap.get(key) || null;
+
+    this.enableTooltip(
+      {
+        x: index.row - (this.selectedRange?.begin || 0),
+        y: chart.getYValue(index),
+        xPos: position.x,
+        yPos: position.y,
+        name: chart.getTraceName(index.col),
+      },
+      commit,
+      false,
+      true
+    );
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -896,7 +1152,6 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
     this._initialized = true;
-    this._setDefaults();
     this._render();
 
     this.anomalyTable = this.querySelector('#anomaly');
@@ -906,10 +1161,10 @@ export class ExploreSimpleSk extends ElementSk {
     this.formula = this.querySelector('#formula');
     this.jsonsource = this.querySelector('#jsonsource');
     this.ingestFileLinks = this.querySelector('#ingest-file-links');
+    this.pointLinks = this.querySelector<PointLinksSk>('#point-links');
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
-    this.plot = this.querySelector('#plot');
     this.pivotControl = this.querySelector('pivot-query-sk');
     this.pivotDisplayButton = this.querySelector('#pivot-display-button');
     this.pivotTable = this.querySelector('pivot-table-sk');
@@ -925,17 +1180,21 @@ export class ExploreSimpleSk extends ElementSk {
     this.csvDownload = this.querySelector('#csv_download');
     this.queryDialog = this.querySelector('#query-dialog');
     this.bisectDialog = this.querySelector('#bisect-dialog');
-    this.fromParamsQueryDialog = this.querySelector(
-      '#from-params-query-dialog'
-    );
+    this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
-    this.commitRangeSk = this.querySelector('commit-range-sk');
+    this.commitRangeSk = this.querySelector('#commit-range-link');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
-    this.closeToastButton = this.querySelector('#hide-toast');
+    this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
+    this.triageResultToast = this.querySelector('#triage-result-toast');
+    this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
-    this.collapseDetails = this.querySelector('#collapseDetails');
     this.traceDetails = this.querySelector('#traceDetails');
+    this.traceDetailsCopy = this.querySelector('#traceDetailsCopy');
+    this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
+
+    // material UI stuff
+    this.settingsDialog = this.querySelector<MdDialog>('#settings-dialog');
 
     // Populate the query element.
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -969,16 +1228,88 @@ export class ExploreSimpleSk extends ElementSk {
       })
       .catch(errorMessage);
 
-    this.closeToastButton!.addEventListener(
-      'click',
-      () => this.pinpointJobToast?.hide()
-    );
+    this.closePinpointToastButton!.addEventListener('click', () => this.pinpointJobToast?.hide());
+    this.closeTriageToastButton!.addEventListener('click', () => this.triageResultToast?.hide());
+
+    // Add an event listener for when a new bug is filed or an existing bug is submitted in the tooltip.
+    this.addEventListener('anomaly-changed', (e) => {
+      this.plotSimple.value?.redrawOverlayCanvas();
+      const detail = (e as CustomEvent).detail;
+      if (!detail) {
+        this.triageResultToast?.hide();
+        return;
+      }
+      const bugId = (e as CustomEvent).detail.bugId;
+      const newBug = (e as CustomEvent).detail.newBug;
+      const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
+      const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
+      if (newBug === true) {
+        toastText.textContent = `New bug created: `;
+      } else {
+        toastText.textContent = `Anomalies associated with: `;
+      }
+      const link = `https://issues.chromium.org/issues/${bugId}`;
+      toastLink.setAttribute('href', `${link}`);
+      toastLink.setAttribute('target', '_blank');
+      toastLink.innerText = `${bugId}`;
+      this.triageResultToast?.show();
+    });
+  }
+
+  render(): void {
+    this._render();
+  }
+
+  showSettingsDialog(_event: Event) {
+    this.settingsDialog!.show();
+  }
+
+  switchXAxis(target: MdSwitch | null) {
+    // TODO(b/362831653): It's probably better to toggle the domain
+    // with an event listener than to interact with the chart elements
+    const googleChart = this.googleChartPlot.value;
+    const plotSummary = this.plotSummary.value;
+    if (plotSummary) {
+      plotSummary.domain = target!.selected ? 'commit' : 'date';
+    }
+    if (googleChart) {
+      googleChart.domain = target!.selected ? 'commit' : 'date';
+    }
+    const plot = this.plotSimple.value;
+    if (!plot) {
+      return;
+    }
+    if (target!.selected) {
+      this._state.labelMode = LabelMode.CommitPosition;
+    } else {
+      this._state.labelMode = LabelMode.Date;
+    }
+
+    const anomalyMap = plot.anomalyDataMap;
+    plot.removeAll();
+    this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
+    plot.anomalyDataMap = anomalyMap;
+    this._stateHasChanged();
+  }
+
+  private summaryChangeHandler(target: MdSwitch | null) {
+    this._state.summary = target!.selected;
+    this._userSpecifiedCustomizationParams.add('summary');
+    this._stateHasChanged();
+    this._render();
   }
 
   // Call this anytime something in private state is changed. Will be replaced
   // with the real function once stateReflector has been setup.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _stateHasChanged = () => {
+    this.showRemoveAll = this._state.show_remove_all;
+
+    // If chart tooltip is enabled do not show crosshair label
+    if (this.plotSimple.value) {
+      this.plotSimple.value.showCrosshairLabel = !this._state.enable_chart_tooltip;
+    }
+
     this.dispatchEvent(new CustomEvent('state_changed', {}));
   };
 
@@ -998,20 +1329,15 @@ export class ExploreSimpleSk extends ElementSk {
 
   private postBisect(): void {
     this.bisectButton!.disabled = true;
-    const parts: string[] =
-      this.simpleParamset!.paramsets[0]!.test[0].split('_');
+    const parts: string[] = this.simpleParamset!.paramsets[0]!.test[0].split('_');
     const tail: string = parts.pop()!;
     const chart = STATISTIC_VALUES.includes(tail)
       ? parts.join('_')
       : this.simpleParamset!.paramsets[0]!.test[0];
     const statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
     const bugId = document.getElementById('bug-id')! as HTMLInputElement;
-    const startCommit = document.getElementById(
-      'start-commit'
-    )! as HTMLInputElement;
-    const endCommit = document.getElementById(
-      'end-commit'
-    )! as HTMLInputElement;
+    const startCommit = document.getElementById('start-commit')! as HTMLInputElement;
+    const endCommit = document.getElementById('end-commit')! as HTMLInputElement;
     const story = document.getElementById('story')! as HTMLInputElement;
     const patch = document.getElementById('patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
@@ -1055,6 +1381,25 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._dialogOn || e.isComposing || e.keyCode === 229) {
       return;
     }
+
+    // Allow user to type and not pan graph if the Existing Bug Dialog is showing.
+    const existing_bug_dialog = $$<ExistingBugDialogSk>('existing-bug-dialog-sk', this);
+    if (existing_bug_dialog && existing_bug_dialog.isActive) {
+      return;
+    }
+
+    // Allow user to type and not pan graph if the New Bug Dialog is showing.
+    const new_bug_dialog = $$<NewBugDialogSk>('new-bug-dialog-sk', this);
+    if (new_bug_dialog && new_bug_dialog.opened) {
+      return;
+    }
+
+    // Allow user to type and not pan graph if an input box is active.
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLInputElement) {
+      return;
+    }
+
     switch (e.key) {
       case '?':
         this.helpDialog!.showModal();
@@ -1074,6 +1419,12 @@ export class ExploreSimpleSk extends ElementSk {
       case 'd':
         this.zoomRightKey();
         break;
+      case `Escape`:
+        this.disableTooltip();
+        break;
+      case `Esc`:
+        this.disableTooltip();
+        break;
       default:
         break;
     }
@@ -1089,8 +1440,8 @@ export class ExploreSimpleSk extends ElementSk {
    *   }
    */
   private getCurrentZoom(): ZoomWithDelta {
-    let zoom = this.plot!.zoom;
-    if (zoom === null) {
+    let zoom = this.plotSimple.value?.zoom;
+    if (!zoom) {
       zoom = [0, this._dataframe.header!.length - 1];
     }
     let delta = zoom[1] - zoom[0];
@@ -1172,15 +1523,15 @@ export class ExploreSimpleSk extends ElementSk {
         .then((json: ShiftResponse) => {
           this._state.begin = json.begin;
           this._state.end = json.end;
-          if (!this._state._incremental) {
-            this._state.requestType = 0;
-          }
+          this._state.requestType = 0;
           this._stateHasChanged();
           this.rangeChangeImpl();
         })
         .catch(errorMessage);
     } else {
-      this.plot!.zoom = zoom;
+      if (this.plotSimple.value) {
+        this.plotSimple.value.zoom = zoom;
+      }
     }
   }
 
@@ -1188,8 +1539,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Only enable the Display button if we have a valid pivot.Request and a
     // query.
     this.pivotDisplayButton!.disabled =
-      validatePivotRequest(e.detail) !== '' ||
-      this.query!.current_query.trim() === '';
+      validatePivotRequest(e.detail) !== '' || this.query!.current_query.trim() === '';
     if (!e.detail || e.detail.summary!.length === 0) {
       this.pivotDisplayButton!.textContent = 'Display';
     } else {
@@ -1246,6 +1596,10 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
     this._dialogOn = true;
     this.queryDialog!.showModal();
+    // If there is a query already plotted, update the counts on the query dialog.
+    if (this._state.queries.length > 0) {
+      this.queryCount!.current_query = this.applyDefaultsToQuery(this.query!.current_query);
+    }
   }
 
   /** Open the bisect dialog box. */
@@ -1253,18 +1607,6 @@ export class ExploreSimpleSk extends ElementSk {
     this._render();
     this._dialogOn = true;
     this.bisectDialog!.showModal();
-  }
-
-  private _setDefaults(): void {
-    if (this.defaults === null) {
-      fetch(`/_/defaults/`, {
-        method: 'GET',
-      })
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.defaults = json;
-        });
-    }
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
@@ -1289,18 +1631,11 @@ export class ExploreSimpleSk extends ElementSk {
     // This query only contains the key this.fromParamsKey and it's values, so we need
     // to construct the full query using the traceID.
     // Note:  toParamSet(s: string) returns CommonSkParamSet, not ParamSet. Hence the cast.
-    const updatedParamValues = ParamSet(
-      toParamSet(this.fromParamsQuery!.current_query)
-    );
-    const traceIDAsQuery: ParamSet = paramsToParamSet(
-      fromKey(this._state.selected.name)
-    );
+    const updatedParamValues = ParamSet(toParamSet(this.fromParamsQuery!.current_query));
+    const traceIDAsQuery: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
 
     // Merge the two ParamSets.
-    const newQuery: ParamSet = Object.assign(
-      traceIDAsQuery,
-      updatedParamValues
-    );
+    const newQuery: ParamSet = Object.assign(traceIDAsQuery, updatedParamValues);
     this.addFromQueryOrFormula(false, 'query', fromParamSet(newQuery), '');
     this.fromParamsQueryDialog!.close();
   }
@@ -1311,9 +1646,7 @@ export class ExploreSimpleSk extends ElementSk {
     this.fromParamsKey = e.detail.key;
 
     // Convert the traceID into a ParamSet.
-    const keyAsParamSet: ParamSet = paramsToParamSet(
-      fromKey(this._state.selected.name)
-    );
+    const keyAsParamSet: ParamSet = paramsToParamSet(fromKey(this._state.selected.name));
 
     // And remove the Params key that was clicked on.
     keyAsParamSet[this.fromParamsKey] = [];
@@ -1333,10 +1666,8 @@ export class ExploreSimpleSk extends ElementSk {
     this.fromParamsQueryDialog?.showModal();
   }
 
-  private queryChangeDelayedHandler(
-    e: CustomEvent<QuerySkQueryChangeEventDetail>
-  ) {
-    this.queryCount!.current_query = e.detail.q;
+  private queryChangeDelayedHandler(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
+    this.queryCount!.current_query = this.applyDefaultsToQuery(e.detail.q);
   }
 
   /** Reflect the current query to the query summary. */
@@ -1352,23 +1683,36 @@ export class ExploreSimpleSk extends ElementSk {
     }
   }
 
-  private pivotTableSortChange(
-    e: CustomEvent<PivotTableSkChangeEventDetail>
-  ): void {
+  private pivotTableSortChange(e: CustomEvent<PivotTableSkChangeEventDetail>): void {
     this._state.sort = e.detail;
     this._stateHasChanged();
   }
 
   /** Reflect the focused trace in the paramset. */
-  private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    this.paramset!.highlight = fromKey(e.detail.name);
-    this.commitTime!.textContent = new Date(
-      this._dataframe.header![e.detail.x]!.timestamp * 1000
-    ).toLocaleString();
-    const formattedTrace = this.traceFormatter!.formatTrace(
-      fromKey(e.detail.name)
-    );
+  private plotTraceFocused({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>) {
+    const header = this.dfRepo.value?.dataframe.header;
+    const selected = header![(this.selectedRange?.begin || 0) + detail.x]!;
+    this.paramset!.highlight = fromKey(detail.name);
+    this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
+    const formattedTrace = this.traceFormatter!.formatTrace(fromKey(detail.name));
     this.traceDetails!.textContent = formattedTrace;
+    this.traceDetailsCopy!.onclick = () => {
+      navigator.clipboard.writeText(formattedTrace);
+    };
+    this.traceDetailsCopy!.style.display = 'block';
+
+    if (this._state.enable_chart_tooltip && !this.tooltipSelected) {
+      // if the commit details for a point is already loaded then
+      // show those commit details on hover
+      let c = null;
+      const commitPos = selected.offset;
+      const key = JSON.stringify([detail.name, commitPos]);
+      if (this.pointToCommitDetailMap.has(key)) {
+        c = this.pointToCommitDetailMap.get(key) || null;
+      }
+
+      this.enableTooltip(detail, c, false, false);
+    }
   }
 
   /** User has zoomed in on the graph. */
@@ -1389,21 +1733,217 @@ export class ExploreSimpleSk extends ElementSk {
     return tmp ? tmp[0] : '';
   }
 
+  private selectedRange?: range;
+
+  /**
+   * React to the summary_selected event.
+   * @param e Event object.
+   */
+  summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+  }
+
+  private extendRange(range: range) {
+    const dfRepo = this.dfRepo.value;
+    const header = dfRepo?.dataframe?.header;
+    if (!dfRepo || !header || dfRepo.loading) {
+      return;
+    }
+
+    if (range.begin < header[0]!.offset) {
+      dfRepo.extendRange(-monthInSec);
+    } else if (range.end > header[header.length - 1]!.offset) {
+      dfRepo.extendRange(monthInSec);
+    }
+  }
+
+  private OnSelectionRange({ type, detail }: CustomEvent<PlotSelectionEventDetails>): void {
+    if (type === 'selection-changed') {
+      this.extendRange(detail.value);
+    }
+
+    if (this.plotSummary.value) {
+      this.plotSummary.value.selectedValueRange = detail.value;
+    }
+  }
+
+  private updateSelectedRangeWithUpdatedDataframe(
+    range: range,
+    domain: 'commit' | 'date',
+    replot = true
+  ) {
+    if (this.googleChartPlot.value) {
+      this.googleChartPlot.value.selectedRange = range;
+    }
+
+    const plot = this.plotSimple.value;
+    const df = this.dfRepo.value?.dataframe;
+    const header = df?.header || [];
+    const selected = findSubDataframe(header!, range, domain);
+    this.selectedRange = selected;
+
+    const subDataframe = generateSubDataframe(df!, selected);
+    const anomalyMap = findAnomalyInRange(this.dfRepo.value?.anomaly || {}, {
+      begin: header[Math.min(selected.begin, header.length - 1)]!.offset,
+      end: header[Math.min(selected.end, header.length - 1)]!.offset,
+    });
+
+    // Update the current dataframe to reflect the selection.
+    this._dataframe.traceset = subDataframe.traceset;
+    this._dataframe.header = subDataframe.header;
+
+    if (!plot) {
+      return;
+    }
+
+    if (replot) {
+      plot.removeAll();
+      this.AddPlotLines(subDataframe.traceset, this.getLabels(subDataframe.header!));
+    }
+
+    if (anomalyMap) {
+      plot.anomalyDataMap = getAnomalyDataMap(
+        subDataframe.traceset,
+        subDataframe.header!,
+        anomalyMap,
+        this.state.highlight_anomalies
+      );
+    }
+  }
+
+  enableTooltip(
+    pointDetails: PlotSimpleSkTraceEventDetails,
+    commit: Commit | null,
+    displayFileLinks: boolean,
+    fixTooltip: boolean
+  ): void {
+    // explore-simple-sk is used multiple times on the multi-graph view. To
+    // make sure that appropriate chart-tooltip-sk element is selected, we
+    // start the search from the explore-simple-sk that the user is hovering/
+    // clicking on
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+
+    const x = (this.selectedRange?.begin || 0) + pointDetails.x;
+    const testName = pointDetails.name;
+    const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
+    const anomaly = this.dfRepo.value?.getAnomaly(testName, commitPosition) || null;
+
+    // TODO(b/370804498): To be refactored into google plot / dataframe.
+    // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
+    // updated in place in triage popup. This may cause the data inconsistency to manipulate
+    // data in several places.
+    // Ideally, dataframe_context should nudge anomaly data.
+    const anomalyDataMap = this.plotSimple.value?.anomalyDataMap;
+    let anomalyDataInPlot: AnomalyData | null = null;
+    if (anomalyDataMap) {
+      const traceAnomalies = anomalyDataMap[testName];
+      if (traceAnomalies) {
+        for (let i = 0; i < traceAnomalies.length; i++) {
+          if (pointDetails.x === traceAnomalies[i].x) {
+            anomalyDataInPlot = traceAnomalies[i];
+            break;
+          }
+        }
+      }
+    }
+    // -- to be refactored. see above--
+
+    // Map an anomaly ID to a list of Nudge Entries.
+    // TODO(b/375678060): Reflect anomaly coordinate changes unto summary bar.
+    const nudgeList: NudgeEntry[] = [];
+    if (anomaly) {
+      // This is only to be backward compatible with anomaly data in simple-plot.
+      const anomalyData = this.plotSimple.value
+        ? anomalyDataInPlot
+        : {
+            anomaly: anomaly,
+            x: commitPosition,
+            y: pointDetails.y,
+            highlight: false,
+          };
+
+      const headerLength = this.dfRepo.value!.dataframe.header!.length;
+      for (let i = -NUDGE_RANGE; i <= NUDGE_RANGE; i++) {
+        if (x + i <= 0 || x + i >= headerLength) {
+          continue;
+        }
+        const start_revision = this.dfRepo.value!.dataframe.header![x + i - 1]!.offset + 1;
+        const end_revision = this.dfRepo.value!.dataframe.header![x + i]!.offset;
+        const y = this.dfRepo.value!.dataframe.traceset![testName][x + i];
+        nudgeList.push({
+          display_index: i,
+          anomaly_data: anomalyData,
+          selected: i === 0,
+          start_revision: start_revision,
+          end_revision: end_revision,
+          x: pointDetails.x + i,
+          y: y,
+        });
+      }
+    }
+
+    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
+
+    const closeBtnAction = fixTooltip
+      ? () => {
+          this.tooltipSelected = false;
+          tooltipElem!.moveTo(null);
+        }
+      : () => {};
+
+    tooltipElem!.load(
+      this.traceFormatter!.formatTrace(fromKey(testName)),
+      testName,
+      pointDetails.y,
+      commitPosition,
+      anomaly,
+      nudgeList,
+      commit,
+      displayFileLinks,
+      fixTooltip,
+      closeBtnAction
+    );
+  }
+
+  // if the user's cursor leaves the graph, close the tooltip
+  // unless the tooltip is 'fixed', meaning the user has anchored it.
+  mouseLeave(): void {
+    if (this.tooltipSelected) {
+      return;
+    }
+
+    this.disableTooltip();
+  }
+
+  /** Hides the tooltip. Generally called when mouse moves out of the graph */
+  disableTooltip(): void {
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    tooltipElem!.moveTo(null);
+    this._render();
+  }
+
   /** Highlight a trace when it is clicked on. */
-  traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
-    this.plot!.highlight = [e.detail.name];
-    this.plot!.xbar = e.detail.x;
+  traceSelected({ detail }: CustomEvent<PlotSimpleSkTraceEventDetails>): void {
+    this.plotSimple.value!.highlight = [detail.name];
+    this.plotSimple.value!.xbar = detail.x;
     this.commits!.details = [];
 
-    const x = e.detail.x;
+    // If traces are rendered and summary bar is enabled, show
+    // summary for the trace clicked on the graph.
+    if (this.summaryOptionsField.value) {
+      const formattedTraceId = this.traceFormatter!.formatTrace(fromKey(detail.name));
+      this.summaryOptionsField.value!.setValue(formattedTraceId);
+    }
+
+    const selected = this.selectedRange?.begin || 0;
+    const x = selected + detail.x;
 
     if (x < 0) {
       return;
     }
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commit: CommitNumber = this._dataframe.header![x]
-      ?.offset as CommitNumber;
+    const commit: CommitNumber = this.dfRepo.value?.dataframe.header![x]?.offset as CommitNumber;
     if (!commit) {
       return;
     }
@@ -1419,19 +1959,20 @@ export class ExploreSimpleSk extends ElementSk {
     // commit is returned.
 
     // First skip back to the next point with data.
-    const trace = this._dataframe.traceset[e.detail.name];
+    const trace = this.dfRepo.value?.dataframe.traceset[detail.name] || [];
+    const header = this.dfRepo.value?.header || [];
     let prevCommit: CommitNumber = CommitNumber(-1);
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
-        prevCommit = this._dataframe.header![i]!.offset as CommitNumber;
+        prevCommit = header[i]!.offset as CommitNumber;
         break;
       }
     }
 
     // Populate the commit-range-sk element.
     this.commitRangeSk!.trace = trace;
-    this.commitRangeSk!.commitIndex = e.detail.x;
-    this.commitRangeSk!.header = this._dataframe.header;
+    this.commitRangeSk!.commitIndex = detail.x;
+    this.commitRangeSk!.header = header;
 
     if (prevCommit !== -1) {
       for (let c = commit - 1; c > prevCommit; c--) {
@@ -1441,10 +1982,11 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Find if selected point is an anomaly.
     let selected_anomaly: Anomaly | null = null;
-    if (e.detail.name in this.plot!.anomalyDataMap) {
-      const anomalyData = this.plot!.anomalyDataMap[e.detail.name];
+    // TODO(b/362831653) - Update this to Google Chart once plot-simple-sk is deprecated.
+    if (detail.name in this.plotSimple.value!.anomalyDataMap) {
+      const anomalyData = this.plotSimple.value!.anomalyDataMap[detail.name];
       for (let i = 0; i < anomalyData.length; i++) {
-        if (anomalyData[i].x === e.detail.x) {
+        if (anomalyData[i].x === detail.x) {
           selected_anomaly = anomalyData[i].anomaly;
           break;
         }
@@ -1454,9 +1996,23 @@ export class ExploreSimpleSk extends ElementSk {
     const paramset = ParamSet({});
     this.simpleParamset!.paramsets = [];
 
-    if (validKey(e.detail.name)) {
-      // Convert the trace id into a paramset to display.
-      const params: { [key: string]: string } = fromKey(e.detail.name);
+    // If the trace name is a function key like norm(,a=1,b=2,)
+    // extract the actual trace name ,a=1,b=1, from it to display
+    // the params and values on the paramset table
+    const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
+    const isFuncKey = detail.name.match(funcKeyRegex);
+
+    // Convert the trace id (if valid) into a paramset to display.
+    let tName = '';
+    if (isFuncKey) {
+      const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
+      tName = detail.name.match(keyRegex)![0];
+    } else if (validKey(detail.name)) {
+      tName = detail.name;
+    }
+
+    if (tName !== '') {
+      const params: { [key: string]: string } = fromKey(tName);
       Object.keys(params).forEach((key) => {
         paramset[key] = [params[key]];
       });
@@ -1466,7 +2022,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     this._render();
 
-    this._state.selected.name = e.detail.name;
+    this._state.selected.name = detail.name;
     this._state.selected.commit = commit;
     this._stateHasChanged();
 
@@ -1488,7 +2044,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
-        const traceid = e.detail.name;
+        const traceid = detail.name;
         const parts = [];
         this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!);
         if (
@@ -1528,6 +2084,26 @@ export class ExploreSimpleSk extends ElementSk {
           this.jsonsource!.cid = cid;
           this.jsonsource!.traceid = traceid;
           this.ingestFileLinks!.load(cid, traceid);
+          // Populate the point links element.
+          this.pointLinks!.load(
+            commit,
+            prevCommit,
+            detail.name,
+            window.perf.keys_for_commit_range!
+          );
+        }
+
+        // when the commit details are loaded, add those info to
+        // pointToCommitDetailMap map which can be used to fetch commit
+        // info on hover without making an API call
+        this.pointToCommitDetailMap.set(JSON.stringify([detail.name, cid]), json.commitSlice![0]);
+
+        const tooltipEnabled = this._state.enable_chart_tooltip;
+        const hasValidTooltipPos = detail.xPos !== undefined && detail.yPos !== undefined;
+        if (tooltipEnabled && hasValidTooltipPos) {
+          this.tooltipSelected = true;
+
+          this.enableTooltip(detail, json.commitSlice![0], true, true);
         }
       })
       .catch(errorMessage);
@@ -1539,12 +2115,17 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private clearSelectedState() {
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.highlight = [];
+      plot.xbar = -1;
+    }
+
     // Switch back to the params tab since we are about to hide the details tab.
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.commitsTab!.disabled = true;
     this.logEntry!.textContent = '';
-    this.plot!.highlight = [];
-    this.plot!.xbar = -1;
+
     this._state.selected = defaultPointSelected();
     this._stateHasChanged();
   }
@@ -1574,9 +2155,7 @@ export class ExploreSimpleSk extends ElementSk {
    * Handler for the event when the remove paramset value button is clicked
    * @param e Remove event
    */
-  private paramsetRemoveClick(
-    e: CustomEvent<ParamSetSkRemoveClickEventDetail>
-  ) {
+  private paramsetRemoveClick(e: CustomEvent<ParamSetSkRemoveClickEventDetail>) {
     // Remove the specified value from the query
     this.query?.removeKeyValue(e.detail.key, e.detail.value);
   }
@@ -1585,9 +2164,7 @@ export class ExploreSimpleSk extends ElementSk {
    * Handler for the event when the paramset checkbox is clicked.
    * @param e Checkbox click event
    */
-  private paramsetCheckboxClick(
-    e: CustomEvent<ParamSetSkCheckboxClickEventDetail>
-  ) {
+  private paramsetCheckboxClick(e: CustomEvent<ParamSetSkCheckboxClickEventDetail>) {
     if (!e.detail.selected) {
       // Find the matching traces and remove them from the dataframe's traceset.
       const keys: string[] = [];
@@ -1610,7 +2187,53 @@ export class ExploreSimpleSk extends ElementSk {
           traceSet[key] = this.originalTraceSet[key];
         }
       });
-      this.plot!.addLines(traceSet, []);
+      this.AddPlotLines(traceSet, []);
+    }
+  }
+
+  /**
+   * Adds the plot lines to the plot-simple-sk module.
+   * @param traceSet The traceset input.
+   * @param labels The xAxis labels.
+   */
+  private AddPlotLines(traceSet: { [key: string]: number[] }, labels: tick[]) {
+    this.plotSimple.value?.addLines(traceSet, labels);
+    if (this._state.plotSummary) {
+      this.addPlotSummaryOptions();
+    }
+  }
+
+  /**
+   * Returns the label for the selected plot summary trace.
+   */
+  private getPlotSummaryTraceLabel(): string {
+    if (this.traceKeyForSummary !== '') {
+      return this.traceFormatter!.formatTrace(fromKey(this.traceKeyForSummary));
+    }
+
+    return '';
+  }
+
+  /**
+   * Adds the option list for the plot summary selection.
+   */
+  private addPlotSummaryOptions() {
+    if (!this.dfRepo.value?.dataframe) {
+      return;
+    }
+    const traceIds: string[] = [];
+    Object.keys(this.dfRepo.value.dataframe.traceset!).forEach((traceId) => {
+      // Ignore the zero trace if present.
+      if (traceId !== ZERO_NAME) {
+        const traceName = this.traceFormatter!.formatTrace(fromKey(traceId));
+        this.traceNameIdMap.set(traceName, traceId);
+        traceIds.push(traceName);
+      }
+    });
+
+    if (this.summaryOptionsField.value) {
+      this.summaryOptionsField.value!.options = traceIds;
+      this.summaryOptionsField.value!.label = 'Trace for summary bar';
     }
   }
 
@@ -1621,11 +2244,14 @@ export class ExploreSimpleSk extends ElementSk {
         keys.push(key);
       }
     });
-    // Additively highlight if the ctrl key is pressed.
-    if (e.detail.ctrl) {
-      this.plot!.highlight = this.plot!.highlight.concat(keys);
-    } else {
-      this.plot!.highlight = keys;
+
+    if (this.plotSimple.value) {
+      // Additively highlight if the ctrl key is pressed.
+      if (e.detail.ctrl) {
+        this.plotSimple.value!.highlight = this.plotSimple.value!.highlight.concat(keys);
+      } else {
+        this.plotSimple.value!.highlight = keys;
+      }
     }
     this._render();
   }
@@ -1638,86 +2264,25 @@ export class ExploreSimpleSk extends ElementSk {
    *  but is not yet present in this._dataframe.
    */
   private requestFrameBodyDeltaFromState(): FrameRequest {
-    // Make this optional until we iron out any bugs that surface in production.
-    if (!this._state._incremental) {
-      return this.requestFrameBodyFullFromState();
-    }
-    // If there's nothing loaded in the current dataframe, go ahead and fetch the entire
-    // timestamp range in this._state.begin/end.
-    if (this._dataframe === null || this._dataframe!.header!.length === 0) {
-      return this.requestFrameBodyFullFromState();
-    }
-
-    // If the queries have changed, just fetch a full dataframe rather than try to merge
-    // dataframes with different queries.
-    const existingQueries = fromParamSet(this._dataframe.paramset)
-      .split('&')
-      .sort();
-    const stateQueries = this._state.queries.sort();
-    if (
-      existingQueries.length !== stateQueries.length ||
-      !existingQueries.every((val, i) => stateQueries[i] === val)
-    ) {
-      return this.requestFrameBodyFullFromState();
-    }
-
-    // Now compare the existing dataframe's bounds to the begin and end values in this._state
-    // to determine what the fetchable difference is, if there is any.
-    const existingBounds = timestampBounds(this._dataframe);
-    const newBounds = [this._state.begin, this._state.end];
-
-    if (newBounds[0] < existingBounds[0] && newBounds[1] > existingBounds[1]) {
-      // Zoom out. newBounds completely contains existingBounds.
-      // We'd have to make two separate dataframe fetches for the data missing on either side.
-      // That's more complex than we want to handle yet, so just do a full data fetch instead.
-      return this.requestFrameBodyFullFromState();
-    }
-
-    if (newBounds[0] > existingBounds[1] || newBounds[1] < existingBounds[0]) {
-      // No overlap. newBounds is entirely outside of existingBounds.
-      return this.requestFrameBodyFullFromState();
-    }
-
-    const fetchRange = [0, 0];
-
-    if (newBounds[0] < existingBounds[0]) {
-      // Pan left.
-      fetchRange[0] = Math.min(existingBounds[0], newBounds[0]);
-      fetchRange[1] = Math.max(existingBounds[0], newBounds[0]);
-    } else if (newBounds[1] > existingBounds[1]) {
-      // Pan right.
-      fetchRange[0] = Math.min(existingBounds[1], newBounds[1]);
-      fetchRange[1] = Math.max(existingBounds[1], newBounds[1]);
-    } else {
-      console.error(
-        'unexpected new vs existing bounds condition',
-        existingBounds,
-        newBounds
-      );
-    }
-
-    return {
-      begin: fetchRange[0],
-      end: fetchRange[1],
-      num_commits: this._state.numCommits,
-      request_type: this._state.requestType,
-      formulas: this._state.formulas,
-      queries: this._state.queries,
-      keys: this._state.keys,
-      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      pivot:
-        validatePivotRequest(this._state.pivotRequest) === ''
-          ? this._state.pivotRequest
-          : null,
-      disable_filter_parent_traces: this._state.disable_filter_parent_traces,
-    };
+    return this.requestFrameBodyFullFromState();
   }
 
   /** Create a FrameRequest that will re-create the current state of the page. */
   private requestFrameBodyFullFromState(): FrameRequest {
+    return this.requestFrameBodyFullForRange(this._state.begin, this._state.end);
+  }
+
+  /**
+   * Create a FrameRequest that recreates the current state of the page
+   * for the given range.
+   * @param begin Start time.
+   * @param end End time.
+   * @returns FrameRequest object.
+   */
+  private requestFrameBodyFullForRange(begin: number, end: number): FrameRequest {
     return {
-      begin: this._state.begin,
-      end: this._state.end,
+      begin: begin,
+      end: end,
       num_commits: this._state.numCommits,
       request_type: this._state.requestType,
       formulas: this._state.formulas,
@@ -1725,9 +2290,7 @@ export class ExploreSimpleSk extends ElementSk {
       keys: this._state.keys,
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       pivot:
-        validatePivotRequest(this._state.pivotRequest) === ''
-          ? this._state.pivotRequest
-          : null,
+        validatePivotRequest(this._state.pivotRequest) === '' ? this._state.pivotRequest : null,
       disable_filter_parent_traces: this._state.disable_filter_parent_traces,
     };
   }
@@ -1748,56 +2311,47 @@ export class ExploreSimpleSk extends ElementSk {
     const body = this.requestFrameBodyDeltaFromState();
 
     if (body.begin === body.end) {
-      console.log(
-        'skipped fetching this dataframe because it would be empty anyways'
-      );
+      console.log('skipped fetching this dataframe because it would be empty anyways');
       return;
     }
     this.commitTime!.textContent = '';
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      if (json == null) {
+      if (json === null || json === undefined) {
         errorMessage('Failed to find any matching traces.');
         return;
       }
-      // TODO(seanmccullough): Verify that the following removeAll() call isn't necessary:
-      // this.plot!.removeAll();
-      this.addTraces(json, switchToTab);
-      this._render();
-      if (isValidSelection(this._state.selected)) {
-        const e = selectionToEvent(
-          this._state.selected,
-          this._dataframe.header
-        );
-        // If the range has moved to no longer include the selected commit then
-        // clear the selection.
-        if (e.detail.x === -1) {
-          this.clearSelectedState();
-        } else {
-          this.traceSelected(e);
-        }
-      }
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.addTraces(json, switchToTab);
+          this._render();
+          if (isValidSelection(this._state.selected)) {
+            const e = selectionToEvent(this._state.selected, this._dataframe.header);
+            // If the range has moved to no longer include the selected commit then
+            // clear the selection.
+            if (e.detail.x === -1) {
+              this.clearSelectedState();
+            } else {
+              this.traceSelected(e);
+            }
+          }
+        });
     });
   }
 
-  private zeroChangeHandler(e: MouseEvent) {
-    this._state.showZero = (e.target! as HTMLInputElement).checked;
+  private zeroChangeHandler(target: MdSwitch | null) {
+    this._state.showZero = target!.selected;
     this._stateHasChanged();
     this.zeroChanged();
-  }
-
-  private summaryChangeHandler(e: MouseEvent) {
-    this._state.summary = (e.target! as HTMLInputElement).checked;
-    this._userSpecifiedCustomizationParams.add('summary');
-    this._stateHasChanged();
-    this._render();
   }
 
   private toggleDotsHandler() {
     this._state.dots = !this._state.dots;
     this._stateHasChanged();
-    this.plot!.dots = this._state.dots;
+    if (this.plotSimple.value) {
+      this.plotSimple.value.dots = this._state.dots;
+    }
   }
 
   private zeroChanged() {
@@ -1807,14 +2361,14 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.showZero) {
       const lines: { [key: string]: number[] } = {};
       lines[ZERO_NAME] = Array(this._dataframe.header.length).fill(0);
-      this.plot!.addLines(lines, []);
+      this.AddPlotLines(lines, []);
     } else {
-      this.plot!.deleteLines([ZERO_NAME]);
+      this.plotSimple.value?.deleteLines([ZERO_NAME]);
     }
   }
 
-  private autoRefreshHandler(e: MouseEvent) {
-    this._state.autoRefresh = (e.target! as HTMLInputElement).checked;
+  private autoRefreshHandler(target: MdSwitch | null) {
+    this._state.autoRefresh = target!.selected;
     this._stateHasChanged();
     this.autoRefreshChanged();
   }
@@ -1825,10 +2379,7 @@ export class ExploreSimpleSk extends ElementSk {
         clearInterval(this._refreshId);
       }
     } else {
-      this._refreshId = window.setInterval(
-        () => this.autoRefresh(),
-        REFRESH_TIMEOUT
-      );
+      this._refreshId = window.setInterval(() => this.autoRefresh(), REFRESH_TIMEOUT);
     }
   }
 
@@ -1836,46 +2387,14 @@ export class ExploreSimpleSk extends ElementSk {
     // Update end to be now.
     this._state.end = Math.floor(Date.now() / 1000);
     const body = this.requestFrameBodyFullFromState();
-    const switchToTab =
-      body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
+    const switchToTab = body.formulas!.length > 0 || body.queries!.length > 0 || body.keys !== '';
     this.requestFrame(body, (json) => {
-      this.plot!.removeAll();
-      this.addTraces(json, switchToTab);
-    });
-  }
-
-  private enableIncrementalDataFrameFetchHandler(e: MouseEvent) {
-    this._state._incremental = (e.target! as HTMLInputElement).checked;
-    this._stateHasChanged();
-  }
-
-  private enableCommitLabel(e: MouseEvent) {
-    const isCommitLabelEnabled = (e.target! as HTMLInputElement).checked;
-    if (isCommitLabelEnabled) {
-      this._state.labelMode = LabelMode.CommitPosition;
-    } else {
-      this._state.labelMode = LabelMode.Date;
-    }
-    this.plot!.removeAll();
-    this.plot!.addLines(
-      this._dataframe.traceset,
-      this.getLabels(this._dataframe)
-    );
-    this._stateHasChanged();
-  }
-
-  /**
-   * Wrapper for reShortcut and addTraces. It takes in a list of trace keys, creates
-   * a shortcut, and renders the traces into the display. If there's already traces
-   * being displayed, the graph will conain the union of the existing traces and the
-   * traces from keys.
-   *
-   * @param {string[]} keys - The list of keys to display in the frame.
-   */
-  public async addTracesFromList(keys: string[]) {
-    await this.reShortCut(keys);
-    await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
-      this.addTraces(json, false);
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.plotSimple.value?.removeAll();
+          this.addTraces(json, switchToTab);
+        });
     });
   }
 
@@ -1896,21 +2415,14 @@ export class ExploreSimpleSk extends ElementSk {
    * @param {Boolean} tab - If true then switch to the Params tab.
    */
   private addTraces(json: FrameResponse, tab: boolean) {
-    // If this is data returned from a panning-triggered dataframe fetch, then
-    // we want to try to preserve the existing zoom *size* so the zoomed data range
-    // only pans left or right, without re-sizing the zoomed range.
-    const previousZoom = this.plot!.zoom;
-
     const dataframe = json.dataframe!;
-    if (
-      dataframe.traceset === null ||
-      Object.keys(dataframe.traceset).length === 0
-    ) {
+    if (dataframe.traceset === null || Object.keys(dataframe.traceset).length === 0) {
       this.displayMode = 'display_query_only';
       this._render();
       return;
     }
 
+    this.tracesRendered = true;
     this.displayMode = json.display_mode;
     this._render();
 
@@ -1927,67 +2439,17 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Add in the 0-trace.
     if (this._state.showZero) {
-      dataframe.traceset[ZERO_NAME] = Trace(
-        Array(dataframe.header!.length).fill(0)
-      );
+      dataframe.traceset[ZERO_NAME] = Trace(Array(dataframe.header!.length).fill(0));
     }
 
-    const exsitingBounds = timestampBounds(this._dataframe);
-    const newBounds = timestampBounds(dataframe);
+    const mergedDataframe = dataframe;
+    this.traceKeyForSummary = '';
 
-    let mergedDataframe = dataframe;
-    if (this._dataframe !== null && this._state._incremental) {
-      mergedDataframe = join(this._dataframe, dataframe);
-    }
-
-    // Note: this.plot.removeAll() was also getting called by rateChangeImpl(), immediately
-    // before it called this method. Why does it do this twice? Is it a bug?
-    this.plot!.removeAll();
-    const labels = this.getLabels(mergedDataframe);
-    // TODO(seanmccullough): verify the order of addLines and setting the zoom on this.plot.
-    // Turns out that with real-life dataframe sizes, this "empty the plot and add all the
-    // data again" generates a lot of visual noise.  For the case of zoomed plots, this
-    // is really noticeable. It first renders the entire merged dataframe, flashes all those
-    // series squished into the main plot, then zooms it back in to just the previously-set
-    // zoom window.  I'm sure this is also quite inneficient compared to just having
-    // the plot render only the zoomed portion on the first try here.
-    this.plot!.addLines(mergedDataframe.traceset, labels);
     this.originalTraceSet = deepCopy(mergedDataframe.traceset);
 
-    // If there was a previously-selected zoom window, re-apply it to the new data, adjusted
-    // for panning.
-    if (this._state._incremental && previousZoom !== null) {
-      if (
-        exsitingBounds[0] > newBounds[0] &&
-        exsitingBounds[1] >= newBounds[1]
-      ) {
-        // Pan left: Just re-use previousZoom, since it's indexed starting from 0 on the
-        // left and should be the same when you pan that direction.
-        this.plot!.zoom = previousZoom;
-      } else if (
-        exsitingBounds[1] < newBounds[1] &&
-        exsitingBounds[0] <= newBounds[0]
-      ) {
-        // Pan right. Adjust the start and end zoom bounds because the size of dataframe
-        // into which we are zooming has changed, and we'll need to push the zoom window
-        // indexes back out to the right edge of the newly merged dataframe.
-        this.plot!.zoom = [
-          this.plot!.zoom![1] - (previousZoom![1] - previousZoom![0]),
-          this.plot!.zoom![1],
-        ];
-      }
-    }
-
-    // TODO(seanmccullough): merge logic for anomalymap - without merging, the incremental
-    // fetch might invalidate or erase already loaded data from whatever is in anomalymap.
-    if (json.anomalymap !== null) {
-      const anomalyDataMap = getAnomalyDataMap(
-        mergedDataframe.traceset,
-        mergedDataframe.header!,
-        json.anomalymap
-      );
-      this.plot!.anomalyDataMap = anomalyDataMap;
-    }
+    const header = dataframe.header;
+    const selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+    this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
 
     // Normalize bands to be just offsets.
     const bands: number[] = [];
@@ -1996,7 +2458,11 @@ export class ExploreSimpleSk extends ElementSk {
         bands.push(i);
       }
     });
-    this.plot!.bands = bands;
+
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.bands = bands;
+    }
 
     // Populate the xbar if present.
     if (this._state.xbaroffset !== -1) {
@@ -2007,13 +2473,17 @@ export class ExploreSimpleSk extends ElementSk {
           xbar = i;
         }
       });
-      if (xbar !== -1) {
-        this.plot!.xbar = xbar;
-      } else {
-        this.plot!.xbar = -1;
+
+      if (plot) {
+        plot.xbar = xbar;
       }
     } else {
-      this.plot!.xbar = -1;
+      if (plot) {
+        plot.xbar = -1;
+      }
+    }
+    if (this.state.use_titles) {
+      this.updateTitle();
     }
 
     // Populate the paramset element.
@@ -2021,8 +2491,16 @@ export class ExploreSimpleSk extends ElementSk {
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
-    this._dataframe = mergedDataframe;
     this._renderedTraces();
+    if (this._state.plotSummary) {
+      const header = dataframe.header!;
+      this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
+
+      this.dfRepo.value?.extendRange(-3 * monthInSec).then(() => {
+        // Already plotted, just need to update the data.
+        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
+      });
+    }
   }
 
   /**
@@ -2046,12 +2524,12 @@ export class ExploreSimpleSk extends ElementSk {
    * @param dataframe The dataframe to use for generating labels
    * @returns a list of labels
    */
-  private getLabels(dataframe: DataFrame): tick[] {
+  private getLabels(columnHeader: (ColumnHeader | null)[]): tick[] {
     let labels: tick[] = [];
     const dates: Date[] = [];
     switch (this.state.labelMode) {
       case LabelMode.CommitPosition:
-        dataframe.header!.forEach((header, i) => {
+        columnHeader.forEach((header, i) => {
           labels.push({
             x: i,
             text: header!.offset.toString(),
@@ -2060,7 +2538,7 @@ export class ExploreSimpleSk extends ElementSk {
         labels = fixTicksLength(labels);
         break;
       case LabelMode.Date:
-        dataframe.header!.forEach((header) => {
+        columnHeader.forEach((header) => {
           dates.push(new Date(header!.timestamp * 1000));
         });
         labels = ticks(dates);
@@ -2081,12 +2559,7 @@ export class ExploreSimpleSk extends ElementSk {
    *
    * @param plotType - The type of traces being added.
    */
-  private addFromQueryOrFormula(
-    replace: boolean,
-    plotType: addPlotType,
-    q: string,
-    f: string
-  ) {
+  addFromQueryOrFormula(replace: boolean, plotType: addPlotType, q: string, f: string) {
     this.queryDialog!.close();
     this._dialogOn = false;
 
@@ -2144,8 +2617,24 @@ export class ExploreSimpleSk extends ElementSk {
     this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
-      this.addTraces(json, true);
+      this.dfRepo.value
+        ?.resetWithDataframeAndRequest(json.dataframe!, json.anomalymap, body)
+        .then(() => {
+          this.addTraces(json, true);
+        });
     });
+  }
+
+  // take a query string, and update the parameters with default values if needed
+  private applyDefaultsToQuery(queryString: string): string {
+    const paramSet = toParamSet(queryString);
+    for (const defaultParamKey in this._defaults?.default_param_selections) {
+      if (!(defaultParamKey in paramSet)) {
+        paramSet[defaultParamKey] = this._defaults!.default_param_selections![defaultParamKey]!;
+      }
+    }
+
+    return fromParamSet(paramSet);
   }
 
   // applyQueryDefaultsIfMissing updates the fields in the state object to
@@ -2157,27 +2646,50 @@ export class ExploreSimpleSk extends ElementSk {
     // Check the current query to see if the default params have been specified.
     // If not, add them with the default value in the instance config.
     this._state.queries.forEach((query) => {
-      const paramSet = toParamSet(query);
-      for (const defaultParamKey in this.defaults?.default_param_selections) {
-        if (!(defaultParamKey in paramSet)) {
-          paramSet[defaultParamKey] =
-            this.defaults!.default_param_selections![defaultParamKey]!;
-        }
-      }
-      updatedQueries.push(fromParamSet(paramSet));
+      updatedQueries.push(this.applyDefaultsToQuery(query));
     });
 
     this._state.queries = updatedQueries;
 
     // Check if the user has specified the params provided in the default url config.
     // If not, add them to the state object
-    for (const urlKey in this.defaults?.default_url_values) {
+    for (const urlKey in this._defaults?.default_url_values) {
+      const stringToBool = function (str: string): boolean {
+        return str.toLowerCase() === 'true';
+      };
       if (this._userSpecifiedCustomizationParams.has(urlKey) === false) {
-        if (urlKey === 'summary') {
-          this._state.summary = Boolean(
-            this.defaults!.default_url_values![urlKey]
-          );
-          break;
+        const paramValue = stringToBool(this._defaults!.default_url_values![urlKey]);
+        switch (urlKey) {
+          case 'summary':
+            this._state.summary = paramValue;
+            break;
+          case 'plotSummary':
+            this._state.plotSummary = paramValue;
+            break;
+          case 'disableMaterial':
+            this._state.disableMaterial = paramValue;
+            break;
+          case 'showZero':
+            this._state.showZero = paramValue;
+            break;
+          case 'useTestPicker':
+            this.useTestPicker = paramValue;
+            break;
+          case 'use_test_picker_query':
+            this._state.use_test_picker_query = paramValue;
+            this.openQueryByDefault = !paramValue;
+            break;
+          case 'enable_chart_tooltip':
+            this._state.enable_chart_tooltip = paramValue;
+            break;
+          case 'use_titles':
+            this._state.use_titles = paramValue;
+            break;
+          case 'show_google_plot':
+            this._state.show_google_plot = paramValue;
+            break;
+          default:
+            break;
         }
       }
     }
@@ -2194,13 +2706,30 @@ export class ExploreSimpleSk extends ElementSk {
     this._state.formulas = [];
     this._state.queries = [];
     this._state.keys = '';
-    this.plot!.removeAll();
+    this.plotSimple.value?.removeAll();
     this._dataframe.header = [];
     this._dataframe.traceset = TraceSet({});
     this.paramset!.paramsets = [];
     this.commitTime!.textContent = '';
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this.displayMode = 'display_query_only';
+    this.tracesRendered = false;
+    this.graphTitle!.set(null, 0);
+    this.traceDetailsCopy!.style.display = 'none';
+    this.traceDetails!.textContent = '';
+    this.tooltipSelected = false;
+    this.disableTooltip();
+    this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
+    // Remove the explore object from the list in `explore-multi-sk.ts`.
+    const detail = { elem: this };
+    this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
+
+    // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
+    // the removeAll button from "remove all" or "X" will call invoke removeAll()
+    // with skipHistory = false, so state should be updated.
+    this._state.autoRefresh = false;
+    this.autoRefreshChanged();
+
     this._render();
     if (!skipHistory) {
       this.clearSelectedState();
@@ -2275,19 +2804,18 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     // Also apply the func to any existing formulas.
-    updatedFormulas = updatedFormulas.concat(
-      this._state.formulas.map((f) => `${funcName}(${f})`)
-    );
+    updatedFormulas = updatedFormulas.concat(this._state.formulas.map((f) => `${funcName}(${f})`));
 
     this.removeAll(true);
     this._state.formulas = updatedFormulas;
     this._stateHasChanged();
+
     await this.requestFrame(this.requestFrameBodyFullFromState(), (json) => {
       this.addTraces(json, false);
     });
   }
 
-  public createGraphConfigs(traceSet: TraceSet): GraphConfig[] {
+  public createGraphConfigs(traceSet: TraceSet, attribute?: string): GraphConfig[] {
     const graphConfigs = [] as GraphConfig[];
     Object.keys(traceSet).forEach((key) => {
       const conf: GraphConfig = {
@@ -2296,7 +2824,7 @@ export class ExploreSimpleSk extends ElementSk {
         queries: [],
       };
       if (key[0] === ',') {
-        conf.queries = [new URLSearchParams(fromKey(key)).toString()];
+        conf.queries = [new URLSearchParams(fromKey(key, attribute)).toString()];
       } else {
         if (key.startsWith('special')) {
           return;
@@ -2309,10 +2837,21 @@ export class ExploreSimpleSk extends ElementSk {
     return graphConfigs;
   }
 
-  public async viewMultiGraph(): Promise<void> {
-    const pageSize = 11;
+  public toggleGoogleChart() {
+    this.state.show_google_plot = !this.state.show_google_plot;
+    this._render();
+  }
+
+  // TODO(b/377772220): When splitting a chart with multiple traces,
+  // this function will perform the split operation on every trace.
+  // If a trace is selected, the chart should only split on that trace.
+  // If no trace is selected, then default to splitting on every trace.
+  public async splitByAttribute({
+    detail,
+  }: CustomEvent<SplitChartSelectionEventDetails>): Promise<void> {
     const graphConfigs: GraphConfig[] = this.createGraphConfigs(
-      this._dataframe.traceset
+      this._dataframe.traceset,
+      detail.attribute
     );
     const newShortcut = await updateShortcut(graphConfigs);
 
@@ -2322,14 +2861,39 @@ export class ExploreSimpleSk extends ElementSk {
 
     window.open(
       `/m/?begin=${this._state.begin}&end=${this._state.end}` +
-        `&pageSize=${pageSize}&shortcut=${newShortcut}` +
-        `&totalGraphs=${graphConfigs.length}`,
+        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
+        `&totalGraphs=${graphConfigs.length}` +
+        (this.state.show_google_plot ? `&show_google_plot=true` : ``),
       '_self'
     );
   }
 
+  public async viewMultiGraph(): Promise<void> {
+    const graphConfigs: GraphConfig[] = this.createGraphConfigs(this._dataframe.traceset);
+    const newShortcut = await updateShortcut(graphConfigs);
+
+    if (newShortcut === '') {
+      return;
+    }
+
+    window.open(
+      `/m/?begin=${this._state.begin}&end=${this._state.end}` +
+        `&pageSize=${chartsPerPage}&shortcut=${newShortcut}` +
+        `&totalGraphs=${graphConfigs.length}` +
+        (this.state.show_google_plot ? `&show_google_plot=true` : ``),
+      '_self'
+    );
+  }
+
+  private queryHighlighted() {
+    const detail = {
+      key: this.plotSimple.value!.highlight[0],
+    };
+    this.dispatchEvent(new CustomEvent('populate-query', { detail: detail, bubbles: true }));
+  }
+
   private removeHighlighted() {
-    const ids = this.plot!.highlight;
+    const ids = this.plotSimple.value!.highlight;
     this.removeKeys(ids, true);
   }
 
@@ -2356,8 +2920,12 @@ export class ExploreSimpleSk extends ElementSk {
         delete this._dataframe.traceset[key];
       }
     });
-    this.plot!.deleteLines(keysToRemove);
-    this.plot!.highlight = [];
+
+    const plot = this.plotSimple.value;
+    if (plot) {
+      plot.deleteLines(keysToRemove);
+      plot.highlight = [];
+    }
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
@@ -2368,7 +2936,8 @@ export class ExploreSimpleSk extends ElementSk {
   }
 
   private highlightedOnly() {
-    const ids = this.plot!.highlight;
+    const plot = this.plotSimple.value!;
+    const ids = plot.highlight;
     const toremove: string[] = [];
     const toShortcut: string[] = [];
 
@@ -2393,9 +2962,7 @@ export class ExploreSimpleSk extends ElementSk {
     });
 
     if (toremove.length === totalNonSpecialKeys) {
-      errorMessage(
-        "At least one trace much be selected for 'Highlighted Only' to work."
-      );
+      errorMessage("At least one trace much be selected for 'Highlighted Only' to work.");
       return;
     }
 
@@ -2404,13 +2971,58 @@ export class ExploreSimpleSk extends ElementSk {
       delete this._dataframe.traceset[key];
     });
 
-    this.plot!.deleteLines(toremove);
-    this.plot!.highlight = [];
+    plot.deleteLines(toremove);
+    plot.highlight = [];
     if (!this.hasData()) {
       this.displayMode = 'display_query_only';
       this._render();
     }
     this.reShortCut(toShortcut);
+  }
+
+  /**
+   * If there are tracesets in the Dataframe and IncludeParams config has been specified, we
+   * update the title using only the common parameters of all present traces.
+   *
+   * If there are less than 3 common parameters, we use the default title.
+   */
+  private updateTitle() {
+    const traceset = this.dfRepo.value?.dataframe.traceset;
+    if (traceset === null || traceset === undefined) {
+      return;
+    }
+
+    // If the params are not included in the json config key "include_params",
+    // we pull the paramset from the dataframe response.
+    // https://skia.googlesource.com/buildbot/+/refs/heads/main/perf/configs/v8-perf.json
+    let params = this._defaults?.include_params;
+    if (params === null || params === undefined) {
+      const paramset = this.dfRepo.value?.dataframe.paramset;
+      if (paramset === null || paramset === undefined) {
+        return;
+      }
+      params = Object.keys(paramset).sort();
+    }
+    const numTraces = Object.keys(traceset).length;
+    const titleEntries = new Map();
+
+    // For each param, we found out the unique values in each trace. If there's only 1 unique value,
+    // that means that they all share a value in common and we can add this to the title.
+    params!.forEach((param) => {
+      const uniqueValues = new Set(Object.keys(traceset).map((traceId) => fromKey(traceId)[param]));
+      if (uniqueValues.size === 1) {
+        const value = uniqueValues.values().next().value;
+        if (value) {
+          titleEntries.set(param, value);
+        }
+      }
+    });
+
+    if (titleEntries.size >= 3) {
+      this.graphTitle!.set(titleEntries, numTraces);
+    } else {
+      this.graphTitle!.set(new Map(), numTraces);
+    }
   }
 
   /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
@@ -2455,7 +3067,6 @@ export class ExploreSimpleSk extends ElementSk {
    * of the response once it's available.
    */
   private async requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
-    body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (this._requestId !== '') {
       errorMessage('There is a pending query already running.');
       return;
@@ -2464,29 +3075,34 @@ export class ExploreSimpleSk extends ElementSk {
     this._requestId = 'About to make request';
     this.spinning = true;
     try {
-      const finishedProg = await startRequest(
-        '/_/frame/start',
-        body,
-        200,
-        this.spinner!,
-        (prog: progress.SerializedProgress) => {
-          this.percent!.textContent = messagesToPreString(prog.messages);
-        }
-      );
-      if (finishedProg.status !== 'Finished') {
-        throw new Error(messagesToErrorString(finishedProg.messages));
-      }
-      const msg = messageByName(finishedProg.messages, 'Message');
-      if (msg) {
-        errorMessage(msg);
-      }
-      cb(finishedProg.results as FrameResponse);
+      await this.sendFrameRequest(body, cb);
     } catch (msg) {
       this.catch(msg);
     } finally {
       this.spinning = false;
       this._requestId = '';
     }
+  }
+
+  private async sendFrameRequest(body: FrameRequest, cb: RequestFrameCallback) {
+    body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const finishedProg = await startRequest(
+      '/_/frame/start',
+      body,
+      200,
+      this.spinner!,
+      (prog: progress.SerializedProgress) => {
+        this.percent!.textContent = messagesToPreString(prog.messages);
+      }
+    );
+    if (finishedProg.status !== 'Finished') {
+      throw new Error(messagesToErrorString(finishedProg.messages));
+    }
+    const msg = messageByName(finishedProg.messages, 'Message');
+    if (msg) {
+      errorMessage(msg);
+    }
+    cb(finishedProg.results as FrameResponse);
   }
 
   // Download all the displayed data as a CSV file.
@@ -2522,18 +3138,20 @@ export class ExploreSimpleSk extends ElementSk {
     };
 
     this._render();
-    this.plot!.dots = this._state.dots;
+
+    if (this.plotSimple.value) {
+      this.plotSimple.value!.dots = this._state.dots;
+    }
     // If there is at least one query, the use the last one to repopulate the
     // query-sk dialog.
     const numQueries = this._state.queries.length;
     if (numQueries >= 1) {
       this.query!.paramset = toParamSet(this._state.queries[numQueries - 1]);
       this.query!.current_query = this._state.queries[numQueries - 1];
-      this.summary!.paramsets = [
-        toParamSet(this._state.queries[numQueries - 1]),
-      ];
+      this.summary!.paramsets = [toParamSet(this._state.queries[numQueries - 1])];
     }
 
+    this.applyQueryDefaultsIfMissing();
     if (
       numQueries === 0 &&
       this._state.keys === '' &&
@@ -2542,6 +3160,7 @@ export class ExploreSimpleSk extends ElementSk {
     ) {
       this.openQuery();
     }
+
     this.zeroChanged();
     this.autoRefreshChanged();
     this.rangeChangeImpl();
@@ -2578,6 +3197,10 @@ export class ExploreSimpleSk extends ElementSk {
 
   getTraceset(): { [key: string]: number[] } {
     return this._dataframe.traceset;
+  }
+
+  set defaults(val: QueryConfig | null) {
+    this._defaults = val;
   }
 }
 

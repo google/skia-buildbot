@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "mocks",
+    srcs = ["RedisWrapper.go"],
+    importpath = "go.skia.org/infra/perf/go/redis/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//perf/go/config",
+        "@com_github_stretchr_testify//mock",
+        "@com_google_cloud_go_redis//apiv1/redispb",
+    ],
+)

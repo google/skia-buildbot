@@ -4,6 +4,7 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "backends",
     srcs = [
+        "bigquery.go",
         "buildbucket.go",
         "crrev.go",
         "doc.go",
@@ -23,10 +24,12 @@ go_library(
         "//go/issuetracker/v1:issuetracker",
         "//go/secret",
         "//go/skerr",
+        "//go/sklog",
         "//go/swarming/v2:swarming",
         "//pinpoint/go/bot_configs",
         "//pinpoint/proto/v1:proto",
         "@com_github_google_uuid//:uuid",
+        "@com_google_cloud_go_bigquery//:bigquery",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//common/retry",
         "@org_chromium_go_luci//grpc/prpc",
@@ -42,6 +45,7 @@ go_library(
 go_test(
     name = "backends_test",
     srcs = [
+        "bigquery_test.go",
         "buildbucket_test.go",
         "crrev_test.go",
         "issuetracker_test.go",
@@ -53,7 +57,7 @@ go_test(
         "//go/mockhttpclient",
         "//go/skerr",
         "//go/swarming/v2/mocks",
-        "//pinpoint/go/midpoint",
+        "//pinpoint/go/common",
         "//pinpoint/proto/v1:proto",
         "@com_github_golang_mock//gomock",
         "@com_github_stretchr_testify//assert",

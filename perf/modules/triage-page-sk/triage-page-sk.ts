@@ -7,7 +7,7 @@
  * TODO(jcgregorio) Needs working demo page and tests.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { equals, deepCopy } from '../../../infra-sk/modules/object';
 import { fromObject } from '../../../infra-sk/modules/query';
@@ -42,10 +42,7 @@ import {
 } from '../cluster-summary2-sk/cluster-summary2-sk';
 import { DayRangeSkChangeDetail } from '../day-range-sk/day-range-sk';
 
-function _full_summary(
-  frame: FrameResponse,
-  summary: ClusterSummary
-): FullSummary {
+function _full_summary(frame: FrameResponse, summary: ClusterSummary): FullSummary {
   return {
     frame,
     summary,
@@ -163,9 +160,7 @@ export class TriagePageSk extends ElementSk {
           end=${ele.state.end}></day-range-sk>
       </details>
     </header>
-    <spinner-sk
-      ?active=${ele.triageInProgress ||
-      ele.refreshRangeInProgress}></spinner-sk>
+    <spinner-sk ?active=${ele.triageInProgress || ele.refreshRangeInProgress}></spinner-sk>
 
     <dialog>
       <cluster-summary2-sk
@@ -204,27 +199,19 @@ export class TriagePageSk extends ElementSk {
       `
     );
 
-  private static columns = (
-    ele: TriagePageSk,
-    row: RegressionRow,
-    rowIndex: number
-  ) =>
+  private static columns = (ele: TriagePageSk, row: RegressionRow, rowIndex: number) =>
     row.columns!.map((col, colIndex) => {
       const ret = [];
 
       if (ele.stepDownAt(colIndex)) {
         ret.push(html`
-          <td class="cluster">
-            ${TriagePageSk.lowCell(ele, rowIndex, col!, colIndex)}
-          </td>
+          <td class="cluster">${TriagePageSk.lowCell(ele, rowIndex, col!, colIndex)}</td>
         `);
       }
 
       if (ele.stepUpAt(colIndex)) {
         ret.push(html`
-          <td class="cluster">
-            ${TriagePageSk.highCell(ele, rowIndex, col!, colIndex)}
-          </td>
+          <td class="cluster">${TriagePageSk.highCell(ele, rowIndex, col!, colIndex)}</td>
         `);
       }
 
@@ -252,9 +239,7 @@ export class TriagePageSk extends ElementSk {
     return html`
       <a
         title="No clusters found."
-        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-          colIndex
-        )}">
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}">
         ∅
       </a>
     `;
@@ -278,9 +263,7 @@ export class TriagePageSk extends ElementSk {
     return html`
       <a
         title="No clusters found."
-        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
-          colIndex
-        )}">
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}">
         ∅
       </a>
     `;
@@ -321,10 +304,7 @@ export class TriagePageSk extends ElementSk {
   private static allFilters = (ele: TriagePageSk) =>
     ele.allFilterOptions.map(
       (o) => html`
-        <option
-          ?selected=${ele.state.alert_filter === o.value}
-          value=${o.value}
-          title=${o.title}>
+        <option ?selected=${ele.state.alert_filter === o.value} value=${o.value} title=${o.title}>
           ${o.display}
         </option>
       `
@@ -468,10 +448,7 @@ export class TriagePageSk extends ElementSk {
       return;
     }
     if (
-      equals(
-        this.lastState! as unknown as HintableObject,
-        this.state as unknown as HintableObject
-      )
+      equals(this.lastState! as unknown as HintableObject, this.state as unknown as HintableObject)
     ) {
       return;
     }

@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "build",
+    srcs = [
+        "build_chrome.go",
+        "build_client.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/pinpoint/go/clients/build",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth",
+        "//go/httputils",
+        "//go/skerr",
+        "//pinpoint/go/backends",
+        "//pinpoint/go/bot_configs",
+        "//pinpoint/go/workflows",
+        "@com_github_google_uuid//:uuid",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_golang_google_protobuf//types/known/structpb",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_test(
+    name = "build_test",
+    srcs = [
+        "build_chrome_test.go",
+        "build_client_test.go",
+    ],
+    embed = [":build"],
+    deps = [
+        "//go/skerr",
+        "//go/testutils",
+        "//pinpoint/go/backends/mocks",
+        "//pinpoint/go/common",
+        "//pinpoint/go/workflows",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//buildbucket/proto",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+    ],
+)

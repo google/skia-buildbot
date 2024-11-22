@@ -8,7 +8,7 @@
  * @attr {string} swarming - URL of the Swarming server.
  * @attr {string} taskID - Unique ID of the task to display.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';

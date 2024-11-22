@@ -17,7 +17,7 @@ func TestFilesCorrectlyEmbedded(t *testing.T) {
 }
 
 func TestChromeBotSkoloPassword(t *testing.T) {
-	password, err := getChromeBotSkoloPassword(instance_types_testing.NewBerglasContextForTesting(t, context.Background()))
+	password, err := getChromeBotSkoloPassword(instance_types_testing.NewSecretsContextForTesting(t, context.Background()))
 	require.NoError(t, err)
 	assert.Equal(t, "FakePassword", password)
 }

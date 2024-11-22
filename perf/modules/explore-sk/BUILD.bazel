@@ -2,15 +2,25 @@ load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_element_pu
 
 sk_element(
     name = "explore-sk",
+    sass_srcs = ["explore-sk.scss"],
     sk_element_deps = [
         "//perf/modules/explore-simple-sk",
+        "//perf/modules/favorites-dialog-sk",
+        "//infra-sk/modules/alogin-sk",
+        "//perf/modules/test-picker-sk",
     ],
     ts_deps = [
+        "//:node_modules/lit",
         "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
-        "//:node_modules/lit-html",
+        "//infra-sk/modules/json:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
     ts_srcs = [
         "explore-sk.ts",
@@ -34,10 +44,8 @@ sk_page(
         ":explore-sk",
     ],
     ts_deps = [
-        "//infra-sk/modules/json:index_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//perf/modules/json:index_ts_lib",
-        "//:node_modules/fetch-mock",
+        "//perf/modules/common:test-util_ts_lib",
     ],
     ts_entry_point = "explore-sk-demo.ts",
 )

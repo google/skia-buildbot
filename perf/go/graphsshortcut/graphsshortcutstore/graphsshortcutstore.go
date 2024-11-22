@@ -27,7 +27,7 @@ var statements = map[statement]string{
 			GraphsShortcuts (id, graphs)
 		VALUES
 			($1, $2)
-		ON CONFLICT
+		ON CONFLICT (id)
 		DO NOTHING`,
 	getShortcut: `
 		SELECT

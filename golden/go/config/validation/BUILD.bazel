@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "validation",
+    srcs = ["configvalidator.go"],
+    importpath = "go.skia.org/infra/golden/go/config/validation",
+    visibility = ["//visibility:public"],
+    deps = ["//golden/go/config"],
+)

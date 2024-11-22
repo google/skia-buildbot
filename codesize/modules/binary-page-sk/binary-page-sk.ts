@@ -1,6 +1,6 @@
 /** Shows code size statistics about a single binary. */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { load } from '@google-web-components/google-chart/loader';
 import Fuse from 'fuse.js';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

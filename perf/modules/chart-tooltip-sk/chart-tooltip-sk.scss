@@ -1,0 +1,65 @@
+@import '../themes/themes.scss';
+
+chart-tooltip-sk {
+  display: block;
+  margin: 10px;
+
+  > div.container {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    width: 420px;
+    margin: 10px;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 16px;
+    word-wrap: break-word;
+    background: var(--surface-2dp);
+    --md-elevation-level: 3;
+    md-elevation {
+      transition-duration: 0.3s;
+    }
+
+    button#closeIcon {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    close-icon-sk#unassociate-bug-button {
+      fill: var(--negative);
+      cursor: pointer;
+    }
+
+    h3 {
+      margin: 0;
+      margin-bottom: 16px;
+    }
+
+    h4 {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      text-decoration: underline;
+    }
+
+    .revlink {
+      margin-bottom: 26px;
+    }
+
+    button[hidden] {
+      display: None;
+    }
+
+    #close {
+      float: right;
+    }
+
+    .see-more-text {
+      text-decoration: underline;
+      font-style: italic;
+    }
+  }
+}

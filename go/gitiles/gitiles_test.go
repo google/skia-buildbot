@@ -75,7 +75,7 @@ func TestLog(t *testing.T) {
 	c8 := gb.CommitGenAt(ctx, "file1", now)
 
 	// Use all of the commit variables so the compiler doesn't complain.
-	repo := git.GitDir(gb.Dir())
+	repo := git.CheckoutDir(gb.Dir())
 	commits := []string{c8, c7, c6, c5, c4, c3, c2, c1, c0}
 	details := make(map[string]*vcsinfo.LongCommit, len(commits))
 	for _, c := range commits {
@@ -577,13 +577,13 @@ func TestLogOptionsToQuery(t *testing.T) {
 }
 
 func TestDetails(t *testing.T) {
-
 	// Setup.
 	ctx := cipd_git.UseGitFinder(context.Background())
 	repoURL := "https://skia.googlesource.com/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
 	repo := NewRepo(repoURL, urlMock.Client())
 	gb := git_testutils.GitInit(t, ctx)
+	co := git.CheckoutDir(gb.Dir())
 
 	// Helper function which creates a commit, retrieves it from both
 	// Gitiles and the real Git repo using Details, and assert that the
@@ -593,7 +593,7 @@ func TestDetails(t *testing.T) {
 		hash := gb.CommitGenMsg(ctx, "fake", msg)
 
 		// Retrieve the commit from Git.
-		expect, err := git.GitDir(gb.Dir()).Details(ctx, hash)
+		expect, err := co.Details(ctx, hash)
 		require.NoError(t, err)
 
 		// Mock the request to Gitiles. Caveat: the test results are

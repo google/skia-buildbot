@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
+	frontendApi "go.skia.org/infra/perf/go/frontend/api"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/graphsshortcut"
 	"go.skia.org/infra/perf/go/ingest/format"
@@ -69,23 +70,27 @@ func main() {
 		dryrun.RegressionAtCommit{},
 		frame.FrameRequest{},
 		frame.FrameResponse{},
-		frontend.AlertUpdateResponse{},
-		frontend.CIDHandlerResponse{},
-		frontend.ClusterStartResponse{},
-		frontend.CommitDetailsRequest{},
-		frontend.CountHandlerRequest{},
-		frontend.CountHandlerResponse{},
-		frontend.GetGraphsShortcutRequest{},
-		frontend.RangeRequest{},
-		frontend.RegressionRangeRequest{},
-		frontend.RegressionRangeResponse{},
-		frontend.ShiftRequest{},
-		frontend.ShiftResponse{},
+		frontendApi.AlertUpdateResponse{},
+		frontendApi.CIDHandlerResponse{},
+		frontendApi.ClusterStartResponse{},
+		frontendApi.CommitDetailsRequest{},
+		frontendApi.CountHandlerRequest{},
+		frontendApi.CountHandlerResponse{},
+		frontendApi.GetAnomaliesResponse{},
+		frontendApi.GetGraphsShortcutRequest{},
+		frontendApi.GetSheriffListResponse{},
+		frontendApi.NextParamListHandlerRequest{},
+		frontendApi.NextParamListHandlerResponse{},
+		frontendApi.RangeRequest{},
+		frontendApi.RegressionRangeRequest{},
+		frontendApi.RegressionRangeResponse{},
+		frontendApi.ShiftRequest{},
+		frontendApi.ShiftResponse{},
 		frontend.SkPerfConfig{},
-		frontend.TriageRequest{},
-		frontend.TriageResponse{},
-		frontend.TryBugRequest{},
-		frontend.TryBugResponse{},
+		frontendApi.TriageRequest{},
+		frontendApi.TriageResponse{},
+		frontendApi.TryBugRequest{},
+		frontendApi.TryBugResponse{},
 		graphsshortcut.GraphsShortcut{},
 		pinpoint.CreateBisectRequest{},
 		pinpoint.CreateBisectResponse{},
@@ -105,7 +110,7 @@ func main() {
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
 		{frame.AllRequestType, "RequestType"},
-		{frontend.AllRegressionSubset, "Subset"},
+		{frontendApi.AllRegressionSubset, "Subset"},
 		{regression.AllProcessState, "ProcessState"},
 		{regression.AllStatus, "Status"},
 		{stepfit.AllStepFitStatus, "StepFitStatus"},
@@ -116,6 +121,7 @@ func main() {
 		{notifytypes.AllNotifierTypes, "NotifierTypes"},
 		{config.AllTraceFormats, "TraceFormat"},
 		{types.AllAlertActions, "AlertAction"},
+		{types.AllProjectIds, "ProjectId"},
 	})
 
 	generator.AddUnionToNamespace(progress.AllStatus, "progress")

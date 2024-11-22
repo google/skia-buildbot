@@ -200,3 +200,34 @@ var (
 		Bisection,
 	}
 )
+
+// All valid stat suffix from perf measurements.
+var (
+	AllMeasurementStats = []string{
+		"avg", "count", "max", "min", "std", "sum",
+	}
+)
+
+type AnomalyDetectionNotifyType string
+
+const (
+	// IssueTracker means send Markdown formatted notifications to the
+	// issue tracker.
+	IssueNotify AnomalyDetectionNotifyType = "issuetracker"
+
+	// None means do not send any notification.
+	NoneNotify AnomalyDetectionNotifyType = "none"
+)
+
+// AllAnomalyDetectionNotifyTypes is the list of all valid AnomalyDetectionNotifyTypes.
+var AllAnomalyDetectionNotifyTypes []AnomalyDetectionNotifyType = []AnomalyDetectionNotifyType{IssueNotify, NoneNotify}
+
+// ProjectId defines the action to trigger.
+type ProjectId string
+
+var (
+	// AllProjectIds is a list of all project ids.
+	AllProjectIds = []ProjectId{
+		"chromium",
+	}
+)

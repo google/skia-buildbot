@@ -30,7 +30,7 @@ sk_page(
     sk_element_deps = [":sort-toggle-sk"],
     ts_deps = [
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_entry_point = "sort-toggle-sk-demo.ts",
 )

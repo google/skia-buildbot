@@ -15,7 +15,7 @@
         ]
     },
     "culprit_notify_config": {
-        "notifications": "none"
+        "notification_type": "none"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

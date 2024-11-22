@@ -33,7 +33,7 @@ type Process struct {
 // The lookupCache has entries added as they are found in Start().
 //
 // If running in production then 'local' should be false.
-func New(checkout *git.Checkout, lookupCache *lookup.Cache, client *http.Client, local bool, subdomain string) (*Process, error) {
+func New(checkout git.Checkout, lookupCache *lookup.Cache, client *http.Client, local bool, subdomain string) (*Process, error) {
 	repo := poprepo.NewPopRepo(checkout, local, subdomain)
 	api, err := buildapi.NewAPI(client)
 	if err != nil {

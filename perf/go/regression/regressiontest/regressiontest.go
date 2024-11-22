@@ -48,13 +48,13 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	// TODO(jcgregorio) Break up into finer grained tests and add more tests.
 
 	// Create a new regression.
-	isNew, err := store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err := store.SetLow(ctx, c, "1", df, cl)
 	assert.True(t, isNew)
 	require.NoError(t, err)
 
 	// Overwrite a regression, which is allowed, and that it changes the
 	// returned 'isNew' value.
-	isNew, err = store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err = store.SetLow(ctx, c, "1", df, cl)
 	assert.False(t, isNew)
 	require.NoError(t, err)
 
@@ -99,7 +99,7 @@ func Range_Exact(t *testing.T, store regression.Store) {
 	}
 
 	// Create a new regression.
-	isNew, err := store.SetLow(ctx, c, "1", df, cl)
+	isNew, _, err := store.SetLow(ctx, c, "1", df, cl)
 	assert.True(t, isNew)
 	require.NoError(t, err)
 
@@ -142,6 +142,59 @@ func Write(t *testing.T, store regression.Store) {
 	assert.Equal(t, reg, ranges[2])
 }
 
+// DeleteByCommit tests that the implementation of the regression.Store interface can
+// delete an inserted regression
+func DeleteByCommit(t *testing.T, store regression.Store) {
+	ctx := context.Background()
+
+	reg := &regression.AllRegressionsForCommit{
+		ByAlertID: map[string]*regression.Regression{
+			"fake-alert-id": regression.NewRegression(),
+		},
+	}
+	err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{2: reg})
+	require.NoError(t, err, "error writing regression")
+
+	regressions, err := store.Range(ctx, 1, 2)
+	require.NoError(t, err, "error fetching regression")
+	require.Len(t, regressions, 1)
+
+	err = store.DeleteByCommit(ctx, types.CommitNumber(2), nil)
+	require.NoError(t, err)
+	regressions, err = store.Range(ctx, 1, 3)
+	require.NoError(t, err, "error fetching regression")
+	require.Len(t, regressions, 0, "regression was not deleted")
+}
+
+// GetOldestCommit tests that the implementation of the regression.Store interface can
+// get the lowest commit number
+func GetOldestCommit(t *testing.T, store regression.Store) {
+	ctx := context.Background()
+
+	reg := &regression.AllRegressionsForCommit{
+		ByAlertID: map[string]*regression.Regression{
+			"fake-alert-id": regression.NewRegression(),
+		},
+	}
+	for i := 0; i < 5; i++ {
+		err := store.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{
+			types.CommitNumber(i): reg,
+		})
+		require.NoError(t, err, "error writing regression %d", i)
+	}
+
+	commitNumber, err := store.GetOldestCommit(ctx)
+	require.NoError(t, err, "error fetching regression")
+	require.Equal(t, types.CommitNumber(0), *commitNumber)
+
+	err = store.DeleteByCommit(ctx, types.CommitNumber(0), nil)
+	require.NoError(t, err)
+
+	commitNumber, err = store.GetOldestCommit(ctx)
+	require.NoError(t, err, "error fetching regression")
+	require.Equal(t, types.CommitNumber(1), *commitNumber)
+}
+
 // SubTestFunction is a func we will call to test one aspect of an
 // implementation of regression.Store.
 type SubTestFunction func(t *testing.T, store regression.Store)
@@ -152,4 +205,6 @@ var SubTests = map[string]SubTestFunction{
 	"Range_Exact":                 Range_Exact,
 	"TriageNonExistentRegression": TriageNonExistentRegression,
 	"TestWrite":                   Write,
+	"TestDeleteByCommit":          DeleteByCommit,
+	"TestGetOldestCommit":         GetOldestCommit,
 }

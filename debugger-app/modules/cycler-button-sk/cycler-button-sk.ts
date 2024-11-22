@@ -11,7 +11,7 @@
  *    <cycler-button-sk .text=${'next'} .list=${[1, 2, 3]} @next-item=${(e: Event)=>{}}>
  *    </cycler-button-sk>
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { NextItemEventDetail, NextItemEvent } from '../events';

@@ -66,6 +66,7 @@ func TestCheckout(t *testing.T) {
 		h2, err := c.RevParse(ctx, DefaultRemoteBranch)
 		require.NoError(t, err)
 		h3, err := c.RevParse(ctx, "HEAD")
+		require.NoError(t, err)
 		if h1 != h2 {
 			return false
 		}
@@ -105,7 +106,7 @@ func TestCheckout_IsDirty(t *testing.T) {
 	ctx, gb, _ := setup(t)
 	defer gb.Cleanup()
 
-	test := func(name string, expectDirty bool, fn func(*testing.T, *Checkout)) {
+	test := func(name string, expectDirty bool, fn func(*testing.T, CheckoutDir)) {
 		t.Run(name, func(t *testing.T) {
 			tmp, err := os.MkdirTemp("", "")
 			require.NoError(t, err)
@@ -119,19 +120,19 @@ func TestCheckout_IsDirty(t *testing.T) {
 		})
 	}
 
-	test("clean", false, func(t *testing.T, c *Checkout) {})
-	test("unstaged_changes", true, func(t *testing.T, c *Checkout) {
+	test("clean", false, func(t *testing.T, c CheckoutDir) {})
+	test("unstaged_changes", true, func(t *testing.T, c CheckoutDir) {
 		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
 	})
-	test("untracked_file", true, func(t *testing.T, c *Checkout) {
+	test("untracked_file", true, func(t *testing.T, c CheckoutDir) {
 		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), "untracked-file"), []byte("blahblah"), os.ModePerm))
 	})
-	test("ahead_of_main", true, func(t *testing.T, c *Checkout) {
+	test("ahead_of_main", true, func(t *testing.T, c CheckoutDir) {
 		require.NoError(t, os.WriteFile(filepath.Join(c.Dir(), checkedInFile), []byte("blahblah"), os.ModePerm))
 		_, err := c.Git(ctx, "commit", "-a", "-m", "updated file")
 		require.NoError(t, err)
 	})
-	test("behind_main", false, func(t *testing.T, c *Checkout) {
+	test("behind_main", false, func(t *testing.T, c CheckoutDir) {
 		_, err := c.Git(ctx, "reset", "--hard", "HEAD^")
 		require.NoError(t, err)
 	})

@@ -81,13 +81,21 @@ func (r *Rules) AddAbsentRules(cluster string) {
 			if ignore {
 				continue
 			}
+			category, ok := rule.Labels["category"]
+			if !ok {
+				category = "infra"
+			}
+			severity, ok := rule.Labels["severity"]
+			if !ok {
+				severity = "critical"
+			}
 			rules = append(rules, Rule{
 				Alert: "Absent",
 				Expr:  fmt.Sprintf("absent(%s)", equation),
 				For:   absentAlertForDuration,
 				Labels: map[string]string{
-					"category": "infra",
-					"severity": "critical",
+					"category": category,
+					"severity": severity,
 				},
 				Annotations: map[string]string{
 					"abbr":        rule.Alert,

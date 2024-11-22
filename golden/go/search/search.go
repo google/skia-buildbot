@@ -21,12 +21,15 @@ import (
 	"go.opencensus.io/trace"
 	"golang.org/x/sync/errgroup"
 
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
+	"go.skia.org/infra/golden/go/search/caching"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -204,6 +207,7 @@ type Impl struct {
 	paramsetCache        *ttlcache.Cache
 
 	materializedViews map[string]bool
+	cacheManager      *caching.SearchCacheManager
 }
 
 // New returns an implementation of API.
@@ -231,6 +235,11 @@ func New(sqlDB *pgxpool.Pool, windowLength int) *Impl {
 		paramsetCache:        pc,
 		reviewSystemMapping:  map[string]string{},
 	}
+}
+
+// EnableCache enables reading data from cache for search.
+func (s *Impl) EnableCache(cacheClient cache.Cache, cache_corpora []string) {
+	s.cacheManager = caching.New(cacheClient, s.db, cache_corpora, s.windowLength)
 }
 
 // SetReviewSystemTemplates sets the URL templates that are used to link to the code review system.
@@ -287,7 +296,6 @@ func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int)
 		return 0, nil
 	}
 	row := s.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
-AS OF SYSTEM TIME '-0.1s'
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
 	var lc pgtype.Int4
@@ -684,7 +692,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	ctx, span := trace.StartSpan(ctx, "search2_Search")
 	defer span.End()
 
-	ctx = context.WithValue(ctx, queryKey, *q)
+	ctx = context.WithValue(ctx, common.QueryKey, *q)
 	ctx, err := s.addCommitsData(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -762,99 +770,10 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	}, nil
 }
 
-// To avoid piping a lot of info about the commits in the most recent window through all the
-// functions in the search pipeline, we attach them as values to the context.
-type searchContextKey string
-
-const (
-	actualWindowLengthKey = searchContextKey("actualWindowLengthKey")
-	commitToIdxKey        = searchContextKey("commitToIdxKey")
-	firstCommitIDKey      = searchContextKey("firstCommitIDKey")
-	firstTileIDKey        = searchContextKey("firstTileIDKey")
-	lastTileIDKey         = searchContextKey("lastTileIDKey")
-	qualifiedCLIDKey      = searchContextKey("qualifiedCLIDKey")
-	qualifiedPSIDKey      = searchContextKey("qualifiedPSIDKey")
-	queryKey              = searchContextKey("queryKey")
-)
-
-func getFirstCommitID(ctx context.Context) schema.CommitID {
-	return ctx.Value(firstCommitIDKey).(schema.CommitID)
-}
-
-func getFirstTileID(ctx context.Context) schema.TileID {
-	return ctx.Value(firstTileIDKey).(schema.TileID)
-}
-
-func getLastTileID(ctx context.Context) schema.TileID {
-	return ctx.Value(lastTileIDKey).(schema.TileID)
-}
-
-func getCommitToIdxMap(ctx context.Context) map[schema.CommitID]int {
-	return ctx.Value(commitToIdxKey).(map[schema.CommitID]int)
-}
-
-func getActualWindowLength(ctx context.Context) int {
-	return ctx.Value(actualWindowLengthKey).(int)
-}
-
-func getQuery(ctx context.Context) query.Search {
-	return ctx.Value(queryKey).(query.Search)
-}
-
-func getQualifiedCL(ctx context.Context) string {
-	v := ctx.Value(qualifiedCLIDKey)
-	if v == nil {
-		return "" // This allows us to use getQualifiedCL as "Is the data for a CL or not?"
-	}
-	return v.(string)
-}
-
-func getQualifiedPS(ctx context.Context) string {
-	return ctx.Value(qualifiedPSIDKey).(string)
-}
-
 // addCommitsData finds the current sliding window of data (The last N commits) and adds the
 // derived data to the given context and returns it.
 func (s *Impl) addCommitsData(ctx context.Context) (context.Context, error) {
-	// Note: need to rename the context here to avoid adding the span data to all other contexts.
-	sCtx, span := trace.StartSpan(ctx, "addCommitsData")
-	defer span.End()
-	const statement = `SELECT commit_id, tile_id FROM
-CommitsWithData ORDER BY commit_id DESC LIMIT $1`
-	rows, err := s.db.Query(sCtx, statement, s.windowLength)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-	ids := make([]schema.CommitID, 0, s.windowLength)
-	lastObservedTile := schema.TileID(-1)
-	var firstObservedTile schema.TileID
-	for rows.Next() {
-		var id schema.CommitID
-		if err := rows.Scan(&id, &firstObservedTile); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if lastObservedTile < firstObservedTile {
-			lastObservedTile = firstObservedTile
-		}
-		ids = append(ids, id)
-	}
-	if len(ids) == 0 {
-		return nil, skerr.Fmt("No commits with data")
-	}
-	// ids is ordered most recent commit to last commit at this point
-	ctx = context.WithValue(ctx, actualWindowLengthKey, len(ids))
-	ctx = context.WithValue(ctx, firstCommitIDKey, ids[len(ids)-1])
-	ctx = context.WithValue(ctx, firstTileIDKey, firstObservedTile)
-	ctx = context.WithValue(ctx, lastTileIDKey, lastObservedTile)
-	idToIndex := map[schema.CommitID]int{}
-	idx := 0
-	for i := len(ids) - 1; i >= 0; i-- {
-		idToIndex[ids[i]] = idx
-		idx++
-	}
-	ctx = context.WithValue(ctx, commitToIdxKey, idToIndex)
-	return ctx, nil
+	return common.AddCommitsData(ctx, s.db, s.windowLength)
 }
 
 type digestWithTraceAndGrouping struct {
@@ -871,7 +790,7 @@ type digestWithTraceAndGrouping struct {
 func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
 	defer span.End()
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 	corpus := q.TraceValues[types.CorpusField][0]
 	if corpus == "" {
 		return nil, skerr.Fmt("must specify corpus in search of left side.")
@@ -1005,7 +924,7 @@ type filterSets struct {
 // in the query. This code knows to start using numbered parameters at 2.
 func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	var keyFilters []filterSets
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 	for key, values := range q.TraceValues {
 		if key == types.CorpusField {
 			continue
@@ -1028,7 +947,7 @@ func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface
 				return "MatchingTraces AS (SELECT * FROM " + materializedView + ")", nil
 			}
 			// Corpus is being used as a string
-			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus}
+			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus}
 			return `
 MatchingTraces AS (
 	SELECT trace_id, grouping_id, digest FROM ValuesAtHead
@@ -1045,7 +964,7 @@ MatchingTraces AS (
 )`, nil
 		}
 		// Corpus is being used as a JSONB value here
-		args := []interface{}{getFirstCommitID(ctx), ignoreStatuses}
+		args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses}
 		return joinedTracesStatement(keyFilters, corpus) + `
 MatchingTraces AS (
 	SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
@@ -1056,7 +975,7 @@ MatchingTraces AS (
 	} else {
 		if len(keyFilters) == 0 {
 			if materializedView != "" && !q.IncludeIgnoredTraces {
-				args := []interface{}{getFirstTileID(ctx)}
+				args := []interface{}{common.GetFirstTileID(ctx)}
 				return `MatchingTraces AS (
 	SELECT DISTINCT TiledTraceDigests.trace_id, TiledTraceDigests.grouping_id, TiledTraceDigests.digest
 	FROM TiledTraceDigests
@@ -1065,7 +984,7 @@ MatchingTraces AS (
 )`, args
 			}
 			// Corpus is being used as a string
-			args := []interface{}{getFirstCommitID(ctx), ignoreStatuses, corpus, getFirstTileID(ctx)}
+			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus, common.GetFirstTileID(ctx)}
 			return `
 TracesOfInterest AS (
 	SELECT trace_id, grouping_id FROM ValuesAtHead
@@ -1082,7 +1001,7 @@ MatchingTraces AS (
 `, args
 		}
 		if materializedView != "" && !q.IncludeIgnoredTraces {
-			args := []interface{}{getFirstTileID(ctx)}
+			args := []interface{}{common.GetFirstTileID(ctx)}
 			return joinedTracesStatement(keyFilters, corpus) + `
 TracesOfInterest AS (
 	SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
@@ -1096,7 +1015,7 @@ MatchingTraces AS (
 )`, args
 		}
 		// Corpus is being used as a JSONB value here
-		args := []interface{}{getFirstTileID(ctx), ignoreStatuses}
+		args := []interface{}{common.GetFirstTileID(ctx), ignoreStatuses}
 		return joinedTracesStatement(keyFilters, corpus) + `
 TracesOfInterest AS (
 	SELECT Traces.trace_id, grouping_id FROM Traces
@@ -1254,7 +1173,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndG
 		return nil, nil, skerr.Wrap(err)
 	}
 
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 	var extendedBulkTriageDeltaInfos []extendedBulkTriageDeltaInfo
 	results := make([]digestAndClosestDiffs, 0, len(byDigestAndGrouping))
 	for _, s2 := range byDigestAndGrouping {
@@ -1341,7 +1260,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndG
 func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, leftDigests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
-	rtv := getQuery(ctx).RightTraceValues
+	rtv := common.GetQuery(ctx).RightTraceValues
 	digestsInGrouping, err := s.getDigestsForGrouping(ctx, groupingID[:], rtv)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -1412,7 +1331,7 @@ func (s *Impl) getDigestsForGrouping(ctx context.Context, groupingID schema.Grou
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	beginTile, endTile := getFirstTileID(ctx), getLastTileID(ctx)
+	beginTile, endTile := common.GetFirstTileID(ctx), common.GetLastTileID(ctx)
 	tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
 	for i := beginTile; i <= endTile; i++ {
 		tilesInRange = append(tilesInRange, i)
@@ -1555,7 +1474,7 @@ func (s *Impl) addRightTraces(ctx context.Context, inputs []digestAndClosestDiff
 FROM TiledTraceDigests@grouping_digest_idx
 WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
 `
-			rows, err := s.db.Query(eCtx, statement, rightDigests, groupingID, getFirstTileID(ctx))
+			rows, err := s.db.Query(eCtx, statement, rightDigests, groupingID, common.GetFirstTileID(ctx))
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -1827,7 +1746,7 @@ func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceI
 	const statement = `SELECT trace_id, commit_id, encode(digest, 'hex'), options_id
 FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
 ORDER BY trace_id, commit_id`
-	rows, err := s.db.Query(ctx, statement, traceIDs, getFirstCommitID(ctx))
+	rows, err := s.db.Query(ctx, statement, traceIDs, common.GetFirstCommitID(ctx))
 	if err != nil {
 		return frontend.TraceGroup{}, skerr.Wrap(err)
 	}
@@ -1863,7 +1782,7 @@ func (s *Impl) fillInExpectations(ctx context.Context, tg *frontend.TraceGroup, 
 	statement := `
 SELECT encode(digest, 'hex'), label FROM Expectations
 WHERE grouping_id = $1 and digest = ANY($2)`
-	if qCLID := getQualifiedCL(ctx); qCLID != "" {
+	if qCLID := common.GetQualifiedCL(ctx); qCLID != "" {
 		// We use a full outer join to make sure we have the triage status from both tables
 		// (with the CL expectations winning if triaged in both places)
 		statement = `WITH
@@ -1906,7 +1825,7 @@ func (s *Impl) getTriageHistory(ctx context.Context, groupingID schema.GroupingI
 	ctx, span := trace.StartSpan(ctx, "getTriageHistory")
 	defer span.End()
 
-	qCLID := getQualifiedCL(ctx)
+	qCLID := common.GetQualifiedCL(ctx)
 	const statement = `WITH
 PrimaryRecord AS (
 	SELECT expectation_record_id FROM Expectations
@@ -2026,7 +1945,7 @@ func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos [
 			   label
 		  FROM SecondaryBranchExpectations
 		 WHERE branch_name = $1 AND (` + whereClause + ")"
-	rows, err := s.db.Query(ctx, statement, append([]interface{}{getQualifiedCL(ctx)}, whereArgs...)...)
+	rows, err := s.db.Query(ctx, statement, append([]interface{}{common.GetQualifiedCL(ctx)}, whereArgs...)...)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2143,7 +2062,7 @@ func (s *Impl) populateExtendedBulkTriageDeltaInfosOptionsIDs(ctx context.Contex
 
 	const statement = `SELECT trace_id, digest, options_id FROM TraceValues
 	WHERE trace_id = ANY($1) AND commit_id >= $2`
-	rows, err := s.db.Query(ctx, statement, allTraceIDs, getFirstCommitID(ctx))
+	rows, err := s.db.Query(ctx, statement, allTraceIDs, common.GetFirstCommitID(ctx))
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -2212,8 +2131,8 @@ func (s *Impl) expandGrouping(ctx context.Context, groupingID schema.MD5Hash) (p
 func (s *Impl) getCommits(ctx context.Context) ([]frontend.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "getCommits")
 	defer span.End()
-	rv := make([]frontend.Commit, getActualWindowLength(ctx))
-	commitIDs := getCommitToIdxMap(ctx)
+	rv := make([]frontend.Commit, common.GetActualWindowLength(ctx))
+	commitIDs := common.GetCommitToIdxMap(ctx)
 	for commitID, idx := range commitIDs {
 		var commit frontend.Commit
 		if c, ok := s.commitCache.Get(commitID); ok {
@@ -2321,7 +2240,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 
 	return &frontend.SearchResponse{
 		Results:              results,
-		Offset:               getQuery(ctx).Offset,
+		Offset:               common.GetQuery(ctx).Offset,
 		Size:                 len(extendedBulkTriageDeltaInfos),
 		BulkTriageDeltaInfos: bulkTriageDeltaInfos,
 		Commits:              commits,
@@ -2333,7 +2252,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 func (s *Impl) addCLData(ctx context.Context) (context.Context, error) {
 	ctx, span := trace.StartSpan(ctx, "addCLData")
 	defer span.End()
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 	qCLID := sql.Qualify(q.CodeReviewSystemID, q.ChangelistID)
 	const statement = `SELECT patchset_id FROM Patchsets WHERE
 changelist_id = $1 AND system = $2 AND ps_order = $3`
@@ -2345,8 +2264,8 @@ changelist_id = $1 AND system = $2 AND ps_order = $3`
 		}
 		return nil, skerr.Wrap(err)
 	}
-	ctx = context.WithValue(ctx, qualifiedCLIDKey, qCLID)
-	ctx = context.WithValue(ctx, qualifiedPSIDKey, qPSID)
+	ctx = context.WithValue(ctx, common.QualifiedCLIDKey, qCLID)
+	ctx = context.WithValue(ctx, common.QualifiedPSIDKey, qPSID)
 	return ctx, nil
 }
 
@@ -2354,7 +2273,7 @@ changelist_id = $1 AND system = $2 AND ps_order = $3`
 func (s *Impl) addCLCommit(ctx context.Context, commits []frontend.Commit) ([]frontend.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "addCLCommit")
 	defer span.End()
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 
 	urlTemplate, ok := s.reviewSystemMapping[q.CodeReviewSystemID]
 	if !ok {
@@ -2386,7 +2305,7 @@ WHERE changelist_id = $1`
 func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTracesForCL")
 	defer span.End()
-	q := getQuery(ctx)
+	q := common.GetQuery(ctx)
 	statement := `WITH
 CLDigests AS (
 	SELECT secondary_branch_trace_id, digest, grouping_id, options_id
@@ -2431,7 +2350,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 		triageStatuses = append(triageStatuses, schema.LabelPositive)
 	}
 
-	rows, err := s.db.Query(ctx, statement, getQualifiedCL(ctx), getQualifiedPS(ctx), triageStatuses)
+	rows, err := s.db.Query(ctx, statement, common.GetQualifiedCL(ctx), common.GetQualifiedPS(ctx), triageStatuses)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2476,11 +2395,11 @@ func matchingCLTracesStatement(ps paramtools.ParamSet, includeIgnored bool) (str
 	if corpus != sql.Sanitize(corpus) {
 		return "", skerr.Fmt("Invalid corpus: %q", corpus)
 	}
-	corpusStatement := `SELECT trace_id FROM Traces WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule `
+	corpusStatement := `SELECT trace_id FROM Traces WHERE corpus = '` + corpus + `' AND (matches_any_ignore_rule `
 	if includeIgnored {
-		corpusStatement += "IS NOT NULL"
+		corpusStatement += "IS NOT NULL)"
 	} else {
-		corpusStatement += "= FALSE"
+		corpusStatement += "= FALSE OR matches_any_ignore_rule is NULL)"
 	}
 	if len(ps) == 1 {
 		return "MatchingTraces AS (\n\t" + corpusStatement + "\n),", nil
@@ -2527,16 +2446,16 @@ func matchingCLTracesStatement(ps paramtools.ParamSet, includeIgnored bool) (str
 func makeTraceGroup(ctx context.Context, data map[schema.MD5Hash][]traceDigestCommit, primary types.Digest) (frontend.TraceGroup, error) {
 	ctx, span := trace.StartSpan(ctx, "makeTraceGroup")
 	defer span.End()
-	isCL := getQualifiedCL(ctx) != ""
+	isCL := common.GetQualifiedCL(ctx) != ""
 	tg := frontend.TraceGroup{}
 	if len(data) == 0 {
 		return tg, nil
 	}
-	traceLength := getActualWindowLength(ctx)
+	traceLength := common.GetActualWindowLength(ctx)
 	if isCL {
 		traceLength++ // We will append the current data to the end.
 	}
-	indexMap := getCommitToIdxMap(ctx)
+	indexMap := common.GetCommitToIdxMap(ctx)
 	for trID, points := range data {
 		currentTrace := frontend.Trace{
 			ID:            tiling.TraceID(hex.EncodeToString(trID[:])),
@@ -2630,7 +2549,7 @@ func (s *Impl) GetPrimaryBranchParamset(ctx context.Context) (paramtools.ReadOnl
 
 	const statement = `SELECT DISTINCT key, value FROM PrimaryBranchParams
 WHERE tile_id >= $1`
-	rows, err := s.db.Query(ctx, statement, getFirstTileID(ctx))
+	rows, err := s.db.Query(ctx, statement, common.GetFirstTileID(ctx))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2656,7 +2575,7 @@ func (s *Impl) getPublicParamsetForPrimaryBranch(ctx context.Context) (paramtool
 	defer span.End()
 
 	const statement = `SELECT trace_id, keys FROM ValuesAtHead WHERE most_recent_commit_id >= $1`
-	rows, err := s.db.Query(ctx, statement, getFirstCommitID(ctx))
+	rows, err := s.db.Query(ctx, statement, common.GetFirstCommitID(ctx))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2819,6 +2738,31 @@ type traceData []types.Digest
 func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[groupingDigestKey][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
 	defer span.End()
+
+	// Caching is enabled.
+	if s.cacheManager != nil {
+		sklog.Debugf("Search cache is enabled.")
+		byBlameData, err := s.cacheManager.GetByBlameData(ctx, string(common.GetFirstCommitID(ctx)), corpus)
+		if err != nil {
+			sklog.Errorf("Error encountered when retrieving ByBlame data from cache: %v", err)
+			return nil, err
+		}
+
+		sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
+		rv := map[groupingDigestKey][]schema.TraceID{}
+		var key groupingDigestKey
+		groupingKey := key.groupingID[:]
+		digestKey := key.digest[:]
+		for _, data := range byBlameData {
+			copy(groupingKey, data.GroupingID)
+			copy(digestKey, data.Digest)
+			rv[key] = append(rv[key], data.TraceID)
+		}
+
+		return rv, nil
+	}
+
+	sklog.Debugf("Search cache is not enabled. Proceeding with regular search.")
 	statement := `WITH
 UntriagedDigests AS (
 	SELECT grouping_id, digest FROM Expectations
@@ -2833,7 +2777,7 @@ UntriagedDigests
 JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
 	 UntriagedDigests.digest = UnignoredDataAtHead.digest
 `
-	arguments := []interface{}{getFirstCommitID(ctx), corpus}
+	arguments := []interface{}{common.GetFirstCommitID(ctx), corpus}
 	if mv := s.getMaterializedView(byBlameView, corpus); mv != "" {
 		// While using the by blame view, it's important that we filter out digests that have since
 		// been triaged, or the user might notice a delay of several minutes between the moment they
@@ -2925,13 +2869,13 @@ func (s *Impl) getHistoriesForTraces(ctx context.Context, traces map[groupingDig
 	const statement = `SELECT trace_id, commit_id, digest FROM TraceValues
 WHERE commit_id >= $1 and trace_id = ANY($2)
 ORDER BY trace_id`
-	rows, err := s.db.Query(ctx, statement, getFirstCommitID(ctx), tracesToLookup)
+	rows, err := s.db.Query(ctx, statement, common.GetFirstCommitID(ctx), tracesToLookup)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	traceLength := getActualWindowLength(ctx)
-	commitIdxMap := getCommitToIdxMap(ctx)
+	traceLength := common.GetActualWindowLength(ctx)
+	commitIdxMap := common.GetCommitToIdxMap(ctx)
 	tracesByDigest := make(map[groupingDigestKey][]traceIDAndData, len(traces))
 	uniqueDigestsByGrouping := map[groupingDigestKey]bool{}
 	var currentTraceID schema.TraceID
@@ -3307,7 +3251,7 @@ WHERE label = ANY($3)
 	}
 
 	_, groupingID := sql.SerializeMap(opts.Grouping)
-	rows, err := s.db.Query(ctx, statement, groupingID, getFirstCommitID(ctx), triageStatuses)
+	rows, err := s.db.Query(ctx, statement, groupingID, common.GetFirstCommitID(ctx), triageStatuses)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -3587,7 +3531,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
 	// Fill in a few values to allow us to use the same methods as Search.
-	ctx = context.WithValue(ctx, queryKey, query.Search{
+	ctx = context.WithValue(ctx, common.QueryKey, query.Search{
 		CodeReviewSystemID: crs, ChangelistID: clID,
 		Offset: 0, Limit: 1, RGBAMaxFilter: 255,
 	})
@@ -3602,7 +3546,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		if crs == "" {
 			return frontend.DigestDetails{}, skerr.Fmt("Code Review System (crs) must be specified")
 		}
-		ctx = context.WithValue(ctx, qualifiedCLIDKey, sql.Qualify(crs, clID))
+		ctx = context.WithValue(ctx, common.QualifiedCLIDKey, sql.Qualify(crs, clID))
 		digestWithTraceAndGrouping, err = s.getTracesFromCLThatProduced(ctx, grouping, digest)
 		if err != nil {
 			return frontend.DigestDetails{}, skerr.Wrap(err)
@@ -3684,10 +3628,10 @@ func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping param
 		return nil, skerr.Wrap(err)
 	}
 
-	const statement = `SELECT trace_id FROM TiledTraceDigests
+	const statement = `SELECT trace_id FROM TiledTraceDigests@grouping_digest_idx
 WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
 `
-	rows, err := s.db.Query(ctx, statement, getFirstTileID(ctx), groupingID, digestBytes)
+	rows, err := s.db.Query(ctx, statement, common.GetFirstTileID(ctx), groupingID, digestBytes)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -3737,7 +3681,7 @@ MostRecentPS AS (
 SELECT secondary_branch_trace_id, options_id FROM SecondaryBranchValues
 JOIN MostRecentPS ON SecondaryBranchValues.version_name = MostRecentPS.patchset_id
 WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
-	rows, err := s.db.Query(ctx, statement, getQualifiedCL(ctx), groupingID, digestBytes)
+	rows, err := s.db.Query(ctx, statement, common.GetQualifiedCL(ctx), groupingID, digestBytes)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -4066,7 +4010,6 @@ func (s *Impl) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 
 	var gs frontend.GUIStatus
 	row := s.db.QueryRow(ctx, `SELECT commit_id FROM CommitsWithData
-AS OF SYSTEM TIME '-0.1s'
 ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
 	if err := row.Scan(&gs.LastCommit.ID); err != nil {
 		return frontend.GUIStatus{}, skerr.Wrap(err)

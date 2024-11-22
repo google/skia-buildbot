@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	gstorage "cloud.google.com/go/storage"
 	"golang.org/x/oauth2"
@@ -24,6 +25,9 @@ import (
 const (
 	// authFile is the file in the work directory where the auth options are cached.
 	authFile = "auth_opt.json"
+
+	defaultDialTimeout    = 3 * time.Second
+	defaultRequestTimeout = 10 * time.Second
 )
 
 // The AuthOpt interface adds a layer of abstraction around getting authenticated
@@ -65,10 +69,25 @@ func (a *authOpt) Validate() error {
 	return nil
 }
 
+func nativeHTTPClient(ts oauth2.TokenSource) *http.Client {
+	return httputils.ClientConfig{
+		DialTimeout:    defaultDialTimeout,
+		RequestTimeout: defaultRequestTimeout,
+		TokenSource:    ts,
+		// Don't configure retries here but in goldclient/common
+		// so we can retry if there is an EOF error as well as a
+		// bad response code.
+		Retries:           nil,
+		Metrics:           false,
+		Response2xxOnly:   false,
+		Response2xxAnd3xx: false,
+	}.Client()
+}
+
 // GetHTTPClient implements the AuthOpt interface.
 func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if a.GSUtil || a.NoAuth {
-		return httputils.DefaultClientConfig().WithoutRetries().Client(), nil
+		return httpclient.WrapNative(nativeHTTPClient(nil)), nil
 	}
 	var tokenSrc oauth2.TokenSource
 	if a.Luci {
@@ -90,7 +109,7 @@ func (a *authOpt) GetHTTPClient() (httpclient.HTTPClient, error) {
 	if _, err := tokenSrc.Token(); err != nil {
 		return nil, skerr.Wrapf(err, "retrieving initial auth token")
 	}
-	return httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(tokenSrc).Client(), nil
+	return httpclient.WrapNative(nativeHTTPClient(tokenSrc)), nil
 }
 
 // GetGCSUploader implements the AuthOpt interface.
@@ -120,8 +139,8 @@ func (a *authOpt) httpGCSImpl(ctx context.Context) (gcsuploader.GCSUploader, err
 	if httpClient, err := a.GetHTTPClient(); err != nil {
 		return nil, err
 	} else {
-		hc, ok := httpClient.(*http.Client)
-		if !ok {
+		hc := httpclient.Unwrap(httpClient)
+		if hc == nil {
 			// Should never happen, but is easier to debug than a panic
 			return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
 		}

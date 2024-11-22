@@ -197,9 +197,11 @@ func (tb *TaskBackend) CancelTasks(ctx context.Context, req *buildbucketpb.Cance
 		}
 		jobs = append(jobs, job)
 	}
+	finished := now.Now(ctx)
 	updated := make([]*types.Job, 0, len(jobs))
 	for _, job := range jobs {
 		if !job.Done() {
+			job.Finished = finished
 			job.Status = types.JOB_STATUS_CANCELED
 			job.StatusDetails = "Canceled by Buildbucket"
 			updated = append(updated, job)

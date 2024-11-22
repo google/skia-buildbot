@@ -1400,3 +1400,77 @@ func TestProcess_Standalone_DockerInstalled_Success(t *testing.T) {
 		Version: "2021-07-22-jcgregorio-78bcc725fef1e29b518291469b8ad8f0cc3b21e4",
 	}, next)
 }
+
+func TestProcess_PyOCD_DeviceConnected_Success(t *testing.T) {
+	eventTime := time.Date(2024, time.July, 24, 8, 7, 0, 0, time.UTC)
+	serverTime := time.Date(2024, time.July, 24, 8, 7, 5, 0, time.UTC)
+
+	previous := machine.Description{}
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-i-rpi-003",
+			Version:   "2024-07-23T19_11_30Z-kjlubick-954f6bb-clean",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		PyOCD: machine.PyOCD{
+			DeviceType: "STM32U5G9J-DK1",
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, machine.Description{
+		LastUpdated:        serverTime,
+		LaunchedSwarming:   true,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:                        []string{"skia-i-rpi-003"},
+			machine.DimDeviceType:                []string{"STM32U5G9J-DK1"},
+			machine.DimTestMachineMonitorVersion: []string{"2024-07-23T19_11_30Z-kjlubick-954f6bb-clean"},
+		},
+		Version: "2024-07-23T19_11_30Z-kjlubick-954f6bb-clean",
+	}, next)
+}
+
+func TestProcess_PyOCD_PreviouslyQuarantined_NewSettingClears(t *testing.T) {
+	eventTime := time.Date(2024, time.July, 24, 8, 7, 0, 0, time.UTC)
+	serverTime := time.Date(2024, time.July, 24, 8, 7, 5, 0, time.UTC)
+
+	previous := machine.Description{
+		Recovering: "Something was wrong with this",
+	}
+
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-i-rpi-003",
+			Version:   "2024-07-23T19_11_30Z-kjlubick-954f6bb-clean",
+			StartTime: eventTime,
+		},
+		LaunchedSwarming: true,
+		PyOCD: machine.PyOCD{
+			DeviceType: "STM32U5G9J-DK1",
+		},
+	}
+
+	ctx := now.TimeTravelingContext(serverTime)
+	p := newProcessorForTest()
+	next := p.Process(ctx, previous, event)
+
+	assert.Equal(t, machine.Description{
+		LastUpdated:        serverTime,
+		LaunchedSwarming:   true,
+		SuppliedDimensions: machine.SwarmingDimensions{},
+		Dimensions: machine.SwarmingDimensions{
+			machine.DimID:                        []string{"skia-i-rpi-003"},
+			machine.DimDeviceType:                []string{"STM32U5G9J-DK1"},
+			machine.DimTestMachineMonitorVersion: []string{"2024-07-23T19_11_30Z-kjlubick-954f6bb-clean"},
+		},
+		Version: "2024-07-23T19_11_30Z-kjlubick-954f6bb-clean",
+	}, next)
+}

@@ -1,2 +1,94 @@
 @import '../../../elements-sk/modules/icons/icon-sk';
 @import '../../../infra-sk/themes.scss';
+
+/*
+  This color pallette is taken directly from material theming
+  https://material-web.dev/theming/material-theming/. There is an option on
+  the top right corner of the website to specify Hex Source Color against which
+  we get the color pallette for both light and dark theme.
+
+  Per our existing theme the color pallette is based on rgb(169, 199, 255) which
+  is basically the blue colored text used almost everywhere on the skia perf
+  dashboard.
+*/
+:root,
+:host {
+  --md-sys-color-background: #faf9fd;
+  --md-sys-color-on-background: #1a1c1f;
+  --md-sys-color-surface: #faf9fd;
+  --md-sys-color-surface-dim: #dad9de;
+  --md-sys-color-surface-bright: #faf9fd;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f4f3f8;
+  --md-sys-color-surface-container: #eeedf2;
+  --md-sys-color-surface-container-high: #e8e7ec;
+  --md-sys-color-surface-container-highest: #e3e2e7;
+  --md-sys-color-on-surface: #1a1c1f;
+  --md-sys-color-surface-variant: #e0e2ec;
+  --md-sys-color-on-surface-variant: #43474f;
+  --md-sys-color-inverse-surface: #2f3034;
+  --md-sys-color-inverse-on-surface: #f1f0f5;
+  --md-sys-color-outline: #747780;
+  --md-sys-color-outline-variant: #c4c6d0;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-surface-tint: #405f90;
+  --md-sys-color-primary: #405f90;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #b5ceff;
+  --md-sys-color-on-primary-container: #193b6a;
+  --md-sys-color-inverse-primary: #a9c7ff;
+  --md-sys-color-secondary: #545f74;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #d9e4fd;
+  --md-sys-color-on-secondary-container: #3e495d;
+  --md-sys-color-tertiary: #7c4e7f;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #f3bbf4;
+  --md-sys-color-on-tertiary-container: #542b59;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+
+  &.darkmode,
+  & .darkmode {
+    --md-sys-color-background: #121317;
+    --md-sys-color-on-background: #e3e2e7;
+    --md-sys-color-surface: #121317;
+    --md-sys-color-surface-dim: #121317;
+    --md-sys-color-surface-bright: #38393d;
+    --md-sys-color-surface-container-lowest: #0d0e11;
+    --md-sys-color-surface-container-low: #1a1c1f;
+    --md-sys-color-surface-container: #1e2023;
+    --md-sys-color-surface-container-high: #e8e7ec;
+    --md-sys-color-surface-container-highest: white;
+    --md-sys-color-on-surface: #e3e2e7;
+    --md-sys-color-surface-variant: #43474f;
+    --md-sys-color-on-surface-variant: #c4c6d0;
+    --md-sys-color-inverse-surface: #e3e2e7;
+    --md-sys-color-inverse-on-surface: #2f3034;
+    --md-sys-color-outline: #8e909a;
+    --md-sys-color-outline-variant: #43474f;
+    --md-sys-color-shadow: #000000;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-surface-tint: #a9c7ff;
+    --md-sys-color-primary: #a9c7ff;
+    --md-sys-color-on-primary: #0a305f;
+    --md-sys-color-primary-container: #a4c2fa;
+    --md-sys-color-on-primary-container: #0d3261;
+    --md-sys-color-inverse-primary: #405f90;
+    --md-sys-color-secondary: #bcc7df;
+    --md-sys-color-on-secondary: #263144;
+    --md-sys-color-secondary-container: #333d51;
+    --md-sys-color-on-secondary-container: #c6d1e9;
+    --md-sys-color-tertiary: #ffe3fc;
+    --md-sys-color-on-tertiary: #49204e;
+    --md-sys-color-tertiary-container: #e6afe7;
+    --md-sys-color-on-tertiary-container: #4b2250;
+    --md-sys-color-error: #ffb4ab;
+    --md-sys-color-on-error: #690005;
+    --md-sys-color-error-container: #93000a;
+    --md-sys-color-on-error-container: #ffdad6;
+  }
+}

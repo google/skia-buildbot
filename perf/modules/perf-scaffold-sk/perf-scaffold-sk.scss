@@ -4,7 +4,11 @@ perf-scaffold-sk app-sk {
   --sidebar-width: 130px;
 
   main {
-    width: calc(100vw - var(--sidebar-width));
+    // We don't want to use 100vw since that includes the scrollbar width as
+    // well which brings a unnecessary horizontal scroller.
+    // 99vw carries all the contents without any change whatsoever removing
+    // the redundant horizontal scroller.
+    width: calc(99vw - var(--sidebar-width));
   }
 
   aside#sidebar {

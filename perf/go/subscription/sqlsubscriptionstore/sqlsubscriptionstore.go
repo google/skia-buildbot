@@ -5,6 +5,7 @@ package sqlsubscriptionstore
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
@@ -82,6 +83,9 @@ func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, re
 		&sub.BugCcEmails,
 		&sub.ContactEmail,
 	); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		return nil, skerr.Wrapf(err, "Failed to load subscription.")
 	}
 	return sub, nil

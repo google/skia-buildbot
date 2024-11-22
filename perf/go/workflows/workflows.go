@@ -1,7 +1,7 @@
 package workflows
 
 import (
-	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
+	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 // Workflow name definitions.
@@ -17,7 +17,7 @@ const (
 
 type ProcessCulpritParam struct {
 	CulpritServiceUrl string
-	Commits           []*pb.Commit
+	Commits           []*pinpoint_proto.Commit
 	AnomalyGroupId    string
 }
 
@@ -30,6 +30,8 @@ type MaybeTriggerBisectionParam struct {
 	AnomalyGroupServiceUrl string
 	CulpritServiceUrl      string
 	AnomalyGroupId         string
+	GroupingTaskQueue      string
+	PinpointTaskQueue      string
 }
 
 type MaybeTriggerBisectionResult struct {

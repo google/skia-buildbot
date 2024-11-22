@@ -513,9 +513,9 @@ func (_m *GerritInterface) GetIssueProperties(_a0 context.Context, _a1 int64) (*
 	return r0, r1
 }
 
-// GetPatch provides a mock function with given fields: _a0, _a1, _a2
-func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string) (string, error) {
-	ret := _m.Called(_a0, _a1, _a2)
+// GetPatch provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string, _a3 string) (string, error) {
+	ret := _m.Called(_a0, _a1, _a2, _a3)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPatch")
@@ -523,17 +523,17 @@ func (_m *GerritInterface) GetPatch(_a0 context.Context, _a1 int64, _a2 string) 
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string) (string, error)); ok {
-		return rf(_a0, _a1, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, string) (string, error)); ok {
+		return rf(_a0, _a1, _a2, _a3)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64, string) string); ok {
-		r0 = rf(_a0, _a1, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, int64, string, string) string); ok {
+		r0 = rf(_a0, _a1, _a2, _a3)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int64, string) error); ok {
-		r1 = rf(_a0, _a1, _a2)
+	if rf, ok := ret.Get(1).(func(context.Context, int64, string, string) error); ok {
+		r1 = rf(_a0, _a1, _a2, _a3)
 	} else {
 		r1 = ret.Error(1)
 	}

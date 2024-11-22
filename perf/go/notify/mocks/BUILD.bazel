@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
+        "NotificationDataProvider.go",
         "Notifier.go",
         "Transport.go",
     ],
@@ -12,6 +13,7 @@ go_library(
         "//perf/go/alerts",
         "//perf/go/clustering2",
         "//perf/go/git/provider",
+        "//perf/go/notify/common",
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//mock",
     ],

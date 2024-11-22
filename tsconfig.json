@@ -5,12 +5,17 @@
     "module": "commonjs",
     "lib": ["DOM", "ES2017"],
     "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "strict": true,
     "target": "es2017",
     "declaration": true
   },
+  "types": [
+    "google.visualization",
+  ],
   "exclude": [
     // Exclude the //_bazel_* symlinks. This Prevents the following VSCode error:
     //

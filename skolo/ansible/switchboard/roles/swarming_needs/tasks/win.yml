@@ -57,6 +57,17 @@
     - '{{ ansible_hostname }}\chrome-bot'
     action: add
 
+- name: Give Swarming (via the chrome-bot user) permission to create symlinks (required for Bazel).
+  # https://docs.ansible.com/ansible/latest/collections/ansible/windows/win_user_right_module.html
+  win_user_right:
+    # List of possible values:
+    # https://learn.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment
+    name: SeCreateSymbolicLinkPrivilege
+    users:
+    - Users
+    - '{{ ansible_hostname }}\chrome-bot'
+    action: add
+
 - name: Delete old metadata server from hosts file if applicable.
   # Based on
   # https://skia.googlesource.com/buildbot/+/f90b188b889759a0646ac296320a4d73ca32542a/skolo/win/ansible/skolo-credentials.yml#18.

@@ -3,6 +3,7 @@ package regression
 import (
 	"context"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -16,10 +17,10 @@ type Store interface {
 	Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*AllRegressionsForCommit, error)
 
 	// SetHigh sets the ClusterSummary for a high regression at the given commit and alertID.
-	SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, error)
+	SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, high *clustering2.ClusterSummary) (bool, string, error)
 
 	// SetLow sets the ClusterSummary for a low regression at the given commit and alertID.
-	SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, error)
+	SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *frame.FrameResponse, low *clustering2.ClusterSummary) (bool, string, error)
 
 	// TriageLow sets the triage status for the low cluster at the given commit and alertID.
 	TriageLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr TriageStatus) error
@@ -39,6 +40,16 @@ type Store interface {
 	// Given a list of regression IDs (only in the regression2store),
 	// return a list of regressions.
 	GetByIDs(ctx context.Context, ids []string) ([]*Regression, error)
+
+	// GetNotificationId returns the notificationId for the regression at the given commit number for the alert.
+	GetNotificationId(ctx context.Context, commitNumber types.CommitNumber, alertID string) (string, error)
+
+	// GetOldestCommit returns the commit with the lowest commit number
+	GetOldestCommit(ctx context.Context) (*types.CommitNumber, error)
+
+	// DeleteByCommit deletes a regression from the Regression table via the CommitNumber.
+	// Use with caution.
+	DeleteByCommit(ctx context.Context, commitNumber types.CommitNumber, tx pgx.Tx) error
 }
 
 // FullSummary describes a single regression.

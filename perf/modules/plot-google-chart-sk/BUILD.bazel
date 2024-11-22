@@ -1,0 +1,97 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":plot-google-chart-sk-demo",
+)
+
+sk_element(
+    name = "plot-google-chart-sk",
+    sk_element_deps = [
+        ":v-resizable-box-sk_ts_lib",
+        ":side-panel-sk_ts_lib",
+    ],
+    ts_deps = [
+        "//:node_modules/lit-html",  # keep
+        "//:node_modules/@google-web-components/google-chart",
+        "//:node_modules/@lit/context",
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/dataframe:dataframe_context_ts_lib",
+        "//perf/modules/dataframe:index_ts_lib",
+        "//perf/modules/dataframe:traceset_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "plot-google-chart-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "plot-google-chart-sk-demo",
+    html_file = "plot-google-chart-sk-demo.html",
+    scss_entry_point = "plot-google-chart-sk-demo.scss",
+    sk_element_deps = [":plot-google-chart-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_entry_point = "plot-google-chart-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "plot-google-chart-sk_puppeteer_test",
+    src = "plot-google-chart-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "plot-google-chart-sk_test",
+    src = "plot-google-chart-sk_test.ts",
+    deps = [
+        ":plot-google-chart-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+    ],
+)
+
+sk_element(
+    name = "v-resizable-box-sk_ts_lib",
+    ts_deps = ["//:node_modules/lit"],
+    ts_srcs = ["v-resizable-box-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+
+sk_element(
+    name = "side-panel-sk_ts_lib",
+    ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//:node_modules/@lit/context",  # keep
+        "//perf/modules/dataframe:dataframe_context_ts_lib",
+        "//perf/modules/dataframe:index_ts_lib",
+        "//perf/modules/dataframe:traceset_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
+    ],
+    ts_srcs = ["side-panel-sk.ts"],
+    visibility = ["//visibility:public"],
+)

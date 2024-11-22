@@ -1,5 +1,4 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "replaybackends",
@@ -10,23 +9,10 @@ go_library(
         "//cabe/go/backends",
         "//go/skerr",
         "//go/sklog",
-        "//go/swarming",
+        "//go/swarming/v2:swarming",
         "//perf/go/perfresults",
         "@com_github_bazelbuild_remote_apis_sdks//go/pkg/client",
-        "@org_chromium_go_luci//common/api/swarming/swarming/v1:swarming",
-    ],
-)
-
-go_test(
-    name = "replaybackends_test",
-    srcs = ["replaybackends_test.go"],
-    data = ["@cabe_replay_data//:all_files"],
-    embed = [":replaybackends"],
-    race = "on",
-    deps = [
-        "//bazel/go/bazel",
-        "//perf/go/perfresults",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
+        "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

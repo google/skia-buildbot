@@ -1,0 +1,15 @@
+# Configures an RPi with everything it needs to run under switchboard.
+- hosts: fleet_rpis
+  user: chrome-bot
+  gather_facts: true
+
+  tasks:
+    - name: Install Swarming needs.
+      import_role:
+        name: swarming_needs
+    - name: Turn off wifi and bluetooth.
+      import_role:
+        name: rfkill
+    - name: Rotate logs
+      import_role:
+        name: logrotate

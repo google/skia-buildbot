@@ -1,6 +1,9 @@
 import './index';
 import { expect } from 'chai';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest,
+} from '../../../infra-sk/modules/test_util';
 import { ImageCompareSk } from './image-compare-sk';
 import { ImageCompareSkPO } from './image-compare-sk_po';
 
@@ -47,6 +50,12 @@ describe('image-compare-sk', () => {
         'example.com#aDigest',
         'example.com#bDigest',
       ]);
+    });
+
+    it('emits an image_compare_size_toggled event when the image is clicked', async () => {
+      const sizeToggledEvent = eventPromise('image_compare_size_toggled', 100);
+      await imageCompareSkPO.clickImage(0);
+      await sizeToggledEvent;
     });
   });
 

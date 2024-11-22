@@ -9,16 +9,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/gold-client/go/mocks"
 )
 
 func TestGetWithRetries_OneAttempt_Success(t *testing.T) {
-
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
-	mh.On("Get", url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
+	const url = "example.com"
+	mh.On("Get", testutils.AnyContext, url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	b, err := getWithRetries(ctx, url)
@@ -30,10 +30,10 @@ func TestGetWithRetries_MultipleAttempts_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
-	mh.On("Get", url).Return(nil, errors.New("http.Client error")).Once()
-	mh.On("Get", url).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil).Once()
-	mh.On("Get", url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
+	const url = "example.com"
+	mh.On("Get", testutils.AnyContext, url).Return(nil, errors.New("http.Client error")).Once()
+	mh.On("Get", testutils.AnyContext, url).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil).Once()
+	mh.On("Get", testutils.AnyContext, url).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil).Once()
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	b, err := getWithRetries(ctx, url)
@@ -45,8 +45,8 @@ func TestGetWithRetries_MultipleAttempts_Error(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
-	mh.On("Get", url).Return(httpResponse("Should be ignored.", "404 Not found", http.StatusNotFound), nil)
+	const url = "example.com"
+	mh.On("Get", testutils.AnyContext, url).Return(httpResponse("Should be ignored.", "404 Not found", http.StatusNotFound), nil)
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	_, err := getWithRetries(ctx, url)
@@ -59,11 +59,11 @@ func TestPost_Success(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
+	const url = "example.com"
 	contentType := "text/plain"
 	body := strings.NewReader("Payload")
 
-	mh.On("Post", url, contentType, body).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil)
+	mh.On("Post", testutils.AnyContext, url, contentType, body).Return(httpResponse("Hello, world!", "200 OK", http.StatusOK), nil)
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	b, err := post(ctx, url, contentType, body)
@@ -76,11 +76,11 @@ func TestPost_HttpClientError_ReturnsError(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
+	const url = "example.com"
 	contentType := "text/plain"
 	body := strings.NewReader("Payload")
 
-	mh.On("Post", url, contentType, body).Return(nil, errors.New("http.Client error"))
+	mh.On("Post", testutils.AnyContext, url, contentType, body).Return(nil, errors.New("http.Client error"))
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	_, err := post(ctx, url, contentType, body)
@@ -93,11 +93,11 @@ func TestPost_InternalServerError_ReturnsError(t *testing.T) {
 	mh := &mocks.HTTPClient{}
 	defer mh.AssertExpectations(t)
 
-	url := "example.com"
+	const url = "example.com"
 	contentType := "text/plain"
 	body := strings.NewReader("Payload")
 
-	mh.On("Post", url, contentType, body).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil)
+	mh.On("Post", testutils.AnyContext, url, contentType, body).Return(httpResponse("Should be ignored.", "500 Internal Server Error", http.StatusInternalServerError), nil)
 
 	ctx := WithContext(context.Background(), nil, mh, nil)
 	_, err := post(ctx, url, contentType, body)

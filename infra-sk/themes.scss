@@ -354,6 +354,11 @@ to see how these styles apply to title bars and sidebars.
     background-color: var(--surface-2dp);
   }
 
+  md-switch {
+    --md-switch-selected-focus-handle-color: var(--md-sys-color-on-primary);
+    --md-switch-selected-hover-handle-color: white;
+  }
+
   error-toast-sk toast-sk {
     border-radius: 4px;
     background: var(--error-container);

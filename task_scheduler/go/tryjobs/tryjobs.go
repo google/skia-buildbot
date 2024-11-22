@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/pubsub"
@@ -81,6 +80,8 @@ const (
 	// buildAlreadyFinishedErr is a substring of the error message returned by
 	// Buildbucket when we call UpdateBuild after the build has finished.
 	buildAlreadyFinishedErr = "cannot update an ended build"
+
+	metricJobQueueLength = "task_scheduler_jc_job_queue_length"
 )
 
 var (
@@ -345,6 +346,106 @@ func (t *TryJobIntegrator) findJobForBuild(ctx context.Context, id int64) (*type
 	return nil, nil
 }
 
+type jobQueue struct {
+	queue []*types.Job
+	mtx   sync.Mutex
+	m     metrics2.Int64Metric
+}
+
+func newJobQueue(rs types.RepoState) *jobQueue {
+	return &jobQueue{
+		queue: make([]*types.Job, 0, 50 /* approximate number of try jobs per RepoState/CL */),
+		m: metrics2.GetInt64Metric(metricJobQueueLength, map[string]string{
+			"repo":      rs.Repo,
+			"revision":  rs.Revision,
+			"issue":     rs.Issue,
+			"patchset":  rs.Patchset,
+			"patchrepo": rs.PatchRepo,
+			"server":    rs.Server,
+		}),
+	}
+}
+
+func (q *jobQueue) Enqueue(job *types.Job) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	// Prevent processing the same job multiple times if it's already queued.
+	// Queue length will max out at the number of try jobs on a given CL, so
+	// this should be significantly less expensive than processing the job
+	// twice.
+	for _, old := range q.queue {
+		if old.Id == job.Id {
+			sklog.Infof("Job %s (build %d) is already queued; skipping.", job.Id, job.BuildbucketBuildId)
+			return
+		}
+	}
+	q.queue = append(q.queue, job)
+	q.m.Update(int64(len(q.queue)))
+	sklog.Infof("Enqueued job %s (build %d) for %+v, %d others in queue", job.Id, job.BuildbucketBuildId, job.RepoState, len(q.queue))
+}
+
+func (q *jobQueue) Dequeue() *types.Job {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	rv := q.queue[0]
+	q.queue = q.queue[1:]
+	q.m.Update(int64(len(q.queue)))
+	return rv
+}
+
+func (q *jobQueue) Len() int {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	return len(q.queue)
+}
+
+type jobQueues struct {
+	queues map[types.RepoState]*jobQueue
+	mtx    sync.Mutex
+	workFn func(*types.Job)
+}
+
+func (q *jobQueues) Enqueue(job *types.Job) {
+	sklog.Infof("Enqueue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	jobQueue, ok := q.queues[job.RepoState]
+	if !ok {
+		sklog.Infof("Creating new queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+		jobQueue = newJobQueue(job.RepoState)
+		q.queues[job.RepoState] = jobQueue
+	}
+	jobQueue.Enqueue(job)
+	if !ok {
+		go func() {
+			for {
+				job := jobQueue.Dequeue()
+				// workFn modifies the RepoState to set the actual commit hash
+				// after syncing. We need to grab a copy of it pre-modification
+				// so that we can delete the correct queue when finished.
+				rs := job.RepoState
+				sklog.Infof("Dequeue job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
+				q.workFn(job)
+
+				// Lock the outer mutex before the inner one, to ensure that
+				// no other thread is trying to add to this queue while we're
+				// removing it. Doing so after we're finished removing the queue
+				// will just add a new one, but re-adding the queue after we're
+				// done is fine.
+				q.mtx.Lock()
+				if jobQueue.Len() == 0 {
+					sklog.Infof("Deleting empty queue for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, rs)
+					delete(q.queues, rs)
+					util.LogErr(jobQueue.m.Delete())
+					q.mtx.Unlock()
+					return
+				}
+				q.mtx.Unlock()
+			}
+		}()
+	}
+}
+
 func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	// The code in startJob makes the assumption that we'll come back to the job
 	// and try again if requests to Buildbucket fail for transient-looking
@@ -354,42 +455,38 @@ func (t *TryJobIntegrator) startJobsLoop(ctx context.Context) {
 	// because it is short enough not to cause significant lag in handling try
 	// jobs but hopefully long enough that any transient errors are resolved
 	// before we try again.
-	jobsCh := t.db.ModifiedJobsCh(ctx)
+	modJobsCh := t.db.ModifiedJobsCh(ctx)
 	ticker := time.NewTicker(time.Minute)
 	tickCh := ticker.C
 	doneCh := ctx.Done()
+
+	q := &jobQueues{
+		queues: map[types.RepoState]*jobQueue{},
+		workFn: func(job *types.Job) {
+			if err := t.startJob(ctx, job); err != nil {
+				sklog.Errorf("Failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
+			}
+		},
+	}
 	for {
 		select {
-		case jobs := <-jobsCh:
-			sklog.Infof("Start processing jobs from modified jobs channel.")
+		case jobs := <-modJobsCh:
 			for _, job := range jobs {
-				sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
-			}
-			for _, job := range jobs {
-				if job.Status != types.JOB_STATUS_REQUESTED {
-					continue
-				}
-				if err := t.startJob(ctx, job); err != nil {
-					sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
+				if job.Status == types.JOB_STATUS_REQUESTED {
+					sklog.Infof("Found job %s (build %d) via modified jobs channel", job.Id, job.BuildbucketBuildId)
+					q.Enqueue(job)
 				}
 			}
-			sklog.Infof("Done processing jobs from modified jobs channel.")
 		case <-tickCh:
-			sklog.Infof("Start processing jobs from periodic DB poll, cache updated %s ago.", human.Duration(time.Now().Sub(t.jCache.LastUpdated())))
 			jobs, err := t.jCache.RequestedJobs()
 			if err != nil {
 				sklog.Errorf("failed retrieving Jobs: %s", err)
 			} else {
 				for _, job := range jobs {
 					sklog.Infof("Found job %s (build %d) via periodic DB poll", job.Id, job.BuildbucketBuildId)
-				}
-				for _, job := range jobs {
-					if err := t.startJob(ctx, job); err != nil {
-						sklog.Errorf("failed to start job %s (build %d): %s", job.Id, job.BuildbucketBuildId, err)
-					}
+					q.Enqueue(job)
 				}
 			}
-			sklog.Infof("Done processing jobs from periodic DB poll.")
 		case <-doneCh:
 			ticker.Stop()
 			return
@@ -416,13 +513,13 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		return skerr.Wrapf(err, "failed loading job from DB")
 	}
 	if updatedJob.Status != types.JOB_STATUS_REQUESTED {
-		sklog.Infof("Job %s (build %d) has already started; skipping", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Job %s (build %d) has already started; skipping: %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		return nil
 	}
 
-	sklog.Infof("Starting job %s (build %d); lease key: %d", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey)
+	sklog.Infof("Starting job %s (build %d); lease key: %d, %+v", job.Id, job.BuildbucketBuildId, job.BuildbucketLeaseKey, job.RepoState)
 	startJobHelper := func() error {
-		sklog.Infof("Retrieving repo state information for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Retrieving repo state information for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		repoGraph, err := t.getRepo(job.Repo)
 		if err != nil {
 			return skerr.Wrapf(err, "unable to find repo %s", job.Repo)
@@ -448,11 +545,11 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		}
 
 		// Create a Job.
-		sklog.Infof("GetOrCacheRepoState for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("GetOrCacheRepoState for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		if _, err := t.chr.GetOrCacheRepoState(ctx, job.RepoState); err != nil {
 			return skerr.Wrapf(err, "failed to obtain JobSpec")
 		}
-		sklog.Infof("Reading tasks cfg for job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Reading tasks cfg for job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		cfg, cachedErr, err := t.taskCfgCache.Get(ctx, job.RepoState)
 		if err != nil {
 			return err
@@ -474,7 +571,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		// Determine if this is a manual retry of a previously-run try job. If
 		// so, set IsForce to ensure that we don't immediately de-duplicate all
 		// of its tasks.
-		sklog.Infof("Determining whether job %s (build %d) is a manual retry", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Determining whether job %s (build %d) is a manual retry: %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		prevJobs, err := t.jCache.GetJobsByRepoState(job.Name, job.RepoState)
 		if err != nil {
 			return skerr.Wrap(err)
@@ -482,7 +579,7 @@ func (t *TryJobIntegrator) startJob(ctx context.Context, job *types.Job) error {
 		if len(prevJobs) > 0 {
 			job.IsForce = true
 		}
-		sklog.Infof("Ready to start job %s (build %d)", job.Id, job.BuildbucketBuildId)
+		sklog.Infof("Ready to start job %s (build %d): %+v", job.Id, job.BuildbucketBuildId, job.RepoState)
 		return nil
 	}
 

@@ -3,6 +3,7 @@
 package cdb
 
 //go:generate bazelisk run --config=mayberemote //:go -- run ./tosql
+//go:generate bazelisk run --config=mayberemote //:go -- run ./tosql --schemaTarget spanner
 
 import (
 	"context"

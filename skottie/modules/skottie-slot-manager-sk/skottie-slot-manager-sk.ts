@@ -16,7 +16,7 @@
  *
  */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottieColorEventDetail } from '../skottie-color-input-sk/skottie-color-input-sk';
 import { colorToHex, hexToColor } from '../helpers/color';

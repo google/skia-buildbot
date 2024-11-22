@@ -10,7 +10,7 @@
  *
  * @event fiddle-success is emitted when a run of a fiddle has completed successfully.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../textarea-numbers-sk';
 import '../../../elements-sk/modules/checkbox-sk';

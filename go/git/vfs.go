@@ -15,7 +15,7 @@ import (
 )
 
 // VFS returns a vfs.FS using Git for the given revision.
-func (g GitDir) VFS(ctx context.Context, ref string) (*FS, error) {
+func VFS(ctx context.Context, g GitDir, ref string) (*FS, error) {
 	hash, err := g.RevParse(ctx, "--verify", ref+"^{commit}")
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -34,11 +34,11 @@ type FS struct {
 
 // Open implements vfs.FS.
 func (fs *FS) Open(_ context.Context, name string) (vfs.File, error) {
-	repoRoot, err := filepath.Abs(string(fs.g))
+	repoRoot, err := filepath.Abs(fs.g.Dir())
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	absPath, err := filepath.Abs(filepath.Join(string(fs.g), name))
+	absPath, err := filepath.Abs(filepath.Join(fs.g.Dir(), name))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -71,7 +71,6 @@ type File struct {
 	path   string
 
 	// These are cached to avoid repeated calls to Git.
-	cachedFileInfo fs.FileInfo
 	cachedContents []byte
 
 	// reader is used for repeated calls to Read().

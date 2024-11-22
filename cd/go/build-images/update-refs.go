@@ -148,9 +148,12 @@ func findRegexesAndReplaces(image *SingleImageInfo, digest string) ([]*regexp.Re
 	ymlRegex := regexp.MustCompile(fmt.Sprintf(`%s@sha256:[a-f0-9]+`, image.Image))
 	ymlReplace := fmt.Sprintf("%s@%s", image.Image, digest)
 
+	ymlTagRegex := regexp.MustCompile(fmt.Sprintf(`%s@tag:[a-zA-Z0-9_\-.]+`, image.Image))
+	ymlTagReplace := fmt.Sprintf("%s@tag:%s", image.Image, image.Tag)
+
 	// Replace Bazel container_pull specifications.
 	cpRegex, cpReplace := bazelRegexAndReplaceForContainerPull(image, digest)
-	return []*regexp.Regexp{ymlRegex, cpRegex}, []string{ymlReplace, cpReplace}
+	return []*regexp.Regexp{ymlRegex, ymlTagRegex, cpRegex}, []string{ymlReplace, ymlTagReplace, cpReplace}
 }
 
 func bazelRegexAndReplaceForContainerPull(image *SingleImageInfo, digest string) (*regexp.Regexp, string) {

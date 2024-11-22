@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/perf/go/perfresults"
 )
@@ -94,13 +95,27 @@ func TestReadChart_ReadAggregatedValues(t *testing.T) {
 	test("null case", "fake benchmark", "fake chart", "max")
 }
 
+func TestReadValuesForAllCharts_HappyPath(t *testing.T) {
+	c := perfCASClient{
+		provider: mockedProvider{},
+	}
+	valuesByChart, err := c.ReadValuesForAllCharts(context.Background(), "rendering.desktop", []*apipb.CASReference{{}}, "")
+	require.NoError(t, err)
+	require.Equal(t, valuesByChart, map[string][]float64{
+		"thread_total_rendering_cpu_time_per_frame": {12.9322},
+		"tasks_per_frame_browser":                   {0.3917, 0.34},
+		"empty_samples":                             nil,
+		"Compositing.Display.DrawToSwapUs":          {169.9406, 169.9406, 206.3219, 654.8641},
+	})
+}
+
 func TestAggData_NonBlankData_AggData(t *testing.T) {
 	testData := perfresults.Histogram{
 		SampleValues: []float64{8, 2, -9, 15, 4},
 	}
 	test := func(name string, expected float64) {
 		t.Run(name, func(t *testing.T) {
-			ans, ok := aggregationMapping[name]
+			ans, ok := perfresults.AggregationMapping[name]
 			assert.True(t, ok)
 			assert.InDelta(t, expected, ans(testData), 1e-6)
 		})

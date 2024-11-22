@@ -6,7 +6,7 @@
  * only display one.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { MultiZoomSk } from '../multi-zoom-sk/multi-zoom-sk';
@@ -202,16 +202,25 @@ export class ImageCompareSk extends ElementSk {
   private toggleFullSizeLeftImage(): void {
     this._fullSizeLeftImage = !this._fullSizeLeftImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
   }
 
   private toggleFullSizeDiffImage(): void {
     this._fullSizeDiffImage = !this._fullSizeDiffImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
   }
 
   private toggleFullSizeRightImage(): void {
     this._fullSizeRightImage = !this._fullSizeRightImage;
     this._render();
+    this._dispatchImageSizeToggledEvent();
+  }
+
+  private _dispatchImageSizeToggledEvent(): void {
+    this.dispatchEvent(
+      new CustomEvent('image_compare_size_toggled', { bubbles: true })
+    );
   }
 }
 

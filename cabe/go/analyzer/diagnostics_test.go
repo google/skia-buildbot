@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,20 +17,20 @@ import (
 func TestDiagnostics_AnalysisDiagnostics(t *testing.T) {
 	d := newDiagnostics()
 
-	d.excludeSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+	d.excludeSwarmingTask(&apipb.TaskRequestMetadataResponse{
 		TaskId: "task-id-0",
 	}, "missing data")
-	d.excludeSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+	d.excludeSwarmingTask(&apipb.TaskRequestMetadataResponse{
 		TaskId: "task-id-0",
 	}, "an extra reason to exclude this same task")
 
-	d.includeSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+	d.includeSwarmingTask(&apipb.TaskRequestMetadataResponse{
 		TaskId: "task-id-1",
 	})
-	d.includeSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+	d.includeSwarmingTask(&apipb.TaskRequestMetadataResponse{
 		TaskId: "task-id-3",
 	})
-	d.includeSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
+	d.includeSwarmingTask(&apipb.TaskRequestMetadataResponse{
 		TaskId: "task-id-4",
 	})
 

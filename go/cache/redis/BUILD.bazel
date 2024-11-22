@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "redis",
+    srcs = ["redis.go"],
+    importpath = "go.skia.org/infra/go/cache/redis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cache",
+        "//go/sklog",
+        "@com_github_redis_go_redis_v9//:go-redis",
+        "@com_google_cloud_go_redis//apiv1",
+        "@com_google_cloud_go_redis//apiv1/redispb",
+    ],
+)

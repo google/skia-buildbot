@@ -1,15 +1,19 @@
 {
     "URL": "https://widevine-cdm-perf.corp.goog",
+    "landing_page_rel_path": "/m/",
     "allowed_hosts": [],
     "trace_sample_proportion": 1.0,
     "contact": "browser-perf-engprod@google.com",
     "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
     "fetch_chrome_perf_anomalies": true,
+    "use_regression2_schema": true,
     "filter_parent_traces": true,
     "feedback_url": "http://go/berf-skia-feedback",
     "chat_url": "http://go/berf-skia-chat",
     "notify_config": {
-        "notifications": "none"
+        "notifications": "markdown_issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

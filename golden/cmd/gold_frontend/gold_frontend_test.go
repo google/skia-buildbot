@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/metrics2"
+
+	"go.skia.org/infra/golden/go/config/validation"
 	"go.skia.org/infra/golden/go/web"
 )
 
@@ -96,4 +98,11 @@ func TestAddJSONRoute_InvalidRoute_Panics(t *testing.T) {
 	test("", "/foo", "Unrecognized JSON RPC route format: /foo")
 	test("", "/foo/", "Unrecognized JSON RPC route format: /foo/")
 	test("", "/foo/bar", "Unrecognized JSON RPC route format: /foo/bar")
+}
+
+func TestLoadExistingConfigs_Valid(t *testing.T) {
+	var cfg frontendServerConfig
+	err := validation.ValidateServiceConfigs("frontend", validation.AllInstances, &cfg)
+	require.NoError(t, err)
+	assert.NotZero(t, cfg, "Config object should not be nil.")
 }

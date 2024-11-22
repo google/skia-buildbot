@@ -17,7 +17,7 @@
  *   contains a list of digests that are selected.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import * as d3Force from 'd3-force';
 import * as d3Select from 'd3-selection';
 import { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';

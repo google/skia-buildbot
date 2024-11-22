@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/pinpoint/go/common"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -51,7 +52,7 @@ func assertModifiedDepsEqual(t *testing.T, expected, target []*pb.Commit) {
 }
 
 func TestNewCombinedCommit_WithDeps_ReturnCombinedCommit(t *testing.T) {
-	main := NewChromiumCommit("1")
+	main := common.NewChromiumCommit("1")
 	webrtc := &pb.Commit{
 		Repository: "webrtc",
 		GitHash:    "2",
@@ -61,7 +62,7 @@ func TestNewCombinedCommit_WithDeps_ReturnCombinedCommit(t *testing.T) {
 		GitHash:    "3",
 	}
 
-	cc := NewCombinedCommit(main, webrtc, v8)
+	cc := common.NewCombinedCommit(main, webrtc, v8)
 	assert.Equal(t, "1", cc.Main.GitHash)
 	assert.Equal(t, 2, len(cc.ModifiedDeps))
 }
@@ -165,14 +166,14 @@ func TestFindDepsCommit_OnNonExistingRepo_ShouldReturnError(t *testing.T) {
 }
 
 func TestCombinedCommitKey_MainNil_ReturnsEmptyString(t *testing.T) {
-	cc := &CombinedCommit{}
+	cc := &common.CombinedCommit{}
 
 	expected := cc.Clone().Key()
 	assert.Equal(t, expected, cc.Key())
 }
 
 func TestCombinedCommitKey_GivenDEPS_ReturnsCombinedString(t *testing.T) {
-	cc := NewCombinedCommit(&pb.Commit{GitHash: "hash1"}, &pb.Commit{GitHash: "hash2"}, &pb.Commit{GitHash: "hash3"})
+	cc := common.NewCombinedCommit(&pb.Commit{GitHash: "hash1"}, &pb.Commit{GitHash: "hash2"}, &pb.Commit{GitHash: "hash3"})
 
 	expected := cc.Clone().Key()
 	assert.Equal(t, expected, cc.Key())
@@ -191,8 +192,8 @@ func TestFindMidCombinedCommit_NoModifiedDeps_ValidMidpointFromMain(t *testing.T
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc)
 
-	start := NewCombinedCommit(NewChromiumCommit(startGitHash))
-	end := NewCombinedCommit(NewChromiumCommit(endGitHash))
+	start := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash))
+	end := common.NewCombinedCommit(common.NewChromiumCommit(endGitHash))
 
 	res, err := m.FindMidCombinedCommit(ctx, start, end)
 	require.NoError(t, err)
@@ -282,8 +283,8 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
 
-	start := NewCombinedCommit(NewChromiumCommit(startGitHash))
-	end := NewCombinedCommit(NewChromiumCommit(endGitHash))
+	start := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash))
+	end := common.NewCombinedCommit(common.NewChromiumCommit(endGitHash))
 
 	// no modified deps in start and end, meaning we go through the regular workflow of searching
 	// for midpoint in chromium.
@@ -304,12 +305,12 @@ func TestFindMidCombinedCommit_WithModifiedDeps_NextCandidateInModifiedDeps(t *t
 	wResp := generateCommitResponse(5)
 	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
 
-	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wStartGitHash,
 			Repository: webrtcUrl,
 		})
-	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wEndGitHash,
 			Repository: webrtcUrl,
@@ -379,12 +380,12 @@ deps = {
 	c := mockhttpclient.NewURLMock().Client()
 	m := New(ctx, c).WithRepo(webrtcUrl, wgc).WithRepo(v8Url, v8gc)
 
-	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wStartGitHash,
 			Repository: webrtcUrl,
 		})
-	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wEndGitHash,
 			Repository: webrtcUrl,
@@ -448,12 +449,12 @@ deps = {
 	// no more candidates to go through.
 	v8gc.On("LogFirstParent", testutils.AnyContext, "3", "4").Return(v8resp, nil)
 
-	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wStartGitHash,
 			Repository: webrtcUrl,
 		})
-	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wEndGitHash,
 			Repository: webrtcUrl,
@@ -465,6 +466,97 @@ deps = {
 	assert.NoError(t, err)
 	// equality check through key
 	assert.Equal(t, start.Key(), res.Key())
+}
+
+func TestFindMidCombinedCommit_StartIsLastCommitInDEPS_ReturnsStartAsMidpoint(t *testing.T) {
+	ctx := context.Background()
+	wStartGitHash := "1"
+	wEndGitHash := "2"
+
+	// Test prep for webrtc repository mocks
+	wgc := &mocks.GitilesRepo{}
+	wResp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
+	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
+
+	sampleDeps := `
+vars = {
+  'webrtc_git': 'https://webrtc.googlesource.com',
+  'webrtc_rev': '1',
+}
+deps = {
+  'src/third_party/webrtc': {
+    'url': '{webrtc_git}/src.git@{webrtc_rev}',
+  },
+}
+	`
+	// This should be invoked as it fills modified deps for the end commit.
+	gc := &mocks.GitilesRepo{}
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return([]byte(sampleDeps), nil)
+
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
+		&pb.Commit{
+			GitHash:    wStartGitHash,
+			Repository: webrtcUrl,
+		})
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wEndGitHash))
+
+	c := mockhttpclient.NewURLMock().Client()
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
+	res, err := m.FindMidCombinedCommit(ctx, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, start.Key(), res.Key())
+}
+
+func TestFindMidCombinedCommit_EndIsFirstCommitInDEPS_ReturnsStartAsMidpoint(t *testing.T) {
+	ctx := context.Background()
+	wStartGitHash := "1"
+	wEndGitHash := "1"
+
+	// Test prep for webrtc repository mocks
+	wgc := &mocks.GitilesRepo{}
+	wResp := []*vcsinfo.LongCommit{
+		{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash: "2",
+			},
+		},
+	}
+	wgc.On("LogFirstParent", testutils.AnyContext, wStartGitHash, wEndGitHash).Return(wResp, nil)
+
+	sampleDeps := `
+vars = {
+  'webrtc_git': 'https://webrtc.googlesource.com',
+  'webrtc_rev': '1',
+}
+deps = {
+  'src/third_party/webrtc': {
+    'url': '{webrtc_git}/src.git@{webrtc_rev}',
+  },
+}
+	`
+	// This should be invoked as it fills modified deps for the end commit.
+	gc := &mocks.GitilesRepo{}
+	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return([]byte(sampleDeps), nil)
+
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash))
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wEndGitHash),
+		&pb.Commit{
+			GitHash:    wEndGitHash,
+			Repository: webrtcUrl,
+		})
+	origStart := start.Clone()
+
+	c := mockhttpclient.NewURLMock().Client()
+	m := New(ctx, c).WithRepo(ChromiumSrcGit, gc).WithRepo(webrtcUrl, wgc)
+	res, err := m.FindMidCombinedCommit(ctx, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, origStart.Key(), res.Key())
 }
 
 func TestFindMidCombinedCommit_ComparisonWithUnbalancedModifiedDeps_ValidNextCandidate(t *testing.T) {
@@ -491,8 +583,8 @@ deps = {
 	gc := &mocks.GitilesRepo{}
 	gc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wStartGitHash).Return([]byte(sampleDeps), nil)
 
-	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash))
-	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash))
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wEndGitHash,
 			Repository: webrtcUrl,
@@ -569,7 +661,7 @@ deps = {
 		},
 	}
 	randomGc.On("LogFirstParent", testutils.AnyContext, "3", "5").Return(randomGcResp, nil)
-	start := NewCombinedCommit(NewChromiumCommit(chromiumStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(chromiumStartGitHash),
 		&pb.Commit{
 			GitHash:    "1",
 			Repository: webrtcUrl,
@@ -579,7 +671,7 @@ deps = {
 			Repository: v8Url,
 		},
 	)
-	end := NewCombinedCommit(NewChromiumCommit(chromiumStartGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(chromiumStartGitHash),
 		&pb.Commit{
 			GitHash:    "2",
 			Repository: webrtcUrl,
@@ -622,13 +714,13 @@ deps = {
 	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wStartGitHash).Return([]byte(sampleDeps), nil)
 	wgc.On("ReadFileAtRef", testutils.AnyContext, "DEPS", wEndGitHash).Return(nil, skerr.Fmt("Request got status \"404 Not Found\""))
 
-	start := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wStartGitHash,
 			Repository: webrtcUrl,
 		},
 	)
-	end := NewCombinedCommit(NewChromiumCommit(wStartGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(wStartGitHash),
 		&pb.Commit{
 			GitHash:    wEndGitHash,
 			Repository: webrtcUrl,
@@ -644,7 +736,7 @@ deps = {
 
 func TestFillModifiedDeps_EmptyEndCommitModifiedDeps(t *testing.T) {
 	startGitHash := "1"
-	start := NewCombinedCommit(NewChromiumCommit(startGitHash),
+	start := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash),
 		&pb.Commit{
 			GitHash:    startGitHash,
 			Repository: webrtcUrl,
@@ -668,7 +760,7 @@ deps = {
   },
 }
   `
-	end := NewCombinedCommit(NewChromiumCommit(startGitHash))
+	end := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash))
 
 	chromiumClient := &mocks.GitilesRepo{}
 	chromiumClient.On("ReadFileAtRef", testutils.AnyContext, "DEPS", startGitHash).Return([]byte(endCommitDeps), nil)
@@ -710,9 +802,9 @@ deps = {
   },
 }
   `
-	start := NewCombinedCommit(NewChromiumCommit(startGitHash))
+	start := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash))
 
-	end := NewCombinedCommit(NewChromiumCommit(startGitHash),
+	end := common.NewCombinedCommit(common.NewChromiumCommit(startGitHash),
 		&pb.Commit{
 			GitHash:    startGitHash,
 			Repository: webrtcUrl,

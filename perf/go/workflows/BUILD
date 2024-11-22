@@ -5,5 +5,5 @@ go_library(
     srcs = ["workflows.go"],
     importpath = "go.skia.org/infra/perf/go/workflows",
     visibility = ["//visibility:public"],
-    deps = ["//perf/go/culprit/proto/v1"],
+    deps = ["//pinpoint/proto/v1:proto"],
 )

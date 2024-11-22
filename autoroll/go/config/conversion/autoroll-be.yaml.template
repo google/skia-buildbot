@@ -40,7 +40,6 @@ spec:
             - "--firestore_instance=production"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir={{if .kubernetes.disk}}/data{{else}}/tmp{{end}}"
             {{range .kubernetes.extraFlags}}- "{{.}}"
             {{end}}- "--namespaced-email-service"

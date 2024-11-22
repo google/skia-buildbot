@@ -7,6 +7,6 @@ export interface Status {
 
 export type EMail = string;
 
-export type Role = 'viewer' | 'editor' | 'admin' | 'bisecter' | 'buildbucket' | '';
+export type Role = 'viewer' | 'editor' | 'admin' | 'bisecter' | 'buildbucket' | 'luci_config' | '';
 
 export type Roles = Role[] | null;

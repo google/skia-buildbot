@@ -58,7 +58,7 @@ func main() {
 
 	ctx := context.Background()
 
-	gd := git.GitDir(*repo)
+	gd := git.CheckoutDir(*repo)
 	ts, err := google.DefaultTokenSource(ctx, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)

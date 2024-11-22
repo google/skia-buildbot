@@ -25,6 +25,9 @@ window.perf = {
   trace_format: '',
   need_alert_action: false,
   bug_host_url: '',
+  git_repo_url: '',
+  keys_for_commit_range: [],
+  image_tag: 'fake-tag',
 };
 
 Date.now = () => Date.parse('2020-03-22T00:00:00.000Z');
@@ -117,12 +120,10 @@ fetchMock.get('path:/_/initpage/', () => ({
   msg: '',
 }));
 
-document.querySelector('.component-goes-here')!.innerHTML =
-  '<trybot-page-sk></trybot-page-sk>';
+document.querySelector('.component-goes-here')!.innerHTML = '<trybot-page-sk></trybot-page-sk>';
 
 $$<QuerySk>('query-sk')!.current_query = 'config=8888';
-$$<CommitDetailPickerSk>('commit-detail-picker-sk')!.selection =
-  CommitNumber(43390);
+$$<CommitDetailPickerSk>('commit-detail-picker-sk')!.selection = CommitNumber(43390);
 fetchMock.flush(true).then(() => {
   $$<HTMLDivElement>('#load-complete')!.innerHTML = '<pre>Finished</pre>';
 });

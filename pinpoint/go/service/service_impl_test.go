@@ -8,19 +8,22 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.skia.org/infra/pinpoint/go/service/mocks"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client_mock "go.skia.org/infra/temporal/go/client/mocks"
 	temporal_mocks "go.temporal.io/sdk/mocks"
 	"golang.org/x/time/rate"
 )
 
-func newTemporalMock(t *testing.T) (*mocks.TemporalProvider, *temporal_mocks.Client) {
+func newTemporalMock(t *testing.T) (*tpr_client_mock.TemporalProvider, *temporal_mocks.Client) {
 	tcm := &temporal_mocks.Client{}
 	tcm.Mock.Test(t)
 
-	tpm := mocks.NewTemporalProvider(t)
-	t.Cleanup(func() { tcm.AssertExpectations(t) })
+	tpm := tpr_client_mock.NewTemporalProvider(t)
+	t.Cleanup(func() {
+		tcm.AssertExpectations(t)
+		tpm.AssertExpectations(t)
+	})
 	return tpm, tcm
 }
 
@@ -33,11 +36,8 @@ func newWorkflowRunMock(t *testing.T, wid string) *temporal_mocks.WorkflowRun {
 }
 
 func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
-	counter := int32(0)
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {
-		counter += 1
-	}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	const fakeID = "fake-job-id"
 	wfm := newWorkflowRunMock(t, fakeID)
@@ -52,13 +52,12 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 	})
 	assert.Equal(t, fakeID, resp.JobId)
 	assert.NoError(t, err)
-	assert.EqualValues(t, 1, counter, "CleanUp should be called exactly once.")
 }
 
 func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 	ctx := context.Background()
-	svc := New(tpm, rate.NewLimiter(rate.Every(time.Hour), 1))
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
 
 	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
 	// invalid request should be rate limited.
@@ -80,6 +79,143 @@ func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 	assert.ErrorContains(t, err, "git hash is empty")
 
 	// TODO(b/322047067): Add requests with invalid fields
+}
+
+func TestScheduleCulpritFinder_ValidRequest_ReturnJobID(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil).Once()
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:      "fake-start",
+		EndGitHash:        "fake-end",
+		Benchmark:         "speedometer3",
+		Story:             "Speedometer3",
+		Chart:             "Score",
+		Configuration:     "mac-m1_mini_2020-perf",
+		AggregationMethod: "avg", // technically should use mean, but catapult will use avg
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
+}
+
+func TestScheduleCulpritFinder_RateLimitedRequests_ReturnError(t *testing.T) {
+	tpm, tcm := newTemporalMock(t)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil).Once()
+
+	const fakeID = "fake-job-id"
+	wfm := newWorkflowRunMock(t, fakeID)
+	tcm.On("ExecuteWorkflow", mock.Anything, mock.Anything, workflows.CulpritFinderWorkflow, mock.Anything).Return(wfm, nil)
+
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
+
+	resp, err := svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	})
+	assert.Equal(t, fakeID, resp.JobId)
+	assert.NoError(t, err)
+
+	resp, err = svc.ScheduleCulpritFinder(ctx, &pb.ScheduleCulpritFinderRequest{})
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "unable to fulfill")
+}
+
+func TestScheduleCulpritFinder_BadRequestParams_JobBlocked(t *testing.T) {
+	test := func(name string, req *pb.ScheduleCulpritFinderRequest, errMsg string) {
+		t.Run(name, func(t *testing.T) {
+			tpm, _ := newTemporalMock(t)
+
+			ctx := context.Background()
+			svc := New(tpm, rate.NewLimiter(rate.Inf, 0))
+
+			resp, err := svc.ScheduleCulpritFinder(ctx, req)
+			assert.Nil(t, resp)
+			assert.ErrorContains(t, err, errMsg)
+		})
+	}
+
+	req := &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty benchmark", req, "benchmark is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty git hash", req, "git hash is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "",
+		Chart:         "Score",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty story", req, "story is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "",
+		Configuration: "mac-m1_mini_2020-perf",
+	}
+	test("empty chart", req, "chart is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "",
+	}
+	test("empty config", req, "configuration (aka the device name) is empty")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:  "fake-start",
+		EndGitHash:    "fake-end",
+		Benchmark:     "speedometer3",
+		Story:         "Speedometer3",
+		Chart:         "Score",
+		Configuration: "android-pixel-fold-perf",
+	}
+	test("invalid bot", req, "bot (android-pixel-fold-perf) is currently unsupported")
+
+	req = &pb.ScheduleCulpritFinderRequest{
+		StartGitHash:      "fake-start",
+		EndGitHash:        "fake-end",
+		Benchmark:         "speedometer3",
+		Story:             "Speedometer3",
+		Chart:             "Score",
+		Configuration:     "mac-m1_mini_2020-perf",
+		AggregationMethod: "fake-aggregation-method",
+	}
+	test("invalid aggregation method", req, "aggregation method (fake-aggregation-method) is not available")
 }
 
 func TestQueryBisection_ExistingJob_ShouldReturnDetails(t *testing.T) {
@@ -135,7 +271,7 @@ func TestCancelJob_InvalidInput_ReturnError(t *testing.T) {
 
 func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("internal error"))
 
@@ -150,7 +286,7 @@ func TestCancelJob_JobCancelFailed_ReturnError(t *testing.T) {
 
 func TestCancelJob_JobCancelled_ReturnSucceed(t *testing.T) {
 	tpm, tcm := newTemporalMock(t)
-	tpm.On("NewClient").Return(tcm, func() {}, nil)
+	tpm.On("NewClient", mock.Anything, mock.Anything).Return(tcm, func() {}, nil)
 
 	tcm.On("CancelWorkflow", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 

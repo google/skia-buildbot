@@ -8,329 +8,306 @@
  *
  * @example
  */
-import { html } from 'lit-html';
-import * as d3Scale from 'd3-scale';
-import { load } from '@google-web-components/google-chart/loader';
-import { define } from '../../../elements-sk/modules/define';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '@google-web-components/google-chart';
+import '@material/web/iconbutton/icon-button';
+import '../dataframe/dataframe_context';
+
+import { GoogleChart } from '@google-web-components/google-chart';
+import { MdIconButton } from '@material/web/iconbutton/icon-button.js';
+import { consume } from '@lit/context';
+import { html, LitElement, PropertyValues } from 'lit';
+import { ref, createRef } from 'lit/directives/ref.js';
+import { property } from 'lit/decorators.js';
+import { when } from 'lit/directives/when.js';
+
+import { SummaryChartOptions } from '../common/plot-builder';
+import { ColumnHeader } from '../json';
 import {
-  Area,
-  MousePosition,
-  Point,
-  Rect,
-} from '../plot-simple-sk/plot-simple-sk';
-import '@google-web-components/google-chart/';
-import { ChartData, DrawSummaryChart } from '../common/plot-builder';
+  dataframeLoadingContext,
+  dataframeRepoContext,
+  DataFrameRepository,
+  DataTable,
+  dataTableContext,
+} from '../dataframe/dataframe_context';
+import { range } from '../dataframe/index';
+import { define } from '../../../elements-sk/modules/define';
 
-const ZOOM_RECT_COLOR = '#0007';
+import { style } from './plot-summary-sk.css';
+import { HResizableBoxSk } from './h_resizable_box_sk';
 
-// Describes the zoom in terms of x-axis source values.
-export type ZoomRange = [number, number] | null;
 export interface PlotSummarySkSelectionEventDetails {
   start: number;
   end: number;
-  valueStart: number;
-  valueEnd: number;
+  value: range;
+  domain: 'commit' | 'date';
 }
 
-export class PlotSummarySk extends ElementSk {
+const dayInSeconds = 60 * 60 * 24;
+
+export class PlotSummarySk extends LitElement {
+  static styles = style;
+
+  @consume({ context: dataframeRepoContext })
+  private dfRepo?: DataFrameRepository;
+
+  @consume({ context: dataframeLoadingContext, subscribe: true })
+  @property({ reflect: true, type: Boolean })
+  private loading = false;
+
+  @property({ reflect: true })
+  domain: 'commit' | 'date' = 'commit';
+
+  @consume({ context: dataTableContext, subscribe: true })
+  @property({ attribute: false })
+  data: DataTable = null;
+
+  @property({ attribute: true })
+  selectedTrace: string | null = null;
+
+  // load ~1Q worth of data as developer cycles tend to
+  // revolve around quarterly milestones. Users are likely
+  // to want to see historical data in this increment.
+  @property({ type: Number })
+  loadingChunk = 90 * dayInSeconds;
+
+  @property({ type: Boolean })
+  hasControl: boolean = false;
+
   constructor() {
-    super(PlotSummarySk.template);
+    super();
+    this.addEventListeners();
   }
 
-  private overlayCtx: CanvasRenderingContext2D | null = null;
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (
+      changedProperties.has('data') ||
+      changedProperties.has('selectedTrace') ||
+      changedProperties.has('domain')
+    ) {
+      this.updateDataView(this.data, this.selectedTrace);
+    }
+  }
 
-  /** The window.devicePixelRatio. */
-  private scale: number = 1.0;
+  private async updateDataView(dt: DataTable, trace: string | null) {
+    await this.updateComplete;
+    const plot = this.plotElement.value;
+    if (!plot || !dt) {
+      if (dt) {
+        console.warn(
+          'The dataframe is not assigned because the element is not ready. Try call `await this.updateComplete` first.'
+        );
+      }
+      return;
+    }
 
-  // This contains a mapping of the coordinates on the summary bar to
-  // the corresponding values. This helps us translate the position of
-  // the selected area to the corresponding values that they represent.
-  private valuesRange: d3Scale.ScaleLinear<number, number> | null = null;
+    const view = new google.visualization.DataView(dt!);
+    const ncols = view.getNumberOfColumns();
 
-  // Array denoting the start and end points of the current selection.
-  private selectionRange: ZoomRange = null;
+    // The first two columns are the commit position and the date.
+    const cols = [this.domain === 'commit' ? 0 : 1];
+    for (let index = 2; index < ncols; index++) {
+      const traceKey = view.getColumnLabel(index);
+      if (!trace || trace === traceKey) {
+        cols.push(index);
+      }
+    }
 
-  // Array denoting the diffs between the currently clicked point and
-  // the start and end points of the current selection. This is used
-  // to maintain the size of the selection when user drags it left/right.
-  private lockedSelectionDiffs: [number, number] | null = null;
-
-  // Denotes if the user is currently making a selection.
-  private isCurrentlySelecting: boolean = false;
-
-  // Tracks the mouse position.
-  private currentMousePosition: MousePosition | null = null;
+    view.setColumns(cols);
+    plot.view = view;
+    plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
+  }
 
   // The div element that will host the plot on the summary.
-  private plotElement: HTMLElement | null = null;
+  private plotElement = createRef<GoogleChart>();
 
-  // The canvas element that is used for the selection overlay.
-  private overlayCanvas: HTMLCanvasElement | null = null;
+  // The resizable selection box to draw the selection.
+  private selectionBox = createRef<HResizableBoxSk>();
 
-  private static template = (ele: PlotSummarySk) => html`
-    <div
-      id="plot"
-      class="plot"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></div>
-    <canvas
-      id="overlay"
-      class="overlay"
-      width=${ele.width * window.devicePixelRatio}
-      height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
-  `;
+  // The current selected value saved for re-adjusting selection box.
+  // The google chart reloads and redraws themselves asynchronously, we need to
+  // save the selection range and apply it after we received the `ready` event.
+  private cachedSelectedValueRange: range | null = null;
 
-  async connectedCallback(): Promise<void> {
+  private controlTemplate(side: 'right' | 'left') {
+    const chunk = this.loadingChunk;
+    const direction = side === 'left' ? -1 : 1;
+
+    const onClickLoad = async ({ target }: Event) => {
+      const btn = target as MdIconButton;
+      await this.dfRepo?.extendRange(chunk * direction);
+      btn.selected = false;
+    };
+
+    return html`
+      ${when(
+        this.hasControl && this.dfRepo,
+        () =>
+          html` <md-icon-button
+            toggle
+            ?disabled="${this.loading}"
+            class="load-btn"
+            @click=${onClickLoad}>
+            <md-icon>keyboard_double_arrow_${side}</md-icon>
+            <div slot="selected" class="loader"></div>
+          </md-icon-button>`
+      )}
+    `;
+  }
+
+  protected render() {
+    return html`
+      ${this.controlTemplate('left')}
+      <div class="container hover-to-show-link">
+        <google-chart
+          ${ref(this.plotElement)}
+          class="plot"
+          type="area"
+          @google-chart-ready=${this.onGoogleChartReady}>
+        </google-chart>
+        <h-resizable-box-sk
+          ${ref(this.selectionBox)}
+          @selection-changed=${this.onSelectionChanged}></h-resizable-box-sk>
+      </div>
+      ${this.controlTemplate('right')}
+    `;
+  }
+
+  connectedCallback() {
     super.connectedCallback();
-    this._render();
-    this.scale = window.devicePixelRatio;
-    this.plotElement = this.querySelector<HTMLElement>('#plot')!;
-    this.overlayCanvas = this.querySelector<HTMLCanvasElement>('#overlay')!;
-    this.overlayCtx = this.overlayCanvas.getContext('2d');
-
-    // globalAlpha denotes the transparency of the fill. Setting this to 50%
-    // allows us to show the highlight plus the portion of the plot highlighted.
-    this.overlayCtx!.globalAlpha = 0.5;
-
-    this.valuesRange = d3Scale
-      .scaleLinear()
-      .domain([0, this.width])
-      .range([this.valuesStart, this.valuesEnd]);
-    this.addEventListeners();
-    this.drawSummaryRect();
-
-    window.requestAnimationFrame(this.raf.bind(this));
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      entries.forEach(() => {
+        // The google chart needs to redraw when it is resized.
+        this.plotElement.value?.redraw();
+        this.requestUpdate();
+      });
+    });
+    resizeObserver.observe(this);
   }
 
-  // Display the chart data on the plot.
-  public async DisplayChartData(chartData: ChartData) {
-    await load({ packages: ['corechart'] });
-    DrawSummaryChart(
-      this.plotElement!,
-      chartData,
-      this.width,
-      this.height,
-      getComputedStyle(this)
+  private onGoogleChartReady() {
+    // Update the selectionBox because the chart might get updated.
+    if (!this.cachedSelectedValueRange) {
+      return;
+    }
+    this.selectedValueRange = this.cachedSelectedValueRange;
+  }
+
+  private onSelectionChanged(e: CustomEvent) {
+    const valueRange = this.convertToValueRange(e.detail, this.domain) || range(0, 0);
+    this.cachedSelectedValueRange = valueRange;
+    this.dispatchEvent(
+      new CustomEvent<PlotSummarySkSelectionEventDetails>('summary_selected', {
+        detail: { start: 0, end: 0, value: valueRange, domain: this.domain },
+        bubbles: true,
+      })
     );
   }
 
-  // Clear the current selection.
-  private clearSelection(): void {
-    this.overlayCtx!.clearRect(
-      0,
-      0,
-      this.overlayCanvas!.width,
-      this.overlayCanvas!.height
+  // Converts from the value range to the coordinates range.
+  private convertToCoordsRange(valueRange: range | null, domain: 'date' | 'commit') {
+    const chart = this.chartLayout;
+    if (!chart || !valueRange) {
+      return null;
+    }
+    const isCommitScale = domain === 'commit';
+    const startX = chart?.getXLocation(
+      isCommitScale ? valueRange.begin : (new Date(valueRange.begin * 1000) as any)
     );
+    const endX = chart?.getXLocation(
+      isCommitScale ? valueRange.end : (new Date(valueRange.end * 1000) as any)
+    );
+
+    return range(startX, endX);
   }
 
-  // Listener for the mouse down event.
-  private mouseDownListener(e: MouseEvent) {
-    e.preventDefault();
-    const point = this.eventToCanvasPt(e);
-    this.currentMousePosition = {
-      clientX: point.x,
-      clientY: point.y,
+  // Converts from the value range to the coordinates range.
+  private convertToValueRange(coordsRange: range | null, domain: 'date' | 'commit') {
+    const chart = this.chartLayout;
+    if (!chart || !coordsRange) {
+      return null;
+    }
+    const range: range = {
+      begin: chart.getHAxisValue(coordsRange.begin),
+      end: chart.getHAxisValue(coordsRange.end),
     };
+    // The date is saved in Date, we need to convert to the UNIX timestamp.
+    if (domain === 'date') {
+      range.begin = (range.begin as any).getTime() / 1000;
+      range.end = (range.end as any).getTime() / 1000;
+    }
+    return range;
+  }
 
-    if (this.inSelectedArea(point)) {
-      // Implement the drag functionality to drag the selected area around.
-      // This means the user is dragging the current selection around.
-      // Let's get the left and right diffs between the current mouse position
-      // and the ends of the selection range. As the mouse moves, we will update
-      // the selection range so that these diffs remain constant.
-      const leftDiff =
-        this.currentMousePosition.clientX - this.selectionRange![0];
-      const rightDiff =
-        this.selectionRange![1] - this.currentMousePosition.clientX;
-      this.lockedSelectionDiffs = [leftDiff, rightDiff];
+  // Get the current selected value range.
+  get selectedValueRange(): range | null {
+    const chart = this.chartLayout;
+    if (!chart) {
+      return { begin: 0, end: 0 };
+    }
+
+    const coordsRange = this.selectionBox.value?.selectionRange || null;
+    const valueRange = this.convertToValueRange(coordsRange, this.domain);
+    if (valueRange) {
+      return valueRange;
     } else {
-      // User is starting a new selection.
-      this.selectionRange = [point.x, point.x + 0.1];
-      this.isCurrentlySelecting = true;
+      return null;
     }
   }
 
-  // Listener for the mouse up event.
-  private mouseUpListener(e: MouseEvent) {
-    // Releasing the mouse means selection/dragging is done.
-    this.isCurrentlySelecting = false;
-    this.lockedSelectionDiffs = null;
-    if (this.selectionRange !== null) {
-      this.dispatchEvent(
-        new CustomEvent<PlotSummarySkSelectionEventDetails>(
-          'summary_selected',
-          {
-            detail: {
-              start: this.selectionRange[0],
-              end: this.selectionRange[1],
-              valueStart: this.valuesRange!(this.selectionRange[0]),
-              valueEnd: this.valuesRange!(this.selectionRange[1]),
-            },
-            bubbles: true,
-          }
-        )
-      );
+  // Set the current selected value range.
+  set selectedValueRange(range: range | null) {
+    this.cachedSelectedValueRange = range;
+
+    const chartRange = this.convertToCoordsRange(range, this.domain);
+    const box = this.selectionBox.value;
+    if (box) {
+      box.selectionRange = chartRange;
     }
   }
 
-  // Listener for the mouse move event.
-  private mouseMoveListener(e: MouseEvent) {
-    // Keep track of the user's mouse movements.
-    const point = this.eventToCanvasPt(e);
-    this.currentMousePosition = {
-      clientX: point.x,
-      clientY: point.y,
-    };
+  // Select the provided range on the plot-summary.
+  public Select(begin: ColumnHeader, end: ColumnHeader) {
+    const isCommitScale = this.domain === 'commit';
+    const col = isCommitScale ? 'offset' : 'timestamp';
+    this.selectedValueRange = { begin: begin[col], end: end[col] };
+  }
+
+  // Get the underlying ChartLayoutInterface.
+  // This provides API to inspect the traces and coordinates.
+  private get chartLayout(): google.visualization.ChartLayoutInterface | null {
+    const gchart = this.plotElement.value;
+    if (!gchart) {
+      return null;
+    }
+    const wrapper = gchart['chartWrapper'] as google.visualization.ChartWrapper;
+    if (!wrapper) {
+      return null;
+    }
+    const chart = wrapper.getChart();
+    return chart && (chart as google.visualization.CoreChartBase).getChartLayoutInterface();
   }
 
   // Add all the event listeners.
   private addEventListeners(): void {
-    this.addEventListener('mousedown', this.mouseDownListener);
-    this.addEventListener('mouseup', this.mouseUpListener);
-    this.addEventListener('mousemove', this.mouseMoveListener);
-  }
-
-  // Draw the summary rectangle outline.
-  private drawSummaryRect(): void {
-    const style = getComputedStyle(this);
-    this.overlayCtx!.lineWidth = 3.0;
-    this.overlayCtx!.strokeStyle = style.color;
-    this.overlayCtx!.strokeRect(0, 0, this.width, this.height);
-    this.overlayCtx!.save();
-  }
-
-  /** Mirrors the width attribute. */
-  get width(): number {
-    return +(this.getAttribute('width') || '0');
-  }
-
-  set width(val: number) {
-    this.setAttribute('width', val.toString());
-  }
-
-  /** Mirrors the height attribute. */
-  get height(): number {
-    return +(this.getAttribute('height') || '0');
-  }
-
-  set height(val: number) {
-    this.setAttribute('height', val.toString());
-  }
-
-  /** Mirrors the highlight_color attribute. */
-  get highlightColor(): string {
-    return this.getAttribute('highlight_color') || ZOOM_RECT_COLOR;
-  }
-
-  set highlightColor(val: string) {
-    this.setAttribute('highlight_color', val);
-  }
-
-  /** Mirrors the values_start attribute. */
-  get valuesStart(): number {
-    return +(this.getAttribute('values_start') || '0');
-  }
-
-  set valuesStart(val: number) {
-    this.setAttribute('values_start', val.toString());
-  }
-
-  /** Mirrors the values_end attribute. */
-  get valuesEnd(): number {
-    return +(this.getAttribute('values_end') || '0');
-  }
-
-  set valuesEnd(val: number) {
-    this.setAttribute('values_end', val.toString());
-  }
-
-  // Converts an event to a specific point
-  private eventToCanvasPt(e: MousePosition) {
-    const clientRect = this.overlayCtx!.canvas.getBoundingClientRect();
-    return {
-      x: (e.clientX - clientRect.left) * this.scale,
-      y: (e.clientY - clientRect.top) * this.scale,
-    };
-  }
-
-  // Draws the selection area.
-  private drawSelection(): void {
-    this.clearSelection();
-    if (this.selectionRange !== null) {
-      // Draw left line.
-      const startx = this.selectionRange[0];
-      this.drawVerticalLineAtPosition(startx);
-      // Draw the right line.
-      const endx = this.selectionRange[1];
-      this.drawVerticalLineAtPosition(endx);
-
-      // Shade the selected section.
-      this.overlayCtx!.beginPath();
-      this.overlayCtx!.fillStyle = this.highlightColor;
-      this.overlayCtx!.rect(startx, 0, endx - startx, this.height);
-      this.overlayCtx!.fill();
-    }
-  }
-
-  // Draw a vertical line at the given position
-  private drawVerticalLineAtPosition(x: number) {
-    // Start at the bottom of the rectangle
-    this.overlayCtx!.moveTo(x, 0);
-    this.overlayCtx!.lineTo(x, this.height);
-    this.overlayCtx!.stroke();
-  }
-
-  // Handles the animation depending on the current state.
-  private raf() {
-    // Always queue up our next raf first.
-    window.requestAnimationFrame(() => this.raf());
-
-    // Exit early if there is no ongoing activity.
-    if (this.currentMousePosition === null) {
-      return;
-    }
-
-    if (this.isCurrentlySelecting) {
-      // If the user is currently selecting an area, update the selection range
-      // array based on the current mouse position.
-      const startx = this.selectionRange![0];
-      let endx = this.currentMousePosition.clientX;
-      if (endx < startx) {
-        endx = startx;
+    // If the user toggles the theme to/from darkmode then redraw.
+    document.addEventListener('theme-chooser-toggle', () => {
+      // Update the options to trigger the redraw.
+      if (this.plotElement.value && this.data) {
+        this.plotElement.value!.options = SummaryChartOptions(getComputedStyle(this), this.domain);
       }
-      this.selectionRange![1] = endx;
-    } else if (this.lockedSelectionDiffs !== null) {
-      // User is dragging the current selection around.
-      // Update the selectionRange with the values that keeps these
-      // diffs constant wrt the current mouse position. Also account for the fact
-      // that the user may drag the selected area beyond the bounds of the rendered rect.
-      this.selectionRange![0] = Math.max(
-        0,
-        this.currentMousePosition.clientX - this.lockedSelectionDiffs![0]
-      );
-      this.selectionRange![1] = Math.min(
-        this.width,
-        this.currentMousePosition.clientX + this.lockedSelectionDiffs![1]
-      );
-    }
-
-    this.drawSelection();
-  }
-
-  // Checks if a point is inside the selected area.
-  private inSelectedArea(pt: Point): boolean {
-    if (this.selectionRange === null) {
-      return false;
-    }
-
-    return pt.x >= this.selectionRange[0] && pt.x < this.selectionRange[1];
+      this.requestUpdate();
+    });
   }
 }
 
 define('plot-summary-sk', PlotSummarySk);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'plot-summary-sk': PlotSummarySk;
+  }
+
+  interface GlobalEventHandlersEventMap {
+    summary_selected: CustomEvent<PlotSummarySkSelectionEventDetails>;
+  }
+}

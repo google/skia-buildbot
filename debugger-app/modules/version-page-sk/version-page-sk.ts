@@ -5,13 +5,14 @@
  * Shows links to all older versions of the debugger (which do not automatically update).
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
 
 const urls = [
+  'https://android-15-debugger.skia.org',
   'https://android-14-debugger.skia.org',
   'https://android-13-debugger.skia.org',
   'https://android-12-debugger.skia.org',

@@ -10,5 +10,8 @@ View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangelistID}}",
   ready_port: ":8000",
 
   K8S_CPU: "100m",
-  K8S_MEMORY: "100Mi"
+  K8S_MEMORY: "100Mi",
+
+  cache_corpora: ["infra"],
+  caching_frequency_minutes: 5
 }

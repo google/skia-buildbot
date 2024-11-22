@@ -24,11 +24,13 @@ export const startRequest = (
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   body: any,
   period: number,
-  spinner: SpinnerSk,
-  cb: callback | null
+  spinner?: SpinnerSk | null,
+  cb?: callback | null
 ): Promise<progress.SerializedProgress> =>
   new Promise<progress.SerializedProgress>((resolve, reject) => {
-    spinner.active = true;
+    if (spinner) {
+      spinner.active = true;
+    }
 
     // Regardless if this is the first fetch, or any of the subsequent polling
     // fetches, we do the same exact processing on the Promise, so consolidate all
@@ -54,12 +56,16 @@ export const startRequest = (
               );
             }, period);
           } else {
-            spinner.active = false;
+            if (spinner) {
+              spinner.active = false;
+            }
             resolve(json);
           }
         })
         .catch((msg) => {
-          spinner.active = false;
+          if (spinner) {
+            spinner.active = false;
+          }
           reject(msg);
         });
     };

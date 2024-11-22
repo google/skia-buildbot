@@ -1,0 +1,60 @@
+load("//infra-sk:index.bzl", "karma_test", "sk_demo_page_server", "sk_element", "sk_element_puppeteer_test", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":point-links-sk-demo",
+)
+
+sk_element(
+    name = "point-links-sk",
+    sass_srcs = ["point-links-sk.scss"],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "point-links-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "point-links-sk-demo",
+    html_file = "point-links-sk-demo.html",
+    scss_entry_point = "point-links-sk-demo.scss",
+    sk_element_deps = [":point-links-sk"],
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_entry_point = "point-links-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "point-links-sk_puppeteer_test",
+    src = "point-links-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "point-links-sk_test",
+    src = "point-links-sk_test.ts",
+    deps = [
+        ":point-links-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:test_util_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+)

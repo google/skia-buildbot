@@ -5,7 +5,7 @@
  * Main page for the tools application.
  *
  */
-import { TemplateResult, html } from 'lit-html';
+import { TemplateResult, html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/app-sk';

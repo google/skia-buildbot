@@ -11,6 +11,22 @@ explore-simple-sk {
 
   #selections {
     margin: 0 1em;
+
+    #closeQueryIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
+  }
+
+  #settings-button {
+    font-family: 'Material Icons';
   }
 
   #commits,
@@ -34,7 +50,7 @@ explore-simple-sk {
 
   .query-parts {
     display: flex;
-    height: 450px;
+    height: 400px;
   }
 
   .query-counts {
@@ -46,7 +62,7 @@ explore-simple-sk {
     flex-direction: column;
 
     #values {
-      height: 20em;
+      height: 13em;
     }
   }
 
@@ -79,6 +95,28 @@ explore-simple-sk {
       margin: 1.25em;
     }
 
+    paramset-sk {
+      flex: 1;
+
+      tr {
+        th:first-child {
+          width: 30%;
+        }
+
+        th:nth-child(2) {
+          width: 70%;
+        }
+      }
+    }
+
+    code {
+      flex: 1;
+    }
+
+    anomaly-sk {
+      flex: 1;
+    }
+
     display: flex;
   }
 
@@ -105,15 +143,42 @@ explore-simple-sk {
     display: none;
   }
 
-  #plot {
+  .chart-container {
     display: block;
     height: 600px;
     width: 100%;
   }
 
+  plot-simple-sk,
+  plot-google-chart-sk {
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  #selectSummaryTrace[hidden] {
+    display: none;
+  }
+
   #spin-overlay {
     position: relative;
     display: block;
+  }
+
+  md-outlined-button {
+    --md-outlined-button-container-shape: 4px;
+  }
+
+  md-dialog {
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+
+      md-switch {
+        margin-right: 8px;
+      }
+    }
   }
 
   #buttons,
@@ -122,14 +187,54 @@ explore-simple-sk {
     display: flex;
     align-items: center;
     gap: 8px;
+    height: 90px;
+    flex-grow: 1;
 
     button,
     checkbox-sk {
       margin: 0;
+      height: auto;
+      min-height: 40px;
     }
 
     [hidden] {
       display: none;
+    }
+
+    #zoomPan {
+      h3 {
+        font-size: 14px;
+        margin: 0;
+      }
+
+      #btnContainer {
+        button {
+          min-height: 0;
+
+          span {
+            font-size: 16px;
+            height: auto;
+            width: auto;
+          }
+        }
+      }
+    }
+  }
+
+  button#removeAll {
+    padding: 5px;
+    border: none;
+    cursor: pointer;
+    float: right;
+    margin-left: 10px;
+    margin-bottom: 30px;
+    margin-right: 30px;
+  }
+
+  #traceButtons {
+    checkbox-sk {
+      display: flex;
+      align-items: center;
     }
   }
 
@@ -158,6 +263,18 @@ explore-simple-sk {
     width: 100%;
     height: 100%;
     background: var(--surface-1dp);
+  }
+
+  #trace-details-container {
+    display: flex;
+    margin-bottom: 60px;
+    height: 40px;
+
+    div.icon-sk {
+      margin-right: 5px;
+      cursor: pointer;
+      display: none;
+    }
   }
 
   #trace_id {
@@ -219,6 +336,8 @@ explore-simple-sk {
   #query-dialog {
     overflow: auto;
     width: 90%;
+    margin-top: 60px;
+    height: 68vh;
 
     paramset-sk {
       display: inline-block;
@@ -255,6 +374,18 @@ explore-simple-sk {
   #bisect-dialog {
     overflow: auto;
     width: 45%;
+
+    #bisectCloseIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
 
     paramset-sk {
       display: inline-block;
@@ -326,9 +457,26 @@ explore-simple-sk {
     font-family: 'Courier New', Courier, monospace;
     font-size: 15px;
     color: var(--on-surface);
+    white-space: break-spaces;
+    word-wrap: break-word;
+    width: 90%;
   }
 
   button.navigation {
     padding: 0 4px;
+  }
+
+  #summaryPicker {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    padding-bottom: 16px;
+    height: 55px;
+    box-sizing: content-box;
+
+    label {
+      margin-bottom: 5px;
+      margin-left: 10px;
+    }
   }
 }

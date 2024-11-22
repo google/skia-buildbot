@@ -2,15 +2,9 @@ import fetchMock from 'fetch-mock';
 import { RevisionInfo } from '../json';
 import './index';
 
-document
-  .querySelector('revision-info-sk')!
-  .addEventListener('some-event-name', (e) => {
-    document.querySelector('#events')!.textContent = JSON.stringify(
-      e,
-      null,
-      '  '
-    );
-  });
+document.querySelector('revision-info-sk')!.addEventListener('some-event-name', (e) => {
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+});
 const revId = '12345';
 const response: RevisionInfo[] = [
   {
@@ -23,6 +17,10 @@ const response: RevisionInfo[] = [
     is_improvement: false,
     master: 'm1',
     test: 't1',
+    start_time: 1712026352,
+    end_time: 1712285552,
+    query: 'master=m1&bot=bot1&benchmark=b1&test=t1',
+    anomaly_ids: ['123', '456'],
   },
 ];
 

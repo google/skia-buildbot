@@ -13,7 +13,7 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/skia?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/skia?sslmode=disable",
     "tile_size": 256,
     "enable_follower_reads": true
   },
@@ -21,8 +21,8 @@
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-skia-production",
-      "subscription": "perf-ingestion-skia-production-cdb-prod",
+      "topic": "perf-ingestion-skia-production-restore",
+      "subscription": "perf-ingestion-skia-production-cdb-restore-prod",
       "sources": [
         "gs://skia-perf/nano-json-v1",
         "gs://skia-perf/task-duration",

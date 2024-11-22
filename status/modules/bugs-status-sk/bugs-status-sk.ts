@@ -4,7 +4,7 @@
  *
  * Custom element to display untriaged Skia bugs.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

@@ -25,6 +25,7 @@ go_library(
         "//golden/go/code_review/github_crs",
         "//golden/go/config",
         "//golden/go/ignore/sqlignorestore",
+        "//golden/go/search/caching",
         "//golden/go/sql",
         "//golden/go/sql/schema",
         "//golden/go/storage",
@@ -51,12 +52,14 @@ go_binary(
 go_test(
     name = "periodictasks_test",
     srcs = ["periodictasks_test.go"],
+    data = ["//golden/k8s-instances:periodictasks_configs"],
     embed = [":periodictasks_lib"],
     deps = [
         "//go/gcs",
         "//go/gcs/mocks",
         "//go/now",
         "//go/testutils",
+        "//golden/go/config/validation",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

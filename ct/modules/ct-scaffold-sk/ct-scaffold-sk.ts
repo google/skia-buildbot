@@ -14,7 +14,7 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

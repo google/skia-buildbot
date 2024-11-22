@@ -14,7 +14,7 @@
  * @attr {Number} end - The end of the time range in seconds since the epoch.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../calendar-input-sk';

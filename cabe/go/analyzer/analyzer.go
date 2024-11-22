@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
 
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/cabe/go/backends"
 	cpb "go.skia.org/infra/cabe/go/proto"
 	cabe_stats "go.skia.org/infra/cabe/go/stats"
@@ -415,9 +415,9 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 		ctx, span := trace.StartSpan(ctx, "Analyzer_extractTaskOutputs_control")
 		defer span.End()
 
-		controlDigests := map[int]*swarming.SwarmingRpcsCASReference{}
+		controlDigests := map[int]*apipb.CASReference{}
 		for n, t := range processedArms.control.tasks {
-			if t.taskInfo.TaskResult.State != taskCompletedState {
+			if t.taskInfo.TaskResult.State != apipb.TaskState_COMPLETED {
 				continue
 			}
 			controlDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
@@ -436,9 +436,9 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 		ctx, span := trace.StartSpan(ctx, "Analyzer_extractTaskOutputs_treatment")
 		defer span.End()
 
-		treatmentDigests := map[int]*swarming.SwarmingRpcsCASReference{}
+		treatmentDigests := map[int]*apipb.CASReference{}
 		for n, t := range processedArms.treatment.tasks {
-			if t.taskInfo.TaskResult.State != taskCompletedState {
+			if t.taskInfo.TaskResult.State != apipb.TaskState_COMPLETED {
 				continue
 			}
 			treatmentDigests[n] = t.taskInfo.TaskResult.CasOutputRoot
@@ -461,7 +461,7 @@ func (a *Analyzer) extractTaskOutputs(ctx context.Context, processedArms *proces
 }
 
 // returns a slice of maps of perfresults.PerfResults files keyed by benchmark name.
-func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int]*swarming.SwarmingRpcsCASReference) (map[int]map[string]perfresults.PerfResults, error) {
+func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int]*apipb.CASReference) (map[int]map[string]perfresults.PerfResults, error) {
 	ret := make(map[int]map[string]perfresults.PerfResults, len(outputs))
 	g, ctx := errgroup.WithContext(ctx)
 	if len(outputs) > maxReadCASPoolWorkers {
@@ -509,11 +509,11 @@ func (a *Analyzer) fetchOutputsFromReplicas(ctx context.Context, outputs map[int
 	return ret, nil
 }
 
-// Split swarming.SwarmingRpcsTaskRequestMetadatas into experiment arms and pair tasks according to how they should be
+// Split apipb.TaskRequestMetadataResponses into experiment arms and pair tasks according to how they should be
 // compared in the analysis/hypothesis testing phase.
 // The slice of tasks should be a complete list of all the tasks for an experiment, and they should
 // all have completed executing successfully.
-func (a *Analyzer) processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) (*processedExperimentTasks, error) {
+func (a *Analyzer) processPinpointTryjobTasks(tasks []*apipb.TaskRequestMetadataResponse) (*processedExperimentTasks, error) {
 	ret := &processedExperimentTasks{
 		treatment: &processedArmTasks{},
 		control:   &processedArmTasks{},
@@ -544,7 +544,7 @@ func (a *Analyzer) processPinpointTryjobTasks(tasks []*swarming.SwarmingRpcsTask
 			a.diagnostics.excludeSwarmingTask(task, msg)
 		}
 
-		if task.TaskResult.State != taskCompletedState {
+		if task.TaskResult.State != apipb.TaskState_COMPLETED {
 			msg := fmt.Sprintf("task result is in state %q, not %q", task.TaskResult.State, taskCompletedState)
 			a.diagnostics.excludeSwarmingTask(task, msg)
 		} else {

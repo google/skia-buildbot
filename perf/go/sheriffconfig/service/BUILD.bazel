@@ -9,10 +9,14 @@ go_library(
     deps = [
         "//go/luciconfig",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/alerts",
         "//perf/go/sheriffconfig/proto/v1",
         "//perf/go/sheriffconfig/validate",
         "//perf/go/subscription:store",
+        "//perf/go/subscription/proto/v1",
+        "//perf/go/types",
+        "@org_golang_google_protobuf//encoding/prototext",
     ],
 )
 
@@ -21,11 +25,17 @@ go_test(
     srcs = ["service_test.go"],
     embed = [":service"],
     deps = [
+        "//go/luciconfig",
         "//go/luciconfig/mocks",
+        "//go/testutils",
+        "//perf/go/alerts",
         "//perf/go/alerts/mock",
         "//perf/go/subscription/mocks",
+        "//perf/go/subscription/proto/v1",
+        "@com_github_google_go_cmp//cmp",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
-        "@org_chromium_go_luci//common/api/luci_config/config/v1:config",
+        "@org_golang_google_protobuf//testing/protocmp",
     ],
 )

@@ -6,7 +6,7 @@
  * data uploaded via TryJobs.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import * as human from '../../../infra-sk/modules/human';
 
 import { define } from '../../../elements-sk/modules/define';

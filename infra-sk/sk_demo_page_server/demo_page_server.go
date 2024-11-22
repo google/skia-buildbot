@@ -3,19 +3,95 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 const (
 	envPortFileBaseName = "port"
 )
+
+// A simple ResponseWriter wrapper that captures the response from the reverse proxy and prints its reponses for inspections.
+type ResponseWriterWrapper struct {
+	w          *http.ResponseWriter
+	body       *bytes.Buffer
+	statusCode *int
+}
+
+// NewResponseWriterWrapper static function creates a wrapper for the http.ResponseWriter
+func NewResponseWriterWrapper(w http.ResponseWriter) ResponseWriterWrapper {
+	var buf bytes.Buffer
+	var statusCode int = 200
+	return ResponseWriterWrapper{
+		w:          &w,
+		body:       &buf,
+		statusCode: &statusCode,
+	}
+}
+
+func (rww ResponseWriterWrapper) Write(buf []byte) (int, error) {
+	rww.body.Write(buf)
+	return (*rww.w).Write(buf)
+}
+
+// Header function overwrites the http.ResponseWriter Header() function
+func (rww ResponseWriterWrapper) Header() http.Header {
+	return (*rww.w).Header()
+
+}
+
+// WriteHeader function overwrites the http.ResponseWriter WriteHeader() function
+func (rww ResponseWriterWrapper) WriteHeader(statusCode int) {
+	(*rww.statusCode) = statusCode
+	(*rww.w).WriteHeader(statusCode)
+}
+
+func (rww ResponseWriterWrapper) String() string {
+	var buf bytes.Buffer
+
+	buf.WriteString("Response:\n")
+	buf.WriteString(fmt.Sprintf(" Status Code: %d\n", *(rww.statusCode)))
+
+	buf.WriteString("Headers:\n")
+	for k, v := range (*rww.w).Header() {
+		buf.WriteString(fmt.Sprintf("%s: %v\n", k, v))
+	}
+
+	buf.WriteString("Body:\n")
+	buf.WriteString(rww.body.String())
+	return buf.String()
+}
+
+func proxyHandler(remote *url.URL, p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL, r.Method)
+		log.Println(r.Header)
+
+		// Only do plain test response so we can inspect the content easily.
+		r.Header.Del("Accept-Encoding")
+		bbytes, _ := io.ReadAll(r.Body)
+		body := string(bbytes)
+		log.Println(body)
+		rw := NewResponseWriterWrapper(w)
+		nb := io.NopCloser(strings.NewReader(body))
+		r.Host = remote.Host
+		r.Body = nb
+		p.ServeHTTP(rw, r)
+		log.Println(rw.String())
+	}
+}
 
 func main() {
 	var (
@@ -39,9 +115,20 @@ func main() {
 
 	var (
 		listener   net.Listener
+		remote     *url.URL
 		actualPort int
 		err        error
 	)
+
+	// Provide an optional staging or prod endpoint that the the demo server reverse-proxied to.
+	// e.g. https://perf.luci.app, or https://v8-perf.skia.org
+	// Because there is no redirection or login, this needs to be publicly available.
+	envRemoteEndpoint := os.Getenv("ENV_REMOTE_ENDPOINT")
+	if envRemoteEndpoint != "" {
+		if remote, err = url.Parse(envRemoteEndpoint); err != nil {
+			panic(err)
+		}
+	}
 
 	// If the port is unspecified (i.e. 0), an unused port will be chosen by the OS.
 	if *port == 0 {
@@ -74,6 +161,13 @@ func main() {
 	}
 	fmt.Printf("Serving directory %s\n", assetsDirAbs)
 	fileServer := http.FileServer(http.Dir(*assetsDir))
+
+	if remote != nil {
+		fmt.Printf("Requests are reverse-proxied to: %s\n", remote.Hostname())
+		proxy := httputil.NewSingleHostReverseProxy(remote)
+		http.HandleFunc("/_/", proxyHandler(remote, proxy))
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Session cookie used by demo pages to determine whether they are being served by
 		// webpack-dev-server or by an sk_demo_page_server Bazel rule.
@@ -82,6 +176,15 @@ func main() {
 			Name:  "bazel",
 			Value: "true",
 		})
+
+		if remote != nil {
+			// This allows the frontend to skip mock.
+			http.SetCookie(w, &http.Cookie{
+				Name:  "proxy_endpoint",
+				Value: remote.Hostname(),
+			})
+		}
+
 		fileServer.ServeHTTP(w, r)
 	})
 

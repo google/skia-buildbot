@@ -130,7 +130,7 @@ describe('cluster-page-sk', () => {
   it('makes an RPC for a diff when the selection is changed to two digests', async () => {
     fetchMock.post('/json/v2/details', (url, opts) => {
       expect(opts.body).to.equal(
-        `{"digest":"${positiveDigest}","grouping":{"name":"some-test","source_type":"infra"}}`
+        `{"digest":"${positiveDigest}","grouping":{"name":"some-test2","source_type":"infra"}}`
       );
       return {
         status: 200,
@@ -140,14 +140,16 @@ describe('cluster-page-sk', () => {
 
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
 
-    fetchMock.get(
-      '/json/v2/diff?corpus=infra' +
-        `&left=${positiveDigest}` +
-        `&right=${negativeDigest}&test=some-test`,
-      {
-        'these-details': 'do not matter for this test',
-      }
-    );
+    fetchMock.post('/json/v2/diff', (url, opts) => {
+      // TODO(mingkong): check why these assertions do not take effect
+      expect(opts.body).to.equal(
+        `{"grouping":{"name":"some-test","source_type":"infra"},"left_digest":"${positiveDigest}","right_digest":"${negativeDigest}"}`
+      );
+      return {
+        status: 200,
+        body: { 'these-details': 'do not matter for this test' },
+      };
+    });
 
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
   });
@@ -206,7 +208,7 @@ describe('cluster-page-sk', () => {
         left: deepCopy(typicalDetails),
         right: deepCopy(typicalDetails.refDiffs?.pos)!,
       };
-      fetchMock.get('glob:/json/v2/diff*', digestComparison);
+      fetchMock.post('glob:/json/v2/diff*', digestComparison);
 
       endTask = eventPromise('end-task');
       await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);

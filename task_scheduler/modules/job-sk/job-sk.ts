@@ -8,7 +8,7 @@
  *
  * @example
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';

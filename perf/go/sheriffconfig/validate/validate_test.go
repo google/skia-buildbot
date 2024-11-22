@@ -19,16 +19,11 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "~.*-perf",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=~.*-perf",
 							},
-							Exclude: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-								},
+							Exclude: []string{
+								"master=ChromiumPerf",
 							},
 						},
 					},
@@ -41,12 +36,8 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=mac-perf&test=Speedometer2",
 							},
 						},
 					},
@@ -155,8 +146,8 @@ func TestValidateConfig_PatternWithAllEmptyFields(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{},
+							Match: []string{
+								"",
 							},
 						},
 					},
@@ -167,7 +158,32 @@ func TestValidateConfig_PatternWithAllEmptyFields(t *testing.T) {
 
 	err := ValidateConfig(config)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Pattern must have at least 1 explicit field declared.")
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Pattern must have at least 1 key declared.")
+}
+
+func TestValidateConfig_PatternWithExplicitEmptyFields(t *testing.T) {
+	config := &pb.SheriffConfig{
+		Subscriptions: []*pb.Subscription{
+			{
+				Name:         "Sub Test",
+				ContactEmail: "test1@google.com",
+				BugComponent: "A>B",
+				AnomalyConfigs: []*pb.AnomalyConfig{
+					{
+						Rules: &pb.Rules{
+							Match: []string{
+								"bot=&benchmark=",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := ValidateConfig(config)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Explicit value for key must be non-empty. Key: bot.")
 }
 
 func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
@@ -180,12 +196,8 @@ func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "~*)(mac-perf",
-									Test: "Speedometer2",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=~*)(mac-perf&test=Speedometer2",
 							},
 						},
 					},
@@ -196,7 +208,7 @@ func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 
 	err := ValidateConfig(config)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Invalid Regex for 'bot' field: *)(mac-perf.")
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Match Pattern at index 0: Invalid Regex for 'bot' key: *)(mac-perf.")
 }
 
 func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
@@ -209,18 +221,11 @@ func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "~.*-perf",
-									Test: "Speedometer2",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=~.*-perf&test=Speedometer2",
 							},
-							Exclude: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "bot2",
-								},
+							Exclude: []string{
+								"master=ChromiumPerf&bot=bot2",
 							},
 						},
 					},
@@ -231,7 +236,7 @@ func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 
 	err := ValidateConfig(config)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Exclude Pattern at index 0: Pattern must only have 1 explicit field declared.")
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Error for Anomaly Config at index 0: Error for Exclude Pattern at index 0: Pattern must only have 1 key declared.")
 }
 
 func TestValidateConfig_NoDuplicateNames(t *testing.T) {
@@ -244,12 +249,8 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=mac-perf&test=Speedometer2",
 							},
 						},
 					},
@@ -262,12 +263,8 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
-							Match: []*pb.Pattern{
-								{
-									Main: "ChromiumPerf",
-									Bot:  "mac-perf",
-									Test: "Speedometer2",
-								},
+							Match: []string{
+								"master=ChromiumPerf&bot=mac-perf&test=Speedometer2",
 							},
 						},
 					},

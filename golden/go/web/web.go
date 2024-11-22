@@ -10,7 +10,6 @@ import (
 	"image"
 	"image/png"
 	"net/http"
-	"net/http/pprof"
 	"net/url"
 	"path"
 	"sort"
@@ -507,40 +506,6 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSONResponse(w, ret)
-}
-
-// GroupingForTestHandler looks up and returns the grouping corresponding to a test. This RPC acts
-// as a bridge for clients that do not have access to grouping information (only Gold's details
-// page at the time of writing.)
-//
-// TODO(lovisolo): Delete this RPC once the details page, and all links to it, include the
-//
-//	necessary grouping information.
-func (wh *Handlers) GroupingForTestHandler(w http.ResponseWriter, r *http.Request) {
-	ctx, span := trace.StartSpan(r.Context(), "web_GroupingForTestHandler", trace.WithSampler(trace.AlwaysSample()))
-	defer span.End()
-
-	req := frontend.GroupingForTestRequest{}
-	if err := parseJSON(r, &req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
-		return
-	}
-
-	if req.TestName == "" {
-		http.Error(w, "Test name cannot be empty.", http.StatusBadRequest)
-		return
-	}
-
-	grouping, err := wh.getGroupingForTest(ctx, req.TestName)
-	if err != nil {
-		if skerr.Unwrap(err) == pgx.ErrNoRows {
-			http.Error(w, "Test not found.", http.StatusNotFound)
-			return
-		}
-		httputils.ReportError(w, err, "Unable to get grouping for test.", http.StatusInternalServerError)
-		return
-	}
-	sendJSONResponse(w, frontend.GroupingForTestResponse{Grouping: grouping})
 }
 
 // getGroupingForTest acts as a bridge for RPCs that only take in a test name, when they should
@@ -2948,33 +2913,4 @@ WHERE grouping_id = $1`
 		rv = append(rv, t)
 	}
 	return rv, nil
-}
-
-// MakeDebugRouter returns an http.Handler that serves debug information about goroutines, memory
-// usage, etc.
-func MakeDebugRouter() http.Handler {
-	router := chi.NewRouter()
-
-	// Convenience redirect.
-	//
-	// We use http.StatusFound (302) rather than http.StatusPermanentRedirect (308) because the
-	// latter causes the browser to cache the redirect, which is inconvenient during local
-	// development. For example, if the browser gets a 308 permanent redirect from
-	// http://localhost:8000 to http://localhost:8000/foo, it will cache it, and from that moment
-	// on it will always try to redirect http://localhost:8000 to http://localhost:8000/foo,
-	// even if the process listening on port 8000 is different at a different point in time.
-	router.Handle("/", http.RedirectHandler("/debug/pprof/", http.StatusFound))
-
-	// The links in the page served by pprof.Index break unless we serve that page from this
-	// specific path: "/debug/pprof/" (note the slash at the end).
-	router.Handle("/debug/pprof", http.RedirectHandler("/debug/pprof/", http.StatusFound))
-
-	router.HandleFunc("/debug/pprof/", pprof.Index)
-	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	router.HandleFunc("/debug/pprof/{profile}", pprof.Index)
-
-	return router
 }

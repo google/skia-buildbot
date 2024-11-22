@@ -8,7 +8,7 @@
  * </p>
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import JSZip from 'jszip';
 import { define } from '../../../../elements-sk/modules/define';
 import '../../skottie-dropdown-sk';

@@ -12,6 +12,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/jsonschema",
+        "//go/paramtools",
+        "//go/query",
         "//go/skerr",
         "//perf/go/types",
     ],
@@ -22,6 +24,7 @@ go_test(
     srcs = ["format_test.go"],
     embed = [":format"],
     deps = [
+        "//go/deepequal/assertdeep",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

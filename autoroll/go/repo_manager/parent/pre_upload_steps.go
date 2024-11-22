@@ -232,7 +232,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 			return fmt.Errorf("Error when copying %s from out to golden dir: %s", foundLicenseFileName, err)
 		}
 		// Step6: Capture diff of licenses_golden/${licenseFileName}.
-		licensesDiffOutput, err := git.GitDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, foundLicenseFileName))
+		licensesDiffOutput, err := git.CheckoutDir(licenseToolsDir).Git(ctx, "diff", "--no-ext-diff", filepath.Join(licensesGoldenDir, foundLicenseFileName))
 		if err != nil {
 			return fmt.Errorf("Error when seeing diff of golden %s: %s", foundLicenseFileName, err)
 		}
@@ -334,7 +334,7 @@ func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRe
 		return fmt.Errorf("Error when running gn_to_bp: %s", err)
 	}
 	for _, genFile := range android_skia_checkout.FilesGeneratedByGnToGp {
-		if _, err := git.GitDir(skiaDir).Git(ctx, "add", genFile); err != nil {
+		if _, err := git.CheckoutDir(skiaDir).Git(ctx, "add", genFile); err != nil {
 			// Some generated files may be ready in canaries but not
 			// submitted yet. So log warnings instead of returning
 			// errors here.
@@ -438,7 +438,7 @@ func ChromiumRollWebGPUCTS(ctx context.Context, env []string, client *http.Clien
 
 	sklog.Info("Running regenerate_internal_cts_html.py...")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Name: "vpython",
+		Name: "vpython3",
 		Args: []string{filepath.Join("third_party", "webgpu-cts", "scripts", "regenerate_internal_cts_html.py")},
 		Dir:  parentRepoDir,
 		Env:  env,

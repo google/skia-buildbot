@@ -25,7 +25,7 @@
  *
  * @attr {Number} selected - The index of the selected commit.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { findParent } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -77,11 +77,7 @@ export class CommitDetailPanelSk extends ElementSk {
     this._render();
   }
 
-  attributeChangedCallback(
-    _: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this._render();
     }
@@ -117,10 +113,10 @@ export class CommitDetailPanelSk extends ElementSk {
       commit,
     };
     this.dispatchEvent(
-      new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>(
-        'commit-selected',
-        { detail, bubbles: true }
-      )
+      new CustomEvent<CommitDetailPanelSkCommitSelectedDetails>('commit-selected', {
+        detail,
+        bubbles: true,
+      })
     );
   }
 

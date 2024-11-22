@@ -12,7 +12,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/urfave/cli/v2"
 
 	"go.skia.org/infra/cd/go/cd"
@@ -220,6 +222,16 @@ func main() {
 	local := true
 	ctx := td.StartRun(&fakeProjectId, &fakeTaskId, &fakeTaskName, &output, &local)
 	defer td.EndRun(ctx)
+
+	// Enable retries with backoff for all commands.
+	ctx = exec.WithRetryContext(ctx, &backoff.ExponentialBackOff{
+		InitialInterval:     5 * time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          2,
+		MaxInterval:         time.Minute,
+		MaxElapsedTime:      15 * time.Minute,
+		Clock:               backoff.SystemClock,
+	})
 
 	// Run the app.
 	if err := app.RunContext(ctx, os.Args); err != nil {

@@ -107,6 +107,11 @@ func (_m *Store) GetAnomaliesInTimeRange(ctx context.Context, traceNames []strin
 	return r0, r1
 }
 
+// InvalidateTestsCacheForTraceName provides a mock function with given fields: ctx, traceName
+func (_m *Store) InvalidateTestsCacheForTraceName(ctx context.Context, traceName string) {
+	_m.Called(ctx, traceName)
+}
+
 // NewStore creates a new instance of Store. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewStore(t interface {

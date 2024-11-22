@@ -12,9 +12,9 @@
  * @event repo-changed - Occurs when user selects a repo. Event has {detail: '<new repo>'}
  */
 
-import { html, TemplateResult } from 'lit-html';
-import { styleMap } from 'lit-html/directives/style-map';
-import { classMap } from 'lit-html/directives/class-map';
+import { html, TemplateResult } from 'lit/html.js';
+import { styleMap } from 'lit/directives/style-map.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { $, $$, DomReady } from '../../../infra-sk/modules/dom';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';

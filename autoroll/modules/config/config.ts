@@ -416,10 +416,12 @@ interface GitCheckoutGitHubParentConfigJSON {
 
 export interface GitCheckoutGerritParentConfig {
   gitCheckout?: GitCheckoutParentConfig;
+  preUploadCommands?: PreUploadConfig;
 }
 
 interface GitCheckoutGerritParentConfigJSON {
   git_checkout?: GitCheckoutParentConfigJSON;
+  pre_upload_commands?: PreUploadConfigJSON;
 }
 
 export interface GitCheckoutGitHubFileParentConfig {
@@ -712,12 +714,20 @@ interface TransitiveDepConfigJSON {
 
 export interface VersionFileConfig {
   id: string;
-  path: string;
-  regex: string;
+  file?: VersionFileConfig_File[];
 }
 
 interface VersionFileConfigJSON {
   id?: string;
+  file?: VersionFileConfig_FileJSON[];
+}
+
+export interface VersionFileConfig_File {
+  path: string;
+  regex: string;
+}
+
+interface VersionFileConfig_FileJSON {
   path?: string;
   regex?: string;
 }

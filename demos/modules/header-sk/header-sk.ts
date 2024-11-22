@@ -2,7 +2,7 @@
  * @fileoverview A custom element for the basic demos.skia.org header.
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../infra-sk/modules/theme-chooser-sk';
 

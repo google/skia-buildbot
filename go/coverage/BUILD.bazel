@@ -1,0 +1,65 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "coverage",
+    srcs = [
+        "coverage.go",
+        "service.go",
+    ],
+    importpath = "go.skia.org/infra/go/coverage",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cleanup",
+        "//go/common",
+        "//go/coverage/config",
+        "//go/coverage/coveragestore",
+        "//go/coverage/coveragestore/sqlcoveragestore",
+        "//go/coverage/proto/v1",
+        "//go/coverage/service",
+        "//go/skerr",
+        "//go/sklog",
+        "//go/sql/pool",
+        "//go/sql/pool/wrapper/timeout",
+        "@com_github_jackc_pgx_v4//:pgx",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//reflection",
+    ],
+)
+
+go_test(
+    name = "coverage_test",
+    srcs = ["coverage_test.go"],
+    data = glob(["config/**"]),
+    embed = [":coverage"],
+    deps = [
+        "//go/coverage/config",
+        "//go/coverage/coveragestore/sqlcoveragestore",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
+
+skia_app_container(
+    name = "coverageserver",
+    base_image = "@base-cipd//image",
+    dirs = {
+        "/usr/local/bin/coverageserver": [
+            [
+                "//go/coverage/coverageserver:coverageserver",
+                "0755",
+            ],
+        ],
+        "/usr/local/share/go/coverage/config": [
+            [
+                "//go/coverage/config:configs",
+                "0644",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/coverageserver/coverageserver",
+    repository = "skia-public/coverageserver",
+)

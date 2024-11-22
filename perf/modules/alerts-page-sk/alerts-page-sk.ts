@@ -9,7 +9,7 @@ import '../../../elements-sk/modules/icons/delete-icon-sk';
 import '../../../elements-sk/modules/icons/create-icon-sk';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject, toParamSet } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -17,13 +17,7 @@ import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
-import {
-  FrameResponse,
-  ParamSet,
-  Alert,
-  ConfigState,
-  ReadOnlyParamSet,
-} from '../json';
+import { FrameResponse, Alert, ConfigState, ReadOnlyParamSet } from '../json';
 import { validate } from '../alert';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status } from '../../../infra-sk/modules/json';
@@ -77,11 +71,7 @@ class AlertsPageSk extends ElementSk {
         <button @click=${ele.accept}>Accept</button>
       </div>
     </dialog>
-    <button
-      class="action"
-      @click=${ele.add}
-      ?disabled=${!ele.isEditor}
-      title="Create a new alert.">
+    <button class="action" @click=${ele.add} ?disabled=${!ele.isEditor} title="Create a new alert.">
       New
     </button>
     <table>
@@ -90,9 +80,7 @@ class AlertsPageSk extends ElementSk {
         <th>Name</th>
         <th>Query</th>
         <th>${AlertsPageSk.alertOrComponentHeader()}</th>
-        ${window.perf.need_alert_action === true
-          ? html` <th>Action</th> `
-          : html``}
+        ${window.perf.need_alert_action === true ? html` <th>Action</th> ` : html``}
         <th>Owner</th>
         <th></th>
         <th></th>
@@ -101,9 +89,7 @@ class AlertsPageSk extends ElementSk {
       </tr>
       ${AlertsPageSk.rows(ele)}
     </table>
-    <div class="warning" ?hidden=${!!ele.alerts.length}>
-      No alerts have been configured.
-    </div>
+    <div class="warning" ?hidden=${!!ele.alerts.length}>No alerts have been configured.</div>
     <checkbox-sk
       ?checked=${ele.showDeleted}
       @change=${ele.showChanged}
@@ -157,10 +143,13 @@ class AlertsPageSk extends ElementSk {
     if (window.perf.notifications !== 'markdown_issuetracker') {
       return item.alert;
     }
+    /* eslint-disable lit/attribute-value-entities */
     return html`<a
-      href="https://issuetracker.google.com/issues?q=status:open%20componentid:${item.issue_tracker_component}&s=created_time:desc"
-      >${item.issue_tracker_component}</a
-    >`;
+      href="https://issuetracker.google.com/issues?
+      q=status:open%20componentid:${item.issue_tracker_component}
+      &s=created_time:desc">
+      ${item.issue_tracker_component}
+    </a>`;
   }
 
   private static alertOrComponentHeader() {
@@ -232,9 +221,7 @@ class AlertsPageSk extends ElementSk {
       return;
     }
     const id = window.location.search.slice(1);
-    const matchingAlert = this.alerts.find(
-      (alert) => id === alert.id_as_string
-    );
+    const matchingAlert = this.alerts.find((alert) => id === alert.id_as_string);
     if (matchingAlert) {
       this.startEditing(matchingAlert);
     }
@@ -291,12 +278,9 @@ class AlertsPageSk extends ElementSk {
   }
 
   private delete(e: MouseEvent) {
-    fetch(
-      `/_/alert/delete/${((e.target! as any).__config as Alert).id_as_string}`,
-      {
-        method: 'POST',
-      }
-    )
+    fetch(`/_/alert/delete/${((e.target! as any).__config as Alert).id_as_string}`, {
+      method: 'POST',
+    })
       .then(okOrThrow)
       .then(() => {
         this.list();

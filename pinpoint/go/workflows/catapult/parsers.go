@@ -12,8 +12,8 @@ import (
 	skia_swarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
@@ -107,7 +107,7 @@ func createBuildQuestDetail(commitRun *internal.BisectRun) *pinpoint_proto.Legac
 		Details: []*pinpoint_proto.LegacyJobResponse_State_Attempt_Execution_Detail{
 			{
 				Key:   "builder",
-				Value: commitRun.Build.BuildChromeParams.Device,
+				Value: commitRun.Build.BuildParams.Device,
 			},
 			{
 				Key:   "isolate",
@@ -199,8 +199,12 @@ func parseRunData(ctx workflow.Context, runData []*internal.BisectRun, chart str
 func parseResultValuesPerCommit(comparisons []*internal.CombinedResults) map[uint32][]float64 {
 	resp := map[uint32][]float64{}
 	for _, comparison := range comparisons {
-		resp[comparison.CommitPairValues.Lower.Commit.Key()] = comparison.CommitPairValues.Lower.Values
-		resp[comparison.CommitPairValues.Higher.Commit.Key()] = comparison.CommitPairValues.Higher.Values
+		// For writing back to Catapult, we're only really interested in Performance results.
+		// Functional comparisons don't set CommitPairValues. In other words, they remain nil.
+		if comparison.ResultType == internal.Performance {
+			resp[comparison.CommitPairValues.Lower.Commit.Key()] = comparison.CommitPairValues.Lower.Values
+			resp[comparison.CommitPairValues.Higher.Commit.Key()] = comparison.CommitPairValues.Higher.Values
+		}
 	}
 	return resp
 }
@@ -210,11 +214,11 @@ func parseResultValuesPerCommit(comparisons []*internal.CombinedResults) map[uin
 // This assumes that the list is curated by the bisection sequence, resulting in an order such as
 // (A, Z), (A, M), (M, Z), (A, F), (F, M), (M, S), (S, Z) and so on. This would be sorted to
 // (A, F, M, S, Z)
-func parseToSortedCombinedCommits(comparisons []*internal.CombinedResults) []*midpoint.CombinedCommit {
+func parseToSortedCombinedCommits(comparisons []*internal.CombinedResults) []*common.CombinedCommit {
 	if len(comparisons) < 1 {
 		return nil
 	}
-	sortedCombinedCommits := []*midpoint.CombinedCommit{
+	sortedCombinedCommits := []*common.CombinedCommit{
 		comparisons[0].CommitPairValues.Lower.Commit,
 		comparisons[0].CommitPairValues.Higher.Commit,
 	}
@@ -304,7 +308,7 @@ func appendCommitData(commit *pinpoint_proto.Commit, longCommit *vcsinfo.LongCom
 }
 
 // parseCommitData returns a combined commit with all additional information filled (commit position, summary, author, etc.)
-func parseCommitData(ctx workflow.Context, combinedCommit *midpoint.CombinedCommit) ([]*pinpoint_proto.Commit, error) {
+func parseCommitData(ctx workflow.Context, combinedCommit *common.CombinedCommit) ([]*pinpoint_proto.Commit, error) {
 	commits := []*pinpoint_proto.Commit{}
 
 	// handle main first

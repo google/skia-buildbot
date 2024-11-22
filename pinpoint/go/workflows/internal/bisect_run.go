@@ -2,7 +2,7 @@ package internal
 
 import (
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/workflow"
 )
@@ -21,11 +21,11 @@ type BisectRun struct {
 	ScheduledRuns []scheduledRun
 }
 
-func newBisectRun(cc *midpoint.CombinedCommit) *BisectRun {
+func newBisectRun(cc *common.CombinedCommit) *BisectRun {
 	return &BisectRun{
 		CommitRun: CommitRun{
 			Build: &workflows.Build{
-				BuildChromeParams: workflows.BuildChromeParams{
+				BuildParams: workflows.BuildParams{
 					Commit: cc,
 				},
 			},

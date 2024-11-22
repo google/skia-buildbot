@@ -11,7 +11,9 @@ tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '
 	go generate ./go/...
 
 fiddle_secwrap:
-	$(BAZEL) build --config=mayberemote //fiddlek/cpp:fiddle_secwrap
+	cd cpp; docker build --tag secwrap_builder .
+	# This doesn't actually make the built executable available, just tests that
+	# we can build it.
 
 build: ./modules/json/index.ts fiddle_secwrap
 	$(BAZEL) build --config=mayberemote go/... modules/... pages/...
@@ -29,21 +31,8 @@ pull-skia-release-image:
 	# Pull down the most recently build Skia docker container.
 	$(DOCKER) pull gcr.io/skia-public/skia-release:prod
 
-.PHONY: skia-source
-skia-source: pull-skia-release-image
-	# Extract skia checkout from the most recently built docker container.
-	# This is built with @skia//docker/skia-wasm-release/Dockerfile
-	mkdir -p build
-	chmod 777 build
-	# ID 2000 is hardcoded to be the skia user
-	$(DOCKER) run --rm -u 2000:2000 \
-	    --volume `pwd`/build:/OUT gcr.io/skia-public/skia-release:prod \
-	   sh -c "cd /tmp; tar cvzf skia.tar.gz --directory=/tmp/skia skia; cp /tmp/skia.tar.gz /OUT/; chmod 0666 /OUT/skia.tar.gz"
-
-release-fiddler: build skia-source
+release-fiddler: build
 	$(BAZEL) run --config=mayberemote //fiddlek:push_fiddler_container
-	# Cleanup the build directory.
-	git checkout build/*
 
 release: release-fiddle release-fiddler
 
@@ -71,27 +60,13 @@ push_fiddler_I_am_really_sure: release-fiddler
 cli:
 	go install -v ./go/fiddlecli
 
-test: testgo testcpp testjs
+test: testgo testjs
 
 testjs:
 	$(BAZEL) test --config=mayberemote modules/...
 
 testgo:
 	go test -v ./...
-
-testcpp: build
-	mkdir -p bin
-	clang ./cpp/fail_socket.cpp -o ./bin/fail_socket
-	clang ./cpp/fail_execve.cpp -o ./bin/fail_execve
-	clang ./cpp/fail_link.cpp -o ./bin/fail_link
-	clang ./cpp/fail_rename.cpp -o ./bin/fail_rename
-	clang ./cpp/fail_mknod.cpp -o ./bin/fail_mknod
-	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_socket; test $$? -eq 1
-	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_execve; test $$? -eq 255
-	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_link; test $$? -eq 255
-	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_rename; test $$? -eq 255
-	../_bazel_bin/fiddlek/cpp/fiddle_secwrap ./bin/fail_mknod; test $$? -eq 255
-	echo "SUCCESS"
 
 # This presumes a fiddler is available at port :8000 and scrapexchange is available at port :9000.
 # You can either run a local copy of scrapexchange, or port-forward the production instance:

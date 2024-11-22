@@ -40,6 +40,7 @@ go_test(
         "gitilesfollower_manual_test.go",
         "gitilesfollower_test.go",
     ],
+    data = ["//golden/k8s-instances:gitilesfollower_configs"],
     embed = [":gitilesfollower_lib"],
     deps = [
         "//go/gitiles",
@@ -48,6 +49,7 @@ go_test(
         "//go/vcsinfo",
         "//golden/cmd/gitilesfollower/mocks",
         "//golden/go/config",
+        "//golden/go/config/validation",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",
         "//golden/go/sql/sqltest",

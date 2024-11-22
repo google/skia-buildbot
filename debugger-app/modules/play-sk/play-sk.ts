@@ -11,7 +11,7 @@
  *           detail: {item: number} // the index the play module wants the app
  *           to move to.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/skip-previous-icon-sk';

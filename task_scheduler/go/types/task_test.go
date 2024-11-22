@@ -452,6 +452,7 @@ func TestTaskSort(t *testing.T) {
 func TestCopyTaskSummary(t *testing.T) {
 	v := &TaskSummary{
 		Attempt:        1,
+		Created:        time.Unix(1727785477, 0), // 2024-10-01T14:19:50+00:00
 		Id:             "123",
 		MaxAttempts:    2,
 		Status:         TASK_STATUS_FAILURE,

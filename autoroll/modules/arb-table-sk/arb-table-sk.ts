@@ -8,7 +8,7 @@
  */
 
 import '../../../infra-sk/modules/human-date-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { define } from '../../../elements-sk/modules/define';

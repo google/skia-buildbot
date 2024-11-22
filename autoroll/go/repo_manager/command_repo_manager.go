@@ -62,7 +62,7 @@ func NewCommandRepoManager(ctx context.Context, c *config.CommandRepoManagerConf
 		}
 	}
 	var rm *CommandRepoManager
-	createRoll := func(ctx context.Context, co *git.Checkout, from, to *revision.Revision, _ []*revision.Revision, commitMsg string) (string, error) {
+	createRoll := func(ctx context.Context, co git.Checkout, from, to *revision.Revision, _ []*revision.Revision, commitMsg string) (string, error) {
 		vars := &CommandTmplVars{
 			RollingFrom: from.Id,
 			RollingTo:   to.Id,

@@ -9,7 +9,7 @@
  * @property baseURL: string - The base URL for getting tree status of specific repos.
  * @property repo: string - The repository we are currently looking at.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

@@ -2,13 +2,17 @@ package psrefresh
 
 import (
 	"context"
+	"net/url"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -18,22 +22,38 @@ type OPSProvider interface {
 	GetParamSet(ctx context.Context, tileNumber types.TileNumber) (paramtools.ReadOnlyParamSet, error)
 }
 
-// ParamSetRefresher keeps a fresh paramtools.ParamSet that represents all the
+// ParamSetRefresher provides an interface for accessing instance param sets.
+type ParamSetRefresher interface {
+	// GetAll returns all the paramsets in the instance.
+	GetAll() paramtools.ReadOnlyParamSet
+
+	// GetParamSetForQuery returns the paramsets filtered for the provided query.
+	GetParamSetForQuery(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error)
+
+	// Start kicks off the param set refresh routine.
+	Start(period time.Duration) error
+}
+
+// defaultParamSetRefresher keeps a fresh paramtools.ParamSet that represents all the
 // traces stored in the two most recent tiles in the trace store.
-type ParamSetRefresher struct {
+type defaultParamSetRefresher struct {
 	traceStore   OPSProvider
 	period       time.Duration
 	numParamSets int
+	dfBuilder    dataframe.DataFrameBuilder
+	qConfig      config.QueryConfig
 
 	mutex sync.Mutex // protects ps.
 	ps    paramtools.ReadOnlyParamSet
 }
 
-// NewParamSetRefresher builds a new *ParamSetRefresher.
-func NewParamSetRefresher(traceStore OPSProvider, numParamSets int) *ParamSetRefresher {
-	return &ParamSetRefresher{
+// NewDefaultParamSetRefresher builds a new *ParamSetRefresher.
+func NewDefaultParamSetRefresher(traceStore OPSProvider, numParamSets int, dfBuilder dataframe.DataFrameBuilder, qconfig config.QueryConfig) *defaultParamSetRefresher {
+	return &defaultParamSetRefresher{
 		traceStore:   traceStore,
 		numParamSets: numParamSets,
+		dfBuilder:    dfBuilder,
+		qConfig:      qconfig,
 		ps:           paramtools.ReadOnlyParamSet{},
 	}
 }
@@ -41,8 +61,9 @@ func NewParamSetRefresher(traceStore OPSProvider, numParamSets int) *ParamSetRef
 // Start actually starts the refreshing process.
 //
 // The 'period' is how often the paramset should be refreshed.
-func (pf *ParamSetRefresher) Start(period time.Duration) error {
+func (pf *defaultParamSetRefresher) Start(period time.Duration) error {
 	pf.period = period
+	sklog.Info("Refresher refreshing")
 
 	if err := pf.oneStep(); err != nil {
 		return skerr.Wrapf(err, "Failed to build the initial ParamSet")
@@ -52,8 +73,8 @@ func (pf *ParamSetRefresher) Start(period time.Duration) error {
 
 }
 
-func (pf *ParamSetRefresher) oneStep() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+func (pf *defaultParamSetRefresher) oneStep() error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()
 
 	tileKey, err := pf.traceStore.GetLatestTile(ctx)
@@ -78,14 +99,11 @@ func (pf *ParamSetRefresher) oneStep() error {
 	}
 
 	ps.Normalize()
-
-	pf.mutex.Lock()
-	defer pf.mutex.Unlock()
 	pf.ps = ps.Freeze()
 	return nil
 }
 
-func (pf *ParamSetRefresher) refresh() {
+func (pf *defaultParamSetRefresher) refresh() {
 	stepFailures := metrics2.GetCounter("paramset_refresh_failures", nil)
 	for range time.Tick(pf.period) {
 		if err := pf.oneStep(); err != nil {
@@ -95,9 +113,36 @@ func (pf *ParamSetRefresher) refresh() {
 	}
 }
 
-// Get returns the fresh paramset.
-func (pf *ParamSetRefresher) Get() paramtools.ReadOnlyParamSet {
+// GetAll returns the fresh paramset.
+func (pf *defaultParamSetRefresher) GetAll() paramtools.ReadOnlyParamSet {
 	pf.mutex.Lock()
 	defer pf.mutex.Unlock()
 	return pf.ps
 }
+
+// GetParamSetForQuery returns the trace count, paramset for the given query.
+func (pf *defaultParamSetRefresher) GetParamSetForQuery(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
+	return pf.dfBuilder.PreflightQuery(ctx, query, pf.GetAll())
+}
+
+// append the default values for parameters
+func (pf *defaultParamSetRefresher) UpdateQueryValueWithDefaults(v url.Values) {
+	if len(pf.qConfig.DefaultParamSelections) > 0 {
+		for key, values := range pf.qConfig.DefaultParamSelections {
+			v[key] = values
+		}
+	}
+}
+
+// check whether value is part of the list validValues
+func ShouldCacheValue(value string, validValues []string) bool {
+	for _, validValue := range validValues {
+		if value == validValue {
+			return true
+		}
+	}
+	return false
+}
+
+// Confirm we implement the interface.
+var _ ParamSetRefresher = (*defaultParamSetRefresher)(nil)

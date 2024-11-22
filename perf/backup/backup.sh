@@ -7,7 +7,7 @@ gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
 CONFIGS=(
   'angle.json'
-  'cdb-android-x.json'
+  'cdb-android-x-secondary.json'
   'cdb-ct-prod.json'
   'cdb-nano.json'
   'flutter-engine2.json'

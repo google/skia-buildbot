@@ -23,7 +23,7 @@ sk_element(
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:object_ts_lib",
         "//infra-sk/modules:query_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

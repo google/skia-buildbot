@@ -2,50 +2,52 @@ package validate
 
 import (
 	"encoding/base64"
-	"fmt"
+	"net/url"
 	"regexp"
 
 	"go.skia.org/infra/go/skerr"
 	sheriff_configpb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
-
 	"google.golang.org/protobuf/encoding/prototext"
 )
 
 // Does the following checks at Pattern level:
-//   - At least 1 field is populated.
-//   - If singleField is true, only 1 field must be populated. This is used by
-//     exclude patterns.
-//   - If field value starts with "~", check that the rest of the string is a
+//   - The match and exclude strings are in correct formats.
+//   - All pattern specify at least 1 key.
+//   - Exclude patterns only specify 1 key.
+//   - If a value starts with "~", check that the rest of the string is a
 //     compileable Regex.
-func validatePattern(pattern *sheriff_configpb.Pattern, singleField bool) error {
+func validatePattern(pattern string, singleField bool) error {
 
-	pr := pattern.ProtoReflect()
-	fields := pr.Descriptor().Fields()
+	query, err := url.ParseQuery(pattern)
+	if err != nil {
+		return skerr.Fmt("Pattern '%s' has incorrect format: %s", pattern, err)
+	}
 
-	nonEmptyFields := 0
+	if len(query) == 0 {
+		return skerr.Fmt("Pattern must have at least 1 key declared.")
+	}
 
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		value := pr.Get(field).String()
-		if value == "" {
-			continue
+	if singleField && len(query) > 1 {
+		return skerr.Fmt("Pattern must only have 1 key declared.")
+	}
+
+	for key, values := range query {
+		if len(values) == 0 {
+			return skerr.Fmt("Key must have at least 1 explicit value declared. Key: %s.", key)
 		}
-
-		nonEmptyFields += 1
-
-		if value[:1] == "~" {
-			_, err := regexp.Compile(value[1:])
-			if err != nil {
-				return skerr.Fmt("Invalid Regex for '%s' field: %s.", field.Name(), value[1:])
+		for _, value := range values {
+			if len(value) == 0 {
+				return skerr.Fmt("Explicit value for key must be non-empty. Key: %s.", key)
+			}
+			if value[:1] == "~" {
+				_, err := regexp.Compile(value[1:])
+				if err != nil {
+					return skerr.Fmt("Invalid Regex for '%s' key: %s.", key, value[1:])
+				}
 			}
 		}
 	}
-	if nonEmptyFields < 1 {
-		return skerr.Fmt("Pattern must have at least 1 explicit field declared.")
-	}
-	if singleField && nonEmptyFields > 1 {
-		return skerr.Fmt("Pattern must only have 1 explicit field declared.")
-	}
+
 	return nil
 }
 
@@ -141,7 +143,6 @@ func DeserializeProto(encoded string) (*sheriff_configpb.SheriffConfig, error) {
 	if err != nil {
 		return nil, skerr.Fmt("Failed to decode Base64 string: %s", err)
 	}
-	fmt.Printf("%s\n", decoded)
 	config := &sheriff_configpb.SheriffConfig{}
 
 	err = prototext.Unmarshal(decoded, config)

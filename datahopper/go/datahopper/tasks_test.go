@@ -24,7 +24,7 @@ import (
 func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB, <-chan struct{}, func()) {
 	ctx, cancel := context.WithCancel(context.Background())
 	tdb := memory.NewInMemoryTaskDB()
-	period := TIME_PERIODS[len(TIME_PERIODS)-1]
+	period := timePeriods[len(timePeriods)-1]
 	w, err := window.New(ctx, period, 0, nil)
 	if err != nil {
 		sklog.Fatalf("Failed to create time window: %s", err)
@@ -70,7 +70,7 @@ func TestTaskUpdate(t *testing.T) {
 	now := time.Now()
 	edb, tdb, wait, cancel := setupTasks(t, now)
 	defer cancel()
-	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
+	start := now.Add(-timePeriods[len(timePeriods)-1])
 	tasks := []*types.Task{
 		// 0: Filtered out -- too early.
 		makeTask(start.Add(-time.Minute), "A", types.TASK_STATUS_SUCCESS),

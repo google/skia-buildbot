@@ -14,7 +14,9 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/cmd/gitilesfollower/mocks"
+
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/config/validation"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
@@ -1042,6 +1044,13 @@ func TestCheckForLandedCycle_TriageExistingData_Success(t *testing.T) {
 		Label:               schema.LabelPositive,
 		ExpectationRecordID: &user4RecordID,
 	})
+}
+
+func TestLoadExistingConfigs_Valid(t *testing.T) {
+	var cfg repoFollowerConfig
+	err := validation.ValidateServiceConfigs("gitilesfollower", validation.PrimaryInstances, &cfg)
+	require.NoError(t, err)
+	assert.NotZero(t, cfg, "Config object should not be nil.")
 }
 
 // h returns the MD5 hash of the provided string.

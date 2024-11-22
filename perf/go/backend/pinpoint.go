@@ -5,6 +5,7 @@ import (
 	"go.skia.org/infra/perf/go/backend/shared"
 	pinpoint_service "go.skia.org/infra/pinpoint/go/service"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client "go.skia.org/infra/temporal/go/client"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 )
@@ -16,7 +17,7 @@ type pinpointService struct {
 }
 
 // NewPinpointService returns a new instance of the pinpoint service.
-func NewPinpointService(t pinpoint_service.TemporalProvider, l *rate.Limiter) *pinpointService {
+func NewPinpointService(t tpr_client.TemporalProvider, l *rate.Limiter) *pinpointService {
 	return &pinpointService{
 		PinpointServer: pinpoint_service.New(t, l),
 	}

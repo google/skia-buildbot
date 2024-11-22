@@ -14,7 +14,7 @@ sk_element(
         "//:node_modules/@types/d3-selection",
         "//:node_modules/d3-force",
         "//:node_modules/d3-selection",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "cluster-digests-sk.ts",

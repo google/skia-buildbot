@@ -6,8 +6,12 @@ import (
 	"sort"
 	"strings"
 
+	tpr_client "go.temporal.io/sdk/client"
+
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/backend/shared"
@@ -20,13 +24,15 @@ type anomalygroupService struct {
 	ag.UnimplementedAnomalyGroupServiceServer
 	anomalygroupStore anomalygroup.Store
 	regressionStore   reg.Store
+	temporalClient    tpr_client.Client
 }
 
 // New returns a new instance of anomalygroupService.
-func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store) *anomalygroupService {
+func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store, temporalClient tpr_client.Client) *anomalygroupService {
 	return &anomalygroupService{
 		anomalygroupStore: anomalygroupStore,
 		regressionStore:   regressionStore,
+		temporalClient:    temporalClient,
 	}
 }
 
@@ -169,10 +175,11 @@ func (s *anomalygroupService) FindTopAnomalies(
 	})
 
 	var count int
-	if req.Limit == 0 {
-		count = len(anomalies)
-	} else {
+	// If the request is 0 or is larger then the total of the group's anomalies, return all the anomalies.
+	if req.Limit > 0 && int(req.Limit) < len(anomalies) {
 		count = int(req.Limit)
+	} else {
+		count = len(anomalies)
 	}
 
 	top_regressions := []*ag.Anomaly{}
@@ -182,6 +189,16 @@ func (s *anomalygroupService) FindTopAnomalies(
 		paramset := anomaly.Frame.DataFrame.ParamSet
 
 		if !isParamSetValid(paramset) {
+			// Debug logs on b/357629365: can we use traceset to replace paramset?
+			for key := range anomaly.Frame.DataFrame.TraceSet {
+				paramset_from_key, err := query.ParseKey(key)
+				if err != nil {
+					sklog.Debugf("[AG][InvalidParamset] Failed to parse trace set key: %s", key)
+				} else {
+					sklog.Debugf("[AG][InvalidParamset] Paramset parsed from trace set: %s", paramset_from_key)
+				}
+			}
+
 			return nil, skerr.Fmt("invalid paramset %s for chromeperf", paramset)
 		}
 

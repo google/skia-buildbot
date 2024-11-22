@@ -125,6 +125,8 @@ func (p *ProcessorImpl) processEvent(ctx context.Context, previous machine.Descr
 		return processChromeOSEvent(ctx, previous, event)
 	} else if event.IOS.IsPopulated() {
 		return processIOSEvent(ctx, previous, event)
+	} else if event.PyOCD.IsPopulated() {
+		return processPyOCDEvent(ctx, previous, event)
 	} else if event.Standalone.IsPopulated() {
 		return processStandaloneEvent(ctx, previous, event)
 	}
@@ -283,6 +285,21 @@ func processIOSEvent(ctx context.Context, previous machine.Description, event ma
 
 	ret = handleGeneralFields(ctx, ret, event)
 	ret = handleRecoveryMode(ctx, previous, ret, maintenanceMessage)
+	return ret
+}
+
+// Based on an incoming iOS event from a test machine, processIOSEvent updates the machine's
+// centralized description.
+func processPyOCDEvent(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
+	ret := previous.Copy()
+	ret.Battery = 0
+	ret.Temperature = nil
+	ret.Recovering = ""
+
+	ret.Dimensions[machine.DimID] = []string{event.Host.Name}
+	ret.Dimensions[machine.DimDeviceType] = []string{event.PyOCD.DeviceType}
+
+	ret = handleGeneralFields(ctx, ret, event)
 	return ret
 }
 

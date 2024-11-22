@@ -109,3 +109,25 @@ func (t *IssueTrackerTransport) SendRegressionMissing(ctx context.Context, threa
 	t.sendRegressionMissing.Inc(1)
 	return nil
 }
+
+// UpdateRegressionNotification updates the bug with a comment containing the details specified.
+func (t *IssueTrackerTransport) UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body, notificationId string) error {
+	if alert.IssueTrackerComponent == 0 {
+		return fmt.Errorf("notification not sent, no issue tracker component set for alert #%s", alert.IDAsString)
+	}
+	issueComment := &issuetracker.IssueComment{
+		Comment:        body,
+		FormattingMode: "MARKDOWN",
+	}
+
+	issueId, err := strconv.ParseInt(notificationId, 10, 64)
+	if err != nil {
+		return skerr.Wrapf(err, "Error parsing issue id: %s", notificationId)
+	}
+	_, err = t.client.Issues.Comments.Create(issueId, issueComment).Do()
+	if err != nil {
+		return skerr.Wrapf(err, "Error adding a comment on issue %d", issueId)
+	}
+
+	return nil
+}

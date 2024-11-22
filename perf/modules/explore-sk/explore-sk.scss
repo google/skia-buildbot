@@ -1,0 +1,15 @@
+explore-sk {
+  .explore-padding {
+    padding-left: 16px;
+  }
+  #test-picker {
+    width: 100%;
+    display: block;
+  }
+  #test-picker.hidden {
+    display: none;
+  }
+  #add-graph-button.hidden {
+    display: none;
+  }
+}

@@ -169,14 +169,26 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	}
 
 	s2a := search.New(sqlDB, fsc.WindowSize)
+	cacheClient, err := fsc.GetCacheClient(ctx)
+	if err != nil {
+		// TODO(ashwinpv): Once we are fully onboarded, this error should cause a failure.
+		sklog.Warningf("Error while trying to create a new cache client: %v", err)
+	}
+	if cacheClient != nil {
+		sklog.Debugf("Enabling cache for search.")
+		s2a.EnableCache(cacheClient, fsc.CachingCorpora)
+	}
+
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
-	err := s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
+	err = s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
 	}
-	if err := s2a.StartMaterializedViews(ctx, fsc.MaterializedViewCorpora, 5*time.Minute); err != nil {
-		sklog.Fatalf("Cannot create materialized views %s: %s", fsc.MaterializedViewCorpora, err)
+	if fsc.SQLDatabaseType != config.Spanner {
+		if err := s2a.StartMaterializedViews(ctx, fsc.MaterializedViewCorpora, 5*time.Minute); err != nil {
+			sklog.Fatalf("Cannot create materialized views %s: %s", fsc.MaterializedViewCorpora, err)
+		}
 	}
 	if fsc.IsPublicView {
 		if err := s2a.StartApplyingPublicParams(ctx, publiclyViewableParams, 5*time.Minute); err != nil {
@@ -205,7 +217,7 @@ func mustStartDebugServer(fsc *frontendServerConfig) {
 			// Sample usage:
 			//     $ kubectl port-forward --address 0.0.0.0 gold-skia-infra-frontend-xxxxxxxxxx-yyyyy 8000:7001
 			sklog.Infof("Internal server on http://127.0.0.1" + fsc.DebugPort)
-			sklog.Fatal(http.ListenAndServe(fsc.DebugPort, web.MakeDebugRouter()))
+			httputils.ServePprof(fsc.DebugPort)
 		}()
 	}
 }
@@ -508,8 +520,6 @@ func addAuthenticatedJSONRoutes(router chi.Router, fsc *frontendServerConfig, ha
 	add("/json/v2/triagelog/undo", handlers.TriageUndoHandler, "POST")
 	add("/json/whoami", handlers.Whoami, "GET")
 	add("/json/v1/whoami", handlers.Whoami, "GET")
-	// TODO(lovisolo): Delete once all links to details page include grouping information.
-	add("/json/v1/groupingfortest", handlers.GroupingForTestHandler, "POST")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.

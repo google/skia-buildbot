@@ -9,7 +9,7 @@ sk_element(
     name = "example-control-sk",
     sass_srcs = ["example-control-sk.scss"],
     ts_deps = [
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
     ],

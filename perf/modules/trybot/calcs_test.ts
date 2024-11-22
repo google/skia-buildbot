@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { byParams } from './calcs';
-import { ParamSet, Params, ReadOnlyParamSet } from '../json';
+import { Params, ReadOnlyParamSet } from '../json';
 
 describe('trybot', () => {
   describe('byParams', () => {

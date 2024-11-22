@@ -14,7 +14,10 @@
         "test": [
           {
             "value": "encode",
-            "measurement": 50.19691
+            "measurement": 50.19691,
+            "links": {
+              "link1": "http://google.com"
+            }
           },
           {
             "value": "decode",

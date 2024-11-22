@@ -22,7 +22,7 @@ sk_element(
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:query_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

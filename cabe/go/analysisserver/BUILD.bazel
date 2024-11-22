@@ -1,5 +1,4 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
-load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "analysisserver",
@@ -13,25 +12,5 @@ go_library(
         "//go/sklog",
         "@org_golang_google_grpc//codes",
         "@org_golang_google_grpc//status",
-    ],
-)
-
-go_test(
-    name = "analysisserver_test",
-    srcs = ["analysisserver_impl_test.go"],
-    data = ["@cabe_replay_data//:all_files"],
-    embed = [":analysisserver"],
-    race = "on",
-    deps = [
-        "//bazel/go/bazel",
-        "//cabe/go/backends",
-        "//cabe/go/proto:go_proto_lib",
-        "//cabe/go/replaybackends",
-        "@com_github_google_go_cmp//cmp",
-        "@com_github_google_go_cmp//cmp/cmpopts",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
-        "@org_golang_google_grpc//:go_default_library",
-        "@org_golang_google_protobuf//testing/protocmp",
     ],
 )

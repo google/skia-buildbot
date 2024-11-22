@@ -29,7 +29,7 @@ type gitstoreRefresher struct {
 func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.GitBuilder) repograph_shared_tests.RepoImplRefresher {
 	return &gitstoreRefresher{
 		gs:   gs,
-		repo: git.GitDir(gb.Dir()),
+		repo: git.CheckoutDir(gb.Dir()),
 		t:    t,
 	}
 }

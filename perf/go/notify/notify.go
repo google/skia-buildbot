@@ -3,17 +3,23 @@ package notify
 
 import (
 	"context"
+	"io/fs"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	ag "go.skia.org/infra/perf/go/anomalygroup/notifier"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/notify/common"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
+	"go.skia.org/infra/perf/go/tracestore"
+	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
@@ -28,6 +34,7 @@ type Formatter interface {
 type Transport interface {
 	SendNewRegression(ctx context.Context, alert *alerts.Alert, body, subject string) (threadingReference string, err error)
 	SendRegressionMissing(ctx context.Context, threadingReference string, alert *alerts.Alert, body, subject string) (err error)
+	UpdateRegressionNotification(ctx context.Context, alert *alerts.Alert, body, notificationId string) (err error)
 }
 
 const (
@@ -70,7 +77,7 @@ type TemplateContext struct {
 // Notifier provides an interface for regression notification functions
 type Notifier interface {
 	// RegressionFound sends a notification for the given cluster found at the given commit.
-	RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error)
+	RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, regressionID string) (string, error)
 
 	// RegressionMissing sends a notification that a previous regression found for
 	// the given cluster found at the given commit has disappeared after more data
@@ -79,34 +86,49 @@ type Notifier interface {
 
 	// ExampleSend sends an example for dummy data for the given alerts.Config.
 	ExampleSend(ctx context.Context, alert *alerts.Alert) error
+
+	UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error
 }
 
 // defaultNotifier sends notifications.
 type defaultNotifier struct {
+	notificationDataProvider NotificationDataProvider
+
 	formatter Formatter
 
 	transport Transport
 
 	// url is the URL of this instance of Perf.
 	url string
+
+	traceStore tracestore.TraceStore
+
+	fs fs.FS
 }
 
 // newNotifier returns a newNotifier Notifier.
-func newNotifier(formatter Formatter, transport Transport, url string) Notifier {
+func newNotifier(notificationDataProvider NotificationDataProvider, formatter Formatter, transport Transport, url string, traceStore tracestore.TraceStore, fs fs.FS) Notifier {
 	return &defaultNotifier{
-		formatter: formatter,
-		transport: transport,
-		url:       url,
+		notificationDataProvider: notificationDataProvider,
+		formatter:                formatter,
+		transport:                transport,
+		url:                      url,
+		traceStore:               traceStore,
+		fs:                       fs,
 	}
 }
 
 // RegressionFound sends a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
-func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse) (string, error) {
-	body, subject, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
+func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, regressionID string) (string, error) {
+	metadata, err := n.getRegressionMetadata(ctx, commit, previousCommit, alert, cl, n.url, frame)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Getting regression metadata.")
+	}
+	notificationData, err := n.notificationDataProvider.GetNotificationDataRegressionFound(ctx, *metadata)
 	if err != nil {
 		return "", err
 	}
-	threadingReference, err := n.transport.SendNewRegression(ctx, alert, body, subject)
+	threadingReference, err := n.transport.SendNewRegression(ctx, alert, notificationData.Body, notificationData.Subject)
 	if err != nil {
 		return "", skerr.Wrapf(err, "sending new regression message")
 	}
@@ -118,11 +140,15 @@ func (n *defaultNotifier) RegressionFound(ctx context.Context, commit, previousC
 // the given cluster found at the given commit has disappeared after more data
 // has arrived. Where to send it is defined in the alerts.Config.
 func (n *defaultNotifier) RegressionMissing(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, threadingReference string) error {
-	body, subject, err := n.formatter.FormatRegressionMissing(ctx, commit, previousCommit, alert, cl, n.url, frame)
+	metadata, err := n.getRegressionMetadata(ctx, commit, previousCommit, alert, cl, n.url, frame)
+	if err != nil {
+		return skerr.Wrapf(err, "Getting regression metadata.")
+	}
+	notificationData, err := n.notificationDataProvider.GetNotificationDataRegressionMissing(ctx, *metadata)
 	if err != nil {
 		return err
 	}
-	if err := n.transport.SendRegressionMissing(ctx, threadingReference, alert, body, subject); err != nil {
+	if err := n.transport.SendRegressionMissing(ctx, threadingReference, alert, notificationData.Body, notificationData.Subject); err != nil {
 		return skerr.Wrapf(err, "sending regression missing message")
 	}
 
@@ -168,7 +194,7 @@ func (n *defaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) 
 		},
 	}
 
-	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl, frame)
+	threadingReference, err := n.RegressionFound(ctx, commit, previousCommit, alert, cl, frame, "")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -179,23 +205,42 @@ func (n *defaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) 
 	return nil
 }
 
+func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error {
+	body, _, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
+	if err != nil {
+		return err
+	}
+	return n.transport.UpdateRegressionNotification(ctx, alert, body, notificationId)
+}
+
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string) (Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS) (Notifier, error) {
+	formatter, err := getFormatter(cfg, commitRangeURITemplate)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	var notificationDataProvider NotificationDataProvider
+	switch cfg.NotificationDataProvider {
+	case notifytypes.DefaultNotificationProvider:
+		notificationDataProvider = newDefaultNotificationProvider(formatter)
+	case notifytypes.AndroidNotificationProvider:
+		notificationDataProvider, err = NewAndroidNotificationDataProvider(commitRangeURITemplate, cfg)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+
 	switch cfg.Notifications {
 	case notifytypes.None:
-		return newNotifier(NewHTMLFormatter(commitRangeURITemplate), NewNoopTransport(), URL), nil
+		return newNotifier(notificationDataProvider, formatter, NewNoopTransport(), URL, traceStore, fs), nil
 	case notifytypes.HTMLEmail:
-		return newNotifier(NewHTMLFormatter(commitRangeURITemplate), NewEmailTransport(), URL), nil
+		return newNotifier(notificationDataProvider, formatter, NewEmailTransport(), URL, traceStore, fs), nil
 	case notifytypes.MarkdownIssueTracker:
 		tracker, err := NewIssueTrackerTransport(ctx, cfg)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		f, err := NewMarkdownFormatter(commitRangeURITemplate, cfg)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return newNotifier(f, tracker, URL), nil
+		return newNotifier(notificationDataProvider, formatter, tracker, URL, traceStore, fs), nil
 	case notifytypes.ChromeperfAlerting:
 		return NewChromePerfNotifier(ctx, nil)
 	case notifytypes.AnomalyGrouper:
@@ -203,4 +248,73 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)
 	}
+}
+
+// getFormatter returns a new Formatter instance.
+func getFormatter(notifyConfig *config.NotifyConfig, commitRangeURITemplate string) (Formatter, error) {
+	switch notifyConfig.Notifications {
+	case notifytypes.None:
+	case notifytypes.HTMLEmail:
+		return NewHTMLFormatter(commitRangeURITemplate), nil
+	case notifytypes.MarkdownIssueTracker:
+		return NewMarkdownFormatter(commitRangeURITemplate, notifyConfig)
+	}
+	return nil, nil
+}
+
+// getRegressionMetadata returns a new instance of RegressionMetadata object.
+func (n *defaultNotifier) getRegressionMetadata(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, url string, frame *frame.FrameResponse) (*common.RegressionMetadata, error) {
+	metadata := common.RegressionMetadata{
+		RegressionCommit: commit,
+		PreviousCommit:   previousCommit,
+		AlertConfig:      alert,
+		Cl:               cl,
+		Frame:            frame,
+		InstanceUrl:      url,
+	}
+
+	if alert.Algo == types.StepFitGrouping {
+		// TODO(ashwinpv): If the alert config had Individual grouping, and multiple traces in the config
+		// returned regressions, each of these trace will have a key in the cl.Keys array. We need to get
+		// separate clusterSummaries for each regression when grouping is individual instead of treating them
+		// together.
+		metadata.TraceID = cl.Keys[0]
+		if n.traceStore != nil && n.fs != nil {
+			// Retrieve the links for the current commit.
+			regressionCommitLinks, err := n.getLinksForCommit(ctx, metadata.TraceID, commit.CommitNumber)
+			if err != nil {
+				return nil, err
+			}
+			metadata.RegressionCommitLinks = regressionCommitLinks
+
+			// Retrieve the links for the previous commit.
+			prevCommitLinks, err := n.getLinksForCommit(ctx, metadata.TraceID, previousCommit.CommitNumber)
+			if err != nil {
+				return nil, err
+			}
+			metadata.PreviousCommitLinks = prevCommitLinks
+		}
+	}
+
+	return &metadata, nil
+}
+
+// getLinksForCommit returns a map of the links for the given trace at the given commit number.
+func (n *defaultNotifier) getLinksForCommit(ctx context.Context, traceID string, commitNumber types.CommitNumber) (map[string]string, error) {
+	name, err := n.traceStore.GetSource(ctx, commitNumber, traceID)
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := n.fs.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(reader)
+	formattedData, err := format.Parse(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return formattedData.GetLinksForMeasurement(traceID), nil
 }

@@ -11,9 +11,7 @@ import { CommitNumber } from '../json';
 describe('ingest-file-links-sk', () => {
   const validCommitID = CommitNumber(12);
   const validTraceID = ',arch=x86,';
-  const newInstance = setUpElementUnderTest<IngestFileLinksSk>(
-    'ingest-file-links-sk'
-  );
+  const newInstance = setUpElementUnderTest<IngestFileLinksSk>('ingest-file-links-sk');
 
   let element: IngestFileLinksSk;
   beforeEach(() => {
@@ -48,10 +46,7 @@ describe('ingest-file-links-sk', () => {
 
       const listElements = $<HTMLLIElement>('li', element);
       assert.equal(5, listElements.length);
-      assert.include(
-        listElements[0].textContent,
-        'Bot Id: build109-h7,build109-h8'
-      );
+      assert.include(listElements[0].textContent, 'Bot Id: build109-h7,build109-h8');
       assert.include(listElements[1].textContent, 'Foo: /bar');
       assert.include(listElements[2].textContent, 'Go Link: go/skia');
       assert.include(listElements[3].textContent, 'Perfetto Results');
@@ -75,6 +70,23 @@ describe('ingest-file-links-sk', () => {
       }));
       await element.load(validCommitID, validTraceID);
       assert.isEmpty($<HTMLLinkElement>('a', element));
+    });
+
+    it('markdown links are filtered to url and regular urls are unaffected', async () => {
+      fetchMock.post('/_/details/?results=false', () => ({
+        version: 1,
+        links: {
+          'Benchmark Config': '[Benchmark Config](https://skia.org)',
+          'Perfetto Results': 'https://perfetto.results.org',
+        },
+      }));
+      await element.load(validCommitID, validTraceID);
+      const linkElements = $<HTMLLinkElement>('a', element);
+      assert.equal(2, linkElements.length);
+      assert.equal(linkElements[0].textContent, 'Benchmark Config');
+      assert.equal(linkElements[1].textContent, 'Perfetto Results');
+      assert.equal(linkElements[0].href, 'https://skia.org/');
+      assert.equal(linkElements[1].href, 'https://perfetto.results.org/');
     });
   });
 });

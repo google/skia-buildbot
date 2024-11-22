@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "client",
+    srcs = ["provider.go"],
+    importpath = "go.skia.org/infra/temporal/go/client",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@io_temporal_go_sdk//client",
+    ],
+)

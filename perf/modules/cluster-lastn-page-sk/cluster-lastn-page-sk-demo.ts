@@ -90,10 +90,7 @@ customElements.whenDefined('cluster-lastn-page-sk').then(() => {
   // Insert the element later, which should given enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
-    .insertAdjacentElement(
-      'afterend',
-      document.createElement('cluster-lastn-page-sk')
-    );
+    .insertAdjacentElement('afterend', document.createElement('cluster-lastn-page-sk'));
 });
 
 fetchMock.get('/loginstatus/', {

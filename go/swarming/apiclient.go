@@ -270,7 +270,7 @@ func (c *apiClient) ListBotTasks(ctx context.Context, botID string, limit int) (
 	// The paramaters for Do() are a list of things that implement the Get() method
 	// which returns a key and a value. This gets turned into key=value on the url
 	// request, which works, even though Limit is not part of the client library.
-	res, err := c.s.Bot.Tasks(botID).Context(ctx).Do(&limitOption{limit: 1})
+	res, err := c.s.Bot.Tasks(botID).Context(ctx).Do(&limitOption{limit: limit})
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,12 @@ func isFakeBranch(branch string) bool {
 // getFakeBranch returns an unused fake branch name, given the map of existing
 // branch names to commit hashes.
 func getFakeBranch(existingBranches util.StringSet) string {
-	return fmt.Sprintf("%s%s", fakeBranchPrefix, uuid.New())
+	for {
+		branch := fmt.Sprintf("%s%s", fakeBranchPrefix, uuid.New())
+		if _, ok := existingBranches[branch]; !ok {
+			return branch
+		}
+	}
 }
 
 // initialIngestCommitBatch ingests the given batch of commits by adding them to

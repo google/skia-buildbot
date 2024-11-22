@@ -8,7 +8,7 @@
  * @evt input - A CustomEvent<Date> with the new date.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/date-range-icon-sk';
@@ -44,9 +44,7 @@ export class CalendarInputSk extends ElementSk {
         placeholder="yyyy-mm-dd"
         .value="${ele._displayDate.getFullYear()}-${ele._displayDate.getMonth() +
         1}-${ele._displayDate.getDate()}" />
-      <span class="invalid" aria-live="polite" title="Date is invalid.">
-        &cross;
-      </span>
+      <span class="invalid" aria-live="polite" title="Date is invalid."> &cross; </span>
     </label>
     <button
       id="cal-button"
@@ -89,15 +87,14 @@ export class CalendarInputSk extends ElementSk {
     const parts = dateString.split('-');
     try {
       this.displayDate = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-    } catch (error) {
+    } catch (_error) {
       return;
     }
     this.sendEvent();
   }
 
   private async openHandler() {
-    const keyboardHandler = (e: KeyboardEvent) =>
-      this.calendar!.keyboardHandler(e);
+    const keyboardHandler = (e: KeyboardEvent) => this.calendar!.keyboardHandler(e);
     try {
       this.dialog!.showModal();
       this.dialog!.addEventListener('keydown', keyboardHandler);

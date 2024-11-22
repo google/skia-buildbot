@@ -48,7 +48,7 @@
     },
     "CulpritNotifyConfig": {
       "properties": {
-        "notifications": {
+        "notification_type": {
           "type": "string"
         },
         "issue_tracker_api_key_secret_project": {
@@ -70,8 +70,20 @@
       "additionalProperties": false,
       "type": "object",
       "required": [
-        "notifications"
+        "notification_type"
       ]
+    },
+    "DataPointConfig": {
+      "properties": {
+        "keys_for_commit_range": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "DataStoreConfig": {
       "properties": {
@@ -140,6 +152,9 @@
     },
     "FavoritesSectionLinkConfig": {
       "properties": {
+        "id": {
+          "type": "string"
+        },
         "text": {
           "type": "string"
         },
@@ -227,6 +242,9 @@
         "URL": {
           "type": "string"
         },
+        "landing_page_rel_path": {
+          "type": "string"
+        },
         "backend_host_url": {
           "type": "string"
         },
@@ -299,6 +317,15 @@
         "query_config": {
           "$ref": "#/$defs/QueryConfig"
         },
+        "temporal_config": {
+          "$ref": "#/$defs/TemporalConfig"
+        },
+        "data_point_config": {
+          "$ref": "#/$defs/DataPointConfig"
+        },
+        "enable_sheriff_config": {
+          "type": "boolean"
+        },
         "ga_measurement_id": {
           "type": "string"
         }
@@ -342,12 +369,48 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "data_provider": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
       "type": "object",
       "required": [
         "notifications"
+      ]
+    },
+    "QueryCacheConfig": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "level1_cache_key": {
+          "type": "string"
+        },
+        "level1_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "level2_cache_key": {
+          "type": "string"
+        },
+        "level2_cache_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type"
       ]
     },
     "QueryConfig": {
@@ -376,6 +439,30 @@
             }
           },
           "type": "object"
+        },
+        "cache_config": {
+          "$ref": "#/$defs/QueryCacheConfig"
+        },
+        "redis_config": {
+          "$ref": "#/$defs/RedisConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RedisConfig": {
+      "properties": {
+        "project": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        },
+        "cache_expiration_minutes": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -423,6 +510,24 @@
         "subscription",
         "sources"
       ]
+    },
+    "TemporalConfig": {
+      "properties": {
+        "host_port": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "grouping_task_queue": {
+          "type": "string"
+        },
+        "pinpoint_task_queue": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     }
   }
 }

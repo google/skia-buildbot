@@ -18,7 +18,7 @@ sk_element(
         "//shaders/modules/shadernode:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:dom_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "edit-child-shader-sk.ts",

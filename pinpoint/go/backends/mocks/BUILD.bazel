@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "mocks",
     srcs = [
+        "BigQueryClient.go",
         "BuildbucketClient.go",
         "CrrevClient.go",
         "IssueTracker.go",
@@ -16,5 +17,6 @@ go_library(
         "@com_github_stretchr_testify//mock",
         "@org_chromium_go_luci//buildbucket/proto",
         "@org_chromium_go_luci//swarming/proto/api_v2",
+        "@org_golang_google_protobuf//types/known/timestamppb",
     ],
 )

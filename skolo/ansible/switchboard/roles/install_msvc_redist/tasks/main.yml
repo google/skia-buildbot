@@ -1,0 +1,39 @@
+- name: Fail if platform unsupported.
+  fail:
+    msg: This role is Windows-only.
+  when: ansible_facts['system']|lower not in ['win32nt']
+
+- name: Install MSVC++ Redistributable (x64)
+  block:
+  - name: Create Temp
+    win_file:
+      path: C:\Temp
+      state: directory
+
+  # Note: vc_redist.x64.exe also contains ARM64 binaries, so it can be used on
+  # ARM64 as well.
+  - name: Copy vc_redist.x64.exe
+    win_copy:
+      src: '{{ win_package_src }}/vc_redist_17.x64.exe'
+      dest: C:\Temp\vc_redist.x64.exe
+
+  - name: Copy vc_redist.x86.exe
+    win_copy:
+      src: '{{ win_package_src }}/vc_redist_17.x86.exe'
+      dest: C:\Temp\vc_redist.x86.exe
+
+  - name: Install vc_redist.x64.exe
+    win_command: C:\Temp\vc_redist.x64.exe -s
+
+  - name: Install vc_redist.x86.exe
+    win_command: C:\Temp\vc_redist.x86.exe -s
+
+  - name: Cleanup vc_redist.x64.exe
+    win_file:
+      path: C:\Temp\vc_redist.x64.exe
+      state: absent
+
+  - name: Cleanup vc_redist.x86.exe
+    win_file:
+      path: C:\Temp\vc_redist.x86.exe
+      state: absent

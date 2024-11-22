@@ -238,7 +238,7 @@ func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string,
 	// Attempt to determine whether this is a public or private repo by hitting
 	// the Gitiles URL with an unauthenticated request and seeing if we get a
 	// response.
-	remotes, err := git.GitDir(".").GetRemotes(ctx)
+	remotes, err := git.CheckoutDir(".").GetRemotes(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

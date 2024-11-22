@@ -5,6 +5,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"path/filepath"
 
@@ -14,13 +15,30 @@ import (
 )
 
 func main() {
+	// Command line flags.
+	var (
+		schemaTarget = flag.String("schemaTarget", "cockroachdb", "Target for the generated schema. Eg: CockroachDB, Spanner")
+	)
+	flag.Parse()
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		sklog.Fatalf("Could not get working dir: %s", err)
 	}
 
-	generatedText := exporter.GenerateSQL(cdb.Tables{}, "cdb", exporter.SchemaAndColumnNames)
-	out := filepath.Join(cwd, "sql.go")
+	outputFileName := "sql.go"
+	packageName := "cdb"
+	packagePath := cwd
+	schemaTargetDB := exporter.CockroachDB
+	if *schemaTarget == "spanner" {
+		outputFileName = "sql_spanner.go"
+		schemaTargetDB = exporter.Spanner
+		packageName = "spanner"
+		packagePath = filepath.Join(packagePath, "spanner")
+	}
+
+	generatedText := exporter.GenerateSQL(cdb.Tables{}, packageName, exporter.SchemaAndColumnNames, schemaTargetDB, nil)
+	out := filepath.Join(packagePath, outputFileName)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {
 		sklog.Fatalf("Could not write SQL to %s: %s", out, err)

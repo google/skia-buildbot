@@ -4,7 +4,7 @@
  *
  *  Allows trying out an alert by clustering over a range of commits.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -21,8 +21,8 @@ import '../commit-detail-sk';
 import '../triage-status-sk';
 import '../alert-config-sk';
 import '../domain-picker-sk';
+import '../../../elements-sk/modules/icons/close-icon-sk';
 import {
-  ParamSet,
   Alert,
   FrameResponse,
   RegressionAtCommit,
@@ -97,6 +97,9 @@ export class ClusterLastNPageSk extends ElementSk {
         .config=${ele.state}
         .paramset=${ele.paramset}
         .key_order=${window.perf.key_order}></alert-config-sk>
+      <button id="clusterCloseIcon" @click=${ele.alertClose}>
+        <close-icon-sk></close-icon-sk>
+      </button>
       <div class="buttons">
         <button @click=${ele.alertClose}>Cancel</button>
         <button @click=${ele.alertAccept}>Accept</button>
@@ -104,16 +107,11 @@ export class ClusterLastNPageSk extends ElementSk {
     </dialog>
     <div class="controls">
       <p>
-        Use this page to test out an Alert configuration. Configure the Alert by
-        pressing the button below.
+        Use this page to test out an Alert configuration. Configure the Alert by pressing the button
+        below.
       </p>
-      <button @click=${ele.alertEdit}>
-        ${ClusterLastNPageSk.configTitle(ele)}
-      </button>
-      <p>
-        You can optionally change the range of commits over which the Alert is
-        run:
-      </p>
+      <button @click=${ele.alertEdit}>${ClusterLastNPageSk.configTitle(ele)}</button>
+      <p>You can optionally change the range of commits over which the Alert is run:</p>
       <details>
         <summary>Range</summary>
         <domain-picker-sk
@@ -121,15 +119,9 @@ export class ClusterLastNPageSk extends ElementSk {
           .state=${ele.domain}
           force_request_type="dense"></domain-picker-sk>
       </details>
-      <p>
-        Once configured, you can run the Alert and see the regressions it
-        detects.
-      </p>
+      <p>Once configured, you can run the Alert and see the regressions it detects.</p>
       <div class="running">
-        <button
-          class="action"
-          ?disabled=${!ele.state!.query || !!ele.requestId}
-          @click=${ele.run}>
+        <button class="action" ?disabled=${!ele.state!.query || !!ele.requestId} @click=${ele.run}>
           Run
         </button>
         <spinner-sk id="run-spinner"></spinner-sk>
@@ -138,13 +130,8 @@ ${ele.runningStatus}</pre
         >
       </div>
       <div class="saving">
-        <p>
-          Once satisfied with the Alert you can save it to be run periodically.
-        </p>
-        <button
-          @click=${ele.writeAlert}
-          class="action"
-          ?disabled=${!ele.state!.query}>
+        <p>Once satisfied with the Alert you can save it to be run periodically.</p>
+        <button @click=${ele.writeAlert} class="action" ?disabled=${!ele.state!.query}>
           ${ClusterLastNPageSk.writeAlertTitle(ele)}
         </button>
         <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
@@ -261,8 +248,7 @@ ${ele.runningStatus}</pre
             <commit-detail-sk .cid=${reg!.cid}></commit-detail-sk>
           </td>
 
-          ${ClusterLastNPageSk.low(ele, reg!)}
-          ${ClusterLastNPageSk.high(ele, reg!)}
+          ${ClusterLastNPageSk.low(ele, reg!)} ${ClusterLastNPageSk.high(ele, reg!)}
           ${ClusterLastNPageSk.filler(ele)}
         </tr>
       `
@@ -276,8 +262,8 @@ ${ele.runningStatus}</pre
       detection = 'original';
     }
     return html`
-      Algo: ${detection}/${ele.state!.algo} - Radius: ${ele.state!.radius} -
-      Sparse: ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
+      Algo: ${detection}/${ele.state!.algo} - Radius: ${ele.state!.radius} - Sparse:
+      ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
   };
 
@@ -442,9 +428,7 @@ ${ele.runningStatus}</pre
           if (prog.results) {
             this.regressions = prog.results;
           }
-          this.runningStatus = prog.messages
-            .map((msg) => `${msg.key}: ${msg.value}`)
-            .join('\n');
+          this.runningStatus = prog.messages.map((msg) => `${msg.key}: ${msg.value}`).join('\n');
           this._render();
         }
       );

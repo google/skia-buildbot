@@ -4,17 +4,22 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit/formatter"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/culprit/transport"
-	"go.skia.org/infra/perf/go/notifytypes"
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/types"
 )
 
+// TODO(wenbinzhang): considering using specific type for issue ID instead of 'string'.
 type CulpritNotifier interface {
 	// Sends out notification to users about the detected culprit.
 	NotifyCulpritFound(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, error)
+
+	// Sends out notification to users about the detected anomalies.
+	NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error)
 }
 
 // DefaultCulpritNotifier sends notifications.
@@ -25,13 +30,13 @@ type DefaultCulpritNotifier struct {
 
 // newNotifier returns a newNotifier Notifier.
 func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
-	switch cfg.CulpritNotifyConfig.Notifications {
-	case notifytypes.None:
+	switch cfg.CulpritNotifyConfig.NotificationType {
+	case types.NoneNotify:
 		return &DefaultCulpritNotifier{
 			formatter: formatter.NewNoopFormatter(),
 			transport: transport.NewNoopTransport(),
 		}, nil
-	case notifytypes.MarkdownIssueTracker:
+	case types.IssueNotify:
 		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.CulpritNotifyConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
@@ -45,7 +50,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 			transport: transport,
 		}, nil
 	default:
-		return nil, skerr.Fmt("invalid Notifier type: %s, must be of type MarkdownIssueTracker", cfg.CulpritNotifyConfig.Notifications)
+		return nil, skerr.Fmt("Unsupported Notifier type: %s", cfg.CulpritNotifyConfig.NotificationType)
 	}
 }
 
@@ -60,4 +65,11 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 		return "", skerr.Wrapf(err, "sending new culprit message")
 	}
 	return bugId, nil
+}
+
+// Creates a bug in Buganizer about the detected anomalies.
+func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error) {
+	// TODO(wenbinzhang): implement the NotifyAnomaliesFound after the notifier is updated to support multiple purposes.
+	sklog.Debugf("NotifyAnomaliesFound not yet implemented: %s", subscription.Name)
+	return "nil", nil
 }

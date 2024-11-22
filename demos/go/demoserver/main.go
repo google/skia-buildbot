@@ -74,7 +74,7 @@ func main() {
 
 type syncedDemos struct {
 	sync.RWMutex
-	repo    *git.Checkout
+	repo    git.Checkout
 	repoURL string
 	branch  string
 	// Absolute path where demos are located.

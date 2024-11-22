@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import fetchMock from 'fetch-mock';
-import { TemplateResult, html } from 'lit-html';
+import { TemplateResult, html } from 'lit/html.js';
 import {
   Anomaly,
   AnomalyMap,
@@ -35,6 +35,10 @@ const dummyAnomaly = (): Anomaly => ({
   segment_size_before: 0,
   std_dev_before_anomaly: 0,
   t_statistic: 0,
+  subscription_name: '',
+  bug_component: '',
+  bug_labels: [],
+  bug_cc_emails: [],
 });
 
 describe('getAnomalyDataMap', () => {
@@ -74,6 +78,7 @@ describe('getAnomalyDataMap', () => {
         x: 2,
         y: 15,
         anomaly: anomalyA,
+        highlight: false,
       },
     ],
     traceB: [
@@ -81,15 +86,12 @@ describe('getAnomalyDataMap', () => {
         x: 2,
         y: 4,
         anomaly: anomalyB,
+        highlight: false,
       },
     ],
   };
   it('returns two traces with one anomaly each', () => {
-    const anomalyDataMap = getAnomalyDataMap(
-      dataframe.traceset,
-      dataframe.header!,
-      anomalymap
-    );
+    const anomalyDataMap = getAnomalyDataMap(dataframe.traceset, dataframe.header!, anomalymap, []);
     assert.deepEqual(anomalyDataMap, expectedAnomalyDataMap);
   });
   it('maps anomaly to the next commit if exact match not available', () => {
@@ -101,17 +103,14 @@ describe('getAnomalyDataMap', () => {
     dataframe.traceset.traceA.push(200);
     // Add anomaly that does not have a commit in the header.
     const anomalymap = { traceA: { 102: anomalyA } };
-    const dataMap = getAnomalyDataMap(
-      dataframe.traceset,
-      dataframe.header!,
-      anomalymap
-    );
+    const dataMap = getAnomalyDataMap(dataframe.traceset, dataframe.header!, anomalymap, []);
     const expectedAnomalyMap: { [key: string]: AnomalyData[] } = {
       traceA: [
         {
           x: 3,
           y: 200,
           anomaly: anomalyA,
+          highlight: false,
         },
       ],
     };
@@ -186,6 +185,9 @@ describe('formatRevisionRange', () => {
       trace_format: '',
       need_alert_action: false,
       bug_host_url: '',
+      git_repo_url: '',
+      keys_for_commit_range: [],
+      image_tag: 'fake-tag',
     };
   });
 

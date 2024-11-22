@@ -6,6 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -35,7 +36,6 @@ var (
 	pkgName       = flag.String("package_name", "", "Name of the CIPD package.")
 	targets       = common.NewMultiStringFlag("target", nil, "Bazel build targets.")
 	platformsList = common.NewMultiStringFlag("platform", nil, "Pairs of Bazel build platform and CIPD platform in <bazel platform>=<cipd platform> format.")
-	includePaths  = common.NewMultiStringFlag("include_path", nil, "Paths to include, relative to //_bazel_bin.  Use [.exe] for optional suffix, eg. \"program[.exe]\"")
 
 	bazelCacheDir     = flag.String("bazel_cache_dir", "", "Path to the Bazel cache directory.")
 	bazelRepoCacheDir = flag.String("bazel_repo_cache_dir", "", "Path to the Bazel repository cache directory.")
@@ -65,9 +65,6 @@ func main() {
 
 	if *pkgName == "" {
 		td.Fatalf(ctx, "--package_name is required.")
-	}
-	if len(*includePaths) == 0 {
-		td.Fatalf(ctx, "At least one --include_path is required.")
 	}
 	if len(*targets) == 0 {
 		td.Fatalf(ctx, "At least one --target is required.")
@@ -142,6 +139,14 @@ func main() {
 			return err
 		}
 
+		// Find the execution_root, in which all outputs will be built.
+		cmd := exec.CommandContext(ctx, "bazelisk", "info", "execution_root")
+		output, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+		executionRoot := strings.TrimSpace(string(output))
+
 		for _, pkg := range pkgs {
 			if err := td.Do(ctx, td.Props("Build "+pkg.cipdPlatform), func(ctx context.Context) error {
 				// We're building for multiple platforms, and Bazel writes all
@@ -155,7 +160,8 @@ func main() {
 				}
 
 				// Perform the build.
-				args := []string{fmt.Sprintf("--platforms=%s", pkg.bazelPlatform)}
+				platformFlag := fmt.Sprintf("--platforms=%s", pkg.bazelPlatform)
+				args := []string{platformFlag}
 				args = append(args, *targets...)
 				doFunc := bzl.Do
 				if *rbe {
@@ -166,26 +172,22 @@ func main() {
 				}
 
 				// Copy the outputs to the destination dir.
-				for _, path := range *includePaths {
-					paths := []string{path}
-					m := executableSuffixRegex.FindAllStringSubmatch(path, -1)
-					if m != nil {
-						paths = []string{m[0][1], m[0][1] + m[0][2]}
+				for _, target := range *targets {
+					cmd := exec.CommandContext(ctx, "bazelisk", "cquery", target, "--output", "files", platformFlag)
+					output, err := cmd.Output()
+					if err != nil {
+						return err
 					}
-					found := false
-					for _, path := range paths {
-						path := filepath.Join(*buildDir, path)
-						if _, err := os_steps.Stat(ctx, path); err == nil {
-							dest := filepath.Join(pkg.tmpDir, filepath.Base(path))
-							if err := os_steps.CopyFile(ctx, path, dest); err != nil {
-								return err
-							}
-							found = true
-							break
+					outputFiles := strings.Split(strings.TrimSpace(string(output)), "\n")
+					for _, path := range outputFiles {
+						path := filepath.Join(executionRoot, path)
+						if _, err := os_steps.Stat(ctx, path); err != nil {
+							return err
 						}
-					}
-					if !found {
-						return fmt.Errorf("Unable to find %q; tried %v", path, paths)
+						dest := filepath.Join(pkg.tmpDir, filepath.Base(path))
+						if err := os_steps.CopyFile(ctx, path, dest); err != nil {
+							return err
+						}
 					}
 				}
 				return nil

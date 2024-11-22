@@ -31,7 +31,7 @@ var (
 // ApplyExternalChangeGithubFunc returns a ApplyExternalChangeFunc which
 // handles external change Ids for github checkouts.
 func ApplyExternalChangeGithubFunc() git_common.ApplyExternalChangeFunc {
-	return func(ctx context.Context, co *git.Checkout, externalChangeId string) error {
+	return func(ctx context.Context, co git.Checkout, externalChangeId string) error {
 		// Fetch specified PR locally.
 		if _, err := co.Git(ctx, "fetch", "origin", fmt.Sprintf("pull/%s/head", externalChangeId)); err != nil {
 			return skerr.Wrap(err)
@@ -47,7 +47,7 @@ func ApplyExternalChangeGithubFunc() git_common.ApplyExternalChangeFunc {
 // GitCheckoutUploadGithubRollFunc returns a UploadRollFunc which uploads a CL
 // to Github.
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName, forkRepoURL string) git_common.UploadRollFunc {
-	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
+	return func(ctx context.Context, co git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 
 		// Generate a fork branch name with unique id and creation timestamp.
 		forkBranchName := fmt.Sprintf("%s-%s-%d", rollerName, uuid.New().String(), time.Now().Unix())

@@ -14,7 +14,7 @@ import (
 
 // memRefresher is a RepoImplRefresher backed by a local git repo.
 type memRefresher struct {
-	repo *git.Repo
+	repo git.Checkout
 	ri   *repograph.MemCacheRepoImpl
 	t    *testing.T
 }
@@ -31,7 +31,7 @@ func (u *memRefresher) Refresh(commits ...*vcsinfo.LongCommit) {
 // setupMem performs common setup for git.Repo based Graphs.
 func setupMem(t *testing.T) (context.Context, *git_testutils.GitBuilder, *repograph.Graph, shared_tests.RepoImplRefresher, func()) {
 	ctx, g, cleanup := shared_tests.CommonSetup(t)
-	repo := &git.Repo{GitDir: git.GitDir(g.Dir())}
+	repo := git.CheckoutDir(g.Dir())
 	ri := repograph.NewMemCacheRepoImpl(map[string]*vcsinfo.LongCommit{}, []*git.Branch{})
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
 	require.NoError(t, err)

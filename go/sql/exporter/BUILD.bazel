@@ -10,7 +10,10 @@ go_library(
 
 go_test(
     name = "exporter_test",
-    srcs = ["exporter_test.go"],
+    srcs = [
+        "exporter_spanner_test.go",
+        "exporter_test.go",
+    ],
     embed = [":exporter"],
     deps = ["@com_github_stretchr_testify//assert"],
 )

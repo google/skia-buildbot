@@ -45,9 +45,6 @@ push-atp:
 
 VERSION := $(shell ../bash/release_tag.sh)
 
-rotate-skia-corp-atp-service-account-key:
-	../kube/secrets/rotate-keys-for-skia-corp-sa.sh google.com:skia-corp alert-to-pubsub deployment/alert-to-pubsub
-
 build_alert_to_pubsub_ansible:
 	rm -rf ./build
 	CGO_ENABLED=0 \

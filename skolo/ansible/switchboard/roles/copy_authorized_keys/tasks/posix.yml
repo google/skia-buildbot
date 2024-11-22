@@ -12,14 +12,18 @@
       '/tmp/copy_authorized_keys-from-jumphost-to-{{ inventory_hostname }}'
 
 - name: Grab the 'chrome-bot' public key from the jumphost.
-  become: true
-  become_user: 'chrome-bot'
+  # https://docs.ansible.com/ansible/latest/inventory_guide/connection_details.html#setting-a-remote-user
+  # Without this, we'll ssh into the jumphost with whomever we are running
+  # ansible as (e.g. root). We can't log into root@jumphost without updating
+  # the authorized_keys and logging in as root is a Bad Idea (tm) anyway.
+  remote_user: 'chrome-bot'
   delegate_to: '{{ copy_authorized_keys__jumphost }}'
+  # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/fetch_module.html
   ansible.builtin.fetch:
     src: '~chrome-bot/.ssh/id_ed25519.pub'
     dest: '{{ authorized_keys_filename }}'
     flat: true
-  when: copy_authorized_keys__jumphost
+  when: copy_authorized_keys__jumphost != "skip"
 
 - name: Add the jumphost public key.
   ansible.posix.authorized_key:
@@ -27,4 +31,4 @@
     state: present
     key: "{{ lookup('file', authorized_keys_filename) }}"
     exclusive: false
-  when: copy_authorized_keys__jumphost
+  when: copy_authorized_keys__jumphost != "skip"

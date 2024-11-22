@@ -4,7 +4,7 @@
  *
  * Page to view a specific diff between two digests. This does not include trace data.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
@@ -31,11 +31,13 @@ export class DiffPageSk extends ElementSk {
     }
     return html`
       <digest-details-sk
+        class="overview"
         .details=${ele.leftDetails}
         .right=${ele.rightDetails}
         .groupings=${ele.groupings}
         .changeListID=${ele.changeListID}
-        .crs=${ele.crs}>
+        .crs=${ele.crs}
+        @image_compare_size_toggled=${ele.enableFullWidthComparison}>
       </digest-details-sk>
     `;
   };
@@ -157,6 +159,15 @@ export class DiffPageSk extends ElementSk {
         this._render();
         sendFetchError(this, e, 'diff-details');
       });
+  }
+
+  private enableFullWidthComparison(e: CustomEvent) {
+    e.stopPropagation();
+    const digestDetail = this.querySelector('digest-details-sk');
+
+    if (digestDetail && digestDetail.classList) {
+      digestDetail.classList.remove('overview');
+    }
   }
 }
 

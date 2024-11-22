@@ -10,8 +10,8 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T Dockerfile                  ${ROOT}/Dockerfile
-${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/recipes.cfg
+${INSTALL} --mode=644 -T Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=644 -T ../DEPS    ${ROOT}/DEPS
 }
 
 source ../bash/docker_build.sh

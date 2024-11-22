@@ -3356,68 +3356,6 @@ func TestDiffHandler_ValidRequest_Success(t *testing.T) {
 		})
 }
 
-func TestGroupingForTestHandler_InvalidRequest_Error(t *testing.T) {
-	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			DB: db,
-		},
-	}
-
-	test := func(name string, req frontend.GroupingForTestRequest, expectedError string, httpStatusCode int) {
-		t.Run(name, func(t *testing.T) {
-			reqBytes, err := json.Marshal(req)
-			require.NoError(t, err)
-
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodPost, "/json/v1/groupingfortest", bytes.NewReader(reqBytes))
-			wh.GroupingForTestHandler(w, r)
-
-			res := w.Result()
-			resBytes, err := io.ReadAll(w.Body)
-			require.NoError(t, err)
-
-			assert.Equal(t, httpStatusCode, res.StatusCode)
-			assert.Contains(t, string(resBytes), expectedError)
-		})
-	}
-
-	test("empty request", frontend.GroupingForTestRequest{}, "Test name cannot be empty.", http.StatusBadRequest)
-	test(
-		"test not found",
-		frontend.GroupingForTestRequest{
-			TestName: "nosuchtest",
-		},
-		"Test not found.",
-		http.StatusNotFound)
-}
-
-func TestGroupingForTestHandler_ValidRequest_Success(t *testing.T) {
-	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-
-	wh := Handlers{
-		HandlersConfig: HandlersConfig{
-			DB: db,
-		},
-	}
-
-	reqBytes, err := json.Marshal(frontend.GroupingForTestRequest{
-		TestName: dks.SquareTest,
-	})
-	require.NoError(t, err)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPost, "/json/v1/groupingfortest", bytes.NewReader(reqBytes))
-	wh.GroupingForTestHandler(w, r)
-
-	assertJSONResponseWas(t, http.StatusOK, `{"grouping":{"name":"square","source_type":"corners"}}`, w)
-}
-
 func TestDetailsHandler_InvalidRequest_Error(t *testing.T) {
 	wh := Handlers{
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),

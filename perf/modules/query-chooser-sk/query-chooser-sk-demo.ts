@@ -29,16 +29,9 @@ const paramset = {
 };
 
 document.querySelectorAll<QueryChooserSk>('query-chooser-sk').forEach((ele) => {
-  ele.addEventListener<any>(
-    'query-change',
-    (e: CustomEvent<QuerySkQueryChangeEventDetail>) => {
-      document.querySelector('#events')!.textContent = JSON.stringify(
-        e.detail,
-        null,
-        '  '
-      );
-    }
-  );
+  ele.addEventListener<any>('query-change', (e: CustomEvent<QuerySkQueryChangeEventDetail>) => {
+    document.querySelector('#events')!.textContent = JSON.stringify(e.detail, null, '  ');
+  });
   ele.paramset = paramset;
   ele.key_order = ['test', 'units'];
   ele.querySelector<HTMLButtonElement>('button')!.click();

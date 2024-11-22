@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"maps"
 
 	"go.skia.org/infra/go/jsonschema"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/types"
 
@@ -33,6 +36,11 @@ type SingleMeasurement struct {
 
 	// Measurement is a single measurement from a test run.
 	Measurement float32 `json:"measurement"`
+
+	// Links are any URLs to further information about this measurement.
+	// The key is the display name for the link and the value is the URL.
+	// Eg: Links["Search Engine"] = "https://www.google.com"
+	Links map[string]string `json:"links,omitempty"`
 }
 
 // Result represents one or more measurements.
@@ -187,6 +195,48 @@ type Format struct {
 	// Links are any URLs to further information about this run, e.g. link to a
 	// CI run.
 	Links map[string]string `json:"links,omitempty"`
+}
+
+// GetLinksForMeasurement returns a list of links from the data. This includes
+// the links common for all measurements plus any links specified in the measurement
+// for the given trace id.
+func (f Format) GetLinksForMeasurement(traceID string) map[string]string {
+	links := map[string]string{}
+	if f.Links != nil {
+		links = maps.Clone(f.Links)
+	}
+	traceParamSet := paramtools.NewParamSet(paramtools.NewParams(traceID))
+	keyParams := paramtools.Params(f.Key)
+	for _, result := range f.Results {
+		p := keyParams.Copy()
+		p.Add(result.Key)
+		for key, measurements := range result.Measurements {
+			for _, measurement := range measurements {
+				singleParam := p.Copy()
+				singleParam[key] = measurement.Value
+				singleParam = query.ForceValid(singleParam)
+				measurementParamSet := paramtools.NewParamSet(singleParam)
+				// At this point we have gathered all the params for the given measurement.
+				// Now we can simply check if these params match the ones in the traceID to
+				// verify if we have the right measurement. Also adding a size check to verify
+				// equivalence since the Matches call also works if there is a subset match.
+				if traceParamSet.Size() == measurementParamSet.Size() &&
+					traceParamSet.Matches(measurementParamSet) {
+					if len(measurement.Links) > 0 {
+						for id, url := range measurement.Links {
+							links[id] = url
+						}
+					}
+
+					// Since we already matched with the correct measurement, no further
+					// traversal is necessary.
+					break
+				}
+			}
+		}
+
+	}
+	return links
 }
 
 // Parse parses the stream out of the io.Reader into FileFormat. The caller is

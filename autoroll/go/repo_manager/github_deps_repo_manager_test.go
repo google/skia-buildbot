@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -23,7 +22,6 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -51,8 +49,10 @@ func githubDEPSCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "todo.git",
-								Path: deps_parser.DepsFileName,
+								Id: "todo.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},
@@ -136,10 +136,8 @@ func setupGithubDEPS(t *testing.T, c *config.ParentChildRepoManagerConfig) (cont
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
 	g, urlmock := setupFakeGithubDEPS(ctx, t)
-	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", recipesCfg, "fake.server.com", nil, githubCR(t, g))
+	rm, err := newParentChildRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", "fake.server.com", nil, githubCR(t, g))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -260,20 +258,26 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	parentCfg.DepsLocal.GitCheckout.Dep.Transitive = []*config.TransitiveDepConfig{
 		{
 			Child: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-child",
-				Path: "DEPS",
+				Id: "https://grandchild-in-child",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 			Parent: &config.VersionFileConfig{
-				Id:   "https://grandchild-in-parent",
-				Path: "DEPS",
+				Id: "https://grandchild-in-parent",
+				File: []*config.VersionFileConfig_File{
+					{Path: "DEPS"},
+				},
 			},
 		},
 	}
 	childCfg := cfg.Child.(*config.ParentChildRepoManagerConfig_GitCheckoutGithubChild).GitCheckoutGithubChild
 	childCfg.GitCheckout.GitCheckout.Dependencies = []*config.VersionFileConfig{
 		{
-			Id:   "https://grandchild-in-child",
-			Path: "DEPS",
+			Id: "https://grandchild-in-child",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 	}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)

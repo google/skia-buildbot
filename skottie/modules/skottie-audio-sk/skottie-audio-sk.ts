@@ -29,7 +29,7 @@
  *
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { Howl } from 'howler';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

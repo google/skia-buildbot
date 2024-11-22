@@ -19,7 +19,7 @@ const (
 // TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
 // they need to pass in a GitCheckoutUploadRollFunc but can't do other
 // initialization. Find a way to make this unnecessary.
-func SetupGithub(ctx context.Context, co *git.Checkout, forkRepoURL string) error {
+func SetupGithub(ctx context.Context, co git.Checkout, forkRepoURL string) error {
 	// Check to see whether we have a remote for the fork.
 	remoteOutput, err := co.Git(ctx, "remote", "show")
 	if err != nil {

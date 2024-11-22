@@ -13,7 +13,7 @@ import '../patch-sk';
 import '../task-repeater-sk';
 import '../task-priority-sk';
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { $$, $ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/select-sk';

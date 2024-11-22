@@ -8,11 +8,14 @@ import {
   mergeColumnHeaders,
   join,
   timestampBounds,
+  findSubDataframe,
+  mergeAnomaly,
+  findAnomalyInRange,
+  range,
+  generateSubDataframe,
 } from './index';
 import {
   DataFrame,
-  ParamSet,
-  Params,
   ColumnHeader,
   TraceSet,
   ReadOnlyParamSet,
@@ -21,8 +24,110 @@ import {
   TimestampSeconds,
 } from '../json';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { generateAnomalyMap, generateFullDataFrame } from './test_utils';
 
 const e = MISSING_DATA_SENTINEL;
+
+describe('generate subrange from dataframe', () => {
+  it('slice range', () => {
+    const df = generateFullDataFrame(range(0, 10), 1, 3, [2]);
+    const sub = generateSubDataframe(df, range(0, 3));
+    assert.deepEqual(sub.header, df.header?.slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=1'], df.traceset[',key=1'].slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=2'], df.traceset[',key=2'].slice(0, 3));
+    assert.deepEqual(sub.traceset[',key=0'], df.traceset[',key=0'].slice(0, 3));
+  });
+});
+
+describe('find subrange from dataframe header', () => {
+  it('find subrange inside the header', () => {
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(1, 2), 'offset'), range(1, 3));
+    assert.deepEqual(findSubDataframe(header, range(1, 6), 'timestamp'), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(3, 7)), range(1, 4));
+  });
+
+  it('find subrange outside the header', () => {
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(-1, 2), 'offset'), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(9, 11), 'offset'), range(9, 10));
+    assert.deepEqual(findSubDataframe(header, range(-1, 6)), range(0, 3));
+    assert.deepEqual(findSubDataframe(header, range(19, 22)), range(9, 10));
+  });
+
+  it('find subrange not in the header', () => {
+    const header = generateFullDataFrame(range(0, 10), 1, 1, [2]).header!;
+    assert.deepEqual(findSubDataframe(header, range(-10, -1), 'offset'), range(0, 0));
+    assert.deepEqual(findSubDataframe(header, range(100, 101), 'offset'), range(10, 10));
+    assert.deepEqual(findSubDataframe(header, range(-10, -1)), range(0, 0));
+    assert.deepEqual(findSubDataframe(header, range(100, 120)), range(10, 10));
+  });
+});
+
+describe('merge anomaly', () => {
+  const df = generateFullDataFrame({ begin: 0, end: 20 }, 1, 5, [1, 3, 6, 4, 2]);
+  const anomaly = generateAnomalyMap(df, [
+    { trace: 1, commit: 4, bugId: 4001 },
+    { trace: 2, commit: 4, bugId: 4002 },
+    { trace: 2, commit: 7, bugId: 7002 },
+  ]);
+  const updated = generateAnomalyMap(df, [
+    { trace: 1, commit: 4, bugId: 4101 },
+    { trace: 2, commit: 7, bugId: 7102 },
+  ]);
+
+  it('merge empty (always return non-null)', () => {
+    assert.isNotNull(mergeAnomaly(null));
+    assert.isEmpty(mergeAnomaly(null));
+    assert.isNotNull(mergeAnomaly(null, {}, null));
+  });
+
+  it('merge empty w/ non-empty', () => {
+    const anomaly1 = mergeAnomaly(null, findAnomalyInRange(anomaly, { begin: 5, end: 10 }));
+    assert.isUndefined(anomaly1[',key=1']);
+    assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
+  });
+
+  it('merge non-empty w/ non-empty', () => {
+    const anomaly1 = findAnomalyInRange(anomaly, { begin: 0, end: 5 })!;
+    assert.equal(anomaly1[',key=1']![4].bug_id, 4001);
+    assert.equal(anomaly1[',key=2']![4].bug_id, 4002);
+    assert.isUndefined(anomaly1[',key=2']![7]);
+
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(anomaly, { begin: 5, end: 10 }));
+    assert.equal(anomaly2[',key=1']![4].bug_id, 4001);
+    assert.equal(anomaly2[',key=2']![7].bug_id, 7002);
+  });
+
+  it('merge w/ updated entries', () => {
+    const anomaly1 = findAnomalyInRange(anomaly, { begin: 0, end: 5 })!;
+    assert.equal(anomaly1[',key=1']![4].bug_id, 4001);
+
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(updated, { begin: 0, end: 10 })!);
+    assert.equal(anomaly2[',key=1']![4].bug_id, 4101);
+    assert.equal(anomaly2[',key=2']![7].bug_id, 7102);
+  });
+
+  it('merge w/ new traces', () => {
+    const anomaly1 = findAnomalyInRange(anomaly, { begin: 5, end: 10 })!;
+    assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
+    assert.isUndefined(anomaly1[',key=1']);
+
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(anomaly, { begin: 0, end: 5 })!);
+    assert.equal(anomaly2[',key=1']![4].bug_id, 4001);
+    assert.equal(anomaly2[',key=2']![4].bug_id, 4002);
+  });
+
+  it('merge w/ new and updated traces', () => {
+    const anomaly1 = findAnomalyInRange(anomaly, { begin: 5, end: 10 })!;
+    assert.equal(anomaly1[',key=2']![7].bug_id, 7002);
+    assert.isUndefined(anomaly1[',key=1']);
+
+    const anomaly2 = mergeAnomaly(anomaly1, findAnomalyInRange(updated, { begin: 0, end: 10 })!);
+    assert.equal(anomaly2[',key=1']![4].bug_id, 4101);
+    assert.equal(anomaly2[',key=2']![7].bug_id, 7102);
+  });
+});
 
 describe('mergeColumnHeaders', () => {
   it('merges simple case', () => {

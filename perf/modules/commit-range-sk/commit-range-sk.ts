@@ -6,7 +6,7 @@
  * uses the global `window.perf.commit_range_url`, which can be set on Perf via
  * the command line.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { lookupCids } from '../cid/cid';
@@ -15,16 +15,12 @@ import { ColumnHeader, CommitNumber } from '../json';
 import '../window/window';
 
 // Converts CommitNumbers to Git hashes.
-type commitNumberToHashes = (
-  commitNumbers: CommitNumber[]
-) => Promise<string[]>;
+type commitNumberToHashes = (commitNumbers: CommitNumber[]) => Promise<string[]>;
 
 /** The default implementation for commitNumberToHashes run the commit numbers
  *  through cid lookup to get the hashes by making a request to the server.
  */
-const defaultcommitNumberToHashes = async (
-  cids: CommitNumber[]
-): Promise<string[]> => {
+const defaultcommitNumberToHashes = async (cids: CommitNumber[]): Promise<string[]> => {
   const json = await lookupCids(cids);
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
@@ -43,8 +39,7 @@ export class CommitRangeSk extends ElementSk {
   private _text: string = '';
 
   // commitNumberToHashes can be replaced to make testing easier.
-  private commitNumberToHashes: commitNumberToHashes =
-    defaultcommitNumberToHashes;
+  private commitNumberToHashes: commitNumberToHashes = defaultcommitNumberToHashes;
 
   constructor() {
     super(CommitRangeSk.template);
@@ -80,10 +75,7 @@ export class CommitRangeSk extends ElementSk {
     // First the previous commit that has data.
     let prevCommit = this._commitIndex - 1;
 
-    while (
-      prevCommit > 0 &&
-      this._trace[prevCommit] === MISSING_DATA_SENTINEL
-    ) {
+    while (prevCommit > 0 && this._trace[prevCommit] === MISSING_DATA_SENTINEL) {
       prevCommit -= 1;
     }
 

@@ -49,9 +49,11 @@ go_binary(
 go_test(
     name = "gold_frontend_test",
     srcs = ["gold_frontend_test.go"],
+    data = ["//golden/k8s-instances:frontend_configs"],
     embed = [":gold_frontend_lib"],
     deps = [
         "//go/metrics2",
+        "//golden/go/config/validation",
         "//golden/go/web",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_stretchr_testify//assert",

@@ -47,7 +47,6 @@ var (
 		"Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64": &cqWithDefaults,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Mac-x86_64":   noCQ,
 		"Housekeeper-PerCommit-BuildTaskDrivers-Win-x86_64":   noCQ,
-		"Housekeeper-Weekly-UpdateCIPDPackages":               noCQ,
 	}
 
 	// cqWithDefaults means this is a non-experimental CQ job (if it fails, the submission will
@@ -187,44 +186,6 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func updateCIPDPackages(b *specs.TasksCfgBuilder, name string) string {
-	pkgs := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("go"))
-	pkgs = append(pkgs, b.MustGetCipdPackageFromAsset("protoc"))
-
-	machineType := machineTypeMedium
-	t := &specs.TaskSpec{
-		Caches:       goCaches,
-		CasSpec:      casEmpty,
-		CipdPackages: pkgs,
-		Command: []string{
-			"./roll_cipd_packages",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--gerrit_project", "buildbot",
-			"--gerrit_url", "https://skia-review.googlesource.com",
-			"--repo", specs.PLACEHOLDER_REPO,
-			"--revision", specs.PLACEHOLDER_REVISION,
-			"--patch_issue", specs.PLACEHOLDER_ISSUE,
-			"--patch_set", specs.PLACEHOLDER_PATCHSET,
-			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
-			"--skip", "cpython3",
-		},
-		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
-		Dimensions:   linuxGceDimensions(machineType),
-		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
-		},
-		ServiceAccount: recreateSKPsServiceAccount,
-	}
-	usesBazelisk(b, t)
-	usesWrapperTaskDriver(b, name, true, t)
-	b.MustAddTask(name, t)
-	return name
-}
-
 // usesPreBuiltTaskDrivers changes the task to use pre-built task
 // drivers for efficiency. If you want to iterate on the task driver
 // itself, just comment out the line where this is called.
@@ -306,8 +267,7 @@ func bazelBuild(b *specs.TasksCfgBuilder, name string) string {
 
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	// TODO(kjlubick) Replace after this bakes in
-	// usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
@@ -349,8 +309,7 @@ func bazelTest(b *specs.TasksCfgBuilder, name string) string {
 	}
 	// To iterate on the bazel_build_all task driver, comment out the
 	// call to usePreBuiltTaskDrivers.
-	// TODO(kjlubick) Replace after this bakes in
-	// usesPreBuiltTaskDrivers(b, t)
+	usesPreBuiltTaskDrivers(b, t)
 	usesBazelisk(b, t)
 	usesWrapperTaskDriver(b, name, true, t)
 	b.MustAddTask(name, t)
@@ -362,10 +321,7 @@ func process(b *specs.TasksCfgBuilder, name string, cqConfig *specs.CommitQueueJ
 	var priority float64 // Leave as default for most jobs.
 	var deps []string
 
-	if strings.Contains(name, "UpdateCIPDPackages") {
-		// Update CIPD packages bot.
-		deps = append(deps, updateCIPDPackages(b, name))
-	} else if name == "Infra-PerCommit-Build" {
+	if name == "Infra-PerCommit-Build" {
 		deps = append(deps, bazelBuild(b, name))
 	} else if name == "Infra-PerCommit-Test" {
 		deps = append(deps, bazelTest(b, name))

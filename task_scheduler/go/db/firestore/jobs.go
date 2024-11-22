@@ -179,6 +179,14 @@ func (d *firestoreDB) PutJobs(ctx context.Context, jobs []*types.Job) (rvErr err
 		return fmt.Errorf("Tried to insert %d jobs but Firestore maximum per transaction is %d.", len(jobs), MAX_TRANSACTION_DOCS)
 	}
 
+	// Log a warning if we try to insert a completed Job without a Finished
+	// timestamp.
+	for _, job := range jobs {
+		if job.Done() && util.TimeIsZero(job.Finished) {
+			sklog.Warningf("Inserting job %q with status %q but no finish timestamp", job.Id, job.Status)
+		}
+	}
+
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the jobs into the DB.
 	currentTime := firestore.FixTimestamp(now.Now(ctx))

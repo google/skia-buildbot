@@ -1,0 +1,69 @@
+load(
+    "//infra-sk:index.bzl",
+    "karma_test",
+    "sk_demo_page_server",
+    "sk_element",
+    "sk_element_puppeteer_test",
+    "sk_page",
+)
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":favorites-dialog-sk-demo",
+)
+
+sk_element(
+    name = "favorites-dialog-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+    ],
+    sass_srcs = ["favorites-dialog-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/spinner-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_srcs = [
+        "favorites-dialog-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "favorites-dialog-sk-demo",
+    html_file = "favorites-dialog-sk-demo.html",
+    sk_element_deps = [":favorites-dialog-sk"],
+    ts_deps = [
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_entry_point = "favorites-dialog-sk-demo.ts",
+)
+
+sk_element_puppeteer_test(
+    name = "favorites-dialog-sk_puppeteer_test",
+    src = "favorites-dialog-sk_puppeteer_test.ts",
+    sk_demo_page_server = ":demo_page_server",
+    deps = [
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//puppeteer-tests:util_ts_lib",
+    ],
+)
+
+karma_test(
+    name = "favorites-dialog-sk_test",
+    src = "favorites-dialog-sk_test.ts",
+    deps = [
+        ":favorites-dialog-sk",
+        "//:node_modules/@types/chai",
+        "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
+    ],
+)

@@ -4,7 +4,7 @@
  *
  * Provides UI for searching the jobs in the DB.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import {
   ParamSet,
@@ -69,6 +69,10 @@ const jobStatusToLabelAndClass: { [key: string]: DisplayJobResult } = {
   [JobStatus.JOB_STATUS_CANCELED]: {
     label: 'canceled',
     class: 'bg-canceled',
+  },
+  [JobStatus.JOB_STATUS_REQUESTED]: {
+    label: 'requested',
+    class: 'bg-in-progress',
   },
 };
 
@@ -245,7 +249,8 @@ export class JobSearchSk extends ElementSk {
                     <td>${job.isForce ? 'true' : 'false'}</td>
                     <td>${job.createdAt}</td>
                     <td>
-                      ${job.status === JobStatus.JOB_STATUS_IN_PROGRESS
+                      ${job.status === JobStatus.JOB_STATUS_IN_PROGRESS ||
+                      job.status === JobStatus.JOB_STATUS_REQUESTED
                         ? html`
                             <button
                               class="cancel"

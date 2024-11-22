@@ -1,19 +1,22 @@
 # New Instance Checklist
 
-When launching a new Perf instance:
+When launching a new Perf instance, first determine whether you are creating a Googler-only
+or a publicly available instance. Based on that, all resources except the GCS bucket will
+be created in the respective projects mentioned below.
+
+| Instance Type | GCP Project       |
+| ------------- | ----------------- |
+| Googlers-only | skia-infra-corp   |
+| Public        | skia-infra-public |
 
 ## 1. Create a GCS Bucket
 
 This is the bucket where Skia formatted JSONs are to be uploaded to trigger their ingestion.
-These buckets live in the skia-public project, so you first need to have Storage Admin role in
-this project in order to create and write to buckets.
+These buckets live in the skia-public project. To create a new bucket, update [this
+terraform file](go/skia-perf-buckets)
 
-Create bucket command example:
-
-```
-$ gcloud storage buckets create gs://flutter-skia-perf-prod --location=us
---uniform-bucket-level-access --project=skia-public
-```
+Determine which service account will be writing the input files into this bucket and provide
+that account with `objectAdmins` permission.
 
 Once created, it's recommended to create a folder specifically for ingestion e.g.
 `gs://flutter-skia-perf-prod/ingest`.
@@ -66,6 +69,8 @@ root@perf-cockroachdb-public:26257/defaultdb> CREATE TABLE ...
 
 ## 4. Push a new version of `perf-cockroachdb-backup`.
 
+Run the below cmd from the **perf** directory.
+
     make push_backup
 
 ## 5. Create the PubSub topic and subscription for ingestion.
@@ -79,7 +84,7 @@ perf-tool config create-pubsub-topics-and-subscriptions --config_filename=./conf
 ## 6. Configure GCS to emit PubSub Events:
 
 This configures the GCS bucket/directory to send PubSub events to that topic
-when new files arrive:
+when new files arrive. Update the variable values based on the output of the above step:
 
 ```
 #/bin/bash
@@ -162,17 +167,19 @@ and `--config_filename` flags.
 
 Then run `skfe/generate.sh`. This will create the envoy config to route traffic to the instance.
 
-## 13. Update the Skia zone file.
+## 13. Update the DNS for the instance.
 
 For skia-infra-public:
 
-- Add the sub-domain of the new Perf instance to the zone file and run:
-  `./update-zone-records.sh`
+- No action needed.
 
 For skia-infra-corp:
 
 - Create a CL like [this one](http://go/sample-skiaperf-dns-cl) to update the DNS
   record for the new instance.
+- Since skia-infra-corp is behind UberProxy, we need to add the new host name in the uberproxy ACL.
+  Create an ACLAIM proposal like [this one](go/perf-uberproxy-aclaim). Once this is approved, it
+  generally takes about 24 hours for it to propagate.
 
 ## 14. Add probers for the frontend.
 

@@ -1,6 +1,6 @@
 /** Root element for all codesize.skia.org pages. */
 
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 
 import { define } from '../../../elements-sk/modules/define';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';

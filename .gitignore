@@ -74,7 +74,6 @@ android_ingest/third_party
 android_compile/third_party
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
-fiddle/fiddle_secwrap
 fiddle/res/css
 prometheus/tmp
 # Jupyter

@@ -10,10 +10,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
+
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/config/validation"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/ingestion/mocks"
 )
@@ -222,6 +225,13 @@ func TestStartBackupPolling_TwoSources_Success(t *testing.T) {
 	mfs2.AssertExpectations(t)
 	mis.AssertExpectations(t)
 	mp.AssertExpectations(t)
+}
+
+func TestLoadExistingConfigs_Valid(t *testing.T) {
+	var cfg ingestionServerConfig
+	err := validation.ValidateServiceConfigs("ingestion", validation.PrimaryInstances, &cfg)
+	require.NoError(t, err)
+	assert.NotZero(t, cfg, "Config object should not be nil.")
 }
 
 // nopLiveness is a no-op metrics2.Liveness implementation to fake out during tests.

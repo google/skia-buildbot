@@ -20,7 +20,7 @@ sk_element(
         "//:node_modules/@google-web-components/google-chart",
         "//:node_modules/@types/google.visualization",  # keep
         "//:node_modules/fuse.js",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "binary-page-sk.ts",

@@ -7,7 +7,7 @@
  * </p>
  *
  */
-import { html, render } from 'lit-html';
+import { html, render } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { localeTime, strDuration } from '../human';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
@@ -403,7 +403,7 @@ export class TaskDriverSk extends HTMLElement {
   }
 
   private render() {
-    render(TaskDriverSk.template(this), this, { eventContext: this });
+    render(TaskDriverSk.template(this), this, { host: this });
   }
 
   private stepClass(s: StepDisplay): string {

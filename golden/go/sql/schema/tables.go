@@ -123,6 +123,7 @@ const (
 // is missing or silently not backup new tables).
 //
 //go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file sql.go --output_pkg schema
+//go:generate bazelisk run --config=mayberemote //:go -- run ../exporter/tosql --output_file ./spanner/sql_spanner.go --output_pkg spanner --schemaTarget spanner
 type Tables struct {
 	Changelists                        []ChangelistRow                     `sql_backup:"weekly"`
 	CommitsWithData                    []CommitWithDataRow                 `sql_backup:"daily"`
@@ -195,6 +196,11 @@ func (r TraceValueRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.Shard, r.TraceID, r.CommitID, r.Digest, r.GroupingID, r.OptionsID, r.SourceFileID}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r TraceValueRow) GetPrimaryKeyCols() []string {
+	return []string{"shard", "commit_id", "trace_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TraceValueRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.Shard, &r.TraceID, &r.CommitID, &r.Digest, &r.GroupingID,
@@ -219,6 +225,11 @@ type CommitWithDataRow struct {
 func (r CommitWithDataRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"commit_id", "tile_id"},
 		[]interface{}{r.CommitID, r.TileID}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r CommitWithDataRow) GetPrimaryKeyCols() []string {
+	return []string{"commit_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -251,6 +262,11 @@ type GitCommitRow struct {
 func (r GitCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"git_hash", "commit_id", "commit_time", "author_email", "subject"},
 		[]interface{}{r.GitHash, r.CommitID, r.CommitTime, r.AuthorEmail, r.Subject}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r GitCommitRow) GetPrimaryKeyCols() []string {
+	return []string{"git_hash"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -302,6 +318,11 @@ func (r TraceRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.TraceID, r.GroupingID, r.Keys, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r TraceRow) GetPrimaryKeyCols() []string {
+	return []string{"trace_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TraceRow) ScanFrom(scan func(...interface{}) error) error {
 	var matches pgtype.Bool
@@ -334,6 +355,11 @@ func (r GroupingRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.GroupingID, r.Keys}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r GroupingRow) GetPrimaryKeyCols() []string {
+	return []string{"grouping_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *GroupingRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.GroupingID, &r.Keys)
@@ -352,6 +378,11 @@ type OptionsRow struct {
 func (r OptionsRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"options_id", "keys"},
 		[]interface{}{r.OptionsID, r.Keys}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r OptionsRow) GetPrimaryKeyCols() []string {
+	return []string{"options_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -374,6 +405,11 @@ type SourceFileRow struct {
 func (r SourceFileRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"source_file_id", "source_file", "last_ingested"},
 		[]interface{}{r.SourceFileID, r.SourceFile, r.LastIngested}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r SourceFileRow) GetPrimaryKeyCols() []string {
+	return []string{"source_file_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -433,6 +469,11 @@ func (r ExpectationRecordRow) ToSQLRow() (colNames []string, colData []interface
 		[]interface{}{r.ExpectationRecordID, r.BranchName, r.UserName, r.TriageTime, r.NumChanges}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ExpectationRecordRow) GetPrimaryKeyCols() []string {
+	return []string{"expectation_record_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ExpectationRecordRow) ScanFrom(scan func(...interface{}) error) error {
 	err := scan(&r.ExpectationRecordID, &r.BranchName, &r.UserName, &r.TriageTime, &r.NumChanges)
@@ -475,6 +516,11 @@ func (r ExpectationDeltaRow) ToSQLRow() (colNames []string, colData []interface{
 		[]interface{}{r.ExpectationRecordID, r.GroupingID, r.Digest, r.LabelBefore, r.LabelAfter}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ExpectationDeltaRow) GetPrimaryKeyCols() []string {
+	return []string{"expectation_record_id", "grouping_id", "digest"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ExpectationDeltaRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.ExpectationRecordID, &r.GroupingID, &r.Digest, &r.LabelBefore, &r.LabelAfter)
@@ -501,6 +547,11 @@ type ExpectationRow struct {
 func (r ExpectationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"grouping_id", "digest", "label", "expectation_record_id"},
 		[]interface{}{r.GroupingID, r.Digest, r.Label, r.ExpectationRecordID}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ExpectationRow) GetPrimaryKeyCols() []string {
+	return []string{"grouping_id", "digest"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -554,6 +605,11 @@ func (r DiffMetricRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			"max_channel_diff", "combined_metric", "dimensions_differ", "ts"},
 		[]interface{}{r.LeftDigest, r.RightDigest, r.NumPixelsDiff, r.PercentPixelsDiff, r.MaxRGBADiffs,
 			r.MaxChannelDiff, r.CombinedMetric, r.DimensionsDiffer, r.Timestamp}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r DiffMetricRow) GetPrimaryKeyCols() []string {
+	return []string{"left_digest", "right_digest"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -612,6 +668,11 @@ func (r ValueAtHeadRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			r.Keys, r.MatchesAnyIgnoreRule.ToSQL()}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ValueAtHeadRow) GetPrimaryKeyCols() []string {
+	return []string{"trace_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *ValueAtHeadRow) ScanFrom(scan func(...interface{}) error) error {
 	var matches pgtype.Bool
@@ -648,6 +709,11 @@ type PrimaryBranchParamRow struct {
 func (r PrimaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"tile_id", "key", "value"},
 		[]interface{}{r.TileID, r.Key, r.Value}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r PrimaryBranchParamRow) GetPrimaryKeyCols() []string {
+	return []string{"tile_id", "key", "value"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -689,6 +755,11 @@ func (r TiledTraceDigestRow) ToSQLRow() (colNames []string, colData []interface{
 		[]interface{}{r.TraceID, r.TileID, r.Digest, r.GroupingID}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r TiledTraceDigestRow) GetPrimaryKeyCols() []string {
+	return []string{"trace_id", "tile_id", "digest"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TiledTraceDigestRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.TraceID, &r.TileID, &r.Digest, &r.GroupingID)
@@ -719,6 +790,11 @@ type IgnoreRuleRow struct {
 func (r IgnoreRuleRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"ignore_rule_id", "creator_email", "updated_email", "expires", "note", "query"},
 		[]interface{}{r.IgnoreRuleID, r.CreatorEmail, r.UpdatedEmail, r.Expires, r.Note, r.Query}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r IgnoreRuleRow) GetPrimaryKeyCols() []string {
+	return []string{"ignore_rule_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -763,6 +839,11 @@ type ChangelistRow struct {
 func (r ChangelistRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"changelist_id", "system", "status", "owner_email", "subject", "last_ingested_data"},
 		[]interface{}{r.ChangelistID, r.System, r.Status, r.OwnerEmail, r.Subject, r.LastIngestedData}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ChangelistRow) GetPrimaryKeyCols() []string {
+	return []string{"changelist_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -812,6 +893,11 @@ func (r PatchsetRow) ToSQLRow() (colNames []string, colData []interface{}) {
 			r.CommentedOnCL, created}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r PatchsetRow) GetPrimaryKeyCols() []string {
+	return []string{"patchset_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *PatchsetRow) ScanFrom(scan func(...interface{}) error) error {
 	var created pgtype.Timestamptz
@@ -850,6 +936,11 @@ func (r TryjobRow) ToSQLRow() (colNames []string, colData []interface{}) {
 		[]interface{}{r.TryjobID, r.System, r.ChangelistID, r.PatchsetID, r.DisplayName, r.LastIngestedData}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r TryjobRow) GetPrimaryKeyCols() []string {
+	return []string{"tryjob_id"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TryjobRow) ScanFrom(scan func(...interface{}) error) error {
 	err := scan(&r.TryjobID, &r.System, &r.ChangelistID, &r.PatchsetID, &r.DisplayName, &r.LastIngestedData)
@@ -886,7 +977,7 @@ type SecondaryBranchValueRow struct {
 	SourceFileID SourceFileID `sql:"source_file_id BYTES NOT NULL"`
 	// TryjobID corresponds to the latest tryjob (if any) that produced this data. When/if we
 	// support branches, this may be null, e.g. data coming from chrome_m86.
-	TryjobID string `sql:"tryjob_id string"`
+	TryjobID string `sql:"tryjob_id STRING"`
 	// We include source_file_id as part of the primary key in order to support multiple datapoints
 	// per patchset for the same trace. See https://skbug.com/12149.
 	primaryKey struct{} `sql:"PRIMARY KEY (branch_name, version_name, secondary_branch_trace_id, source_file_id)"`
@@ -898,6 +989,11 @@ func (r SecondaryBranchValueRow) ToSQLRow() (colNames []string, colData []interf
 			"options_id", "source_file_id", "tryjob_id"},
 		[]interface{}{r.BranchName, r.VersionName, r.TraceID, r.Digest, r.GroupingID,
 			r.OptionsID, r.SourceFileID, r.TryjobID}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchValueRow) GetPrimaryKeyCols() []string {
+	return []string{"branch_name", "version_name", "secondary_branch_trace_id", "source_file_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -926,6 +1022,11 @@ type SecondaryBranchParamRow struct {
 func (r SecondaryBranchParamRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"branch_name", "version_name", "key", "value"},
 		[]interface{}{r.BranchName, r.VersionName, r.Key, r.Value}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchParamRow) GetPrimaryKeyCols() []string {
+	return []string{"branch_name", "version_name", "key", "value"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -959,6 +1060,11 @@ func (r SecondaryBranchExpectationRow) ToSQLRow() (colNames []string, colData []
 		[]interface{}{r.BranchName, r.GroupingID, r.Digest, string(r.Label), r.ExpectationRecordID}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchExpectationRow) GetPrimaryKeyCols() []string {
+	return []string{"branch_name", "grouping_id", "digest"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *SecondaryBranchExpectationRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.BranchName, &r.GroupingID, &r.Digest, &r.Label, &r.ExpectationRecordID)
@@ -980,6 +1086,11 @@ type ProblemImageRow struct {
 func (r ProblemImageRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"digest", "num_errors", "latest_error", "error_ts"},
 		[]interface{}{r.Digest, r.NumErrors, r.Digest, r.ErrorTS}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r ProblemImageRow) GetPrimaryKeyCols() []string {
+	return []string{"digest"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -1030,6 +1141,11 @@ func (r TrackingCommitRow) ToSQLRow() (colNames []string, colData []interface{})
 		[]interface{}{r.Repo, r.LastGitHash}
 }
 
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r TrackingCommitRow) GetPrimaryKeyCols() []string {
+	return []string{"repo"}
+}
+
 // ScanFrom implements the sqltest.SQLScanner interface.
 func (r *TrackingCommitRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.Repo, &r.LastGitHash)
@@ -1047,6 +1163,11 @@ type MetadataCommitRow struct {
 func (r MetadataCommitRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"commit_id", "commit_metadata"},
 		[]interface{}{r.CommitID, r.CommitMetadata}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r MetadataCommitRow) GetPrimaryKeyCols() []string {
+	return []string{"commit_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -1072,6 +1193,11 @@ type PrimaryBranchDiffCalculationRow struct {
 func (r PrimaryBranchDiffCalculationRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"grouping_id", "last_calculated_ts", "calculation_lease_ends"},
 		[]interface{}{r.GroupingID, r.LastCalculated, r.CalculationLeaseEnds}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r PrimaryBranchDiffCalculationRow) GetPrimaryKeyCols() []string {
+	return []string{"grouping_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.
@@ -1116,6 +1242,11 @@ func (r SecondaryBranchDiffCalculationRow) ToSQLRow() (colNames []string, colDat
 			"last_calculated_ts", "calculation_lease_ends"},
 		[]interface{}{r.BranchName, r.GroupingID, r.LastUpdated, r.DigestsNotOnPrimary,
 			r.LastCalculated, r.CalculationLeaseEnds}
+}
+
+// GetPrimaryKeyCols implements the sqltest.SQLExporter interface.
+func (r SecondaryBranchDiffCalculationRow) GetPrimaryKeyCols() []string {
+	return []string{"branch_name", "grouping_id"}
 }
 
 // ScanFrom implements the sqltest.SQLScanner interface.

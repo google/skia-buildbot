@@ -32,6 +32,8 @@ message ScheduleBisectRequest {
 	// collects performance histogram data to analyze.
 	string story = 6;
 	string chart = 7;
+	// TODO(b/322202740) This field is used by catapult and should eventually be deprecated.
+	// Use aggregation_method instead.
 	string statistic = 8;
 
 	// Comparison Magnitude is the expected absolute difference of a potential regression.
@@ -50,7 +52,8 @@ message ScheduleBisectRequest {
 	string user = 13;
 
 	// The mechanism in which benchmark measurements are aggregated by.
-	// One of sum, mean, min, max count, and std.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
 	string aggregation_method = 14;
 
 	// StoryTags is a comma delimited string of tags to pass for the story.
@@ -101,24 +104,41 @@ message CombinedCommit {
 	repeated Commit modified_deps = 2;
 }
 
+// Culprit contains the culprit commit and also the commit prior to the culprit.
+// Culprit verification needs to verify there is a real regression between the culprit
+// the the prior commit (A-1 vs A). Bisection writes this information as part of the
+// culprit finder workflow.
+message Culprit {
+	CombinedCommit prior = 1; // the commit prior to the culprit
+ 	CombinedCommit culprit = 2; // the culprit commit
+}
+
 message BisectExecution {
 	string job_id = 1;
+	// TODO(b/322203189): replace this with detailed_culprit. This field is used by the
+	// catapult bisect UI write.
 	repeated CombinedCommit culprits = 2;
+
+	// Although this field is used only in culprit verification, bisection needs to pass
+	// the commit prior to the culprit to the culprit verification step.
+	repeated Culprit detailed_culprits = 3;
 }
 
 // SchedulePairwiseRequest contains the input to schedule a pairwise job used
 // in regression and culprit verification. This request uses a subset of the params
-// used in Pinpoint try jobs.
+// used in Pinpoint try jobs. Pairwise can check for regressions between two commits
+// that are located in repos outside of chromium/src. This use case is particularly
+// important for verifying culprits that are located in DEPS rolls.
 //
 // The params used are defined here:
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/catapult/dashboard/
 // dashboard/services/workflow_service.py;drc=2b42d43ff4989182d28de40ad4ed0dc82356c0f7;l=35
 // The params are defined based off of the keys used in catapult.
-// TODO(sunxiaodi@): Add user-facing try job request params to this request.
+// TODO(b/346836299): Add user-facing try job request params to this request.
 // i.e. extra-browser-args
 message SchedulePairwiseRequest {
-	string start_git_hash = 1;
-	string end_git_hash = 2;
+	CombinedCommit start_commit = 1;
+	CombinedCommit end_commit = 2;
 
 	// The builder/bot configuration name, this usually specifies the builder that can trigger
 	// the build.
@@ -132,7 +152,11 @@ message SchedulePairwiseRequest {
 	// collects performance histogram data to analyze.
 	string story = 5;
 	string chart = 6 [json_name = "measurement"];
-	string statistic = 7; // not included in the catapult request, which might be a mistake
+	// The mechanism in which benchmark measurements are aggregated by.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
+	string aggregation_method = 7;
+
 	string target = 8; // probably unnecessary, we can infer this
 
 	// The Monorail project ID.
@@ -171,6 +195,8 @@ message PairwiseExecution {
 // workflow. This workflow consists of a regression verification step, a bisection to find
 // culprits, and a culprit verification step.
 // This workflow is also known as the sandwich verification workflow.
+// This workflow assumes that the culprit is detected on chromium/src and does not
+// support start and end git hashes on other repos.
 message ScheduleCulpritFinderRequest {
 	string start_git_hash = 1;
 	string end_git_hash = 2;
@@ -188,25 +214,46 @@ message ScheduleCulpritFinderRequest {
 	string chart = 6 [json_name = "measurement"];
 
 	// The statistic, if there is one, aggregates measurement values into a single data point.
+	// TODO(b/322202740) This field is used by catapult and should eventually be deprecated.
+	// Use aggregation_method instead.
 	string statistic = 7;
+	// The mechanism in which benchmark measurements are aggregated by.
+	// One of sum, mean, min, max count, and std. If left blank, then
+	// no aggregation takes place and all of the raw values will be used.
+	string aggregation_method = 8;
 
 	// The improvement direction of the measurement.
 	// Is either Up, Down, or Unknown.
-	string improvement_direction = 8 [json_name = "improvement_dir"];
+	string improvement_direction = 9 [json_name = "improvement_dir"];
 
 	// The comparison magnitude is the expected absolute difference of a potential regression.
 	// This parameter is used in bisection.
-	string comparison_magnitude = 9;
+	string comparison_magnitude = 10;
 
 	// The buganizer issue id number to post updates to. This is a legacy feature.
-	string bug_id = 10;
+	string bug_id = 11;
+}
+
+// When the culprit finding workflow finds one or more culprits, it will invoke
+// the ProcessCulpritWorkflow using the params below
+message CulpritProcessingCallbackParams {
+	// AnomalyGroupID is a string ID of the anomaly group for which an auto-bisection
+	// task is created.
+	string anomaly_group_id = 1;
+
+	// CulpritServiceUrl is a URL to call the culprit services.
+	string culprit_service_url = 2;
+
+	// Temporal task queue is where the culprit processing workflow should be put.
+	string temporal_task_queue_name = 3;
 }
 
 message CulpritFinderExecution {
+	string job_id = 1;
 	// If true, regression_verified means there is a regression
-	bool regression_verified = 1;
+	bool regression_verified = 2;
 
-	repeated CombinedCommit culprits = 2;
+	repeated CombinedCommit culprits = 3;
 }
 
 // See LegacyJobResponse below

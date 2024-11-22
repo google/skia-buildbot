@@ -34,6 +34,7 @@ const (
 	// The identifiers for all the SQL statements used.
 	getMostRecentGitHashAndCommitNumber statement = iota
 	insert
+	insertSpanner
 	getCommitNumberFromGitHash
 	getCommitNumberFromTime
 	getCommitsFromTimeRange
@@ -78,6 +79,13 @@ var statements = map[statement]string{
 		VALUES
 			($1, $2, $3, $4, $5)
 		ON CONFLICT
+		DO NOTHING
+		`,
+	insertSpanner: `INSERT INTO
+			Commits (commit_number, git_hash, commit_time, author, subject)
+		VALUES
+			($1, $2, $3, $4, $5)
+		ON CONFLICT (commit_number)
 		DO NOTHING
 		`,
 	getCommitNumberFromGitHash: `
@@ -312,7 +320,11 @@ func (g *Impl) Update(ctx context.Context) error {
 		}
 
 		// Add p to the database starting at nextCommitNumber.
-		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
+		insertStmt := insert
+		if g.instanceConfig.DataStoreConfig.DataStoreType == config.SpannerDataStoreType {
+			insertStmt = insertSpanner
+		}
+		_, err := g.db.Exec(ctx, statements[insertStmt], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
@@ -418,7 +430,12 @@ func (g *Impl) CommitFromCommitNumber(ctx context.Context, commitNumber types.Co
 	}
 	var ret provider.Commit
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
-		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
+		if err != pgx.ErrNoRows {
+			return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
+		} else {
+			return ret, err
+		}
+
 	}
 	ret.CommitNumber = commitNumber
 	ret.URL = urlFromParts(g.instanceConfig, ret)
@@ -434,15 +451,21 @@ func (g *Impl) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumbe
 
 	g.commitSliceFromCommitNumberSlice.Inc(1)
 	ret := make([]provider.Commit, len(commitNumberSlice))
-	for i, commitNumber := range commitNumberSlice {
+	i := 0
+	for _, commitNumber := range commitNumberSlice {
 		details, err := g.CommitFromCommitNumber(ctx, commitNumber)
 		if err != nil {
+			if err == pgx.ErrNoRows {
+				// If there are no commit entries for the given commit number, we can ignore.
+				continue
+			}
 			return ret, skerr.Wrapf(err, "failed looking up CommitNumber %d", commitNumber)
-
 		}
 		ret[i] = details
+		i++
 	}
-	return ret, nil
+
+	return ret[:i], nil
 }
 
 // CommitNumberFromTime implements Git.

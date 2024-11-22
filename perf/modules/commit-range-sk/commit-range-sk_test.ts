@@ -28,6 +28,9 @@ describe('commit-range-sk', () => {
       trace_format: '',
       need_alert_action: false,
       bug_host_url: '',
+      git_repo_url: '',
+      keys_for_commit_range: [],
+      image_tag: 'fake-tag',
     };
 
     element = newInstance((el: CommitRangeSk) => {

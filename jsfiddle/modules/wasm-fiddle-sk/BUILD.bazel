@@ -45,7 +45,7 @@ sk_element(
         "//:node_modules/@types/codemirror",
         "//:node_modules/canvaskit-wasm",
         "//:node_modules/codemirror",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

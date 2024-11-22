@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,7 +37,7 @@ func TestCompareActivity_FunctionalDifferent_ReturnsFunctional(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expected, actual.Result)
 	assert.Nil(t, actual.OtherResult)
-	assert.Equal(t, functional, actual.ResultType)
+	assert.Equal(t, Functional, actual.ResultType)
 }
 
 func TestCompareActivity_PerformanceNil_ReturnsFunctional(t *testing.T) {
@@ -68,7 +69,7 @@ func TestCompareActivity_PerformanceNil_ReturnsFunctional(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expectedFunc, actual.Result)
 	assert.Equal(t, compare.NilVerdict, actual.OtherResult.Verdict)
-	assert.Equal(t, functional, actual.ResultType)
+	assert.Equal(t, Functional, actual.ResultType)
 }
 
 func TestCompareActivity_PerformanceDifferent_ReturnsPerformance(t *testing.T) {
@@ -102,7 +103,7 @@ func TestCompareActivity_PerformanceDifferent_ReturnsPerformance(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expectedPerf, actual.Result)
 	assert.Equal(t, expectedFunc, actual.OtherResult)
-	assert.Equal(t, performance, actual.ResultType)
+	assert.Equal(t, Performance, actual.ResultType)
 }
 
 func TestCompareActivity_FunctionalUnknownPerformanceSame_ReturnsFunctional(t *testing.T) {
@@ -138,7 +139,7 @@ func TestCompareActivity_FunctionalUnknownPerformanceSame_ReturnsFunctional(t *t
 	require.NoError(t, err)
 	assert.Equal(t, expectedFunc, actual.Result)
 	assert.Equal(t, expectedPerf, actual.OtherResult)
-	assert.Equal(t, functional, actual.ResultType)
+	assert.Equal(t, Functional, actual.ResultType)
 }
 
 func TestCompareActivity_FunctionalSame_ReturnsPerformance(t *testing.T) {
@@ -173,5 +174,61 @@ func TestCompareActivity_FunctionalSame_ReturnsPerformance(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expectedPerf, actual.Result)
 	assert.Equal(t, expectedFunc, actual.OtherResult)
-	assert.Equal(t, performance, actual.ResultType)
+	assert.Equal(t, Performance, actual.ResultType)
+}
+
+func TestComparePairwise_GivenSimpleValues_ReturnsResult(t *testing.T) {
+	valuesA := []float64{8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008}
+	valuesB := []float64{14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408}
+
+	// demonstrate the edge case
+	nanPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
+	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
+
+	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
+	expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
+	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	env.RegisterActivity(ComparePairwiseActivity)
+	res, err := env.ExecuteActivity(ComparePairwiseActivity, valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+
+	var actual *compare.ComparePairwiseResult
+	err = res.Get(&actual)
+	require.NoError(t, err)
+	assert.Equal(t, expectedPerf, actual)
+}
+
+func TestComparePairwise_GivenAllSameValues_ReturnsResult(t *testing.T) {
+	valuesA := []float64{8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008, 8491008}
+	valuesB := []float64{14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408, 14225408}
+
+	// demonstrate the edge case
+	nanPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
+	require.True(t, math.IsNaN(nanPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
+
+	valuesB = handlePairwiseEdgeCase(valuesA, valuesB)
+	expectedPerf, err := compare.ComparePairwise(valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.LowerCi))
+	require.False(t, math.IsNaN(expectedPerf.PairwiseWilcoxonSignedRankedTestResult.UpperCi))
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	env.RegisterActivity(ComparePairwiseActivity)
+	res, err := env.ExecuteActivity(ComparePairwiseActivity, valuesA, valuesB, compare.UnknownDir)
+	require.NoError(t, err)
+
+	var actual *compare.ComparePairwiseResult
+	err = res.Get(&actual)
+	require.NoError(t, err)
+	assert.Equal(t, expectedPerf, actual)
 }

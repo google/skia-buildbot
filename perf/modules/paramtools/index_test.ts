@@ -22,10 +22,7 @@ describe('paramtooms', () => {
 
   describe('fromKey', () => {
     it('parses a key correctly', () => {
-      assert.deepEqual(
-        Params({ b: '2', a: '1', c: '3' }),
-        fromKey(',a=1,b=2,c=3,')
-      );
+      assert.deepEqual(Params({ b: '2', a: '1', c: '3' }), fromKey(',a=1,b=2,c=3,'));
     });
 
     it('handles empty string as key', () => {
@@ -70,10 +67,7 @@ describe('paramsToParamSet', () => {
   });
 
   it('handles a single Param', () => {
-    assert.deepEqual(
-      ParamSet({ a: ['b'] }),
-      paramsToParamSet(Params({ a: 'b' }))
-    );
+    assert.deepEqual(ParamSet({ a: ['b'] }), paramsToParamSet(Params({ a: 'b' })));
   });
 
   it('handles multiple Params', () => {

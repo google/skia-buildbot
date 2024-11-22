@@ -103,7 +103,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 	// Create the git repo and graph.
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
-	gd := git.GitDir(gb.Dir())
+	gd := git.CheckoutDir(gb.Dir())
 	tmp, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)

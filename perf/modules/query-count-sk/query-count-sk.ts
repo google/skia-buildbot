@@ -12,16 +12,12 @@
  *   from the fetch response.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  CountHandlerRequest,
-  CountHandlerResponse,
-  ReadOnlyParamSet,
-} from '../json';
+import { CountHandlerRequest, CountHandlerResponse, ReadOnlyParamSet } from '../json';
 import '../../../elements-sk/modules/spinner-sk';
 
 export class QueryCountSk extends ElementSk {

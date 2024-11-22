@@ -8,12 +8,13 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/config",
         "//perf/go/culprit/formatter",
         "//perf/go/culprit/proto/v1",
         "//perf/go/culprit/transport",
-        "//perf/go/notifytypes",
         "//perf/go/subscription/proto/v1",
+        "//perf/go/types",
     ],
 )
 

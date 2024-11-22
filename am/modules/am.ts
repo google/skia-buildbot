@@ -1,6 +1,7 @@
 // Functions used by more than one element.
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { TemplateResult, html, Part } from 'lit-html';
+import { unsafeHTML, UnsafeHTMLDirective } from 'lit/directives/unsafe-html.js';
+import { DirectiveResult } from 'lit/directive.js';
+import { TemplateResult, html } from 'lit/html.js';
 import { diffDate } from '../../infra-sk/modules/human';
 import { Note, ParamSet } from './json';
 
@@ -49,7 +50,9 @@ export function abbr(paramsAbbr: string): string {
  * Convert all URLs in a string into links in a lit-html TemplateResult.
  */
 // eslint-disable-next-line @typescript-eslint/type-annotation-spacing
-export function linkify(s: string): (part: Part) => void {
+export function linkify(
+  s: string
+): DirectiveResult<typeof UnsafeHTMLDirective> {
   return unsafeHTML(
     s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>')
   );

@@ -17,7 +17,7 @@ sk_element(
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "bugs-central-sk.ts",

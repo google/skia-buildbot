@@ -10,7 +10,7 @@
  *
  * Emits a `dimensions-changed` event when the user has changed the dimensions.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import { Uniform, UniformControl } from '../uniform/uniform';

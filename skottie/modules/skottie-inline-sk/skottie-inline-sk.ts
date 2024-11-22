@@ -19,11 +19,11 @@
  * @example
  *
  *  <skottie-inline-sk width=128 height=128
- *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b">
+ *    src="https://skottie.skia.org/e/5c1c5cc9aa4aabe4acc1f12a7bac60fb">
  *  </skottie-inline-sk>
  */
 import '../skottie-player-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';

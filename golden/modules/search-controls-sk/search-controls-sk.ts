@@ -7,8 +7,8 @@
  * Events:
  *   search-controls-sk-change: Emitted when the user changes the search criteria.
  */
-import { html } from 'lit-html';
-import { live } from 'lit-html/directives/live';
+import { html } from 'lit/html.js';
+import { live } from 'lit/directives/live.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { deepCopy } from '../../../infra-sk/modules/object';

@@ -39,7 +39,6 @@ technology: Li-ion`
 )
 
 func TestReboot_HappyPath(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbReboot_Success")
 
 	a := New()
@@ -48,7 +47,6 @@ func TestReboot_HappyPath(t *testing.T) {
 }
 
 func TestReboot_ErrFromAdbNonZeroExitCode_ReconnectRecovers_Success(t *testing.T) {
-
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
 		"Test_FakeExe_ReconnectOffline_Success",
@@ -61,7 +59,6 @@ func TestReboot_ErrFromAdbNonZeroExitCode_ReconnectRecovers_Success(t *testing.T
 }
 
 func TestReboot_ErrFromAdbNonZeroExitCode(t *testing.T) {
-
 	ctx := executil.FakeTestsContext(
 		"Test_FakeExe_Reboot_NonZeroExitCode",
 		"Test_FakeExe_ReconnectOffline_NoDevice",
@@ -74,7 +71,6 @@ func TestReboot_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestUptime_HappyPath(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_Success")
 
 	a := New()
@@ -85,7 +81,6 @@ func TestUptime_HappyPath(t *testing.T) {
 }
 
 func TestUptime_ErrOnMalformedUptimeContents(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_MalformedContents")
 
 	a := New()
@@ -95,7 +90,6 @@ func TestUptime_ErrOnMalformedUptimeContents(t *testing.T) {
 }
 
 func TestUptime_ErrFromAdbNonZeroExitCode(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_Uptime_NonZeroExitCode")
 
 	a := New()
@@ -105,7 +99,6 @@ func TestUptime_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestRawProperties_HappyPath(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_Success")
 
 	a := New()
@@ -115,7 +108,6 @@ func TestRawProperties_HappyPath(t *testing.T) {
 }
 
 func TestRawProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_NonZeroExitCode")
 
 	a := New()
@@ -124,7 +116,6 @@ func TestRawProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
 }
 
 func TestRawProperties_EmptyOutputFromAdb(t *testing.T) {
-
 	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_EmptyOutput")
 
 	a := New()

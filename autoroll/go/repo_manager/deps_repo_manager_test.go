@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -56,12 +55,14 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 					GitCheckout: &config.GitCheckoutParentConfig{
 						GitCheckout: &config.GitCheckoutConfig{
 							Branch:  git.MainBranch,
-							RepoUrl: "TODO",
+							RepoUrl: "fake.git",
 						},
 						Dep: &config.DependencyConfig{
 							Primary: &config.VersionFileConfig{
-								Id:   "TODO",
-								Path: deps_parser.DepsFileName,
+								Id: "fake.git",
+								File: []*config.VersionFileConfig_File{
+									{Path: deps_parser.DepsFileName},
+								},
 							},
 						},
 					},
@@ -78,7 +79,7 @@ func depsCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 			GitCheckoutChild: &config.GitCheckoutChildConfig{
 				GitCheckout: &config.GitCheckoutConfig{
 					Branch:  git.MainBranch,
-					RepoUrl: "TODO",
+					RepoUrl: "fake.git",
 				},
 			},
 		},
@@ -115,7 +116,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	ctx = exec.NewContext(ctx, mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
-			d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
+			d, err := git.CheckoutDir(cmd.Dir).Details(ctx, "HEAD")
 			if err != nil {
 				return skerr.Wrap(err)
 			}
@@ -152,8 +153,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *config.ParentChildRepoManagerConfig
 	parentCfg.GclientSpec = testutils.ExecTemplate(t, parentCfg.GclientSpec, vars)
 
 	// Create the RepoManager.
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	cleanup := func() {

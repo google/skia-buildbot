@@ -40,7 +40,7 @@ message Config {
     // if a URL is specified for the reviewer.
     repeated string reviewer_backup = 11;
     // roll_cooldown is a period of time after a successful roll attempt during
-    // which no new roll attempts will be created. Optional.
+    // which no new roll attempts will be created. Optional. The default is 10m.
     string roll_cooldown = 12;
     // dry_run_cooldown specifies how long successful dry run CLs will be left
     // open before closing in favor of a new roll.
@@ -401,6 +401,8 @@ message GitCheckoutGitHubParentConfig {
 // uses a local Git checkout and uploads CLs to Gerrit.
 message GitCheckoutGerritParentConfig {
     GitCheckoutParentConfig git_checkout = 1;
+    // pre_upload describes command(s) to run before uploading roll CLs.
+    PreUploadConfig pre_upload_commands = 2;
 }
 
 // GitCheckoutGitHubFileParentConfig provides configuration for a Parent which
@@ -725,10 +727,19 @@ message TransitiveDepConfig {
 }
 
 // VersionFileConfig provides configuration for a dependency whose version is
-// pinned within a particular file.
+// pinned within a particular file or files.
 message VersionFileConfig {
     // id of the dependency to be rolled, eg. a repo URL.
     string id = 1;
+    // file in which the dependency is pinned. May be specified more than once,
+    // in which case the first file is considered to be the source of truth,
+    // but the others are updated when a roll is created.
+    repeated VersionFileConfig_File file = 2;
+}
+
+// VersionFileConfig_File specifies details about the file which pins a
+// dependency.
+message VersionFileConfig_File {
     // path within the repo of the file which pins the dependency. The name of
     // the file dictates how we read and write the revision pin:
     //   - If `regex` is set, the name of this file is ignored.
@@ -754,10 +765,10 @@ message VersionFileConfig {
     //
     //    - Otherwise, we assume that the file's sole contents are the revision
     //      ID and we read or write the entirety of the file.
-    string path = 2;
+    string path = 1;
     // regex which is used to extract the existing revision of the dependency
     // and to update the pin to the new revision. Optional.
-    string regex = 3;
+    string regex = 2;
 }
 
 // DependencyConfig provides configuration for a dependency whose version is

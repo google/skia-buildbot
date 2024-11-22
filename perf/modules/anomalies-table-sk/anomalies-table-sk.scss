@@ -1,0 +1,104 @@
+@import '../../../elements-sk/modules/styles/select';
+@import '../../../elements-sk/modules/styles/buttons';
+@import '../themes/themes.scss';
+
+anomalies-table-sk {
+  display: block;
+  padding: 16px;
+
+  .expand-button[hidden] {
+    display: none;
+  }
+
+  #anomalies-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: small;
+    width: 100%;
+    th,
+    td {
+      text-align: center;
+    }
+    th {
+      // Make the header look clicky on hover.
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #group,
+    #checkbox,
+    #graph_header,
+    #change_direction {
+      width: 50px;
+    }
+    #bug_id {
+      width: 130px;
+    }
+    .improvement {
+      color: var(--secondary);
+    }
+    .regression {
+      color: var(--failure);
+    }
+    #change_direction {
+      text-align: center;
+      width: var(--percent-changed-width, 50px);
+    }
+  }
+
+  close-icon-sk#btnUnassociate {
+    fill: var(--negative);
+    cursor: pointer;
+  }
+
+  header {
+    display: flex;
+  }
+
+  details {
+    display: inline-block;
+  }
+
+  details table {
+    margin: 1em;
+  }
+
+  summary {
+    margin-right: 8px;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  .cluster {
+    text-align: center;
+  }
+
+  a {
+    color: var(--primary);
+  }
+
+  .parent-expanded-row,
+  .child-expanded-row > td:not(:first-child) {
+    background-color: var(--surface-2dp);
+  }
+
+  .child-expanded-row > td:first-child {
+    background-color: var(--background);
+  }
+  .popup-container {
+    position: relative;
+  }
+
+  .popup-container .popup {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background-color: var(--background);
+    padding: 20px;
+    border: var(--on-background);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+  }
+}

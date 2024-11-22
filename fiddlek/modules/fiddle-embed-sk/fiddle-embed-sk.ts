@@ -12,7 +12,7 @@
  *
  * @event context-loaded is sent when the context for a fiddle had been loaded from the server.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import '../../../elements-sk/modules/error-toast-sk';

@@ -9,7 +9,7 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/backends"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/activity"
@@ -26,7 +26,7 @@ type RunBenchmarkParams struct {
 	// the swarming instance and cas digest hash and bytes location for the build
 	BuildCAS *apipb.CASReference
 	// commit hash
-	Commit *midpoint.CombinedCommit
+	Commit *common.CombinedCommit
 	// device configuration
 	BotConfig string
 	// benchmark to test
@@ -131,9 +131,17 @@ func canRetry(state run_benchmark.State, attempt int) bool {
 
 // RunBenchmarkPairwiseWorkflow is a Workflow definition that schedules a pairwise of tasks,
 // polls and retrieves the CAS for the RunBenchmarkParams defined.
+// TODO(b/340247044): connect mutex lock to this workflow and lock the swarming resource
+// from the same pinpoint job and other pinpoint jobs. After swarming tasks have scheduled,
+// the mutex lock can be released and the rest of the workflow can proceed. This workflow
+// will also not schedule swarming tasks until it obtains the lock on the swarming resource.
 // TODO(sunxiaodi@): Convert this workflow to accept slice and replace RunBenchmarkWorkflow
 // with this workflow.
-func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkParams, secondRBP *RunBenchmarkParams) (*workflows.PairwiseTestRun, error) {
+func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP, secondRBP *RunBenchmarkParams, first workflows.PairwiseOrder) (*workflows.PairwiseTestRun, error) {
+	if firstRBP.Dimensions["value"] == "" || secondRBP.Dimensions["value"] == "" {
+		return nil, skerr.Fmt("no bot ID provided to either first params: %s or second params: %s in pairwise run benchmark workflow", firstRBP.Dimensions["value"], secondRBP.Dimensions["value"])
+	}
+
 	ctx = workflow.WithActivityOptions(ctx, runBenchmarkActivityOption)
 	pendingCtx := workflow.WithActivityOptions(ctx, runBenchmarkPendingActivityOption)
 	logger := workflow.GetLogger(ctx)
@@ -141,6 +149,7 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkPa
 	var rba RunBenchmarkActivity
 	var firstTaskID, secondTaskID string
 	var firstState, secondState run_benchmark.State
+	// defer activity cleanup if workflow is cancelled
 	defer func() {
 		// ErrCanceled is the error returned by Context.Err when the context is canceled
 		// This logic ensures cleanup only happens if there is a Cancellation error
@@ -159,6 +168,41 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkPa
 		err = workflow.ExecuteActivity(newCtx, rba.CleanupBenchmarkRunActivity, secondTaskID, secondState).Get(ctx, nil)
 		if err != nil {
 			logger.Error("CleanupBenchmarkRunActivity failed", err)
+		}
+	}()
+
+	// monitor task interception and ordering
+	var isTaskContinous, isTaskOrdered bool
+	var taskContError, taskOrderError error
+	mh := workflow.GetMetricsHandler(ctx).WithTags(map[string]string{
+		"job_id":    firstRBP.JobID,
+		"benchmark": firstRBP.Benchmark,
+		"config":    firstRBP.BotConfig,
+		"story":     firstRBP.Story,
+		"bot_id":    firstRBP.Dimensions["value"],
+		"task1":     firstTaskID,
+		"task2":     secondTaskID,
+	})
+	mh.Counter("pairwise_task_count").Inc(1)
+	defer func() {
+		if taskContError == nil && isTaskContinous {
+			mh.Counter("pairwise_task_continuous_true").Inc(1)
+		} else if taskContError == nil && !isTaskContinous {
+			mh.Counter("pairwise_task_continuous_false").Inc(1)
+		} else {
+			mh.Counter("pairwise_task_continuous_error").Inc(1)
+		}
+
+		if taskOrderError == nil && isTaskOrdered {
+			mh.Counter("pairwise_task_order_true").Inc(1)
+		} else if taskOrderError == nil && !isTaskOrdered {
+			mh.Counter("pairwise_task_order_false").Inc(1)
+		} else {
+			mh.Counter("pairwise_task_order_error").Inc(1)
+		}
+
+		if errors.Is(ctx.Err(), workflow.ErrCanceled) || errors.Is(ctx.Err(), workflow.ErrDeadlineExceeded) {
+			mh.Counter("pairwise_task_timeout_count").Inc(1)
 		}
 	}()
 
@@ -197,6 +241,11 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkPa
 		return nil, skerr.Wrap(err)
 	}
 
+	// We do not handle the error because they do not affect the overall workflow's function.
+	// The error will be counted and monitored.
+	taskOrderError = workflow.ExecuteActivity(ctx, rba.IsTaskPairOrderedActivity, firstTaskID, secondTaskID).Get(ctx, &isTaskOrdered)
+	taskContError = workflow.ExecuteActivity(ctx, rba.IsTaskPairContinuousActivity, firstRBP.Dimensions["value"], firstTaskID, secondTaskID).Get(ctx, &isTaskContinous)
+
 	if !firstState.IsTaskSuccessful() || !secondState.IsTaskSuccessful() {
 		return &workflows.PairwiseTestRun{
 			FirstTestRun: &workflows.TestRun{
@@ -207,16 +256,15 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkPa
 				TaskID: secondTaskID,
 				Status: secondState,
 			},
+			Permutation: workflows.PairwiseOrder(first),
 		}, nil
 	}
 
-	var firstCAS *apipb.CASReference
+	var firstCAS, secondCAS *apipb.CASReference
 	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, firstTaskID).Get(ctx, &firstCAS); err != nil {
 		logger.Error("Failed to retrieve first CAS reference:", err)
 		return nil, skerr.Wrap(err)
 	}
-
-	var secondCAS *apipb.CASReference
 	if err := workflow.ExecuteActivity(ctx, rba.RetrieveTestCASActivity, secondTaskID).Get(ctx, &secondCAS); err != nil {
 		logger.Error("Failed to retrieve second CAS reference:", err)
 		return nil, skerr.Wrap(err)
@@ -233,6 +281,7 @@ func RunBenchmarkPairwiseWorkflow(ctx workflow.Context, firstRBP *RunBenchmarkPa
 			Status: secondState,
 			CAS:    secondCAS,
 		},
+		Permutation: workflows.PairwiseOrder(first),
 	}, nil
 }
 
@@ -412,4 +461,41 @@ func (rba *RunBenchmarkActivity) CleanupBenchmarkRunActivity(ctx context.Context
 		return err
 	}
 	return nil
+}
+
+func (rba *RunBenchmarkActivity) IsTaskPairContinuousActivity(ctx context.Context, botID, taskID1, taskID2 string) (bool, error) {
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	tasks, err := sc.GetBotTasksBetweenTwoTasks(ctx, botID, taskID1, taskID2)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	// We expect one swarming task between the two time stamps.
+	// If there are < 1 items, then either one task did not start (i.e. no resource) or they occured out of order.
+	// More than one implies that a task intercepted task1 and task2.
+	switch len(tasks.Items) {
+	case 0:
+		return false, skerr.Fmt("no tasks reported for bot %s given tasks %s and %s", botID, taskID1, taskID2)
+	case 1:
+		return true, nil
+	}
+	return false, nil
+}
+
+func (rba *RunBenchmarkActivity) IsTaskPairOrderedActivity(ctx context.Context, taskID1, taskID2 string) (bool, error) {
+	sc, err := backends.NewSwarmingClient(ctx, backends.DefaultSwarmingServiceAddress)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	t1Start, err := sc.GetStartTime(ctx, taskID1)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	t2Start, err := sc.GetStartTime(ctx, taskID2)
+	if err != nil {
+		return false, skerr.Wrap(err)
+	}
+	return t1Start.AsTime().Before(t2Start.AsTime()), nil
 }

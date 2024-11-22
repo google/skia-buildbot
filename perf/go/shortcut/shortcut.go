@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"sort"
+
+	"github.com/jackc/pgx/v4"
 )
 
 // Shortcut is a list of Trace ids, it is used in the Store interface.
@@ -30,6 +32,9 @@ type Store interface {
 	// GetAll returns a channel that provides all the Shortcuts stored. This is
 	// used to migrate between backends.
 	GetAll(ctx context.Context) (<-chan *Shortcut, error)
+
+	// DeleteShortcut deletes the shortcut from the table. Use with caution.
+	DeleteShortcut(ctx context.Context, id string, tx pgx.Tx) error
 }
 
 // IDFromKeys returns a unique ID for the set of keys found

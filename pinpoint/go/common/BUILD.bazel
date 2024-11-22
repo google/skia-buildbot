@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "common",
+    srcs = ["combined_commit.go"],
+    importpath = "go.skia.org/infra/pinpoint/go/common",
+    visibility = ["//visibility:public"],
+    deps = ["//pinpoint/proto/v1:proto"],
+)

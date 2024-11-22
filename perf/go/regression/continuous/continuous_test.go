@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -277,9 +278,9 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneRegressionStoredAndN
 	// Returns true to indicate that this is a newly found regression. Note that
 	// this is called twice, first to store the regression since it's new, then
 	// called again to store the notification ID.
-	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, nil).Twice()
+	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
 
-	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame).Return(notificationID, nil)
+	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
 	c.reportRegressions(ctx, req, resp, cfg)
 
@@ -338,4 +339,102 @@ func TestTraceIdForIngestEvent_MultipleConfigs_Matching(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, configTracesMap)
 	assert.Equal(t, 2, len(configTracesMap))
+}
+
+func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundAndNotified(t *testing.T) {
+	ctx := context.Background()
+	c, req, resp, cfg, allMocks := createArgsForReportRegressions(t)
+
+	const regressionCommitNumber = types.CommitNumber(2)
+	resp = append(resp, &regression.RegressionDetectionResponse{
+		Frame: &frame.FrameResponse{
+			DataFrame: &dataframe.DataFrame{
+				Header: []*dataframe.ColumnHeader{
+					{Offset: 1},
+					{Offset: regressionCommitNumber},
+				},
+				ParamSet: paramtools.ReadOnlyParamSet{
+					"device_name": []string{"sailfish", "sargo", "wembley"},
+				},
+			},
+		},
+		Summary: &clustering2.ClusterSummaries{
+			Clusters: []*clustering2.ClusterSummary{
+				{
+					Keys: []string{
+						",device_name=sailfish",
+						",device_name=sargo",
+						",device_name=wembley",
+					},
+					Shortcut: "some-shortcut-id",
+					StepFit: &stepfit.StepFit{
+						Status: stepfit.LOW,
+					},
+					StepPoint: &dataframe.ColumnHeader{
+						Offset: regressionCommitNumber,
+					},
+				},
+			},
+		},
+	}, &regression.RegressionDetectionResponse{
+		Frame: &frame.FrameResponse{
+			DataFrame: &dataframe.DataFrame{
+				Header: []*dataframe.ColumnHeader{
+					{Offset: 1},
+					{Offset: regressionCommitNumber},
+				},
+				ParamSet: paramtools.ReadOnlyParamSet{
+					"device_name": []string{"sailfish", "sargo", "wembley"},
+				},
+			},
+		},
+		Summary: &clustering2.ClusterSummaries{
+			Clusters: []*clustering2.ClusterSummary{
+				{
+					Keys: []string{
+						",device_name=sailfish",
+						",device_name=sargo",
+						",device_name=wembley",
+					},
+					Shortcut: "some-shortcut-id2",
+					StepFit: &stepfit.StepFit{
+						Status: stepfit.HIGH,
+					},
+					StepPoint: &dataframe.ColumnHeader{
+						Offset: regressionCommitNumber,
+					},
+				},
+			},
+		},
+	})
+
+	commitAtStep := provider.Commit{
+		Subject: "The subject of the commit where a regression occurred.",
+	}
+	previousCommit := provider.Commit{
+		Subject: "The subject of the commit right before where a regression occurred.",
+	}
+
+	const notificationID = "some-notification-id"
+
+	// First call to CommitFromCommitNumber.
+	allMocks.perfGit.On("CommitFromCommitNumber", testutils.AnyContext, types.CommitNumber(2)).Return(commitAtStep, nil)
+
+	// First call to CommitFromCommitNumber is for the previous commit.
+	allMocks.perfGit.On("CommitFromCommitNumber", testutils.AnyContext, types.CommitNumber(1)).Return(previousCommit, nil)
+	cfg.DirectionAsString = alerts.BOTH
+
+	// Returns true to indicate that this is a newly found regression. Note that
+	// this is called twice, first to store the regression since it's new, then
+	// called again to store the notification ID.
+	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
+	allMocks.regressionStore.On("SetHigh", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[1].Frame, resp[1].Summary.Clusters[0]).Return(false, "", nil)
+	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
+
+	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return(notificationID, nil)
+	allMocks.notifier.On("UpdateNotification", testutils.AnyContext, mock.Anything, mock.Anything, cfg, resp[1].Summary.Clusters[0], resp[1].Frame, notificationID).Return(nil)
+
+	c.reportRegressions(ctx, req, resp, cfg)
+
+	require.Equal(t, notificationID, resp[0].Summary.Clusters[0].NotificationID)
 }

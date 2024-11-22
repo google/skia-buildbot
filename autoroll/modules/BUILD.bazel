@@ -11,7 +11,7 @@ ts_library(
     srcs = ["utils.ts"],
     visibility = ["//visibility:public"],
     deps = [
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//autoroll/modules/rpc:index_ts_lib",
         "//infra-sk/modules:human_ts_lib",
     ],

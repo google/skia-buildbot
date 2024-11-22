@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlfavoritestore",
+    srcs = ["sqlfavoritestore.go"],
+    importpath = "go.skia.org/infra/perf/go/favorites/sqlfavoritestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//perf/go/favorites:store",
+    ],
+)
+
+go_test(
+    name = "sqlfavoritestore_test",
+    srcs = ["sqlfavoritestore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqlfavoritestore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/favorites:store",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//require",
+    ],
+)

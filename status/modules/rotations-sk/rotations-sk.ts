@@ -4,8 +4,8 @@
  *
  * Custom element for displaying current rotations for Skia, GPU, Android, and Infra.
  */
-import { html } from 'lit-html';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+import { html } from 'lit/html.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Rotation } from '../tree-status-sk/tree-status-sk';

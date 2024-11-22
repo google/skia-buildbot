@@ -82,7 +82,7 @@ func TestGitilesChildPathFilter(t *testing.T) {
 	}
 	reg := setupRegistry(t)
 	urlMock := mockhttpclient.NewURLMock()
-	mockGitiles := gitiles_testutils.NewMockRepo(t, repo.RepoUrl(), git.GitDir(repo.Dir()), urlMock)
+	mockGitiles := gitiles_testutils.NewMockRepo(t, repo.RepoUrl(), git.CheckoutDir(repo.Dir()), urlMock)
 	c, err := NewGitiles(ctx, &cfg, reg, urlMock.Client())
 	require.NoError(t, err)
 

@@ -1,5 +1,5 @@
 import 'codemirror/mode/javascript/javascript'; // Syntax highlighting for js.
-import { html, render, TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit/html.js';
 import CodeMirror from 'codemirror';
 import type { CanvasKit } from 'canvaskit-wasm';
 import { $$ } from '../../../infra-sk/modules/dom';
@@ -326,7 +326,7 @@ export class WasmFiddle extends HTMLElement {
   }
 
   private _render(): void {
-    render(this.templateFunc(this), this, { eventContext: this });
+    render(this.templateFunc(this), this, { host: this });
   }
 
   private changed(): void {

@@ -1,5 +1,5 @@
-import { html } from 'lit-html';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { html } from 'lit/html.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { define } from '../define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { icons } from './icons';

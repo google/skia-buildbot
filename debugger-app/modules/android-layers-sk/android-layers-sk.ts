@@ -2,7 +2,7 @@
  * @module modules/android-layers-sk
  * @description <h2><code>android-layers-sk</code></h2>
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementDocSk } from '../element-doc-sk/element-doc-sk';
 import { LayerInfo } from '../commands-sk/commands-sk';

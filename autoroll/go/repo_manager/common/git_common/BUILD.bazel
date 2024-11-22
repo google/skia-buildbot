@@ -12,6 +12,5 @@ go_library(
         "//autoroll/go/revision",
         "//go/git",
         "//go/skerr",
-        "//go/sklog",
     ],
 )

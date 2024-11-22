@@ -17,6 +17,34 @@ type CulpritNotifier struct {
 	mock.Mock
 }
 
+// NotifyAnomaliesFound provides a mock function with given fields: ctx, anomalies, subscription
+func (_m *CulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*v1.Anomaly, subscription *protov1.Subscription) (string, error) {
+	ret := _m.Called(ctx, anomalies, subscription)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NotifyAnomaliesFound")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*v1.Anomaly, *protov1.Subscription) (string, error)); ok {
+		return rf(ctx, anomalies, subscription)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []*v1.Anomaly, *protov1.Subscription) string); ok {
+		r0 = rf(ctx, anomalies, subscription)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []*v1.Anomaly, *protov1.Subscription) error); ok {
+		r1 = rf(ctx, anomalies, subscription)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NotifyCulpritFound provides a mock function with given fields: ctx, culprit, subscription
 func (_m *CulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit *v1.Culprit, subscription *protov1.Subscription) (string, error) {
 	ret := _m.Called(ctx, culprit, subscription)

@@ -74,6 +74,9 @@ func NewCockroachDBForTestsWithProductionSchema(ctx context.Context, t testing.T
 type SQLExporter interface {
 	// ToSQLRow returns the column names and the column data that should be written for this row.
 	ToSQLRow() (colNames []string, colData []interface{})
+
+	// GetPrimaryKeyCols returns the names of the primary key columns for the row.
+	GetPrimaryKeyCols() []string
 }
 
 // SQLScanner is an abstraction around reading a single row from an SQL table.
@@ -116,7 +119,9 @@ func BulkInsertDataTables(ctx context.Context, db *pgxpool.Pool, tables interfac
 func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table reflect.Value) error {
 	var arguments []interface{}
 	var colNames []string
+	var keys string
 	numRows := table.Len()
+
 	// Go through each element of the table slice, cast it to ToSQLRow and then call that
 	// function on it to get the arguments needed for that row.
 	for j := 0; j < numRows; j++ {
@@ -126,6 +131,7 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 			panic(`Expected table should be a slice of types that implement ToSQLRow: ` + name)
 		}
 		cn, args := row.ToSQLRow()
+		keys = "(" + strings.Join(row.GetPrimaryKeyCols(), ",") + ")"
 		if len(colNames) == 0 {
 			colNames = cn
 		}
@@ -140,10 +146,11 @@ func writeToTable(ctx context.Context, db *pgxpool.Pool, name string, table refl
 	numCols := len(colNames)
 	// a chunkSize of 3000 means we can stay under the 64k number limit as long as there are
 	// fewer than 22 columns, which should be realistic for all our tables.
-	err := util.ChunkIter(numRows, 3000, func(startIdx int, endIdx int) error {
+	err := util.ChunkIter(numRows, 10, func(startIdx int, endIdx int) error {
 		argBatch := arguments[startIdx*numCols : endIdx*numCols]
 		vp := sqlutil.ValuesPlaceholders(numCols, endIdx-startIdx)
-		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s`, name, strings.Join(colNames, ","), vp)
+
+		insert := fmt.Sprintf(`INSERT INTO %s (%s) VALUES %s ON CONFLICT %s DO NOTHING`, name, strings.Join(colNames, ","), vp, keys)
 
 		_, err := db.Exec(ctx, insert, argBatch...)
 		return skerr.Wrapf(err, "batch: %d-%d (%d-%d)", startIdx, endIdx, startIdx*numCols, endIdx*numCols)

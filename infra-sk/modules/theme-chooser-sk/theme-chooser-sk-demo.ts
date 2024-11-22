@@ -1,4 +1,4 @@
-import { render, html, TemplateResult } from 'lit-html';
+import { render, html, TemplateResult } from 'lit/html.js';
 import { DARKMODE_LOCALSTORAGE_KEY } from './theme-chooser-sk';
 import { CollapseSk } from '../../../elements-sk/modules/collapse-sk/collapse-sk';
 import { ToastSk } from '../../../elements-sk/modules/toast-sk/toast-sk';
@@ -182,9 +182,12 @@ const template = (context: example[]): TemplateResult => html`
   )}
 `;
 
-render(template(examples), document.querySelector('#demotable')!);
+render(template(examples), document.querySelector<HTMLElement>('#demotable')!);
 
-render(template(specialty), document.querySelector('#demotable2')!);
+render(
+  template(specialty),
+  document.querySelector<HTMLElement>('#demotable2')!
+);
 
 document.querySelector('#toggle-collapse-sk')?.addEventListener('click', () => {
   const collapseSk = document.querySelector<CollapseSk>('collapse-sk')!;

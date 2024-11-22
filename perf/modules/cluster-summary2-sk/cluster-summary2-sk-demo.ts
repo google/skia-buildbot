@@ -70,8 +70,8 @@ const alert: Alert = {
 
 const summary: ClusterSummary = {
   centroid: [
-    -1.0826576, 0.33417022, 0.8747909, 0.11694965, 0.76775414, -0.21376616,
-    0.026059598, -0.08791064, 0.13508978, -0.38292113, -0.4874483,
+    -1.0826576, 0.33417022, 0.8747909, 0.11694965, 0.76775414, -0.21376616, 0.026059598,
+    -0.08791064, 0.13508978, -0.38292113, -0.4874483,
   ],
   shortcut: 'X123',
   param_summaries2: [
@@ -139,9 +139,7 @@ const fullSummary: FullSummary = {
   frame,
 };
 
-const cluster = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.cluster'
-)!;
+const cluster = document.querySelector<ClusterSummary2Sk>('cluster-summary2-sk.cluster')!;
 cluster.full_summary = fullSummary;
 cluster.alert = alert;
 
@@ -151,9 +149,7 @@ const summary2 = JSON.parse(JSON.stringify(fullSummary)) as FullSummary;
 summary2.summary.step_fit!.status = 'High';
 summary2.summary.step_fit!.regression = 0.06732;
 summary2.summary.step_fit!.least_squares = 12;
-const nostatus = document.querySelector<ClusterSummary2Sk>(
-  'cluster-summary2-sk.nostatus'
-)!;
+const nostatus = document.querySelector<ClusterSummary2Sk>('cluster-summary2-sk.nostatus')!;
 nostatus.full_summary = summary2;
 nostatus.triage = triage;
 nostatus.alert = alert2;

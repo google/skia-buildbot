@@ -152,8 +152,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	setState(types.COMPILING)
-
-	buildResults, err := build(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
+	ninjaPath := filepath.Join(*fiddleRoot, "depot_tools", "ninja")
+	// Build just the fiddle binary
+	buildResults, err := build(ctx, *checkout, ninjaPath, "-C", "out/Static", "fiddle")
 	buildLogs := strings.Split(buildResults, "\n")
 	sklog.Info("BuildLog")
 	for _, s := range buildLogs {

@@ -589,6 +589,7 @@ func convertJob(job *types.Job) (*Job, error) {
 		RequestedAt:         timestamppb.New(job.Requested),
 		StartedAt:           timestamppb.New(job.Started),
 		Status:              status,
+		StatusDetails:       job.StatusDetails,
 		Tasks:               tasks,
 	}, nil
 }

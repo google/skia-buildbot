@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	id INT PRIMARY KEY DEFAULT unique_rowid(),
 	alert TEXT,
 	config_state INT DEFAULT 0,
-	last_modified INT
+	last_modified INT,
+	sub_name STRING,
+	sub_revision STRING
   );
   CREATE TABLE IF NOT EXISTS AnomalyGroups (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -69,6 +71,15 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	issue_ids STRING ARRAY,
 	group_issue_map JSONB,
 	UNIQUE INDEX by_revision (revision, host, project, ref)
+  );
+  CREATE TABLE IF NOT EXISTS Favorites (
+	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	user_id STRING NOT NULL,
+	name STRING,
+	url STRING NOT NULL,
+	description STRING,
+	last_modified INT,
+	INDEX by_user_id (user_id)
   );
   CREATE TABLE IF NOT EXISTS GraphsShortcuts (
 	id TEXT UNIQUE NOT NULL PRIMARY KEY,

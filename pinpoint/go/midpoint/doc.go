@@ -61,6 +61,23 @@
 // following the logic above, FindMidCombinedCommit would return a Combined Commit:
 // Main: C2, Modified Deps: [V8@1, W@2].
 //
+// EDGE CASES:
+//
+// FindMidCombinedCommit will fill in the DEPS of commits and pass that information to a helper
+// function to find the midpoint between two commits. This leads to a few edge cases when
+// FindMidCombinedCommit compares commits with separate base hashes. Those edge cases are:
+// - Given the second to last commit in a DEPS roll vs the DEPS roll, return the last commit in the
+// DEPS roll. For example, given the commits: {C@1}; {C@1, skia@1}; {C@1, skia@2}; {C@1, skia@3};
+// {C@2}, we want to find midpoint of {C@1, skia@2} vs {C@2}. {C@2} fills in DEPS and
+// becomes {C@2, skia@3}. Instead of returning {C@1, skia@2}, FindMidCombinedCommit returns
+// {C@1, skia3}.
+// - Given the last commit in a DEPS roll vs the DEPS roll, return the last commit. For example,
+// {C@1, skia@3} vs {C@2}. {C@2} fills in DEPS and becomes {C@2, skia@3}. Instead of treating
+// this as skia@3 vs skia@3, instead return {C@1, skia@3}.
+// - Given the first commit in a DEPS roll vs the previous base commit, return the base commit.
+// For example, {C@1} vs {C@1, skia@1} should return {C@1}, using similar logic as the previous
+// edge case.
+//
 // CAVEATS:
 //   - The implementation does not support a DEPS roll that rolls more than 1 git-base dependency.
 //     The implementation today will start digging the first one it finds, even though the actual culprit could

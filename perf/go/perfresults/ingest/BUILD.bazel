@@ -3,18 +3,25 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "ingest",
-    srcs = ["json.go"],
+    srcs = [
+        "gcs.go",
+        "json.go",
+    ],
     importpath = "go.skia.org/infra/perf/go/perfresults/ingest",
     visibility = ["//visibility:public"],
     deps = [
         "//perf/go/ingest/format",
         "//perf/go/perfresults",
+        "//pinpoint/go/bot_configs",
     ],
 )
 
 go_test(
     name = "ingest_test",
-    srcs = ["json_test.go"],
+    srcs = [
+        "gcs_test.go",
+        "json_test.go",
+    ],
     data = [
         "//perf/go/perfresults/testdata:perftest",
     ],

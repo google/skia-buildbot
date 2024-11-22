@@ -4,37 +4,27 @@ package sheriff_config.v1;
 
 option go_package = "go.skia.org/infra/perf/go/sheriffconfig/proto/v1";
 
-// A Pattern message defines regular expression patterns for capturing
-// a group of metrics. A metric is uniquely identified by the
-// combination of all the keys specified within a Pattern.
-// To specify that a value is a Regex, a "~" must be added at the beginning
-// of the string.
-message Pattern {
-    string main = 1;        // e.g. "ChromiumPerf", "Chromium*"
-    string bot = 2;         // e.g. "linux-perf", "~lacros-.*"
-    string benchmark = 3;   // e.g. "Speedometer2"
-    string test = 4;        // e.g. "speedometer2"
-    string subtest1 = 5;
-    string subtest2 = 6;
-    string subtest3 = 7;
-}
-
-// We can use patterns to specify which metrics we want to include or exclude.
+// Rules specify how to capture traces for Anomaly Detection.
 //
-// For matching, if a Pattern field is not specified, the default is wildcard "*",
+// A match or exclude string must be of the string format:
+// "{key1}={value1}&{key2=value2}&..."
+// where key is the name of the parameter and value is the value to filter for.
+// If a key doesn't match an actual key in the Skia DB, the alert config will simply get
+// ignored.
+//
+// For matching, if a parameter is not specified, the default value is wildcard "*",
 // meaning match to any value.
-// For excluding, only filter on specified Pattern fields. Exclude patterns are
-// only allowed to have one field specified.
+// For excluding, each statement must only include a single key.
 //
 // Consider the example below:
 // {
 //   match: [
-//     {main:"ChromiumPerf",bot:"~lacros-.*-perf",benchmark:"Speedometer2"},
-//     {main:"ChromiumPerf",benchmark:"Jetstream2"},
+//     "master=ChromiumPerf"&bot=~lacros-.*-perf&benchmark=Speedometer2",
+//     "master=ChromiumPerf&benchmark=Jetstream2",
 //   ],
 //   exclude: [
-//     {bot:"lacros-eve-perf"},
-//     {bot:"lacros-x86-perf"},
+//     "bot=lacros-eve-perf",
+//     "bot=lacros-x86-perf",
 //   ]
 // }
 //
@@ -45,11 +35,11 @@ message Pattern {
 // (main='ChromiumPerf' AND bot REGEXP 'lacros-.*-perf' AND benchmark='Speedometer2'
 // AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
 // OR
-// (main='ChromiumPerf' AND benchmark='Jetstream')
+// (main='ChromiumPerf' AND benchmark='Jetstream'
 // AND bot!='lacros-eve-perf' AND bot!='lacros-x86-perf')
 message Rules {
-  repeated Pattern match = 1;
-  repeated Pattern exclude = 2;
+  repeated string match = 1;
+  repeated string exclude = 2;
 }
 
 // An AnomalyConfig defines the bounds for which a change in a matching metric
@@ -86,14 +76,42 @@ message AnomalyConfig {
   }
 
   // Anomaly detection algorithm.
+  // Default: Original step.
   Step step = 1;
 
   // How many commits to each side of a commit to consider when looking for a step.
-  int32 radius = 2;
+  // TODO(eduardoyap): Determine default and document here.
+  optional int32 radius = 2;
 
   // The threshold value beyond which values become interesting
   // (indicates a real regression). Range of this value depends on algorithm used.
   float threshold = 3;
+
+  // How many traces need to be found interesting before an alert is fired.
+  // Default: 1.
+  optional int32 minimum_num = 4;
+
+  // If true, only include commits that have data.
+  // Default: False
+  optional bool sparse = 5;
+
+  // If algo is set to K-means, this determines the K in K-means clustering.
+  // Default: 0.
+  optional int32 k = 6;
+
+  // Comma separated list of keys that all clustering should be broken up accross.
+  // Keys must not be part of a pattern.
+  // Default: "".
+  optional string group_by = 7;
+
+  // Which direction will trigger an alert.
+  enum Direction {
+    BOTH = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+  // Default: Both
+  Direction direction = 8;
 
   // What actions should be taken for detected anomalies.
   // - NOACTION: Only show anomaly in UI. Don't triage or bisect.
@@ -104,10 +122,21 @@ message AnomalyConfig {
     TRIAGE = 1;
     BISECT = 2;
   }
-  Action action = 4;
+  // Default: No Action.
+  Action action = 9;
+
+  // What Clustering Algorithm to use.
+  // StepFit: Look at each trace individually.
+  // KMeans: Cluster traces using K-Means Clustering.
+  enum Algo {
+    STEPFIT = 0;
+    KMEANS = 1;
+  }
+  // Default: Step Fit Grouping
+  Algo algo = 10;
 
   // Which metrics should be captured by this AnomalyConfig.
-  Rules rules = 5;
+  Rules rules = 11;
 }
 
 // A Subscription describes a configuration through which we determine:

@@ -18,7 +18,7 @@
  *       available to the user.
  * @attr {boolean} values_only - If true then only display the values selection and hide the key selection.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ParamSet, toParamSet, fromParamSet } from '../query';
 import { SelectSk } from '../../../elements-sk/modules/select-sk/select-sk';
@@ -61,17 +61,15 @@ export class QuerySk extends ElementSk {
       <input
         id="fast"
         @input=${ele._fastFilter}
-        placeholder="Search Parameters and Values" />
+        placeholder="Search Parameters and Values"
+        name="query-sk-filter"
+        autocomplete="off" />
       ${QuerySk.clearFilterButton(ele)}
     </div>
     <div class="bottom">
       <div class="selection">
-        <select-sk @selection-changed=${ele._keyChange}>
-          ${QuerySk.keysTemplate(ele)}
-        </select-sk>
-        <button @click=${ele._clear} class="clear_selections">
-          Clear Selections
-        </button>
+        <select-sk @selection-changed=${ele._keyChange}> ${QuerySk.keysTemplate(ele)} </select-sk>
+        <button @click=${ele._clear} class="clear_selections">Clear Selections</button>
       </div>
       <query-values-sk
         id="values"
@@ -87,17 +85,11 @@ export class QuerySk extends ElementSk {
       return html``;
     }
     return html`
-      <button
-        @click=${ele._clearFilter}
-        class="clear_filters"
-        title="Clear filter">
-        &cross;
-      </button>
+      <button @click=${ele._clearFilter} class="clear_filters" title="Clear filter">&cross;</button>
     `;
   }
 
-  private static keysTemplate = (ele: QuerySk) =>
-    ele._keys.map((k) => html` <div>${k}</div> `);
+  private static keysTemplate = (ele: QuerySk) => ele._keys.map((k) => html` <div>${k}</div> `);
 
   private _paramset: ParamSet = {};
 
@@ -140,9 +132,7 @@ export class QuerySk extends ElementSk {
     this._fast = this.querySelector('#fast');
   }
 
-  private _valuesChanged(
-    e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>
-  ) {
+  private _valuesChanged(e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>) {
     const key = this._keys[this._keySelect!.selection as number];
     if (this._fast!.value.trim() !== '') {
       // Things get complicated if the user has entered a filter. The user may
@@ -153,11 +143,7 @@ export class QuerySk extends ElementSk {
       // '~' if they are invert or regex queries.
 
       // When we toggle from a regex to a non-regex we need to clear the values.
-      if (
-        !e.detail.regex &&
-        this._query[key] &&
-        this._query[key][0][0] === '~'
-      ) {
+      if (!e.detail.regex && this._query[key] && this._query[key][0][0] === '~') {
         this._query[key] = [];
       }
 
@@ -173,9 +159,7 @@ export class QuerySk extends ElementSk {
       // Make everything into Sets to make our lives easier.
       const valuesDisplayed = new Set(this._paramset[key]);
       const currentQueryForKey = new Set(this._query[key]);
-      const unprefixedSelectionsFromEvent = new Set(
-        e.detail.values.map(removePrefix)
-      );
+      const unprefixedSelectionsFromEvent = new Set(e.detail.values.map(removePrefix));
 
       // Loop over valuesDisplayed, if the value appears in selectionsFromEvent
       // then add it to currentQueryForKey, otherwise remove it from
@@ -250,13 +234,10 @@ export class QuerySk extends ElementSk {
       window.clearTimeout(this._delayedTimeout!);
       this._delayedTimeout = window.setTimeout(() => {
         this.dispatchEvent(
-          new CustomEvent<QuerySkQueryChangeEventDetail>(
-            'query-change-delayed',
-            {
-              detail: { q: this.current_query },
-              bubbles: true,
-            }
-          )
+          new CustomEvent<QuerySkQueryChangeEventDetail>('query-change-delayed', {
+            detail: { q: this.current_query },
+            bubbles: true,
+          })
         );
       }, DELAY_MS);
     }
@@ -276,9 +257,7 @@ export class QuerySk extends ElementSk {
         // Filter out invalid values.
         this._query[key] = this._query[key].filter(
           (val) =>
-            this._originalParamset[key].includes(val) ||
-            val.startsWith('~') ||
-            val.startsWith('!')
+            this._originalParamset[key].includes(val) || val.startsWith('~') || val.startsWith('!')
         );
       }
     });
@@ -353,11 +332,6 @@ export class QuerySk extends ElementSk {
 
   set paramset(val: ParamSet) {
     // Record the current key so we can restore it later.
-    let prevSelectKey = '';
-    if (this._keySelect && this._keySelect.selection) {
-      prevSelectKey = this._keys[this._keySelect!.selection as number];
-    }
-
     this._paramset = val;
     this._originalParamset = val;
     this._recalcKeys();

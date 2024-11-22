@@ -55,3 +55,30 @@ run_auth_proxy_before_local_instance:
 		--port=:8003 \
 		--target_port=http://127.0.0.1:8000 \
 		--local
+
+run_local_frontend:
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local
+	../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
+		--common_instance_config=./k8s-instances/local/local.json5 \
+		--config=./k8s-instances/local/local-frontend.json5
+
+# Run a spanner emulator locally.
+run-spanner-emulator:
+	docker ps -q | xargs -r docker rm -vf
+	docker run -d -p 5432:5432 gcr.io/cloud-spanner-pg-adapter/pgadapter-emulator
+
+run_local_frontend_spanner:
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
+	../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
+		--common_instance_config=./k8s-instances/local/local.json5 \
+		--config=./k8s-instances/local/local-frontend.json5
+
+run_local_periodictasks:
+	$(BAZEL) build --config=mayberemote -c dbg //golden/...
+	go run ./go/local
+	../_bazel_bin/golden/cmd/periodictasks/periodictasks_/periodictasks \
+		--common_instance_config=./k8s-instances/local/local.json5 \
+		--config=./k8s-instances/local/local-periodictasks.json5 \
+		--local

@@ -87,18 +87,8 @@
     src: files/default-profile-auto-reboot.bat
     dest: "{{ win_default_profile_startup_path }}"
 
-# The following two tasks were extracted from
+# The following task was extracted from
 # https://skia.googlesource.com/buildbot/+/ddcf7644bee4286f4030978c61d977858d9e80de/skolo/win/ansible/windows-update.yml.
-
-# Unlike Windows Server, Windows Defender can not be uninstalled on Windows 10. Windows also
-# tends to re-enable it if it's disabled. Instead we exclude the entire drive from scanning and
-# disable specific features. Docs here:
-# https://docs.microsoft.com/en-us/powershell/module/defender/Set-MpPreference?view=win10-ps
-- name: Disable Windows Defender
-  win_shell: "Set-MpPreference -ExclusionPath C:\\ -DisableBehaviorMonitoring $True
-    -DisableBlockAtFirstSeen $True -DisableIOAVProtection $True
-    -DisableIntrusionPreventionSystem $True -DisableRealtimeMonitoring $True
-    -MAPSReporting Disabled -PUAProtection Disabled"
 
 # Note: This does not seem to enable RDP unless it was previously enabled via the UI and
 # subsequently disabled. lovisolo@ has not found a way to enable RDP from Ansible on a fresh

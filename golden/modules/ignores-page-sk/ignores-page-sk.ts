@@ -5,8 +5,8 @@
  * Page to view/edit/delete ignore rules.
  */
 
-import { classMap } from 'lit-html/directives/class-map';
-import { html } from 'lit-html';
+import { classMap } from 'lit/directives/class-map.js';
+import { html } from 'lit/html.js';
 import * as human from '../../../infra-sk/modules/human';
 
 import { define } from '../../../elements-sk/modules/define';

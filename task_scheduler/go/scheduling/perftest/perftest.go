@@ -15,7 +15,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"runtime/pprof"
 	"sort"
 	"strings"
@@ -43,6 +42,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/job_creation"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_task_execution "go.skia.org/infra/task_scheduler/go/task_execution/swarmingv2"
@@ -61,7 +61,6 @@ var (
 	tasksPerCommit = flag.Int("tasks_per_commit", 300, "Number of tasks defined per commit.")
 	numCommits     = flag.Int("num_commits", 200, "Number of commits.")
 	maxRounds      = flag.Int("max_cycles", 0, "Stop after this many scheduling cycles.")
-	recipesCfgFile = flag.String("recipes_cfg_file", "", "Path to the recipes.cfg file. If not provided, attempt to find it automatically.")
 	saveQueue      = flag.String("save_queue", "", "If set, dump the task candidate queue for every round of scheduling into this file.")
 	checkQueue     = flag.String("check_queue", "", "If set, compare the task candidate queue at every round of scheduling to that contained in this file.")
 )
@@ -109,7 +108,7 @@ func commit(ctx context.Context, repoDir, message string) {
 }
 
 func makeCommits(ctx context.Context, repoDir string, numCommits int) {
-	gd := git.GitDir(repoDir)
+	gd := git.CheckoutDir(repoDir)
 	_, err := gd.Git(ctx, "checkout", git.MainBranch)
 	assertNoError(err)
 	fakeFile := path.Join(repoDir, "fakefile.txt")
@@ -126,7 +125,7 @@ func makeCommits(ctx context.Context, repoDir string, numCommits int) {
 
 func addFile(ctx context.Context, repoDir, subPath, contents string) {
 	assertNoError(os.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
-	_, err := git.GitDir(repoDir).Git(ctx, "add", subPath)
+	_, err := git.CheckoutDir(repoDir).Git(ctx, "add", subPath)
 	assertNoError(err)
 }
 
@@ -164,7 +163,7 @@ func main() {
 	repoName := "skia.git"
 	repoDir := filepath.Join(workdir, repoName)
 	assertNoError(os.Mkdir(repoDir, os.ModePerm))
-	gd := git.GitDir(repoDir)
+	gd := git.CheckoutDir(repoDir)
 	_, err = gd.Git(ctx, "init")
 	assertNoError(err)
 	// This sets the remote repo to be the repo itself, which prevents us
@@ -342,14 +341,10 @@ func main() {
 
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 
-	if *recipesCfgFile == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*recipesCfgFile = filepath.Join(filepath.Dir(filename), "..", "..", "..", "..", "infra", "config", "recipes.cfg")
-	}
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, *recipesCfgFile)
+	depotTools, err := depot_tools.GetDepotTools(ctx, workdir)
 	assertNoError(err)
 	pubsubClient := &pubsub_mocks.Client{}
-	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient)
+	jc, err := job_creation.NewJobCreator(ctx, d, windowPeriod, 0, workdir, "localhost", repos, cas, client, "skia", "fake-bb-target", "fake-bb-bucket", nil, depotTools, nil, taskCfgCache, pubsubClient, syncer.DefaultNumWorkers)
 	assertNoError(err)
 
 	// Wait for job-creator to process the jobs from the repo.

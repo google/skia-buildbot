@@ -17,50 +17,50 @@ import (
 )
 
 const (
-	chromePerfBaseUrl = "https://skia-bridge-dot-chromeperf.appspot.com/"
+	chromePerfBaseUrl       = "https://skia-bridge-dot-chromeperf.appspot.com"
+	chromePerfLegacyBaseUrl = "https://chromeperf.appspot.com"
 )
 
-// chromePerfClient defines an interface for accessing chromeperf apis.
-type chromePerfClient interface {
-	// sendGetRequest sends a GET request to chromeperf api with the specified parameters.
+// ChromePerfClient defines an interface for accessing chromeperf apis.
+type ChromePerfClient interface {
+	// SendGetRequest sends a GET request to chromeperf api with the specified parameters.
 	// The url is of the format <host>/{apiName}/{functionName}?{queryParams}.
 	// The response from the api is unmarshalled into the provided response object.
-	sendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error
+	SendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error
 
-	// sendPostRequest sends a POST request to chromeperf api with the specified parameters.
+	// SendPostRequest sends a POST request to chromeperf api with the specified parameters.
 	// The url is of the format <host>/{apiName}/{functionName}.
 	// The {requestObj} is marshalled into JSON and added to the body of the http object.
 	// The response from the api is unmarshalled into the provided response object.
 	// {acceptedStatusCodes} is a list of HTTP response codes that are considered successful. The function will return an error if any other status code is returned.
-	sendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error
+	SendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error
 }
 
 // chromePerfClientImpl implements ChromePerfClient.
 type chromePerfClientImpl struct {
 	httpClient  *http.Client
 	urlOverride string
+	// If true, requests are sent to chromeperf without skia-bridge
+	directCallLegacy bool
 }
 
 // NewChromePerfClient creates a new instance of ChromePerfClient.
-func newChromePerfClient(ctx context.Context, urlOverride string) (chromePerfClient, error) {
+func NewChromePerfClient(ctx context.Context, urlOverride string, directCall bool) (ChromePerfClient, error) {
 	tokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeUserinfoEmail)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf client.")
 	}
 	return &chromePerfClientImpl{
-		httpClient:  httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(),
-		urlOverride: urlOverride,
+		httpClient:       httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client(),
+		urlOverride:      urlOverride,
+		directCallLegacy: directCall,
 	}, nil
 }
 
-// sendGetRequest sends a GET request to chromeperf api with the specified parameters.
-func (client *chromePerfClientImpl) sendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error {
-	var targetUrl string
-	if client.urlOverride != "" {
-		targetUrl = client.urlOverride
-	} else {
-		targetUrl = fmt.Sprintf("%s/%s/%s?%s", chromePerfBaseUrl, apiName, functionName, queryParams.Encode())
-	}
+// SendGetRequest sends a GET request to chromeperf api with the specified parameters.
+func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName string, functionName string, queryParams url.Values, response interface{}) error {
+	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
+	targetUrl = fmt.Sprintf("%s?%s", targetUrl, queryParams.Encode())
 
 	httpResponse, err := httputils.GetWithContext(ctx, client.httpClient, targetUrl)
 	if err != nil {
@@ -80,14 +80,9 @@ func (client *chromePerfClientImpl) sendGetRequest(ctx context.Context, apiName 
 	return nil
 }
 
-// sendPostRequest sends a POST request to chromeperf api with the specified parameters.
-func (client *chromePerfClientImpl) sendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error {
-	var targetUrl string
-	if len(client.urlOverride) > 0 {
-		targetUrl = client.urlOverride
-	} else {
-		targetUrl = fmt.Sprintf("%s/%s/%s", chromePerfBaseUrl, apiName, functionName)
-	}
+// SendPostRequest sends a POST request to chromeperf api with the specified parameters.
+func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error {
+	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
 
 	requestBodyJSONStr, err := json.Marshal(requestObj)
 	if err != nil {
@@ -111,4 +106,15 @@ func (client *chromePerfClientImpl) sendPostRequest(ctx context.Context, apiName
 	}
 
 	return nil
+}
+
+func generateTargetUrl(urlOverride string, directCallLegacy bool, apiName string, functionName string) string {
+	if len(urlOverride) > 0 {
+		return urlOverride
+	}
+
+	if directCallLegacy {
+		return fmt.Sprintf("%s/%s", chromePerfLegacyBaseUrl, apiName)
+	}
+	return fmt.Sprintf("%s/%s/%s", chromePerfBaseUrl, apiName, functionName)
 }

@@ -15,7 +15,7 @@
  * </p>
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import '../../skottie-dropdown-sk';
 import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
 import { define } from '../../../../elements-sk/modules/define';

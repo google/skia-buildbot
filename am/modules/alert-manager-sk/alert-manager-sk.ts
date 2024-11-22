@@ -5,7 +5,7 @@
  *   The main application element for am.skia.org.
  *
  */
-import { html, render, TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/error-toast-sk';
@@ -131,6 +131,8 @@ export class AlertManagerSk extends HTMLElement {
 
   private infra_gardener = '';
 
+  private skia_gardener = '';
+
   // State is reflected to the URL via stateReflector.
   private state: State = {
     tab: 0,
@@ -152,10 +154,17 @@ export class AlertManagerSk extends HTMLElement {
   constructor() {
     super();
 
-    fetch(
-      'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener',
-      { mode: 'cors' }
-    )
+    fetch('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-infra-gardener', {
+      mode: 'cors',
+    })
+      .then(jsonOrThrow)
+      .then((json: RotationResp) => {
+        this.skia_gardener = json.emails[0];
+        this._render();
+      });
+    fetch('https://chrome-ops-rotation-proxy.appspot.com/current/grotation:browser-infra-tooling', {
+      mode: 'cors',
+    })
       .then(jsonOrThrow)
       .then((json: RotationResp) => {
         this.infra_gardener = json.emails[0];
@@ -169,7 +178,7 @@ export class AlertManagerSk extends HTMLElement {
 
   private static template = (ele: AlertManagerSk) => html`
 <header>
-  ${ele.infraGardener()}
+  ${ele.gardener()}
   <theme-chooser-sk></theme-chooser-sk>
 </header>
 <dialog id=help>
@@ -185,21 +194,25 @@ export class AlertManagerSk extends HTMLElement {
     <tr><td class=mono>'A'</td><td>Bring up the auto-assign dialog.</td></tr>
     <tr><td class=mono>'b'</td><td>Switches view from normal to bot-centric view.</td></tr>
     <tr><td class=mono>'1'</td><td>Switches to the "Mine" tab.</td></tr>
-    <tr><td class=mono>'2'</td><td>Switches to the "Alerts" tab.</td></tr>
+    <tr><td class=mono>'2'</td><td>Switches to the "Infra Alerts" tab.</td></tr>
+    <tr><td class=mono>'3'</td><td>Switches to the "Skia Alerts" tab.</td></tr>
+    <tr><td class=mono>'4'</td><td>Switches to the "All Alerts" tab.</td></tr>
     <tr><td class=mono>'?'</td><td>Show help.</td></tr>
     <tr><td class=mono>'Esc'</td><td>Stop showing help.</td></tr>
   </table>
   <div class=footnote>
-    Note: Keyboard controls only work in the 'Mine' and 'Alerts' tabs. 'Bot-centric view' is also not supported.
+    Note: Keyboard controls only work in the 'Mine', 'Infra Alerts', 'Skia Alerts', and 'All Alerts' tabs. 'Bot-centric view' is also not supported.
   </div>
 </dialog>
 <section class=nav>
   <tabs-sk @tab-selected-sk=${ele.tabSwitch} selected=${ele.state.tab}>
-    <button>Mine</button>
-    <button>Alerts</button>
-    <button>Silences</button>
-    <button>Stats</button>
-    <button>Audit</button>
+    <button class="tab">Mine</button>
+    <button class="tab">Infra</button>
+    <button class="tab">Skia</button>
+    <button class="tab">All</button>
+    <button class="tab">Silences</button>
+    <button class="tab">Stats</button>
+    <button class="tab">Audit</button>
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
@@ -208,6 +221,23 @@ export class AlertManagerSk extends HTMLElement {
         ${ele.displayClearSelections()}
       </span>
       ${ele.incidentList(ele.getMyIncidents(), false)}
+    </section>
+    <section class=infra-incidents>
+      <span class=selection-buttons>
+        ${ele.displayAssignMultiple()}
+        ${ele.displayClearSelections()}
+        ${ele.displayAutoAssign()}
+      </span>
+      ${ele.incidentList(ele.getInfraIncidents(), ele.isBotCentricView)}
+    </section>
+    <section class=skia-incidents>
+      ${ele.botCentricBtn()}
+      <span class=selection-buttons>
+        ${ele.displayAssignMultiple()}
+        ${ele.displayClearSelections()}
+        ${ele.displayAutoAssign()}
+      </span>
+      ${ele.incidentList(ele.getSkiaIncidents(), ele.isBotCentricView)}
     </section>
     <section class=incidents>
       ${ele.botCentricBtn()}
@@ -230,19 +260,14 @@ export class AlertManagerSk extends HTMLElement {
         .slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB)
         .map(
           (i: Silence) =>
-            html` <h2
-              class=${ele.classOfSilenceH2(i)}
-              @click=${() => ele.silenceClick(i)}>
+            html` <h2 class=${ele.classOfSilenceH2(i)} @click=${() => ele.silenceClick(i)}>
               <span> ${displaySilence(i.param_set)} </span>
               <span>
-                <span title="Expires in"
-                  >${expiresIn(i.active, i.created, i.duration)}</span
-                >
+                <span title="Expires in">${expiresIn(i.active, i.created, i.duration)}</span>
                 <comment-icon-sk
                   title="This silence has notes."
                   class=${ele.hasNotes(i)}></comment-icon-sk>
-                <span
-                  title="The number of active alerts that match this silence."
+                <span title="The number of active alerts that match this silence."
                   >${ele.numMatchSilence(i)}</span
                 >
               </span>
@@ -296,12 +321,8 @@ export class AlertManagerSk extends HTMLElement {
     this.addEventListener('delete-silence', (e) =>
       this.deleteSilence((e as CustomEvent).detail.silence)
     );
-    this.addEventListener('add-silence-note', (e) =>
-      this.addSilenceNote(e as CustomEvent)
-    );
-    this.addEventListener('del-silence-note', (e) =>
-      this.delSilenceNote(e as CustomEvent)
-    );
+    this.addEventListener('add-silence-note', (e) => this.addSilenceNote(e as CustomEvent));
+    this.addEventListener('del-silence-note', (e) => this.delSilenceNote(e as CustomEvent));
     this.addEventListener('add-silence-param', (e) =>
       this.addSilenceParam((e as CustomEvent).detail.silence)
     );
@@ -316,9 +337,7 @@ export class AlertManagerSk extends HTMLElement {
     this.addEventListener('take', (e) => this.take(e as CustomEvent));
     this.addEventListener('bot-chooser', () => this.botChooser());
     this.addEventListener('assign', (e) => this.assign(e as CustomEvent));
-    this.addEventListener('assign-to-owner', (e) =>
-      this.assignToOwner(e as CustomEvent)
-    );
+    this.addEventListener('assign-to-owner', (e) => this.assignToOwner(e as CustomEvent));
     // For keyboard navigation.
     document.addEventListener('keydown', (e) => this.keyDown(e));
 
@@ -350,10 +369,19 @@ export class AlertManagerSk extends HTMLElement {
       (i: Incident) =>
         i.active &&
         i.params.__silence_state !== 'silenced' &&
-        (this.user === this.infra_gardener ||
+        ((this.user === this.infra_gardener && i.params['category'] === 'infra') ||
+          (this.user === this.skia_gardener && i.params['category'] === 'skia') ||
           i.params.assigned_to === this.user ||
           (i.params.owner === this.user && !i.params.assigned_to))
     );
+  }
+
+  private getInfraIncidents(): Incident[] {
+    return this.incidents.filter((i: Incident) => i.params['category'] === 'infra');
+  }
+
+  private getSkiaIncidents(): Incident[] {
+    return this.incidents.filter((i: Incident) => i.params['category'] === 'skia');
   }
 
   private keyDown(e: KeyboardEvent) {
@@ -378,10 +406,7 @@ export class AlertManagerSk extends HTMLElement {
     // selected.
     const focusedElem: Element | null = document.activeElement;
     const ignoreKeyboardNavigationInTags = ['input', 'textarea', 'select'];
-    if (
-      focusedElem &&
-      ignoreKeyboardNavigationInTags.includes(focusedElem.tagName.toLowerCase())
-    ) {
+    if (focusedElem && ignoreKeyboardNavigationInTags.includes(focusedElem.tagName.toLowerCase())) {
       return;
     }
 
@@ -451,10 +476,7 @@ export class AlertManagerSk extends HTMLElement {
     this._render();
   }
 
-  private keyboardNavigateIncidents(
-    e: KeyboardEvent,
-    reverseDirection: boolean
-  ) {
+  private keyboardNavigateIncidents(e: KeyboardEvent, reverseDirection: boolean) {
     // If an alert is not selected or checked then the first incident in the
     // incidents array can be starting point.
     let foundStartingPoint = this.selected === null && this.checked.size === 0;
@@ -496,10 +518,7 @@ export class AlertManagerSk extends HTMLElement {
         // We found the selected incident, the next incident in the iteration
         // is the one we need to process.
         foundStartingPoint = true;
-      } else if (
-        this.checked.size > 0 &&
-        this.last_checked_incident === incident.key
-      ) {
+      } else if (this.checked.size > 0 && this.last_checked_incident === incident.key) {
         // We found the last checked incident, the next incident in the
         // iteration is the one we need to process.
         foundStartingPoint = true;
@@ -556,10 +575,7 @@ export class AlertManagerSk extends HTMLElement {
   private viewStats(): TemplateResult[] {
     return this.incident_stats.map(
       (i, index) =>
-        html`<incident-sk
-          .incident_state=${i}
-          minimized
-          params=${index === 0}></incident-sk>`
+        html`<incident-sk .incident_state=${i} minimized params=${index === 0}></incident-sk>`
     );
   }
 
@@ -596,24 +612,27 @@ export class AlertManagerSk extends HTMLElement {
     }
     const fullIncident = ret.join(' ');
     let displayIncident = fullIncident;
-    if (!this.inSelectionMode && displayIncident.length > 33) {
-      displayIncident = `${displayIncident.slice(0, 30)}...`;
+    if (!this.inSelectionMode && displayIncident.length > 48) {
+      displayIncident = `${displayIncident.slice(0, 45)}...`;
     }
     return html`<span title="${fullIncident}">${displayIncident}</span>`;
   }
 
-  private infraGardener(): TemplateResult {
+  private gardener(): TemplateResult {
     if (this.infra_gardener === this.user) {
       return html`<notifications-icon-sk
         title="You are the Infra Gardener, awesome!"></notifications-icon-sk>`;
+    }
+    if (this.skia_gardener === this.user) {
+      return html`<notifications-icon-sk
+        title="You are the Skia Gardener, awesome!"></notifications-icon-sk>`;
     }
     return html``;
   }
 
   private assignedTo(incident: Incident): TemplateResult {
     if (incident.params.assigned_to === this.user) {
-      return html`<person-icon-sk
-        title="This item is assigned to you."></person-icon-sk>`;
+      return html`<person-icon-sk title="This item is assigned to you."></person-icon-sk>`;
     }
     if (incident.params.assigned_to) {
       return html`<span
@@ -694,19 +713,13 @@ export class AlertManagerSk extends HTMLElement {
     </ul>`;
   }
 
-  private incidentList(
-    incidents: Incident[],
-    isBotCentricView: boolean
-  ): TemplateResult[] {
+  private incidentList(incidents: Incident[], isBotCentricView: boolean): TemplateResult[] {
     if (isBotCentricView) {
       return this.botCentricView();
     }
     return incidents.map(
       (i) => html`
-        <h2
-          class=${this.classOfH2(i)}
-          @click=${() => this.select(i)}
-          id="container-${i.key}">
+        <h2 class=${this.classOfH2(i)} @click=${() => this.select(i)} id="container-${i.key}">
           <span class="${this.inSelectionMode ? 'selection-mode' : 'noselect'}">
             <checkbox-sk
               ?checked=${this.checked.has(i.key)}
@@ -766,8 +779,7 @@ export class AlertManagerSk extends HTMLElement {
       return 0;
     }
     return this.incidents.filter(
-      (incident: Incident) =>
-        paramset.match(s.param_set, incident.params) && incident.active
+      (incident: Incident) => paramset.match(s.param_set, incident.params) && incident.active
     ).length;
   }
 
@@ -824,10 +836,9 @@ export class AlertManagerSk extends HTMLElement {
 
   private async autoAssign(): Promise<void> {
     const autoAssignIncidents = this.getAutoAssignIncidents();
-    const selectedIncidentKeys = await $$<AutoAssignSk>(
-      '#auto-assign',
-      this
-    )!.open(autoAssignIncidents);
+    const selectedIncidentKeys = await $$<AutoAssignSk>('#auto-assign', this)!.open(
+      autoAssignIncidents
+    );
 
     if (!selectedIncidentKeys) {
       // Nothing to do if there are no incidents to auto-assign.
@@ -843,9 +854,7 @@ export class AlertManagerSk extends HTMLElement {
         if (!ownersToIncidentKeys[this.incidents[i].params.owner]) {
           ownersToIncidentKeys[this.incidents[i].params.owner] = [];
         }
-        ownersToIncidentKeys[this.incidents[i].params.owner].push(
-          this.incidents[i].key
-        );
+        ownersToIncidentKeys[this.incidents[i].params.owner].push(this.incidents[i].key);
       }
     }
 
@@ -895,15 +904,10 @@ export class AlertManagerSk extends HTMLElement {
     } else {
       buttonText = 'Switch to Bot-centric view';
     }
-    return html`<button @click=${this.flipBotCentricView}>
-      ${buttonText}
-    </button>`;
+    return html`<button @click=${this.flipBotCentricView}>${buttonText}</button>`;
   }
 
-  private findParent(
-    ele: HTMLElement | null,
-    tagName: string
-  ): HTMLElement | null {
+  private findParent(ele: HTMLElement | null, tagName: string): HTMLElement | null {
     while (ele && ele.tagName !== tagName) {
       ele = ele.parentElement;
     }
@@ -919,10 +923,7 @@ export class AlertManagerSk extends HTMLElement {
         this.incidents = json.incidents || [];
         // If alert_id is specified and it is in supported rhs_states then display
         // an incident.
-        if (
-          (this.rhs_state === START || this.rhs_state === INCIDENT) &&
-          this.state.alert_id
-        ) {
+        if ((this.rhs_state === START || this.rhs_state === INCIDENT) && this.state.alert_id) {
           for (let i = 0; i < this.incidents.length; i++) {
             if (this.incidents[i].id === this.state.alert_id) {
               this.select(this.incidents[i]);
@@ -931,8 +932,7 @@ export class AlertManagerSk extends HTMLElement {
           }
         }
         this.incidents = json.incidents || [];
-        this.incidentsToRecentlyExpired =
-          json.ids_to_recently_expired_silences || {};
+        this.incidentsToRecentlyExpired = json.ids_to_recently_expired_silences || {};
       });
 
     const silences = fetch('/_/silences', {
@@ -980,12 +980,12 @@ export class AlertManagerSk extends HTMLElement {
     this.filterAuditLogsVal = '';
 
     // If tab is stats then load stats.
-    if (e.detail.index === 3) {
+    if (e.detail.index === 5) {
       this.getStats();
     }
     // If tab is silences then display empty silence to populate from scratch.
     // This will go away if any existing silence is clicked on.
-    if (e.detail.index === 2) {
+    if (e.detail.index === 4) {
       fetch('/_/new_silence', {
         credentials: 'include',
       })
@@ -997,7 +997,7 @@ export class AlertManagerSk extends HTMLElement {
           this._render();
         })
         .catch(errorMessage);
-    } else if (e.detail.index === 4) {
+    } else if (e.detail.index === 6) {
       // If tab is audit logs then load them.
       this.getAuditLogs();
       this.rhs_state = VIEW_AUDITLOG;
@@ -1070,16 +1070,9 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private async check_selected(e: Event): Promise<void> {
-    const checkbox = this.findParent(
-      e.target as HTMLElement,
-      'CHECKBOX-SK'
-    ) as CheckOrRadio;
+    const checkbox = this.findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
     const incidents_to_check: string[] = [];
-    if (
-      this.isBotCentricView &&
-      this.bots_to_incidents &&
-      this.bots_to_incidents[checkbox.id]
-    ) {
+    if (this.isBotCentricView && this.bots_to_incidents && this.bots_to_incidents[checkbox.id]) {
       this.bots_to_incidents[checkbox.id].forEach((i) => {
         incidents_to_check.push(i.key);
       });
@@ -1124,10 +1117,7 @@ export class AlertManagerSk extends HTMLElement {
       }
 
       incidents.some((i) => {
-        if (
-          i.key === this.last_checked_incident ||
-          incidents_to_check.includes(i.key)
-        ) {
+        if (i.key === this.last_checked_incident || incidents_to_check.includes(i.key)) {
           if (!foundStart) {
             // This is the 1st time we have entered this block. This means we
             // found the first incident.
@@ -1186,9 +1176,7 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) =>
-      this.silenceAction(json, false)
-    );
+    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
   }
 
   private deleteSilenceParam(silence: Silence): void {
@@ -1199,9 +1187,7 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) =>
-      this.silenceAction(json, false)
-    );
+    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
   }
 
   private modifySilenceParam(silence: Silence): void {
@@ -1212,22 +1198,16 @@ export class AlertManagerSk extends HTMLElement {
       return;
     }
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) =>
-      this.silenceAction(json, false)
-    );
+    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, false));
   }
 
   private saveSilence(silence: Silence): void {
     this.checked = new Set();
-    this.doImpl('/_/save_silence', silence, (json: Silence) =>
-      this.silenceAction(json, true)
-    );
+    this.doImpl('/_/save_silence', silence, (json: Silence) => this.silenceAction(json, true));
   }
 
   private archiveSilence(silence: Silence): void {
-    this.doImpl('/_/archive_silence', silence, (json: Silence) =>
-      this.silenceAction(json, true)
-    );
+    this.doImpl('/_/archive_silence', silence, (json: Silence) => this.silenceAction(json, true));
   }
 
   private reactivateSilence(silence: Silence): void {
@@ -1274,11 +1254,7 @@ export class AlertManagerSk extends HTMLElement {
           BOT_CENTRIC_PARAMS.forEach((p) => {
             bot_centric_params[p] = i.params[p];
           });
-          paramset.add(
-            this.current_silence!.param_set,
-            bot_centric_params,
-            this.ignored
-          );
+          paramset.add(this.current_silence!.param_set, bot_centric_params, this.ignored);
         });
         this.modifySilenceParam(this.current_silence!);
       });
@@ -1286,15 +1262,13 @@ export class AlertManagerSk extends HTMLElement {
 
   private assign(e: CustomEvent): void {
     const owner = this.selected && (this.selected as Incident).params.owner;
-    ($$('#email-chooser', this) as EmailChooserSk)
-      .open(this.emails, owner!)
-      .then((email) => {
-        const detail = {
-          key: e.detail.key,
-          email: email,
-        };
-        this.doImpl('/_/assign', detail);
-      });
+    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, owner!).then((email) => {
+      const detail = {
+        key: e.detail.key,
+        email: email,
+      };
+      this.doImpl('/_/assign', detail);
+    });
   }
 
   private flipBotCentricView(): void {
@@ -1327,19 +1301,17 @@ export class AlertManagerSk extends HTMLElement {
       }
     }
 
-    ($$('#email-chooser', this) as EmailChooserSk)
-      .open(this.emails, commonOwner)
-      .then((email) => {
-        const detail = {
-          keys: Array.from(this.checked),
-          email: email,
-        };
-        this.doImpl('/_/assign_multiple', detail, (json) => {
-          this.incidents = json;
-          this.checked = new Set();
-          this._render();
-        });
+    ($$('#email-chooser', this) as EmailChooserSk).open(this.emails, commonOwner).then((email) => {
+      const detail = {
+        keys: Array.from(this.checked),
+        email: email,
+      };
+      this.doImpl('/_/assign_multiple', detail, (json) => {
+        this.incidents = json;
+        this.checked = new Set();
+        this._render();
       });
+    });
   }
 
   private assignToOwner(e: CustomEvent): void {
@@ -1365,9 +1337,7 @@ export class AlertManagerSk extends HTMLElement {
   }
 
   private getAuditLogs(): void {
-    this.doImpl('/_/audit_logs', {}, (json: AuditLog[]) =>
-      this.auditLogsAction(json)
-    );
+    this.doImpl('/_/audit_logs', {}, (json: AuditLog[]) => this.auditLogsAction(json));
   }
 
   private incidentStats(): void {
@@ -1458,22 +1428,14 @@ export class AlertManagerSk extends HTMLElement {
     this.incidents.forEach((incident) => {
       const silenced = this.silences.reduce(
         (isSilenced, silence) =>
-          isSilenced ||
-          (silence.active &&
-            paramset.match(silence.param_set, incident.params)),
+          isSilenced || (silence.active && paramset.match(silence.param_set, incident.params)),
         false
       );
       incident.params.__silence_state = silenced ? 'silenced' : 'active';
     });
 
     // Sort the incidents, using the following 'sortby' list as tiebreakers.
-    const sortby = [
-      '__silence_state',
-      'assigned_to',
-      'alertname',
-      'abbr',
-      'id',
-    ];
+    const sortby = ['__silence_state', 'assigned_to', 'alertname', 'abbr', 'id'];
     this.incidents.sort((a, b) => {
       // Sort active before inactive.
       if (a.active !== b.active) {
@@ -1506,11 +1468,20 @@ export class AlertManagerSk extends HTMLElement {
     });
   }
 
-  private needsTriaging(incident: Incident, isInfraGardener: boolean): boolean {
+  private needsTriaging(
+    incident: Incident,
+    isInfraGardener: boolean,
+    isSkiaGardener: boolean
+  ): boolean {
     if (
       incident.active &&
       incident.params.__silence_state !== 'silenced' &&
-      ((isInfraGardener && !incident.params.assigned_to) ||
+      ((isInfraGardener &&
+        incident.params['category'] === 'infra' &&
+        !incident.params.assigned_to) ||
+        (isSkiaGardener &&
+          incident.params['category'] === 'skia' &&
+          !incident.params.assigned_to) ||
         incident.params.assigned_to === this.user ||
         (incident.params.owner === this.user && !incident.params.assigned_to))
     ) {
@@ -1555,12 +1526,12 @@ export class AlertManagerSk extends HTMLElement {
 
   private _render(): void {
     this.rationalize();
-    render(AlertManagerSk.template(this), this, { eventContext: this });
+    render(AlertManagerSk.template(this), this, { host: this });
     // Update the icon.
     const isInfraGardener = this.user === this.infra_gardener;
+    const isSkiaGardener = this.user === this.skia_gardener;
     const numActive = this.incidents.reduce(
-      (n, incident) =>
-        (n += this.needsTriaging(incident, isInfraGardener) ? 1 : 0),
+      (n, incident) => (n += this.needsTriaging(incident, isInfraGardener, isSkiaGardener) ? 1 : 0),
       0
     );
 
@@ -1570,13 +1541,10 @@ export class AlertManagerSk extends HTMLElement {
     if (Notification.permission === 'granted' && this.silences.length !== 0) {
       const unNotifiedIncidents = this.incidents.filter(
         (i) =>
-          !this.incidents_notified[i.key] &&
-          this.needsTriaging(i, isInfraGardener)
+          !this.incidents_notified[i.key] && this.needsTriaging(i, isInfraGardener, isSkiaGardener)
       );
       this.sendDesktopNotification(unNotifiedIncidents);
-      unNotifiedIncidents.forEach(
-        (i) => (this.incidents_notified[i.key] = true)
-      );
+      unNotifiedIncidents.forEach((i) => (this.incidents_notified[i.key] = true));
     }
 
     document.title = `${numActive} - AlertManager`;

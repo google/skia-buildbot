@@ -2,7 +2,6 @@ package midpoint
 
 import (
 	"context"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 
+	"go.skia.org/infra/pinpoint/go/common"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -20,126 +20,11 @@ const (
 	ChromiumSrcGit          = "https://chromium.googlesource.com/chromium/src.git"
 )
 
-func NewChromiumCommit(gitHash string) *pb.Commit {
-	return NewCommit(ChromiumSrcGit, gitHash)
-}
-
-func NewCommit(repository, gitHash string) *pb.Commit {
-	return &pb.Commit{
-		GitHash:    gitHash,
-		Repository: repository,
-	}
-}
-
-// A CombinedCommit represents one main base commit with any dependencies that require
-// overrides as part of the build request.
-// For example, if Commit is chromium/src@1, Dependency may be V8@2 which is passed
-// along to Buildbucket as a deps_revision_overrides.
-type CombinedCommit pb.CombinedCommit
-
-// TODO(jeffyoon@) - move this to a deps folder, likely with the types restructure above.
-// DepsToMap translates all deps into a map.
-func (cc *CombinedCommit) DepsToMap() map[string]string {
-	resp := make(map[string]string, 0)
-	for _, c := range cc.ModifiedDeps {
-		resp[c.Repository] = c.GitHash
-	}
-	return resp
-}
-
-// GetMainGitHash returns the git hash of main.
-func (cc *CombinedCommit) GetMainGitHash() string {
-	if cc.Main == nil {
-		return ""
-	}
-
-	return cc.Main.GitHash
-}
-
-// Key returns all git hashes combined to use for map indexing
-func (cc *CombinedCommit) Key() uint32 {
-	h := fnv.New32a()
-
-	if cc.Main == nil {
-		return h.Sum32()
-	}
-
-	h.Write([]byte(cc.Main.GitHash))
-	if cc.ModifiedDeps == nil {
-		return h.Sum32()
-	}
-
-	for _, v := range cc.ModifiedDeps {
-		h.Write([]byte(v.GitHash))
-	}
-
-	return h.Sum32()
-}
-
-// Clone returns a copy of this combined commit.
-func (cc *CombinedCommit) Clone() *CombinedCommit {
-	if cc.Main == nil {
-		return &CombinedCommit{}
-	}
-	newCombinedCommit := &CombinedCommit{
-		Main: &pb.Commit{
-			Repository: cc.Main.Repository,
-			GitHash:    cc.Main.GitHash,
-		},
-	}
-
-	if cc.ModifiedDeps != nil {
-		newModDeps := make([]*pb.Commit, len(cc.ModifiedDeps))
-		copy(newModDeps, cc.ModifiedDeps)
-		newCombinedCommit.ModifiedDeps = newModDeps
-	}
-
-	return newCombinedCommit
-}
-
-// UpsertModifiedDep inserts or updates a commit to ModifiedDeps
-func (cc *CombinedCommit) UpsertModifiedDep(commit *pb.Commit) {
-	// This operation is O(n) but is bound worst case by min(the number of
-	// git-based dependencies a repository supports, bisection iterations)
-	// so this should be okay. At the time of implementation, there are ~250
-	// git-based repositories, and Catapult supports 30 bisection iterations,
-	// so O(30).
-	if cc.ModifiedDeps == nil {
-		cc.ModifiedDeps = []*pb.Commit{commit}
-		return
-	}
-	for _, mc := range cc.ModifiedDeps {
-		if mc.Repository == commit.Repository {
-			mc.GitHash = commit.GitHash
-			return
-		}
-	}
-
-	cc.ModifiedDeps = append(cc.ModifiedDeps, commit)
-	return
-}
-
-// GetLatestModifiedDep returns the most recently added commit.
-func (cc *CombinedCommit) GetLatestModifiedDep() *pb.Commit {
-	if cc.ModifiedDeps == nil || len(cc.ModifiedDeps) == 0 {
-		return nil
-	}
-	return cc.ModifiedDeps[len(cc.ModifiedDeps)-1]
-}
-
-// NewCombinedCommit returns a new CombinedCommit object.
-func NewCombinedCommit(main *pb.Commit, deps ...*pb.Commit) *CombinedCommit {
-	return &CombinedCommit{
-		Main:         main,
-		ModifiedDeps: deps,
-	}
-}
-
 // CommitRange provides information about the left and right commits used to determine
 // the next commit to bisect against.
 type CommitRange struct {
-	Left  *CombinedCommit
-	Right *CombinedCommit
+	Left  *common.CombinedCommit
+	Right *common.CombinedCommit
 }
 
 // MidpointHandler encapsulates all logic to determine the next potential candidate for Bisection.
@@ -357,7 +242,7 @@ func (m *MidpointHandler) findDepsCommit(ctx context.Context, baseCommit *pb.Com
 //	  * WRT would be filled from V8 above
 //	  * Blink would be filled from WRT above.
 //	... and so on.
-func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *CombinedCommit) error {
+func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *common.CombinedCommit) error {
 	if len(end.ModifiedDeps) > len(start.ModifiedDeps) {
 		start, end = end, start
 	}
@@ -389,6 +274,9 @@ func (m *MidpointHandler) fillModifiedDeps(ctx context.Context, start, end *Comb
 }
 
 // findMidCommit coordinates the search for finding the midpoint between the two commits.
+// findMidCommit assumes that it's operating within the same repo. Care is required if
+// findMidCommit is used to find the midCommit between commits from two different repos.
+// See doc.go for edge cases.
 func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCommit *pb.Commit) (*pb.Commit, error) {
 	midCommit, err := m.findMidpoint(ctx, startCommit, endCommit)
 	if err != nil {
@@ -439,7 +327,7 @@ func (m *MidpointHandler) findMidCommit(ctx context.Context, startCommit, endCom
 // both modified deps are not equal between first and second, this check will
 // backfill modified deps information from DEPS files such that they are equal
 // before calculating and comparing the key.
-func (m *MidpointHandler) Equal(ctx context.Context, first, second *CombinedCommit) (bool, error) {
+func (m *MidpointHandler) Equal(ctx context.Context, first, second *common.CombinedCommit) (bool, error) {
 	err := m.fillModifiedDeps(ctx, first, second)
 	if err != nil {
 		return false, skerr.Fmt("Failed to sync modified deps for both commits.")
@@ -459,7 +347,10 @@ func (m *MidpointHandler) Equal(ctx context.Context, first, second *CombinedComm
 // might've been rolled. Once identified, it searches for a median from the base to rolled git hash.
 //
 // See midpoint/doc.go for examples and details.
-func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit, endCommit *CombinedCommit) (*CombinedCommit, error) {
+func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit, endCommit *common.CombinedCommit) (*common.CombinedCommit, error) {
+	if startCommit.Key() == endCommit.Key() {
+		return nil, skerr.Fmt("Unable to find midpoint between two commits that are identical")
+	}
 	if startCommit.Main.Repository != endCommit.Main.Repository {
 		return nil, skerr.Fmt("Unable to find midpoint between two commits with different main repositories.")
 	}
@@ -469,6 +360,9 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	// commits have been compared (where DEPS is analyzed). We search for the
 	// midpoint from modified dep where commits for it differ.
 	if len(startCommit.ModifiedDeps) > 0 || len(endCommit.ModifiedDeps) > 0 {
+		// Create originals of the start commits before the deps are filled in.
+		// These originals are needed before DEPS are filled in and they are edited.
+		origStartCommit, origEndCommit := startCommit.Clone(), endCommit.Clone()
 		// During bisection, either one of start or end combined commits may be missing
 		// a modified deps definition.
 		//
@@ -493,11 +387,29 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 		startDep := startCommit.GetLatestModifiedDep()
 		endDep := endCommit.GetLatestModifiedDep()
 
+		// Checks if we are looking at the first or last commit in the DEPS roll.
+		// If we reach a state where {C@1, V8@4) is compared to {C@2, V8@4},
+		// and C@2 was a deps roll to V8@4, an equality check on the two objects
+		// by key wouldn't work because of the difference in base.
+		if startDep.GetGitHash() == endDep.GetGitHash() {
+			sklog.Warningf("Both start and end DEPS are identical. Either startDep is the last commit in the DEPS roll or endDep is the first commit in the DEPS roll. Return original startCommit: %v. startDep: %v; endDep: %v", origStartCommit, startDep, endDep)
+			return origStartCommit, nil
+		}
+
 		midDepCommit, err := m.findMidCommit(ctx, startDep, endDep)
 		if err != nil {
 			return nil, err
 		}
 
+		// Addresses the edge case if we are comparing the 2nd to last commit
+		// in the roll so that the midpoint is the last commit in the roll.
+		// i.e. {C@1, V8@3} vs {C@2} fills deps to {C@1, V8@3} vs {C@2, V8@4}
+		// and returns {C@1, V8@4}
+		if strings.HasPrefix(midDepCommit.GitHash, startDep.GitHash) && len(origStartCommit.ModifiedDeps) > len(origEndCommit.ModifiedDeps) {
+			resp := startCommit.Clone()
+			resp.UpsertModifiedDep(endDep)
+			return resp, nil
+		}
 		// There is no mid to proceed on.
 		if strings.HasPrefix(midDepCommit.GitHash, startDep.GitHash) {
 			return startCommit, nil
@@ -516,13 +428,13 @@ func (m *MidpointHandler) FindMidCombinedCommit(ctx context.Context, startCommit
 	}
 
 	// There is no mid.
-	if strings.HasPrefix(midCommit.GitHash, startCommit.Main.GitHash) {
+	if strings.HasPrefix(midCommit.GitHash, startCommit.GetMainGitHash()) {
 		return startCommit, nil
 	}
 
 	// Mid commit is through Main, so update that.
 	if midCommit.Repository == startCommit.Main.Repository {
-		return NewCombinedCommit(midCommit), nil
+		return common.NewCombinedCommit(midCommit), nil
 	}
 
 	// Add this dependency to modified deps.

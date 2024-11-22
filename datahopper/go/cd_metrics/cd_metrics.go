@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/louhi/pubsub"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -52,6 +53,10 @@ const (
 	// commits for which the CD pipeline may not have finished.  Its value
 	// should be longer than we ever expect the CD pipeline to take.
 	overlapDuration = 6 * time.Hour
+
+	// flowExpiration indicates when we'll stop recording metrics for a given
+	// flow.
+	flowExpiration = 21 * 24 * time.Hour
 )
 
 var (
@@ -360,7 +365,6 @@ func updateK8sConfigCache(ctx context.Context, repos repograph.Map, gitilesRepo 
 				// Gather all containers across all deployments, statefulsets,
 				// and cron jobs.
 				containers := []v1.Container{}
-				containers = append(containers)
 				for _, config := range k8sConfigs.Deployment {
 					containers = append(containers, config.Spec.Template.Spec.Containers...)
 				}
@@ -576,12 +580,16 @@ func Start(ctx context.Context, imageNames []string, btConf *bt_gitstore.BTConfi
 	}
 	lvFlowResults := metrics2.NewLiveness("last_successful_louhi_flow_metrics")
 	go util.RepeatCtx(ctx, time.Minute, func(ctx context.Context) {
+		expirationCutoff := now.Now(ctx).Add(-flowExpiration)
 		latestFlowExecs, err := db.GetLatestFlowExecutions(ctx)
 		if err != nil {
 			sklog.Errorf("Failed to get latest flow executions: %s", err)
 			return
 		}
 		for flowName, flow := range latestFlowExecs {
+			if flow.FinishedAt.Before(expirationCutoff) {
+				continue
+			}
 			result := int64(1)
 			if flow.Result == louhi.FlowResultFailure {
 				result = 0

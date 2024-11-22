@@ -1,5 +1,6 @@
 {
     "URL": "http://localhost:8001",
+    "landing_page_rel_path": "/m/",
     "ga_measurement_id": "G-FAKE-MEASUREMENT-ID",
     "backend_host_url": "localhost:8003",
     "contact": "user@example.org",
@@ -15,7 +16,7 @@
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
     "culprit_notify_config": {
-        "notifications": "none"
+        "notification_type": "none"
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",
@@ -40,6 +41,28 @@
         "url": "https://github.com/skia-dev/perf-demo-repo.git",
         "dir": "/tmp/perf-demo",
         "debounce_commit_url": false
+    },
+    "query_config": {
+        "include_params": [
+            "arch",
+            "config",
+            "test",
+            "units"
+        ],
+        "cache_config": {
+            "type": "local",
+            "enabled": true,
+            "level1_cache_key": "arch",
+            "level2_cache_key": "config"
+        },
+        "default_url_values": {
+            "plotSummary": "true",
+            "useTestPicker": "true",
+            "showZero": "false",
+            "enable_chart_tooltip": "true",
+            "use_test_picker_query": "false",
+            "use_titles": "true"
+        }
     },
     "favorites": {
         "sections":[

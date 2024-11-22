@@ -16,6 +16,7 @@ paramset-sk {
     display: inline-flex;
     flex-direction: row;
     align-items: center;
+    word-break: break-all;
   }
 
   .clickable tr:not(:nth-child(1)) th,

@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/mockhttpclient"
 )
 
 const (
@@ -110,12 +111,21 @@ func GerritPollerTest(t *testing.T) {
 }
 
 func TestGetPatch(t *testing.T) {
-	skipTestIfRequired(t)
+	ctx := context.Background()
+
+	const issue = 2370
+	const revision = "current"
+	const response = "From d63a4c4de93bb97fcb52e1562fb03b773143edfd Mon Sep 17 00:00:00 2001\nFrom: Ravi Mistry <rmistry@google.com>\nDate: Fri, 09 Sep 2016 15:50:50 -0400\nSubject: [PATCH] Test  (should fail apply_gerrit)\n\nBUG=skia:\n\nChange-Id: Ibd49ce0e9f07bf5386f710df4621ff68f12e6ceb\n---\n\ndiff --git a/whitespace.txt b/whitespace.txt\nindex c0f0a49..d5733b3 100644\n--- a/whitespace.txt\n+++ b/whitespace.txt\n@@ -1,4 +1,5 @@\n testing\n+\n  \n \n \n"
+
+	url := fmt.Sprintf("%s/a/changes/%d/revisions/%s/patch", GerritSkiaURL, issue, revision)
+	urlmock := mockhttpclient.NewURLMock()
+	urlmock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(base64.StdEncoding.EncodeToString([]byte(response)))))
+	c := urlmock.Client()
 
 	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
 	require.NoError(t, err)
 
-	patch, err := api.GetPatch(context.Background(), 2370, "current")
+	patch, err := api.GetPatch(ctx, issue, revision, "")
 	require.NoError(t, err)
 
 	// Note: The trailing spaces and newlines were added this way
@@ -123,6 +133,38 @@ func TestGetPatch(t *testing.T) {
 	expected := `
 
 diff --git a/whitespace.txt b/whitespace.txt
+index c0f0a49..d5733b3 100644
+--- a/whitespace.txt
++++ b/whitespace.txt
+@@ -1,4 +1,5 @@
+ testing
++` + "\n  \n \n \n"
+
+	require.Equal(t, expected, patch)
+}
+
+func TestGetPatch_WithPath(t *testing.T) {
+	ctx := context.Background()
+
+	const issue = 2370
+	const revision = "current"
+	const path = "whitespace.txt"
+	const response = "diff --git a/whitespace.txt b/whitespace.txt\nindex c0f0a49..d5733b3 100644\n--- a/whitespace.txt\n+++ b/whitespace.txt\n@@ -1,4 +1,5 @@\n testing\n+\n  \n \n \n"
+
+	url := fmt.Sprintf("%s/a/changes/%d/revisions/%s/patch?path=%s", GerritSkiaURL, issue, revision, path)
+	urlmock := mockhttpclient.NewURLMock()
+	urlmock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(base64.StdEncoding.EncodeToString([]byte(response)))))
+	c := urlmock.Client()
+
+	api, err := NewGerritWithConfig(ConfigChromium, GerritSkiaURL, c)
+	require.NoError(t, err)
+
+	patch, err := api.GetPatch(ctx, issue, revision, path)
+	require.NoError(t, err)
+
+	// Note: The trailing spaces and newlines were added this way
+	// because editor plug-ins remove white spaces from the raw string.
+	const expected = `diff --git a/whitespace.txt b/whitespace.txt
 index c0f0a49..d5733b3 100644
 --- a/whitespace.txt
 +++ b/whitespace.txt

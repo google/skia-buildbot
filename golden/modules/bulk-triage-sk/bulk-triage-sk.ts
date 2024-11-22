@@ -10,7 +10,7 @@
  * @evt bulk_triage_invoked - Sent just before the triage RPC is hit.
  * @evt bulk_triage_finished - Sent if the triage RPC returns success.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

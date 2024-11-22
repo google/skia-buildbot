@@ -6,23 +6,23 @@ package depot_tools
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
 	"sync"
 
+	"go.skia.org/infra/go/depot_tools/deps"
 	"go.skia.org/infra/go/skerr"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/sklog"
 )
 
 const (
-	DEPOT_TOOLS_TEST_ENV_VAR = "SKIABOT_TEST_DEPOT_TOOLS"
+	DepotToolsTestEnvVar = "SKIABOT_TEST_DEPOT_TOOLS"
+	DepotToolsURL        = "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
 )
 
 var (
@@ -43,7 +43,7 @@ func Env(depotToolsPath string) []string {
 }
 
 // Determine the desired depot_tools revision.
-func FindVersion(recipesCfgFile string) (string, error) {
+func FindVersion() (string, error) {
 	versionMtx.Lock()
 	defer versionMtx.Unlock()
 
@@ -51,22 +51,18 @@ func FindVersion(recipesCfgFile string) (string, error) {
 		return version, nil
 	}
 
-	recipesCfg, err := recipe_cfg.ParseCfg(recipesCfgFile)
+	dep, err := deps.Get(DepotToolsURL)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
-	dep, ok := recipesCfg.Deps["depot_tools"]
-	if !ok {
-		return "", errors.New("No dependency found for depot_tools.")
-	}
-	version = dep.Revision
+	version = dep.Version
 	return version, nil
 }
 
 // Sync syncs the depot_tools checkout to DEPOT_TOOLS_VERSION. Returns the
 // location of the checkout or an error.
-func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
-	version, err := FindVersion(recipesCfgFile)
+func Sync(ctx context.Context, workdir string) (string, error) {
+	version, err := FindVersion()
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
@@ -111,7 +107,7 @@ func Sync(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
 
 // GetDepotTools returns the path to depot_tools, syncing it into the given
 // workdir if necessary.
-func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string, error) {
+func GetDepotTools(ctx context.Context, workdir string) (string, error) {
 	depotToolsMtx.Lock()
 	defer depotToolsMtx.Unlock()
 
@@ -119,15 +115,15 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 
 	// Check the environment. Bots may not have a full Git checkout, so
 	// just return the dir.
-	depotTools := os.Getenv(DEPOT_TOOLS_TEST_ENV_VAR)
+	depotTools := os.Getenv(DepotToolsTestEnvVar)
 	if depotTools != "" {
-		sklog.Infof("Found %s environment variable.", DEPOT_TOOLS_TEST_ENV_VAR)
+		sklog.Infof("Found %s environment variable.", DepotToolsTestEnvVar)
 		if _, err := os.Stat(depotTools); err == nil {
 			sklog.Infof("Found depot_tools in dir specified in env.")
 			return depotTools, nil
 		}
 		sklog.Infof("depot_tools is not present in dir specified in env.")
-		return "", skerr.Fmt("%s=%s but dir does not exist!", DEPOT_TOOLS_TEST_ENV_VAR, depotTools)
+		return "", skerr.Fmt("%s=%s but dir does not exist!", DepotToolsTestEnvVar, depotTools)
 	}
 
 	// If "gclient" is in PATH, then we know where to get depot_tools.
@@ -139,6 +135,6 @@ func GetDepotTools(ctx context.Context, workdir, recipesCfgFile string) (string,
 
 	// Sync to the given workdir.
 	sklog.Infof("Syncing depot_tools.")
-	dir, err := Sync(ctx, workdir, recipesCfgFile)
+	dir, err := Sync(ctx, workdir)
 	return dir, skerr.Wrap(err)
 }

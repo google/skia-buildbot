@@ -6,8 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/pinpoint/go/midpoint"
-
+	"go.skia.org/infra/pinpoint/go/common"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
 )
 
@@ -41,7 +40,7 @@ func TestFillTemplate_MultiCulprit_TemplateFilled(t *testing.T) {
 
 	input := []*pinpoint_proto.CombinedCommit{
 		{
-			Main: midpoint.NewChromiumCommit("1a9897ca56513579444c0411ffe910b4d26b894c"),
+			Main: common.NewChromiumCommit("1a9897ca56513579444c0411ffe910b4d26b894c"),
 			ModifiedDeps: []*pinpoint_proto.Commit{
 				{
 					Repository: "https://chromium.googlesource.com/v8/v8.git",
@@ -50,7 +49,7 @@ func TestFillTemplate_MultiCulprit_TemplateFilled(t *testing.T) {
 			},
 		},
 		{
-			Main: midpoint.NewChromiumCommit("8c2a7b436376c9283f85d543a40f710b2aa18e34"),
+			Main: common.NewChromiumCommit("8c2a7b436376c9283f85d543a40f710b2aa18e34"),
 		},
 	}
 

@@ -1,0 +1,1 @@
+import './anomalies-table-sk';

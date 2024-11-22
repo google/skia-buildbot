@@ -7,6 +7,9 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/builders",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
+        "//go/cache/local",
+        "//go/cache/redis",
         "//go/deepequal/assertdeep",
         "//go/skerr",
         "//go/sklog",
@@ -20,10 +23,13 @@ go_library(
         "//perf/go/config",
         "//perf/go/culprit:store",
         "//perf/go/culprit/sqlculpritstore",
+        "//perf/go/favorites:store",
+        "//perf/go/favorites/sqlfavoritestore",
         "//perf/go/file",
         "//perf/go/file/dirsource",
         "//perf/go/file/gcssource",
         "//perf/go/filestore/gcs",
+        "//perf/go/filestore/local",
         "//perf/go/git",
         "//perf/go/graphsshortcut",
         "//perf/go/graphsshortcut/graphsshortcutstore",
@@ -41,6 +47,7 @@ go_library(
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
         "@com_github_jackc_pgx_v4//stdlib",
+        "@com_google_cloud_go_redis//apiv1",
     ],
 )
 

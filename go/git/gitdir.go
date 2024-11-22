@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
@@ -49,46 +48,99 @@ func Executable(ctx context.Context) (string, error) {
 }
 
 // GitDir is a directory in which one may run Git commands.
-type GitDir string
+type GitDir interface {
+	// Dir returns the working directory of the GitDir.
+	Dir() string
+
+	// Git runs the given git command in the GitDir.
+	Git(ctx context.Context, cmd ...string) (string, error)
+
+	// Details returns a vcsinfo.LongCommit instance representing the given commit.
+	Details(ctx context.Context, name string) (*vcsinfo.LongCommit, error)
+
+	// RevParse runs "git rev-parse <name>" and returns the result.
+	RevParse(ctx context.Context, args ...string) (string, error)
+
+	// RevList runs "git rev-list <name>" and returns a slice of commit hashes.
+	RevList(ctx context.Context, args ...string) ([]string, error)
+
+	// GetBranchHead returns the commit hash at the HEAD of the given branch.
+	GetBranchHead(ctx context.Context, branchName string) (string, error)
+
+	// Branches runs "git branch" and returns a slice of Branch instances.
+	Branches(ctx context.Context) ([]*Branch, error)
+
+	// GetFile returns the contents of the given file at the given commit.
+	GetFile(ctx context.Context, fileName, commit string) (string, error)
+
+	// IsSubmodule returns true if the given path is submodule, ie contains gitlink.
+	IsSubmodule(ctx context.Context, path, commit string) (bool, error)
+
+	// ReadSubmodule returns commit hash of the given path, if the path is git
+	// submodule. ErrorNotFound is returned if path is not found in the git
+	// worktree. ErrorNotSubmodule is returned if path exists, but it's not a
+	// submodule.
+	ReadSubmodule(ctx context.Context, path, commit string) (string, error)
+
+	// UpdateSubmodule updates git submodule of the given path to the given commit.
+	// If submodule doesn't exist, it returns ErrorNotFound since it doesn't have
+	// all necessary information to create a valid submodule (requires an entry in
+	// .gitmodules).
+	UpdateSubmodule(ctx context.Context, path, commit string) error
+
+	// NumCommits returns the number of commits in the repo.
+	NumCommits(ctx context.Context) (int64, error)
+
+	// IsAncestor returns true iff A is an ancestor of B.
+	IsAncestor(ctx context.Context, a, b string) (bool, error)
+
+	// Version returns the Git version.
+	Version(ctx context.Context) (int, int, error)
+
+	// FullHash gives the full commit hash for the given ref.
+	FullHash(ctx context.Context, ref string) (string, error)
+
+	// CatFile runs "git cat-file -p <ref>:<path>".
+	CatFile(ctx context.Context, ref, path string) ([]byte, error)
+
+	// ReadDir is analogous to os.File.Readdir for a particular ref.
+	ReadDir(ctx context.Context, ref, path string) ([]os.FileInfo, error)
+
+	// GetRemotes returns a mapping of remote repo name to URL.
+	GetRemotes(ctx context.Context) (map[string]string, error)
+
+	// VFS returns a vfs.FS using Git for the given revision.
+	VFS(ctx context.Context, ref string) (*FS, error)
+}
+
+type gitRunner interface {
+	Git(ctx context.Context, cmd ...string) (string, error)
+}
 
 // newGitDir creates a GitDir instance based in the given directory.
-func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDir, error) {
+func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (string, error) {
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
 			if err := Clone(ctx, repoUrl, dest, mirror); err != nil {
-				return "", err
+				return "", skerr.Wrap(err)
 			}
 		} else {
-			return "", fmt.Errorf("There is a problem with the git directory: %s", err)
+			return "", skerr.Wrapf(err, "there is a problem with the git directory")
 		}
 	}
-	return GitDir(dest), nil
-}
-
-// Dir returns the working directory of the GitDir.
-func (g GitDir) Dir() string {
-	return string(g)
-}
-
-// Git runs the given git command in the GitDir.
-func (g GitDir) Git(ctx context.Context, cmd ...string) (string, error) {
-	git, err := Executable(ctx)
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
-	return exec.RunCwd(ctx, g.Dir(), append([]string{git}, cmd...)...)
+	return dest, nil
 }
 
 // Details returns a vcsinfo.LongCommit instance representing the given commit.
-func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, error) {
+func gitRunner_Details(ctx context.Context, g gitRunner, name string) (*vcsinfo.LongCommit, error) {
 	output, err := g.Git(ctx, "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%ct%n%b", name)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	lines := strings.SplitN(output, "\n", 6)
 	if len(lines) != 6 {
-		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
+		return nil, skerr.Fmt("failed to parse output of 'git log'")
 	}
 	var parents []string
 	if lines[1] != "" {
@@ -96,7 +148,7 @@ func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, 
 	}
 	ts, err := strconv.ParseInt(lines[4], 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return &vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
@@ -111,41 +163,41 @@ func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, 
 }
 
 // RevParse runs "git rev-parse <name>" and returns the result.
-func (g GitDir) RevParse(ctx context.Context, args ...string) (string, error) {
+func gitRunner_RevParse(ctx context.Context, g gitRunner, args ...string) (string, error) {
 	out, err := g.Git(ctx, append([]string{"rev-parse"}, args...)...)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	// Ensure that we got a single, 40-character commit hash.
 	split := strings.Fields(out)
 	if len(split) != 1 {
-		return "", fmt.Errorf("Unable to parse commit hash from output: %s", out)
+		return "", skerr.Fmt("unable to parse commit hash from output: %s", out)
 	}
 	if len(split[0]) != 40 {
-		return "", fmt.Errorf("rev-parse returned invalid commit hash: %s", out)
+		return "", skerr.Fmt("rev-parse returned invalid commit hash: %s", out)
 	}
 	return split[0], nil
 }
 
 // RevList runs "git rev-list <name>" and returns a slice of commit hashes.
-func (g GitDir) RevList(ctx context.Context, args ...string) ([]string, error) {
+func gitRunner_RevList(ctx context.Context, g gitRunner, args ...string) ([]string, error) {
 	out, err := g.Git(ctx, append([]string{"rev-list"}, args...)...)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return strings.Fields(out), nil
 }
 
 // GetBranchHead returns the commit hash at the HEAD of the given branch.
-func (g GitDir) GetBranchHead(ctx context.Context, branchName string) (string, error) {
-	return g.RevParse(ctx, "--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
+func gitRunner_GetBranchHead(ctx context.Context, g gitRunner, branchName string) (string, error) {
+	return gitRunner_RevParse(ctx, g, "--verify", fmt.Sprintf("refs/heads/%s^{commit}", branchName))
 }
 
 // Branches runs "git branch" and returns a slice of Branch instances.
-func (g GitDir) Branches(ctx context.Context) ([]*Branch, error) {
+func gitRunner_Branches(ctx context.Context, g gitRunner) ([]*Branch, error) {
 	out, err := g.Git(ctx, "branch")
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	branchNames := strings.Fields(out)
 	branches := make([]*Branch, 0, len(branchNames))
@@ -153,9 +205,9 @@ func (g GitDir) Branches(ctx context.Context) ([]*Branch, error) {
 		if name == "*" {
 			continue
 		}
-		head, err := g.GetBranchHead(ctx, name)
+		head, err := gitRunner_GetBranchHead(ctx, g, name)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrap(err)
 		}
 		branches = append(branches, &Branch{
 			Head: head,
@@ -166,20 +218,20 @@ func (g GitDir) Branches(ctx context.Context) ([]*Branch, error) {
 }
 
 // GetFile returns the contents of the given file at the given commit.
-func (g GitDir) GetFile(ctx context.Context, fileName, commit string) (string, error) {
+func gitRunner_GetFile(ctx context.Context, g gitRunner, fileName, commit string) (string, error) {
 	return g.Git(ctx, "show", commit+":"+fileName)
 }
 
 // IsSubmodule returns true if the given path is submodule, ie contains gitlink.
-func (g GitDir) IsSubmodule(ctx context.Context, path, commit string) (bool, error) {
-	_, err := g.ReadSubmodule(ctx, path, commit)
+func gitRunner_IsSubmodule(ctx context.Context, g gitRunner, path, commit string) (bool, error) {
+	_, err := gitRunner_ReadSubmodule(ctx, g, path, commit)
 	switch skerr.Unwrap(err) {
 	case ErrorNotSubmodule:
 		return false, nil
 	case nil:
 		return true, nil
 	default:
-		return false, err
+		return false, skerr.Wrap(err)
 	}
 }
 
@@ -187,7 +239,7 @@ func (g GitDir) IsSubmodule(ctx context.Context, path, commit string) (bool, err
 // submodule. ErrorNotFound is returned if path is not found in the git
 // worktree. ErrorNotSubmodule is returned if path exists, but it's not a
 // submodule.
-func (g GitDir) ReadSubmodule(ctx context.Context, path, commit string) (string, error) {
+func gitRunner_ReadSubmodule(ctx context.Context, g gitRunner, path, commit string) (string, error) {
 	// Detect if we are dealing with submodules or regular files.
 	// Expected output for submodules:
 	// <mode> SP <type> SP <object> TAB <file>
@@ -213,26 +265,26 @@ func (g GitDir) ReadSubmodule(ctx context.Context, path, commit string) (string,
 // If submodule doesn't exist, it returns ErrorNotFound since it doesn't have
 // all necessary information to create a valid submodule (requires an entry in
 // .gitmodules).
-func (g GitDir) UpdateSubmodule(ctx context.Context, path, commit string) error {
-	if _, err := g.ReadSubmodule(ctx, path, "HEAD"); err != nil {
-		return err
+func gitRunner_UpdateSubmodule(ctx context.Context, g gitRunner, path, commit string) error {
+	if _, err := gitRunner_ReadSubmodule(ctx, g, path, "HEAD"); err != nil {
+		return skerr.Wrap(err)
 	}
 	cacheInfo := fmt.Sprintf("%s,%s,%s", gitlinkMode, commit, path)
 	_, err := g.Git(ctx, "update-index", "--add", "--cacheinfo", cacheInfo)
-	return err
+	return skerr.Wrap(err)
 }
 
 // NumCommits returns the number of commits in the repo.
-func (g GitDir) NumCommits(ctx context.Context) (int64, error) {
+func gitRunner_NumCommits(ctx context.Context, g gitRunner) (int64, error) {
 	out, err := g.Git(ctx, "rev-list", "--all", "--count")
 	if err != nil {
-		return 0, err
+		return 0, skerr.Wrap(err)
 	}
 	return strconv.ParseInt(strings.TrimSpace(out), 10, 64)
 }
 
 // IsAncestor returns true iff A is an ancestor of B.
-func (g GitDir) IsAncestor(ctx context.Context, a, b string) (bool, error) {
+func gitRunner_IsAncestor(ctx context.Context, g gitRunner, a, b string) (bool, error) {
 	out, err := g.Git(ctx, "merge-base", "--is-ancestor", a, b)
 	if err != nil {
 		// Either a is not an ancestor of b, or we got a real error. If
@@ -247,28 +299,28 @@ func (g GitDir) IsAncestor(ctx context.Context, a, b string) (bool, error) {
 			return false, nil
 		}
 		// Otherwise, return the presumably real error.
-		return false, fmt.Errorf("%s: %s", err, out)
+		return false, skerr.Wrap(err)
 	}
 	return true, nil
 }
 
 // Version returns the Git version.
-func (g GitDir) Version(ctx context.Context) (int, int, error) {
+func gitRunner_Version(ctx context.Context) (int, int, error) {
 	_, maj, min, err := git_common.FindGit(ctx)
-	return maj, min, err
+	return maj, min, skerr.Wrap(err)
 }
 
 // FullHash gives the full commit hash for the given ref.
-func (g GitDir) FullHash(ctx context.Context, ref string) (string, error) {
-	output, err := g.RevParse(ctx, fmt.Sprintf("%s^{commit}", ref))
+func gitRunner_FullHash(ctx context.Context, g gitRunner, ref string) (string, error) {
+	output, err := gitRunner_RevParse(ctx, g, fmt.Sprintf("%s^{commit}", ref))
 	if err != nil {
-		return "", fmt.Errorf("Failed to obtain full hash: %s", err)
+		return "", skerr.Wrapf(err, "failed to obtain full hash")
 	}
 	return output, nil
 }
 
 // CatFile runs "git cat-file -p <ref>:<path>".
-func (g GitDir) CatFile(ctx context.Context, ref, path string) ([]byte, error) {
+func gitRunner_CatFile(ctx context.Context, g gitRunner, ref, path string) ([]byte, error) {
 	output, err := g.Git(ctx, "cat-file", "-p", fmt.Sprintf("%s:%s", ref, path))
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -277,8 +329,8 @@ func (g GitDir) CatFile(ctx context.Context, ref, path string) ([]byte, error) {
 }
 
 // ReadDir is analogous to os.File.Readdir for a particular ref.
-func (g GitDir) ReadDir(ctx context.Context, ref, path string) ([]os.FileInfo, error) {
-	contents, err := g.CatFile(ctx, ref, path)
+func gitRunner_ReadDir(ctx context.Context, g gitRunner, ref, path string) ([]os.FileInfo, error) {
+	contents, err := gitRunner_CatFile(ctx, g, ref, path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -286,7 +338,7 @@ func (g GitDir) ReadDir(ctx context.Context, ref, path string) ([]os.FileInfo, e
 }
 
 // GetRemotes returns a mapping of remote repo name to URL.
-func (g GitDir) GetRemotes(ctx context.Context) (map[string]string, error) {
+func gitRunner_GetRemotes(ctx context.Context, g gitRunner) (map[string]string, error) {
 	output, err := g.Git(ctx, "remote", "-v")
 	if err != nil {
 		return nil, skerr.Wrap(err)

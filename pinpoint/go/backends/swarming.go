@@ -2,8 +2,6 @@ package backends
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -30,21 +28,22 @@ type SwarmingClient interface {
 	// GetCASOutput returns the CAS output of a swarming task.
 	GetCASOutput(ctx context.Context, taskID string) (*apipb.CASReference, error)
 
-	// GetStates returns the state of each task in a list of tasks.
-	GetStates(ctx context.Context, taskIDs []string) ([]string, error)
+	// GetStartTime returns the starting time of the swarming task.
+	GetStartTime(ctx context.Context, taskID string) (*timestamppb.Timestamp, error)
 
 	// GetStatus gets the current status of a swarming task.
 	GetStatus(ctx context.Context, taskID string) (string, error)
 
-	// ListPinpointTasks lists the Pinpoint swarming tasks.
-	ListPinpointTasks(ctx context.Context, jobID string, buildArtifact *apipb.CASReference) ([]string, error)
-
-	// TriggerTask is a literal wrapper around swarming.ApiClient TriggerTask
-	// TODO(jeffyoon@) remove once run_benchmark is refactored if no longer needed.
+	// TriggerTask is a wrapper around swarming.ApiClient TriggerTask
 	TriggerTask(ctx context.Context, req *apipb.NewTaskRequest) (*apipb.TaskRequestMetadataResponse, error)
 
 	// FetchFreeBots gets a list of available bots per specified builder configuration.
 	FetchFreeBots(ctx context.Context, builder string) ([]*apipb.BotInfo, error)
+
+	// GetBotTasksBetweenTwoTasks generates a list of tasks that started in between two tasks.
+	// This function is primarily used by Pairwise jobs to assess if another swarming task
+	// executed in between a pair of tasks.
+	GetBotTasksBetweenTwoTasks(ctx context.Context, botID, taskID1, taskID2 string) (*apipb.TaskListResponse, error)
 }
 
 // SwarmingClientImpl
@@ -95,18 +94,13 @@ func (s *SwarmingClientImpl) GetCASOutput(ctx context.Context, taskID string) (*
 	return task.CasOutputRoot, nil
 }
 
-func (s *SwarmingClientImpl) GetStates(ctx context.Context, taskIDs []string) ([]string, error) {
-	resp, err := s.SwarmingV2Client.ListTaskStates(ctx, &apipb.TaskStatesRequest{
-		TaskId: taskIDs,
-	})
+// GetStartTime returns the starting time of the swarming task.
+func (s *SwarmingClientImpl) GetStartTime(ctx context.Context, taskID string) (*timestamppb.Timestamp, error) {
+	res, err := s.GetResult(ctx, &apipb.TaskIdWithPerfRequest{TaskId: taskID})
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "could not get result of swarming task %s", taskID)
 	}
-	rv := make([]string, 0, len(resp.States))
-	for _, state := range resp.States {
-		rv = append(rv, state.String())
-	}
-	return rv, nil
+	return res.StartedTs, skerr.Wrap(err)
 }
 
 // GetStatus gets the current status of a swarming task.
@@ -126,34 +120,6 @@ func (s *SwarmingClientImpl) GetStatus(ctx context.Context, taskID string) (stri
 	return res.State.String(), nil
 }
 
-// ListPinpointTasks lists the Pinpoint swarming tasks of a given job and build identified by Swarming tags.
-func (s *SwarmingClientImpl) ListPinpointTasks(ctx context.Context, jobID string, buildArtifact *apipb.CASReference) ([]string, error) {
-	if jobID == "" {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing JobID")
-	}
-	if buildArtifact == nil || buildArtifact.Digest == nil {
-		return nil, skerr.Fmt("Cannot list tasks because request is missing cas isolate")
-	}
-	start := time.Now().Add(-24 * time.Hour)
-	tags := []string{
-		fmt.Sprintf("pinpoint_job_id:%s", jobID),
-		fmt.Sprintf("build_cas:%s/%d", buildArtifact.Digest.Hash, buildArtifact.Digest.SizeBytes),
-	}
-	tasks, err := swarmingv2.ListTasksHelper(ctx, s.SwarmingV2Client, &apipb.TasksWithPerfRequest{
-		Start: timestamppb.New(start),
-		Tags:  tags,
-		State: apipb.StateQuery_QUERY_ALL,
-	})
-	if err != nil {
-		return nil, skerr.Wrapf(err, "error retrieving tasks")
-	}
-	taskIDs := make([]string, len(tasks))
-	for i, t := range tasks {
-		taskIDs[i] = t.TaskId
-	}
-	return taskIDs, nil
-}
-
 func (s *SwarmingClientImpl) TriggerTask(ctx context.Context, req *apipb.NewTaskRequest) (*apipb.TaskRequestMetadataResponse, error) {
 	return s.SwarmingV2Client.NewTask(ctx, req)
 }
@@ -166,14 +132,44 @@ func (s *SwarmingClientImpl) FetchFreeBots(ctx context.Context, builder string) 
 		return nil, skerr.Wrapf(err, "error retrieving bots")
 	}
 
-	dims := map[string]string{}
+	dims := make([]*apipb.StringPair, 0, len(botConfig.Dimensions))
+
 	for _, d := range botConfig.Dimensions {
-		dims[d["key"]] = d["value"]
+		dims = append(dims, &apipb.StringPair{
+			Key:   d["key"],
+			Value: d["value"],
+		})
 	}
 
 	bots, err := swarmingv2.ListBotsHelper(ctx, s.SwarmingV2Client, &apipb.BotsRequest{
-		Dimensions: swarmingv2.StringMapToTaskDimensions(dims),
+		Dimensions:    dims,
+		Quarantined:   apipb.NullableBool_FALSE,
+		IsDead:        apipb.NullableBool_FALSE,
+		InMaintenance: apipb.NullableBool_FALSE,
 	})
 
 	return bots, skerr.Wrap(err)
+}
+
+// GetBotTasksBetweenTwoTasks generates a list of tasks that started in between two tasks.
+func (s *SwarmingClientImpl) GetBotTasksBetweenTwoTasks(ctx context.Context, botID, taskID1, taskID2 string) (*apipb.TaskListResponse, error) {
+	taskStart1, err := s.GetStartTime(ctx, taskID1)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	taskStart2, err := s.GetStartTime(ctx, taskID2)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	botReq := &apipb.BotTasksRequest{
+		BotId: botID,
+		State: apipb.StateQuery_QUERY_ALL,
+		Start: taskStart1,
+		End:   taskStart2,
+		Sort:  apipb.SortQuery_QUERY_STARTED_TS,
+	}
+
+	tasks, err := s.SwarmingV2Client.ListBotTasks(ctx, botReq)
+	return tasks, skerr.Wrap(err)
 }

@@ -47,7 +47,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 		fn(dest)
 
 		// Run EnsureGitCheckout, asserting that it returns no error.
-		var co *git.Checkout
+		var co git.Checkout
 		_ = td.RunTestSteps(t, false, func(ctx context.Context) error {
 			var err error
 			co, err = EnsureGitCheckout(ctx, dest, rs)
@@ -106,14 +106,14 @@ func TestEnsureGitCheckout(t *testing.T) {
 	// Case 4: Dest dir is a git checkout with no remote.
 	check(rs, func(dest string) {
 		require.NoError(t, os.MkdirAll(dest, os.ModePerm))
-		_, err := git.GitDir(dest).Git(ctx, "init")
+		_, err := git.CheckoutDir(dest).Git(ctx, "init")
 		require.NoError(t, err)
 	})
 
 	// Case 5: Dest dir is a git checkout with the wrong remote.
 	check(rs, func(dest string) {
 		require.NoError(t, os.MkdirAll(dest, os.ModePerm))
-		g := git.GitDir(dest)
+		g := git.CheckoutDir(dest)
 		_, err := g.Git(ctx, "init")
 		require.NoError(t, err)
 		_, err = g.Git(ctx, "remote", "add", git.DefaultRemote, common.REPO_SKIA)
@@ -124,7 +124,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 	// never fetched. In this case, there is no HEAD.
 	check(rs, func(dest string) {
 		require.NoError(t, os.MkdirAll(dest, os.ModePerm))
-		g := git.GitDir(dest)
+		g := git.CheckoutDir(dest)
 		_, err := g.Git(ctx, "init")
 		require.NoError(t, err)
 		_, err = g.Git(ctx, "remote", "add", git.DefaultRemote, rs.Repo)
@@ -154,7 +154,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 		require.NoError(t, err)
 		updated := filepath.Join(dest, f)
 		testutils.WriteFile(t, updated, "modified file")
-		_, err = git.GitDir(dest).Git(ctx, "commit", "-a", "-m", "modified a file")
+		_, err = git.CheckoutDir(dest).Git(ctx, "commit", "-a", "-m", "modified a file")
 		require.NoError(t, err)
 	})
 
@@ -162,7 +162,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 	check(rs, func(dest string) {
 		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
-		gd := git.GitDir(dest)
+		gd := git.CheckoutDir(dest)
 		_, err = gd.Git(ctx, "checkout", "-b", "newbranch", "-t", git.MainBranch)
 		require.NoError(t, err)
 		updated := filepath.Join(dest, f)

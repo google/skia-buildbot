@@ -8,7 +8,7 @@
  *
  * @attr waiting - If present then display the waiting cursor.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { diffDate, strDuration } from '../../../infra-sk/modules/human';
@@ -84,6 +84,7 @@ const attachedDeviceDisplayName: Record<string, AttachedDevice> = {
   '-': 'nodevice',
   Android: 'adb',
   iOS: 'ios',
+  pyocd: 'pyocd',
   SSH: 'ssh',
 };
 

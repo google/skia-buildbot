@@ -357,7 +357,7 @@ func TestMapUpdate(t *testing.T) {
 	r1.Refresh()
 	r2.Refresh()
 	failNext := false
-	require.EqualError(t, m.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
+	require.ErrorContains(t, m.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
 		if failNext {
 			return errors.New("Fail")
 		}

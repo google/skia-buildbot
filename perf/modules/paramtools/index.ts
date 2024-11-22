@@ -15,13 +15,16 @@ export function makeKey(params: Params | { [key: string]: string }): string {
 }
 
 /** Parse a structured key into a Params. */
-export function fromKey(structuredKey: string): Params {
+export function fromKey(structuredKey: string, attribute?: string): Params {
   const ret = Params({});
   structuredKey.split(',').forEach((keyValue) => {
     if (!keyValue) {
       return;
     }
     const [key, value] = keyValue.split('=');
+    if (key === attribute) {
+      return;
+    }
     ret[key] = value;
   });
   return ret;
@@ -57,10 +60,7 @@ export function paramsToParamSet(p: Params): ParamSet {
 }
 
 /** addParamSet adds the ParamSet or ReadOnlyParamSet to this ParamSet. */
-export function addParamSet(
-  p: ParamSet,
-  ps: ParamSet | ReadOnlyParamSet
-): void {
+export function addParamSet(p: ParamSet, ps: ParamSet | ReadOnlyParamSet): void {
   for (const [k, arr] of Object.entries(ps)) {
     if (!p[k]) {
       p[k] = (arr as string[]).slice(0);
@@ -76,4 +76,26 @@ export function addParamSet(
 
 export function toReadOnlyParamSet(ps: ParamSet): ReadOnlyParamSet {
   return ps as unknown as ReadOnlyParamSet;
+}
+
+/**
+ * Parse a structured key into a queries string.
+ *
+ * Since this is done on the frontend, this function does not do key or query validation.
+ *
+ * Example:
+ *
+ * Key ",a=1,b=2,c=3,"
+ *
+ * transforms into
+ *
+ * Query "a=1&b=2&c=3"
+ *
+ * @param {string} key - A structured trace key.
+ *
+ * @returns {string} - A query string that can be used in the queries property
+ * of explore-simple-sk's state.
+ */
+export function queryFromKey(key: string): string {
+  return new URLSearchParams(fromKey(key)).toString();
 }

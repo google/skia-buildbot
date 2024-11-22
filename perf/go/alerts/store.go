@@ -18,6 +18,10 @@ type Store interface {
 	// have an ID of -1. On insert the ID of the Alert will be updated.
 	Save(ctx context.Context, req *SaveRequest) error
 
+	// ReplaceAll will remove all existing Alerts, then it'll insert the
+	// new input alerts and mark them as active.
+	ReplaceAll(ctx context.Context, req []*SaveRequest) error
+
 	// Delete removes the Alert with the given id.
 	Delete(ctx context.Context, id int) error
 

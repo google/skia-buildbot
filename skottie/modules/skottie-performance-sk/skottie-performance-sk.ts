@@ -10,7 +10,7 @@
  *
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import {
   Chart,
   BarController,

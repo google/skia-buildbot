@@ -4,7 +4,7 @@
  * task's priority.
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';

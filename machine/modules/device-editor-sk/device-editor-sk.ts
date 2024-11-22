@@ -6,7 +6,7 @@
  *
  * It emits events when the user takes actions.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import '../../../elements-sk/modules/checkbox-sk';

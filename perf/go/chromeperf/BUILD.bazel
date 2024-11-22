@@ -17,6 +17,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//perf/go/git",
         "//perf/go/types",
         "@org_golang_x_exp//slices",
         "@org_golang_x_oauth2//google",
@@ -28,6 +29,7 @@ go_test(
     srcs = [
         "alertGroupApi_test.go",
         "anomalyApi_test.go",
+        "chromeperfClient_test.go",
     ],
     embed = [":chromeperf"],
     deps = [

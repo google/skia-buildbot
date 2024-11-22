@@ -3,7 +3,7 @@
  * @description <h2><code>search-page-sk</code></h2>
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { deepCopy } from '../../../infra-sk/modules/object';

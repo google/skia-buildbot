@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/rpc"
 	"go.skia.org/infra/machine/go/test_machine_monitor/adb"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ios"
+	"go.skia.org/infra/machine/go/test_machine_monitor/pyocd"
 	"go.skia.org/infra/machine/go/test_machine_monitor/ssh"
 	"go.skia.org/infra/machine/go/test_machine_monitor/standalone"
 	"go.skia.org/infra/machine/go/test_machine_monitor/swarming"
@@ -78,6 +79,9 @@ type Machine struct {
 
 	// ios is an interface through which we talk to iOS devices.
 	ios ios.IOS
+
+	// pyocd is an interface through which we talk to hardware dev kits.
+	pyocd pyocd.PyOCD
 
 	// ssh is an abstraction around an ssh executor
 	ssh ssh.SSH
@@ -171,6 +175,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		sseChangeSource:                sseChangeSource,
 		adb:                            adb.New(),
 		ios:                            ios.New(),
+		pyocd:                          pyocd.New(),
 		ssh:                            ssh.ExeImpl{},
 		sshMachineLocation:             defaultSSHMachineFileLocation,
 		MachineID:                      machineID,
@@ -206,7 +211,7 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 	ret.Host.StartTime = m.startTime
 	ret.RunningSwarmingTask = m.runningTask
 	ret.LaunchedSwarming = m.startSwarming
-	var err error = nil
+	var err error
 
 	switch m.description.AttachedDevice {
 	case machine.AttachedDeviceSSH:
@@ -234,9 +239,16 @@ func (m *Machine) interrogate(ctx context.Context) (machine.Event, error) {
 			sklog.Infof("Successful interrogation of host: %#v", standaloneEvent)
 			ret.Standalone = standaloneEvent
 		}
-
+	case machine.AttachedDevicePyOCD:
+		var pd machine.PyOCD
+		if pd, err = m.tryInterrogatingPyOCDDevice(ctx); err == nil {
+			sklog.Infof("Successful communication with PyOCD device: %#v", pd)
+			ret.PyOCD = pd
+		}
+	case "":
+		break
 	default:
-		sklog.Errorf("Unhandled type of machine.AttachedDevice: %s", m.description.AttachedDevice)
+		sklog.Errorf("Unhandled type of machine.AttachedDevice: %q", m.description.AttachedDevice)
 	}
 
 	ret.ForcedQuarantine = m.checkForForcedQuarantine()
@@ -489,6 +501,28 @@ func (m *Machine) tryInterrogatingIOSDevice(ctx context.Context) (machine.IOS, e
 	}
 	ret.Battery = battery
 
+	return ret, nil
+}
+
+// tryInterrogatingPyOCDDevice attempts to communicate with an attached PyOCD device.
+// If there is such a device, this function returns nil and the information gathered. If
+// there is not a device attached, it returns an error, and the other return value is undefined.
+// If multiple devices are attached, an arbitrary one is chosen.
+func (m *Machine) tryInterrogatingPyOCDDevice(ctx context.Context) (machine.PyOCD, error) {
+	metrics2.GetCounter("test_machine_monitor_interrogate_device_type", map[string]string{
+		"machine": m.MachineID,
+		"type":    "pyocd",
+	}).Inc(1)
+	sklog.Info("tryInterrogatingPyOCDDevice")
+
+	var ret machine.PyOCD
+	var err error
+
+	deviceType, err := m.pyocd.DeviceType(ctx)
+	if err != nil {
+		return ret, skerr.Wrapf(err, "Could not talk to device over pyocd.")
+	}
+	ret.DeviceType = deviceType
 	return ret, nil
 }
 

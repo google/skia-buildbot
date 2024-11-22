@@ -5,22 +5,29 @@
     "trace_sample_proportion": 0.2,
     "notify_config": {
         "notifications": "markdown_issuetracker",
+        "data_provider": "android",
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
-        "subject": "{{ .Alert.DisplayName }} - Regression found between {{ buildIDFromSubject .PreviousCommit.Subject }} and {{ buildIDFromSubject .Commit.Subject }}",
+        "subject": "{{ .Alert.DisplayName }} - Regression between {{ .PreviousCommit.Subject }} and {{ .RegressionCommit.Subject }}",
         "body": [
             "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
             "",
             "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
             "",
-            "* [Graph on dashboard]({{ .ViewOnDashboard }})",
-            "* [Alert details]({{ .URL }}/g/t/{{ .Commit.GitHash }})",
-            "* [CLs in build range ({{ buildIDFromSubject .PreviousCommit.Subject }} through {{ buildIDFromSubject .Commit.Subject }}\\]](https://android-build.corp.google.com/{{ buildIDFromSubject .Commit.Subject }}/branches/aosp-androidx-main/targets/androidx/cls?end={{ buildIDFromSubject .PreviousCommit.Subject }})",
+            "* [Graph on dashboard]({{ .DashboardUrl }})",
+            "* [Alert details]({{ .URL }}/g/t/{{ .RegressionCommit.GitHash }})",
+            "* [CLs in range]({{ .GetBuildIdUrlDiff }})",
+            "* [CLs in range (legacy)](https://android.googlesource.com/platform/superproject/+log/{{ .PreviousCommit.GitHash }}..{{ .RegressionCommit.GitHash }})",
             "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
             "",
-            "Tests affected:",
+            "Test classes affected:",
             "```",
-            "{{ range index .ParamSet \"test\" }} {{ . }}",
+            "{{ range index .ParamSet \"test_class\" }} {{ . }}",
+            "{{end}}```",
+            "",
+            "Test methods affected:",
+            "```",
+            "{{ range index .ParamSet \"test_method\" }} {{ . }}",
             "{{end}}```",
             "",
             "Devices affected:",
@@ -29,7 +36,7 @@
             "{{end}}```",
             "API Level:",
             "```",
-            "{{ range index .ParamSet \"sdk_release_name\" }} {{ . }}",
+            "{{ range index .ParamSet \"os_version\" }} {{ . }}",
             "{{end}}```",
             ""
         ]
@@ -65,5 +72,23 @@
     },
     "anomaly_config": {
         "settling_time": "5h"
+    },
+    "query_config": {
+        "include_params": [
+            "test_class",
+            "test_method",
+            "metric",
+            "stat",
+            "device_name",
+            "os_version"
+        ],
+        "default_param_selections": {
+        },
+        "default_url_values": {
+            "plotSummary": "true",
+            "useTestPicker": "true",
+            "showZero": "true",
+            "enable_chart_tooltip": "true"
+        }
     }
 }

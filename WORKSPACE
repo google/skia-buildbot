@@ -58,10 +58,10 @@ python_register_toolchains(
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "91585017debb61982f7054c9688857a2ad1fd823fc3f9cb05048b0025c47d023",
+    sha256 = "f4a9314518ca6acfa16cc4ab43b0b8ce1e4ea64b81c38d8a3772883f153346b8",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.42.0/rules_go-v0.42.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.42.0/rules_go-v0.42.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
     ],
 )
 
@@ -83,7 +83,7 @@ go_repositories()
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.21.4")
+go_register_toolchains(version = "1.23.2")
 
 gazelle_dependencies()
 
@@ -120,10 +120,22 @@ http_archive(
 # required to build this repository.
 http_archive(
     name = "rules_proto",
-    sha256 = "a4382f78723af788f0bc19fd4c8411f44ffe0a72723670a34692ffad56ada3ac",
-    strip_prefix = "rules_proto-f7a30f6f80006b591fa7c437fe5a951eb10bcbcf",
-    urls = ["https://github.com/bazelbuild/rules_proto/archive/f7a30f6f80006b591fa7c437fe5a951eb10bcbcf.zip"],
+    sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
+    strip_prefix = "rules_proto-6.0.2",
+    url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
 )
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+
+rules_proto_dependencies()
+
+load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
+
+rules_proto_setup()
+
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
+
+rules_proto_toolchains()
 
 # Needed by @com_github_bazelbuild_remote_apis for the googleapis protos.
 http_archive(
@@ -169,33 +181,41 @@ http_archive(
 http_archive(
     name = "zlib",
     build_file = "@com_github_grpc_grpc//third_party:zlib.BUILD",
-    sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
     strip_prefix = "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f",
-    url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+    urls = gcs_mirror_url(
+        sha256 = "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45",
+        url = "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal",
     build_file = "//temporal:temporal.BUILD",
-    sha256 = "8ab8cbe6092877904df40cbf6640936a9d68421520b877faa39e6e6775a95bcb",
-    strip_prefix = "./temporal-1.22.3",
-    url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.22.3.tar.gz",
+    strip_prefix = "./temporal-1.23.1",
+    urls = gcs_mirror_url(
+        sha256 = "3110fa0df19de58d6afa9b1af3dd7274a5e37d5082e424c114d7b29c696ceae1",
+        url = "https://github.com/temporalio/temporal/archive/refs/tags/v1.23.1.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal_cli",
     build_file = "//temporal:temporal-cli.BUILD",
-    sha256 = "23ec436df5bb5fcd3ad25ace1ba5fc5af9666f28426d47d8a64a7bdf660b069a",
-    strip_prefix = "./cli-0.10.7",
-    url = "https://github.com/temporalio/cli/archive/refs/tags/v0.10.7.tar.gz",
+    strip_prefix = "./cli-0.13.1",
+    urls = gcs_mirror_url(
+        sha256 = "9d8812c96d3404490659fec3915dcd23c4142b421ef4cb7e9622bd9a459e1f74",
+        url = "https://github.com/temporalio/cli/archive/refs/tags/v0.13.1.tar.gz",
+    ),
 )
 
 http_archive(
     name = "com_github_temporal_ui",
     build_file = "//temporal:temporal-ui.BUILD",
-    sha256 = "6a8497bfb8c626964cde26f7d049fd6fbe4e2d609fb9774f0cb09bb97f8730c3",
-    strip_prefix = "./ui-server-2.21.3",
-    url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.21.3.tar.gz",
+    strip_prefix = "./ui-server-2.27.3",
+    urls = gcs_mirror_url(
+        sha256 = "b9ecf1afadce3e693c852b4bbe0dce5639998c10384692ca23b6a94e0d64642d",
+        url = "https://github.com/temporalio/ui-server/archive/refs/tags/v2.27.3.tar.gz",
+    ),
 )
 
 #############
@@ -220,7 +240,7 @@ load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
 
 nodejs_register_toolchains(
     name = "nodejs",
-    node_version = "16.14.0",
+    node_version = "18.17.0",
 )
 
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
@@ -405,7 +425,7 @@ container_pull(
 # skia_app_container macro.
 container_pull(
     name = "base-cipd",
-    digest = "sha256:999b4043e611d75f50633c7fe3e78bcb8fc90a75a35bdc3b6be2dfcde63ef2f7",
+    digest = "sha256:8f54342d73e5ab3e80f1dfa5eddf4a68f6b7679b90df89fcbec79440faceee85",
     registry = "gcr.io",
     repository = "skia-public/base-cipd",
 )
@@ -414,7 +434,7 @@ container_pull(
 # skia_app_container macro.
 container_pull(
     name = "cd-base",
-    digest = "sha256:17e18164238a4162ce2c30b7328a7e44fbe569e56cab212ada424dc7378c1f5f",
+    digest = "sha256:59412eeaf3336f14a8fef1b0b02134c9877bf5aba16549e8c59d5e4de29719b8",
     registry = "gcr.io",
     repository = "skia-public/cd-base",
 )
@@ -476,6 +496,21 @@ container_pull(
     repository = "golang",
 )
 
+# Pulls the gcr.io/skia-public/skia-release container, needed by fiddle
+container_pull(
+    name = "skia-release",
+    registry = "gcr.io",
+    repository = "skia-public/skia-release",
+    tag = "511fd84b36e4f449a7d05723de4f354effc28bf4",
+)
+
+container_pull(
+    name = "fiddler-build-skia",
+    digest = "sha256:4bd99cf2316c7ec6c56df1f9864b5c2bbbd6faab17455f1d21015eefb4ce2f3a",
+    registry = "gcr.io",
+    repository = "skia-public/fiddler-build-skia",
+)
+
 ##################
 # CIPD packages. #
 ##################
@@ -529,12 +564,12 @@ cipd_install(
 )
 
 cipd_install(
-    name = "cabe_replay_data",
+    name = "patch_amd64_linux",
     build_file_content = all_cipd_files(),
-    cipd_package = "skia/bots/cabe",
-    # From https://chrome-infra-packages.appspot.com/p/skia/bots/cabe/+/0NzStC-LCmQMZkOfJgFx7NcMAP129WqZ7eu8unAPCSkC
-    sha256 = "d0dcd2b42f8b0a640c66439f260171ecd70c00fd76f56a99edebbcba700f0929",
-    tag = "version:6",
+    cipd_package = "skia/bots/patch_linux_amd64",
+    # From https://chrome-infra-packages.appspot.com/p/skia/bots/patch/+/version:0
+    sha256 = "757fd36db06f291f77a91aa314b855af449665a606d627ce16c36813464e1df6",
+    tag = "version:0",
 )
 
 #############################################################

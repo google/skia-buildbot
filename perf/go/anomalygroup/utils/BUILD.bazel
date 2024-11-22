@@ -11,5 +11,12 @@ go_library(
         "//perf/go/alerts",
         "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/client",
+        "//perf/go/config",
+        "//perf/go/workflows",
+        "//temporal/go/client",
+        "@io_temporal_go_sdk//client",
+        "@io_temporal_go_sdk//temporal",
+        "@org_golang_google_grpc//codes",
+        "@org_golang_google_grpc//status",
     ],
 )

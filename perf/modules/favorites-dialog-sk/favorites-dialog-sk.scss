@@ -1,0 +1,52 @@
+@import '../themes/themes.scss';
+
+favorites-dialog-sk {
+  dialog {
+    padding: 16px;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
+    padding: 24px;
+
+    #favCloseIcon {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin: 0;
+      margin-top: 10px;
+      margin-right: 11px;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    h2 {
+      font-size: 2em !important;
+      margin-bottom: 40px !important;
+    }
+
+    & > span {
+      display: inline-block;
+      width: 100px;
+
+      label {
+        font-size: 1.2em !important;
+      }
+    }
+
+    & > input {
+      margin-bottom: 20px;
+      width: 500px;
+      margin-left: 12px;
+      font-size: 1.2em !important;
+      padding: 6px;
+    }
+
+    .buttons {
+      float: right;
+      button {
+        font-size: 1.2em !important;
+      }
+    }
+  }
+}

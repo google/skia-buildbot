@@ -16,24 +16,19 @@ type URLProvider struct {
 }
 
 // Explore generates a url to the explore page for the given parameters
-func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string, disableFilterParentTraces bool) string {
-	queryUrl := url.Values{}
-	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
+func (prov *URLProvider) Explore(ctx context.Context, startCommitNumber int, endCommitNumber int, parameters map[string][]string, disableFilterParentTraces bool, queryParams url.Values) string {
+	queryUrl := prov.getQueryParams(ctx, startCommitNumber, endCommitNumber, disableFilterParentTraces, queryParams)
+
 	// Now let's look at the parameters for the query
-
 	queryUrl["queries"] = []string{prov.GetQueryStringFromParameters(parameters)}
-	if disableFilterParentTraces {
-		queryUrl["disable_filter_parent_traces"] = []string{"true"}
-	}
-
 	return "/e/?" + queryUrl.Encode()
 }
 
-func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, endCommitNumber int, shortcutId string) string {
-	queryUrl := url.Values{}
-	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
-	queryUrl["shortcut"] = []string{shortcutId}
+// MultiGraph generates a url to the multigraph page for the given parameters.
+func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, endCommitNumber int, shortcutId string, disableFilterParentTraces bool, queryParams url.Values) string {
+	queryUrl := prov.getQueryParams(ctx, startCommitNumber, endCommitNumber, disableFilterParentTraces, queryParams)
 
+	queryUrl["shortcut"] = []string{shortcutId}
 	return "/m/?" + queryUrl.Encode()
 }
 
@@ -64,6 +59,20 @@ func (prov *URLProvider) fillCommonParams(ctx context.Context, queryUrl url.Valu
 	// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
 	endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
 	queryUrl["end"] = []string{strconv.Itoa(int(endTime.Unix()))}
+}
 
-	queryUrl["summary"] = []string{"true"}
+func (prov *URLProvider) getQueryParams(ctx context.Context, startCommitNumber int, endCommitNumber int, disableFilterParentTraces bool, queryParams url.Values) url.Values {
+	queryUrl := url.Values{}
+	prov.fillCommonParams(ctx, queryUrl, startCommitNumber, endCommitNumber)
+	if disableFilterParentTraces {
+		queryUrl["disable_filter_parent_traces"] = []string{"true"}
+	}
+
+	if queryParams != nil {
+		for paramKey, paramValues := range queryParams {
+			queryUrl[paramKey] = paramValues
+		}
+	}
+
+	return queryUrl
 }

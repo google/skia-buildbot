@@ -20,14 +20,14 @@ const random = (): number => {
   return seed / MAX;
 };
 
-const dummyAnomaly = (isImprovement: boolean): Anomaly => ({
+const dummyAnomaly = (isImprovement: boolean, bug_id: number): Anomaly => ({
   id: 0,
   test_path: '',
-  bug_id: 123456,
+  bug_id: bug_id,
   start_revision: 0,
   end_revision: 3,
   is_improvement: isImprovement,
-  recovered: true,
+  recovered: false,
   state: '',
   statistic: '',
   units: '',
@@ -39,10 +39,15 @@ const dummyAnomaly = (isImprovement: boolean): Anomaly => ({
   segment_size_before: 0,
   std_dev_before_anomaly: 0,
   t_statistic: 0,
+  subscription_name: '',
+  bug_component: '',
+  bug_labels: [],
+  bug_cc_emails: [],
 });
 
 window.customElements.whenDefined('plot-simple-sk').then(() => {
   const ele = $$<PlotSimpleSk>('#plot')!;
+  const ele_light = $$<PlotSimpleSk>('#plot-light')!;
   let n = 0;
   let traces: { [name: string]: number[] } = {};
 
@@ -147,21 +152,57 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
   $$<HTMLButtonElement>('#anomaly')!.addEventListener('click', () => {
     const anomalyDataMap: { [key: string]: AnomalyData[] } = {};
     const keys = Object.keys(traces);
-    if (keys.length > 0) {
-      const id = keys[0];
-      anomalyDataMap[id] = [
+    if (keys.length > 3) {
+      const trace1 = keys[0];
+      const trace2 = keys[1];
+      const trace3 = keys[2];
+      // Triaged anomaly.
+      anomalyDataMap[trace1] = [
         {
           x: 5,
-          y: traces[id][5],
-          anomaly: dummyAnomaly(false),
+          y: traces[trace1][5],
+          anomaly: dummyAnomaly(false, 12345),
+          highlight: true,
         },
         {
+          x: 10,
+          y: traces[trace1][10],
+          anomaly: dummyAnomaly(true, 12345),
+          highlight: false,
+        },
+      ];
+      // Ignored/Invalid anomaly.
+      anomalyDataMap[trace2] = [
+        {
           x: 20,
-          y: traces[id][20],
-          anomaly: dummyAnomaly(true),
+          y: traces[trace2][5],
+          anomaly: dummyAnomaly(false, -1),
+          highlight: true,
+        },
+        {
+          x: 30,
+          y: traces[trace2][10],
+          anomaly: dummyAnomaly(true, -1),
+          highlight: false,
+        },
+      ];
+      // Untriaged anomaly.
+      anomalyDataMap[trace3] = [
+        {
+          x: 5,
+          y: traces[trace3][5],
+          anomaly: dummyAnomaly(false, 0),
+          highlight: true,
+        },
+        {
+          x: 10,
+          y: traces[trace3][10],
+          anomaly: dummyAnomaly(true, 0),
+          highlight: false,
         },
       ];
     }
+    ele_light.anomalyDataMap = anomalyDataMap;
     ele.anomalyDataMap = anomalyDataMap;
   });
 

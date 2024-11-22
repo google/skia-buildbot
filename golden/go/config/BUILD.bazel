@@ -7,10 +7,14 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/config",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
+        "//go/cache/local",
+        "//go/cache/redis",
         "//go/config",
         "//go/skerr",
         "//go/util",
         "@com_github_flynn_json5//:json5",
+        "@com_google_cloud_go_redis//apiv1",
     ],
 )
 

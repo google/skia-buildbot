@@ -22,6 +22,14 @@
     "flutter": ["name", "source_type"],
   },
 
+  cache_type: "redis",
+  redis_config: {
+    "project": "skia-public",
+    "zone": "us-central1",
+    "instance": "gold-flutter",
+    "cache_expiration_minutes": 30
+  },
+
   // These values affect the k8s deployment; they are not read in by the binary.
   INCLUDE_GITHUB_CREDS: true,
 }

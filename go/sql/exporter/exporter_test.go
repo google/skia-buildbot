@@ -30,7 +30,7 @@ type tableTwoRow struct {
 
 func TestGenerateSQL_WellFormedInput_CorrectOutput(t *testing.T) {
 
-	gen := GenerateSQL(testTables{}, "test_package_one", SchemaOnly)
+	gen := GenerateSQL(testTables{}, "test_package_one", SchemaOnly, CockroachDB, nil)
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
 	expectedOutput := strings.ReplaceAll(`package test_package_one
 
@@ -56,7 +56,7 @@ $$
 
 func TestGenerateSQL_WellFormedInput_CorrectOutputIncludingColumnNames(t *testing.T) {
 
-	gen := GenerateSQL(testTables{}, "test_package_one", SchemaAndColumnNames)
+	gen := GenerateSQL(testTables{}, "test_package_one", SchemaAndColumnNames, CockroachDB, nil)
 	// We cannot have backticks in the multistring literal, so we substitute $$ for them.
 	expectedOutput := strings.ReplaceAll(`package test_package_one
 
@@ -98,7 +98,7 @@ type malformedTable struct {
 func TestGenerateSQL_NonSliceField_Panics(t *testing.T) {
 
 	assert.Panics(t, func() {
-		GenerateSQL(malformedTable{}, "test_package_one", SchemaOnly)
+		GenerateSQL(malformedTable{}, "test_package_one", SchemaOnly, CockroachDB, nil)
 	})
 }
 
@@ -110,6 +110,6 @@ type missingSQLStructs struct {
 func TestGenerateSQL_MissingSQLStructTag_Panics(t *testing.T) {
 
 	assert.Panics(t, func() {
-		GenerateSQL(missingSQLStructs{}, "test_package_one", SchemaOnly)
+		GenerateSQL(missingSQLStructs{}, "test_package_one", SchemaOnly, CockroachDB, nil)
 	})
 }

@@ -7,13 +7,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"go.chromium.org/luci/common/api/swarming/swarming/v1"
-
-	"go.skia.org/infra/go/util"
+	"github.com/stretchr/testify/assert"
+	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 
 	specpb "go.skia.org/infra/cabe/go/proto"
-
-	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/util"
 )
 
 func TestDisjointDimensions(t *testing.T) {
@@ -132,10 +130,10 @@ func TestSwarmingTaskInfos_disjointRequestDimensions(t *testing.T) {
 			name: "one element can't be disjoint with itself",
 			input: []*armTask{
 				{
-					taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
-						Request: &swarming.SwarmingRpcsTaskRequest{
-							Properties: &swarming.SwarmingRpcsTaskProperties{
-								Dimensions: []*swarming.SwarmingRpcsStringPair{
+					taskInfo: &apipb.TaskRequestMetadataResponse{
+						Request: &apipb.TaskRequestResponse{
+							Properties: &apipb.TaskProperties{
+								Dimensions: []*apipb.StringPair{
 									{
 										Key:   "gpu",
 										Value: "10de",
@@ -143,8 +141,8 @@ func TestSwarmingTaskInfos_disjointRequestDimensions(t *testing.T) {
 								},
 							},
 						},
-						TaskResult: &swarming.SwarmingRpcsTaskResult{
-							BotDimensions: []*swarming.SwarmingRpcsStringListPair{
+						TaskResult: &apipb.TaskResultResponse{
+							BotDimensions: []*apipb.StringListPair{
 								{
 									Key: "gpu",
 									Value: []string{
@@ -170,10 +168,10 @@ func TestSwarmingTaskInfos_disjointRequestDimensions(t *testing.T) {
 
 func TestCheckSwarmingTask_stateNotCOMPLETED(t *testing.T) {
 	c := NewChecker()
-	c.CheckSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
-		Request: &swarming.SwarmingRpcsTaskRequest{},
-		TaskResult: &swarming.SwarmingRpcsTaskResult{
-			State: "CANCELED",
+	c.CheckSwarmingTask(&apipb.TaskRequestMetadataResponse{
+		Request: &apipb.TaskRequestResponse{},
+		TaskResult: &apipb.TaskResultResponse{
+			State: apipb.TaskState_CANCELED,
 		},
 	})
 	assert.Equal(t, len(c.Findings()), 1)
@@ -181,8 +179,8 @@ func TestCheckSwarmingTask_stateNotCOMPLETED(t *testing.T) {
 
 func TestCheckSwarmingTask_noTaskResult(t *testing.T) {
 	c := NewChecker()
-	c.CheckSwarmingTask(&swarming.SwarmingRpcsTaskRequestMetadata{
-		Request: &swarming.SwarmingRpcsTaskRequest{},
+	c.CheckSwarmingTask(&apipb.TaskRequestMetadataResponse{
+		Request: &apipb.TaskRequestResponse{},
 	})
 	assert.Equal(t, len(c.Findings()), 1)
 }
@@ -190,7 +188,7 @@ func TestCheckSwarmingTask_noTaskResult(t *testing.T) {
 func TestCheckRunTask(t *testing.T) {
 	for i, test := range []struct {
 		name             string
-		taskInfo         *swarming.SwarmingRpcsTaskRequestMetadata
+		taskInfo         *apipb.TaskRequestMetadataResponse
 		expectedFindings []string
 		options          []CheckerOptions
 	}{
@@ -199,13 +197,13 @@ func TestCheckRunTask(t *testing.T) {
 			expectedFindings: []string{"CheckRunTask: taskInfo was nil"},
 		}, {
 			name: "run task missing expected request tags",
-			taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
+			taskInfo: &apipb.TaskRequestMetadataResponse{
 				TaskId: "task0",
-				Request: &swarming.SwarmingRpcsTaskRequest{
-					Properties: &swarming.SwarmingRpcsTaskProperties{},
+				Request: &apipb.TaskRequestResponse{
+					Properties: &apipb.TaskProperties{},
 				},
-				TaskResult: &swarming.SwarmingRpcsTaskResult{
-					BotDimensions: []*swarming.SwarmingRpcsStringListPair{},
+				TaskResult: &apipb.TaskResultResponse{
+					BotDimensions: []*apipb.StringListPair{},
 				},
 			},
 			options: []CheckerOptions{
@@ -243,10 +241,10 @@ func TestCheckArmComparability(t *testing.T) {
 			controls: &processedArmTasks{
 				tasks: []*armTask{
 					{
-						taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
-							Request: &swarming.SwarmingRpcsTaskRequest{
-								Properties: &swarming.SwarmingRpcsTaskProperties{
-									Dimensions: []*swarming.SwarmingRpcsStringPair{
+						taskInfo: &apipb.TaskRequestMetadataResponse{
+							Request: &apipb.TaskRequestResponse{
+								Properties: &apipb.TaskProperties{
+									Dimensions: []*apipb.StringPair{
 										{
 											Key:   "",
 											Value: "",
@@ -254,8 +252,8 @@ func TestCheckArmComparability(t *testing.T) {
 									},
 								},
 							},
-							TaskResult: &swarming.SwarmingRpcsTaskResult{
-								BotDimensions: []*swarming.SwarmingRpcsStringListPair{
+							TaskResult: &apipb.TaskResultResponse{
+								BotDimensions: []*apipb.StringListPair{
 									{
 										Key: "gpu",
 										Value: []string{
@@ -269,10 +267,10 @@ func TestCheckArmComparability(t *testing.T) {
 						},
 					},
 					{
-						taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
-							Request: &swarming.SwarmingRpcsTaskRequest{
-								Properties: &swarming.SwarmingRpcsTaskProperties{
-									Dimensions: []*swarming.SwarmingRpcsStringPair{
+						taskInfo: &apipb.TaskRequestMetadataResponse{
+							Request: &apipb.TaskRequestResponse{
+								Properties: &apipb.TaskProperties{
+									Dimensions: []*apipb.StringPair{
 										{
 											Key:   "",
 											Value: "",
@@ -280,8 +278,8 @@ func TestCheckArmComparability(t *testing.T) {
 									},
 								},
 							},
-							TaskResult: &swarming.SwarmingRpcsTaskResult{
-								BotDimensions: []*swarming.SwarmingRpcsStringListPair{
+							TaskResult: &apipb.TaskResultResponse{
+								BotDimensions: []*apipb.StringListPair{
 									{
 										Key: "gpu",
 										Value: []string{
@@ -299,10 +297,10 @@ func TestCheckArmComparability(t *testing.T) {
 			treatments: &processedArmTasks{
 				tasks: []*armTask{
 					{
-						taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
-							Request: &swarming.SwarmingRpcsTaskRequest{
-								Properties: &swarming.SwarmingRpcsTaskProperties{
-									Dimensions: []*swarming.SwarmingRpcsStringPair{
+						taskInfo: &apipb.TaskRequestMetadataResponse{
+							Request: &apipb.TaskRequestResponse{
+								Properties: &apipb.TaskProperties{
+									Dimensions: []*apipb.StringPair{
 										{
 											Key:   "",
 											Value: "",
@@ -310,8 +308,8 @@ func TestCheckArmComparability(t *testing.T) {
 									},
 								},
 							},
-							TaskResult: &swarming.SwarmingRpcsTaskResult{
-								BotDimensions: []*swarming.SwarmingRpcsStringListPair{
+							TaskResult: &apipb.TaskResultResponse{
+								BotDimensions: []*apipb.StringListPair{
 									{
 										Key: "gpu",
 										Value: []string{
@@ -325,10 +323,10 @@ func TestCheckArmComparability(t *testing.T) {
 						},
 					},
 					{
-						taskInfo: &swarming.SwarmingRpcsTaskRequestMetadata{
-							Request: &swarming.SwarmingRpcsTaskRequest{
-								Properties: &swarming.SwarmingRpcsTaskProperties{
-									Dimensions: []*swarming.SwarmingRpcsStringPair{
+						taskInfo: &apipb.TaskRequestMetadataResponse{
+							Request: &apipb.TaskRequestResponse{
+								Properties: &apipb.TaskProperties{
+									Dimensions: []*apipb.StringPair{
 										{
 											Key:   "",
 											Value: "",
@@ -336,8 +334,8 @@ func TestCheckArmComparability(t *testing.T) {
 									},
 								},
 							},
-							TaskResult: &swarming.SwarmingRpcsTaskResult{
-								BotDimensions: []*swarming.SwarmingRpcsStringListPair{
+							TaskResult: &apipb.TaskResultResponse{
+								BotDimensions: []*apipb.StringListPair{
 									{
 										Key: "gpu",
 										Value: []string{

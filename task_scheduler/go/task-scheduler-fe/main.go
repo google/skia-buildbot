@@ -29,7 +29,9 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -42,6 +44,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -69,6 +72,8 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	buildbucketTarget = flag.String("buildbucket_target", "", "Target name used by Buildbucket to address this Task Scheduler.")
+	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	debugPort         = flag.String("debug_port", "", "HTTP service port for debugging using pprof")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
@@ -77,6 +82,7 @@ var (
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
 	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod        = flag.String("timeWindow", "4d", "Time period to use for cache expiration.")
 	tracingProject    = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
@@ -378,6 +384,24 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	period, err := human.ParseDuration(*timePeriod)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	w, err := window.New(ctx, period, *commitWindow, repos)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	// Periodically clean up the taskCfgCache.
+	go util.RepeatCtx(ctx, 30*time.Minute, func(ctx context.Context) {
+		if err := w.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update time window: %s", err)
+			return
+		}
+		if err := taskCfgCache.Cleanup(ctx, now.Now(ctx).Sub(w.EarliestStart())); err != nil {
+			sklog.Errorf("Failed to clean up task cfg cache: %s", err)
+		}
+	})
 
 	// Initialize Swarming client.
 	cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
@@ -412,6 +436,10 @@ func main() {
 	}
 
 	go runServer(serverURL, srv, bbHandler, plogin)
+
+	if *debugPort != "" {
+		go httputils.ServePprof(*debugPort)
+	}
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}

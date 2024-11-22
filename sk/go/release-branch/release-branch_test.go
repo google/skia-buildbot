@@ -397,3 +397,31 @@ to test-branch.
 	err := cherryPickChangeToBranch(ctx, g, &mergeCI, "test-branch", []string{"reviewer@"})
 	require.NoError(t, err)
 }
+
+func TestUpdateJobsJSON(t *testing.T) {
+	oldContents := []byte(`[
+  {"name":  "Build-Debian10-EMCC-asmjs-Release-PathKit"},
+  {"name":    "Build-Debian10-EMCC-wasm-Debug-CanvasKit" },
+    {"name": "Build-Debian10-EMCC-wasm-Debug-CanvasKit_WebGPU",
+
+    "cq_config":   {  }
+	},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-CanvasKit_CPU"},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-PathKit",
+  "cq_config": {
+	"location_regexes": [
+	  "modules/canvaskit/.*"
+	]
+  }}
+]`)
+	expectNewContents := []byte(`[
+  {"name": "Build-Debian10-EMCC-asmjs-Release-PathKit"},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-CanvasKit"},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-CanvasKit_WebGPU"},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-CanvasKit_CPU"},
+  {"name": "Build-Debian10-EMCC-wasm-Debug-PathKit"}
+]`)
+	newContents, err := updateJobsJSON(oldContents)
+	require.NoError(t, err)
+	require.Equal(t, string(expectNewContents), string(newContents))
+}

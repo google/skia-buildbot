@@ -7,8 +7,8 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/run_benchmark"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 )
@@ -18,7 +18,6 @@ import (
 // Those are used to invoke the workflows. This is meant to decouple the
 // souce code dependencies such that the client doesn't need to link with
 // the actual implementation.
-// TODO(b/326352379): introduce a specific type to encapsulate these workflow names
 const (
 	Bisect                            = "perf.bisect"
 	BuildChrome                       = "perf.build_chrome"
@@ -26,10 +25,13 @@ const (
 	ConvertToCatapultResponseWorkflow = "perf.catapult.response"
 	CulpritFinderWorkflow             = "perf.culprit_finder"
 	RunBenchmark                      = "perf.run_benchmark"
+	RunBenchmarkPairwise              = "perf.run_benchmark.pairwise"
 	SingleCommitRunner                = "perf.single_commit_runner"
 	PairwiseCommitsRunner             = "perf.pairwise_commits_runner"
 	PairwiseWorkflow                  = "perf.pairwise"
 	BugUpdate                         = "perf.bug_update"
+	TestAndExport                     = "perf.test_and_export"
+	CollectAndUpload                  = "perf.collect_and_upload"
 )
 
 const defaultPairwiseAttemptCount int32 = 30
@@ -38,13 +40,13 @@ const defaultPairwiseAttemptCount int32 = 30
 //
 // Each workflow defines its own struct for the params, this will ensure
 // the input parameter type safety, as well as expose them in a structured way.
-type BuildChromeParams struct {
+type BuildParams struct {
 	// WorkflowID is arbitrary string that tags the build.
 	// This is used to connect the downstream and know which build is used.
 	// This is usually the pinpoint job ID.
 	WorkflowID string
 	// Commit is the chromium commit hash.
-	Commit *midpoint.CombinedCommit
+	Commit *common.CombinedCommit
 	// Device is the name of the device, e.g. "linux-perf".
 	Device string
 	// Target is name of the build isolate target
@@ -52,12 +54,17 @@ type BuildChromeParams struct {
 	Target string
 	// Patch is the Gerrit patch included in the build.
 	Patch []*buildbucketpb.GerritChange
+	// Project is the project the Build workflow is being run for.
+	// For example, Chromium and V8 would be under project "chromium" and create
+	// a Chrome binary. AndroidX would have project "androidx" and generate
+	// Android X modules.
+	Project string
 }
 
 // Build stores the build from Buildbucket.
 type Build struct {
 	// The parameters used to make this build.
-	BuildChromeParams
+	BuildParams
 	// ID is the buildbucket ID of the Chrome build.
 	// https://github.com/luci/luci-go/blob/19a07406e/buildbucket/proto/build.proto#L138
 	ID int64
@@ -79,12 +86,37 @@ type TestRun struct {
 	Values map[string][]float64
 }
 
+// IsEmptyValues checks the TestRun if there are values at that chart
+func (tr *TestRun) IsEmptyValues(chart string) bool {
+	return tr == nil || tr.Values == nil || tr.Values[chart] == nil
+}
+
+// RemoveDataFromChart removes chart data from that TestRun
+func (tr *TestRun) RemoveDataFromChart(chart string) {
+	if tr.Values != nil {
+		tr.Values[chart] = nil
+	}
+}
+
+// PairwiseOrder indicates in a pairwise run, which commit ran first
+type PairwiseOrder int
+
+const (
+	// LeftThenRight means Left commit ran first, then the Right commit
+	LeftThenRight PairwiseOrder = 0
+	// RightThenLeft means Right commit ran first, then the Left commit
+	RightThenLeft PairwiseOrder = 1
+)
+
 // PairwiseTestRun stores pairwise benchmark test run.
 type PairwiseTestRun struct {
 	// FirstTestRun is the first benchmark test run
 	FirstTestRun *TestRun
-	// FirstTestRun is the second benchmark test run
+	// SecondTestRun is the second benchmark test run
 	SecondTestRun *TestRun
+	// First indicates which commit ran first.
+	// First = Left commit or Right commit.
+	Permutation PairwiseOrder
 }
 
 type BisectParams struct {
@@ -192,4 +224,10 @@ func (pp *PairwiseParams) GetImprovementDirection() compare.ImprovementDir {
 type CulpritFinderParams struct {
 	// CulpritFinderParams embeds the pinpoint proto ScheduleCulpritFinderRequest
 	Request *pb.ScheduleCulpritFinderRequest
+	// Production if true indicates the workflow is intended to be run on production
+	// and not the dev or staging environment.
+	// Used to determine whether to write to Pinpoint prod or staging.
+	Production bool
+	// A set of parameters used for callback to culprit service if any culprit is found.
+	CallbackParams *pb.CulpritProcessingCallbackParams
 }

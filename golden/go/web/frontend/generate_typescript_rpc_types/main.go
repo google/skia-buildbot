@@ -103,12 +103,6 @@ func addTypes(generator *go2ts.Go2TS) {
 	// Response for the /json/v2/diff RPC endpoint.
 	generator.Add(frontend.DiffRequest{})
 
-	// Request for the /json/v1/groupingfortest RPC endpoint.
-	generator.Add(frontend.GroupingForTestRequest{})
-
-	// Response for the /json/v1/groupingfortest RPC endpoint.
-	generator.Add(frontend.GroupingForTestResponse{})
-
 	generator.AddUnionWithName(expectations.AllLabel, "Label")
 	generator.AddUnionWithName([]frontend.RefClosest{frontend.PositiveRef, frontend.NegativeRef, frontend.NoRef}, "RefClosest")
 	generator.AddUnionWithName(frontend.AllTriageResponseStatus, "TriageResponseStatus")

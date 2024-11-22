@@ -31,6 +31,7 @@ sk_element(
         "//infra-sk/modules/ElementSk:index_ts_lib",
         ":kd_ts_lib",
         ":ticks_ts_lib",
+        "//perf/modules/common:plot-builder_ts_lib",
         "//perf/modules/const:const_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
@@ -38,7 +39,7 @@ sk_element(
         "//:node_modules/@types/d3-scale",
         "//:node_modules/d3-array",
         "//:node_modules/d3-scale",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

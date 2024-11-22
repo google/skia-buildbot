@@ -253,6 +253,10 @@ func (r tableOneRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	}
 }
 
+func (r tableOneRow) GetPrimaryKeyCols() []string {
+	return []string{"column_one"}
+}
+
 func (r *tableOneRow) ScanFrom(scan func(...interface{}) error) error {
 	return scan(&r.ColumnOne, &r.ColumnTwo)
 }
@@ -269,6 +273,10 @@ func (r tableTwoRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	}
 }
 
+func (r tableTwoRow) GetPrimaryKeyCols() []string {
+	return []string{"special_column_one"}
+}
+
 type tableThreeRow struct {
 	ColumnOne  string
 	ColumnBool schema.NullableBool
@@ -279,6 +287,10 @@ func (r tableThreeRow) ToSQLRow() (colNames []string, colData []interface{}) {
 	return []string{"column_one", "column_bool", "column_ts"}, []interface{}{
 		r.ColumnOne, r.ColumnBool.ToSQL(), r.ColumnTS,
 	}
+}
+
+func (r tableThreeRow) GetPrimaryKeyCols() []string {
+	return []string{"column_one"}
 }
 
 func (r *tableThreeRow) ScanFrom(scan func(...interface{}) error) error {

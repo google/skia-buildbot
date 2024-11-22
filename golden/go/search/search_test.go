@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
@@ -1324,14 +1325,14 @@ func TestSearch_RespectLimitOffsetOrder_Success(t *testing.T) {
 
 func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 
-	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
+	ctx := context.WithValue(context.Background(), common.CommitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
 		"11": 1,
 		"12": 2,
 		"17": 3,
 		"20": 4,
 	})
-	ctx = context.WithValue(ctx, actualWindowLengthKey, 5)
+	ctx = context.WithValue(ctx, common.ActualWindowLengthKey, 5)
 	inputData := map[schema.MD5Hash][]traceDigestCommit{
 		{0xaa}: {
 			{commitID: "10", digest: dks.DigestA01Pos},
@@ -1372,15 +1373,15 @@ func TestMakeTraceGroup_TwoMostlyStableTraces_Success(t *testing.T) {
 
 func TestMakeTraceGroup_TwoNewTracesInCL_DataAppended(t *testing.T) {
 
-	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
+	ctx := context.WithValue(context.Background(), common.CommitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
 		"11": 1,
 		"12": 2,
 		"17": 3,
 		"20": 4,
 	})
-	ctx = context.WithValue(ctx, actualWindowLengthKey, 5)
-	ctx = context.WithValue(ctx, qualifiedCLIDKey, "whatever") // indicate this is a CL
+	ctx = context.WithValue(ctx, common.ActualWindowLengthKey, 5)
+	ctx = context.WithValue(ctx, common.QualifiedCLIDKey, "whatever") // indicate this is a CL
 	inputData := map[schema.MD5Hash][]traceDigestCommit{
 		{0xaa}: nil,
 		{0xbb}: nil,
@@ -1412,7 +1413,7 @@ func TestMakeTraceGroup_TwoNewTracesInCL_DataAppended(t *testing.T) {
 
 func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testing.T) {
 
-	ctx := context.WithValue(context.Background(), commitToIdxKey, map[schema.CommitID]int{
+	ctx := context.WithValue(context.Background(), common.CommitToIdxKey, map[schema.CommitID]int{
 		"10": 0,
 		"11": 1,
 		"12": 2,
@@ -1432,7 +1433,7 @@ func TestMakeTraceGroup_OneFlakyTrace_PrioritizeShowingMostUsedDigests(t *testin
 		"31": 16,
 		"32": 17,
 	})
-	ctx = context.WithValue(ctx, actualWindowLengthKey, 18)
+	ctx = context.WithValue(ctx, common.ActualWindowLengthKey, 18)
 	inputData := map[schema.MD5Hash][]traceDigestCommit{
 		{0xaa}: {
 			{commitID: "10", digest: "dC"},
@@ -3857,7 +3858,7 @@ func TestMatchingCLTracesStatement_ValidInputs_Success(t *testing.T) {
 	}, false)
 	require.NoError(t, err)
 	assert.Equal(t, `MatchingTraces AS (
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)
 ),`, statement)
 
 	statement, err = matchingCLTracesStatement(paramtools.ParamSet{
@@ -3879,7 +3880,7 @@ MatchingTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U1
 	INTERSECT
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule = FALSE
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule = FALSE OR matches_any_ignore_rule is NULL)
 ),
 `, statement)
 
@@ -3902,7 +3903,7 @@ MatchingTraces AS (
 	INTERSECT
 	SELECT trace_id FROM U1
 	INTERSECT
-	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND matches_any_ignore_rule IS NOT NULL
+	SELECT trace_id FROM Traces WHERE corpus = 'the corpus' AND (matches_any_ignore_rule IS NOT NULL)
 ),
 `, statement)
 }

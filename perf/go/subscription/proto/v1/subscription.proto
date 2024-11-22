@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package culprit.v1;
+package subscription.v1;
 
 option go_package = "go.skia.org/infra/perf/go/subscription/proto/v1";
 

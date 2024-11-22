@@ -1,6 +1,6 @@
 /* eslint-disable import/order */
 import '../../../elements-sk/modules/error-toast-sk';
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { WasmFiddle } from '../wasm-fiddle-sk/wasm-fiddle-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';

@@ -117,14 +117,14 @@ func NewFreeTypeParent(ctx context.Context, c *config.FreeTypeParentConfig, reg 
 
 // Perform a three-way merge for this header file in a temporary dir. Adds the
 // new contents to the changes map.
-func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, changes map[string]string, parentRepo *gitiles_common.GitilesRepo, localChildRepo *git.Repo) error {
+func mergeInclude(ctx context.Context, include, from, to string, fs vfs.FS, changes map[string]string, parentRepo *gitiles_common.GitilesRepo, localChildRepo git.Repo) error {
 	wd, err := os.MkdirTemp("", "")
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 	defer util.RemoveAll(wd)
 
-	gd := git.GitDir(wd)
+	gd := git.CheckoutDir(wd)
 	_, err = gd.Git(ctx, "init")
 	if err != nil {
 		return skerr.Wrap(err)

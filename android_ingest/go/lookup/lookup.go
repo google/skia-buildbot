@@ -32,7 +32,7 @@ type Cache struct {
 // New returns a newly populated *Cache with buildids for the last 2 weeks.
 //
 // The 'checkout' is only used during the construction of *Cache.
-func New(ctx context.Context, checkout *git.Checkout) (*Cache, error) {
+func New(ctx context.Context, checkout git.Checkout) (*Cache, error) {
 	// Runs
 	//
 	//   git log main --format=oneline --since="4 weeks ago"

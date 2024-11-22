@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
+	"go.skia.org/infra/go/sklog"
 )
 
 func TestGetPinnedRev(t *testing.T) {
@@ -67,8 +68,7 @@ func TestGetPinnedRev(t *testing.T) {
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			actual, err := GetPinnedRev(&config.VersionFileConfig{
-				Id:    c.depId,
+			actual, err := getPinnedRevInFile(c.depId, &config.VersionFileConfig_File{
 				Path:  c.versionFilePath,
 				Regex: c.regex,
 			}, c.versionFileContents)
@@ -145,8 +145,7 @@ cipd_install(
 		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			actual, err := SetPinnedRev(&config.VersionFileConfig{
-				Id:   c.depId,
+			actual, err := setPinnedRevInFile(c.depId, &config.VersionFileConfig_File{
 				Path: c.versionFilePath,
 			}, c.newRev, c.versionFileContents)
 			require.NoError(t, err)
@@ -205,8 +204,10 @@ func TestUpdateSingleDep(t *testing.T) {
 				return "", fmt.Errorf("Unknown file path %s", path)
 			}
 			oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
-				Id:   c.depId,
-				Path: c.versionFilePath,
+				Id: c.depId,
+				File: []*config.VersionFileConfig_File{
+					{Path: c.versionFilePath},
+				},
 			}, c.newRev, changes, getFile)
 			require.NoError(t, err)
 			require.Equal(t, c.expectOldRev, oldRev)
@@ -242,8 +243,10 @@ deps = {
 	"bar": "without-submodule@old-rev2",
 }`
 		oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
-			Id:   "with-submodule",
-			Path: deps_parser.DepsFileName,
+			Id: "with-submodule",
+			File: []*config.VersionFileConfig_File{
+				{Path: deps_parser.DepsFileName},
+			},
 		}, &revision.Revision{Id: "new-rev1"}, changes, getFile)
 		require.NoError(t, err)
 		require.Equal(t, "old-rev1", oldRev)
@@ -261,8 +264,10 @@ deps = {
 	"bar": "without-submodule@new-rev2",
 }`
 		oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
-			Id:   "without-submodule",
-			Path: deps_parser.DepsFileName,
+			Id: "without-submodule",
+			File: []*config.VersionFileConfig_File{
+				{Path: deps_parser.DepsFileName},
+			},
 		}, &revision.Revision{Id: "new-rev2"}, changes, getFile)
 		require.NoError(t, err)
 		require.Equal(t, "old-rev2", oldRev)
@@ -271,6 +276,47 @@ deps = {
 
 		require.Equal(t, "", changes["bar"])
 	})
+}
+
+func TestUpdateSingleDep_MultipleFiles(t *testing.T) {
+	depsContents := `
+deps = {
+  "my-dep-path": "my-dep@old-rev",
+}`
+
+	entries, err := deps_parser.ParseDeps(depsContents)
+	require.NoError(t, err)
+	sklog.Infof("%+v", entries)
+	entry, err := deps_parser.GetDep(depsContents, "my-dep")
+	require.NoError(t, err)
+	sklog.Infof("%+v", entry)
+
+	secondaryPath := "other-dep-path"
+	secondaryPathContents := "old-rev"
+	changes := map[string]string{}
+	getFile := func(ctx context.Context, path string) (string, error) {
+		if path == deps_parser.DepsFileName {
+			return depsContents, nil
+		} else if path == secondaryPath {
+			return secondaryPathContents, nil
+		}
+		return "", fmt.Errorf("Unknown file path %s", path)
+	}
+	oldRev, err := updateSingleDep(context.Background(), &config.VersionFileConfig{
+		Id: "my-dep",
+		File: []*config.VersionFileConfig_File{
+			{Path: deps_parser.DepsFileName},
+			{Path: secondaryPath},
+		},
+	}, &revision.Revision{Id: "new-rev"}, changes, getFile)
+	require.NoError(t, err)
+	require.Equal(t, "old-rev", oldRev)
+
+	require.Equal(t, `
+deps = {
+  "my-dep-path": "my-dep@new-rev",
+}`, changes[deps_parser.DepsFileName])
+	require.Equal(t, "new-rev\n", changes[secondaryPath])
 }
 
 func TestUpdateDep(t *testing.T) {
@@ -295,18 +341,24 @@ Transitive-dep-version: transitive-dep-old-rev;
 
 	changes, err := UpdateDep(context.Background(), &config.DependencyConfig{
 		Primary: &config.VersionFileConfig{
-			Id:   "my-dep",
-			Path: deps_parser.DepsFileName,
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{Path: deps_parser.DepsFileName},
+			},
 		},
 		Transitive: []*config.TransitiveDepConfig{
 			{
 				Child: &config.VersionFileConfig{
-					Id:   "transitive-dep",
-					Path: deps_parser.DepsFileName,
+					Id: "transitive-dep",
+					File: []*config.VersionFileConfig_File{
+						{Path: deps_parser.DepsFileName},
+					},
 				},
 				Parent: &config.VersionFileConfig{
-					Id:   "transitive-dep",
-					Path: deps_parser.DepsFileName,
+					Id: "transitive-dep",
+					File: []*config.VersionFileConfig_File{
+						{Path: deps_parser.DepsFileName},
+					},
 				},
 			},
 		},
@@ -330,5 +382,52 @@ Transitive-dep-version: transitive-dep-old-rev;
 Version: new-rev;
 Transitive-dep-version: transitive-dep-new-rev;
 `,
+	}, changes)
+}
+
+func TestUpdateDep_UsesChangeCache(t *testing.T) {
+	// This configuration updates DEPS twice: once for the primary dependency
+	// and again using find-and-replace to update a comment. Verify that we only
+	// read the file from the repo once (since reading it a second time would
+	// undo the first update).
+	oldContents := map[string]string{
+		deps_parser.DepsFileName: `deps = {
+			# Use my-dep at commit old-rev.
+			"my-dep-path": "my-dep@old-rev",
+		}`,
+	}
+	alreadyRead := false
+	getFile := func(ctx context.Context, path string) (string, error) {
+		require.False(t, alreadyRead, "read %s multiple times instead of using version cached in changes map", path)
+		contents, ok := oldContents[path]
+		if !ok {
+			return "", fmt.Errorf("Unknown path %s", path)
+		}
+		alreadyRead = true
+		return contents, nil
+	}
+
+	changes, err := UpdateDep(context.Background(), &config.DependencyConfig{
+		Primary: &config.VersionFileConfig{
+			Id: "my-dep",
+			File: []*config.VersionFileConfig_File{
+				{
+					Path: deps_parser.DepsFileName,
+				},
+			},
+		},
+		FindAndReplace: []string{
+			deps_parser.DepsFileName,
+		},
+	}, &revision.Revision{
+		Id: "new-rev",
+	}, getFile)
+	require.NoError(t, err)
+
+	require.Equal(t, map[string]string{
+		deps_parser.DepsFileName: `deps = {
+			# Use my-dep at commit new-rev.
+			"my-dep-path": "my-dep@new-rev",
+		}`,
 	}, changes)
 }

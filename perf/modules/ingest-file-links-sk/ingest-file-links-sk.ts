@@ -7,7 +7,7 @@
  *
  * See also https://pkg.go.dev/go.skia.org/infra/perf/go/ingest/format#Format
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -22,8 +22,16 @@ function isUrl(link: string): boolean {
     new URL(link);
     return true;
   } catch (e) {
+    console.warn((e as Error).message);
     return false;
   }
+}
+
+// filter out links from markdown like [benchmark config](foo.com)
+// the regex will convert [benchmark config](foo.com) to foo.com
+// and will leave other strings unaffected
+function removeMarkdown(link: string): string {
+  return String(link).replace(/\[.*?\]\((.*?)\)/gm, '$1');
 }
 
 export class IngestFileLinksSk extends ElementSk {
@@ -38,7 +46,7 @@ export class IngestFileLinksSk extends ElementSk {
   private static displayLinks = (ele: IngestFileLinksSk): TemplateResult[] => {
     const keys = Object.keys(ele.links || {}).sort();
     const getHtml = (key: string): TemplateResult => {
-      const link = ele.links![key];
+      const link = removeMarkdown(ele.links![key]);
       if (isUrl(link)) {
         return html`<li><a href="${link}">${key}</a></li>`;
       }

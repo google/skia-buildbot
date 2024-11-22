@@ -13,7 +13,7 @@ import '../../../elements-sk/modules/checkbox-sk';
 import '../../../elements-sk/modules/collapse-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import Ajv from 'ajv/dist/2020';
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import {
   JSONEditor,
   toJSONContent,
@@ -123,7 +123,7 @@ const GOOGLE_WEB_FONTS_HOST =
 const PRODUCTION_ASSETS_PATH = '/_/a';
 
 // Make this the hash of the lottie file you want to play on startup.
-const DEFAULT_LOTTIE_FILE = '1112d01d28a776d777cebcd0632da15b'; // gear.json
+const DEFAULT_LOTTIE_FILE = '5c1c5cc9aa4aabe4acc1f12a7bac60fb'; // gear.json
 
 // SCRUBBER_RANGE is the input range for the scrubbing control.
 // This is an arbitrary value, and is treated as a re-scaled duration.
@@ -417,7 +417,7 @@ export class SkottieSk extends ElementSk {
       id="view-compatibility-report"
       @select=${this.toggleCompatibilityReport}
       type="outline"
-      .content=${'Compatibility Report'}
+      .content=${'Compatibility Report (Beta)'}
       .classes=${[
         'header__button',
         this.showCompatibilityReport ? 'active-dialog' : '',

@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "coveragestore",
+    srcs = ["coveragestore.go"],
+    importpath = "go.skia.org/infra/go/coverage/coveragestore",
+    visibility = ["//visibility:public"],
+    deps = ["//go/coverage/proto/v1"],
+)

@@ -7,7 +7,7 @@
  * </p>
  */
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 
 import { $$ } from '../../../infra-sk/modules/dom';
 import { localeTime } from '../../../infra-sk/modules/human';
@@ -46,11 +46,6 @@ import {
 import { LastCheckInSpan } from '../utils';
 import { Status } from '../../../infra-sk/modules/json';
 
-interface RollCandidate {
-  revision: Revision;
-  roll: ManualRoll | null;
-}
-
 interface RecentRoll {
   class: string;
   subject: string;
@@ -65,6 +60,11 @@ export class ARBStatusSk extends ElementSk {
     !ele.status
       ? html``
       : html`
+  ${
+    !ele.editRights
+      ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
+      : html``
+  }
   <tabs-sk style="width: 100%">
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
@@ -81,11 +81,6 @@ export class ARBStatusSk extends ElementSk {
       </a>
     </div>
   </tabs-sk>
-  ${
-    !ele.editRights
-      ? html` <div id="pleaseLoginMsg" class="big">${ele.pleaseLoginMsg}</div> `
-      : html``
-  }
   <tabs-panel-sk selected="0">
     <div class="status">
       <div id="loadstatus">
@@ -100,6 +95,12 @@ export class ARBStatusSk extends ElementSk {
         Last loaded at <span>${localeTime(ele.lastLoaded)}</span>
       </div>
       <table>
+        <tr>
+          <td>Status</td>
+          <td><span class="big ${ele.statusClass(
+            ele.status
+          )}">${ele.statusMessage(ele.status)}</span></td>
+        </tr>
         <tr>
           <td>Last successful roll</td>
           <td>
@@ -159,9 +160,9 @@ export class ARBStatusSk extends ElementSk {
           </td>
         </tr>
         <tr>
-          <td class="nowrap">Status:</td>
+          <td class="nowrap">State:</td>
           <td class="nowrap">
-            <span class="${ele.statusClass(ele.status.status)}">
+            <span class="${ele.stateClass(ele.status.status)}">
               <span class="big">${ele.status.status}</span>
             </span>
             ${
@@ -422,12 +423,53 @@ export class ARBStatusSk extends ElementSk {
       </table>
     </div>
     <div class="manual">
-      <table>
         ${
           ele.status.config?.supportsManualRolls
             ? html`
           ${
-            !ele.rollCandidates
+            !!ele.manualRolls && ele.manualRolls.length > 0
+              ? html`
+                  <h2>Recent Manual Rolls</h2>
+                  <table>
+                    <tr>
+                      <th>Revision</th>
+                      <th>Requested By</th>
+                      <th>Requested At</th>
+                      <th>Link</th>
+                      <th>Result</th>
+                    </tr>
+                    ${ele.manualRolls.map(
+                      (roll) => html`
+                        <tr>
+                          <td>${ele.shortRev(roll.revision)}</td>
+                          <td>${roll.requester}</td>
+                          <td>
+                            <human-date-sk
+                              .date="${roll.timestamp!}"></human-date-sk>
+                          </td>
+                          <td>
+                            <a href="${roll.url}" , target="_blank">
+                              ${roll.url}
+                            </a>
+                          </td>
+                          <td>
+                            <span class="${ele.manualRollResultClass(roll)}">
+                              ${roll.result === ManualRoll_Result.UNKNOWN
+                                ? ''
+                                : roll.result}
+                            </span>
+                          </td>
+                        </tr>
+                      `
+                    )}
+                  </table>
+                  <h2>Trigger Manual Rolls</h2>
+                  <table></table>
+                `
+              : html``
+          }
+          ${
+            !ele.notYetRolledRevisions
               ? html`
                   The roller is up to date; there are no revisions which could
                   be manually rolled.
@@ -435,106 +477,13 @@ export class ARBStatusSk extends ElementSk {
               : html``
           }
           <tr>
+            <th>Request</th>
             <th>Revision</th>
             <th>Description</th>
             <th>Timestamp</th>
             <th>Invalid Reason</th>
-            <th>Requester</th>
-            <th>Requested at</th>
-            <th>Roll</th>
           </tr>
-          ${ele.rollCandidates.map(
-            (rollCandidate) => html`
-              <tr class="rollCandidate">
-                <td>
-                  ${rollCandidate.revision.url
-                    ? html`
-                        <a href="${rollCandidate.revision.url}" target="_blank">
-                          ${rollCandidate.revision.display}
-                        </a>
-                      `
-                    : html` ${rollCandidate.revision.display} `}
-                </td>
-                <td>
-                  ${rollCandidate.revision.description
-                    ? truncate(rollCandidate.revision.description, 100)
-                    : html``}
-                </td>
-                <td>
-                  ${rollCandidate.revision.time
-                    ? localeTime(new Date(rollCandidate.revision.time!))
-                    : html``}
-                </td>
-                <td>${rollCandidate.revision.invalidReason}</td>
-                <td>
-                  ${rollCandidate.roll ? rollCandidate.roll.requester : html``}
-                </td>
-                <td>
-                  ${rollCandidate.roll
-                    ? localeTime(new Date(rollCandidate.roll.timestamp!))
-                    : html``}
-                </td>
-                <td>
-                  ${rollCandidate.roll && rollCandidate.roll.url
-                    ? html`
-                        <a href="${rollCandidate.roll.url}" , target="_blank">
-                          ${rollCandidate.roll.url}
-                        </a>
-                        ${rollCandidate.roll.dryRun ? html` [dry-run]` : html``}
-                      `
-                    : html``}
-                  ${!!rollCandidate.roll &&
-                  !rollCandidate.roll.url &&
-                  rollCandidate.roll.status
-                    ? rollCandidate.roll.status
-                    : html``}
-                  <button
-                    @click="${() => {
-                      ele.requestManualRoll(rollCandidate.revision.id, true);
-                    }}"
-                    class="requestRoll"
-                    ?disabled=${!ele.editRights}
-                    title="${ele.editRights
-                      ? 'Request a dry-run to this revision.'
-                      : ele.pleaseLoginMsg}">
-                    Request Dry-Run
-                  </button>
-                  <button
-                    @click="${() => {
-                      ele.requestManualRoll(rollCandidate.revision.id, false);
-                    }}"
-                    class="requestRoll"
-                    ?disabled=${!ele.editRights}
-                    title="${ele.editRights
-                      ? 'Request a roll to this revision.'
-                      : ele.pleaseLoginMsg}">
-                    Request Roll
-                  </button>
-                  ${!!rollCandidate.roll && !!rollCandidate.roll.result
-                    ? html`
-                        <span
-                          class="${ele.manualRollResultClass(
-                            rollCandidate.roll
-                          )}">
-                          ${rollCandidate.roll.result ===
-                          ManualRoll_Result.UNKNOWN
-                            ? html``
-                            : rollCandidate.roll.result}
-                        </span>
-                      `
-                    : html``}
-                </td>
-              </tr>
-            `
-          )}
           <tr class="rollCandidate">
-            <td>
-              <input id="manualRollRevInput" label="type revision/ref"></input>
-            </td>
-            <td><!-- no description        --></td>
-            <td><!-- no revision timestamp --></td>
-            <td><!-- no requester          --></td>
-            <td><!-- no request timestamp  --></td>
             <td>
               <button
                   @click="${() => {
@@ -550,7 +499,7 @@ export class ARBStatusSk extends ElementSk {
                       ? 'Request a dry-run to this revision.'
                       : ele.pleaseLoginMsg
                   }">
-                Request Dry-Run
+                Dry-Run
               </button>
 
               <button
@@ -567,10 +516,64 @@ export class ARBStatusSk extends ElementSk {
                       ? 'Request a roll to this revision.'
                       : ele.pleaseLoginMsg
                   }">
-                Request Roll
+                Roll
               </button>
             </td>
+            <td>
+              <input id="manualRollRevInput" placeholder="custom revision/ref"></input>
+            </td>
+            <td><!-- no description        --></td>
+            <td><!-- no revision timestamp --></td>
+            <td><!-- no invalid reason     --></td>
           </tr>
+          ${ele.notYetRolledRevisions.map(
+            (revision) => html`
+              <tr class="rollCandidate">
+                <td>
+                  <button
+                    @click="${() => {
+                      ele.requestManualRoll(revision.id, true);
+                    }}"
+                    class="requestRoll"
+                    ?disabled=${!ele.editRights}
+                    title="${ele.editRights
+                      ? 'Request a dry-run to this revision.'
+                      : ele.pleaseLoginMsg}">
+                    Dry-Run
+                  </button>
+                  <button
+                    @click="${() => {
+                      ele.requestManualRoll(revision.id, false);
+                    }}"
+                    class="requestRoll"
+                    ?disabled=${!ele.editRights}
+                    title="${ele.editRights
+                      ? 'Request a roll to this revision.'
+                      : ele.pleaseLoginMsg}">
+                    Roll
+                  </button>
+                </td>
+                <td>
+                  ${revision.url
+                    ? html`
+                        <a href="${revision.url}" target="_blank">
+                          ${revision.display}
+                        </a>
+                      `
+                    : html` ${revision.display} `}
+                </td>
+                <td>
+                  ${revision.description
+                    ? truncate(revision.description, 100)
+                    : html``}
+                </td>
+                <td>
+                  <human-date-sk .date="${revision.time!}"></human-date-sk>
+                </td>
+                <td>${revision.invalidReason}</td>
+              </tr>
+            `
+          )}
         `
             : html`
                 This roller does not support manual rolls. If you want this
@@ -684,15 +687,17 @@ export class ARBStatusSk extends ElementSk {
 
   private lastLoaded: Date = new Date(0);
 
+  private manualRolls: ManualRoll[] = [];
+
   private modeChangePending: boolean = false;
+
+  private notYetRolledRevisions: Revision[] = [];
 
   private readonly pleaseLoginMsg = 'Please login to make changes.';
 
   private recentRolls: RecentRoll[] = [];
 
   private refreshInterval = 60;
-
-  private rollCandidates: RollCandidate[] = [];
 
   private rollWindowStart: Date = new Date(0);
 
@@ -1105,24 +1110,7 @@ export class ARBStatusSk extends ElementSk {
         dryRun: dryRun,
       })
       .then((resp: CreateManualRollResponse) => {
-        const exist = this.rollCandidates.find(
-          (r) => r.revision.id === resp.roll!.revision
-        );
-        if (exist) {
-          exist.roll = resp.roll!;
-        } else {
-          this.rollCandidates.push({
-            revision: {
-              description: '',
-              display: resp.roll!.revision,
-              id: resp.roll!.revision,
-              invalidReason: '',
-              time: '',
-              url: '',
-            },
-            roll: resp.roll!,
-          });
-        }
+        this.manualRolls.unshift(resp.roll!);
         const manualRollRevInput = <HTMLInputElement>$$('#manualRollRevInput');
         if (manualRollRevInput) {
           manualRollRevInput.value = '';
@@ -1191,8 +1179,8 @@ export class ARBStatusSk extends ElementSk {
     }
   }
 
-  private statusClass(status: string) {
-    // TODO(borenet): Status could probably be an enum.
+  private stateClass(state: string) {
+    // TODO(borenet): State could probably be an enum.
     const statusClassMap: { [key: string]: string } = {
       idle: 'fg-unknown',
       active: 'fg-unknown',
@@ -1208,7 +1196,38 @@ export class ARBStatusSk extends ElementSk {
       stopped: 'fg-stopped',
       offline: 'fg-offline',
     };
-    return statusClassMap[status] || '';
+    return statusClassMap[state] || '';
+  }
+
+  private statusClass(status: AutoRollStatus) {
+    if (status.miniStatus?.numBehind === 0) {
+      return 'fg-success';
+    }
+    if (
+      status.notRolledRevisions?.every(
+        (rev: Revision) => rev.invalidReason !== ''
+      )
+    ) {
+      return 'fg-success';
+    }
+    return 'fg-unknown';
+  }
+
+  private statusMessage(status: AutoRollStatus) {
+    if (status.miniStatus?.numBehind === 0) {
+      return 'up to date';
+    }
+    if (
+      status.notRolledRevisions?.every(
+        (rev: Revision) => rev.invalidReason !== ''
+      )
+    ) {
+      return `up to date (${status.notRolledRevisions.length} not-yet-rolled revisions are invalid)`;
+    }
+    if (status.notRolledRevisions?.length === 1) {
+      return '1 revision behind';
+    }
+    return `${status.notRolledRevisions?.length} revisions behind`;
   }
 
   private trybotClass(tryjob: TryJob) {
@@ -1231,61 +1250,11 @@ export class ARBStatusSk extends ElementSk {
   }
 
   private update(status: AutoRollStatus) {
-    const rollCandidates: RollCandidate[] = [];
-    const manualByRev: { [key: string]: ManualRoll } = {};
     if (status.notRolledRevisions) {
-      if (status.manualRolls) {
-        for (let i = 0; i < status.manualRolls.length; i++) {
-          const req = status.manualRolls[i];
-          manualByRev[req.revision] = req;
-        }
-      }
-      for (let i = 0; i < status.notRolledRevisions.length; i++) {
-        const rev = status.notRolledRevisions[i];
-        const candidate: RollCandidate = {
-          revision: rev,
-          roll: null,
-        };
-        let req = manualByRev[rev.id];
-        delete manualByRev[rev.id];
-        if (
-          !req &&
-          status.currentRoll &&
-          status.currentRoll.rollingTo === rev.id
-        ) {
-          req = {
-            dryRun: false,
-            canary: false,
-            id: '',
-            noEmail: false,
-            noResolveRevision: false,
-            requester: 'autoroller',
-            result: ManualRoll_Result.UNKNOWN,
-            rollerId: this.roller,
-            revision: '',
-            status: ManualRoll_Status.PENDING,
-            timestamp: status.currentRoll.created,
-            url: this.issueURL(status, status.currentRoll),
-          };
-        }
-        candidate.roll = req;
-        rollCandidates.push(candidate);
-      }
+      this.notYetRolledRevisions = status.notRolledRevisions;
     }
-    for (const key in manualByRev) {
-      const req = manualByRev[key];
-      const rev: Revision = {
-        description: '',
-        display: req.revision,
-        id: req.revision,
-        invalidReason: '',
-        time: '',
-        url: '',
-      };
-      rollCandidates.push({
-        revision: rev,
-        roll: req,
-      });
+    if (status.manualRolls) {
+      this.manualRolls = status.manualRolls;
     }
     // Interleave regular rolls with manual rolls for display in the table.
     this.recentRolls = (status.recentRolls || [])
@@ -1352,7 +1321,6 @@ export class ARBStatusSk extends ElementSk {
     head.appendChild(link);
 
     this.lastLoaded = new Date();
-    this.rollCandidates = rollCandidates;
     this.validModes = Object.keys(Mode).map(
       (key) => Mode[key as keyof typeof Mode]
     );
@@ -1365,6 +1333,16 @@ export class ARBStatusSk extends ElementSk {
     this.status = status;
     console.log('Loaded status.');
     this._render();
+  }
+
+  private shortRev(revision: string) {
+    // If the revision looks like a Git commit hash, shorten it. Otherwise, we
+    // can't guarantee that we won't cut off some critical information.
+    const re = /[a-fA-F0-9]{40}/;
+    if (re.test(revision)) {
+      return revision.substring(0, 12);
+    }
+    return revision;
   }
 }
 

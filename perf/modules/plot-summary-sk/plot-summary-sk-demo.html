@@ -8,7 +8,12 @@
 </head>
 <body class="body-sk">
   <h1>plot-summary-sk</h1>
-  <plot-summary-sk width="1000" height="50" values_start="1000" values_end="10000" highlight_color="#CED0CE"></plot-summary-sk>
+  <plot-summary-sk id='plot1' domain="date"></plot-summary-sk>
+  <plot-summary-sk id='plot2' domain="commit"></plot-summary-sk>
+  <plot-summary-sk id='plot3' domain="date" selectionType="material"></plot-summary-sk>
+  <plot-summary-sk id='plot4' domain="commit" selectionType="material"></plot-summary-sk>
+
+  <theme-chooser-sk></theme-chooser-sk>
   <h2>Events</h2>
   <pre id=events></pre>
 </body>

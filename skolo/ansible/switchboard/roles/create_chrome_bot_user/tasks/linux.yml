@@ -40,6 +40,13 @@
     groups: dialout
     append: true
 
+# https://stackoverflow.com/a/64701430
+- name: Boot into Gnome by default
+  file:
+    src: /usr/lib/systemd/system/graphical.target
+    dest: /etc/systemd/system/default.target
+    state: link
+
 # For some reason, if we don't reboot GCE Linux machines after running the above task, subsequent
 # SSH connections fail with "chrome-bot@<IP address>: Permission denied (publickey)".
 #

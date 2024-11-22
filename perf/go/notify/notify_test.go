@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/email/go/emailclient"
 	"go.skia.org/infra/go/now"
@@ -19,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
+	"go.skia.org/infra/perf/go/notify/common"
 	"go.skia.org/infra/perf/go/notify/mocks"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/ui/frame"
@@ -90,7 +92,16 @@ func TestExampleSendWithHTMLFormatter_HappyPath(t *testing.T) {
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newHTMLMessage, newHTMLSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingHTMLMessage, missingHTMLSubject).Return(nil)
 
-	n := newNotifier(NewHTMLFormatter(""), tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newHTMLMessage,
+		Subject: newHTMLSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingHTMLMessage,
+		Subject: missingHTMLSubject,
+	}, nil)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -103,7 +114,17 @@ func TestExampleSendWithMarkdownFormatter_HappyPath(t *testing.T) {
 
 	f, err := NewMarkdownFormatter("", &config.NotifyConfig{})
 	require.NoError(t, err)
-	n := newNotifier(f, tr, instanceURL)
+
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newMarkdownMessage,
+		Subject: newMarkdownSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingMarkdownMessage,
+		Subject: missingMarkdownSubject,
+	}, nil)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -116,7 +137,16 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplate_HappyPath(t 
 
 	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{})
 	require.NoError(t, err)
-	n := newNotifier(f, tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newMarkdownMessageWithCommitRangeURLTemplate,
+		Subject: newMarkdownSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingMarkdownMessage,
+		Subject: missingMarkdownSubject,
+	}, nil)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -124,20 +154,24 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplate_HappyPath(t 
 
 func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplateAndCustomizedNotifierFormats_HappyPath(t *testing.T) {
 	tr := mocks.NewTransport(t)
+	newMessage := "body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/"
+	newSubject := "subject fb49909acafba5e031b90a265a6ce059cda85019"
 	tr.On(
 		"SendNewRegression",
 		testutils.AnyContext,
 		alertForTest,
-		"body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/",
-		"subject fb49909acafba5e031b90a265a6ce059cda85019",
+		newMessage,
+		newSubject,
 	).Return(mockThreadingID, nil)
+	missingMessage := "missing-body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/"
+	missingSubject := "missing-subject fb49909acafba5e031b90a265a6ce059cda85019"
 	tr.On(
 		"SendRegressionMissing",
 		testutils.AnyContext,
 		mockThreadingID,
 		alertForTest,
-		"missing-body MyAlert - https://example.com/fb49909acafba5e031b90a265a6ce059cda85019/d261e1075a93677442fdf7fe72aba7e583863664/",
-		"missing-subject fb49909acafba5e031b90a265a6ce059cda85019",
+		missingMessage,
+		missingSubject,
 	).Return(nil)
 
 	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{
@@ -147,7 +181,16 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplateAndCustomized
 		MissingBody:    []string{"missing-body {{ .Alert.DisplayName }} - {{ .CommitURL }}"},
 	})
 	require.NoError(t, err)
-	n := newNotifier(f, tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newMessage,
+		Subject: newSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingMessage,
+		Subject: missingSubject,
+	}, nil)
+	n := newNotifier(ndp, f, tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err = n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)
@@ -158,7 +201,16 @@ func TestExampleSendWithHTMLFormatter_SendRegressionMissingReturnsError_ReturnsE
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newHTMLMessage, newHTMLSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingHTMLMessage, missingHTMLSubject).Return(errMock)
 
-	n := newNotifier(NewHTMLFormatter(""), tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newHTMLMessage,
+		Subject: newHTMLSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingHTMLMessage,
+		Subject: missingHTMLSubject,
+	}, nil)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.ErrorIs(t, err, errMock)
@@ -169,7 +221,12 @@ func TestExampleSendWithHTMLFormatter_SendNewRegressionReturnsError_ReturnsError
 	tr := mocks.NewTransport(t)
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newHTMLMessage, newHTMLSubject).Return("", errMock)
 
-	n := newNotifier(NewHTMLFormatter(""), tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newHTMLMessage,
+		Subject: newHTMLSubject,
+	}, nil)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.ErrorIs(t, err, errMock)
@@ -195,7 +252,16 @@ func TestExampleSendWithHTMLFormatterAndEMailTransport_HappyPath(t *testing.T) {
 	emailClient := emailclient.NewAt(s.URL)
 	tr.client = emailClient
 
-	n := newNotifier(NewHTMLFormatter(""), tr, instanceURL)
+	ndp := mocks.NewNotificationDataProvider(t)
+	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    newHTMLMessage,
+		Subject: newHTMLSubject,
+	}, nil)
+	ndp.On("GetNotificationDataRegressionMissing", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
+		Body:    missingHTMLMessage,
+		Subject: missingHTMLSubject,
+	}, nil)
+	n := newNotifier(ndp, NewHTMLFormatter(""), tr, instanceURL, nil, nil)
 	ctx := context.WithValue(context.Background(), now.ContextKey, time.Date(2020, 04, 01, 0, 0, 0, 0, time.UTC))
 	err := n.ExampleSend(ctx, alertForTest)
 	require.NoError(t, err)

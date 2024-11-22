@@ -8,7 +8,7 @@
  *     "untriaged", "positive", or "negative".
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/icons/check-circle-icon-sk';

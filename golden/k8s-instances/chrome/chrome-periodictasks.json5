@@ -6,5 +6,15 @@
   ready_port: ":8000",
 
   K8S_CPU: "200m",
-  K8S_MEMORY: "100Mi"
+  K8S_MEMORY: "100Mi",
+
+  cache_corpora: [
+    "android-render-tests",
+    "android-render-tests-internal",
+    "chrome-gpu",
+    "chrome-gpu-gtest",
+    "finch-smoke-tests",
+    "gtest-pixeltests"
+  ],
+  caching_frequency_minutes: 5
 }

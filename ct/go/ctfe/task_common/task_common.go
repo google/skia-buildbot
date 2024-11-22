@@ -772,7 +772,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		Project:       change.Project,
 		CodereviewURL: fmt.Sprintf("%s/c/%d/%s", crURL, cl, patchset),
 	}
-	patch, err = g.GetPatch(r.Context(), cl, patchset)
+	patch, err = g.GetPatch(r.Context(), cl, patchset, "")
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to download patch from Gerrit", http.StatusInternalServerError)
 		return

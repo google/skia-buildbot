@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
+	searchCache "go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/storage"
@@ -99,6 +100,7 @@ func main() {
 		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
 		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to the periodic tasks server.")
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
+		local                = flag.Bool("local", false, "Set to true if running locally.")
 	)
 
 	// Parse the options. So we can configure logging.
@@ -143,10 +145,17 @@ func main() {
 	startChangelistsDiffWork(ctx, gatherer, ptc)
 	startDiffWorkMetrics(ctx, db)
 	startBackupStatusCheck(ctx, db, ptc)
-	startKnownDigestsSync(ctx, db, ptc)
+
+	if !*local {
+		startKnownDigestsSync(ctx, db, ptc)
+	}
+
 	if ptc.PerfSummaries != nil {
 		startPerfSummarization(ctx, db, ptc.PerfSummaries)
 	}
+
+	sklog.Infof("Starting cache population tasks.")
+	runCachingTasks(ctx, ptc, db)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -1152,4 +1161,26 @@ func uploadDataToPerf(ctx context.Context, tuple summaryTuple, data summaryData,
 	}
 	sklog.Infof("Uploaded summary to perf %s", perfPath)
 	return nil
+}
+
+// Runs the caching tasks.
+func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
+	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
+		populateSearchCache(ctx, ptc, db)
+	})
+}
+
+// Runs the caching tasks related to the search functionality.
+func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
+	cache, err := ptc.GetCacheClient(ctx)
+	if err != nil {
+		sklog.Fatalf("Error creating a new cache instance: %v", err)
+	}
+	if cache != nil {
+		searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
+		err = searchCacheManager.RunCachePopulation(ctx)
+		if err != nil {
+			sklog.Fatalf("Error running cache population: %v", err)
+		}
+	}
 }

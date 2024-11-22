@@ -117,10 +117,7 @@ type secretsApp struct {
 
 // cmdCreate creates a new secret in Cloud Secret Manager.
 func (a *secretsApp) cmdCreate(ctx context.Context, project, secretName string) error {
-	if err := a.secretClient.Create(ctx, project, secretName); err != nil {
-		return skerr.Wrap(err)
-	}
-	return skerr.Wrap(a.updateSecret(ctx, project, secretName, ""))
+	return skerr.Fmt("Secret creation is now done via Terraform. See http://cs/skia_infra_public/main.tf")
 }
 
 // cmdDescribe prints information about a secret in Kubernetes.
@@ -138,6 +135,11 @@ func (a *secretsApp) cmdDescribe(ctx context.Context, srcProject, srcSecretName 
 
 // cmdMigrate migrates a secret from Kubernetes to Cloud Secret Manager.
 func (a *secretsApp) cmdMigrate(ctx context.Context, srcProject, srcSecretName, srcSecretPath, dstProject, dstSecretName string) error {
+	// Ensure that the secret was already created using Terraform.
+	if _, err := a.secretClient.Describe(ctx, dstProject, dstSecretName); err != nil {
+		return skerr.Wrapf(err, "failed to retrieve secret %s from project %s; has it been created using Terraform?  See http://cs/skia_infra_public/main.tf", dstSecretName, dstProject)
+	}
+
 	secretMap, err := getK8sSecret(ctx, srcProject, srcSecretName)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -147,13 +149,6 @@ func (a *secretsApp) cmdMigrate(ctx context.Context, srcProject, srcSecretName, 
 		return skerr.Fmt("secret %q has no value at path %q", srcSecretName, srcSecretPath)
 	}
 	// Store the secret.
-	// Note: because this tool is designed for first-time migration of secrets,
-	// we're unconditionally creating the secret first.  Creation of a secret
-	// which already exists should fail, which is what we want for this use
-	// case.
-	if err := a.secretClient.Create(ctx, dstProject, dstSecretName); err != nil {
-		return skerr.Wrap(err)
-	}
 	return skerr.Wrap(a.putSecret(ctx, dstProject, dstSecretName, value))
 }
 
@@ -239,26 +234,12 @@ func (a *secretsApp) putSecret(ctx context.Context, project, name, value string)
 
 // cmdGrantAccess grants access to a secret in Cloud Secret Manager.
 func (a *secretsApp) cmdGrantAccess(ctx context.Context, project string, secretNames, serviceAccounts []string) error {
-	for _, secretName := range secretNames {
-		for _, serviceAccount := range serviceAccounts {
-			if err := a.secretClient.GrantAccess(ctx, project, secretName, serviceAccount); err != nil {
-				return skerr.Wrap(err)
-			}
-		}
-	}
-	return nil
+	return skerr.Fmt("Secret IAM settings are now managed via Terraform. See http://cs/skia_infra_public/main.tf")
 }
 
 // cmdRevokeAccess revokes access to a secret in Cloud Secret Manager.
 func (a *secretsApp) cmdRevokeAccess(ctx context.Context, project string, secretNames, serviceAccounts []string) error {
-	for _, secretName := range secretNames {
-		for _, serviceAccount := range serviceAccounts {
-			if err := a.secretClient.RevokeAccess(ctx, project, secretName, serviceAccount); err != nil {
-				return skerr.Wrap(err)
-			}
-		}
-	}
-	return nil
+	return skerr.Fmt("Secret IAM settings are now managed via Terraform. See http://cs/skia_infra_public/main.tf")
 }
 
 func main() {

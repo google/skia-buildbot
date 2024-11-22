@@ -5,7 +5,7 @@
  * multi-input-sk behaves similarly to <input type="text"> but its value is a
  * string[].
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../dom';
 import { ElementSk } from '../ElementSk';

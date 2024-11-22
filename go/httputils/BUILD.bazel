@@ -14,6 +14,7 @@ go_library(
         "//go/util",
         "@com_github_cenkalti_backoff//:backoff",
         "@com_github_fiorix_go_web//autogzip",
+        "@com_github_go_chi_chi_v5//:chi",
         "@org_golang_x_oauth2//:oauth2",
     ],
 )

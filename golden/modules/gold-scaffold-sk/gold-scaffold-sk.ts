@@ -12,7 +12,7 @@
  *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';

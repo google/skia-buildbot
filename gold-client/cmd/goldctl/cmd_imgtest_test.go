@@ -1021,7 +1021,7 @@ func (r *rpcResponsesBuilder) LatestPositive(digest types.Digest, traceKeys para
 func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	mh := &mocks.HTTPClient{}
 	knownResp := strings.Join(r.knownDigests, "\n")
-	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
+	mh.On("Get", testutils.AnyContext, r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
 	exp, err := json.Marshal(frontend.BaselineV2Response{
 		Expectations: r.exp.AsBaseline(),
@@ -1029,7 +1029,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 	if err != nil {
 		panic(err)
 	}
-	mh.On("Get", r.urlBase+"/json/v2/expectations").Return(
+	mh.On("Get", testutils.AnyContext, r.urlBase+"/json/v2/expectations").Return(
 		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
 
 	for traceID, digest := range r.latestPositives {
@@ -1038,12 +1038,12 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 			panic(err)
 		}
 		url := r.urlBase + "/json/v2/latestpositivedigest/" + string(traceID)
-		mh.On("Get", url).Return(
+		mh.On("Get", testutils.AnyContext, url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
 
 	groupingsResp := httpResponse(`{"grouping_param_keys_by_corpus": {"my_corpus": ["name", "source_type"]}}`, "200 OK", http.StatusOK)
-	mh.On("Get", r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
+	mh.On("Get", testutils.AnyContext, r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
 
 	return mh
 }
@@ -1051,7 +1051,7 @@ func (r *rpcResponsesBuilder) Build() *mocks.HTTPClient {
 func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 	mh := &mocks.HTTPClient{}
 	knownResp := strings.Join(r.knownDigests, "\n")
-	mh.On("Get", r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
+	mh.On("Get", testutils.AnyContext, r.urlBase+"/json/v1/hashes").Return(httpResponse(knownResp, "200 OK", http.StatusOK), nil)
 
 	exp, err := json.Marshal(frontend.BaselineV2Response{
 		Expectations:     r.exp.AsBaseline(),
@@ -1062,7 +1062,7 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 		panic(err)
 	}
 	url := fmt.Sprintf("%s/json/v2/expectations?issue=%s&crs=%s", r.urlBase, clID, crs)
-	mh.On("Get", url).Return(
+	mh.On("Get", testutils.AnyContext, url).Return(
 		httpResponse(string(exp), "200 OK", http.StatusOK), nil)
 
 	for traceID, digest := range r.latestPositives {
@@ -1071,26 +1071,26 @@ func (r *rpcResponsesBuilder) BuildForCL(crs, clID string) *mocks.HTTPClient {
 			panic(err)
 		}
 		url := r.urlBase + "/json/v2/latestpositivedigest/" + string(traceID)
-		mh.On("Get", url).Return(
+		mh.On("Get", testutils.AnyContext, url).Return(
 			httpResponse(string(j), "200 OK", http.StatusOK), nil)
 	}
 
 	groupingsResp := httpResponse(`{"grouping_param_keys_by_corpus": {"my_corpus": ["name", "source_type"]}}`, "200 OK", http.StatusOK)
-	mh.On("Get", r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
+	mh.On("Get", testutils.AnyContext, r.urlBase+"/json/v1/groupings").Return(groupingsResp, nil)
 
 	return mh
 }
 
 func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
-
+	ctx := context.Background()
 	mh := mockRPCResponses("https://my-instance-gold.skia.org").Build()
-	resp, err := mh.Get("https://my-instance-gold.skia.org/json/v1/hashes")
+	resp, err := mh.Get(ctx, "https://my-instance-gold.skia.org/json/v1/hashes")
 	require.NoError(t, err)
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Equal(t, "", string(b))
 
-	resp, err = mh.Get("https://my-instance-gold.skia.org/json/v2/expectations")
+	resp, err = mh.Get(ctx, "https://my-instance-gold.skia.org/json/v2/expectations")
 	require.NoError(t, err)
 	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -1098,7 +1098,7 @@ func TestRPCResponsesBuilder_Default_ReturnsBlankValues(t *testing.T) {
 }
 
 func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
-
+	ctx := context.Background()
 	mh := mockRPCResponses("http://my-custom-url.example.com").
 		Known("first_digest").
 		Positive("alpha test", "second_digest").
@@ -1107,7 +1107,7 @@ func TestRPCResponsesBuilder_WithValues_ReturnsValidListsAndJSON(t *testing.T) {
 		LatestPositive("third_digest", paramtools.Params{"alpha": "beta", "gamma": "delta epsilon"}).
 		Known("fifth_digest").
 		Build()
-	resp, err := mh.Get("http://my-custom-url.example.com/json/v1/hashes")
+	resp, err := mh.Get(ctx, "http://my-custom-url.example.com/json/v1/hashes")
 	require.NoError(t, err)
 	b, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -1117,7 +1117,7 @@ third_digest
 fourth_digest
 fifth_digest`, string(b))
 
-	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/expectations")
+	resp, err = mh.Get(ctx, "http://my-custom-url.example.com/json/v2/expectations")
 	require.NoError(t, err)
 	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -1126,7 +1126,7 @@ fifth_digest`, string(b))
 	const expectedTraceID = "fad8dda3d6600fde059cb81f4ec64059"
 	_, tb := sql.SerializeMap(map[string]string{"alpha": "beta", "gamma": "delta epsilon"})
 	require.Equal(t, expectedTraceID, hex.EncodeToString(tb))
-	resp, err = mh.Get("http://my-custom-url.example.com/json/v2/latestpositivedigest/" + expectedTraceID)
+	resp, err = mh.Get(ctx, "http://my-custom-url.example.com/json/v2/latestpositivedigest/"+expectedTraceID)
 	require.NoError(t, err)
 	b, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)

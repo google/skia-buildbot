@@ -17,7 +17,7 @@
  *              Supported values are default and presentation
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ShaderData } from './shader-replace';
 import { LottieAnimation, LottieAsset, LottieLayer, ViewMode } from '../types';

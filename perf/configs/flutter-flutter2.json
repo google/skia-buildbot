@@ -11,7 +11,7 @@
     },
     "data_store_config": {
         "datastore_type": "cockroachdb",
-        "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_flutter2?sslmode=disable",
+        "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/flutter_flutter2?sslmode=disable",
         "tile_size": 4096
     },
     "ingestion_config": {

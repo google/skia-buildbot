@@ -256,9 +256,10 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		receiver: rec,
 		taskId:   taskId,
 	}
+	execRun := exec.GetRunFn(ctx)
 	ctx = context.WithValue(ctx, contextKey, &Context{
 		run:     r,
-		execRun: exec.DefaultRun,
+		execRun: execRun,
 	})
 	env := MergeEnv(os.Environ(), BaseEnv)
 	if wrappedStepID, ok := os.LookupEnv(EnvVarWrappedStepID); ok {

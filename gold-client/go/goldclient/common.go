@@ -15,6 +15,8 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const requestTimeout = 10 * time.Second
+
 // getWithRetries makes a GET request with retries to work around the rare unexpected EOF error.
 // See https://crbug.com/skia/9108.
 func getWithRetries(ctx context.Context, url string) ([]byte, error) {
@@ -23,7 +25,7 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 	eb := backoff.NewExponentialBackOff()
 	eb.InitialInterval = time.Second
 	eb.MaxInterval = 10 * time.Second
-	eb.MaxElapsedTime = 30 * time.Second
+	eb.MaxElapsedTime = 60 * time.Second
 
 	var returnBytes []byte
 	logAndReturn := func(err error) error {
@@ -34,7 +36,9 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 		if err := ctx.Err(); err != nil {
 			return backoff.Permanent(err)
 		}
-		resp, err := httpClient.Get(url)
+		rctx, cancel := context.WithTimeout(ctx, requestTimeout)
+		defer cancel()
+		resp, err := httpClient.Get(rctx, url)
 		if err != nil {
 			return logAndReturn(skerr.Wrapf(err, "GET %s", url))
 		}
@@ -62,7 +66,9 @@ func getWithRetries(ctx context.Context, url string) ([]byte, error) {
 // post makes a POST request to the specified URL with the given body.
 func post(ctx context.Context, url, contentType string, body io.Reader) ([]byte, error) {
 	httpClient := extractHTTPClient(ctx)
-	resp, err := httpClient.Post(url, contentType, body)
+	rctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	resp, err := httpClient.Post(rctx, url, contentType, body)
 	if err != nil {
 		return nil, skerr.Fmt("error on POST %s: %s", url, err)
 	}

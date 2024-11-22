@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 /* eslint-disable no-use-before-define */
 /**
  * @module modules/shaders-app-sk
@@ -6,8 +5,8 @@
  *
  */
 import CodeMirror from 'codemirror';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { html, TemplateResult } from 'lit-html';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { html, TemplateResult } from 'lit/html.js';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import 'codemirror/mode/clike/clike'; // Syntax highlighting for c-like languages.
 import { define } from '../../../elements-sk/modules/define';
@@ -48,7 +47,6 @@ import {
 } from '../shadernode';
 import { EditChildShaderSk } from '../edit-child-shader-sk/edit-child-shader-sk';
 import '../edit-child-shader-sk';
-import * as SkSLConstants from '../sksl-constants/sksl-constants';
 import '../window/window';
 import type CKInit from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 
@@ -92,17 +90,7 @@ interface UniformControlElement extends Element, UniformControl {}
 
 // Define a new mode and mime-type for SkSL shaders. We follow the shader naming
 // covention found in CodeMirror.
-CodeMirror.defineMIME('x-shader/x-sksl', {
-  name: 'clike',
-  keywords: SkSLConstants.keywords,
-  types: SkSLConstants.types,
-  builtin: SkSLConstants.builtins,
-  blockKeywords: SkSLConstants.blockKeywords,
-  defKeywords: SkSLConstants.defKeywords,
-  typeFirstDefinitions: true,
-  atoms: SkSLConstants.atoms,
-  modeProps: { fold: ['brace', 'include'] },
-});
+CodeMirror.defineMIME('x-shader/x-sksl', { name: 'clike' });
 
 /** requestAnimationFrame id if requestAnimationFrame is not running. */
 const RAF_NOT_RUNNING = -1;
@@ -204,11 +192,11 @@ const uniformExamples: Array<uniformExample> = [
  * which in turn links to its thumbnail.
  * @returns the gallery template result
  */
-const exampleShadersGalleryTemplate = (ele: ShadersAppSk) => html`
+const exampleShadersGalleryTemplate = () => html`
   <div class="gallery">
     <ol class="slides">
-      ${exampleShaders.map((i) => shaderEntry(ele, i))}
-      ${uniformExamples.map((i) => uniformExampleEntry(ele, i))}
+      ${exampleShaders.map((i) => shaderEntry(i))}
+      ${uniformExamples.map((i) => uniformExampleEntry(i))}
     </ol>
   </div>
 `;
@@ -227,7 +215,7 @@ const domIDFromHashOrName = (hashOrName: string): string => {
  * @param i the shader example
  * @returns formated shader exanple entry div
  */
-const shaderEntry = (ele: ShadersAppSk, i: shaderExample) =>
+const shaderEntry = (i: shaderExample) =>
   html` <li class="thumbnails" id="${domIDFromHashOrName(i.hash)}">
     <a href="/?id=${i.hash}">
       <img
@@ -239,7 +227,7 @@ const shaderEntry = (ele: ShadersAppSk, i: shaderExample) =>
 /**
  * Formats each uniform entry attaching the link with the display text.
  */
-const uniformExampleEntry = (ele: ShadersAppSk, uni: uniformExample) =>
+const uniformExampleEntry = (uni: uniformExample) =>
   html` <li class="thumbnails" id="${domIDFromHashOrName(uni.id)}">
     <a href="/?id=${uni.id}">${uni.name}</a>
   </li>`;
@@ -480,7 +468,7 @@ export class ShadersAppSk extends ElementSk {
       <main>
         <div>
           <div class="example-gallery-and-canvas-wrapper">
-            <div>${exampleShadersGalleryTemplate(ele)}</div>
+            <div>${exampleShadersGalleryTemplate()}</div>
             <canvas id="player" width=${ele.width} height=${ele.height}>
               Your browser does not support the canvas tag.
             </canvas>

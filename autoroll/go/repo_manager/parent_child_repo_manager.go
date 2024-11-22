@@ -27,14 +27,14 @@ type parentChildRepoManager struct {
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName, serverURL string, client *http.Client, cr codereview.CodeReview) (*parentChildRepoManager, error) {
 	var childRM child.Child
 	var parentRM parent.Parent
 	var err error
 
 	// Some Child implementations require that they are created by the Parent,
 	// so we have to create the Parent first.
-	var childCheckout *git.Checkout
+	var childCheckout git.Checkout
 	if c.GetDepsLocalGerritParent() != nil {
 		parentCfg := c.GetDepsLocalGerritParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -42,8 +42,8 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 			childPath = filepath.Join(parentCfg.DepsLocal.ChildSubdir, childPath)
 		}
 		childFullPath := filepath.Join(workdir, childPath)
-		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
-		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, recipeCfgFile, cr)
+		childCheckout = git.CheckoutDir(childFullPath)
+		parentRM, err = parent.NewDEPSLocalGerrit(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetDepsLocalGithubParent() != nil {
 		parentCfg := c.GetDepsLocalGithubParent()
 		childPath := parentCfg.DepsLocal.ChildPath
@@ -51,10 +51,10 @@ func newParentChildRepoManager(ctx context.Context, c *config.ParentChildRepoMan
 			childPath = filepath.Join(parentCfg.DepsLocal.ChildSubdir, childPath)
 		}
 		childFullPath := filepath.Join(workdir, childPath)
-		childCheckout = &git.Checkout{GitDir: git.GitDir(childFullPath)}
-		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, recipeCfgFile, cr)
+		childCheckout = git.CheckoutDir(childFullPath)
+		parentRM, err = parent.NewDEPSLocalGitHub(ctx, parentCfg, reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGerritParent() != nil {
-		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, serverURL, workdir, rollerName, cr)
+		parentRM, err = parent.NewGitCheckoutGerrit(ctx, c.GetGitCheckoutGerritParent(), reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitCheckoutGithubFileParent() != nil {
 		parentRM, err = parent.NewGitCheckoutGithubFile(ctx, c.GetGitCheckoutGithubFileParent(), reg, client, serverURL, workdir, rollerName, cr)
 	} else if c.GetGitilesParent() != nil {

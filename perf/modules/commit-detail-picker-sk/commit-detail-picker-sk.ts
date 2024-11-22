@@ -10,7 +10,7 @@ import '../commit-detail-panel-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../day-range-sk';
 
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { errorMessage } from '../errorMessage';
@@ -140,9 +140,7 @@ export class CommitDetailPickerSk extends ElementSk {
   }
 
   private panelSelect(e: Event) {
-    this.selected = (
-      e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
-    ).detail.selected;
+    this.selected = (e as CustomEvent<CommitDetailPanelSkCommitSelectedDetails>).detail.selected;
     this._render();
     this.close();
   }

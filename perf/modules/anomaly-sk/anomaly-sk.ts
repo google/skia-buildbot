@@ -3,16 +3,10 @@
  * @description <h2><code>anomaly-sk</code></h2>
  *
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  Anomaly,
-  AnomalyMap,
-  ColumnHeader,
-  CommitNumber,
-  TraceSet,
-} from '../json';
+import { Anomaly, AnomalyMap, ColumnHeader, CommitNumber, TraceSet } from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
 import { lookupCids } from '../cid/cid';
 import '../window/window';
@@ -56,7 +50,8 @@ import '../window/window';
 export const getAnomalyDataMap = (
   traceSet: TraceSet,
   header: (ColumnHeader | null)[],
-  anomalymap: AnomalyMap
+  anomalymap: AnomalyMap,
+  highlight_anomalies: string[]
 ): { [key: string]: AnomalyData[] } => {
   const anomalyDataMap: { [traceId: string]: AnomalyData[] } = {};
 
@@ -82,10 +77,17 @@ export const getAnomalyDataMap = (
               // we show the anomaly on the next available data point instead of not
               // displaying it at all.
               if (columnHeader!.offset >= cid) {
+                const currentAnomaly = cidAnomalyMap[cid];
+                // If the currentAnomaly is present in the highlight list, mark it for highlighting.
+                const highlight =
+                  highlight_anomalies !== null &&
+                  highlight_anomalies.includes(currentAnomaly.id.toString());
+
                 anomalyDataMap[traceId].push({
                   anomaly: cidAnomalyMap[cid],
                   x: i,
                   y: trace[i],
+                  highlight: highlight,
                 });
                 break;
               }
@@ -97,9 +99,7 @@ export const getAnomalyDataMap = (
   return anomalyDataMap;
 };
 
-const commitNumberToHashes = async (
-  cids: CommitNumber[]
-): Promise<string[]> => {
+const commitNumberToHashes = async (cids: CommitNumber[]): Promise<string[]> => {
   const json = await lookupCids(cids);
   return [json.commitSlice![0].hash, json.commitSlice![1].hash];
 };
@@ -115,7 +115,7 @@ export class AnomalySk extends ElementSk {
     super(AnomalySk.template);
   }
 
-  private static formatNumber = (num: number): string =>
+  static formatNumber = (num: number): string =>
     num.toLocaleString('en-US', {
       maximumFractionDigits: 4,
     });
@@ -126,25 +126,19 @@ export class AnomalySk extends ElementSk {
       signDisplay: 'exceptZero',
     });
 
-  private static getPercentChange = (
-    median_before: number,
-    median_after: number
-  ): number => {
+  static getPercentChange = (median_before: number, median_after: number): number => {
     const difference = median_after - median_before;
     // Division by zero is represented by infinity symbol.
     return (100 * difference) / median_before;
   };
 
   formatRevisionRange = async (): Promise<void> => {
-    if (this.anomaly == null) return;
+    if (this.anomaly === null) return;
 
     const start_rev = this.anomaly.start_revision;
     const end_rev = this.anomaly.end_revision;
 
-    const cids: CommitNumber[] = [
-      CommitNumber(start_rev),
-      CommitNumber(end_rev),
-    ];
+    const cids: CommitNumber[] = [CommitNumber(start_rev), CommitNumber(end_rev)];
 
     const hashes = await commitNumberToHashes(cids);
 
@@ -161,11 +155,17 @@ export class AnomalySk extends ElementSk {
     this._render();
   };
 
-  private formatBug(bugId: number): TemplateResult {
-    if (bugId === -1) {
+  static formatBug(bugHostUrl: string, bugId: number): TemplateResult {
+    if (bugId === 0) {
       return html``;
     }
-    return html`<a href="${`${this.bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
+    if (bugId === -1) {
+      return html`Invalid Alert`;
+    }
+    if (bugId === -2) {
+      return html`Ignored Alert`;
+    }
+    return html`<a href="${`${bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
   }
 
   private static template = (ele: AnomalySk) => {
@@ -211,7 +211,7 @@ export class AnomalySk extends ElementSk {
             </tr>
             <tr>
               <th>Bug Id</th>
-              <td>${ele.formatBug(anomaly.bug_id)}</td>
+              <td>${AnomalySk.formatBug(ele.bugHostUrl, anomaly.bug_id)}</td>
             </tr>
           </tbody>
         </table>

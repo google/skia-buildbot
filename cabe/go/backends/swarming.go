@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	swarmingv2 "go.skia.org/infra/go/swarming/v2"
 	"golang.org/x/oauth2/google"
 )
 
@@ -16,7 +17,7 @@ const (
 	swarmingServiceAddress = "chrome-swarming.appspot.com:443"
 )
 
-func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
+func DialSwarming(ctx context.Context) (swarmingv2.SwarmingV2Client, error) {
 	// Create authenticated HTTP client.
 	httpClientTokenSource, err := google.DefaultTokenSource(ctx, auth.ScopeReadOnly, swarming.AUTH_SCOPE)
 	if err != nil {
@@ -28,7 +29,6 @@ func DialSwarming(ctx context.Context) (swarming.ApiClient, error) {
 		Base: client.Transport,
 	}}
 
-	ret, err := swarming.NewApiClient(tracedClient, swarmingServiceAddress)
-
-	return ret, err
+	ret := swarmingv2.NewDefaultClient(tracedClient, swarmingServiceAddress)
+	return ret, nil
 }

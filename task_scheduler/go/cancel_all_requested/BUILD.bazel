@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "cancel_all_requested_lib",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/cancel_all_requested",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog",
+        "//task_scheduler/go/db",
+        "//task_scheduler/go/db/firestore",
+        "//task_scheduler/go/types",
+        "@com_google_cloud_go_datastore//:datastore",
+        "@org_golang_x_oauth2//google",
+    ],
+)
+
+go_binary(
+    name = "cancel_all_requested",
+    embed = [":cancel_all_requested_lib"],
+    visibility = ["//visibility:public"],
+)

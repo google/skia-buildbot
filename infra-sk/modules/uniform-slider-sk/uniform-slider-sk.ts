@@ -4,7 +4,7 @@
  *
  * Constructs a single slider for a single float uniform.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { $$ } from '../dom';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';

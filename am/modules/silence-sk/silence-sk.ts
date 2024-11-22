@@ -86,7 +86,7 @@
  *   </pre>
  *
  */
-import { html, render, TemplateResult } from 'lit-html';
+import { html, render, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/icons/add-box-icon-sk';
 import '../../../elements-sk/modules/icons/delete-icon-sk';
@@ -462,7 +462,7 @@ export class SilenceSk extends HTMLElement {
   }
 
   private _render(): void {
-    render(SilenceSk.template(this), this, { eventContext: this });
+    render(SilenceSk.template(this), this, { host: this });
   }
 }
 

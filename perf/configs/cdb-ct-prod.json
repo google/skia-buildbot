@@ -11,15 +11,15 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/ct?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/ct?sslmode=disable",
     "tile_size": 256
   },
   "ingestion_config": {
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-ct-production",
-      "subscription": "perf-ingestion-ct-cdb-prod",
+      "topic": "perf-ingestion-ct-production-restore",
+      "subscription": "perf-ingestion-ct-cdb-restore-prod",
       "sources": [
         "gs://cluster-telemetry-perf/ingest"
       ]

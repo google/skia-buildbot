@@ -370,34 +370,46 @@ const fakeChildDep3 = "child/dep3"
 var fakeTransitiveDeps = []*config.TransitiveDepConfig{
 	{
 		Child: &config.VersionFileConfig{
-			Id:   fakeChildDep1,
-			Path: "DEPS",
+			Id: fakeChildDep1,
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 		Parent: &config.VersionFileConfig{
-			Id:   "parent/dep1",
-			Path: "DEPS",
+			Id: "parent/dep1",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 		LogUrlTmpl: "https://fake-dep1/+log/{{.RollingFrom}}..{{.RollingTo}}",
 	},
 	{
 		Child: &config.VersionFileConfig{
-			Id:   fakeChildDep2,
-			Path: "DEPS",
+			Id: fakeChildDep2,
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 		Parent: &config.VersionFileConfig{
-			Id:   "parent/dep2",
-			Path: "DEPS",
+			Id: "parent/dep2",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 		LogUrlTmpl: "https://fake-dep2/+log/{{.RollingFrom}}..{{.RollingTo}}",
 	},
 	{
 		Child: &config.VersionFileConfig{
-			Id:   fakeChildDep3,
-			Path: "DEPS",
+			Id: fakeChildDep3,
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 		Parent: &config.VersionFileConfig{
-			Id:   "parent/dep3",
-			Path: "DEPS",
+			Id: "parent/dep3",
+			File: []*config.VersionFileConfig_File{
+				{Path: "DEPS"},
+			},
 		},
 	},
 }

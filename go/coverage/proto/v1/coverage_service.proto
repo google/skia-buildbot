@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package coverage.v1;
+
+option go_package = "go.skia.org/infra/go/coverage/proto/v1";
+
+
+// Handles all coverage related actions.
+service CoverageService {
+  rpc GetAllFiles(CoverageRequest) returns (CoverageAllResponses) {
+  }
+  rpc GetTestSuite(CoverageListRequest) returns (CoverageListResponse) {
+  }
+  rpc InsertFile(CoverageChangeRequest) returns (CoverageChangeResponse) {
+  }
+  rpc DeleteFile(CoverageChangeRequest) returns (CoverageChangeResponse) {
+  }
+}
+
+message CoverageRequest {}
+
+message CoverageResponse {
+  optional string file_name = 1;
+  optional string builder_name = 2;
+  repeated string test_suite_name = 3;
+}
+
+message CoverageAllResponses {
+  repeated CoverageResponse responses = 1;
+}
+
+message CoverageListRequest {
+  optional string file_name = 1;
+  optional string builder_name = 2;
+}
+
+message CoverageListResponse {
+  optional string status = 1;
+  repeated string test_suites = 2;
+}
+
+message CoverageChangeRequest {
+  optional string file_name = 1;
+  optional string builder_name = 2;
+  repeated string test_suite_name = 3;
+}
+
+message CoverageChangeResponse {
+  optional string status = 1;
+  optional string message = 2;
+}
+
+message TestSuite {
+  optional string test_suite_name = 1;
+  repeated string test_case_name = 2;
+}
+
+message Builder {
+  // Name of the builder.
+  optional string builder_name = 1;
+  // Architecture of the builder.
+  optional string architecture = 2;
+  // OS of the builder.
+  optional string os = 3;
+  // Test suites that are part of the builder.
+  repeated TestSuite test_suite = 4;
+}
+
+message TestSuiteMap {
+  // Name of the file.
+  optional string file_name = 1;
+  // Name of the builder.
+  optional string builder_name = 2;
+  // Name of test suite.
+  repeated string test_suite_name = 3;
+}

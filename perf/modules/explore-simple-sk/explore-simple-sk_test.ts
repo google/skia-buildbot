@@ -4,11 +4,7 @@ import fetchMock from 'fetch-mock';
 import {
   ColumnHeader,
   CommitNumber,
-  DataFrame,
-  FrameRequest,
-  FrameResponse,
   QueryConfig,
-  ReadOnlyParamSet,
   TimestampSeconds,
   Trace,
   TraceSet,
@@ -26,9 +22,8 @@ import {
   GraphConfig,
   updateShortcut,
 } from './explore-simple-sk';
-import { timestampBounds, buildParamSet } from '../dataframe';
-import { toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import { fromKey } from '../paramtools';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -112,12 +107,13 @@ describe('applyFuncToTraces', () => {
     trace_format: '',
     need_alert_action: false,
     bug_host_url: '',
+    git_repo_url: '',
+    keys_for_commit_range: [],
+    image_tag: 'fake-tag',
   };
 
   // Create a common element-sk to be used by all the tests.
-  const explore = document.createElement(
-    'explore-simple-sk'
-  ) as ExploreSimpleSk;
+  const explore = document.createElement('explore-simple-sk') as ExploreSimpleSk;
   document.body.appendChild(explore);
 
   const finishedBody: progress.SerializedProgress = {
@@ -143,9 +139,7 @@ describe('applyFuncToTraces', () => {
     assert.isTrue(fetchMock.done());
 
     // Confirm the formula is wrapped in iqrr().
-    const body = JSON.parse(
-      fetchMock.lastOptions(startURL)?.body as unknown as string
-    ) as any;
+    const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
   });
@@ -264,6 +258,47 @@ describe('updateShortcut', () => {
   });
 });
 
+describe('traceSelected', () => {
+  it('should update the summary dropdown value', () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.state.plotSummary = true;
+    explore['tracesRendered'] = true;
+    explore.render();
+
+    const traceIds = [
+      ',config=8888,arch=x86,',
+      ',config=8888,arch=arm,',
+      ',config=565,arch=x86,',
+      ',config=565,arch=arm,',
+    ];
+    explore['summaryOptionsField'].value!.options = Object.keys(traceIds);
+
+    const fakePoints = [
+      [99, 1],
+      [100, 2],
+      [101, 3],
+    ];
+    const header: ColumnHeader[] = [];
+    fakePoints.forEach((p) => {
+      header.push({
+        offset: CommitNumber(p[0]),
+        timestamp: TimestampSeconds(p[1]),
+      });
+    });
+
+    const p: PointSelected = {
+      commit: CommitNumber(100),
+      name: traceIds[1],
+    };
+    const ev = selectionToEvent(p, header);
+    explore.traceSelected(ev);
+
+    const expected = explore['traceFormatter']!.formatTrace(fromKey(traceIds[1]));
+    const actual = explore['summaryOptionsField'].value!.getValue();
+    assert.equal(actual, expected);
+  });
+});
+
 describe('createGraphConfigs', () => {
   it('traceset without formulas', () => {
     const traceset = TraceSet({
@@ -272,8 +307,7 @@ describe('createGraphConfigs', () => {
       ',config=565,arch=x86,': Trace([0.0, 0.0, 3.3, 3.4]),
       ',config=565,arch=arm,': Trace([0.0, 0.0, 4.3, 4.4]),
     });
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     const result = explore.createGraphConfigs(traceset);
     const expected: GraphConfig[] = [
       {
@@ -306,8 +340,7 @@ describe('createGraphConfigs', () => {
       'func1(,config=8888,arch=x86,)': Trace([0.1, 0.2, 0.0, 0.4]),
       'func2(,config=8888,arch=arm,)': Trace([1.1, 1.2, 0.0, 1.4]),
     });
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     const result = explore.createGraphConfigs(traceset);
     const expected: GraphConfig[] = [
       {
@@ -361,8 +394,7 @@ describe('Default values', () => {
       body: defaultBody,
     });
 
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const explore = await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
     await fetchMock.flush(true);
     const originalState = deepCopy(explore!.state);
     await explore['applyQueryDefaultsIfMissing']();
@@ -379,383 +411,36 @@ describe('Default values', () => {
       },
       include_params: null,
     };
-    const defaultBody = JSON.stringify(defaultConfig);
-    fetchMock.get('path:/_/defaults/', {
-      status: 200,
-      body: defaultBody,
-    });
 
-    const explore =
-      setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-    await fetchMock.flush(true);
-    const actualConfig = explore['defaults'];
-    assert.deepEqual(
-      actualConfig,
-      defaultConfig,
-      'actual and default configs are the same'
-    );
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore['_defaults'] = defaultConfig;
+
     const originalState = deepCopy(explore.state);
     await explore['applyQueryDefaultsIfMissing']();
-    assert.isTrue(fetchMock.done());
 
     const newState = explore.state;
-    assert.notDeepEqual(
-      newState,
-      originalState,
-      'new state should not equal original state'
-    );
+    assert.notDeepEqual(newState, originalState, 'new state should not equal original state');
     assert.isTrue(newState.summary);
   });
 });
 
-describe('requestFrameBodyDeltaFromState', () => {
-  function fakeDataFrame(): DataFrame {
-    const ret: DataFrame = {
-      header: [
-        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
-        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
-        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
-        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
-      ],
-      traceset: TraceSet({
-        ',config=8888,arch=x86,': Trace([0.1, 0.2, 0.0, 0.4]),
-        ',config=8888,arch=arm,': Trace([1.1, 1.2, 0.0, 1.4]),
-        ',config=565,arch=x86,': Trace([0.0, 0.0, 3.3, 3.4]),
-        ',config=565,arch=arm,': Trace([0.0, 0.0, 4.3, 4.4]),
-      }),
-      paramset: ReadOnlyParamSet({}),
-      skip: 0,
-    };
-    buildParamSet(ret);
-    return ret;
-  }
+describe('plotSummary', () => {
+  it('Populate Plot Summary bar', async () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
 
-  it('fetches only missing older data when panning left with overlap', async () => {
-    // dataframe:           [1100,   1400]
-    //     state: [300,       1200]
-    //   request: [300, 1100]
+    explore.state.plotSummary = true;
+    explore['tracesRendered'] = true;
+    explore.render();
 
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [300, 1200],
-    // e.g. 'pan left'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = true;
-    state.begin = 300;
-    state.end = 1200;
-    state.queries = fromParamSet(existingDataFrame.paramset).split('&');
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // It should return a request for just the missing range, [300, 1100].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [300, 1100]
-    );
-    assert.includeMembers(frameBodyDeltaRequest.queries!, [
-      'config=8888',
-      'arch=x86',
-      'config=565',
-      'arch=arm',
-    ]);
+    const plotSummaryElement = explore['plotSummary'].value;
+    assert.notEqual(plotSummaryElement, undefined);
   });
 
-  it('fetches entire range when _incremental is false ', async () => {
-    // dataframe:       [1100,   1400]
-    //     state: [300,          1400]
-    //   request: [300,          1400]
+  it('Plot Summary bar not enabled', async () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    explore.render();
 
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [300, 1400],
-    // e.g. 'pan left'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = false;
-    state.begin = 300;
-    state.end = 1400;
-    explore['_state'] = state;
-
-    fetchMock.post('/_/shift/', {
-      begin: 0,
-      end: 1200,
-    });
-    explore['zoomLeftKey']();
-    assert.isTrue(fetchMock.done());
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // It should return a request for just the missing range, [300, 1100].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [300, 1400]
-    );
-  });
-
-  it('fetches only missing new data when panning right with overlap', async () => {
-    // dataframe: [1100,   1400]
-    //     state:   [1200,           2100]
-    //   request:          [1400,    2100]
-
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [1200, 2100],
-    // e.g. 'pan right'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = true;
-    state.begin = 1100;
-    state.end = 2100;
-    state.queries = fromParamSet(existingDataFrame.paramset).split('&');
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // It should return a request for just the missing range, [1400, 2100].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [1400, 2100]
-    );
-  });
-
-  it('fetches full range if zoomed out both left and right', async () => {
-    // dataframe:    [1100,   1400]
-    //     state: [700,              2100]
-    //   request: [700,              2100]
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [700, 2100],
-    // e.g. 'zoom out past both edges'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = true;
-    state.begin = 700;
-    state.end = 2100;
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // Even though incremental fetches are enabled, it should still return a
-    // request for the full range, [700, 2100].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [700, 2100]
-    );
-  });
-
-  it('fetches full range if state and dataframe ranges do not overlap', async () => {
-    // dataframe:    [1100,   1400]
-    //     state:                   [1900, 2100]
-    //   request:                   [1900, 2100]
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [700, 2100],
-    // e.g. 'zoom out past both edges'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = true;
-    state.begin = 1900;
-    state.end = 2100;
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // Even though incremental fetches are enabled, it should still return a
-    // request for the full range, [700, 2100].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [1900, 2100]
-    );
-  });
-
-  it('fetches full range when _incremental is false', async () => {
-    // dataframe:       [1100,   1400]
-    //     state: [300,          1400]
-    //   request: [300,          1400]
-
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // Setup is that we have the timestamp range [1100, 1400] loaded in the current dataframe.
-    // User does something to cause this._state's timestamp range to become [300, 1400],
-    // e.g. 'pan left'.
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-
-    const state = deepCopy(explore.state);
-
-    state._incremental = false;
-    state.begin = 300;
-    state.end = 1400;
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    // It should return a request for the full _state.begin/end range, [300, 1400].
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [300, 1400]
-    );
-  });
-
-  it('handles pan and zoom requests when _incremental is false', async () => {
-    // dataframe:       [1100,   1400]
-    //     state: [900,        1200]
-    //   request: [900,        1200]
-
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    const existingDataFrame = fakeDataFrame();
-    explore['_dataframe'] = existingDataFrame;
-    let currentBounds = timestampBounds(existingDataFrame);
-    const prePanZoom = explore['getCurrentZoom']();
-
-    const state = deepCopy(explore.state);
-    state.queries = ['name=IDK'];
-    state._incremental = false;
-    explore['_state'] = state;
-
-    const shiftedDataFrame = deepCopy(existingDataFrame);
-    shiftedDataFrame.header = [
-      { offset: CommitNumber(9), timestamp: TimestampSeconds(900) },
-      { offset: CommitNumber(10), timestamp: TimestampSeconds(1000) },
-      { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
-      { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
-    ];
-    const shiftResponse = {
-      begin: shiftedDataFrame!.header[0]!.timestamp,
-      end: shiftedDataFrame!.header[3]!.timestamp,
-    };
-    const finishedBody: progress.SerializedProgress = {
-      status: 'Finished',
-      messages: [],
-      results: {
-        anomalymap: null,
-        skps: [],
-        dataframe: shiftedDataFrame,
-        display_mode: 'display_plot',
-        msg: '',
-      },
-      url: '',
-    };
-    const startURL = '/_/frame/start';
-
-    fetchMock.reset();
-    fetchMock.post('/_/shift/', shiftResponse);
-    fetchMock.post(startURL, finishedBody);
-
-    // Simulate user hitting a key to pan left.
-    explore['zoomLeftKey']();
-    await fetchMock.flush(true);
-    assert.isTrue(fetchMock.done(), 'made the expected fetch calls');
-
-    const postPanZoom = explore['getCurrentZoom']();
-    assert.deepEqual(
-      prePanZoom,
-      postPanZoom,
-      'panning should not affect the zoom'
-    );
-
-    const newState = explore['_state'];
-    assert.equal(newState.requestType, 0);
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-
-    currentBounds = timestampBounds(explore['_dataframe']);
-    // It should return a request for the full _state.begin/end range.
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      currentBounds,
-      'frame req should match current bounds'
-    );
-    fetchMock.restore();
-  });
-
-  it('fetch full dataframe if queries change', async () => {
-    // run a query, test=A, turn on _incremental,
-    // then do another search with test=B and also change the date range on that second query.
-    // dataframe (paramset: ['test=A']):       [1100,   1400]
-    //      state (queries: ['test=B']): [900,        1200]
-    //    request (queries: ['test=B']): [900,        1200]
-
-    const explore =
-      await setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
-
-    // run a query, test=A
-    const queryTestADataFrame: DataFrame = {
-      header: [
-        { offset: CommitNumber(11), timestamp: TimestampSeconds(1100) },
-        { offset: CommitNumber(12), timestamp: TimestampSeconds(1200) },
-        { offset: CommitNumber(13), timestamp: TimestampSeconds(1300) },
-        { offset: CommitNumber(14), timestamp: TimestampSeconds(1400) },
-      ],
-      traceset: TraceSet({
-        'test=A': Trace([0.1, 0.2, 0.0, 0.4]),
-      }),
-      paramset: ReadOnlyParamSet({}),
-      skip: 0,
-    };
-    buildParamSet(queryTestADataFrame);
-
-    explore['_dataframe'] = queryTestADataFrame;
-    const state = deepCopy(explore.state);
-
-    // turn on _incremental
-    state._incremental = true;
-    // then do another search with test=B
-    state.queries = ['test=B'];
-
-    // and also change the date range on that second query
-    state.begin = 900;
-    state.end = 1200;
-
-    explore['_state'] = state;
-
-    const frameBodyDeltaRequest: FrameRequest =
-      explore['requestFrameBodyDeltaFromState']();
-    assert.deepEqual(
-      frameBodyDeltaRequest.queries,
-      ['test=B'],
-      'fetch the new query rather than the existing query'
-    );
-    assert.deepEqual(
-      [frameBodyDeltaRequest.begin, frameBodyDeltaRequest.end],
-      [900, 1200],
-      'fetch entire range if the query changed'
-    );
+    const plotSummaryElement = explore['plotSummary'].value;
+    assert.equal(plotSummaryElement, undefined);
   });
 });

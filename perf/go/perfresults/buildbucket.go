@@ -31,6 +31,15 @@ type BuildInfo struct {
 	// The swarming instance that runs this build.
 	SwarmingInstance string
 
+	// The builder name.
+	BuilderName string
+
+	// The perf machine group, see bit.ly/perf-dashboard-machine-group.
+	//
+	// This groups similar builders, and is defined as a builder property
+	// "perf_dashboard_machine_group".
+	MachineGroup string
+
 	// The swarming task ID that runs this build.
 	TaskID string
 
@@ -89,7 +98,7 @@ func (bc bbClient) findBuildInfo(ctx context.Context, buildID int64) (BuildInfo,
 		Id: buildID,
 		Mask: &bpb.BuildMask{
 			Fields: &fieldmaskpb.FieldMask{
-				Paths: []string{"status", "infra.backend.task.id", "output.properties"},
+				Paths: []string{"builder", "status", "infra.backend.task.id", "output.properties", "input.properties"},
 			},
 		},
 	})
@@ -110,8 +119,13 @@ func (bc bbClient) findBuildInfo(ctx context.Context, buildID int64) (BuildInfo,
 	sh := t.GetTarget()[len(swarmingProtocol):] + ".appspot.com"
 
 	props := build.GetOutput().GetProperties().AsMap()
+
+	input := build.GetInput().GetProperties().AsMap()
+	machineGroup, _ := input["perf_dashboard_machine_group"].(string)
 	return BuildInfo{
 		SwarmingInstance: sh,
+		BuilderName:      build.GetBuilder().GetBuilder(),
+		MachineGroup:     machineGroup,
 		TaskID:           t.GetId(),
 		Revision:         props["got_revision"].(string),
 		CommitPosisition: props["got_revision_cp"].(string),

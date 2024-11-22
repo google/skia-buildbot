@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -42,9 +41,21 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 	previousCommit provider.Commit,
 	alert *alerts.Alert,
 	cl *clustering2.ClusterSummary,
-	frame *frame.FrameResponse) (string, error) {
+	frame *frame.FrameResponse,
+	regressionID string) (string, error) {
 
 	sklog.Infof("[AG] %d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
+
+	// Debug logs on b/357628141: why the same anomaly id is added to the group multiple times?
+	if len(frame.DataFrame.TraceSet) > 1 {
+		traceset_keys := make([]string, len(frame.DataFrame.TraceSet))
+		i := 0
+		for traceset_key := range frame.DataFrame.TraceSet {
+			traceset_keys[i] = traceset_key
+			i++
+		}
+		sklog.Debugf("[AG] More than one keys found in anomaly's traceset. Anomaly: %s. Keys: %s", regressionID, traceset_keys)
+	}
 
 	for key := range frame.DataFrame.TraceSet {
 		paramset, err := query.ParseKey(key)
@@ -65,7 +76,7 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 		_, err = n.grouper.ProcessRegressionInGroup(
 			ctx,
 			alert,
-			uuid.NewString(), //TODO(ashwinpv): use regression.id when regression2 is in place
+			regressionID,
 			int64(previousCommit.CommitNumber),
 			int64(commit.CommitNumber),
 			testPath,
@@ -96,6 +107,11 @@ func (n *AnomalyGroupNotifier) RegressionMissing(
 // ExampleSend is for dummy data. Do nothing!
 func (n *AnomalyGroupNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error {
 	sklog.Info("No op function for AnomalyGroupNotifier.ExampleSend")
+	return nil
+}
+
+// UpdateRegressionNotification implements Transport.
+func (n *AnomalyGroupNotifier) UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error {
 	return nil
 }
 

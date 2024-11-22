@@ -12,7 +12,7 @@ sk_element(
         "//skottie/modules/helpers:gifstorage_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:human_ts_lib",
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
     ],
     ts_srcs = [
         "index.ts",

@@ -58,8 +58,10 @@ func afdoCfg(t *testing.T) *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "AFDO",
-						Path: afdoVersionFilePath,
+						Id: "AFDO",
+						File: []*config.VersionFileConfig_File{
+							{Path: afdoVersionFilePath},
+						},
 					},
 				},
 				Gerrit: &config.GerritConfig{
@@ -104,7 +106,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	parent.Commit(context.Background())
 
 	urlmock := mockhttpclient.NewURLMock()
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
@@ -123,12 +125,12 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	cfg := afdoCfg(t)
 	parentCfg := cfg.Parent.(*config.ParentChildRepoManagerConfig_GitilesParent).GitilesParent
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipe-cfg", "fake.server.com", client, gerritCR(t, g, client))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", client, gerritCR(t, g, client))
 	require.NoError(t, err)
 
 	// Mock requests for Update.
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
@@ -242,7 +244,7 @@ func TestAFDORepoManager(t *testing.T) {
 
 	// Mock requests for Update.
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{
@@ -374,7 +376,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	parent.Add(context.Background(), afdoVersionFilePath, "BOGUS_REV")
 	parent.Commit(context.Background())
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, afdoVersionFilePath, parentHead)
 	mockGSList(t, urlmock, afdoGsBucket, afdoGsPath, map[string]string{

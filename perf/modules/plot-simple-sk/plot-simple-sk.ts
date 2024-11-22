@@ -90,15 +90,16 @@
  *
  * @attr summary {Boolean} - If present then display the summary bar.
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import { Anomaly } from '../json';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { KDTree, KDPoint } from './kd';
-import { tick, ticks } from './ticks';
+import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
+import { defaultColors } from '../common/plot-builder';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
@@ -117,21 +118,6 @@ const DETAIL_LINE_WIDTH = 1; // px
 const AXIS_LINE_WIDTH = 1; // px
 
 const MIN_MOUSE_MOVE_FOR_ZOOM = 5; // px
-
-/**
- * @constant {Array} - Colors used for traces.
- */
-const COLORS = [
-  '#000000',
-  '#1B9E77',
-  '#D95F02',
-  '#7570B3',
-  '#E7298A',
-  '#66A61E',
-  '#E6AB02',
-  '#A6761D',
-  '#666666',
-];
 
 // Contains linear scales to convert from source coordinates into
 // device/destination coordinates.
@@ -354,10 +340,7 @@ class SearchBuilder {
 // Returns true if pt is in rect.
 function inRect(pt: Point, rect: Rect): boolean {
   return (
-    pt.x >= rect.x &&
-    pt.x < rect.x + rect.width &&
-    pt.y >= rect.y &&
-    pt.y < rect.y + rect.height
+    pt.x >= rect.x && pt.x < rect.x + rect.width && pt.y >= rect.y && pt.y < rect.y + rect.height
   );
 }
 
@@ -395,6 +378,7 @@ export interface AnomalyData {
   x: number;
   y: number;
   anomaly: Anomaly;
+  highlight: boolean;
 }
 
 export interface MousePosition {
@@ -447,7 +431,10 @@ export type ZoomRange = [number, number] | null;
 export interface PlotSimpleSkTraceEventDetails {
   x: number;
   y: number;
-
+  // DOM position of x in Pixels
+  xPos?: number;
+  // DOM position of y in Pixels
+  yPos?: number;
   // The trace id.
   name: string;
 }
@@ -473,6 +460,8 @@ export class PlotSimpleSk extends ElementSk {
   private _bands: number[] = [];
 
   private _anomalyDataMap: { [key: string]: AnomalyData[] } = {};
+
+  private _showCrosshairLabel: boolean = true;
 
   /** A map of trace names to 'true' of traces that are highlighted. */
   private highlighted: { [key: string]: boolean } = {};
@@ -683,6 +672,10 @@ export class PlotSimpleSk extends ElementSk {
 
   private ANOMALY_BACKGROUND!: string; // CSS color.
 
+  private ANOMALY_HIGHLIGHT_COLOR!: string; // CSS color.
+
+  private UNTRIAGED_COLOR!: string; // CSS color.
+
   private REGRESSION_COLOR!: string; // CSS color.
 
   private IMPROVEMENT_COLOR!: string; // CSS color.
@@ -746,14 +739,12 @@ export class PlotSimpleSk extends ElementSk {
       class="traces"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+      style="transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});"></canvas>
     <canvas
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
-      style="transform-origin: 0 0; transform: scale(${1 /
-      window.devicePixelRatio});"></canvas>
+      style="transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});"></canvas>
   `;
 
   connectedCallback(): void {
@@ -761,16 +752,21 @@ export class PlotSimpleSk extends ElementSk {
 
     this.render();
 
-    // We need to dynamically resize the canvas elements since they don't do
-    // that themselves.
-    const resizeObserver = new ResizeObserver(
-      (entries: ResizeObserverEntry[]) => {
+    const resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      // We add this to avoid resizeObserver loop limit errors in unit tests
+      // https://stackoverflow.com/a/58701523
+      window.requestAnimationFrame(() => {
+        if (!Array.isArray(entries) || !entries.length) {
+          return;
+        }
+        // We need to dynamically resize the canvas elements since they don't do
+        // that themselves.
         entries.forEach((entry) => {
           this.width = entry.contentRect.width;
           this.height = entry.contentRect.height;
         });
-      }
-    );
+      });
+    });
     resizeObserver.observe(this);
 
     this.addEventListener('mousemove', (e: MouseEvent) => {
@@ -845,16 +841,12 @@ export class PlotSimpleSk extends ElementSk {
             if (this.inactiveDetailsZoomRangesStack.length === 0) {
               return;
             }
-            this.detailsZoomRangesStack.push(
-              this.inactiveDetailsZoomRangesStack.pop()!
-            );
+            this.detailsZoomRangesStack.push(this.inactiveDetailsZoomRangesStack.pop()!);
           } else {
             if (this.detailsZoomRangesStack.length === 0) {
               return;
             }
-            this.inactiveDetailsZoomRangesStack.push(
-              this.detailsZoomRangesStack.pop()!
-            );
+            this.inactiveDetailsZoomRangesStack.push(this.detailsZoomRangesStack.pop()!);
           }
           this._zoomImpl();
         }
@@ -873,6 +865,8 @@ export class PlotSimpleSk extends ElementSk {
       const detail = {
         x: closest.sx,
         y: closest.sy,
+        xPos: closest.x / this.scale,
+        yPos: closest.y / this.scale,
         name: closest.name,
       };
       this.dispatchEvent(
@@ -891,11 +885,7 @@ export class PlotSimpleSk extends ElementSk {
     window.requestAnimationFrame(this.raf.bind(this));
   }
 
-  attributeChangedCallback(
-    _: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this.render();
     }
@@ -905,8 +895,7 @@ export class PlotSimpleSk extends ElementSk {
   render(): void {
     this._render();
     const canvas = this.querySelector<HTMLCanvasElement>('canvas.traces')!;
-    const overlayCanvas =
-      this.querySelector<HTMLCanvasElement>('canvas.overlay')!;
+    const overlayCanvas = this.querySelector<HTMLCanvasElement>('canvas.overlay')!;
     if (canvas) {
       this.ctx = canvas.getContext('2d');
       this.overlayCtx = overlayCanvas.getContext('2d');
@@ -985,9 +974,7 @@ export class PlotSimpleSk extends ElementSk {
    * @param {Array<string>} ids - The trace ids to remove.
    */
   deleteLines(ids: string[]): void {
-    this.lineData = this.lineData.filter(
-      (line) => ids.indexOf(line.name) === -1
-    );
+    this.lineData = this.lineData.filter((line) => ids.indexOf(line.name) === -1);
     if (this.anomalyDataMap !== null) {
       ids.forEach((id) => {
         if (id in this.anomalyDataMap) {
@@ -995,9 +982,7 @@ export class PlotSimpleSk extends ElementSk {
         }
       });
     }
-    const onlySpecialLinesRemaining = this.lineData.every((line) =>
-      line.name.startsWith(SPECIAL)
-    );
+    const onlySpecialLinesRemaining = this.lineData.every((line) => line.name.startsWith(SPECIAL));
     if (onlySpecialLinesRemaining) {
       this.removeAll();
     } else {
@@ -1111,8 +1096,10 @@ export class PlotSimpleSk extends ElementSk {
     this.LABEL_BACKGROUND = style.backgroundColor;
 
     this.ANOMALY_BACKGROUND = style.getPropertyValue('--on-surface');
+    this.UNTRIAGED_COLOR = style.getPropertyValue('--surface');
     this.IMPROVEMENT_COLOR = style.getPropertyValue('--success');
     this.REGRESSION_COLOR = style.getPropertyValue('--failure');
+    this.ANOMALY_HIGHLIGHT_COLOR = style.getPropertyValue('--warning');
 
     // Now override with CSS variables if they are present.
     const onBackground = style.getPropertyValue('--on-backgroud');
@@ -1192,6 +1179,8 @@ export class PlotSimpleSk extends ElementSk {
         const detail = {
           x: closest.sx,
           y: closest.sy,
+          xPos: closest.x / this.scale,
+          yPos: closest.y / this.scale,
           name: closest.name,
         };
         if (detail.x !== this.hoverPt.x || detail.y !== this.hoverPt.y) {
@@ -1273,7 +1262,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = COLORS[(this.hashString(line.name) % 8) + 1];
+        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
       }
 
       const summaryBuilder = new PathBuilder(
@@ -1305,7 +1294,7 @@ export class PlotSimpleSk extends ElementSk {
       if (line.name.startsWith(SPECIAL)) {
         line.color = this.LABEL_COLOR;
       } else {
-        line.color = COLORS[(this.hashString(line.name) % 8) + 1];
+        line.color = defaultColors[(this.hashString(line.name) % (defaultColors.length - 1)) + 1];
       }
 
       const detailBuilder = new PathBuilder(
@@ -1364,10 +1353,7 @@ export class PlotSimpleSk extends ElementSk {
     const yAxisPath = new Path2D();
     const thinX = Math.floor(this.detailArea.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
     yAxisPath.moveTo(thinX, this.detailArea.rect.y);
-    yAxisPath.lineTo(
-      thinX,
-      this.detailArea.rect.y + this.detailArea.rect.height
-    );
+    yAxisPath.lineTo(thinX, this.detailArea.rect.y + this.detailArea.rect.height);
     area.yaxis.labels = [];
     area.range.y.ticks(NUM_Y_TICKS).forEach((t) => {
       const label = {
@@ -1420,10 +1406,7 @@ export class PlotSimpleSk extends ElementSk {
     const domain = this.detailArea.range.x.domain();
     domain[0] = Math.floor(domain[0] - 0.1);
     domain[1] = Math.ceil(domain[1] + 0.1);
-    const searchBuilder = new SearchBuilder(
-      this.detailArea.range.x,
-      this.detailArea.range.y
-    );
+    const searchBuilder = new SearchBuilder(this.detailArea.range.x, this.detailArea.range.y);
     this.lineData.forEach((line) => {
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -1465,16 +1448,9 @@ export class PlotSimpleSk extends ElementSk {
     // If detailsZoomRangeStacks is not empty then it overrides the detail
     // range.
     if (this.detailsZoomRangesStack.length > 0) {
-      const zoom =
-        this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
-      this.detailArea.range.x = this.detailArea.range.x.domain([
-        zoom.x,
-        zoom.x + zoom.width,
-      ]);
-      this.detailArea.range.y = this.detailArea.range.y.domain([
-        zoom.y,
-        zoom.y + zoom.height,
-      ]);
+      const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+      this.detailArea.range.x = this.detailArea.range.x.domain([zoom.x, zoom.x + zoom.width]);
+      this.detailArea.range.y = this.detailArea.range.y.domain([zoom.y, zoom.y + zoom.height]);
     }
   }
 
@@ -1526,9 +1502,7 @@ export class PlotSimpleSk extends ElementSk {
     ) {
       return;
     }
-    this.detailsZoomRangesStack.push(
-      rectFromRangeInvert(this.detailArea.range, this.zoomRect)
-    );
+    this.detailsZoomRangesStack.push(rectFromRangeInvert(this.detailArea.range, this.zoomRect));
 
     // We added a new zoom range, which means all the inactive zoom ranges are
     // no longer valid.
@@ -1562,8 +1536,7 @@ export class PlotSimpleSk extends ElementSk {
         // If detailsZoomRangeStacks is not empty then draw a box to indicate
         // the zoomed region.
         if (this.detailsZoomRangesStack.length > 0) {
-          const zoom =
-            this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
+          const zoom = this.detailsZoomRangesStack[this.detailsZoomRangesStack.length - 1];
           this.drawZoomRect(ctx, rectFromRange(this.summaryArea.range, zoom));
         }
 
@@ -1576,18 +1549,12 @@ export class PlotSimpleSk extends ElementSk {
           const leftx = this.summaryArea.range.x(this._zoom[0]);
           ctx.beginPath();
           ctx.moveTo(leftx, this.summaryArea.rect.y);
-          ctx.lineTo(
-            leftx,
-            this.summaryArea.rect.y + this.summaryArea.rect.height
-          );
+          ctx.lineTo(leftx, this.summaryArea.rect.y + this.summaryArea.rect.height);
 
           // Draw right bar.
           const rightx = this.summaryArea.range.x(this._zoom[1]);
           ctx.moveTo(rightx, this.summaryArea.rect.y);
-          ctx.lineTo(
-            rightx,
-            this.summaryArea.rect.y + this.summaryArea.rect.height
-          );
+          ctx.lineTo(rightx, this.summaryArea.rect.y + this.summaryArea.rect.height);
           ctx.stroke();
 
           // Draw gray boxes.
@@ -1679,7 +1646,7 @@ export class PlotSimpleSk extends ElementSk {
         ctx.stroke();
 
         // Y label at crosshair if shift is pressed.
-        if (this.crosshair.shift) {
+        if (this.showCrosshairLabel && this.crosshair.shift) {
           // Draw the label offset from the crosshair.
           ctx.font = this.LABEL_FONT;
           ctx.textBaseline = 'bottom';
@@ -1703,21 +1670,11 @@ export class PlotSimpleSk extends ElementSk {
           }
 
           ctx.beginPath();
-          ctx.rect(
-            x - this.LABEL_MARGIN,
-            y + this.LABEL_MARGIN,
-            labelWidth,
-            -labelHeight
-          );
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.fill();
           ctx.strokeStyle = this.LABEL_COLOR;
           ctx.beginPath();
-          ctx.rect(
-            x - this.LABEL_MARGIN,
-            y + this.LABEL_MARGIN,
-            labelWidth,
-            -labelHeight
-          );
+          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
           ctx.stroke();
 
           // Now draw text on top.
@@ -1773,6 +1730,14 @@ export class PlotSimpleSk extends ElementSk {
     keys.forEach((key) => {
       this._anomalyDataMap[key].forEach((anomalyData) => {
         const anomaly = anomalyData.anomaly;
+
+        // Anomaly is Ignored or marked as Invalid.
+        if (anomaly.bug_id < 0 || anomaly.recovered) {
+          ctx.globalAlpha = 0.5;
+        } else {
+          ctx.globalAlpha = 1.0;
+        }
+
         const cx = area.range.x(anomalyData.x);
         const cy = area.range.y(anomalyData.y);
         const anomalyPath = new Path2D();
@@ -1783,14 +1748,28 @@ export class PlotSimpleSk extends ElementSk {
         ctx.fillStyle = this.ANOMALY_BACKGROUND;
 
         ctx.fill(anomalyPath);
-        let symbol = '';
-        if (anomaly.is_improvement) {
-          ctx.fillStyle = this.IMPROVEMENT_COLOR;
-          symbol = String.fromCharCode(0xe86c);
-        } else {
-          ctx.fillStyle = this.REGRESSION_COLOR;
-          symbol = String.fromCharCode(0xe000);
+
+        // If the anomaly is marked for highlighting, draw a circle around
+        // the icon with the highlight color.
+        if (anomalyData.highlight) {
+          const highlightPath = new Path2D();
+          const highlightRadius = this.ANOMALY_RADIUS + 2 * this.scale;
+          highlightPath.moveTo(cx + highlightRadius, cy);
+          highlightPath.arc(cx, cy, highlightRadius, 0, 2 * Math.PI);
+
+          ctx.fillStyle = this.ANOMALY_HIGHLIGHT_COLOR;
+          ctx.fill(highlightPath);
         }
+
+        if (anomaly.bug_id <= 0) {
+          ctx.fillStyle = this.UNTRIAGED_COLOR;
+        } else {
+          ctx.fillStyle = anomaly.is_improvement ? this.IMPROVEMENT_COLOR : this.REGRESSION_COLOR;
+        }
+
+        const regression_symbol = String.fromCharCode(0xe000);
+        const improvement_symbol = String.fromCharCode(0xe86c);
+        const symbol = anomaly.is_improvement ? improvement_symbol : regression_symbol;
 
         // Draw anomaly icon.
         ctx.textAlign = 'center';
@@ -1898,6 +1877,13 @@ export class PlotSimpleSk extends ElementSk {
   }
 
   /**
+   * Helper to trigger re-draw of overlay canvas from parent element.
+   */
+  redrawOverlayCanvas() {
+    this.drawOverlayCanvas();
+  }
+
+  /**
    *  An array of trace ids to highlight. Set to [] to remove all highlighting.
    */
   get highlight(): string[] {
@@ -1949,6 +1935,14 @@ export class PlotSimpleSk extends ElementSk {
   set anomalyDataMap(anomalyDataMap: { [key: string]: AnomalyData[] }) {
     this._anomalyDataMap = anomalyDataMap;
     this.drawOverlayCanvas();
+  }
+
+  get showCrosshairLabel(): boolean {
+    return this._showCrosshairLabel;
+  }
+
+  set showCrosshairLabel(show: boolean) {
+    this._showCrosshairLabel = show;
   }
 
   /** The zoom range, an array of two values in source x units. Can be set to

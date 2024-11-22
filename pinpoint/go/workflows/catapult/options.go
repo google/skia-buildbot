@@ -38,4 +38,16 @@ var (
 			MaximumAttempts: 10,
 		},
 	}
+
+	// Activity options for Catapult Bisect Workflow
+	catapultBisectActivityOptions = workflow.ActivityOptions{
+		ScheduleToCloseTimeout: 5 * time.Minute,
+		HeartbeatTimeout:       1 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			InitialInterval:    5 * time.Second,
+			BackoffCoefficient: 2.0,
+			MaximumInterval:    1 * time.Minute,
+			MaximumAttempts:    5,
+		},
+	}
 )

@@ -6,12 +6,14 @@
  * every Perf page should be a child of this element.
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
+import { choose } from 'lit/directives/choose.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/add-alert-icon-sk';
 import '../../../elements-sk/modules/icons/build-icon-sk';
+import '../../../elements-sk/modules/icons/bug-report-icon-sk';
 import '../../../elements-sk/modules/icons/event-icon-sk';
 import '../../../elements-sk/modules/icons/favorite-icon-sk';
 import '../../../elements-sk/modules/icons/folder-icon-sk';
@@ -23,11 +25,13 @@ import '../../../elements-sk/modules/icons/trending-up-icon-sk';
 import '../../../infra-sk/modules/alogin-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
-import '../window/window';
+import { getBuildTag } from '../window/window';
 
 // The ID of a top level element under perf-scaffold-sk that will be moved under
 // the right hand side nav bar.
 const SIDEBAR_HELP_ID = 'sidebar_help';
+
+const BUILDBOT_GIT = 'https://skia.googlesource.com/buildbot.git/+log/';
 
 /**
  * Moves the elements from a list to be the children of the target element.
@@ -44,11 +48,12 @@ export class PerfScaffoldSk extends ElementSk {
 
   private _help: HTMLElement | null = null;
 
-  private _feedback: HTMLElement | null = null;
-
   private _chat: HTMLElement | null = null;
 
   private _helpUrl: string = 'http://go/perf-user-doc';
+
+  private _reportBugUrl: string =
+    'https://issuetracker.google.com/issues/new?component=1547614&template=1970127';
 
   constructor() {
     super(PerfScaffoldSk.template);
@@ -72,15 +77,17 @@ export class PerfScaffoldSk extends ElementSk {
         <a href="/t/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Triage</span></a>
         <a href="/a/" tab-index=0 ><add-alert-icon-sk></add-alert-icon-sk><span>Alerts</span></a>
         <a href="/d/" tab-index=0 ><build-icon-sk></build-icon-sk><span>Dry Run</span></a>
-        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a>
+        <a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering</span></a>
         ${this.revisionLinkTemplate()}
         <a href="${ele._helpUrl}" target="_blank" tab-index=0 >
           <help-icon-sk></help-icon-sk><span>Help</span>
         </a>
+        <a href="${ele._reportBugUrl}" target="_blank" tab-index=0 >
+          <bug-report-icon-sk></bug-report-icon-sk><span>Report Bug</span>
+        </a>
+        ${ele.buildTagTemplate()}
       </div>
       <div id=help>
-      </div>
-      <div id=feedback>
       </div>
       <div id=chat>
       </div>
@@ -95,11 +102,30 @@ export class PerfScaffoldSk extends ElementSk {
 
   private static revisionLinkTemplate = () => {
     if (window.perf.fetch_chrome_perf_anomalies) {
-      return html`<a href="/v/" tab-index=0 ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info<span></a>`;
+      return html`<a href="/v/" tab-index="0"
+        ><trending-up-icon-sk></trending-up-icon-sk><span>Revision Info</span></a
+      >`;
     }
 
     return html``;
   };
+
+  private buildTagLinkTemplate(tag: string) {
+    return html`<a href="${BUILDBOT_GIT}${tag}" target="_blank">Build: ${tag}</a>`;
+  }
+
+  private buildTagTemplate() {
+    const buildTag = getBuildTag();
+    return html`${choose(
+      buildTag.type,
+      [
+        ['git', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['louhi', () => this.buildTagLinkTemplate(buildTag.tag!)],
+        ['tag', () => html`<a>Build: ${buildTag.tag}</a>`],
+      ],
+      () => html`<a>Build: No Tag</a>`
+    )}`;
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -120,24 +146,20 @@ export class PerfScaffoldSk extends ElementSk {
       this._helpUrl = window.perf.help_url_override;
     }
 
+    // Override the feedback / report bug url if specified in the instance config
+    if (window.perf.feedback_url && window.perf.feedback_url !== '') {
+      this._reportBugUrl = window.perf.feedback_url;
+    }
+
     // Now that we've moved all the old children out of the way we can render
     // the template.
     this._render();
 
     this._main = this.querySelector('main');
     this._help = this.querySelector('#help');
-    this._feedback = this.querySelector('#feedback');
     this._chat = this.querySelector('#chat');
 
-    if (this._feedback != null) {
-      this.addUrlToElement(
-        this._feedback,
-        'Provide Feedback',
-        window.perf.feedback_url
-      );
-    }
-
-    if (this._chat != null) {
+    if (this._chat !== null) {
       this.addUrlToElement(this._chat, 'Ask the team', window.perf.chat_url);
     }
 
@@ -154,11 +176,7 @@ export class PerfScaffoldSk extends ElementSk {
   }
 
   // addUrlToElement adds the provided url data inside the given html element.
-  private addUrlToElement(
-    element: HTMLElement,
-    urlText: string,
-    urlHref: string
-  ) {
+  private addUrlToElement(element: HTMLElement, urlText: string, urlHref: string) {
     element.hidden = true;
     if (urlHref && urlHref !== '') {
       element.innerHTML = `<a target="_blank" href="${urlHref}"

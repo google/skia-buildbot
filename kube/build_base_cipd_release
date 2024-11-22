@@ -26,8 +26,8 @@ INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
 ${INSTALL} --mode=644 -T base-cipd/Dockerfile        ${ROOT}/Dockerfile
 # Files needed to install CIPD packages.
-${INSTALL} --mode=644 -T ${tmp}/cipd.ensure          ${ROOT}/tmp/cipd.ensure
-${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/tmp/recipes.cfg
+${INSTALL} --mode=644 -T ${tmp}/cipd.ensure ${ROOT}/tmp/cipd.ensure
+${INSTALL} --mode=644 -T ../DEPS            ${ROOT}/tmp/DEPS
 rm -rf $tmp
 }
 

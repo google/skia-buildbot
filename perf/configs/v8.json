@@ -1,6 +1,7 @@
 {
   "URL": "https://v8-perf.skia.org",
   "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
+  "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
   "trace_sample_proportion": 0.01,
   "notify_config": {
     "notifications": "html_email"
@@ -10,15 +11,15 @@
   },
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/v8?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb3-public:26277/v8?sslmode=disable",
     "tile_size": 256
   },
   "ingestion_config": {
     "source_config": {
       "source_type": "gcs",
       "project": "skia-public",
-      "topic": "perf-ingestion-v8-production",
-      "subscription": "",
+      "topic": "perf-ingestion-v8-production-restore",
+      "subscription": "perf-ingestion-v8-production-restore-prod",
       "sources": [
         "gs://v8_perf_skia_prod/v8/cq/",
         "gs://v8_perf_skia_prod/v8/chromeperf/"
@@ -32,5 +33,13 @@
     "url": "https://chromium.googlesource.com/v8/v8.git",
     "dir": "/tmp/v8",
     "debounce_commit_url": false
+  },
+  "query_config": {
+    "default_url_values": {
+      "plotSummary": "true",
+      "showZero": "false",
+      "enable_chart_tooltip": "true",
+      "use_titles": "true"
+    }
   }
 }

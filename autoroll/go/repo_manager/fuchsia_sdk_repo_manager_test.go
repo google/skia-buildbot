@@ -58,18 +58,24 @@ func fuchsiaCfg() *config.ParentChildRepoManagerConfig {
 				},
 				Dep: &config.DependencyConfig{
 					Primary: &config.VersionFileConfig{
-						Id:   "FuchsiaSDK",
-						Path: fuchsiaSDKVersionFilePathLinux,
+						Id: "FuchsiaSDK",
+						File: []*config.VersionFileConfig_File{
+							{Path: fuchsiaSDKVersionFilePathLinux},
+						},
 					},
 					Transitive: []*config.TransitiveDepConfig{
 						{
 							Child: &config.VersionFileConfig{
-								Id:   child.FuchsiaSdkChild.LatestMacPath,
-								Path: fuchsiaSDKVersionFilePathMac,
+								Id: child.FuchsiaSdkChild.LatestMacPath,
+								File: []*config.VersionFileConfig_File{
+									{Path: fuchsiaSDKVersionFilePathMac},
+								},
 							},
 							Parent: &config.VersionFileConfig{
-								Id:   child.FuchsiaSdkChild.LatestLinuxPath,
-								Path: fuchsiaSDKVersionFilePathMac,
+								Id: child.FuchsiaSdkChild.LatestLinuxPath,
+								File: []*config.VersionFileConfig_File{
+									{Path: fuchsiaSDKVersionFilePathMac},
+								},
 							},
 						},
 					},
@@ -102,7 +108,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	parentCfg.Gitiles.RepoUrl = parent.RepoUrl()
 
 	urlmock := mockhttpclient.NewURLMock()
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.CheckoutDir(parent.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
@@ -119,13 +125,13 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 
 	// Initial update, everything up-to-date.
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
+	rm, err := newParentChildRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", "fake.server.com", urlmock.Client(), gerritCR(t, g, urlmock.Client()))
 	require.NoError(t, err)
 
 	cleanup := func() {
@@ -166,7 +172,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, git.MainBranch)
-	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentHead, err := git.CheckoutDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathLinux, parentHead)
 	mockParent.MockReadFile(ctx, fuchsiaSDKVersionFilePathMac, parentHead)

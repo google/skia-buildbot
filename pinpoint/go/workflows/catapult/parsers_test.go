@@ -14,8 +14,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/pinpoint/go/backends"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/compare"
-	"go.skia.org/infra/pinpoint/go/midpoint"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.skia.org/infra/pinpoint/go/workflows/internal"
 	pinpoint_proto "go.skia.org/infra/pinpoint/proto/v1"
@@ -68,8 +68,8 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 		{
 			CommitRun: internal.CommitRun{
 				Build: &workflows.Build{
-					BuildChromeParams: workflows.BuildChromeParams{
-						Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1")),
+					BuildParams: workflows.BuildParams{
+						Commit: common.NewCombinedCommit(common.NewChromiumCommit("d9ac8dd553c566b8fe107dd8c8b2275c2c9c27f1")),
 					},
 					CAS: &apipb.CASReference{
 						CasInstance: "projects/chrome-swarming/instances/default_instance",
@@ -138,17 +138,30 @@ func TestParseRunData_RunData_StatesAndAttempts(t *testing.T) {
 // createCombinedResults a helper function to generate combinedresults
 func createCombinedResults(lower string, lowerValues []float64, higher string, higherValues []float64) *internal.CombinedResults {
 	return &internal.CombinedResults{
+		ResultType: "Performance",
 		CommitPairValues: internal.CommitPairValues{
 			Lower: internal.CommitValues{
-				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(lower)),
+				Commit: common.NewCombinedCommit(common.NewChromiumCommit(lower)),
 				Values: lowerValues,
 			},
 			Higher: internal.CommitValues{
-				Commit: midpoint.NewCombinedCommit(midpoint.NewChromiumCommit(higher)),
+				Commit: common.NewCombinedCommit(common.NewChromiumCommit(higher)),
 				Values: higherValues,
 			},
 		},
 	}
+}
+
+func TestParseResultValuesPerCommit_FunctionalResult_Nothing(t *testing.T) {
+	// commit order from oldest to newest: 493a946, 2887740, 93dd3db, 836476df, f8e1800
+	comparisons := []*internal.CombinedResults{
+		{
+			ResultType: internal.Functional,
+		},
+	}
+	res := parseResultValuesPerCommit(comparisons)
+	require.NotNil(t, res)
+	assert.Empty(t, res)
 }
 
 func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *testing.T) {
@@ -170,9 +183,9 @@ func TestParseResultValuesPerCommit_ListOfCombinedResults_MapOfKeysToValues(t *t
 	require.NotNil(t, res)
 	assert.Equal(t, 5, len(res))
 	// spot checking a few
-	baseCommit := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946"))
+	baseCommit := common.NewCombinedCommit(common.NewChromiumCommit("493a946"))
 	assert.Equal(t, 0.0, res[baseCommit.Key()][0])
-	fourthCommit := midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("836476df"))
+	fourthCommit := common.NewCombinedCommit(common.NewChromiumCommit("836476df"))
 	assert.Equal(t, 4.0, res[fourthCommit.Key()][0])
 }
 
@@ -217,12 +230,12 @@ func TestParseToSortedCombinedCommits_LowerLower_SortedOrder(t *testing.T) {
 		createCombinedResults("493a946", nil, "2887740", nil),
 		createCombinedResults("2887740", nil, "93dd3db", nil),
 	}
-	expected := []*midpoint.CombinedCommit{
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("2887740")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("93dd3db")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	expected := []*common.CombinedCommit{
+		common.NewCombinedCommit(common.NewChromiumCommit("493a946")),
+		common.NewCombinedCommit(common.NewChromiumCommit("2887740")),
+		common.NewCombinedCommit(common.NewChromiumCommit("93dd3db")),
+		common.NewCombinedCommit(common.NewChromiumCommit("f8e1800")),
+		common.NewCombinedCommit(common.NewChromiumCommit("4b233ef7")),
 	}
 	result := parseToSortedCombinedCommits(comparisons)
 	for i, combinedCommit := range result {
@@ -248,12 +261,12 @@ func TestParseToSortedCombinedCommits_LowerUpper_SortedOrder(t *testing.T) {
 		createCombinedResults("93dd3db", nil, "836476df", nil),
 		createCombinedResults("836476df", nil, "f8e1800", nil),
 	}
-	expected := []*midpoint.CombinedCommit{
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("93dd3db")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("836476df")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	expected := []*common.CombinedCommit{
+		common.NewCombinedCommit(common.NewChromiumCommit("493a946")),
+		common.NewCombinedCommit(common.NewChromiumCommit("93dd3db")),
+		common.NewCombinedCommit(common.NewChromiumCommit("836476df")),
+		common.NewCombinedCommit(common.NewChromiumCommit("f8e1800")),
+		common.NewCombinedCommit(common.NewChromiumCommit("4b233ef7")),
 	}
 	result := parseToSortedCombinedCommits(comparisons)
 	for i, combinedCommit := range result {
@@ -279,12 +292,12 @@ func TestParseToSortedCombinedCommits_UpperLower_SortedOrder(t *testing.T) {
 		createCombinedResults("6649fc3", nil, "58079459", nil),
 		createCombinedResults("f8e1800", nil, "6649fc3", nil),
 	}
-	expected := []*midpoint.CombinedCommit{
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("6649fc3")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("58079459")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	expected := []*common.CombinedCommit{
+		common.NewCombinedCommit(common.NewChromiumCommit("493a946")),
+		common.NewCombinedCommit(common.NewChromiumCommit("f8e1800")),
+		common.NewCombinedCommit(common.NewChromiumCommit("6649fc3")),
+		common.NewCombinedCommit(common.NewChromiumCommit("58079459")),
+		common.NewCombinedCommit(common.NewChromiumCommit("4b233ef7")),
 	}
 	result := parseToSortedCombinedCommits(comparisons)
 	for i, combinedCommit := range result {
@@ -310,12 +323,12 @@ func TestParseToSortedCombinedCommits_UpperUpper_SortedOrder(t *testing.T) {
 		createCombinedResults("2604df7", nil, "4b233ef7", nil),
 		createCombinedResults("58079459", nil, "2604df7", nil),
 	}
-	expected := []*midpoint.CombinedCommit{
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("493a946")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("f8e1800")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("58079459")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("2604df7")),
-		midpoint.NewCombinedCommit(midpoint.NewChromiumCommit("4b233ef7")),
+	expected := []*common.CombinedCommit{
+		common.NewCombinedCommit(common.NewChromiumCommit("493a946")),
+		common.NewCombinedCommit(common.NewChromiumCommit("f8e1800")),
+		common.NewCombinedCommit(common.NewChromiumCommit("58079459")),
+		common.NewCombinedCommit(common.NewChromiumCommit("2604df7")),
+		common.NewCombinedCommit(common.NewChromiumCommit("4b233ef7")),
 	}
 	result := parseToSortedCombinedCommits(comparisons)
 	for i, combinedCommit := range result {
@@ -324,7 +337,7 @@ func TestParseToSortedCombinedCommits_UpperUpper_SortedOrder(t *testing.T) {
 }
 
 // mockParseCommitDataWorkflow is a helper function to wrap parseCommitData() under a workflow to mock the FetchCommitActivity behavior
-func mockParseCommitDataWorkflow(ctx workflow.Context, combinedCommit *midpoint.CombinedCommit) ([]*pinpoint_proto.Commit, error) {
+func mockParseCommitDataWorkflow(ctx workflow.Context, combinedCommit *common.CombinedCommit) ([]*pinpoint_proto.Commit, error) {
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
 	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
 
@@ -335,12 +348,12 @@ func TestParseCommitData_CombinedCommitWithModifiedDeps_Commits(t *testing.T) {
 	chromiumHash := "493a946"
 	depRepo := "https://chromium-review.googlesource.com/c/v8/v8"
 	depHash := "f8e1800"
-	chromiumCommit := midpoint.NewChromiumCommit(chromiumHash)
+	chromiumCommit := common.NewChromiumCommit(chromiumHash)
 	modifiedDepCommit := &pinpoint_proto.Commit{
 		Repository: depRepo,
 		GitHash:    depHash,
 	}
-	combinedCommit := midpoint.NewCombinedCommit(chromiumCommit, modifiedDepCommit)
+	combinedCommit := common.NewCombinedCommit(chromiumCommit, modifiedDepCommit)
 	timeNow := time.Now().UTC()
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -382,7 +395,7 @@ func TestParseCommitData_CombinedCommitWithModifiedDeps_Commits(t *testing.T) {
 	assert.Equal(t, 2, len(actual))
 
 	mainCommit := actual[0]
-	assert.Equal(t, fmt.Sprintf(repositoryUrlTemplate, midpoint.ChromiumSrcGit, chromiumHash), mainCommit.Url)
+	assert.Equal(t, fmt.Sprintf(repositoryUrlTemplate, common.ChromiumSrcGit, chromiumHash), mainCommit.Url)
 	assert.Equal(t, "johndoe@gmail.com", mainCommit.Author)
 	assert.Equal(t, "I40cc1e697cd8f8f0759f18ba814e19321e19702b", mainCommit.ChangeId)
 	assert.Equal(t, "refs/heads/main", mainCommit.CommitBranch)

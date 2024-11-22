@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/perf/go/alerts"
 	ag_mock "go.skia.org/infra/perf/go/anomalygroup/utils/mocks"
@@ -47,10 +46,11 @@ func TestSuccess(t *testing.T) {
 	ctx, alert, frame, cl := Setup(paramset)
 	mockAnomalyGrouper := ag_mock.NewAnomalyGrouper(t)
 	ag_notifier := NewAnomalyGroupNotifier(ctx, mockAnomalyGrouper)
+	regression_id := "550c78a3-ff99-4f28-8a46-106f81a34840"
 	mockAnomalyGrouper.On("ProcessRegressionInGroup",
-		ctx, alert, mock.Anything, int64(100), int64(200), "m/b/be/me/t", paramset).Return("", nil)
+		ctx, alert, regression_id, int64(100), int64(200), "m/b/be/me/t", paramset).Return("", nil)
 
-	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame)
+	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame, regression_id)
 	assert.NoError(t, err)
 }
 
@@ -64,7 +64,7 @@ func TestInvalidParamSet(t *testing.T) {
 	mockAnomalyGrouper := ag_mock.NewAnomalyGrouper(t)
 	ag_notifier := NewAnomalyGroupNotifier(ctx, mockAnomalyGrouper)
 
-	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{}, provider.Commit{}, alert, &cl, &frame)
+	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{}, provider.Commit{}, alert, &cl, &frame, "")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Invalid paramset")
 }
@@ -80,10 +80,11 @@ func TestFailedProcess(t *testing.T) {
 	ctx, alert, frame, cl := Setup(paramset)
 	mockAnomalyGrouper := ag_mock.NewAnomalyGrouper(t)
 	ag_notifier := NewAnomalyGroupNotifier(ctx, mockAnomalyGrouper)
+	regression_id := "550c78a3-ff99-4f28-8a46-106f81a34840"
 	mockAnomalyGrouper.On("ProcessRegressionInGroup",
-		ctx, alert, mock.Anything, int64(100), int64(200), "m/b/be/me/t", paramset).Return("", errors.New(("oops")))
+		ctx, alert, regression_id, int64(100), int64(200), "m/b/be/me/t", paramset).Return("", errors.New(("oops")))
 
-	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame)
+	_, err := ag_notifier.RegressionFound(ctx, provider.Commit{CommitNumber: 200}, provider.Commit{CommitNumber: 100}, alert, &cl, &frame, regression_id)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "error processing regression")
 }

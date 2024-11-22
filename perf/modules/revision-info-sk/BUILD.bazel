@@ -15,15 +15,20 @@ sk_demo_page_server(
 sk_element(
     name = "revision-info-sk",
     sass_srcs = ["revision-info-sk.scss"],
-    sk_element_deps = ["//elements-sk/modules/spinner-sk"],
+    sk_element_deps = [
+        "//elements-sk/modules/spinner-sk",
+        "//elements-sk/modules/checkbox-sk",
+        "//perf/modules/explore-simple-sk",
+    ],
     ts_deps = [
-        "//:node_modules/lit-html",
+        "//:node_modules/lit",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
         "//infra-sk/modules:jsonorthrow_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//infra-sk/modules:hintable_ts_lib",
         "//infra-sk/modules:statereflector_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "revision-info-sk.ts",

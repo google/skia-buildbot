@@ -8,7 +8,7 @@ import (
 	apipb "go.chromium.org/luci/swarming/proto/api_v2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/pinpoint/go/bot_configs"
-	"go.skia.org/infra/pinpoint/go/midpoint"
+	"go.skia.org/infra/pinpoint/go/common"
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	"go.temporal.io/sdk/workflow"
@@ -41,7 +41,7 @@ type SingleCommitRunnerParams struct {
 	// The commit with optional deps override
 	// Note: This field is only used in bisect
 	// TODO(b/326352320): move CombinedCommit to a common package or rename midpoint
-	CombinedCommit *midpoint.CombinedCommit
+	CombinedCommit *common.CombinedCommit
 
 	// The number of benchmark tests to run.
 	// Note the collected sampled values can be more than iterations as each iteration produce
@@ -100,18 +100,19 @@ func (cr *CommitRun) AllErrorValues(chart string) []float64 {
 	return vs
 }
 
-func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *midpoint.CombinedCommit) (*workflows.Build, error) {
+func buildChrome(ctx workflow.Context, jobID, bot, benchmark string, commit *common.CombinedCommit) (*workflows.Build, error) {
 	t, err := bot_configs.GetIsolateTarget(bot, benchmark)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "no target found for (%s, %s)", bot, benchmark)
 	}
 
 	var b *workflows.Build
-	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildChromeParams{
+	if err := workflow.ExecuteChildWorkflow(ctx, workflows.BuildChrome, workflows.BuildParams{
 		WorkflowID: jobID,
 		Device:     bot,
 		Target:     t,
 		Commit:     commit,
+		Project:    "chromium",
 	}).Get(ctx, &b); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -132,7 +133,7 @@ func fetchAllFromChannel[T any](ctx workflow.Context, rc workflow.ReceiveChannel
 	return runs
 }
 
-func runBenchmark(ctx workflow.Context, cc *midpoint.CombinedCommit, cas *apipb.CASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int32) (*workflows.TestRun, error) {
+func runBenchmark(ctx workflow.Context, cc *common.CombinedCommit, cas *apipb.CASReference, scrp *SingleCommitRunnerParams, dimensions map[string]string, iteration int32) (*workflows.TestRun, error) {
 	var tr *workflows.TestRun
 	rbp := &RunBenchmarkParams{
 		JobID:        scrp.PinpointJobID,

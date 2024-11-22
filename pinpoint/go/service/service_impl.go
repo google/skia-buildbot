@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
+	tpr_client "go.skia.org/infra/temporal/go/client"
 )
 
 type server struct {
@@ -26,7 +27,7 @@ type server struct {
 	// Local rate limiter to only limit the traffic for migration temporarilly.
 	limiter *rate.Limiter
 
-	temporal TemporalProvider
+	temporal tpr_client.TemporalProvider
 }
 
 const (
@@ -34,38 +35,22 @@ const (
 	hostPort  = "temporal.temporal:7233"
 	namespace = "perf-internal"
 	taskQueue = "perf.perf-chrome-public.bisect"
+	// TODO(b/352631333): Replace the rate limit with an actual queueing system
+	rateLimit = 30 * time.Minute // accept 1 request every 30 minutes
+	// arbitrary timeouts to ensure workflows will not run forever. Note that it is possible
+	// for a job to naturally timeout due to long running time. Consider updating these
+	// if too many jobs time out.
+	bisectionTimeout     = 12 * time.Hour
+	culpritFinderTimeout = 16 * time.Hour
 )
 
-type TemporalProvider interface {
-	// NewClient returns a Temporal Client and a clean up function
-	NewClient() (client.Client, func(), error)
-}
-
-type defaultTemporalProvider struct {
-}
-
-// NewClient implements TemporalProvider.NewClient
-func (defaultTemporalProvider) NewClient() (client.Client, func(), error) {
-	c, err := client.NewLazyClient(client.Options{
-		HostPort:  hostPort,
-		Namespace: namespace,
-	})
-
-	if err != nil {
-		return nil, nil, skerr.Wrap(err)
-	}
-	return c, func() {
-		c.Close()
-	}, nil
-}
-
-func New(t TemporalProvider, l *rate.Limiter) *server {
+func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
 	if l == nil {
 		// 1 token every 30 minutes, this allow some buffer to drain the hot spots in the bots pool.
-		l = rate.NewLimiter(rate.Every(30*time.Minute), 1)
+		l = rate.NewLimiter(rate.Every(rateLimit), 1)
 	}
 	if t == nil {
-		t = defaultTemporalProvider{}
+		t = tpr_client.DefaultTemporalProvider{}
 	}
 	return &server{
 		limiter:  l,
@@ -76,7 +61,10 @@ func New(t TemporalProvider, l *rate.Limiter) *server {
 // updateFieldsForCatapult converts specific catapult Pinpoint arguments
 // to their skia Pinpoint counterparts
 func updateFieldsForCatapult(req *pb.ScheduleBisectRequest) *pb.ScheduleBisectRequest {
-	if req.Statistic != "" {
+	switch {
+	case req.Statistic == "avg":
+		req.AggregationMethod = "mean"
+	case req.Statistic != "":
 		req.AggregationMethod = req.Statistic
 	}
 	return req
@@ -93,6 +81,40 @@ func validate(req *pb.ScheduleBisectRequest) error {
 	}
 }
 
+// updateCulpritFinderFieldsForCatapult converts specific catapult Pinpoint arguments
+// to their skia Pinpoint counterparts
+func updateCulpritFinderFieldsForCatapult(req *pb.ScheduleCulpritFinderRequest) *pb.ScheduleCulpritFinderRequest {
+	switch {
+	case req.Statistic == "avg":
+		req.AggregationMethod = "mean"
+	case req.Statistic != "":
+		req.AggregationMethod = req.Statistic
+	case req.AggregationMethod == "avg":
+		req.AggregationMethod = "mean"
+	}
+	return req
+}
+
+func validateCulpritFinder(req *pb.ScheduleCulpritFinderRequest) error {
+	switch {
+	case req.StartGitHash == "" || req.EndGitHash == "":
+		return skerr.Fmt("git hash is empty")
+	case req.Benchmark == "":
+		return skerr.Fmt("benchmark is empty")
+	case req.Story == "":
+		return skerr.Fmt("story is empty")
+	case req.Chart == "":
+		return skerr.Fmt("chart is empty")
+	case req.Configuration == "":
+		return skerr.Fmt("configuration (aka the device name) is empty")
+	case req.Configuration == "android-pixel-fold-perf" || req.Configuration == "mac-m1-pro-perf":
+		return skerr.Fmt("bot (%s) is currently unsupported due to low resources", req.Configuration)
+	case !read_values.IsSupportedAggregation(req.AggregationMethod):
+		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
+	}
+	return nil
+}
+
 func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, error) {
 	m := runtime.NewServeMux()
 	if err := pb.RegisterPinpointHandlerServer(ctx, m, srv); err != nil {
@@ -106,7 +128,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 	sklog.Infof("Receiving bisection request: %v", req)
 	if !s.limiter.Allow() {
 		sklog.Infof("The request is dropped due to rate limiting.")
-		return nil, skerr.Fmt("unable to fulfill the request due to rate limiting, dropping")
+		return nil, status.Errorf(codes.ResourceExhausted, "unable to fulfill the request due to rate limiting, dropping")
 	}
 
 	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
@@ -116,7 +138,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	c, cleanUp, err := s.temporal.NewClient()
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}
@@ -126,7 +148,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 	wo := client.StartWorkflowOptions{
 		ID:                       uuid.New().String(),
 		TaskQueue:                taskQueue,
-		WorkflowExecutionTimeout: 12 * time.Hour, // arbitrary timeout to assure it's not going forever.
+		WorkflowExecutionTimeout: bisectionTimeout,
 		RetryPolicy: &temporal.RetryPolicy{
 			// We will only attempt to run the workflow exactly once as we expect any failure will be
 			// not retry-recoverable failure.
@@ -141,6 +163,52 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 		return nil, status.Errorf(codes.Internal, "Unable to start workflow (%v).", err)
 	}
 	return &pb.BisectExecution{JobId: wf.GetID()}, nil
+}
+
+func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulpritFinderRequest) (*pb.CulpritFinderExecution, error) {
+	// Those logs are used to test traffic from existing services in catapult, shall be removed.
+	sklog.Infof("Receiving culprit finder request: %v", req)
+	if !s.limiter.Allow() {
+		sklog.Infof("The request is dropped due to rate limiting.")
+		return nil, status.Errorf(codes.ResourceExhausted, "unable to fulfill the request due to rate limiting, dropping")
+	}
+
+	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
+	req = updateCulpritFinderFieldsForCatapult(req)
+
+	if err := validateCulpritFinder(req); err != nil {
+		sklog.Warningf("the request failed validation due to %v", err.Error())
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
+	}
+
+	defer cleanUp()
+
+	wo := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
+		TaskQueue: taskQueue,
+		// arbitrary timeout to assure it's not going forever. Set to a few hours more than
+		// bisect timeout.
+		WorkflowExecutionTimeout: culpritFinderTimeout,
+		RetryPolicy: &temporal.RetryPolicy{
+			// We will only attempt to run the workflow exactly once as we expect any failure will be
+			// not retry-recoverable failure.
+			MaximumAttempts: 1,
+		},
+	}
+	wf, err := c.ExecuteWorkflow(ctx, wo, workflows.CulpritFinderWorkflow, &workflows.CulpritFinderParams{
+		Request:    req,
+		Production: true,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to start workflow (%v).", err)
+	}
+
+	return &pb.CulpritFinderExecution{JobId: wf.GetID()}, nil
 }
 
 // TODO(b/322047067)
@@ -179,7 +247,7 @@ func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.C
 		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
 	}
 
-	c, cleanUp, err := s.temporal.NewClient()
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
 	}

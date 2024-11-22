@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//bazel:skia_app_container.bzl", "skia_app_container")
 
 go_library(
     name = "worker_lib",
@@ -6,6 +7,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/workflows/worker",
     visibility = ["//visibility:private"],
     deps = [
+        "//go/common",
         "//go/sklog",
         "//perf/go/workflows",
         "//perf/go/workflows/internal",
@@ -20,4 +22,18 @@ go_binary(
     name = "worker",
     embed = [":worker_lib"],
     visibility = ["//visibility:public"],
+)
+
+skia_app_container(
+    name = "grouping_workflow",
+    dirs = {
+        "/usr/local/bin": [
+            [
+                ":worker",
+                "0755",
+            ],
+        ],
+    },
+    entrypoint = "/usr/local/bin/worker",
+    repository = "skia-public/grouping_workflow",
 )

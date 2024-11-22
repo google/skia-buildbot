@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/bugs-central/go/bugs"
 	"go.skia.org/infra/bugs-central/go/bugs/github"
 	"go.skia.org/infra/bugs-central/go/bugs/issuetracker"
-	"go.skia.org/infra/bugs-central/go/bugs/monorail"
 	"go.skia.org/infra/bugs-central/go/types"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
@@ -27,16 +26,15 @@ import (
 
 // IssuesPoller will be used to poll the different issue frameworks.
 type IssuesPoller struct {
-	storageClient            *storage.Client
-	pathToGithubToken        string
-	pathToServiceAccountFile string
+	storageClient     *storage.Client
+	pathToGithubToken string
 
 	dbClient   types.BugsDB
 	openIssues *bugs.OpenIssues
 }
 
 // New returns an instance of IssuesPoller.
-func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
+func New(ctx context.Context, ts oauth2.TokenSource, pathToGithubToken string, dbClient types.BugsDB) (*IssuesPoller, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
@@ -56,11 +54,10 @@ func New(ctx context.Context, ts oauth2.TokenSource, pathToServiceAccountFile, p
 	openIssues := bugs.InitOpenIssues()
 
 	return &IssuesPoller{
-		storageClient:            storageClient,
-		pathToGithubToken:        pathToGithubToken,
-		pathToServiceAccountFile: pathToServiceAccountFile,
-		dbClient:                 dbClient,
-		openIssues:               openIssues,
+		storageClient:     storageClient,
+		pathToGithubToken: pathToGithubToken,
+		dbClient:          dbClient,
+		openIssues:        openIssues,
 	}, nil
 }
 
@@ -137,9 +134,9 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	skiaIssueTrackerQueryConfig := &issuetracker.IssueTrackerQueryConfig{
 		Query:                         "componentid:1363359+ status:open -componentid:1389238+ -componentid:1399322+",
 		Client:                        types.SkiaClient,
+		UnassignedIsUntriaged:         true,
 		UntriagedPriorities:           []string{},
 		UntriagedAliases:              []string{"none"},
-		UnassignedIsUntriaged:         true,
 		HotlistsToIncludeForUntriaged: []int64{5437934},
 	}
 	skiaIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, skiaIssueTrackerQueryConfig)
@@ -148,19 +145,19 @@ func (p *IssuesPoller) Start(ctx context.Context, pollInterval time.Duration) er
 	}
 	bugFrameworks = append(bugFrameworks, skiaIssueTracker)
 
-	//////////////////// OSS-Fuzz - Monorail ////////////////////
-	fuzzQueryConfig := &monorail.MonorailQueryConfig{
-		Instance:              "oss-fuzz",
-		Query:                 "is:open proj=Skia",
+	//////////////////// OSS-Fuzz - Buganizer ////////////////////
+	fuzzQueryConfig := &issuetracker.IssueTrackerQueryConfig{
+		Query:                 "componentid:1638179+ customfield1349507:Skia status:open",
 		Client:                types.OSSFuzzClient,
-		UntriagedStatuses:     []string{"New"},
 		UnassignedIsUntriaged: true,
+		UntriagedPriorities:   []string{},
+		UntriagedAliases:      []string{"none"},
 	}
-	fuzzMonorail, err := monorail.New(ctx, p.pathToServiceAccountFile, p.openIssues, fuzzQueryConfig)
+	fuzzIssueTracker, err := issuetracker.New(p.storageClient, p.openIssues, fuzzQueryConfig)
 	if err != nil {
-		return skerr.Wrapf(err, "failed to init monorail for oss-fuzz")
+		return skerr.Wrapf(err, "failed to init issuetracker for oss-fuzz")
 	}
-	bugFrameworks = append(bugFrameworks, fuzzMonorail)
+	bugFrameworks = append(bugFrameworks, fuzzIssueTracker)
 
 	cleanup.Repeat(pollInterval, func(ctx context.Context) {
 		if !*baseapp.Local {

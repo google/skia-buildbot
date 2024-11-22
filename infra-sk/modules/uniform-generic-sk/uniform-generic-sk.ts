@@ -6,7 +6,7 @@
  *
  * Simply displays number input controls in a table.
  */
-import { html, TemplateResult } from 'lit-html';
+import { html, TemplateResult } from 'lit/html.js';
 import { $$ } from '../dom';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';

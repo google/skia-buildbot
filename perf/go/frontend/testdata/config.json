@@ -1,0 +1,83 @@
+{
+    "URL": "http://localhost:8001",
+    "ga_measurement_id": "G-FAKE-MEASUREMENT-ID",
+    "backend_host_url": "localhost:8003",
+    "contact": "user@example.org",
+    "trace_sample_proportion": 1.0,
+    "fetch_chrome_perf_anomalies": true,
+    "use_regression2_schema": true,
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "notify_config": {
+        "notifications": "none",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "culprit_notify_config": {
+        "notification_type": "none"
+    },
+    "data_store_config": {
+        "datastore_type": "cockroachdb",
+        "connection_string": "postgresql://root@localhost:26257/demo?sslmode=disable",
+        "tile_size": 256
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "dir",
+            "sources": [
+                "./demo/data/"
+            ],
+            "project": "",
+            "topic": "",
+            "subscription": ""
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "git",
+        "url": "https://github.com/skia-dev/perf-demo-repo.git",
+        "dir": "/tmp/perf-demo",
+        "debounce_commit_url": false
+    },
+    "query_config": {
+        "include_params": [
+            "arch",
+            "config",
+            "test",
+            "units",
+	    "bot"
+        ]
+    },
+    "favorites": {
+        "sections":[
+            {
+                "name": "Section 1",
+                "links": [
+                    {
+                        "text": "link 1",
+                        "href": "https://google.com",
+                        "description": "Test link"
+                    },
+                    {
+                        "text": "link 2",
+                        "href": "https://google.com",
+                        "description": "Test link 2"
+                    }
+                ]
+            },
+            {
+                "name": "Section 2",
+                "links": [
+                    {
+                        "text": "Another link",
+                        "href": "https://google.com",
+                        "description": "Test link"
+                    }
+                ]
+            }
+        ]
+    },
+    "need_alert_action": true
+}

@@ -38,9 +38,9 @@ func (_m *Notifier) ExampleSend(ctx context.Context, alert *alerts.Alert) error 
 	return r0
 }
 
-// RegressionFound provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5
-func (_m *Notifier) RegressionFound(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse) (string, error) {
-	ret := _m.Called(ctx, commit, previousCommit, alert, cl, _a5)
+// RegressionFound provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5, regressionID
+func (_m *Notifier) RegressionFound(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse, regressionID string) (string, error) {
+	ret := _m.Called(ctx, commit, previousCommit, alert, cl, _a5, regressionID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RegressionFound")
@@ -48,17 +48,17 @@ func (_m *Notifier) RegressionFound(ctx context.Context, commit provider.Commit,
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse) (string, error)); ok {
-		return rf(ctx, commit, previousCommit, alert, cl, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) (string, error)); ok {
+		return rf(ctx, commit, previousCommit, alert, cl, _a5, regressionID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse) string); ok {
-		r0 = rf(ctx, commit, previousCommit, alert, cl, _a5)
+	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) string); ok {
+		r0 = rf(ctx, commit, previousCommit, alert, cl, _a5, regressionID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse) error); ok {
-		r1 = rf(ctx, commit, previousCommit, alert, cl, _a5)
+	if rf, ok := ret.Get(1).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) error); ok {
+		r1 = rf(ctx, commit, previousCommit, alert, cl, _a5, regressionID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -77,6 +77,24 @@ func (_m *Notifier) RegressionMissing(ctx context.Context, commit provider.Commi
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) error); ok {
 		r0 = rf(ctx, commit, previousCommit, alert, cl, _a5, threadingReference)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateNotification provides a mock function with given fields: ctx, commit, previousCommit, alert, cl, _a5, notificationId
+func (_m *Notifier) UpdateNotification(ctx context.Context, commit provider.Commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, _a5 *frame.FrameResponse, notificationId string) error {
+	ret := _m.Called(ctx, commit, previousCommit, alert, cl, _a5, notificationId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateNotification")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, provider.Commit, provider.Commit, *alerts.Alert, *clustering2.ClusterSummary, *frame.FrameResponse, string) error); ok {
+		r0 = rf(ctx, commit, previousCommit, alert, cl, _a5, notificationId)
 	} else {
 		r0 = ret.Error(0)
 	}

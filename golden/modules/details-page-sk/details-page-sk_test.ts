@@ -8,13 +8,7 @@ import {
   setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import {
-  DigestDetails,
-  GroupingForTestRequest,
-  GroupingForTestResponse,
-  TriageRequestV3,
-  TriageResponse,
-} from '../rpc_types';
+import { DigestDetails, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { DetailsPageSk } from './details-page-sk';
 import { DetailsPageSkPO } from './details-page-sk_po';
 import { groupingsResponse } from '../search-page-sk/demo_data';
@@ -29,30 +23,13 @@ describe('details-page-sk', () => {
   let detailsPageSk: DetailsPageSk;
   let detailsPageSkPO: DetailsPageSkPO;
 
-  const initialize = async (
-    queryString: string,
-    useGroupingForTestRPC: boolean
-  ) => {
+  const initialize = async (queryString: string) => {
     setQueryString(queryString);
 
     detailsPageSk = newInstance();
     detailsPageSkPO = new DetailsPageSkPO(detailsPageSk);
 
     fetchMock.getOnce('/json/v1/groupings', () => deepCopy(groupingsResponse));
-    if (useGroupingForTestRPC) {
-      fetchMock.post('/json/v1/groupingfortest', (url, opts) => {
-        const request: GroupingForTestRequest = JSON.parse(
-          opts.body!.toString()
-        );
-        const response: GroupingForTestResponse = {
-          grouping: {
-            name: request.test_name,
-            source_type: 'infra',
-          },
-        };
-        return response;
-      });
-    }
     const digestDetails: DigestDetails = {
       digest: deepCopy(typicalDetails),
       commits: deepCopy(twoHundredCommits),
@@ -100,6 +77,17 @@ describe('details-page-sk', () => {
       );
       await endTask;
     });
+
+    it('should show overview layout by default', async () => {
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
+        .to.be.true;
+    });
+
+    it('should change to full width view if image size is toggled', async () => {
+      await detailsPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
+        .to.be.false;
+    });
   };
 
   afterEach(() => {
@@ -112,22 +100,7 @@ describe('details-page-sk', () => {
       await initialize(
         '?digest=6246b773851984c726cb2e1cb13510c2&' +
           'grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
-          'changelist_id=12353&crs=gerrit-internal',
-        /* useGroupingForTestRPC= */ false
-      );
-    });
-
-    addTests();
-  });
-
-  // TODO(lovisolo): Delete once all inbound links include a grouping.
-  describe('legacy links with just test in URL', () => {
-    beforeEach(async () => {
-      await initialize(
-        '?digest=6246b773851984c726cb2e1cb13510c2&' +
-          'test=dots-legend-sk_too-many-digests&' +
-          'changelist_id=12353&crs=gerrit-internal',
-        /* useGroupingForTestRPC= */ true
+          'changelist_id=12353&crs=gerrit-internal'
       );
     });
 

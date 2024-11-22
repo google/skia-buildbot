@@ -155,7 +155,7 @@ func TestGetFilteredBranches(t *testing.T) {
 	ctx := context.Background()
 	g := git_testutils.GitInit(t, ctx)
 	urlMock := mockhttpclient.NewURLMock()
-	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
 	ri := &repoImpl{
 		gitiles: gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
 	}
@@ -186,7 +186,7 @@ func TestRepoImplIncludeBranches(t *testing.T) {
 	g := git_testutils.GitInit(t, ctx)
 	gs := &mocks.GitStore{}
 	urlMock := mockhttpclient.NewURLMock()
-	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
 	ri := &repoImpl{
 		gitiles:          gitiles.NewRepo(g.RepoUrl(), urlMock.Client()),
 		gitstore:         gs,
@@ -229,12 +229,13 @@ type gitsyncRefresher struct {
 	gs          gitstore.GitStore
 	initialSync bool
 	oldBranches map[string]string
-	repo        *git.Repo
+	repo        git.Repo
 	t           *testing.T
 }
 
-func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore, gb *git_testutils.GitBuilder, mr *gitiles_testutils.MockRepo) *gitsyncRefresher {
-	repo := &git.Repo{GitDir: git.GitDir(gb.Dir())}
+func newGitsyncRefresher(t *testing.T, ctx context.Context, gs gitstore.GitStore, gb *git_testutils.GitBuilder, mr *gitiles_testutils.MockRepo, workdir string) *gitsyncRefresher {
+	repo, err := git.NewRepo(ctx, gb.RepoUrl(), workdir)
+	require.NoError(t, err)
 	branches, err := repo.Branches(ctx)
 	require.NoError(t, err)
 	oldBranches := make(map[string]string, len(branches))
@@ -381,19 +382,21 @@ func setupGitsync(t *testing.T) (context.Context, *git_testutils.GitBuilder, *re
 	ctx, g, cleanup := repograph_shared_tests.CommonSetup(t)
 	wd, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
-	defer util.RemoveAll(wd)
 	_, _, gs := gitstore_testutils.SetupAndLoadBTGitStore(t, ctx, wd, g.RepoUrl(), true)
 	urlMock := mockhttpclient.NewURLMock()
-	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.GitDir(g.Dir()), urlMock)
+	mockRepo := gitiles_testutils.NewMockRepo(t, g.RepoUrl(), git.CheckoutDir(g.Dir()), urlMock)
 	repo := gitiles.NewRepo(g.RepoUrl(), urlMock.Client())
 	gcsClient := mem_gcsclient.New("fake-bucket")
 	ri, err := newRepoImpl(ctx, gs, repo, gcsClient, "repo-ingestion", nil, nil, nil)
 	require.NoError(t, err)
-	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo)
+	ud := newGitsyncRefresher(t, ctx, gs, g, mockRepo, wd)
 	graph, err := repograph.NewWithRepoImpl(ctx, ri)
 	require.NoError(t, err)
 	ud.graph = graph
-	return ctx, g, graph, ud, cleanup
+	return ctx, g, graph, ud, func() {
+		cleanup()
+		util.RemoveAll(wd)
+	}
 }
 
 func TestGraphWellFormedGitSync(t *testing.T) {

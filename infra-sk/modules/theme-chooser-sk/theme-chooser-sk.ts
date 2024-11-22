@@ -26,7 +26,7 @@
  *   </pre>
  *
  */
-import { html } from 'lit-html';
+import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../ElementSk';
 import '../../../elements-sk/modules/icons/invert-colors-icon-sk';

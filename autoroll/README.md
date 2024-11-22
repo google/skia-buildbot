@@ -6,9 +6,9 @@ eg. Skia, into a parent project, eg. Chrome.
 ## Requests and Bug Reports
 
 To request a new roller, visit
-https://bugs.chromium.org/p/skia/issues/entry?template=New+Autoroller. For all
+https://issues.skia.org/issues/new?component=1389291&template=1850622. For all
 other autoroll-related bugs and requests, please use
-https://issues.skia.org/issues/new?component=1389291&template=1850622.
+https://issues.skia.org/issues/new?component=1389291&template=1850466.
 
 ## For Gardeners of Parent Projects
 

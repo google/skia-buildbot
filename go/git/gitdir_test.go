@@ -18,7 +18,7 @@ func TestGitDetails(t *testing.T) {
 	ctx, gb, commits := setup(t)
 	defer gb.Cleanup()
 
-	g := GitDir(gb.Dir())
+	g := CheckoutDir(gb.Dir())
 	for i, c := range commits {
 		d, err := g.Details(ctx, c)
 		require.NoError(t, err)
@@ -45,7 +45,7 @@ func TestGitBranch(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	g, err := NewCheckout(ctx, gb.Dir(), tmpDir)
 	require.NoError(t, err)
 	branches, err := g.Branches(ctx)
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestIsAncestor(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	g, err := NewCheckout(ctx, gb.Dir(), tmpDir)
 	require.NoError(t, err)
 
 	// Commits are in decreasing chronological order; commits[0] is the most
@@ -142,7 +142,7 @@ func TestGetFile(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	g, err := NewCheckout(ctx, gb.Dir(), tmpDir)
 	require.NoError(t, err)
 
 	contents, err := g.GetFile(ctx, checkedInFile, "HEAD")
@@ -167,7 +167,7 @@ func TestReadUpdateSubmodule(t *testing.T) {
 	require.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 
-	g, err := newGitDir(ctx, gb.Dir(), tmpDir, false)
+	g, err := NewCheckout(ctx, gb.Dir(), tmpDir)
 	require.NoError(t, err)
 
 	// Create submodule
@@ -187,6 +187,7 @@ func TestReadUpdateSubmodule(t *testing.T) {
 	// Test Read directory
 	contents, err = g.ReadSubmodule(ctx, ".", "HEAD")
 	require.Error(t, err)
+	require.Equal(t, "", contents)
 
 	// Test Write & Read
 	newHash := "2222222222222222222222222222222222222222"

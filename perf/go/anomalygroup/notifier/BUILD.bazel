@@ -16,7 +16,6 @@ go_library(
         "//perf/go/clustering2",
         "//perf/go/git/provider",
         "//perf/go/ui/frame",
-        "@com_github_google_uuid//:uuid",
     ],
 )
 
@@ -60,6 +59,5 @@ go_test(
         "//perf/go/types",
         "//perf/go/ui/frame",
         "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//mock",
     ],
 )

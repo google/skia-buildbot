@@ -1,0 +1,31 @@
+.body-sk graph-title-sk {
+  #container {
+    color: var(--primary);
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .column {
+    flex: 0 0 auto;
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    min-width: 75px;
+  }
+
+  .param {
+    font-size: 0.8em;
+    text-align: left;
+  }
+
+  .value {
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+
+  .showMore {
+    text-decoration: underline;
+    align-self: center;
+    cursor: pointer;
+  }
+}

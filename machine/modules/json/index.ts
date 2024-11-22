@@ -75,7 +75,7 @@ export interface Description {
 
 export type SwarmingDimensions = { [key: string]: string[] | null } | null;
 
-export type AttachedDevice = 'nodevice' | 'adb' | 'ios' | 'ssh';
+export type AttachedDevice = 'nodevice' | 'adb' | 'ios' | 'pyocd' | 'ssh';
 
 export type PowerCycleState = 'not_available' | 'available' | 'in_error';
 

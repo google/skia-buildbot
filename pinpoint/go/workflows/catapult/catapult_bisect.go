@@ -135,7 +135,15 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 
 	// We want to specify the exact job id it'll be using instead of a randomly generated one
 	// so that users from Pinpoint can route back to it.
-	workflowID := uuid.New().String()
+	workflowID := p.JobID
+	if workflowID != "" {
+		// Reuse the JobID as the workflowID if given.
+	} else if err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.New().String()
+	}).Get(&workflowID); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	bisectOptions := childWorkflowOptions
 	bisectOptions.WorkflowID = workflowID
 	bisectCtx := workflow.WithChildOptions(ctx, bisectOptions)
@@ -151,12 +159,14 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	}
 
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	ctx = workflow.WithActivityOptions(ctx, regularActivityOptions)
+	ctx = workflow.WithActivityOptions(ctx, catapultBisectActivityOptions)
 	var resp *pinpoint_proto.LegacyJobResponse
 	if err := workflow.ExecuteChildWorkflow(ctx, ConvertToCatapultResponseWorkflow, p, bisectExecution).Get(ctx, &resp); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
+	// Note, if running locally, you may need to disable this activity.
+	// See WriteBisectToCatapultActivity in README.md.
 	var dsResp *DatastoreResponse
 	if err := workflow.ExecuteActivity(ctx, WriteBisectToCatapultActivity, &resp, p.Production).Get(ctx, &dsResp); err != nil {
 		return nil, skerr.Wrap(err)
@@ -165,7 +175,8 @@ func CatapultBisectWorkflow(ctx workflow.Context, p *workflows.BisectParams) (*p
 	logger.Info(fmt.Sprintf("Datastore information for this job: %v", dsResp))
 
 	return &pinpoint_proto.BisectExecution{
-		JobId:    bisectExecution.JobId,
-		Culprits: bisectExecution.Culprits,
+		JobId:            bisectExecution.JobId,
+		Culprits:         bisectExecution.Culprits,
+		DetailedCulprits: bisectExecution.DetailedCulprits,
 	}, nil
 }

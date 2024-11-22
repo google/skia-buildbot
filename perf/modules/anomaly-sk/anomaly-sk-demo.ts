@@ -22,6 +22,9 @@ window.perf = {
   trace_format: '',
   need_alert_action: false,
   bug_host_url: '',
+  git_repo_url: '',
+  keys_for_commit_range: [],
+  image_tag: 'fake-tag',
 };
 
 const dummyAnomaly = (bugId: number): Anomaly => ({
@@ -43,6 +46,10 @@ const dummyAnomaly = (bugId: number): Anomaly => ({
   segment_size_before: 0,
   std_dev_before_anomaly: 0,
   t_statistic: 0,
+  subscription_name: '',
+  bug_component: '',
+  bug_labels: [],
+  bug_cc_emails: [],
 });
 
 // The response to a POST of [64809, 64811] to /_/cid/.

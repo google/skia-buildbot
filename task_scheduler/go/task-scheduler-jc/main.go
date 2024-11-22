@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -27,6 +26,7 @@ import (
 	gs_pubsub "go.skia.org/infra/go/gitstore/pubsub"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/pubsub"
 	"go.skia.org/infra/go/sklog"
@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/job_creation"
+	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -63,12 +64,12 @@ var (
 	local                    = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	rbeInstance              = flag.String("rbe_instance", "projects/chromium-swarm/instances/default_instance", "CAS instance to use")
 	repoUrls                 = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile           = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	timePeriod               = flag.String("timeWindow", "4d", "Time period to use.")
 	tracingProject           = flag.String("tracing_project", "", "GCP project where traces should be uploaded.")
 	commitWindow             = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	workdir                  = flag.String("workdir", "workdir", "Working directory to use.")
 	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	numSyncWorkers           = flag.Int("sync_workers", syncer.DefaultNumWorkers, "Number of sync worker goroutines to use.")
 )
 
 func main() {
@@ -161,10 +162,7 @@ func main() {
 
 	// Find depot_tools.
 	// TODO(borenet): Package depot_tools in the Docker image.
-	if *recipesCfgFile == "" {
-		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
-	}
-	depotTools, err := depot_tools.Sync(ctx, wdAbs, *recipesCfgFile)
+	depotTools, err := depot_tools.Sync(ctx, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -178,6 +176,7 @@ func main() {
 	// Create caches.
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, tokenSource)
 	if err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 
@@ -185,17 +184,23 @@ func main() {
 	var pubsubClient pubsub.Client
 	if *buildbucketPubSubProject != "" {
 		pubsubClient, err = pubsub.NewClient(ctx, *buildbucketPubSubProject, option.WithTokenSource(tokenSource))
+		if err != nil {
+			_ = metrics2.GetDefaultClient().Flush()
+			sklog.Fatal(err)
+		}
 	}
 
 	// Create and start the JobCreator.
 	sklog.Infof("Creating JobCreator.")
-	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient)
+	jc, err := job_creation.NewJobCreator(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, cas, httpClient, *buildbucketProject, *buildbucketTarget, *buildbucketBucket, common.PROJECT_REPO_MAPPING, depotTools, gerrit, taskCfgCache, pubsubClient, *numSyncWorkers)
 	if err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
 	}
 
 	sklog.Infof("Created JobCreator. Starting loop.")
 	if err := autoUpdateRepos.Start(ctx, GITSTORE_SUBSCRIBER_ID, tokenSource, 5*time.Minute, jc.HandleRepoUpdate); err != nil {
+		_ = metrics2.GetDefaultClient().Flush()
 		sklog.Fatal(err)
 	}
 	jc.Start(ctx, !*disableTryjobs)

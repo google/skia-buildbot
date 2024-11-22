@@ -86,7 +86,7 @@ func (t *taskEventDB) update() error {
 		return skerr.Wrapf(err, "Failed to update cache")
 	}
 	now := time.Now()
-	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
+	longestPeriod := timePeriods[len(timePeriods)-1]
 	tasks, err := t.tCache.GetTasksFromDateRange(now.Add(-longestPeriod), now)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to load tasks from %s to %s", now.Add(-longestPeriod), now)
@@ -167,7 +167,7 @@ func computeTaskFlakeRate(ev []*events.Event) ([]map[string]string, []float64, e
 
 // addTaskAggregates adds aggregation functions for job events to the EventStream.
 func addTaskAggregates(s *events.EventStream, instance string) error {
-	for _, period := range TIME_PERIODS {
+	for _, period := range timePeriods {
 		// Flake rate.
 		if err := s.DynamicMetric(map[string]string{"instance": instance}, period, computeTaskFlakeRate); err != nil {
 			return err
