@@ -445,6 +445,17 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
+          "no-repeater": {
+            "feature-code": "shape-repeater",
+            "not": {
+              "type": "object",
+              "properties": {
+                "ty": {
+                  "const": "rp"
+                }
+              }
+            }
+          },
           "no-stroke": {
             "feature-code": "shape-stroke",
             "feature-level": "partial",
@@ -541,6 +552,9 @@ export const lowPowerLottieProfileSchema =
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-polystar"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/no-repeater"
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-stroke"
