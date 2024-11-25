@@ -96,19 +96,13 @@ ele.fullSizeImages = true;
 $$('#full_size_images')!.appendChild(ele);
 
 document.addEventListener('triage', (e) => {
-  $$('#event')!.textContent = `triage: ${JSON.stringify(
-    (e as CustomEvent).detail
-  )}`;
+  $$('#event')!.textContent = `triage: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('show-commits', (e) => {
-  $$('#event')!.textContent = `show-commits: ${JSON.stringify(
-    (e as CustomEvent).detail
-  )}`;
+  $$('#event')!.textContent = `show-commits: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 document.addEventListener('fetch-error', (e) => {
-  $$('#event')!.textContent = `fetch-error: ${JSON.stringify(
-    (e as CustomEvent).detail
-  )}`;
+  $$('#event')!.textContent = `fetch-error: ${JSON.stringify((e as CustomEvent).detail)}`;
 });
 
 fetchMock.post(

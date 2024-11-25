@@ -48,9 +48,7 @@ export class FiddleEmbed extends ElementSk {
   }
 
   private static template = (ele: FiddleEmbed) =>
-    html`<fiddle-sk
-        .config=${ele.mergedConfig()}
-        .context=${ele.context}></fiddle-sk>
+    html`<fiddle-sk .config=${ele.mergedConfig()} .context=${ele.context}></fiddle-sk>
       <error-toast-sk></error-toast-sk> `;
 
   connectedCallback(): void {
@@ -59,11 +57,7 @@ export class FiddleEmbed extends ElementSk {
     this.control = this.querySelector('fiddle-sk');
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (name === 'name') {
       if (!newValue) {
         return;
@@ -73,9 +67,7 @@ export class FiddleEmbed extends ElementSk {
         .then((json) => {
           this.control!.context = json;
           this._render();
-          this.dispatchEvent(
-            new CustomEvent('context-loaded', { bubbles: true })
-          );
+          this.dispatchEvent(new CustomEvent('context-loaded', { bubbles: true }));
         })
         .catch(errorMessage);
     } else {

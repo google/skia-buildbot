@@ -42,9 +42,7 @@ const rowTemplate = (row: DemoSortable) => html`
 `;
 
 // lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.
-const usingMap = html` <sort-toggle-sk
-  .data=${data}
-  @sort-changed=${renderTemplates}>
+const usingMap = html` <sort-toggle-sk .data=${data} @sort-changed=${renderTemplates}>
   <table>
     <thead>
       <tr>

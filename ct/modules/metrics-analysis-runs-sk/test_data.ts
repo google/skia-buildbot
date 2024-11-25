@@ -19,12 +19,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-429/consolidated_outputs/rmistry-MetricsAnalysis-429.output',
       value_column_name: 'avg',
@@ -48,12 +45,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-428/consolidated_outputs/rmistry-MetricsAnalysis-428.output',
       value_column_name: 'avg',
@@ -77,12 +71,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-427/consolidated_outputs/rmistry-MetricsAnalysis-427.output',
       value_column_name: 'avg',
@@ -106,12 +97,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-426/consolidated_outputs/rmistry-MetricsAnalysis-426.output',
       value_column_name: 'avg',
@@ -135,12 +123,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-425/consolidated_outputs/rmistry-MetricsAnalysis-425.output',
       value_column_name: 'avg',
@@ -164,12 +149,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-424/consolidated_outputs/rmistry-MetricsAnalysis-424.output',
       value_column_name: 'avg',
@@ -193,12 +175,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-423/consolidated_outputs/rmistry-MetricsAnalysis-423.output',
       value_column_name: 'avg',
@@ -222,12 +201,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-422/consolidated_outputs/rmistry-MetricsAnalysis-422.output',
       value_column_name: 'avg',
@@ -251,12 +227,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-421/consolidated_outputs/rmistry-MetricsAnalysis-421.output',
       value_column_name: 'avg',
@@ -280,12 +253,9 @@ export const tasksResult0: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-420/consolidated_outputs/rmistry-MetricsAnalysis-420.output',
       value_column_name: 'avg',
@@ -328,12 +298,9 @@ export const tasksResult1: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-429/consolidated_outputs/rmistry-MetricsAnalysis-429.output',
       value_column_name: 'avg',
@@ -357,12 +324,9 @@ export const tasksResult1: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-428/consolidated_outputs/rmistry-MetricsAnalysis-428.output',
       value_column_name: 'avg',
@@ -386,12 +350,9 @@ export const tasksResult1: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-427/consolidated_outputs/rmistry-MetricsAnalysis-427.output',
       value_column_name: 'avg',
@@ -415,12 +376,9 @@ export const tasksResult1: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-426/consolidated_outputs/rmistry-MetricsAnalysis-426.output',
       value_column_name: 'avg',
@@ -462,12 +420,9 @@ export const tasksResult2: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-422/consolidated_outputs/rmistry-MetricsAnalysis-422.output',
       value_column_name: 'avg',
@@ -491,12 +446,9 @@ export const tasksResult2: GetTasksResponse = {
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-ChromiumAnalysis-2197/consolidated_outputs/rmistry-ChromiumAnalysis-2197.output',
       benchmark_args: '--output-format=csv',
       description: 'recurring test for 2197',
-      custom_traces_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_traces_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       raw_output:
         'https://ct.skia.org/results/cluster-telemetry/tasks/benchmark_runs/rmistry-MetricsAnalysis-421/consolidated_outputs/rmistry-MetricsAnalysis-421.output',
       value_column_name: 'avg',

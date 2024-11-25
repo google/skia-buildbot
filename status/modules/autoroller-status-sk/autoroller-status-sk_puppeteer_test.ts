@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('autoroller-status-sk', () => {
   let testBed: TestBed;
@@ -27,11 +23,7 @@ describe('autoroller-status-sk', () => {
 
     it('highlights hovering', async () => {
       testBed.page.hover('.roller');
-      await takeScreenshot(
-        testBed.page,
-        'status',
-        'autoroller-status-sk_hover'
-      );
+      await takeScreenshot(testBed.page, 'status', 'autoroller-status-sk_hover');
     });
   });
 });

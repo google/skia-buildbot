@@ -11,9 +11,7 @@ import 'chai-dom';
 chai.use(chaiDom);
 
 describe('expandable-textarea-sk', () => {
-  const newInstance = setUpElementUnderTest<ExpandableTextareaSk>(
-    'expandable-textarea-sk'
-  );
+  const newInstance = setUpElementUnderTest<ExpandableTextareaSk>('expandable-textarea-sk');
 
   let expandableTextareaSk: ExpandableTextareaSk;
   let collapseSk: CollapseSk;

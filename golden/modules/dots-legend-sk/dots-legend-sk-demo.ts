@@ -35,13 +35,7 @@ function newDotsLegendSk(
   document.querySelector(parentSelector)!.appendChild(dotsLegendSk);
 }
 
-newDotsLegendSk(
-  '#some-digests-container',
-  'some-digests',
-  someDigests,
-  '123456',
-  'My-Test'
-);
+newDotsLegendSk('#some-digests-container', 'some-digests', someDigests, '123456', 'My-Test');
 
 newDotsLegendSk(
   '#too-many-digests-container',

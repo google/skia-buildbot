@@ -37,17 +37,11 @@ export class ARBRollHistorySk extends ElementSk {
           <tr>
             <td>
               ${ele.issueURLBase !== ''
-                ? html`
-                    <a href="${ele.issueURL(roll)}" target="_blank"
-                      >${roll.subject}</a
-                    >
-                  `
+                ? html` <a href="${ele.issueURL(roll)}" target="_blank">${roll.subject}</a> `
                 : html` ${roll.subject} `}
             </td>
             <td>
-              <human-date-sk
-                .date="${roll.created}"
-                .diff="${true}"></human-date-sk>
+              <human-date-sk .date="${roll.created}" .diff="${true}"></human-date-sk>
             </td>
             <td>
               <span class="${ele.rollClass(roll)}">${roll.result}</span>
@@ -141,8 +135,7 @@ export class ARBRollHistorySk extends ElementSk {
     this.rpc.getRolls(req).then((resp: GetRollsResponse) => {
       this.history = resp.rolls!;
       this.cursorHistory.push(resp.cursor);
-      this.canLoadNext =
-        this.cursorHistory[this.cursorHistory.length - 1] !== '';
+      this.canLoadNext = this.cursorHistory[this.cursorHistory.length - 1] !== '';
       this.canLoadPrevious = this.cursorHistory.length > 2;
       this._render();
     });
@@ -160,20 +153,15 @@ export class ARBRollHistorySk extends ElementSk {
       return;
     }
     // [..., previous, current, next] => [..., previous]
-    this.cursorHistory = this.cursorHistory.slice(
-      0,
-      this.cursorHistory.length - 2
-    );
+    this.cursorHistory = this.cursorHistory.slice(0, this.cursorHistory.length - 2);
     this.load(this.cursorHistory[this.cursorHistory.length - 1]);
   }
 
   private loadStatus() {
-    this.rpc
-      .getStatus({ rollerId: this.roller })
-      .then((resp: GetStatusResponse) => {
-        this.issueURLBase = resp.status!.issueUrlBase;
-        this._render();
-      });
+    this.rpc.getStatus({ rollerId: this.roller }).then((resp: GetStatusResponse) => {
+      this.issueURLBase = resp.status!.issueUrlBase;
+      this._render();
+    });
   }
 }
 

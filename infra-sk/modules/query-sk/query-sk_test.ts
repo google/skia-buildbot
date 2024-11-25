@@ -59,31 +59,19 @@ describe('query-sk', () => {
   });
 
   it('obeys key_order', async () => {
-    assert.deepEqual(
-      ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
-    );
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
 
     // Setting key_order will change the key order.
     querySk.key_order = ['config'];
-    assert.deepEqual(
-      ['config', 'arch', 'bench_type', 'compiler'],
-      await querySkPO.getKeys()
-    );
+    assert.deepEqual(['config', 'arch', 'bench_type', 'compiler'], await querySkPO.getKeys());
 
     // Setting key_order to empty will go back to alphabetical order.
     querySk.key_order = [];
-    assert.deepEqual(
-      ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
-    );
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
   });
 
   it('obeys filter', async () => {
-    assert.deepEqual(
-      ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
-    );
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
 
     // Setting the filter will change the keys displayed.
     await querySkPO.setFilter('cro'); // Only 'micro' in 'bench_type' should match.
@@ -94,10 +82,7 @@ describe('query-sk', () => {
     // Clearing the filter will restore all options.
     await querySkPO.clickClearFilter();
 
-    assert.deepEqual(
-      ['arch', 'bench_type', 'compiler', 'config'],
-      await querySkPO.getKeys()
-    );
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
   });
 
   it('only edits displayed values when filter is used.', async () => {
@@ -117,10 +102,7 @@ describe('query-sk', () => {
     await querySkPO.clickValue('arm64');
 
     // Confirm it gets added.
-    assert.deepEqual(
-      toParamSet('arch=x86&arch=arm64'),
-      toParamSet(querySk.current_query)
-    );
+    assert.deepEqual(toParamSet('arch=x86&arch=arm64'), toParamSet(querySk.current_query));
 
     // Click on the value 'arm64' a second time to remove it from the query.
     await querySkPO.clickValue('arm64');
@@ -146,19 +128,13 @@ describe('query-sk', () => {
     await querySkPO.clickValue('arm64');
 
     // Confirm it gets added.
-    assert.deepEqual(
-      toParamSet('arch=!x86&arch=!arm64'),
-      toParamSet(querySk.current_query)
-    );
+    assert.deepEqual(toParamSet('arch=!x86&arch=!arm64'), toParamSet(querySk.current_query));
 
     // Click on the value 'arm64' a second time to remove it from the query.
     await querySkPO.clickValue('arm64');
 
     // Confirm it gets removed.
-    assert.deepEqual(
-      toParamSet('arch=!x86'),
-      toParamSet(querySk.current_query)
-    );
+    assert.deepEqual(toParamSet('arch=!x86'), toParamSet(querySk.current_query));
   });
 
   it('sets invert correctly on query values even if they are hidden by a filter.', async () => {
@@ -239,18 +215,12 @@ describe('query-sk', () => {
     // Valid queries should remain unaltered.
     querySk.current_query = validQuery;
     assert.deepEqual(validQuery, querySk.current_query);
-    assert.deepEqual(
-      validQuery,
-      fromParamSet(await querySkPO.getCurrentQuery())
-    );
+    assert.deepEqual(validQuery, fromParamSet(await querySkPO.getCurrentQuery()));
 
     // Invalid queries should be rationalized.
     querySk.current_query = invalidQuery;
     assert.deepEqual(invalidQueryRationalized, querySk.current_query);
-    assert.deepEqual(
-      invalidQueryRationalized,
-      fromParamSet(await querySkPO.getCurrentQuery())
-    );
+    assert.deepEqual(invalidQueryRationalized, fromParamSet(await querySkPO.getCurrentQuery()));
   });
 
   it('clears the selection when the "Clear Selections" button is clicked', async () => {
@@ -278,8 +248,7 @@ describe('query-sk', () => {
     querySk.current_query = fromParamSet(query);
 
     await querySkPO.queryValuesSkPO.setFilterInputValue('test');
-    const initialInputVal =
-      await querySkPO.queryValuesSkPO.getFilterInputValue();
+    const initialInputVal = await querySkPO.queryValuesSkPO.getFilterInputValue();
     assert.equal(initialInputVal, 'test');
 
     await querySkPO.clickKey('compiler');

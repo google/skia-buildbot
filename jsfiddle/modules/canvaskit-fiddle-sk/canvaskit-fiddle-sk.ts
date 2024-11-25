@@ -30,13 +30,10 @@ const template = (ele: WasmFiddle) => html`
     <main>
       ${WasmFiddle.codeEditor(ele)}
       <div class="output">
-        ${ele.sliders.map(WasmFiddle.floatSlider)}
-        ${ele.colorpickers.map(WasmFiddle.colorPicker)}
+        ${ele.sliders.map(WasmFiddle.floatSlider)} ${ele.colorpickers.map(WasmFiddle.colorPicker)}
         ${ele.fpsMeter ? html`<div class="widget" id="fps">0 FPS</div>` : ''}
         <div class="buttons">
-          <button
-            class="action ${ele.hasRun || !ele.loadedWasm ? '' : 'prompt'}"
-            @click=${ele.run}>
+          <button class="action ${ele.hasRun || !ele.loadedWasm ? '' : 'prompt'}" @click=${ele.run}>
             Run
           </button>
           <button @click=${ele.save}>Save</button>
@@ -44,9 +41,7 @@ const template = (ele: WasmFiddle) => html`
         <div id="canvasContainer">
           <canvas width="500" height="500"></canvas>
         </div>
-        <textarea id="logsContainer" placeholder="Console Logs" readonly>
-${ele.log}</textarea
-        >
+        <textarea id="logsContainer" placeholder="Console Logs" readonly>${ele.log}</textarea>
       </div>
     </main>
     <footer>

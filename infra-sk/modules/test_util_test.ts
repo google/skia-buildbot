@@ -43,17 +43,14 @@ describe('test utilities', () => {
         ).to.have.length(0);
         expect(
           element.parentElement,
-          'element under test should be detached from its parent node ' +
-            'after each test case'
+          'element under test should be detached from its parent node ' + 'after each test case'
         ).to.be.null;
       });
 
       it('should correctly instantiate the element', () => {
         instance1 = element; // Save a reference to the current instance.
         expect(element.tagName).to.equal('MARQUEE');
-        expect($$<HTMLParagraphElement>('p', element)!.innerText).to.equal(
-          'hello world'
-        );
+        expect($$<HTMLParagraphElement>('p', element)!.innerText).to.equal('hello world');
       });
 
       it('should attach instance of element under test to document.body', () => {
@@ -107,18 +104,14 @@ describe('test utilities', () => {
     describe('eventPromise', () => {
       it('resolves when event is caught', async () => {
         const hello = eventPromise<CustomEvent<string>>('hello');
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
         const ev = await hello;
         expect(ev.detail).to.equal('hi');
       });
 
       it('catches document-level events', async () => {
         const hello = eventPromise<CustomEvent<string>>('hello');
-        document.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
+        document.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
         const ev = await hello;
         expect(ev.detail).to.equal('hi');
       });
@@ -128,12 +121,8 @@ describe('test utilities', () => {
         const hello2 = eventPromise<CustomEvent<string>>('hello');
 
         // We'll emit two different events of the same type (see event detail).
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'goodbye' })
-        );
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'goodbye' }));
 
         const ev1 = await hello1;
         const ev2 = await hello2;
@@ -160,9 +149,7 @@ describe('test utilities', () => {
       it('never times out if timeoutMillis=0', async () => {
         const hello = eventPromise<CustomEvent<string>>('hello', 0);
         clock.tick(Number.MAX_SAFE_INTEGER);
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
         const ev = await hello;
         expect(ev.detail).to.equal('hi');
       });
@@ -211,9 +198,7 @@ describe('test utilities', () => {
 
       it('catches one event', async () => {
         const sequence = eventSequencePromise<CustomEvent<string>>(['hello']);
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
 
         const events = await sequence;
 
@@ -222,20 +207,10 @@ describe('test utilities', () => {
       });
 
       it('catches a sequence of events', async () => {
-        const sequence = eventSequencePromise<CustomEvent<string>>([
-          'hello',
-          'world',
-          'goodbye',
-        ]);
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'first' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'second' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'third' })
-        );
+        const sequence = eventSequencePromise<CustomEvent<string>>(['hello', 'world', 'goodbye']);
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'first' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'second' }));
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'third' }));
 
         const events = await sequence;
 
@@ -255,27 +230,13 @@ describe('test utilities', () => {
           'world',
           'goodbye',
         ]);
-        el.dispatchEvent(
-          new CustomEvent('hey', { bubbles: true, detail: 'first' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hey', { bubbles: true, detail: 'second' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'third' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'fourth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hey', { bubbles: true, detail: 'fifth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'sixth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'seventh' })
-        );
+        el.dispatchEvent(new CustomEvent('hey', { bubbles: true, detail: 'first' }));
+        el.dispatchEvent(new CustomEvent('hey', { bubbles: true, detail: 'second' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'third' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'fourth' }));
+        el.dispatchEvent(new CustomEvent('hey', { bubbles: true, detail: 'fifth' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'sixth' }));
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'seventh' }));
 
         const events = await sequence;
 
@@ -290,36 +251,16 @@ describe('test utilities', () => {
       });
 
       it('ignores out-of-sequence events', async () => {
-        const sequence = eventSequencePromise<CustomEvent<string>>([
-          'hello',
-          'world',
-          'goodbye',
-        ]);
+        const sequence = eventSequencePromise<CustomEvent<string>>(['hello', 'world', 'goodbye']);
 
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'first' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'second' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'third' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'fourth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'fifth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'sixth' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'seventh' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'eigth' })
-        );
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'first' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'second' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'third' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'fourth' }));
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'fifth' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'sixth' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'seventh' }));
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'eigth' }));
 
         const events = await sequence;
 
@@ -339,12 +280,8 @@ describe('test utilities', () => {
           'event',
           'sequence',
         ]);
-        el.dispatchEvent(
-          new CustomEvent('i', { bubbles: true, detail: 'first' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('am', { bubbles: true, detail: 'second' })
-        );
+        el.dispatchEvent(new CustomEvent('i', { bubbles: true, detail: 'first' }));
+        el.dispatchEvent(new CustomEvent('am', { bubbles: true, detail: 'second' }));
 
         clock.tick(10000);
 
@@ -360,20 +297,10 @@ describe('test utilities', () => {
       });
 
       it('does not catch permutations', async () => {
-        const sequence = eventSequencePromise<CustomEvent<string>>([
-          'hello',
-          'world',
-          'goodbye',
-        ]);
-        el.dispatchEvent(
-          new CustomEvent('goodbye', { bubbles: true, detail: 'first' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('world', { bubbles: true, detail: 'second' })
-        );
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'third' })
-        );
+        const sequence = eventSequencePromise<CustomEvent<string>>(['hello', 'world', 'goodbye']);
+        el.dispatchEvent(new CustomEvent('goodbye', { bubbles: true, detail: 'first' }));
+        el.dispatchEvent(new CustomEvent('world', { bubbles: true, detail: 'second' }));
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'third' }));
 
         clock.tick(10000);
 
@@ -395,21 +322,14 @@ describe('test utilities', () => {
           await sequence;
           expect.fail('promise should not have resolved');
         } catch (error) {
-          expect(error).to.equal(
-            'timed out after 200 ms while waiting to catch events "hello"'
-          );
+          expect(error).to.equal('timed out after 200 ms while waiting to catch events "hello"');
         }
       });
 
       it('never times out if timeoutMillis=0', async () => {
-        const sequence = eventSequencePromise<CustomEvent<string>>(
-          ['hello'],
-          0
-        );
+        const sequence = eventSequencePromise<CustomEvent<string>>(['hello'], 0);
         clock.tick(Number.MAX_SAFE_INTEGER);
-        el.dispatchEvent(
-          new CustomEvent('hello', { bubbles: true, detail: 'hi' })
-        );
+        el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
 
         const events = await sequence;
 

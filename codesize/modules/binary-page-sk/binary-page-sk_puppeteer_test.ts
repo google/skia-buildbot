@@ -16,9 +16,7 @@ describe('binary-page-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.setViewport({ width: 1024, height: 768 });
-    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [
-      END_BUSY_EVENT,
-    ]);
+    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, [END_BUSY_EVENT]);
     const loaded = eventPromise(END_BUSY_EVENT); // Emitted when page is loaded.
     await testBed.page.goto(testBed.baseUrl);
     await loaded;
@@ -38,10 +36,7 @@ describe('binary-page-sk', () => {
       // by the google.visualization.TreeMap is not amenable to querying.
       const treemap = await testBed.page.$('#treemap');
       const box = await treemap!.boundingBox();
-      await testBed.page.mouse.click(
-        box!.x + box!.width - 50,
-        box!.y + box!.height - 50
-      );
+      await testBed.page.mouse.click(box!.x + box!.width - 50, box!.y + box!.height - 50);
 
       // Give the TreeMap a chance to redraw.
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -54,11 +49,7 @@ describe('binary-page-sk', () => {
       await testBed.page.focus('.search-bar input');
       await testBed.page.keyboard.type('s');
 
-      await takeScreenshot(
-        testBed.page,
-        'codesize',
-        'binary-page-sk-search_bar'
-      );
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk-search_bar');
     });
 
     it('jumps to the first result when the user types enter', async () => {
@@ -66,11 +57,7 @@ describe('binary-page-sk', () => {
       await testBed.page.keyboard.type('skp');
       await testBed.page.keyboard.press('Enter');
 
-      await takeScreenshot(
-        testBed.page,
-        'codesize',
-        'binary-page-sk-search_bar_enter'
-      );
+      await takeScreenshot(testBed.page, 'codesize', 'binary-page-sk-search_bar_enter');
     });
   });
 });

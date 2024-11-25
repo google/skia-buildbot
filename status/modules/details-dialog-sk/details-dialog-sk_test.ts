@@ -10,8 +10,7 @@ import { SetTestSettings } from '../settings';
 import { taskDriverData } from '../../../infra-sk/modules/task-driver-sk/test_data';
 
 describe('details-dialog-sk', () => {
-  const newInstance =
-    setUpElementUnderTest<DetailsDialogSk>('details-dialog-sk');
+  const newInstance = setUpElementUnderTest<DetailsDialogSk>('details-dialog-sk');
 
   let element: DetailsDialogSk;
   beforeEach(() => {
@@ -34,10 +33,7 @@ describe('details-dialog-sk', () => {
     expect($$<HTMLAnchorElement>('a', element)!.href).to.equal(
       'https://ci.chromium.org/raw/build/logs.chromium.org/skia/1234561/+/annotations'
     );
-    expect($$('button.action', element)).to.have.property(
-      'innerText',
-      'Re-run Job'
-    );
+    expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     expect($('.task-failure', element)).to.have.length(1);
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);
@@ -50,10 +46,7 @@ describe('details-dialog-sk', () => {
     element.displayTask(task, [comment], commitsByHash);
     await fetchMock.flush(true);
 
-    expect($$('button.action', element)).to.have.property(
-      'innerText',
-      'Re-run Job'
-    );
+    expect($$('button.action', element)).to.have.property('innerText', 'Re-run Job');
     // No simple title with status, we have the task-driver-sk instead.
     expect($('.task-failure', element)).to.have.length(0);
     expect($('task-driver-sk', element)).to.have.length(1);
@@ -73,10 +66,7 @@ describe('details-dialog-sk', () => {
 
   it('displays commit', () => {
     element.displayCommit(commit, [comment]);
-    expect($$('button.action', element)).to.have.property(
-      'innerText',
-      'Revert'
-    );
+    expect($$('button.action', element)).to.have.property('innerText', 'Revert');
     // 3 sections, seperated by lines.
     expect($('hr', element)).to.have.length(1);
     expect($('table.comments tr.comment', element)).to.have.length(1);

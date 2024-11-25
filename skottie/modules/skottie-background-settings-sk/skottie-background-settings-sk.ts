@@ -114,10 +114,7 @@ export class SkottieBackgroundSettingsSk extends ElementSk {
       return html`
         <div class="color-form">
           <label class="color-form--color">
-            <input
-              type="color"
-              value=${this._color}
-              @change=${this.onColorChange} />
+            <input type="color" value=${this._color} @change=${this.onColorChange} />
             <span>${this._color}</span>
           </label>
           <input
@@ -133,16 +130,13 @@ export class SkottieBackgroundSettingsSk extends ElementSk {
 
   private _submit(): void {
     this.dispatchEvent(
-      new CustomEvent<SkottieBackgroundSettingsEventDetail>(
-        'background-change',
-        {
-          detail: {
-            color: this._color,
-            opacity: this._opacity,
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<SkottieBackgroundSettingsEventDetail>('background-change', {
+        detail: {
+          color: this._color,
+          opacity: this._opacity,
+        },
+        bubbles: true,
+      })
     );
   }
 

@@ -44,10 +44,7 @@ export class EditChildShaderSk extends ElementSk {
       /></label>
       <div class="controls">
         <button @click=${ele.cancelClick} id="cancel">Cancel</button>
-        <button
-          @click=${ele.okClick}
-          id="ok"
-          ?disabled=${ele.input?.validity.patternMismatch}>
+        <button @click=${ele.okClick} id="ok" ?disabled=${ele.input?.validity.patternMismatch}>
           OK
         </button>
       </div>
@@ -100,10 +97,7 @@ export class EditChildShaderSk extends ElementSk {
     if (!this.resolve) {
       return;
     }
-    this.childShader.UniformName = $$<HTMLInputElement>(
-      '#uniformName',
-      this
-    )!.value;
+    this.childShader.UniformName = $$<HTMLInputElement>('#uniformName', this)!.value;
     this.resolve(this.childShader);
     this.dialog!.close();
     this.resolve = null;

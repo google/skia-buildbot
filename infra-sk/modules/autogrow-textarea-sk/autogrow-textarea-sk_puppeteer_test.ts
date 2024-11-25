@@ -1,10 +1,6 @@
 import { expect } from 'chai';
 import { ElementHandle } from 'puppeteer';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('autogrow-textarea-sk', () => {
   let testBed: TestBed;
@@ -31,29 +27,17 @@ describe('autogrow-textarea-sk', () => {
 
     it('shows small amount of text without growth', async () => {
       await textarea.type("A\nfew\nlines don't grow the textarea");
-      await takeScreenshot(
-        testBed.page,
-        'infra-sk',
-        'autogrow-textarea-sk_filled'
-      );
+      await takeScreenshot(testBed.page, 'infra-sk', 'autogrow-textarea-sk_filled');
     });
 
     it('shows the textarea grows', async () => {
       await textarea.type('A\n\n\nlot\n\n\n\nof lines\n\n\n\n\nhere');
-      await takeScreenshot(
-        testBed.page,
-        'infra-sk',
-        'autogrow-textarea-sk_grow'
-      );
+      await takeScreenshot(testBed.page, 'infra-sk', 'autogrow-textarea-sk_grow');
     });
 
     it('shows the textarea shrinks', async () => {
       await textarea.type('Two\nLines');
-      await takeScreenshot(
-        testBed.page,
-        'infra-sk',
-        'autogrow-textarea-sk_shrink'
-      );
+      await takeScreenshot(testBed.page, 'infra-sk', 'autogrow-textarea-sk_shrink');
     });
   });
 });

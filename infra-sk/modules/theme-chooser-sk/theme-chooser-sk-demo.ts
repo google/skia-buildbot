@@ -174,9 +174,7 @@ const template = (context: example[]): TemplateResult => html`
   ${context.map(
     (ex: example): TemplateResult =>
       html` <tr style="background: var(${ex.background})">
-        <td style="color: var(${ex.color})">
-          background: var(${ex.background});
-        </td>
+        <td style="color: var(${ex.color})">background: var(${ex.background});</td>
         <td style="color: var(${ex.color})">color: var(${ex.color});</td>
       </tr>`
   )}
@@ -184,10 +182,7 @@ const template = (context: example[]): TemplateResult => html`
 
 render(template(examples), document.querySelector<HTMLElement>('#demotable')!);
 
-render(
-  template(specialty),
-  document.querySelector<HTMLElement>('#demotable2')!
-);
+render(template(specialty), document.querySelector<HTMLElement>('#demotable2')!);
 
 document.querySelector('#toggle-collapse-sk')?.addEventListener('click', () => {
   const collapseSk = document.querySelector<CollapseSk>('collapse-sk')!;

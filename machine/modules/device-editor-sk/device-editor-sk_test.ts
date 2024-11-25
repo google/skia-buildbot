@@ -7,10 +7,7 @@ import {
   UpdateDimensionsDetails,
   UpdateDimensionsEvent,
 } from './device-editor-sk';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('device-editor-sk', () => {
   const newInstance = setUpElementUnderTest<DeviceEditorSk>('device-editor-sk');
@@ -31,10 +28,7 @@ describe('device-editor-sk', () => {
     const clearEvent = eventPromise<CustomEvent<string>>(ClearDeviceEvent, 100);
     $$<HTMLButtonElement>('.info button.clear', element)!.click();
 
-    $$<HTMLButtonElement>(
-      '.confirm button.clear_yes_im_sure',
-      element
-    )!.click();
+    $$<HTMLButtonElement>('.confirm button.clear_yes_im_sure', element)!.click();
 
     assert.equal((await clearEvent).detail, testID);
   });
@@ -49,8 +43,7 @@ describe('device-editor-sk', () => {
     );
 
     $$<HTMLInputElement>('input#user_ip', element)!.value = 'root@new-device';
-    $$<HTMLInputElement>('input#chromeos_gpu', element)!.value =
-      'my-gpu,my-other-gpu';
+    $$<HTMLInputElement>('input#chromeos_gpu', element)!.value = 'my-gpu,my-other-gpu';
     $$<HTMLInputElement>('input#chromeos_cpu', element)!.value = 'arm64,arm';
 
     const updateEvent = eventPromise<CustomEvent<UpdateDimensionsDetails>>(

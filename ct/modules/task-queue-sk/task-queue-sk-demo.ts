@@ -2,11 +2,7 @@ import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
-import {
-  singleResultCanDelete,
-  singleResultNoDelete,
-  resultSetTwoItems,
-} from './test_data';
+import { singleResultCanDelete, singleResultNoDelete, resultSetTwoItems } from './test_data';
 
 function newTaskQueue(parentSelector: string) {
   fetchMock.config.overwriteRoutes = false;

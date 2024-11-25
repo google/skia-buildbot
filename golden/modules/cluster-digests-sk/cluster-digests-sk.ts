@@ -106,9 +106,7 @@ export class ClusterDigestsSk extends ElementSk {
     // This force acts as a spring force between digest nodes. More similar digests pull more
     // tightly and should be closer together.
     // See https://github.com/d3/d3-force#links
-    const linkForce = d3Force
-      .forceLink(this.links)
-      .distance((d) => d.value / this.linkTightness);
+    const linkForce = d3Force.forceLink(this.links).distance((d) => d.value / this.linkTightness);
 
     // This force keeps the diagram centered in the SVG.
     // See https://github.com/d3/d3-force#centering
@@ -148,9 +146,7 @@ export class ClusterDigestsSk extends ElementSk {
 
         // Type guard to narrow down the type of the source and target fields in a SimLink. See
         // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/9bd58256d08405c4e0ee3b065efc984f9a28ca17/types/d3-force/d3-force-tests.ts#L647.
-        function isSimNode(
-          maybeNode: SimNode | string | number
-        ): maybeNode is SimNode {
+        function isSimNode(maybeNode: SimNode | string | number): maybeNode is SimNode {
           return typeof maybeNode !== 'string' && typeof maybeNode !== 'number';
         }
 
@@ -165,9 +161,7 @@ export class ClusterDigestsSk extends ElementSk {
           .attr('y2', (d) => (isSimNode(d.target) ? d.target.y! : 0));
       })
       .on('end', () => {
-        this.dispatchEvent(
-          new CustomEvent('layout-complete', { bubbles: true })
-        );
+        this.dispatchEvent(new CustomEvent('layout-complete', { bubbles: true }));
       });
   }
 

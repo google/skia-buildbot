@@ -5,10 +5,7 @@ import { $, $$ } from '../../../infra-sk/modules/dom';
 
 import { languageList } from './test_data';
 import { SuggestInputSk } from './suggest-input-sk';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 const DOWN_ARROW = '40';
 const UP_ARROW = '38';
@@ -137,9 +134,7 @@ describe('suggest-input-sk', () => {
     );
     const selectionMade = await valueChangedEvent;
     expect((selectionMade as CustomEvent).detail.value).to.equal('Python2.7');
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
-      'Python2.7'
-    );
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python2.7');
   });
 
   it('select suggestion by arrows/enter', () => {
@@ -169,9 +164,7 @@ describe('suggest-input-sk', () => {
     checkSelected('Python3');
     // Select.
     simulateKeyboardNavigation(ENTER);
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
-      'Python3'
-    );
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python3');
   });
 
   it('select suggestion by arrows/blur', () => {
@@ -179,9 +172,7 @@ describe('suggest-input-sk', () => {
     // Go to first suggestion (Python2.7)
     simulateKeyboardNavigation(DOWN_ARROW);
     simulateUserClickAway();
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
-      'Python2.7'
-    );
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('Python2.7');
   });
 
   it('clears on unlisted value without acceptCustomValue', () => {
@@ -194,8 +185,6 @@ describe('suggest-input-sk', () => {
     suggestInput.acceptCustomValue = true;
     simulateUserTyping('blarg');
     simulateUserClickAway();
-    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal(
-      'blarg'
-    );
+    expect(($$('input', suggestInput) as HTMLInputElement).value).to.equal('blarg');
   });
 });

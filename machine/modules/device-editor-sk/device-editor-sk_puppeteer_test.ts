@@ -1,8 +1,4 @@
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('device-editor-sk', () => {
   let testBed: TestBed;
@@ -18,20 +14,12 @@ describe('device-editor-sk', () => {
 
     it('shows a view when no dimensions given', async () => {
       await navigateTo('#preexisting');
-      await takeScreenshot(
-        testBed.page,
-        'machine',
-        'device-editor-sk_with_ssh_device'
-      );
+      await takeScreenshot(testBed.page, 'machine', 'device-editor-sk_with_ssh_device');
     });
 
     it('does not show dimensions if there is no user ip set', async () => {
       await navigateTo('#no_sshuserip');
-      await takeScreenshot(
-        testBed.page,
-        'machine',
-        'device-editor-sk_normal_machine'
-      );
+      await takeScreenshot(testBed.page, 'machine', 'device-editor-sk_normal_machine');
     });
   });
 

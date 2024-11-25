@@ -119,10 +119,7 @@ export class ListAutorollersSk extends ElementSk {
   }
 
   private clickHandler(e: Event) {
-    const checkbox = findParent(
-      e.target as HTMLElement,
-      'CHECKBOX-SK'
-    ) as CheckOrRadio;
+    const checkbox = findParent(e.target as HTMLElement, 'CHECKBOX-SK') as CheckOrRadio;
     if (checkbox.checked) {
       this.checkedAutorollers.add(checkbox.id);
     } else {
@@ -143,9 +140,7 @@ export class ListAutorollersSk extends ElementSk {
   }
 
   private setTreeStatus(treeStatus: string) {
-    this.dispatchEvent(
-      new CustomEvent('set-tree-status', { detail: treeStatus, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('set-tree-status', { detail: treeStatus, bubbles: true }));
   }
 
   private radioHandler(state: string) {

@@ -11,10 +11,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  GUICorpusStatus,
-  StatusResponse,
-} from '../../../golden/modules/rpc_types';
+import { GUICorpusStatus, StatusResponse } from '../../../golden/modules/rpc_types';
 
 const defaultGoldURL = 'https://gold.skia.org';
 
@@ -88,8 +85,7 @@ export class GoldStatusSk extends ElementSk {
       .then((json: StatusResponse) => {
         this.resp = json;
         this.resp.corpStatus?.sort(
-          (a: GUICorpusStatus, b: GUICorpusStatus) =>
-            b!.untriagedCount - a!.untriagedCount
+          (a: GUICorpusStatus, b: GUICorpusStatus) => b!.untriagedCount - a!.untriagedCount
         );
         this._render();
       })

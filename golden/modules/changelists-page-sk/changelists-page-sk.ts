@@ -58,19 +58,13 @@ export class ChangelistsPageSk extends ElementSk {
   private static changelist = (cl: Changelist) => html`
     <tr>
       <td class="id">
-        <a
-          title="See codereview in a new window"
-          target="_blank"
-          rel="noopener"
-          href=${cl.url}
+        <a title="See codereview in a new window" target="_blank" rel="noopener" href=${cl.url}
           >${cl.id}</a
         >
         ${ChangelistsPageSk.statusIcon(cl)}
       </td>
       <td>
-        <a href="/cl/${cl.system}/${cl.id}" target="_blank" rel="noopener"
-          >Triage</a
-        >
+        <a href="/cl/${cl.system}/${cl.id}" target="_blank" rel="noopener">Triage</a>
       </td>
       <td class="owner">${cl.owner}</td>
       <td title=${cl.updated}>${human.diffDate(cl.updated)} ago</td>
@@ -86,8 +80,7 @@ export class ChangelistsPageSk extends ElementSk {
     if (st === 'landed') {
       return html`<done-icon-sk title="ChangeList was landed"></done-icon-sk>`;
     }
-    return html`<block-icon-sk
-      title="ChangeList was abandoned"></block-icon-sk>`;
+    return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
   };
 
   // Set empty values to allow empty rendering while we wait for
@@ -124,10 +117,7 @@ export class ChangelistsPageSk extends ElementSk {
 
         // default values if not specified.
         this.offset = (newState.offset as number) || 0;
-        this.pageSize =
-          (newState.page_size as number) ||
-          +this.getAttribute('page_size')! ||
-          50;
+        this.pageSize = (newState.page_size as number) || +this.getAttribute('page_size')! || 50;
         this.showAll = (newState.show_all as boolean) || false;
         this.fetch();
         this._render();

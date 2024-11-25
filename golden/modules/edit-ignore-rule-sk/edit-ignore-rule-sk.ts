@@ -26,9 +26,7 @@ export class EditIgnoreRuleSk extends ElementSk {
     </div>
 
     <div class="columns">
-      <textarea placeholder="Enter a note, e.g 'skia:1234'" id="note">
-${ele._note}</textarea
-      >
+      <textarea placeholder="Enter a note, e.g 'skia:1234'" id="note">${ele._note}</textarea>
       <div class="query">${humanReadableQuery(ele.query)}</div>
     </div>
 
@@ -137,8 +135,7 @@ ${ele._note}</textarea
 
   private addCustomParam() {
     const keyInput = this.querySelector<HTMLInputElement>('input.custom_key')!;
-    const valueInput =
-      this.querySelector<HTMLInputElement>('input.custom_value')!;
+    const valueInput = this.querySelector<HTMLInputElement>('input.custom_value')!;
 
     const key = keyInput.value;
     const value = valueInput.value;

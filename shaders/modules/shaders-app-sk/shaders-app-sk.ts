@@ -13,12 +13,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
-import type {
-  Canvas,
-  CanvasKit,
-  Paint,
-  Surface,
-} from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
+import type { Canvas, CanvasKit, Paint, Surface } from '../../wasm_libs/types/canvaskit'; // gazelle:ignore
 import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 import '../../../elements-sk/modules/error-toast-sk';
@@ -60,8 +55,7 @@ declare const SKIA_VERSION: string;
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
-const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src)
-  .origin;
+const scriptOrigin = new URL((document!.currentScript as HTMLScriptElement).src).origin;
 const kitReady = CanvasKitInit({
   locateFile: (file: string) => `${scriptOrigin}/dist/${file}`,
 });
@@ -218,9 +212,7 @@ const domIDFromHashOrName = (hashOrName: string): string => {
 const shaderEntry = (i: shaderExample) =>
   html` <li class="thumbnails" id="${domIDFromHashOrName(i.hash)}">
     <a href="/?id=${i.hash}">
-      <img
-        src=${cdnImage(i)}
-        alt=${`Clickable thumbnail of ${i.imageName} shader example`} />
+      <img src=${cdnImage(i)} alt=${`Clickable thumbnail of ${i.imageName} shader example`} />
     </a>
   </li>`;
 
@@ -350,9 +342,7 @@ export class ShadersAppSk extends ElementSk {
         <span>
           ${unsafeHTML(prefix)}
           <span class="linkish">${name}</span>
-          ${ele.rootShaderNode!.children.length > 0 && ele.currentNode === node
-            ? '*'
-            : ''}
+          ${ele.rootShaderNode!.children.length > 0 && ele.currentNode === node ? '*' : ''}
         </span>
         <span>
           ${ShadersAppSk.deleteButton(ele, parentNode, node, childIndex)}
@@ -406,9 +396,7 @@ export class ShadersAppSk extends ElementSk {
       switch (uniform.name) {
         case 'iTime':
           ele.numPredefinedUniformControls++;
-          ret.push(
-            html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`
-          );
+          ret.push(html`<uniform-time-sk .uniform=${uniform}></uniform-time-sk>`);
           break;
         case 'iMouse':
           ele.numPredefinedUniformControls++;
@@ -433,18 +421,11 @@ export class ShadersAppSk extends ElementSk {
           break;
         default:
           if (uniform.name.toLowerCase().indexOf('color') !== -1) {
-            ret.push(
-              html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`
-            );
+            ret.push(html`<uniform-color-sk .uniform=${uniform}></uniform-color-sk>`);
           } else if (uniform.rows === 1 && uniform.columns === 1) {
-            ret.push(
-              html`<uniform-slider-sk .uniform=${uniform}></uniform-slider-sk>`
-            );
+            ret.push(html`<uniform-slider-sk .uniform=${uniform}></uniform-slider-sk>`);
           } else {
-            ret.push(
-              html`<uniform-generic-sk
-                .uniform=${uniform}></uniform-generic-sk>`
-            );
+            ret.push(html`<uniform-generic-sk .uniform=${uniform}></uniform-generic-sk>`);
           }
           break;
       }
@@ -457,9 +438,7 @@ export class ShadersAppSk extends ElementSk {
       <header>
         <a href="/"><h1>SkSL Shaders</h1></a>
         <span>
-          <a
-            id="githash"
-            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
+          <a id="githash" href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
             ${SKIA_VERSION.slice(0, 7)}
           </a>
           <theme-chooser-sk class="theme-chooser"></theme-chooser-sk>
@@ -493,9 +472,7 @@ ${predefinedUniforms}</textarea
               <details id="image_edit">
                 <summary><edit-icon-sk></edit-icon-sk></summary>
                 <div id="image_edit_dialog">
-                  <label for="image_url">
-                    Change the URL used for the source image.
-                  </label>
+                  <label for="image_url"> Change the URL used for the source image. </label>
                   <div>
                     <input
                       type="url"
@@ -505,8 +482,8 @@ ${predefinedUniforms}</textarea
                     <button @click=${ele.imageURLChanged}>Use</button>
                   </div>
                   <label for="image_upload">
-                    Or upload an image to <em>temporarily</em> try as a source
-                    for the shader. Uploaded images are not saved.
+                    Or upload an image to <em>temporarily</em> try as a source for the shader.
+                    Uploaded images are not saved.
                   </label>
                   <div>
                     <input
@@ -520,17 +497,13 @@ ${predefinedUniforms}</textarea
             </div>
           </details>
           <textarea
-            style="display: ${ele.currentNode?.children.length
-              ? 'block'
-              : 'none'}"
+            style="display: ${ele.currentNode?.children.length ? 'block' : 'none'}"
             rows=${ele.currentNode?.children.length || 0}
             cols="75">
 ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
           >
           <div id="codeEditor"></div>
-          <div
-            ?hidden=${!ele.currentNode?.compileErrorMessage}
-            id="compileErrors">
+          <div ?hidden=${!ele.currentNode?.compileErrorMessage} id="compileErrors">
             <h3>Errors</h3>
             <pre>${ele.currentNode?.compileErrorMessage}</pre>
           </div>
@@ -555,8 +528,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
             Save
           </button>
           <button
-            ?hidden=${ele.currentNode?.compileErrorMessage ||
-            ele.rootShaderNode?.needsCompile()}
+            ?hidden=${ele.currentNode?.compileErrorMessage || ele.rootShaderNode?.needsCompile()}
             @click=${ele.createDebugTrace}
             class="action">
             Debug
@@ -587,8 +559,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
    * For this to work the associated CSS themes must be loaded. See
    * shaders-app-sk.scss.
    */
-  private static themeFromCurrentMode = () =>
-    isDarkMode() ? 'ambiance' : 'base16-light';
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'ambiance' : 'base16-light');
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -667,9 +638,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
       this.setUniformValuesToControls();
       // If we loaded this shader from the gallery then make sure the thumbnail
       // is scrolled into view.
-      const galleryEntry = this.querySelector(
-        `#${domIDFromHashOrName(this.state.id)}`
-      );
+      const galleryEntry = this.querySelector(`#${domIDFromHashOrName(this.state.id)}`);
       if (galleryEntry) {
         galleryEntry.scrollIntoView();
       }
@@ -765,9 +734,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     if (!this.currentNode) {
       return [];
     }
-    const uniforms: number[] = new Array(
-      this.currentNode.numPredefinedUniformValues
-    ).fill(0);
+    const uniforms: number[] = new Array(this.currentNode.numPredefinedUniformValues).fill(0);
     $<UniformControlElement>('#uniformControls > *')
       .slice(0, this.numPredefinedUniformControls) // stop after the predefined controls
       .forEach((control: UniformControl) => {
@@ -785,9 +752,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     }
     // Make a full array because the application of uniform values are implemented to write to
     // specific indexes and we need those later indexes to exist.
-    const uniforms: number[] = new Array(
-      this.currentNode.getUniformFloatCount()
-    ).fill(0);
+    const uniforms: number[] = new Array(this.currentNode.getUniformFloatCount()).fill(0);
     $<UniformControlElement>('#uniformControls > *')
       .slice(this.numPredefinedUniformControls) // start after the predefined controls
       .forEach((control: UniformControl) => {
@@ -800,41 +765,30 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
 
   /** Populate the control values from the uniforms. */
   private setUniformValuesToControls(): void {
-    const predefinedUniformValues = new Array(
-      this.currentNode!.numPredefinedUniformValues
-    ).fill(0);
-    const uniforms = predefinedUniformValues.concat(
-      this.currentNode!.currentUserUniformValues
-    );
-    $<UniformControlElement>('#uniformControls > *').forEach(
-      (control: UniformControl) => {
-        control.restoreUniformValues(uniforms);
-      }
-    );
+    const predefinedUniformValues = new Array(this.currentNode!.numPredefinedUniformValues).fill(0);
+    const uniforms = predefinedUniformValues.concat(this.currentNode!.currentUserUniformValues);
+    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
+      control.restoreUniformValues(uniforms);
+    });
     this.findAllUniformControlsThatNeedRAF();
   }
 
   private findAllUniformControlsThatNeedRAF(): void {
     this.uniformControlsNeedingRAF = [];
-    $<UniformControlElement>('#uniformControls > *').forEach(
-      (control: UniformControl) => {
-        if (control.needsRAF()) {
-          this.uniformControlsNeedingRAF.push(control);
-        }
+    $<UniformControlElement>('#uniformControls > *').forEach((control: UniformControl) => {
+      if (control.needsRAF()) {
+        this.uniformControlsNeedingRAF.push(control);
       }
-    );
+    });
   }
 
   private uniformControlsChange(): void {
-    this.currentNode!.currentUserUniformValues =
-      this.getUserUniformValuesFromControls();
+    this.currentNode!.currentUserUniformValues = this.getUserUniformValuesFromControls();
     this._render();
   }
 
   private drawFrame(): void {
-    const shader = this.currentNode!.getShader(
-      this.getPredefinedUniformValuesFromControls()
-    );
+    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader || !this.kit) {
       return;
     }
@@ -881,9 +835,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
   }
 
   private createDebugTrace(): void {
-    const shader = this.currentNode!.getShader(
-      this.getPredefinedUniformValuesFromControls()
-    );
+    const shader = this.currentNode!.getShader(this.getPredefinedUniformValuesFromControls());
     if (!shader || !this.kit) {
       return;
     }
@@ -893,24 +845,11 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     if (surface) {
       const canvas: Canvas = surface.getCanvas();
       const paint: Paint = new this.kit.Paint();
-      const traced = this.kit.RuntimeEffect.MakeTraced(
-        shader,
-        this.traceCoordX,
-        this.traceCoordY
-      );
+      const traced = this.kit.RuntimeEffect.MakeTraced(shader, this.traceCoordX, this.traceCoordY);
       paint.setShader(traced.shader);
       // Clip to a tight rectangle around the trace coordinate to reduce draw time.
-      const tightClip = this.kit.XYWHRect(
-        this.traceCoordX - 2,
-        this.traceCoordY - 2,
-        5,
-        5
-      );
-      canvas.clipRect(
-        tightClip,
-        this.kit.ClipOp.Intersect,
-        /* doAntiAlias= */ false
-      );
+      const tightClip = this.kit.XYWHRect(this.traceCoordX - 2, this.traceCoordY - 2, 5, 5);
+      canvas.clipRect(tightClip, this.kit.ClipOp.Intersect, /* doAntiAlias= */ false);
       const rect = this.kit.XYWHRect(0, 0, this.width, this.height);
       canvas.drawRect(rect, paint);
       const traceJSON: string = traced.debugTrace.writeTrace();
@@ -1008,11 +947,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     }
   }
 
-  private async removeChildShader(
-    e: Event,
-    parentNode: ShaderNode,
-    index: number
-  ) {
+  private async removeChildShader(e: Event, parentNode: ShaderNode, index: number) {
     e.stopPropagation();
     // We could write a bunch of complicated logic to track which current shader
     // is selected and restore that correctly on delete, or we can just always
@@ -1025,11 +960,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     await this.runClick();
   }
 
-  private async editChildShader(
-    e: Event,
-    parentNode: ShaderNode,
-    index: number
-  ) {
+  private async editChildShader(e: Event, parentNode: ShaderNode, index: number) {
     e.stopPropagation();
     const editedChildShader = await this.editChildShaderControl!.show(
       parentNode.getChildShader(index)
@@ -1037,10 +968,7 @@ ${ele.currentNode?.getChildShaderUniforms() || ''}</textarea
     if (!editedChildShader) {
       return;
     }
-    await parentNode.setChildShaderUniformName(
-      index,
-      editedChildShader.UniformName
-    );
+    await parentNode.setChildShaderUniformName(index, editedChildShader.UniformName);
     this._render();
     await this.runClick();
   }

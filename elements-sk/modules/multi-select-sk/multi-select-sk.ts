@@ -143,15 +143,12 @@ export class MultiSelectSk extends HTMLElement {
     }
     this._bubbleUp();
     this.dispatchEvent(
-      new CustomEvent<MultiSelectSkSelectionChangedEventDetail>(
-        'selection-changed',
-        {
-          detail: {
-            selection: this._selection,
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<MultiSelectSkSelectionChangedEventDetail>('selection-changed', {
+        detail: {
+          selection: this._selection,
+        },
+        bubbles: true,
+      })
     );
   }
 

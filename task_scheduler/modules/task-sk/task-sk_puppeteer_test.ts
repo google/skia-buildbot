@@ -1,8 +1,4 @@
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('task-sk', () => {
@@ -15,9 +11,7 @@ describe('task-sk', () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 1429, height: 836 });
     await testBed.page.evaluate(() => {
-      (<ThemeChooserSk>(
-        document.getElementsByTagName('theme-chooser-sk')[0]
-      )).darkmode = false;
+      (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = false;
     });
   });
 
@@ -26,9 +20,7 @@ describe('task-sk', () => {
       await takeScreenshot(testBed.page, 'task-scheduler', 'task-sk');
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
-        (<ThemeChooserSk>(
-          document.getElementsByTagName('theme-chooser-sk')[0]
-        )).darkmode = true;
+        (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = true;
       });
       await takeScreenshot(testBed.page, 'task-scheduler', 'task-sk_dark');
     });

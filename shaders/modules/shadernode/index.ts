@@ -34,8 +34,7 @@ uniform float3 iImageResolution; // iImage1 resolution (pixels)
 uniform shader iImage1;          // An input image.`;
 
 /** How many of the uniforms listed in predefinedUniforms are of type 'shader'? */
-export const numPredefinedShaderUniforms =
-  predefinedUniforms.match(/^uniform shader/gm)!.length;
+export const numPredefinedShaderUniforms = predefinedUniforms.match(/^uniform shader/gm)!.length;
 
 /**
  * Counts the number of uniforms defined in 'predefinedUniforms'. All the
@@ -84,23 +83,14 @@ interface InputImage {
   shader: Shader;
 }
 
-export const childShadersAreDifferent = (
-  a: ChildShader,
-  b: ChildShader
-): boolean => {
-  if (
-    a.UniformName !== b.UniformName ||
-    a.ScrapHashOrName !== b.ScrapHashOrName
-  ) {
+export const childShadersAreDifferent = (a: ChildShader, b: ChildShader): boolean => {
+  if (a.UniformName !== b.UniformName || a.ScrapHashOrName !== b.ScrapHashOrName) {
     return true;
   }
   return false;
 };
 
-export const childShaderArraysDiffer = (
-  a: ChildShader[],
-  b: ChildShader[]
-): boolean => {
+export const childShaderArraysDiffer = (a: ChildShader[], b: ChildShader[]): boolean => {
   if (a.length !== b.length) {
     return true;
   }
@@ -204,21 +194,17 @@ export class ShaderNode {
     this.body = scrapBody;
     this._shaderCode = this.body.Body;
     this.currentUserUniformValues = this.body.SKSLMetaData?.Uniforms || [];
-    await this.setCurrentImageURL(
-      this.body?.SKSLMetaData?.ImageURL || defaultImageURL
-    );
+    await this.setCurrentImageURL(this.body?.SKSLMetaData?.ImageURL || defaultImageURL);
 
     // Now that we've set up this node, we build the rest of the tree of child nodes.
     this.children = [];
     this.currentChildShaders = [];
     const allChildrenLoading =
-      this.body.SKSLMetaData?.Children?.map<Promise<void>>(
-        async (childShader, index) => {
-          this.currentChildShaders[index] = childShader;
-          const childNode = await this.shaderNodeFromChildShader(childShader);
-          this.children[index] = childNode;
-        }
-      ) || [];
+      this.body.SKSLMetaData?.Children?.map<Promise<void>>(async (childShader, index) => {
+        this.currentChildShaders[index] = childShader;
+        const childNode = await this.shaderNodeFromChildShader(childShader);
+        this.children[index] = childNode;
+      }) || [];
     await Promise.all(allChildrenLoading);
     this.compile();
   }
@@ -260,11 +246,9 @@ export class ShaderNode {
     }
 
     try {
-      await this.promiseOnImageLoaded(this.currentImageURL).then(
-        (imageElement) => {
-          this.inputImageShaderFromCanvasImageSource(imageElement);
-        }
-      );
+      await this.promiseOnImageLoaded(this.currentImageURL).then((imageElement) => {
+        this.inputImageShaderFromCanvasImageSource(imageElement);
+      });
     } catch (error) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const _ = errorMessage(
@@ -279,8 +263,7 @@ export class ShaderNode {
     // First pick a unique name for the new child shader.
     let i = 1;
     let childUniformName = 'childShader';
-    const hasSameName = (child: ChildShader): boolean =>
-      child.UniformName === childUniformName;
+    const hasSameName = (child: ChildShader): boolean => child.UniformName === childUniformName;
     while (this.currentChildShaders.some(hasSameName)) {
       i++;
       childUniformName = `childShader${i}`;
@@ -320,9 +303,7 @@ export class ShaderNode {
       throw new Error('Invalid uniform name');
     }
     this.currentChildShaders[index].UniformName = name;
-    this.children[index] = await this.shaderNodeFromChildShader(
-      this.currentChildShaders[index]
-    );
+    this.children[index] = await this.shaderNodeFromChildShader(this.currentChildShaders[index]);
   }
 
   getChildShaderUniformName(index: number): string {
@@ -339,9 +320,7 @@ export class ShaderNode {
    */
   async saveScrap(): Promise<string> {
     // Saving needs to be done depth first.
-    const newChildIDs = await Promise.all(
-      this.children.map((childNode) => childNode.saveScrap())
-    );
+    const newChildIDs = await Promise.all(this.children.map((childNode) => childNode.saveScrap()));
 
     // Now update currentChildShaders with the updated hashes.
     newChildIDs.forEach((childScrapHashOrName, index) => {
@@ -415,9 +394,7 @@ export class ShaderNode {
   /** A scrap of shader code with the child shader declarations. */
   getChildShaderUniforms(): string {
     return this.currentChildShaders
-      .map(
-        (childNode: ChildShader) => `uniform shader ${childNode.UniformName};`
-      )
+      .map((childNode: ChildShader) => `uniform shader ${childNode.UniformName};`)
       .join('\n');
   }
 
@@ -427,8 +404,7 @@ export class ShaderNode {
     this.children.forEach((childNode: ShaderNode) => childNode.compile());
 
     const predefinedAndChildShaderUniformDeclarations = `${predefinedUniforms}\n${this.getChildShaderUniforms()}\n`;
-    const errorLineFixup =
-      predefinedAndChildShaderUniformDeclarations.split('\n').length - 1;
+    const errorLineFixup = predefinedAndChildShaderUniformDeclarations.split('\n').length - 1;
 
     this._compileErrorMessage = '';
     this._compileErrorLineNumbers = [];
@@ -463,12 +439,9 @@ export class ShaderNode {
     this.mallocUniformsMallocObj();
 
     // Fix up currentUserUniformValues if it's the wrong length.
-    const userUniformValuesLength =
-      this.uniformFloatCount - this._numPredefinedUniformValues;
+    const userUniformValuesLength = this.uniformFloatCount - this._numPredefinedUniformValues;
     if (this.currentUserUniformValues.length !== userUniformValuesLength) {
-      this.currentUserUniformValues = new Array(userUniformValuesLength).fill(
-        0.5
-      );
+      this.currentUserUniformValues = new Array(userUniformValuesLength).fill(0.5);
     }
   }
 
@@ -477,10 +450,7 @@ export class ShaderNode {
     return (
       this._shaderCode !== this.runningCode ||
       this.children.some((childNode: ShaderNode) => childNode.needsCompile()) ||
-      childShaderArraysDiffer(
-        this.currentChildShaders,
-        this.runningChildShaders
-      )
+      childShaderArraysDiffer(this.currentChildShaders, this.runningChildShaders)
     );
   }
 
@@ -490,10 +460,7 @@ export class ShaderNode {
       this._shaderCode !== this.body!.Body ||
       this.userUniformValuesHaveBeenEdited() ||
       this.imageURLHasChanged() ||
-      childShaderArraysDiffer(
-        this.currentChildShaders,
-        this.body?.SKSLMetaData?.Children || []
-      ) ||
+      childShaderArraysDiffer(this.currentChildShaders, this.body?.SKSLMetaData?.Children || []) ||
       this.children.some((childNode: ShaderNode) => childNode.needsSave())
     );
   }
@@ -528,32 +495,22 @@ export class ShaderNode {
     uniformsFloat32Array.set(predefinedUniformsValues);
 
     // Copy in our local edited uniform values after the predefined uniforms.
-    uniformsFloat32Array.set(
-      this.currentUserUniformValues,
-      this._numPredefinedUniformValues
-    );
+    uniformsFloat32Array.set(this.currentUserUniformValues, this._numPredefinedUniformValues);
 
     // Write in the iImageResolution uniform values.
     const imageResolution = this.findUniform('iImageResolution');
     if (imageResolution) {
       uniformsFloat32Array[imageResolution.slot] = this.inputImageShader!.width;
-      uniformsFloat32Array[imageResolution.slot + 1] =
-        this.inputImageShader!.height;
+      uniformsFloat32Array[imageResolution.slot + 1] = this.inputImageShader!.height;
     }
 
     let childShaders = [this.inputImageShader!.shader];
     // Pass in the same predefinedUniformValues (not the uniforms from the user controls) to
     // all children. This will allow parents and children to be in sync.
     childShaders = childShaders.concat(
-      this.children.map(
-        (childNode: ShaderNode) =>
-          childNode.getShader(predefinedUniformsValues)!
-      )
+      this.children.map((childNode: ShaderNode) => childNode.getShader(predefinedUniformsValues)!)
     );
-    return this.effect!.makeShaderWithChildren(
-      uniformsFloat32Array,
-      childShaders
-    );
+    return this.effect!.makeShaderWithChildren(uniformsFloat32Array, childShaders);
   }
 
   get numPredefinedUniformValues(): number {
@@ -561,14 +518,10 @@ export class ShaderNode {
   }
 
   private setInputImageShaderToEmptyImage() {
-    this.inputImageShaderFromCanvasImageSource(
-      new Image(DEFAULT_SIZE, DEFAULT_SIZE)
-    );
+    this.inputImageShaderFromCanvasImageSource(new Image(DEFAULT_SIZE, DEFAULT_SIZE));
   }
 
-  private async shaderNodeFromChildShader(
-    childShader: ChildShader
-  ): Promise<ShaderNode> {
+  private async shaderNodeFromChildShader(childShader: ChildShader): Promise<ShaderNode> {
     const childNode = new ShaderNode(this.canvasKit);
     await childNode.loadScrap(childShader.ScrapHashOrName);
     return childNode;
@@ -611,17 +564,12 @@ export class ShaderNode {
     if (this.uniformsMallocObj) {
       this.canvasKit!.Free(this.uniformsMallocObj);
     }
-    this.uniformsMallocObj = this.canvasKit!.Malloc(
-      Float32Array,
-      this.uniformFloatCount
-    );
+    this.uniformsMallocObj = this.canvasKit!.Malloc(Float32Array, this.uniformFloatCount);
   }
 
   private userUniformValuesHaveBeenEdited(): boolean {
     const savedLocalUniformValues = this.body?.SKSLMetaData?.Uniforms || [];
-    if (
-      this._currentUserUniformValues.length !== savedLocalUniformValues.length
-    ) {
+    if (this._currentUserUniformValues.length !== savedLocalUniformValues.length) {
       return true;
     }
     for (let i = 0; i < this._currentUserUniformValues.length; i++) {
@@ -645,10 +593,7 @@ export class ShaderNode {
       return false;
     }
     const current = new URL(this.currentImageURL, window.location.toString());
-    const saved = new URL(
-      this.body?.SKSLMetaData?.ImageURL || '',
-      window.location.toString()
-    );
+    const saved = new URL(this.body?.SKSLMetaData?.ImageURL || '', window.location.toString());
     if (current.toString() !== saved.toString()) {
       return true;
     }
@@ -679,9 +624,7 @@ export class ShaderNode {
     });
   }
 
-  private inputImageShaderFromCanvasImageSource(
-    imageElement: HTMLImageElement
-  ): void {
+  private inputImageShaderFromCanvasImageSource(imageElement: HTMLImageElement): void {
     if (this.inputImageShader) {
       this.inputImageShader.shader.delete();
     }

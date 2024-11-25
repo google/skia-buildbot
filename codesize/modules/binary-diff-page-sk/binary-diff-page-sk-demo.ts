@@ -1,9 +1,6 @@
 import './index';
 import fetchMock from 'fetch-mock';
-import {
-  BinarySizeDiffRPCRequest,
-  BinarySizeDiffRPCResponse,
-} from '../rpc_types';
+import { BinarySizeDiffRPCRequest, BinarySizeDiffRPCResponse } from '../rpc_types';
 import { BinaryDiffPageSk } from './binary-diff-page-sk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
 
@@ -51,9 +48,7 @@ const fakeRPCResponse: BinarySizeDiffRPCResponse = {
 
 fetchMock.post(
   (url, opts) => {
-    const request = JSON.parse(
-      opts.body?.toString() || ''
-    ) as BinarySizeDiffRPCRequest;
+    const request = JSON.parse(opts.body?.toString() || '') as BinarySizeDiffRPCRequest;
     return (
       url === '/rpc/binary_size_diff/v1' &&
       request.commit === fakeRPCResponse.metadata.revision &&
@@ -65,10 +60,7 @@ fetchMock.post(
   },
   () =>
     new Promise((resolve) =>
-      setTimeout(
-        () => resolve(JSON.stringify(fakeRPCResponse)),
-        fakeRpcDelayMillis
-      )
+      setTimeout(() => resolve(JSON.stringify(fakeRPCResponse)), fakeRpcDelayMillis)
     )
 );
 

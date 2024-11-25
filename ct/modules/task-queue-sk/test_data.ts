@@ -82,16 +82,11 @@ export const resultSetTwoItems: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -125,16 +120,11 @@ export const resultSetTwoItems: GetTasksResponse = {
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format --traffic-setting=Regular-4G --use-live-sites',
       browser_args: '',
       description: 'Regular run for Volt 10k pages (Chrome M80, live sites) ',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Android',
@@ -144,8 +134,7 @@ export const resultSetTwoItems: GetTasksResponse = {
       value_column_name: 'avg',
       match_stdout_txt: '',
       chromium_hash: '',
-      apk_gspath:
-        'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/ChromeModern.apk',
+      apk_gspath: 'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/ChromeModern.apk',
       telemetry_isolate_hash: 'b13b9f6b50847aab5f395c5be7ee1d71e2e7abd3',
       cc_list: null,
       task_priority: 100,

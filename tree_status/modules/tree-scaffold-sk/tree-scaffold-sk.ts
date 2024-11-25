@@ -56,9 +56,7 @@ export class TreeScaffoldSk extends ElementSk {
           <a href="http://go/skia-tree-status-doc" tab-index="0"
             ><help-icon-sk></help-icon-sk><span>Help</span></a
           >
-          <a
-            href="https://github.com/google/skia-buildbot/tree/master/tree_status"
-            tab-index="0"
+          <a href="https://github.com/google/skia-buildbot/tree/master/tree_status" tab-index="0"
             ><folder-icon-sk></folder-icon-sk><span>Code</span></a
           >
         </nav>

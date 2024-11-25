@@ -36,9 +36,7 @@ export class ChangelistControlsSkPO extends PageObject {
   }
 
   async isExcludeResultsFromPrimaryRadioChecked() {
-    return this.excludeMasterRadio.applyFnToDOMNode(
-      (el) => (el as CheckOrRadio).checked
-    );
+    return this.excludeMasterRadio.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async clickExcludeResultsFromPrimaryRadio() {
@@ -46,9 +44,7 @@ export class ChangelistControlsSkPO extends PageObject {
   }
 
   async isShowAllResultsRadioChecked() {
-    return this.includeMasterRadio.applyFnToDOMNode(
-      (el) => (el as CheckOrRadio).checked
-    );
+    return this.includeMasterRadio.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async clickShowAllResultsRadio() {

@@ -31,10 +31,7 @@ export class TaskRepeaterSk extends ElementSk {
     <div class="tr-container">
       <select-sk>
         ${frequencies.map(
-          (f) =>
-            html` <div>
-              <span class="num">${f.num}</span><span>${f.desc}</span>
-            </div>`
+          (f) => html` <div><span class="num">${f.num}</span><span>${f.desc}</span></div>`
         )}
       </select-sk>
     </div>

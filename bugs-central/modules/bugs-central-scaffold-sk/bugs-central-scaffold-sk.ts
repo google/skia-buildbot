@@ -55,27 +55,21 @@ export class BugsCentralScaffoldSk extends ElementSk {
 
       <aside>
         <nav class="surface-themes-sk">
-          <a href="/" tab-index="0">
-            <home-icon-sk></home-icon-sk><span>All Clients</span>
-          </a>
+          <a href="/" tab-index="0"> <home-icon-sk></home-icon-sk><span>All Clients</span> </a>
           <a href="/?client=Android" tab-index="0">
             <person-pin-icon-sk></person-pin-icon-sk><span>Android Client</span>
           </a>
           <a href="/?client=Chromium" tab-index="0">
-            <person-pin-icon-sk></person-pin-icon-sk
-            ><span>Chromium Client</span>
+            <person-pin-icon-sk></person-pin-icon-sk><span>Chromium Client</span>
           </a>
           <a href="/?client=Flutter-native" tab-index="0">
-            <person-pin-icon-sk></person-pin-icon-sk
-            ><span>Flutter-native Client</span>
+            <person-pin-icon-sk></person-pin-icon-sk><span>Flutter-native Client</span>
           </a>
           <a href="/?client=Flutter-on-web" tab-index="0">
-            <person-pin-icon-sk></person-pin-icon-sk
-            ><span>Flutter-on-web Client</span>
+            <person-pin-icon-sk></person-pin-icon-sk><span>Flutter-on-web Client</span>
           </a>
           <a href="/?client=OSS-Fuzz" tab-index="0">
-            <person-pin-icon-sk></person-pin-icon-sk
-            ><span>OSS-Fuzz Client</span>
+            <person-pin-icon-sk></person-pin-icon-sk><span>OSS-Fuzz Client</span>
           </a>
           <a href="/?client=Skia" tab-index="0">
             <person-pin-icon-sk></person-pin-icon-sk><span>Skia Client</span>
@@ -84,8 +78,7 @@ export class BugsCentralScaffoldSk extends ElementSk {
             href="https://estado.googleplex.com/dashboard/140965800253573027/buganizer"
             target="_blank"
             tab-index="0">
-            <insert-chart-icon-sk></insert-chart-icon-sk
-            ><span>Estado Dashboard</span>
+            <insert-chart-icon-sk></insert-chart-icon-sk><span>Estado Dashboard</span>
           </a>
           <a href="http://go/skia-bugs-central" target="_blank" tab-index="0">
             <help-icon-sk></help-icon-sk><span>Help</span>

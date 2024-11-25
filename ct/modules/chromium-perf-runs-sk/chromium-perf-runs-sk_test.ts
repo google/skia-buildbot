@@ -7,15 +7,10 @@ import { $, $$ } from '../../../infra-sk/modules/dom';
 import { ChromiumPerfRunsSk } from './chromium-perf-runs-sk';
 
 import { tasksResult0, tasksResult1 } from './test_data';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('chromium-perf-runs-sk', () => {
-  const newInstance = setUpElementUnderTest<ChromiumPerfRunsSk>(
-    'chromium-perf-runs-sk'
-  );
+  const newInstance = setUpElementUnderTest<ChromiumPerfRunsSk>('chromium-perf-runs-sk');
   fetchMock.config.overwriteRoutes = false;
 
   let perfRuns: HTMLElement;
@@ -50,19 +45,13 @@ describe('chromium-perf-runs-sk', () => {
 
   it('filters by user', async () => {
     expect(fetchMock.lastUrl()).to.not.contain('filter_by_logged_in_user=true');
-    await expectReload(
-      () => ($$('#userFilter', perfRuns) as HTMLElement).click(),
-      null
-    );
+    await expectReload(() => ($$('#userFilter', perfRuns) as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.contain('filter_by_logged_in_user=true');
   });
 
   it('filters by tests', async () => {
     expect(fetchMock.lastUrl()).to.contain('exclude_dummy_page_sets=true');
-    await expectReload(
-      () => ($$('#testFilter', perfRuns) as HTMLElement).click(),
-      null
-    );
+    await expectReload(() => ($$('#testFilter', perfRuns) as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.not.contain('exclude_dummy_page_sets=true');
   });
 
@@ -72,8 +61,7 @@ describe('chromium-perf-runs-sk', () => {
     result.pagination!.offset = 10;
     // 'Next page' button.
     await expectReload(
-      () =>
-        ($('pagination-sk button.action', perfRuns)[2] as HTMLElement).click(),
+      () => ($('pagination-sk button.action', perfRuns)[2] as HTMLElement).click(),
       result
     );
     expect(fetchMock.lastUrl()).to.contain('offset=10');
@@ -86,9 +74,7 @@ describe('chromium-perf-runs-sk', () => {
     fetchMock.post('begin:/_/delete_chromium_perf_task', 200);
     fetchMock.postOnce('begin:/_/get_chromium_perf_tasks', tasksResult0);
     ($$('delete-icon-sk', perfRuns) as HTMLElement).click();
-    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain(
-      '"id":5094'
-    );
+    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain('"id":5094');
   });
 
   it('reschedules tasks', async () => {
@@ -97,18 +83,12 @@ describe('chromium-perf-runs-sk', () => {
     fetchMock.post('begin:/_/redo_chromium_perf_task', 200);
     fetchMock.postOnce('begin:/_/get_chromium_perf_tasks', tasksResult0);
     ($$('redo-icon-sk', perfRuns) as HTMLElement).click();
-    expect(fetchMock.lastOptions('begin:/_/redo')!.body).to.contain(
-      '"id":5094'
-    );
+    expect(fetchMock.lastOptions('begin:/_/redo')!.body).to.contain('"id":5094');
   });
 
   it('shows detail dialogs', async () => {
-    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.include(
-      'hidden'
-    );
+    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.include('hidden');
     ($$('.details', perfRuns) as HTMLElement).click();
-    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.not.include(
-      'hidden'
-    );
+    expect($$('#benchmarkArgs0', perfRuns)!.classList.value).to.not.include('hidden');
   });
 });

@@ -117,10 +117,7 @@ export class TaskSpecDetails {
   }
 
   hasFailingNoComment(): boolean {
-    return (
-      this.hasNonIgnoredFailure &&
-      (!this.comments || this.comments.length === 0)
-    );
+    return this.hasNonIgnoredFailure && (!this.comments || this.comments.length === 0);
   }
 
   hasComment(): boolean {
@@ -128,13 +125,7 @@ export class TaskSpecDetails {
   }
 }
 
-type Filter =
-  | 'Interesting'
-  | 'Failures'
-  | 'All'
-  | 'Nocomment'
-  | 'Comments'
-  | 'Search';
+type Filter = 'Interesting' | 'Failures' | 'All' | 'Nocomment' | 'Comments' | 'Search';
 
 interface FilterInfo {
   text: string;
@@ -146,8 +137,7 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     'Interesting',
     {
       text: 'Interesting',
-      title:
-        'Tasks which have both successes and failures within the visible commit window.',
+      title: 'Tasks which have both successes and failures within the visible commit window.',
     },
   ],
   [
@@ -168,8 +158,7 @@ const FILTER_INFO: Map<Filter, FilterInfo> = new Map([
     'Nocomment',
     {
       text: 'Failing w/o comment',
-      title:
-        'Tasks which have failures within the visible commit window but have no comments.',
+      title: 'Tasks which have failures within the visible commit window but have no comments.',
     },
   ],
   [
@@ -240,11 +229,7 @@ class Data {
       pod: this.serverPodId,
       repoPath: repo,
     };
-    if (
-      this.lastLoaded &&
-      repo === this.repo &&
-      numCommits === this.numCommits
-    ) {
+    if (this.lastLoaded && repo === this.repo && numCommits === this.numCommits) {
       // We incrementally update if this is the same repo and numCommits as the
       // previous call, and we have a starting point.
       req.from = this.lastLoaded.toISOString();
@@ -354,10 +339,11 @@ class Data {
     for (const comment of update.comments || []) {
       comment.taskSpecName = comment.taskSpecName || '';
       comment.commit = comment.commit || '';
-      const commentsBySpec = lookupOrInsert<
-        string,
-        Map<TaskSpec, Array<Comment>>
-      >(this.comments, comment.commit, Map);
+      const commentsBySpec = lookupOrInsert<string, Map<TaskSpec, Array<Comment>>>(
+        this.comments,
+        comment.commit,
+        Map
+      );
       const comments = lookupOrInsert<TaskSpec, Array<Comment>>(
         commentsBySpec,
         comment.taskSpecName,
@@ -365,9 +351,7 @@ class Data {
       );
       comments.push(comment);
       // Keep comments sorted by timestamp, if there are multiple.
-      comments.sort(
-        (a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp)
-      );
+      comments.sort((a: Comment, b: Comment) => Number(a.timestamp) - Number(b.timestamp));
     }
   }
 
@@ -386,8 +370,7 @@ class Data {
 
   private sortCommits() {
     this.commits.sort((a, b) => {
-      const diff =
-        new Date(b.timestamp!).valueOf() - new Date(a.timestamp!).valueOf();
+      const diff = new Date(b.timestamp!).valueOf() - new Date(a.timestamp!).valueOf();
       if (diff !== 0) {
         return diff;
       }
@@ -429,10 +412,7 @@ class Data {
     }
   }
 
-  private processCommitTasks(
-    commitTasks: Map<string, Task> | never[],
-    commit: Commit
-  ) {
+  private processCommitTasks(commitTasks: Map<string, Task> | never[], commit: Commit) {
     for (const [taskSpec, task] of commitTasks) {
       const details = lookupOrInsert(this.taskSpecs, taskSpec, TaskSpecDetails);
       // First time seeing the taskSpec, fill in header data.
@@ -440,21 +420,18 @@ class Data {
         this.fillTaskSpecDetails(details, taskSpec);
       }
       // Aggregate data about this spec's tasks.
-      details.hasSuccess =
-        details.hasSuccess || task.status === TASK_STATUS_SUCCESS;
+      details.hasSuccess = details.hasSuccess || task.status === TASK_STATUS_SUCCESS;
       // 'Interesting' looks for non-ignored failures, 'Failures' looks for any failure.
       details.hasNonIgnoredFailure =
         details.hasNonIgnoredFailure ||
         (!commit.ignoreFailure &&
-          (task.status === TASK_STATUS_FAILURE ||
-            task.status === TASK_STATUS_MISHAP));
+          (task.status === TASK_STATUS_FAILURE || task.status === TASK_STATUS_MISHAP));
       details.hasFailure =
         details.hasFailure ||
         task.status === TASK_STATUS_FAILURE ||
         task.status === TASK_STATUS_MISHAP;
       details.hasTaskComment =
-        details.hasTaskComment ||
-        (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
+        details.hasTaskComment || (this.comments.get(commit.hash)?.get(taskSpec)?.length || 0) > 0;
     }
   }
 
@@ -474,11 +451,7 @@ class Data {
     }
 
     const category = details.category || 'Other';
-    const categoryDetails = lookupOrInsert(
-      this.categories,
-      category,
-      CategorySpec
-    );
+    const categoryDetails = lookupOrInsert(this.categories, category, CategorySpec);
     const subcategory = details.subcategory || 'Other';
     lookupOrInsert<string, Array<string>>(
       categoryDetails.taskSpecsBySubCategory,
@@ -575,11 +548,7 @@ export class CommitsTableSk extends ElementSk {
     html`<div class="commitsTableContainer">
       <div
         class="legend"
-        style=${el.gridLocation(
-          CATEGORY_START_ROW,
-          COMMIT_START_COL,
-          COMMIT_START_ROW
-        )}>
+        style=${el.gridLocation(CATEGORY_START_ROW, COMMIT_START_COL, COMMIT_START_ROW)}>
         <comment-icon-sk class="tiny"></comment-icon-sk>Comments<br />
         <texture-icon-sk class="tiny"></texture-icon-sk>Flaky<br />
         <block-icon-sk class="tiny"></block-icon-sk>Ignore Failure<br />
@@ -589,11 +558,7 @@ export class CommitsTableSk extends ElementSk {
       <div class="tasksTable">${el.fillTableTemplate()}</div>
       <div
         class="reloadControls"
-        style=${el.gridLocation(
-          CONTROL_START_ROW,
-          BRANCH_START_COL,
-          COMMIT_START_ROW
-        )}>
+        style=${el.gridLocation(CONTROL_START_ROW, BRANCH_START_COL, COMMIT_START_ROW)}>
         <div id="repoContainer">
           <div id="repoLabel">Repo:</div>
           <select
@@ -653,8 +618,7 @@ export class CommitsTableSk extends ElementSk {
 
           <div class="horizontal">
             <tabs-sk
-              @tab-selected-sk=${(e: CustomEvent) =>
-                (el.filter = FILTER_INDEX[e.detail.index])}>
+              @tab-selected-sk=${(e: CustomEvent) => (el.filter = FILTER_INDEX[e.detail.index])}>
               ${Array.from(FILTER_INFO).map(([filter, info]) =>
                 filter === 'Search'
                   ? html``
@@ -672,10 +636,7 @@ export class CommitsTableSk extends ElementSk {
               label="Filter task spec"
               @change=${el.searchFilter}>
             </input-sk>
-            <a
-              href="${taskSchedulerUrl()}/trigger"
-              target="_blank"
-              rel="noopener">
+            <a href="${taskSchedulerUrl()}/trigger" target="_blank" rel="noopener">
               <button>
                 <add-icon-sk></add-icon-sk>
                 Trigger a Job
@@ -816,9 +777,7 @@ export class CommitsTableSk extends ElementSk {
       this._repo = v;
       ($$('#repoSelector', this) as HTMLSelectElement)!.value = v;
       this.stateHasChanged();
-      this.dispatchEvent(
-        new CustomEvent('repo-changed', { bubbles: true, detail: v })
-      );
+      this.dispatchEvent(new CustomEvent('repo-changed', { bubbles: true, detail: v }));
       this.update();
     }
   }
@@ -844,8 +803,7 @@ export class CommitsTableSk extends ElementSk {
       dialog.displayCommit(commit, comments);
     } else if (target.hasAttribute('data-task-id')) {
       const task = this.data.tasks.get(target.dataset.taskId!)!;
-      const comments =
-        this.data.comments.get(task.revision)?.get(task.name) || [];
+      const comments = this.data.comments.get(task.revision)?.get(task.name) || [];
       dialog.displayTask(task, comments, this.data.commitsByHash);
     } else {
       dialog.close();
@@ -940,9 +898,7 @@ export class CommitsTableSk extends ElementSk {
    * @param task The task to assess.
    */
   private taskIcon(task: Task): TemplateResult {
-    return task.commits?.every(
-      (c) => !this.data.comments.get(c)?.get(task.name)
-    )
+    return task.commits?.every((c) => !this.data.comments.get(c)?.get(task.name))
       ? html``
       : html`<comment-icon-sk class="tiny"></comment-icon-sk>`;
   }
@@ -959,10 +915,8 @@ export class CommitsTableSk extends ElementSk {
       res.push(
         html`<redo-icon-sk
           class="tiny fill-green"
-          @mouseenter=${() =>
-            this.highlightAssociatedCommit(relanded.hash, false)}
-          @mouseleave=${() =>
-            this.highlightAssociatedCommit(relanded.hash, false)}>
+          @mouseenter=${() => this.highlightAssociatedCommit(relanded.hash, false)}
+          @mouseleave=${() => this.highlightAssociatedCommit(relanded.hash, false)}>
         </redo-icon-sk>`
       );
     }
@@ -971,10 +925,8 @@ export class CommitsTableSk extends ElementSk {
       res.push(
         html`<undo-icon-sk
           class="tiny fill-red"
-          @mouseenter=${() =>
-            this.highlightAssociatedCommit(reverted.hash, true)}
-          @mouseleave=${() =>
-            this.highlightAssociatedCommit(reverted.hash, true)}>
+          @mouseenter=${() => this.highlightAssociatedCommit(reverted.hash, true)}
+          @mouseleave=${() => this.highlightAssociatedCommit(reverted.hash, true)}>
         </undo-icon-sk>`
       );
     }
@@ -1013,70 +965,64 @@ export class CommitsTableSk extends ElementSk {
     const taskSpecStartCols: Map<TaskSpec, number> = new Map();
     let categoryStartCol = TASK_START_COL;
     // We compile our regex once, rather than on ever taskspec.
-    const searchRegex =
-      this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
+    const searchRegex = this._filter === 'Search' ? new RegExp(this._search, 'i') : undefined;
     // We walk category/subcategory/taskspec info 'depth-first' so filtered out taskspecs can
     // correctly filter out unnecessary subcategories, etc.
-    this.data.categories.forEach(
-      (categoryDetails: CategorySpec, categoryName: string) => {
-        let subcategoryStartCol = categoryStartCol;
-        categoryDetails.taskSpecsBySubCategory.forEach(
-          (taskSpecs: Array<string>, subcategoryName: string) => {
-            let taskSpecStartCol = subcategoryStartCol;
-            taskSpecs
-              .filter((ts) => this.includeTaskSpec(ts, searchRegex))
-              .forEach((taskSpec: string) => {
-                taskSpecStartCols.set(taskSpec, taskSpecStartCol);
-                res.push(
-                  html`<div
-                    class="category task-spec"
-                    style=${this.gridLocation(
-                      TASKSPEC_START_ROW,
-                      taskSpecStartCol++
-                    )}
-                    title=${taskSpec}>
-                    ${this.taskSpecIcons(taskSpec)}
-                  </div>`
-                );
-              });
-            if (taskSpecStartCol !== subcategoryStartCol) {
-              // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
-              const subcategoryEndCol = taskSpecStartCol;
+    this.data.categories.forEach((categoryDetails: CategorySpec, categoryName: string) => {
+      let subcategoryStartCol = categoryStartCol;
+      categoryDetails.taskSpecsBySubCategory.forEach(
+        (taskSpecs: Array<string>, subcategoryName: string) => {
+          let taskSpecStartCol = subcategoryStartCol;
+          taskSpecs
+            .filter((ts) => this.includeTaskSpec(ts, searchRegex))
+            .forEach((taskSpec: string) => {
+              taskSpecStartCols.set(taskSpec, taskSpecStartCol);
               res.push(
                 html`<div
-                  class="category"
-                  style=${this.gridLocation(
-                    SUBCATEGORY_START_ROW,
-                    subcategoryStartCol,
-                    SUBCATEGORY_START_ROW + 1,
-                    subcategoryEndCol
-                  )}>
-                  ${subcategoryName}
+                  class="category task-spec"
+                  style=${this.gridLocation(TASKSPEC_START_ROW, taskSpecStartCol++)}
+                  title=${taskSpec}>
+                  ${this.taskSpecIcons(taskSpec)}
                 </div>`
               );
-              subcategoryStartCol = subcategoryEndCol;
-            }
+            });
+          if (taskSpecStartCol !== subcategoryStartCol) {
+            // Added at least one TaskSpec in this subcategory, so add a Subcategory header.
+            const subcategoryEndCol = taskSpecStartCol;
+            res.push(
+              html`<div
+                class="category"
+                style=${this.gridLocation(
+                  SUBCATEGORY_START_ROW,
+                  subcategoryStartCol,
+                  SUBCATEGORY_START_ROW + 1,
+                  subcategoryEndCol
+                )}>
+                ${subcategoryName}
+              </div>`
+            );
+            subcategoryStartCol = subcategoryEndCol;
           }
-        );
-        if (subcategoryStartCol !== categoryStartCol) {
-          // Added at least one Subcategory in this category, so add a Category header.
-          const categoryEndCol = subcategoryStartCol;
-          res.push(
-            html`<div
-              class="category"
-              style=${this.gridLocation(
-                CATEGORY_START_ROW,
-                categoryStartCol,
-                CATEGORY_START_ROW + 1,
-                categoryEndCol
-              )}>
-              ${categoryName}
-            </div>`
-          );
-          categoryStartCol = categoryEndCol;
         }
+      );
+      if (subcategoryStartCol !== categoryStartCol) {
+        // Added at least one Subcategory in this category, so add a Category header.
+        const categoryEndCol = subcategoryStartCol;
+        res.push(
+          html`<div
+            class="category"
+            style=${this.gridLocation(
+              CATEGORY_START_ROW,
+              categoryStartCol,
+              CATEGORY_START_ROW + 1,
+              categoryEndCol
+            )}>
+            ${categoryName}
+          </div>`
+        );
+        categoryStartCol = categoryEndCol;
       }
-    );
+    });
     return taskSpecStartCols;
   }
 
@@ -1094,10 +1040,7 @@ export class CommitsTableSk extends ElementSk {
     return displayTaskRows.map((display, index) => {
       const ret: TemplateResult = display
         ? html` <div
-            class=${taskClasses(
-              task,
-              ...this.getDashedBorderClasses(displayTaskRows, index)
-            )}
+            class=${taskClasses(task, ...this.getDashedBorderClasses(displayTaskRows, index))}
             style=${this.gridLocation(currRow - rowStart + 1, 1)}
             data-task-id=${task.id}>
             ${index === 0 ? this.taskIcon(task) : ''}
@@ -1144,11 +1087,7 @@ export class CommitsTableSk extends ElementSk {
           res.push(
             html`<div
               class=${taskClasses(task, 'grow')}
-              style=${this.gridLocation(
-                rowStart,
-                colStart,
-                rowStart + displayTaskRows.length
-              )}
+              style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}
               title=${taskTitle(task)}
               data-task-id=${task.id}
               @mouseenter=${() => this.taskMouseInOut(task)}
@@ -1165,11 +1104,7 @@ export class CommitsTableSk extends ElementSk {
               class="multicommit-task grow"
               @mouseenter=${() => this.taskMouseInOut(task)}
               @mouseleave=${() => this.taskMouseInOut(task)}
-              style=${this.gridLocation(
-                rowStart,
-                colStart,
-                rowStart + displayTaskRows.length
-              )}>
+              style=${this.gridLocation(rowStart, colStart, rowStart + displayTaskRows.length)}>
               ${this.multiCommitTaskSlots(displayTaskRows, rowStart, task)}
             </div>`
           );
@@ -1180,19 +1115,14 @@ export class CommitsTableSk extends ElementSk {
 
   private taskMouseInOut(task: Task) {
     task.commits!.forEach((hash) => {
-      $$<HTMLDivElement>(
-        `.${this.attributeStringFromHash(hash)}`,
-        this
-      )!.classList.toggle(`task-emphasize-${task.status.toLowerCase()}`);
+      $$<HTMLDivElement>(`.${this.attributeStringFromHash(hash)}`, this)!.classList.toggle(
+        `task-emphasize-${task.status.toLowerCase()}`
+      );
     });
   }
 
   // Return a time label if one should be used for the commit at the given index.
-  private timeLabel(
-    commits: Commit[],
-    index: number,
-    timePoints: { label: string; time: Date }[]
-  ) {
+  private timeLabel(commits: Commit[], index: number, timePoints: { label: string; time: Date }[]) {
     if (index === commits.length - 1) {
       return null;
     }
@@ -1223,10 +1153,7 @@ export class CommitsTableSk extends ElementSk {
     const taskSpecStartCols: Map<TaskSpec, number> = this.addTaskHeaders(res);
     // We use lastColumn to ensure our controls panel and row underlay covers all columns, always
     // at least 1 more than the commits panel, even if we have no tasks displayed.
-    this.lastColumn = Math.max(
-      taskSpecStartCols.size + TASK_START_COL,
-      TASK_START_COL + 1
-    );
+    this.lastColumn = Math.max(taskSpecStartCols.size + TASK_START_COL, TASK_START_COL + 1);
     this.mishapTasks = [];
     const taskStartRow = COMMIT_START_ROW;
     const tasksAddedToTemplate: Set<TaskId> = new Set();
@@ -1246,30 +1173,17 @@ export class CommitsTableSk extends ElementSk {
     // Commits are ordered newest to oldest, so the first commit is visually near the top.
     for (const [i, commit] of this.data.commits.entries()) {
       const rowStart = taskStartRow + i;
-      const title = this.displayCommitSubject
-        ? commit.shortAuthor
-        : commit.shortSubject;
-      const text = !this.displayCommitSubject
-        ? commit.shortAuthor
-        : commit.shortSubject;
+      const title = this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
+      const text = !this.displayCommitSubject ? commit.shortAuthor : commit.shortSubject;
       const timeLabel = this.timeLabel(this.data.commits, i, timePoints);
 
       const tasksBySpec = this.data.tasksByCommit.get(commit.hash);
       if (tasksBySpec) {
-        this.addTasks(
-          tasksBySpec,
-          taskSpecStartCols,
-          rowStart,
-          i,
-          tasksAddedToTemplate,
-          res
-        );
+        this.addTasks(tasksBySpec, taskSpecStartCols, rowStart, i, tasksAddedToTemplate, res);
       }
       // Draw commits last so the span.highlight-row naturally renders above the tasks.
       res.push(html`
-        <div
-          class="commit-container"
-          style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
+        <div class="commit-container" style=${this.gridLocation(rowStart, COMMIT_START_COL)}>
           <div class="time-spacer">${timeLabel}</div>
           <div
             class="commit ${this.attributeStringFromHash(commit.hash)}"
@@ -1293,8 +1207,7 @@ export class CommitsTableSk extends ElementSk {
     // Add a single div covering the grid, behind everything, that highlights alternate rows.
     let row = taskStartRow;
     const nextRowDiv = () =>
-      html` <div
-        style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
+      html` <div style=${this.gridLocation(row, 1, ++row, this.lastColumn)}></div>`;
     res.push(
       html` <div class="rowUnderlay">
         ${Array(this.data.commits.length).fill(1).map(nextRowDiv)}
@@ -1310,10 +1223,7 @@ export class CommitsTableSk extends ElementSk {
    * @param displayTaskRows Value returned from displayTaskRows.
    * @param index Index in displayTaskRows that we're assessing.
    */
-  private getDashedBorderClasses(
-    displayTaskRows: Array<boolean>,
-    index: number
-  ) {
+  private getDashedBorderClasses(displayTaskRows: Array<boolean>, index: number) {
     const ret: Array<string> = [];
     if (index > 0 && !displayTaskRows[index - 1]) {
       ret.push('dashed-top');
@@ -1334,10 +1244,7 @@ export class CommitsTableSk extends ElementSk {
    */
   private displayTaskRows(task: Task, latestCommitIndex: number) {
     // Only a single commit, or the last shown commit, obviously contiguous.
-    if (
-      task.commits!.length < 2 ||
-      latestCommitIndex >= this.data.commits.length - 1
-    ) {
+    if (task.commits!.length < 2 || latestCommitIndex >= this.data.commits.length - 1) {
       return [true];
     }
     const thisTaskOverCommits: Array<boolean> = [true];
@@ -1377,12 +1284,8 @@ export class CommitsTableSk extends ElementSk {
       return;
     }
     this.updatesRunning = true;
-    const refreshSeconds = Number(
-      (<HTMLInputElement>$$('#reloadInput', this)).value
-    );
-    const numCommits = Number(
-      (<HTMLInputElement>$$('#commitsInput', this)).value
-    );
+    const refreshSeconds = Number((<HTMLInputElement>$$('#reloadInput', this)).value);
+    const numCommits = Number((<HTMLInputElement>$$('#commitsInput', this)).value);
     window.clearTimeout(this.refreshHandle);
     this.refreshHandle = undefined;
     this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
@@ -1396,10 +1299,7 @@ export class CommitsTableSk extends ElementSk {
       if (this.requestLimiter.endUpdate()) {
         this.update();
       } else {
-        this.refreshHandle = window.setTimeout(
-          () => this.update(),
-          refreshSeconds * 1000
-        );
+        this.refreshHandle = window.setTimeout(() => this.update(), refreshSeconds * 1000);
       }
     });
   }
@@ -1421,9 +1321,7 @@ function taskClasses(task: Task, ...classes: Array<string>) {
 }
 
 function taskTitle(task: Task) {
-  return `${task.name} @${
-    task.commits!.length > 1 ? '\n' : ' '
-  }${task.commits!.join(',\n')}`;
+  return `${task.name} @${task.commits!.length > 1 ? '\n' : ' '}${task.commits!.join(',\n')}`;
 }
 
 // shortCommit returns the first 7 characters of a commit hash.
@@ -1499,11 +1397,7 @@ function findRelandedCommit(commits: Map<string, Commit>, commit: Commit) {
 // Usage:
 // const mymap: Map<string, Array<string>> = new Map();
 // lookupOrInsert(mymap, 'foo', Array).push('bar')
-function lookupOrInsert<K, V>(
-  map: Map<K, V>,
-  key: K,
-  valuetype: { new (): V }
-): V {
+function lookupOrInsert<K, V>(map: Map<K, V>, key: K, valuetype: { new (): V }): V {
   let maybeValue = map.get(key);
   if (!maybeValue) {
     // eslint-disable-next-line new-cap

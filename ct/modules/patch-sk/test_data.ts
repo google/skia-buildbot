@@ -14,8 +14,7 @@ export const chromiumPatchResult = {
 export const anyPatchResult = {
   catapult_patch: 'imagine a git diff for a catapult patch',
   chromium_patch: 'imagine a git diff for a chromium patch',
-  chromium_patch_base_build:
-    'imagine a git diff for a chromium_base_build patch',
+  chromium_patch_base_build: 'imagine a git diff for a chromium_base_build patch',
   cl: '123',
   modified: '20200529230004',
   skia_patch: 'imagine a git diff for a skia patch',

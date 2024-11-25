@@ -66,13 +66,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { abbr, linkify, displayNotes } from '../am';
 import * as paramset from '../paramset';
-import {
-  Silence,
-  Incident,
-  Params,
-  RecentIncidentsResponse,
-  Note,
-} from '../json';
+import { Silence, Incident, Params, RecentIncidentsResponse, Note } from '../json';
 
 const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
 
@@ -116,8 +110,7 @@ export class IncidentSk extends HTMLElement {
   private static template = (ele: IncidentSk) => html`
     <h2 class=${ele.classOfH2()}>
       ${ele.state.params.alertname} ${abbr(ele.state.params.abbr)}
-      ${ele.displayRecentlyExpired(ele.recently_expired_silence)}
-      ${ele.displayFlakiness(ele.flaky)}
+      ${ele.displayRecentlyExpired(ele.recently_expired_silence)} ${ele.displayFlakiness(ele.flaky)}
     </h2>
     <section class="detail">
       ${ele.actionButtons()}
@@ -242,9 +235,7 @@ export class IncidentSk extends HTMLElement {
     if (this.state.active) {
       let assignToOwnerButton = html``;
       if (this.state.params.owner) {
-        assignToOwnerButton = html`<button @click=${this.assignToOwner}>
-          Assign to Owner
-        </button>`;
+        assignToOwnerButton = html`<button @click=${this.assignToOwner}>Assign to Owner</button>`;
       }
       return html`<section class="assign">
         <button @click=${this.take}>Take</button>
@@ -264,19 +255,13 @@ export class IncidentSk extends HTMLElement {
     const filteredSilences = this.silences.filter(
       (silence: Silence) =>
         paramset.match(silence.param_set, this.state.params) &&
-        !(
-          this.displaySilencesWithComments &&
-          this.doesSilenceHaveNoNotes(silence)
-        )
+        !(this.displaySilencesWithComments && this.doesSilenceHaveNoNotes(silence))
     );
     const ret = filteredSilences
       .slice(0, MAX_MATCHING_SILENCES_TO_DISPLAY)
       .map(
         (silence: Silence) =>
-          html`<silence-sk
-            .silence_state=${silence}
-            collapsable
-            collapsed></silence-sk>`
+          html`<silence-sk .silence_state=${silence} collapsable collapsed></silence-sk>`
       );
     if (!ret.length) {
       ret.push(html`<div class="nosilences">None</div>`);
@@ -285,10 +270,7 @@ export class IncidentSk extends HTMLElement {
   }
 
   private doesSilenceHaveNoNotes(silence: Silence): boolean {
-    return (
-      !silence.notes ||
-      (silence.notes.length === 1 && silence.notes[0].text === '')
-    );
+    return !silence.notes || (silence.notes.length === 1 && silence.notes[0].text === '');
   }
 
   private lastSeen(): TemplateResult {
@@ -314,32 +296,23 @@ export class IncidentSk extends HTMLElement {
   }
 
   private history(): Promise<any> {
-    if (
-      this.hasAttribute('minimized') ||
-      this.state.id === '' ||
-      this.state.key === ''
-    ) {
+    if (this.hasAttribute('minimized') || this.state.id === '' || this.state.key === '') {
       return Promise.resolve();
     }
-    return fetch(
-      `/_/recent_incidents?id=${this.state.id}&key=${this.state.key}`,
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-        credentials: 'include',
-        method: 'GET',
-      }
-    )
+    return fetch(`/_/recent_incidents?id=${this.state.id}&key=${this.state.key}`, {
+      headers: {
+        'content-type': 'application/json',
+      },
+      credentials: 'include',
+      method: 'GET',
+    })
       .then(jsonOrThrow)
       .then((json: RecentIncidentsResponse) => {
         const incidents = json.incidents || [];
         this.incident_flaky = json.flaky;
-        this.incident_has_recently_expired_silence =
-          json.recently_expired_silence;
+        this.incident_has_recently_expired_silence = json.recently_expired_silence;
         return incidents.map(
-          (i: Incident) =>
-            html`<incident-sk .incident_state=${i} minimized></incident-sk>`
+          (i: Incident) => html`<incident-sk .incident_state=${i} minimized></incident-sk>`
         );
       })
       .catch(errorMessage);
@@ -352,9 +325,7 @@ export class IncidentSk extends HTMLElement {
     this._render();
   }
 
-  private displayRecentlyExpired(
-    recentlyExpiredSilence: boolean
-  ): TemplateResult {
+  private displayRecentlyExpired(recentlyExpiredSilence: boolean): TemplateResult {
     if (recentlyExpiredSilence) {
       return html`<alarm-off-icon-sk
         title="This alert has a recently expired silence"></alarm-off-icon-sk>`;
@@ -374,27 +345,21 @@ export class IncidentSk extends HTMLElement {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(
-      new CustomEvent('take', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('take', { detail: detail, bubbles: true }));
   }
 
   private assignToOwner(): void {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(
-      new CustomEvent('assign-to-owner', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('assign-to-owner', { detail: detail, bubbles: true }));
   }
 
   private assign(): void {
     const detail = {
       key: this.state.key,
     };
-    this.dispatchEvent(
-      new CustomEvent('assign', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('assign', { detail: detail, bubbles: true }));
   }
 
   private addNote(): void {
@@ -403,9 +368,7 @@ export class IncidentSk extends HTMLElement {
       key: this.state.key,
       text: textarea.value,
     };
-    this.dispatchEvent(
-      new CustomEvent('add-note', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('add-note', { detail: detail, bubbles: true }));
     textarea.value = '';
   }
 

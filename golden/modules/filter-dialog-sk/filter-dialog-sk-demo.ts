@@ -29,15 +29,10 @@ let currentValue = deepCopy(defaultValue);
 
 // Updates the "Values" section of the demo page.
 function updateValues() {
-  $$<HTMLSpanElement>('.diff-config')!.innerText = fromParamSet(
-    currentValue.diffConfig
-  );
-  $$<HTMLSpanElement>('.min-rgba-delta')!.innerText =
-    currentValue.minRGBADelta.toString();
-  $$<HTMLSpanElement>('.max-rgba-delta')!.innerText =
-    currentValue.maxRGBADelta.toString();
-  $$<HTMLSpanElement>('.sort-order')!.innerText =
-    currentValue.sortOrder.toString();
+  $$<HTMLSpanElement>('.diff-config')!.innerText = fromParamSet(currentValue.diffConfig);
+  $$<HTMLSpanElement>('.min-rgba-delta')!.innerText = currentValue.minRGBADelta.toString();
+  $$<HTMLSpanElement>('.max-rgba-delta')!.innerText = currentValue.maxRGBADelta.toString();
+  $$<HTMLSpanElement>('.sort-order')!.innerText = currentValue.sortOrder.toString();
   $$<HTMLSpanElement>('.must-have-ref-img')!.innerText =
     currentValue.mustHaveReferenceImage.toString();
 }

@@ -40,10 +40,7 @@ export class SkottieDropdownSk extends ElementSk {
   private _reset: boolean = false;
 
   private static template = (ele: SkottieDropdownSk) => html`
-    <select
-      name="${ele._name}"
-      @change=${ele.onChange}
-      class=${ele.buildSelectClass()}>
+    <select name="${ele._name}" @change=${ele.onChange} class=${ele.buildSelectClass()}>
       ${ele.buildOptions()}
     </select>
   `;
@@ -77,9 +74,7 @@ export class SkottieDropdownSk extends ElementSk {
   }
 
   buildOption(option: DropdownOption): TemplateResult {
-    return html` <option value=${option.id} ?selected=${option.selected}>
-      ${option.value}
-    </option>`;
+    return html` <option value=${option.id} ?selected=${option.selected}>${option.value}</option>`;
   }
 
   buildOptions(): TemplateResult[] {

@@ -61,17 +61,11 @@ export class TaskQueueSk extends ElementSk {
         TaskQueueSk.taskRowTemplate(el, task, index)
       )}
     </table>
-    ${el._pendingTasks.map((task, index) =>
-      TaskQueueSk.taskDetailDialogTemplate(task, index)
-    )}
+    ${el._pendingTasks.map((task, index) => TaskQueueSk.taskDetailDialogTemplate(task, index))}
     <toast-sk id="confirm_toast" duration="5000"></toast-sk>
   `;
 
-  private static taskRowTemplate = (
-    el: TaskQueueSk,
-    task: CommonCols,
-    index: number
-  ) =>
+  private static taskRowTemplate = (el: TaskQueueSk, task: CommonCols, index: number) =>
     html` <tr>
       <td class="nowrap">
         ${index + 1}
@@ -93,25 +87,15 @@ export class TaskQueueSk extends ElementSk {
         ${task.future_date
           ? html`N/A`
           : task.swarming_logs
-            ? html`<a
-                href="${task.swarming_logs}"
-                rel="noopener"
-                target="_blank"
-                >Swarming Logs</a
-              >`
+            ? html`<a href="${task.swarming_logs}" rel="noopener" target="_blank">Swarming Logs</a>`
             : html`No Swarming Logs`}
       </td>
       <td class="nowrap">
-        <a href="#" class="details" @click=${() => el.showDetailsDialog(index)}
-          >Task Details</a
-        >
+        <a href="#" class="details" @click=${() => el.showDetailsDialog(index)}>Task Details</a>
       </td>
     </tr>`;
 
-  private static taskDetailDialogTemplate = (
-    task: CommonCols,
-    index: number
-  ) => html`
+  private static taskDetailDialogTemplate = (task: CommonCols, index: number) => html`
     <div
       id=${`detailsDialog${index}`}
       class="dialog-background hidden overlay-themes-sk"
@@ -142,9 +126,7 @@ export class TaskQueueSk extends ElementSk {
   }
 
   showDetailsDialog(index: number): void {
-    ($$(`#detailsDialog${index}`, this) as HTMLElement).classList.remove(
-      'hidden'
-    );
+    ($$(`#detailsDialog${index}`, this) as HTMLElement).classList.remove('hidden');
   }
 
   // Dispatch requests to fetch tasks in queue. Returns a promise that resolves
@@ -191,10 +173,7 @@ export class TaskQueueSk extends ElementSk {
   }
 
   // Add responses to pending tasks list.
-  updatePendingTasks(
-    json: GetTasksResponse,
-    taskDescriptor: TaskDescriptor
-  ): void {
+  updatePendingTasks(json: GetTasksResponse, taskDescriptor: TaskDescriptor): void {
     const tasks = json.data;
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i] as CommonCols;
@@ -235,9 +214,7 @@ export class TaskQueueSk extends ElementSk {
       .then((res) => {
         if (res.ok) {
           this._pendingTasks.splice(index, 1);
-          window.alert(
-            `Deleted ${pendingTask.task_type} task ${pendingTask.id}`
-          );
+          window.alert(`Deleted ${pendingTask.task_type} task ${pendingTask.id}`);
           return;
         }
         // Non-OK status. Read the response and punt it to the catch.

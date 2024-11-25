@@ -40,19 +40,16 @@ function displayName(item: ImageItem): string {
 export class ResourcesSk extends ElementDocSk {
   private static template = (ele: ResourcesSk) =>
     html` <p>
-        ${ele.list.length} images were stored in this file. Note that image
-        indices here are file indices, which corresponded 1:1 to the gen ids
-        that the images had during recording. If an image appears more than
-        once, that indicates there were multiple copies of it in memory at
-        record time. These indices appear in the 'imageIndex' field of commands
-        using them. This metadata is only recorded for multi frame (mskp) files
-        from android, so nothing is shown here for other skps. All images in
-        SKPs are serialized as PNG regardless of their original encoding.
+        ${ele.list.length} images were stored in this file. Note that image indices here are file
+        indices, which corresponded 1:1 to the gen ids that the images had during recording. If an
+        image appears more than once, that indicates there were multiple copies of it in memory at
+        record time. These indices appear in the 'imageIndex' field of commands using them. This
+        metadata is only recorded for multi frame (mskp) files from android, so nothing is shown
+        here for other skps. All images in SKPs are serialized as PNG regardless of their original
+        encoding.
       </p>
       <div class="main-box ${ele.backdropStyle}">
-        ${ele.list.map((item: ImageItem) =>
-          ResourcesSk.templateImage(ele, item)
-        )}
+        ${ele.list.map((item: ImageItem) => ResourcesSk.templateImage(ele, item))}
       </div>
       <div class="selection-detail">
         Selected:
@@ -75,18 +72,13 @@ export class ResourcesSk extends ElementDocSk {
       <img
         src="${item.pngUri}"
         id="res-img-${item.index}"
-        class="outline-on-hover ${ele.selection === item.index
-          ? 'selected-image'
-          : ''}"
+        class="outline-on-hover ${ele.selection === item.index ? 'selected-image' : ''}"
         @click=${() => {
           ele.selectItem(item.index);
         }} />
     </div>`;
 
-  private static templateSelectionDetail = (
-    ele: ResourcesSk,
-    item: ImageItem
-  ) =>
+  private static templateSelectionDetail = (ele: ResourcesSk, item: ImageItem) =>
     html` <b>${item.index}</b><br />
       size: (${item.width}, ${item.height})<br />
       Usage in top-level skp
@@ -94,9 +86,7 @@ export class ResourcesSk extends ElementDocSk {
         ? html`<table class="usage-table">
             ${ele.usageTable(item.uses)}
           </table>`
-        : html`<p>
-            No uses found in any drawImage* commands. May occur in shaders.
-          </p>`}
+        : html`<p>No uses found in any drawImage* commands. May occur in shaders.</p>`}
       Usage in offscreen buffers
       ${item.layeruses.size > 0
         ? html`<table class="usage-table">
@@ -119,9 +109,7 @@ export class ResourcesSk extends ElementDocSk {
     this._render();
 
     this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
-      this.backdropStyle = (
-        e as CustomEvent<ToggleBackgroundEventDetail>
-      ).detail.mode;
+      this.backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
       this._render();
     });
   }
@@ -161,9 +149,7 @@ export class ResourcesSk extends ElementDocSk {
     // Collect uses at top level
     for (let fp = 0; fp < player.getFrameCount(); fp++) {
       const oneFrameUseMap = player.imageUseInfo(fp, -1);
-      for (const [imageIdStr, listOfCommands] of Object.entries(
-        oneFrameUseMap
-      )) {
+      for (const [imageIdStr, listOfCommands] of Object.entries(oneFrameUseMap)) {
         const id = parseInt(imageIdStr, 10);
         for (const com of listOfCommands) {
           this.list[id].uses.get(com).push(fp);
@@ -204,10 +190,7 @@ export class ResourcesSk extends ElementDocSk {
   }
 
   // Supply a non-negative nodeId to make jump actions go to a particular layer
-  private usageTable(
-    uses: Map<number, number[]>,
-    nodeId: number = -1
-  ): TemplateResult[] {
+  private usageTable(uses: Map<number, number[]>, nodeId: number = -1): TemplateResult[] {
     const out: TemplateResult[] = [];
     uses.forEach((frames: number[], key: number) => {
       out.push(
@@ -216,9 +199,7 @@ export class ResourcesSk extends ElementDocSk {
           ${frames.map(
             (f: number) =>
               html` <td
-                title="Jump to command ${key} frame ${f} ${nodeId >= 0
-                  ? `on layer ${nodeId}`
-                  : ''}"
+                title="Jump to command ${key} frame ${f} ${nodeId >= 0 ? `on layer ${nodeId}` : ''}"
                 class="clickable-cell"
                 @click=${() => {
                   this.jump(f, key, nodeId);
@@ -236,16 +217,14 @@ export class ResourcesSk extends ElementDocSk {
     layeruses: DefaultMap<number, DefaultMap<number, number[]>>
   ): TemplateResult[] {
     const out: TemplateResult[] = [];
-    layeruses.forEach(
-      (usemap: DefaultMap<number, number[]>, nodeid: number) => {
-        out.push(
-          html` <tr>
-              <td class="layer-cell"><b>Layer ${nodeid}</b></td>
-            </tr>
-            ${this.usageTable(usemap, nodeid)}`
-        );
-      }
-    );
+    layeruses.forEach((usemap: DefaultMap<number, number[]>, nodeid: number) => {
+      out.push(
+        html` <tr>
+            <td class="layer-cell"><b>Layer ${nodeid}</b></td>
+          </tr>
+          ${this.usageTable(usemap, nodeid)}`
+      );
+    });
     return out;
   }
 

@@ -8,12 +8,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { PlaySk } from '../play-sk/play-sk';
 
 import '../play-sk';
-import {
-  MoveToEventDetail,
-  MoveFrameEventDetail,
-  MoveFrameEvent,
-  MoveToEvent,
-} from '../events';
+import { MoveToEventDetail, MoveFrameEventDetail, MoveFrameEvent, MoveToEvent } from '../events';
 
 export class TimelineSk extends ElementSk {
   private static template = (ele: TimelineSk) =>

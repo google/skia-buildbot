@@ -106,10 +106,10 @@ export class UniformDimensionsSk extends ElementSk implements UniformControl {
       height: choices[this._choice].height,
     };
     this.dispatchEvent(
-      new CustomEvent<DimensionsChangedEventDetail>(
-        dimensionsChangedEventName,
-        { detail: detail, bubbles: true }
-      )
+      new CustomEvent<DimensionsChangedEventDetail>(dimensionsChangedEventName, {
+        detail: detail,
+        bubbles: true,
+      })
     );
   }
 

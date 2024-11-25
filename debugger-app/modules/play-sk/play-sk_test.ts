@@ -33,13 +33,11 @@ describe('play-sk', () => {
 
   describe('Events', () => {
     it('Starts playing when play button clicked', async () => {
-      const promise1 = eventPromise<
-        CustomEvent<ModeChangedManuallyEventDetail>
-      >(ModeChangedManuallyEvent, delay);
-      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(
-        MoveToEvent,
+      const promise1 = eventPromise<CustomEvent<ModeChangedManuallyEventDetail>>(
+        ModeChangedManuallyEvent,
         delay
       );
+      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       // rather than setting play.mode, click the play icon.
       (document.getElementById('play-button') as HTMLElement).click();
 
@@ -49,13 +47,11 @@ describe('play-sk', () => {
 
     it('No stack overflow when delay is 0', async () => {
       play.playbackDelay = 0;
-      const promise1 = eventPromise<
-        CustomEvent<ModeChangedManuallyEventDetail>
-      >(ModeChangedManuallyEvent, delay);
-      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(
-        MoveToEvent,
+      const promise1 = eventPromise<CustomEvent<ModeChangedManuallyEventDetail>>(
+        ModeChangedManuallyEvent,
         delay
       );
+      const promise2 = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       // rather than setting play.mode, click the play icon.
       (document.getElementById('play-button') as HTMLElement).click();
 
@@ -77,10 +73,7 @@ describe('play-sk', () => {
 
     // State 1 being right after it emits moveto, but before the app calls movedTo
     it('Does not emit moveto after paused in state 1', async () => {
-      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(
-        MoveToEvent,
-        delay
-      );
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       await ep;
       // now in state 1 indefinitely.
@@ -91,10 +84,7 @@ describe('play-sk', () => {
     // State 2 being right after the app calls movedTo but it's sitting out it's internal
     // delay.
     it('Does not emit moveto after paused in state 2', async () => {
-      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(
-        MoveToEvent,
-        delay
-      );
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       const item = (await ep).detail.item;
       play.movedTo(item);
@@ -131,10 +121,7 @@ describe('play-sk', () => {
       // expect jumps don't start playback
       await noEventPromise(MoveToEvent, delay);
       // expect it to emit moveto 9
-      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(
-        MoveToEvent,
-        delay
-      );
+      const ep = eventPromise<CustomEvent<MoveToEventDetail>>(MoveToEvent, delay);
       play.mode = 'play';
       expect((await ep).detail.item).to.equal(9);
     });

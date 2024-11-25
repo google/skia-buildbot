@@ -33,11 +33,7 @@ const clamp = (n: number, min: number, max: number): number => {
   return n;
 };
 
-const getRGBA = (
-  imgData: ImageData,
-  x: number,
-  y: number
-): [number, number, number, number] => {
+const getRGBA = (imgData: ImageData, x: number, y: number): [number, number, number, number] => {
   const offset = (y * imgData.width + x) * 4;
   return [
     imgData.data[offset],
@@ -62,11 +58,7 @@ const colorDist = (r: number, g: number, b: number, a: number): number =>
 // Compute how much we scaled down, if at all. Either we had to scale down because the width
 // was too big, the height was too big, or no scaling was done.
 const scaleOf = (originalWidth: number, originalHeight: number): number =>
-  Math.min(
-    previewCanvasSize / originalWidth,
-    previewCanvasSize / originalHeight,
-    1
-  );
+  Math.min(previewCanvasSize / originalWidth, previewCanvasSize / originalHeight, 1);
 
 export interface MultiZoomDetails {
   leftImageSrc: string;
@@ -79,9 +71,7 @@ export interface MultiZoomDetails {
 export class MultiZoomSk extends ElementSk {
   private static template = (ele: MultiZoomSk) => html`
     <div class="container">
-      <div class="preview_and_zoomed">
-        ${MultiZoomSk.previewsAndZoomCanvas(ele)}
-      </div>
+      <div class="preview_and_zoomed">${MultiZoomSk.previewsAndZoomCanvas(ele)}</div>
       <div class="stats_and_nav">${MultiZoomSk.statsAndNavigation(ele)}</div>
     </div>
   `;
@@ -93,10 +83,7 @@ export class MultiZoomSk extends ElementSk {
       ${MultiZoomSk.thumbnailAndToggle(ele, rightImageIdx)}
     </div>
     <div class="zoomed_view">
-      <canvas
-        class="zoomed"
-        width=${zoomedCanvasSize}
-        height=${zoomedCanvasSize}></canvas>
+      <canvas class="zoomed" width=${zoomedCanvasSize} height=${zoomedCanvasSize}></canvas>
     </div>
     <!-- This scratch canvas is not displayed, but is used to get the pixel data from the
          loaded images-->
@@ -123,12 +110,9 @@ export class MultiZoomSk extends ElementSk {
           class="crosshair idx_${idx}"
           width=${previewCanvasSize}
           height=${previewCanvasSize}
-          @click=${(e: MouseEvent) =>
-            ele.previewCanvasClicked(e, idx)}></canvas>
+          @click=${(e: MouseEvent) => ele.previewCanvasClicked(e, idx)}></canvas>
         <figcaption>
-          <checkbox-sk
-            label=${label}
-            class="displayed for_spacing"></checkbox-sk>
+          <checkbox-sk label=${label} class="displayed for_spacing"></checkbox-sk>
           <checkbox-sk
             label=${label}
             class="idx_${idx} ${idx === ele.zoomedIndex ? 'displayed' : ''}"
@@ -184,16 +168,12 @@ export class MultiZoomSk extends ElementSk {
     if (!leftData || !rightData) {
       return '';
     }
-    if (
-      leftData.width === rightData.width &&
-      leftData.height === rightData.height
-    ) {
+    if (leftData.width === rightData.width && leftData.height === rightData.height) {
       return '';
     }
     return html`
       <div class="size_warning">
-        Images are different sizes - only pixels in overlapping area will be
-        compared.
+        Images are different sizes - only pixels in overlapping area will be compared.
       </div>
     `;
   };
@@ -214,9 +194,7 @@ export class MultiZoomSk extends ElementSk {
         // go to the 13th biggest diff, not the 4th.
         ele.cachedDiffIdx = i;
         const e = endings[i] || 'th';
-        return html`<div class="nth_diff">
-          ${i + 1}${e} biggest pixel diff (out of ${total})
-        </div>`;
+        return html`<div class="nth_diff">${i + 1}${e} biggest pixel diff (out of ${total})</div>`;
       }
     }
     return html`<div class="nth_diff">No difference on this pixel</div>`;
@@ -381,12 +359,7 @@ export class MultiZoomSk extends ElementSk {
       for (let y = 0; y < height; y++) {
         const [leftR, leftG, leftB, leftA] = getRGBA(leftData, x, y);
         const [rightR, rightG, rightB, rightA] = getRGBA(rightData, x, y);
-        const dist = colorDist(
-          leftR - rightR,
-          leftG - rightG,
-          leftB - rightB,
-          leftA - rightA
-        );
+        const dist = colorDist(leftR - rightR, leftG - rightG, leftB - rightB, leftA - rightA);
         if (!dist) {
           // No difference in pixels - no need to add
           // it to our list of "different pixels"
@@ -440,11 +413,7 @@ export class MultiZoomSk extends ElementSk {
       return 'n/a';
     }
     const [leftR, leftG, leftB, leftA] = getRGBA(leftData, this._x, this._y);
-    const [rightR, rightG, rightB, rightA] = getRGBA(
-      rightData,
-      this._x,
-      this._y
-    );
+    const [rightR, rightG, rightB, rightA] = getRGBA(rightData, this._x, this._y);
     return (
       `rgba(${Math.abs(leftR - rightR)}, ${Math.abs(leftG - rightG)}, ` +
       `${Math.abs(leftB - rightB)}, ${Math.abs(leftA - rightA)})`
@@ -545,20 +514,14 @@ export class MultiZoomSk extends ElementSk {
     // To get the image data for the image that just loaded, we draw it into our scratch canvas and
     // then read it back.
     const img = this.getImage(imgIdx)!;
-    const scratchCanvas =
-      this.querySelector<HTMLCanvasElement>('canvas.scratch')!;
+    const scratchCanvas = this.querySelector<HTMLCanvasElement>('canvas.scratch')!;
     scratchCanvas.width = img.naturalWidth;
     scratchCanvas.height = img.naturalHeight;
 
     const ctx = scratchCanvas.getContext('2d')!;
     ctx.clearRect(0, 0, img.naturalWidth, img.naturalHeight);
     ctx.drawImage(img, 0, 0);
-    this.loadedImageData[imgIdx] = ctx.getImageData(
-      0,
-      0,
-      img.naturalWidth,
-      img.naturalHeight
-    );
+    this.loadedImageData[imgIdx] = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
 
     this._render();
     if (
@@ -635,17 +598,9 @@ export class MultiZoomSk extends ElementSk {
     }
 
     if (backwards) {
-      this.cachedDiffIdx = clamp(
-        this.cachedDiffIdx - 1,
-        0,
-        this.cachedDiffs.length - 1
-      );
+      this.cachedDiffIdx = clamp(this.cachedDiffIdx - 1, 0, this.cachedDiffs.length - 1);
     } else {
-      this.cachedDiffIdx = clamp(
-        this.cachedDiffIdx + 1,
-        0,
-        this.cachedDiffs.length - 1
-      );
+      this.cachedDiffIdx = clamp(this.cachedDiffIdx + 1, 0, this.cachedDiffs.length - 1);
     }
 
     const diff = this.cachedDiffs[this.cachedDiffIdx];

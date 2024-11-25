@@ -29,9 +29,7 @@ import {
 import { Description, ListMachinesResponse, SetNoteRequest } from '../json';
 import { compareFunc } from '../sort';
 
-function mockMachinesResponse(
-  param: ListMachinesResponse | Partial<Description>[]
-): void {
+function mockMachinesResponse(param: ListMachinesResponse | Partial<Description>[]): void {
   fetchMock.get('/_/machines', param);
 }
 
@@ -77,9 +75,7 @@ const setUpElement = async (): Promise<MachinesTableSk> => {
   return element;
 };
 
-const fillWithTwoMachinesReturnedOutOfOrder = async (
-  element: MachinesTableSk
-) => {
+const fillWithTwoMachinesReturnedOutOfOrder = async (element: MachinesTableSk) => {
   fetchMock.reset();
   fetchMock.config.overwriteRoutes = true;
   const machine1 = {
@@ -157,10 +153,7 @@ describe('machines-table-sk', () => {
 
       // Now set up fetchMock for the requests that happen when the button is clicked.
       fetchMock.reset();
-      fetchMock.post(
-        '/_/machine/toggle_powercycle/skia-rpi2-rack4-shelf1-002',
-        200
-      );
+      fetchMock.post('/_/machine/toggle_powercycle/skia-rpi2-rack4-shelf1-002', 200);
       mockMachinesResponse([
         {
           MaintenanceMode: '',
@@ -322,12 +315,9 @@ describe('machines-table-sk', () => {
 
       // Click the button to show the dialog
       $$<HTMLElement>('edit-icon-sk.edit_device', s)!.click();
-      $$<HTMLInputElement>('device-editor-sk input#user_ip', s)!.value =
-        'root@test-chrome-os';
-      $$<HTMLInputElement>('device-editor-sk input#chromeos_gpu', s)!.value =
-        'Mali999';
-      $$<HTMLInputElement>('device-editor-sk input#chromeos_cpu', s)!.value =
-        'arm,arm64';
+      $$<HTMLInputElement>('device-editor-sk input#user_ip', s)!.value = 'root@test-chrome-os';
+      $$<HTMLInputElement>('device-editor-sk input#chromeos_gpu', s)!.value = 'Mali999';
+      $$<HTMLInputElement>('device-editor-sk input#chromeos_cpu', s)!.value = 'arm,arm64';
       // Now apply those dimensions
       $$<HTMLElement>('device-editor-sk button.apply', s)!.click();
 
@@ -345,10 +335,7 @@ describe('machines-table-sk', () => {
 
       // Now set up fetchMock for the requests that happen when the button is clicked.
       fetchMock.reset();
-      fetchMock.post(
-        '/_/machine/delete_machine/skia-rpi2-rack4-shelf1-002',
-        200
-      );
+      fetchMock.post('/_/machine/delete_machine/skia-rpi2-rack4-shelf1-002', 200);
       mockMachinesResponse([]);
 
       // Click the button.
@@ -444,10 +431,7 @@ describe('machines-table-sk', () => {
       const machine: Partial<Description> = {
         Dimensions: { device_type: ['redfin'] },
       };
-      assert.equal(
-        'redfin (Pixel 5)',
-        pretty_device_name_as_string(machine as Description)
-      );
+      assert.equal('redfin (Pixel 5)', pretty_device_name_as_string(machine as Description));
     });
     it('returns the last match in a list', () => {
       const machine: Partial<Description> = {
@@ -464,12 +448,7 @@ describe('machines-table-sk', () => {
   // Descriptions with the value of its 'key' set to 'aValue' and
   // 'bValue' respectively. Note that the values passed in must be in the order
   // aValue < bValue.
-  const testCompareFunc = <T>(
-    key: string,
-    fn: compareFunc<Description>,
-    aValue: T,
-    bValue: T
-  ) => {
+  const testCompareFunc = <T>(key: string, fn: compareFunc<Description>, aValue: T, bValue: T) => {
     const a: Record<string, T> = {};
     a[key] = aValue;
     const b: Record<string, T> = {};
@@ -484,25 +463,10 @@ describe('machines-table-sk', () => {
 
   describe('compare functions', () => {
     it('returns correct values on simple compares', () => {
-      testCompareFunc<string>(
-        'MaintenanceMode',
-        sortByMode,
-        '',
-        'barney@example.org 2022-11-09'
-      );
+      testCompareFunc<string>('MaintenanceMode', sortByMode, '', 'barney@example.org 2022-11-09');
       testCompareFunc<string>('Recovering', sortByRecovering, '', 'Too hot.');
-      testCompareFunc<boolean>(
-        'IsQuarantined',
-        sortByIsQuarantined,
-        false,
-        true
-      );
-      testCompareFunc<AttachedDevice>(
-        'AttachedDevice',
-        sortByAttachedDevice,
-        'adb',
-        'nodevice'
-      );
+      testCompareFunc<boolean>('IsQuarantined', sortByIsQuarantined, false, true);
+      testCompareFunc<AttachedDevice>('AttachedDevice', sortByAttachedDevice, 'adb', 'nodevice');
       testCompareFunc<Annotation>(
         'Annotation',
         sortByAnnotation,
@@ -523,18 +487,8 @@ describe('machines-table-sk', () => {
         '2022-03-03T44:44:44.444444Z'
       );
       testCompareFunc<number>('Battery', sortByBattery, 50, 100);
-      testCompareFunc<boolean>(
-        'RunningSwarmingTask',
-        sortByRunningSwarmingTask,
-        false,
-        true
-      );
-      testCompareFunc<boolean>(
-        'LaunchedSwarming',
-        sortByLaunchedSwarming,
-        false,
-        true
-      );
+      testCompareFunc<boolean>('RunningSwarmingTask', sortByRunningSwarmingTask, false, true);
+      testCompareFunc<boolean>('LaunchedSwarming', sortByLaunchedSwarming, false, true);
       testCompareFunc<number>('DeviceUptime', sortByDeviceUptime, 10, 20);
       testCompareFunc<SwarmingDimensions>(
         'Dimensions',
@@ -564,9 +518,7 @@ describe('machines-table-sk', () => {
       b.PowerCycle = true;
       b.PowerCycleState = 'not_available';
 
-      const castFn = sortByPowerCycle as unknown as compareFunc<
-        Record<string, any>
-      >;
+      const castFn = sortByPowerCycle as unknown as compareFunc<Record<string, any>>;
       assert.isBelow(castFn(a, b), 0, 'sortByPowerCycle');
       assert.isAbove(castFn(b, a), 0, 'sortByPowerCycle');
       assert.equal(castFn(b, b), 0, 'sortByPowerCycle');

@@ -15,10 +15,7 @@ import { isDarkMode } from '../../../infra-sk/modules/theme-chooser-sk/theme-cho
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import { Convert, DebugTrace } from '../debug-trace/debug-trace';
-import {
-  DebugTracePlayer,
-  VariableData,
-} from '../debug-trace-player/debug-trace-player';
+import { DebugTracePlayer, VariableData } from '../debug-trace-player/debug-trace-player';
 import '../../../infra-sk/modules/app-sk';
 
 // It is assumed that this symbol is being provided by a version.js file loaded in before this
@@ -97,10 +94,7 @@ export class DebuggerAppSk extends ElementSk {
       const mousePos = { left: e.pageX, top: e.pageY };
       const codePos = this.codeMirror!.coordsChar(mousePos);
       const word = this.codeMirror!.findWordAt(codePos);
-      const hoveredWord: string = this.codeMirror!.getRange(
-        word.anchor,
-        word.head
-      );
+      const hoveredWord: string = this.codeMirror!.getRange(word.anchor, word.head);
       if (hoveredWord !== this.currentHoveredWord) {
         this.currentHoveredWord = hoveredWord;
         this._render();
@@ -115,10 +109,7 @@ export class DebuggerAppSk extends ElementSk {
     // If ?local-storage(=anything), try loading a debug trace from local storage.
     const params = new URLSearchParams(this.queryParameter);
     if (params.has('local-storage')) {
-      this.loadJSONData(
-        this.localStorage.getItem('sksl-debug-trace')!,
-        ErrorReporting.No
-      );
+      this.loadJSONData(this.localStorage.getItem('sksl-debug-trace')!, ErrorReporting.No);
 
       // Remove ?local-storage from the query parameters on the window, so a reload or copy-paste
       // will present a clean slate.
@@ -141,11 +132,7 @@ export class DebuggerAppSk extends ElementSk {
 
   private updateCurrentLineMarker(): void {
     if (this.currentLineHandle !== null) {
-      this.codeMirror!.removeLineClass(
-        this.currentLineHandle!,
-        'background',
-        'cm-current-line'
-      );
+      this.codeMirror!.removeLineClass(this.currentLineHandle!, 'background', 'cm-current-line');
       this.currentLineHandle = null;
     }
 
@@ -157,10 +144,7 @@ export class DebuggerAppSk extends ElementSk {
         'background',
         'cm-current-line'
       );
-      this.codeMirror!.scrollIntoView(
-        { line: lineNumber, ch: 0 },
-        /* margin= */ 36
-      );
+      this.codeMirror!.scrollIntoView({ line: lineNumber, ch: 0 }, /* margin= */ 36);
     }
   }
 
@@ -175,8 +159,7 @@ export class DebuggerAppSk extends ElementSk {
         .getCallStack()
         .map(
           (funcIdx: number, frame: number) =>
-            this.arrowIfCurrentFrameIs(frame) +
-            this.trace!.functions[funcIdx].name
+            this.arrowIfCurrentFrameIs(frame) + this.trace!.functions[funcIdx].name
         );
     }
     stack.unshift(`${this.arrowIfCurrentFrameIs(-1)}global scope`);
@@ -185,11 +168,7 @@ export class DebuggerAppSk extends ElementSk {
       (text: string, index: number) =>
         html` <tr>
           <td>
-            <a
-              href="javascript:;"
-              @click=${() => this.changeStackFrame(index - 1)}
-              >${text}</a
-            >
+            <a href="javascript:;" @click=${() => this.changeStackFrame(index - 1)}>${text}</a>
           </td>
         </tr>`
     );
@@ -197,8 +176,7 @@ export class DebuggerAppSk extends ElementSk {
   }
 
   private changeStackFrame(frame: number): void {
-    this.currentLineNumber =
-      frame >= 0 ? this.player.getCurrentLineInStackFrame(frame) : 0;
+    this.currentLineNumber = frame >= 0 ? this.player.getCurrentLineInStackFrame(frame) : 0;
     this.currentStackFrame = frame;
     this.updateCurrentLineMarker();
     this._render();
@@ -208,8 +186,7 @@ export class DebuggerAppSk extends ElementSk {
     if (this.trace && vars.length > 0) {
       return vars.map((v: VariableData) => {
         const name: string = this.trace!.slots[v.slotIndex].name;
-        const componentName: string =
-          name + this.player.getSlotComponentSuffix(v.slotIndex);
+        const componentName: string = name + this.player.getSlotComponentSuffix(v.slotIndex);
         const nameClass = {
           'change-highlight': v.dirty,
           'hover-highlight': name === this.currentHoveredWord,
@@ -234,9 +211,7 @@ export class DebuggerAppSk extends ElementSk {
     if (this.currentStackFrame < 0) {
       return [];
     }
-    return this.varsDisplay(
-      this.player.getLocalVariables(this.currentStackFrame)
-    );
+    return this.varsDisplay(this.player.getLocalVariables(this.currentStackFrame));
   }
 
   private globalVarsDisplay(): TemplateResult[] {
@@ -253,9 +228,7 @@ export class DebuggerAppSk extends ElementSk {
       this._render();
     } catch (ex) {
       if (reportErrors ?? ErrorReporting.Yes) {
-        this.codeMirror!.setValue(
-          ex instanceof Error ? ex.message : String(ex)
-        );
+        this.codeMirror!.setValue(ex instanceof Error ? ex.message : String(ex));
       }
     }
   }
@@ -319,15 +292,13 @@ export class DebuggerAppSk extends ElementSk {
 
   private resetBreakpointGutter(): void {
     this.codeMirror!.clearGutter('cm-breakpoints');
-    this.player
-      .getLineNumbersReached()
-      .forEach((_timesReached: number, line: number) => {
-        this.codeMirror!.setGutterMarker(
-          line - 1,
-          'cm-breakpoints',
-          DebuggerAppSk.makeDivWithClass('cm-reachable')
-        );
-      });
+    this.player.getLineNumbersReached().forEach((_timesReached: number, line: number) => {
+      this.codeMirror!.setGutterMarker(
+        line - 1,
+        'cm-breakpoints',
+        DebuggerAppSk.makeDivWithClass('cm-reachable')
+      );
+    });
   }
 
   toggleBreakpoint(line: number): void {
@@ -358,9 +329,7 @@ export class DebuggerAppSk extends ElementSk {
       <header>
         <h2>SkSL Debugger</h2>
         <span>
-          <a
-            id="githash"
-            href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
+          <a id="githash" href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">
             ${SKIA_VERSION.slice(0, 7)}
           </a>
           <theme-chooser-sk></theme-chooser-sk>
@@ -369,26 +338,16 @@ export class DebuggerAppSk extends ElementSk {
       <main>
         <div id="debuggerControls">
           <span id="buttonGroup">
-            <button ?disabled=${self.trace === null} @click=${self.resetTrace}>
-              Reset
-            </button>
+            <button ?disabled=${self.trace === null} @click=${self.resetTrace}>Reset</button>
           </span>
           <span id="buttonGroup">
-            <button ?disabled=${self.trace === null} @click=${self.stepOver}>
-              Step
-            </button>
-            <button ?disabled=${self.trace === null} @click=${self.step}>
-              Step In
-            </button>
-            <button ?disabled=${self.trace === null} @click=${self.stepOut}>
-              Step Out
-            </button>
+            <button ?disabled=${self.trace === null} @click=${self.stepOver}>Step</button>
+            <button ?disabled=${self.trace === null} @click=${self.step}>Step In</button>
+            <button ?disabled=${self.trace === null} @click=${self.stepOut}>Step Out</button>
           </span>
           <span id="buttonGroup">
             <button ?disabled=${self.trace === null} @click=${self.run}>
-              ${self.player.getBreakpoints().size > 0
-                ? 'Run to Breakpoint'
-                : 'Run'}
+              ${self.player.getBreakpoints().size > 0 ? 'Run to Breakpoint' : 'Run'}
             </button>
           </span>
         </div>

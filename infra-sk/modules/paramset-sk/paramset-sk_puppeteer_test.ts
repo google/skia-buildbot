@@ -34,29 +34,17 @@ describe('paramset-sk', () => {
   describe('screenshots', () => {
     it('has one ParamSet, no titles', async () => {
       const paramSetSk = await testBed.page.$('#one-paramset-no-titles');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_one-paramset_no-titles'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_one-paramset_no-titles');
     });
 
     it('has one ParamSet, with titles', async () => {
       const paramSetSk = await testBed.page.$('#one-paramset-with-titles');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_one-paramset_with-titles'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_one-paramset_with-titles');
     });
 
     it('has many ParamSets, no titles', async () => {
       const paramSetSk = await testBed.page.$('#many-paramsets-no-titles');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_many-paramsets_no-titles'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_many-paramsets_no-titles');
     });
 
     it('has many ParamSets, no titles, word wrap', async () => {
@@ -72,17 +60,11 @@ describe('paramset-sk', () => {
 
     it('has many ParamSets, with titles', async () => {
       const paramSetSk = await testBed.page.$('#many-paramsets-with-titles');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_many-paramsets_with-titles'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_many-paramsets_with-titles');
     });
 
     it('has one ParamSet, with clickable plus and clickable values', async () => {
-      const paramSetSk = await testBed.page.$(
-        '#clickable-plus-with-clickable-values'
-      );
+      const paramSetSk = await testBed.page.$('#clickable-plus-with-clickable-values');
       await takeScreenshot(
         paramSetSk!,
         'infra-sk',
@@ -92,20 +74,12 @@ describe('paramset-sk', () => {
 
     it('has one ParamSet, with removable values', async () => {
       const paramSetSk = await testBed.page.$('#removable-values');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_removable-values'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_removable-values');
     });
 
     it('has one ParamSet, with checkbox values', async () => {
       const paramSetSk = await testBed.page.$('#checkbox-values');
-      await takeScreenshot(
-        paramSetSk!,
-        'infra-sk',
-        'paramset-sk_checkbox-values'
-      );
+      await takeScreenshot(paramSetSk!, 'infra-sk', 'paramset-sk_checkbox-values');
     });
   });
 
@@ -114,16 +88,13 @@ describe('paramset-sk', () => {
 
     beforeEach(async () => {
       paramSetSkPO = new ParamSetSkPO(
-        (await testBed.page.$(
-          '#many-paramsets-with-titles-keys-and-values-clickable'
-        ))!
+        (await testBed.page.$('#many-paramsets-with-titles-keys-and-values-clickable'))!
       );
     });
 
     describe('clicking keys', () => {
       it('emits event when "paramset-key-click" clicking a key', async () => {
-        const event =
-          eventPromise<ParamSetSkClickEventDetail>('paramset-key-click');
+        const event = eventPromise<ParamSetSkClickEventDetail>('paramset-key-click');
         await paramSetSkPO.clickKey('arch');
         const expected: ParamSetSkClickEventDetail = {
           key: 'arch',
@@ -134,8 +105,7 @@ describe('paramset-sk', () => {
 
       it('event detail\'s "ctrl" field is set when ctrl key is pressed', async () => {
         await testBed.page.keyboard.down('ControlLeft');
-        const event =
-          eventPromise<ParamSetSkClickEventDetail>('paramset-key-click');
+        const event = eventPromise<ParamSetSkClickEventDetail>('paramset-key-click');
         await paramSetSkPO.clickKey('arch');
         const expected: ParamSetSkClickEventDetail = {
           key: 'arch',
@@ -147,9 +117,7 @@ describe('paramset-sk', () => {
 
     describe('clicking values', () => {
       it('emits event "paramset-key-value-click" when clicking a value', async () => {
-        const event = eventPromise<ParamSetSkClickEventDetail>(
-          'paramset-key-value-click'
-        );
+        const event = eventPromise<ParamSetSkClickEventDetail>('paramset-key-value-click');
         await paramSetSkPO.clickValue({
           paramSetIndex: 0,
           key: 'arch',
@@ -165,9 +133,7 @@ describe('paramset-sk', () => {
 
       it('event detail\'s "ctrl" field is set when ctrl key is pressed', async () => {
         await testBed.page.keyboard.down('ControlLeft');
-        const event = eventPromise<ParamSetSkClickEventDetail>(
-          'paramset-key-value-click'
-        );
+        const event = eventPromise<ParamSetSkClickEventDetail>('paramset-key-value-click');
         await paramSetSkPO.clickValue({
           paramSetIndex: 0,
           key: 'arch',
@@ -184,14 +150,10 @@ describe('paramset-sk', () => {
 
     describe('click remove value', () => {
       beforeEach(async () => {
-        paramSetSkPO = new ParamSetSkPO(
-          (await testBed.page.$('#removable-values'))!
-        );
+        paramSetSkPO = new ParamSetSkPO((await testBed.page.$('#removable-values'))!);
       });
       it('emits the necessary event when remove is clicked.', async () => {
-        const event = eventPromise<ParamSetSkRemoveClickEventDetail>(
-          'paramset-value-remove-click'
-        );
+        const event = eventPromise<ParamSetSkRemoveClickEventDetail>('paramset-value-remove-click');
         const key = 'arch';
         const val = 'x86';
         // Let's select a value first
@@ -213,14 +175,10 @@ describe('paramset-sk', () => {
 
     describe('click checkbox value', () => {
       beforeEach(async () => {
-        paramSetSkPO = new ParamSetSkPO(
-          (await testBed.page.$('#checkbox-values'))!
-        );
+        paramSetSkPO = new ParamSetSkPO((await testBed.page.$('#checkbox-values'))!);
       });
       it('emits the necessary event when checkbox is clicked.', async () => {
-        const event = eventPromise<ParamSetSkRemoveClickEventDetail>(
-          'paramset-checkbox-click'
-        );
+        const event = eventPromise<ParamSetSkRemoveClickEventDetail>('paramset-checkbox-click');
 
         // Let's click a value to unselect the checkbox
         await testBed.page.click('#checkbox-arch-x86');
@@ -233,9 +191,7 @@ describe('paramset-sk', () => {
         expect(await event).to.deep.equal(expectedUselected);
 
         // Now click the same value again to select the checkbox
-        const event2 = eventPromise<ParamSetSkRemoveClickEventDetail>(
-          'paramset-checkbox-click'
-        );
+        const event2 = eventPromise<ParamSetSkRemoveClickEventDetail>('paramset-checkbox-click');
         await testBed.page.click('#checkbox-arch-x86');
 
         const expectedSelected: ParamSetSkCheckboxClickEventDetail = {

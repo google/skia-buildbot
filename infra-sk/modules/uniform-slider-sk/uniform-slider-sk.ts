@@ -45,9 +45,7 @@ export class UniformSliderSk extends ElementSk implements UniformControl {
 
   set uniform(val: Uniform) {
     if (val.columns !== 1 || val.rows !== 1) {
-      throw new Error(
-        'uniform-slider-sk can only work on a uniform of size 1.'
-      );
+      throw new Error('uniform-slider-sk can only work on a uniform of size 1.');
     }
     this._uniform = val;
     this._render();

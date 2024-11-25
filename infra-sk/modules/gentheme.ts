@@ -18,31 +18,20 @@ import {
 // addition of a secondary color that also has a Chroma of 36, just like the
 // primary color.
 class MySchemeTonalSpot extends DynamicScheme {
-  constructor(
-    sourceColorHct: Hct,
-    secondaryColorHct: Hct,
-    isDark: boolean,
-    contrastLevel: number
-  ) {
+  constructor(sourceColorHct: Hct, secondaryColorHct: Hct, isDark: boolean, contrastLevel: number) {
     super({
       sourceColorArgb: sourceColorHct.toInt(),
       variant: 2, // Variant.TONAL_SPOT,
       contrastLevel,
       isDark,
       primaryPalette: TonalPalette.fromHueAndChroma(sourceColorHct.hue, 36.0),
-      secondaryPalette: TonalPalette.fromHueAndChroma(
-        secondaryColorHct.hue,
-        36.0
-      ),
+      secondaryPalette: TonalPalette.fromHueAndChroma(secondaryColorHct.hue, 36.0),
       tertiaryPalette: TonalPalette.fromHueAndChroma(
         sanitizeDegreesDouble(sourceColorHct.hue + 60.0),
         24.0
       ),
       neutralPalette: TonalPalette.fromHueAndChroma(sourceColorHct.hue, 6.0),
-      neutralVariantPalette: TonalPalette.fromHueAndChroma(
-        sourceColorHct.hue,
-        8.0
-      ),
+      neutralVariantPalette: TonalPalette.fromHueAndChroma(sourceColorHct.hue, 8.0),
     });
   }
 }

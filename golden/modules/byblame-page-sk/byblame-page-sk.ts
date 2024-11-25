@@ -15,12 +15,7 @@ import '../byblameentry-sk';
 import '../corpus-selector-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
-import {
-  ByBlameEntry,
-  ByBlameResponse,
-  GUICorpusStatus,
-  StatusResponse,
-} from '../rpc_types';
+import { ByBlameEntry, ByBlameResponse, GUICorpusStatus, StatusResponse } from '../rpc_types';
 
 const corpusRendererFn = (corpus: GUICorpusStatus): string => {
   if (corpus.untriagedCount) {
@@ -47,12 +42,8 @@ export class ByBlamePageSk extends ElementSk {
     </div>
   `;
 
-  private static entryTemplate = (
-    ele: ByBlamePageSk,
-    entry: ByBlameEntry
-  ) => html`
-    <byblameentry-sk .byBlameEntry=${entry} .corpus=${ele.corpus}>
-    </byblameentry-sk>
+  private static entryTemplate = (ele: ByBlamePageSk, entry: ByBlameEntry) => html`
+    <byblameentry-sk .byBlameEntry=${entry} .corpus=${ele.corpus}> </byblameentry-sk>
   `;
 
   private static noEntries = (ele: ByBlamePageSk) => {

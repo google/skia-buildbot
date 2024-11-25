@@ -40,8 +40,7 @@ define('my-test-element-sk', MyTestElementSk);
 describe('ElementSk', () => {
   describe('render', () => {
     it('only renders if connected', () => {
-      container.innerHTML =
-        '<my-test-element-sk some-attribute><my-test-element-sk>';
+      container.innerHTML = '<my-test-element-sk some-attribute><my-test-element-sk>';
       const ele = container.firstElementChild as MyTestElementSk;
       assert.isNotNull(ele.querySelector('p'));
       assert.isTrue(ele.attributeCalled);

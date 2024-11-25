@@ -3,11 +3,7 @@ import * as net from 'net';
 import express from 'express';
 import puppeteer from 'puppeteer';
 import { expect } from 'chai';
-import {
-  EventName,
-  addEventListenersToPuppeteerPage,
-  launchBrowser,
-} from './util';
+import { EventName, addEventListenersToPuppeteerPage, launchBrowser } from './util';
 
 describe('utility functions for Puppeteer tests', async () => {
   let browser: puppeteer.Browser;
@@ -41,9 +37,7 @@ describe('utility functions for Puppeteer tests', async () => {
       await new Promise((resolve) => {
         server = app.listen(0, () => resolve(undefined));
       });
-      testPageUrl = `http://localhost:${
-        (server!.address() as net.AddressInfo).port
-      }/`;
+      testPageUrl = `http://localhost:${(server!.address() as net.AddressInfo).port}/`;
 
       // Serve a test page that triggers various custom events.
       app.get('/', (req, res) =>
@@ -97,12 +91,12 @@ describe('utility functions for Puppeteer tests', async () => {
 
     it('renders test page correctly', async () => {
       await page.goto(testPageUrl);
-      expect(
-        await page.$eval('h1', (el) => (el as HTMLElement).innerText)
-      ).to.equal('Hello, world!');
-      expect(
-        await page.$eval('p', (el) => (el as HTMLElement).innerText)
-      ).to.equal('I am just a test page.');
+      expect(await page.$eval('h1', (el) => (el as HTMLElement).innerText)).to.equal(
+        'Hello, world!'
+      );
+      expect(await page.$eval('p', (el) => (el as HTMLElement).innerText)).to.equal(
+        'I am just a test page.'
+      );
     });
 
     it('catches events in the right order', async () => {
@@ -116,16 +110,11 @@ describe('utility functions for Puppeteer tests', async () => {
         // not interfere with the events we're trying to catch.
         'ignored-event',
       ];
-      const eventPromise = await addEventListenersToPuppeteerPage(
-        page,
-        eventNames
-      );
+      const eventPromise = await addEventListenersToPuppeteerPage(page, eventNames);
 
       // We will collect the Event object details in the order they are caught.
       const eventDetailsInOrder: TestEventDetail[] = [];
-      const trackCaughtOrder = async (
-        anEventPromise: Promise<TestEventDetail>
-      ) => {
+      const trackCaughtOrder = async (anEventPromise: Promise<TestEventDetail>) => {
         const detail = await anEventPromise;
         eventDetailsInOrder.push(detail);
         return detail;
@@ -158,36 +147,18 @@ describe('utility functions for Puppeteer tests', async () => {
 
       // Assert that promises were resolved in the expected order.
       expect(eventDetailsInOrder).to.have.length(7);
-      expect(eventDetailsInOrder[0].msg).to.equal(
-        'Only occurrence of alpha-event'
-      );
-      expect(eventDetailsInOrder[1].msg).to.equal(
-        '1st occurrence of beta-event'
-      );
-      expect(eventDetailsInOrder[2].msg).to.equal(
-        '2nd occurrence of beta-event'
-      );
-      expect(eventDetailsInOrder[3].msg).to.equal(
-        '3rd occurrence of beta-event'
-      );
-      expect(eventDetailsInOrder[4].msg).to.equal(
-        '1st occurrence of gamma-event'
-      );
-      expect(eventDetailsInOrder[5].msg).to.equal(
-        '2nd occurrence of gamma-event'
-      );
-      expect(eventDetailsInOrder[6].msg).to.equal(
-        '3rd occurrence of gamma-event'
-      );
+      expect(eventDetailsInOrder[0].msg).to.equal('Only occurrence of alpha-event');
+      expect(eventDetailsInOrder[1].msg).to.equal('1st occurrence of beta-event');
+      expect(eventDetailsInOrder[2].msg).to.equal('2nd occurrence of beta-event');
+      expect(eventDetailsInOrder[3].msg).to.equal('3rd occurrence of beta-event');
+      expect(eventDetailsInOrder[4].msg).to.equal('1st occurrence of gamma-event');
+      expect(eventDetailsInOrder[5].msg).to.equal('2nd occurrence of gamma-event');
+      expect(eventDetailsInOrder[6].msg).to.equal('3rd occurrence of gamma-event');
     });
 
     it('fails if event promise function is called with unknown event', async () => {
-      const eventPromise = await addEventListenersToPuppeteerPage(page, [
-        'foo-event',
-      ]);
-      expect(() => eventPromise('invalid-event')).to.throw(
-        'no event listener for "invalid-event"'
-      );
+      const eventPromise = await addEventListenersToPuppeteerPage(page, ['foo-event']);
+      expect(() => eventPromise('invalid-event')).to.throw('no event listener for "invalid-event"');
     });
   });
 });

@@ -67,8 +67,7 @@
           EventEmitter.prototype._maxListeners = undefined;
           EventEmitter.defaultMaxListeners = 10;
           EventEmitter.prototype.setMaxListeners = function (n) {
-            if (!isNumber(n) || n < 0 || isNaN(n))
-              throw TypeError('n must be a positive number');
+            if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
             this._maxListeners = n;
             return this;
           };
@@ -84,9 +83,7 @@
                 if (er instanceof Error) {
                   throw er;
                 } else {
-                  var err = new Error(
-                    'Uncaught, unspecified "error" event. (' + er + ')'
-                  );
+                  var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
                   err.context = er;
                   throw err;
                 }
@@ -119,8 +116,7 @@
           };
           EventEmitter.prototype.addListener = function (type, listener) {
             var m;
-            if (!isFunction(listener))
-              throw TypeError('listener must be a function');
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
             if (!this._events) this._events = {};
             if (this._events.newListener)
               this.emit(
@@ -129,8 +125,7 @@
                 isFunction(listener.listener) ? listener.listener : listener
               );
             if (!this._events[type]) this._events[type] = listener;
-            else if (isObject(this._events[type]))
-              this._events[type].push(listener);
+            else if (isObject(this._events[type])) this._events[type].push(listener);
             else this._events[type] = [this._events[type], listener];
             if (isObject(this._events[type]) && !this._events[type].warned) {
               if (!isUndefined(this._maxListeners)) {
@@ -155,8 +150,7 @@
           };
           EventEmitter.prototype.on = EventEmitter.prototype.addListener;
           EventEmitter.prototype.once = function (type, listener) {
-            if (!isFunction(listener))
-              throw TypeError('listener must be a function');
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
             var fired = false;
 
             function g() {
@@ -172,25 +166,17 @@
           };
           EventEmitter.prototype.removeListener = function (type, listener) {
             var list, position, length, i;
-            if (!isFunction(listener))
-              throw TypeError('listener must be a function');
+            if (!isFunction(listener)) throw TypeError('listener must be a function');
             if (!this._events || !this._events[type]) return this;
             list = this._events[type];
             length = list.length;
             position = -1;
-            if (
-              list === listener ||
-              (isFunction(list.listener) && list.listener === listener)
-            ) {
+            if (list === listener || (isFunction(list.listener) && list.listener === listener)) {
               delete this._events[type];
-              if (this._events.removeListener)
-                this.emit('removeListener', type, listener);
+              if (this._events.removeListener) this.emit('removeListener', type, listener);
             } else if (isObject(list)) {
               for (i = length; i-- > 0; ) {
-                if (
-                  list[i] === listener ||
-                  (list[i].listener && list[i].listener === listener)
-                ) {
+                if (list[i] === listener || (list[i].listener && list[i].listener === listener)) {
                   position = i;
                   break;
                 }
@@ -202,8 +188,7 @@
               } else {
                 list.splice(position, 1);
               }
-              if (this._events.removeListener)
-                this.emit('removeListener', type, listener);
+              if (this._events.removeListener) this.emit('removeListener', type, listener);
             }
             return this;
           };
@@ -228,8 +213,7 @@
             if (isFunction(listeners)) {
               this.removeListener(type, listeners);
             } else if (listeners) {
-              while (listeners.length)
-                this.removeListener(type, listeners[listeners.length - 1]);
+              while (listeners.length) this.removeListener(type, listeners[listeners.length - 1]);
             }
             delete this._events[type];
             return this;
@@ -282,8 +266,7 @@
           mode = UA[1] === 'ie' && document.documentMode;
           browser = {
             name: UA[1] === 'version' ? UA[3] : UA[1],
-            version:
-              mode || parseFloat(UA[1] === 'opera' && UA[4] ? UA[4] : UA[2]),
+            version: mode || parseFloat(UA[1] === 'opera' && UA[4] ? UA[4] : UA[2]),
             platform: {
               name: ua.match(/ip(?:ad|od|hone)/)
                 ? 'ios'
@@ -365,10 +348,7 @@
             }
             GIF.prototype.setOption = function (key, value) {
               this.options[key] = value;
-              if (
-                this._canvas != null &&
-                (key === 'width' || key === 'height')
-              ) {
+              if (this._canvas != null && (key === 'width' || key === 'height')) {
                 return (this._canvas[key] = value);
               }
             };
@@ -434,9 +414,7 @@
                 throw new Error('Already running');
               }
               if (this.options.width == null || this.options.height == null) {
-                throw new Error(
-                  'Width and height must be set prior to rendering'
-                );
+                throw new Error('Width and height must be set prior to rendering');
               }
               this.running = true;
               this.nextFrame = 0;
@@ -503,10 +481,7 @@
                       _this.log('spawning worker ' + i);
                       worker = new Worker(_this.options.workerScript);
                       worker.onmessage = function (event) {
-                        _this.activeWorkers.splice(
-                          _this.activeWorkers.indexOf(worker),
-                          1
-                        );
+                        _this.activeWorkers.splice(_this.activeWorkers.indexOf(worker), 1);
                         _this.freeWorkers.push(worker);
                         return _this.frameFinished(event.data);
                       };
@@ -519,11 +494,7 @@
             GIF.prototype.frameFinished = function (frame) {
               var i, j, ref;
               this.log(
-                'frame ' +
-                  frame.index +
-                  ' finished - ' +
-                  this.activeWorkers.length +
-                  ' active'
+                'frame ' + frame.index + ' finished - ' + this.activeWorkers.length + ' active'
               );
               this.finishedFrames++;
               this.emit('progress', this.finishedFrames / this.frames.length);
@@ -571,9 +542,7 @@
                 len += (frame.data.length - 1) * frame.pageSize + frame.cursor;
               }
               len += frame.pageSize - frame.cursor;
-              this.log(
-                'rendering finished - filesize ' + Math.round(len / 1e3) + 'kb'
-              );
+              this.log('rendering finished - filesize ' + Math.round(len / 1e3) + 'kb');
               data = new Uint8Array(len);
               offset = 0;
               ref1 = this.imageParts;
@@ -606,22 +575,12 @@
               frame = this.frames[this.nextFrame++];
               worker = this.freeWorkers.shift();
               task = this.getTask(frame);
-              this.log(
-                'starting frame ' +
-                  (task.index + 1) +
-                  ' of ' +
-                  this.frames.length
-              );
+              this.log('starting frame ' + (task.index + 1) + ' of ' + this.frames.length);
               this.activeWorkers.push(worker);
               return worker.postMessage(task);
             };
             GIF.prototype.getContextData = function (ctx) {
-              return ctx.getImageData(
-                0,
-                0,
-                this.options.width,
-                this.options.height
-              ).data;
+              return ctx.getImageData(0, 0, this.options.width, this.options.height).data;
             };
             GIF.prototype.getImageData = function (image) {
               var ctx;

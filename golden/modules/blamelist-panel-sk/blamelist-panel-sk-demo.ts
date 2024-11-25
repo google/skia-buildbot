@@ -1,12 +1,7 @@
 import './index';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { BlamelistPanelSk } from './blamelist-panel-sk';
-import {
-  blamelist19,
-  clBlamelist,
-  fakeNow,
-  nonStandardCommits,
-} from './demo_data';
+import { blamelist19, clBlamelist, fakeNow, nonStandardCommits } from './demo_data';
 import { testOnlySetSettings } from '../settings';
 
 Date.now = () => fakeNow;

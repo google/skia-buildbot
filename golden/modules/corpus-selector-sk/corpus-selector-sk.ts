@@ -31,16 +31,11 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   private static template = <T extends Object>(el: CorpusSelectorSk<T>) =>
     el._corpora.length
       ? html` <ul>
-          ${el._corpora.map((corpus) =>
-            CorpusSelectorSk.corpusTemplate(el, corpus)
-          )}
+          ${el._corpora.map((corpus) => CorpusSelectorSk.corpusTemplate(el, corpus))}
         </ul>`
       : html`<p>Loading corpora details...</p>`;
 
-  private static corpusTemplate = <T extends Object>(
-    el: CorpusSelectorSk<T>,
-    corpus: T
-  ) =>
+  private static corpusTemplate = <T extends Object>(el: CorpusSelectorSk<T>, corpus: T) =>
     html` <li
       class=${el._selectedCorpus === corpus ? 'selected' : ''}
       title="${el._corpusRendererFn(corpus)}"
@@ -51,8 +46,7 @@ export class CorpusSelectorSk<T extends Object> extends ElementSk {
   private _corpora: T[] = [];
 
   // Default to the corpus object's toString() method.
-  private _corpusRendererFn: CorpusRendererFn<T> = (corpus) =>
-    corpus.toString();
+  private _corpusRendererFn: CorpusRendererFn<T> = (corpus) => corpus.toString();
 
   private _selectedCorpus: T | null = null;
 

@@ -3,8 +3,7 @@ import { ByBlameEntry } from '../rpc_types';
 export const fakeNow = Date.parse('2019-11-08T00:00:00Z');
 
 export const entry: ByBlameEntry = {
-  groupID:
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+  groupID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
   nDigests: 112,
   nTests: 7,
   affectedTests: [

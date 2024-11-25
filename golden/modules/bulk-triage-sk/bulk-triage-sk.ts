@@ -20,12 +20,7 @@ import '../../../elements-sk/modules/icons/check-circle-icon-sk';
 import '../../../elements-sk/modules/icons/help-icon-sk';
 import '../../../elements-sk/modules/icons/view-agenda-icon-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import {
-  BulkTriageDeltaInfo,
-  Label,
-  TriageDelta,
-  TriageRequestV3,
-} from '../rpc_types';
+import { BulkTriageDeltaInfo, Label, TriageDelta, TriageRequestV3 } from '../rpc_types';
 
 /**
  * The label to apply to the selected digests via the bulk triage dialog, or 'closest' to apply the
@@ -37,9 +32,7 @@ export class BulkTriageSk extends ElementSk {
   private static template = (el: BulkTriageSk) => html`
     <h2>Bulk Triage</h2>
     <p>Assign the status to all images on this page at once.</p>
-    ${el._changeListID
-      ? html`<p class="cl">This affects Changelist ${el._changeListID}.</p>`
-      : ''}
+    ${el._changeListID ? html`<p class="cl">This affects Changelist ${el._changeListID}.</p>` : ''}
     <div class="status">
       <button
         class="positive ${el.label === 'positive' ? 'selected' : ''}"
@@ -79,12 +72,9 @@ export class BulkTriageSk extends ElementSk {
     </div>
 
     <div class="controls">
-      <button @click=${el.onCancelBtnClick} class="cancel">
-        Cancel (do nothing)
-      </button>
+      <button @click=${el.onCancelBtnClick} class="cancel">Cancel (do nothing)</button>
       <button @click=${el.onTriageBtnClick} class="action triage">
-        Triage ${el.triageAll ? el.numTotalDigests() : el.numDigestsInPage()}
-        digests as ${el.label}
+        Triage ${el.triageAll ? el.numTotalDigests() : el.numDigestsInPage()} digests as ${el.label}
       </button>
     </div>
   `;
@@ -153,16 +143,12 @@ export class BulkTriageSk extends ElementSk {
   }
 
   private onCancelBtnClick() {
-    this.dispatchEvent(
-      new CustomEvent('bulk_triage_cancelled', { bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('bulk_triage_cancelled', { bubbles: true }));
   }
 
   private onTriageBtnClick() {
     sendBeginTask(this);
-    this.dispatchEvent(
-      new CustomEvent('bulk_triage_invoked', { bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('bulk_triage_invoked', { bubbles: true }));
     const url = '/json/v3/triage';
     fetch(url, {
       method: 'POST',
@@ -170,9 +156,7 @@ export class BulkTriageSk extends ElementSk {
     })
       .then(() => {
         // Even if we get back a non-200 code, we want to say we finished.
-        this.dispatchEvent(
-          new CustomEvent('bulk_triage_finished', { bubbles: true })
-        );
+        this.dispatchEvent(new CustomEvent('bulk_triage_finished', { bubbles: true }));
         sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'bulk triaging'));
@@ -181,10 +165,7 @@ export class BulkTriageSk extends ElementSk {
   private makeTriageRequest(): TriageRequestV3 {
     const triageDeltas: TriageDelta[] = this._bulkTriageDeltaInfos
       .filter((triageDeltaInfo) => {
-        if (
-          this.label === 'closest' &&
-          triageDeltaInfo.closest_diff_label === 'none'
-        ) {
+        if (this.label === 'closest' && triageDeltaInfo.closest_diff_label === 'none') {
           return false;
         }
         return this.triageAll || triageDeltaInfo.in_current_search_results_page;

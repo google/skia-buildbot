@@ -12,11 +12,7 @@ import { live } from 'lit/directives/live.js';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { deepCopy } from '../../../infra-sk/modules/object';
-import {
-  fromParamSet,
-  toParamSet,
-  ParamSet,
-} from '../../../infra-sk/modules/query';
+import { fromParamSet, toParamSet, ParamSet } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterDialogSk, Filters } from '../filter-dialog-sk/filter-dialog-sk';
@@ -167,9 +163,7 @@ export class SearchControlsSk extends ElementSk {
           /* fieldName= */ 'includeIgnoredDigests'
         )}
 
-        <button class="more-filters" @click=${el._openFilterDialog}>
-          More filters
-        </button>
+        <button class="more-filters" @click=${el._openFilterDialog}>More filters</button>
       </div>
 
       <div class="traces">
@@ -190,9 +184,7 @@ export class SearchControlsSk extends ElementSk {
     fieldName: keyof SearchCriteria
   ) => {
     const onChange = (e: Event) => {
-      (el._searchCriteria[fieldName] as boolean) = (
-        e.target as HTMLInputElement
-      ).checked;
+      (el._searchCriteria[fieldName] as boolean) = (e.target as HTMLInputElement).checked;
       el._emitChangeEvent();
     };
     return html` <checkbox-sk
@@ -295,8 +287,7 @@ export class SearchControlsSk extends ElementSk {
     this._searchCriteria.minRGBADelta = filters.minRGBADelta;
     this._searchCriteria.maxRGBADelta = filters.maxRGBADelta;
     this._searchCriteria.sortOrder = filters.sortOrder;
-    this._searchCriteria.mustHaveReferenceImage =
-      filters.mustHaveReferenceImage;
+    this._searchCriteria.mustHaveReferenceImage = filters.mustHaveReferenceImage;
     this._emitChangeEvent();
   }
 

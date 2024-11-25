@@ -22,9 +22,7 @@ export class BugsStatusSk extends ElementSk {
 
   private static template = (el: BugsStatusSk) => html`
     <div class="table">
-      ${el.resp && el.resp.clients_to_status_data
-        ? el.displayBugsData()
-        : html``}
+      ${el.resp && el.resp.clients_to_status_data ? el.displayBugsData() : html``}
     </div>
   `;
 
@@ -40,10 +38,7 @@ export class BugsStatusSk extends ElementSk {
           title="Untriaged ${client!} bugs count">
           <div class="td">${client!}</div>
           <div class="td number">
-            <span class="value"
-              >${this.resp!.clients_to_status_data![client]
-                .untriaged_count}</span
-            >
+            <span class="value">${this.resp!.clients_to_status_data![client].untriaged_count}</span>
           </div>
         </a>
       `)

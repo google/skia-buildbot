@@ -18,18 +18,9 @@ import {
   expectQueryStringToEqual,
   noEventPromise,
 } from '../../../infra-sk/modules/test_util';
-import {
-  SearchPageSk,
-  SearchRequest,
-  DEFAULT_SEARCH_RESULTS_LIMIT,
-} from './search-page-sk';
+import { SearchPageSk, SearchRequest, DEFAULT_SEARCH_RESULTS_LIMIT } from './search-page-sk';
 import { SearchPageSkPO } from './search-page-sk_po';
-import {
-  Label,
-  SearchResponse,
-  TriageRequestV3,
-  TriageResponse,
-} from '../rpc_types';
+import { Label, SearchResponse, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { testOnlySetSettings } from '../settings';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { SearchControlsSkPO } from '../search-controls-sk/search-controls-sk_po';
@@ -136,10 +127,7 @@ describe('search-page-sk', () => {
     // This mocked RPC corresponds to the queryStringWithCL and searchRequestWithCL constants
     // defined above.
     if (opts.mockAndWaitForChangelistSummaryRPC) {
-      fetchMock.getOnce(
-        '/json/v2/changelist/gerrit/123456',
-        () => changeListSummaryResponse
-      );
+      fetchMock.getOnce('/json/v2/changelist/gerrit/123456', () => changeListSummaryResponse);
       eventsToWaitFor.push('end-task');
     }
 
@@ -300,36 +288,20 @@ describe('search-page-sk', () => {
     });
 
     describe('field "include positive digests"', () => {
-      itIsBoundToURLAndRPC(
-        '?positive=true',
-        { includePositiveDigests: true },
-        { pos: true }
-      );
+      itIsBoundToURLAndRPC('?positive=true', { includePositiveDigests: true }, { pos: true });
     });
 
     describe('field "include negative digests"', () => {
-      itIsBoundToURLAndRPC(
-        '?negative=true',
-        { includeNegativeDigests: true },
-        { neg: true }
-      );
+      itIsBoundToURLAndRPC('?negative=true', { includeNegativeDigests: true }, { neg: true });
     });
 
     describe('field "include untriaged digests"', () => {
       // This field is true by default, so we set it to false.
-      itIsBoundToURLAndRPC(
-        '?untriaged=false',
-        { includeUntriagedDigests: false },
-        { unt: false }
-      );
+      itIsBoundToURLAndRPC('?untriaged=false', { includeUntriagedDigests: false }, { unt: false });
     });
 
     describe('field "include digests not at head"', () => {
-      itIsBoundToURLAndRPC(
-        '?not_at_head=true',
-        { includeDigestsNotAtHead: true },
-        { head: false }
-      ); // SearchRequest field "head" means "at head only".
+      itIsBoundToURLAndRPC('?not_at_head=true', { includeDigestsNotAtHead: true }, { head: false }); // SearchRequest field "head" means "at head only".
     });
 
     describe('field "include ignored digests"', () => {
@@ -341,27 +313,15 @@ describe('search-page-sk', () => {
     });
 
     describe('field "min RGBA delta"', () => {
-      itIsBoundToURLAndRPC(
-        '?min_rgba=10',
-        { minRGBADelta: 10 },
-        { frgbamin: 10 }
-      );
+      itIsBoundToURLAndRPC('?min_rgba=10', { minRGBADelta: 10 }, { frgbamin: 10 });
     });
 
     describe('field "max RGBA delta"', () => {
-      itIsBoundToURLAndRPC(
-        '?max_rgba=200',
-        { maxRGBADelta: 200 },
-        { frgbamax: 200 }
-      );
+      itIsBoundToURLAndRPC('?max_rgba=200', { maxRGBADelta: 200 }, { frgbamax: 200 });
     });
 
     describe('field "max RGBA delta"', () => {
-      itIsBoundToURLAndRPC(
-        '?max_rgba=200',
-        { maxRGBADelta: 200 },
-        { frgbamax: 200 }
-      );
+      itIsBoundToURLAndRPC('?max_rgba=200', { maxRGBADelta: 200 }, { frgbamax: 200 });
     });
 
     describe('field "must have reference image"', () => {
@@ -373,11 +333,7 @@ describe('search-page-sk', () => {
     });
 
     describe('field "sort order"', () => {
-      itIsBoundToURLAndRPC(
-        '?sort=ascending',
-        { sortOrder: 'ascending' },
-        { sort: 'asc' }
-      );
+      itIsBoundToURLAndRPC('?sort=ascending', { sortOrder: 'ascending' }, { sort: 'asc' });
     });
   });
 
@@ -453,12 +409,11 @@ describe('search-page-sk', () => {
     // Returns the current page displayed by both the top and bottom pagination-sk elements as a
     // single pipe-separated string (e.g. "4|4"). This allows us to test that both elements show
     // the same page number.
-    const getCurrentPageFromBothPaginationSkElements =
-      async (): Promise<string> => {
-        const top = await topPaginationSkPO.getCurrentPage();
-        const bottom = await bottomPaginationSkPO.getCurrentPage();
-        return `${top}|${bottom}`;
-      };
+    const getCurrentPageFromBothPaginationSkElements = async (): Promise<string> => {
+      const top = await topPaginationSkPO.getCurrentPage();
+      const bottom = await bottomPaginationSkPO.getCurrentPage();
+      return `${top}|${bottom}`;
+    };
 
     describe('button "next" with no explicit "limit" URL parameter', () => {
       searchFieldIsBoundToURLAndRPC<string>(
@@ -544,9 +499,7 @@ describe('search-page-sk', () => {
     it('shows search results', async () => {
       await instantiate();
 
-      expect(await searchPageSkPO.getSummary()).to.equal(
-        'Showing results 1 to 3 (out of 85).'
-      );
+      expect(await searchPageSkPO.getSummary()).to.equal('Showing results 1 to 3 (out of 85).');
       expect(await searchPageSkPO.getDigests()).to.deep.equal([
         'Left: fbd3de3fff6b852ae0bb6751b9763d27',
         'Left: 2fa58aa430e9c815755624ca6cca4a72',
@@ -632,8 +585,7 @@ describe('search-page-sk', () => {
           '?blame=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         expectedInitialSearchRequest: {
           ...defaultSearchRequest,
-          blame:
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          blame: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         },
       });
     });
@@ -693,8 +645,7 @@ describe('search-page-sk', () => {
       it('does not show an affected CL if none is provided', async () => {
         await instantiate();
         await searchPageSkPO.clickBulkTriageBtn();
-        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be
-          .false;
+        expect(await bulkTriageSkPO.isAffectedChangelistIdVisible()).to.be.false;
       });
 
       it('shows the affected CL if one is provided', async () => {
@@ -898,15 +849,9 @@ describe('search-page-sk', () => {
       secondLabel: Label,
       thirdLabel: Label
     ) => {
-      expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal(
-        firstLabel
-      );
-      expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal(
-        secondLabel
-      );
-      expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal(
-        thirdLabel
-      );
+      expect(await searchPageSkPO.getLabelForDigest(firstDigest)).to.equal(firstLabel);
+      expect(await searchPageSkPO.getLabelForDigest(secondDigest)).to.equal(secondLabel);
+      expect(await searchPageSkPO.getLabelForDigest(thirdDigest)).to.equal(thirdLabel);
     };
 
     describe('navigation', () => {
@@ -972,35 +917,19 @@ describe('search-page-sk', () => {
         await instantiate();
 
         // Check initial labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as positive should have no effect.
         await searchPageSkPO.typeKey('a');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as negative should have no effect.
         await searchPageSkPO.typeKey('s');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triaging as untriaged should have no effect.
         await searchPageSkPO.typeKey('d');
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
       });
 
       it('can triage the selected digest with keys "A", "S" and "D"', async () => {
@@ -1014,11 +943,7 @@ describe('search-page-sk', () => {
         await instantiate();
 
         // Check initial labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Select the second search result.
         await searchPageSkPO.typeKey('j');
@@ -1054,17 +979,9 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be positive, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'positive',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'positive',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'positive', 'untriaged');
 
         // Triage as negative.
         event = eventPromise('end-task');
@@ -1072,17 +989,9 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be negative, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Triage as untriaged.
         event = eventPromise('end-task');
@@ -1090,17 +999,9 @@ describe('search-page-sk', () => {
         await event;
 
         // It should be untriaged, and the label should stick after the page is re-rendered.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'untriaged',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
         (searchPageSk as any)._render(); // We cast to "any" because _render is not public.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'untriaged',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'untriaged', 'untriaged');
       });
     });
 
@@ -1125,9 +1026,7 @@ describe('search-page-sk', () => {
 
         // The zoom dialog for the second search result should open.
         await searchPageSkPO.typeKey('w');
-        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(
-          secondDigest
-        );
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.equal(secondDigest);
       });
     });
 
@@ -1156,41 +1055,25 @@ describe('search-page-sk', () => {
         expect(await searchPageSkPO.getSelectedDigest()).to.equal(secondDigest);
 
         // Check initial triage labels.
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as positive should have no effect.
         let noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('a');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as negative should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('s');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for triaging as untriagaed should have no effect.
         noEvent = noEventPromise('begin-task');
         await searchPageSkPO.typeKey('d');
         await noEvent;
-        await expectLabelsForFirstSecondAndThirdDigestsToBe(
-          'positive',
-          'negative',
-          'untriaged'
-        );
+        await expectLabelsForFirstSecondAndThirdDigestsToBe('positive', 'negative', 'untriaged');
 
         // Shortcut for the help dialog should have no effect, but we can only test this if the
         // help dialog is not already open, otherwise the shortcut has no effect.
@@ -1215,8 +1098,7 @@ describe('search-page-sk', () => {
       });
 
       it('disables keyboard shortcuts when the left-hand trace filter dialog is open', async () => {
-        const leftHandTraceFilterSkPO =
-          await searchControlsSkPO.traceFilterSkPO;
+        const leftHandTraceFilterSkPO = await searchControlsSkPO.traceFilterSkPO;
         await leftHandTraceFilterSkPO.clickEditBtn(); // Open left-hand trace filter dialog.
 
         expect(await leftHandTraceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
@@ -1246,8 +1128,7 @@ describe('search-page-sk', () => {
       it('disables keyboard shortcuts when the zoom dialog is open', async () => {
         await searchPageSkPO.typeKey('w'); // Open zoom dialog.
 
-        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.not.be
-          .null;
+        expect(await searchPageSkPO.getDigestWithOpenZoomDialog()).to.not.be.null;
         await expectKeyboardShortcutsToBeDisabled();
       });
     });

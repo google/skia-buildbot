@@ -239,10 +239,7 @@ fetchMock.post(
   },
   () =>
     new Promise((resolve) =>
-      setTimeout(
-        () => resolve(JSON.stringify(fakeRPCResponse)),
-        fakeRpcDelayMillis
-      )
+      setTimeout(() => resolve(JSON.stringify(fakeRPCResponse)), fakeRpcDelayMillis)
     )
 );
 

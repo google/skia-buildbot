@@ -198,9 +198,7 @@ class DisplayCommit {
       }
 
       // Distance between the two arc centers.
-      const dist = Math.sqrt(
-        Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2)
-      );
+      const dist = Math.sqrt(Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2));
       // Length of the arc to draw.
       const arcLength =
         Math.PI -
@@ -232,20 +230,12 @@ class DisplayCommit {
     const paddingY = 3;
     const paddingX = 3;
     ctx.fillStyle = this.color();
-    ctx.fillRect(
-      labelCoords.x - paddingX,
-      labelCoords.y - h,
-      w + 2 * paddingX,
-      h + paddingY
-    );
+    ctx.fillRect(labelCoords.x - paddingX, labelCoords.y - h, w + 2 * paddingX, h + paddingY);
     ctx.fillStyle = textColor;
     ctx.fillText(this.labelText(), labelCoords.x, labelCoords.y);
   }
 
-  draw(
-    ctx: CanvasRenderingContext2D,
-    displayCommits: Map<string, DisplayCommit>
-  ) {
+  draw(ctx: CanvasRenderingContext2D, displayCommits: Map<string, DisplayCommit>) {
     const color = this.color();
     const center = this.dotCenter();
 
@@ -435,11 +425,7 @@ export class BranchesSk extends ElementSk {
   private draw = () => {
     console.time('draw');
     // Initialize all commits.
-    this.displayCommits = prepareCommitsForDisplay(
-      this.commits,
-      this.branchHeads,
-      this.rollLabels
-    );
+    this.displayCommits = prepareCommitsForDisplay(this.commits, this.branchHeads, this.rollLabels);
 
     // Calculate the required canvas width based on the commit columns and
     // labels.
@@ -596,12 +582,7 @@ function traceCommits(
 }
 
 // Draws a filled-in dot at the given center with the given radius and color.
-function drawDot(
-  ctx: CanvasRenderingContext2D,
-  center: Point,
-  radius: number,
-  color: string
-) {
+function drawDot(ctx: CanvasRenderingContext2D, center: Point, radius: number, color: string) {
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);

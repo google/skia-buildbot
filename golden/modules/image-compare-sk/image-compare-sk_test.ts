@@ -1,9 +1,6 @@
 import './index';
 import { expect } from 'chai';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ImageCompareSk } from './image-compare-sk';
 import { ImageCompareSkPO } from './image-compare-sk_po';
 

@@ -76,9 +76,7 @@ class FrameCollector {
   }
 }
 
-const frameCollectorFactory = (
-  ffmpeg: FFmpeg | null,
-  onProgress: Progress
-): FrameCollectorType => new FrameCollector(ffmpeg, onProgress);
+const frameCollectorFactory = (ffmpeg: FFmpeg | null, onProgress: Progress): FrameCollectorType =>
+  new FrameCollector(ffmpeg, onProgress);
 
 export default frameCollectorFactory;

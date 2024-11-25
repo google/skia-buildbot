@@ -7,9 +7,7 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { getAutorollerStatusesResponse, SetupMocks } from '../rpc-mock';
 
 describe('autoroller-status-sk', () => {
-  const newInstance = setUpElementUnderTest<AutorollerStatusSk>(
-    'autoroller-status-sk'
-  );
+  const newInstance = setUpElementUnderTest<AutorollerStatusSk>('autoroller-status-sk');
 
   let element: AutorollerStatusSk;
   beforeEach(async () => {

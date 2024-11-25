@@ -5,9 +5,7 @@ import { EditIgnoreRuleSk } from './edit-ignore-rule-sk';
 import { EditIgnoreRuleSkPO } from './edit-ignore-rule-sk_po';
 
 describe('edit-ignore-rule-sk', () => {
-  const newInstance = setUpElementUnderTest<EditIgnoreRuleSk>(
-    'edit-ignore-rule-sk'
-  );
+  const newInstance = setUpElementUnderTest<EditIgnoreRuleSk>('edit-ignore-rule-sk');
 
   // This date is arbitrary
   const fakeNow = Date.parse('2020-02-01T00:00:00Z');
@@ -78,9 +76,7 @@ describe('edit-ignore-rule-sk', () => {
       await editIgnoreRuleSkPO.setCustomValue('value');
       await editIgnoreRuleSkPO.clickAddCustomParamBtn();
 
-      expect(editIgnoreRuleSk.query).to.equal(
-        'arch=arm64&arch=y75&custom=value'
-      );
+      expect(editIgnoreRuleSk.query).to.equal('arch=arm64&arch=y75&custom=value');
       // ParamSet should be mutated to have the new values
       expect(editIgnoreRuleSk.paramset.arch).to.deep.equal([
         'arm',
@@ -133,27 +129,21 @@ describe('edit-ignore-rule-sk', () => {
       await editIgnoreRuleSkPO.setCustomValue('');
       await editIgnoreRuleSkPO.clickAddCustomParamBtn();
 
-      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain(
-        'both a key and a value'
-      );
+      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain('both a key and a value');
       expect(editIgnoreRuleSk.query).to.equal('');
 
       await editIgnoreRuleSkPO.setCustomKey('custom');
       await editIgnoreRuleSkPO.setCustomValue('');
       await editIgnoreRuleSkPO.clickAddCustomParamBtn();
 
-      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain(
-        'both a key and a value'
-      );
+      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain('both a key and a value');
       expect(editIgnoreRuleSk.query).to.equal('');
 
       await editIgnoreRuleSkPO.setCustomKey('');
       await editIgnoreRuleSkPO.setCustomValue('value');
       await editIgnoreRuleSkPO.clickAddCustomParamBtn();
 
-      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain(
-        'both a key and a value'
-      );
+      expect(await editIgnoreRuleSkPO.getErrorMessage()).to.contain('both a key and a value');
       expect(editIgnoreRuleSk.query).to.equal('');
     });
   });

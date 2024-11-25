@@ -13,16 +13,7 @@ const applyUniformValues = () => {
   $$<HTMLPreElement>('#results')!.innerText = uniforms.toString();
 };
 
-$$<HTMLCanvasElement>('canvas')!.addEventListener(
-  'mousemove',
-  applyUniformValues
-);
-$$<HTMLCanvasElement>('canvas')!.addEventListener(
-  'mousedown',
-  applyUniformValues
-);
-$$<HTMLCanvasElement>('canvas')!.addEventListener(
-  'mouseup',
-  applyUniformValues
-);
+$$<HTMLCanvasElement>('canvas')!.addEventListener('mousemove', applyUniformValues);
+$$<HTMLCanvasElement>('canvas')!.addEventListener('mousedown', applyUniformValues);
+$$<HTMLCanvasElement>('canvas')!.addEventListener('mouseup', applyUniformValues);
 $$<HTMLCanvasElement>('canvas')!.addEventListener('click', applyUniformValues);

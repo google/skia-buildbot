@@ -192,10 +192,7 @@ export class SkottieColorManagerSk extends ElementSk {
             @color-change=${this.onMapWhiteChange}></skottie-color-input-sk>
         </div>
         <label class="color-form--original-color">
-          <input
-            type="checkbox"
-            @change=${this.onToggleOriginal}
-            ?checked=${blendValue === 0} />
+          <input type="checkbox" @change=${this.onToggleOriginal} ?checked=${blendValue === 0} />
           <span class="box"></span>
           <span class="label">Show original color scheme</span>
         </label>
@@ -209,8 +206,8 @@ export class SkottieColorManagerSk extends ElementSk {
         <div class="info-box">
           <span class="icon-sk info-box--icon">info</span>
           <span class="info-box--description">
-            The color manager will modify the Json file to allow color editing
-            and it will not be possible to revert it
+            The color manager will modify the Json file to allow color editing and it will not be
+            possible to revert it
           </span>
         </div>
         <skottie-button-sk
@@ -228,9 +225,7 @@ export class SkottieColorManagerSk extends ElementSk {
       return;
     }
     // Making a copy of the template to avoid writing on the original one
-    const template: LottieAnimation = JSON.parse(
-      JSON.stringify(animationTemplate)
-    );
+    const template: LottieAnimation = JSON.parse(JSON.stringify(animationTemplate));
     const animation = this._animation;
     template.v = animation.v;
     template.w = animation.w;

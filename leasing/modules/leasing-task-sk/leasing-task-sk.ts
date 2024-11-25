@@ -123,8 +123,7 @@ export class LeasingTaskSk extends ElementSk {
       <tr>
         <td>
           Pool: ${ele.leasingTask.pool} ${displayDimensions(ele.leasingTask)}
-          ${displayBotId(ele.leasingTask)}
-          ${displaySwarmingTaskForIsolates(ele.leasingTask)}
+          ${displayBotId(ele.leasingTask)} ${displaySwarmingTaskForIsolates(ele.leasingTask)}
         </td>
         <td>
           Task Log:${displaySwarmingTask(ele.leasingTask)}
@@ -176,10 +175,7 @@ export class LeasingTaskSk extends ElementSk {
     }
     const detail: ExtendTaskRequest = {
       task: this.leasingTask.datastoreId,
-      duration: parseInt(
-        ($$('#duration', this) as HTMLInputElement)!.value,
-        10
-      ),
+      duration: parseInt(($$('#duration', this) as HTMLInputElement)!.value, 10),
     };
     doImpl('/_/extend_leasing_task', detail, () => {
       window.location.href = '/my_leases';

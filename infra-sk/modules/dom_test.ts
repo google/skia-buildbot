@@ -44,10 +44,7 @@ describe('$ aka querySelectorAll', () => {
 
   it('should mimic querySelectorAll', () => {
     assertEquals($('.alpha', container), container.querySelectorAll('.alpha'));
-    assertEquals(
-      $('#epsilon', container),
-      container.querySelectorAll('#epsilon')
-    );
+    assertEquals($('#epsilon', container), container.querySelectorAll('#epsilon'));
     assertEquals($('span', container), container.querySelectorAll('span'));
   });
 
@@ -71,10 +68,7 @@ describe('$ aka querySelectorAll', () => {
 describe('$$ aka querySelector', () => {
   it('should mimic querySelector', () => {
     assert.equal($$('.alpha', container), container.querySelector('.alpha'));
-    assert.equal(
-      $$('#epsilon', container),
-      container.querySelector('#epsilon')
-    );
+    assert.equal($$('#epsilon', container), container.querySelector('#epsilon'));
     assert.equal($$('span', container), container.querySelector('span'));
   });
 
@@ -161,11 +155,7 @@ describe('findParentSafe', () => {
           <p id=caa>para</p>
         </span>
       </span>`;
-    assert.equal(
-      findParentSafe($$('#a', div), 'div'),
-      $$('#a', div),
-      'Top level'
-    );
+    assert.equal(findParentSafe($$('#a', div), 'div'), $$('#a', div), 'Top level');
     assert.equal(findParentSafe($$('#a', div), 'span'), null);
     assert.equal(findParentSafe($$('#aa', div), 'div'), $$('#a', div));
     assert.equal(findParentSafe($$('#aaa', div), 'div'), $$('#a', div));

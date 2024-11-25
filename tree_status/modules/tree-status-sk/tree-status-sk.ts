@@ -33,8 +33,7 @@ export class TreeStatusSk extends ElementSk {
 
   private static template = (ele: TreeStatusSk) => html`
     <br />
-    <enter-tree-status-sk
-      .autorollers=${ele.autorollers}></enter-tree-status-sk>
+    <enter-tree-status-sk .autorollers=${ele.autorollers}></enter-tree-status-sk>
     <br />
     <display-tree-status-sk .statuses=${ele.statuses}></display-tree-status-sk>
   `;
@@ -83,13 +82,9 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private saveStatus(e: Event) {
-    this.doImpl(
-      `/${this.repo}/_/add_tree_status`,
-      (e as CustomEvent).detail,
-      (json: Status[]) => {
-        this.statuses = json;
-      }
-    );
+    this.doImpl(`/${this.repo}/_/add_tree_status`, (e as CustomEvent).detail, (json: Status[]) => {
+      this.statuses = json;
+    });
   }
 
   private getStatuses() {
@@ -105,9 +100,7 @@ export class TreeStatusSk extends ElementSk {
   }
 
   private setTreeStatus(e: Event) {
-    ($$('enter-tree-status-sk') as EnterTreeStatus).status_value = (
-      e as CustomEvent
-    ).detail;
+    ($$('enter-tree-status-sk') as EnterTreeStatus).status_value = (e as CustomEvent).detail;
   }
 }
 

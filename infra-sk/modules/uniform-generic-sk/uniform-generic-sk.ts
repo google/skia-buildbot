@@ -26,11 +26,7 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
     super(UniformGenericSk.template);
   }
 
-  private static defaultValue = (
-    ele: UniformGenericSk,
-    row: number,
-    col: number
-  ): string => {
+  private static defaultValue = (ele: UniformGenericSk, row: number, col: number): string => {
     // Non-square uniforms (rows != columns) get a default value of 0.5.
     if (ele._uniform.columns !== ele._uniform.rows) {
       return '0.5';
@@ -42,10 +38,7 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
     return '0';
   };
 
-  private static row = (
-    ele: UniformGenericSk,
-    row: number
-  ): TemplateResult[] => {
+  private static row = (ele: UniformGenericSk, row: number): TemplateResult[] => {
     const ret: TemplateResult[] = [];
     for (let col = 0; col < ele._uniform.columns; col++) {
       ret.push(
@@ -99,9 +92,10 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   applyUniformValues(uniforms: number[]): void {
     for (let col = 0; col < this._uniform.columns; col++) {
       for (let row = 0; row < this._uniform.rows; row++) {
-        uniforms[this.uniform.slot + col * this._uniform.rows + row] =
-          +$$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!
-            .value;
+        uniforms[this.uniform.slot + col * this._uniform.rows + row] = +$$<HTMLInputElement>(
+          `#${this._uniform.name}_${row}_${col}`,
+          this
+        )!.value;
       }
     }
   }
@@ -109,13 +103,8 @@ export class UniformGenericSk extends ElementSk implements UniformControl {
   restoreUniformValues(uniforms: number[]): void {
     for (let col = 0; col < this._uniform.columns; col++) {
       for (let row = 0; row < this._uniform.rows; row++) {
-        $$<HTMLInputElement>(
-          `#${this._uniform.name}_${row}_${col}`,
-          this
-        )!.value =
-          uniforms[
-            this.uniform.slot + col * this._uniform.rows + row
-          ].toString();
+        $$<HTMLInputElement>(`#${this._uniform.name}_${row}_${col}`, this)!.value =
+          uniforms[this.uniform.slot + col * this._uniform.rows + row].toString();
       }
     }
   }

@@ -12,10 +12,7 @@ import { html, TemplateResult } from 'lit/html.js';
 import JSZip from 'jszip';
 import { define } from '../../../../elements-sk/modules/define';
 import '../../skottie-dropdown-sk';
-import {
-  DropdownOption,
-  DropdownSelectEvent,
-} from '../../skottie-dropdown-sk/skottie-dropdown-sk';
+import { DropdownOption, DropdownSelectEvent } from '../../skottie-dropdown-sk/skottie-dropdown-sk';
 import { SkottiePlayerSk } from '../../skottie-player-sk/skottie-player-sk';
 import '../../../../elements-sk/modules/icons/info-icon-sk';
 import '../../skottie-button-sk';
@@ -264,10 +261,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
     let counter = 1;
     const increment = 1000 / fps;
     const zip = new JSZip();
-    const fileName = this._downloadFileName.substr(
-      0,
-      this._downloadFileName.lastIndexOf('.')
-    );
+    const fileName = this._downloadFileName.substr(0, this._downloadFileName.lastIndexOf('.'));
     const detail: Detail = qualityDetails[this._config.quality];
     const outputCanvas = this.getOutputCanvas(canvasElement);
     while (currentTime <= endTime) {
@@ -280,12 +274,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
       // Only copying canvas if it has a different output size
       if (detail.scale !== 1) {
         const outputCanvasContext = outputCanvas.getContext('2d');
-        outputCanvasContext?.clearRect(
-          0,
-          0,
-          outputCanvas.width,
-          outputCanvas.height
-        );
+        outputCanvasContext?.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
         outputCanvasContext?.drawImage(
           canvasElement,
           0,
@@ -299,9 +288,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
         );
       }
       // eslint-disable-next-line no-await-in-loop
-      const blob: Blob | null = await new Promise((res) =>
-        outputCanvas.toBlob(res)
-      );
+      const blob: Blob | null = await new Promise((res) => outputCanvas.toBlob(res));
       if (blob) {
         const file = `${fileName}_${String(counter).padStart(4, '0')}.png`;
         zip.file(file, blob);
@@ -327,12 +314,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
     // Only copying canvas if it has a different output size
     if (detail.scale !== 1) {
       const outputCanvasContext = outputCanvas.getContext('2d');
-      outputCanvasContext?.clearRect(
-        0,
-        0,
-        outputCanvas.width,
-        outputCanvas.height
-      );
+      outputCanvasContext?.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
       outputCanvasContext?.drawImage(
         canvasElement,
         0,
@@ -345,9 +327,7 @@ export class SkottieExporterPNGSk extends SkottieExporterBaseSk {
         outputCanvas.height
       );
     }
-    const blob: Blob | null = await new Promise((res) =>
-      outputCanvas.toBlob(res)
-    );
+    const blob: Blob | null = await new Promise((res) => outputCanvas.toBlob(res));
     if (blob) {
       return URL.createObjectURL(blob);
     }

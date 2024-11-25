@@ -39,11 +39,7 @@ describe('diff-page-sk', () => {
     });
 
     it('should show the full width comparison view', async () => {
-      const diffPageSkPO = await navigateTo(
-        testBed.page,
-        testBed.baseUrl,
-        baseParams
-      );
+      const diffPageSkPO = await navigateTo(testBed.page, testBed.baseUrl, baseParams);
       await testBed.page.setViewport({
         width: 1300,
         height: 700,
@@ -55,11 +51,7 @@ describe('diff-page-sk', () => {
 
   describe('url params', () => {
     it('correctly extracts the grouping, left and right digest', async () => {
-      const diffPageSkPO = await navigateTo(
-        testBed.page,
-        testBed.baseUrl,
-        baseParams
-      );
+      const diffPageSkPO = await navigateTo(testBed.page, testBed.baseUrl, baseParams);
 
       expect(await diffPageSkPO.digestDetailsSkPO.getTestName()).to.equal(
         'Test: My test has spaces'
@@ -105,14 +97,8 @@ describe('diff-page-sk', () => {
   });
 });
 
-async function navigateTo(
-  page: Page,
-  base: string,
-  queryParams = ''
-): Promise<DiffPageSkPO> {
-  const eventPromise = await addEventListenersToPuppeteerPage(page, [
-    'busy-end',
-  ]);
+async function navigateTo(page: Page, base: string, queryParams = ''): Promise<DiffPageSkPO> {
+  const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
   const loaded = eventPromise('busy-end'); // Emitted from gold-scaffold when page is loaded.
   await page.goto(`${base}${queryParams}`);
   await loaded;

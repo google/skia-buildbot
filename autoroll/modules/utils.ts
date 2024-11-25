@@ -38,9 +38,7 @@ export function GetLastCheckInTime(st: AutoRollMiniStatus): Date {
  * LastCheckInMessage returns a string indicating the last check-in time of the
  * roller, if it checked in longer than lastCheckInTooOldThresholdMs ago.
  */
-export function LastCheckInMessage(
-  st: AutoRollMiniStatus | null | undefined
-): string {
+export function LastCheckInMessage(st: AutoRollMiniStatus | null | undefined): string {
   if (!st || !st.timestamp) {
     return '';
   }
@@ -56,9 +54,7 @@ export function LastCheckInMessage(
  * LastCheckInSpan returns a TemplateResult indicating the last check-in time of
  * the roller, if it checked in longer than lastCheckInTooOldThresholdMs ago.
  */
-export function LastCheckInSpan(
-  st: AutoRollMiniStatus | null | undefined
-): TemplateResult {
+export function LastCheckInSpan(st: AutoRollMiniStatus | null | undefined): TemplateResult {
   const msg = LastCheckInMessage(st);
   if (msg) {
     return html`<span class="fg-failure">${msg}</span>`;

@@ -4,18 +4,12 @@ import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { StatusSk } from './status-sk';
 
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { AlertsStatus } from '../../../perf/modules/json/index';
 import { incrementalResponse0, SetupMocks } from '../rpc-mock';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
-import {
-  GetClientCountsResponse,
-  StatusData,
-} from '../../../bugs-central/modules/json';
+import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
 import {
   treeStatusResp,
   generalRoleResp,
@@ -57,14 +51,10 @@ describe('status-sk', () => {
         { name: 'svg', untriagedCount: 27 },
       ],
     });
-    fetchMock.getOnce('https://skia-infra-gold.skia.org/json/v2/trstatus', <
-      StatusResponse
-    >{
+    fetchMock.getOnce('https://skia-infra-gold.skia.org/json/v2/trstatus', <StatusResponse>{
       corpStatus: [{ name: 'infra', untriagedCount: 23 }],
     });
-    fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
-      GetClientCountsResponse
-    >{
+    fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
       clients_to_status_data: {
         Android: <StatusData>{
           untriaged_count: 10,
@@ -80,14 +70,8 @@ describe('status-sk', () => {
         },
       },
     });
-    fetchMock.get(
-      'https://example.com/treestatus/skia/current',
-      treeStatusResp
-    );
-    fetchMock.get(
-      'https://example.com/treestatus/buildbot/current',
-      treeStatusResp
-    );
+    fetchMock.get('https://example.com/treestatus/skia/current', treeStatusResp);
+    fetchMock.get('https://example.com/treestatus/buildbot/current', treeStatusResp);
     fetchMock.get(
       'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
       generalRoleResp

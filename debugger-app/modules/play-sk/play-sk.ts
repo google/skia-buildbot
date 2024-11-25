@@ -40,9 +40,7 @@ export class PlaySk extends ElementSk {
   private static fullTemplate = (ele: PlaySk) =>
     html` <div class="horizontal-flex">
       <div class="filler"></div>
-      <skip-previous-icon-sk
-        title="Go to first"
-        @click=${ele.begin}></skip-previous-icon-sk>
+      <skip-previous-icon-sk title="Go to first" @click=${ele.begin}></skip-previous-icon-sk>
       <keyboard-arrow-left-icon-sk
         title="Step back one (,)"
         @click=${ele.prev}></keyboard-arrow-left-icon-sk>
@@ -50,15 +48,10 @@ export class PlaySk extends ElementSk {
       <keyboard-arrow-right-icon-sk
         title="Step forward one (.)"
         @click=${ele.next}></keyboard-arrow-right-icon-sk>
-      <skip-next-icon-sk
-        title="Go to last"
-        @click=${ele.end}></skip-next-icon-sk>
+      <skip-next-icon-sk title="Go to last" @click=${ele.end}></skip-next-icon-sk>
       <div class="filler"></div>
       <label>Delay in ms</label>
-      <input
-        value="${ele._playbackDelay}"
-        class="delay-input"
-        @change=${ele._delayChanged} />
+      <input value="${ele._playbackDelay}" class="delay-input" @change=${ele._delayChanged} />
     </div>`;
 
   private static simpleTemplate = (ele: PlaySk) =>
@@ -163,21 +156,16 @@ export class PlaySk extends ElementSk {
         @click=${ele.togglePlay}
         id="play-button"></play-arrow-icon-sk>`;
     }
-    return html`<pause-icon-sk
-      title="Play/Pause"
-      @click=${ele.togglePlay}></pause-icon-sk>`;
+    return html`<pause-icon-sk title="Play/Pause" @click=${ele.togglePlay}></pause-icon-sk>`;
   }
 
   togglePlay(): void {
     this.mode = this._mode === 'play' ? 'pause' : 'play';
     this.dispatchEvent(
-      new CustomEvent<ModeChangedManuallyEventDetail>(
-        ModeChangedManuallyEvent,
-        {
-          detail: { mode: this._mode },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<ModeChangedManuallyEventDetail>(ModeChangedManuallyEvent, {
+        detail: { mode: this._mode },
+        bubbles: true,
+      })
     );
   }
 

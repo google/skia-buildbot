@@ -26,10 +26,7 @@ import { InputSk } from '../input-sk/input-sk';
 import { PatchSk } from '../patch-sk/patch-sk';
 import { TaskPrioritySk } from '../task-priority-sk/task-priority-sk';
 import { TaskRepeaterSk } from '../task-repeater-sk/task-repeater-sk';
-import {
-  combineClDescriptions,
-  moreThanThreeActiveTasksChecker,
-} from '../ctfe_utils';
+import { combineClDescriptions, moreThanThreeActiveTasksChecker } from '../ctfe_utils';
 import { MetricsAnalysisAddTaskVars, EditTaskRequest } from '../json';
 
 interface ExpandableTextArea extends InputSk {
@@ -82,10 +79,7 @@ export class MetricsAnalysisSk extends ElementSk {
       <tr>
         <td>Source of Traces</td>
         <td>
-          <input-sk
-            id="analysis_task_id"
-            label="Analysis Task Id"
-            class="medium-field"></input-sk>
+          <input-sk id="analysis_task_id" label="Analysis Task Id" class="medium-field"></input-sk>
           <expandable-textarea-sk
             id="custom_traces"
             minRows="5"
@@ -98,34 +92,25 @@ export class MetricsAnalysisSk extends ElementSk {
       <tr>
         <td>Benchmark Arguments</td>
         <td>
-          <input-sk
-            value="--output-format=csv"
-            id="benchmark_args"
-            class="long-field"></input-sk>
+          <input-sk value="--output-format=csv" id="benchmark_args" class="long-field"></input-sk>
           <span class="smaller-font"
-            >These will be the arguments to the analysis_metrics_ct
-            benchmark.</span
+            >These will be the arguments to the analysis_metrics_ct benchmark.</span
           ><br />
           <span class="smaller-font"
-            ><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the
-            timeout of the run_benchmark script. 300 is the default.</span
+            ><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the
+            run_benchmark script. 300 is the default.</span
           ><br />
           <span class="smaller-font"
-            ><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of
-            pages to run per bot. 50 is the default.</span
+            ><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per
+            bot. 50 is the default.</span
           >
         </td>
       </tr>
       <tr>
         <td>Field Value Column Name</td>
         <td>
-          <input-sk
-            value="avg"
-            id="value_column_name"
-            class="medium-field"></input-sk>
-          <span class="smaller-font"
-            >Which column's entries to use as field values.</span
-          >
+          <input-sk value="avg" id="value_column_name" class="medium-field"></input-sk>
+          <span class="smaller-font">Which column's entries to use as field values.</span>
         </td>
       </tr>
       <tr>
@@ -145,10 +130,7 @@ export class MetricsAnalysisSk extends ElementSk {
         <td>
           Catapult Git patch (optional)<br />
           Applied to Catapult Rev in
-          <a
-            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
-            >DEPS</a
-          >
+          <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
         </td>
         <td>
           <patch-sk
@@ -196,23 +178,16 @@ export class MetricsAnalysisSk extends ElementSk {
       <tr>
         <td colspan="2" class="center">
           <div class="triggering-spinner">
-            <spinner-sk
-              .active=${el._triggeringTask}
-              alt="Trigger task"></spinner-sk>
+            <spinner-sk .active=${el._triggeringTask} alt="Trigger task"></spinner-sk>
           </div>
-          <button
-            id="submit"
-            ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}>
+          <button id="submit" ?disabled=${el._triggeringTask} @click=${el._validateTask}>
             Queue Task
           </button>
         </td>
       </tr>
       <tr>
         <td colspan="2" class="center">
-          <button id="view_history" @click=${el._gotoRunsHistory}>
-            View runs history
-          </button>
+          <button id="view_history" @click=${el._gotoRunsHistory}>View runs history</button>
         </td>
       </tr>
     </table>

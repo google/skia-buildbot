@@ -20,12 +20,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  AddCommentRequest,
-  Comment,
-  GetStatusService,
-  StatusService,
-} from '../rpc';
+import { AddCommentRequest, Comment, GetStatusService, StatusService } from '../rpc';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 
 import '../../../ct/modules/input-sk';
@@ -60,9 +55,7 @@ export class CommentsSk extends ElementSk {
               <th>Message</th>
               ${el.showFlaky ? html`<th>Flaky</th> ` : html``}
               ${el.showIgnoreFailure ? html`<th>Ignore Failure</th> ` : html``}
-              ${el.allowDelete && el.editRights
-                ? html`<th>Delete</th>`
-                : html``}
+              ${el.allowDelete && el.editRights ? html`<th>Delete</th>` : html``}
             </tr>
           `
         : html``}
@@ -83,23 +76,16 @@ export class CommentsSk extends ElementSk {
         ? html`
             <tr>
               <td colspan="3">
-                <input-sk
-                  value=""
-                  class="commentField"
-                  label="Comment"></input-sk>
+                <input-sk value="" class="commentField" label="Comment"></input-sk>
               </td>
               ${el.showFlaky
                 ? html`<td>
-                    <checkbox-sk
-                      class="commentFlaky"
-                      label="Flaky"></checkbox-sk>
+                    <checkbox-sk class="commentFlaky" label="Flaky"></checkbox-sk>
                   </td>`
                 : html``}
               ${el.showIgnoreFailure
                 ? html`<td>
-                    <checkbox-sk
-                      class="commentIgnoreFailure"
-                      label="IgnoreFailure"></checkbox-sk>
+                    <checkbox-sk class="commentIgnoreFailure" label="IgnoreFailure"></checkbox-sk>
                   </td>`
                 : html``}
               <td>
@@ -260,9 +246,7 @@ export class CommentsSk extends ElementSk {
         // Visually get rid of the comment that was removed, and fire an event for the parent
         // element to refresh so it doesn't reappear.
         this.commentData.comments = this.comments.filter((c) => c !== comment);
-        this.dispatchEvent(
-          new CustomEvent('data-update', { bubbles: true, detail: { a: 1 } })
-        );
+        this.dispatchEvent(new CustomEvent('data-update', { bubbles: true, detail: { a: 1 } }));
         this._render();
       })
       .catch(errorMessage);

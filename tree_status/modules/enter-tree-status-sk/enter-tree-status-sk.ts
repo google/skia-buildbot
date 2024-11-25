@@ -57,18 +57,14 @@ ${
         <br />`
     : html``
 }
-<list-autorollers-sk .autorollers=${
-    ele.autorollers
-  } collapsable collapsed></list-autorollers-sk>
+<list-autorollers-sk .autorollers=${ele.autorollers} collapsable collapsed></list-autorollers-sk>
 `;
 
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
 
-    $$('#tree_status')!.addEventListener('keyup', (e) =>
-      this.submitIfEnter(e as KeyboardEvent)
-    );
+    $$('#tree_status')!.addEventListener('keyup', (e) => this.submitIfEnter(e as KeyboardEvent));
     $$('list-autorollers-sk')!.addEventListener('keyup', (e) =>
       this.submitIfEnter(e as KeyboardEvent)
     );
@@ -130,9 +126,7 @@ ${
       message: treeStatus.value,
       rollers: autorollersTable.getSelectedRollerNames(),
     };
-    this.dispatchEvent(
-      new CustomEvent('new-tree-status', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('new-tree-status', { detail: detail, bubbles: true }));
     autorollersTable.reset();
     treeStatus.removeAttribute('disabled');
   }

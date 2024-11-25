@@ -31,8 +31,7 @@ export const gm: ByBlameResponse = {
           commit_time: 1573171214,
           hash: '05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
           author: 'Elisa (elisa@example.com)',
-          message:
-            'Revert Revert Reland Update commits to have subject information',
+          message: 'Revert Revert Reland Update commits to have subject information',
           cl_url: '',
         },
         {
@@ -70,8 +69,7 @@ export const gm: ByBlameResponse = {
       ],
     },
     {
-      groupID:
-        '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7',
+      groupID: '4edb719f1bc49bae585ff270df17f08039a96b6c:252cdb782418949651cc5eb7d467c57ddff3d1c7',
       nDigests: 7,
       nTests: 7,
       affectedTests: [
@@ -470,8 +468,7 @@ export const svg: ByBlameResponse = {
       ],
     },
     {
-      groupID:
-        '3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+      groupID: '3f7c865936cc808af26d88bc1f5740a29cfce200:05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
       nDigests: 1,
       nTests: 1,
       affectedTests: [

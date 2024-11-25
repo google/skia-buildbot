@@ -30,11 +30,7 @@ export const slotToHex = (uniforms: number[], slot: number): string => {
 };
 
 /** Converts the two digit hex into a uniform value in the range [0, 1] */
-export const hexToSlot = (
-  hexDigits: string,
-  uniforms: number[],
-  slot: number
-): void => {
+export const hexToSlot = (hexDigits: string, uniforms: number[], slot: number): void => {
   let colorAsFloat = parseInt(hexDigits, 16) / 255;
   // Truncate to 4 digits of precision.
   colorAsFloat = Math.floor(colorAsFloat * 10000) / 10000;
@@ -77,9 +73,7 @@ export class UniformColorSk extends ElementSk implements UniformControl {
 
   set uniform(val: Uniform) {
     if ((val.columns !== 3 && val.columns !== 4) || val.rows !== 1) {
-      throw new Error(
-        'uniform-color-sk can only work on a uniform of float3 or float4.'
-      );
+      throw new Error('uniform-color-sk can only work on a uniform of float3 or float4.');
     }
     this._uniform = val;
     this._render();

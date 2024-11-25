@@ -95,8 +95,7 @@ export function draw(container: HTMLElement, data: Data) {
   const boundingRect = container.getBoundingClientRect();
   const totalWidth = boundingRect.width;
   const totalHeight = boundingRect.height;
-  const blocksHeight =
-    totalHeight - rulerHeight - mouseoverHeight - 2 * chartMarginY;
+  const blocksHeight = totalHeight - rulerHeight - mouseoverHeight - 2 * chartMarginY;
   const rowHeight = blocksHeight / data.lanes.length;
   const blockHeight = rowHeight * blockHeightProportion;
   const blockMarginY = (rowHeight - blockHeight) / 2;
@@ -222,9 +221,7 @@ export function draw(container: HTMLElement, data: Data) {
   tickAnchor.setMilliseconds(0);
   // Create the ticks. The first tick is the first multiple of the tick size
   // which comes after tStart.
-  const numTicksPastAnchor = Math.ceil(
-    (tStart - tickAnchor.getTime()) / actualTickSize
-  );
+  const numTicksPastAnchor = Math.ceil((tStart - tickAnchor.getTime()) / actualTickSize);
   let tick = tickAnchor.getTime() + numTicksPastAnchor * actualTickSize;
   const ticks = [];
   while (tick < tEnd) {
@@ -273,8 +270,7 @@ export function draw(container: HTMLElement, data: Data) {
       y: y2,
       rotationX: x,
       rotationY: y2,
-      text:
-        d.getDate() === lastDate ? d.toLocaleTimeString() : d.toLocaleString(),
+      text: d.getDate() === lastDate ? d.toLocaleTimeString() : d.toLocaleString(),
     });
     lastDate = d.getDate();
   }
@@ -375,8 +371,7 @@ export function draw(container: HTMLElement, data: Data) {
       selectLineEnd.setAttributeNS(null, 'x2', `${x2}`);
 
       // Update the selected time range label.
-      const selectedDuration =
-        getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
+      const selectedDuration = getTimeAtMouseX(x2).getTime() - getTimeAtMouseX(x1).getTime();
       selectText.setAttributeNS(null, 'x', `${(x1 + x2) / 2}`);
       selectText.innerHTML = strDuration(selectedDuration / 1000);
 

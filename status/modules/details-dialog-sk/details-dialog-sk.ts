@@ -17,12 +17,7 @@ import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import { Commit } from '../util';
 import { Task, Comment } from '../rpc';
 import { CommentData } from '../comments-sk/comments-sk';
-import {
-  logsUrl,
-  revisionUrlTemplate,
-  swarmingUrl,
-  taskSchedulerUrl,
-} from '../settings';
+import { logsUrl, revisionUrlTemplate, swarmingUrl, taskSchedulerUrl } from '../settings';
 
 import '../comments-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
@@ -138,11 +133,7 @@ export class DetailsDialogSk extends ElementSk {
     }
   }
 
-  displayTask(
-    task: Task,
-    comments: Array<Comment>,
-    commitsByHash: Map<string, Commit>
-  ) {
+  displayTask(task: Task, comments: Array<Comment>, commitsByHash: Map<string, Commit>) {
     this.reset();
     this.commentData = {
       comments: comments,
@@ -154,11 +145,7 @@ export class DetailsDialogSk extends ElementSk {
     const td = fetch(`/json/td/${task.id}`)
       .then(jsonOrThrow)
       .then(
-        (td) =>
-          html`<br /><task-driver-sk
-              id="tdStatus"
-              .data=${td}
-              embedded></task-driver-sk>`
+        (td) => html`<br /><task-driver-sk id="tdStatus" .data=${td} embedded></task-driver-sk>`
       );
     // We don't catch failures, since we don't want the promise to resolve (and be used below)
     // unless the task-driver-sk has data.
@@ -167,10 +154,7 @@ export class DetailsDialogSk extends ElementSk {
       html`
         <h3>
           <span>${task.name}</span
-          ><a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="${logsUrl(task.swarmingTaskId)}"
+          ><a target="_blank" rel="noopener noreferrer" href="${logsUrl(task.swarmingTaskId)}"
             ><launch-icon-sk></launch-icon-sk>
           </a>
         </h3>
@@ -178,17 +162,12 @@ export class DetailsDialogSk extends ElementSk {
           <table>
             <tr>
               <td>Status:</td>
-              <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>
-                ${task.status}
-              </td>
+              <td class=${`task-${(task.status || 'PENDING').toLowerCase()}`}>${task.status}</td>
             </tr>
             <tr>
               <td>Context:</td>
               <td>
-                <a
-                  href=${this.taskUrl(task)}
-                  target="_blank"
-                  rel="noopener noreferrer">
+                <a href=${this.taskUrl(task)} target="_blank" rel="noopener noreferrer">
                   View on Task Scheduler
                 </a>
               </td>
@@ -207,10 +186,7 @@ export class DetailsDialogSk extends ElementSk {
             <tr>
               <td>Other Tasks Like This:</td>
               <td>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href=${this.swarmingUrl(task.name)}>
+                <a target="_blank" rel="noopener noreferrer" href=${this.swarmingUrl(task.name)}>
                   View on Swarming
                 </a>
               </td>
@@ -228,9 +204,7 @@ export class DetailsDialogSk extends ElementSk {
           return html`
             <tr>
               <td>
-                <a href="${revisionUrlTemplate(this.repo)}${hash}"
-                  >${commit?.shortHash || ''}</a
-                >
+                <a href="${revisionUrlTemplate(this.repo)}${hash}">${commit?.shortHash || ''}</a>
               </td>
               <td>${commit?.shortAuthor || ''}</td>
               <td>${commit?.shortSubject || ''}</td>
@@ -259,10 +233,7 @@ export class DetailsDialogSk extends ElementSk {
       repo: this.repo,
     };
     this.titleSection = html` <h3>
-      <a
-        href="${this.swarmingUrl(taskspec)}"
-        target="_blank"
-        rel="noopener noreferrer">
+      <a href="${this.swarmingUrl(taskspec)}" target="_blank" rel="noopener noreferrer">
         ${taskspec}
       </a>
     </h3>`;
@@ -295,9 +266,7 @@ export class DetailsDialogSk extends ElementSk {
         <br />
         ${commit.author}
         <br />
-        <span title="${commit.timestamp!}"
-          >${this.humanDate(commit.timestamp!)}</span
-        >
+        <span title="${commit.timestamp!}">${this.humanDate(commit.timestamp!)}</span>
       </p>
     `;
 
@@ -327,9 +296,7 @@ export class DetailsDialogSk extends ElementSk {
     if (job.indexOf(uploadPrefix) === 0) {
       job = job.substring(uploadPrefix.length);
     }
-    const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${
-      task.revision
-    }`;
+    const url = `${taskSchedulerUrl()}/trigger?submit=true&job=${job}@${task.revision}`;
     const win = window.open(url, '_blank') as Window;
     win.focus();
   }

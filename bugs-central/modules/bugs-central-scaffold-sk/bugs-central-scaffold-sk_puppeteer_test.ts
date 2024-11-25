@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('bugs-central-scaffold-sk', () => {
   let testBed: TestBed;
@@ -22,11 +18,7 @@ describe('bugs-central-scaffold-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(
-        testBed.page,
-        'bugs-central',
-        'bugs-central-scaffold-sk'
-      );
+      await takeScreenshot(testBed.page, 'bugs-central', 'bugs-central-scaffold-sk');
     });
   });
 });

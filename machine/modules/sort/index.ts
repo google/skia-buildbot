@@ -96,9 +96,7 @@ export class SortHistory<T> {
 
   constructor(sortFunctions: columnSortFunctions<T>) {
     this.sortFunctions = sortFunctions;
-    this.history = this.sortFunctions.map(
-      (_, column) => new SortSelection(column, up)
-    );
+    this.history = this.sortFunctions.map((_, column) => new SortSelection(column, up));
   }
 
   /** Moves the selected column to the front of the list for sorting, and also
@@ -154,24 +152,17 @@ export class SortHistory<T> {
     const oldHistory = [...this.history];
     this.history = s
       .split('-')
-      .map((encodedSortSelection: string) =>
-        SortSelection.decode(encodedSortSelection)
-      );
+      .map((encodedSortSelection: string) => SortSelection.decode(encodedSortSelection));
 
     // Now add in all the members of oldHistory that don't appear in this.history.
     oldHistory.forEach((oldSelection: SortSelection) => {
-      if (
-        !this.history.some(
-          (sel: SortSelection) => sel.column === oldSelection.column
-        )
-      ) {
+      if (!this.history.some((sel: SortSelection) => sel.column === oldSelection.column)) {
         this.history.push(oldSelection);
       }
     });
 
     const isValid = this.history.every(
-      (ss: SortSelection): boolean =>
-        ss.column >= 0 && ss.column < this.sortFunctions.length
+      (ss: SortSelection): boolean => ss.column >= 0 && ss.column < this.sortFunctions.length
     );
     if (!isValid) {
       this.history = oldHistory;

@@ -48,11 +48,8 @@ const numericParamTemplate = (
     setterFn(parseFloat(target.value));
 
     // Sync up the range and number inputs.
-    const otherSelector = `input[type="${
-      target.type === 'range' ? 'number' : 'range'
-    }"]`;
-    const other =
-      target.parentElement!.querySelector<HTMLInputElement>(otherSelector)!;
+    const otherSelector = `input[type="${target.type === 'range' ? 'number' : 'range'}"]`;
+    const other = target.parentElement!.querySelector<HTMLInputElement>(otherSelector)!;
     other.value = target.value;
   };
 
@@ -132,9 +129,7 @@ export class FilterDialogSk extends ElementSk {
       </div>
 
       <div class="buttons">
-        <button class="filter action" @click=${el._filterBtnClicked}>
-          Apply
-        </button>
+        <button class="filter action" @click=${el._filterBtnClicked}>Apply</button>
         <button class="cancel" @click=${el._cancelBtnClicked}>Cancel</button>
       </div>
     </dialog>`;
@@ -174,9 +169,7 @@ export class FilterDialogSk extends ElementSk {
   }
 
   private _sortOrderChanged(e: InputEvent) {
-    const value = (e.target as HTMLSelectElement).value as
-      | 'ascending'
-      | 'descending';
+    const value = (e.target as HTMLSelectElement).value as 'ascending' | 'descending';
     this._filters!.sortOrder = value;
   }
 

@@ -32,15 +32,10 @@ function isPptrElement(
  * [2] https://github.com/google/pageloader
  */
 export class PageObjectElement {
-  private readonly elementPromise: Promise<
-    Element | ElementHandle<Element> | null
-  >;
+  private readonly elementPromise: Promise<Element | ElementHandle<Element> | null>;
 
   constructor(
-    element:
-      | Element
-      | ElementHandle<Element>
-      | Promise<Element | ElementHandle<Element> | null>
+    element: Element | ElementHandle<Element> | Promise<Element | ElementHandle<Element> | null>
   ) {
     if (element instanceof Promise) {
       this.elementPromise = element;
@@ -133,12 +128,8 @@ export class PageObjectElement {
       return;
     }
     const ele = element as Element;
-    ele.dispatchEvent(
-      new KeyboardEvent('keydown', { bubbles: true, key: key })
-    );
-    ele.dispatchEvent(
-      new KeyboardEvent('keypress', { bubbles: true, key: key })
-    );
+    ele.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: key }));
+    ele.dispatchEvent(new KeyboardEvent('keypress', { bubbles: true, key: key }));
     ele.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: key }));
   }
 
@@ -156,8 +147,7 @@ export class PageObjectElement {
     // https://github.com/google/pageloader/blob/80766100da9fe05d99eb92edd69b7ddfa82cc10e/lib/src/html/html_page_loader_element.dart#L393.
     await this.applyFnToDOMNode((el, value) => {
       // The below type union is non-exhaustive and for illustration purposes only.
-      (el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value =
-        value as string;
+      (el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement).value = value as string;
 
       // Simulate a subset of the input events (just one). This should be enough for most tests.
       el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -178,10 +168,7 @@ export class PageObjectElement {
   ): Promise<T> {
     const element = await this.elementPromise;
     if (isPptrElement(element!)) {
-      return (await (element as ElementHandle<Element>).evaluate(
-        fn,
-        ...args
-      )) as T;
+      return (await (element as ElementHandle<Element>).evaluate(fn, ...args)) as T;
     }
     return fn(element as Element, ...args);
   }
@@ -202,9 +189,7 @@ export class PageObjectElement {
           // Element#querySelectorAll() and Element#querySelector(), respectively,
           // whereas Puppeteer's ElementHandle#$() and ElementHandle#$$() methods are the other
           // way around.
-          return (element as ElementHandle).$(selector) as Promise<
-            ElementHandle<Element>
-          >;
+          return (element as ElementHandle).$(selector) as Promise<ElementHandle<Element>>;
         }
         return new Promise((resolve) =>
           resolve((element as Element).querySelector<Element>(selector))
@@ -224,14 +209,10 @@ export class PageObjectElement {
           // Note that common-sk functions $ and $$ are aliases for Element#querySelectorAll() and
           // Element#querySelector(), respectively, whereas Puppeteer's ElementHandle#$() and
           // ElementHandle#$$() methods are the other way around.
-          return (element as ElementHandle).$$(selector) as Promise<
-            ElementHandle<Element>[]
-          >;
+          return (element as ElementHandle).$$(selector) as Promise<ElementHandle<Element>[]>;
         }
         return new Promise((resolve) =>
-          resolve(
-            Array.from((element as Element).querySelectorAll<Element>(selector))
-          )
+          resolve(Array.from((element as Element).querySelectorAll<Element>(selector)))
         );
       })
     );
@@ -285,10 +266,7 @@ export class PageObjectElementList extends AsyncList<PageObjectElement> {
   constructor(itemsPromise?: Promise<Element[] | ElementHandle<Element>[]>) {
     super(
       itemsPromise?.then((items) =>
-        items.map(
-          (item: Element | ElementHandle<Element>) =>
-            new PageObjectElement(item)
-        )
+        items.map((item: Element | ElementHandle<Element>) => new PageObjectElement(item))
       )
     );
   }

@@ -155,22 +155,15 @@ export class CommandsSk extends ElementDocSk {
     html`<div
       class="op"
       id="op-${op.index}"
-      style="padding-left:${ele._isIndented && op.group
-        ? op.group.indentLevel
-        : 0}em"
+      style="padding-left:${ele._isIndented && op.group ? op.group.indentLevel : 0}em"
       @click=${(e: MouseEvent) => {
         ele._clickItem(e, filtpos);
       }}>
       <details>
-        <summary
-          class="command-summary ${ele.position === op.index
-            ? 'selected'
-            : ''}">
+        <summary class="command-summary ${ele.position === op.index ? 'selected' : ''}">
           <div class="command-icons-group">
             <span class="index">${op.index}</span>
-            ${op.prefixes.map((pre: PrefixItem) =>
-              CommandsSk.prefixItemTemplate(ele, pre)
-            )}
+            ${op.prefixes.map((pre: PrefixItem) => CommandsSk.prefixItemTemplate(ele, pre))}
           </div>
           <div class="command-title">${op.name}</div>
           <code class="short-desc">${op.details.shortDesc}</code>
@@ -214,9 +207,7 @@ export class CommandsSk extends ElementDocSk {
   private static prefixItemTemplate = (ele: CommandsSk, item: PrefixItem) =>
     html`${ele._icon(item)}
     ${item.count > 1
-      ? html`<div title="depth of indenting operation" class="count">
-          ${item.count}
-        </div>`
+      ? html`<div title="depth of indenting operation" class="count">${item.count}</div>`
       : ''}`;
 
   private static gpuOpIdTemplate = (ele: CommandsSk, gpuOp: SkpJsonGpuOp) =>
@@ -234,10 +225,7 @@ export class CommandsSk extends ElementDocSk {
 Command types can also be filted by clicking on their names in the histogram"
         >Filter</label
       >
-      <input
-        @change=${ele._textFilter}
-        value="!DrawAnnotation"
-        id="text-filter" />&nbsp;
+      <input @change=${ele._textFilter} value="!DrawAnnotation" id="text-filter" />&nbsp;
       <label>Range</label>
       <input
         @change=${ele._rangeInputHandler}
@@ -305,22 +293,19 @@ Command types can also be filted by clicking on their names in the histogram"
   // (index in filtered list)
   set item(i: number) {
     this._item = i;
-    this.querySelector<HTMLDivElement>(
-      `#op-${this._filtered[this._item]}`
-    )?.scrollIntoView({ block: 'nearest' });
+    this.querySelector<HTMLDivElement>(`#op-${this._filtered[this._item]}`)?.scrollIntoView({
+      block: 'nearest',
+    });
     this._render();
     // notify debugger-page-sk that it needs to draw this.position
     this.dispatchEvent(
-      new CustomEvent<MoveCommandPositionEventDetail>(
-        MoveCommandPositionEvent,
-        {
-          detail: {
-            position: this.position,
-            paused: this._playSk!.mode === 'pause',
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<MoveCommandPositionEventDetail>(MoveCommandPositionEvent, {
+        detail: {
+          position: this.position,
+          paused: this._playSk!.mode === 'pause',
+        },
+        bubbles: true,
+      })
     );
     this._playSk!.movedTo(this._item);
   }
@@ -363,15 +348,12 @@ Command types can also be filted by clicking on their names in the histogram"
     });
 
     this.addDocumentEventListener(ToggleCommandInclusionEvent, (e) => {
-      this._toggleName(
-        (e as CustomEvent<ToggleCommandInclusionEventDetail>).detail.name
-      );
+      this._toggleName((e as CustomEvent<ToggleCommandInclusionEventDetail>).detail.name);
     });
 
     // Jump to a command by its unfiltered index.
     this.addDocumentEventListener(JumpCommandEvent, (e: Event) => {
-      const i = (e as CustomEvent<JumpCommandEventDetail>).detail
-        .unfilteredIndex;
+      const i = (e as CustomEvent<JumpCommandEventDetail>).detail.unfilteredIndex;
       const filteredIndex = this._filtered.findIndex((n: number) => n === i);
       if (filteredIndex !== undefined) {
         this.item = filteredIndex;
@@ -397,8 +379,7 @@ Command types can also be filted by clicking on their names in the histogram"
     this._layerInfo.names = new Map<number, string>();
 
     // Finds things like "RenderNode(id=10, name='DecorView')"
-    const renderNodeRe =
-      /^(\/?)RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'/;
+    const renderNodeRe = /^(\/?)RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'/;
 
     let lastGroup: CommandGroup | undefined;
     cmd.commands.forEach((com, i) => {
@@ -428,10 +409,7 @@ Command types can also be filted by clicking on their names in the histogram"
         // If this is the same type of indenting op we've already seen
         // then just increment the count, otherwise add as a new
         // op in prefixes.
-        if (
-          depth > 1 &&
-          prefixes[prefixes.length - 1].icon === INDENTERS[name].icon
-        ) {
+        if (depth > 1 && prefixes[prefixes.length - 1].icon === INDENTERS[name].icon) {
           prefixes[prefixes.length - 1].count++;
         } else {
           prefixes.push(this._copyPrefix(INDENTERS[name]));
@@ -610,18 +588,14 @@ Command types can also be filted by clicking on their names in the histogram"
   // a crummy workaround
   private _icon(item: PrefixItem): HTMLTemplateResult | null {
     if (item.icon === 'save-icon-sk') {
-      return html`<save-icon-sk style="fill: ${item.color};" class="icon">
-      </save-icon-sk>`;
+      return html`<save-icon-sk style="fill: ${item.color};" class="icon"> </save-icon-sk>`;
     }
     if (item.icon === 'content-copy-icon-sk') {
-      return html`<content-copy-icon-sk
-        style="fill: ${item.color};"
-        class="icon">
+      return html`<content-copy-icon-sk style="fill: ${item.color};" class="icon">
       </content-copy-icon-sk>`;
     }
     if (item.icon === 'image-icon-sk') {
-      return html`<image-icon-sk style="fill: ${item.color};" class="icon">
-      </image-icon-sk>`;
+      return html`<image-icon-sk style="fill: ${item.color};" class="icon"> </image-icon-sk>`;
     }
     return null;
   }
@@ -637,14 +611,8 @@ Command types can also be filted by clicking on their names in the histogram"
   }
 
   private _rangeInputHandler() {
-    const lo = parseInt(
-      this.querySelector<HTMLInputElement>('#rangelo')!.value,
-      10
-    );
-    const hi = parseInt(
-      this.querySelector<HTMLInputElement>('#rangehi')!.value,
-      10
-    );
+    const lo = parseInt(this.querySelector<HTMLInputElement>('#rangelo')!.value, 10);
+    const hi = parseInt(this.querySelector<HTMLInputElement>('#rangehi')!.value, 10);
     this.range = [lo, hi];
   }
 
@@ -680,13 +648,10 @@ Command types can also be filted by clicking on their names in the histogram"
             this._includedSet = new Set<string>(this._available);
             // since we just altered this._includedSet we have to let histogram know.
             this.dispatchEvent(
-              new CustomEvent<HistogramUpdateEventDetail>(
-                HistogramUpdateEvent,
-                {
-                  detail: { included: new Set<string>(this._includedSet) },
-                  bubbles: true,
-                }
-              )
+              new CustomEvent<HistogramUpdateEventDetail>(HistogramUpdateEvent, {
+                detail: { included: new Set<string>(this._includedSet) },
+                bubbles: true,
+              })
             );
             this._freeTextSearch(tokens);
             // TODO(nifong): need some visual feedback to let the user know

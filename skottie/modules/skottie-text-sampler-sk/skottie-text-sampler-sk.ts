@@ -94,10 +94,7 @@ export class SkottieTextSamplerSk extends ElementSk {
     this._render();
   }
 
-  private renderSample(
-    ele: SkottieTextSamplerSk,
-    sample: SampleText
-  ): TemplateResult {
+  private renderSample(ele: SkottieTextSamplerSk, sample: SampleText): TemplateResult {
     return html`
       <skottie-button-sk
         @select=${() => {

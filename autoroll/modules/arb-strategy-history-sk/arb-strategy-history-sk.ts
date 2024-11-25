@@ -35,9 +35,7 @@ export class ARBStrategyHistorySk extends ElementSk {
         (entry: StrategyChange) => html`
           <tr>
             <td>
-              <human-date-sk
-                .date="${entry.time!}"
-                .diff="${true}"></human-date-sk>
+              <human-date-sk .date="${entry.time!}" .diff="${true}"></human-date-sk>
             </td>
             <td>${entry.strategy?.toString()}</td>
             <td>${entry.user?.toString()}</td>
@@ -100,19 +98,17 @@ export class ARBStrategyHistorySk extends ElementSk {
       rollerId: this.roller,
       offset: offset,
     };
-    this.rpc
-      .getStrategyHistory(req)
-      .then((resp: GetStrategyHistoryResponse) => {
-        this.history = resp.history!;
-        if (offset > this.currentOffset) {
-          this.prevOffset = this.currentOffset;
-        } else {
-          this.prevOffset = offset - this.history.length;
-        }
-        this.currentOffset = offset;
-        this.nextOffset = resp.nextOffset;
-        this._render();
-      });
+    this.rpc.getStrategyHistory(req).then((resp: GetStrategyHistoryResponse) => {
+      this.history = resp.history!;
+      if (offset > this.currentOffset) {
+        this.prevOffset = this.currentOffset;
+      } else {
+        this.prevOffset = offset - this.history.length;
+      }
+      this.currentOffset = offset;
+      this.nextOffset = resp.nextOffset;
+      this._render();
+    });
   }
 }
 

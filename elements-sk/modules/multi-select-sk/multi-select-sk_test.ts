@@ -34,8 +34,7 @@ describe('multi-select-sk', () => {
       (opts.itemIds || []).forEach((id) => {
         const item = document.createElement('div');
         item.id = id;
-        if (opts.selectedItemIds?.includes(id))
-          item.setAttribute('selected', '');
+        if (opts.selectedItemIds?.includes(id)) item.setAttribute('selected', '');
         instance.appendChild(item);
       });
     });
@@ -66,9 +65,7 @@ describe('multi-select-sk', () => {
       });
       multiSelectSk.selection = [];
       assert.deepEqual([], multiSelectSk.selection);
-      assert.isFalse(
-        multiSelectSk.querySelector('#b')!.hasAttribute('selected')
-      );
+      assert.isFalse(multiSelectSk.querySelector('#b')!.hasAttribute('selected'));
     });
 
     it('changes the selected attributes on the children', async () => {

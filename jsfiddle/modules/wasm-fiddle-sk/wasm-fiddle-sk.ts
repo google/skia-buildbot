@@ -112,8 +112,7 @@ export class WasmFiddle extends HTMLElement {
    * editor with less than 10 lines looks a bit strange). See
    * https://stackoverflow.com/a/4009768
    */
-  static lines = (str: string): number =>
-    Math.max(10, (str.match(/\n/g) || []).length + 1);
+  static lines = (str: string): number => Math.max(10, (str.match(/\n/g) || []).length + 1);
 
   /**
    * repeat returns an array of n 'undefined' which allows for repeating a
@@ -122,11 +121,9 @@ export class WasmFiddle extends HTMLElement {
    */
   static repeat = (n: number): any[] => [...Array(n)];
 
-  static lineNumber = (n: number): TemplateResult =>
-    html`<div id=${`L${n}`}>${n}</div>`;
+  static lineNumber = (n: number): TemplateResult => html`<div id=${`L${n}`}>${n}</div>`;
 
-  static codeEditor = (ele: WasmFiddle): TemplateResult =>
-    html`<div id="editor"></div>`;
+  static codeEditor = (ele: WasmFiddle): TemplateResult => html`<div id="editor"></div>`;
 
   static floatSlider = (name: string, i: number): TemplateResult => {
     if (!name) {
@@ -136,13 +133,7 @@ export class WasmFiddle extends HTMLElement {
     // called sliderN that refers to the input HTML element.
     // https://www.w3schools.com/tags/att_input_name.asp
     return html`<div class="widget">
-      <input
-        name=${`slider${i}`}
-        id=${`slider${i}`}
-        min="0"
-        max="1"
-        step="0.00001"
-        type="range" />
+      <input name=${`slider${i}`} id=${`slider${i}`} min="0" max="1" step="0.00001" type="range" />
       <label for=${`slider${i}`}>${name}</label>
     </div>`;
   };
@@ -180,8 +171,7 @@ export class WasmFiddle extends HTMLElement {
    * For this to work the associated CSS themes must be loaded. See
    * wasm-fiddle.scss.
    */
-  private static themeFromCurrentMode = () =>
-    isDarkMode() ? 'ambiance' : 'base16-light';
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'ambiance' : 'base16-light');
 
   connectedCallback(): void {
     // Allows demo pages to supply content w/o making a network request
@@ -252,9 +242,7 @@ export class WasmFiddle extends HTMLElement {
     };
 
     if (!this.Wasm) {
-      errorMessage(
-        `${this.libraryName} is still loading. Try again in a few seconds.`
-      );
+      errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
       return;
     }
     this.hasRun = true;

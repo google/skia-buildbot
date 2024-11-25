@@ -5,10 +5,7 @@ import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
 
 import { chromiumPatchResult } from './test_data';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PatchSk } from './patch-sk';
 import { InputSk } from '../input-sk/input-sk';
 
@@ -44,10 +41,7 @@ describe('patch-sk', () => {
     );
   };
   const simulatePatchEdit = (addition: string) => {
-    const exTextarea = $$(
-      'expandable-textarea-sk',
-      patchSk
-    ) as HTMLInputElement;
+    const exTextarea = $$('expandable-textarea-sk', patchSk) as HTMLInputElement;
     ($$('button', exTextarea) as HTMLElement).click();
     exTextarea.value += addition;
     exTextarea.dispatchEvent(
@@ -64,9 +58,7 @@ describe('patch-sk', () => {
     await event;
 
     expect(patchSk).to.have.property('cl', '123');
-    expect(patchSk.clDescription)
-      .to.contain('googlesource.com')
-      .and.to.contain('Roll Skia');
+    expect(patchSk.clDescription).to.contain('googlesource.com').and.to.contain('Roll Skia');
     expect(patchSk.patch).to.contain('diff --git');
   });
 

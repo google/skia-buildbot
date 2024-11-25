@@ -79,16 +79,13 @@ export class SkottieFileSettingsSk extends ElementSk {
         <div class="text-box--info">
           <info-icon-sk></info-icon-sk>
           <span class="text-box--info--tooltip">
-            Frame rate "0" means "as smooth as possible" and -1 is to use the
-            default from the animation
+            Frame rate "0" means "as smooth as possible" and -1 is to use the default from the
+            animation
           </span>
         </div>
       </div>
       <div class="toolbar">
-        <skottie-button-sk
-          type="filled"
-          @select=${ele.applySettings}
-          .content=${'Apply'}>
+        <skottie-button-sk type="filled" @select=${ele.applySettings} .content=${'Apply'}>
         </skottie-button-sk>
       </div>
     </div>

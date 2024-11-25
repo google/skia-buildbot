@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('job-timeline-sk', () => {
@@ -16,9 +12,7 @@ describe('job-timeline-sk', () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 700, height: 359 });
     await testBed.page.evaluate(() => {
-      (<ThemeChooserSk>(
-        document.getElementsByTagName('theme-chooser-sk')[0]
-      )).darkmode = false;
+      (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = false;
     });
   });
 
@@ -31,15 +25,9 @@ describe('job-timeline-sk', () => {
       await takeScreenshot(testBed.page, 'task-scheduler', 'job-timeline-sk');
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
-        (<ThemeChooserSk>(
-          document.getElementsByTagName('theme-chooser-sk')[0]
-        )).darkmode = true;
+        (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = true;
       });
-      await takeScreenshot(
-        testBed.page,
-        'task-scheduler',
-        'job-timeline-sk_dark'
-      );
+      await takeScreenshot(testBed.page, 'task-scheduler', 'job-timeline-sk_dark');
     });
   });
 });

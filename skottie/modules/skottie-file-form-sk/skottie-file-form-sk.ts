@@ -91,15 +91,9 @@ export class SkottieFileFormSk extends ElementSk {
     }
     return html`
       <div class="toolbar">
-        <skottie-button-sk
-          type="plain"
-          @select=${this.clear}
-          .content=${'Clear'}>
+        <skottie-button-sk type="plain" @select=${this.clear} .content=${'Clear'}>
         </skottie-button-sk>
-        <skottie-button-sk
-          type="filled"
-          @select=${this.apply}
-          .content=${'Upload'}>
+        <skottie-button-sk type="filled" @select=${this.apply} .content=${'Upload'}>
         </skottie-button-sk>
       </div>
     `;

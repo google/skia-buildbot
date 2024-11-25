@@ -159,15 +159,12 @@ export class SelectSk extends HTMLElement {
 
   private _emitEvent(): void {
     this.dispatchEvent(
-      new CustomEvent<SelectSkSelectionChangedEventDetail>(
-        'selection-changed',
-        {
-          detail: {
-            selection: this._selection,
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<SelectSkSelectionChangedEventDetail>('selection-changed', {
+        detail: {
+          selection: this._selection,
+        },
+        bubbles: true,
+      })
     );
   }
 

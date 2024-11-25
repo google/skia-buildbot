@@ -21,8 +21,7 @@ export class TestSrcSk extends ElementSk {
     super(TestSrcSk.template);
   }
 
-  private static template = (ele: TestSrcSk) =>
-    html`<pre class="output">${ele._text}</pre>`;
+  private static template = (ele: TestSrcSk) => html`<pre class="output">${ele._text}</pre>`;
 
   connectedCallback(): void {
     super.connectedCallback();

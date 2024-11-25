@@ -46,9 +46,7 @@ export class PagesetSelectorSk extends ElementSk {
 
   private static template = (ele: PagesetSelectorSk) => html`
     <div class="pageset-list">
-      <select-sk>
-        ${ele._pageSets.map((p) => html`<div>${p.description}</div>`)}
-      </select-sk>
+      <select-sk> ${ele._pageSets.map((p) => html`<div>${p.description}</div>`)} </select-sk>
     </div>
     ${ele.hasAttribute('disable-custom-webpages')
       ? ''
@@ -130,9 +128,7 @@ export class PagesetSelectorSk extends ElementSk {
   }
 
   _filterPageSets(): void {
-    this._pageSets = this._unfilteredPageSets.filter(
-      (ps) => !this._hideKeys.includes(ps.key)
-    );
+    this._pageSets = this._unfilteredPageSets.filter((ps) => !this._hideKeys.includes(ps.key));
   }
 
   _updatePageSetHidden(): void {

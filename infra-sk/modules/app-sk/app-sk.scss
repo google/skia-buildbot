@@ -149,9 +149,7 @@ app-sk > {
        the transitions will make it slide between the two states. */
     aside {
       position: relative;
-      left: calc(
-        -1 * (var(--sidebar-width) + 2 * var(--sidebar-horiz-padding))
-      );
+      left: calc(-1 * (var(--sidebar-width) + 2 * var(--sidebar-horiz-padding)));
       transition: 0.5s;
     }
 

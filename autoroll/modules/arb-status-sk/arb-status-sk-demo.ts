@@ -17,8 +17,7 @@ fetchMock.get('/_/login/status', status);
 
 SetupMocks();
 
-document.querySelector('.component-goes-here')!.innerHTML =
-  `<arb-status-sk></arb-status-sk>`;
+document.querySelector('.component-goes-here')!.innerHTML = `<arb-status-sk></arb-status-sk>`;
 
 // Get the name of the fake roller from the demo data.
 const ele = <ARBStatusSk>document.getElementsByTagName('arb-status-sk')[0];

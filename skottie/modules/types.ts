@@ -32,10 +32,7 @@ export interface EditableText extends Record<string, unknown> {
 type LottieSliderEffectType = 0;
 type LottieColorEffectType = 2;
 type LottieTintEffectType = 20;
-type LottieEffectType =
-  | LottieSliderEffectType
-  | LottieColorEffectType
-  | LottieTintEffectType;
+type LottieEffectType = LottieSliderEffectType | LottieColorEffectType | LottieTintEffectType;
 
 export interface LottieBaseEffect {
   ty: LottieEffectType;
@@ -124,11 +121,7 @@ export interface LottieImageSlot {
   };
 }
 
-export type LottieSlot =
-  | LottieColorSlot
-  | LottieVectorSlot
-  | LottieScalarSlot
-  | LottieImageSlot;
+export type LottieSlot = LottieColorSlot | LottieVectorSlot | LottieScalarSlot | LottieImageSlot;
 
 export interface LottieAnimation extends Record<string, unknown> {
   assets: LottieAsset[];

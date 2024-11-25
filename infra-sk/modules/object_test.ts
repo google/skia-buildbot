@@ -18,11 +18,7 @@ import { HintableObject } from './hintable';
 
 describe('object functions', () => {
   function testGetDelta() {
-    const test = (
-      o: HintableObject,
-      d: HintableObject,
-      expected: HintableObject
-    ) => {
+    const test = (o: HintableObject, d: HintableObject, expected: HintableObject) => {
       assert.deepEqual(object.getDelta(o, d), expected);
     };
     test({}, {}, {});
@@ -38,11 +34,7 @@ describe('object functions', () => {
   }
 
   function testApplyDelta() {
-    const test = (
-      delta: HintableObject,
-      o: HintableObject,
-      expected: HintableObject
-    ) => {
+    const test = (delta: HintableObject, o: HintableObject, expected: HintableObject) => {
       assert.deepEqual(object.applyDelta(delta, o), expected);
     };
     test({}, {}, {});

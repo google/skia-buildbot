@@ -5,11 +5,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CodesizeScaffoldSk } from '../codesize-scaffold-sk/codesize-scaffold-sk';
-import {
-  Binary,
-  BinariesFromCommitOrPatchset,
-  MostRecentBinariesRPCResponse,
-} from '../rpc_types';
+import { Binary, BinariesFromCommitOrPatchset, MostRecentBinariesRPCResponse } from '../rpc_types';
 import '../../../infra-sk/modules/human-date-sk';
 
 export class IndexPageSk extends ElementSk {
@@ -18,9 +14,7 @@ export class IndexPageSk extends ElementSk {
 
     ${el.mostRecentBinaries === null
       ? html`<p>Loading...</p>`
-      : el.mostRecentBinaries.map(
-          IndexPageSk.binariesFromCommitOrPatchsetTemplate
-        )}
+      : el.mostRecentBinaries.map(IndexPageSk.binariesFromCommitOrPatchsetTemplate)}
   `;
 
   private static binariesFromCommitOrPatchsetTemplate = (
@@ -42,8 +36,7 @@ export class IndexPageSk extends ElementSk {
 
     const author = binariesFromCommitOrPatchset.binaries[0].metadata.author;
     const subject = binariesFromCommitOrPatchset.binaries[0].metadata.subject;
-    const timestamp =
-      binariesFromCommitOrPatchset.binaries[0].metadata.timestamp;
+    const timestamp = binariesFromCommitOrPatchset.binaries[0].metadata.timestamp;
 
     // Sort the Bloaty outputs to ensure a deterministic presentation.
     binariesFromCommitOrPatchset.binaries.sort((a: Binary, b: Binary) =>
@@ -102,14 +95,10 @@ export class IndexPageSk extends ElementSk {
             (output) => html`
               <tr>
                 <td>
-                  <a href="${hrefForBinary(output)}"
-                    >${output.metadata.binary_name}</a
-                  >
+                  <a href="${hrefForBinary(output)}">${output.metadata.binary_name}</a>
                 </td>
                 <td>
-                  <a
-                    href="https://task-scheduler.skia.org/task/${output.metadata
-                      .task_id}">
+                  <a href="https://task-scheduler.skia.org/task/${output.metadata.task_id}">
                     ${output.metadata.compile_task_name}
                   </a>
                 </td>

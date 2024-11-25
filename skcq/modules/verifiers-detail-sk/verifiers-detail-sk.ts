@@ -90,16 +90,12 @@ export class VerifiersDetailSk extends ElementSk {
     return +this.getAttribute('patchset_id')!;
   }
 
-  private displayNotFoundMsg(
-    hidden: boolean,
-    updatingData: boolean
-  ): TemplateResult {
+  private displayNotFoundMsg(hidden: boolean, updatingData: boolean): TemplateResult {
     if (hidden && !updatingData) {
       return html`<h3>
         No data available for
         <a
-          href="http://skia-review.googlesource.com/c/${this.changeID}/${this
-            .patchsetID}"
+          href="http://skia-review.googlesource.com/c/${this.changeID}/${this.patchsetID}"
           target="_blank"
           >${this.changeID}/${this.patchsetID}</a
         >
@@ -114,10 +110,7 @@ export class VerifiersDetailSk extends ElementSk {
     }
     return this.changeAttempts!.attempts.reverse().map(
       (attempt, index) => html`
-        <span
-          class="attempt-section ${this.getStateClass(
-            attempt!.overall_status
-          )}">
+        <span class="attempt-section ${this.getStateClass(attempt!.overall_status)}">
           <table class="attempt-table">
             <tr>
               <th width="33%">
@@ -125,17 +118,12 @@ export class VerifiersDetailSk extends ElementSk {
                 ${this.getDryRunText(attempt!)}
               </th>
               <th width="33%">${attempt?.overall_status}</th>
-              <th width="33%">
-                Total duration: ${this.getTotalDurationText(attempt!)}
-              </th>
+              <th width="33%">Total duration: ${this.getTotalDurationText(attempt!)}</th>
             </tr>
           </table>
           <br />
-          <b>Start time</b> ${new Date(
-            attempt!.start_ts * 1000
-          ).toLocaleString()}<br />
-          ${this.getCommittedText(attempt!)}
-          ${this.displaySubmittableChanges(attempt!)}
+          <b>Start time</b> ${new Date(attempt!.start_ts * 1000).toLocaleString()}<br />
+          ${this.getCommittedText(attempt!)} ${this.displaySubmittableChanges(attempt!)}
           <br />
           <b>State of Verifiers</b>
           ${this.displayVerifiers(attempt!)}
@@ -155,10 +143,7 @@ export class VerifiersDetailSk extends ElementSk {
             <td width="33%">${verifier?.name}</td>
             <td width="33%">${verifier?.state}</td>
             <td width="33%">
-              ${this.getVerificationDurationText(
-                verifier!.start_ts,
-                verifier!.stop_ts
-              )}
+              ${this.getVerificationDurationText(verifier!.start_ts, verifier!.stop_ts)}
             </td>
           </tr>
           <tr>
@@ -178,36 +163,24 @@ export class VerifiersDetailSk extends ElementSk {
     return VerifierStateToClassName[state];
   }
 
-  private getVerificationDurationText(
-    start: number,
-    stop: number
-  ): TemplateResult {
+  private getVerificationDurationText(start: number, stop: number): TemplateResult {
     let endTime = Date.now();
     let additionalInfo = '(still running)';
     if (stop) {
       endTime = stop * 1000;
       additionalInfo = '';
     }
-    return html`Total duration: ${diffDate(start * 1000, endTime)}
-      ${additionalInfo}<br />`;
+    return html`Total duration: ${diffDate(start * 1000, endTime)} ${additionalInfo}<br />`;
   }
 
   private displaySubmittableChanges(attempt: ChangeAttempt): TemplateResult {
-    if (
-      !attempt.dry_run &&
-      attempt.submittable_changes &&
-      attempt.submittable_changes.length > 0
-    ) {
+    if (!attempt.dry_run && attempt.submittable_changes && attempt.submittable_changes.length > 0) {
       return html`<b>Changes submitted together</b>
         <ul>
           ${attempt.submittable_changes.map(
             (ch) =>
               html`<li>
-                <a
-                  href="http://skia-review.googlesource.com/c/${ch}"
-                  target="_blank"
-                  >${ch}</a
-                >
+                <a href="http://skia-review.googlesource.com/c/${ch}" target="_blank">${ch}</a>
               </li>`
           )}
         </ul> `;
@@ -232,8 +205,7 @@ export class VerifiersDetailSk extends ElementSk {
     if (attempt.cq_abandoned) {
       additionalInfo = '(was abandoned)';
     }
-    return html`${diffDate((attempt?.start_ts as number) * 1000, endTime)}
-    ${additionalInfo}`;
+    return html`${diffDate((attempt?.start_ts as number) * 1000, endTime)} ${additionalInfo}`;
   }
 
   private getCommittedText(attempt: ChangeAttempt): TemplateResult {
@@ -257,8 +229,7 @@ export class VerifiersDetailSk extends ElementSk {
       detail,
       (json: GetChangeAttemptsResponse) => {
         this.changeAttempts = json.change_attempts!;
-        this.noData =
-          !this.changeAttempts || this.changeAttempts.attempts!.length === 0;
+        this.noData = !this.changeAttempts || this.changeAttempts.attempts!.length === 0;
         this.updatingData = false;
         this._render();
       }

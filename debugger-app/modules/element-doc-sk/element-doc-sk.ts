@@ -16,11 +16,7 @@ export class ElementDocSk extends ElementSk {
     super.disconnectedCallback();
   }
 
-  addDocumentEventListener(
-    name: string,
-    fn: (e: any) => void,
-    useCapture: boolean = false
-  ): void {
+  addDocumentEventListener(name: string, fn: (e: any) => void, useCapture: boolean = false): void {
     this._documentEventListeners.set(name, fn);
     document.addEventListener(name, fn, useCapture);
   }

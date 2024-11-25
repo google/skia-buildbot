@@ -274,11 +274,7 @@ describe('byblameentry-sk', () => {
   });
 });
 
-const expectTriageLinkEquals = (
-  byBlameEntrySk: ByBlameEntrySk,
-  text: string,
-  href: string
-) => {
+const expectTriageLinkEquals = (byBlameEntrySk: ByBlameEntrySk, text: string, href: string) => {
   const triageLink = $$<HTMLAnchorElement>('a.triage', byBlameEntrySk)!;
   expect(triageLink.innerText).to.contain(text);
   expect(triageLink.href).to.have.string(href);
@@ -296,10 +292,7 @@ const expectBlamesListEquals = (
   byBlameEntrySk: ByBlameEntrySk,
   expectedBlames: ExpectedBlame[]
 ) => {
-  const noBlameList = $$<HTMLParagraphElement>(
-    'p.no-blamelist',
-    byBlameEntrySk
-  )!;
+  const noBlameList = $$<HTMLParagraphElement>('p.no-blamelist', byBlameEntrySk)!;
   const blames = $<HTMLLIElement>('ul.blames li', byBlameEntrySk);
 
   if (!expectedBlames.length) {
@@ -312,10 +305,7 @@ const expectBlamesListEquals = (
     for (let i = 0; i < expectedBlames.length; i++) {
       const linkText = $$<HTMLAnchorElement>('a', blames[i])!.innerText;
       const linkHref = $$<HTMLAnchorElement>('a', blames[i])!.href;
-      const commitMessage = $$<HTMLElement>(
-        '.commit-message',
-        blames[i]
-      )!.innerText;
+      const commitMessage = $$<HTMLElement>('.commit-message', blames[i])!.innerText;
       const author = $$<HTMLElement>('.author', blames[i])!.innerText;
       const age = $$<HTMLElement>('.age', blames[i])!.innerText;
 
@@ -328,13 +318,10 @@ const expectBlamesListEquals = (
   }
 };
 
-const expectNumTestsAffectedEquals = (
-  byBlameEntrySk: ByBlameEntrySk,
-  numTestsAffected: string
-) =>
-  expect(
-    $$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText
-  ).to.contain(numTestsAffected);
+const expectNumTestsAffectedEquals = (byBlameEntrySk: ByBlameEntrySk, numTestsAffected: string) =>
+  expect($$<HTMLElement>('.num-tests-affected', byBlameEntrySk)!.innerText).to.contain(
+    numTestsAffected
+  );
 
 interface ExpectedRow {
   test: string;
@@ -354,16 +341,9 @@ const expectAffectedTestsTableEquals = (
   for (let i = 0; i < expectedRows.length; i++) {
     const test = $$<HTMLElement>('.test', actualRows[i])!.innerText;
     const corpus = $$<HTMLElement>('.corpus', actualRows[i])!.innerText;
-    const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!
-      .innerText;
-    const exampleLinkText = $$<HTMLAnchorElement>(
-      'a.example-link',
-      actualRows[i]
-    )!.innerText;
-    const exampleLinkHref = $$<HTMLAnchorElement>(
-      'a.example-link',
-      actualRows[i]
-    )!.href;
+    const numDigests = +$$<HTMLElement>('.num-digests', actualRows[i])!.innerText;
+    const exampleLinkText = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.innerText;
+    const exampleLinkHref = $$<HTMLAnchorElement>('a.example-link', actualRows[i])!.href;
 
     expect(test).to.contain(expectedRows[i].test);
     expect(corpus).to.contain(expectedRows[i].corpus);

@@ -7,10 +7,7 @@ import { $, $$ } from '../../../infra-sk/modules/dom';
 import { AdminTaskRunsSk } from './admin-task-runs-sk';
 
 import { tasksResult0, tasksResult1 } from './test_data';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('admin-task-runs-sk', () => {
   const newInstance = setUpElementUnderTest('admin-task-runs-sk');
@@ -63,19 +60,13 @@ describe('admin-task-runs-sk', () => {
 
   it('filters by user', async () => {
     expect(fetchMock.lastUrl()).to.not.contain('filter_by_logged_in_user=true');
-    await expectReload(
-      () => ($$('#userFilter', adminRuns)! as HTMLElement).click(),
-      null
-    );
+    await expectReload(() => ($$('#userFilter', adminRuns)! as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.contain('filter_by_logged_in_user=true');
   });
 
   it('filters by tests', async () => {
     expect(fetchMock.lastUrl()).to.contain('exclude_dummy_page_sets=true');
-    await expectReload(
-      () => ($$('#testFilter', adminRuns)! as HTMLElement).click(),
-      null
-    );
+    await expectReload(() => ($$('#testFilter', adminRuns)! as HTMLElement).click(), null);
     expect(fetchMock.lastUrl()).to.not.contain('exclude_dummy_page_sets=true');
   });
 
@@ -85,8 +76,7 @@ describe('admin-task-runs-sk', () => {
     result.pagination!.offset = 10;
     // 'Next page' button.
     await expectReload(
-      () =>
-        ($('pagination-sk button.action', adminRuns)[2] as HTMLElement).click(),
+      () => ($('pagination-sk button.action', adminRuns)[2] as HTMLElement).click(),
       result
     );
     expect(fetchMock.lastUrl()).to.contain('offset=10');
@@ -99,9 +89,7 @@ describe('admin-task-runs-sk', () => {
     fetchMock.post(`begin:${deleteUrl}`, 200);
     fetchMock.postOnce(`begin:${getUrl}`, tasksResult0);
     ($$('delete-icon-sk', adminRuns) as HTMLElement).click();
-    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain(
-      '"id":66'
-    );
+    expect(fetchMock.lastOptions('begin:/_/delete')!.body).to.contain('"id":66');
   });
 
   it('reschedules tasks', async () => {

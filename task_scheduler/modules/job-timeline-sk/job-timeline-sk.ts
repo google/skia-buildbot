@@ -35,9 +35,7 @@ export class JobTimelineSk extends HTMLElement {
         .then((jobResp: GetJobResponse) => {
           const taskIds = jobResp
             .job!.tasks!.map((tasks: TaskSummaries) => tasks.tasks!)
-            .reduce((acc: TaskSummary[], subArray: TaskSummary[]) =>
-              acc.concat(subArray)
-            )
+            .reduce((acc: TaskSummary[], subArray: TaskSummary[]) => acc.concat(subArray))
             .map((task: TaskSummary) => task.id);
           Promise.all(
             taskIds.map((id: string) =>
@@ -104,16 +102,12 @@ export class JobTimelineSk extends HTMLElement {
         const finishTs = ts(t.finishedAt!).getTime();
         makeBlock(
           'overhead',
-          new Date(
-            startTs + 1000 * parseFloat(t.stats.downloadOverheadS)
-          ).toString(),
+          new Date(startTs + 1000 * parseFloat(t.stats.downloadOverheadS)).toString(),
           '#d55e00'
         );
         makeBlock(
           'running',
-          new Date(
-            finishTs - 1000 * parseFloat(t.stats.uploadOverheadS)
-          ).toString(),
+          new Date(finishTs - 1000 * parseFloat(t.stats.uploadOverheadS)).toString(),
           '#0072b2'
         );
         makeBlock('overhead', t.finishedAt!, '#d55e00');

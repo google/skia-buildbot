@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('textarea-numbers-sk', () => {
   let testBed: TestBed;
@@ -27,41 +23,25 @@ describe('textarea-numbers-sk', () => {
 
     it('error lines can be cleared', async () => {
       await testBed.page.click('#clear_error_lines');
-      await takeScreenshot(
-        testBed.page,
-        'fiddle',
-        'textarea-numbers-sk_cleared'
-      );
+      await takeScreenshot(testBed.page, 'fiddle', 'textarea-numbers-sk_cleared');
     });
 
     it('default fold with fold tokens', async () => {
       await testBed.page.click('#add_fold_tokens');
-      await takeScreenshot(
-        testBed.page,
-        'fiddle',
-        'textarea-numbers-sk_default-fold'
-      );
+      await takeScreenshot(testBed.page, 'fiddle', 'textarea-numbers-sk_default-fold');
     });
 
     it('expand outer fold', async () => {
       await testBed.page.click('#add_fold_tokens');
       await testBed.page.click('#expand_outer_fold');
-      await takeScreenshot(
-        testBed.page,
-        'fiddle',
-        'textarea-numbers-sk_expand-outer-fold'
-      );
+      await takeScreenshot(testBed.page, 'fiddle', 'textarea-numbers-sk_expand-outer-fold');
     });
 
     it('expand inner fold', async () => {
       await testBed.page.click('#add_fold_tokens');
       await testBed.page.click('#expand_outer_fold');
       await testBed.page.click('#expand_inner_fold');
-      await takeScreenshot(
-        testBed.page,
-        'fiddle',
-        'textarea-numbers-sk_expand-inner-fold'
-      );
+      await takeScreenshot(testBed.page, 'fiddle', 'textarea-numbers-sk_expand-inner-fold');
     });
   });
 });

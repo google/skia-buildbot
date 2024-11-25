@@ -70,10 +70,7 @@ export function $$<E extends Element = Element>(
  *   findParent(ele, 'DIV')
  *
  */
-export function findParent(
-  ele: HTMLElement | null,
-  nodeName: string
-): HTMLElement | null {
+export function findParent(ele: HTMLElement | null, nodeName: string): HTMLElement | null {
   while (ele !== null) {
     if (ele.nodeName === nodeName) {
       return ele;

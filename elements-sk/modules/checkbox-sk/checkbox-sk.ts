@@ -159,11 +159,7 @@ export class CheckOrRadio extends HTMLElement {
     this.setAttribute('label', val);
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string | null,
-    newValue: string | null
-  ): void {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (!this._input) {
       return;
     }

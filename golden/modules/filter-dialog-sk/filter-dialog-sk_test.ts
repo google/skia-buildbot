@@ -63,9 +63,7 @@ describe('filter-dialog-sk', () => {
     await filterDialogSkPO.clickCancelBtn();
 
     filterDialogSk.open(paramSet, differentFilters);
-    expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(
-      differentFilters
-    );
+    expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(differentFilters);
   });
 
   describe('filter button', () => {
@@ -114,9 +112,7 @@ describe('filter-dialog-sk', () => {
       await filterDialogSkPO.clickCancelBtn();
 
       filterDialogSk.open(paramSet, filters);
-      expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(
-        filters
-      );
+      expect(await filterDialogSkPO.getSelectedFilters()).to.deep.equal(filters);
     });
   });
 });

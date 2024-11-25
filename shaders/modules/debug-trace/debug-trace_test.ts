@@ -78,10 +78,7 @@ describe('DebugTrace JSON parsing', () => {
       "functions": [],
       "trace": []
     }`;
-    assert.throws(
-      () => Convert.toDebugTrace(text),
-      /Version mismatch.*987654321z.*/
-    );
+    assert.throws(() => Convert.toDebugTrace(text), /Version mismatch.*987654321z.*/);
   });
 
   it('throws when parsing invalid JSON', () => {

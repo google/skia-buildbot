@@ -47,8 +47,7 @@ import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 export type SortDirection = 'down' | 'up';
 
 // The states to move each button through on a click.
-const toggle = (value: string): SortDirection =>
-  value === 'down' ? 'up' : 'down';
+const toggle = (value: string): SortDirection => (value === 'down' ? 'up' : 'down');
 
 interface SortableEntry {
   value: string;
@@ -57,8 +56,7 @@ interface SortableEntry {
 }
 
 // Functions to pass to sort().
-const f_alpha_up = (x: SortableEntry, y: SortableEntry) =>
-  x.value.localeCompare(y.value);
+const f_alpha_up = (x: SortableEntry, y: SortableEntry) => x.value.localeCompare(y.value);
 const f_alpha_down = (x: SortableEntry, y: SortableEntry) => f_alpha_up(y, x);
 const f_num_up = (x: SortableEntry, y: SortableEntry) => {
   if (x.valueAsNumber === y.valueAsNumber) {
@@ -137,9 +135,7 @@ export class SortSk extends ElementSk {
     // Remember the direction we are sorting in.
     const up = dir === 'up';
 
-    const container = this.parentElement!.querySelector(
-      `#${this.getAttribute('target')}`
-    );
+    const container = this.parentElement!.querySelector(`#${this.getAttribute('target')}`);
     if (container === null) {
       throw 'Failed to find "target" attribute.';
     }

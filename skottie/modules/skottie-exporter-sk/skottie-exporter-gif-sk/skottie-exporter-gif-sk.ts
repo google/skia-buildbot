@@ -27,9 +27,7 @@ import {
   Quality,
   ComponentState,
 } from '../skottie-exporter-base-sk/skottie-exporter-base-sk';
-import frameCollectorFactory, {
-  FrameCollectorType,
-} from '../../helpers/frameCollectorFactory';
+import frameCollectorFactory, { FrameCollectorType } from '../../helpers/frameCollectorFactory';
 
 interface Detail {
   colors: number;
@@ -129,10 +127,7 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
       return html`<span id="export-form-gif">Loading ffmpeg...</span>`;
     }
     return html`
-      <form
-        class="export-form"
-        id="export-form-gif"
-        @keydown=${this.handleKeyDown}>
+      <form class="export-form" id="export-form-gif" @keydown=${this.handleKeyDown}>
         <input
           type="text"
           .value=${this._downloadFileName}
@@ -209,19 +204,13 @@ export class SkottieExporterGifSk extends SkottieExporterBaseSk {
       [s2][pal2] paletteuse=dither=bayer`;
   }
 
-  private async generateGIF(
-    player: SkottiePlayerSk,
-    ffmpeg: FFmpeg
-  ): Promise<Uint8Array | null> {
+  private async generateGIF(player: SkottiePlayerSk, ffmpeg: FFmpeg): Promise<Uint8Array | null> {
     const canvas = player.canvas();
     if (!canvas || this.renderState !== 'running') {
       return null;
     }
     const detail: Detail = qualityDetails[this._config.quality];
-    const scale =
-      canvas.width >= canvas.height
-        ? `${detail.scale}:-1`
-        : `-1:${detail.scale}`;
+    const scale = canvas.width >= canvas.height ? `${detail.scale}:-1` : `-1:${detail.scale}`;
     const fps = player.fps();
     await ffmpeg.run(
       '-framerate',

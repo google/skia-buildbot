@@ -165,9 +165,7 @@ export class JobTriggerSk extends ElementSk {
         .map((job: TriggerJob) => `${job.jobName}@${job.commitHash}`),
     };
     if (ps.job.length > 0) {
-      const url = `${
-        window.location.origin + window.location.pathname
-      }?${fromParamSet(ps)}`;
+      const url = `${window.location.origin + window.location.pathname}?${fromParamSet(ps)}`;
       window.history.pushState({ path: url }, '', url);
     }
   }
@@ -176,9 +174,7 @@ export class JobTriggerSk extends ElementSk {
     if (!this.rpc) {
       return;
     }
-    const jobs = this.jobs.filter(
-      (job: TriggerJob) => job.jobName && job.commitHash
-    );
+    const jobs = this.jobs.filter((job: TriggerJob) => job.jobName && job.commitHash);
     if (jobs.length === 0) {
       return;
     }

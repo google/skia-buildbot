@@ -115,11 +115,7 @@ export class BugsChartSk extends ElementSk {
     return ['chart_type', 'chart_title', 'data'];
   }
 
-  attributeChangedCallback(
-    _name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(_name: string, oldValue: string, newValue: string): void {
     if (oldValue !== newValue) {
       this._render();
     }

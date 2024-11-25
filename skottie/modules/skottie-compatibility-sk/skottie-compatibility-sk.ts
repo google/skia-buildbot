@@ -62,13 +62,9 @@ export class SkottieCompatibilitySk extends ElementSk {
   private static tabContainer = (ele: SkottieCompatibilitySk) => html`
     <div class="tab-container">
       ${ele.schemas.map((schema, index) => {
-        const errors = schema.validator.getErrors(
-          ele._animation,
-          schema.featureErrorsOnly
-        );
+        const errors = schema.validator.getErrors(ele._animation, schema.featureErrorsOnly);
 
-        const resultSummary =
-          errors.length === 0 ? 'Pass' : `Fail (${errors.length})`;
+        const resultSummary = errors.length === 0 ? 'Pass' : `Fail (${errors.length})`;
 
         return html`
           <skottie-button-sk
@@ -132,33 +128,24 @@ export class SkottieCompatibilitySk extends ElementSk {
     `;
   }
 
-  private static featureErrorReport = (
-    schemaEntry: SchemaEntry,
-    lottie: any
-  ) => {
-    const errors = schemaEntry.validator.getErrors(
-      lottie,
-      schemaEntry.featureErrorsOnly
-    );
+  private static featureErrorReport = (schemaEntry: SchemaEntry, lottie: any) => {
+    const errors = schemaEntry.validator.getErrors(lottie, schemaEntry.featureErrorsOnly);
 
-    const featureToErrorList: Map<string, LottieError[]> = errors.reduce(
-      (map, error) => {
-        const { featureCode } = error;
+    const featureToErrorList: Map<string, LottieError[]> = errors.reduce((map, error) => {
+      const { featureCode } = error;
 
-        if (!featureCode) {
-          return map;
-        }
-
-        if (!map.get(featureCode)) {
-          map.set(featureCode, []);
-        }
-
-        map.get(featureCode)?.push(error);
-
+      if (!featureCode) {
         return map;
-      },
-      new Map<string, LottieError[]>()
-    );
+      }
+
+      if (!map.get(featureCode)) {
+        map.set(featureCode, []);
+      }
+
+      map.get(featureCode)?.push(error);
+
+      return map;
+    }, new Map<string, LottieError[]>());
 
     return html`<table>
       <tr>
@@ -172,17 +159,11 @@ export class SkottieCompatibilitySk extends ElementSk {
             <tr>
               ${index === 0
                 ? html`<td class="feature-id-cell" rowspan=${errorList.length}>
-                    <a
-                      href="https://canilottie.com/${error.featureLink ??
-                      error.featureCode}"
+                    <a href="https://canilottie.com/${error.featureLink ?? error.featureCode}"
                       >${error.featureCode}</a
                     >
-                    ${error.featureLevel === 'partial'
-                      ? 'partially supported'
-                      : 'not supported'}
-                    ${error.featureDetails
-                      ? html` <div>${error.featureDetails}</div> `
-                      : null}
+                    ${error.featureLevel === 'partial' ? 'partially supported' : 'not supported'}
+                    ${error.featureDetails ? html` <div>${error.featureDetails}</div> ` : null}
                   </td>`
                 : null}
               <td>${error.nameHierarchy?.join(' > ')}</td>

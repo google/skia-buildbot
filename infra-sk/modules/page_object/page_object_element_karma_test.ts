@@ -1,8 +1,5 @@
 import { PageObjectElement, Serializable } from './page_object_element';
-import {
-  TestBed,
-  describePageObjectElement,
-} from './page_object_element_test_cases';
+import { TestBed, describePageObjectElement } from './page_object_element_test_cases';
 
 describe('PageObjectElement on the browser', () => {
   // This div will contain the top-level element in the HTML provided via the test bed.
@@ -24,9 +21,7 @@ describe('PageObjectElement on the browser', () => {
 
       // Make sure there is only one top-level element.
       if (container.childElementCount !== 1) {
-        throw new Error(
-          'the given HTML contains more than one top-level element'
-        );
+        throw new Error('the given HTML contains more than one top-level element');
       }
 
       // Retrieve the top-level element and wrap it inside a PageObjectElement.
@@ -34,9 +29,8 @@ describe('PageObjectElement on the browser', () => {
       return Promise.resolve(new PageObjectElement(element));
     },
 
-    evaluate: <T extends Serializable | void = void>(
-      fn: (el: HTMLElement) => T
-    ) => Promise.resolve(fn(container.firstElementChild as HTMLElement)),
+    evaluate: <T extends Serializable | void = void>(fn: (el: HTMLElement) => T) =>
+      Promise.resolve(fn(container.firstElementChild as HTMLElement)),
   };
 
   describePageObjectElement(testBed);

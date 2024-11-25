@@ -7,15 +7,9 @@ import { comment, commit, commitsByHash, task } from './test_data';
 import { SetTestSettings } from '../settings';
 import { taskDriverData } from '../../../infra-sk/modules/task-driver-sk/test_data';
 
-document
-  .querySelector('details-dialog-sk')!
-  .addEventListener('some-event-name', (e) => {
-    document.querySelector('#events')!.textContent = JSON.stringify(
-      e,
-      null,
-      '  '
-    );
-  });
+document.querySelector('details-dialog-sk')!.addEventListener('some-event-name', (e) => {
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+});
 SetTestSettings({
   swarmingUrl: 'example.com/swarming',
   treeStatusBaseUrl: 'example.com/treestatus',
@@ -44,10 +38,9 @@ document.addEventListener('click', async (e) => {
       element.displayCommit(commit, [comment]);
       return;
     case 'taskSpecButton':
-      element.displayTaskSpec(
-        'Test-Android-Clang-Nexus7-GPU-Tegra3-arm-Debug-All-Android',
-        [comment]
-      );
+      element.displayTaskSpec('Test-Android-Clang-Nexus7-GPU-Tegra3-arm-Debug-All-Android', [
+        comment,
+      ]);
       return;
     default:
       break;

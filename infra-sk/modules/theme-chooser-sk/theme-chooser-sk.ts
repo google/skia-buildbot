@@ -49,8 +49,7 @@ export class ThemeChooserSk extends ElementSk {
     super(ThemeChooserSk.template);
   }
 
-  private static template = () =>
-    html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
+  private static template = () => html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();

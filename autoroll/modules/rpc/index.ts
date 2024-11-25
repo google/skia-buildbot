@@ -3,10 +3,7 @@ import { AutoRollService, AutoRollServiceClient } from './rpc';
 export * from './rpc';
 
 const host = `${window.location.protocol}//${window.location.host}`;
-let rpcClient: AutoRollService = new AutoRollServiceClient(
-  host,
-  window.fetch.bind(window)
-);
+let rpcClient: AutoRollService = new AutoRollServiceClient(host, window.fetch.bind(window));
 
 /**
  * GetAutoRollService returns an AutoRollService implementation which dispatches

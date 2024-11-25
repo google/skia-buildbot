@@ -28,9 +28,7 @@ export class TaskPrioritySk extends ElementSk {
 
   private static template = (el: TaskPrioritySk) => html`
     <div class="tr-container">
-      <select-sk>
-        ${el._priorities.map((p) => html` <div>${p[1]}</div>`)}
-      </select-sk>
+      <select-sk> ${el._priorities.map((p) => html` <div>${p[1]}</div>`)} </select-sk>
     </div>
   `;
 

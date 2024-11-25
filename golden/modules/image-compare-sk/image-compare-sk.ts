@@ -33,23 +33,16 @@ export class ImageCompareSk extends ElementSk {
           @click=${ele.toggleFullSizeLeftImage} />
         <figcaption>
           <span class="legend_dot"></span>
-          <a target="_blank" rel="noopener" href=${ele.left.detail}
-            >${ele.left.title}</a
-          >
+          <a target="_blank" rel="noopener" href=${ele.left.detail}>${ele.left.title}</a>
         </figcaption>
       </figure>
-      <a
-        target="_blank"
-        rel="noopener"
-        href=${digestImagePath(ele.left.digest)}>
+      <a target="_blank" rel="noopener" href=${digestImagePath(ele.left.digest)}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
       ${ImageCompareSk.comparison(ele)}
     </div>
 
-    <button class="zoom_btn" ?hidden=${!ele.right} @click=${ele.openZoomWindow}>
-      Zoom
-    </button>
+    <button class="zoom_btn" ?hidden=${!ele.right} @click=${ele.openZoomWindow}>Zoom</button>
     <dialog class="zoom_dialog" @close="${ele.closeEvent}))}">
       <button class="close_btn" @click=${ele.closeDialog}>Close</button>
     </dialog>
@@ -62,9 +55,7 @@ export class ImageCompareSk extends ElementSk {
           Computing closest positive and negative image. Check back later.
         </div>`;
       }
-      return html`<div class="no_compare">
-        No other images to compare against.
-      </div>`;
+      return html`<div class="no_compare">No other images to compare against.</div>`;
     }
     const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
     return html`
@@ -84,15 +75,10 @@ export class ImageCompareSk extends ElementSk {
           src=${digestImagePath(ele.right.digest)}
           @click=${ele.toggleFullSizeRightImage} />
         <figcaption>
-          <a target="_blank" rel="noopener" href=${ele.right.detail}
-            >${ele.right.title}</a
-          >
+          <a target="_blank" rel="noopener" href=${ele.right.detail}>${ele.right.title}</a>
         </figcaption>
       </figure>
-      <a
-        target="_blank"
-        rel="noopener"
-        href=${digestImagePath(ele.right.digest)}>
+      <a target="_blank" rel="noopener" href=${digestImagePath(ele.right.digest)}>
         <open-in-new-icon-sk></open-in-new-icon-sk>
       </a>
     `;
@@ -218,9 +204,7 @@ export class ImageCompareSk extends ElementSk {
   }
 
   private _dispatchImageSizeToggledEvent(): void {
-    this.dispatchEvent(
-      new CustomEvent('image_compare_size_toggled', { bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('image_compare_size_toggled', { bubbles: true }));
   }
 }
 

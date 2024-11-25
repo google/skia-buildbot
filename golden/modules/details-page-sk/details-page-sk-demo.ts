@@ -64,14 +64,9 @@ fetchMock.post('/json/v2/details', (url, opts) => {
   }
   const knownDigest1 = '99c58c7002073346ff55f446d47d6311';
   const knownDigest2 = '6246b773851984c726cb2e1cb13510c2';
-  const closestDigest =
-    request.digest === knownDigest1 ? knownDigest2 : knownDigest1;
+  const closestDigest = request.digest === knownDigest1 ? knownDigest2 : knownDigest1;
   const response: DigestDetails = {
-    digest: makeTypicalSearchResult(
-      request.grouping.name,
-      request.digest,
-      closestDigest
-    ),
+    digest: makeTypicalSearchResult(request.grouping.name, request.digest, closestDigest),
     commits: twoHundredCommits,
   };
   return delay(response);
@@ -88,14 +83,12 @@ document.body.insertBefore(scaffold, document.body.childNodes[0]);
 let detailsPageSk = new DetailsPageSk();
 scaffold.appendChild(detailsPageSk);
 
-document
-  .querySelectorAll('#simulate-rpc-error, #simulate-not-found-in-index')
-  .forEach((el) =>
-    el.addEventListener('change', (e) => {
-      e.stopPropagation();
-      // Reload the page to trigger a new RPC.
-      detailsPageSk.parentNode!.removeChild(detailsPageSk);
-      detailsPageSk = new DetailsPageSk();
-      scaffold.appendChild(detailsPageSk);
-    })
-  );
+document.querySelectorAll('#simulate-rpc-error, #simulate-not-found-in-index').forEach((el) =>
+  el.addEventListener('change', (e) => {
+    e.stopPropagation();
+    // Reload the page to trigger a new RPC.
+    detailsPageSk.parentNode!.removeChild(detailsPageSk);
+    detailsPageSk = new DetailsPageSk();
+    scaffold.appendChild(detailsPageSk);
+  })
+);

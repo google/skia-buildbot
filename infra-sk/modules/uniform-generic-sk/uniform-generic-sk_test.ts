@@ -6,8 +6,7 @@ import { UniformGenericSk } from './uniform-generic-sk';
 import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-generic-sk', () => {
-  const newInstance =
-    setUpElementUnderTest<UniformGenericSk>('uniform-generic-sk');
+  const newInstance = setUpElementUnderTest<UniformGenericSk>('uniform-generic-sk');
 
   let element: UniformGenericSk;
   beforeEach(() => {

@@ -74,9 +74,7 @@ export class AutoAssignSk extends ElementSk {
     return html`
       <h2>The selected active alerts will be auto-assigned to owners</h2>
       <select size="10" @input=${this.input} @keyup=${this.keyup} multiple>
-        ${this.incidents.map((incident: Incident) =>
-          this.displayIncident(incident)
-        )}
+        ${this.incidents.map((incident: Incident) => this.displayIncident(incident))}
       </select>
       <div class="buttons">
         <button @click=${this.dismiss}>Cancel</button>
@@ -100,11 +98,9 @@ export class AutoAssignSk extends ElementSk {
 
   private input(e: Event): void {
     this.selected = [];
-    Array.from((e.target as HTMLSelectElement).selectedOptions).forEach(
-      (option) => {
-        this.selected.push(option.value);
-      }
-    );
+    Array.from((e.target as HTMLSelectElement).selectedOptions).forEach((option) => {
+      this.selected.push(option.value);
+    });
   }
 
   private dismiss(): void {

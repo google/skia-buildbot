@@ -241,17 +241,14 @@ export const searchResponse: SearchResponse = {
             label:
               ',name=gold_search-controls-sk_right-hand-trace-filter-editor,source_type=infra,',
             data: [
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 4, 4, 4, 4, 4,
-              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-              3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-              2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-              1, 1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 4, 4, 4,
+              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+              4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2,
+              2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             ],
             params: {
               ext: 'png',
@@ -324,17 +321,15 @@ export const searchResponse: SearchResponse = {
           {
             label: ',name=perf_alert-config-sk,source_type=infra,',
             data: [
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4,
-              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 8, 8,
-              7, 7, 7, 7, 7, 8, 0, 0, 8, 0, 0, 0, 0, 0, 8, 0, 8, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6, 3, 1, 1, 1,
-              1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 5, 5, 5,
+              5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4,
+              4, 8, 8, 7, 7, 7, 7, 7, 8, 0, 0, 8, 0, 0, 0, 0, 0, 8, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6, 3, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1,
             ],
             params: {
               ext: 'png',
@@ -423,17 +418,15 @@ export const searchResponse: SearchResponse = {
           {
             label: ',name=perf_alert-config-sk,source_type=infra,',
             data: [
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-              -1, -1, -1, -1, -1, -1, -1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5,
-              5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 5, 5, 5, 5, 5, 5, 5, 8, 8,
-              8, 8, 8, 8, 8, 0, 4, 4, 8, 4, 4, 4, 4, 4, 8, 4, 8, 4, 4, 4, 4, 4,
-              4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 3, 1, 1, 1,
-              1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 6, 6, 6,
+              6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 5, 5, 5, 5, 5, 5,
+              5, 8, 8, 8, 8, 8, 8, 8, 0, 4, 4, 8, 4, 4, 4, 4, 4, 8, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+              4, 4, 4, 4, 4, 4, 4, 7, 7, 7, 7, 7, 7, 7, 3, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1,
             ],
             params: {
               ext: 'png',
@@ -679,8 +672,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1592509986,
       hash: 'cfe951e940d914565acdaefc8bf12bdbcf1c37ab',
       author: 'Erin (erin@example.com)',
-      message:
-        '[infra-sk] Include Puppeteer tests in Infra-PerCommit-Puppeteer task.',
+      message: '[infra-sk] Include Puppeteer tests in Infra-PerCommit-Puppeteer task.',
       cl_url: '',
     },
     {
@@ -986,8 +978,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1593195301,
       hash: '0506beb1a6f910b9b30f9eacbc20b18e18d763c7',
       author: 'Erin (erin@example.com)',
-      message:
-        '[gold] Extract trace-filter-sk component out of filter-dialog-sk.',
+      message: '[gold] Extract trace-filter-sk component out of filter-dialog-sk.',
       cl_url: '',
     },
     {
@@ -1043,8 +1034,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1593228421,
       hash: '60281e15926171777cc997ea02ab2cdd600edd5e',
       author: 'Erin (erin@example.com)',
-      message:
-        '[gold] search-controls-sk: Use the new lit-html component everywhere.',
+      message: '[gold] search-controls-sk: Use the new lit-html component everywhere.',
       cl_url: '',
     },
     {
@@ -1140,8 +1130,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1593452995,
       hash: 'f281e74bfcead8385664b08e722dfd267ccd31b9',
       author: 'Bob (bob@example.com)',
-      message:
-        '[perf] Move flutter-perf.skia.org to flutter-engine-perf.skia.org',
+      message: '[perf] Move flutter-perf.skia.org to flutter-engine-perf.skia.org',
       cl_url: '',
     },
     {
@@ -1301,8 +1290,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1593639986,
       hash: 'cfad866369daddc5b9f208ed8ff53f24f1155c91',
       author: 'Bob (bob@example.com)',
-      message:
-        '[perf] Move day-range-sk from input type=date to calendar-input-sk.',
+      message: '[perf] Move day-range-sk from input type=date to calendar-input-sk.',
       cl_url: '',
     },
     {
@@ -1454,8 +1442,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594142854,
       hash: 'a1ef758371f48f7b5c762f7cbf701312a985b2d1',
       author: 'Dan (dan@example.com)',
-      message:
-        '[autoroll] New contacts/reviewers for depot tools -\u003e chromium roller',
+      message: '[autoroll] New contacts/reviewers for depot tools -\u003e chromium roller',
       cl_url: '',
     },
     {
@@ -1639,8 +1626,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594251885,
       hash: '5cc491ae48e022b1eae9a1ed450933653e90c6d9',
       author: 'Erin (erin@example.com)',
-      message:
-        '[infra-sk] query-values-sk: Add a page object and use it in tests.',
+      message: '[infra-sk] query-values-sk: Add a page object and use it in tests.',
       cl_url: '',
     },
     {
@@ -1712,8 +1698,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594322790,
       hash: '28157d9c4a77178f8a348868ea8f5c24e70b0f0c',
       author: 'Alice (alice@example.com)',
-      message:
-        '[gold] Add helpers for dealing with URL params to search-controls-sk',
+      message: '[gold] Add helpers for dealing with URL params to search-controls-sk',
       cl_url: '',
     },
     {
@@ -1729,8 +1714,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594325479,
       hash: '2a251850405ca966dda93bc1d481396e889ae38b',
       author: 'Erin (erin@example.com)',
-      message:
-        '[gold] corpus-selector-sk: Add page object and use it in tests.',
+      message: '[gold] corpus-selector-sk: Add page object and use it in tests.',
       cl_url: '',
     },
     {
@@ -1754,8 +1738,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594387930,
       hash: '1edb3316298fd299eb2a74402557dc3db413cda8',
       author: 'Frank (frank@example.com)',
-      message:
-        '[Autorollers] Do not add reviews to repo upload if no emails specified',
+      message: '[Autorollers] Do not add reviews to repo upload if no emails specified',
       cl_url: '',
     },
     {
@@ -1787,8 +1770,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594394300,
       hash: 'e24d7a62c06918bd7a395d65a027542423d73174',
       author: 'Bob (bob@example.com)',
-      message:
-        '[perf] Make cluster-page and lastn-page puppeteer tests deterministic.',
+      message: '[perf] Make cluster-page and lastn-page puppeteer tests deterministic.',
       cl_url: '',
     },
     {
@@ -1836,8 +1818,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594476795,
       hash: '31d53aac2f8f03a88993afc081282b75a6c94004',
       author: 'Bob (bob@example.com)',
-      message:
-        '[perf] Have ./modules/json/v1/index.ts have proper dependencies.',
+      message: '[perf] Have ./modules/json/v1/index.ts have proper dependencies.',
       cl_url: '',
     },
     {
@@ -1869,8 +1850,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594577125,
       hash: 'c55e15d570b1572a4384c4d537b1bf58123822d7',
       author: 'Erin (erin@example.com)',
-      message:
-        '[gold] search-controls-sk: Add page object and use it in tests.',
+      message: '[gold] search-controls-sk: Add page object and use it in tests.',
       cl_url: '',
     },
     {
@@ -1926,8 +1906,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594647333,
       hash: '2630055acc2f94f5002611c6262604b483b054df',
       author: 'Frank (frank@example.com)',
-      message:
-        '[Autorollers] Do not "wait" for tree-status checks during dry runs',
+      message: '[Autorollers] Do not "wait" for tree-status checks during dry runs',
       cl_url: '',
     },
     {
@@ -2063,8 +2042,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594757497,
       hash: '7cc820a90366ff31415813c0881503325b9ed553',
       author: 'Alice (alice@example.com)',
-      message:
-        "[gold] Remove need for goldctl's service account to have read access.",
+      message: "[gold] Remove need for goldctl's service account to have read access.",
       cl_url: '',
     },
     {
@@ -2088,8 +2066,7 @@ export const searchResponse: SearchResponse = {
       commit_time: 1594760687,
       hash: 'bc871511ec55f419c429fbee4edebddb7f622bf3',
       author: 'Frank (frank@example.com)',
-      message:
-        "[Autorollers] When rev is a patch ref use gclient's patch-ref args",
+      message: "[Autorollers] When rev is a patch ref use gclient's patch-ref args",
       cl_url: '',
     },
     {

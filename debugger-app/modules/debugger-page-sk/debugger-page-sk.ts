@@ -124,10 +124,7 @@ export class DebuggerPageSk extends ElementDocSk {
       <main id="content">
         <div class="horizontal-flex">
           <label>SKP to open:</label>
-          <input
-            type="file"
-            @change=${ele._fileInputChanged}
-            ?disabled=${ele._debugger === null} />
+          <input type="file" @change=${ele._fileInputChanged} ?disabled=${ele._debugger === null} />
           <a href="https://skia.org/docs/dev/tools/debugger">User Guide</a>
           <p class="file-version">File version: ${ele._fileContext?.version}</p>
           <p class="file-version">
@@ -155,8 +152,7 @@ export class DebuggerPageSk extends ElementDocSk {
             ${DebuggerPageSk.controlsTemplate(ele)}
             <histogram-sk></histogram-sk>
             <div>
-              Command which shaded the<br />selected pixel:
-              ${ele._pointCommandIndex}
+              Command which shaded the<br />selected pixel: ${ele._pointCommandIndex}
               <button
                 @click=${() => {
                   ele._jumpToCommand(ele._pointCommandIndex);
@@ -212,18 +208,15 @@ export class DebuggerPageSk extends ElementDocSk {
       <details ?open=${ele._showOpBounds}>
         <summary><b> GPU Op Bounds Legend</b></summary>
         <p style="width: 200px">
-          GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean
-          you can't see them unless you scale the canvas view to its original
-          size.
+          GPU op bounds are rectangles with a 1 pixel wide stroke. This may mean you can't see them
+          unless you scale the canvas view to its original size.
         </p>
         <table class="shortcuts">
           <tr>
             <td class="gpuDrawBoundColor">Bounds for the current draw.</td>
           </tr>
           <tr>
-            <td class="gpuOpBoundColor">
-              Individual bounds for other draws in the same op.
-            </td>
+            <td class="gpuOpBoundColor">Individual bounds for other draws in the same op.</td>
           </tr>
           <tr>
             <td class="gpuTotalOpColor">Total bounds of the current op.</td>
@@ -351,8 +344,7 @@ export class DebuggerPageSk extends ElementDocSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this._androidLayersSk =
-      this.querySelector<AndroidLayersSk>('android-layers-sk')!;
+    this._androidLayersSk = this.querySelector<AndroidLayersSk>('android-layers-sk')!;
     this._debugViewSk = this.querySelector<DebugViewSk>('debug-view-sk')!;
     this._commandsSk = this.querySelector<CommandsSk>('commands-sk')!;
     this._resourcesSk = this.querySelector<ResourcesSk>('resources-sk')!;
@@ -371,8 +363,7 @@ export class DebuggerPageSk extends ElementDocSk {
     });
 
     this._timelineSk.playsk.addEventListener(ModeChangedManuallyEvent, (e) => {
-      const mode = (e as CustomEvent<ModeChangedManuallyEventDetail>).detail
-        .mode;
+      const mode = (e as CustomEvent<ModeChangedManuallyEventDetail>).detail.mode;
       if (mode === 'pause') {
         this._setCommands();
       }
@@ -489,9 +480,7 @@ export class DebuggerPageSk extends ElementDocSk {
     // number we're looking for.
     const head = new Uint8Array(fileContents).subarray(0, 2000);
     function isMagicWord(element: number, index: number, array: Uint8Array) {
-      return (
-        utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict'
-      );
+      return utf8decoder.decode(array.subarray(index, index + 8)) === 'skiapict';
     }
     // Note that we want to locate the offset in a Uint8Array, not in a string that
     // might interpret binary stuff before "skiapict" as multi-byte code points.
@@ -643,10 +632,7 @@ export class DebuggerPageSk extends ElementDocSk {
 
   private _boundsEqual(a: SkIRect, b: SkIRect): boolean {
     return (
-      a.fLeft === b.fLeft &&
-      a.fTop === b.fTop &&
-      a.fRight === b.fRight &&
-      a.fBottom === b.fBottom
+      a.fLeft === b.fLeft && a.fTop === b.fTop && a.fRight === b.fRight && a.fBottom === b.fBottom
     );
   }
 
@@ -718,9 +704,7 @@ export class DebuggerPageSk extends ElementDocSk {
     this.dispatchEvent(
       new CustomEvent<ToggleBackgroundEventDetail>(ToggleBackgroundEvent, {
         detail: {
-          mode: this._darkBackgrounds
-            ? 'dark-checkerboard'
-            : 'light-checkerboard',
+          mode: this._darkBackgrounds ? 'dark-checkerboard' : 'light-checkerboard',
         },
         bubbles: true,
       })
@@ -774,10 +758,7 @@ export class DebuggerPageSk extends ElementDocSk {
   }
 
   private _keyDownHandler(e: KeyboardEvent): void {
-    if (
-      this.querySelector<HTMLInputElement>('#text-filter') ===
-      document.activeElement
-    ) {
+    if (this.querySelector<HTMLInputElement>('#text-filter') === document.activeElement) {
       return; // don't interfere with the filter textbox.
     }
     const [x, y] = this._zoom!.point;

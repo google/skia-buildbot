@@ -1,12 +1,6 @@
 import { assert } from 'chai';
 import { Description } from '../json';
-import {
-  columnSortFunctions,
-  down,
-  SortHistory,
-  SortSelection,
-  up,
-} from './index';
+import { columnSortFunctions, down, SortHistory, SortSelection, up } from './index';
 
 describe('SortSelection', () => {
   describe('toggleDirection', () => {
@@ -145,8 +139,7 @@ describe('SortHistory', () => {
     // Sort functions for different clumns, i.e. values in Description.
     const sortByAttachDevice = (a: Description, b: Description): number =>
       a.AttachedDevice.localeCompare(b.AttachedDevice);
-    const sortByBattery = (a: Description, b: Description): number =>
-      a.Battery - b.Battery;
+    const sortByBattery = (a: Description, b: Description): number => a.Battery - b.Battery;
     const sortByPowerCycle = (a: Description, b: Description): number => {
       if (a.PowerCycle === b.PowerCycle) {
         return 0;

@@ -59,9 +59,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
 
   private skipRules = [skipRule1, skipRule2, skipRule3];
 
-  triggerJobs(
-    triggerJobsRequest: TriggerJobsRequest
-  ): Promise<TriggerJobsResponse> {
+  triggerJobs(triggerJobsRequest: TriggerJobsRequest): Promise<TriggerJobsResponse> {
     const ids = triggerJobsRequest.jobs!.map((job) => `${this.jobID++}`);
     return Promise.resolve({
       jobIds: ids,
@@ -100,10 +98,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
       if (req.hasName && job.name !== req.name) {
         return false;
       }
-      if (
-        req.hasBuildbucketBuildId &&
-        job.buildbucketBuildId !== req.buildbucketBuildId
-      ) {
+      if (req.hasBuildbucketBuildId && job.buildbucketBuildId !== req.buildbucketBuildId) {
         return false;
       }
       if (req.hasStatus && job.status !== req.status) {
@@ -115,10 +110,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
       ) {
         return false;
       }
-      if (
-        req.hasTimeEnd &&
-        new Date(job.createdAt!).getTime() > new Date(req.timeEnd!).getTime()
-      ) {
+      if (req.hasTimeEnd && new Date(job.createdAt!).getTime() > new Date(req.timeEnd!).getTime()) {
         return false;
       }
       if (req.hasIsForce && job.isForce !== req.isForce) {
@@ -138,9 +130,7 @@ export class FakeTaskSchedulerService implements TaskSchedulerService {
     });
   }
 
-  searchTasks(
-    searchTasksRequest: SearchTasksRequest
-  ): Promise<SearchTasksResponse> {
+  searchTasks(searchTasksRequest: SearchTasksRequest): Promise<SearchTasksResponse> {
     return new Promise((_, reject) => {
       reject('not implemented');
     });

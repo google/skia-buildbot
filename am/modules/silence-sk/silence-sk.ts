@@ -94,13 +94,7 @@ import '../../../elements-sk/modules/icons/delete-icon-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { diffDate } from '../../../infra-sk/modules/human';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
-import {
-  abbr,
-  displaySilence,
-  expiresIn,
-  getDurationTillNextDay,
-  displayNotes,
-} from '../am';
+import { abbr, displaySilence, expiresIn, getDurationTillNextDay, displayNotes } from '../am';
 import * as paramset from '../paramset';
 import { Incident, ParamSet, Note, Silence } from '../json';
 
@@ -138,18 +132,16 @@ export class SilenceSk extends HTMLElement {
   private incidents: Incident[] = [];
 
   private static template = (ele: SilenceSk) => html`
-  <h2 class=${ele.classOfH2()} @click=${ele.headerClick}>${displaySilence(
-    ele.state.param_set
-  )}</h2>
+  <h2 class=${ele.classOfH2()} @click=${ele.headerClick}>${displaySilence(ele.state.param_set)}</h2>
   <div class=body>
     <section class=actions>
       ${ele.actionButtons()}
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele.state.user}</td></th>
-      <tr><th>Duration:</th><td><input class="duration" @change=${
-        ele.durationChange
-      } value=${ele.state.duration}></input><button class="param-btns" @click=${
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele.durationChange} value=${
+        ele.state.duration
+      }></input><button class="param-btns" @click=${
         ele.tillNextShift
       }>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(
@@ -204,16 +196,14 @@ export class SilenceSk extends HTMLElement {
   private table(): TemplateResult[] {
     const keys = Object.keys(this.state.param_set);
     keys.sort();
-    const botCentricParams =
-      JSON.stringify(keys) === JSON.stringify(BOT_CENTRIC_PARAMS);
+    const botCentricParams = JSON.stringify(keys) === JSON.stringify(BOT_CENTRIC_PARAMS);
     const rules = keys
       .filter((k) => !k.startsWith('__'))
       .map(
         (k) => html`
       <tr>
         <td>
-          <delete-icon-sk title='Delete rule.' @click=${() =>
-            this.deleteRule(k)}></delete-icon-sk>
+          <delete-icon-sk title='Delete rule.' @click=${() => this.deleteRule(k)}></delete-icon-sk>
         </td>
         <th>${k}</th>
         <td>
@@ -228,8 +218,7 @@ export class SilenceSk extends HTMLElement {
     rules.push(html`
       <tr>
         <td>
-          <add-box-icon-sk title='Add rule.' @click=${() =>
-            this.addRule()}></add-box-icon-sk>
+          <add-box-icon-sk title='Add rule.' @click=${() => this.addRule()}></add-box-icon-sk>
         </td>
         <td>
           <input id='add_param_key'></input>
@@ -242,14 +231,9 @@ export class SilenceSk extends HTMLElement {
     return rules;
   }
 
-  private displayAddBots(
-    botCentricParams: boolean,
-    key: string
-  ): TemplateResult {
+  private displayAddBots(botCentricParams: boolean, key: string): TemplateResult {
     if (botCentricParams && key === 'bot') {
-      return html`<button class="param-btns" @click=${() => this.botsChooser()}>
-        Add bot
-      </button>`;
+      return html`<button class="param-btns" @click=${() => this.botsChooser()}>Add bot</button>`;
     }
     return html``;
   }
@@ -264,10 +248,7 @@ export class SilenceSk extends HTMLElement {
   private displayAddNote(): TemplateResult {
     if (this.state.key) {
       return html`
-        <textarea
-          rows="2"
-          cols="80"
-          placeholder="Add description for the silence"></textarea>
+        <textarea rows="2" cols="80" placeholder="Add description for the silence"></textarea>
         <button @click=${this.addNote}>Submit</button>
       `;
     }
@@ -287,9 +268,7 @@ export class SilenceSk extends HTMLElement {
     }
     return this.incidents
       .filter(
-        (incident) =>
-          paramset.match(this.state.param_set, incident.params) &&
-          incident.active
+        (incident) => paramset.match(this.state.param_set, incident.params) && incident.active
       )
       .map(
         (incident) =>
@@ -312,9 +291,7 @@ export class SilenceSk extends HTMLElement {
         <button @click=${this.archive}>Archive</button>`;
     }
     return html`<button @click=${this.reactivate}>Reactivate</button>
-      <delete-icon-sk
-        title="Delete silence."
-        @click=${this.delete}></delete-icon-sk>`;
+      <delete-icon-sk title="Delete silence." @click=${this.delete}></delete-icon-sk>`;
   }
 
   private headerClick(): void {
@@ -354,36 +331,28 @@ export class SilenceSk extends HTMLElement {
         },
       ];
     }
-    this.dispatchEvent(
-      new CustomEvent('save-silence', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('save-silence', { detail: detail, bubbles: true }));
   }
 
   private archive(): void {
     const detail = {
       silence: this.state,
     };
-    this.dispatchEvent(
-      new CustomEvent('archive-silence', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('archive-silence', { detail: detail, bubbles: true }));
   }
 
   private reactivate(): void {
     const detail = {
       silence: this.state,
     };
-    this.dispatchEvent(
-      new CustomEvent('reactivate-silence', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('reactivate-silence', { detail: detail, bubbles: true }));
   }
 
   private delete(): void {
     const detail = {
       silence: this.state,
     };
-    this.dispatchEvent(
-      new CustomEvent('delete-silence', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('delete-silence', { detail: detail, bubbles: true }));
   }
 
   private deleteRule(key: string): void {
@@ -434,9 +403,7 @@ export class SilenceSk extends HTMLElement {
     const detail = {
       silence: silence,
     };
-    this.dispatchEvent(
-      new CustomEvent('add-silence-param', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('add-silence-param', { detail: detail, bubbles: true }));
 
     // Reset the manual param key and value.
     keyInput.value = '';
@@ -444,9 +411,7 @@ export class SilenceSk extends HTMLElement {
   }
 
   private botsChooser(): void {
-    this.dispatchEvent(
-      new CustomEvent('bot-chooser', { detail: {}, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('bot-chooser', { detail: {}, bubbles: true }));
   }
 
   private addNote(): void {
@@ -455,9 +420,7 @@ export class SilenceSk extends HTMLElement {
       key: this.state.key,
       text: textarea.value,
     };
-    this.dispatchEvent(
-      new CustomEvent('add-silence-note', { detail: detail, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('add-silence-note', { detail: detail, bubbles: true }));
     textarea.value = '';
   }
 

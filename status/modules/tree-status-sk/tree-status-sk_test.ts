@@ -4,10 +4,7 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import { $ } from '../../../infra-sk/modules/dom';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { TreeStatus, TreeStatusSk } from './tree-status-sk';
 import {
   treeStatusResp,
@@ -57,9 +54,10 @@ describe('tree-status-sk', () => {
   describe('displays', () => {
     it('status, user, and time', async () => {
       await createElement();
-      expect(
-        $('span', element).map((e) => (e as HTMLElement).innerText)
-      ).to.deep.equal(['No longer Broken! ', '[alice 2w ago]']);
+      expect($('span', element).map((e) => (e as HTMLElement).innerText)).to.deep.equal([
+        'No longer Broken! ',
+        '[alice 2w ago]',
+      ]);
     });
   });
 
@@ -70,18 +68,8 @@ describe('tree-status-sk', () => {
       const treeStatus = ((await ep) as CustomEvent).detail as TreeStatus;
       const rotations = treeStatus.rotations;
       expect(rotations).to.have.length(4);
-      expect(rotations.map((r) => r.role)).to.deep.equal([
-        'Skia',
-        'GPU',
-        'Android',
-        'Infra',
-      ]);
-      expect(rotations.map((r) => r.name)).to.deep.equal([
-        'alice',
-        'bob',
-        'christy',
-        'dan',
-      ]);
+      expect(rotations.map((r) => r.role)).to.deep.equal(['Skia', 'GPU', 'Android', 'Infra']);
+      expect(rotations.map((r) => r.name)).to.deep.equal(['alice', 'bob', 'christy', 'dan']);
       expect(treeStatus.status).to.deep.equal(treeStatusResp);
     });
   });

@@ -18,11 +18,7 @@ class IconsDemoSk extends ElementSk {
 
     ${el.getCategories().length === 0
       ? html`<p class="no-results">No icons match "${el.filter}".</p>`
-      : el
-          .getCategories()
-          .map((category: string) =>
-            IconsDemoSk.categoryTemplate(el, category)
-          )}
+      : el.getCategories().map((category: string) => IconsDemoSk.categoryTemplate(el, category))}
   `;
 
   private static categoryTemplate = (el: IconsDemoSk, category: string) => html`
@@ -38,9 +34,7 @@ class IconsDemoSk extends ElementSk {
 
   private static iconTemplate = (iconName: string) => html`
     <figure class="icon">
-      ${unsafeHTML(
-        `<${iconName}-icon-sk title="${iconName}-icon-sk"></${iconName}-icon-sk>`
-      )}
+      ${unsafeHTML(`<${iconName}-icon-sk title="${iconName}-icon-sk"></${iconName}-icon-sk>`)}
       <figcaption>${iconName}</figcaption>
     </figure>
   `;
@@ -57,9 +51,7 @@ class IconsDemoSk extends ElementSk {
   }
 
   private getCategories(): string[] {
-    return Array.from(icons.keys()).filter(
-      (cat) => this.getIconsForCategory(cat).length > 0
-    );
+    return Array.from(icons.keys()).filter((cat) => this.getIconsForCategory(cat).length > 0);
   }
 
   private getIconsForCategory(category: string): string[] {

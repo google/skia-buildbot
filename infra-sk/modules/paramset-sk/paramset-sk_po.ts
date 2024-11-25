@@ -1,9 +1,6 @@
 import { ParamSet } from '../query';
 import { PageObject } from '../page_object/page_object';
-import {
-  PageObjectElement,
-  PageObjectElementList,
-} from '../page_object/page_object_element';
+import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 
 /**
  * A (ParamSet index, key, value) tuple used by ParamSetSkPO to refer to specific key/value pairs
@@ -100,10 +97,7 @@ export class ParamSetSkPO extends PageObject {
   }
 
   private async _forEachParamSetKeyValue(
-    fn: (
-      pkv: ParamSetKeyValueTuple,
-      valueDiv: PageObjectElement
-    ) => Promise<void>
+    fn: (pkv: ParamSetKeyValueTuple, valueDiv: PageObjectElement) => Promise<void>
   ): Promise<void> {
     // Iterate over all rows.
     await this.rows.forEach(async (row) => {

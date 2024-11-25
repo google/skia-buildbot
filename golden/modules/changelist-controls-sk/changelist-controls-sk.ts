@@ -22,9 +22,7 @@ export class ChangelistControlsSk extends ElementSk {
     return html`
       <div class="info">
         <span class="title">${cl.system} changelist:</span>
-        <a href=${cl.url} target="_blank" rel="noopener">
-          ${truncate(cl.subject, 48)}
-        </a>
+        <a href=${cl.url} target="_blank" rel="noopener"> ${truncate(cl.subject, 48)} </a>
 
         <span>${truncate(cl.owner, 32)}</span>
 
@@ -36,10 +34,7 @@ export class ChangelistControlsSk extends ElementSk {
       <div class="inputs">
         <select @input=${ele.onSelectPS}>
           ${ele._summary.patch_sets.map(
-            (ps) =>
-              html`<option ?selected=${ele.ps_order === ps.order}>
-                PS ${ps.order}
-              </option>`
+            (ps) => html`<option ?selected=${ele.ps_order === ps.order}>PS ${ps.order}</option>`
           )}
         </select>
         <span class="spacer"></span>
@@ -69,9 +64,7 @@ export class ChangelistControlsSk extends ElementSk {
 
   private static tryJobTemplate = (tj: TryJob) => html`
     <div class="tryjob" title=${tj.name}>
-      <a href=${tj.url} target="_blank" rel="noopener">
-        ${truncate(tj.name, 60)}
-      </a>
+      <a href=${tj.url} target="_blank" rel="noopener"> ${truncate(tj.name, 60)} </a>
     </div>
   `;
 
@@ -121,8 +114,7 @@ export class ChangelistControlsSk extends ElementSk {
   }
 
   set include_master(val) {
-    this.includeDigestsFromPrimary =
-      (val as unknown as string) !== 'false' && !!val;
+    this.includeDigestsFromPrimary = (val as unknown as string) !== 'false' && !!val;
     this._render();
   }
 
@@ -164,16 +156,13 @@ export class ChangelistControlsSk extends ElementSk {
 
   private sendUpdateEvent() {
     this.dispatchEvent(
-      new CustomEvent<ChangelistControlsSkChangeEventDetail>(
-        'cl-control-change',
-        {
-          detail: {
-            include_master: this.include_master,
-            ps_order: this.ps_order,
-          },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<ChangelistControlsSkChangeEventDetail>('cl-control-change', {
+        detail: {
+          include_master: this.include_master,
+          ps_order: this.ps_order,
+        },
+        bubbles: true,
+      })
     );
   }
 }

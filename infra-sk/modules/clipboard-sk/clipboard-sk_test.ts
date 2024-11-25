@@ -20,10 +20,7 @@ describe('clipboard-sk', () => {
 
   describe('on construction', () => {
     it('has the right tooltip value', () => {
-      assert.equal(
-        $$<TooltipSk>('tooltip-sk', element)!.value,
-        defaultToolTipMessage
-      );
+      assert.equal($$<TooltipSk>('tooltip-sk', element)!.value, defaultToolTipMessage);
     });
   });
 });

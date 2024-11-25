@@ -160,8 +160,7 @@ As an example, suppose that directory `//measurements/conversions` has files `co
 import { mass as lb } from 'measurements/units/customary';
 import { mass as kg } from 'measurements/units/international';
 
-export const lbsToKg = (lbs: number) =>
-  `${lbs} ${lb} is equal to ${lbs * 0.453592} ${kg}`;
+export const lbsToKg = (lbs: number) => `${lbs} ${lb} is equal to ${lbs * 0.453592} ${kg}`;
 ```
 
 ```typescript
@@ -171,9 +170,7 @@ import { lbsToKg } from './conversions';
 
 describe('conversions', () => {
   it('should convert pounds to kilograms', () => {
-    expect(lbsToKg(1)).to.equal(
-      '1 pound (lb) is equal to 0.45392 kilogram (kg)'
-    );
+    expect(lbsToKg(1)).to.equal('1 pound (lb) is equal to 0.45392 kilogram (kg)');
   });
 });
 ```

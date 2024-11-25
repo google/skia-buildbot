@@ -30,12 +30,7 @@ import {
   UnthrottleResponse,
 } from '../rpc';
 
-import {
-  GetFakeRolls,
-  GetFakeStatus,
-  GetModeHistory,
-  GetStrategyHistory,
-} from './fake-status';
+import { GetFakeRolls, GetFakeStatus, GetModeHistory, GetStrategyHistory } from './fake-status';
 import { GetFakeMiniStatuses } from './fake-ministatuses';
 import {
   AddCleanupRequestRequest,
@@ -153,9 +148,7 @@ class FakeAutoRollService implements AutoRollService {
       const validStrategies = Object.keys(Strategy);
       const validStrategy = validStrategies.indexOf(req.strategy);
       if (validStrategy < 0) {
-        reject(
-          `Invalid strategy: ${req.strategy}; valid strategies: ${validStrategies}`
-        );
+        reject(`Invalid strategy: ${req.strategy}; valid strategies: ${validStrategies}`);
         return;
       }
       const sc: StrategyChange = {
@@ -172,9 +165,7 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
-  getStrategyHistory(
-    req: GetStrategyHistoryRequest
-  ): Promise<GetStrategyHistoryResponse> {
+  getStrategyHistory(req: GetStrategyHistoryRequest): Promise<GetStrategyHistoryResponse> {
     return new Promise((resolve, reject) => {
       resolve({
         history: GetStrategyHistory(),
@@ -183,11 +174,8 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
-  createManualRoll(
-    req: CreateManualRollRequest
-  ): Promise<CreateManualRollResponse> {
-    const result =
-      manualRollResults[this.manualRollResult++ % manualRollResults.length];
+  createManualRoll(req: CreateManualRollRequest): Promise<CreateManualRollResponse> {
+    const result = manualRollResults[this.manualRollResult++ % manualRollResults.length];
     const id: string = `manualRequest${this.manualRequestId}`;
     this.manualRequestId++;
     const rv: ManualRoll = {
@@ -217,9 +205,7 @@ class FakeAutoRollService implements AutoRollService {
     return Promise.resolve({});
   }
 
-  addCleanupRequest(
-    req: AddCleanupRequestRequest
-  ): Promise<AddCleanupRequestResponse> {
+  addCleanupRequest(req: AddCleanupRequestRequest): Promise<AddCleanupRequestResponse> {
     const cleanupRequest: CleanupRequest = {
       needsCleanup: true,
       user: 'you@google.com',
@@ -233,9 +219,7 @@ class FakeAutoRollService implements AutoRollService {
     });
   }
 
-  getCleanupHistory(
-    _: GetCleanupHistoryRequest
-  ): Promise<GetCleanupHistoryResponse> {
+  getCleanupHistory(_: GetCleanupHistoryRequest): Promise<GetCleanupHistoryResponse> {
     return Promise.resolve({
       history: this.cleanupRequests,
     });

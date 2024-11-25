@@ -173,27 +173,20 @@ describe('byblame-page-sk', () => {
 
 function selectCorpus(byblamePageSk: ByBlamePageSk, corpus: string) {
   const event = eventPromise('end-task');
-  $$<HTMLElement>(
-    `corpus-selector-sk li[title="${corpus}"]`,
-    byblamePageSk
-  )!.click();
+  $$<HTMLElement>(`corpus-selector-sk li[title="${corpus}"]`, byblamePageSk)!.click();
   return event;
 }
 
 function expectCorporaToBe(byblamePageSk: ByBlamePageSk, corpora: string[]) {
-  expect(
-    $<HTMLLIElement>('corpus-selector-sk li').map((li) => li.innerText)
-  ).to.deep.equal(corpora);
+  expect($<HTMLLIElement>('corpus-selector-sk li').map((li) => li.innerText)).to.deep.equal(
+    corpora
+  );
 }
 
-function expectSelectedCorpusToBe(
-  byblamePageSk: ByBlamePageSk,
-  corpus: string
-) {
-  expect(
-    $$<HTMLLIElement>('corpus-selector-sk li.selected', byblamePageSk)!
-      .innerText
-  ).to.equal(corpus);
+function expectSelectedCorpusToBe(byblamePageSk: ByBlamePageSk, corpus: string) {
+  expect($$<HTMLLIElement>('corpus-selector-sk li.selected', byblamePageSk)!.innerText).to.equal(
+    corpus
+  );
 }
 
 function expectHasEmptyBlames(byblamePageSk: ByBlamePageSk) {
@@ -234,26 +227,17 @@ function expectBlames(
 
   // Spot check first and last entries.
   if (firstTriageLinkHref) {
-    expect($$<HTMLAnchorElement>('a.triage', entries[0])!.href).to.have.string(
-      firstTriageLinkHref
-    );
+    expect($$<HTMLAnchorElement>('a.triage', entries[0])!.href).to.have.string(firstTriageLinkHref);
   }
   if (lastTriageLinkHref) {
-    expect(
-      $$<HTMLAnchorElement>('a.triage', entries[entries.length - 1])!.href
-    ).to.have.string(lastTriageLinkHref);
+    expect($$<HTMLAnchorElement>('a.triage', entries[entries.length - 1])!.href).to.have.string(
+      lastTriageLinkHref
+    );
   }
 }
 
-function expectFirstCommitLinkHrefToBe(
-  byblamePageSk: ByBlamePageSk,
-  expectedHref: string
-) {
-  const firstCommitLinkSelector =
-    'byblameentry-sk:first-child ul.blames a:first-child';
-  const actualHref = $$<HTMLAnchorElement>(
-    firstCommitLinkSelector,
-    byblamePageSk
-  )!.href;
+function expectFirstCommitLinkHrefToBe(byblamePageSk: ByBlamePageSk, expectedHref: string) {
+  const firstCommitLinkSelector = 'byblameentry-sk:first-child ul.blames a:first-child';
+  const actualHref = $$<HTMLAnchorElement>(firstCommitLinkSelector, byblamePageSk)!.href;
   expect(actualHref).to.equal(expectedHref);
 }

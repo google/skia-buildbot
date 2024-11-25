@@ -256,10 +256,7 @@ export class CtScaffoldSk extends ElementSk {
       // We can ignore AbortError since they fire anytime an AbortController was canceled.
       // Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
-      errorMessage(
-        `Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000
-      );
+      errorMessage(`Unexpected error loading ${loadingWhat}: ${e.message}`, 5000);
     }
     this._finishedTask();
   }

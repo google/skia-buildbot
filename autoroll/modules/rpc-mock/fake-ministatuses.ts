@@ -701,8 +701,7 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
       rollerId: 'pgo-mac-chromium',
       currentRollRev:
         'chrome-mac-master-1593582825-995d8e78b6c8ff09ef0a8c1c9fd4830db0669287.profdata',
-      lastRollRev:
-        'chrome-mac-master-1593561487-f93d00b844fcb3a1b3a03cdb0ab1966b81282397.profdata',
+      lastRollRev: 'chrome-mac-master-1593561487-f93d00b844fcb3a1b3a03cdb0ab1966b81282397.profdata',
       numFailed: 0,
       numBehind: 2,
       childName: 'Chrome Mac PGO profile',
@@ -712,8 +711,7 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-mac-chromium-beta',
       currentRollRev: '',
-      lastRollRev:
-        'chrome-mac-4147-1590507938-4068f0fc133424a023d4dd8ed3d45ba11cc79dc8.profdata',
+      lastRollRev: 'chrome-mac-4147-1590507938-4068f0fc133424a023d4dd8ed3d45ba11cc79dc8.profdata',
       numFailed: 0,
       numBehind: 67,
       childName: 'Chrome Mac PGO profile',
@@ -735,8 +733,7 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-win32-chromium-beta',
       currentRollRev: '',
-      lastRollRev:
-        'chrome-win32-4147-1589956987-e649980210d29d0154d23124ef0dc054ae5123ce.profdata',
+      lastRollRev: 'chrome-win32-4147-1589956987-e649980210d29d0154d23124ef0dc054ae5123ce.profdata',
       numFailed: 10,
       numBehind: 54,
       childName: 'Chrome Win32 PGO profile',
@@ -758,8 +755,7 @@ export function GetFakeMiniStatuses(): AutoRollMiniStatus[] {
     {
       rollerId: 'pgo-win64-chromium-beta',
       currentRollRev: '',
-      lastRollRev:
-        'chrome-win64-4147-1590479906-291af69463e19a8b478aca46aa1f76a6402f5638.profdata',
+      lastRollRev: 'chrome-win64-4147-1590479906-291af69463e19a8b478aca46aa1f76a6402f5638.profdata',
       numFailed: 0,
       numBehind: 31,
       childName: 'Chrome Win64 PGO profile',

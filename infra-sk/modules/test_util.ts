@@ -96,24 +96,13 @@ export function setUpElementUnderTest<T extends HTMLElement>(
  *     returned promise.
  * @return A promise that will resolve to the caught event.
  */
-export function eventPromise<T extends Event>(
-  event: string,
-  timeoutMillis = 5000
-) {
-  const eventCaughtCallback = (resolve: (event: T) => void, _: any, e: T) =>
-    resolve(e);
+export function eventPromise<T extends Event>(event: string, timeoutMillis = 5000) {
+  const eventCaughtCallback = (resolve: (event: T) => void, _: any, e: T) => resolve(e);
   const timeoutCallback = (_: any, reject: (reason: any) => void) =>
     reject(
-      new Error(
-        `timed out after ${timeoutMillis} ms while waiting to catch event "${event}"`
-      )
+      new Error(`timed out after ${timeoutMillis} ms while waiting to catch event "${event}"`)
     );
-  return buildEventPromise<T>(
-    event,
-    timeoutMillis,
-    eventCaughtCallback,
-    timeoutCallback
-  );
+  return buildEventPromise<T>(event, timeoutMillis, eventCaughtCallback, timeoutCallback);
 }
 
 /**
@@ -155,12 +144,7 @@ export function noEventPromise(event: string, timeoutMillis = 200) {
   const eventCaughtCallback = (_: any, reject: (reason: any) => void) =>
     reject(new Error(`event "${event}" was caught when none was expected`));
   const timeoutCallback = (resolve: () => void) => resolve();
-  return buildEventPromise<void>(
-    event,
-    timeoutMillis,
-    eventCaughtCallback,
-    timeoutCallback
-  );
+  return buildEventPromise<void>(event, timeoutMillis, eventCaughtCallback, timeoutCallback);
 }
 
 /**
@@ -252,10 +236,7 @@ function buildEventPromise<T extends Event | void>(
  *     expect(events[4].detail).to.equal('j');
  *   });
  */
-export async function eventSequencePromise<T extends Event>(
-  events: string[],
-  timeoutMillis = 200
-) {
+export async function eventSequencePromise<T extends Event>(events: string[], timeoutMillis = 200) {
   if (events.length === 0) {
     return [];
   }
@@ -276,10 +257,7 @@ export async function eventSequencePromise<T extends Event>(
       }
 
       eventHandlers.forEach((handler, eventName) => {
-        document.removeEventListener(
-          eventName,
-          handler as (event: Event) => void
-        );
+        document.removeEventListener(eventName, handler as (event: Event) => void);
       });
     };
 
@@ -334,9 +312,5 @@ export function expectQueryStringToEqual(expected: string) {
  * Sets the query string to be the provided value. Does *not* cause a page reload.
  */
 export function setQueryString(q: string) {
-  window.history.pushState(
-    null,
-    '',
-    window.location.origin + window.location.pathname + q
-  );
+  window.history.pushState(null, '', window.location.origin + window.location.pathname + q);
 }

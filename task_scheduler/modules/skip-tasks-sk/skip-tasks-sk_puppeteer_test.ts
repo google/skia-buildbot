@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { ThemeChooserSk } from '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
 
 describe('skip-tasks-sk', () => {
@@ -16,9 +12,7 @@ describe('skip-tasks-sk', () => {
     await testBed.page.goto(testBed.baseUrl);
     await testBed.page.setViewport({ width: 550, height: 550 });
     await testBed.page.evaluate(() => {
-      (<ThemeChooserSk>(
-        document.getElementsByTagName('theme-chooser-sk')[0]
-      )).darkmode = false;
+      (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = false;
     });
   });
 
@@ -28,22 +22,12 @@ describe('skip-tasks-sk', () => {
 
   describe('screenshots', () => {
     it('starting point', async () => {
-      await takeScreenshot(
-        testBed.page,
-        'task-scheduler',
-        'skip-tasks-sk_start'
-      );
+      await takeScreenshot(testBed.page, 'task-scheduler', 'skip-tasks-sk_start');
       // Take a screenshot in dark mode.
       await testBed.page.evaluate(() => {
-        (<ThemeChooserSk>(
-          document.getElementsByTagName('theme-chooser-sk')[0]
-        )).darkmode = true;
+        (<ThemeChooserSk>document.getElementsByTagName('theme-chooser-sk')[0]).darkmode = true;
       });
-      await takeScreenshot(
-        testBed.page,
-        'task-scheduler',
-        'skip-tasks-sk_start-dark'
-      );
+      await takeScreenshot(testBed.page, 'task-scheduler', 'skip-tasks-sk_start-dark');
     });
     it('adds a rule', async () => {
       await testBed.page.click('add-icon-sk');
@@ -53,21 +37,10 @@ describe('skip-tasks-sk', () => {
       // unable to automate the checking of the checkbox and subsequent
       // rendering of the new input field.
       await testBed.page.type('#input-range-start', 'abc123');
-      await testBed.page.type(
-        '#input-description',
-        'This is a detailed description of the rule.'
-      );
-      await takeScreenshot(
-        testBed.page,
-        'task-scheduler',
-        'skip-tasks-sk_adding-rule'
-      );
+      await testBed.page.type('#input-description', 'This is a detailed description of the rule.');
+      await takeScreenshot(testBed.page, 'task-scheduler', 'skip-tasks-sk_adding-rule');
       await testBed.page.click('#add-button');
-      await takeScreenshot(
-        testBed.page,
-        'task-scheduler',
-        'skip-tasks-sk_added-rule'
-      );
+      await takeScreenshot(testBed.page, 'task-scheduler', 'skip-tasks-sk_added-rule');
     });
   });
 });

@@ -56,10 +56,7 @@ fetchMock.get('glob:/json/v2/search*', (url: string) => {
   // Apply limit and offset.
   const limit = parseInt(queryParams.limit[0]);
   const offset = parseInt(queryParams.offset[0]);
-  filteredSearchResponse.digests = filteredSearchResponse.digests.slice(
-    offset,
-    offset + limit
-  );
+  filteredSearchResponse.digests = filteredSearchResponse.digests.slice(offset, offset + limit);
   filteredSearchResponse.offset = offset;
 
   return delay(filteredSearchResponse, 1000);
@@ -73,10 +70,7 @@ fetchMock.post('/json/v3/triage', (_: any, req: any) => {
   triageRequest.deltas.forEach((delta: TriageDelta) => {
     searchResponse.digests!.forEach((searchResult: SearchResult | null) => {
       // Update the search result if it matches the current digest.
-      if (
-        searchResult?.digest === delta.digest &&
-        searchResult.test === delta.grouping.name
-      ) {
+      if (searchResult?.digest === delta.digest && searchResult.test === delta.grouping.name) {
         searchResult.status = delta.label_after;
       }
 

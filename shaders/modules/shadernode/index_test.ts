@@ -183,10 +183,7 @@ describe('ShaderNode', async () => {
     node.shaderCode += '\n';
     assert.isTrue(node.needsCompile(), 'Needs compile when code has changed.');
     node.shaderCode = originalCode;
-    assert.isFalse(
-      node.needsCompile(),
-      'No longer needs a compile when change is undone.'
-    );
+    assert.isFalse(node.needsCompile(), 'No longer needs a compile when change is undone.');
   });
 
   it('correctly indicates when save() needs to be called.', async () => {
@@ -228,10 +225,7 @@ describe('ShaderNode', async () => {
     node.currentUserUniformValues = modifiedUniformValues;
     assert.isTrue(node.needsSave(), 'Needs save if uniform values changed.');
     node.currentUserUniformValues = startingUniformValues;
-    assert.isFalse(
-      node.needsSave(),
-      "Doesn't need save if uniform values restored."
-    );
+    assert.isFalse(node.needsSave(), "Doesn't need save if uniform values restored.");
   });
 
   it('reports compiler errors', async () => {
@@ -254,9 +248,7 @@ describe('ShaderNode', async () => {
     node.compile();
 
     assert.deepEqual(node.compileErrorLineNumbers, [5]);
-    node.compileErrorMessage.startsWith(
-      "error: 5: expected ';', but found '}'"
-    );
+    node.compileErrorMessage.startsWith("error: 5: expected ';', but found '}'");
   });
 
   it('makes a copy of the ScrapBody', async () => {
@@ -290,10 +282,7 @@ describe('ShaderNode', async () => {
     it('is created on loadScrap', async () => {
       const node = await createShaderNodeWithChildShader();
       assert.equal(1, node.children.length);
-      assert.equal(
-        defaultChildShaderScrapHashOrName,
-        node.children[0]['scrapID']
-      );
+      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
       assert.equal(node.getChildShader(0).UniformName, 'childShader');
     });
 
@@ -331,17 +320,11 @@ describe('ShaderNode', async () => {
           Uniforms: [],
         },
       };
-      fetchMock.get(
-        `/_/load/${defaultChildShaderScrapHashOrName}`,
-        childScrapBody
-      );
+      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
 
       await node.appendNewChildShader();
       assert.equal(1, node.children.length);
-      assert.equal(
-        defaultChildShaderScrapHashOrName,
-        node.children[0]['scrapID']
-      );
+      assert.equal(defaultChildShaderScrapHashOrName, node.children[0]['scrapID']);
       await fetchMock.flush();
       assert.isTrue(fetchMock.done());
       fetchMock.restore();
@@ -354,10 +337,7 @@ describe('ShaderNode', async () => {
 
     it('has uniform declarations', async () => {
       const node = await createShaderNodeWithChildShader();
-      assert.equal(
-        node.getChildShaderUniforms(),
-        'uniform shader childShader;'
-      );
+      assert.equal(node.getChildShaderUniforms(), 'uniform shader childShader;');
     });
 
     it('has a name that can be changed', async () => {
@@ -375,10 +355,7 @@ describe('ShaderNode', async () => {
           Uniforms: [],
         },
       };
-      fetchMock.get(
-        `/_/load/${defaultChildShaderScrapHashOrName}`,
-        childScrapBody
-      );
+      fetchMock.get(`/_/load/${defaultChildShaderScrapHashOrName}`, childScrapBody);
 
       await node.setChildShaderUniformName(0, newUniformName);
       assert.equal(node.getChildShaderUniformName(0), newUniformName);
@@ -391,14 +368,9 @@ describe('ShaderNode', async () => {
     it('raises on invalid child shader names', async () => {
       const node = await createShaderNodeWithChildShader();
       await node
-        .setChildShaderUniformName(
-          0,
-          'this is an invalid uniform name because it contains spaces'
-        )
+        .setChildShaderUniformName(0, 'this is an invalid uniform name because it contains spaces')
         .then(() => assert.fail())
-        .catch((err: Error) =>
-          assert.match(err.message, /Invalid uniform name/)
-        );
+        .catch((err: Error) => assert.match(err.message, /Invalid uniform name/));
     });
 
     it('raises on out of bounds', async () => {

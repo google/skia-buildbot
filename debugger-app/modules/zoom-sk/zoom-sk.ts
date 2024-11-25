@@ -44,10 +44,7 @@ export class ZoomSk extends ElementDocSk {
         <dd>(${ele._cursor[0]}, ${ele._cursor[1]})</dd>
         <dt><b>Color</b></dt>
         <dd>
-          <div
-            class="color-preview"
-            id="prevColor"
-            style="background-color: ${ele._rgb}"></div>
+          <div class="color-preview" id="prevColor" style="background-color: ${ele._rgb}"></div>
           ${ele._rgb}
         </dd>
         <dd>${ele._hex}</dd>
@@ -102,9 +99,7 @@ export class ZoomSk extends ElementDocSk {
             <td>Play/Pause frame playback</td>
           </tr>
           <tr>
-            <td colspan="2">
-              Click the image again to turn off keyboard navigation.
-            </td>
+            <td colspan="2">Click the image again to turn off keyboard navigation.</td>
           </tr>
         </table>
       </details>`;
@@ -156,9 +151,7 @@ export class ZoomSk extends ElementDocSk {
     });
 
     this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
-      this._backdropStyle = (
-        e as CustomEvent<ToggleBackgroundEventDetail>
-      ).detail.mode;
+      this._backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
       this._render();
     });
   }
@@ -204,12 +197,7 @@ export class ZoomSk extends ElementDocSk {
 
     // store the color of the selected pixel.
     // gives a UInt8ClampedArray of RGBA
-    const c = ctx.getImageData(
-      ZoomSk.viewSize / 2,
-      ZoomSk.viewSize / 2,
-      1,
-      1
-    ).data;
+    const c = ctx.getImageData(ZoomSk.viewSize / 2, ZoomSk.viewSize / 2, 1, 1).data;
     this._rgb = `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`;
     this._hex = (
       ((clamp(c[0]) << 24) |

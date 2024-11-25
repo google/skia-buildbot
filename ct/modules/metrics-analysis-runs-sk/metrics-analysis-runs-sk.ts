@@ -57,17 +57,14 @@ export class MetricsAnalysisRunsSk extends ElementSk {
   private static template = (el: MetricsAnalysisRunsSk) => html`
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}Metrics Analysis Runs</h2>
-      <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
+      <pagination-sk @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
       </button>
       <br />
       <br />
-      <table
-        class="surface-themes-sk secondary-links runssummary"
-        id="runssummary">
+      <table class="surface-themes-sk secondary-links runssummary" id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -79,15 +76,11 @@ export class MetricsAnalysisRunsSk extends ElementSk {
           <th>Patches</th>
           <th>Task Repeats</th>
         </tr>
-        ${el._tasks.map((task, index) =>
-          MetricsAnalysisRunsSk.taskRowTemplate(el, task, index)
-        )}
+        ${el._tasks.map((task, index) => MetricsAnalysisRunsSk.taskRowTemplate(el, task, index))}
       </table>
     </div>
 
-    ${el._tasks.map((task, index) =>
-      MetricsAnalysisRunsSk.taskDialogTemplate(task, index)
-    )}
+    ${el._tasks.map((task, index) => MetricsAnalysisRunsSk.taskDialogTemplate(task, index))}
     <toast-sk id="confirm_toast" duration="5000"></toast-sk>
   `;
 
@@ -100,10 +93,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
       <!-- Id col -->
       <td class="nowrap">
         ${task.raw_output
-          ? html`<a
-              href="${task.raw_output}"
-              target="_blank"
-              rel="noopener noreferrer"
+          ? html`<a href="${task.raw_output}" target="_blank" rel="noopener noreferrer"
               >${task.id}</a
             >`
           : html`<span>${task.id}</span>`}
@@ -158,10 +148,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
             ? html` <tr>
                 <td>Analysis Task Id:</td>
                 <td class="nowrap">
-                  <a
-                    href="${task.analysis_output_link}"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <a href="${task.analysis_output_link}" target="_blank" rel="noopener noreferrer"
                     >${task.analysis_task_id}
                   </a>
                 </td>
@@ -203,19 +190,13 @@ export class MetricsAnalysisRunsSk extends ElementSk {
         ${task.failure ? html`<div class="error">Failed</div>` : ''}
         ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
         ${task.raw_output
-          ? html` <a
-              href="${task.raw_output}"
-              target="_blank"
-              rel="noopener noreferrer">
+          ? html` <a href="${task.raw_output}" target="_blank" rel="noopener noreferrer">
               Output
             </a>`
           : ''}
         ${task.swarming_logs
           ? html` <br />
-              <a
-                href="${task.swarming_logs}"
-                target="_blank"
-                rel="noopener noreferrer">
+              <a href="${task.swarming_logs}" target="_blank" rel="noopener noreferrer">
                 Swarming Logs
               </a>`
           : ''}
@@ -260,10 +241,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
       <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
     </tr>`;
 
-  private static taskDialogTemplate = (
-    task: MetricsAnalysisDatastoreTask,
-    index: number
-  ) => html`
+  private static taskDialogTemplate = (task: MetricsAnalysisDatastoreTask, index: number) => html`
     <div
       id=${`benchmarkArgs${index}`}
       class="dialog-background hidden overlay-themes-sk"
@@ -318,8 +296,7 @@ export class MetricsAnalysisRunsSk extends ElementSk {
       .then((json: GetTasksResponse) => {
         this._tasks = json.data;
         this._pagination = json.pagination;
-        ($$('pagination-sk', this) as PaginationSk).pagination =
-          this._pagination!;
+        ($$('pagination-sk', this) as PaginationSk).pagination = this._pagination!;
         for (let i = 0; i < this._tasks.length; i++) {
           this._tasks[i].can_delete = json.permissions![i].DeleteAllowed;
           this._tasks[i].can_redo = json.permissions![i].RedoAllowed;

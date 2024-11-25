@@ -36,9 +36,7 @@ async function populate() {
   const { el: missing } = newEditIgnoreRule('#missing');
   missing.verifyFields();
 
-  const { po: partialCustomValuesPO } = newEditIgnoreRule(
-    '#partial_custom_values'
-  );
+  const { po: partialCustomValuesPO } = newEditIgnoreRule('#partial_custom_values');
   await partialCustomValuesPO.setCustomKey('oops');
   await partialCustomValuesPO.clickAddCustomParamBtn();
 }

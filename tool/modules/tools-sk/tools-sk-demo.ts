@@ -18,13 +18,10 @@ fetchMock.get('/_/configs', [
       'A package of scripts to manage checkouts and code reviews. The depot_tools package includes gclient, gcl, git-cl, repo, and others.',
     phase: 'GA',
     teams_id: '1201906511198',
-    code_path: [
-      'https://chromium.googlesource.com/chromium/tools/depot_tools/+/refs/heads/main',
-    ],
+    code_path: ['https://chromium.googlesource.com/chromium/tools/depot_tools/+/refs/heads/main'],
     audience: ['Chrome', 'PEEPSI'],
     adoption_stage: 'All',
-    landing_page:
-      'https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.md',
+    landing_page: 'https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.md',
     docs: {
       'git cl':
         'https://chromium.googlesource.com/chromium/tools/depot_tools/+/HEAD/README.git-cl.md',

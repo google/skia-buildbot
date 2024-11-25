@@ -135,9 +135,7 @@ export class ParamSetSk extends ElementSk {
     const ret: TemplateResult[] = [];
     ele._paramsets.forEach((p) =>
       ret.push(
-        html`<td>
-          ${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}
-        </td>`,
+        html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`,
         ParamSetSk.optionalPlusSign(ele, key, p),
         ParamSetSk.optionalCopyContent(ele, key, p)
       )
@@ -145,18 +143,12 @@ export class ParamSetSk extends ElementSk {
     return ret;
   };
 
-  private static optionalPlusSign = (
-    ele: ParamSetSk,
-    key: string,
-    p: ParamSet
-  ): TemplateResult => {
+  private static optionalPlusSign = (ele: ParamSetSk, key: string, p: ParamSet): TemplateResult => {
     if (!ele.clickable_plus) {
       return html``;
     }
     return html` <td>
-      <add-icon-sk
-        data-key=${key}
-        data-values=${JSON.stringify(p[key])}></add-icon-sk>
+      <add-icon-sk data-key=${key} data-values=${JSON.stringify(p[key])}></add-icon-sk>
     </td>`;
   };
 
@@ -169,19 +161,13 @@ export class ParamSetSk extends ElementSk {
       return html``;
     }
     return html` <td>
-      <div
-        class="icon-sk copy-content"
-        @click=${() => ele.copyContent(`${key}=${p[key]}`)}>
+      <div class="icon-sk copy-content" @click=${() => ele.copyContent(`${key}=${p[key]}`)}>
         content_copy
       </div>
     </td>`;
   };
 
-  private static paramsetValueTemplate = (
-    ele: ParamSetSk,
-    key: string,
-    params: string[]
-  ) => {
+  private static paramsetValueTemplate = (ele: ParamSetSk, key: string, params: string[]) => {
     // Figure out if we are down to just one checkbox being checked. If so we'll
     // want to disable that checkbox so that it can't be unchecked, otherwise
     // all the data will disappear from the display.
@@ -200,22 +186,17 @@ export class ParamSetSk extends ElementSk {
     return params.map((value) => {
       if (ele.checkbox_values) {
         let disabled = false;
-        const currentCheckboxChecked =
-          uncheckedSet === undefined || !uncheckedSet.has(value);
+        const currentCheckboxChecked = uncheckedSet === undefined || !uncheckedSet.has(value);
         if (downToJustOneCheckedCheckboxForThisKey && currentCheckboxChecked) {
           disabled = true;
         }
 
         return html`
-          <div
-            class=${ele._highlighted(key, value)}
-            data-key=${key}
-            data-value=${value}>
+          <div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>
             <checkbox-sk
               id="checkbox-${key}-${value}"
               name=""
-              @change=${(e: MouseEvent) =>
-                ele.checkboxValueClickHandler(e, key, value)}
+              @change=${(e: MouseEvent) => ele.checkboxValueClickHandler(e, key, value)}
               label=""
               checked
               ?disabled=${disabled}
@@ -225,10 +206,7 @@ export class ParamSetSk extends ElementSk {
           </div>
         `;
       }
-      return html`<div
-        class=${ele._highlighted(key, value)}
-        data-key=${key}
-        data-value=${value}>
+      return html`<div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>
         ${value} ${ParamSetSk.cancelIconTemplate(ele, key, value)}
       </div> `;
     });
@@ -298,11 +276,7 @@ export class ParamSetSk extends ElementSk {
     this.toast!.show();
   }
 
-  private fixUpDisabledStateOnRemainingCheckboxes(
-    isChecked: boolean,
-    key: string,
-    value: string
-  ) {
+  private fixUpDisabledStateOnRemainingCheckboxes(isChecked: boolean, key: string, value: string) {
     // Update the unchecked status and then re-render.
     const set = this.unchecked.get(key) || new Set();
     if (isChecked) {
@@ -323,13 +297,10 @@ export class ParamSetSk extends ElementSk {
       value: value,
     };
     this.dispatchEvent(
-      new CustomEvent<ParamSetSkCheckboxClickEventDetail>(
-        'paramset-checkbox-click',
-        {
-          detail,
-          bubbles: true,
-        }
-      )
+      new CustomEvent<ParamSetSkCheckboxClickEventDetail>('paramset-checkbox-click', {
+        detail,
+        bubbles: true,
+      })
     );
 
     this.fixUpDisabledStateOnRemainingCheckboxes(isChecked, key, value);
@@ -370,13 +341,10 @@ export class ParamSetSk extends ElementSk {
         ctrl: e.ctrlKey,
       };
       this.dispatchEvent(
-        new CustomEvent<ParamSetSkClickEventDetail>(
-          'paramset-key-value-click',
-          {
-            detail,
-            bubbles: true,
-          }
-        )
+        new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-value-click', {
+          detail,
+          bubbles: true,
+        })
       );
     } else if (t.nodeName === 'ADD-ICON-SK') {
       const detail: ParamSetSkPlusClickEventDetail = {
@@ -395,13 +363,7 @@ export class ParamSetSk extends ElementSk {
   }
 
   static get observedAttributes() {
-    return [
-      'clickable',
-      'clickable_values',
-      'clickable_plus',
-      'copy-content',
-      'checkbox_values',
-    ];
+    return ['clickable', 'clickable_values', 'clickable_plus', 'copy-content', 'checkbox_values'];
   }
 
   /** Mirrors the clickable attribute.  */
@@ -564,13 +526,10 @@ export class ParamSetSk extends ElementSk {
       value: value,
     };
     this.dispatchEvent(
-      new CustomEvent<ParamSetSkRemoveClickEventDetail>(
-        'paramset-value-remove-click',
-        {
-          detail,
-          bubbles: true,
-        }
-      )
+      new CustomEvent<ParamSetSkRemoveClickEventDetail>('paramset-value-remove-click', {
+        detail,
+        bubbles: true,
+      })
     );
   }
 }

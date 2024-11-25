@@ -26,20 +26,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2316326/2 ([WIP] Track dynamically added scripts with no src in AdTracker)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/cf90a6c04958ad2ec0d41bda844e9008654b60e6.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/cf90a6c04958ad2ec0d41bda844e9008654b60e6.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/alexmt-ChromiumPerf-5094/html/index.html',
@@ -77,20 +70,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2316326/1 ([WIP] Track dynamically added scripts with no src in AdTracker)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/8e2c009191f9ac50e59b8c896f475e2a4c555b59.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/8e2c009191f9ac50e59b8c896f475e2a4c555b59.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/alexmt-ChromiumPerf-5091/html/index.html',
@@ -129,20 +115,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch:
         '--enable-features=UseSkiaRenderer --use-gl=angle --use-cmd-decoder=passthrough --disable-features=Vulkan',
       description: 'Testing ANGLE overhead',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/220e34417681c50b03443f1ae74d4d2f12b7b20e.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/220e34417681c50b03443f1ae74d4d2f12b7b20e.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/220e34417681c50b03443f1ae74d4d2f12b7b20e.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/220e34417681c50b03443f1ae74d4d2f12b7b20e.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/backer-ChromiumPerf-5084/html/index.html',
@@ -177,23 +156,15 @@ export const tasksResult0: GetTasksResponse = {
       benchmark_args:
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format',
       browser_args_no_patch: '',
-      browser_args_with_patch:
-        '--enable-features=ClientStorageAccessContextAuditing',
+      browser_args_with_patch: '--enable-features=ClientStorageAccessContextAuditing',
       description: 'Client Storage API Access Context Auditing - Cookies',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/sauski-ChromiumPerf-5082/html/index.html',
@@ -231,20 +202,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch:
         '--enable-features=UseSkiaRenderer --use-gl=angle --use-cmd-decoder=passthrough',
       description: 'Testing ANGLE overhead',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/8a9ada38ecc1413abc7180faf960b9c976dc139f.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/8a9ada38ecc1413abc7180faf960b9c976dc139f.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/8a9ada38ecc1413abc7180faf960b9c976dc139f.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/8a9ada38ecc1413abc7180faf960b9c976dc139f.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/backer-ChromiumPerf-5081/html/index.html',
@@ -276,26 +240,17 @@ export const tasksResult0: GetTasksResponse = {
       is_test_page_set: false,
       repeat_runs: 1,
       run_in_parallel: false,
-      benchmark_args:
-        '--output-format=csv --pageset-repeat=1 --legacy-json-trace-format',
+      benchmark_args: '--output-format=csv --pageset-repeat=1 --legacy-json-trace-format',
       browser_args_no_patch: '',
       browser_args_with_patch: '',
-      description:
-        'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      description: 'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/sadrul-ChromiumPerf-5074/html/index.html',
@@ -332,20 +287,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_no_patch: '',
       browser_args_with_patch: '',
       description: 'Testing willReadFrequently',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/e4ed65d9ff42dc58ad00a776310890c76de94277.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/e4ed65d9ff42dc58ad00a776310890c76de94277.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/teresakang-ChromiumPerf-5065/html/index.html',
@@ -383,20 +331,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2296293/4 (Perf: NotifyPaintTimingChanged for FEtP only 1 in N times to speed up.)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/a69a1805423e629696d63976e71c64ffc5ddffea.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/a69a1805423e629696d63976e71c64ffc5ddffea.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/cammie-ChromiumPerf-5063/html/index.html',
@@ -434,20 +375,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2296293/3 (Perf: NotifyPaintTimingChanged for FEtP only 1 in N times to speed up.)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/6dc9bd43d71e9ff3d488861a6ca630a73cbc2d52.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/6dc9bd43d71e9ff3d488861a6ca630a73cbc2d52.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/cammie-ChromiumPerf-5062/html/index.html',
@@ -485,20 +419,13 @@ export const tasksResult0: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2297698/1 (Revert "Use PhysicalOffset in legacy inline box painters")',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/107799931181b2f5b13d132af8112c098ca9aa88.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/107799931181b2f5b13d132af8112c098ca9aa88.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/wangxianzhu-ChromiumPerf-5061/html/index.html',
@@ -553,20 +480,13 @@ export const tasksResult1: GetTasksResponse = {
       browser_args_no_patch: '',
       browser_args_with_patch: '',
       description: 'Testing willReadFrequently',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/e4ed65d9ff42dc58ad00a776310890c76de94277.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/e4ed65d9ff42dc58ad00a776310890c76de94277.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/teresakang-ChromiumPerf-5065/html/index.html',
@@ -604,20 +524,13 @@ export const tasksResult1: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2296293/4 (Perf: NotifyPaintTimingChanged for FEtP only 1 in N times to speed up.)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/a69a1805423e629696d63976e71c64ffc5ddffea.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/a69a1805423e629696d63976e71c64ffc5ddffea.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/cammie-ChromiumPerf-5063/html/index.html',
@@ -655,20 +568,13 @@ export const tasksResult1: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2296293/3 (Perf: NotifyPaintTimingChanged for FEtP only 1 in N times to speed up.)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/6dc9bd43d71e9ff3d488861a6ca630a73cbc2d52.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/6dc9bd43d71e9ff3d488861a6ca630a73cbc2d52.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/cammie-ChromiumPerf-5062/html/index.html',
@@ -706,20 +612,13 @@ export const tasksResult1: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2297698/1 (Revert "Use PhysicalOffset in legacy inline box painters")',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/107799931181b2f5b13d132af8112c098ca9aa88.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/107799931181b2f5b13d132af8112c098ca9aa88.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/wangxianzhu-ChromiumPerf-5061/html/index.html',
@@ -775,20 +674,13 @@ export const tasksResult2: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2316326/2 ([WIP] Track dynamically added scripts with no src in AdTracker)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/cf90a6c04958ad2ec0d41bda844e9008654b60e6.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/cf90a6c04958ad2ec0d41bda844e9008654b60e6.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/alexmt-ChromiumPerf-5094/html/index.html',
@@ -826,20 +718,13 @@ export const tasksResult2: GetTasksResponse = {
       browser_args_with_patch: '',
       description:
         'Testing https://chromium-review.googlesource.com/c/2316326/1 ([WIP] Track dynamically added scripts with no src in AdTracker)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/8e2c009191f9ac50e59b8c896f475e2a4c555b59.patch',
-      blink_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_base_build_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/8e2c009191f9ac50e59b8c896f475e2a4c555b59.patch',
+      blink_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_base_build_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       results:
         'https://ct.skia.org/results/cluster-telemetry/tasks/chromium_perf_runs/alexmt-ChromiumPerf-5091/html/index.html',

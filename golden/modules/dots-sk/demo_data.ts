@@ -31,9 +31,7 @@ export const traces: TraceGroup = {
       comment_indices: null,
     },
     {
-      data: [
-        -1, -1, -1, 1, 1, -1, 1, -1, 1, 1, 0, 0, -1, -1, 0, 0, 0, 0, -1, -1,
-      ],
+      data: [-1, -1, -1, 1, 1, -1, 1, -1, 1, 1, 0, 0, -1, -1, 0, 0, 0, 0, -1, -1],
       label: ',alpha=second-trace,beta=foo,gamma=bar,',
       params: {
         alpha: 'second-trace',

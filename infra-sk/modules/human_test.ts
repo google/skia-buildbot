@@ -106,18 +106,12 @@ describe('The human functions', () => {
       const expected = testCase[1];
       const ms = now + diffMs;
       // Test the form of diffDate that takes a number.
-      assert.equal(
-        human.diffDate(ms, now),
-        expected,
-        `Input is ${ms}, now is ${now}`
-      );
+      assert.equal(human.diffDate(ms, now), expected, `Input is ${ms}, now is ${now}`);
       // Test the form of diffDate that takes a date string.
       assert.equal(
         human.diffDate(new Date(ms).toISOString(), now),
         expected,
-        `Input is ${new Date(ms).toISOString()}, now is ${new Date(
-          now
-        ).toISOString()}`
+        `Input is ${new Date(ms).toISOString()}, now is ${new Date(now).toISOString()}`
       );
     }
   }
@@ -175,11 +169,7 @@ describe('The human functions', () => {
     for (const tm of testMB) {
       const b = tm[0];
       const expected = tm[1];
-      assert.equal(
-        human.bytes(b, human.MB),
-        expected,
-        `Input is ${b}, Unit is Megabytes`
-      );
+      assert.equal(human.bytes(b, human.MB), expected, `Input is ${b}, Unit is Megabytes`);
     }
   }
 

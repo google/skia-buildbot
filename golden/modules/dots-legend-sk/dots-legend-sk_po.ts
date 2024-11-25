@@ -24,9 +24,7 @@ export class DotsLegendSkPO extends PageObject {
   }
 
   private get triageStatusIcons(): PageObjectElementList {
-    return this.bySelectorAll(
-      '.positive-icon, .negative-icon, .untriaged-icon'
-    );
+    return this.bySelectorAll('.positive-icon, .negative-icon, .untriaged-icon');
   }
 
   /**
@@ -35,15 +33,9 @@ export class DotsLegendSkPO extends PageObject {
    */
   getDotBorderAndBackgroundColors(): Promise<[string, string][]> {
     return this.dots.map(async (dot: PageObjectElement) => [
+      rgbToHex(await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.borderColor)),
       rgbToHex(
-        await dot.applyFnToDOMNode(
-          (el: Element) => (el as HTMLElement).style.borderColor
-        )
-      ),
-      rgbToHex(
-        await dot.applyFnToDOMNode(
-          (el: Element) => (el as HTMLElement).style.backgroundColor
-        )
+        await dot.applyFnToDOMNode((el: Element) => (el as HTMLElement).style.backgroundColor)
       ),
     ]);
   }

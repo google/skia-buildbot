@@ -1,12 +1,7 @@
 import { expect } from 'chai';
 import { truncate } from './string';
 
-const test = (
-  input: string,
-  len: number,
-  output: string,
-  msg?: string | undefined
-) => {
+const test = (input: string, len: number, output: string, msg?: string | undefined) => {
   expect(truncate(input, len), msg).to.equal(output);
 };
 

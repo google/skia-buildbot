@@ -99,15 +99,13 @@ export const summaryResults15: CompletedTaskResponse = {
     {
       type: 'ChromiumPerf',
       username: 'someone@google.com',
-      description:
-        'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
+      description: 'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
       ts_completed: 20200721133734,
     },
     {
       type: 'ChromiumPerf',
       username: 'someone@google.com',
-      description:
-        'Weekly ad-hoc speed metrics for CompositeAfterPaint (v9) (1k, desktop)',
+      description: 'Weekly ad-hoc speed metrics for CompositeAfterPaint (v9) (1k, desktop)',
       ts_completed: 20200721185734,
     },
     {
@@ -317,15 +315,13 @@ export const summaryResults33: CompletedTaskResponse = {
     {
       type: 'ChromiumPerf',
       username: 'someone@google.com',
-      description:
-        'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
+      description: 'https://bugs.chromium.org/p/chromium/issues/detail?id=968412',
       ts_completed: 20200721133734,
     },
     {
       type: 'ChromiumPerf',
       username: 'someone@google.com',
-      description:
-        'Weekly ad-hoc speed metrics for CompositeAfterPaint (v9) (1k, desktop)',
+      description: 'Weekly ad-hoc speed metrics for CompositeAfterPaint (v9) (1k, desktop)',
       ts_completed: 20200721185734,
     },
     {

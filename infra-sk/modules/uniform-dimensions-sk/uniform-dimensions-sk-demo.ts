@@ -15,11 +15,8 @@ $$('#apply')!.addEventListener('click', () => {
   $$<HTMLPreElement>('#results')!.innerText = uniforms.toString();
 });
 
-$$('uniform-dimensions-sk')!.addEventListener(
-  dimensionsChangedEventName,
-  (e: Event) => {
-    $$<HTMLPreElement>('#results')!.innerText = JSON.stringify(
-      (e as CustomEvent<DimensionsChangedEventDetail>).detail
-    );
-  }
-);
+$$('uniform-dimensions-sk')!.addEventListener(dimensionsChangedEventName, (e: Event) => {
+  $$<HTMLPreElement>('#results')!.innerText = JSON.stringify(
+    (e as CustomEvent<DimensionsChangedEventDetail>).detail
+  );
+});

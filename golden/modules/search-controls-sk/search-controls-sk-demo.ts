@@ -3,15 +3,7 @@ import { ParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 
-const corpora = [
-  'canvaskit',
-  'colorImage',
-  'gm',
-  'image',
-  'pathkit',
-  'skp',
-  'svg',
-];
+const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
@@ -75,14 +67,8 @@ function updateSearchCriteriaPreview() {
     ($$<HTMLSpanElement>(`.preview ${selector}`)!.innerText = text.toString());
 
   set('.corpus', currentValue.corpus);
-  set(
-    '.left-hand-trace-filter',
-    fromParamSet(currentValue.leftHandTraceFilter)
-  );
-  set(
-    '.right-hand-trace-filter',
-    fromParamSet(currentValue.rightHandTraceFilter)
-  );
+  set('.left-hand-trace-filter', fromParamSet(currentValue.leftHandTraceFilter));
+  set('.right-hand-trace-filter', fromParamSet(currentValue.rightHandTraceFilter));
   set('.include-positive-digests', currentValue.includePositiveDigests);
   set('.include-negative-digests', currentValue.includeNegativeDigests);
   set('.include-untriaged-digests', currentValue.includeUntriagedDigests);

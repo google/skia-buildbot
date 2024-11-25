@@ -32,15 +32,11 @@ export class QueryDialogSk extends ElementSk {
   private static _template = (el: QueryDialogSk) =>
     html` <dialog>
       <div class="content">
-        <query-sk
-          @query-change=${el.queryChange}
-          hide_invert
-          hide_regex></query-sk>
+        <query-sk @query-change=${el.queryChange} hide_invert hide_regex></query-sk>
         <div class="selection-summary">
           ${el.isSelectionEmpty()
             ? html`<p class="empty-selection">No items selected.</p>`
-            : html`<paramset-sk
-                .paramsets=${[el.currentSelection]}></paramset-sk>`}
+            : html`<paramset-sk .paramsets=${[el.currentSelection]}></paramset-sk>`}
         </div>
       </div>
 
@@ -102,16 +98,12 @@ export class QueryDialogSk extends ElementSk {
         detail: this.querySk!.current_query,
       })
     );
-    this.dispatchEvent(
-      new CustomEvent('query-dialog-close', { bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('query-dialog-close', { bubbles: true }));
   }
 
   private close() {
     this.dialog!.close();
-    this.dispatchEvent(
-      new CustomEvent('query-dialog-close', { bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent('query-dialog-close', { bubbles: true }));
   }
 
   private get currentSelection() {

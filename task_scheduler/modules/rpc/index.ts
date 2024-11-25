@@ -8,9 +8,7 @@ export * from './rpc';
  *
  * @param ele The parent element, used to dispatch events.
  */
-export function GetTaskSchedulerService(
-  ele: HTMLElement
-): TaskSchedulerService {
+export function GetTaskSchedulerService(ele: HTMLElement): TaskSchedulerService {
   const host = `${window.location.protocol}//${window.location.host}`;
   const rpcClient: TaskSchedulerService = new TaskSchedulerServiceClient(
     host,

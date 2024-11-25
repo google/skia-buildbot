@@ -7,11 +7,7 @@ import {
   eventSequencePromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import {
-  DigestComparison,
-  TriageRequestV3,
-  TriageResponse,
-} from '../rpc_types';
+import { DigestComparison, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 import { typicalDetails } from '../digest-details-sk/test_data';
 import { DiffPageSk } from './diff-page-sk';
@@ -71,13 +67,11 @@ describe('diff-page-sk', () => {
   });
 
   it('should show overview layout by default', async () => {
-    expect(await diffPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be
-      .true;
+    expect(await diffPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be.true;
   });
 
   it('should change to full width view if image size is toggled', async () => {
     await diffPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
-    expect(await diffPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be
-      .false;
+    expect(await diffPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be.false;
   });
 });

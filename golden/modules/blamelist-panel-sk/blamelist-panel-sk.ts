@@ -24,13 +24,9 @@ const commitRow = (c: Commit): TemplateResult => {
     return html`
       <tr>
         <td title=${c.author}>${truncate(c.author, 20)}</td>
-        <td title=${new Date(c.commit_time * 1000)}>
-          ${diffDate(c.commit_time * 1000)}
-        </td>
+        <td title=${new Date(c.commit_time * 1000)}>${diffDate(c.commit_time * 1000)}</td>
         <td>
-          <a href=${commitHref(c)} target="_blank" rel="noopener">
-            ${c.hash?.substring(0, 8)}
-          </a>
+          <a href=${commitHref(c)} target="_blank" rel="noopener"> ${c.hash?.substring(0, 8)} </a>
         </td>
         <td title=${c.message}>${truncate(c.message || '', 80)}</td>
       </tr>
@@ -96,20 +92,14 @@ export class BlamelistPanelSk extends ElementSk {
   static template = (ele: BlamelistPanelSk): TemplateResult => {
     const commitRangeHref = commitRange(ele.commits, ele.lastGoodCommit);
     return html` <h2 ?hidden=${!commitRangeHref} class="full_range">
-        <a href=${commitRangeHref} target="_blank" rel="noopener"
-          >View Full Range</a
-        >
+        <a href=${commitRangeHref} target="_blank" rel="noopener">View Full Range</a>
       </h2>
 
       <h2>Commits for which Gold saw data:</h2>
       <table>
         ${ele.commits.slice(0, maxCommitsToDisplay).map(commitRow)}
       </table>
-      <div>
-        ${ele.commits.length > maxCommitsToDisplay
-          ? '...and other commits.'
-          : ''}
-      </div>`;
+      <div>${ele.commits.length > maxCommitsToDisplay ? '...and other commits.' : ''}</div>`;
   };
 
   private _commits: Commit[] = [];

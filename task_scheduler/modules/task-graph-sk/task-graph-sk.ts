@@ -8,14 +8,7 @@
 import { render, svg } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 
-import {
-  Job,
-  Task,
-  TaskDependencies,
-  TaskDimensions,
-  TaskSummaries,
-  TaskSummary,
-} from '../rpc';
+import { Job, Task, TaskDependencies, TaskDimensions, TaskSummaries, TaskSummary } from '../rpc';
 
 type TaskName = string;
 
@@ -123,19 +116,16 @@ export class TaskGraphSk extends HTMLElement {
     const textHeight = fontSize + 2 * textMarginY;
     const botLinkOffsetY = textOffsetY + botLinkFontSize + botLinkMarginY;
     const taskLinkOffsetY = botLinkOffsetY + taskLinkFontSize + taskLinkMarginY;
-    const taskSpecHeight =
-      textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
+    const taskSpecHeight = textHeight + botLinkHeight + taskLinkHeight + taskHeight + taskMarginY;
 
     // Compute the task spec block width for each column.
     const maxTextWidth = 0;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     ctx.font = `${botLinkFontSize}px ${fontFamily}`;
-    const botLinkTextWidth =
-      ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
+    const botLinkTextWidth = ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
     ctx.font = `${taskLinkFontSize}px ${fontFamily}`;
-    const taskLinkTextWidth =
-      ctx.measureText(taskLinkText).width + 2 * taskLinkMarginX;
+    const taskLinkTextWidth = ctx.measureText(taskLinkText).width + 2 * taskLinkMarginX;
     ctx.font = `${fontSize}px ${fontFamily}`;
     const taskSpecWidth: number[] = [];
     cols.forEach((col: cell[]) => {
@@ -291,26 +281,19 @@ export class TaskGraphSk extends HTMLElement {
               y="${taskSpec.y}"
               width="${taskSpec.width}"
               height="${taskSpec.height}"
-              class="${
-                taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''
-              }"
+              class="${taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''}"
               >
           </rect>
           <text
               x="${taskSpec.x + textOffsetX}"
               y="${taskSpec.y + textOffsetY}"
-              class="${
-                taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''
-              }"
+              class="${taskSpec.name === selectedTask?.taskKey?.name ? 'emphasis' : ''}"
               >
             ${taskSpec.name}
           </text>
           <a
               target="_blank"
-              href="${TaskGraphSk.computeBotsLink(
-                taskDims.get(taskSpec.name)!,
-                swarmingServer
-              )}">
+              href="${TaskGraphSk.computeBotsLink(taskDims.get(taskSpec.name)!, swarmingServer)}">
             <text
                 class="links"
                 x="${taskSpec.x + textOffsetX}"
@@ -321,10 +304,7 @@ export class TaskGraphSk extends HTMLElement {
           </a>
           <a
               target="_blank"
-              href="${TaskGraphSk.computeTasksLink(
-                taskSpec.name,
-                swarmingServer
-              )}">
+              href="${TaskGraphSk.computeTasksLink(taskSpec.name, swarmingServer)}">
             <text
                 class="links"
                 x="${taskSpec.x + textOffsetX}"
@@ -342,9 +322,9 @@ export class TaskGraphSk extends HTMLElement {
               target="_blank"
               href="${TaskGraphSk.computeTaskLink(task.task!, swarmingServer)}">
             <rect
-                class="task ${
-                  task.task.id === selectedTask?.id ? 'emphasis' : ''
-                } ${taskStatusToClass[task.task!.status]}"
+                class="task ${task.task.id === selectedTask?.id ? 'emphasis' : ''} ${
+                  taskStatusToClass[task.task!.status]
+                }"
                 rx="4"
                 ry="4"
                 x="${task.x}"
@@ -362,10 +342,7 @@ export class TaskGraphSk extends HTMLElement {
     );
   }
 
-  private static computeBotsLink(
-    dims: string[],
-    swarmingServer: string
-  ): string {
+  private static computeBotsLink(dims: string[], swarmingServer: string): string {
     let link = `https://${swarmingServer}/botlist`;
     if (dims) {
       for (let i = 0; i < dims.length; i++) {
@@ -380,20 +357,14 @@ export class TaskGraphSk extends HTMLElement {
     return link;
   }
 
-  private static computeTaskLink(
-    task: TaskSummary,
-    swarmingServer: string
-  ): string {
+  private static computeTaskLink(task: TaskSummary, swarmingServer: string): string {
     const swarmingLink = `https://${swarmingServer}/task?id=${task.swarmingTaskId}`;
-    return `https://task-driver.skia.org/td/${
-      task.id
-    }?ifNotFound=${encodeURIComponent(swarmingLink)}`;
+    return `https://task-driver.skia.org/td/${task.id}?ifNotFound=${encodeURIComponent(
+      swarmingLink
+    )}`;
   }
 
-  private static computeTasksLink(
-    name: string,
-    swarmingServer: string
-  ): string {
+  private static computeTasksLink(name: string, swarmingServer: string): string {
     return `https://${swarmingServer}/tasklist?f=sk_name-tag:${name}`;
   }
 }

@@ -17,12 +17,6 @@ $$<HTMLButtonElement>('#show-dialog')!.addEventListener('click', () => {
   queryDialogSk.open(paramSet, '');
 });
 
-$$<HTMLButtonElement>('#show-dialog-with-selection')!.addEventListener(
-  'click',
-  () => {
-    queryDialogSk.open(
-      paramSet,
-      fromParamSet({ 'car make': ['dodge', 'ford'], color: ['red'] })
-    );
-  }
-);
+$$<HTMLButtonElement>('#show-dialog-with-selection')!.addEventListener('click', () => {
+  queryDialogSk.open(paramSet, fromParamSet({ 'car make': ['dodge', 'ford'], color: ['red'] }));
+});

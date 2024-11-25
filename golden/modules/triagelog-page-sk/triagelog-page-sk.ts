@@ -13,12 +13,7 @@ import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../pagination-sk';
-import {
-  detailHref,
-  sendBeginTask,
-  sendEndTask,
-  sendFetchError,
-} from '../common';
+import { detailHref, sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { TriageDelta, TriageLogEntry, TriageLogResponse } from '../rpc_types';
 import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-sk';
 
@@ -34,9 +29,7 @@ export class TriagelogPageSk extends ElementSk {
         </tr>
       </thead>
       <tbody>
-        ${el.entries.map((entry: TriageLogEntry) =>
-          TriagelogPageSk.logEntryTemplate(el, entry)
-        )}
+        ${el.entries.map((entry: TriageLogEntry) => TriagelogPageSk.logEntryTemplate(el, entry))}
       </tbody>
     </table>
 
@@ -48,28 +41,20 @@ export class TriagelogPageSk extends ElementSk {
     </pagination-sk>
   `;
 
-  private static logEntryTemplate = (
-    el: TriagelogPageSk,
-    entry: TriageLogEntry
-  ) => html`
+  private static logEntryTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr>
       <td class="timestamp">${TriagelogPageSk.toLocalDate(entry.ts)}</td>
       <td class="author">${entry.name}</td>
       <td class="num-changes">${entry.details.length}</td>
       <td class="actions">
-        <button @click=${() => el.undoEntry(entry.id)} class="undo">
-          Undo
-        </button>
+        <button @click=${() => el.undoEntry(entry.id)} class="undo">Undo</button>
       </td>
     </tr>
 
     ${entry.details ? TriagelogPageSk.detailsTemplate(el, entry) : html``}
   `;
 
-  private static detailsTemplate = (
-    el: TriagelogPageSk,
-    entry: TriageLogEntry
-  ) => html`
+  private static detailsTemplate = (el: TriagelogPageSk, entry: TriageLogEntry) => html`
     <tr class="details">
       <td></td>
       <td><strong>Test name</strong></td>
@@ -84,10 +69,7 @@ export class TriagelogPageSk extends ElementSk {
     </tr>
   `;
 
-  private static detailsEntryTemplate = (
-    el: TriagelogPageSk,
-    delta: TriageDelta
-  ) => html`
+  private static detailsEntryTemplate = (el: TriagelogPageSk, delta: TriageDelta) => html`
     <tr class="details">
       <td></td>
       <td class="test-name" title="Grouping ${JSON.stringify(delta.grouping)}">
@@ -95,12 +77,7 @@ export class TriagelogPageSk extends ElementSk {
       </td>
       <td class="digest">
         <a
-          href=${detailHref(
-            delta.grouping,
-            delta.digest,
-            el.changelistID,
-            el.crs
-          )}
+          href=${detailHref(delta.grouping, delta.digest, el.changelistID, el.crs)}
           target="_blank"
           rel="noopener">
           ${delta.digest}
@@ -163,10 +140,7 @@ export class TriagelogPageSk extends ElementSk {
   }
 
   private pageChanged(e: CustomEvent<PaginationSkPageChangedEventDetail>) {
-    this.pageOffset = Math.max(
-      0,
-      this.pageOffset + e.detail.delta * this.pageSize
-    );
+    this.pageOffset = Math.max(0, this.pageOffset + e.detail.delta * this.pageSize);
     this.stateChanged();
     this._render();
     this.fetchEntries();

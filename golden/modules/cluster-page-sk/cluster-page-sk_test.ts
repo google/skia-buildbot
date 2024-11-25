@@ -15,16 +15,8 @@ import { clusterDiffJSON, negativeDigest, positiveDigest } from './test_data';
 import { testOnlySetSettings } from '../settings';
 import { ClusterPageSk } from './cluster-page-sk';
 import { ClusterPageSkPO } from './cluster-page-sk_po';
-import {
-  DigestComparison,
-  DigestDetails,
-  TriageRequestV3,
-  TriageResponse,
-} from '../rpc_types';
-import {
-  twoHundredCommits,
-  typicalDetails,
-} from '../digest-details-sk/test_data';
+import { DigestComparison, DigestDetails, TriageRequestV3, TriageResponse } from '../rpc_types';
+import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('cluster-page-sk', () => {
@@ -193,9 +185,7 @@ describe('cluster-page-sk', () => {
       await endTask;
 
       endTask = eventPromise('end-task');
-      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
-        'negative'
-      );
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
       await endTask;
     });
 
@@ -215,9 +205,7 @@ describe('cluster-page-sk', () => {
       await endTask;
 
       endTask = eventPromise('end-task');
-      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
-        'negative'
-      );
+      await clusterPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
       await endTask;
     });
   });

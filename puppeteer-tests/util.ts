@@ -45,16 +45,13 @@ export const addEventListenersToPuppeteerPage = async (
   eventNames.forEach((eventName) => resolverFnQueues.set(eventName, []));
 
   // Use an unlikely prefix to reduce chances of name collision.
-  await page.exposeFunction(
-    '__pptr_onEvent',
-    (eventName: EventName, eventDetail: any) => {
-      const resolverFn = resolverFnQueues.get(eventName)!.shift(); // Dequeue.
-      if (resolverFn) {
-        // Undefined if queue length was 0.
-        resolverFn(eventDetail);
-      }
+  await page.exposeFunction('__pptr_onEvent', (eventName: EventName, eventDetail: any) => {
+    const resolverFn = resolverFnQueues.get(eventName)!.shift(); // Dequeue.
+    if (resolverFn) {
+      // Undefined if queue length was 0.
+      resolverFn(eventDetail);
     }
-  );
+  });
 
   // This function will be executed inside the Puppeteer page for each of the
   // events we want to listen for. It adds an event listener that will call the
@@ -66,9 +63,7 @@ export const addEventListenersToPuppeteerPage = async (
   };
 
   // Add an event listener for each one of the given events.
-  const promises = eventNames.map((name) =>
-    page.evaluateOnNewDocument(addEventListener, name)
-  );
+  const promises = eventNames.map((name) => page.evaluateOnNewDocument(addEventListener, name));
   await Promise.all(promises);
 
   // The returned function takes an event name and returns a promise that will
@@ -94,8 +89,7 @@ export const addEventListenersToPuppeteerPage = async (
  *  - https://docs.bazel.build/versions/master/skylark/rules.html#runfiles-location
  *  - https://docs.bazel.build/versions/master/test-encyclopedia.html#initial-conditions
  */
-const bazelRunfilesDir = () =>
-  path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
+const bazelRunfilesDir = () => path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
 
 /**
  * Launches a Puppeteer browser. Set showBrowser to true to see the browser as it executes tests.
@@ -103,11 +97,7 @@ const bazelRunfilesDir = () =>
  */
 export const launchBrowser = (showBrowser?: boolean): Promise<Browser> => {
   // TODO(lovisolo): Do we need this? Can't we use //puppeteer-tests:chrome for everything?
-  const fontconfigSysroot = path.join(
-    bazelRunfilesDir(),
-    'external',
-    'google_chrome'
-  );
+  const fontconfigSysroot = path.join(bazelRunfilesDir(), 'external', 'google_chrome');
   return puppeteer.launch({
     // Use the hermetically-downloaded Chrome binary, which we get via the //puppeteer-tests:chrome
     // Bazel target, which in turn uses the @puppeteer/browsers NPM package.
@@ -162,14 +152,9 @@ export const outputDir = () => {
   // https://docs.bazel.build/versions/master/test-encyclopedia.html#test-interaction-with-the-filesystem.
   const undeclaredOutputsDir = process.env.TEST_UNDECLARED_OUTPUTS_DIR;
   if (!undeclaredOutputsDir) {
-    throw new Error(
-      'required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset'
-    );
+    throw new Error('required environment variable TEST_UNDECLARED_OUTPUTS_DIR is unset');
   }
-  const outputDir = path.join(
-    undeclaredOutputsDir,
-    'puppeteer-test-screenshots'
-  );
+  const outputDir = path.join(undeclaredOutputsDir, 'puppeteer-test-screenshots');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
   }
@@ -222,11 +207,8 @@ export async function loadCachedTestBed(showBrowser?: boolean) {
 
   // Read the demo page server's TCP port.
   const envDir = process.env.ENV_DIR; // This is set by the test_on_env Bazel rule.
-  if (!envDir)
-    throw new Error('required environment variable ENV_DIR is unset');
-  const port = parseInt(
-    fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8')
-  );
+  if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+  const port = parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
   newTestBed.baseUrl = `http://localhost:${port}`;
 
   if (typeof showBrowser === 'undefined') {
@@ -247,19 +229,13 @@ function setBeforeAfterHooks() {
   beforeEach(async () => {
     testBed.page = await browser.newPage(); // Make page available to tests.
 
-    testBed.page.on('console', (msg) =>
-      console.log(`PAGE LOG[${msg.type()}]: ${msg.text()}`)
-    );
-    testBed.page.on('pageerror', (message) =>
-      console.log('PAGE ERROR: ', message)
-    );
+    testBed.page.on('console', (msg) => console.log(`PAGE LOG[${msg.type()}]: ${msg.text()}`));
+    testBed.page.on('pageerror', (message) => console.log('PAGE ERROR: ', message));
     testBed.page.on('response', (response) =>
       console.log(`RESPONSE LOG[${response.status()}]: ${response.url()}`)
     );
     testBed.page.on('requestfailed', (request) =>
-      console.log(
-        `REQUEST FAILED: [${request.url()}] ${request.failure()?.errorText}`
-      )
+      console.log(`REQUEST FAILED: [${request.url()}] ${request.failure()?.errorText}`)
     );
 
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC

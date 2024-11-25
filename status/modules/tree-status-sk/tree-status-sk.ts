@@ -38,8 +38,7 @@ declare global {
   }
 }
 
-const chopsRotationProxyUrl =
-  'https://chrome-ops-rotation-proxy.appspot.com/current/';
+const chopsRotationProxyUrl = 'https://chrome-ops-rotation-proxy.appspot.com/current/';
 
 // This response structure comes from chrome-ops-rotation-proxy.appspot.com.
 // We do not have access to the structure to generate TS.
@@ -97,21 +96,13 @@ export class TreeStatusSk extends ElementSk {
   private static template = (el: TreeStatusSk) => html`
     <div>
       <span>
-        <a
-          href="${el.baseURL}/${el.repo}"
-          target="_blank"
-          rel="noopener noreferrer"
-          >${el.treeStatus.status.message
-            ? el.treeStatus.status.message
-            : '(loading)'}</a
+        <a href="${el.baseURL}/${el.repo}" target="_blank" rel="noopener noreferrer"
+          >${el.treeStatus.status.message ? el.treeStatus.status.message : '(loading)'}</a
         >
       </span>
       <span class="nowrap">
         [${shortName(el.treeStatus.status.username)}
-        ${el.treeStatus.status.date
-          ? diffDate(`${el.treeStatus.status.date}UTC`)
-          : 'eons'}
-        ago]
+        ${el.treeStatus.status.date ? diffDate(`${el.treeStatus.status.date}UTC`) : 'eons'} ago]
       </span>
     </div>
   `;

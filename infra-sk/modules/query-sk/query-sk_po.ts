@@ -2,10 +2,7 @@
 import { ParamSet } from '../query';
 import { PageObject } from '../page_object/page_object';
 import { QueryValuesSkPO } from '../query-values-sk/query-values-sk_po';
-import {
-  PageObjectElement,
-  PageObjectElementList,
-} from '../page_object/page_object_element';
+import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 
 /** A page object for the QuerySk component. */
 export class QuerySkPO extends PageObject {
@@ -66,9 +63,7 @@ export class QuerySkPO extends PageObject {
   }
 
   async clickKey(key: string): Promise<void> {
-    const keyDiv = await this.selectSkKeys.find((div) =>
-      div.isInnerTextEqualTo(key)
-    );
+    const keyDiv = await this.selectSkKeys.find((div) => div.isInnerTextEqualTo(key));
     await keyDiv?.click();
   }
 

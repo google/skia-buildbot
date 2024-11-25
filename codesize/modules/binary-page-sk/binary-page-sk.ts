@@ -46,9 +46,7 @@ export function convertResponseToDataTable(
     // Otherwise, it was a duplicate, so keep the full name.
     out.push([
       shortenedNameIsUnique ? shortenedName : row.name,
-      parentsWhichWereShortened.has(row.parent)
-        ? shortenName(row.parent)
-        : row.parent,
+      parentsWhichWereShortened.has(row.parent) ? shortenName(row.parent) : row.parent,
       row.size,
     ]);
   }
@@ -91,8 +89,7 @@ export class BinaryPageSk extends ElementSk {
       <h2>
         Code size statistics for <code>${el.metadata?.binary_name}</code>
         <span class="compile-task">
-          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a
-          >)
+          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>)
         </span>
       </h2>
 
@@ -102,9 +99,7 @@ export class BinaryPageSk extends ElementSk {
         <br />
         <span class="author-and-timestamp">
           ${el.metadata?.author},
-          <human-date-sk
-            .date=${el.metadata?.timestamp}
-            .diff=${true}></human-date-sk>
+          <human-date-sk .date=${el.metadata?.timestamp} .diff=${true}></human-date-sk>
           ago.
         </span>
       </p>
@@ -113,14 +108,8 @@ export class BinaryPageSk extends ElementSk {
 
       <ul>
         <li><strong>Click</strong> on a node to navigate down the tree.</li>
-        <li>
-          <strong>Right click</strong> anywhere on the treemap go back up one
-          level.
-        </li>
-        <li>
-          <strong> Use the seach bar</strong> to navigate to a node within the
-          tree
-        </li>
+        <li><strong>Right click</strong> anywhere on the treemap go back up one level.</li>
+        <li><strong> Use the seach bar</strong> to navigate to a node within the tree</li>
       </ul>
 
       <div class="search-bar">
@@ -136,9 +125,7 @@ export class BinaryPageSk extends ElementSk {
           class="search-match-list"
           ?hidden=${!el.listOfSearchResults.length}
           @mouseover=${el.clearDefaultSelected}>
-          ${el.listOfSearchResults.map((result, i) =>
-            el.searchResult(result, i)
-          )}
+          ${el.listOfSearchResults.map((result, i) => el.searchResult(result, i))}
         </ol>
       </div>
 
@@ -148,10 +135,7 @@ export class BinaryPageSk extends ElementSk {
 
   // Returns a <li> with the matching string. If it is the first element, mark it selected to
   // give an affordance that something is auto selected and the user can hit enter to pick it.
-  private searchResult = (
-    match: Fuse.FuseResult<string>,
-    idx: number
-  ): TemplateResult => html`
+  private searchResult = (match: Fuse.FuseResult<string>, idx: number): TemplateResult => html`
     <li
       class=${`search-match-list-item ${idx === 0 ? 'selected' : ''}`}
       @click=${() => this.showElement(match)}>
@@ -172,9 +156,7 @@ export class BinaryPageSk extends ElementSk {
       return;
     }
     const target = e.target as HTMLInputElement;
-    this.listOfSearchResults = this.fuse
-      .search(target.value)
-      .slice(0, MAX_SEARCH_RESULTS);
+    this.listOfSearchResults = this.fuse.search(target.value).slice(0, MAX_SEARCH_RESULTS);
     this._render();
   }
 
@@ -207,10 +189,7 @@ export class BinaryPageSk extends ElementSk {
     // Auto-highlight the first list element again (in case it was cleared via mouse over),
     // thus resetting the affordance that it is the auto-picked version.
     if (this.listOfSearchResults.length >= 1) {
-      const firstItem = $$<HTMLLIElement>(
-        '#searchSuggestions li:first-child',
-        this
-      );
+      const firstItem = $$<HTMLLIElement>('#searchSuggestions li:first-child', this);
       if (firstItem) {
         firstItem.classList.add('selected');
       }
@@ -219,10 +198,7 @@ export class BinaryPageSk extends ElementSk {
 
   // If the user starts typing, then mouses over the list, we clear the default selected option.
   private clearDefaultSelected(e: Event): void {
-    const defaultSelected = $$<HTMLLIElement>(
-      '#searchSuggestions li.selected',
-      this
-    );
+    const defaultSelected = $$<HTMLLIElement>('#searchSuggestions li.selected', this);
     if (defaultSelected) {
       defaultSelected.classList.remove('selected');
     }
@@ -262,9 +238,7 @@ export class BinaryPageSk extends ElementSk {
 
     const rows = convertResponseToDataTable(response.rows);
     const data = google.visualization.arrayToDataTable(rows);
-    this.tree = new google.visualization.TreeMap(
-      this.querySelector('#treemap')!
-    );
+    this.tree = new google.visualization.TreeMap(this.querySelector('#treemap')!);
 
     // For some reason the type definition for TreeMapOptions does not include the generateTooltip
     // option (https://developers.google.com/chart/interactive/docs/gallery/treemap#tooltips), so
@@ -292,11 +266,7 @@ export class BinaryPageSk extends ElementSk {
 
     // Draw the tree and wait until the tree finishes drawing.
     await new Promise((resolve) => {
-      google.visualization.events.addOneTimeListener(
-        this.tree,
-        'ready',
-        resolve
-      );
+      google.visualization.events.addOneTimeListener(this.tree, 'ready', resolve);
       this.tree!.draw(data, treeOptions);
       document.addEventListener('theme-chooser-toggle', () => {
         // if a user toggles the theme to/from darkmode then redraw

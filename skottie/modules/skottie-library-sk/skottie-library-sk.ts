@@ -20,10 +20,7 @@ import { html } from 'lit/html.js';
 import JSZip, { JSZipObject } from 'jszip';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
-import {
-  replaceTextsByLayerName,
-  TextData,
-} from '../skottie-text-editor-sk/text-replace';
+import { replaceTextsByLayerName, TextData } from '../skottie-text-editor-sk/text-replace';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LottieAnimation } from '../types';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
@@ -76,29 +73,21 @@ If not selected, the animations will be paused and not respond to scrubbing of t
     <select id=${ITEMS_PER_PAGE_ID} class=dropdown>
       ${animationsPerPageOptions.map(
         (item) => html`
-          <option value=${item} ?selected=${this.itemsPerPage === item}>
-            ${item}
-          </option>
+          <option value=${item} ?selected=${this.itemsPerPage === item}>${item}</option>
         `
       )}
   </label>
 `;
 
   private buildPagesDropdown = () => {
-    const totalAnimationsCount = Math.ceil(
-      this.filesContent.length / this.itemsPerPage
-    );
+    const totalAnimationsCount = Math.ceil(this.filesContent.length / this.itemsPerPage);
     // if there is less than two pages, skip the page renderer
     if (totalAnimationsCount <= 1) {
       return null;
     }
     const options = [];
     for (let i = 0; i < totalAnimationsCount; i++) {
-      options.push(
-        html` <option value=${i} ?selected=${this.currentPage === i}>
-          ${i + 1}
-        </option>`
-      );
+      options.push(html` <option value=${i} ?selected=${this.currentPage === i}>${i + 1}</option>`);
     }
     return html`
       <label class="page">
@@ -180,19 +169,14 @@ If not selected, the animations will be paused and not respond to scrubbing of t
       }
       this.filesContent.push(content.files[fileName]);
     }
-    this.filesContent.sort((a: JSZipObject, b: JSZipObject) =>
-      a.name.localeCompare(b.name)
-    );
+    this.filesContent.sort((a: JSZipObject, b: JSZipObject) => a.name.localeCompare(b.name));
     this.currentPage = 0;
     this.initialized = false;
   }
 
   private onPageChange(): void {
     this.initialized = false;
-    this.currentPage = parseInt(
-      $$<HTMLSelectElement>('#libraryPage', this)!.value,
-      10
-    );
+    this.currentPage = parseInt($$<HTMLSelectElement>('#libraryPage', this)!.value, 10);
   }
 
   private onThumbnailSizeChange(e: Event): void {
@@ -205,10 +189,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
   private updateState(): void {
     this.initialized = false;
     this.currentPage = 0;
-    const libraryItemsPerPage = $$<HTMLSelectElement>(
-      '#libraryItemsPerPage',
-      this
-    )!;
+    const libraryItemsPerPage = $$<HTMLSelectElement>('#libraryItemsPerPage', this)!;
     this.itemsPerPage = parseInt(libraryItemsPerPage.value, 10);
   }
 
@@ -239,10 +220,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
   seek(frame: number): void {
     if (this.syncAnimations) {
       for (let i = 0; i < this.itemsPerPage; i++) {
-        const skottiePlayer = $$<SkottiePlayerSk>(
-          `#skottie_preview_${i}`,
-          this
-        );
+        const skottiePlayer = $$<SkottiePlayerSk>(`#skottie_preview_${i}`, this);
         if (skottiePlayer) {
           skottiePlayer.seek(frame);
         }
@@ -252,10 +230,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
 
   private hidePlayers(): void {
     for (let i = 0; i < this.itemsPerPage; i++) {
-      const skottiePlayerContainer = $$<HTMLLIElement>(
-        `#skottie_preview_container_${i}`,
-        this
-      )!;
+      const skottiePlayerContainer = $$<HTMLLIElement>(`#skottie_preview_container_${i}`, this)!;
       skottiePlayerContainer.style.display = 'none';
     }
   }
@@ -297,10 +272,7 @@ If not selected, the animations will be paused and not respond to scrubbing of t
             `#skottie_preview_container_${i}`,
             this
           )!;
-          const skottiePlayer = $$<SkottiePlayerSk>(
-            `#skottie_preview_${i}`,
-            this
-          )!;
+          const skottiePlayer = $$<SkottiePlayerSk>(`#skottie_preview_${i}`, this)!;
           skottiePlayerContainer.style.display = 'inline-block';
           // eslint-disable-next-line no-await-in-loop
           await skottiePlayer.initialize({

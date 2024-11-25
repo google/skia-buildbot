@@ -43,11 +43,7 @@ export class LeasingListSk extends ElementSk {
     this._render();
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
+  attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     switch (name) {
       case 'filter_by_user':
         if (newValue !== '') {
@@ -63,9 +59,7 @@ export class LeasingListSk extends ElementSk {
   }
 
   private displayTasks(): TemplateResult[] {
-    return this.tasks.map(
-      (task) => html` <leasing-task-sk .task=${task}></leasing-task-sk> `
-    );
+    return this.tasks.map((task) => html` <leasing-task-sk .task=${task}></leasing-task-sk> `);
   }
 
   private fetchTasks(): void {

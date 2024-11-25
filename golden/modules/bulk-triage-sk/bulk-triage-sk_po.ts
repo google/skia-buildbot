@@ -81,9 +81,7 @@ export class BulkTriageSkPO extends PageObject {
   }
 
   async isTriageAllCheckboxChecked() {
-    return this.triageAllCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked
-    );
+    return this.triageAllCheckBox.applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
   async clickTriageAllCheckbox() {

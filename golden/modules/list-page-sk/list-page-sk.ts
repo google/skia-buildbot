@@ -15,12 +15,7 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { fromObject } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  clusterPageHref,
-  sendBeginTask,
-  sendEndTask,
-  sendFetchError,
-} from '../common';
+import { clusterPageHref, sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
 
 import '../corpus-selector-sk';
@@ -70,10 +65,7 @@ export class ListPageSk extends ElementSk {
     </div>
 
     <!-- lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.-->
-    <sort-toggle-sk
-      id="sort_table"
-      .data=${ele.byTestCounts}
-      @sort-changed=${ele._render}>
+    <sort-toggle-sk id="sort_table" .data=${ele.byTestCounts} @sort-changed=${ele._render}>
       <table>
         <thead>
           <tr>
@@ -105,9 +97,7 @@ export class ListPageSk extends ElementSk {
     }
 
     // Returns a HintableObject for building the GET parameters to the search page.
-    const makeSearchCriteria = (
-      opts: MakeSearchCriteriaOpts
-    ): Partial<SearchCriteria> => ({
+    const makeSearchCriteria = (opts: MakeSearchCriteriaOpts): Partial<SearchCriteria> => ({
       corpus: ele.currentCorpus,
       leftHandTraceFilter: { name: [row.name] },
       includePositiveDigests: opts.positive,
@@ -239,8 +229,7 @@ export class ListPageSk extends ElementSk {
           return;
         }
         // default values if not specified.
-        this.disregardIgnoreRules =
-          (newState.disregard_ignores as boolean) || false;
+        this.disregardIgnoreRules = (newState.disregard_ignores as boolean) || false;
         this.currentCorpus = (newState.corpus as string) || defaultCorpus();
         this.currentQuery = (newState.query as string) || '';
         this.fetch();
@@ -306,10 +295,7 @@ export class ListPageSk extends ElementSk {
         this._render();
         // By default, sort the data by name in ascending order (to match the direction set
         // above).
-        $$<SortToggleSk<TestSummaryWithTestName>>('#sort_table', this)!.sort(
-          'name',
-          'up'
-        );
+        $$<SortToggleSk<TestSummaryWithTestName>>('#sort_table', this)!.sort('name', 'up');
         sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'list'));
@@ -334,10 +320,7 @@ export class ListPageSk extends ElementSk {
   }
 
   private showQueryDialog() {
-    $$<QueryDialogSk>('query-dialog-sk')!.open(
-      this.paramset,
-      this.currentQuery
-    );
+    $$<QueryDialogSk>('query-dialog-sk')!.open(this.paramset, this.currentQuery);
   }
 
   private toggleIgnoreRules(e: Event) {

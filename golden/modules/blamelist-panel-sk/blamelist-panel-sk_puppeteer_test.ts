@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('blamelist-panel-sk', () => {
   let testBed: TestBed;
@@ -24,44 +20,26 @@ describe('blamelist-panel-sk', () => {
 
     it('should show a single CL commit', async () => {
       const blamelistPanelSk = await testBed.page.$('#single_cl_commit');
-      await takeScreenshot(
-        blamelistPanelSk!,
-        'gold',
-        'blamelist-panel-sk_cl-commit'
-      );
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_cl-commit');
       expect(await testBed.page.$$('#single_cl_commit tr')).to.have.length(1);
     });
 
     it('should show some commits', async () => {
       const blamelistPanelSk = await testBed.page.$('#some_commits');
-      await takeScreenshot(
-        blamelistPanelSk!,
-        'gold',
-        'blamelist-panel-sk_some-commits'
-      );
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_some-commits');
       expect(await testBed.page.$$('#some_commits tr')).to.have.length(3);
     });
 
     it('should truncate many commits', async () => {
       const blamelistPanelSk = await testBed.page.$('#many_commits');
-      await takeScreenshot(
-        blamelistPanelSk!,
-        'gold',
-        'blamelist-panel-sk_many-commits'
-      );
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_many-commits');
       expect(await testBed.page.$$('#many_commits tr')).to.have.length(15); // maxCommitsToDisplay
     });
 
     it('should show non-standard commits', async () => {
       const blamelistPanelSk = await testBed.page.$('#non_standard_commits');
-      await takeScreenshot(
-        blamelistPanelSk!,
-        'gold',
-        'blamelist-panel-sk_non-standard-commits'
-      );
-      expect(await testBed.page.$$('#non_standard_commits tr')).to.have.length(
-        2
-      );
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_non-standard-commits');
+      expect(await testBed.page.$$('#non_standard_commits tr')).to.have.length(2);
     });
   });
 
@@ -79,9 +57,7 @@ describe('blamelist-panel-sk', () => {
         '#single_cl_commit table a',
         (e: Element) => (e as HTMLAnchorElement).href
       );
-      expect(changeListURL).to.equal(
-        'https://skia-review.googlesource.com/12345'
-      );
+      expect(changeListURL).to.equal('https://skia-review.googlesource.com/12345');
     });
 
     it('should have a link to the full source blamelist', async () => {

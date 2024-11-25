@@ -47,9 +47,7 @@ export class PaginationSkPO extends PageObject {
     const counterText = await this.counter.innerText;
     const prefix = 'page ';
     if (!counterText.startsWith(prefix)) {
-      throw new Error(
-        `expected counter to begin with "${prefix}", but was "${counterText}"`
-      );
+      throw new Error(`expected counter to begin with "${prefix}", but was "${counterText}"`);
     }
     return parseInt(counterText.substring(prefix.length));
   }

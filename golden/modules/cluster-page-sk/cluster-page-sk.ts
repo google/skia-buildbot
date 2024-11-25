@@ -11,11 +11,7 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import {
-  fromParamSet,
-  fromObject,
-  ParamSet,
-} from '../../../infra-sk/modules/query';
+import { fromParamSet, fromObject, ParamSet } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -77,8 +73,7 @@ export class ClusterPageSk extends ElementSk {
           @search-controls-sk-change=${ele.searchControlsChanged}>
         </search-controls-sk>
 
-        <cluster-digests-sk
-          @selection-changed=${ele.selectionChanged}></cluster-digests-sk>
+        <cluster-digests-sk @selection-changed=${ele.selectionChanged}></cluster-digests-sk>
 
         ${ClusterPageSk.infoPanel(ele)}
       </div>
@@ -89,9 +84,8 @@ export class ClusterPageSk extends ElementSk {
     if (!ele.selectedDigests.length) {
       return html`
         <div>
-          Click on one digest or shift click multiple digests to see more
-          specific information. Use A/Z to Zoom In/Out and S/X to
-          increase/decrease node distance.
+          Click on one digest or shift click multiple digests to see more specific information. Use
+          A/Z to Zoom In/Out and S/X to increase/decrease node distance.
         </div>
 
         <paramset-sk
@@ -202,9 +196,7 @@ export class ClusterPageSk extends ElementSk {
 
     this.stateChanged = stateReflector(
       /* getState */ () => {
-        const state = SearchCriteriaToHintableObject(
-          this.searchCriteria
-        ) as any;
+        const state = SearchCriteriaToHintableObject(this.searchCriteria) as any;
         state.grouping = this.grouping;
         state.changeListID = this.changeListID;
         state.crs = this.crs;

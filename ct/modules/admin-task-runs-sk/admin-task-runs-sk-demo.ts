@@ -17,13 +17,9 @@ customElements.whenDefined('admin-task-runs-sk').then(() => {
   // Insert the element later, which should given enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
-    .insertAdjacentElement(
-      'afterend',
-      document.createElement('admin-task-runs-sk')
-    );
+    .insertAdjacentElement('afterend', document.createElement('admin-task-runs-sk'));
 
-  const elems =
-    document.querySelectorAll<AdminTaskRunsSk>('admin-task-runs-sk')!;
+  const elems = document.querySelectorAll<AdminTaskRunsSk>('admin-task-runs-sk')!;
   elems.forEach((el) => {
     el.taskType = 'RecreatePageSets';
     el.getUrl = '/_/get_recreate_page_sets_tasks';

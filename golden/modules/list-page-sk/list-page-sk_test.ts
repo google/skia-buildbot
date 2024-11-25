@@ -100,9 +100,7 @@ describe('list-page-sk', () => {
         `untriaged=${opts.untriaged}`,
       ].join('&')}`;
 
-    const expectedClusterPageHref = (opts: {
-      disregardIgnoreRules: boolean;
-    }): string =>
+    const expectedClusterPageHref = (opts: { disregardIgnoreRules: boolean }): string =>
       `/cluster?${[
         'grouping=name%3Dthis_is_another_test%26source_type%3Dgm',
         'corpus=gm',
@@ -120,10 +118,7 @@ describe('list-page-sk', () => {
       ].join('&')}`;
 
     it('should have links for searching and the cluster view', () => {
-      const secondRow = $$<HTMLTableRowElement>(
-        'table tbody tr:nth-child(2)',
-        listPageSk
-      )!;
+      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
       const links = $<HTMLAnchorElement>('a', secondRow)!;
       expect(links).to.have.length(6);
 
@@ -184,17 +179,11 @@ describe('list-page-sk', () => {
     });
 
     it('updates the links based on toggle positions', async () => {
-      fetchMock.get(
-        '/json/v2/list?corpus=gm&include_ignored_traces=true',
-        sampleByTestList
-      );
+      fetchMock.get('/json/v2/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
 
-      const secondRow = $$<HTMLTableRowElement>(
-        'table tbody tr:nth-child(2)',
-        listPageSk
-      )!;
+      const secondRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(2)', listPageSk)!;
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
 
@@ -255,21 +244,13 @@ describe('list-page-sk', () => {
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
-      let firstRow = $$<HTMLTableRowElement>(
-        'table tbody tr:nth-child(1)',
-        listPageSk
-      )!;
-      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
-        'this_is_a_test'
-      );
+      let firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
 
       // After first click, it will be sorting in descending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$<HTMLTableRowElement>(
-        'table tbody tr:nth-child(1)',
-        listPageSk
-      )!;
+      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
       expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
         'this_is_another_test'
       );
@@ -277,32 +258,21 @@ describe('list-page-sk', () => {
       // After second click, it will be sorting in ascending order by number of negatives.
       clickOnNegativeHeader(listPageSk);
 
-      firstRow = $$<HTMLTableRowElement>(
-        'table tbody tr:nth-child(1)',
-        listPageSk
-      )!;
-      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal(
-        'this_is_a_test'
-      );
+      firstRow = $$<HTMLTableRowElement>('table tbody tr:nth-child(1)', listPageSk)!;
+      expect($$<HTMLTableDataCellElement>('td', firstRow)!.innerText).to.equal('this_is_a_test');
     });
   }); // end describe('html layout')
 
   describe('RPC calls', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
-      fetchMock.get(
-        '/json/v2/list?corpus=gm&include_ignored_traces=true',
-        sampleByTestList
-      );
+      fetchMock.get('/json/v2/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
       expectQueryStringToEqual('?corpus=gm&disregard_ignores=true');
     });
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
-      fetchMock.get(
-        '/json/v2/list?corpus=corpus%20with%20spaces',
-        sampleByTestList
-      );
+      fetchMock.get('/json/v2/list?corpus=corpus%20with%20spaces', sampleByTestList);
 
       const event = eventPromise('end-task');
       await corpusSelectorSkPO.clickCorpus('corpus with spaces');
@@ -313,8 +283,7 @@ describe('list-page-sk', () => {
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
-        '/json/v2/list?' +
-          'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+        '/json/v2/list?' + 'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
         sampleByTestList
       );
 
@@ -327,25 +296,17 @@ describe('list-page-sk', () => {
       await queryDialogSkPO.clickShowMatchesBtn();
       await event;
 
-      expectQueryStringToEqual(
-        '?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64'
-      );
+      expectQueryStringToEqual('?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64');
     });
   });
 });
 
 function clickOnNegativeHeader(ele: ListPageSk) {
-  $$<HTMLTableHeaderCellElement>(
-    'table > thead > tr > th:nth-child(3)',
-    ele
-  )!.click();
+  $$<HTMLTableHeaderCellElement>('table > thead > tr > th:nth-child(3)', ele)!.click();
 }
 
 async function clickDisregardIgnoreRulesCheckbox(listPageSk: ListPageSk) {
-  const checkbox = $$<HTMLInputElement>(
-    'checkbox-sk.ignore_rules input',
-    listPageSk
-  )!;
+  const checkbox = $$<HTMLInputElement>('checkbox-sk.ignore_rules input', listPageSk)!;
   const event = eventPromise('end-task');
   checkbox.click();
   await event;

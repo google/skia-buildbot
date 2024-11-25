@@ -17,15 +17,9 @@ export class RotationsSk extends ElementSk {
     <div class="table">
       ${el._rotations.map(
         (rotation) => html`
-          <a
-            class="tr"
-            href=${rotation.docLink}
-            target="_blank"
-            rel="noopener noreferrer">
+          <a class="tr" href=${rotation.docLink} target="_blank" rel="noopener noreferrer">
             <div class="td">
-              ${unsafeHTML(
-                `<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`
-              )}
+              ${unsafeHTML(`<${rotation.icon}-icon-sk></${rotation.icon}-icon-sk>`)}
               ${rotation.role}: ${rotation.name}
             </div>
           </a>

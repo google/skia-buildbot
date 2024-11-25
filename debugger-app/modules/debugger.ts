@@ -22,12 +22,7 @@ export interface SkpDebugPlayer {
   deleteCommand(index: number): void;
   draw(surface: Surface): void;
   drawTo(surface: Surface, index: number): void;
-  findCommandByPixel(
-    surface: Surface,
-    x: number,
-    y: number,
-    upperBound: number
-  ): number;
+  findCommandByPixel(surface: Surface, x: number, y: number, upperBound: number): number;
   getBounds(): SkIRect;
   getBoundsForFrame(frame: number): SkIRect;
   getFrameCount(): number;

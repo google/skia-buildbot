@@ -78,10 +78,7 @@ export function getDelta(o: HintableObject, d: HintableObject): HintableObject {
  * @returns {Object}
  *
  */
-export function applyDelta(
-  delta: HintableObject,
-  o: HintableObject
-): HintableObject {
+export function applyDelta(delta: HintableObject, o: HintableObject): HintableObject {
   const ret: HintableObject = {};
   Object.keys(o).forEach((key) => {
     // eslint-disable-next-line no-prototype-builtins

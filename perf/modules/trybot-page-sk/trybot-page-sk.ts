@@ -22,15 +22,7 @@ import {
 } from '../../../infra-sk/modules/query-sk/query-sk';
 
 import { QueryCountSk } from '../query-count-sk/query-count-sk';
-import {
-  ParamSet,
-  Commit,
-  TryBotRequest,
-  TryBotResponse,
-  Params,
-  CommitNumber,
-  CL,
-} from '../json';
+import { ParamSet, Commit, TryBotRequest, TryBotResponse, Params, CommitNumber, CL } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 
 import '../../../infra-sk/modules/query-sk';
@@ -46,10 +38,7 @@ import '../../../elements-sk/modules/spinner-sk';
 import '../../../elements-sk/modules/tabs-sk';
 import '../../../elements-sk/modules/tabs-panel-sk';
 import '../../../elements-sk/modules/icons/timeline-icon-sk';
-import {
-  PlotSimpleSk,
-  PlotSimpleSkTraceEventDetails,
-} from '../plot-simple-sk/plot-simple-sk';
+import { PlotSimpleSk, PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { addParamsToParamSet, fromKey, makeKey } from '../paramtools';
 import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { messagesToErrorString, startRequest } from '../progress/progress';
@@ -221,9 +210,7 @@ export class TrybotPageSk extends ElementSk {
     </div>
   `;
 
-  private static paramKeysAsHeaders = (
-    ele: TrybotPageSk
-  ): TemplateResult[] | null => {
+  private static paramKeysAsHeaders = (ele: TrybotPageSk): TemplateResult[] | null => {
     if (!ele.results) {
       return null;
     }
@@ -233,9 +220,7 @@ export class TrybotPageSk extends ElementSk {
     return keys.map((key) => html`<th>${key}</th>`);
   };
 
-  private static individualResults = (
-    ele: TrybotPageSk
-  ): TemplateResult[] | null => {
+  private static individualResults = (ele: TrybotPageSk): TemplateResult[] | null => {
     if (!ele.results) {
       return null;
     }
@@ -262,18 +247,14 @@ export class TrybotPageSk extends ElementSk {
             keyValueDelta.push(html`<td>〃</td>`);
           }
         } else {
-          keyValueDelta.push(
-            html`<td title="Does not exists on this trace.">∅</td>`
-          );
+          keyValueDelta.push(html`<td title="Does not exists on this trace.">∅</td>`);
         }
       });
       ret.push(
         html`<tr>
           <td>${i + 1}</td>
           <td>${r.stddevRatio}</td>
-          <td
-            class="link"
-            @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}>
+          <td class="link" @click=${(e: MouseEvent) => ele.plotIndividualTrace(e, i)}>
             <timeline-icon-sk></timeline-icon-sk>
           </td>
           ${keyValueDelta}
@@ -284,9 +265,7 @@ export class TrybotPageSk extends ElementSk {
     return ret;
   };
 
-  private static byParamsResults = (
-    ele: TrybotPageSk
-  ): TemplateResult[] | null => {
+  private static byParamsResults = (ele: TrybotPageSk): TemplateResult[] | null => {
     if (!ele.byParams) {
       return null;
     }
@@ -300,9 +279,7 @@ export class TrybotPageSk extends ElementSk {
       ret.push(
         html`<tr>
           <td>${i + 1}</td>
-          <td
-            class="link"
-            @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}>
+          <td class="link" @click=${(e: MouseEvent) => ele.plotByParamsTraces(e, i)}>
             <timeline-icon-sk></timeline-icon-sk>
           </td>
           <td>${b.keyValue}</td>
@@ -351,13 +328,7 @@ export class TrybotPageSk extends ElementSk {
     this.byParamsTraceID!.innerText = '';
     this._render();
     try {
-      const prog = await startRequest(
-        '/_/trybot/load/',
-        this.state,
-        200,
-        this.spinner!,
-        null
-      );
+      const prog = await startRequest('/_/trybot/load/', this.state, 200, this.spinner!, null);
       if (prog.status === 'Finished') {
         this.results = prog.results! as TryBotResponse;
         this.byParams = byParams(this.results!);
@@ -371,11 +342,7 @@ export class TrybotPageSk extends ElementSk {
   }
 
   private getLabels() {
-    return ticks(
-      this.results!.header!.map(
-        (colHeader) => new Date(colHeader!.timestamp * 1000)
-      )
-    );
+    return ticks(this.results!.header!.map((colHeader) => new Date(colHeader!.timestamp * 1000)));
   }
 
   private addZero(lines: { [key: string]: number[] | null }, n: number) {
@@ -465,9 +432,7 @@ export class TrybotPageSk extends ElementSk {
     );
   }
 
-  private commitSelected(
-    e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
-  ) {
+  private commitSelected(e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>) {
     this.state.commit_number = (e.detail.commit as unknown as Commit).offset;
     this.stateHasChanged();
     this._render();

@@ -37,9 +37,7 @@ export interface SkottieFontEventDetail {
 export class SkottieFontSelectorSk extends ElementSk {
   private _fontName: string = '';
 
-  private static template = (
-    ele: SkottieFontSelectorSk
-  ): TemplateResult => html`
+  private static template = (ele: SkottieFontSelectorSk): TemplateResult => html`
     <div class="wrapper">
       <skottie-dropdown-sk
         id="view-exporter"
@@ -82,9 +80,7 @@ export class SkottieFontSelectorSk extends ElementSk {
     // instead of creating a copy of the lottie animation.
     // If there is a reason why it should create a copy, this can be updated
     if (ev.detail.value) {
-      const newFontData = availableFonts.find(
-        (font) => font.fName === ev.detail.value
-      );
+      const newFontData = availableFonts.find((font) => font.fName === ev.detail.value);
       if (newFontData) {
         this.dispatchEvent(
           new CustomEvent<SkottieFontEventDetail>('select-font', {

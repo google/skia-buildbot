@@ -126,8 +126,7 @@ export const ignoreRules_10: IgnoresResponse = {
       name: 'alpha@example.com',
       updatedBy: 'alpha@example.com',
       expires: '2020-01-25T17:15:25Z',
-      query:
-        'config=glmsaa4\u0026cpu_or_gpu_value=TegraX1\u0026name=rg1024_green_grapes.svg',
+      query: 'config=glmsaa4\u0026cpu_or_gpu_value=TegraX1\u0026name=rg1024_green_grapes.svg',
       note: 'skia:6545',
       countAll: 4,
       exclusiveCountAll: 4,

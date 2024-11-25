@@ -14,9 +14,7 @@ export function replaceColorSlot(
   currentAnimation: LottieAnimation
 ): LottieAnimation {
   // Deep clone the JSON
-  const animation = JSON.parse(
-    JSON.stringify(currentAnimation)
-  ) as LottieAnimation;
+  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
 
   if (!animation.slots?.[sid]) {
     return animation;
@@ -36,9 +34,7 @@ export function replaceScalarSlot(
   currentAnimation: LottieAnimation
 ): LottieAnimation {
   // Deep clone the JSON
-  const animation = JSON.parse(
-    JSON.stringify(currentAnimation)
-  ) as LottieAnimation;
+  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
 
   if (!animation.slots?.[sid]) {
     return animation;
@@ -56,9 +52,7 @@ export function replaceVec2Slot(
   currentAnimation: LottieAnimation
 ): LottieAnimation {
   // Deep clone the JSON
-  const animation = JSON.parse(
-    JSON.stringify(currentAnimation)
-  ) as LottieAnimation;
+  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
 
   if (!animation.slots?.[sid]) {
     return animation;
@@ -77,9 +71,7 @@ export function replaceImageSlot(
   currentAnimation: LottieAnimation
 ): LottieAnimation {
   // Deep clone the JSON
-  const animation = JSON.parse(
-    JSON.stringify(currentAnimation)
-  ) as LottieAnimation;
+  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
 
   if (!animation.slots?.[sid]) {
     return animation;

@@ -46,9 +46,7 @@ describe('trace-filter-sk', () => {
 
     it('query dialog shows an empty selection', async () => {
       await traceFilterSkPO.clickEditBtn();
-      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal(
-        {}
-      );
+      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal({});
     });
   });
 
@@ -59,17 +57,13 @@ describe('trace-filter-sk', () => {
 
     it('shows the current selection', async () => {
       expect(await traceFilterSkPO.isEmptyFilterMessageVisible()).to.be.false;
-      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(
-        selection
-      );
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(selection);
       expect(await traceFilterSkPO.getSelection()).to.deep.equal(selection);
     });
 
     it('shows the current selection in the query dialog', async () => {
       await traceFilterSkPO.clickEditBtn();
-      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal(
-        selection
-      );
+      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal(selection);
     });
   });
 
@@ -84,22 +78,16 @@ describe('trace-filter-sk', () => {
       await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
       expect(traceFilterSk.selection).to.deep.equal(differentSelection);
-      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(
-        differentSelection
-      );
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(differentSelection);
     });
 
     it('emits event "trace-filter-sk-change" with the new selection', async () => {
       await traceFilterSkPO.clickEditBtn();
       await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
 
-      const event = eventPromise<CustomEvent<ParamSet>>(
-        'trace-filter-sk-change'
-      );
+      const event = eventPromise<CustomEvent<ParamSet>>('trace-filter-sk-change');
       await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
-      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(
-        differentSelection
-      );
+      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(differentSelection);
     });
   });
 
@@ -114,9 +102,7 @@ describe('trace-filter-sk', () => {
       await traceFilterSkPO.clickQueryDialogSkCancelBtn();
 
       expect(traceFilterSk.selection).to.deep.equal(selection);
-      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(
-        selection
-      );
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(selection);
     });
 
     it('does not emit the "trace-filter-sk-change" event', async () => {

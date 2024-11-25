@@ -73,10 +73,7 @@ export class BotChooserSk extends HTMLElement {
     Object.keys(this.bots_to_incidents).forEach((bot) => {
       botsHTML.push(html`
         <option value=${bot}>
-          ${bot}
-          [${this.bots_to_incidents[bot]
-            .map((i) => i.params.alertname)
-            .join(',')}]
+          ${bot} [${this.bots_to_incidents[bot].map((i) => i.params.alertname).join(',')}]
         </option>
       `);
     });

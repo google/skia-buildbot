@@ -13,16 +13,8 @@ describe('Binary Page Static Methods', () => {
       test('empty string is unchanged', '', '');
       test('no slashes means unchanged', 'alpha', 'alpha');
       test('filepath returns last segment', 'alpha/beta/gamma.cc', 'gamma.cc');
-      test(
-        'function is unchanged',
-        'OT::OffsetTo<>::sanitize<>()',
-        'OT::OffsetTo<>::sanitize<>()'
-      );
-      test(
-        'Symbol with a period but no slashes is unchanged',
-        'foo.bar()',
-        'foo.bar()'
-      );
+      test('function is unchanged', 'OT::OffsetTo<>::sanitize<>()', 'OT::OffsetTo<>::sanitize<>()');
+      test('Symbol with a period but no slashes is unchanged', 'foo.bar()', 'foo.bar()');
     });
   });
 
@@ -65,11 +57,7 @@ describe('Binary Page Static Methods', () => {
         ['third_party', 'ROOT', 0],
         ['third_party/externals', 'third_party', 0],
         ['third_party/externals/harfbuzz', 'third_party/externals', 0],
-        [
-          'third_party/externals/harfbuzz/src',
-          'third_party/externals/harfbuzz',
-          0,
-        ],
+        ['third_party/externals/harfbuzz/src', 'third_party/externals/harfbuzz', 0],
         ['hb-ot-layout.cc', 'third_party/externals/harfbuzz/src', 0], // This was shortened
         ['OT::OffsetTo<>::sanitize<>()', 'hb-ot-layout.cc', 11221], // As were these usages
         ['OT::ArrayOf<>::sanitize<>()', 'hb-ot-layout.cc', 6835],
@@ -126,11 +114,7 @@ describe('Binary Page Static Methods', () => {
         ['third_party', 'ROOT', 0],
         ['third_party/externals', 'third_party', 0],
         ['third_party/externals/harfbuzz', 'third_party/externals', 0],
-        [
-          'third_party/externals/harfbuzz/src',
-          'third_party/externals/harfbuzz',
-          0,
-        ],
+        ['third_party/externals/harfbuzz/src', 'third_party/externals/harfbuzz', 0],
         ['hb-ot-layout.cc', 'third_party/externals/harfbuzz/src', 0], // This was shortened
         ['OT::OffsetTo<>::sanitize<>()', 'hb-ot-layout.cc', 11221], // As were these usages
         ['OT::ArrayOf<>::sanitize<>()', 'hb-ot-layout.cc', 6835],

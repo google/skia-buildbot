@@ -27,26 +27,11 @@ import '../task-graph-sk';
 import '../../../infra-sk/modules/human-date-sk';
 
 const taskStatusToTextColor = new Map<TaskStatus, [string, string]>();
-taskStatusToTextColor.set(TaskStatus.TASK_STATUS_PENDING, [
-  'pending',
-  'rgb(255, 255, 255)',
-]);
-taskStatusToTextColor.set(TaskStatus.TASK_STATUS_RUNNING, [
-  'running',
-  'rgb(248, 230, 180)',
-]);
-taskStatusToTextColor.set(TaskStatus.TASK_STATUS_SUCCESS, [
-  'succeeded',
-  'rgb(209, 228, 188)',
-]);
-taskStatusToTextColor.set(TaskStatus.TASK_STATUS_FAILURE, [
-  'failed',
-  'rgb(217, 95, 2)',
-]);
-taskStatusToTextColor.set(TaskStatus.TASK_STATUS_MISHAP, [
-  'mishap',
-  'rgb(117, 112, 179)',
-]);
+taskStatusToTextColor.set(TaskStatus.TASK_STATUS_PENDING, ['pending', 'rgb(255, 255, 255)']);
+taskStatusToTextColor.set(TaskStatus.TASK_STATUS_RUNNING, ['running', 'rgb(248, 230, 180)']);
+taskStatusToTextColor.set(TaskStatus.TASK_STATUS_SUCCESS, ['succeeded', 'rgb(209, 228, 188)']);
+taskStatusToTextColor.set(TaskStatus.TASK_STATUS_FAILURE, ['failed', 'rgb(217, 95, 2)']);
+taskStatusToTextColor.set(TaskStatus.TASK_STATUS_MISHAP, ['mishap', 'rgb(117, 112, 179)']);
 
 export class TaskSk extends ElementSk {
   private static template = (ele: TaskSk) => html`
@@ -76,8 +61,7 @@ export class TaskSk extends ElementSk {
               <tr>
                 <td>Finished</td>
                 <td>
-                  <human-date-sk
-                    .date="${ele.task!.finishedAt!}"></human-date-sk>
+                  <human-date-sk .date="${ele.task!.finishedAt!}"></human-date-sk>
                 </td>
               </tr>
             `
@@ -105,27 +89,19 @@ export class TaskSk extends ElementSk {
         <tr>
           <td>Swarming Task</td>
           <td>
-            <a href="${ele.swarmingTaskLink}" target="_blank"
-              >${ele.task!.swarmingTaskId}</a
-            >
+            <a href="${ele.swarmingTaskLink}" target="_blank">${ele.task!.swarmingTaskId}</a>
           </td>
         </tr>
         <tr>
           <td>Jobs</td>
-          <td>
-            ${ele.jobs.map(
-              (job: Job) => html` <a href="/job/${job.id}">${job.name}</a> `
-            )}
-          </td>
+          <td>${ele.jobs.map((job: Job) => html` <a href="/job/${job.id}">${job.name}</a> `)}</td>
         </tr>
         ${ele.isTryJob
           ? html`
               <tr>
                 <td>Codereview Link</td>
                 <td>
-                  <a href="${ele.codereviewLink}" target="_blank"
-                    >${ele.codereviewLink}</a
-                  >
+                  <a href="${ele.codereviewLink}" target="_blank">${ele.codereviewLink}</a>
                 </td>
               </tr>
               <tr>
@@ -223,23 +199,14 @@ export class TaskSk extends ElementSk {
       this.duration = diffDate(start.getTime(), end.getTime());
       const rs = this.task.taskKey!.repoState!;
       this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
-      if (
-        rs.patch &&
-        rs.patch.issue !== '' &&
-        rs.patch.patchset !== '' &&
-        rs.patch.server !== ''
-      ) {
+      if (rs.patch && rs.patch.issue !== '' && rs.patch.patchset !== '' && rs.patch.server !== '') {
         this.isTryJob = true;
         const p = rs.patch!;
         this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
       }
-      [this.statusText, this.statusColor] = taskStatusToTextColor.get(
-        this.task.status
-      )!;
+      [this.statusText, this.statusColor] = taskStatusToTextColor.get(this.task.status)!;
       this.swarmingTaskLink = `https://${this.swarming}/task?id=${this.task.swarmingTaskId}`;
-      const jobReqs = this.task.jobs!.map((jobID: string) =>
-        this.rpc!.getJob({ id: jobID })
-      );
+      const jobReqs = this.task.jobs!.map((jobID: string) => this.rpc!.getJob({ id: jobID }));
       Promise.all(jobReqs).then((jobResps: GetJobResponse[]) => {
         this.jobs = jobResps
           .map((resp: GetJobResponse) => resp.job!)

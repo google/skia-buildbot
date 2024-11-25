@@ -12,14 +12,7 @@ import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/spinner-sk';
-import {
-  Tool,
-  Domains,
-  Audiences,
-  AdoptionStage,
-  Phases,
-  CreateOrUpdateResponse,
-} from '../json';
+import { Tool, Domains, Audiences, AdoptionStage, Phases, CreateOrUpdateResponse } from '../json';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
@@ -160,27 +153,19 @@ export class ToolsSk extends ElementSk {
     return html`
       <div class="topbar">
         <p class="intro">
-          Tools lists the common and recommended tools for solving developer
-          problems for the following audiences: ${this.allAudiences.join(', ')}.
+          Tools lists the common and recommended tools for solving developer problems for the
+          following audiences: ${this.allAudiences.join(', ')}.
         </p>
-        <button
-          id="new-tool"
-          @click=${() => this.createNew()}
-          title="Create a new tool entry.">
+        <button id="new-tool" @click=${() => this.createNew()} title="Create a new tool entry.">
           New
         </button>
       </div>
       <div class="selectAudience">
         <label for="audience">Audience</label>
-        <select
-          name="audience"
-          id="audience"
-          @input=${(e: InputEvent) => this.audienceChanged(e)}>
+        <select name="audience" id="audience" @input=${(e: InputEvent) => this.audienceChanged(e)}>
           ${this.allAudiences.map(
             (a: Audiences) =>
-              html` <option value="${a}" ?selected=${this.state.audience === a}>
-                ${a}
-              </option>`
+              html` <option value="${a}" ?selected=${this.state.audience === a}>${a}</option>`
           )}
         </select>
       </div>
@@ -239,9 +224,7 @@ export class ToolsSk extends ElementSk {
    * Displays an HTML form for editing an existing Tool, or creating a new one.
    */
   editView(): TemplateResult {
-    let tool: Tool | undefined = this.tools.find(
-      (t: Tool): boolean => t.id === this.state.toolID
-    );
+    let tool: Tool | undefined = this.tools.find((t: Tool): boolean => t.id === this.state.toolID);
     if (!tool) {
       tool = toolInstanceForCreate;
     }
@@ -269,9 +252,7 @@ export class ToolsSk extends ElementSk {
           <select name="domain" id="domain">
             ${Object.keys(domainDisplay).map(
               (key): TemplateResult => html`
-                <option
-                  value="${key}"
-                  ?selected=${tool!.domain === (key as Domains)}>
+                <option value="${key}" ?selected=${tool!.domain === (key as Domains)}>
                   ${domainDisplay[key as Domains]}
                 </option>
               `
@@ -305,9 +286,7 @@ export class ToolsSk extends ElementSk {
           <select name="phase" id="phase">
             ${Object.keys(phasesDisplay).map(
               (key): TemplateResult => html`
-                <option
-                  value="${key}"
-                  ?selected=${tool!.phase === (key as Phases)}>
+                <option value="${key}" ?selected=${tool!.phase === (key as Phases)}>
                   ${phasesDisplay[key as Phases]}
                 </option>
               `
@@ -336,9 +315,7 @@ export class ToolsSk extends ElementSk {
             size=${Object.keys(audiencesDisplay).length}>
             ${Object.keys(audiencesDisplay).map(
               (key): TemplateResult => html`
-                <option
-                  value="${key}"
-                  ?selected=${inAudiences(key as Audiences, tool!.audience)}>
+                <option value="${key}" ?selected=${inAudiences(key as Audiences, tool!.audience)}>
                   ${audiencesDisplay[key as Audiences]}
                 </option>
               `
@@ -351,9 +328,7 @@ export class ToolsSk extends ElementSk {
           <select name="adoption_stage" id="adoption_stage">
             ${Object.keys(adoptionStageDisplay).map(
               (key): TemplateResult => html`
-                <option
-                  value="${key}"
-                  ?selected=${tool!.adoption_stage === (key as AdoptionStage)}>
+                <option value="${key}" ?selected=${tool!.adoption_stage === (key as AdoptionStage)}>
                   ${adoptionStageDisplay[key as AdoptionStage]}
                 </option>
               `
@@ -412,9 +387,9 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
           <label for="code_path">Code paths: <span class=instructions>One URL per line.</span> </label>
           <textarea rows="${
             (tool.code_path || []).length + 1
-          }" cols="120" id="code_path" name="code_path">${(
-            tool.code_path || []
-          ).map((value: string) => html`${value} `)}</textarea>
+          }" cols="120" id="code_path" name="code_path">${(tool.code_path || []).map(
+            (value: string) => html`${value} `
+          )}</textarea>
         </div>
 
         <div class=submit>
@@ -448,10 +423,7 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
   /**
    * Displays a `{ [key: string]: string } | null` with the given header.
    */
-  displayMap(
-    header: string,
-    map: { [key: string]: string } | null
-  ): TemplateResult {
+  displayMap(header: string, map: { [key: string]: string } | null): TemplateResult {
     if (!map || Object.keys(map).length === 0) {
       return html``;
     }
@@ -495,8 +467,8 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
     const domainKeys = [...this.byDomain.keys()].sort();
     domainKeys.forEach((key: Domains) => {
       // Only show tools relevant for the audience.
-      const tools: Tool[] = (this.byDomain.get(key) || []).filter(
-        (t: Tool): boolean => inAudiences(this.state.audience, t.audience)
+      const tools: Tool[] = (this.byDomain.get(key) || []).filter((t: Tool): boolean =>
+        inAudiences(this.state.audience, t.audience)
       );
 
       // Don't display the Domain section if it will be empty.
@@ -587,12 +559,9 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
       description: $$<HTMLTextAreaElement>('#description', form)!.textContent!,
       phase: $$<HTMLSelectElement>('#phase', form)!.value as Phases,
       teams_id: $$<HTMLInputElement>('#teams_id', form)!.value,
-      code_path: $$<HTMLTextAreaElement>('#code_path', form)!
-        .textContent!.trim()
-        .split('\n'),
+      code_path: $$<HTMLTextAreaElement>('#code_path', form)!.textContent!.trim().split('\n'),
       audience: this.audienceControlToAudienceArray(form),
-      adoption_stage: $$<HTMLSelectElement>('#adoption_stage', form)!
-        .value as AdoptionStage,
+      adoption_stage: $$<HTMLSelectElement>('#adoption_stage', form)!.value as AdoptionStage,
       landing_page: $$<HTMLInputElement>('#landing_page', form)!.value,
       docs: this.textAreaToObject(form, '#docs'),
       feedback: this.textAreaToObject(form, '#feedback'),
@@ -611,10 +580,7 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
    */
   audienceControlToAudienceArray(form: HTMLFormElement): Audiences[] {
     const ret: Audiences[] = [];
-    const collection = $$<HTMLSelectElement>(
-      '#audience',
-      form
-    )!.selectedOptions;
+    const collection = $$<HTMLSelectElement>('#audience', form)!.selectedOptions;
     for (let i = 0; i < collection.length; i++) {
       ret.push(collection[i].value as Audiences);
     }
@@ -632,10 +598,7 @@ ${Object.entries(tool.resources!).map((entry: [string, string]) => {
    * "#foo".
    * @returns An object that maps all the keys to their URL values.
    */
-  textAreaToObject(
-    form: HTMLFormElement,
-    id: string
-  ): { [key: string]: string } {
+  textAreaToObject(form: HTMLFormElement, id: string): { [key: string]: string } {
     const ret: { [key: string]: string } = {};
     $$<HTMLTextAreaElement>(id, form)!
       .value!.trim()

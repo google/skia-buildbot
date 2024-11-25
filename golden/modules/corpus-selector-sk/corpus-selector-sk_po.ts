@@ -28,15 +28,11 @@ export class CorpusSelectorSkPO extends PageObject {
 
   /** Returns the selected corpus, or null if none is selected. */
   async getSelectedCorpus() {
-    return (await this.selectedCorpus.isEmpty())
-      ? null
-      : this.selectedCorpus.innerText;
+    return (await this.selectedCorpus.isEmpty()) ? null : this.selectedCorpus.innerText;
   }
 
   async clickCorpus(corpus: string) {
-    const corpusLi = await this.corpora.find((li) =>
-      li.isInnerTextEqualTo(corpus)
-    );
+    const corpusLi = await this.corpora.find((li) => li.isInnerTextEqualTo(corpus));
     await corpusLi!.click();
   }
 }

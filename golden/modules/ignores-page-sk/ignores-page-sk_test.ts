@@ -138,10 +138,7 @@ describe('ignores-page-sk', () => {
       const del = findDeleteForRow(ignoresPageSk, 2);
       del.click();
 
-      fetchMock.post(
-        `/json/v1/ignores/del/${idOfThirdRule}`,
-        '{"deleted": "true"}'
-      );
+      fetchMock.post(`/json/v1/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
       const p = eventPromise('end-task');
       clickConfirmDeleteButton(ignoresPageSk);
       await p;
@@ -247,9 +244,7 @@ function findCreateEditIgnoreRuleDialog(ele: IgnoresPageSk): HTMLDialogElement {
   return $$<HTMLDialogElement>('dialog#edit-ignore-rule-dialog', ele)!;
 }
 
-function findConfirmSaveIgnoreRuleButton(
-  ele: IgnoresPageSk
-): HTMLButtonElement {
+function findConfirmSaveIgnoreRuleButton(ele: IgnoresPageSk): HTMLButtonElement {
   return $$<HTMLButtonElement>('#edit-ignore-rule-dialog button#ok', ele)!;
 }
 
@@ -257,34 +252,20 @@ function clickUntriagedDigestsCheckbox(ele: IgnoresPageSk) {
   // We need to click on the input element to accurately mimic a user event. This is
   // because the checkbox-sk element listens for the click event created by the
   // internal input event.
-  const input = $$<HTMLInputElement>(
-    'input[type="checkbox"]',
-    findUntriagedDigestsCheckbox(ele)
-  )!;
+  const input = $$<HTMLInputElement>('input[type="checkbox"]', findUntriagedDigestsCheckbox(ele))!;
   input.click();
 }
 
 function clickConfirmDeleteButton(ele: IgnoresPageSk) {
-  $$<HTMLButtonElement>(
-    'button.confirm',
-    findConfirmDeleteDialog(ele)
-  )!.click();
+  $$<HTMLButtonElement>('button.confirm', findConfirmDeleteDialog(ele))!.click();
 }
 
 function clickCreateIgnoreRuleButton(ele: IgnoresPageSk) {
   $$<HTMLButtonElement>('.controls button.create', ele)!.click();
 }
 
-function setIgnoreRuleProperties(
-  ele: IgnoresPageSk,
-  query: string,
-  expires: string,
-  note: string
-) {
-  const editor = $$<EditIgnoreRuleSk>(
-    'edit-ignore-rule-sk',
-    findCreateEditIgnoreRuleDialog(ele)
-  )!;
+function setIgnoreRuleProperties(ele: IgnoresPageSk, query: string, expires: string, note: string) {
+  const editor = $$<EditIgnoreRuleSk>('edit-ignore-rule-sk', findCreateEditIgnoreRuleDialog(ele))!;
   editor.query = query;
   editor.expires = expires;
   editor.note = note;

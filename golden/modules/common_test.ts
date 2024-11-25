@@ -16,11 +16,8 @@ import { SearchCriteria } from './search-controls-sk/search-controls-sk';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {
-    expect(humanReadableQuery('alpha=beta&gamma=delta')).to.equal(
-      'alpha=beta\ngamma=delta'
-    );
-    const inputWithSpaces =
-      "mind%20the%20gap=tube&woody=There's%20a%20space%20in%20my%20boot";
+    expect(humanReadableQuery('alpha=beta&gamma=delta')).to.equal('alpha=beta\ngamma=delta');
+    const inputWithSpaces = "mind%20the%20gap=tube&woody=There's%20a%20space%20in%20my%20boot";
     expect(humanReadableQuery(inputWithSpaces)).to.equal(
       "mind the gap=tube\nwoody=There's a space in my boot"
     );
@@ -33,12 +30,8 @@ const bDigest = 'bbb8b07beb4e1247c2cbafdb92b93e55';
 
 describe('digestImagePath', () => {
   it('returns links to PNGs for a given digest', () => {
-    expect(digestImagePath(aDigest)).to.equal(
-      '/img/images/aaab78c9711cb79197d47f448ba51338.png'
-    );
-    expect(digestImagePath(bDigest)).to.equal(
-      '/img/images/bbb8b07beb4e1247c2cbafdb92b93e55.png'
-    );
+    expect(digestImagePath(aDigest)).to.equal('/img/images/aaab78c9711cb79197d47f448ba51338.png');
+    expect(digestImagePath(bDigest)).to.equal('/img/images/bbb8b07beb4e1247c2cbafdb92b93e55.png');
   });
 });
 
@@ -55,19 +48,12 @@ describe('digestDiffImagePath', () => {
 
 describe('detailHref', () => {
   it('returns a path with and without an changelist id', () => {
-    expect(
-      detailHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest)
-    ).to.equal(
+    expect(detailHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest)).to.equal(
       '/detail?grouping=name%3Dmy-test%26source_type%3Dmy-corpus' +
         '&digest=aaab78c9711cb79197d47f448ba51338'
     );
     expect(
-      detailHref(
-        { source_type: 'my-corpus', name: 'my-test' },
-        aDigest,
-        '12345',
-        'gerrit'
-      )
+      detailHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest, '12345', 'gerrit')
     ).to.equal(
       '/detail?grouping=name%3Dmy-test%26source_type%3Dmy-corpus' +
         '&digest=aaab78c9711cb79197d47f448ba51338&changelist_id=12345&crs=gerrit'
@@ -77,24 +63,12 @@ describe('detailHref', () => {
 
 describe('diffPageHref', () => {
   it('returns a path with the digests in the expected order', () => {
-    expect(
-      diffPageHref(
-        { source_type: 'my-corpus', name: 'my-test' },
-        aDigest,
-        bDigest
-      )
-    ).to.equal(
+    expect(diffPageHref({ source_type: 'my-corpus', name: 'my-test' }, aDigest, bDigest)).to.equal(
       '/diff?grouping=name%3Dmy-test%26source_type%3Dmy-corpus' +
         '&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55'
     );
     // order matters
-    expect(
-      diffPageHref(
-        { source_type: 'my-corpus', name: 'my-test' },
-        bDigest,
-        aDigest
-      )
-    ).to.equal(
+    expect(diffPageHref({ source_type: 'my-corpus', name: 'my-test' }, bDigest, aDigest)).to.equal(
       '/diff?grouping=name%3Dmy-test%26source_type%3Dmy-corpus' +
         '&left=bbb8b07beb4e1247c2cbafdb92b93e55&right=aaab78c9711cb79197d47f448ba51338'
     );
@@ -157,9 +131,7 @@ describe('clusterPageHref', () => {
   });
 
   it('returns a valid link with clID/crs', () => {
-    expect(
-      clusterPageHref(grouping, searchCriteria, 'my-cl', 'my-crs')
-    ).to.equal(
+    expect(clusterPageHref(grouping, searchCriteria, 'my-cl', 'my-crs')).to.equal(
       '/cluster' +
         '?grouping=name%3Dmy-test%26source_type%3Dmy-corpus&corpus=my-corpus' +
         '&include_ignored=true' +

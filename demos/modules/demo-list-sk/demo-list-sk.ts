@@ -21,11 +21,7 @@ export class DemoListSk extends ElementSk {
     <table class="demolist">
       <thead>
         <tr>
-          <th>
-            Available Demos (<a href="${el.repoURL}"
-              >${el.repoHash.substring(0, 10)}</a
-            >)
-          </th>
+          <th>Available Demos (<a href="${el.repoURL}">${el.repoHash.substring(0, 10)}</a>)</th>
         </tr>
       </thead>
       <tbody>

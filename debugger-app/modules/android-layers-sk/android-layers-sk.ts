@@ -36,19 +36,11 @@ export class AndroidLayersSk extends ElementDocSk {
   private static template = (ele: AndroidLayersSk) =>
     html` <details open>
       <summary><b>Offscreen Buffers</b></summary>
-      ${ele._layerList.map((l: LayerDescription) =>
-        AndroidLayersSk.layerTemplate(ele, l)
-      )}
+      ${ele._layerList.map((l: LayerDescription) => AndroidLayersSk.layerTemplate(ele, l))}
     </details>`;
 
-  private static layerTemplate = (
-    ele: AndroidLayersSk,
-    item: LayerDescription
-  ) => html`
-    <div
-      class="androidlayerbox ${item.nodeId === ele._inspectedLayer
-        ? 'selected'
-        : ''}">
+  private static layerTemplate = (ele: AndroidLayersSk, item: LayerDescription) => html`
+    <div class="androidlayerbox ${item.nodeId === ele._inspectedLayer ? 'selected' : ''}">
       <span class="layername"><b>${item.nodeId}</b>: ${item.name}</span><br />
       Layer size = <b>(${item.layerWidth}, ${item.layerHeight})</b><br />
       Uses this frame = <b>${item.usesThisFrame.length}</b>

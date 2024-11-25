@@ -21,9 +21,7 @@ const defaultRows = 5;
 
 export class AutogrowTextareaSk extends ElementSk {
   private static template = (ele: AutogrowTextareaSk) => html`
-    <textarea
-      placeholder=${ele.placeholder}
-      @input=${ele.computeResize}></textarea>
+    <textarea placeholder=${ele.placeholder} @input=${ele.computeResize}></textarea>
   `;
 
   private textarea: HTMLTextAreaElement | null = null;
@@ -101,9 +99,7 @@ export class AutogrowTextareaSk extends ElementSk {
     if (heightDiff > 0) {
       // We floor the rowHeight as a lazy way to counteract rounded results
       // returned from clientHeight and scrollHeight causing too few rows added.
-      const rowHeight = Math.floor(
-        this.textarea.clientHeight / this.textarea.rows
-      );
+      const rowHeight = Math.floor(this.textarea.clientHeight / this.textarea.rows);
       this.textarea.rows += Math.ceil(heightDiff / rowHeight);
     }
   }

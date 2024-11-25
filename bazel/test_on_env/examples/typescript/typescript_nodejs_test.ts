@@ -12,11 +12,8 @@ const ENV_PORT_FILE_BASE_NAME = 'port';
 
 const readPort = () => {
   const envDir = process.env.ENV_DIR;
-  if (!envDir)
-    throw new Error('required environment variable ENV_DIR is unset');
-  return parseInt(
-    fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8')
-  );
+  if (!envDir) throw new Error('required environment variable ENV_DIR is unset');
+  return parseInt(fs.readFileSync(path.join(envDir, ENV_PORT_FILE_BASE_NAME), 'utf8'));
 };
 
 describe('example test', () => {
@@ -26,10 +23,7 @@ describe('example test', () => {
 
   before(async () => {
     baseUrl = `http://localhost:${readPort()}`;
-    const bazelRunfilesDir = path.join(
-      process.env.RUNFILES_DIR!,
-      process.env.TEST_WORKSPACE!
-    );
+    const bazelRunfilesDir = path.join(process.env.RUNFILES_DIR!, process.env.TEST_WORKSPACE!);
     browser = await puppeteer.launch({
       executablePath: path.join(
         bazelRunfilesDir,
@@ -49,14 +43,9 @@ describe('example test', () => {
     page = await browser.newPage();
   });
 
-  const getStatusCodeAndPageText = async (
-    url: string
-  ): Promise<[number, string]> => {
+  const getStatusCodeAndPageText = async (url: string): Promise<[number, string]> => {
     const response = await page.goto(url);
-    const pageText = await page.$eval(
-      'body',
-      (el) => (el as HTMLBodyElement).innerText
-    );
+    const pageText = await page.$eval('body', (el) => (el as HTMLBodyElement).innerText);
     return [response!.status(), pageText.trim()];
   };
 
@@ -75,8 +64,9 @@ describe('example test', () => {
   });
 
   it('should echo the message', async () => {
-    expect(
-      await getStatusCodeAndPageText(`${baseUrl}/echo?msg=Hello%2C%20world!`)
-    ).to.deep.equal([200, 'Hello, world!']);
+    expect(await getStatusCodeAndPageText(`${baseUrl}/echo?msg=Hello%2C%20world!`)).to.deep.equal([
+      200,
+      'Hello, world!',
+    ]);
   });
 });

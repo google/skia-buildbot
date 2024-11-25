@@ -12,16 +12,11 @@ import { chromiumPatchResult } from '../patch-sk/test_data';
 import { InputSk } from '../input-sk/input-sk';
 import { ChromiumAnalysisSk } from './chromium-analysis-sk';
 import { ChromiumAnalysisAddTaskVars } from '../json';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('chromium-analysis-sk', () => {
   fetchMock.config.overwriteRoutes = false;
-  const factory = setUpElementUnderTest<ChromiumAnalysisSk>(
-    'chromium-analysis-sk'
-  );
+  const factory = setUpElementUnderTest<ChromiumAnalysisSk>('chromium-analysis-sk');
   // Returns a new element with the pagesets, task priorirites, and
   // active tasks fetches complete, and benchmarks and platforms set.
   const newInstance = async (activeTasks?: number) => {
@@ -101,31 +96,15 @@ describe('chromium-analysis-sk', () => {
         +($$('#platform_selector', chromiumAnalysis) as SelectSk)!.selection!
       ][0]
     ).to.equal('Linux');
-    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property(
-      'selected',
-      '10k'
-    );
-    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property(
-      'customPages',
-      ''
-    );
-    expect($$('#repeat_after_days', chromiumAnalysis)).to.have.property(
-      'frequency',
-      '0'
-    );
-    expect($$('#task_priority', chromiumAnalysis)).to.have.property(
-      'priority',
-      '100'
-    );
+    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property('selected', '10k');
+    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property('customPages', '');
+    expect($$('#repeat_after_days', chromiumAnalysis)).to.have.property('frequency', '0');
+    expect($$('#task_priority', chromiumAnalysis)).to.have.property('priority', '100');
     expect($$('#benchmark_args', chromiumAnalysis)).to.have.property(
       'value',
-      '--output-format=csv --skip-typ-expectations-tags-validation' +
-        ' --legacy-json-trace-format'
+      '--output-format=csv --skip-typ-expectations-tags-validation' + ' --legacy-json-trace-format'
     );
-    expect($$('#value_column_name', chromiumAnalysis)).to.have.property(
-      'value',
-      'avg'
-    );
+    expect($$('#value_column_name', chromiumAnalysis)).to.have.property('value', 'avg');
   });
 
   it('requires description', async () => {
@@ -133,9 +112,7 @@ describe('chromium-analysis-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.equal(
-      'Please specify a description'
-    );
+    expect((err as CustomEvent).detail.message).to.equal('Please specify a description');
   });
 
   it('requires benchmark', async () => {
@@ -144,9 +121,7 @@ describe('chromium-analysis-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.equal(
-      'Please specify a benchmark'
-    );
+    expect((err as CustomEvent).detail.message).to.equal('Please specify a benchmark');
   });
 
   it('rejects bad patch', async () => {
@@ -165,9 +140,7 @@ describe('chromium-analysis-sk', () => {
     event = eventPromise('error-sk');
     clickSubmit();
     err = await event;
-    expect((err as CustomEvent).detail.message).to.contain(
-      'Unable to load skia CL 1234'
-    );
+    expect((err as CustomEvent).detail.message).to.contain('Unable to load skia CL 1234');
   });
 
   it('triggers a new task', async () => {
@@ -253,30 +226,15 @@ describe('chromium-analysis-sk', () => {
     fetchMock.post('begin:/_/edit_chromium_analysis_task', mockAddTaskVars);
     chromiumAnalysis.handleTemplateID('123');
     await fetchMock.flush(true);
-    expect($$('#description', chromiumAnalysis)).to.have.property(
-      'value',
-      'test description'
-    );
-    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property(
-      'selected',
-      '10k'
-    );
+    expect($$('#description', chromiumAnalysis)).to.have.property('value', 'test description');
+    expect($$('#pageset_selector', chromiumAnalysis)).to.have.property('selected', '10k');
     expect($$('#pageset_selector', chromiumAnalysis)).to.have.property(
       'customPages',
       'google.com,youtube.com'
     );
-    expect($$('#repeat_after_days', chromiumAnalysis)).to.have.property(
-      'frequency',
-      '7'
-    );
-    expect($$('#task_priority', chromiumAnalysis)).to.have.property(
-      'priority',
-      '110'
-    );
-    expect($$('#value_column_name', chromiumAnalysis)).to.have.property(
-      'value',
-      'avg2'
-    );
+    expect($$('#repeat_after_days', chromiumAnalysis)).to.have.property('frequency', '7');
+    expect($$('#task_priority', chromiumAnalysis)).to.have.property('priority', '110');
+    expect($$('#value_column_name', chromiumAnalysis)).to.have.property('value', 'avg2');
   });
 
   it('rejects if too many active tasks', async () => {
@@ -287,8 +245,6 @@ describe('chromium-analysis-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.contain(
-      'You have 4 currently running tasks'
-    );
+    expect((err as CustomEvent).detail.message).to.contain('You have 4 currently running tasks');
   });
 });

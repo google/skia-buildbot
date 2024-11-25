@@ -43,9 +43,7 @@ export class DeviceEditorSk extends ElementSk {
     <dialog class="info">
       <h1>Edit device dimensions for ${ele.machineID}</h1>
 
-      <div class="center">
-        Set the below boxes to indicate a ChromeOS machine
-      </div>
+      <div class="center">Set the below boxes to indicate a ChromeOS machine</div>
       <table>
         <tr>
           <td>User and IP address:</td>
@@ -60,21 +58,13 @@ export class DeviceEditorSk extends ElementSk {
         <tr>
           <td>GPU (from chrome://gpu/). Comma seperated if multiple.</td>
           <td>
-            <input
-              type="text"
-              id="chromeos_gpu"
-              .value=${ele.displayDimensions('gpu')} />
+            <input type="text" id="chromeos_gpu" .value=${ele.displayDimensions('gpu')} />
           </td>
         </tr>
         <tr>
+          <td>CPU (x86,x86_64,arm,arm32,arm64). Comma seperated if multiple.</td>
           <td>
-            CPU (x86,x86_64,arm,arm32,arm64). Comma seperated if multiple.
-          </td>
-          <td>
-            <input
-              type="text"
-              id="chromeos_cpu"
-              .value=${ele.displayDimensions('cpu')} />
+            <input type="text" id="chromeos_cpu" .value=${ele.displayDimensions('cpu')} />
           </td>
         </tr>
       </table>
@@ -102,8 +92,7 @@ export class DeviceEditorSk extends ElementSk {
     </dialog>
     <dialog class="confirm">
       <div class="warning">
-        Clearing the dimensions, especially for ChromeOS can be annoying to
-        undo.
+        Clearing the dimensions, especially for ChromeOS can be annoying to undo.
         <br />
         Are you sure?
         <br />
@@ -134,17 +123,12 @@ export class DeviceEditorSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this.infoDialog = this.querySelector<HTMLDialogElement>('dialog.info');
-    this.confirmDialog =
-      this.querySelector<HTMLDialogElement>('dialog.confirm');
+    this.confirmDialog = this.querySelector<HTMLDialogElement>('dialog.confirm');
   }
 
   private applyUpdates(): void {
-    const gpus = $$<HTMLInputElement>('input#chromeos_gpu', this)!.value.split(
-      ','
-    );
-    const cpus = $$<HTMLInputElement>('input#chromeos_cpu', this)!.value.split(
-      ','
-    );
+    const gpus = $$<HTMLInputElement>('input#chromeos_gpu', this)!.value.split(',');
+    const cpus = $$<HTMLInputElement>('input#chromeos_cpu', this)!.value.split(',');
 
     this.dispatchEvent(
       new CustomEvent<UpdateDimensionsDetails>(UpdateDimensionsEvent, {

@@ -28,8 +28,7 @@ export class TooltipSk extends ElementSk {
   /** The element this tooltip is for. */
   private targetElement: HTMLElement | null = null;
 
-  private static template = (ele: TooltipSk) =>
-    html`<div class="content">${ele.value}</div>`;
+  private static template = (ele: TooltipSk) => html`<div class="content">${ele.value}</div>`;
 
   constructor() {
     super(TooltipSk.template);

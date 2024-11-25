@@ -40,8 +40,7 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private selectedOsType: string = '';
 
-  private osToDeviceTypes: { [key: string]: { [key: string]: number } | null } =
-    {};
+  private osToDeviceTypes: { [key: string]: { [key: string]: number } | null } = {};
 
   private loadingDetails: boolean = false;
 
@@ -58,9 +57,9 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Select Pool</td>
         <td>
-          <select id="pool" ?disabled=${ele.loadingDetails} .selection=${
-            ele.pool
-          } @input=${ele.poolChanged}>
+          <select id="pool" ?disabled=${ele.loadingDetails} .selection=${ele.pool} @input=${
+            ele.poolChanged
+          }>
             ${LeasingSelectionsSk.displayPools(ele)}
           </select>
         </td>
@@ -69,9 +68,7 @@ export class LeasingSelectionsSk extends ElementSk {
       <tr>
         <td class="step-title">Select OS Type</td>
         <td>
-          <select id="os_type" ?disabled=${ele.loadingDetails} @input=${
-            ele.osTypeChanged
-          }>
+          <select id="os_type" ?disabled=${ele.loadingDetails} @input=${ele.osTypeChanged}>
             ${LeasingSelectionsSk.displayOsTypes(ele)}
           </select>
         </td>
@@ -82,8 +79,7 @@ export class LeasingSelectionsSk extends ElementSk {
         <td>
           <select id="device_type" ?disabled=${
             ele.loadingDetails ||
-            (ele.selectedOsType !== 'Android' &&
-              !ele.selectedOsType.startsWith('iOS'))
+            (ele.selectedOsType !== 'Android' && !ele.selectedOsType.startsWith('iOS'))
           }>
             ${LeasingSelectionsSk.displayDeviceTypes(ele)}
           </select>
@@ -128,9 +124,7 @@ export class LeasingSelectionsSk extends ElementSk {
 
       <tr>
         <td colspan="2" class="center">
-          <button raised @click=${ele.addTask} ?disabled=${
-            ele.loadingDetails
-          }>Lease Bot</button>
+          <button raised @click=${ele.addTask} ?disabled=${ele.loadingDetails}>Lease Bot</button>
         </td>
       </tr>
 
@@ -139,10 +133,7 @@ export class LeasingSelectionsSk extends ElementSk {
 
   private static displayPools(ele: LeasingSelectionsSk): TemplateResult[] {
     return ele.all_pools.map(
-      (p) =>
-        html` <option ?selected=${ele.pool === p} value=${p} title=${p}>
-          ${p}
-        </option>`
+      (p) => html` <option ?selected=${ele.pool === p} value=${p} title=${p}>${p}</option>`
     );
   }
 
@@ -151,16 +142,11 @@ export class LeasingSelectionsSk extends ElementSk {
       return [html``];
     }
     return Object.keys(ele.osTypes).map(
-      (o) =>
-        html` <option value=${o} title=${o}>
-          ${o} - ${ele.osTypes[o]} bots online
-        </option>`
+      (o) => html` <option value=${o} title=${o}>${o} - ${ele.osTypes[o]} bots online</option>`
     );
   }
 
-  private static displayDeviceTypes(
-    ele: LeasingSelectionsSk
-  ): TemplateResult[] {
+  private static displayDeviceTypes(ele: LeasingSelectionsSk): TemplateResult[] {
     if (Object.keys(ele.osToDeviceTypes).length === 0) {
       return [html``];
     }

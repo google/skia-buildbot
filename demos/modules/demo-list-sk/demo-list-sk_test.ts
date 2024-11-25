@@ -4,10 +4,7 @@ import fetchMock from 'fetch-mock';
 import { expect } from 'chai';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import { singleDemoEntry, twoDemoEntries } from './test_data';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { Metadata } from '../rpc_types';
 
 describe('demo-list-sk', () => {

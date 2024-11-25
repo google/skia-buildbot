@@ -98,10 +98,7 @@ export const exampleTrace: DebugTrace = {
     { name: 'color', columns: 4, rows: 1, index: 2, kind: 0, line: 2 },
     { name: 'color', columns: 4, rows: 1, index: 3, kind: 0, line: 2 },
   ],
-  functions: [
-    { name: 'half4 main(float2 p)' },
-    { name: 'half4 convert(float2 c)' },
-  ],
+  functions: [{ name: 'half4 main(float2 p)' }, { name: 'half4 convert(float2 c)' }],
   trace: [
     [2],
     [1, 4, 1048576000],

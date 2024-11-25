@@ -16,9 +16,7 @@ async function installChrome(downloadDir: string) {
   // For some reason, the install() function occasionally takes forever to uncompress the
   // downloaded archive, and Bazel waits indefinitely for //puppeteer-test:chrome to finish.
   const timeout = setTimeout(() => {
-    console.log(
-      `Download/uncompress took more than ${INSTALL_TIMEOUT_MS} ms; aborting.`
-    );
+    console.log(`Download/uncompress took more than ${INSTALL_TIMEOUT_MS} ms; aborting.`);
     process.exit(1);
   }, INSTALL_TIMEOUT_MS);
 
@@ -27,9 +25,7 @@ async function installChrome(downloadDir: string) {
   const progressCallback = (downloadedBytes: number, totalBytes: number) => {
     const pct = Math.trunc((downloadedBytes / totalBytes) * 100);
     if (pct >= lastPct + 10) {
-      console.log(
-        `${pct}% downloaded (${downloadedBytes} / ${totalBytes} bytes)...`
-      );
+      console.log(`${pct}% downloaded (${downloadedBytes} / ${totalBytes} bytes)...`);
       lastPct = pct;
     }
   };
@@ -42,37 +38,23 @@ async function installChrome(downloadDir: string) {
   });
   clearTimeout(timeout);
 
-  console.log(
-    `Downloaded Chrome. Executable path: ${installedBrowser.executablePath}`
-  );
+  console.log(`Downloaded Chrome. Executable path: ${installedBrowser.executablePath}`);
 
-  if (
-    installedBrowser.executablePath !==
-    join(downloadDir, CHROME_EXECUTABLE_PATH)
-  ) {
+  if (installedBrowser.executablePath !== join(downloadDir, CHROME_EXECUTABLE_PATH)) {
     const prefixLength = downloadDir.length + 1; // Account for trailing slash.
-    const actualExecutablePath =
-      installedBrowser.executablePath.slice(prefixLength);
+    const actualExecutablePath = installedBrowser.executablePath.slice(prefixLength);
     console.error(
       "ERROR: The downloaded browser's executable path does not match the expected path."
     );
-    console.error(
-      `    Actual (relative to download directory): ${actualExecutablePath}`
-    );
-    console.error(
-      `    Expected:                                ${CHROME_EXECUTABLE_PATH}`
-    );
+    console.error(`    Actual (relative to download directory): ${actualExecutablePath}`);
+    console.error(`    Expected:                                ${CHROME_EXECUTABLE_PATH}`);
     process.exit(1);
   }
 }
 
 // The process.argv array looks like ["path/to/node", "program.js", "arg1", "arg2", ...].
 if (process.argv.length !== 3) {
-  console.error(
-    `Expected exactly one command-line argument, got ${
-      process.argv.length - 2
-    }.`
-  );
+  console.error(`Expected exactly one command-line argument, got ${process.argv.length - 2}.`);
   process.exit(1);
 }
 const downloadDir = resolve(process.argv[2]);

@@ -6,11 +6,7 @@
  */
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
-import {
-  ParamSet,
-  toParamSet,
-  fromParamSet,
-} from '../../../infra-sk/modules/query';
+import { ParamSet, toParamSet, fromParamSet } from '../../../infra-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   TaskSchedulerService,
@@ -89,9 +85,7 @@ export class JobSearchSk extends ElementSk {
           (term: SearchTerm) => html`
             <tr class="searchTerms">
               <th>
-                <label for="${term.key}">
-                  ${searchTerms[term.key]!.label}
-                </label>
+                <label for="${term.key}"> ${searchTerms[term.key]!.label} </label>
               </th>
               <td>
                 ${term.key === 'status'
@@ -106,9 +100,7 @@ export class JobSearchSk extends ElementSk {
                         selected="">
                         ${Object.entries(jobStatusToLabelAndClass).map(
                           ([status, labelAndClass]) => html`
-                            <option
-                              value="${status}"
-                              ?selected="${term.value === status}">
+                            <option value="${status}" ?selected="${term.value === status}">
                               ${labelAndClass.label}
                             </option>
                           `
@@ -121,8 +113,7 @@ export class JobSearchSk extends ElementSk {
                         .type="${searchTerms[term.key]!.type}"
                         .value="${term.value}"
                         ?checked="${
-                          searchTerms[term.key]!.type === 'checkbox' &&
-                          term.value === 'true'
+                          searchTerms[term.key]!.type === 'checkbox' && term.value === 'true'
                         }"
                         @change="${(ev: Event) => {
                           const input = (<HTMLInputElement>ev.target)!;
@@ -171,11 +162,7 @@ export class JobSearchSk extends ElementSk {
               <option disabled selected>Add Search Term</option>
               ${Object.entries(searchTerms)
                 .filter(([key, _]) => !ele.searchTerms.get(key))
-                .map(
-                  ([key, term]) => html`
-                    <option .value="${key}">${term.label}</option>
-                  `
-                )}
+                .map(([key, term]) => html` <option .value="${key}">${term.label}</option> `)}
             </select>
           </td>
           <td></td>
@@ -214,14 +201,11 @@ export class JobSearchSk extends ElementSk {
                     </td>
                     <td>${job.name}</td>
                     <td>
-                      <a href="${job.repoState?.repo}" target="_blank">
-                        ${job.repoState?.repo}
-                      </a>
+                      <a href="${job.repoState?.repo}" target="_blank"> ${job.repoState?.repo} </a>
                     </td>
                     <td>
                       <a
-                        href="${job.repoState!.repo}/+show/${job.repoState!
-                          .revision}"
+                        href="${job.repoState!.repo}/+show/${job.repoState!.revision}"
                         target="_blank">
                         ${job.repoState!.revision.substring(0, 12)}
                       </a>
@@ -232,13 +216,11 @@ export class JobSearchSk extends ElementSk {
                       job.repoState?.patch?.server
                         ? html`
                             <a
-                              href="${job.repoState?.patch?.server}/c/${job
-                                .repoState?.patch?.issue}/${job.repoState?.patch
-                                ?.patchset}"
+                              href="${job.repoState?.patch?.server}/c/${job.repoState?.patch
+                                ?.issue}/${job.repoState?.patch?.patchset}"
                               target="_blank"
-                              >${job.repoState?.patch?.server}/c/${job.repoState
-                                ?.patch?.issue}/${job.repoState?.patch
-                                ?.patchset}
+                              >${job.repoState?.patch?.server}/c/${job.repoState?.patch
+                                ?.issue}/${job.repoState?.patch?.patchset}
                             </a>
                           `
                         : html``}
@@ -252,9 +234,7 @@ export class JobSearchSk extends ElementSk {
                       ${job.status === JobStatus.JOB_STATUS_IN_PROGRESS ||
                       job.status === JobStatus.JOB_STATUS_REQUESTED
                         ? html`
-                            <button
-                              class="cancel"
-                              @click="${() => ele.cancel(job)}">
+                            <button class="cancel" @click="${() => ele.cancel(job)}">
                               <delete-icon-sk></delete-icon-sk>
                               Cancel
                             </button>
@@ -315,16 +295,13 @@ export class JobSearchSk extends ElementSk {
     this.searchTerms.forEach((term: SearchTerm) => {
       params[term.key] = [term.value];
     });
-    const newUrl = `${window.location.href.split('?')[0]}?${fromParamSet(
-      params
-    )}`;
+    const newUrl = `${window.location.href.split('?')[0]}?${fromParamSet(params)}`;
     window.history.replaceState('', '', newUrl);
   }
 
   private search() {
     const req = {
-      buildbucketBuildId:
-        this.searchTerms.get('buildbucketBuildId')?.value || '',
+      buildbucketBuildId: this.searchTerms.get('buildbucketBuildId')?.value || '',
       hasBuildbucketBuildId: !!this.searchTerms.get('buildbucketBuildId'),
       isForce: this.searchTerms.get('isForce')?.value === 'true',
       hasIsForce: !!this.searchTerms.get('isForce'),
@@ -340,21 +317,15 @@ export class JobSearchSk extends ElementSk {
       hasRevision: !!this.searchTerms.get('revision'),
       status: (this.searchTerms.get('status')?.value || null) as JobStatus,
       hasStatus: !!this.searchTerms.get('status'),
-      timeEnd: new Date(
-        this.searchTerms.get('timeEnd')?.value || 0
-      ).toISOString(),
+      timeEnd: new Date(this.searchTerms.get('timeEnd')?.value || 0).toISOString(),
       hasTimeEnd: !!this.searchTerms.get('timeEnd'),
-      timeStart: new Date(
-        this.searchTerms.get('timeStart')?.value || 0
-      ).toISOString(),
+      timeStart: new Date(this.searchTerms.get('timeStart')?.value || 0).toISOString(),
       hasTimeStart: !!this.searchTerms.get('timeStart'),
     };
-    this.rpc!.searchJobs(req as SearchJobsRequest).then(
-      (resp: SearchJobsResponse) => {
-        this.results = resp.jobs!;
-        this._render();
-      }
-    );
+    this.rpc!.searchJobs(req as SearchJobsRequest).then((resp: SearchJobsResponse) => {
+      this.results = resp.jobs!;
+      this._render();
+    });
   }
 
   private cancel(job: Job) {

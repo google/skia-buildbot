@@ -8,19 +8,14 @@ import {
   noEventPromise,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
-import {
-  twoHundredCommits,
-  typicalDetails,
-  typicalDetailsDisallowTriaging,
-} from './test_data';
+import { twoHundredCommits, typicalDetails, typicalDetailsDisallowTriaging } from './test_data';
 import { DigestDetailsSk } from './digest-details-sk';
 import { DigestDetailsSkPO } from './digest-details-sk_po';
 import { Label, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { groupingsResponse } from '../search-page-sk/demo_data';
 
 describe('digest-details-sk', () => {
-  const newInstance =
-    setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
+  const newInstance = setUpElementUnderTest<DigestDetailsSk>('digest-details-sk');
 
   let digestDetailsSk: DigestDetailsSk;
   let digestDetailsSkPO: DigestDetailsSkPO;
@@ -86,46 +81,38 @@ describe('digest-details-sk', () => {
     });
 
     it('has a triage button and shows the triage history', async () => {
-      expect(await digestDetailsSkPO.triageSkPO.getLabel()).to.equal(
-        'positive'
-      );
-      expect(await digestDetailsSkPO.getTriageHistory()).to.equal(
-        '8w ago by user1@'
-      );
+      expect(await digestDetailsSkPO.triageSkPO.getLabel()).to.equal('positive');
+      expect(await digestDetailsSkPO.getTriageHistory()).to.equal('8w ago by user1@');
     });
 
     it('has an image-compare-sk with the right values', async () => {
-      expect(
-        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()
-      ).to.deep.equal(['6246b7738519...', 'Closest Positive']);
-      expect(
-        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
-      ).to.deep.equal([
+      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()).to.deep.equal([
+        '6246b7738519...',
+        'Closest Positive',
+      ]);
+      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=6246b773851984c726cb2e1cb13510c2',
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=99c58c7002073346ff55f446d47d6311',
       ]);
-      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible())
-        .to.be.false;
+      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.false;
     });
 
     it('changes the reference image when the toggle button is clicked', async () => {
       await digestDetailsSkPO.clickToggleReferenceBtn();
 
-      expect(
-        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()
-      ).to.deep.equal(['6246b7738519...', 'Closest Negative']);
-      expect(
-        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
-      ).to.deep.equal([
+      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionTexts()).to.deep.equal([
+        '6246b7738519...',
+        'Closest Negative',
+      ]);
+      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=6246b773851984c726cb2e1cb13510c2',
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=ec3b8f27397d99581e06eaa46d6d5837',
       ]);
-      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible())
-        .to.be.true;
+      expect(await digestDetailsSkPO.isClosestImageIsNegativeWarningVisible()).to.be.true;
     });
 
     it('emits a "triage" event when a triage button is clicked', async () => {
@@ -195,8 +182,7 @@ describe('digest-details-sk', () => {
           { status: 200, body: triageResponse }
         );
 
-        const errorPromise =
-          eventPromise<CustomEvent<ErrorSkEventDetail>>('error-sk');
+        const errorPromise = eventPromise<CustomEvent<ErrorSkEventDetail>>('error-sk');
         await digestDetailsSkPO.triageSkPO.clickButton('negative');
         const detail = await errorPromise;
         expect(detail.detail.message).to.equal(
@@ -213,17 +199,13 @@ describe('digest-details-sk', () => {
       });
 
       it('disallows triage buttons', async () => {
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('positive'))
-          .to.be.true;
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('negative'))
-          .to.be.true;
-        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('untriaged'))
-          .to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('positive')).to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('negative')).to.be.true;
+        expect(await digestDetailsSkPO.triageSkPO.isButtonDisabled('untriaged')).to.be.true;
       });
 
       it('shows the "triaging disallowed" message', async () => {
-        expect(await digestDetailsSkPO.isTriagingDisallowedVisible()).to.be
-          .true;
+        expect(await digestDetailsSkPO.isTriagingDisallowedVisible()).to.be.true;
       });
 
       it('does not emit a "triage" event when a triage button is clicked', async () => {
@@ -246,9 +228,7 @@ describe('digest-details-sk', () => {
     });
 
     it('includes changelist id on the appropriate links', async () => {
-      expect(
-        await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()
-      ).to.deep.equal([
+      expect(await digestDetailsSkPO.imageCompareSkPO.getImageCaptionHrefs()).to.deep.equal([
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
@@ -263,9 +243,7 @@ describe('digest-details-sk', () => {
     });
 
     it('passes changeListID and crs to appropriate subelements', async () => {
-      expect(
-        await digestDetailsSkPO.dotsLegendSkPO.getDigestHrefs()
-      ).to.deep.equal([
+      expect(await digestDetailsSkPO.dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +
           'digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
         '/detail?grouping=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&' +

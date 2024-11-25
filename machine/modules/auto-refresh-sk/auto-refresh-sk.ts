@@ -29,9 +29,7 @@ export class AutoRefreshSk extends ElementSk {
     super(AutoRefreshSk.template);
   }
 
-  private static refreshButtonDisplayValue = (
-    ele: AutoRefreshSk
-  ): TemplateResult => {
+  private static refreshButtonDisplayValue = (ele: AutoRefreshSk): TemplateResult => {
     if (ele.refreshing) {
       return html` <pause-icon-sk></pause-icon-sk> `;
     }

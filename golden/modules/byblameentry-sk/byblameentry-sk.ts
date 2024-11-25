@@ -71,9 +71,7 @@ export class ByBlameEntrySk extends ElementSk {
               <br />
               <small>
                 <span class="author">${commit.author}</span>,
-                <span class="age">
-                  ${diffDate(commit.commit_time * 1000)}
-                </span>
+                <span class="age"> ${diffDate(commit.commit_time * 1000)} </span>
                 ago.
               </small>
             </li>`
@@ -82,9 +80,7 @@ export class ByBlameEntrySk extends ElementSk {
       </ul>`;
   };
 
-  private static affectedTestsTemplate = (
-    affectedTests: TestRollup[] | undefined | null
-  ) => {
+  private static affectedTestsTemplate = (affectedTests: TestRollup[] | undefined | null) => {
     if (!affectedTests || affectedTests.length === 0) return '';
     return html`
       <table class="affected-tests">

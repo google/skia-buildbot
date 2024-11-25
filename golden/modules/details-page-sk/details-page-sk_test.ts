@@ -12,10 +12,7 @@ import { DigestDetails, TriageRequestV3, TriageResponse } from '../rpc_types';
 import { DetailsPageSk } from './details-page-sk';
 import { DetailsPageSkPO } from './details-page-sk_po';
 import { groupingsResponse } from '../search-page-sk/demo_data';
-import {
-  twoHundredCommits,
-  typicalDetails,
-} from '../digest-details-sk/test_data';
+import { twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 
 describe('details-page-sk', () => {
   const newInstance = setUpElementUnderTest<DetailsPageSk>('details-page-sk');
@@ -72,21 +69,17 @@ describe('details-page-sk', () => {
       );
 
       const endTask = eventPromise('end-task');
-      await detailsPageSkPO.digestDetailsSkPO.triageSkPO.clickButton(
-        'negative'
-      );
+      await detailsPageSkPO.digestDetailsSkPO.triageSkPO.clickButton('negative');
       await endTask;
     });
 
     it('should show overview layout by default', async () => {
-      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
-        .to.be.true;
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be.true;
     });
 
     it('should change to full width view if image size is toggled', async () => {
       await detailsPageSkPO.digestDetailsSkPO.imageCompareSkPO.clickImage(0);
-      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview'))
-        .to.be.false;
+      expect(await detailsPageSkPO.digestDetailsSkPO.hasClassName('overview')).to.be.false;
     });
   };
 

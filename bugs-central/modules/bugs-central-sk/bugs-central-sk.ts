@@ -91,10 +91,7 @@ export class BugsCentralSk extends ElementSk {
 
   private clients_to_counts: Record<string, IssueCountsData> = {};
 
-  private clients_map: Record<
-    string,
-    Record<string, Record<string, boolean> | null> | null
-  > = {};
+  private clients_map: Record<string, Record<string, Record<string, boolean> | null> | null> = {};
 
   private open_chart_data: string = '';
 
@@ -116,17 +113,11 @@ export class BugsCentralSk extends ElementSk {
     <br /><br />
     <div class="charts-container">
       <div class="chart-div">
-        <bugs-chart-sk
-          chart_type="open"
-          chart_title="Bug Count"
-          data=${el.open_chart_data}>
+        <bugs-chart-sk chart_type="open" chart_title="Bug Count" data=${el.open_chart_data}>
         </bugs-chart-sk>
       </div>
       <div class="chart-div">
-        <bugs-chart-sk
-          chart_type="slo"
-          chart_title="SLO Violations"
-          data=${el.slo_chart_data}>
+        <bugs-chart-sk chart_type="slo" chart_title="SLO Violations" data=${el.slo_chart_data}>
         </bugs-chart-sk>
       </div>
       <div class="chart-div">
@@ -145,13 +136,9 @@ export class BugsCentralSk extends ElementSk {
     super.connectedCallback();
 
     // Populate map of clients to sources to queries.
-    await this.doImpl(
-      '/_/get_clients_sources_queries',
-      {},
-      async (json: GetClientsResponse) => {
-        this.clients_map = json.clients || {};
-      }
-    );
+    await this.doImpl('/_/get_clients_sources_queries', {}, async (json: GetClientsResponse) => {
+      this.clients_map = json.clients || {};
+    });
 
     // From this point on reflect the state to the URL.
     this.startStateReflector();
@@ -205,24 +192,16 @@ export class BugsCentralSk extends ElementSk {
     if (!this.state.client) {
       return html`Displaying all clients`;
     }
-    const clientKey = getClientKey(
-      this.state.client,
-      this.state.source,
-      this.state.query
-    );
+    const clientKey = getClientKey(this.state.client, this.state.source, this.state.query);
     const clientCounts = this.clients_to_counts[clientKey];
     if (clientCounts && clientCounts.query_link) {
       return html`
         ${clientKey} [
         <span class="query-link"
-          ><a href="${clientCounts.query_link}" target="_blank"
-            >open issues</a
-          ></span
+          ><a href="${clientCounts.query_link}" target="_blank">open issues</a></span
         >,
         <span class="query-link"
-          ><a href="${clientCounts.untriaged_query_link}" target="_blank"
-            >untriaged issues</a
-          ></span
+          ><a href="${clientCounts.untriaged_query_link}" target="_blank">untriaged issues</a></span
         >
         ]
       `;
@@ -302,9 +281,7 @@ export class BugsCentralSk extends ElementSk {
           <td>
             ${clientCounts.untriaged_query_link
               ? html`<span class="query-link"
-                  ><a
-                    href="${clientCounts.untriaged_query_link}"
-                    target="_blank"
+                  ><a href="${clientCounts.untriaged_query_link}" target="_blank"
                     >${clientCounts.untriaged_count}</a
                   ></span
                 >`
@@ -340,9 +317,7 @@ export class BugsCentralSk extends ElementSk {
       // Do not make clickable if we do not have client+source+query or if the total is 0.
       return html`${sloTotal}`;
     }
-    return html`<span
-      class="slo-link"
-      @click=${() => this.displaySLOPopup(client, source, query)}
+    return html`<span class="slo-link" @click=${() => this.displaySLOPopup(client, source, query)}
       >${sloTotal}</span
     >`;
   }
@@ -371,9 +346,7 @@ export class BugsCentralSk extends ElementSk {
   private addExtraInformationToState(state: State): boolean {
     let stateUpdated = false;
     if (state.client && !state.source && !state.query) {
-      const sources = Object.keys(
-        this.clients_map[state.client as string] || {}
-      );
+      const sources = Object.keys(this.clients_map[state.client as string] || {});
       if (sources.length === 1) {
         state.source = sources[0];
         stateUpdated = true;
@@ -407,11 +380,7 @@ export class BugsCentralSk extends ElementSk {
   }
 
   // Common work done for all fetch requests.
-  private async doImpl(
-    url: string,
-    detail: any,
-    action: (json: any) => void
-  ): Promise<void> {
+  private async doImpl(url: string, detail: any, action: (json: any) => void): Promise<void> {
     try {
       const resp = await fetch(url, {
         body: JSON.stringify(detail),
@@ -435,13 +404,9 @@ export class BugsCentralSk extends ElementSk {
       query,
     };
     let priToSLOIssues = {} as Record<string, Issue[]>;
-    await this.doImpl(
-      '/_/get_issues_outside_slo',
-      detail,
-      (json: PriToSLOIssues) => {
-        priToSLOIssues = json.pri_to_slo_issues;
-      }
-    );
+    await this.doImpl('/_/get_issues_outside_slo', detail, (json: PriToSLOIssues) => {
+      priToSLOIssues = json.pri_to_slo_issues;
+    });
     return priToSLOIssues;
   }
 
@@ -452,13 +417,9 @@ export class BugsCentralSk extends ElementSk {
       query,
     };
     let countsData = {} as IssueCountsData;
-    await this.doImpl(
-      '/_/get_issue_counts',
-      detail,
-      (json: IssueCountsData) => {
-        countsData = json;
-      }
-    );
+    await this.doImpl('/_/get_issue_counts', detail, (json: IssueCountsData) => {
+      countsData = json;
+    });
     return countsData;
   }
 
@@ -468,15 +429,11 @@ export class BugsCentralSk extends ElementSk {
       source: this.state.source,
       query: this.state.query,
     };
-    await this.doImpl(
-      '/_/get_charts_data',
-      detail,
-      (json: GetChartsDataResponse) => {
-        this.open_chart_data = JSON.stringify(json.open_data);
-        this.slo_chart_data = JSON.stringify(json.slo_data);
-        this.untriaged_chart_data = JSON.stringify(json.untriaged_data);
-      }
-    );
+    await this.doImpl('/_/get_charts_data', detail, (json: GetChartsDataResponse) => {
+      this.open_chart_data = JSON.stringify(json.open_data);
+      this.slo_chart_data = JSON.stringify(json.slo_data);
+      this.untriaged_chart_data = JSON.stringify(json.untriaged_data);
+    });
   }
 
   private async populateDataAndRender() {
@@ -489,32 +446,33 @@ export class BugsCentralSk extends ElementSk {
       await Promise.all(
         Object.keys(this.clients_map).map(
           async (client) =>
-            (this.clients_to_counts[getClientKey(client, '', '')] =
-              await this.getCounts(client, '', ''))
+            (this.clients_to_counts[getClientKey(client, '', '')] = await this.getCounts(
+              client,
+              '',
+              ''
+            ))
         )
       );
     } else if (!s) {
       await Promise.all(
         Object.keys(this.clients_map[c] || {}).map(
           async (source) =>
-            (this.clients_to_counts[getClientKey(c, source, '')] =
-              await this.getCounts(c, source, ''))
+            (this.clients_to_counts[getClientKey(c, source, '')] = await this.getCounts(
+              c,
+              source,
+              ''
+            ))
         )
       );
     } else if (!q) {
       await Promise.all(
         Object.keys((this.clients_map[c] || {})[s] || {}).map(
           async (query) =>
-            (this.clients_to_counts[getClientKey(c, s, query)] =
-              await this.getCounts(c, s, query))
+            (this.clients_to_counts[getClientKey(c, s, query)] = await this.getCounts(c, s, query))
         )
       );
     } else {
-      this.clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(
-        c,
-        s,
-        q
-      );
+      this.clients_to_counts[getClientKey(c, s, q)] = await this.getCounts(c, s, q);
     }
     // Render counts as soon we have them. Rendering charts will take longer.
     this._render();

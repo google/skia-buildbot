@@ -8,11 +8,7 @@ import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { deepCopy } from '../../../infra-sk/modules/object';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
-import {
-  fromObject,
-  fromParamSet,
-  ParamSet,
-} from '../../../infra-sk/modules/query';
+import { fromObject, fromParamSet, ParamSet } from '../../../infra-sk/modules/query';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
@@ -99,19 +95,13 @@ export class SearchPageSk extends ElementSk {
           @search-controls-sk-change=${el.onSearchControlsChange}>
         </search-controls-sk>
         <div class="buttons">
-          <button
-            class="bulk-triage"
-            @click=${() => el.bulkTriageDialog?.showModal()}>
+          <button class="bulk-triage" @click=${() => el.bulkTriageDialog?.showModal()}>
             Bulk Triage
           </button>
-          <button
-            class="full-size-images"
-            @click=${() => el.toggleFullSizeImages()}>
+          <button class="full-size-images" @click=${() => el.toggleFullSizeImages()}>
             Toggle Full Size Images
           </button>
-          <button class="help" @click=${() => el.helpDialog?.showModal()}>
-            Help
-          </button>
+          <button class="help" @click=${() => el.helpDialog?.showModal()}>Help</button>
         </div>
       </div>
 
@@ -128,13 +118,12 @@ export class SearchPageSk extends ElementSk {
       ${SearchPageSk.paginationTemplate(el, 'top')}
 
       <div class="results">
-        ${el.searchResponse?.digests?.map(
-          (result: SearchResult | null, idx: number) =>
-            SearchPageSk.resultTemplate(
-              el,
-              result,
-              /* selected= */ idx === el.selectedSearchResultIdx
-            )
+        ${el.searchResponse?.digests?.map((result: SearchResult | null, idx: number) =>
+          SearchPageSk.resultTemplate(
+            el,
+            result,
+            /* selected= */ idx === el.selectedSearchResultIdx
+          )
         )}
       </div>
 
@@ -142,8 +131,7 @@ export class SearchPageSk extends ElementSk {
 
       <dialog class="bulk-triage">
         <bulk-triage-sk
-          .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos ||
-          []}
+          .bulkTriageDeltaInfos=${el.searchResponse?.bulk_triage_delta_infos || []}
           .crs=${el.crs || ''}
           .changeListID=${el.changelistId || ''}
           @bulk_triage_invoked=${() => el.bulkTriageDialog?.close()}
@@ -171,9 +159,7 @@ export class SearchPageSk extends ElementSk {
           <dd>Show help dialog</dd>
         </dl>
         <div class="buttons">
-          <button class="cancel action" @click=${() => el.helpDialog?.close()}>
-            Close
-          </button>
+          <button class="cancel action" @click=${() => el.helpDialog?.close()}>Close</button>
         </div>
       </dialog>`;
 
@@ -301,9 +287,7 @@ export class SearchPageSk extends ElementSk {
 
     this.stateChanged = stateReflector(
       /* getState */ () => {
-        const state = SearchCriteriaToHintableObject(
-          this.searchCriteria
-        ) as HintableObject;
+        const state = SearchCriteriaToHintableObject(this.searchCriteria) as HintableObject;
         state.blame = this.blame || '';
         state.crs = this.crs || '';
         state.issue = this.changelistId || '';
@@ -344,8 +328,7 @@ export class SearchPageSk extends ElementSk {
     super.connectedCallback();
     this._render();
 
-    this.keyDownEventHandlerFn = (event: KeyboardEvent) =>
-      this.onKeyDown(event);
+    this.keyDownEventHandlerFn = (event: KeyboardEvent) => this.onKeyDown(event);
     document.addEventListener('keydown', this.keyDownEventHandlerFn);
 
     this.bulkTriageDialog = this.querySelector('dialog.bulk-triage');
@@ -426,10 +409,9 @@ export class SearchPageSk extends ElementSk {
     try {
       sendBeginTask(this);
       const base = '/json/v2/changelist';
-      this.changeListSummaryResponse = await fetch(
-        `${base}/${this.crs}/${this.changelistId}`,
-        { method: 'GET' }
-      ).then(jsonOrThrow);
+      this.changeListSummaryResponse = await fetch(`${base}/${this.crs}/${this.changelistId}`, {
+        method: 'GET',
+      }).then(jsonOrThrow);
       this._render();
       sendEndTask(this);
     } catch (e) {
@@ -449,12 +431,8 @@ export class SearchPageSk extends ElementSk {
     // Populate a SearchRequest object, which we'll use to generate the query string for the
     // /json/v1/search RPC.
     const searchRequest: SearchRequest = {
-      query: fromParamSet(
-        insertCorpus(this.searchCriteria.leftHandTraceFilter)
-      ),
-      rquery: fromParamSet(
-        insertCorpus(this.searchCriteria.rightHandTraceFilter)
-      ),
+      query: fromParamSet(insertCorpus(this.searchCriteria.leftHandTraceFilter)),
+      rquery: fromParamSet(insertCorpus(this.searchCriteria.rightHandTraceFilter)),
       pos: this.searchCriteria.includePositiveDigests,
       neg: this.searchCriteria.includeNegativeDigests,
       unt: this.searchCriteria.includeUntriagedDigests,
@@ -472,8 +450,7 @@ export class SearchPageSk extends ElementSk {
     if (this.blame) searchRequest.blame = this.blame;
     if (this.crs) searchRequest.crs = this.crs;
     if (this.changelistId) searchRequest.issue = this.changelistId;
-    if (this.includeDigestsFromPrimary)
-      searchRequest.master = this.includeDigestsFromPrimary;
+    if (this.includeDigestsFromPrimary) searchRequest.master = this.includeDigestsFromPrimary;
     if (this.patchset) searchRequest.patchsets = this.patchset;
 
     return searchRequest;
@@ -493,10 +470,10 @@ export class SearchPageSk extends ElementSk {
       this.searchResponse = null; // Remove old search results while we wait for the RPC to finish.
       this._render();
       sendBeginTask(this);
-      this.searchResponse = await fetch(
-        `/json/v2/search?${fromObject(searchRequest as any)}`,
-        { method: 'GET', signal: this.searchResultsFetchController.signal }
-      ).then(jsonOrThrow);
+      this.searchResponse = await fetch(`/json/v2/search?${fromObject(searchRequest as any)}`, {
+        method: 'GET',
+        signal: this.searchResultsFetchController.signal,
+      }).then(jsonOrThrow);
 
       // Reset UI and render.
       this.loading = false;
@@ -595,12 +572,10 @@ export class SearchPageSk extends ElementSk {
 
     // We update the selected search result by hand to avoid re-rendering the entire page, which can
     // be very slow if there are many search results.
-    this.querySelector<HTMLElement>(
-      'digest-details-sk.selected'
-    )?.classList.remove('selected');
-    this.querySelector<HTMLElement>(
-      `digest-details-sk:nth-child(${index + 1})`
-    )?.classList.add('selected');
+    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
+    this.querySelector<HTMLElement>(`digest-details-sk:nth-child(${index + 1})`)?.classList.add(
+      'selected'
+    );
 
     // We also keep track of the selected result so we can correctly add the "selected" CSS class
     // in the lit-html template in case we re-render the page with the cached search results.
@@ -612,9 +587,7 @@ export class SearchPageSk extends ElementSk {
   /** Clears the selected search result without re-rendering the entire page. */
   private clearSelectedSearchResult(): void {
     this.selectedSearchResultIdx = -1;
-    this.querySelector<HTMLElement>(
-      'digest-details-sk.selected'
-    )?.classList.remove('selected');
+    this.querySelector<HTMLElement>('digest-details-sk.selected')?.classList.remove('selected');
   }
 
   /**

@@ -46,15 +46,11 @@ export class SkipTasksSk extends ElementSk {
                     <td>${rule.addedBy}</td>
                     <td>
                       ${rule.taskSpecPatterns?.map(
-                        (pattern) => html`
-                          <div class="task_spec_pattern">${pattern}</div>
-                        `
+                        (pattern) => html` <div class="task_spec_pattern">${pattern}</div> `
                       )}
                     </td>
                     <td>
-                      ${rule.commits?.map(
-                        (commit) => html` <div class="commit">${commit}</div> `
-                      )}
+                      ${rule.commits?.map((commit) => html` <div class="commit">${commit}</div> `)}
                     </td>
                     <td>${rule.description}</td>
                   </tr>
@@ -108,9 +104,7 @@ export class SkipTasksSk extends ElementSk {
         <tr>
           <td>
             <label for="input-range-start">
-              ${
-                ele.isCommitRange ? 'Range start (oldest; inclusive)' : 'Commit'
-              }
+              ${ele.isCommitRange ? 'Range start (oldest; inclusive)' : 'Commit'}
             </label>
           </td>
           <td>
@@ -176,10 +170,7 @@ export class SkipTasksSk extends ElementSk {
 
   private addRule() {
     const inputName = $$<HTMLInputElement>('#input-name', this)!;
-    const inputDescription = $$<HTMLTextAreaElement>(
-      '#input-description',
-      this
-    )!;
+    const inputDescription = $$<HTMLTextAreaElement>('#input-description', this)!;
     const inputRangeStart = $$<HTMLInputElement>('#input-range-start', this)!;
     const inputRangeEnd = $$<HTMLInputElement>('#input-range-end', this);
     const inputIsRange = $$<HTMLInputElement>('#range-checkbox', this)!;
@@ -219,12 +210,10 @@ export class SkipTasksSk extends ElementSk {
   }
 
   private deleteRule(rule: SkipTaskRule) {
-    this.rpc!.deleteSkipTaskRule({ id: rule.name }).then(
-      (resp: DeleteSkipTaskRuleResponse) => {
-        this.rules = resp.rules!;
-        this._render();
-      }
-    );
+    this.rpc!.deleteSkipTaskRule({ id: rule.name }).then((resp: DeleteSkipTaskRuleResponse) => {
+      this.rules = resp.rules!;
+      this._render();
+    });
   }
 
   private reload() {

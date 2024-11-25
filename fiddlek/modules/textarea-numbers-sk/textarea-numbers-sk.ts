@@ -29,8 +29,7 @@ export class TextareaNumbersSk extends ElementSk {
    * For this to work the associated CSS themes must be loaded. See
    * textarea-numbers-sk.scss.
    */
-  private static themeFromCurrentMode = () =>
-    isDarkMode() ? 'base16-dark' : 'base16-light';
+  private static themeFromCurrentMode = () => (isDarkMode() ? 'base16-dark' : 'base16-light');
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -98,10 +97,7 @@ export class TextareaNumbersSk extends ElementSk {
           };
         },
         // Creates a fold widget that contains the count of total folded lines.
-        widget: (
-          from: CodeMirror.Position,
-          to: CodeMirror.Position
-        ): string => {
+        widget: (from: CodeMirror.Position, to: CodeMirror.Position): string => {
           const content = this.codeMirror!.getRange(from, to);
           const count = content.trim().split('\n').length;
           return `${count}...`;
@@ -113,10 +109,7 @@ export class TextareaNumbersSk extends ElementSk {
 
     // Listen for theme changes.
     document.addEventListener('theme-chooser-toggle', () => {
-      this.codeMirror!.setOption(
-        'theme',
-        TextareaNumbersSk.themeFromCurrentMode()
-      );
+      this.codeMirror!.setOption('theme', TextareaNumbersSk.themeFromCurrentMode());
     });
   }
 

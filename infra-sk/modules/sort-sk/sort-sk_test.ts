@@ -28,8 +28,7 @@ describe('sort-sk', () => {
           (ele) => +(ele.dataset[name] || '')
         );
 
-      const clusterButton =
-        container.querySelector<HTMLButtonElement>('#cluster')!;
+      const clusterButton = container.querySelector<HTMLButtonElement>('#cluster')!;
       const stepButton = container.querySelector<HTMLButtonElement>('#size')!;
 
       clusterButton.click();
@@ -39,11 +38,7 @@ describe('sort-sk', () => {
         'Defaults to up, so sort down on first click.'
       );
       clusterButton.click();
-      assert.deepEqual(
-        [10, 50, 100],
-        getValues('clustersize'),
-        'Switch to up.'
-      );
+      assert.deepEqual([10, 50, 100], getValues('clustersize'), 'Switch to up.');
 
       stepButton.click();
       assert.deepEqual(
@@ -70,37 +65,19 @@ describe('sort-sk', () => {
   </div>
   `;
       const getValues = (name: string) =>
-        $<HTMLPreElement>('#stuffToBeSorted2 pre', container).map(
-          (ele) => ele.dataset[name]
-        );
+        $<HTMLPreElement>('#stuffToBeSorted2 pre', container).map((ele) => ele.dataset[name]);
 
       const nameButton = container.querySelector<HTMLButtonElement>('#name')!;
       const levelButton = container.querySelector<HTMLButtonElement>('#level')!;
 
       nameButton.click();
-      assert.deepEqual(
-        ['bar', 'baz', 'foo'],
-        getValues('name'),
-        'Defaults to down, so sort up.'
-      );
+      assert.deepEqual(['bar', 'baz', 'foo'], getValues('name'), 'Defaults to down, so sort up.');
       nameButton.click();
-      assert.deepEqual(
-        ['foo', 'baz', 'bar'],
-        getValues('name'),
-        'Now switch to down.'
-      );
+      assert.deepEqual(['foo', 'baz', 'bar'], getValues('name'), 'Now switch to down.');
 
       levelButton.click();
-      assert.deepEqual(
-        ['gamma', 'beta', 'alpha'],
-        getValues('level'),
-        'No default, so sort down.'
-      );
+      assert.deepEqual(['gamma', 'beta', 'alpha'], getValues('level'), 'No default, so sort down.');
       levelButton.click();
-      assert.deepEqual(
-        ['alpha', 'beta', 'gamma'],
-        getValues('level'),
-        'Now switch to up.'
-      );
+      assert.deepEqual(['alpha', 'beta', 'gamma'], getValues('level'), 'Now switch to up.');
     }));
 });

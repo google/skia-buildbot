@@ -6,9 +6,7 @@ import { AutogrowTextareaSk } from './autogrow-textarea-sk';
 
 describe('autogrow-textarea-sk', () => {
   // Function to create a new autogrow-textarea-sk.
-  const newInstance = setUpElementUnderTest<AutogrowTextareaSk>(
-    'autogrow-textarea-sk'
-  );
+  const newInstance = setUpElementUnderTest<AutogrowTextareaSk>('autogrow-textarea-sk');
 
   let autogrowTextareaSk: AutogrowTextareaSk;
   let textarea: HTMLTextAreaElement;
@@ -26,9 +24,7 @@ describe('autogrow-textarea-sk', () => {
   };
   const inputText = (text: string) => {
     textarea.value = text;
-    textarea.dispatchEvent(
-      new Event('input', { bubbles: true, cancelable: true })
-    );
+    textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
   };
 
   it('plumbs through attributes', () => {

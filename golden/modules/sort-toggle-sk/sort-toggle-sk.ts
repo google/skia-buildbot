@@ -28,8 +28,7 @@ import '../../../elements-sk/modules/icons/arrow-drop-up-icon-sk';
 export type SortDirection = 'down' | 'up';
 
 // The states to move each button through on a click.
-const toggle = (value: string): SortDirection =>
-  value === 'down' ? 'up' : 'down';
+const toggle = (value: string): SortDirection => (value === 'down' ? 'up' : 'down');
 
 export class SortToggleSk<T extends Object> extends ElementSk {
   private _data: Array<T> = [];

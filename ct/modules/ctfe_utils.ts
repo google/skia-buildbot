@@ -68,10 +68,7 @@ export function getGSLink(gsPath: string): string {
  */
 export function isEmptyPatch(gsPath: string): boolean {
   // Compare against empty string and against the SHA1 digest of an empty string.
-  return (
-    gsPath === '' ||
-    gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch'
-  );
+  return gsPath === '' || gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch';
 }
 
 /**
@@ -127,8 +124,7 @@ export function missingLiveSitesWithCustomWebpages(
 ): boolean {
   if (customWebpages && !benchmarkArgs.includes('--use-live-sites')) {
     errorMessage(
-      'Please specify --use-live-sites in benchmark arguments ' +
-        'when using custom web pages.'
+      'Please specify --use-live-sites in benchmark arguments ' + 'when using custom web pages.'
     );
     return true;
   }

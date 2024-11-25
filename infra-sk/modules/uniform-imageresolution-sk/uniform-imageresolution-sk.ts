@@ -19,10 +19,7 @@ const defaultUniform: Uniform = {
   slot: 0,
 };
 
-export class UniformImageresolutionSk
-  extends HTMLElement
-  implements UniformControl
-{
+export class UniformImageresolutionSk extends HTMLElement implements UniformControl {
   private _uniform: Uniform = defaultUniform;
 
   applyUniformValues(uniforms: number[]): void {

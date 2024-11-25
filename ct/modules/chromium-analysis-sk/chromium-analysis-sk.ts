@@ -117,12 +117,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             accept-custom-value
             @value-changed=${el._benchmarkChanged}></suggest-input-sk>
           <div>
-            <a
-              hidden
-              id="benchmark_doc"
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer">
+            <a hidden id="benchmark_doc" href="#" target="_blank" rel="noopener noreferrer">
               Documentation
             </a>
           </div>
@@ -131,12 +126,8 @@ export class ChromiumAnalysisSk extends ElementSk {
       <tr>
         <td>Target Platform</td>
         <td>
-          <select-sk
-            id="platform_selector"
-            @selection-changed=${el._platformChanged}>
-            ${el._platforms.map(
-              (p, i) => html`<div ?selected=${i === 1}>${p[1]}</div>`
-            )}
+          <select-sk id="platform_selector" @selection-changed=${el._platformChanged}>
+            ${el._platforms.map((p, i) => html`<div ?selected=${i === 1}>${p[1]}</div>`)}
           </select-sk>
         </td>
       </tr>
@@ -165,9 +156,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           >
         </td>
         <td>
-          <select-sk
-            id="run_in_parallel"
-            @selection-changed=${el._updatePageSets}>
+          <select-sk id="run_in_parallel" @selection-changed=${el._updatePageSets}>
             <div selected>True</div>
             <div>False</div>
           </select-sk>
@@ -176,18 +165,14 @@ export class ChromiumAnalysisSk extends ElementSk {
       <tr>
         <td>Look for text in stdout</td>
         <td>
-          <input-sk
-            value=""
-            id="match_stdout_txt"
-            class="long-field"></input-sk>
+          <input-sk value="" id="match_stdout_txt" class="long-field"></input-sk>
           <span class="smaller-font"
-            ><b>Note:</b> All lines that contain this field in stdout will show
-            up under CT_stdout_lines in the output CSV.</span
+            ><b>Note:</b> All lines that contain this field in stdout will show up under
+            CT_stdout_lines in the output CSV.</span
           ><br />
           <span class="smaller-font"
-            ><b>Note:</b> The count of non-overlapping exact matches of this
-            field in stdout will show up under CT_stdout_count in the output
-            CSV.</span
+            ><b>Note:</b> The count of non-overlapping exact matches of this field in stdout will
+            show up under CT_stdout_count in the output CSV.</span
           ><br />
         </td>
       </tr>
@@ -199,8 +184,7 @@ export class ChromiumAnalysisSk extends ElementSk {
             id="gn_args"
             class="long-field"></input-sk>
           <span class="smaller-font"
-            ><b>Note:</b> Android runs will automatically include
-            target_os="android".</span
+            ><b>Note:</b> Android runs will automatically include target_os="android".</span
           ><br />
         </td>
       </tr>
@@ -212,17 +196,16 @@ export class ChromiumAnalysisSk extends ElementSk {
             id="benchmark_args"
             class="long-field"></input-sk>
           <span class="smaller-font"
-            ><b>Note:</b> Use --num-analysis-retries=[num] to specify how many
-            times run_benchmark should be retried. 2 is the default. 0 calls
-            run_benchmark once.</span
+            ><b>Note:</b> Use --num-analysis-retries=[num] to specify how many times run_benchmark
+            should be retried. 2 is the default. 0 calls run_benchmark once.</span
           ><br />
           <span class="smaller-font"
-            ><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the
-            timeout of the run_benchmark script. 300 is the default.</span
+            ><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the
+            run_benchmark script. 300 is the default.</span
           ><br />
           <span class="smaller-font"
-            ><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of
-            pages to run per bot. 100 is the default.</span
+            ><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per
+            bot. 100 is the default.</span
           >
         </td>
       </tr>
@@ -235,13 +218,8 @@ export class ChromiumAnalysisSk extends ElementSk {
       <tr>
         <td>Field Value Column Name</td>
         <td>
-          <input-sk
-            value="avg"
-            id="value_column_name"
-            class="medium-field"></input-sk>
-          <span class="smaller-font"
-            >Which column's entries to use as field values.</span
-          >
+          <input-sk value="avg" id="value_column_name" class="medium-field"></input-sk>
+          <span class="smaller-font">Which column's entries to use as field values.</span>
         </td>
       </tr>
       <tr>
@@ -263,9 +241,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           Custom APK location for Android<br />
           (optional)<br />
           (See
-          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805"
-            >skbug/9805</a
-          >)
+          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
         </td>
         <td>
           <input-sk
@@ -280,9 +256,7 @@ export class ChromiumAnalysisSk extends ElementSk {
           Custom Chrome build zip location<br />
           for non-Android runs (optional)<br />
           (See
-          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=11395"
-            >skbug/11395</a
-          >)
+          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=11395">skbug/11395</a>)
         </td>
         <td>
           <input-sk
@@ -296,9 +270,7 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           Telemetry CAS Hash (optional)<br />
           (See
-          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853#c11"
-            >skbug/9853</a
-          >)
+          <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853#c11">skbug/9853</a>)
         </td>
         <td>
           <input-sk
@@ -318,16 +290,10 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           Skia Git patch (optional)<br />
           Applied to Skia Rev in
-          <a
-            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
-            >DEPS</a
-          >
+          <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
         </td>
         <td>
-          <patch-sk
-            id="skia_patch"
-            patchType="skia"
-            @cl-description-changed=${el._patchChanged}>
+          <patch-sk id="skia_patch" patchType="skia" @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -335,16 +301,10 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           V8 Git patch (optional)<br />
           Applied to V8 Rev in
-          <a
-            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
-            >DEPS</a
-          >
+          <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
         </td>
         <td>
-          <patch-sk
-            id="v8_patch"
-            patchType="v8"
-            @cl-description-changed=${el._patchChanged}>
+          <patch-sk id="v8_patch" patchType="v8" @cl-description-changed=${el._patchChanged}>
           </patch-sk>
         </td>
       </tr>
@@ -352,10 +312,7 @@ export class ChromiumAnalysisSk extends ElementSk {
         <td>
           Catapult Git patch (optional)<br />
           Applied to Catapult Rev in
-          <a
-            href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS"
-            >DEPS</a
-          >
+          <a href="https://chromium.googlesource.com/chromium/src/+show/HEAD/DEPS">DEPS</a>
         </td>
         <td>
           <patch-sk
@@ -412,23 +369,16 @@ export class ChromiumAnalysisSk extends ElementSk {
       <tr>
         <td colspan="2" class="center">
           <div class="triggering-spinner">
-            <spinner-sk
-              .active=${el._triggeringTask}
-              alt="Trigger task"></spinner-sk>
+            <spinner-sk .active=${el._triggeringTask} alt="Trigger task"></spinner-sk>
           </div>
-          <button
-            id="submit"
-            ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}>
+          <button id="submit" ?disabled=${el._triggeringTask} @click=${el._validateTask}>
             Queue Task
           </button>
         </td>
       </tr>
       <tr>
         <td colspan="2" class="center">
-          <button id="view_history" @click=${el._gotoRunsHistory}>
-            View runs history
-          </button>
+          <button id="view_history" @click=${el._gotoRunsHistory}>View runs history</button>
         </td>
       </tr>
     </table>
@@ -603,8 +553,7 @@ export class ChromiumAnalysisSk extends ElementSk {
     this.runOnGCE.selection = offerGCETrue ? trueIndex : falseIndex;
 
     // We default to run in parallel, except for Android which disallows it.
-    (this.runInParallel.children[trueIndex] as HTMLElement).hidden =
-      !offerParallelTrue;
+    (this.runInParallel.children[trueIndex] as HTMLElement).hidden = !offerParallelTrue;
     this.runInParallel.selection = offerParallelTrue ? trueIndex : falseIndex;
 
     this._updatePageSets();
@@ -614,9 +563,7 @@ export class ChromiumAnalysisSk extends ElementSk {
     const platform = this._platform();
     const runInParallel = this._runInParallel();
     const unsupportedPS =
-      platform === 'Linux' && runInParallel
-        ? unsupportedPageSetsLinux
-        : unsupportedPageSets;
+      platform === 'Linux' && runInParallel ? unsupportedPageSetsLinux : unsupportedPageSets;
     const pageSetDefault = platform === 'Android' ? 'Mobile10k' : '10k';
     this.pageSets.hideKeys = unsupportedPS;
     this.pageSets.selected = pageSetDefault;
@@ -650,12 +597,7 @@ export class ChromiumAnalysisSk extends ElementSk {
       this.benchmark.focus();
       return;
     }
-    if (
-      missingLiveSitesWithCustomWebpages(
-        this.pageSets.customPages,
-        this.benchmarkArgs.value
-      )
-    ) {
+    if (missingLiveSitesWithCustomWebpages(this.pageSets.customPages, this.benchmarkArgs.value)) {
       this.benchmarkArgs.focus();
       return;
     }

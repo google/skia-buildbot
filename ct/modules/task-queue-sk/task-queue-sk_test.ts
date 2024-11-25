@@ -12,10 +12,7 @@ import {
   resultSetOneItem,
   resultSetTwoItems,
 } from './test_data';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('task-queue-sk', () => {
   const newInstance = setUpElementUnderTest('task-queue-sk');
@@ -50,10 +47,7 @@ describe('task-queue-sk', () => {
 
   it('shows table entries', async () => {
     // Return some results for 2 of the 16 task queries.
-    const table = await loadTableWithReplies([
-      resultSetOneItem,
-      resultSetTwoItems,
-    ]);
+    const table = await loadTableWithReplies([resultSetOneItem, resultSetTwoItems]);
 
     // (3 items) * 6 columns
     expect($('td', table).length).to.equal(18);
@@ -77,9 +71,7 @@ describe('task-queue-sk', () => {
     sinon.stub(window, 'confirm').returns(true);
     sinon.stub(window, 'alert');
     fetchMock.postOnce(
-      (url, options) =>
-        url.startsWith('/_/delete_') &&
-        options.body === JSON.stringify({ id: 1 }),
+      (url, options) => url.startsWith('/_/delete_') && options.body === JSON.stringify({ id: 1 }),
       200
     );
     ($$('delete-icon-sk', table) as HTMLElement).click();
@@ -88,16 +80,10 @@ describe('task-queue-sk', () => {
   it('task details works', async () => {
     const table = await loadTableWithReplies([resultSetOneItem]);
 
-    expect($$('.dialog-background', table)!.classList.value).to.include(
-      'hidden'
-    );
-    expect($$('.dialog-background', table)!.classList.value).to.include(
-      'hidden'
-    );
+    expect($$('.dialog-background', table)!.classList.value).to.include('hidden');
+    expect($$('.dialog-background', table)!.classList.value).to.include('hidden');
     ($$('.details', table) as HTMLElement).click();
 
-    expect($$('.dialog-background', table)!.classList.value).to.not.include(
-      'hidden'
-    );
+    expect($$('.dialog-background', table)!.classList.value).to.not.include('hidden');
   });
 });

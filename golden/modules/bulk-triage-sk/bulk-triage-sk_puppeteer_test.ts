@@ -1,10 +1,6 @@
 import { expect } from 'chai';
 import { ElementHandle } from 'puppeteer';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { BulkTriageSkPO } from './bulk-triage-sk_po';
 
 describe('bulk-triage-sk', () => {
@@ -53,11 +49,7 @@ describe('bulk-triage-sk', () => {
 
     it('should be positive, with button focused', async () => {
       await bulkTriageSkPO.clickPositiveBtn();
-      await takeScreenshot(
-        bulkTriageSk,
-        'gold',
-        'bulk-triage-sk_positive-button-focused'
-      );
+      await takeScreenshot(bulkTriageSk, 'gold', 'bulk-triage-sk_positive-button-focused');
     });
 
     it('changes views when checkbox clicked', async () => {
@@ -67,11 +59,7 @@ describe('bulk-triage-sk', () => {
 
     it('shows some extra information for changelists', async () => {
       const bulkTriageSkWithCL = await testBed.page.$('#changelist');
-      await takeScreenshot(
-        bulkTriageSkWithCL!,
-        'gold',
-        'bulk-triage-sk_changelist'
-      );
+      await takeScreenshot(bulkTriageSkWithCL!, 'gold', 'bulk-triage-sk_changelist');
     });
   });
 });

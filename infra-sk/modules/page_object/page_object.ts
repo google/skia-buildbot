@@ -1,10 +1,6 @@
 /* eslint-disable new-cap */
 import { ElementHandle } from 'puppeteer';
-import {
-  AsyncList,
-  PageObjectElement,
-  PageObjectElementList,
-} from './page_object_element';
+import { AsyncList, PageObjectElement, PageObjectElementList } from './page_object_element';
 
 /**
  * A base class for writing page objects[1] that work both on in-browser and Puppeteer tests.
@@ -81,9 +77,7 @@ export abstract class PageObject {
     ctor: { new (...args: any): T }
   ): PageObjectList<T> {
     return new PageObjectList(
-      this.bySelectorAll(selector).map(
-        async (poe: PageObjectElement) => new ctor(poe)
-      )
+      this.bySelectorAll(selector).map(async (poe: PageObjectElement) => new ctor(poe))
     );
   }
 }

@@ -9,9 +9,7 @@ import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PagesetSelectorSk } from './pageset-selector-sk';
 
 describe('pageset-selector-sk', () => {
-  const factory = setUpElementUnderTest<PagesetSelectorSk>(
-    'pageset-selector-sk'
-  );
+  const factory = setUpElementUnderTest<PagesetSelectorSk>('pageset-selector-sk');
   // Returns a new element with the pagesets fetch complete.
   const newInstance = async (init?: (instance: PagesetSelectorSk) => void) => {
     const ele = factory(init);
@@ -98,9 +96,7 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance((ele) => {
       ele.setAttribute('disable-custom-webpages', '');
     });
-    expect(selector.querySelectorAll('expandable-textarea-sk').length).to.equal(
-      0
-    );
+    expect(selector.querySelectorAll('expandable-textarea-sk').length).to.equal(0);
     expect(selector.querySelectorAll('select-sk').length).to.equal(1);
   });
 });

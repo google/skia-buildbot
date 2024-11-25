@@ -34,9 +34,7 @@ export class ClusterDigestsSkPO extends PageObject {
       async (node) => (await node.getAttribute('data-digest')) === digest
     );
     await node!.applyFnToDOMNode((el, shiftKey) => {
-      el.dispatchEvent(
-        new MouseEvent('click', { shiftKey: shiftKey as boolean })
-      );
+      el.dispatchEvent(new MouseEvent('click', { shiftKey: shiftKey as boolean }));
     }, shiftKey);
   }
 
@@ -45,8 +43,6 @@ export class ClusterDigestsSkPO extends PageObject {
   }
 
   async getSelection(): Promise<Digest[]> {
-    return this.selectedNodes.map(
-      async (circle) => (await circle.getAttribute('data-digest'))!
-    );
+    return this.selectedNodes.map(async (circle) => (await circle.getAttribute('data-digest'))!);
   }
 }

@@ -16,5 +16,4 @@ fetchMock.get('/_/login/status', status);
 fetchMock.get('/r/skia-skiabot-test/config', GetFakeConfig());
 SetupMocks();
 
-document.querySelector('.component-goes-here')!.innerHTML =
-  '<arb-config-sk></arb-config-sk>';
+document.querySelector('.component-goes-here')!.innerHTML = '<arb-config-sk></arb-config-sk>';

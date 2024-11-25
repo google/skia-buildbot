@@ -21,16 +21,11 @@ export const tasksResult0: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -64,16 +59,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -107,16 +97,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format --traffic-setting=Regular-4G --use-live-sites',
       browser_args: '',
       description: 'Regular run for Volt 10k pages (Chrome M80, live sites)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Android',
@@ -126,8 +111,7 @@ export const tasksResult0: GetTasksResponse = {
       value_column_name: 'avg',
       match_stdout_txt: '',
       chromium_hash: '',
-      apk_gspath:
-        'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
+      apk_gspath: 'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
       telemetry_isolate_hash: '48afa0e9204793e1d3d4615e1a7ba26174de77d4',
       cc_list: ['someone@google.com'],
       task_priority: 100,
@@ -152,16 +136,11 @@ export const tasksResult0: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -195,16 +174,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -239,16 +213,11 @@ export const tasksResult0: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -282,16 +251,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -326,16 +290,11 @@ export const tasksResult0: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -369,16 +328,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format --traffic-setting=Regular-4G --use-live-sites',
       browser_args: '',
       description: 'Regular run for Volt 10k pages (Chrome M80, live sites)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Android',
@@ -388,8 +342,7 @@ export const tasksResult0: GetTasksResponse = {
       value_column_name: 'avg',
       match_stdout_txt: '',
       chromium_hash: '',
-      apk_gspath:
-        'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
+      apk_gspath: 'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
       telemetry_isolate_hash: '48afa0e9204793e1d3d4615e1a7ba26174de77d4',
       cc_list: ['someone@google.com'],
       task_priority: 100,
@@ -413,16 +366,11 @@ export const tasksResult0: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -474,16 +422,11 @@ export const tasksResult1: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -518,16 +461,11 @@ export const tasksResult1: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -561,16 +499,11 @@ export const tasksResult1: GetTasksResponse = {
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format --traffic-setting=Regular-4G --use-live-sites',
       browser_args: '',
       description: 'Regular run for Volt 10k pages (Chrome M80, live sites)',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Android',
@@ -580,8 +513,7 @@ export const tasksResult1: GetTasksResponse = {
       value_column_name: 'avg',
       match_stdout_txt: '',
       chromium_hash: '',
-      apk_gspath:
-        'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
+      apk_gspath: 'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/Monochrome.apk',
       telemetry_isolate_hash: '48afa0e9204793e1d3d4615e1a7ba26174de77d4',
       cc_list: ['someone@google.com'],
       task_priority: 100,
@@ -605,16 +537,11 @@ export const tasksResult1: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -667,16 +594,11 @@ export const tasksResult2: GetTasksResponse = {
       browser_args:
         '--force-fieldtrials=Foo/Enabled --force-fieldtrial-params=Foo.Enabled:activation_state/enabled/activation_scope/all_sites/activation_priority/10000 --enable-features=SubresourceFilter\u003cFoo',
       description: 'Regular AdTagging accuracy run with blocking on',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',
@@ -710,16 +632,11 @@ export const tasksResult2: GetTasksResponse = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format --verbose-cpu-metrics --verbose-memory-metrics',
       browser_args: '',
       description: 'Regular AdTagging accuracy run',
-      custom_webpages_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      chromium_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      skia_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      catapult_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      benchmark_patch_gspath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      custom_webpages_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      chromium_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      skia_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      catapult_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      benchmark_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       v8_patch_gspath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       run_in_parallel: false,
       platform: 'Linux',

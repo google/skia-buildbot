@@ -1,8 +1,7 @@
 export const singleResultCanDelete = {
   data: [
     {
-      DatastoreKey:
-        'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhYKEUNocm9taXVtUGVyZlRhc2tzEPUk',
+      DatastoreKey: 'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhYKEUNocm9taXVtUGVyZlRhc2tzEPUk',
       TsAdded: 20200310143034,
       TsStarted: 20200310143040,
       TsCompleted: 0,
@@ -33,8 +32,7 @@ export const singleResultCanDelete = {
 export const singleResultNoDelete = {
   data: [
     {
-      DatastoreKey:
-        'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhYKEUNocm9taXVtUGVyZlRhc2tzEPUk',
+      DatastoreKey: 'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhYKEUNocm9taXVtUGVyZlRhc2tzEPUk',
       TsAdded: 20200310143034,
       TsStarted: 20200310143040,
       TsCompleted: 0,
@@ -67,8 +65,7 @@ export const resultSetOneItem = singleResultNoDelete;
 export const resultSetTwoItems = {
   data: [
     {
-      DatastoreKey:
-        'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhoKFUNocm9taXVtQW5hbHlzaXNUYXNrcxD7Dw',
+      DatastoreKey: 'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhoKFUNocm9taXVtQW5hbHlzaXNUYXNrcxD7Dw',
       TsAdded: 20200309185034,
       TsStarted: 20200309185121,
       TsCompleted: 20200309203134,
@@ -86,15 +83,11 @@ export const resultSetTwoItems = {
         '--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format',
       BrowserArgs: '',
       Description: 'Regular AdTagging accuracy run',
-      CustomWebpagesGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      ChromiumPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      CustomWebpagesGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      ChromiumPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       SkiaPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      CatapultPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      BenchmarkPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      CatapultPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      BenchmarkPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       V8PatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       RunInParallel: false,
       Platform: 'Linux',
@@ -111,8 +104,7 @@ export const resultSetTwoItems = {
       GroupName: 'AdTagging',
     },
     {
-      DatastoreKey:
-        'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhoKFUNocm9taXVtQW5hbHlzaXNUYXNrcxD5Dw',
+      DatastoreKey: 'ChMiEWNsdXN0ZXItdGVsZW1ldHJ5EhoKFUNocm9taXVtQW5hbHlzaXNUYXNrcxD5Dw',
       TsAdded: 20200308152034,
       TsStarted: 20200308152039,
       TsCompleted: 20200309010734,
@@ -130,15 +122,11 @@ export const resultSetTwoItems = {
         '--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format --traffic-setting=Regular-4G --use-live-sites',
       BrowserArgs: '',
       Description: 'Regular run for Volt 10k pages (Chrome M80, live sites) ',
-      CustomWebpagesGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      ChromiumPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      CustomWebpagesGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      ChromiumPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       SkiaPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      CatapultPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
-      BenchmarkPatchGSPath:
-        'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      CatapultPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
+      BenchmarkPatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       V8PatchGSPath: 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch',
       RunInParallel: false,
       Platform: 'Android',
@@ -148,8 +136,7 @@ export const resultSetTwoItems = {
       ValueColumnName: 'avg',
       MatchStdoutTxt: '',
       ChromiumHash: '',
-      ApkGsPath:
-        'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/ChromeModern.apk',
+      ApkGsPath: 'gs://chrome-unsigned/android-B0urB0N/80.0.3987.87/arm_64/ChromeModern.apk',
       TelemetryIsolateHash: 'b13b9f6b50847aab5f395c5be7ee1d71e2e7abd3',
       CCList: null,
       TaskPriority: 100,

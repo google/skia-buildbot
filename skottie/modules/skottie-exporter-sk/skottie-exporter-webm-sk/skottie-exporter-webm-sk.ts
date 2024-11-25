@@ -25,9 +25,7 @@ import {
   Quality,
   ComponentState,
 } from '../skottie-exporter-base-sk/skottie-exporter-base-sk';
-import frameCollectorFactory, {
-  FrameCollectorType,
-} from '../../helpers/frameCollectorFactory';
+import frameCollectorFactory, { FrameCollectorType } from '../../helpers/frameCollectorFactory';
 
 interface Detail {
   crf: number;
@@ -102,8 +100,7 @@ export class SkottieExporterWebMSk extends SkottieExporterBaseSk {
           <div class="detail__info">
             <info-icon-sk></info-icon-sk>
             <span class="detail__info__tooltip"
-              >Number of passes <br />More passes is smaller filesize <br />but
-              slower render times
+              >Number of passes <br />More passes is smaller filesize <br />but slower render times
             </span>
           </div>
         </div>
@@ -182,10 +179,7 @@ export class SkottieExporterWebMSk extends SkottieExporterBaseSk {
     `;
   }
 
-  private async generate(
-    player: SkottiePlayerSk,
-    ffmpeg: FFmpeg
-  ): Promise<Uint8Array | null> {
+  private async generate(player: SkottiePlayerSk, ffmpeg: FFmpeg): Promise<Uint8Array | null> {
     const canvas = player.canvas();
     if (!canvas || this.renderState !== 'running') {
       return null;

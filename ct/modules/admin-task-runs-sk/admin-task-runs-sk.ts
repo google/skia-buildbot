@@ -49,8 +49,7 @@ export class AdminTaskRunsSk extends ElementSk {
   private static template = (el: AdminTaskRunsSk) => html`
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}${el.taskType}</h2>
-      <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
+      <pagination-sk @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
@@ -61,9 +60,7 @@ export class AdminTaskRunsSk extends ElementSk {
 
       <br />
       <br />
-      <table
-        class="surface-themes-sk secondary-links runssummary"
-        id="runssummary">
+      <table class="surface-themes-sk secondary-links runssummary" id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -79,11 +76,7 @@ export class AdminTaskRunsSk extends ElementSk {
     </div>
   `;
 
-  private static taskRowTemplate = (
-    el: AdminTaskRunsSk,
-    task: AdminDatastoreTask,
-    index: number
-  ) =>
+  private static taskRowTemplate = (el: AdminTaskRunsSk, task: AdminDatastoreTask, index: number) =>
     html` <tr>
       <!-- Id col -->
       <td class="nowrap">
@@ -134,10 +127,7 @@ export class AdminTaskRunsSk extends ElementSk {
         ${!task.failure && task.task_done ? 'Done' : ''}
         ${task.swarming_logs
           ? html` <br />
-              <a
-                href="${task.swarming_logs}"
-                target="_blank"
-                rel="noopener noreferrer">
+              <a href="${task.swarming_logs}" target="_blank" rel="noopener noreferrer">
                 Swarming Logs
               </a>`
           : ''}
@@ -238,8 +228,7 @@ export class AdminTaskRunsSk extends ElementSk {
       .then((json: GetTasksResponse) => {
         this._tasks = json.data;
         this._pagination = json.pagination;
-        ($$('pagination-sk', this) as PaginationSk).pagination =
-          this._pagination!;
+        ($$('pagination-sk', this) as PaginationSk).pagination = this._pagination!;
         for (let i = 0; i < this._tasks.length; i++) {
           this._tasks[i].can_delete = json.permissions![i].DeleteAllowed;
           this._tasks[i].can_redo = json.permissions![i].RedoAllowed;

@@ -1,13 +1,5 @@
 /** Simple test corpora composed of plain string objects. */
-export const stringCorpora = [
-  'canvaskit',
-  'colorImage',
-  'gm',
-  'image',
-  'pathkit',
-  'skp',
-  'svg',
-];
+export const stringCorpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
 
 /** A custom corpus object type with various fields. */
 export interface TestCorpus {

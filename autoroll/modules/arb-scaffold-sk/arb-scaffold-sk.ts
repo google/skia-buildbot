@@ -59,12 +59,8 @@ export class ARBScaffoldSk extends ElementSk {
 
       <aside class="surface-themes-sk">
         <nav>
-          <a href="/" tab-index="0">
-            <home-icon-sk></home-icon-sk><span>Home</span>
-          </a>
-          <a
-            href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md"
-            tab-index="0">
+          <a href="/" tab-index="0"> <home-icon-sk></home-icon-sk><span>Home</span> </a>
+          <a href="https://skia.googlesource.com/buildbot/+/main/autoroll/README.md" tab-index="0">
             <help-icon-sk></help-icon-sk><span>Docs</span>
           </a>
         </nav>
@@ -194,10 +190,7 @@ export class ARBScaffoldSk extends ElementSk {
       // We can ignore AbortError since they fire anytime an AbortController was
       // canceled. Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
-      errorMessage(
-        `Unexpected error loading ${loadingWhat}: ${e.message}`,
-        5000
-      );
+      errorMessage(`Unexpected error loading ${loadingWhat}: ${e.message}`, 5000);
     }
     this.finishedTask();
   }

@@ -50,8 +50,7 @@ export class ClipboardSk extends ElementSk {
         @click=${() => ele.copyToClipboard()}
         @mouseleave=${() => ele.restoreToolTipMessage()}>
       </content-copy-icon-sk>
-      <tooltip-sk target=${ele.icon_id} value=${defaultToolTipMessage}>
-      </tooltip-sk>`;
+      <tooltip-sk target=${ele.icon_id} value=${defaultToolTipMessage}> </tooltip-sk>`;
 
   connectedCallback(): void {
     super.connectedCallback();

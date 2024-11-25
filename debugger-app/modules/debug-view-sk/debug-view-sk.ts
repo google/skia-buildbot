@@ -22,9 +22,7 @@ export type FitStyle = 'natural' | 'fit' | 'right' | 'bottom';
 export class DebugViewSk extends ElementDocSk {
   private static template = (ele: DebugViewSk) =>
     html` <div class="horizontal-flex">
-        <button
-          title="Original size."
-          @click=${() => (ele.fitStyle = 'natural')}>
+        <button title="Original size." @click=${() => (ele.fitStyle = 'natural')}>
           <img src="/dist/image.png" />
         </button>
         <button title="Fit in page." @click=${() => (ele.fitStyle = 'fit')}>
@@ -33,9 +31,7 @@ export class DebugViewSk extends ElementDocSk {
         <button title="Fit to width." @click=${() => (ele.fitStyle = 'right')}>
           <img src="/dist/right.png" />
         </button>
-        <button
-          title="Fit to height."
-          @click=${() => (ele.fitStyle = 'bottom')}>
+        <button title="Fit to height." @click=${() => (ele.fitStyle = 'bottom')}>
           <img src="/dist/bottom.png" />
         </button>
       </div>
@@ -91,9 +87,7 @@ export class DebugViewSk extends ElementDocSk {
     });
 
     this.addDocumentEventListener(ToggleBackgroundEvent, (e) => {
-      this._backdropStyle = (
-        e as CustomEvent<ToggleBackgroundEventDetail>
-      ).detail.mode;
+      this._backdropStyle = (e as CustomEvent<ToggleBackgroundEventDetail>).detail.mode;
       this._render();
     });
   }
@@ -150,8 +144,7 @@ export class DebugViewSk extends ElementDocSk {
   }
 
   private _drawCrossHairAt(p: Point) {
-    const chCanvas =
-      this.querySelector<HTMLCanvasElement>('#crosshair-canvas')!;
+    const chCanvas = this.querySelector<HTMLCanvasElement>('#crosshair-canvas')!;
     const chx = chCanvas.getContext('2d')!;
     chx.clearRect(0, 0, chCanvas.width, chCanvas.height);
 

@@ -46,8 +46,7 @@
         }
         ByteArray.pageSize = 4096;
         ByteArray.charMap = {};
-        for (var i = 0; i < 256; i++)
-          ByteArray.charMap[i] = String.fromCharCode(i);
+        for (var i = 0; i < 256; i++) ByteArray.charMap[i] = String.fromCharCode(i);
         ByteArray.prototype.newPage = function () {
           this.pages[++this.page] = new Uint8Array(ByteArray.pageSize);
           this.cursor = 0;
@@ -66,8 +65,7 @@
           this.pages[this.page][this.cursor++] = val;
         };
         ByteArray.prototype.writeUTFBytes = function (string) {
-          for (var l = string.length, i = 0; i < l; i++)
-            this.writeByte(string.charCodeAt(i));
+          for (var l = string.length, i = 0; i < l; i++) this.writeByte(string.charCodeAt(i));
         };
         ByteArray.prototype.writeBytes = function (array, offset, length) {
           for (var l = length || array.length, i = offset || 0; i < l; i++)
@@ -114,9 +112,7 @@
         GIFEncoder.prototype.addFrame = function (imageData) {
           this.image = imageData;
           this.colorTab =
-            this.globalPalette && this.globalPalette.slice
-              ? this.globalPalette
-              : null;
+            this.globalPalette && this.globalPalette.slice ? this.globalPalette : null;
           this.getImagePixels();
           this.analyzePixels();
           if (this.globalPalette === true) this.globalPalette = this.colorTab;
@@ -149,9 +145,7 @@
         };
         GIFEncoder.prototype.getGlobalPalette = function () {
           return (
-            (this.globalPalette &&
-              this.globalPalette.slice &&
-              this.globalPalette.slice(0)) ||
+            (this.globalPalette && this.globalPalette.slice && this.globalPalette.slice(0)) ||
             this.globalPalette
           );
         };
@@ -242,8 +236,7 @@
           for (var y = 0; y < height; y++) {
             if (serpentine) direction = direction * -1;
             for (
-              var x = direction == 1 ? 0 : width - 1,
-                xend = direction == 1 ? width : 0;
+              var x = direction == 1 ? 0 : width - 1, xend = direction == 1 ? width : 0;
               x !== xend;
               x += direction
             ) {
@@ -263,43 +256,26 @@
               var eg = g1 - g2;
               var eb = b1 - b2;
               for (
-                var i = direction == 1 ? 0 : ds.length - 1,
-                  end = direction == 1 ? ds.length : 0;
+                var i = direction == 1 ? 0 : ds.length - 1, end = direction == 1 ? ds.length : 0;
                 i !== end;
                 i += direction
               ) {
                 var x1 = ds[i][1];
                 var y1 = ds[i][2];
-                if (
-                  x1 + x >= 0 &&
-                  x1 + x < width &&
-                  y1 + y >= 0 &&
-                  y1 + y < height
-                ) {
+                if (x1 + x >= 0 && x1 + x < width && y1 + y >= 0 && y1 + y < height) {
                   var d = ds[i][0];
                   idx = index + x1 + y1 * width;
                   idx *= 3;
                   data[idx] = Math.max(0, Math.min(255, data[idx] + er * d));
-                  data[idx + 1] = Math.max(
-                    0,
-                    Math.min(255, data[idx + 1] + eg * d)
-                  );
-                  data[idx + 2] = Math.max(
-                    0,
-                    Math.min(255, data[idx + 2] + eb * d)
-                  );
+                  data[idx + 1] = Math.max(0, Math.min(255, data[idx + 1] + eg * d));
+                  data[idx + 2] = Math.max(0, Math.min(255, data[idx + 2] + eb * d));
                 }
               }
             }
           }
         };
         GIFEncoder.prototype.findClosest = function (c, used) {
-          return this.findClosestRGB(
-            (c & 16711680) >> 16,
-            (c & 65280) >> 8,
-            c & 255,
-            used
-          );
+          return this.findClosestRGB((c & 16711680) >> 16, (c & 65280) >> 8, c & 255, used);
         };
         GIFEncoder.prototype.findClosestRGB = function (r, g, b, used) {
           if (this.colorTab === null) return -1;
@@ -398,12 +374,7 @@
           this.out.writeByte((pValue >> 8) & 255);
         };
         GIFEncoder.prototype.writePixels = function () {
-          var enc = new LZWEncoder(
-            this.width,
-            this.height,
-            this.indexedPixels,
-            this.colorDepth
-          );
+          var enc = new LZWEncoder(this.width, this.height, this.indexedPixels, this.colorDepth);
           enc.encode(this.out);
         };
         GIFEncoder.prototype.stream = function () {
@@ -422,8 +393,7 @@
         var BITS = 12;
         var HSIZE = 5003;
         var masks = [
-          0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383,
-          32767, 65535,
+          0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535,
         ];
 
         function LZWEncoder(width, height, pixels, colorDepth) {
@@ -664,8 +634,7 @@
             var i, n, dist, biasdist, betafreq;
             for (i = 0; i < netsize; i++) {
               n = network[i];
-              dist =
-                Math.abs(n[0] - b) + Math.abs(n[1] - g) + Math.abs(n[2] - r);
+              dist = Math.abs(n[0] - b) + Math.abs(n[1] - g) + Math.abs(n[2] - r);
               if (dist < bestd) {
                 bestd = dist;
                 bestpos = i;
@@ -794,8 +763,7 @@
             var rad = radius >> radiusbiasshift;
             if (rad <= 1) rad = 0;
             for (i = 0; i < rad; i++)
-              radpower[i] =
-                alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
+              radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
             var step;
             if (lengthcount < minpicturebytes) {
               samplefac = 1;
@@ -829,8 +797,7 @@
                 rad = radius >> radiusbiasshift;
                 if (rad <= 1) rad = 0;
                 for (j = 0; j < rad; j++)
-                  radpower[j] =
-                    alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
+                  radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
               }
             }
           }

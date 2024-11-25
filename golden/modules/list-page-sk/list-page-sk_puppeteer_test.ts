@@ -63,43 +63,29 @@ describe('list-page-sk', () => {
   });
 
   it('has the corpus respond to forward and back browser buttons', async () => {
-    await navigateTo(
-      testBed.page,
-      testBed.baseUrl,
-      '?corpus=gm&query=alpha_type%3DOpaque'
-    );
+    await navigateTo(testBed.page, testBed.baseUrl, '?corpus=gm&query=alpha_type%3DOpaque');
 
     await expectSelectedCorpusToBe('gm');
 
     // click on colorImage corpus
     await testBed.page.click('corpus-selector-sk > ul > li:nth-child(1)');
 
-    expect(testBed.page.url()).to.contain(
-      '?corpus=colorImage&query=alpha_type%3DOpaque'
-    );
+    expect(testBed.page.url()).to.contain('?corpus=colorImage&query=alpha_type%3DOpaque');
     await expectSelectedCorpusToBe('colorImage');
 
     await testBed.page.goBack();
 
-    expect(testBed.page.url()).to.contain(
-      '?corpus=gm&query=alpha_type%3DOpaque'
-    );
+    expect(testBed.page.url()).to.contain('?corpus=gm&query=alpha_type%3DOpaque');
     await expectSelectedCorpusToBe('gm');
 
     await testBed.page.goForward();
 
-    expect(testBed.page.url()).to.contain(
-      '?corpus=colorImage&query=alpha_type%3DOpaque'
-    );
+    expect(testBed.page.url()).to.contain('?corpus=colorImage&query=alpha_type%3DOpaque');
     await expectSelectedCorpusToBe('colorImage');
   });
 
   it('has the corpus respond to forward and back browser buttons', async () => {
-    await navigateTo(
-      testBed.page,
-      testBed.baseUrl,
-      '?corpus=gm&query=alpha_type%3DOpaque'
-    );
+    await navigateTo(testBed.page, testBed.baseUrl, '?corpus=gm&query=alpha_type%3DOpaque');
 
     await expectDisplayedFilterToBe('source_type=gm, \nalpha_type=Opaque');
 
@@ -121,10 +107,7 @@ describe('list-page-sk', () => {
     await expectDisplayedFilterToBe('source_type=gm');
   });
 
-  const expectCheckBoxSkToBe = async (
-    selector: string,
-    expectedToBeChecked: boolean
-  ) => {
+  const expectCheckBoxSkToBe = async (selector: string, expectedToBeChecked: boolean) => {
     const isChecked = await testBed.page.$eval(selector, (e: Element) =>
       (e as HTMLElement).hasAttribute('checked')
     );
@@ -149,9 +132,7 @@ describe('list-page-sk', () => {
 });
 
 async function navigateTo(page: Page, base: string, queryParams = '') {
-  const eventPromise = await addEventListenersToPuppeteerPage(page, [
-    'busy-end',
-  ]);
+  const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
   const loaded = eventPromise('busy-end'); // Emitted when page is loaded.
   await page.goto(`${base}${queryParams}`);
   await loaded;

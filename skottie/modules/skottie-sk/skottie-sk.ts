@@ -47,10 +47,7 @@ import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { SkottiePerformanceSk } from '../skottie-performance-sk/skottie-performance-sk';
 import { FontAsset, LottieAnimation, LottieAsset, ViewMode } from '../types';
 import { SkottieLibrarySk } from '../skottie-library-sk/skottie-library-sk';
-import {
-  AudioStartEventDetail,
-  SkottieAudioSk,
-} from '../skottie-audio-sk/skottie-audio-sk';
+import { AudioStartEventDetail, SkottieAudioSk } from '../skottie-audio-sk/skottie-audio-sk';
 import {
   SkottieTextEditorSk,
   TextEditEventDetail,
@@ -73,10 +70,7 @@ import '../skottie-button-sk';
 import '../skottie-dropdown-sk';
 import { DropdownSelectEvent } from '../skottie-dropdown-sk/skottie-dropdown-sk';
 import '../skottie-exporter-sk';
-import {
-  ExportType,
-  SkottieExporterSk,
-} from '../skottie-exporter-sk/skottie-exporter-sk';
+import { ExportType, SkottieExporterSk } from '../skottie-exporter-sk/skottie-exporter-sk';
 import '../skottie-file-settings-sk';
 import {
   SkottieFileSettingsSk,
@@ -117,8 +111,7 @@ interface LoadedAsset {
   player?: AudioPlayer;
 }
 
-const GOOGLE_WEB_FONTS_HOST =
-  'https://storage.googleapis.com/skia-cdn/google-web-fonts';
+const GOOGLE_WEB_FONTS_HOST = 'https://storage.googleapis.com/skia-cdn/google-web-fonts';
 
 const PRODUCTION_ASSETS_PATH = '/_/a';
 
@@ -134,12 +127,8 @@ const SUPPORTED_DOMAINS = {
   SKOTTIE_INTERNAL: window.skottie
     ? window.skottie.internal_site_domain
     : 'skottie-internal.corp.goog',
-  SKOTTIE_TENOR: window.skottie
-    ? window.skottie.tenor_site_domain
-    : 'skottie-tenor.corp.goog',
-  SKOTTIE: window.skottie
-    ? window.skottie.public_site_domain
-    : 'skottie.skia.org',
+  SKOTTIE_TENOR: window.skottie ? window.skottie.tenor_site_domain : 'skottie-tenor.corp.goog',
+  SKOTTIE: window.skottie ? window.skottie.public_site_domain : 'skottie.skia.org',
   LOCALHOST: 'localhost',
 };
 
@@ -185,9 +174,7 @@ const redir = () =>
   );
 
 const displayLoading = () => html`
-  <div class="loading">
-    <spinner-sk active></spinner-sk><span>Loading...</span>
-  </div>
+  <div class="loading"><spinner-sk active></spinner-sk><span>Loading...</span></div>
 `;
 
 export class SkottieSk extends ElementSk {
@@ -221,10 +208,7 @@ export class SkottieSk extends ElementSk {
               @select=${ele.togglePerformanceChart}
               type="outline"
               .content=${'Performance chart'}
-              .classes=${[
-                'header__button',
-                ele.showPerformanceChart ? 'active-dialog' : '',
-              ]}>
+              .classes=${['header__button', ele.showPerformanceChart ? 'active-dialog' : '']}>
             </skottie-button-sk>
             ${ele.compatibilityReportOpen()}
             <skottie-button-sk
@@ -232,10 +216,7 @@ export class SkottieSk extends ElementSk {
               @select=${ele.toggleEditor}
               type="outline"
               .content=${'View JSON code'}
-              .classes=${[
-                'header__button',
-                ele.showJSONEditor ? 'active-dialog' : '',
-              ]}>
+              .classes=${['header__button', ele.showJSONEditor ? 'active-dialog' : '']}>
             </skottie-button-sk>
             ${ele.renderApplyChanges()}
 
@@ -321,8 +302,7 @@ export class SkottieSk extends ElementSk {
       <div class="playback-content">
         <skottie-button-sk
           id="playpause"
-          .content=${html`<play-arrow-icon-sk
-              id="playpause-play"></play-arrow-icon-sk>
+          .content=${html`<play-arrow-icon-sk id="playpause-play"></play-arrow-icon-sk>
             <pause-icon-sk id="playpause-pause"></pause-icon-sk>`}
           .classes=${['playback-content__button']}
           @select=${this.playpause}></skottie-button-sk>
@@ -343,9 +323,7 @@ export class SkottieSk extends ElementSk {
               class="playback-content-frameInput"
               @focus=${this.onFrameFocus}
               @change=${this.onFrameChange} /><!--
-            --><span class="playback-content-frameTotal" id="frameTotal"
-              >of 0</span
-            >
+            --><span class="playback-content-frameTotal" id="frameTotal">of 0</span>
           </label>
         </div>
         <skottie-button-sk
@@ -357,8 +335,7 @@ export class SkottieSk extends ElementSk {
     </div>
 
     <div @click=${this.onChartClick}>${this.performanceChartTemplate()}</div>
-    ${this.jsonEditor()} ${this.gifExporter()}
-    ${this.compatibilityReportTemplate()}
+    ${this.jsonEditor()} ${this.gifExporter()} ${this.compatibilityReportTemplate()}
 
     <collapse-sk id="volume" closed>
       <p>Volume:</p>
@@ -418,24 +395,18 @@ export class SkottieSk extends ElementSk {
       @select=${this.toggleCompatibilityReport}
       type="outline"
       .content=${'Compatibility Report (Beta)'}
-      .classes=${[
-        'header__button',
-        this.showCompatibilityReport ? 'active-dialog' : '',
-      ]}>
+      .classes=${['header__button', this.showCompatibilityReport ? 'active-dialog' : '']}>
     </skottie-button-sk>`;
   }
 
   private compatibilityReportTemplate() {
     return html`
-      <dialog
-        class="compatibility-report"
-        ?open=${this.showCompatibilityReport}>
+      <dialog class="compatibility-report" ?open=${this.showCompatibilityReport}>
         <div class="top-ribbon">
           <span>Compatibility Report</span>
           <button @click=${this.toggleCompatibilityReport}>Close</button>
         </div>
-        <skottie-compatibility-sk .animation=${this.state.lottie}>
-        </skottie-compatibility-sk>
+        <skottie-compatibility-sk .animation=${this.state.lottie}> </skottie-compatibility-sk>
       </dialog>
     `;
   }
@@ -460,8 +431,7 @@ export class SkottieSk extends ElementSk {
     return html` <div class="json-chooser">
         <div class="title">JSON File</div>
         ${this.renderDownload()}
-        <skottie-file-form-sk
-          @files-selected=${this.skottieFilesSelected}></skottie-file-form-sk>
+        <skottie-file-form-sk @files-selected=${this.skottieFilesSelected}></skottie-file-form-sk>
       </div>
 
       ${this.fileSettingsDialog()} ${this.slotManager()} ${this.colorManager()}
@@ -480,10 +450,7 @@ export class SkottieSk extends ElementSk {
             ${this.state.filename} ${this.width}x${this.height} ...
           </div>
           <div class="download">
-            <a
-              target="_blank"
-              download=${this.state.filename}
-              href=${this.downloadURL}>
+            <a target="_blank" download=${this.state.filename} href=${this.downloadURL}>
               <file-download-icon-sk></file-download-icon-sk>
             </a>
             ${!this.areChangesUploaded() ? '(without edits)' : ''}
@@ -537,16 +504,13 @@ export class SkottieSk extends ElementSk {
         <details
           class="expando"
           ?open=${this.showAudio}
-          @toggle=${(e: Event) =>
-            this.toggleAudio((e.target! as HTMLDetailsElement).open)}>
+          @toggle=${(e: Event) => this.toggleAudio((e.target! as HTMLDetailsElement).open)}>
           <summary id="audio-open">
             <span>Audio</span><expand-less-icon-sk></expand-less-icon-sk>
             <expand-more-icon-sk></expand-more-icon-sk>
           </summary>
 
-          <skottie-audio-sk
-            .animation=${this.state.lottie}
-            @apply=${this.applyAudioSync}>
+          <skottie-audio-sk .animation=${this.state.lottie} @apply=${this.applyAudioSync}>
           </skottie-audio-sk>
         </details>
       `,
@@ -557,8 +521,7 @@ export class SkottieSk extends ElementSk {
     <details
       class="expando"
       ?open=${this.showFileSettings}
-      @toggle=${(e: Event) =>
-        this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}>
+      @toggle=${(e: Event) => this.toggleFileSettings((e.target! as HTMLDetailsElement).open)}>
       <summary id="fileSettings-open">
         <span>File Settings</span><expand-less-icon-sk></expand-less-icon-sk>
         <expand-more-icon-sk></expand-more-icon-sk>
@@ -567,8 +530,7 @@ export class SkottieSk extends ElementSk {
         .width=${this.width}
         .height=${this.height}
         .fps=${this.fps}
-        @settings-change=${this
-          .skottieFileSettingsUpdated}></skottie-file-settings-sk>
+        @settings-change=${this.skottieFileSettingsUpdated}></skottie-file-settings-sk>
     </details>
   `;
 
@@ -584,8 +546,7 @@ export class SkottieSk extends ElementSk {
         <expand-more-icon-sk></expand-more-icon-sk>
       </summary>
       <skottie-background-settings-sk
-        @background-change=${this
-          .skottieBackgroundUpdated}></skottie-background-settings-sk>
+        @background-change=${this.skottieBackgroundUpdated}></skottie-background-settings-sk>
     </details>
   `;
 
@@ -598,8 +559,7 @@ export class SkottieSk extends ElementSk {
       </summary>
       <skottie-color-manager-sk
         .animation=${this.state.lottie}
-        @animation-updated=${this
-          .onColorManagerUpdated}></skottie-color-manager-sk>
+        @animation-updated=${this.onColorManagerUpdated}></skottie-color-manager-sk>
     </details>
   `;
 
@@ -611,8 +571,7 @@ export class SkottieSk extends ElementSk {
 
   private skottiePlayerTemplate = () =>
     html` <figure class="players-container-player">
-      <skottie-player-sk paused width=${this.width} height=${this.height}>
-      </skottie-player-sk>
+      <skottie-player-sk paused width=${this.width} height=${this.height}> </skottie-player-sk>
       ${this.wasmCaption()}
     </figure>`;
 
@@ -624,8 +583,8 @@ export class SkottieSk extends ElementSk {
       <div
         id="container"
         title="lottie-web"
-        style="width:${this.width}px;height:${this
-          .height}px;background-color:${this.backgroundColor}"></div>
+        style="width:${this.width}px;height:${this.height}px;background-color:${this
+          .backgroundColor}"></div>
       ${caption('lottie-web', this.viewMode)}
     </figure>`;
   };
@@ -634,8 +593,7 @@ export class SkottieSk extends ElementSk {
     html` <details
       class="expando"
       ?open=${this.showLibrary}
-      @toggle=${(e: Event) =>
-        this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
+      @toggle=${(e: Event) => this.toggleLibrary((e.target! as HTMLDetailsElement).open)}>
       <summary id="library-open">
         <span>Library</span><expand-less-icon-sk></expand-less-icon-sk>
         <expand-more-icon-sk></expand-more-icon-sk>
@@ -659,8 +617,7 @@ export class SkottieSk extends ElementSk {
         <span>Export</span>
         <button @click=${this.toggleGifExporter}>Close</button>
       </div>
-      <skottie-gif-exporter-sk @start=${this.onExportStart}>
-      </skottie-gif-exporter-sk>
+      <skottie-gif-exporter-sk @start=${this.onExportStart}> </skottie-gif-exporter-sk>
     </dialog>
   `;
 
@@ -676,8 +633,7 @@ export class SkottieSk extends ElementSk {
     <details
       class="expando"
       ?open=${this.showShaderEditor}
-      @toggle=${(e: Event) =>
-        this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}>
+      @toggle=${(e: Event) => this.toggleShaderEditor((e.target! as HTMLDetailsElement).open)}>
       <summary>
         <span>Edit Shader</span><expand-less-icon-sk></expand-less-icon-sk>
         <expand-more-icon-sk></expand-more-icon-sk>
@@ -692,8 +648,7 @@ export class SkottieSk extends ElementSk {
   `;
 
   private buildFileName = () => {
-    const fileName =
-      this.state.filename || this.state.lottie?.metadata?.filename;
+    const fileName = this.state.filename || this.state.lottie?.metadata?.filename;
     if (fileName) {
       return html`<div title="${fileName}">${fileName}</div>`;
     }
@@ -841,8 +796,7 @@ export class SkottieSk extends ElementSk {
         this.fps = +newState.f;
         this.showFileSettings = !!newState.fs;
         this.showBackgroundSettings = !!newState.b;
-        this.viewMode =
-          newState.mode === 'presentation' ? 'presentation' : 'default';
+        this.viewMode = newState.mode === 'presentation' ? 'presentation' : 'default';
         this.backgroundColor = String(newState.bg);
         this.render();
       }
@@ -878,11 +832,7 @@ export class SkottieSk extends ElementSk {
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
         const normalizedProgress = progress / this.duration;
-        this.performanceChart?.start(
-          progress,
-          this.duration,
-          this.state.lottie?.fr || 0
-        );
+        this.performanceChart?.start(progress, this.duration, this.state.lottie?.fr || 0);
         this.skottiePlayer?.seek(normalizedProgress, this.forceRedraw);
         this.performanceChart?.end();
         this.skottieLibrary?.seek(normalizedProgress);
@@ -993,9 +943,7 @@ export class SkottieSk extends ElementSk {
     }
   }
 
-  private skottieFileSettingsUpdated(
-    e: CustomEvent<SkottieFileSettingsEventDetail>
-  ) {
+  private skottieFileSettingsUpdated(e: CustomEvent<SkottieFileSettingsEventDetail>) {
     this.width = e.detail.width;
     this.height = e.detail.height;
     this.fps = e.detail.fps;
@@ -1022,9 +970,7 @@ export class SkottieSk extends ElementSk {
     this.upload();
   }
 
-  private skottieBackgroundUpdated(
-    e: CustomEvent<SkottieBackgroundSettingsEventDetail>
-  ) {
+  private skottieBackgroundUpdated(e: CustomEvent<SkottieBackgroundSettingsEventDetail>) {
     const background = e.detail;
     this.backgroundColor = background.color;
     this.changingTool = 'background-color';
@@ -1064,9 +1010,7 @@ export class SkottieSk extends ElementSk {
         const scrubber = $$<HTMLInputElement>('#scrub', this);
         if (scrubber) {
           // calculate a scaled version of ms per frame as the step size.
-          scrubber.step = String(
-            (1000 / this.fps) * (SCRUBBER_RANGE / this.duration)
-          );
+          scrubber.step = String((1000 / this.fps) * (SCRUBBER_RANGE / this.duration));
         }
       }
       const frameTotal = $$<HTMLInputElement>('#frameTotal', this);
@@ -1225,8 +1169,7 @@ export class SkottieSk extends ElementSk {
       if (asset.id.startsWith('audio_')) {
         // Howler handles our audio assets, they don't provide a promise when making a new Howl.
         // We push the audio asset as is and hope that it loads before playback starts.
-        const inline =
-          asset.p && asset.p.startsWith && asset.p.startsWith('data:');
+        const inline = asset.p && asset.p.startsWith && asset.p.startsWith('data:');
         if (inline) {
           promises.push(
             Promise.resolve({
@@ -1238,35 +1181,28 @@ export class SkottieSk extends ElementSk {
           promises.push(
             Promise.resolve({
               name: asset.id,
-              player: new AudioPlayer(
-                `${this.assetsPath}/${this.hash}/${asset.p}`
-              ),
+              player: new AudioPlayer(`${this.assetsPath}/${this.hash}/${asset.p}`),
             })
           );
         }
       } else {
         // asset.p is the filename, if it's an image.
         // Don't try to load inline/dataURI images.
-        const should_load =
-          asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
+        const should_load = asset.p && asset.p.startsWith && !asset.p.startsWith('data:');
         if (should_load) {
           alreadyPromised.add(asset.p);
           promises.push(
-            fetch(`${this.assetsPath}/${this.hash}/${asset.p}`).then(
-              (resp: Response) => {
-                // fetch does not reject on 404
-                if (!resp.ok) {
-                  console.error(
-                    `Could not load ${asset.p}: status ${resp.status}`
-                  );
-                  return null;
-                }
-                return resp.arrayBuffer().then((buffer) => ({
-                  name: asset.p,
-                  bytes: buffer,
-                }));
+            fetch(`${this.assetsPath}/${this.hash}/${asset.p}`).then((resp: Response) => {
+              // fetch does not reject on 404
+              if (!resp.ok) {
+                console.error(`Could not load ${asset.p}: status ${resp.status}`);
+                return null;
               }
-            )
+              return resp.arrayBuffer().then((buffer) => ({
+                name: asset.p,
+                bytes: buffer,
+              }));
+            })
           );
         }
       }
@@ -1274,21 +1210,17 @@ export class SkottieSk extends ElementSk {
     for (const assetName of additionalAssets) {
       if (!alreadyPromised.has(assetName)) {
         promises.push(
-          fetch(`${this.assetsPath}/${this.hash}/${assetName}`).then(
-            (resp: Response) => {
-              // fetch does not reject on 404
-              if (!resp.ok) {
-                console.error(
-                  `Could not load ${assetName}: status ${resp.status}`
-                );
-                return null;
-              }
-              return resp.arrayBuffer().then((buffer) => ({
-                name: assetName,
-                bytes: buffer,
-              }));
+          fetch(`${this.assetsPath}/${this.hash}/${assetName}`).then((resp: Response) => {
+            // fetch does not reject on 404
+            if (!resp.ok) {
+              console.error(`Could not load ${assetName}: status ${resp.status}`);
+              return null;
             }
-          )
+            return resp.arrayBuffer().then((buffer) => ({
+              name: assetName,
+              bytes: buffer,
+            }));
+          })
         );
       }
     }
@@ -1353,9 +1285,7 @@ export class SkottieSk extends ElementSk {
           }
           this.ui = 'loaded';
           this.loadAssetsAndRender().then(() => {
-            this.dispatchEvent(
-              new CustomEvent('initial-animation-loaded', { bubbles: true })
-            );
+            this.dispatchEvent(new CustomEvent('initial-animation-loaded', { bubbles: true }));
           });
         })
         .catch((msg) => this.recoverFromError(msg));
@@ -1366,22 +1296,14 @@ export class SkottieSk extends ElementSk {
     if (this.downloadURL) {
       URL.revokeObjectURL(this.downloadURL);
     }
-    this.downloadURL = URL.createObjectURL(
-      new Blob([JSON.stringify(this.state.lottie)])
-    );
+    this.downloadURL = URL.createObjectURL(new Blob([JSON.stringify(this.state.lottie)]));
     super._render();
 
     this.skottiePlayer = $$<SkottiePlayerSk>('skottie-player-sk', this);
-    this.performanceChart = $$<SkottiePerformanceSk>(
-      'skottie-performance-sk',
-      this
-    );
+    this.performanceChart = $$<SkottiePerformanceSk>('skottie-performance-sk', this);
     this.skottieLibrary = $$<SkottieLibrarySk>('skottie-library-sk', this);
 
-    const skottieGifExporter = $$<SkottieGifExporterSk>(
-      'skottie-gif-exporter-sk',
-      this
-    );
+    const skottieGifExporter = $$<SkottieGifExporterSk>('skottie-gif-exporter-sk', this);
     if (skottieGifExporter && this.skottiePlayer) {
       skottieGifExporter.player = this.skottiePlayer;
     }
@@ -1429,10 +1351,7 @@ export class SkottieSk extends ElementSk {
 
   private renderTextEditor(): void {
     if (this.showTextEditor) {
-      const textEditor = $$<SkottieTextEditorSk>(
-        'skottie-text-editor-sk',
-        this
-      );
+      const textEditor = $$<SkottieTextEditorSk>('skottie-text-editor-sk', this);
       if (textEditor) {
         textEditor.animation = this.state.lottie!;
       }
@@ -1440,10 +1359,7 @@ export class SkottieSk extends ElementSk {
   }
 
   private renderSlotManager(): void {
-    const slotManager = $$<SkottieSlotManagerSk>(
-      'skottie-slot-manager-sk',
-      this
-    );
+    const slotManager = $$<SkottieSlotManagerSk>('skottie-slot-manager-sk', this);
     if (slotManager) {
       slotManager.player = this.skottiePlayer!;
       if (this.state.assets) {
@@ -1545,9 +1461,7 @@ export class SkottieSk extends ElementSk {
         autoplay: this.playing,
         assetsPath: `${this.assetsPath}/${this.hash}/`,
         // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(
-          JSON.stringify(this.state.lottie)
-        ) as LottieAnimation,
+        animationData: JSON.parse(JSON.stringify(this.state.lottie)) as LottieAnimation,
         rendererSettings: {
           preserveAspectRatio: 'xMidYMid meet',
         },
@@ -1634,9 +1548,7 @@ export class SkottieSk extends ElementSk {
     if (frameLabel) {
       const progress = this.elapsedTime % this.duration;
       if (this.state.lottie!.fr) {
-        frameLabel.value = String(
-          Math.round(progress * (this.state.lottie!.fr / 1000))
-        );
+        frameLabel.value = String(Math.round(progress * (this.state.lottie!.fr / 1000)));
       }
     }
   }

@@ -56,8 +56,7 @@ export class AdminTasksSk extends ElementSk {
       <tr>
         <td>PageSets Type</td>
         <td>
-          <pageset-selector-sk id="pageset_selector" disable-custom-webpages>
-          </pageset-selector-sk>
+          <pageset-selector-sk id="pageset_selector" disable-custom-webpages> </pageset-selector-sk>
         </td>
       </tr>
       <tr>
@@ -69,23 +68,16 @@ export class AdminTasksSk extends ElementSk {
       <tr>
         <td colspan="2" class="center">
           <div class="triggering-spinner">
-            <spinner-sk
-              .active=${el._triggeringTask}
-              alt="Trigger task"></spinner-sk>
+            <spinner-sk .active=${el._triggeringTask} alt="Trigger task"></spinner-sk>
           </div>
-          <button
-            id="submit"
-            ?disabled=${el._triggeringTask}
-            @click=${el._validateTask}>
+          <button id="submit" ?disabled=${el._triggeringTask} @click=${el._validateTask}>
             Queue Task
           </button>
         </td>
       </tr>
       <tr>
         <td colspan="2" class="center">
-          <button id="view_history" @click=${el._gotoRunsHistory}>
-            View runs history
-          </button>
+          <button id="view_history" @click=${el._gotoRunsHistory}>View runs history</button>
         </td>
       </tr>
     </table>
@@ -104,10 +96,7 @@ export class AdminTasksSk extends ElementSk {
   }
 
   _validateTask(): void {
-    const pagesetSelector = $$(
-      '#pageset_selector',
-      this._activeTab!
-    ) as PagesetSelectorSk;
+    const pagesetSelector = $$('#pageset_selector', this._activeTab!) as PagesetSelectorSk;
     if (!pagesetSelector.selected) {
       errorMessage('Please select a page set type');
       pagesetSelector.focus();
@@ -125,9 +114,7 @@ export class AdminTasksSk extends ElementSk {
   _queueTask(): void {
     this._triggeringTask = true;
     const params = {} as AdminAddTaskVars;
-    params.page_sets = (
-      $$('#pageset_selector', this._activeTab!) as PagesetSelectorSk
-    ).selected;
+    params.page_sets = ($$('#pageset_selector', this._activeTab!) as PagesetSelectorSk).selected;
     params.repeat_after_days = (
       $$('#repeat_after_days', this._activeTab!) as TaskRepeaterSk
     ).frequency;

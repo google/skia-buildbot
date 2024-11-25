@@ -2,12 +2,7 @@ import './index';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
-import {
-  summaryResults3,
-  summaryResults5,
-  summaryResults15,
-  summaryResults33,
-} from './test_data';
+import { summaryResults3, summaryResults5, summaryResults15, summaryResults33 } from './test_data';
 import { RunsHistorySummarySk } from './runs-history-summary-sk';
 
 function newHistorySummary(parentSelector: string) {
@@ -24,9 +19,7 @@ function newHistorySummary(parentSelector: string) {
         return summaryResults33;
     }
   });
-  const rs = document.createElement(
-    'runs-history-summary-sk'
-  ) as RunsHistorySummarySk;
+  const rs = document.createElement('runs-history-summary-sk') as RunsHistorySummarySk;
   ($$(parentSelector) as HTMLElement).appendChild(rs);
 }
 newHistorySummary('#container');

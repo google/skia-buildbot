@@ -58,10 +58,7 @@ customElements.whenDefined('bugs-central-sk').then(() => {
   // Insert the element later, which should given enough time for fetchMock to be in place.
   document
     .querySelector('h1')!
-    .insertAdjacentElement(
-      'afterend',
-      document.createElement('bugs-central-sk')
-    );
+    .insertAdjacentElement('afterend', document.createElement('bugs-central-sk'));
 
   const elems = document.querySelectorAll<BugsCentralSk>('bugs-central-sk')!;
   elems.forEach((el) => {

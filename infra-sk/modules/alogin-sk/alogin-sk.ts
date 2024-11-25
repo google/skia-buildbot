@@ -22,9 +22,7 @@ export const defaultStatusURL = '/_/login/status';
  * Returns a Promise that resolves when we have received the login status, and
  * rejects if there was an error retrieving the login status.
  */
-export const LoggedIn = async (
-  url: string = defaultStatusURL
-): Promise<Status> => {
+export const LoggedIn = async (url: string = defaultStatusURL): Promise<Status> => {
   const resp = await fetch(url);
   if (!resp.ok) {
     await errorMessage(`Failed to load login status: ${resp.statusText}`);

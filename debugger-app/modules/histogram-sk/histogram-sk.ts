@@ -30,24 +30,15 @@ import {
 
 export class HistogramSk extends ElementDocSk {
   private static template = (ele: HistogramSk) =>
-    html` <details
-      title="A table of the number of occurrences of each command."
-      open>
+    html` <details title="A table of the number of occurrences of each command." open>
       <summary><b>Histogram</b></summary>
       <table>
         <tr>
-          <td
-            title="Occurrences of command in current frame (or single frame skp file).">
-            frame
-          </td>
-          <td title="Occurrences of command within the current range filter.">
-            range
-          </td>
+          <td title="Occurrences of command in current frame (or single frame skp file).">frame</td>
+          <td title="Occurrences of command within the current range filter.">range</td>
           <td>name</td>
         </tr>
-        ${ele._hist.map((item: HistogramEntry) =>
-          HistogramSk.rowTemplate(ele, item)
-        )}
+        ${ele._hist.map((item: HistogramEntry) => HistogramSk.rowTemplate(ele, item))}
         <tr>
           <td class="countCol">${ele._total()}</td>
           <td><b>Total</b></td>
@@ -115,13 +106,10 @@ export class HistogramSk extends ElementDocSk {
 
     // but make sure to tell the module that actually owns this model
     this.dispatchEvent(
-      new CustomEvent<ToggleCommandInclusionEventDetail>(
-        ToggleCommandInclusionEvent,
-        {
-          detail: { name: lowerName },
-          bubbles: true,
-        }
-      )
+      new CustomEvent<ToggleCommandInclusionEventDetail>(ToggleCommandInclusionEvent, {
+        detail: { name: lowerName },
+        bubbles: true,
+      })
     );
   }
 }

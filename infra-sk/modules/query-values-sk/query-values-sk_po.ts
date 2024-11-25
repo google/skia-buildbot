@@ -1,9 +1,6 @@
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import { PageObject } from '../page_object/page_object';
-import {
-  PageObjectElement,
-  PageObjectElementList,
-} from '../page_object/page_object_element';
+import { PageObjectElement, PageObjectElementList } from '../page_object/page_object_element';
 import { asyncForEach } from '../async';
 
 /** A page object for the QueryValuesSk component. */
@@ -43,9 +40,7 @@ export class QueryValuesSkPO extends PageObject {
   }
 
   async isRegexCheckboxChecked() {
-    return (await this.regexCheckBox).applyFnToDOMNode(
-      (c: Element) => (c as CheckOrRadio).checked
-    );
+    return (await this.regexCheckBox).applyFnToDOMNode((c: Element) => (c as CheckOrRadio).checked);
   }
 
   async clickInvertCheckbox() {
@@ -81,9 +76,7 @@ export class QueryValuesSkPO extends PageObject {
   }
 
   async clickOption(option: string) {
-    const optionDiv = await this.options.find((div) =>
-      div.isInnerTextEqualTo(option)
-    );
+    const optionDiv = await this.options.find((div) => div.isInnerTextEqualTo(option));
     await optionDiv?.click();
   }
 
@@ -119,9 +112,7 @@ export class QueryValuesSkPO extends PageObject {
     if (selected.some((value) => value.startsWith('~'))) {
       // There can only be one regex.
       if (selected.length > 1) {
-        throw new Error(
-          'invalid selection: regex found in selection of length > 1'
-        );
+        throw new Error('invalid selection: regex found in selection of length > 1');
       }
 
       // Click the regex checkbox if it isn't checked.
@@ -138,9 +129,7 @@ export class QueryValuesSkPO extends PageObject {
     if (selected.some((value) => value.startsWith('!'))) {
       // If one item is inverted, all items must be inverted as well.
       if (!selected.every((value) => value.startsWith('!'))) {
-        throw new Error(
-          'invalid selection: inverted and non-inverted items found'
-        );
+        throw new Error('invalid selection: inverted and non-inverted items found');
       }
 
       // Click the invert checkbox if it isn't checked.

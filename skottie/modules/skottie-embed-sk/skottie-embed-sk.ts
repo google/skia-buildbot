@@ -25,8 +25,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 
 export class SkottieEmbedSk extends ElementSk {
-  private static template = () =>
-    html` <skottie-player-sk></skottie-player-sk>`;
+  private static template = () => html` <skottie-player-sk></skottie-player-sk>`;
 
   private hash: string = '';
 
@@ -72,8 +71,7 @@ export class SkottieEmbedSk extends ElementSk {
       })
         .then(jsonOrThrow)
         .then((json) => {
-          const player =
-            this.querySelector<SkottiePlayerSk>('skottie-player-sk');
+          const player = this.querySelector<SkottiePlayerSk>('skottie-player-sk');
           return player!.initialize({
             width: this.width,
             height: this.height,

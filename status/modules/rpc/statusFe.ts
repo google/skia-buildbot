@@ -51,12 +51,7 @@ export class StatusFeClient implements StatusFe {
 
   private optionsOverride: object;
 
-  constructor(
-    hostname: string,
-    fetch: Fetch,
-    writeCamelCase = false,
-    optionsOverride: any = {}
-  ) {
+  constructor(hostname: string, fetch: Fetch, writeCamelCase = false, optionsOverride: any = {}) {
     this.hostname = hostname;
     this.fetch = fetch;
     this.writeCamelCase = writeCamelCase;
@@ -67,19 +62,16 @@ export class StatusFeClient implements StatusFe {
     incrementalCommitsRequest: IncrementalCommitsRequest
   ): Promise<IncrementalCommitsResponse> {
     const url = `${this.hostname + this.pathPrefix}GetIncrementalCommits`;
-    let body: IncrementalCommitsRequest | IncrementalCommitsRequestJSON =
-      incrementalCommitsRequest;
+    let body: IncrementalCommitsRequest | IncrementalCommitsRequestJSON = incrementalCommitsRequest;
     if (!this.writeCamelCase) {
       body = IncrementalCommitsRequestToJSON(incrementalCommitsRequest);
     }
-    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then(
-      (resp) => {
-        if (!resp.ok) {
-          return throwTwirpError(resp);
-        }
-
-        return resp.json().then(JSONToIncrementalCommitsResponse);
+    return this.fetch(createTwirpRequest(url, body, this.optionsOverride)).then((resp) => {
+      if (!resp.ok) {
+        return throwTwirpError(resp);
       }
-    );
+
+      return resp.json().then(JSONToIncrementalCommitsResponse);
+    });
   }
 }

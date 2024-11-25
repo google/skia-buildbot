@@ -29,38 +29,27 @@ export class ScreenshotsViewerSk extends ElementSk {
     }
     if (el.getApplications().length === 0) {
       if (el.filter !== '') {
-        return html`<p class="no-results">
-          No screenshots match "${el.filter}".
-        </p>`;
+        return html`<p class="no-results">No screenshots match "${el.filter}".</p>`;
       }
-      return html`<p class="no-results">
-        No screenshots found. Try re-running your tests.
-      </p>`;
+      return html`<p class="no-results">No screenshots found. Try re-running your tests.</p>`;
     }
 
     return html`
       <div class="applications">
         ${el
           .getApplications()
-          .map((app: string) =>
-            ScreenshotsViewerSk.applicationTemplate(el, app)
-          )}
+          .map((app: string) => ScreenshotsViewerSk.applicationTemplate(el, app))}
       </div>
     `;
   };
 
-  private static applicationTemplate = (
-    el: ScreenshotsViewerSk,
-    app: string
-  ) => html`
+  private static applicationTemplate = (el: ScreenshotsViewerSk, app: string) => html`
     <div class="application">
       <h2 class="application-name">${app}</h2>
 
       ${el
         .getScreenshotsForApplication(app)
-        .map((screenshot: Screenshot) =>
-          ScreenshotsViewerSk.screenshotTemplate(screenshot)
-        )}
+        .map((screenshot: Screenshot) => ScreenshotsViewerSk.screenshotTemplate(screenshot))}
     </div>
   `;
 

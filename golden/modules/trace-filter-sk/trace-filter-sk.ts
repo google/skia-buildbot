@@ -12,11 +12,7 @@
 
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
-import {
-  ParamSet,
-  fromParamSet,
-  toParamSet,
-} from '../../../infra-sk/modules/query';
+import { ParamSet, fromParamSet, toParamSet } from '../../../infra-sk/modules/query';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
@@ -34,9 +30,7 @@ export class TraceFilterSk extends ElementSk {
       </div>
       <button class="edit-query" @click=${el._onEditQueryBtnClick}>Edit</button>
 
-      <query-dialog-sk
-        .submitButtonLabel=${'Select'}
-        @edit=${el._onQueryDialogEdit}>
+      <query-dialog-sk .submitButtonLabel=${'Select'} @edit=${el._onQueryDialogEdit}>
       </query-dialog-sk>`;
 
   private _paramSet: ParamSet = {};

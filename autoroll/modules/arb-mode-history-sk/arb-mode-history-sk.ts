@@ -36,13 +36,9 @@ export class ARBModeHistorySk extends ElementSk {
         (entry: ModeChange) => html`
           <tr>
             <td>
-              <human-date-sk
-                .date="${entry.time!}"
-                .diff="${true}"></human-date-sk>
+              <human-date-sk .date="${entry.time!}" .diff="${true}"></human-date-sk>
             </td>
-            <td class="${ele.modeClass(entry.mode!)}">
-              ${entry.mode?.toString()}
-            </td>
+            <td class="${ele.modeClass(entry.mode!)}">${entry.mode?.toString()}</td>
             <td>${entry.user?.toString()}</td>
             <td>${entry.message}</td>
           </tr>

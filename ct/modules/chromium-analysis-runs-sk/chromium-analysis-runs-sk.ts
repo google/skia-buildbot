@@ -60,8 +60,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
   private static template = (el: ChromiumAnalysisRunsSk) => html`
     <div>
       <h2>${el._constrainByUser ? 'My ' : ''}Chromium Analysis Runs</h2>
-      <pagination-sk
-        @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
+      <pagination-sk @page-changed=${(e: CustomEvent) => el._pageChanged(e)}></pagination-sk>
       <br />
       <button id="userFilter" @click=${() => el._constrainRunsByUser()}>
         ${el._constrainByUser ? "View Everyone's Runs" : 'View Only My Runs'}
@@ -72,9 +71,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
 
       <br />
       <br />
-      <table
-        class="surface-themes-sk secondary-links runssummary"
-        id="runssummary">
+      <table class="surface-themes-sk secondary-links runssummary" id="runssummary">
         <tr>
           <th>Id</th>
           <th>User</th>
@@ -86,15 +83,11 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
           <th>Patches</th>
           <th>Task Repeats</th>
         </tr>
-        ${el._tasks.map((task, index) =>
-          ChromiumAnalysisRunsSk.taskRowTemplate(el, task, index)
-        )}
+        ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskRowTemplate(el, task, index))}
       </table>
     </div>
 
-    ${el._tasks.map((task, index) =>
-      ChromiumAnalysisRunsSk.taskDialogTemplate(task, index)
-    )}
+    ${el._tasks.map((task, index) => ChromiumAnalysisRunsSk.taskDialogTemplate(task, index))}
     <toast-sk id="confirm_toast" duration="5000"></toast-sk>
   `;
 
@@ -107,10 +100,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
       <!-- Id col -->
       <td class="nowrap">
         ${task.raw_output
-          ? html`<a
-              href="${task.raw_output}"
-              target="_blank"
-              rel="noopener noreferrer"
+          ? html`<a href="${task.raw_output}" target="_blank" rel="noopener noreferrer"
               >${task.id}</a
             >`
           : html`<span>${task.id}</span>`}
@@ -202,9 +192,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
             ? html`<tr>
                 <td>GroupName:</td>
                 <td>
-                  <a href="https://ct-perf.skia.org/e/?request_type=1"
-                    >${task.group_name}</a
-                  >
+                  <a href="https://ct-perf.skia.org/e/?request_type=1">${task.group_name}</a>
                 </td>
               </tr>`
             : ''}
@@ -267,19 +255,13 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
         ${task.failure ? html`<div class="error">Failed</div>` : ''}
         ${!task.task_done ? html`<div class="green">Waiting</div>` : ''}
         ${task.raw_output
-          ? html`<a
-              href="${task.raw_output}"
-              target="_blank"
-              rel="noopener noreferrer">
+          ? html`<a href="${task.raw_output}" target="_blank" rel="noopener noreferrer">
               Output
             </a>`
           : ''}
         ${task.swarming_logs
           ? html`<br />
-              <a
-                href="${task.swarming_logs}"
-                target="_blank"
-                rel="noopener noreferrer">
+              <a href="${task.swarming_logs}" target="_blank" rel="noopener noreferrer">
                 Swarming Logs
               </a>`
           : ''}
@@ -378,10 +360,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
       <td>${formatRepeatAfterDays(task.repeat_after_days)}</td>
     </tr>`;
 
-  private static taskDialogTemplate = (
-    task: ChromiumAnalysisDatastoreTask,
-    index: number
-  ) => html`
+  private static taskDialogTemplate = (task: ChromiumAnalysisDatastoreTask, index: number) => html`
     <div
       id=${`gnArgs${index}`}
       class="dialog-background hidden overlay-themes-sk"
@@ -479,8 +458,7 @@ export class ChromiumAnalysisRunsSk extends ElementSk {
       .then((json: GetTasksResponse) => {
         this._tasks = json.data;
         this._pagination = json.pagination;
-        ($$('pagination-sk', this) as PaginationSk).pagination =
-          this._pagination!;
+        ($$('pagination-sk', this) as PaginationSk).pagination = this._pagination!;
         for (let i = 0; i < this._tasks.length; i++) {
           this._tasks[i].can_delete = json.permissions![i].DeleteAllowed;
           this._tasks[i].can_redo = json.permissions![i].RedoAllowed;

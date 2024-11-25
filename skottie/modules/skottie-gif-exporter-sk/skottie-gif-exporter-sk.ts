@@ -53,12 +53,7 @@ const QUALITY_SCRUBBER_RANGE = 50;
 
 const WORKERS_COUNT = 4;
 
-const ditherOptions = [
-  'FloydSteinberg',
-  'FalseFloydSteinberg',
-  'Stucki',
-  'Atkinson',
-];
+const ditherOptions = ['FloydSteinberg', 'FalseFloydSteinberg', 'Stucki', 'Atkinson'];
 
 const backgroundOptions: BackgroundOption[] = [
   {
@@ -141,10 +136,7 @@ export class SkottieGifExporterSk extends ElementSk {
         </label>
       </div>
       <div class="form-elem">
-        <checkbox-sk
-          label="Dither"
-          ?checked=${this.dither}
-          @click=${this.toggleDither}>
+        <checkbox-sk label="Dither" ?checked=${this.dither} @click=${this.toggleDither}>
         </checkbox-sk>
         ${this.renderDither()}
       </div>
@@ -156,9 +148,7 @@ export class SkottieGifExporterSk extends ElementSk {
         </checkbox-sk>
       </div>
       <div class="form-elem">
-        <div class="form-elem-label">
-          Select Background Color to compose on Transparent
-        </div>
+        <div class="form-elem-label">Select Background Color to compose on Transparent</div>
         ${this.renderBackgroundSelect()}
       </div>
     </div>
@@ -180,51 +170,28 @@ export class SkottieGifExporterSk extends ElementSk {
     <section class="complete">
       <div class="export-info">
         <div class="export-info-row">Render Complete</div>
-        <div class="export-info-row">
-          Export Duration: ${this.exportDuration}
-        </div>
-        <div class="export-info-row">
-          File size: ${bytes(this.blob ? this.blob.size : 0)}
-        </div>
+        <div class="export-info-row">Export Duration: ${this.exportDuration}</div>
+        <div class="export-info-row">File size: ${bytes(this.blob ? this.blob.size : 0)}</div>
       </div>
-      <a
-        class="download"
-        href=${this.blobURL}
-        download=${this.getDownloadFileName()}>
-        Download
-      </a>
+      <a class="download" href=${this.blobURL} download=${this.getDownloadFileName()}> Download </a>
     </section>
   `;
 
   private renderHeader = () => {
     if (this.state === 'idle') {
-      return html`
-        <button class="editor-header-save-button" @click=${this.save}>
-          Save
-        </button>
-      `;
+      return html` <button class="editor-header-save-button" @click=${this.save}>Save</button> `;
     }
     if (this.state === 'complete') {
-      return html`
-        <button class="editor-header-save-button" @click=${this.cancel}>
-          Back
-        </button>
-      `;
+      return html` <button class="editor-header-save-button" @click=${this.cancel}>Back</button> `;
     }
-    return html`
-      <button class="editor-header-save-button" @click=${this.cancel}>
-        Cancel
-      </button>
-    `;
+    return html` <button class="editor-header-save-button" @click=${this.cancel}>Cancel</button> `;
   };
 
   private renderDither = () => {
     if (this.dither) {
       return html`
         <select-sk role="listbox" @selection-changed=${this.ditherOptionChange}>
-          ${ditherOptions.map((item: string, index: number) =>
-            this.renderOption(item, index)
-          )}
+          ${ditherOptions.map((item: string, index: number) => this.renderOption(item, index))}
         </select-sk>
       `;
     }
@@ -236,16 +203,12 @@ export class SkottieGifExporterSk extends ElementSk {
   `;
 
   private renderBackgroundOption = (item: BackgroundOption) => html`
-    <div role="option" ?selected=${this.backgroundValue.id === item.id}>
-      ${item.label}
-    </div>
+    <div role="option" ?selected=${this.backgroundValue.id === item.id}>${item.label}</div>
   `;
 
   private renderBackgroundSelect = () => html`
     <select-sk role="listbox" @selection-changed=${this.backgroundOptionChange}>
-      ${backgroundOptions.map((item: BackgroundOption) =>
-        this.renderBackgroundOption(item)
-      )}
+      ${backgroundOptions.map((item: BackgroundOption) => this.renderBackgroundOption(item))}
     </select-sk>
   `;
 
@@ -325,18 +288,14 @@ export class SkottieGifExporterSk extends ElementSk {
     this._render();
   }
 
-  private ditherOptionChange(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>
-  ) {
+  private ditherOptionChange(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
     e.preventDefault();
     this.ditherValue = e.detail.selection;
     gifStorage.set('ditherValue', this.ditherValue);
     this._render();
   }
 
-  private backgroundOptionChange(
-    e: CustomEvent<SelectSkSelectionChangedEventDetail>
-  ) {
+  private backgroundOptionChange(e: CustomEvent<SelectSkSelectionChangedEventDetail>) {
     e.preventDefault();
     this.backgroundValue = backgroundOptions[e.detail.selection];
     gifStorage.set('backgroundIndex', e.detail.selection);

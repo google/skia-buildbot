@@ -108,9 +108,7 @@ export class CodesizeScaffoldSk extends ElementSk {
    * This function can be called multiple times concurrently.
    */
   static waitFor<T>(promise: Promise<T>): Promise<T> {
-    const scaffold = document.querySelector<CodesizeScaffoldSk>(
-      'codesize-scaffold-sk'
-    )!;
+    const scaffold = document.querySelector<CodesizeScaffoldSk>('codesize-scaffold-sk')!;
     return scaffold.waitFor(promise);
   }
 

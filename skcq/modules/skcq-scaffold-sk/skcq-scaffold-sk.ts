@@ -54,9 +54,7 @@ export class SkCQScaffold extends ElementSk {
 
       <aside>
         <nav class="surface-themes-sk">
-          <a href="/" tab-index="0">
-            <home-icon-sk></home-icon-sk><span>SkCQ</span>
-          </a>
+          <a href="/" tab-index="0"> <home-icon-sk></home-icon-sk><span>SkCQ</span> </a>
           <a href="http://go/skcq-design-doc" target="_blank" tab-index="0">
             <help-icon-sk></help-icon-sk><span>Help</span>
           </a>

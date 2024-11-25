@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('icons-demo-sk', () => {
   let testBed: TestBed;
@@ -45,11 +41,7 @@ describe('icons-demo-sk', () => {
     categories.forEach((category: string) => {
       it(`shows icons from category ${category}`, async () => {
         const categoryIcons = await testBed.page.$(`.category-${category}`);
-        await takeScreenshot(
-          categoryIcons!,
-          'elements-sk',
-          `icons-demo-sk_${category}`
-        );
+        await takeScreenshot(categoryIcons!, 'elements-sk', `icons-demo-sk_${category}`);
       });
     });
   });

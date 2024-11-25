@@ -121,8 +121,7 @@ const disallowTriaging = (searchResult: SearchResult): SearchResult => {
   const retVal = deepCopy(searchResult);
   retVal.paramset.image_matching_algorithm = ['positive_if_only_digest'];
   retVal.paramset.disallow_triaging = ['true'];
-  retVal.traces.traces![0].params!.image_matching_algorithm =
-    'positive_if_only_digest';
+  retVal.traces.traces![0].params!.image_matching_algorithm = 'positive_if_only_digest';
   retVal.traces.traces![0].params!.disallow_triaging = 'true';
   return retVal;
 };
@@ -153,8 +152,7 @@ export const negativeOnly: SearchResult = {
     traces: [
       {
         data: mod2Data,
-        label:
-          ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
+        label: ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
         params: {
           ext: 'png',
           name: 'dots-legend-sk_too-many-digests',
@@ -220,8 +218,7 @@ export const noRefs: SearchResult = {
     traces: [
       {
         data: allTheSame,
-        label:
-          ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
+        label: ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
         params: {
           ext: 'png',
           name: 'dots-legend-sk_too-many-digests',
@@ -269,8 +266,7 @@ export const noRefsYet: SearchResult = {
     traces: [
       {
         data: mod2Data,
-        label:
-          ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
+        label: ',name=dots-legend-sk_too-many-digests,os=Linux,source_type=infra,',
         params: {
           ext: 'png',
           name: 'dots-legend-sk_too-many-digests',

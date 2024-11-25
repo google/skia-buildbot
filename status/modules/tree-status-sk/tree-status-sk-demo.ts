@@ -12,9 +12,7 @@ import {
   treeStatusResp3,
 } from './test_data';
 
-fetchMock.get('https://test-tree-status/test-repo/current', () =>
-  getTreeStatusResp()
-);
+fetchMock.get('https://test-tree-status/test-repo/current', () => getTreeStatusResp());
 fetchMock.get(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
   generalRoleResp
@@ -50,9 +48,5 @@ el.baseURL = 'https://test-tree-status';
 el.repo = 'test-repo';
 ($$('#container') as HTMLElement).appendChild(el);
 el.addEventListener('some-event-name', (e) => {
-  document.querySelector('#events')!.textContent = JSON.stringify(
-    e,
-    null,
-    '  '
-  );
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
 });

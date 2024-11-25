@@ -210,10 +210,7 @@ export class GoldScaffoldSk extends ElementSk {
       // Chrome and Firefox report a DOMException in this case:
       // https://developer.mozilla.org/en-US/docs/Web/API/DOMException
       console.error(error);
-      errorMessage(
-        `Unexpected error loading ${loadingWhat}: ${error.message}`,
-        5000
-      );
+      errorMessage(`Unexpected error loading ${loadingWhat}: ${error.message}`, 5000);
     }
     this.finishedTask();
   }

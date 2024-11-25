@@ -3,9 +3,7 @@ import { Convert, DebugTrace, SlotInfo } from '../debug-trace/debug-trace';
 import { DebugTracePlayer, VariableData } from './debug-trace-player';
 
 function getStack(trace: DebugTrace, player: DebugTracePlayer): string[] {
-  return player
-    .getCallStack()
-    .map((funcIdx: number) => trace.functions[funcIdx].name);
+  return player.getCallStack().map((funcIdx: number) => trace.functions[funcIdx].name);
 }
 
 function makeVarsString(
@@ -28,18 +26,12 @@ function makeVarsString(
   });
 }
 
-function getLocalVariables(
-  trace: DebugTrace,
-  player: DebugTracePlayer
-): string[] {
+function getLocalVariables(trace: DebugTrace, player: DebugTracePlayer): string[] {
   const frame: number = player.getStackDepth() - 1;
   return makeVarsString(trace, player, player.getLocalVariables(frame));
 }
 
-function getGlobalVariables(
-  trace: DebugTrace,
-  player: DebugTracePlayer
-): string[] {
+function getGlobalVariables(trace: DebugTrace, player: DebugTracePlayer): string[] {
   return makeVarsString(trace, player, player.getGlobalVariables());
 }
 
@@ -717,10 +709,7 @@ describe('DebugTrace playback', () => {
     assert.isFalse(player.traceHasCompleted());
     assert.equal(player.getCurrentLine(), 8);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)']);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##f2.x = 32.25',
-      '##f2.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 32.25', '##f2.y = 32.25']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
 
     player.stepOver();
@@ -742,17 +731,11 @@ describe('DebugTrace playback', () => {
 
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)']);
     assert.equal(player.getCurrentLineInStackFrame(0), 8);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##f2.x = 32.25',
-      '##f2.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f2.x = 32.25', '##f2.y = 32.25']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
     player.step();
 
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 f2)',
-      'half fnA()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)', 'half fnA()']);
     assert.equal(player.getCurrentLineInStackFrame(0), 8);
     assert.equal(player.getCurrentLineInStackFrame(1), 5);
     assert.deepEqual(getLocalVariables(trace, player), []);
@@ -771,13 +754,8 @@ describe('DebugTrace playback', () => {
     assert.deepEqual(getGlobalVariables(trace, player), []);
     player.step();
 
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 f2)',
-      'half fnA()',
-    ]);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##[fnB].result = 0.5',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 f2)', 'half fnA()']);
+    assert.deepEqual(getLocalVariables(trace, player), ['##[fnB].result = 0.5']);
     assert.deepEqual(getGlobalVariables(trace, player), []);
     player.step();
 
@@ -821,19 +799,12 @@ describe('DebugTrace playback', () => {
 
     assert.equal(player.getCurrentLine(), 7);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 32.25',
-      '##p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 8);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##a = 123',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##a = 123', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 9);
@@ -847,18 +818,12 @@ describe('DebugTrace playback', () => {
     player.step();
 
     assert.equal(player.getCurrentLine(), 3);
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 p)',
-      'float func()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'float func()']);
     assert.deepEqual(getLocalVariables(trace, player), []);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 p)',
-      'float func()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'float func()']);
     assert.deepEqual(getLocalVariables(trace, player), ['##z = 456']);
     player.step();
 
@@ -938,10 +903,7 @@ describe('DebugTrace playback', () => {
 
     assert.equal(player.getCurrentLine(), 3);
     assert.deepEqual(getStack(trace, player), ['vec4 main(vec2 p)']);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 32.25',
-      '##p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
@@ -1039,26 +1001,15 @@ describe('DebugTrace playback', () => {
     player.step();
 
     assert.equal(player.getCurrentLine(), 3);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 32.25',
-      '##p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##val = 0',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 0', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 5);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      'val = 0',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['val = 0', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 6);
@@ -1072,28 +1023,16 @@ describe('DebugTrace playback', () => {
 
     // We skip over the false-branch.
     assert.equal(player.getCurrentLine(), 10);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##val = 1',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 1', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     // We skip over the true-branch.
     assert.equal(player.getCurrentLine(), 14);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      'val = 1',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['val = 1', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 16);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##val = 4',
-      'p.x = 32.25',
-      'p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##val = 4', 'p.x = 32.25', 'p.y = 32.25']);
     player.step();
 
     assert.isTrue(player.traceHasCompleted());
@@ -1131,10 +1070,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 32.25',
-      '##p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
@@ -1147,10 +1083,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 0',
-      '##p.y = 0',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 0', '##p.y = 0']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 5);
@@ -1163,11 +1096,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##x = 1',
-      'p.x = 0',
-      'p.y = 0',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##x = 1', 'p.x = 0', 'p.y = 0']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
@@ -1180,11 +1109,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      'p.x = 0',
-      '##p.y = 1',
-      'x = 1',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['p.x = 0', '##p.y = 1', 'x = 1']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 5);
@@ -1197,11 +1122,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##x = 2',
-      'p.x = 0',
-      'p.y = 1',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##x = 2', 'p.x = 0', 'p.y = 1']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
@@ -1214,11 +1135,7 @@ describe('DebugTrace playback', () => {
         [7, 1],
       ])
     );
-    assert.deepEqual(getLocalVariables(trace, player), [
-      'p.x = 0',
-      '##p.y = 2',
-      'x = 2',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['p.x = 0', '##p.y = 2', 'x = 2']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 7);
@@ -1263,33 +1180,21 @@ describe('DebugTrace playback', () => {
     // We should now be inside main.
     assert.equal(player.getCurrentLine(), 10);
     assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)']);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##p.x = 32.25',
-      '##p.y = 32.25',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##p.x = 32.25', '##p.y = 32.25']);
     player.step();
 
     // We should now be inside fn.
     assert.equal(player.getCurrentLine(), 3);
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 p)',
-      'half fn()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 4);
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 p)',
-      'half fn()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
     assert.deepEqual(getLocalVariables(trace, player), ['##a = 11']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 5);
-    assert.deepEqual(getStack(trace, player), [
-      'half4 main(float2 p)',
-      'half fn()',
-    ]);
+    assert.deepEqual(getStack(trace, player), ['half4 main(float2 p)', 'half fn()']);
     assert.deepEqual(getLocalVariables(trace, player), ['##b = 22', 'a = 11']);
     player.stepOut();
 
@@ -1347,19 +1252,11 @@ describe('DebugTrace playback', () => {
     player.step();
 
     assert.equal(player.getCurrentLine(), 15);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##f = 6',
-      'e = 5',
-      'a = 1',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##f = 6', 'e = 5', 'a = 1']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 17);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      'f = 6',
-      'e = 5',
-      'a = 1',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['f = 6', 'e = 5', 'a = 1']);
     player.step();
 
     assert.equal(player.getCurrentLine(), 19);
@@ -1367,11 +1264,7 @@ describe('DebugTrace playback', () => {
     player.step();
 
     assert.equal(player.getCurrentLine(), 20);
-    assert.deepEqual(getLocalVariables(trace, player), [
-      '##i = 9',
-      'e = 5',
-      'a = 1',
-    ]);
+    assert.deepEqual(getLocalVariables(trace, player), ['##i = 9', 'e = 5', 'a = 1']);
     player.stepOut();
     player.stepOut();
     assert.isTrue(player.traceHasCompleted());

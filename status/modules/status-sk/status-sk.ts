@@ -166,8 +166,7 @@ export class StatusSk extends ElementSk {
 
       <main>
         <commits-table-sk
-          @repo-changed=${(e: CustomEvent) =>
-            el.updateRepo(e.detail)}></commits-table-sk>
+          @repo-changed=${(e: CustomEvent) => el.updateRepo(e.detail)}></commits-table-sk>
         <error-toast-sk></error-toast-sk>
       </main>
 

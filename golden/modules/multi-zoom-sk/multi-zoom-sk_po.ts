@@ -41,9 +41,7 @@ export class MultiZoomSkPO extends PageObject {
   }
 
   isLeftCheckboxChecked(): Promise<boolean> {
-    return this.leftCheckbox.applyFnToDOMNode(
-      (el) => (el as CheckOrRadio).checked
-    );
+    return this.leftCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async clickLeftCheckbox() {
@@ -51,9 +49,7 @@ export class MultiZoomSkPO extends PageObject {
   }
 
   isDiffCheckboxChecked(): Promise<boolean> {
-    return this.diffCheckbox.applyFnToDOMNode(
-      (el) => (el as CheckOrRadio).checked
-    );
+    return this.diffCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async clickDiffCheckbox() {
@@ -61,9 +57,7 @@ export class MultiZoomSkPO extends PageObject {
   }
 
   isRightCheckboxChecked(): Promise<boolean> {
-    return this.rightCheckbox.applyFnToDOMNode(
-      (el) => (el as CheckOrRadio).checked
-    );
+    return this.rightCheckbox.applyFnToDOMNode((el) => (el as CheckOrRadio).checked);
   }
 
   async clickRightCheckbox() {

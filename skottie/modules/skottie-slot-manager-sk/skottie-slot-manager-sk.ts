@@ -109,8 +109,7 @@ export class SkottieSlotManagerSk extends ElementSk {
         .label=${vs.id}
         .x=${vs.x}
         .y=${vs.y}
-        @vec2-change=${(e: CustomEvent<SkottieVec2EventDetail>) =>
-          this.onVec2SlotChange(e)}>
+        @vec2-change=${(e: CustomEvent<SkottieVec2EventDetail>) => this.onVec2SlotChange(e)}>
       </skottie-vec2-input-sk>
     </div>
   `;
@@ -125,9 +124,7 @@ export class SkottieSlotManagerSk extends ElementSk {
     </div>
   `;
 
-  private imageOption = (name: string) => html`
-    <option value="${name}">${name}</option>
-  `;
+  private imageOption = (name: string) => html` <option value="${name}">${name}</option> `;
 
   private renderUnslotted(): TemplateResult {
     return html`
@@ -135,9 +132,8 @@ export class SkottieSlotManagerSk extends ElementSk {
         <div class="info-box">
           <span class="icon-sk info-box--icon">info</span>
           <span class="info-box--description">
-            Add properties to AE's Essential Graphics window to create slots.
-            Ensure that that slots are being exported correctly by checking
-            exporter settings.
+            Add properties to AE's Essential Graphics window to create slots. Ensure that that slots
+            are being exported correctly by checking exporter settings.
           </span>
         </div>
       </div>
@@ -157,10 +153,7 @@ export class SkottieSlotManagerSk extends ElementSk {
     `;
   }
 
-  private onColorSlotChange(
-    e: CustomEvent<SkottieColorEventDetail>,
-    sid: string
-  ): void {
+  private onColorSlotChange(e: CustomEvent<SkottieColorEventDetail>, sid: string): void {
     if (!this._animation) {
       return;
     }
@@ -205,11 +198,7 @@ export class SkottieSlotManagerSk extends ElementSk {
       return;
     }
 
-    const newAnimation = replaceVec2Slot(
-      [e.detail.x, e.detail.y],
-      e.detail.label,
-      this._animation
-    );
+    const newAnimation = replaceVec2Slot([e.detail.x, e.detail.y], e.detail.label, this._animation);
 
     this.dispatchEvent(
       new CustomEvent<SkottieTemplateEventDetail>('slot-manager-change', {
@@ -296,9 +285,7 @@ export class SkottieSlotManagerSk extends ElementSk {
 
   private updateAnimation(animation: LottieAnimation): void {
     if (animation && this.originalAnimation !== animation) {
-      const clonedAnimation = JSON.parse(
-        JSON.stringify(animation)
-      ) as LottieAnimation;
+      const clonedAnimation = JSON.parse(JSON.stringify(animation)) as LottieAnimation;
       this._animation = clonedAnimation;
       this.originalAnimation = animation;
       this._render();

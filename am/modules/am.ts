@@ -50,22 +50,14 @@ export function abbr(paramsAbbr: string): string {
  * Convert all URLs in a string into links in a lit-html TemplateResult.
  */
 // eslint-disable-next-line @typescript-eslint/type-annotation-spacing
-export function linkify(
-  s: string
-): DirectiveResult<typeof UnsafeHTMLDirective> {
-  return unsafeHTML(
-    s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>')
-  );
+export function linkify(s: string): DirectiveResult<typeof UnsafeHTMLDirective> {
+  return unsafeHTML(s.replace(linkRe, '<a href="$&" rel=noopener target=_blank>$&</a>'));
 }
 
 /**
  * Templates notes to be displayed.
  */
-export function displayNotes(
-  notes: Note[],
-  stateKey: string,
-  eventName: string
-): TemplateResult[] {
+export function displayNotes(notes: Note[], stateKey: string, eventName: string): TemplateResult[] {
   if (!notes) {
     return [];
   }
@@ -78,8 +70,7 @@ export function displayNotes(
           <span class="date">${diffDate(note.ts * 1000)}</span>
           <delete-icon-sk
             title="Delete comment."
-            @click=${(e: Event) =>
-              deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
+            @click=${(e: Event) => deleteNote(index, stateKey, eventName, e)}></delete-icon-sk>
         </div>
       </section>`
   );
@@ -88,19 +79,12 @@ export function displayNotes(
 /**
  * Deletes notes in the specified event's target.
  */
-function deleteNote(
-  index: number,
-  key: string,
-  eventName: string,
-  e: Event
-): void {
+function deleteNote(index: number, key: string, eventName: string, e: Event): void {
   const detail = {
     key: key,
     index: index,
   };
-  e.target!.dispatchEvent(
-    new CustomEvent(eventName, { detail: detail, bubbles: true })
-  );
+  e.target!.dispatchEvent(new CustomEvent(eventName, { detail: detail, bubbles: true }));
 }
 
 const TIME_DELTAS = [
@@ -131,11 +115,7 @@ export function parseDuration(d: string): number {
   return 0;
 }
 
-export function expiresIn(
-  active: boolean,
-  created: number,
-  duration: string
-): string {
+export function expiresIn(active: boolean, created: number, duration: string): string {
   if (active) {
     return diffDate((created + parseDuration(duration)) * 1000);
   }

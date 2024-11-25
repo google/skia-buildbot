@@ -32,10 +32,7 @@ import { $$ } from '../../../infra-sk/modules/dom';
 import { define } from '../../../elements-sk/modules/define';
 import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  SkottiePlayerConfig,
-  SkottiePlayerSk,
-} from '../skottie-player-sk/skottie-player-sk';
+import { SkottiePlayerConfig, SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 import { LottieAnimation } from '../types';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
@@ -109,10 +106,7 @@ export class SkottieDriveSk extends ElementSk {
           alt: 'json',
           fileId: id,
         })
-        .then(
-          (response: DriveGetResponse) =>
-            html`<pre>${response.result.name}</pre>`
-        )
+        .then((response: DriveGetResponse) => html`<pre>${response.result.name}</pre>`)
         .catch((err: ErrorResponse) => {
           errorMessage(err.result.error.message, 0);
         })
@@ -162,11 +156,8 @@ export class SkottieDriveSk extends ElementSk {
       .init({
         // eslint-disable-next-line no-useless-concat
         apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
-        clientId:
-          '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
-        discoveryDocs: [
-          'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
-        ],
+        clientId: '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
         scope:
           'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.install',
       })
@@ -194,9 +185,7 @@ export class SkottieDriveSk extends ElementSk {
     // See https://developers.google.com/drive/api/v3/integrate-open for more
     // details.
     let ids = ['12M0hlsK-zYCrKU6TG-Bji5Kcr9hWoyJw'];
-    const stateParam = new URL(document.location.href).searchParams.get(
-      'state'
-    );
+    const stateParam = new URL(document.location.href).searchParams.get('state');
     if (stateParam) {
       ids = (JSON.parse(stateParam) as URLState).ids;
     }
@@ -215,8 +204,7 @@ export class SkottieDriveSk extends ElementSk {
         })
         .then((response: DriveGetResponse) => {
           if (response.headers['Content-Type'] !== 'application/json') {
-            $$<HTMLParagraphElement>(`#errors${i}`, this)!.textContent =
-              'Error: Not a JSON file.';
+            $$<HTMLParagraphElement>(`#errors${i}`, this)!.textContent = 'Error: Not a JSON file.';
             errorMessage('Can only process JSON files.', 0);
             return;
           }

@@ -43,9 +43,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     <li class="wrapper">
       <details class="expando" ?open=${ele._isOpen} @toggle=${ele.toggle}>
         <summary>
-          <span class="summary-label">
-            Text layer: ${ele._textData?.text || ''}
-          </span>
+          <span class="summary-label"> Text layer: ${ele._textData?.text || ''} </span>
           <expand-less-icon-sk></expand-less-icon-sk>
           <expand-more-icon-sk></expand-more-icon-sk>
         </summary>
@@ -144,9 +142,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     const { items } = this._textData;
     return html`
       <div class="text-element-section">
-        <div class="text-element-section--title">
-          Origin${items.length > 1 ? 's' : ''}:
-        </div>
+        <div class="text-element-section--title">Origin${items.length > 1 ? 's' : ''}:</div>
         <ul>
           ${items.map(SkottieTextEditorBoxSk.originTemplateElement)}
         </ul>
@@ -162,9 +158,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     return html`
       <section class="text-element-section">
         <div class="text-element-section--title">Font manager</div>
-        <skottie-font-selector-sk
-          .fontName=${fontName}
-          @select-font=${this.onFontSelected}>
+        <skottie-font-selector-sk .fontName=${fontName} @select-font=${this.onFontSelected}>
         </skottie-font-selector-sk>
       </section>
     `;
@@ -179,9 +173,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
         <div class="text-element-section--title">Font settings</div>
         <div class="text-box text-box__left">
           <div class="text-box--label">
-            <span class="icon-sk text-box--label--icon">
-              format_line_spacing
-            </span>
+            <span class="icon-sk text-box--label--icon"> format_line_spacing </span>
           </div>
           <input
             type="number"
@@ -192,9 +184,7 @@ export class SkottieTextEditorBoxSk extends ElementSk {
         </div>
         <div class="text-box text-box__left">
           <div class="text-box--label">
-            <span class="icon-sk text-box--label--icon">
-              format_letter_spacing_wide
-            </span>
+            <span class="icon-sk text-box--label--icon"> format_letter_spacing_wide </span>
           </div>
           <input
             type="number"
@@ -215,21 +205,15 @@ export class SkottieTextEditorBoxSk extends ElementSk {
     return html`
       <section class="text-element-section">
         <div class="text-element-section--title">Text samples</div>
-        <skottie-text-sampler-sk
-          .fontName=${fontName}
-          @select-text=${this.onTextSelected}>
+        <skottie-text-sampler-sk .fontName=${fontName} @select-text=${this.onTextSelected}>
         </skottie-text-sampler-sk>
       </section>
     `;
   }
 
-  private static originTemplateElement(
-    item: ExtraLayerData
-  ): TemplateResult | null {
+  private static originTemplateElement(item: ExtraLayerData): TemplateResult | null {
     return html`
-      <li class="text-element-origin">
-        <b>${item.precompName}</b> > Layer ${item.layer.ind}
-      </li>
+      <li class="text-element-origin"><b>${item.precompName}</b> > Layer ${item.layer.ind}</li>
     `;
   }
 

@@ -4,14 +4,7 @@ export const manyParams: ParamSet = {
   alpha_type: ['Opaque', 'Premul'],
   arch: ['arm', 'arm64', 'x86', 'x86_64'],
   color_depth: ['1010102', '565', '8888', 'F16', 'G8'],
-  color_type: [
-    'BGRA_8888',
-    'Gray_8',
-    'RGBA_1010102',
-    'RGBA_8888',
-    'RGBA_F16',
-    'RGB_565',
-  ],
+  color_type: ['BGRA_8888', 'Gray_8', 'RGBA_1010102', 'RGBA_8888', 'RGBA_F16', 'RGB_565'],
   compiler: ['Clang', 'GCC', 'MSVC'],
   config: [
     '565',

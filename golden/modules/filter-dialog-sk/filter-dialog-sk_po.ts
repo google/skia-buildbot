@@ -79,9 +79,7 @@ export class FilterDialogSkPO extends PageObject {
   }
 
   async isDialogOpen() {
-    return this.filterDialog.applyFnToDOMNode(
-      (dialog) => (dialog as HTMLDialogElement).open
-    );
+    return this.filterDialog.applyFnToDOMNode((dialog) => (dialog as HTMLDialogElement).open);
   }
 
   async getMinRGBADelta() {
@@ -109,9 +107,7 @@ export class FilterDialogSkPO extends PageObject {
   }
 
   async isReferenceImageCheckboxChecked() {
-    return this.mustHaveReferenceImageCheckBox.applyFnToDOMNode(
-      (c) => (c as CheckOrRadio).checked
-    );
+    return this.mustHaveReferenceImageCheckBox.applyFnToDOMNode((c) => (c as CheckOrRadio).checked);
   }
 
   async clickReferenceImageCheckbox() {
@@ -148,10 +144,7 @@ export class FilterDialogSkPO extends PageObject {
     await this.setMaxRGBADelta(filters.maxRGBADelta);
     await this.setSortOrder(filters.sortOrder);
 
-    if (
-      filters.mustHaveReferenceImage !==
-      (await this.isReferenceImageCheckboxChecked())
-    ) {
+    if (filters.mustHaveReferenceImage !== (await this.isReferenceImageCheckboxChecked())) {
       await this.clickReferenceImageCheckbox();
     }
   }

@@ -45,10 +45,7 @@ describe('skottie-sk', () => {
       // Focus in a little to see better.
       await testBed.page.setViewport({ width: 1300, height: 800 });
       await testBed.page.select('#view-exporter select', 'gif');
-      const gifExporter = await testBed.page.$eval(
-        '#export-form-gif',
-        (ele: Element) => ele
-      );
+      const gifExporter = await testBed.page.$eval('#export-form-gif', (ele: Element) => ele);
       expect(gifExporter).to.exist;
       await takeScreenshot(testBed.page, 'skottie', 'gif_exporter');
     });
@@ -99,9 +96,7 @@ describe('skottie-sk', () => {
 });
 
 async function navigateTo(page: Page, base: string, queryParams: string = '') {
-  const eventPromise = await addEventListenersToPuppeteerPage(page, [
-    'initial-animation-loaded',
-  ]);
+  const eventPromise = await addEventListenersToPuppeteerPage(page, ['initial-animation-loaded']);
   const loaded = eventPromise('initial-animation-loaded');
   await page.goto(`${base}${queryParams}`);
   await loaded;

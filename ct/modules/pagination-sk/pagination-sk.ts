@@ -35,11 +35,7 @@ export class PaginationSk extends ElementSk {
 
   private static template = (el: PaginationSk) => html`
     <div>
-      <button
-        class="action"
-        data-page="0"
-        ?disabled=${el._onFirstPage()}
-        @click=${el._update}>
+      <button class="action" data-page="0" ?disabled=${el._onFirstPage()} @click=${el._update}>
         <first-page-icon-sk></first-page-icon-sk>
       </button>
       <button
@@ -51,10 +47,7 @@ export class PaginationSk extends ElementSk {
       </button>
       ${el._pageButtons.map(
         (page) =>
-          html` <button
-            data-page=${page}
-            @click=${el._update}
-            ?disabled=${page === el._page}>
+          html` <button data-page=${page} @click=${el._update} ?disabled=${page === el._page}>
             ${page + 1}
           </button>`
       )}
@@ -87,10 +80,7 @@ export class PaginationSk extends ElementSk {
 
     this._page = Math.floor(this._pagination.offset / this._pagination.size);
     const start = Math.max(
-      Math.min(
-        this._page - this._showPagesOffset,
-        this._allPages - this._showPages
-      ),
+      Math.min(this._page - this._showPagesOffset, this._allPages - this._showPages),
       0
     );
     const end = Math.min(start + this._showPages - 1, this._allPages - 1);

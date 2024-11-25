@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  loadCachedTestBed,
-  takeScreenshot,
-  TestBed,
-} from '../../../puppeteer-tests/util';
+import { loadCachedTestBed, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 
 describe('theme-chooser-sk', () => {
   let testBed: TestBed;
@@ -33,33 +29,21 @@ describe('theme-chooser-sk', () => {
         });
 
         it(`shows all examples`, async () => {
-          await takeScreenshot(
-            testBed.page,
-            'infra-sk',
-            `theme-chooser-sk${suffix}`
-          );
+          await takeScreenshot(testBed.page, 'infra-sk', `theme-chooser-sk${suffix}`);
         });
 
         it('shows a toast', async () => {
           await testBed.page.click('#make-toast');
           await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait until toast is visible.
           const element = await testBed.page.$('toast-sk');
-          await takeScreenshot(
-            element!,
-            'infra-sk',
-            `theme-chooser-sk_toast-sk${suffix}`
-          );
+          await takeScreenshot(element!, 'infra-sk', `theme-chooser-sk_toast-sk${suffix}`);
         });
 
         it('shows an error toast', async () => {
           await testBed.page.click('#show-error-toast');
           await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait until toast is visible.
           const element = await testBed.page.$('error-toast-sk toast-sk');
-          await takeScreenshot(
-            element!,
-            'infra-sk',
-            `theme-chooser-sk_error-toast-sk${suffix}`
-          );
+          await takeScreenshot(element!, 'infra-sk', `theme-chooser-sk_error-toast-sk${suffix}`);
         });
       });
     });

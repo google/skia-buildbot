@@ -29,27 +29,12 @@ import '../../../elements-sk/modules/icons/search-icon-sk';
 import '../../../elements-sk/modules/icons/timeline-icon-sk';
 
 const jobStatusToTextClass = new Map<JobStatus, [string, string]>();
-jobStatusToTextClass.set(JobStatus.JOB_STATUS_REQUESTED, [
-  'requested',
-  'bg-in-progress',
-]);
-jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, [
-  'in progress',
-  'bg-in-progress',
-]);
-jobStatusToTextClass.set(JobStatus.JOB_STATUS_SUCCESS, [
-  'succeeded',
-  'bg-success',
-]);
-jobStatusToTextClass.set(JobStatus.JOB_STATUS_FAILURE, [
-  'failed',
-  'bg-failure',
-]);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_REQUESTED, ['requested', 'bg-in-progress']);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_IN_PROGRESS, ['in progress', 'bg-in-progress']);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_SUCCESS, ['succeeded', 'bg-success']);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_FAILURE, ['failed', 'bg-failure']);
 jobStatusToTextClass.set(JobStatus.JOB_STATUS_MISHAP, ['mishap', 'bg-mishap']);
-jobStatusToTextClass.set(JobStatus.JOB_STATUS_CANCELED, [
-  'canceled',
-  'bg-canceled',
-]);
+jobStatusToTextClass.set(JobStatus.JOB_STATUS_CANCELED, ['canceled', 'bg-canceled']);
 
 export class JobSk extends ElementSk {
   private static template = (ele: JobSk) => html`
@@ -78,9 +63,7 @@ export class JobSk extends ElementSk {
           <td>Name</td>
           <td>${ele.job!.name}</td>
           <td>
-            <a
-              href="/jobs/search?name=${encodeURIComponent(ele.job!.name)}"
-              target="_blank">
+            <a href="/jobs/search?name=${encodeURIComponent(ele.job!.name)}" target="_blank">
               <button><search-icon-sk></search-icon-sk>Search Jobs</button>
             </a>
           </td>
@@ -109,8 +92,7 @@ export class JobSk extends ElementSk {
               <tr>
                 <td>Started</td>
                 <td>
-                  <human-date-sk .date="${ele.job!.startedAt!}">
-                  </human-date-sk>
+                  <human-date-sk .date="${ele.job!.startedAt!}"> </human-date-sk>
                 </td>
                 <td></td>
               </tr>
@@ -121,8 +103,7 @@ export class JobSk extends ElementSk {
               <tr>
                 <td>Finished</td>
                 <td>
-                  <human-date-sk .date="${ele.job!.finishedAt!}">
-                  </human-date-sk>
+                  <human-date-sk .date="${ele.job!.finishedAt!}"> </human-date-sk>
                 </td>
                 <td></td>
               </tr>
@@ -136,24 +117,18 @@ export class JobSk extends ElementSk {
         <tr>
           <td>Repo</td>
           <td>
-            <a href="${ele.job!.repoState!.repo}" target="_blank">
-              ${ele.job!.repoState!.repo}
-            </a>
+            <a href="${ele.job!.repoState!.repo}" target="_blank"> ${ele.job!.repoState!.repo} </a>
           </td>
           <td></td>
         </tr>
         <tr>
           <td>Revision</td>
           <td>
-            <a href="${ele.revisionLink}" target="_blank">
-              ${ele.job!.repoState!.revision}
-            </a>
+            <a href="${ele.revisionLink}" target="_blank"> ${ele.job!.repoState!.revision} </a>
           </td>
           <td>
             <a
-              href="/jobs/search?revision=${encodeURIComponent(
-                ele.job!.repoState!.revision
-              )}"
+              href="/jobs/search?revision=${encodeURIComponent(ele.job!.repoState!.revision)}"
               target="_blank">
               <button><search-icon-sk></search-icon-sk>Search Jobs</button>
             </a>
@@ -164,9 +139,7 @@ export class JobSk extends ElementSk {
               <tr>
                 <td>Codereview Link</td>
                 <td>
-                  <a href="${ele.codereviewLink}" target="_blank">
-                    ${ele.codereviewLink}
-                  </a>
+                  <a href="${ele.codereviewLink}" target="_blank"> ${ele.codereviewLink} </a>
                 </td>
                 <td>
                   <a
@@ -174,13 +147,9 @@ export class JobSk extends ElementSk {
                       ele.job!.repoState!.patch!.server
                     )}&issue=${encodeURIComponent(
                       ele.job!.repoState!.patch!.issue
-                    )}&patchset=${encodeURIComponent(
-                      ele.job!.repoState!.patch!.patchset
-                    )}"
+                    )}&patchset=${encodeURIComponent(ele.job!.repoState!.patch!.patchset)}"
                     target="_blank">
-                    <button>
-                      <search-icon-sk></search-icon-sk>Search Jobs
-                    </button>
+                    <button><search-icon-sk></search-icon-sk>Search Jobs</button>
                   </a>
                 </td>
               </tr>
@@ -207,8 +176,7 @@ export class JobSk extends ElementSk {
                 <td>Buildbucket Build</td>
                 <td>
                   <a
-                    href="https://ci.chromium.org/b/${ele.job!
-                      .buildbucketBuildId}"
+                    href="https://ci.chromium.org/b/${ele.job!.buildbucketBuildId}"
                     target="_blank">
                     ${ele.job!.buildbucketBuildId}
                   </a>
@@ -293,19 +261,12 @@ export class JobSk extends ElementSk {
     this.duration = diffDate(start.getTime(), end.getTime());
     const rs = this.job.repoState!;
     this.revisionLink = `${rs.repo}/+show/${rs.revision}`;
-    if (
-      rs.patch &&
-      rs.patch.issue !== '' &&
-      rs.patch.patchset !== '' &&
-      rs.patch.server !== ''
-    ) {
+    if (rs.patch && rs.patch.issue !== '' && rs.patch.patchset !== '' && rs.patch.server !== '') {
       this.isTryJob = true;
       const p = rs.patch!;
       this.codereviewLink = `${p.server}/c/${p.issue}/${p.patchset}`;
     }
-    [this.statusText, this.statusClass] = jobStatusToTextClass.get(
-      this.job.status
-    )!;
+    [this.statusText, this.statusClass] = jobStatusToTextClass.get(this.job.status)!;
     this._render();
     const graph = $$<TaskGraphSk>('task-graph-sk', this);
     graph?.draw([this.job], this.swarming);

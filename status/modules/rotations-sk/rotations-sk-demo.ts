@@ -12,10 +12,7 @@ import {
 import { TreeStatus, TreeStatusSk } from '../tree-status-sk/tree-status-sk';
 import { RotationsSk } from './rotations-sk';
 
-fetchMock.getOnce(
-  'https://example.com/treestatus/test-repo/current',
-  treeStatusResp
-);
+fetchMock.getOnce('https://example.com/treestatus/test-repo/current', treeStatusResp);
 fetchMock.getOnce(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
   generalRoleResp

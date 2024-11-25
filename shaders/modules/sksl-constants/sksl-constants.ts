@@ -14,9 +14,7 @@ export const keywords = words(
     'discard return for while do if else struct in out inout uniform layout'
 );
 
-export const blockKeywords = words(
-  'case do else for if switch while struct enum union'
-);
+export const blockKeywords = words('case do else for if switch while struct enum union');
 
 export const defKeywords = words('struct enum union');
 

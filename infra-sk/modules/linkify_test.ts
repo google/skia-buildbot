@@ -31,10 +31,7 @@ describe('formatAndLinkify', () => {
       '<a href="http://crbug.com/123456789101112" target="_blank" rel="noopener">' +
         'chromium:123456789101112</a>'
     );
-    test(
-      'v8:42',
-      '<a href="http://crbug.com/v8/42" target="_blank" rel="noopener">v8:42</a>'
-    );
+    test('v8:42', '<a href="http://crbug.com/v8/42" target="_blank" rel="noopener">v8:42</a>');
     test(
       'See skia:1234 and skia:456',
       'See <a href="http://skbug.com/1234" target="_blank" rel="noopener">skia:1234</a> ' +
@@ -50,10 +47,7 @@ describe('formatAndLinkify', () => {
 
   it('escapes tags, to avoid XSS', () => {
     test('<div>foo</div>', '&lt;div&gt;foo&lt;/div&gt;');
-    test(
-      '<script>alert("xss")</script>',
-      '&lt;script&gt;alert("xss")&lt;/script&gt;'
-    );
+    test('<script>alert("xss")</script>', '&lt;script&gt;alert("xss")&lt;/script&gt;');
   });
 
   it('does all of the above at once', () => {
@@ -75,7 +69,5 @@ describe('formatAndLinkify', () => {
 });
 
 const test = (input: string, output: string) => {
-  expect((escapeAndLinkify(input) as HTMLDivElement).innerHTML).to.equal(
-    output
-  );
+  expect((escapeAndLinkify(input) as HTMLDivElement).innerHTML).to.equal(output);
 };

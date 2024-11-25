@@ -31,8 +31,7 @@ export class RunsHistorySummarySk extends ElementSk {
     <div>
       <h4>CT Runs Summary</h4>
       <tabs-sk
-        @tab-selected-sk=${(e: CustomEvent) =>
-          (el.period = [7, 30, 365, 0][e.detail.index])}>
+        @tab-selected-sk=${(e: CustomEvent) => (el.period = [7, 30, 365, 0][e.detail.index])}>
         <button>Last Week</button>
         <button>Last Month</button>
         <button>Last Year</button>
@@ -44,18 +43,14 @@ export class RunsHistorySummarySk extends ElementSk {
         ${el.period > 0 ? `last ${el.period} days` : 'all time'}
       </span>
       <br />
-      <table
-        class="queue surface-themes-sk secondary-links runssummary"
-        id="runssummary">
+      <table class="queue surface-themes-sk secondary-links runssummary" id="runssummary">
         <tr>
           <th>Type</th>
           <th>User</th>
           <th>Description</th>
           <th>Completed</th>
         </tr>
-        ${el._tasks.map((task: CompletedTask) =>
-          RunsHistorySummarySk.taskRowTemplate(task)
-        )}
+        ${el._tasks.map((task: CompletedTask) => RunsHistorySummarySk.taskRowTemplate(task))}
       </table>
     </div>
   `;

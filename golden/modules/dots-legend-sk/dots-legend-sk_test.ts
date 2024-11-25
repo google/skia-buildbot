@@ -1,10 +1,6 @@
 import './index';
 import { expect } from 'chai';
-import {
-  DOT_STROKE_COLORS,
-  DOT_FILL_COLORS,
-  MAX_UNIQUE_DIGESTS,
-} from '../dots-sk/constants';
+import { DOT_STROKE_COLORS, DOT_FILL_COLORS, MAX_UNIQUE_DIGESTS } from '../dots-sk/constants';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { DotsLegendSk } from './dots-legend-sk';
 import { DotsLegendSkPO } from './dots-legend-sk_po';
@@ -37,9 +33,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(
-        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
-      ).to.deep.equal([
+      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
@@ -60,9 +54,7 @@ describe('dots-legend-sk', () => {
 
     it('renders digest links correctly', async () => {
       const digestHrefFor = (d: string) =>
-        '/detail?' +
-        'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' +
-        `digest=${d}`;
+        '/detail?' + 'grouping=name%3DMy%2520Test%26source_type%3Dmy-corpus&' + `digest=${d}`;
       expect(await dotsLegendSkPO.getDigestHrefs()).to.deep.equal([
         digestHrefFor('00000000000000000000000000000000'),
         digestHrefFor('11111111111111111111111111111111'),
@@ -151,9 +143,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(
-        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
-      ).to.deep.equal([
+      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],
@@ -236,9 +226,7 @@ describe('dots-legend-sk', () => {
     });
 
     it('renders dots correctly', async () => {
-      expect(
-        await dotsLegendSkPO.getDotBorderAndBackgroundColors()
-      ).to.deep.equal([
+      expect(await dotsLegendSkPO.getDotBorderAndBackgroundColors()).to.deep.equal([
         [DOT_STROKE_COLORS[0], DOT_FILL_COLORS[0]],
         [DOT_STROKE_COLORS[1], DOT_FILL_COLORS[1]],
         [DOT_STROKE_COLORS[2], DOT_FILL_COLORS[2]],

@@ -25,12 +25,7 @@ import { errorMessage } from '../../../elements-sk/modules/errorMessage';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
-import {
-  StatusService,
-  GetStatusService,
-  BotSet,
-  BotSet_DimensionsEntry,
-} from '../rpc';
+import { StatusService, GetStatusService, BotSet, BotSet_DimensionsEntry } from '../rpc';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // Row represents a given bot's data after applying user inputs,
@@ -112,8 +107,7 @@ export class CapacitySk extends ElementSk {
             </a>
             <a class="tr" href="/capacity">
               <span class="td">
-                <battery-charging-80-icon-sk
-                  class="icon"></battery-charging-80-icon-sk>
+                <battery-charging-80-icon-sk class="icon"></battery-charging-80-icon-sk>
                 Capacity Stats
               </span>
             </a>
@@ -127,10 +121,7 @@ export class CapacitySk extends ElementSk {
             @change=${() => el.refresh()}
             id="commits"
             label="Commits Per Day (typically 15-35)"></input-sk>
-          <input-sk
-            @change=${() => el.refresh()}
-            id="cq"
-            label="CQ attempts per commit"></input-sk>
+          <input-sk @change=${() => el.refresh()} id="cq" label="CQ attempts per commit"></input-sk>
           <!-- TODO(kjlubick) actually compute utilization (metrics) and display the range here for
           reference.-->
           <input-sk
@@ -150,9 +141,7 @@ export class CapacitySk extends ElementSk {
         <table>
           <thead>
             <tr>
-              <th @click=${() => el.updateSort('config')}>
-                Bot Config${el.sortIcon('config')}
-              </th>
+              <th @click=${() => el.updateSort('config')}>Bot Config${el.sortIcon('config')}</th>
               <th @click=${() => el.updateSort('commitTime')}>
                 Minutes per Commit${el.sortIcon('commitTime')}
               </th>
@@ -162,9 +151,7 @@ export class CapacitySk extends ElementSk {
               <th @click=${() => el.updateSort('cqTime')}>
                 Minutes per CQ run${el.sortIcon('cqTime')}
               </th>
-              <th @click=${() => el.updateSort('cqTasks')}>
-                Tasks on CQ${el.sortIcon('cqTasks')}
-              </th>
+              <th @click=${() => el.updateSort('cqTasks')}>Tasks on CQ${el.sortIcon('cqTasks')}</th>
               <th @click=${() => el.updateSort('botDays')}>
                 Bot days of work / actual day${el.sortIcon('botDays')}
               </th>
@@ -178,8 +165,7 @@ export class CapacitySk extends ElementSk {
                 Actual Bot Count${el.sortIcon('botCount')}
               </th>
               <th @click=${() => el.updateSort('optimisticPercent')}>
-                Percent of Optimistic
-                Estimate${el.sortIcon('optimisticPercent')}
+                Percent of Optimistic Estimate${el.sortIcon('optimisticPercent')}
               </th>
             </tr>
           </thead>
@@ -271,19 +257,11 @@ export class CapacitySk extends ElementSk {
   }
 
   private rowFromBotset(botset: BotSet) {
-    const commitsPerDay = Number(
-      ($$('#commits', this) as HTMLInputElement).value
-    );
+    const commitsPerDay = Number(($$('#commits', this) as HTMLInputElement).value);
     const cqMultiplier = Number(($$('#cq', this) as HTMLInputElement).value);
-    const optimisticUtilization = Number(
-      ($$('#optimistic', this) as HTMLInputElement).value
-    );
-    const pessimisticUtilization = Number(
-      ($$('#pessimistic', this) as HTMLInputElement).value
-    );
-    const targetBackfillPercent = Number(
-      ($$('#backfill', this) as HTMLInputElement).value
-    );
+    const optimisticUtilization = Number(($$('#optimistic', this) as HTMLInputElement).value);
+    const pessimisticUtilization = Number(($$('#pessimistic', this) as HTMLInputElement).value);
+    const targetBackfillPercent = Number(($$('#backfill', this) as HTMLInputElement).value);
     const workMultiplier = botWorkMultiplier(
       botset,
       commitsPerDay,
@@ -334,12 +312,9 @@ export class CapacitySk extends ElementSk {
     const state = fromUrl as unknown as State;
     ($$('#commits', this) as HTMLInputElement).value = state.commits.toString();
     ($$('#cq', this) as HTMLInputElement).value = state.cq.toString();
-    ($$('#optimistic', this) as HTMLInputElement).value =
-      state.optimistic.toString();
-    ($$('#pessimistic', this) as HTMLInputElement).value =
-      state.pessimistic.toString();
-    ($$('#backfill', this) as HTMLInputElement).value =
-      state.backfill.toString();
+    ($$('#optimistic', this) as HTMLInputElement).value = state.optimistic.toString();
+    ($$('#pessimistic', this) as HTMLInputElement).value = state.pessimistic.toString();
+    ($$('#backfill', this) as HTMLInputElement).value = state.backfill.toString();
     this.sortColumn = state.sortColumn;
     this.sortDirection = state.sortDirection;
     this._render();

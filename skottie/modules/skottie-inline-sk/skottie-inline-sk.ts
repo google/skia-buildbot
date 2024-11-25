@@ -30,8 +30,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SkottiePlayerSk } from '../skottie-player-sk/skottie-player-sk';
 
 export class SkottieInlineSk extends ElementSk {
-  private static template = () =>
-    html` <skottie-player-sk></skottie-player-sk>`;
+  private static template = () => html` <skottie-player-sk></skottie-player-sk>`;
 
   private fetching: boolean = false;
 

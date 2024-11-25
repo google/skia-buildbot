@@ -58,37 +58,31 @@ const getData = (): Data => ({
 
 // Set up event handlers for the buttons to render charts.
 
-document
-  .getElementById('simple')!
-  .addEventListener('click', (ev: MouseEvent) => {
-    clearAndDraw(getData());
-  });
+document.getElementById('simple')!.addEventListener('click', (ev: MouseEvent) => {
+  clearAndDraw(getData());
+});
 
-document
-  .getElementById('simple-start-end')!
-  .addEventListener('click', (ev: MouseEvent) => {
-    const data = getData();
-    data.start = new Date('1970-01-19T12:54:05.000Z');
-    data.end = new Date('1970-01-19T12:54:25.000Z');
-    clearAndDraw(data);
-  });
+document.getElementById('simple-start-end')!.addEventListener('click', (ev: MouseEvent) => {
+  const data = getData();
+  data.start = new Date('1970-01-19T12:54:05.000Z');
+  data.end = new Date('1970-01-19T12:54:25.000Z');
+  clearAndDraw(data);
+});
 
-document
-  .getElementById('simple-epochs')!
-  .addEventListener('click', (ev: MouseEvent) => {
-    const data = getData();
-    data.epochs = [
-      new Date('1970-01-19T12:54:10.000Z'),
-      new Date('1970-01-19T12:54:11.000Z'),
-      new Date('1970-01-19T12:54:12.000Z'),
-      new Date('1970-01-19T12:54:13.000Z'),
-      new Date('1970-01-19T12:54:14.000Z'),
-      new Date('1970-01-19T12:54:15.000Z'),
-      new Date('1970-01-19T12:54:16.000Z'),
-      new Date('1970-01-19T12:54:17.000Z'),
-      new Date('1970-01-19T12:54:18.000Z'),
-      new Date('1970-01-19T12:54:19.000Z'),
-      new Date('1970-01-19T12:54:20.000Z'),
-    ];
-    clearAndDraw(data);
-  });
+document.getElementById('simple-epochs')!.addEventListener('click', (ev: MouseEvent) => {
+  const data = getData();
+  data.epochs = [
+    new Date('1970-01-19T12:54:10.000Z'),
+    new Date('1970-01-19T12:54:11.000Z'),
+    new Date('1970-01-19T12:54:12.000Z'),
+    new Date('1970-01-19T12:54:13.000Z'),
+    new Date('1970-01-19T12:54:14.000Z'),
+    new Date('1970-01-19T12:54:15.000Z'),
+    new Date('1970-01-19T12:54:16.000Z'),
+    new Date('1970-01-19T12:54:17.000Z'),
+    new Date('1970-01-19T12:54:18.000Z'),
+    new Date('1970-01-19T12:54:19.000Z'),
+    new Date('1970-01-19T12:54:20.000Z'),
+  ];
+  clearAndDraw(data);
+});

@@ -5,10 +5,7 @@ import { expect } from 'chai';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 // TODO(lovisolo,kjlubick): Add the below to infra-sk.
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { CtScaffoldSk } from './ct-scaffold-sk';
 
 describe('ct-scaffold-sk', () => {
@@ -50,12 +47,8 @@ describe('ct-scaffold-sk', () => {
   describe('spinner and busy property', () => {
     it('becomes busy while there are tasks to be done', () => {
       expect(scaffoldSk.busy).to.equal(false);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true })
-      );
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true })
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+      scaffoldSk.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
       expect(scaffoldSk.busy).to.equal(true);
       scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(scaffoldSk.busy).to.equal(true);
@@ -66,12 +59,8 @@ describe('ct-scaffold-sk', () => {
     it('keeps spinner active while busy', () => {
       const spinner = $$('header spinner-sk', scaffoldSk) as SpinnerSk;
       expect(spinner.active).to.equal(false);
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true })
-      );
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true })
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+      scaffoldSk.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
       expect(spinner.active).to.equal(true);
       scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       expect(spinner.active).to.equal(true);
@@ -81,9 +70,7 @@ describe('ct-scaffold-sk', () => {
 
     it('emits a busy-end task when tasks finished', async () => {
       const busyEnd = eventPromise('busy-end');
-      scaffoldSk.dispatchEvent(
-        new CustomEvent('begin-task', { bubbles: true })
-      );
+      scaffoldSk.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
       await new Promise((resolve) => setTimeout(resolve, 10));
       scaffoldSk.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
       await busyEnd;

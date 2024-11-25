@@ -28,10 +28,8 @@ describe('debugger-page-sk', () => {
   // that integration is tested here.
   describe('commands-histogram interaction', () => {
     it('can set a negative text filter and it is reflected in the histogram', () => {
-      const commandsSk =
-        debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
-      const histogramSk =
-        debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
+      const commandsSk = debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
+      const histogramSk = debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
 
       commandsSk.clearFilter();
       commandsSk.processCommands(testData);
@@ -39,16 +37,10 @@ describe('debugger-page-sk', () => {
 
       // expect histogram selection are highlighted correctly
       expect(
-        hasClass(
-          histogramSk.querySelector<HTMLElement>('#hist-row-save')!,
-          'pinkBackground'
-        )
+        hasClass(histogramSk.querySelector<HTMLElement>('#hist-row-save')!, 'pinkBackground')
       ).to.equal(true);
       expect(
-        hasClass(
-          histogramSk.querySelector<HTMLElement>('#hist-row-restore')!,
-          'pinkBackground'
-        )
+        hasClass(histogramSk.querySelector<HTMLElement>('#hist-row-restore')!, 'pinkBackground')
       ).to.equal(true);
       expect(
         hasClass(
@@ -65,10 +57,8 @@ describe('debugger-page-sk', () => {
     });
 
     it('can set a postive text filter and it is reflected in the histogram', () => {
-      const commandsSk =
-        debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
-      const histogramSk =
-        debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
+      const commandsSk = debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
+      const histogramSk = debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
 
       commandsSk.clearFilter();
       commandsSk.processCommands(testData);
@@ -76,16 +66,10 @@ describe('debugger-page-sk', () => {
 
       // expect histogram selection are highlighted correctly
       expect(
-        hasClass(
-          histogramSk.querySelector<HTMLElement>('#hist-row-save')!,
-          'pinkBackground'
-        )
+        hasClass(histogramSk.querySelector<HTMLElement>('#hist-row-save')!, 'pinkBackground')
       ).to.equal(false);
       expect(
-        hasClass(
-          histogramSk.querySelector<HTMLElement>('#hist-row-restore')!,
-          'pinkBackground'
-        )
+        hasClass(histogramSk.querySelector<HTMLElement>('#hist-row-restore')!, 'pinkBackground')
       ).to.equal(false);
       expect(
         hasClass(
@@ -102,10 +86,8 @@ describe('debugger-page-sk', () => {
     });
 
     it('can click a histogram row and reflect it in the text filter', () => {
-      const commandsSk =
-        debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
-      const histogramSk =
-        debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
+      const commandsSk = debuggerPageSk.querySelector<CommandsSk>('commands-sk')!;
+      const histogramSk = debuggerPageSk.querySelector<HistogramSk>('histogram-sk')!;
 
       commandsSk.clearFilter();
       commandsSk.processCommands(testData);
@@ -113,9 +95,7 @@ describe('debugger-page-sk', () => {
       // expect histogram selection are highlighted correctly
       histogramSk.querySelector<HTMLElement>('#hist-row-save')!.click();
 
-      expect(
-        commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value
-      ).to.equal('!save');
+      expect(commandsSk.querySelector<HTMLInputElement>('#text-filter')!.value).to.equal('!save');
     });
   });
 });

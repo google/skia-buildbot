@@ -252,14 +252,10 @@ double frame;    // A value in [0, 1] of where we are in the animation.</pre
                 </div>
 
                 <h4>This global is now defined:</h4>
-                <pre
-                  class="source-select"
-                  ?hidden=${ele._options.offscreen_texturable}>
+                <pre class="source-select" ?hidden=${ele._options.offscreen_texturable}>
 GrBackendRenderTarget backEndRenderTarget;</pre
                 >
-                <pre
-                  class="source-select"
-                  ?hidden=${!ele._options.offscreen_texturable}>
+                <pre class="source-select" ?hidden=${!ele._options.offscreen_texturable}>
 GrBackendTexture backEndTextureRenderTarget;</pre
                 >
               </div>
@@ -294,12 +290,12 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
               <div class="offset">
                 Note:<br />
                 <div class="notes">
-                  Adding comments with SK_FOLD_START and SK_FOLD_END creates
-                  foldable code blocks.<br />
-                  These blocks will be folded by default and are useful for
-                  highlighting specific lines of code.<br />
-                  You can also use the keyboard shortcuts Ctrl+S and Ctrl+E in
-                  the code editor to set them.
+                  Adding comments with SK_FOLD_START and SK_FOLD_END creates foldable code
+                  blocks.<br />
+                  These blocks will be folded by default and are useful for highlighting specific
+                  lines of code.<br />
+                  You can also use the keyboard shortcuts Ctrl+S and Ctrl+E in the code editor to
+                  set them.
                 </div>
               </div>
             </div>
@@ -333,15 +329,14 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
           readonly
           size="150"
           value="&lt;a href='https://fiddle.skia.org/c/${ele._runResults
-            .fiddleHash}'>&lt;img src='https://fiddle.skia.org/i/${ele
-            ._runResults.fiddleHash}_raster.png'>&lt;/a>" />
+            .fiddleHash}'>&lt;img src='https://fiddle.skia.org/i/${ele._runResults
+            .fiddleHash}_raster.png'>&lt;/a>" />
         <h3>Embed as custom element (skia.org only):</h3>
         <input
           type="text"
           readonly
           size="150"
-          value="&lt;fiddle-embed name='${ele._runResults
-            .fiddleHash}'>&lt;/fiddle-embed> " />
+          value="&lt;fiddle-embed name='${ele._runResults.fiddleHash}'>&lt;/fiddle-embed> " />
       </details>
     </div>
   `;
@@ -383,9 +378,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
             class="result_image cpu"
             ?hidden=${ele._options.animated}
             title="CPU"
-            src="${ele._config.domain}/i/${
-              ele._runResults.fiddleHash
-            }_raster.png"
+            src="${ele._config.domain}/i/${ele._runResults.fiddleHash}_raster.png"
             width=${ele._options.width}
             height=${ele._options.height}
           />
@@ -447,9 +440,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
 
         <div ?hidden=${!ele._options.animated} id="controls">
           <button @click=${ele.playClick} title="Play the animation.">
-            <play-arrow-icon-sk ?hidden=${
-              ele._config.play
-            }></play-arrow-icon-sk>
+            <play-arrow-icon-sk ?hidden=${ele._config.play}></play-arrow-icon-sk>
             <pause-icon-sk ?hidden=${!ele._config.play} ><pause-icon-sk>
           </button>
           <checkbox-sk
@@ -474,9 +465,7 @@ GrBackendTexture backEndTexture; // GPU Only.</pre
   };
 
   private static errors = (ele: FiddleSk) => html`
-    <div @click=${
-      ele.compilerErrorLineClick
-    } ?hidden=${!ele.hasCompileWarningsOrErrors()}>
+    <div @click=${ele.compilerErrorLineClick} ?hidden=${!ele.hasCompileWarningsOrErrors()}>
       <h2>Compilation Warnings/Errors</h2>
       ${ele._runResults.compile_errors?.map(
         (err) =>
@@ -588,8 +577,7 @@ ${err.text}</pre
   }
 
   private offscreenSampleCountChange(e: Event) {
-    this._options.offscreen_sample_count = +(e.target as HTMLInputElement)
-      .value;
+    this._options.offscreen_sample_count = +(e.target as HTMLInputElement).value;
   }
 
   private offscreenWidthChange(e: Event) {
@@ -675,9 +663,7 @@ ${err.text}</pre
   }
 
   private hasCompileErrors() {
-    return !!this._runResults.compile_errors?.some((e) =>
-      e.text.includes('error:')
-    );
+    return !!this._runResults.compile_errors?.some((e) => e.text.includes('error:'));
   }
 
   private hasCompileWarningsOrErrors(): boolean {
@@ -765,11 +751,7 @@ ${err.text}</pre
   }
 
   private showLinks(): boolean {
-    return (
-      !this._options.animated &&
-      !this._config.embedded &&
-      !this._config.basic_mode
-    );
+    return !this._options.animated && !this._config.embedded && !this._config.basic_mode;
   }
 }
 

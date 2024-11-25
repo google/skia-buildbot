@@ -79,19 +79,13 @@ export function stateReflector(
     }
 
     const new_state = object.getDelta(getState(), defaultState);
-    const old_state = query.toObject(
-      window.location.search.slice(1),
-      defaultState
-    );
+    const old_state = query.toObject(window.location.search.slice(1), defaultState);
 
     const new_delta = object.getDelta(new_state, old_state);
     const old_delta = object.getDelta(old_state, new_state);
 
     // Don't push to state if the current URL and the URL to be pushed are equivalent.
-    if (
-      Object.keys(new_delta).length > 0 ||
-      Object.keys(old_delta).length > 0
-    ) {
+    if (Object.keys(new_delta).length > 0 || Object.keys(old_delta).length > 0) {
       const q = query.fromObject(new_state);
       window.history.pushState(
         null,

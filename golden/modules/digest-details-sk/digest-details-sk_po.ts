@@ -91,9 +91,7 @@ export class DigestDetailsSkPO extends PageObject {
 
   async getRightDigest(): Promise<string | null> {
     // Not all DigestDetailsSk instances have a right digest.
-    return (await this.rightDigest.isEmpty())
-      ? null
-      : this.rightDigest.innerText;
+    return (await this.rightDigest.isEmpty()) ? null : this.rightDigest.innerText;
   }
 
   getDiffPageLink(): Promise<string | null> {

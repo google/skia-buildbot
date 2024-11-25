@@ -79,9 +79,7 @@ export class TriageSk extends ElementSk {
       return;
     }
     this.value = newValue;
-    this.dispatchEvent(
-      new CustomEvent<Label>('change', { detail: newValue, bubbles: true })
-    );
+    this.dispatchEvent(new CustomEvent<Label>('change', { detail: newValue, bubbles: true }));
   }
 }
 

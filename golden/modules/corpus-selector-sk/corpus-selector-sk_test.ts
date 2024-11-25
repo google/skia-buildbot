@@ -11,8 +11,7 @@ import { stringCorpora, customTypeCorpora, TestCorpus } from './test_data';
 
 describe('corpus-selector-sk', () => {
   describe('with string corpora', () => {
-    const newInstance =
-      setUpElementUnderTest<CorpusSelectorSk<string>>('corpus-selector-sk');
+    const newInstance = setUpElementUnderTest<CorpusSelectorSk<string>>('corpus-selector-sk');
 
     let corpusSelectorSk: CorpusSelectorSk<string>;
     let corpusSelectorSkPO: CorpusSelectorSkPO;
@@ -80,14 +79,11 @@ describe('corpus-selector-sk', () => {
       it('changes the selection', async () => {
         await corpusSelectorSkPO.clickCorpus('colorImage');
         expect(corpusSelectorSk.selectedCorpus).to.equal('colorImage');
-        expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal(
-          'colorImage'
-        );
+        expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal('colorImage');
       });
 
       it('emits event "corpus-selected" with the new corpus', async () => {
-        const corpusSelected =
-          eventPromise<CustomEvent<string>>('corpus-selected');
+        const corpusSelected = eventPromise<CustomEvent<string>>('corpus-selected');
         await corpusSelectorSkPO.clickCorpus('colorImage');
         const newSelection = (await corpusSelected).detail;
         expect(newSelection).to.equal('colorImage');
@@ -102,8 +98,7 @@ describe('corpus-selector-sk', () => {
   });
 
   describe('with a custom corpus object type and corpus renderer function', () => {
-    const newInstance =
-      setUpElementUnderTest<CorpusSelectorSk<TestCorpus>>('corpus-selector-sk');
+    const newInstance = setUpElementUnderTest<CorpusSelectorSk<TestCorpus>>('corpus-selector-sk');
 
     let corpusSelectorSk: CorpusSelectorSk<TestCorpus>;
     let corpusSelectorSkPO: CorpusSelectorSkPO;
@@ -113,9 +108,7 @@ describe('corpus-selector-sk', () => {
       corpusSelectorSk.corpusRendererFn = (c: TestCorpus) =>
         `${c.name} : ${c.untriagedCount} / ${c.negativeCount}`;
       corpusSelectorSk.corpora = customTypeCorpora;
-      corpusSelectorSk.selectedCorpus = customTypeCorpora.find(
-        (corpus) => corpus.name === 'gm'
-      )!;
+      corpusSelectorSk.selectedCorpus = customTypeCorpora.find((corpus) => corpus.name === 'gm')!;
 
       corpusSelectorSkPO = new CorpusSelectorSkPO(corpusSelectorSk);
     });
@@ -137,14 +130,11 @@ describe('corpus-selector-sk', () => {
       expect(corpusSelectorSk.selectedCorpus).to.deep.equal(
         customTypeCorpora.find((corpus) => corpus.name === 'skp')!
       );
-      expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal(
-        'skp : 0 / 1'
-      );
+      expect(await corpusSelectorSkPO.getSelectedCorpus()).to.equal('skp : 0 / 1');
     });
 
     it('emits "corpus-selected" with custom corpus object when selection changes', async () => {
-      const corpusSelected =
-        eventPromise<CustomEvent<TestCorpus>>('corpus-selected');
+      const corpusSelected = eventPromise<CustomEvent<TestCorpus>>('corpus-selected');
       await corpusSelectorSkPO.clickCorpus('skp : 0 / 1');
       const newSelection = (await corpusSelected).detail;
       expect(newSelection).to.deep.equal(

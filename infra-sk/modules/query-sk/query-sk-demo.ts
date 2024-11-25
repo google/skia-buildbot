@@ -37,29 +37,22 @@ const paramset = {
 const paramset2 = {
   config: ['565'],
   type: ['CPU', 'GPU'],
-  test: [
-    'DeferredSurfaceCopy_discardable',
-    'DeferredSurfaceCopy_nonDiscardable',
-  ],
+  test: ['DeferredSurfaceCopy_discardable', 'DeferredSurfaceCopy_nonDiscardable'],
 };
 q.forEach((ele) => {
   ele.paramset = paramset;
   ele.key_order = ['test', 'units'];
 });
 
-document
-  .querySelector<HTMLButtonElement>('#swap')!
-  .addEventListener('click', () => {
-    n = (n + 1) % 2;
-    q.forEach((ele) => {
-      ele.paramset = [paramset, paramset2][n];
-    });
+document.querySelector<HTMLButtonElement>('#swap')!.addEventListener('click', () => {
+  n = (n + 1) % 2;
+  q.forEach((ele) => {
+    ele.paramset = [paramset, paramset2][n];
   });
+});
 
 // Set filtering on one of the demo elements.
-const activeFilter = document.querySelector<HTMLInputElement>(
-  '#activeFilter #fast'
-)!;
+const activeFilter = document.querySelector<HTMLInputElement>('#activeFilter #fast')!;
 activeFilter.value = 'one';
 activeFilter.dispatchEvent(new InputEvent('input'));
 

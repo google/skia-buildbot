@@ -115,10 +115,7 @@ export class SkottieExporterBaseSk extends ElementSk {
   private renderComplete(): TemplateResult {
     return html`
       <div>
-        <a
-          id="asset-download"
-          href=${this._blobData}
-          download=${this._downloadFileName}>
+        <a id="asset-download" href=${this._blobData} download=${this._downloadFileName}>
           Click here if your download didn't start automatically
         </a>
         <div class="navigation">

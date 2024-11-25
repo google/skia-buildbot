@@ -37,9 +37,7 @@ export class ShaderEditorSk extends ElementSk {
      <header class="editor-header">
        <div class="editor-header-title">Shader Editor</div>
        <div class="editor-header-separator"></div>
-       <button class="editor-header-save-button" @click=${
-         ele.save
-       }>Save</button>
+       <button class="editor-header-save-button" @click=${ele.save}>Save</button>
      </header>
      <section>
        <ul class="shader-container">
@@ -92,9 +90,7 @@ export class ShaderEditorSk extends ElementSk {
 
   findPrecompName(animation: LottieAnimation, precompId: string): string {
     const animationLayers = animation.layers;
-    let comp = animationLayers.find(
-      (layer: LottieLayer) => layer.refId === precompId
-    );
+    let comp = animationLayers.find((layer: LottieLayer) => layer.refId === precompId);
     if (comp) {
       return comp.nm;
     }
@@ -149,9 +145,7 @@ export class ShaderEditorSk extends ElementSk {
 
   private updateAnimation(animation: LottieAnimation): void {
     if (animation && this.originalAnimation !== animation) {
-      const clonedAnimation = JSON.parse(
-        JSON.stringify(animation)
-      ) as LottieAnimation;
+      const clonedAnimation = JSON.parse(JSON.stringify(animation)) as LottieAnimation;
       this.buildShaders(clonedAnimation);
       this._animation = clonedAnimation;
       this.originalAnimation = animation;

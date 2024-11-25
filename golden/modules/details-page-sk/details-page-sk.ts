@@ -29,8 +29,8 @@ export class DetailsPageSk extends ElementSk {
     if (!ele.grouping?.name) {
       return html`
         <h1>
-          Invalid request: Gold now requires the complete "grouping" to be
-          specified. This means both the corpus and the test name.
+          Invalid request: Gold now requires the complete "grouping" to be specified. This means
+          both the corpus and the test name.
         </h1>
         <div>
           Please fix the query parameters in the URL as following:
@@ -45,8 +45,7 @@ export class DetailsPageSk extends ElementSk {
       const testName = ele.grouping.name;
       return html`
         <div>
-          Could not load details for digest ${ele.digest} and test
-          "${testName}".
+          Could not load details for digest ${ele.digest} and test "${testName}".
           <br />
           It might not exist or be too new so as not to be indexed yet.
         </div>

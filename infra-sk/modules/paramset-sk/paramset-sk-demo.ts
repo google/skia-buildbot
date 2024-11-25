@@ -54,9 +54,7 @@ paramSetSk.paramsets = [paramSet1, paramSet2];
 paramSetSk.titles = [title1, title2];
 paramSetSk.clickable_values = true;
 
-paramSetSk = findParamSetSk(
-  '#many-paramsets-with-titles-keys-and-values-clickable'
-);
+paramSetSk = findParamSetSk('#many-paramsets-with-titles-keys-and-values-clickable');
 paramSetSk.paramsets = [paramSet1, paramSet2];
 paramSetSk.titles = [title1, title2];
 paramSetSk.clickable = true;
@@ -83,35 +81,44 @@ $$<CheckOrRadio>('#checkbox-cpu_or_gpu-GPU', paramSetSk)!.click();
 allParamSetSks.forEach((paramSetSk) => {
   paramSetSk.addEventListener('paramset-key-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent =
-      JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#key-click-event')!.textContent = JSON.stringify(
+      detail,
+      null,
+      '  '
+    );
   });
 
   paramSetSk.addEventListener('paramset-key-value-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>(
-      '#key-value-click-event'
-    )!.textContent = JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#key-value-click-event')!.textContent = JSON.stringify(
+      detail,
+      null,
+      '  '
+    );
   });
 
   paramSetSk.addEventListener('plus-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent =
-      JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#plus-click-event')!.textContent = JSON.stringify(
+      detail,
+      null,
+      '  '
+    );
   });
 
   paramSetSk.addEventListener('paramset-value-remove-click', (e) => {
     const detail = (e as CustomEvent<ParamSetSkRemoveClickEventDetail>).detail;
-    document.querySelector<HTMLPreElement>('#remove-click-event')!.textContent =
-      JSON.stringify(detail, null, '  ');
+    document.querySelector<HTMLPreElement>('#remove-click-event')!.textContent = JSON.stringify(
+      detail,
+      null,
+      '  '
+    );
   });
 
   paramSetSk.addEventListener('paramset-checkbox-click', (e) => {
-    const detail = (e as CustomEvent<ParamSetSkCheckboxClickEventDetail>)
-      .detail;
-    document.querySelector<HTMLPreElement>(
-      '#paramset-checkbox-click'
-    )!.textContent = JSON.stringify(detail, null, '  ');
+    const detail = (e as CustomEvent<ParamSetSkCheckboxClickEventDetail>).detail;
+    document.querySelector<HTMLPreElement>('#paramset-checkbox-click')!.textContent =
+      JSON.stringify(detail, null, '  ');
   });
 });
 

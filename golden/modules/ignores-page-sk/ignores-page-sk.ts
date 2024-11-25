@@ -14,18 +14,8 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
-import {
-  humanReadableQuery,
-  sendBeginTask,
-  sendEndTask,
-  sendFetchError,
-} from '../common';
-import {
-  IgnoreRule,
-  IgnoreRuleBody,
-  IgnoresResponse,
-  ParamSet,
-} from '../rpc_types';
+import { humanReadableQuery, sendBeginTask, sendEndTask, sendFetchError } from '../common';
+import { IgnoreRule, IgnoreRuleBody, IgnoresResponse, ParamSet } from '../rpc_types';
 import { EditIgnoreRuleSk } from '../edit-ignore-rule-sk/edit-ignore-rule-sk';
 import { ConfirmDialogSk } from '../../../infra-sk/modules/confirm-dialog-sk/confirm-dialog-sk';
 
@@ -48,9 +38,7 @@ export class IgnoresPageSk extends ElementSk {
         ?checked=${!ele.countAllTraces}
         @click=${ele.toggleCountAll}></checkbox-sk>
 
-      <button @click=${ele.newIgnoreRule} class="create">
-        Create new ignore rule
-      </button>
+      <button @click=${ele.newIgnoreRule} class="create">Create new ignore rule</button>
     </div>
 
     <confirm-dialog-sk></confirm-dialog-sk>
@@ -106,9 +94,7 @@ export class IgnoresPageSk extends ElementSk {
           >
         </td>
         <td>${escapeAndLinkify(r.note) || '--'}</td>
-        <td
-          class="matches"
-          title="These counts are recomputed every few minutes.">
+        <td class="matches" title="These counts are recomputed every few minutes.">
           ${ele.countAllTraces ? r.exclusiveCountAll : r.exclusiveCount} /
           ${ele.countAllTraces ? r.countAll : r.count}
         </td>
@@ -165,14 +151,9 @@ export class IgnoresPageSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     this._render();
-    this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>(
-      '#edit-ignore-rule-dialog'
-    )!;
-    this.editIgnoreRuleSk = this.querySelector<EditIgnoreRuleSk>(
-      'edit-ignore-rule-sk'
-    )!;
-    this.confirmDialogSk =
-      this.querySelector<ConfirmDialogSk>('confirm-dialog-sk')!;
+    this.editIgnoreRuleDialog = this.querySelector<HTMLDialogElement>('#edit-ignore-rule-dialog')!;
+    this.editIgnoreRuleSk = this.querySelector<EditIgnoreRuleSk>('edit-ignore-rule-sk')!;
+    this.confirmDialogSk = this.querySelector<ConfirmDialogSk>('confirm-dialog-sk')!;
   }
 
   private deleteIgnoreRule(rule: IgnoreRule) {

@@ -4,19 +4,12 @@ import { expect } from 'chai';
 import fetchMock from 'fetch-mock';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 
-import {
-  summaryResults3,
-  summaryResults5,
-  summaryResults15,
-  summaryResults33,
-} from './test_data';
+import { summaryResults3, summaryResults5, summaryResults15, summaryResults33 } from './test_data';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { RunsHistorySummarySk } from './runs-history-summary-sk';
 
 describe('runs-history-summary-sk', () => {
-  const newInstance = setUpElementUnderTest<RunsHistorySummarySk>(
-    'runs-history-summary-sk'
-  );
+  const newInstance = setUpElementUnderTest<RunsHistorySummarySk>('runs-history-summary-sk');
   fetchMock.config.overwriteRoutes = false;
 
   let summary: RunsHistorySummarySk;

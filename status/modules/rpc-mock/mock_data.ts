@@ -1,13 +1,7 @@
 /**
  * Nondeterministic, rich data for use on the demo page to visualize different scenarios.
  */
-import {
-  Branch,
-  GetIncrementalCommitsResponse,
-  LongCommit,
-  Comment,
-  Task,
-} from '../rpc/status';
+import { Branch, GetIncrementalCommitsResponse, LongCommit, Comment, Task } from '../rpc/status';
 
 Date.now = () => new Date('2020-09-23T09:39:36.659Z').valueOf();
 const timestampBeforeNow = (minutes: number = 0) =>
@@ -59,8 +53,7 @@ const commentTaskSpec: Comment = {
   taskSpecName: 'Housekeeper-PerCommit-Small',
   commit: '',
 };
-const randomAuthor = () =>
-  ['alice', 'bob', 'charles', 'diane'][Math.floor(Math.random() * 4)];
+const randomAuthor = () => ['alice', 'bob', 'charles', 'diane'][Math.floor(Math.random() * 4)];
 const taskSpecs = [
   'Build-Android-Stuff-Metal',
   'Build-iOS-Mac15.5',

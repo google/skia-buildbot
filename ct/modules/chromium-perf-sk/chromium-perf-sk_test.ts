@@ -13,10 +13,7 @@ import { InputSk } from '../input-sk/input-sk';
 import { ChromiumPerfSk } from './chromium-perf-sk';
 import { ChromiumPerfAddTaskVars } from '../json';
 
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('chromium-perf-sk', () => {
   fetchMock.config.overwriteRoutes = false;
@@ -96,35 +93,18 @@ describe('chromium-perf-sk', () => {
   it('loads, has defaults set', async () => {
     chromiumPerf = await newInstance();
     expect(
-      chromiumPerf._platforms[
-        +($$('#platform_selector', chromiumPerf) as SelectSk).selection!
-      ][0]
+      chromiumPerf._platforms[+($$('#platform_selector', chromiumPerf) as SelectSk).selection!][0]
     ).to.equal('Linux');
-    expect($$('#pageset_selector', chromiumPerf)).to.have.property(
-      'selected',
-      '10k'
-    );
-    expect($$('#pageset_selector', chromiumPerf)).to.have.property(
-      'customPages',
-      ''
-    );
-    expect($$('#repeat_after_days', chromiumPerf)).to.have.property(
-      'frequency',
-      '0'
-    );
-    expect($$('#task_priority', chromiumPerf)).to.have.property(
-      'priority',
-      '100'
-    );
+    expect($$('#pageset_selector', chromiumPerf)).to.have.property('selected', '10k');
+    expect($$('#pageset_selector', chromiumPerf)).to.have.property('customPages', '');
+    expect($$('#repeat_after_days', chromiumPerf)).to.have.property('frequency', '0');
+    expect($$('#task_priority', chromiumPerf)).to.have.property('priority', '100');
     expect($$('#benchmark_args', chromiumPerf)).to.have.property(
       'value',
       '--output-format=csv --pageset-repeat=1 ' +
         '--skip-typ-expectations-tags-validation --legacy-json-trace-format'
     );
-    expect($$('#value_column_name', chromiumPerf)).to.have.property(
-      'value',
-      'avg'
-    );
+    expect($$('#value_column_name', chromiumPerf)).to.have.property('value', 'avg');
   });
 
   it('requires description', async () => {
@@ -132,9 +112,7 @@ describe('chromium-perf-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.equal(
-      'Please specify a description'
-    );
+    expect((err as CustomEvent).detail.message).to.equal('Please specify a description');
   });
 
   it('requires benchmark', async () => {
@@ -143,9 +121,7 @@ describe('chromium-perf-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.equal(
-      'Please specify a benchmark'
-    );
+    expect((err as CustomEvent).detail.message).to.equal('Please specify a benchmark');
   });
 
   it('rejects bad patch', async () => {
@@ -164,9 +140,7 @@ describe('chromium-perf-sk', () => {
     event = eventPromise('error-sk');
     clickSubmit();
     err = await event;
-    expect((err as CustomEvent).detail.message).to.contain(
-      'Unable to load skia CL 1234'
-    );
+    expect((err as CustomEvent).detail.message).to.contain('Unable to load skia CL 1234');
   });
 
   it('triggers a new task', async () => {
@@ -181,9 +155,7 @@ describe('chromium-perf-sk', () => {
     sinon.stub(window, 'confirm').returns(true);
     clickSubmit();
     await fetchMock.flush(true);
-    const taskJson = JSON.parse(
-      fetchMock.lastOptions()!.body as any
-    ) as ChromiumPerfAddTaskVars;
+    const taskJson = JSON.parse(fetchMock.lastOptions()!.body as any) as ChromiumPerfAddTaskVars;
     // Here we test the 'interesting' arguments. We try a single patch,
     // and we don't bother filling in the simple string arguments.
     const expectation = {
@@ -251,30 +223,15 @@ describe('chromium-perf-sk', () => {
     fetchMock.post('begin:/_/edit_chromium_perf_task', mockAddTaskVars);
     chromiumPerf.handleTemplateID('123');
     await fetchMock.flush(true);
-    expect($$('#description', chromiumPerf)).to.have.property(
-      'value',
-      'test description'
-    );
-    expect($$('#pageset_selector', chromiumPerf)).to.have.property(
-      'selected',
-      '10k'
-    );
+    expect($$('#description', chromiumPerf)).to.have.property('value', 'test description');
+    expect($$('#pageset_selector', chromiumPerf)).to.have.property('selected', '10k');
     expect($$('#pageset_selector', chromiumPerf)).to.have.property(
       'customPages',
       'google.com,youtube.com'
     );
-    expect($$('#repeat_after_days', chromiumPerf)).to.have.property(
-      'frequency',
-      '7'
-    );
-    expect($$('#task_priority', chromiumPerf)).to.have.property(
-      'priority',
-      '110'
-    );
-    expect($$('#value_column_name', chromiumPerf)).to.have.property(
-      'value',
-      'avg2'
-    );
+    expect($$('#repeat_after_days', chromiumPerf)).to.have.property('frequency', '7');
+    expect($$('#task_priority', chromiumPerf)).to.have.property('priority', '110');
+    expect($$('#value_column_name', chromiumPerf)).to.have.property('value', 'avg2');
   });
 
   it('rejects if too many active tasks', async () => {
@@ -285,8 +242,6 @@ describe('chromium-perf-sk', () => {
     const event = eventPromise('error-sk');
     clickSubmit();
     const err = await event;
-    expect((err as CustomEvent).detail.message).to.contain(
-      'You have 4 currently running tasks'
-    );
+    expect((err as CustomEvent).detail.message).to.contain('You have 4 currently running tasks');
   });
 });

@@ -93,9 +93,7 @@ export class SkottieTextEditorSk extends ElementSk {
 
   findPrecompName(animation: LottieAnimation, precompId: string): string {
     const animationLayers = animation.layers;
-    let comp = animationLayers.find(
-      (layer: LottieLayer) => layer.refId === precompId
-    );
+    let comp = animationLayers.find((layer: LottieLayer) => layer.refId === precompId);
     if (comp) {
       return comp.nm;
     }
@@ -149,11 +147,7 @@ export class SkottieTextEditorSk extends ElementSk {
       );
     } // this creates a dictionary with all available texts
     const reducedTextsData = textsData.reduce(
-      (
-        accumulator: Record<string, TextData>,
-        item: ExtraLayerData,
-        index: number
-      ) => {
+      (accumulator: Record<string, TextData>, item: ExtraLayerData, index: number) => {
         const key: string = this.areTextsCollapsed
           ? item.layer.nm // if texts are collapsed the key will be the layer name (nm)
           : String(index + 1); // if they are not collapse we use the index as key to be unique
@@ -179,9 +173,7 @@ export class SkottieTextEditorSk extends ElementSk {
       {} as Record<string, TextData>
     );
     // we map the dictionary back to an array to get the final texts to render
-    this.texts = Object.keys(reducedTextsData).map(
-      (key: string) => reducedTextsData[key]
-    );
+    this.texts = Object.keys(reducedTextsData).map((key: string) => reducedTextsData[key]);
   }
 
   private save(): void {
@@ -207,16 +199,8 @@ export class SkottieTextEditorSk extends ElementSk {
           }
         });
       }
-      this.updateFontInLayers(
-        this._animation.layers,
-        ev.detail.fontName,
-        fontData.fName
-      );
-      this.updateFontInAssets(
-        this._animation.assets,
-        ev.detail.fontName,
-        fontData.fName
-      );
+      this.updateFontInLayers(this._animation.layers, ev.detail.fontName, fontData.fName);
+      this.updateFontInAssets(this._animation.assets, ev.detail.fontName, fontData.fName);
       this.dispatchEvent(
         new CustomEvent<TextEditEventDetail>('text-change', {
           detail: {
@@ -229,9 +213,7 @@ export class SkottieTextEditorSk extends ElementSk {
 
   private updateAnimation(animation: LottieAnimation): void {
     if (animation && this.originalAnimation !== animation) {
-      const clonedAnimation = JSON.parse(
-        JSON.stringify(animation)
-      ) as LottieAnimation;
+      const clonedAnimation = JSON.parse(JSON.stringify(animation)) as LottieAnimation;
       this.buildTexts(clonedAnimation);
       this._animation = clonedAnimation;
       this.originalAnimation = animation;

@@ -11,11 +11,7 @@ import { jsonOrThrow } from '../../infra-sk/modules/jsonOrThrow';
  * @param action - The response of the POST call will be converted
  *                 to JSON and will be passed to the action function.
  */
-export function doImpl<S, T>(
-  url: string,
-  detail: S,
-  action: (json: T) => any
-): void {
+export function doImpl<S, T>(url: string, detail: S, action: (json: T) => any): void {
   fetch(url, {
     body: JSON.stringify(detail),
     headers: {

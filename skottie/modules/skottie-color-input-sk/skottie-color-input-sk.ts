@@ -37,10 +37,7 @@ export class SkottieColorInputSk extends ElementSk {
 
   private static template = (ele: SkottieColorInputSk) => html`
     <div class="wrapper">
-      <label
-        class="wrapper--color ${ele._withOpacity
-          ? ' wrapper--color__withOpacity'
-          : ''}">
+      <label class="wrapper--color ${ele._withOpacity ? ' wrapper--color__withOpacity' : ''}">
         <input
           type="color"
           value=${ele._color}

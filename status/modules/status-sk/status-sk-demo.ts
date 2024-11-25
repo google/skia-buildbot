@@ -4,18 +4,11 @@ import { EMail } from '../../../infra-sk/modules/json';
 import { defaultStatusURL } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { Status } from '../../../infra-sk/modules/json';
-import {
-  getAutorollerStatusesResponse,
-  incrementalResponse0,
-  SetupMocks,
-} from '../rpc-mock';
+import { getAutorollerStatusesResponse, incrementalResponse0, SetupMocks } from '../rpc-mock';
 import { AlertsStatus } from '../../../perf/modules/json/index';
 import { SetTestSettings } from '../settings';
 import { StatusResponse } from '../../../golden/modules/rpc_types';
-import {
-  GetClientCountsResponse,
-  StatusData,
-} from '../../../bugs-central/modules/json';
+import { GetClientCountsResponse, StatusData } from '../../../bugs-central/modules/json';
 import {
   treeStatusResp,
   generalRoleResp,
@@ -65,9 +58,7 @@ fetchMock.getOnce('https://gold.skia.org/json/v2/trstatus', <StatusResponse>{
     { name: 'svg', untriagedCount: 27 },
   ],
 });
-fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
-  GetClientCountsResponse
->{
+fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <GetClientCountsResponse>{
   clients_to_status_data: {
     Android: <StatusData>{
       untriaged_count: 10,
@@ -83,10 +74,7 @@ fetchMock.getOnce('https://bugs-central.skia.org/get_client_counts', <
     },
   },
 });
-fetchMock.getOnce(
-  'https://example.com/treestatus/skia/current',
-  treeStatusResp
-);
+fetchMock.getOnce('https://example.com/treestatus/skia/current', treeStatusResp);
 fetchMock.getOnce(
   'https://chrome-ops-rotation-proxy.appspot.com/current/grotation:skia-gardener',
   generalRoleResp
@@ -109,12 +97,6 @@ const data = document.createElement('status-sk');
 
 (document.querySelector('#AllFilter') as HTMLElement).click();
 
-document
-  .querySelector('status-sk')!
-  .addEventListener('some-event-name', (e) => {
-    document.querySelector('#events')!.textContent = JSON.stringify(
-      e,
-      null,
-      '  '
-    );
-  });
+document.querySelector('status-sk')!.addEventListener('some-event-name', (e) => {
+  document.querySelector('#events')!.textContent = JSON.stringify(e, null, '  ');
+});

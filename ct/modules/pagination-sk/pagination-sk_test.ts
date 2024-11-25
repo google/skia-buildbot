@@ -5,10 +5,7 @@ import { $ } from '../../../infra-sk/modules/dom';
 import { PaginationSk } from './pagination-sk';
 
 import { ResponsePagination } from '../json';
-import {
-  eventPromise,
-  setUpElementUnderTest,
-} from '../../../infra-sk/modules/test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('pagination-sk', () => {
   const newInstance = (() => {
@@ -27,8 +24,7 @@ describe('pagination-sk', () => {
   // All present numbered page buttons.
   const pageButtons = () => paginator.querySelectorAll('button:not(.action)');
   // Button of current page, disabled.
-  const currentPageButton = () =>
-    paginator.querySelector('button:not(.action)[disabled]');
+  const currentPageButton = () => paginator.querySelector('button:not(.action)[disabled]');
   // All page buttons other than currentPageButton.
   const clickablePageButtons = () =>
     paginator.querySelectorAll('button:not(.action):not([disabled])');

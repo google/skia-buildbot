@@ -16,11 +16,7 @@ import '../../../elements-sk/modules/icons/more-vert-icon-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  MachinesTableSk,
-  MachineTableSkChangeEventDetail,
-  WaitCursor,
-} from '../machines-table-sk';
+import { MachinesTableSk, MachineTableSkChangeEventDetail, WaitCursor } from '../machines-table-sk';
 import '../machines-table-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import '../../../infra-sk/modules/app-sk';
@@ -35,12 +31,7 @@ class State {
   sort: string = '';
 
   /** The names of all the hidden columns. */
-  hidden: ColumnTitles[] = [
-    'Version',
-    'Annotation',
-    'Launched Swarming',
-    'Recovering',
-  ];
+  hidden: ColumnTitles[] = ['Version', 'Annotation', 'Launched Swarming', 'Recovering'];
 }
 
 export class MachineAppSk extends ElementSk {
@@ -67,10 +58,8 @@ export class MachineAppSk extends ElementSk {
           type="text"
           placeholder="Filter (SHIFT-CTRL-S)" />
         <span id="header-rhs">
-          <more-vert-icon-sk
-            @click=${ele.editHiddenColumns}></more-vert-icon-sk>
-          <theme-chooser-sk
-            title="Toggle between light and dark mode."></theme-chooser-sk>
+          <more-vert-icon-sk @click=${ele.editHiddenColumns}></more-vert-icon-sk>
+          <theme-chooser-sk title="Toggle between light and dark mode."></theme-chooser-sk>
         </span>
       </header>
       <main>

@@ -8,11 +8,7 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import {
-  DOT_STROKE_COLORS,
-  DOT_FILL_COLORS,
-  MAX_UNIQUE_DIGESTS,
-} from '../dots-sk/constants';
+import { DOT_STROKE_COLORS, DOT_FILL_COLORS, MAX_UNIQUE_DIGESTS } from '../dots-sk/constants';
 import { detailHref, diffPageHref } from '../common';
 import { DigestStatus, Label, Params } from '../rpc_types';
 
@@ -28,20 +24,12 @@ export class DotsLegendSk extends ElementSk {
     ${DotsLegendSk.lastDigest(el)}
   `;
 
-  private static digestTemplate = (
-    el: DotsLegendSk,
-    digest: DigestStatus,
-    index: number
-  ) => html`
+  private static digestTemplate = (el: DotsLegendSk, digest: DigestStatus, index: number) => html`
     ${DotsLegendSk.dotTemplate(index)}
-    <a target="_blank" class="digest" href="${el.digestDetailHref(index)}"
-      >${digest.digest}</a
-    >
+    <a target="_blank" class="digest" href="${el.digestDetailHref(index)}">${digest.digest}</a>
     ${DotsLegendSk.statusIconTemplate(digest.status)}
     ${index > 0
-      ? html`<a target="_blank" class="diff" href="${el.digestDiffHref(index)}"
-          >diff</a
-        >`
+      ? html`<a target="_blank" class="diff" href="${el.digestDiffHref(index)}">diff</a>`
       : html`<span></span>`}
   `;
 
@@ -66,15 +54,13 @@ export class DotsLegendSk extends ElementSk {
   private static oneOfManyOtherDigestsTemplate = (totalDigests: number) => html`
     ${DotsLegendSk.dotTemplate(MAX_UNIQUE_DIGESTS - 1)}
     <span class="one-of-many-other-digests">
-      One of ${totalDigests - (MAX_UNIQUE_DIGESTS - 1)} other digests
-      (${totalDigests} in total).
+      One of ${totalDigests - (MAX_UNIQUE_DIGESTS - 1)} other digests (${totalDigests} in total).
     </span>
   `;
 
   private static dotTemplate = (index: number) => {
     const style =
-      `border-color: ${DOT_STROKE_COLORS[index]};` +
-      `background-color: ${DOT_FILL_COLORS[index]};`;
+      `border-color: ${DOT_STROKE_COLORS[index]};` + `background-color: ${DOT_FILL_COLORS[index]};`;
     return html`<div class="dot" style="${style}"></div>`;
   };
 
@@ -83,9 +69,7 @@ export class DotsLegendSk extends ElementSk {
       case 'negative':
         return html`<cancel-icon-sk class="negative-icon"></cancel-icon-sk>`;
       case 'positive':
-        return html`
-          <check-circle-icon-sk class="positive-icon"></check-circle-icon-sk>
-        `;
+        return html` <check-circle-icon-sk class="positive-icon"></check-circle-icon-sk> `;
       case 'untriaged':
         return html`<help-icon-sk class="untriaged-icon"></help-icon-sk>`;
       default:
@@ -167,12 +151,7 @@ export class DotsLegendSk extends ElementSk {
   }
 
   private digestDetailHref(index: number): string {
-    return detailHref(
-      this.grouping,
-      this._digests[index].digest,
-      this.changeListID,
-      this.crs
-    );
+    return detailHref(this.grouping, this._digests[index].digest, this.changeListID, this.crs);
   }
 
   private digestDiffHref(index: number): string {

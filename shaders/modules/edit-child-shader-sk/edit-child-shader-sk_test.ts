@@ -12,9 +12,7 @@ const childShader: ChildShader = {
 };
 
 describe('edit-child-shader-sk', () => {
-  const newInstance = setUpElementUnderTest<EditChildShaderSk>(
-    'edit-child-shader-sk'
-  );
+  const newInstance = setUpElementUnderTest<EditChildShaderSk>('edit-child-shader-sk');
 
   let element: EditChildShaderSk;
   beforeEach(() => {

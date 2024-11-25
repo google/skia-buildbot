@@ -158,8 +158,7 @@ export class DebugTracePlayer {
     const initialStackDepth = this.stack.length;
 
     while (!this.traceHasCompleted()) {
-      const canEscapeFromThisStackDepth =
-        this.stack.length <= initialStackDepth;
+      const canEscapeFromThisStackDepth = this.stack.length <= initialStackDepth;
       if (this.execute(this.cursor++)) {
         if (canEscapeFromThisStackDepth || this.atBreakpoint()) {
           break;
@@ -178,8 +177,7 @@ export class DebugTracePlayer {
 
     while (!this.traceHasCompleted()) {
       if (this.execute(this.cursor++)) {
-        const hasEscapedFromInitialStackDepth =
-          this.stack.length < initialStackDepth;
+        const hasEscapedFromInitialStackDepth = this.stack.length < initialStackDepth;
         if (hasEscapedFromInitialStackDepth || this.atBreakpoint()) {
           break;
         }
@@ -288,9 +286,7 @@ export class DebugTracePlayer {
     const slot: SlotInfo = this.trace!.slots[slotIndex];
 
     if (slot.rows > 1) {
-      return `[${Math.floor(slot.index / slot.rows)}][${
-        slot.index % slot.rows
-      }]`;
+      return `[${Math.floor(slot.index / slot.rows)}][${slot.index % slot.rows}]`;
     }
     if (slot.columns > 1) {
       switch (slot.index) {
@@ -310,10 +306,7 @@ export class DebugTracePlayer {
   }
 
   /** Bit-casts a value for a given slot into a double, honoring the slot's NumberKind. */
-  private interpretValueBits(
-    slotIdx: number,
-    valueBits: number
-  ): number | boolean {
+  private interpretValueBits(slotIdx: number, valueBits: number): number | boolean {
     const bitArray: Int32Array = new Int32Array(1);
     bitArray[0] = valueBits;
     switch (this.trace!.slots[slotIdx].kind) {
@@ -349,8 +342,7 @@ export class DebugTracePlayer {
     // Order the variable list so that the most recently-written variables are shown at the top.
     vars = vars.sort((a: VariableData, b: VariableData) => {
       // Order by descending write-time.
-      const delta =
-        this.slots[b.slotIndex].writeTime - this.slots[a.slotIndex].writeTime;
+      const delta = this.slots[b.slotIndex].writeTime - this.slots[a.slotIndex].writeTime;
       if (delta !== 0) {
         return delta;
       }
@@ -369,9 +361,7 @@ export class DebugTracePlayer {
     ++stackFrameIndex;
     this.check(stackFrameIndex > 0);
     this.check(stackFrameIndex < this.stack.length);
-    return this.getVariablesForDisplayMask(
-      this.stack[stackFrameIndex].displayMask
-    );
+    return this.getVariablesForDisplayMask(this.stack[stackFrameIndex].displayMask);
   }
 
   /** Returns the variables at global scope. */
@@ -433,10 +423,7 @@ export class DebugTracePlayer {
         this.check(slotIdx >= 0);
         this.check(slotIdx < this.slots.length);
         this.slots[slotIdx].value = value;
-        this.slots[slotIdx].scope = Math.min(
-          this.slots[slotIdx].scope,
-          this.scope
-        );
+        this.slots[slotIdx].scope = Math.min(this.slots[slotIdx].scope, this.scope);
         this.updateVariableWriteTime(slotIdx, position);
         if ((this.trace!.slots[slotIdx].retval ?? -1) < 0) {
           // Normal variables are associated with the current function.

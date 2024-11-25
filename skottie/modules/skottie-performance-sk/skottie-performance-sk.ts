@@ -11,13 +11,7 @@
  *
  */
 import { html } from 'lit/html.js';
-import {
-  Chart,
-  BarController,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from 'chart.js';
+import { Chart, BarController, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { define } from '../../../elements-sk/modules/define';
 import { $$ } from '../../../infra-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
@@ -124,12 +118,9 @@ export class SkottiePerformanceSk extends ElementSk {
       };
     }
     const metricData = this.currentMetrics[frame];
-    metrics.forEach((metric: PerformanceEntry) =>
-      metricData.values.push(metric.duration)
-    );
+    metrics.forEach((metric: PerformanceEntry) => metricData.values.push(metric.duration));
     const average =
-      metricData.values.reduce((acc: number, value) => acc + value, 0) /
-      metricData.values.length;
+      metricData.values.reduce((acc: number, value) => acc + value, 0) / metricData.values.length;
     if (!this.chart.data.labels![frame]) {
       while (!this.chart.data.labels![frame]) {
         this.chart.data.labels!.push(`frame ${this.chart.data.labels!.length}`);

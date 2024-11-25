@@ -55,9 +55,7 @@ export class PatchSk extends ElementSk {
       <tr>
         <td>CL:</td>
         <td>
-          <input-sk
-            @input=${ele._clChanged}
-            label="Please paste a complete Gerrit URL"></input-sk>
+          <input-sk @input=${ele._clChanged} label="Please paste a complete Gerrit URL"></input-sk>
         </td>
         <td>
           <div class="cl-detail-container">
@@ -65,9 +63,7 @@ export class PatchSk extends ElementSk {
               <spinner-sk alt="Loading CL details"></spinner-sk>
             </div>
             <div class="cl-detail">
-              <a href=${ele._clUrl()} target="_blank"
-                >${ele._formattedClData()}</a
-              >
+              <a href=${ele._clUrl()} target="_blank">${ele._formattedClData()}</a>
               <span class="cl-error">${ele._formattedClError()}</span>
             </div>
           </div>
@@ -75,9 +71,7 @@ export class PatchSk extends ElementSk {
       </tr>
       <tr>
         <td colspan="3" class="patch-manual">
-          <expandable-textarea-sk
-            displaytext="Specify Patch Manually"
-            @input=${ele._patchChanged}>
+          <expandable-textarea-sk displaytext="Specify Patch Manually" @input=${ele._patchChanged}>
           </expandable-textarea-sk>
         </td>
       </tr>
@@ -113,8 +107,7 @@ export class PatchSk extends ElementSk {
         if (this.cl === newValue) {
           if (json.cl) {
             this._clData = json;
-            const patch =
-              this._clData![`${this.patchType}_patch` as keyof CLDataResponse];
+            const patch = this._clData![`${this.patchType}_patch` as keyof CLDataResponse];
             if (!patch) {
               this._clError = new Error(`This is not a ${this.patchType} CL.`);
               this._patchFetchError();
@@ -257,8 +250,7 @@ export class PatchSk extends ElementSk {
 
   _clLoadError(): void {
     errorMessage(
-      `Unable to load ${this.patchType} CL ${this.cl}` +
-        '. Please specify patches manually.'
+      `Unable to load ${this.patchType} CL ${this.cl}` + '. Please specify patches manually.'
     );
   }
 

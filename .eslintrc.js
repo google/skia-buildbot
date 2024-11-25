@@ -59,10 +59,7 @@ module.exports = {
 
       // Start with the recommended rules, but turn some of them off in the
       // 'rules' section below.
-      extends: [
-        'plugin:@typescript-eslint/recommended',
-        'plugin:lit/recommended',
-      ],
+      extends: ['plugin:@typescript-eslint/recommended', 'plugin:lit/recommended'],
       settings: {
         'import/resolver': {
           node: {
@@ -70,11 +67,7 @@ module.exports = {
           },
         },
       },
-      plugins: [
-        '@stylistic/eslint-plugin',
-        '@typescript-eslint',
-        'eslint-plugin-import',
-      ],
+      plugins: ['@stylistic/eslint-plugin', '@typescript-eslint', 'eslint-plugin-import'],
       rules: {
         // Allow ! non-null assertions.
         '@typescript-eslint/no-non-null-assertion': 'off',

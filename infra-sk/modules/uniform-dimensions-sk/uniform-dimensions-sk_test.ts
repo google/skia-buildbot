@@ -5,9 +5,7 @@ import { UniformDimensionsSk } from './uniform-dimensions-sk';
 import { setUpElementUnderTest } from '../test_util';
 
 describe('uniform-dimensions-sk', () => {
-  const newInstance = setUpElementUnderTest<UniformDimensionsSk>(
-    'uniform-dimensions-sk'
-  );
+  const newInstance = setUpElementUnderTest<UniformDimensionsSk>('uniform-dimensions-sk');
 
   let element: UniformDimensionsSk;
   beforeEach(() => {

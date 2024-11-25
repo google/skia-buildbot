@@ -5,5 +5,4 @@
  * @param delayMs The time to wait before resolving the promise (in ms)
  */
 
-export default (delayMs: number = 0) =>
-  new Promise((resolve) => setTimeout(resolve, delayMs));
+export default (delayMs: number = 0) => new Promise((resolve) => setTimeout(resolve, delayMs));

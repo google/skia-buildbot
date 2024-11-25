@@ -53,15 +53,8 @@ export function digestDiffImagePath(d1: string, d2: string): string {
  * @param clID CL ID. Optional, omit or use empty string for master branch.
  * @param crs Code review system. Optional, omit or use empty string for master branch.
  */
-export function detailHref(
-  grouping: Params,
-  digest: string,
-  clID = '',
-  crs = ''
-): string {
-  const u = `/detail?grouping=${encodeURIComponent(
-    fromObject(grouping)
-  )}&digest=${digest}`;
+export function detailHref(grouping: Params, digest: string, clID = '', crs = ''): string {
+  const u = `/detail?grouping=${encodeURIComponent(fromObject(grouping))}&digest=${digest}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
@@ -89,8 +82,7 @@ export function diffPageHref(
   }
 
   const u =
-    `/diff?grouping=${encodeURIComponent(fromObject(grouping))}` +
-    `&left=${left}&right=${right}`;
+    `/diff?grouping=${encodeURIComponent(fromObject(grouping))}` + `&left=${left}&right=${right}`;
   if (clID) {
     return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
@@ -114,8 +106,7 @@ export function clusterPageHref(
   clID = '',
   crs = ''
 ): string {
-  const searchCriteriaHintableObject =
-    SearchCriteriaToHintableObject(searchCriteria);
+  const searchCriteriaHintableObject = SearchCriteriaToHintableObject(searchCriteria);
   searchCriteriaHintableObject.left_filter = '';
   const u = `${
     // eslint-disable-next-line no-useless-concat

@@ -56,9 +56,7 @@ export class ARBTableSk extends ElementSk {
       (st) => html`
         <tr>
           <td>
-            <a href="/r/${st.rollerId}"
-              >${st.childName} into ${st.parentName}</a
-            >
+            <a href="/r/${st.rollerId}">${st.childName} into ${st.parentName}</a>
           </td>
           <td class="${ele.modeClass(st.mode)}">${st.mode.toLowerCase()}</td>
           <td>
@@ -148,9 +146,7 @@ export class ARBTableSk extends ElementSk {
       const regex = new RegExp(this.filter);
       this.filtered = this.rollers.filter(
         (st: AutoRollMiniStatus) =>
-          st.rollerId.match(regex) ||
-          st.childName.match(regex) ||
-          st.parentName.match(regex)
+          st.rollerId.match(regex) || st.childName.match(regex) || st.parentName.match(regex)
       );
     } else {
       // If no filter was provided, filter out any rollers which have not

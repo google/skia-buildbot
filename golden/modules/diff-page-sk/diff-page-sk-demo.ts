@@ -3,10 +3,7 @@ import '../gold-scaffold-sk';
 
 import fetchMock from 'fetch-mock';
 import { $$ } from '../../../infra-sk/modules/dom';
-import {
-  fakeNow,
-  makeTypicalSearchResult,
-} from '../digest-details-sk/test_data';
+import { fakeNow, makeTypicalSearchResult } from '../digest-details-sk/test_data';
 import { delay } from '../demo_util';
 import { testOnlySetSettings } from '../settings';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
@@ -70,11 +67,9 @@ document.body.insertBefore(scaffold, document.body.childNodes[0]);
 let diffPageSk = new DiffPageSk();
 scaffold.appendChild(diffPageSk);
 
-document
-  .querySelector('#simulate-rpc-error')!
-  .addEventListener('change', () => {
-    // Reload the page to trigger an RPC error.
-    diffPageSk.parentNode!.removeChild(diffPageSk);
-    diffPageSk = new DiffPageSk();
-    scaffold.appendChild(diffPageSk);
-  });
+document.querySelector('#simulate-rpc-error')!.addEventListener('change', () => {
+  // Reload the page to trigger an RPC error.
+  diffPageSk.parentNode!.removeChild(diffPageSk);
+  diffPageSk = new DiffPageSk();
+  scaffold.appendChild(diffPageSk);
+});

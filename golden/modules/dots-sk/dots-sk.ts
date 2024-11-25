@@ -55,10 +55,8 @@ setInterval(() => {
  *
  * This assumes that the color array is of length MAX_UNIQUE_DIGESTS + 1.
  */
-const getColorSafe = (
-  colorArray: string[],
-  uniqueDigestIndex: number
-): string => colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
+const getColorSafe = (colorArray: string[], uniqueDigestIndex: number): string =>
+  colorArray[Math.min(colorArray.length - 1, uniqueDigestIndex)];
 
 export class DotsSk extends ElementSk {
   private static template = () => html`<canvas></canvas>`;
@@ -166,8 +164,7 @@ export class DotsSk extends ElementSk {
     if (!this._value.traces || !this._value.traces.length) {
       return;
     }
-    const w =
-      (this._value.traces[0].data!.length - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
+    const w = (this._value.traces[0].data!.length - 1) * DOT_SCALE_X + 2 * DOT_OFFSET_X;
     const h = (this._value.traces.length - 1) * DOT_SCALE_Y + 2 * DOT_OFFSET_Y;
     this.canvas!.setAttribute('width', `${w}px`);
     this.canvas!.setAttribute('height', `${h}px`);
@@ -181,9 +178,7 @@ export class DotsSk extends ElementSk {
     this._value.traces!.forEach((trace, traceIndex) => {
       this.ctx!.strokeStyle = TRACE_LINE_COLOR;
       this.ctx!.beginPath();
-      const firstNonMissingDot = trace.data!.findIndex(
-        (dot) => dot !== MISSING_DOT
-      );
+      const firstNonMissingDot = trace.data!.findIndex((dot) => dot !== MISSING_DOT);
       let lastNonMissingDot = -1;
       for (let i = trace.data!.length - 1; i >= 0; i--) {
         if (trace.data![i] !== MISSING_DOT) {
@@ -197,14 +192,8 @@ export class DotsSk extends ElementSk {
         console.warn(`trace with id ${trace.label} was unexpectedly empty`);
         return;
       }
-      this.ctx!.moveTo(
-        dotToCanvasX(firstNonMissingDot),
-        dotToCanvasY(traceIndex)
-      );
-      this.ctx!.lineTo(
-        dotToCanvasX(lastNonMissingDot),
-        dotToCanvasY(traceIndex)
-      );
+      this.ctx!.moveTo(dotToCanvasX(firstNonMissingDot), dotToCanvasY(traceIndex));
+      this.ctx!.lineTo(dotToCanvasX(lastNonMissingDot), dotToCanvasY(traceIndex));
       this.ctx!.stroke();
       this.drawTraceDots(trace.data!, traceIndex);
     });
@@ -223,13 +212,7 @@ export class DotsSk extends ElementSk {
         this.hoverIndex === y
           ? getColorSafe(DOT_FILL_COLORS_HIGHLIGHTED, c)
           : getColorSafe(DOT_FILL_COLORS, c);
-      this.ctx!.arc(
-        dotToCanvasX(x),
-        dotToCanvasY(y),
-        DOT_RADIUS,
-        0,
-        Math.PI * 2
-      );
+      this.ctx!.arc(dotToCanvasX(x), dotToCanvasY(y), DOT_RADIUS, 0, Math.PI * 2);
       this.ctx!.fill();
       this.ctx!.stroke();
     });
@@ -259,12 +242,8 @@ export class DotsSk extends ElementSk {
   /** Gets the coordinates of the mouse event in dot coordinates. */
   private mouseEventToDotSpace(e: MouseEvent) {
     const rect = this.canvas!.getBoundingClientRect();
-    const x =
-      (e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS) /
-      DOT_SCALE_X;
-    const y =
-      (e.clientY - rect.top - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS) /
-      DOT_SCALE_Y;
+    const x = (e.clientX - rect.left - DOT_OFFSET_X + STROKE_WIDTH + DOT_RADIUS) / DOT_SCALE_X;
+    const y = (e.clientY - rect.top - DOT_OFFSET_Y + STROKE_WIDTH + DOT_RADIUS) / DOT_SCALE_Y;
     return { x: Math.floor(x), y: Math.floor(y) };
   }
 
@@ -284,10 +263,7 @@ export class DotsSk extends ElementSk {
     if (this.hoverIndex !== dotCoords.y) {
       const oldIndex = this.hoverIndex;
       this.hoverIndex = dotCoords.y;
-      if (
-        this.hoverIndex >= 0 &&
-        this.hoverIndex < this._value.traces!.length
-      ) {
+      if (this.hoverIndex >= 0 && this.hoverIndex < this._value.traces!.length) {
         this.dispatchEvent(
           new CustomEvent<TraceID>('hover', {
             bubbles: true,

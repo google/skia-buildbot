@@ -23,9 +23,7 @@ export const replaceTexts = (
   texts: TextData[],
   currentAnimation: LottieAnimation
 ): LottieAnimation => {
-  const animation = JSON.parse(
-    JSON.stringify(currentAnimation)
-  ) as LottieAnimation;
+  const animation = JSON.parse(JSON.stringify(currentAnimation)) as LottieAnimation;
   texts.forEach((textData) => {
     textData.items.forEach((item: ExtraLayerData) => {
       let layers;
@@ -50,10 +48,7 @@ export const replaceTexts = (
   return animation;
 };
 
-const replaceTextsInLayers = (
-  textsDictionary: Record<string, string>,
-  layers: LottieLayer[]
-) => {
+const replaceTextsInLayers = (textsDictionary: Record<string, string>, layers: LottieLayer[]) => {
   const LAYER_TEXT_TYPE = 5;
   layers.forEach((layer: LottieLayer) => {
     if (layer.ty === LAYER_TEXT_TYPE && textsDictionary[layer.nm]) {
@@ -76,13 +71,10 @@ export const replaceTextsByLayerName = (
     JSON.stringify(currentAnimation)
   ) as LottieAnimation;
   // Create dictionary to access data by name instead of iterating on every layer
-  const textsDictionary = texts.reduce(
-    (dict: Record<string, string>, text: TextData) => {
-      dict[text.name] = text.text;
-      return dict;
-    },
-    {}
-  );
+  const textsDictionary = texts.reduce((dict: Record<string, string>, text: TextData) => {
+    dict[text.name] = text.text;
+    return dict;
+  }, {});
   replaceTextsInLayers(textsDictionary, animation.layers);
 
   animation.assets

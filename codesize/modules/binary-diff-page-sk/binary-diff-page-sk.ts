@@ -32,13 +32,9 @@ export class BinaryDiffPageSk extends ElementSk {
       <h2>
         Binary size diff for <code>${el.metadata?.binary_name}</code>
         <span class="compile-task">
-          (<a href="${compileTaskNameHref}"
-            >${el.metadata?.compile_task_name}</a
-          >
+          (<a href="${compileTaskNameHref}">${el.metadata?.compile_task_name}</a>
           vs
-          <a href="${compileTaskNameHref}"
-            >${el.metadata?.compile_task_name_no_patch}</a
-          >)
+          <a href="${compileTaskNameHref}">${el.metadata?.compile_task_name_no_patch}</a>)
         </span>
       </h2>
 
@@ -48,9 +44,7 @@ export class BinaryDiffPageSk extends ElementSk {
         <br />
         <span class="author-and-timestamp">
           ${el.metadata?.author},
-          <human-date-sk
-            .date=${el.metadata?.timestamp}
-            .diff=${true}></human-date-sk>
+          <human-date-sk .date=${el.metadata?.timestamp} .diff=${true}></human-date-sk>
           ago.
         </span>
       </p>
@@ -58,11 +52,10 @@ export class BinaryDiffPageSk extends ElementSk {
       <pre>${el.raw_diff}</pre>
 
       <p>
-        <strong>Note:</strong> Some small spurious deltas may occur due to
-        differences in which the two binaries are compiled. See
-        <a href="https://skia-review.googlesource.com/c/skia/+/556358"
-          >this CL</a
-        >'s description for more.
+        <strong>Note:</strong> Some small spurious deltas may occur due to differences in which the
+        two binaries are compiled. See
+        <a href="https://skia-review.googlesource.com/c/skia/+/556358">this CL</a>'s description for
+        more.
       </p>
     `;
   };

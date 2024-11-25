@@ -21,18 +21,13 @@ function doesRunfileExist(filename: string): boolean {
 }
 
 function readBundle(filename: string): string {
-  return fs.readFileSync(
-    path.join(runfilesDir, locationBase, filename),
-    'utf-8'
-  );
+  return fs.readFileSync(path.join(runfilesDir, locationBase, filename), 'utf-8');
 }
 
 describe('esbuild sourcemaps', () => {
   it('produces development bundles with inline sourcemaps', () => {
     const bundleContents = readBundle('dev_bundle.js');
-    expect(bundleContents).to.contain(
-      '//# sourceMappingURL=data:application/json;base64'
-    );
+    expect(bundleContents).to.contain('//# sourceMappingURL=data:application/json;base64');
     expect(bundleContents).not.to.contain('//@ sourceMappingURL');
     expect(bundleContents).not.to.contain('//# sourceURL');
     expect(bundleContents).not.to.contain('//@ sourceURL');

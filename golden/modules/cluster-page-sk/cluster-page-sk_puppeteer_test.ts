@@ -49,32 +49,20 @@ describe('cluster-page-sk', () => {
 
   it('shows details about a single digest when clicked', async () => {
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
-    await takeScreenshot(
-      testBed.page,
-      'gold',
-      'cluster-page-sk_one-digest-selected'
-    );
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_one-digest-selected');
   });
 
   it('shows diff between two digests that are selected', async () => {
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
-    await takeScreenshot(
-      testBed.page,
-      'gold',
-      'cluster-page-sk_two-digests-selected'
-    );
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_two-digests-selected');
   });
 
   it('shows a summary when more than two digests are selected', async () => {
     await clusterPageSkPO.clusterDigestsSkPO.clickNode(positiveDigest);
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(negativeDigest);
     await clusterPageSkPO.clusterDigestsSkPO.shiftClickNode(untriagedDigest);
-    await takeScreenshot(
-      testBed.page,
-      'gold',
-      'cluster-page-sk_three-digests-selected'
-    );
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_three-digests-selected');
   });
 
   it('shows all values when a paramset key is clicked', async () => {
@@ -113,21 +101,13 @@ describe('cluster-page-sk', () => {
     const done = promiseFactory('layout-complete');
     await clusterPageSk.type('ss');
     await done;
-    await takeScreenshot(
-      testBed.page,
-      'gold',
-      'cluster-page-sk_more-node-space'
-    );
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_more-node-space');
   });
 
   it('can decrease node spacing using the keyboard', async () => {
     const done = promiseFactory('layout-complete');
     await clusterPageSk.type('xx');
     await done;
-    await takeScreenshot(
-      testBed.page,
-      'gold',
-      'cluster-page-sk_less-node-space'
-    );
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_less-node-space');
   });
 });
