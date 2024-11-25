@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -1165,22 +1166,23 @@ func uploadDataToPerf(ctx context.Context, tuple summaryTuple, data summaryData,
 
 // Runs the caching tasks.
 func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
-	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
-		populateSearchCache(ctx, ptc, db)
-	})
-}
-
-// Runs the caching tasks related to the search functionality.
-func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool) {
 	cache, err := ptc.GetCacheClient(ctx)
 	if err != nil {
 		sklog.Fatalf("Error creating a new cache instance: %v", err)
 	}
-	if cache != nil {
-		searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
-		err = searchCacheManager.RunCachePopulation(ctx)
-		if err != nil {
-			sklog.Fatalf("Error running cache population: %v", err)
-		}
+	if cache == nil {
+		sklog.Fatalf("Cache is not configured correctly for this instance.")
+	}
+	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
+		populateSearchCache(ctx, ptc, db, cache)
+	})
+}
+
+// Runs the caching tasks related to the search functionality.
+func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) {
+	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
+	err := searchCacheManager.RunCachePopulation(ctx)
+	if err != nil {
+		sklog.Fatalf("Error running cache population: %v", err)
 	}
 }
