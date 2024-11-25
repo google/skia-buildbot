@@ -27,6 +27,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/twirp_auth2"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -118,11 +120,20 @@ func loadRollerConfigs(ctx context.Context, statusDB status.DB, configDB db.DB) 
 			// configs for defunct rollers. Determine whether the roller is likely
 			// turned down and delete the config from the DB if so.
 			if failedDecodeRoller, ok := db.IsFailedDecode(err); ok {
-				status, getStatusErr := statusDB.Get(ctx, failedDecodeRoller)
+				st, getStatusErr := statusDB.Get(ctx, failedDecodeRoller)
 				if getStatusErr != nil {
-					return nil, skerr.Wrapf(err, "failed to decode roller config %s and failed to retrieve status: %s", failedDecodeRoller, getStatusErr)
+					// Treat rollers which never checked in as defunct.
+					if grpcstatus.Code(skerr.Unwrap(getStatusErr)) == codes.NotFound {
+						st = &status.AutoRollStatus{
+							AutoRollMiniStatus: status.AutoRollMiniStatus{
+								Timestamp: time.Time{},
+							},
+						}
+					} else {
+						return nil, skerr.Wrapf(err, "failed to decode roller config %s and failed to retrieve status: %s", failedDecodeRoller, getStatusErr)
+					}
 				}
-				lastCheckin := now.Now(ctx).Sub(status.Timestamp)
+				lastCheckin := now.Now(ctx).Sub(st.Timestamp)
 				if lastCheckin > oldRollerConfigDeletionThreshold {
 					sklog.Errorf("Failed to decode config for %s; last checked in %s ago; deleting config...", failedDecodeRoller, lastCheckin)
 					if err := configDB.Delete(ctx, failedDecodeRoller); err != nil {
