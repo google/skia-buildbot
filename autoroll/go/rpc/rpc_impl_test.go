@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/roles"
 	"go.skia.org/infra/go/testutils"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -890,4 +891,30 @@ func TestConvertStatus(t *testing.T) {
 			Justification: cleanupHistory[0].Justification,
 		},
 	}, actual)
+}
+
+func TestLoadRollerConfigs_DeletesDefunctConfigsAfterDecodeFailure(t *testing.T) {
+	mockCurrentTime := currentTime.Add(oldRollerConfigDeletionThreshold + time.Second)
+	ctx := context.WithValue(context.Background(), now.ContextKey, mockCurrentTime)
+	cdb := &config_db_mocks.DB{}
+	cleanupDB := &cleanup_mocks.DB{}
+	mdb := &manual_mocks.DB{}
+	sdb := &status_mocks.DB{}
+	goodRollerID := "good-roller"
+	goodRoller := makeRoller(ctx, t, goodRollerID, mdb, cleanupDB)
+	badRollerID := "bad-roller"
+	badRoller := makeRoller(ctx, t, badRollerID, mdb, cleanupDB)
+	cdb.On("GetAll", ctx).Return(nil, &db.FailedDecodeError{
+		Err:      fmt.Errorf("failed to decode config"),
+		RollerID: badRollerID,
+	}).Once()
+	sdb.On("Get", ctx, badRollerID).Return(badRoller.Status.Get(), nil)
+	cdb.On("Delete", ctx, badRollerID).Return(nil)
+	cdb.On("GetAll", ctx).Return([]*config.Config{goodRoller.Cfg}, nil)
+	configs, err := loadRollerConfigs(ctx, sdb, cdb)
+	require.NoError(t, err)
+	require.Len(t, configs, 1)
+	require.Equal(t, goodRollerID, configs[0].RollerName)
+	cdb.AssertExpectations(t)
+	sdb.AssertExpectations(t)
 }

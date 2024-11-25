@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/now"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/twirp_auth2"
@@ -96,15 +97,57 @@ func NewAutoRollServer(ctx context.Context, statusDB status.DB, configDB db.DB, 
 	return srv, nil
 }
 
+// oldRollerConfigDeletionThreshold indicates that we'll delete a roller config
+// from the DB if we fail to decode it and it's been two weeks since it last
+// reported in. We assume that if the roller hasn't reported in for two weeks it
+// has been removed.
+const oldRollerConfigDeletionThreshold = 2 * 7 * 24 * time.Hour
+
+// loadRollerConfigs loads the roller configs from the config DB. If it
+// encounters errors for rollers which haven't reported their status for two
+// weeks, it may delete their configs from the DB.
+func loadRollerConfigs(ctx context.Context, statusDB status.DB, configDB db.DB) ([]*config.Config, error) {
+	var configs []*config.Config
+	var err error
+	for {
+		configs, err = configDB.GetAll(ctx)
+		if err == nil {
+			return configs, nil
+		} else {
+			// The config format might have changed, causing a failure to decode
+			// configs for defunct rollers. Determine whether the roller is likely
+			// turned down and delete the config from the DB if so.
+			if failedDecodeRoller, ok := db.IsFailedDecode(err); ok {
+				status, getStatusErr := statusDB.Get(ctx, failedDecodeRoller)
+				if getStatusErr != nil {
+					return nil, skerr.Wrapf(err, "failed to decode roller config %s and failed to retrieve status: %s", failedDecodeRoller, getStatusErr)
+				}
+				lastCheckin := now.Now(ctx).Sub(status.Timestamp)
+				if lastCheckin > oldRollerConfigDeletionThreshold {
+					sklog.Errorf("Failed to decode config for %s; last checked in %s ago; deleting config...", failedDecodeRoller, lastCheckin)
+					if err := configDB.Delete(ctx, failedDecodeRoller); err != nil {
+						return nil, skerr.Wrapf(err, "failed to decode config for defunct roller %s and failed to delete config from the DB", failedDecodeRoller)
+					}
+				} else {
+					return nil, skerr.Wrap(err)
+				}
+			} else {
+				return nil, skerr.Wrap(err)
+			}
+		}
+	}
+}
+
 // loadRollers loads the roller configs from the config DB and creates the
 // various databases used for each roller.  Returns a map containing the rollers
 // themselves and a context.CancelFunc which can be used to stop the polling
 // loops for the rollers, eg. when loadRollers is to be called again.
 func loadRollers(ctx context.Context, statusDB status.DB, configDB db.DB) (rv map[string]*AutoRoller, rvCancel context.CancelFunc, rvErr error) {
-	configs, err := configDB.GetAll(ctx)
+	configs, err := loadRollerConfigs(ctx, statusDB, configDB)
 	if err != nil {
 		return nil, nil, skerr.Wrap(err)
 	}
+
 	rollers := make(map[string]*AutoRoller, len(configs))
 	// Use a cancellable context so that we can restart the polling loops when
 	// we reload the rollers next time.

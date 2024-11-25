@@ -156,7 +156,38 @@ func decodeConfig(data map[string]interface{}) (*config.Config, error) {
 	}
 	cfg := new(config.Config)
 	if err := protojson.Unmarshal(b, cfg); err != nil {
-		return nil, skerr.Wrap(err)
+		rollerID, ok := data["rollerName"].(string)
+		if !ok {
+			// This shouldn't happen, but if it does we shouldn't return a
+			// FailedDecodeError, because the caller might try to use it.
+			return nil, skerr.Wrapf(err, "failed to decode config and unable to find roller ID")
+		}
+		return nil, &FailedDecodeError{
+			Err:      skerr.Wrap(err),
+			RollerID: rollerID,
+		}
 	}
 	return cfg, nil
+}
+
+// FailedDecodeError is an Error indicating that we failed to decode the config
+// for a roller.
+type FailedDecodeError struct {
+	Err      error
+	RollerID string
+}
+
+// Error implements error.
+func (e *FailedDecodeError) Error() string {
+	return e.Err.Error()
+}
+
+// IsFailedDecode determines whether the error is a failure to decode the config
+// for a roller, and if so returns the ID of the roller and true.
+func IsFailedDecode(err error) (string, bool) {
+	e, ok := err.(*FailedDecodeError)
+	if ok {
+		return e.RollerID, true
+	}
+	return "", false
 }
