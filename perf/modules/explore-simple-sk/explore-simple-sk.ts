@@ -1095,6 +1095,18 @@ export class ExploreSimpleSk extends ElementSk {
       col: selection.column,
     };
 
+    // If traces are rendered and summary bar is enabled, show
+    // summary for the trace clicked on the graph.
+    if (this.summaryOptionsField.value) {
+      const traceName = chart.getTraceName(index.col);
+      const option = this.traceIdSummaryOptionMap.get(traceName) || '';
+      if (option !== '') {
+        this.summaryOptionsField.value!.setValue(option);
+      } else {
+        errorMessage(`Summary bar not properly set for this trace. Trace Name: ${traceName}`);
+      }
+    }
+
     const commitPos = chart.getCommitPosition(index.row);
     const position = chart.getPositionByIndex(index);
     const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
