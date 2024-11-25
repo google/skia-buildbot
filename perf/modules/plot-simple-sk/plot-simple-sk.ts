@@ -926,7 +926,7 @@ export class PlotSimpleSk extends ElementSk {
       return;
     }
     const startedEmpty = this._zoom === null && this.lineData.length === 0;
-    if (labels) {
+    if (labels.length > 0) {
       this.labels = labels;
     }
 
