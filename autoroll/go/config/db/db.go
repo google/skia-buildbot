@@ -185,7 +185,7 @@ func (e *FailedDecodeError) Error() string {
 // IsFailedDecode determines whether the error is a failure to decode the config
 // for a roller, and if so returns the ID of the roller and true.
 func IsFailedDecode(err error) (string, bool) {
-	e, ok := err.(*FailedDecodeError)
+	e, ok := skerr.Unwrap(err).(*FailedDecodeError)
 	if ok {
 		return e.RollerID, true
 	}
