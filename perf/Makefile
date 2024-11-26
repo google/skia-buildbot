@@ -198,7 +198,7 @@ run-flutter-instance:
 # Once the local instance of Perf is running you can visit:
 #
 # 	http://localhost:8002/.
-run-demo-instance:
+run-demo-instance-cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
@@ -216,17 +216,19 @@ run-demo-instance:
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:26257/demo?sslmode=disable
 
-run-demo-instance-spanner:
+initdemo:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo -- \
 		--database_url=postgresql://localhost:5432/demo?sslmode=disable \
 		--spanner
 
+ingest_demo:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \
 		--local \
 		--config_filename=./configs/demo_spanner.json \
 		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
 
+run_frontend:
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver frontend \
 		--local \
 		--do_clustering=false \
@@ -237,6 +239,8 @@ run-demo-instance-spanner:
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
 		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable
 
+run-demo-instance: run-spanner-emulator initdemo ingest_demo run_frontend
+run-demo-instance-db-persist: initdemo run_frontend
 
 # Before running this target you need to have a local single-instance of
 # cockroachdb running, started like this:

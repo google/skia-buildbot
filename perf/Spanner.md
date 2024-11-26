@@ -8,20 +8,9 @@ docker image, so the most convenient way is to execute it via docker.
 
     make run-spanner-emulator
 
-# Running a local instance against the Spanner Emulator
+Each execution of the above cmd tears down the database and creates a new one.
+Since we are running the emulator in docker, it is extremely cheap to teardown
+and restart the database and not have to worry about leaving things in an inconsistent state.
 
-    make run-demo-instance-spanner
-
-**Pro tip:** You can do both the things above with
-
-    make run-spanner-emulator run-demo-instance-spanner
-
-# Currently supporting
-
-- Starting a demo FE server by populating the demo data.
-- Querying traces where the query is an exact match to the trace.
-
-# Known Issues
-
-- Partial query match needs some more investigation. This is likely due to the change from BYTES
-  data type in CDB to BYTEA in Spanner.
+If you are using `make run-demo-instance` to run a local FE instance, it will automatically
+execute the `run-spanner-emulator` target thereby giving you a fresh database instance on each execution.
