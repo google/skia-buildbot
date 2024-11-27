@@ -7,9 +7,14 @@ sk_demo_page_server(
 
 sk_element(
     name = "report-page-sk",
+    sass_deps = [
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//perf/modules/themes:themes_sass_lib",
+    ],
     sass_srcs = ["report-page-sk.scss"],
     sk_element_deps = [
         "//elements-sk/modules/spinner-sk",
+        "//perf/modules/anomalies-table-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -28,6 +33,12 @@ sk_element(
 sk_page(
     name = "report-page-sk-demo",
     html_file = "report-page-sk-demo.html",
+    sass_deps = [
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+        "//elements-sk/modules/styles:table_sass_lib",
+    ],
+    scss_entry_point = "report-page-sk-demo.scss",
     sk_element_deps = [":report-page-sk"],
     ts_entry_point = "report-page-sk-demo.ts",
 )

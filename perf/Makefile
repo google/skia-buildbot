@@ -111,6 +111,10 @@ demo_ingest-file-links-sk:
 demo_json-source-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/json-source-sk:demo_page_server
 
+.PHONY: demo_report-page-sk
+demo_report-page-sk:
+	$(BAZEL) run --config=mayberemote //perf/modules/report-page-sk:demo_page_server
+
 .PHONY: demo_perf-scaffold-sk
 demo_perf-scaffold-sk:
 	$(BAZEL) run --config=mayberemote //perf/modules/perf-scaffold-sk:demo_page_server

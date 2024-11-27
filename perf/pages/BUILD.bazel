@@ -167,3 +167,18 @@ sk_page(
     ],
     ts_entry_point = "revisions.ts",
 )
+
+sk_page(
+    name = "report",
+    assets_serving_path = "/dist",
+    html_file = "report.html",
+    nonce = "{% .Nonce %}",
+    production_sourcemap = True,
+    sass_deps = [":body_sass_lib"],
+    scss_entry_point = "report.scss",
+    sk_element_deps = [
+        "//perf/modules/perf-scaffold-sk",
+        "//perf/modules/report-page-sk",
+    ],
+    ts_entry_point = "report.ts",
+)

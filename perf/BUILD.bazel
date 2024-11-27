@@ -43,6 +43,7 @@ skia_app_container(
                 "favorites",
                 "revisions",
                 "regressions",
+                "report",
             ]
             for ext in [
                 "css",

@@ -212,6 +212,7 @@ var templateFilenames = []string{
 	"favorites.html",
 	"revisions.html",
 	"regressions.html",
+	"report.html",
 }
 
 func (f *Frontend) loadTemplatesImpl() {
@@ -897,6 +898,7 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
 	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
 	router.Get("/r2/", f.templateHandler("regressions.html"))
+	router.HandleFunc("/u/", f.templateHandler("report.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
 

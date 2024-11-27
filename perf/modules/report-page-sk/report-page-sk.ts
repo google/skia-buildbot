@@ -9,7 +9,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { errorMessage } from '../errorMessage';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
-
+import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
 
 class ReportPageParams {
@@ -32,10 +32,14 @@ class ReportPageParams {
 export class ReportPageSk extends ElementSk {
   private params: ReportPageParams = new ReportPageParams();
 
+  // Anomalies table
+  private anomaliesTable: AnomaliesTableSk | null = null;
+
   private _spinner: SpinnerSk | null = null;
 
   constructor() {
     super(ReportPageSk.template);
+    this.anomaliesTable = new AnomaliesTableSk();
   }
 
   async connectedCallback() {
@@ -59,6 +63,7 @@ export class ReportPageSk extends ElementSk {
     <div>
       <spinner-sk id="loading-spinner"></spinner-sk>
     </div>
+    <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
   `;
 
   private async fetchAnomalies() {
