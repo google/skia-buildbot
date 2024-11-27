@@ -2,6 +2,7 @@ import '@google-web-components/google-chart';
 
 import { DataFrame } from '../json';
 import { DataTable } from './dataframe_context';
+import { removeSpecialFunctions } from '../paramtools';
 
 /**
  * getAttributes extracts the attributes from the traceKeys
@@ -94,7 +95,9 @@ export const getLegend = (dt: DataTable): object[] => {
   const traceKeys = [];
   // skip the first two columns since they are domains
   for (let i = 2; i < numCols; i++) {
-    traceKeys.push(dt!.getColumnLabel(i));
+    const k = dt!.getColumnLabel(i);
+    const formattedKey = removeSpecialFunctions(k);
+    traceKeys.push(formattedKey);
   }
   const pairs = convertKeysToPairs(traceKeys);
 
@@ -130,10 +133,19 @@ export const getLegend = (dt: DataTable): object[] => {
   return legend;
 };
 
-// converts traceKeys to a list of individual key-value pairs
-// and removing any trailing spaces and commas
+/**
+ * converts traceKeys to a list of individual key-value pairs and
+ * removing any trailing spaces and commas. If any of the trace keys
+ * are special function keys like norm(,a=A,b=B,c=C,), extract out
+ * the actual key ,a=A,b=B,c=C, from the trace name.
+ */
 function convertKeysToPairs(traceKeys: string[]) {
-  return traceKeys.map((key) => key.split(',').filter((pair) => pair.length)).flat();
+  return traceKeys
+    .map((key) => {
+      const formattedKey = removeSpecialFunctions(key);
+      return formattedKey.split(',').filter((pair) => pair.length);
+    })
+    .flat();
 }
 
 /**

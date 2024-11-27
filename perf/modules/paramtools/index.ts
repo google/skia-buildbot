@@ -16,8 +16,9 @@ export function makeKey(params: Params | { [key: string]: string }): string {
 
 /** Parse a structured key into a Params. */
 export function fromKey(structuredKey: string, attribute?: string): Params {
+  const k = removeSpecialFunctions(structuredKey);
   const ret = Params({});
-  structuredKey.split(',').forEach((keyValue) => {
+  k.split(',').forEach((keyValue) => {
     if (!keyValue) {
       return;
     }
@@ -28,6 +29,32 @@ export function fromKey(structuredKey: string, attribute?: string): Params {
     ret[key] = value;
   });
   return ret;
+}
+
+/**
+ * Removes special functions from the trace key
+ *
+ * Example:
+ *
+ * Key "norm(,a=1,b=2,c=3,)"
+ *
+ * transforms into
+ *
+ * ,a=1,b=2,c=3,
+ *
+ * @param {string} key - A trace key.
+ *
+ * @returns {string} - Trace key with the special functions removed
+ * from itself.
+ */
+export function removeSpecialFunctions(key: string): string {
+  const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
+  const isFuncKey = key.match(funcKeyRegex);
+  if (!isFuncKey) {
+    return key;
+  }
+  const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
+  return key.match(keyRegex)![0];
 }
 
 /** Checks that the trace id isn't a calculation or special_* trace. */

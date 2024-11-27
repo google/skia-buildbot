@@ -91,6 +91,33 @@ describe('getTitle', () => {
     });
   });
 
+  it('function keys return common keys', async () => {
+    const keys = [
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,)',
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,)',
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,)',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+
+    const title = getTitle(dt);
+    assert.deepEqual(title, {
+      benchmark: 'JetStream2',
+      bot: 'M1',
+      test: 'Total',
+    });
+  });
+
   it('empty string returns no title', async () => {
     const keys = ['', ',benchmark=JetStream2,ref_mode=ref,'];
     const df = generateFullDataFrame(
@@ -132,6 +159,47 @@ describe('getLegend', () => {
     const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
 
     const legend = getLegend(dt);
+    assert.equal(legend.length, keys.length);
+    assert.deepEqual(legend, [
+      {
+        ref_mode: 'head',
+        subtest: 'Average',
+        v8_mode: 'pgo',
+      },
+      {
+        ref_mode: 'ref',
+        subtest: 'Average',
+        v8_mode: 'default',
+      },
+      {
+        ref_mode: 'ref',
+        subtest: 'Normal',
+        v8_mode: 'default',
+      },
+    ]);
+  });
+
+  it('function keys return legend with function text removed', async () => {
+    const keys = [
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,)',
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,)',
+      'norm(,benchmark=JetStream2,bot=M1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,)',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [null],
+      keys
+    );
+    // Load Google Chart API for DataTable.
+    setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+    await load();
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+
+    const legend = getLegend(dt);
+    console.log(legend);
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
       {

@@ -75,6 +75,7 @@ ts_library(
         ":dataframe_context_ts_lib",
         "//:node_modules/@google-web-components/google-chart",
         "//perf/modules/json:index_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
 )
 

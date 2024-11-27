@@ -6,6 +6,7 @@ import {
   fromKey,
   makeKey,
   paramsToParamSet,
+  removeSpecialFunctions,
   validKey,
 } from './index';
 
@@ -22,11 +23,25 @@ describe('paramtooms', () => {
 
   describe('fromKey', () => {
     it('parses a key correctly', () => {
-      assert.deepEqual(Params({ b: '2', a: '1', c: '3' }), fromKey(',a=1,b=2,c=3,'));
+      assert.deepEqual(fromKey(',a=1,b=2,c=3,'), Params({ b: '2', a: '1', c: '3' }));
     });
 
     it('handles empty string as key', () => {
-      assert.deepEqual(Params({}), fromKey(''));
+      assert.deepEqual(fromKey(''), Params({}));
+    });
+
+    it('handles special function keys correctly', () => {
+      assert.deepEqual(fromKey('norm(,a=1,b=2,c=3,)'), Params({ b: '2', a: '1', c: '3' }));
+    });
+  });
+
+  describe('removeSpecialFunctions', () => {
+    it('removes function if present', () => {
+      assert.equal(removeSpecialFunctions('norm(,a=1,b=2,c=3,)'), ',a=1,b=2,c=3,');
+    });
+
+    it('returns key as is if function not present', () => {
+      assert.equal(removeSpecialFunctions(',a=1,b=2,c=3,'), ',a=1,b=2,c=3,');
     });
   });
 

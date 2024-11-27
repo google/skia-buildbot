@@ -116,7 +116,7 @@ import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk'
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, paramsToParamSet, validKey } from '../paramtools';
+import { fromKey, paramsToParamSet } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
@@ -2014,30 +2014,12 @@ export class ExploreSimpleSk extends ElementSk {
 
     const paramset = ParamSet({});
     this.simpleParamset!.paramsets = [];
+    const params: { [key: string]: string } = fromKey(detail.name);
+    Object.keys(params).forEach((key) => {
+      paramset[key] = [params[key]];
+    });
 
-    // If the trace name is a function key like norm(,a=1,b=2,)
-    // extract the actual trace name ,a=1,b=1, from it to display
-    // the params and values on the paramset table
-    const funcKeyRegex = new RegExp(/\w+\(,.*,\)/);
-    const isFuncKey = detail.name.match(funcKeyRegex);
-
-    // Convert the trace id (if valid) into a paramset to display.
-    let tName = '';
-    if (isFuncKey) {
-      const keyRegex = new RegExp(/(?<=\()(.*?)(?=\))/);
-      tName = detail.name.match(keyRegex)![0];
-    } else if (validKey(detail.name)) {
-      tName = detail.name;
-    }
-
-    if (tName !== '') {
-      const params: { [key: string]: string } = fromKey(tName);
-      Object.keys(params).forEach((key) => {
-        paramset[key] = [params[key]];
-      });
-
-      this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
-    }
+    this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
 
     this._render();
 
@@ -2257,6 +2239,11 @@ export class ExploreSimpleSk extends ElementSk {
     for (const [key, value] of Object.entries(titleObj)) {
       commonTitle += `${key}=${value},`;
     }
+    // Add an extra comma at the beginning to make sure
+    // the key is in standard ,a=1,b=2,c=3, format
+    if (commonTitle !== '') {
+      commonTitle = `,${commonTitle}`;
+    }
 
     // getLegend returns trace Ids which are not common in all the graphs.
     // Since it is an object we convert it to the standard key format a=A,b=B,
@@ -2272,6 +2259,12 @@ export class ExploreSimpleSk extends ElementSk {
         const v = String(traceObject[k]);
         shortTraceId += v !== '-' ? `${k}=${v},` : '';
       });
+
+      // Add an extra comma at the beginning to make sure
+      // the key is in standard ,a=1,b=2,c=3, format
+      if (shortTraceId !== '') {
+        shortTraceId = `,${shortTraceId}`;
+      }
 
       let formattedShortTrace = this.traceFormatter!.formatTrace(fromKey(shortTraceId));
       // Since this text is just the uncommon part of trace Id we want to remove
