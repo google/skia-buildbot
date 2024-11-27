@@ -8,8 +8,13 @@ sk_demo_page_server(
 sk_element(
     name = "report-page-sk",
     sass_srcs = ["report-page-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/spinner-sk",
+    ],
     ts_deps = [
         "//:node_modules/lit",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
     ],
