@@ -3,15 +3,32 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "validation",
-    srcs = ["validation.go"],
+    srcs = [
+        "expiry.go",
+        "validation.go",
+    ],
     importpath = "go.skia.org/infra/golden/go/validation",
     visibility = ["//visibility:public"],
-    deps = ["//go/util"],
+    deps = [
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/validation/data_manager",
+    ],
 )
 
 go_test(
     name = "validation_test",
-    srcs = ["validation_test.go"],
+    srcs = [
+        "expiry_test.go",
+        "validation_test.go",
+    ],
     embed = [":validation"],
-    deps = ["@com_github_stretchr_testify//assert"],
+    deps = [
+        "//go/skerr",
+        "//golden/go/validation/data_manager",
+        "//golden/go/validation/data_manager/mocks",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
+    ],
 )

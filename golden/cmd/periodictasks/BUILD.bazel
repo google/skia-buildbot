@@ -32,6 +32,8 @@ go_library(
         "//golden/go/storage",
         "//golden/go/tracing",
         "//golden/go/types",
+        "//golden/go/validation",
+        "//golden/go/validation/data_manager",
         "//perf/go/ingest/format",
         "@com_github_cockroachdb_cockroach_go_v2//crdb/crdbpgx",
         "@com_github_jackc_pgtype//:pgtype",

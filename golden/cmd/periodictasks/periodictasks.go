@@ -42,6 +42,8 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tracing"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/validation"
+	"go.skia.org/infra/golden/go/validation/data_manager"
 	"go.skia.org/infra/perf/go/ingest/format"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -84,6 +86,12 @@ type periodicTasksConfig struct {
 
 	// UpdateIgnorePeriod is how often we should try to apply the ignore rules to all traces.
 	UpdateIgnorePeriod config.Duration `json:"update_traces_ignore_period"` // TODO(kjlubick) change JSON
+
+	// ExpirationMonitorBatchSize is the number of rows to update expiry at a time.
+	ExpirationMonitorBatchSize int `json:"expiration_monitor_batch_size" optional:"true"`
+
+	// ExpirationMonitorFrequencyInHours is the running frequency in hours for the expiration monitor.
+	ExpirationMonitorFrequencyInHours int `json:"expiration_monitor_frequency_hours" optional:"true"`
 }
 
 type perfSummariesConfig struct {
@@ -157,6 +165,9 @@ func main() {
 
 	sklog.Infof("Starting cache population tasks.")
 	runCachingTasks(ctx, ptc, db)
+
+	sklog.Infof("Starting expiration monitoring tasks.")
+	runExpiryMonitoringTasks(ctx, db, ptc)
 
 	sklog.Infof("periodic tasks have been started")
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
@@ -1173,8 +1184,14 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 	if cache == nil {
 		sklog.Fatalf("Cache is not configured correctly for this instance.")
 	}
+
+	liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "populateCache",
+	})
+
 	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
 		populateSearchCache(ctx, ptc, db, cache)
+		liveness.Reset()
 	})
 }
 
@@ -1184,5 +1201,26 @@ func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpo
 	err := searchCacheManager.RunCachePopulation(ctx)
 	if err != nil {
 		sklog.Fatalf("Error running cache population: %v", err)
+	}
+}
+
+// runExpiryMonitoringTasks executes the tasks to monitor and update expiry of data.
+func runExpiryMonitoringTasks(ctx context.Context, db *pgxpool.Pool, ptc periodicTasksConfig) {
+	if ptc.ExpirationMonitorBatchSize > 0 && ptc.ExpirationMonitorFrequencyInHours > 0 {
+		liveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+			"task": "updateExpiry",
+		})
+
+		expiryDataManager := data_manager.NewExpiryDataManager(db, ptc.ExpirationMonitorBatchSize)
+		expirationMonitor := validation.NewExpirationMonitor(expiryDataManager)
+		go util.RepeatCtx(ctx, time.Hour*time.Duration(ptc.ExpirationMonitorFrequencyInHours), func(ctx context.Context) {
+			err := expirationMonitor.UpdateTriagedExpectationsExpiry(ctx)
+			if err != nil {
+				sklog.Errorf("Error updating data expiration: %v", err)
+			}
+			liveness.Reset()
+		})
+	} else {
+		sklog.Info("Expiration monitoring is not configured for this instance.")
 	}
 }

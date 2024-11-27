@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "data_manager",
+    srcs = ["expiry_datamanager.go"],
+    importpath = "go.skia.org/infra/golden/go/validation/data_manager",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "@com_github_jackc_pgx_v4//pgxpool",
+    ],
+)

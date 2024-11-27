@@ -203,6 +203,11 @@ packages:
       dir: "{{.InterfaceDir}}/../mocks"
     interfaces:
       GCSClient:
+  go.skia.org/infra/golden/go/validation/data_manager:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      ExpiryDataManager:
   go.skia.org/infra/jsfiddle/go/store:
     interfaces:
       Store:

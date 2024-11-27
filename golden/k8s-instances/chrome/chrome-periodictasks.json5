@@ -16,5 +16,8 @@
     "finch-smoke-tests",
     "gtest-pixeltests"
   ],
-  caching_frequency_minutes: 5
+  caching_frequency_minutes: 5,
+
+  expiration_monitor_batch_size: 200,
+  expiration_monitor_frequency_hours: 1
 }
