@@ -36,7 +36,7 @@ $TTL 3600     ; default TTL 1 hour
 ;;;; This record is required to validate domains for
 ;;;; certificate issuance.
 
-_validate_domain      3600    IN CNAME _validate_domain.pki.goog.
+_validate_domain      3600    IN CNAME nonce.domainvalidation.dvs.goog.
 
 ;;; Master A record. Hosted in the GCP project skia-infra-public.
 @                     300     IN A 34.110.212.89
