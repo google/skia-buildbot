@@ -469,8 +469,8 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
-          "no-gradient-fill-radial": {
-            "feature-code": "shape-fill-gradient-radial",
+          "no-gradient-fill-radial-highlight": {
+            "feature-code": "shape-fill-gradient-radial-highlight",
             "feature-link": "shape-fill-gradient",
             "not": {
               "type": "object",
@@ -480,6 +480,17 @@ export const lowPowerLottieProfileSchema =
                 },
                 "t": {
                   "const": 2
+                },
+                "h": {
+                  "not": {
+                    "type": "object",
+                    "properties": {
+                      "k": {
+                        "type": "number",
+                        "const": 0
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -497,8 +508,8 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
-          "no-gradient-stroke-radial": {
-            "feature-code": "shape-stroke-gradient-radial",
+          "no-gradient-stroke-radial-highlight": {
+            "feature-code": "shape-stroke-gradient-radial-highlight",
             "feature-link": "shape-stroke-gradient",
             "not": {
               "type": "object",
@@ -508,6 +519,17 @@ export const lowPowerLottieProfileSchema =
                 },
                 "t": {
                   "const": 2
+                },
+                "h": {
+                  "not": {
+                    "type": "object",
+                    "properties": {
+                      "k": {
+                        "type": "number",
+                        "const": 0
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -560,13 +582,13 @@ export const lowPowerLottieProfileSchema =
               "$ref": "#/$defs/features/shapes/types/no-stroke"
             },
             {
-              "$ref": "#/$defs/features/shapes/types/no-gradient-fill-radial"
+              "$ref": "#/$defs/features/shapes/types/no-gradient-fill-radial-highlight"
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-gradient-stroke"
             },
             {
-              "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-radial"
+              "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-radial-highlight"
             },
             {
               "$ref": "#/$defs/features/shapes/types/only-supported-shape-transforms"

@@ -100,11 +100,6 @@ interface BodymovinPlayer {
   destroy(): void;
 }
 
-interface LottieLibrary {
-  version: string;
-  loadAnimation(opts: Record<string, unknown>): BodymovinPlayer;
-}
-
 interface LoadedAsset {
   name: string;
   bytes?: ArrayBuffer;
@@ -1414,6 +1409,7 @@ export class SkottieSk extends ElementSk {
           new Ajv({
             allErrors: true,
             verbose: true,
+            strict: false,
           }),
       });
     }
@@ -1499,7 +1495,7 @@ export class SkottieSk extends ElementSk {
     }
   }
 
-  private onFrameChange(e: Event): void {
+  private onFrameChange(): void {
     if (this.playing) {
       this.playpause();
     }
