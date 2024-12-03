@@ -30,7 +30,10 @@ export const lowPowerLottieProfileSchema =
                 "$ref": "#/$defs/features/layers/properties/no-effects"
               },
               {
-                "$ref": "#/$defs/features/layers/properties/no-animated-masks"
+                "$ref": "#/$defs/features/layers/properties/no-masks"
+              },
+              {
+                "$ref": "#/$defs/features/layers/properties/no-track-matte"
               },
               {
                 "$ref": "#/$defs/features/layers/properties/no-blend-modes"
@@ -366,29 +369,12 @@ export const lowPowerLottieProfileSchema =
               "masksProperties": false
             }
           },
-          "no-animated-masks": {
-            "feature-code": "animated-mask",
-            "feature-link": "mask",
+          "no-track-matte": {
+            "feature-code": "property-matte-mask",
             "type": "object",
             "properties": {
-              "masksProperties": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "if": {
-                      "type": "object"
-                    },
-                    "then": {
-                      "type": "object",
-                      "properties": {
-                        "a": {
-                          "const": 0
-                        }
-                      }
-                    }
-                  }
-                }
+              "tt": {
+                "const": 0
               }
             }
           },
@@ -534,6 +520,38 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
+          "no-stroke-dash": {
+            "feature-code": "shape-stroke-dash",
+            "feature-link": "shape-stroke",
+            "not": {
+              "required": ["d"],
+              "properties": {
+                "d": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "ty": {
+                  "const": "st"
+                }
+              }
+            }
+          },
+          "no-gradient-stroke-dash": {
+            "feature-code": "shape-stroke-gradient-dash",
+            "feature-link": "shape-stroke-gradient",
+            "not": {
+              "required": ["d"],
+              "properties": {
+                "d": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "ty": {
+                  "const": "gs"
+                }
+              }
+            }
+          },
           "no-path": {
             "feature-code": "shape-path",
             "not": {
@@ -589,6 +607,12 @@ export const lowPowerLottieProfileSchema =
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-radial-highlight"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/no-stroke-dash"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-dash"
             },
             {
               "$ref": "#/$defs/features/shapes/types/only-supported-shape-transforms"
