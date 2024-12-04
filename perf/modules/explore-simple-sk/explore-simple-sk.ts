@@ -983,7 +983,13 @@ export class ExploreSimpleSk extends ElementSk {
       </div>
     </dialog>
 
-    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
+    <div>
+      <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
+    </div>
+
+    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table" ?hidden="${
+      ele._state.use_titles && ele._state.enable_chart_tooltip
+    }">
       <button class="collapser" id="collapseButton" @click=${(_e: Event) => ele.toggleDetails()}>
       ${
         ele.navOpen
@@ -1026,7 +1032,7 @@ export class ExploreSimpleSk extends ElementSk {
                 @plus-click=${ele.plusClick}
                 >
               </paramset-sk>
-              <code><pre id=logEntry></pre></code>
+              <code ?hidden=${ele._state.enable_chart_tooltip}><pre id=logEntry></pre></code>
               <anomaly-sk id=anomaly></anomaly-sk>
             </div>
             <div>
@@ -1035,8 +1041,6 @@ export class ExploreSimpleSk extends ElementSk {
               <commit-detail-panel-sk id=commits selectable .hide=${
                 window.perf.hide_list_of_commits_on_explore
               }></commit-detail-panel-sk>
-              <ingest-file-links-sk class="hide_on_pivot_plot" id=ingest-file-links>
-              </ingest-file-links-sk>
               <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
             </div>
           </div>
