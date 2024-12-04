@@ -20,10 +20,10 @@ var statements_spanner = map[statement]string{
 		DELETE FROM
 			testsuitemapping WHERE file_name=$1 AND builder_name=$2`,
 	listTestSuite: `
-		SELECT * FROM testsuitemapping
+		SELECT id, file_name, builder_name, test_suite_name, last_modified FROM testsuitemapping
 		WHERE file_name=$1 AND builder_name=$2`,
 	listAll: `
-		SELECT * FROM testsuitemapping`,
+		SELECT id, file_name, builder_name, test_suite_name, last_modified FROM testsuitemapping`,
 	listBuilder: `
-		SELECT * FROM testsuitemapping WHERE file_name=$1 AND builder_name=$2`,
+		SELECT id, file_name, builder_name, test_suite_name, last_modified FROM testsuitemapping WHERE file_name=$1 AND builder_name=$2`,
 }
