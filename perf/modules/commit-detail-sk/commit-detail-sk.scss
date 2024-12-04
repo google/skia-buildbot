@@ -3,10 +3,14 @@
 commit-detail-sk {
   a,
   .linkish {
-    text-decoration: underline;
     color: var(--blue);
     display: flex;
     align-items: center;
+
+    md-outlined-button {
+      --md-outlined-button-container-shape: 4px;
+      margin-right: 8px;
+    }
   }
 
   pre {
@@ -19,10 +23,8 @@ commit-detail-sk {
 
   .tip {
     padding: 0.41em;
-    border: solid var(--dark-white) 1px;
     margin: 0.6em;
     display: flex;
-    gap: 4px;
   }
 
   .hidden {
@@ -35,11 +37,6 @@ commit-detail-sk {
 .body-sk commit-detail-sk {
   a,
   .linkish {
-    text-decoration: underline;
     color: var(--primary);
-  }
-
-  .tip {
-    border: solid var(--on-surface) 1px;
   }
 }

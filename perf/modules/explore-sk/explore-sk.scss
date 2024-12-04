@@ -1,6 +1,11 @@
 explore-sk {
   .explore-padding {
-    padding-left: 16px;
+    margin-left: 16px;
+    margin-top: 8px;
+  }
+  md-outlined-button {
+    --md-outlined-button-container-shape: 4px;
+    margin-right: 8px;
   }
   #test-picker {
     width: 100%;

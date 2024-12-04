@@ -29,7 +29,6 @@ explore-simple-sk {
     font-family: 'Material Icons';
   }
 
-  #commits,
   #paramset {
     display: inline-block;
     margin: 0.5em;
@@ -77,7 +76,9 @@ explore-simple-sk {
   }
 
   #commits {
-    margin: 1em;
+    margin: 1em 0;
+    display: inline-block;
+    overflow-y: auto;
   }
 
   #simple_paramset {

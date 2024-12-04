@@ -19,6 +19,8 @@ import { CommitDetailsRequest, CommitNumber } from '../json';
 import '../../../elements-sk/modules/spinner-sk';
 import { validKey } from '../paramtools';
 
+import '@material/web/button/outlined-button.js';
+
 export class JSONSourceSk extends ElementSk {
   private _json: string;
 
@@ -36,8 +38,10 @@ export class JSONSourceSk extends ElementSk {
 
   private static template = (ele: JSONSourceSk) => html`
     <div id="controls" ?hidden=${!ele.validTraceID()}>
-      <button @click=${ele._loadSource}>View Source File</button>
-      <button @click=${ele._loadSourceSmall}>View Source File Without Results</button>
+      <md-outlined-button @click=${ele._loadSource}>View Source File</md-outlined-button>
+      <md-outlined-button @click=${ele._loadSourceSmall}
+        >View Source File Without Results</md-outlined-button
+      >
       <spinner-sk id="spinner"></spinner-sk>
     </div>
     <pre>${ele._json}</pre>

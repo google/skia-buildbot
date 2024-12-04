@@ -20,8 +20,8 @@ json-source-sk {
     padding: 8px;
   }
 
-  button {
-    text-transform: none;
-    padding: 8px;
+  md-outlined-button {
+    --md-outlined-button-container-shape: 4px;
+    margin-right: 8px;
   }
 }

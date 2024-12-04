@@ -28,6 +28,8 @@ import { errorMessage } from '../errorMessage';
 import { TestPickerSk } from '../test-picker-sk/test-picker-sk';
 import { queryFromKey } from '../paramtools';
 
+import '@material/web/button/outlined-button.js';
+
 export class ExploreSk extends ElementSk {
   private exploreSimpleSk: ExploreSimpleSk | null = null;
 
@@ -95,25 +97,25 @@ export class ExploreSk extends ElementSk {
   private static template = (ele: ExploreSk) => html`
     <div class="explore-padding" ?hidden=${!ele.showMultiViewButton}>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
-      <button
+      <md-outlined-button
         @click=${() => {
           ele.exploreSimpleSk?.viewMultiGraph();
         }}>
         View in multi-graph
-      </button>
-      <button
+      </md-outlined-button>
+      <md-outlined-button
         ?disabled=${!ele.userEmail || ele.userEmail === ''}
         @click=${() => {
           ele.openAddFavoriteDialog();
         }}>
         Add to Favorites
-      </button>
-      <button
+      </md-outlined-button>
+      <md-outlined-button
         @click=${() => {
           ele.exploreSimpleSk?.toggleGoogleChart();
         }}>
         Toggle Chart Style
-      </button>
+      </md-outlined-button>
     </div>
     <test-picker-sk id="test-picker" class="hidden explore-padding"></test-picker-sk>
     <explore-simple-sk></explore-simple-sk>
