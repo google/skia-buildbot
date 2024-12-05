@@ -92,8 +92,10 @@ url9405       300 IN CNAME sendgrid.net.
 26644806      300 IN CNAME sendgrid.net.
 
 ;;; Buganizer custom domains for Skia.
-issues     300     IN CNAME www3.l.google.com.
-g-issues   300     IN CNAME uberproxy.l.google.com.
+issues               300 IN CNAME www3.l.google.com.
+g-issues             300 IN CNAME uberproxy.l.google.com.
+usercontent.issues   300 IN CNAME www3.l.google.com.
+usercontent.g-issues 300 IN CNAME uberproxy.l.google.com.
 
 ;;; CNAME all the hosts for this domain.
 *          3600    IN CNAME skia.org.
