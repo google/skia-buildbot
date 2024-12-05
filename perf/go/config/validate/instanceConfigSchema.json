@@ -328,6 +328,9 @@
         },
         "ga_measurement_id": {
           "type": "string"
+        },
+        "new_alerts_page": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

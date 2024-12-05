@@ -954,6 +954,13 @@ type InstanceConfig struct {
 
 	// Measurement ID to use when tracking user metrics with Google Analytics.
 	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`
+
+	// Bool for instance to determine routing logic for Alerts.
+	// Some instances ie/ V8 have alerts that are Sheriff Config based, while
+	// others such as Android utilize alerts that are Skia-native.
+	// The routing between the two differ, and we use instance config to control
+	// which one it routes to. Default is /a/, alternative is /r2/
+	NewAlertsPage bool `json:"new_alerts_page,omitempty"`
 }
 
 // Config is the currently running config.

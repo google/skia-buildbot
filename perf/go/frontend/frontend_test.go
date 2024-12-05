@@ -22,6 +22,10 @@ func TestFrontend_ShouldInitAllHandlers(t *testing.T) {
 			NumParamSetsForQueries: 2,
 		},
 	}
+	configFileBytes := testutils.ReadFileBytes(t, "config.json")
+	err := json.Unmarshal(configFileBytes, &config.Config)
+	require.NoError(t, err)
+
 	// Check if there is a conflict or misuse in the http/chi handler API
 	require.NotPanics(t, func() {
 		f.GetHandler([]string{})

@@ -892,15 +892,22 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	router.HandleFunc("/m/", f.templateHandler("multiexplore.html"))
 	router.HandleFunc("/c/", f.templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", f.templateHandler("triage.html"))
-	router.HandleFunc("/a/", f.templateHandler("alerts.html"))
 	router.HandleFunc("/d/", f.templateHandler("dryrunalert.html"))
 	router.HandleFunc("/r/", f.templateHandler("trybot.html"))
 	router.HandleFunc("/f/", f.templateHandler("favorites.html"))
 	router.HandleFunc("/v/", f.templateHandler("revisions.html"))
-	router.Get("/r2/", f.templateHandler("regressions.html"))
 	router.HandleFunc("/u/", f.templateHandler("report.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", f.gotoHandler)
 	router.HandleFunc("/help/", f.helpHandler)
+
+	// The legacy page for /a/ is alerts.html.
+	// Sheriff Config based alerts will route to regressions.html.
+	if config.Config.NewAlertsPage {
+		router.HandleFunc("/a/", f.templateHandler("regressions.html"))
+	} else {
+		router.HandleFunc("/a/", f.templateHandler("alerts.html"))
+		router.Get("/r2/", f.templateHandler("regressions.html"))
+	}
 
 	// TODO(ashwinpv): This should move to using the backend service.
 	// JSON handlers.
