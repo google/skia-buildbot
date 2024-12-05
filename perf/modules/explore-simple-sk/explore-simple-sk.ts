@@ -985,6 +985,9 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div>
       <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
+      <commit-range-sk id="commit-range-link"></commit-range-sk>
+      <point-links-sk id="point-links"></point-links-sk>
+      <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
     </div>
 
     <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table" ?hidden="${
@@ -1036,12 +1039,9 @@ export class ExploreSimpleSk extends ElementSk {
               <anomaly-sk id=anomaly></anomaly-sk>
             </div>
             <div>
-              <commit-range-sk id="commit-range-link"></commit-range-sk>
-              <point-links-sk id="point-links"></point-links-sk>
               <commit-detail-panel-sk id=commits selectable .hide=${
                 window.perf.hide_list_of_commits_on_explore
               }></commit-detail-panel-sk>
-              <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
             </div>
           </div>
         </tabs-panel-sk>
