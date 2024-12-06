@@ -6,6 +6,12 @@ filegroup(
     visibility = ["//perf:__subpackages__"],
 )
 
+filegroup(
+    name = "config_spanner",
+    srcs = glob(["configs/spanner/*.json"]),
+    visibility = ["//perf:__subpackages__"],
+)
+
 skia_app_container(
     name = "perfserver",
     base_image = "@base-cipd//image",
@@ -23,6 +29,12 @@ skia_app_container(
         "/usr/local/share/skiaperf/configs": [
             [
                 ":configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/skiaperf/configs/spanner": [
+            [
+                ":configs_spanner",
                 "0644",
             ],
         ],
@@ -81,6 +93,12 @@ skia_app_container(
                 "0644",
             ],
         ],
+        "/usr/local/share/skiaperf/configs/spanner": [
+            [
+                ":configs_spanner",
+                "0644",
+            ],
+        ],
     },
     entrypoint = "/backup.sh",
     repository = "skia-public/perf-cockroachdb-backup",
@@ -99,6 +117,12 @@ skia_app_container(
         "/usr/local/share/skiaperf/configs": [
             [
                 ":configs",
+                "0644",
+            ],
+        ],
+        "/usr/local/share/skiaperf/configs/spanner": [
+            [
+                ":configs_spanner",
                 "0644",
             ],
         ],
