@@ -1,0 +1,43 @@
+{
+  "URL": "https://perf.skia.org",
+  "allowed_hosts": [
+    "status.skia.org"
+  ],
+  "contact": "https://bugs.skia.org",
+  "trace_sample_proportion": 0.01,
+  "notify_config": {
+    "notifications": "html_email"
+  },
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER"
+  },
+  "data_store_config": {
+    "datastore_type": "spanner",
+    "connection_string": "postgresql://root@localhost:5432/skia?sslmode=disable",
+    "tile_size": 256,
+    "enable_follower_reads": true
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-skia-spanner",
+      "subscription": "perf-ingestion-skia-spanner-prod",
+      "sources": [
+        "gs://skia-perf/nano-json-v1",
+        "gs://skia-perf/task-duration",
+        "gs://skia-perf/buildstats-json-v1",
+        "gs://skia-perf/gold-summary-v1"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "provider": "gitiles",
+    "url": "https://skia.googlesource.com/skia",
+    "dir": "/tmp/skiaperf",
+    "debounce_commit_url": false,
+    "file_change_marker": "infra/bots/assets/skp/VERSION"
+  }
+}

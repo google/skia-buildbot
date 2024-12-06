@@ -21,7 +21,7 @@ that account with `objectAdmins` permission.
 Once created, it's recommended to create a folder specifically for ingestion e.g.
 `gs://flutter-skia-perf-prod/ingest`.
 
-## 2. Create new database in CockroachDB.
+## 2. Create new database.
 
 This needs to be done from a machine on corp and also requires
 [breakglass](https://grants.corp.google.com/#/grants) to the `skia-infra-breakglass-policy` group.
@@ -29,6 +29,12 @@ Note that there is a different connect script for each cluster.
 
 Note: if you're creating a Googler-only instance, use `skia-infra-corp` instead
 of `skia-infra-public`.
+
+**Spanner**
+
+Navigate to the Spanner instance in the GCP project chosen above and follow the instructions in [the spanner documentation](./Spanner.md) to create the database.
+
+**CockroachDB Only**
 
 Port-forward the database:
 
