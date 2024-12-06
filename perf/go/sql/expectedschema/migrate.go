@@ -37,31 +37,20 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	DROP TABLE IF EXISTS Favorites;
-	CREATE TABLE IF NOT EXISTS Favorites (
-		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		user_id STRING NOT NULL,
-		name STRING,
-		url STRING NOT NULL,
-		description STRING,
-		last_modified INT,
-		INDEX by_user_id (user_id)
-  	);
+	CREATE TABLE IF NOT EXISTS UserIssues (
+		user_id TEXT NOT NULL,
+		trace_key TEXT NOT NULL,
+		commit_position INT NOT NULL,
+		issue_id INT NOT NULL,
+		last_modified TIMESTAMPTZ DEFAULT now(),
+		PRIMARY KEY(trace_key, commit_position)
+	);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-DROP TABLE IF EXISTS Favorites;
-CREATE TABLE IF NOT EXISTS Favorites (
-	id INT PRIMARY KEY DEFAULT unique_rowid(),
-	user_id STRING NOT NULL,
-	name STRING,
-	url STRING NOT NULL,
-	description STRING,
-	last_modified INT,
-	INDEX by_user_id (user_id)
-  );
+	DROP TABLE IF EXISTS UserIssues;
 `
 
 // This function will check whether there's a new schema checked-in,

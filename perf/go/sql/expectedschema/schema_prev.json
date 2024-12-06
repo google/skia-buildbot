@@ -32,7 +32,7 @@
     "culprits.project": "text def: nullable:YES",
     "culprits.ref": "text def: nullable:YES",
     "culprits.revision": "text def: nullable:YES",
-    "favorites.id": "bigint def:unique_rowid() nullable:NO",
+    "favorites.id": "uuid def:gen_random_uuid() nullable:NO",
     "favorites.user_id": "text def: nullable:NO",
     "favorites.name": "text def: nullable:YES",
     "favorites.description": "text def: nullable:YES",

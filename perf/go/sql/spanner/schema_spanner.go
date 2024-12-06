@@ -135,6 +135,15 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   PRIMARY KEY (trace_id, commit_number),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS UserIssues (
+  user_id TEXT NOT NULL,
+  trace_key TEXT NOT NULL,
+  commit_position INT NOT NULL,
+  issue_id INT NOT NULL,
+  last_modified TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY(trace_key, commit_position),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE INDEX IF NOT EXISTS by_revision on Culprits (revision, host, project, ref);
 CREATE INDEX IF NOT EXISTS by_user_id on Favorites (user_id);
 CREATE INDEX IF NOT EXISTS by_tile_number on ParamSets (tile_number DESC);
@@ -268,4 +277,12 @@ var TraceValues = []string{
 	"commit_number",
 	"val",
 	"source_file_id",
+}
+
+var UserIssues = []string{
+	"user_id",
+	"trace_key",
+	"commit_position",
+	"issue_id",
+	"last_modified",
 }

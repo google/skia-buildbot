@@ -21,6 +21,7 @@ go_library(
         "//perf/go/shortcut/sqlshortcutstore/schema",
         "//perf/go/subscription/sqlsubscriptionstore/schema",
         "//perf/go/tracestore/sqltracestore/schema",
+        "//perf/go/userissue/sqluserissuestore/schema",
     ],
 )
 

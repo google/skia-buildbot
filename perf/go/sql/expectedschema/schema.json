@@ -80,7 +80,12 @@
     "tracevalues.commit_number": "bigint def: nullable:NO",
     "tracevalues.source_file_id": "bigint def: nullable:YES",
     "tracevalues.trace_id": "bytea def: nullable:NO",
-    "tracevalues.val": "real def: nullable:YES"
+    "tracevalues.val": "real def: nullable:YES",
+    "userissues.user_id": "text def: nullable:NO",
+    "userissues.trace_key": "text def: nullable:NO",
+    "userissues.commit_position": "bigint def: nullable:NO",
+    "userissues.issue_id": "bigint def: nullable:NO",
+    "userissues.last_modified": "timestamp with time zone def:now():::TIMESTAMPTZ nullable:YES"
   },
   "IndexNames": [
     "commits.commits_git_hash_key",

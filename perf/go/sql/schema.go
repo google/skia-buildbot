@@ -126,6 +126,14 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   PRIMARY KEY (trace_id, commit_number),
   INDEX by_source_file_id (source_file_id, trace_id)
 );
+CREATE TABLE IF NOT EXISTS UserIssues (
+  user_id TEXT NOT NULL,
+  trace_key TEXT NOT NULL,
+  commit_position INT NOT NULL,
+  issue_id INT NOT NULL,
+  last_modified TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY(trace_key, commit_position)
+);
 `
 
 var Alerts = []string{
@@ -250,4 +258,12 @@ var TraceValues = []string{
 	"commit_number",
 	"val",
 	"source_file_id",
+}
+
+var UserIssues = []string{
+	"user_id",
+	"trace_key",
+	"commit_position",
+	"issue_id",
+	"last_modified",
 }

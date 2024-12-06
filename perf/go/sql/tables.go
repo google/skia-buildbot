@@ -15,6 +15,7 @@ import (
 	shortcutschema "go.skia.org/infra/perf/go/shortcut/sqlshortcutstore/schema"
 	subscriptionschema "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore/schema"
 	traceschema "go.skia.org/infra/perf/go/tracestore/sqltracestore/schema"
+	userissuesschema "go.skia.org/infra/perf/go/userissue/sqluserissuestore/schema"
 )
 
 // Tables represents the full schema of the SQL database.
@@ -33,4 +34,5 @@ type Tables struct {
 	SourceFiles     []traceschema.SourceFilesSchema
 	Subscriptions   []subscriptionschema.SubscriptionSchema
 	TraceValues     []traceschema.TraceValuesSchema
+	UserIssues      []userissuesschema.UserIssueSchema
 }

@@ -18,6 +18,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS AnomalyGroups;
 	DROP TABLE IF EXISTS Commits;
 	DROP TABLE IF EXISTS Culprits;
+	DROP TABLE IF EXISTS Favorites;
 	DROP TABLE IF EXISTS GraphsShortcuts;
 	DROP TABLE IF EXISTS ParamSets;
 	DROP TABLE IF EXISTS Postings;
@@ -27,6 +28,7 @@ const DropTables = `
 	DROP TABLE IF EXISTS SourceFiles;
 	DROP TABLE IF EXISTS Subscriptions;
 	DROP TABLE IF EXISTS TraceValues;
+	DROP TABLE IF EXISTS UserIssues;
 `
 
 // LiveSchema has to reflect what's live in prod right now
