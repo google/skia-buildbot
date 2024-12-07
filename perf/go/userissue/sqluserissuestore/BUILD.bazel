@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqluserissuestore",
+    srcs = ["sqluserissuestore.go"],
+    importpath = "go.skia.org/infra/perf/go/userissue/sqluserissuestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "//go/sql/sqlutil",
+        "//perf/go/userissue:store",
+    ],
+)
+
+go_test(
+    name = "sqluserissuestore_test",
+    srcs = ["sqluserissuestore_test.go"],
+    data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqluserissuestore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/sql/sqltest",
+        "//perf/go/userissue:store",
+        "@com_github_stretchr_testify//require",
+    ],
+)

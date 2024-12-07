@@ -52,6 +52,7 @@ go_library(
         "//perf/go/trybot/results/dfloader",
         "//perf/go/types",
         "//perf/go/urlprovider",
+        "//perf/go/userissue:store",
         "//pinpoint/go/service",
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_unrolled_secure//:secure",

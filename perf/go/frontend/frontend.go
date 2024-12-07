@@ -63,6 +63,7 @@ import (
 	"go.skia.org/infra/perf/go/trybot/results/dfloader"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/urlprovider"
+	"go.skia.org/infra/perf/go/userissue"
 	pp_service "go.skia.org/infra/pinpoint/go/service"
 )
 
@@ -140,6 +141,8 @@ type Frontend struct {
 	notifier notify.Notifier
 
 	traceStore tracestore.TraceStore
+
+	userIssueStore userissue.Store
 
 	dryrunRequests *dryrun.Requests
 
@@ -549,6 +552,11 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build favorite.Store: %s", err)
 	}
 
+	f.userIssueStore, err = builders.NewUserIssueStoreFromConfig(ctx, cfg)
+	if err != nil {
+		sklog.Fatalf("Failed to build userissue.Store: %s", err)
+	}
+
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
 	f.dryrunRequests = dryrun.New(f.perfGit, f.progressTracker, f.shortcutStore, f.dfBuilder, paramsProvider)
@@ -953,6 +961,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore),
+		api.NewUserIssueApi(f.loginProvider, f.userIssueStore),
 	}
 }
 

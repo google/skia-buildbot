@@ -47,6 +47,8 @@ import (
 	subscription_store "go.skia.org/infra/perf/go/subscription/sqlsubscriptionstore"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
+	"go.skia.org/infra/perf/go/userissue"
+	userissue_store "go.skia.org/infra/perf/go/userissue/sqluserissuestore"
 
 	gcp_redis "cloud.google.com/go/redis/apiv1"
 	localCache "go.skia.org/infra/go/cache/local"
@@ -283,6 +285,16 @@ func NewFavoriteStoreFromConfig(ctx context.Context, instanceConfig *config.Inst
 		return nil, err
 	}
 	return favorite_store.New(db), nil
+}
+
+// NewUserIssueStoreFromConfig creates a new userissue.Store from the
+// InstanceConfig which provides access to the userissue data.
+func NewUserIssueStoreFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (userissue.Store, error) {
+	db, err := getDBPool(ctx, instanceConfig)
+	if err != nil {
+		return nil, err
+	}
+	return userissue_store.New(db), nil
 }
 
 // GetCacheFromConfig returns a cache.Cache instance based on the given configuration.

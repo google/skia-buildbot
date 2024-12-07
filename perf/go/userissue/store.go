@@ -11,24 +11,16 @@ type UserIssue struct {
 	TraceKey       string
 	CommitPosition int64
 	IssueId        int64
-	LastModified   int64
-}
-
-type SaveRequest struct {
-	UserId         string
-	TraceKey       string
-	CommitPosition int64
-	IssueId        int64
 }
 
 // Store is the interface used to persist user issues.
 type Store interface {
-	// Save inserts/updates a user issue into the db
-	Save(ctx context.Context, req *SaveRequest) error
+	// Save inserts a user issue into the db
+	Save(ctx context.Context, req *UserIssue) error
 
 	// Delete deletes the user issue from the db.
 	Delete(ctx context.Context, traceKey string, commitPosition int64) error
 
-	// GetUserIssuesForTraceIds retrieves list of points with an associated issue id.
-	GetUserIssuesForTraceIds(ctx context.Context, traceIds []string) ([]UserIssue, error)
+	// GetUserIssuesForTraceKeys retrieves list of points with an associated issue id.
+	GetUserIssuesForTraceKeys(ctx context.Context, traceKeys []string, startCommitPosition int64, endCommitPosition int64) ([]UserIssue, error)
 }
