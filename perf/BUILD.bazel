@@ -7,7 +7,7 @@ filegroup(
 )
 
 filegroup(
-    name = "config_spanner",
+    name = "configs_spanner",
     srcs = glob(["configs/spanner/*.json"]),
     visibility = ["//perf:__subpackages__"],
 )
