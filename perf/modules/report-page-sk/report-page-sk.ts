@@ -16,7 +16,7 @@ class ReportPageParams {
   // A revision number.
   rev: string = '';
 
-  // Comma-separated list of urlsafe Anomaly keys (optional).
+  // Comma-separated list of Anomaly keys.
   anomalyIDs: string = '';
 
   // A Buganizer bug number ID.
@@ -70,7 +70,7 @@ export class ReportPageSk extends ElementSk {
     this._spinner!.active = true;
     this._render();
 
-    await fetch('/_/group_report', {
+    await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify(this.params),
       headers: {
