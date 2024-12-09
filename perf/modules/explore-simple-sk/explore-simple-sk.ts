@@ -990,9 +990,7 @@ export class ExploreSimpleSk extends ElementSk {
       <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
     </div>
 
-    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table" ?hidden="${
-      ele._state.use_titles && ele._state.enable_chart_tooltip
-    }">
+    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
       <button class="collapser" id="collapseButton" @click=${(_e: Event) => ele.toggleDetails()}>
       ${
         ele.navOpen
@@ -1040,7 +1038,7 @@ export class ExploreSimpleSk extends ElementSk {
             </div>
             <div>
               <commit-detail-panel-sk id=commits selectable .hide=${
-                window.perf.hide_list_of_commits_on_explore
+                window.perf.hide_list_of_commits_on_explore || ele._state.enable_chart_tooltip
               }></commit-detail-panel-sk>
             </div>
           </div>
