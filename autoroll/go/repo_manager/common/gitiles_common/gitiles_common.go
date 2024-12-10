@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vfs"
 	gitiles_vfs "go.skia.org/infra/go/vfs/gitiles"
@@ -90,7 +91,9 @@ func (r *GitilesRepo) LogRevisions(ctx context.Context, from, to *revision.Revis
 // GetTipRevision returns a revision.Revision instance associated with the
 // current tip of the branch tracked by this GitilesRepo.
 func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, error) {
-	return r.GetRevision(ctx, r.branch.String())
+	branch := r.branch.String()
+	sklog.Infof("GetTipRevision for %s, branch %q", r.GitilesRepo.URL(), branch)
+	return r.GetRevision(ctx, branch)
 }
 
 // ConvertRevisions converts the given slice of LongCommits to Revisions.

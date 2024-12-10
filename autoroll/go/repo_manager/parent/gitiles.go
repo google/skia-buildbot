@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // gitilesGetChangesForRollFunc computes the changes to be made in the next
@@ -84,6 +85,7 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sklog.Infof("Found tip revision of parent: %s", baseCommit.Id)
 	lastRollRev, ok := baseCommit.Dependencies[p.childID]
 	if !ok {
 		return "", skerr.Fmt("Unable to find dependency %q in %#v", p.childID, lastRollRev)

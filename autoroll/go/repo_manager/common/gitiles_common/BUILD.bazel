@@ -12,6 +12,7 @@ go_library(
         "//autoroll/go/revision",
         "//go/gitiles",
         "//go/skerr",
+        "//go/sklog",
         "//go/vcsinfo",
         "//go/vfs",
         "//go/vfs/gitiles",
