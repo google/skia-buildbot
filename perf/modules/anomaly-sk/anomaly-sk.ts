@@ -165,7 +165,7 @@ export class AnomalySk extends ElementSk {
     if (bugId === -2) {
       return html`Ignored Alert`;
     }
-    return html`<a href="${`${bugHostUrl}/${bugId}`}" target=_blank>${bugId}</td>`;
+    return html`<a href="${`${bugHostUrl}/${bugId}`}" target="_blank">${bugId}</a>`;
   }
 
   private static template = (ele: AnomalySk) => {

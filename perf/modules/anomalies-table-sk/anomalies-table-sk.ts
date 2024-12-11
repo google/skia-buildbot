@@ -270,7 +270,7 @@ export class AnomaliesTableSk extends ElementSk {
             <trending-up-icon-sk></trending-up-icon-sk>
           </td>
           <td>
-            ${AnomalySk.formatBug(this.bug_host_url, anomaly.bug_id)}
+            ${this.getReportLinkForBugId(anomaly.bug_id)}
             <close-icon-sk
               id="btnUnassociate"
               @click=${() => {
@@ -301,6 +301,19 @@ export class AnomaliesTableSk extends ElementSk {
       `);
     }
     return rows;
+  }
+
+  private getReportLinkForBugId(bug_id: number) {
+    if (bug_id === 0) {
+      return html``;
+    }
+    if (bug_id === -1) {
+      return html`Invalid Alert`;
+    }
+    if (bug_id === -2) {
+      return html`Ignored Alert`;
+    }
+    return html`<a href="/u/?bugID=${bug_id}" target="_blank">${bug_id}</a>`;
   }
 
   private getRowClass(index: number, anomalyGroup: AnomalyGroup) {
