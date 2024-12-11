@@ -253,6 +253,12 @@ export interface GetAnomaliesResponse {
 	error: string;
 }
 
+export interface GetGroupReportResponse {
+	anomaly_list: Anomaly[] | null;
+	sid: string;
+	error: string;
+}
+
 export interface GetGraphsShortcutRequest {
 	id: string;
 }

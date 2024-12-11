@@ -9,14 +9,16 @@ import { html, TemplateResult } from 'lit/html.js';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { define } from '../../../elements-sk/modules/define';
 import '../../../elements-sk/modules/checkbox-sk';
+import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
-import { Anomaly } from '../json';
+import { Anomaly, GetGroupReportResponse } from '../json';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import '@material/web/button/outlined-button.js';
+import { errorMessage } from '../errorMessage';
 
 class AnomalyGroup {
   anomalies: Anomaly[] = [];
@@ -68,6 +70,12 @@ export class AnomaliesTableSk extends ElementSk {
       ?disabled="${ele.checkedAnomaliesSet.size === 0}">
       Triage
     </button>
+    <button
+      id="graph-button"
+      @click="${ele.openReport}"
+      ?disabled="${ele.checkedAnomaliesSet.size === 0}">
+      Graph
+    </button>
     <div class="popup-container" ?hidden="${!ele.showPopup}">
       <div class="popup">
         <triage-menu-sk id="triage-menu"></triage-menu-sk>
@@ -76,6 +84,41 @@ export class AnomaliesTableSk extends ElementSk {
     ${ele.generateTable()}
     <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
   `;
+
+  private openReport() {
+    const idList = [...this.checkedAnomaliesSet].map((a) => a.id);
+    const idString = idList.join(',');
+    // TODO(wenbinzhang): ideally, we should open the url:
+    //   /u/?keys=idString.
+    // Then from the report-page-sk.ts, we can call
+    //   /_anomalies/group_report?keys=idString.
+    // From the response, we can use the .anomaly_list to
+    // populate the tablem and use the .sid to update the url.
+    // As the report-page-sk.ts is not finalized yet, I'm puting
+    // the logic here to make the implementation more clear.
+    // Though, this will cause one extra call to Chromeperf, which
+    // will slow down the repsonse time.
+    // I will move this to report-page-sk when the page is ready.
+    fetch('/_/anomalies/group_report', {
+      method: 'POST',
+      body: JSON.stringify({
+        anomalyIDs: idString,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .catch((msg) => {
+        errorMessage(msg);
+      })
+      .then((response) => {
+        const json: GetGroupReportResponse = response;
+        const sid: string = json.sid || '';
+        const url = `/u/?sid=${sid}`;
+        window.open(url, '_blank');
+      });
+  }
 
   private togglePopup() {
     this.showPopup = !this.showPopup;

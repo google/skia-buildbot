@@ -77,6 +77,7 @@ func main() {
 		frontendApi.CountHandlerRequest{},
 		frontendApi.CountHandlerResponse{},
 		frontendApi.GetAnomaliesResponse{},
+		frontendApi.GetGroupReportResponse{},
 		frontendApi.GetGraphsShortcutRequest{},
 		frontendApi.GetSheriffListResponse{},
 		frontendApi.NextParamListHandlerRequest{},
