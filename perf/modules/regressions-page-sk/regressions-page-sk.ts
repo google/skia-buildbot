@@ -13,7 +13,6 @@ import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
-
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';

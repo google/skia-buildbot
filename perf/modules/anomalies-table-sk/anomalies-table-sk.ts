@@ -279,9 +279,12 @@ export class AnomaliesTableSk extends ElementSk {
               ?hidden=${anomaly!.bug_id === 0}>
             </close-icon-sk>
           </td>
-          <!--TODO(jiaxindong) update key value to anomaly id in the group-report link-->
           <td>
-            <span>${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span>
+            <a href=${this.getRevisionUrl(String(anomaly.id))}>
+              <span
+                >${this.computeRevisionRange(anomaly.start_revision, anomaly.end_revision)}</span
+              >
+            </a>
           </td>
           <td>${processedAnomaly.master}</td>
           <td>${processedAnomaly.bot}</td>
@@ -338,6 +341,7 @@ export class AnomaliesTableSk extends ElementSk {
   populateTable(anomalyList: Anomaly[]) {
     const msg = document.getElementById('clear-msg') as HTMLHeadingElement;
     const table = document.getElementById('anomalies-table') as HTMLTableElement;
+
     if (anomalyList.length > 0) {
       msg.hidden = true;
       table.hidden = false;
@@ -371,6 +375,17 @@ export class AnomaliesTableSk extends ElementSk {
     this._render();
   }
 
+  checkAnomaly(checkedAnomaly: Anomaly) {
+    const checkbox = this.querySelector(
+      `checkbox-sk[id="anomaly-row-${checkedAnomaly.id}"]`
+    ) as CheckOrRadio;
+    if (checkbox !== null) {
+      checkbox.checked = true;
+      this.anomalyChecked(checkbox, checkedAnomaly);
+      this._render();
+    }
+  }
+
   /**
    * Toggles the 'checked' state of all checkboxes in the table based on the state of
    * the header checkbox. This provides a convenient way to select or deselect all
@@ -392,6 +407,11 @@ export class AnomaliesTableSk extends ElementSk {
 
   getCheckedAnomalies(): Anomaly[] {
     return Array.from(this.checkedAnomaliesSet);
+  }
+
+  private getRevisionUrl(anomalyID: string): string {
+    const url = `${window.location.protocol}//${window.location.host}/u/?anomalyIDs=${anomalyID}`;
+    return url;
   }
 }
 

@@ -101,7 +101,7 @@ export class ReportPageSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json) => {
-        this.anomalyList = json.anomaly_list;
+        this.anomalyList = json.anomaly_list || [];
         this.initializePage();
         this._spinner!.active = false;
         this._render();
@@ -115,6 +115,15 @@ export class ReportPageSk extends ElementSk {
 
   private initializePage() {
     this.anomaliesTable!.populateTable(this.anomalyList);
+    if (this.params.anomalyIDs) {
+      const anomaly = this.initialReportPageCheckedAnomalies(
+        this.params.anomalyIDs,
+        this.anomalyList
+      );
+      if (anomaly) {
+        this.anomaliesTable!.checkAnomaly(anomaly!);
+      }
+    }
   }
 
   private async initializeDefaults() {
@@ -160,6 +169,20 @@ export class ReportPageSk extends ElementSk {
       delete this.anomalyMap[anomaly.id];
       this.graphDiv!.removeChild(explore);
     }
+  }
+
+  private initialReportPageCheckedAnomalies(
+    anomalyIds: string,
+    anomalies: Anomaly[]
+  ): Anomaly | null {
+    const firstAnomalyId = anomalyIds.split(',').at(0);
+    for (let i = 0; i < anomalies.length; i++) {
+      const anomaly = anomalies.at(i);
+      if (anomaly !== undefined && String(anomaly.id) === firstAnomalyId) {
+        return anomaly;
+      }
+    }
+    return null;
   }
 }
 
