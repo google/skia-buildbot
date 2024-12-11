@@ -178,6 +178,17 @@ export class AnomaliesTableSk extends ElementSk {
       this.headerCheckbox!.checked = false;
       this.checkedAnomaliesSet.delete(a);
     }
+
+    this.dispatchEvent(
+      new CustomEvent('anomalies_checked', {
+        detail: {
+          anomaly: a,
+          checked: chkbox.checked,
+        },
+        bubbles: true,
+      })
+    );
+
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this._render();
   }

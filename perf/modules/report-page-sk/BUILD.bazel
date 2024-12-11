@@ -15,13 +15,16 @@ sk_element(
     sk_element_deps = [
         "//elements-sk/modules/spinner-sk",
         "//perf/modules/anomalies-table-sk",
+        "//perf/modules/explore-simple-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
         "//infra-sk/modules:jsonorthrow_ts_lib",
-        "//perf/modules/errorMessage:index_ts_lib",
         "//infra-sk/modules/ElementSk:index_ts_lib",
         "//elements-sk/modules:define_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+        "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
+        "//perf/modules/errorMessage:index_ts_lib",
     ],
     ts_srcs = [
         "report-page-sk.ts",
@@ -40,5 +43,9 @@ sk_page(
     ],
     scss_entry_point = "report-page-sk-demo.scss",
     sk_element_deps = [":report-page-sk"],
+    ts_deps = [
+        "//:node_modules/fetch-mock",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
     ts_entry_point = "report-page-sk-demo.ts",
 )

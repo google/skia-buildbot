@@ -6,11 +6,15 @@
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { errorMessage } from '../errorMessage';
+import { State, ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
+import { Anomaly, QueryConfig } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
+import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
+import { errorMessage } from '../errorMessage';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
+import '../anomalies-table-sk/anomalies-table-sk';
 
 class ReportPageParams {
   // A revision number.
@@ -35,11 +39,23 @@ export class ReportPageSk extends ElementSk {
   // Anomalies table
   private anomaliesTable: AnomaliesTableSk | null = null;
 
+  // Anomaly list
+  private anomalyList: Anomaly[] = [];
+
+  // Keep track of which anomalies are graphed.
+  private anomalyMap: { [key: number]: ExploreSimpleSk } = {};
+
+  private graphDiv: Element | null = null;
+
   private _spinner: SpinnerSk | null = null;
+
+  private traceFormatter: ChromeTraceFormatter | null = null;
+
+  private defaults: QueryConfig | null = null;
 
   constructor() {
     super(ReportPageSk.template);
-    this.anomaliesTable = new AnomaliesTableSk();
+    this.traceFormatter = new ChromeTraceFormatter();
   }
 
   async connectedCallback() {
@@ -47,7 +63,9 @@ export class ReportPageSk extends ElementSk {
     this._render();
 
     this._spinner = this.querySelector('#loading-spinner');
-
+    this.anomaliesTable = this.querySelector('#anomaly-table');
+    this.graphDiv = this.querySelector('#graph-container');
+    await this.initializeDefaults();
     // Parse the URL Params.
     const params = new URLSearchParams(window.location.search);
     this.params.rev = params.get('rev') || '';
@@ -55,7 +73,10 @@ export class ReportPageSk extends ElementSk {
     this.params.bugID = params.get('bugID') || '';
     this.params.anomalyGroupID = params.get('anomalyGroupID') || '';
     this.params.sid = params.get('sid') || '';
-
+    this.addEventListener('anomalies_checked', (e) => {
+      const detail = (e as CustomEvent).detail;
+      this.updateGraphs(detail.anomaly, detail.checked);
+    });
     await this.fetchAnomalies();
   }
 
@@ -64,9 +85,10 @@ export class ReportPageSk extends ElementSk {
       <spinner-sk id="loading-spinner"></spinner-sk>
     </div>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <div id="graph-container"></div>
   `;
 
-  private async fetchAnomalies() {
+  async fetchAnomalies() {
     this._spinner!.active = true;
     this._render();
 
@@ -78,7 +100,8 @@ export class ReportPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((_) => {
+      .then((json) => {
+        this.anomalyList = json.anomaly_list;
         this.initializePage();
         this._spinner!.active = false;
         this._render();
@@ -91,7 +114,52 @@ export class ReportPageSk extends ElementSk {
   }
 
   private initializePage() {
-    // TODO(eduardoyap): Initialize table and graphs.
+    this.anomaliesTable!.populateTable(this.anomalyList);
+  }
+
+  private async initializeDefaults() {
+    await fetch(`/_/defaults/`, {
+      method: 'GET',
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.defaults = json;
+      });
+  }
+
+  private getQueryFromAnomaly(anomaly: Anomaly) {
+    return this.traceFormatter!.formatQuery(anomaly.test_path);
+  }
+
+  private addGraph(anomaly: Anomaly) {
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(true, false);
+    explore.defaults = this.defaults;
+    explore.openQueryByDefault = false;
+    explore.navOpen = false;
+
+    this.graphDiv!.prepend(explore);
+
+    const query = this.getQueryFromAnomaly(anomaly);
+    const state = new State();
+    explore.state = {
+      ...state,
+      queries: [query],
+    };
+    this._render();
+
+    return explore;
+  }
+
+  private updateGraphs(anomaly: Anomaly, checked: boolean) {
+    const explore = this.anomalyMap[anomaly.id];
+    if (checked && !explore) {
+      // Add a new graph if checked and it doesn't exist
+      this.anomalyMap[anomaly.id] = this.addGraph(anomaly);
+    } else if (!checked && explore) {
+      // Remove the graph if unchecked and it exists
+      delete this.anomalyMap[anomaly.id];
+      this.graphDiv!.removeChild(explore);
+    }
   }
 }
 

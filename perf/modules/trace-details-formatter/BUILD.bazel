@@ -5,6 +5,7 @@ ts_library(
     srcs = ["traceformatter.ts"],
     visibility = ["//visibility:public"],
     deps = [
+        "//infra-sk/modules:query_ts_lib",
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/paramtools:index_ts_lib",
         "//perf/modules/window:window_ts_lib",
