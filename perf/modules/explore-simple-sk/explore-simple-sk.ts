@@ -2268,7 +2268,11 @@ export class ExploreSimpleSk extends ElementSk {
         shortTraceId = `,${shortTraceId}`;
       }
 
-      let formattedShortTrace = this.traceFormatter!.formatTrace(fromKey(shortTraceId));
+      let formattedShortTrace = '';
+      if (shortTraceId !== '') {
+        formattedShortTrace = this.traceFormatter!.formatTrace(fromKey(shortTraceId));
+      }
+
       // Since this text is just the uncommon part of trace Id we want to remove
       // the label from the formatted trace id so the user doesn't get confused.
       formattedShortTrace = formattedShortTrace.replace('Trace ID: ', '');
