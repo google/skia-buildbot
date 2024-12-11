@@ -71,7 +71,10 @@ type GetGroupReportRequest struct {
 }
 
 type GetGroupReportByKeysRequest struct {
+	// comma separated anomaly keys
 	Keys string `json:"keys"`
+	// host value to filter anomalies
+	Host string `json:"host"`
 }
 
 type Timerange struct {
@@ -206,19 +209,24 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	groupReportResponse := &GetGroupReportResponse{}
 
+	host := config.Config.URL
 	if groupReportRequest.AnomalyIDs != "" {
 		if len(strings.Split(groupReportRequest.AnomalyIDs, ",")) == 1 {
-			err = api.chromeperfClient.SendGetRequest(ctx, "alerts_skia_by_key", "", url.Values{"key": {groupReportRequest.AnomalyIDs}}, groupReportResponse)
+			err = api.chromeperfClient.SendGetRequest(
+				ctx, "alerts_skia_by_key", "", url.Values{"key": {groupReportRequest.AnomalyIDs}, "host": []string{host}}, groupReportResponse)
 		} else {
 			groupReportByKeysRequest := &GetGroupReportByKeysRequest{
 				Keys: groupReportRequest.AnomalyIDs,
+				Host: host,
 			}
 			err = api.chromeperfClient.SendPostRequest(ctx, "alerts_skia_by_keys", "", groupReportByKeysRequest, groupReportResponse, []int{200, 400, 500})
 		}
 	} else if groupReportRequest.BugID != "" {
-		err = api.chromeperfClient.SendGetRequest(ctx, "alerts_skia_by_bug_id", "", url.Values{"bug_id": {groupReportRequest.BugID}}, groupReportResponse)
+		err = api.chromeperfClient.SendGetRequest(
+			ctx, "alerts_skia_by_bug_id", "", url.Values{"bug_id": {groupReportRequest.BugID}, "host": []string{host}}, groupReportResponse)
 	} else if groupReportRequest.Sid != "" {
-		err = api.chromeperfClient.SendGetRequest(ctx, "alerts_skia_by_sid", "", url.Values{"sid": {groupReportRequest.Sid}}, groupReportResponse)
+		err = api.chromeperfClient.SendGetRequest(
+			ctx, "alerts_skia_by_sid", "", url.Values{"sid": {groupReportRequest.Sid}, "host": []string{host}}, groupReportResponse)
 	} else {
 		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters, or the parameter provided is not yet supported: %s", groupReportRequest), http.StatusBadRequest)
 		return
