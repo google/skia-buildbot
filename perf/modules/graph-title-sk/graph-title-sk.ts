@@ -116,8 +116,13 @@ export class GraphTitleSk extends ElementSk {
     return elems;
   }
 
-  private showFullTitle() {
+  showFullTitle() {
     this.showShortTitle = false;
+    this._render();
+  }
+
+  showShortTitles() {
+    this.showShortTitle = true;
     this._render();
   }
 }

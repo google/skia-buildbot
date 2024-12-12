@@ -109,6 +109,8 @@ export class ExploreMultiSk extends ElementSk {
 
   private userEmail: string = '';
 
+  private displayFullTitles: boolean = false;
+
   constructor() {
     super(ExploreMultiSk.template);
   }
@@ -186,6 +188,12 @@ export class ExploreMultiSk extends ElementSk {
     return this.userEmail !== null && this.userEmail !== '';
   }
 
+  // Checks if the multi graph page has at least one explore-simple-sk element.
+  private canActivateTitles(): boolean {
+    const hasExploreElems = !(this.exploreElements === null || this.exploreElements === undefined);
+    return hasExploreElems && this.exploreElements.length > 0;
+  }
+
   private toggleChartStyle() {
     this.state.show_google_plot = !this.state.show_google_plot;
     this.addGraphsToCurrentPage();
@@ -240,6 +248,20 @@ export class ExploreMultiSk extends ElementSk {
           ele.openAddFavoriteDialog();
         }}>
         Add to Favorites
+      </button>
+      <button
+        ?disabled=${!ele.canActivateTitles()}
+        @click=${() => {
+          ele.displayFullTitles = !ele.displayFullTitles;
+          ele.exploreElements.forEach((exp) => {
+            if (ele.displayFullTitles) {
+              exp.showFullTitle();
+            } else {
+              exp.showShortTitle();
+            }
+          });
+        }}>
+        Toggle Titles
       </button>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>

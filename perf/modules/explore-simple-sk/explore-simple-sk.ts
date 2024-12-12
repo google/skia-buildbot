@@ -1074,6 +1074,24 @@ export class ExploreSimpleSk extends ElementSk {
       </div>`;
   }
 
+  // Show full graph title if the graph title exists.
+  showFullTitle() {
+    if (this.graphTitle === null || this.graphTitle === undefined) {
+      return;
+    }
+
+    this.graphTitle.showFullTitle();
+  }
+
+  // Show short graph title if the graph title exists.
+  showShortTitle() {
+    if (this.graphTitle === null || this.graphTitle === undefined) {
+      return;
+    }
+
+    this.graphTitle.showShortTitles();
+  }
+
   private onSummaryPickerChanged(e: CustomEvent) {
     const selectedTrace = e.detail.value;
     this.traceKeyForSummary = this.summaryOptionTraceMap.get(selectedTrace) || '';
