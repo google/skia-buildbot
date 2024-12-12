@@ -253,10 +253,16 @@ export interface GetAnomaliesResponse {
 	error: string;
 }
 
+export interface Timerange {
+	begin: number;
+	end: number;
+}
+
 export interface GetGroupReportResponse {
 	anomaly_list: Anomaly[] | null;
 	sid: string;
 	error: string;
+	timerange_map: { [key: number]: Timerange } | null;
 }
 
 export interface GetGraphsShortcutRequest {

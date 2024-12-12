@@ -16,6 +16,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
+	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -25,6 +27,7 @@ const (
 type anomaliesApi struct {
 	chromeperfClient chromeperf.ChromePerfClient
 	loginProvider    alogin.Login
+	perfGit          perfgit.Git
 }
 
 // Response object for the request from sheriff list UI.
@@ -70,6 +73,11 @@ type GetGroupReportByKeysRequest struct {
 	Keys string `json:"keys"`
 }
 
+type Timerange struct {
+	Begin int64 `json:"begin"`
+	End   int64 `json:"end"`
+}
+
 type GetGroupReportResponse struct {
 	// The list of anomalies.
 	Anomalies []chromeperf.Anomaly `json:"anomaly_list"`
@@ -79,6 +87,9 @@ type GetGroupReportResponse struct {
 	StateId string `json:"sid"`
 	// Error message if any.
 	Error string `json:"error"`
+	// List of timeranges that will let report page know in what range to render
+	// each graph.
+	TimerangeMap map[int]Timerange `json:"timerange_map"`
 }
 
 func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
@@ -87,10 +98,11 @@ func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/anomalies/group_report", api.GetGroupReport)
 }
 
-func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient) anomaliesApi {
+func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git) anomaliesApi {
 	return anomaliesApi{
 		loginProvider:    loginProvider,
 		chromeperfClient: chromeperfClient,
+		perfGit:          perfGit,
 	}
 }
 
@@ -208,6 +220,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		err = api.chromeperfClient.SendGetRequest(ctx, "alerts_skia_by_sid", "", url.Values{"sid": {groupReportRequest.Sid}}, groupReportResponse)
 	} else {
 		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters, or the parameter provided is not yet supported: %s", groupReportRequest), http.StatusBadRequest)
+		return
 	}
 
 	if err != nil {
@@ -217,6 +230,12 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 
 	if groupReportResponse.Error != "" {
 		httputils.ReportError(w, errors.New(groupReportResponse.Error), fmt.Sprintf("Error when getting the anomaly report group. Please double check each request parameter, and try again: %v", groupReportResponse.Error), http.StatusBadRequest)
+		return
+	}
+
+	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
 		return
 	}
 
@@ -241,4 +260,26 @@ func IsGroupReportRequestValid(req GetGroupReportRequest) bool {
 		valid_param_count += 1
 	}
 	return valid_param_count == 1
+}
+
+func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromeperf.Anomaly) (map[int]Timerange, error) {
+	timerangeMap := make(map[int]Timerange)
+	for i := range anomalies {
+		anomaly := &anomalies[i]
+		startCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.StartRevision))
+		if err != nil {
+			return nil, err
+		}
+		startTime := int64(startCommit.Timestamp)
+
+		endCommit, err := api.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(anomaly.EndRevision))
+		if err != nil {
+			return nil, err
+		}
+
+		// We will shift the end time by a day so the graph doesn't render the anomalies right at the end
+		endTime := time.Unix(endCommit.Timestamp, 0).AddDate(0, 0, 1)
+		timerangeMap[anomaly.Id] = Timerange{Begin: startTime, End: int64(endTime.Unix())}
+	}
+	return timerangeMap, nil
 }

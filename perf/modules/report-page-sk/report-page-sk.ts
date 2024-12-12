@@ -7,7 +7,7 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { State, ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
-import { Anomaly, QueryConfig } from '../json';
+import { Anomaly, QueryConfig, Timerange } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
@@ -41,6 +41,9 @@ export class ReportPageSk extends ElementSk {
 
   // Anomaly list
   private anomalyList: Anomaly[] = [];
+
+  // Maps anomaly ID to Begin and End ranges.
+  private timerangeMap: { [key: number]: Timerange } = {};
 
   // Keep track of which anomalies are graphed.
   private anomalyMap: { [key: number]: ExploreSimpleSk } = {};
@@ -102,6 +105,7 @@ export class ReportPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this.anomalyList = json.anomaly_list || [];
+        this.timerangeMap = json.timerange_map;
         this.initializePage();
         this._spinner!.active = false;
         this._render();
@@ -150,9 +154,13 @@ export class ReportPageSk extends ElementSk {
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
+    const timerange = this.timerangeMap[anomaly.id];
     explore.state = {
       ...state,
       queries: [query],
+      highlight_anomalies: [String(anomaly.id)],
+      begin: timerange.begin,
+      end: timerange.end,
     };
     this._render();
 
