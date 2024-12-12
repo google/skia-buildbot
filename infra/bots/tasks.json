@@ -97,6 +97,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -141,6 +144,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk"
@@ -184,6 +190,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk"
@@ -227,6 +236,9 @@
         "machine_type:n1-standard-16",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk"
@@ -261,7 +273,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:513455d301ce256eee5e41f9eb17190a25ef0abd",
         "--cipd",
-        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
+        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:9513bbe24fc9a653b9a724e038e06dcba7405ff8",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -298,6 +310,9 @@
         "machine_type:n1-highcpu-64",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -334,7 +349,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:513455d301ce256eee5e41f9eb17190a25ef0abd",
         "--cipd",
-        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:31c9c5fbdcd2ba620a443dbc1740f2bca8e7cb83",
+        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:9513bbe24fc9a653b9a724e038e06dcba7405ff8",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -373,6 +388,9 @@
         "machine_type:n1-highcpu-64",
         "docker_installed:true"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",

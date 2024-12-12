@@ -111,6 +111,10 @@ func usesBazelisk(b *specs.TasksCfgBuilder, t *specs.TaskSpec) {
 		t.EnvPrefixes = map[string][]string{}
 	}
 	t.EnvPrefixes["PATH"] = append(t.EnvPrefixes["PATH"], "bazelisk")
+	if t.Environment == nil {
+		t.Environment = map[string]string{}
+	}
+	t.Environment["USE_BAZEL_FALLBACK_VERSION"] = "error"
 }
 
 // buildTaskDrivers generates the task which compiles the task driver code to run on the specified
