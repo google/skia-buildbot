@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -233,6 +234,10 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := range groupReportResponse.Anomalies {
+		groupReportResponse.Anomalies[i].TestPath = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
+	}
+
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get timerange map.", http.StatusInternalServerError)
@@ -282,4 +287,16 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 		timerangeMap[anomaly.Id] = Timerange{Begin: startTime, End: int64(endTime.Unix())}
 	}
 	return timerangeMap, nil
+}
+
+// cleanTestName cleans the given test name using the query.ForceValid function.
+func cleanTestName(testName string) string {
+	// Split the test name into parts.
+	parts := strings.Split(testName, "/")
+	// Clean each part individually.
+	for i := range parts {
+		parts[i] = query.ForceValid(map[string]string{"": parts[i]})[""]
+	}
+	// Join the cleaned parts back together.
+	return strings.Join(parts, "/")
 }
