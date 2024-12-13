@@ -12,6 +12,7 @@ import '../../../elements-sk/modules/checkbox-sk';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import '../../../infra-sk/modules/sort-sk';
 import { Anomaly, GetGroupReportResponse } from '../json';
+import { GraphConfig } from '../explore-simple-sk/explore-simple-sk';
 import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import '../window/window';
 import { TriageMenuSk } from '../triage-menu-sk/triage-menu-sk';
@@ -19,6 +20,8 @@ import '../triage-menu-sk/triage-menu-sk';
 import { CheckOrRadio } from '../../../elements-sk/modules/checkbox-sk/checkbox-sk';
 import '@material/web/button/outlined-button.js';
 import { errorMessage } from '../errorMessage';
+import { updateShortcut } from '../explore-simple-sk/explore-simple-sk';
+import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 
 class AnomalyGroup {
   anomalies: Anomaly[] = [];
@@ -41,6 +44,12 @@ export class AnomaliesTableSk extends ElementSk {
 
   private headerCheckbox: CheckOrRadio | null = null;
 
+  private traceFormatter: ChromeTraceFormatter | null = null;
+
+  private shortcutUrl: string = '';
+
+  private getGroupReportResponse: GetGroupReportResponse | null = null;
+
   constructor() {
     super(AnomaliesTableSk.template);
   }
@@ -53,6 +62,7 @@ export class AnomaliesTableSk extends ElementSk {
     this.triageMenu!.disableNudge();
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
     this.headerCheckbox = this.querySelector('#header-checkbox') as CheckOrRadio;
+    this.traceFormatter = new ChromeTraceFormatter();
     this.addEventListener('click', (e: Event) => {
       const triageButton = this.querySelector('#triage-button');
       const popup = this.querySelector('.popup');
@@ -99,25 +109,11 @@ export class AnomaliesTableSk extends ElementSk {
     // Though, this will cause one extra call to Chromeperf, which
     // will slow down the repsonse time.
     // I will move this to report-page-sk when the page is ready.
-    fetch('/_/anomalies/group_report', {
-      method: 'POST',
-      body: JSON.stringify({
-        anomalyIDs: idString,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .catch((msg) => {
-        errorMessage(msg);
-      })
-      .then((response) => {
-        const json: GetGroupReportResponse = response;
-        const sid: string = json.sid || '';
-        const url = `/u/?sid=${sid}`;
-        window.open(url, '_blank');
-      });
+    this.fetchGroupReportApi(idString);
+
+    const sid: string = this.getGroupReportResponse!.sid || '';
+    const url = `/u/?sid=${sid}`;
+    window.open(url, '_blank');
   }
 
   private togglePopup() {
@@ -308,9 +304,14 @@ export class AnomaliesTableSk extends ElementSk {
               id="anomaly-row-${anomaly.id}">
             </checkbox-sk>
           </td>
-          <!--TODO(jiaxindong) update graph link to real dashboard link-->
           <td>
-            <trending-up-icon-sk></trending-up-icon-sk>
+            <button
+              id="trendingicon-link"
+              @click=${() => {
+                this.openMultiGraphUrl(anomaly);
+              }}>
+              <trending-up-icon-sk></trending-up-icon-sk>
+            </button>
           </td>
           <td>
             ${this.getReportLinkForBugId(anomaly.bug_id)}
@@ -465,9 +466,60 @@ export class AnomaliesTableSk extends ElementSk {
     return Array.from(this.checkedAnomaliesSet);
   }
 
+  private fetchGroupReportApi(idString: string) {
+    fetch('/_/anomalies/group_report', {
+      method: 'POST',
+      body: JSON.stringify({
+        anomalyIDs: idString,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .catch((msg) => {
+        errorMessage(msg);
+      })
+      .then((response) => {
+        const json: GetGroupReportResponse = response;
+        this.getGroupReportResponse = json;
+      });
+  }
+
   private getRevisionUrl(anomalyID: string): string {
     const url = `${window.location.protocol}//${window.location.host}/u/?anomalyIDs=${anomalyID}`;
     return url;
+  }
+
+  // openMultiGraphLink generates a multi-graph url for the given parameters
+  private openMultiGraphUrl(anomaly: Anomaly): void {
+    this.fetchGroupReportApi(String(anomaly.id));
+    const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin.toString() || '';
+    const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end.toString() || '';
+
+    const graphConfigs = [] as GraphConfig[];
+
+    const config: GraphConfig = {
+      keys: '',
+      formulas: [],
+      queries: [],
+    };
+    config.queries = [this.traceFormatter!.formatQuery(anomaly.test_path)];
+    graphConfigs.push(config);
+    updateShortcut(graphConfigs)
+      .then((shortcut) => {
+        if (shortcut === '') {
+          this.shortcutUrl = '';
+          return;
+        }
+        this.shortcutUrl = shortcut;
+      })
+      .catch(errorMessage);
+
+    const url =
+      `${window.location.protocol}//${window.location.host}` +
+      `/m/?begin=${begin}&end=${end}&shortcut=${this.shortcutUrl}&totalGraphs=1`;
+    window.open(url, '_blank');
   }
 }
 

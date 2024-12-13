@@ -13,6 +13,7 @@ sk_element(
         "//infra-sk/modules/sort-sk",
         "//perf/modules/anomaly-sk",
         "//perf/modules/triage-menu-sk",
+        "//perf/modules/explore-simple-sk",
     ],
     ts_deps = [
         "//:node_modules/@types/google.visualization",  # keep
@@ -25,6 +26,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//:node_modules/@material/web",
         "//perf/modules/errorMessage:index_ts_lib",
+        "//perf/modules/trace-details-formatter:traceformatter_ts_lib",
     ],
     ts_srcs = [
         "anomalies-table-sk.ts",

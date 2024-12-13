@@ -44,6 +44,11 @@ anomalies-table-sk {
       text-align: center;
       width: var(--percent-changed-width, 50px);
     }
+    #trendingicon-link {
+      color: rgb(87, 120, 211);
+      cursor: pointer;
+      display: contents;
+    }
   }
 
   close-icon-sk#btnUnassociate {
