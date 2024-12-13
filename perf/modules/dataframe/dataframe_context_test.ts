@@ -7,7 +7,12 @@ import './dataframe_context';
 import { ColumnHeader, ReadOnlyParamSet } from '../json';
 import fetchMock from 'fetch-mock';
 import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
-import { generateAnomalyMap, generateFullDataFrame, mockFrameStart } from './test_utils';
+import {
+  generateAnomalyMap,
+  generateFullDataFrame,
+  mockFrameStart,
+  mockUserIssues,
+} from './test_utils';
 
 const now = 1726081856; // an arbitrary UNIX time;
 const timeSpan = 89; // an arbitrary prime number for time span between commits .
@@ -161,5 +166,96 @@ describe('dataframe-repository', () => {
         assert.sameOrderedMembers(df.traceset[key2], dfRepo.traces[key2]);
       })
     );
+  });
+
+  it('gets user issues', async () => {
+    mockUserIssues(false);
+
+    const dfRepo = newEl();
+    await dfRepo.getUserIssues([',a=1,', ',b=1,', ',c=1,'], 100, 200);
+
+    const expected = {
+      ',a=1,': { 1: { bugId: 2345, x: -1, y: -1 } },
+      ',b=1,': { 3: { bugId: 3456, x: -1, y: -1 } },
+      ',c=1,': { 8: { bugId: 4567, x: -1, y: -1 } },
+    };
+    assert.deepEqual(dfRepo.userIssues, expected);
+  });
+
+  it('fails to get user issues', async () => {
+    mockUserIssues(true);
+    const dfRepo = newEl();
+    try {
+      await dfRepo.getUserIssues([',a=1,', ',b=1,', ',c=1,'], 100, 200);
+    } catch (err) {
+      const e = err as string;
+      assert.equal(e, 'Internal Server Error');
+    }
+  });
+
+  it('updates user issues', async () => {
+    const df = generateFullDataFrame(range(100, 201), now, 1, [timeSpan]);
+    mockFrameStart(df, paramset);
+
+    const dfRepo = newEl();
+    const obj1 = { 1: { bugId: 1234, x: 2, y: 3 } };
+    const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
+    const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
+    dfRepo.userIssues = {
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
+    };
+
+    const expected = {
+      ',key=0,': obj1,
+      ',key=1,': { 3: { bugId: 345, x: -1, y: -1 }, 8: { bugId: 5345, x: 29, y: 45 } },
+      ',key=2,': obj3,
+    };
+
+    await dfRepo.updateUserIssue(',key=1,', 3, 345);
+
+    assert.deepEqual(dfRepo.userIssues, expected);
+  });
+
+  it('updates user issues new trace', async () => {
+    const df = generateFullDataFrame(range(100, 201), now, 1, [timeSpan]);
+    mockFrameStart(df, paramset);
+
+    const dfRepo = newEl();
+    const obj1 = { 1: { bugId: 1234, x: 2, y: 3 } };
+    const obj2 = { 3: { bugId: 3453, x: 8, y: 20 }, 8: { bugId: 5345, x: 29, y: 45 } };
+    const obj3 = { 5: { bugId: 5675, x: 10, y: 30 } };
+    dfRepo.userIssues = {
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
+    };
+
+    const expected = {
+      ',key=0,': obj1,
+      ',key=1,': obj2,
+      ',key=2,': obj3,
+      ',key=3,': { 6: { bugId: 6767, x: -1, y: -1 } },
+    };
+
+    await dfRepo.updateUserIssue(',key=3,', 6, 6767);
+
+    assert.deepEqual(dfRepo.userIssues, expected);
+  });
+
+  it('updates user issues no existing issues', async () => {
+    const df = generateFullDataFrame(range(100, 201), now, 1, [timeSpan]);
+    mockFrameStart(df, paramset);
+
+    const dfRepo = newEl();
+
+    const expected = {
+      ',key=k,': { 6: { bugId: 6767, x: -1, y: -1 } },
+    };
+
+    await dfRepo.updateUserIssue(',key=k,', 6, 6767);
+
+    assert.deepEqual(dfRepo.userIssues, expected);
   });
 });

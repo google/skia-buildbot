@@ -37,6 +37,37 @@ import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamS
 import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
 
+// Holds issue data for a single data point.
+// x and y corresponds to the location of the data point on the chart
+export interface IssueDetail {
+  bugId: number;
+  x: number;
+  y: number;
+}
+
+// A map of user reported issues generally constructed from UserIssueResponse
+export type UserIssueMap = { [key: string]: { [key: number]: IssueDetail } } | null;
+
+// Request format for _/user_issues/ API call
+export interface UserIssuesRequest {
+  trace_keys: string[];
+  begin_commit_position: number;
+  end_commit_position: number;
+}
+
+// UserIssue represents a single user issue
+export interface UserIssue {
+  UserId: string;
+  TraceKey: string;
+  CommitPosition: number;
+  IssueId: number;
+}
+
+// Response format for _/user_issues/ API call
+export interface UserIssueResponse {
+  UserIssues: UserIssue[];
+}
+
 // Shift the range by offset.
 // Note, shitf [0, 10] by 10 will give [1, 11].
 const deltaRange = (range: range, offset: number) => {
@@ -91,6 +122,12 @@ export const dataframeAnomalyContext = createContext<AnomalyMap>(
   Symbol('dataframe-anomaly-context')
 );
 
+// This context tracks the bugaizer user issues associated
+// with the dataframe points
+export const dataframeUserIssueContext = createContext<UserIssueMap>(
+  Symbol('dataframe-user-issue-context')
+);
+
 // This context indicates whether there is an ongoing dataframe request.
 export const dataframeLoadingContext = createContext<boolean>(Symbol('dataframe-loading-context'));
 
@@ -106,6 +143,8 @@ export class DataFrameRepository extends LitElement {
   private static shiftUrl = '/_/shift/';
 
   private static frameStartUrl = '/_/frame/start';
+
+  private static userIssuesUrl = '/_/user_issues/';
 
   // The promise that resolves when the Google Chart API is loaded.
   private static loadPromise = load();
@@ -144,6 +183,9 @@ export class DataFrameRepository extends LitElement {
 
   @provide({ context: dataframeAnomalyContext })
   anomaly: AnomalyMap = null;
+
+  @provide({ context: dataframeUserIssueContext })
+  userIssues: UserIssueMap = null;
 
   // This element doesn't render anything and all the children should be
   // attached to itself directly.
@@ -444,5 +486,66 @@ export class DataFrameRepository extends LitElement {
       return Promise.reject(resp.statusText);
     }
     return (await resp.json()) as ShiftResponse;
+  }
+
+  // Makes an API call to fetch the comments in the given commit position range.
+  // Modifies the response to match with the UserIssueMap interface.
+  async getUserIssues(traceKeys: string[], begin: number, end: number): Promise<UserIssueMap> {
+    const req: UserIssuesRequest = {
+      trace_keys: traceKeys,
+      begin_commit_position: begin,
+      end_commit_position: end,
+    };
+    const resp = await fetch(DataFrameRepository.userIssuesUrl, {
+      method: 'POST',
+      body: JSON.stringify(req),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!resp.ok) {
+      return Promise.reject(resp.statusText);
+    }
+
+    const jsonResp = await resp.json();
+    const respJson = jsonResp as UserIssueResponse;
+    const output: UserIssueMap = {};
+    respJson.UserIssues.forEach((issue) => {
+      const traceKey = issue.TraceKey;
+      const commitPos = issue.CommitPosition;
+      const issueId = issue.IssueId;
+      if (!(traceKey in output)) {
+        output[traceKey] = {};
+      }
+      output[traceKey][commitPos] = { bugId: issueId, x: -1, y: -1 };
+    });
+
+    this.userIssues = output;
+    return output;
+  }
+
+  // Updates the userIssues property if a new buganizer issue is created
+  // or an existing issue is removed.
+  updateUserIssue(traceKey: string, commitPosition: number, bugId: number) {
+    let issues = this.userIssues;
+    this.userIssues = null;
+
+    const updatedIssue = { bugId: bugId, x: -1, y: -1 };
+    if (issues === null) {
+      issues = {};
+      issues[traceKey] = {};
+      issues[traceKey][commitPosition] = updatedIssue;
+      this.userIssues = issues;
+      return;
+    }
+
+    if (Object.keys(issues).includes(traceKey)) {
+      issues[traceKey][commitPosition] = updatedIssue;
+      this.userIssues = issues;
+    } else {
+      issues[traceKey] = {};
+      issues[traceKey][commitPosition] = updatedIssue;
+      this.userIssues = issues;
+    }
   }
 }

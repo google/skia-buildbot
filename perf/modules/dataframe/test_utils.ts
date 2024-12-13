@@ -123,6 +123,33 @@ export const generateAnomalyMap = (
   return anomaly;
 };
 
+export const mockUserIssues = (isError: boolean) => {
+  const mock: FetchMockStatic = fetchMock;
+  if (isError) {
+    return mock.post('/_/user_issues/', 500);
+  }
+
+  mock.post(
+    {
+      url: '/_/user_issues/',
+      method: 'POST',
+      matchPartialBody: true,
+      delay: 0,
+    },
+    () => {
+      return {
+        UserIssues: [
+          { UserId: 'a@b.com', TraceKey: ',a=1,', CommitPosition: 1, IssueId: 2345 },
+          { UserId: 'a@b.com', TraceKey: ',b=1,', CommitPosition: 3, IssueId: 3456 },
+          { UserId: 'a@b.com', TraceKey: ',c=1,', CommitPosition: 8, IssueId: 4567 },
+        ],
+      };
+    }
+  );
+
+  return mock;
+};
+
 export const mockFrameStart = (
   df: DataFrame,
   paramset: ReadOnlyParamSet,
