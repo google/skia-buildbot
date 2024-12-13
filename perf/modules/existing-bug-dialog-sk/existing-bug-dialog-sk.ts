@@ -129,13 +129,13 @@ export class ExistingBugDialogSk extends ElementSk {
   addAnomalyWithExistingBug(): void {
     this._spinner!.active = true;
     // Disable submit and close button
-    document.getElementById('file-button')!.setAttribute('disabled', 'true');
-    document.getElementById('close-button')!.setAttribute('disabled', 'true');
+    this.querySelector('#file-button')!.setAttribute('disabled', 'true');
+    this.querySelector('#close-button')!.setAttribute('disabled', 'true');
 
     this._render();
 
     // Extract bug_id.
-    const bugId = document.getElementById('bug_id')! as HTMLInputElement;
+    const bugId = this.querySelector('#bug_id')! as HTMLInputElement;
     this.bug_id = +bugId?.value as number;
 
     const alertKeys: number[] = this._anomalies.map((a) => a.id);
@@ -155,8 +155,8 @@ export class ExistingBugDialogSk extends ElementSk {
       .then(jsonOrThrow)
       .then(() => {
         this._spinner!.active = false;
-        document.getElementById('file-button')!.removeAttribute('disabled');
-        document.getElementById('close-button')!.removeAttribute('disabled');
+        this.querySelector('#file-button')!.removeAttribute('disabled');
+        this.querySelector('#close-button')!.removeAttribute('disabled');
         this.closeDialog();
 
         // Open the bug page in new window.
@@ -182,8 +182,8 @@ export class ExistingBugDialogSk extends ElementSk {
       })
       .catch((msg: any) => {
         this._spinner!.active = false;
-        document.getElementById('file-button')!.removeAttribute('disabled');
-        document.getElementById('close-button')!.removeAttribute('disabled');
+        this.querySelector('#file-button')!.removeAttribute('disabled');
+        this.querySelector('#close-button')!.removeAttribute('disabled');
         errorMessage(msg);
         this._render();
       });

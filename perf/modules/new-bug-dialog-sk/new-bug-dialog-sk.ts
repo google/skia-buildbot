@@ -320,25 +320,25 @@ export class NewBugDialogSk extends ElementSk {
   fileNewBug(): void {
     this._spinner!.active = true;
     // Disable submit and close button
-    document.getElementById('file-button')!.setAttribute('disabled', 'true');
-    document.getElementById('close-button')!.setAttribute('disabled', 'true');
+    this.querySelector('#file-button')!.setAttribute('disabled', 'true');
+    this.querySelector('#close-button')!.setAttribute('disabled', 'true');
     this._render();
 
     // Extract title.
-    const title = document.getElementById('title')! as HTMLInputElement;
+    const title = this.querySelector('#title')! as HTMLInputElement;
 
     // Extract description.
-    const description = document.getElementById('description')! as HTMLInputElement;
+    const description = this.querySelector('#description')! as HTMLInputElement;
 
     // Extract assignee
-    const assignee = document.getElementById('assignee')! as HTMLInputElement;
+    const assignee = this.querySelector('#assignee')! as HTMLInputElement;
 
     //  Extract CCs
-    const ccs_value = (document.getElementById('ccs')! as HTMLInputElement).value;
+    const ccs_value = (this.querySelector('#ccs')! as HTMLInputElement).value;
     const ccs = ccs_value.split(',').map((s: string) => s.trim());
 
     // Extract labels.
-    const label_fields = document.querySelectorAll('input.buglabel');
+    const label_fields = this.querySelectorAll('input.buglabel');
     const labels: string[] = [];
     label_fields.forEach((field) => {
       if ((field as HTMLInputElement).checked) {
@@ -347,7 +347,7 @@ export class NewBugDialogSk extends ElementSk {
     });
 
     // Extract component.
-    const component_fields = document.querySelectorAll('input[name=component]');
+    const component_fields = this.querySelectorAll('input[name=component]');
     let component = '';
     component_fields.forEach((field) => {
       if ((field as HTMLInputElement).checked) {
@@ -378,8 +378,8 @@ export class NewBugDialogSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json) => {
         this._spinner!.active = false;
-        document.getElementById('file-button')!.removeAttribute('disabled');
-        document.getElementById('close-button')!.removeAttribute('disabled');
+        this.querySelector('#file-button')!.removeAttribute('disabled');
+        this.querySelector('#close-button')!.removeAttribute('disabled');
         this.closeDialog();
 
         // Open the bug page in new window.
@@ -405,8 +405,8 @@ export class NewBugDialogSk extends ElementSk {
       })
       .catch((msg: any) => {
         this._spinner!.active = false;
-        document.getElementById('file-button')!.removeAttribute('disabled');
-        document.getElementById('close-button')!.removeAttribute('disabled');
+        this.querySelector('#file-button')!.removeAttribute('disabled');
+        this.querySelector('#close-button')!.removeAttribute('disabled');
         errorMessage(msg);
         this._render();
       });

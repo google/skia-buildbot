@@ -52,8 +52,8 @@ export class AnomaliesTableSk extends ElementSk {
     this.triageMenu = this.querySelector('#triage-menu');
     this.triageMenu!.disableNudge();
     this.triageMenu!.toggleButtons(this.checkedAnomaliesSet.size > 0);
-    this.headerCheckbox = document.getElementById('header-checkbox') as CheckOrRadio;
-    document.addEventListener('click', (e: Event) => {
+    this.headerCheckbox = this.querySelector('#header-checkbox') as CheckOrRadio;
+    this.addEventListener('click', (e: Event) => {
       const triageButton = this.querySelector('#triage-button');
       const popup = this.querySelector('.popup');
       if (this.showPopup && !popup!.contains(e.target as Node) && e.target !== triageButton) {
@@ -395,8 +395,8 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   populateTable(anomalyList: Anomaly[]) {
-    const msg = document.getElementById('clear-msg') as HTMLHeadingElement;
-    const table = document.getElementById('anomalies-table') as HTMLTableElement;
+    const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
+    const table = this.querySelector('#anomalies-table') as HTMLTableElement;
 
     if (anomalyList.length > 0) {
       msg.hidden = true;
