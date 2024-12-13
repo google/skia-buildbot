@@ -1374,11 +1374,11 @@ export class ExploreSimpleSk extends ElementSk {
       ? parts.join('_')
       : this.simpleParamset!.paramsets[0]!.test[0];
     const statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
-    const bugId = document.getElementById('bug-id')! as HTMLInputElement;
-    const startCommit = document.getElementById('start-commit')! as HTMLInputElement;
-    const endCommit = document.getElementById('end-commit')! as HTMLInputElement;
-    const story = document.getElementById('story')! as HTMLInputElement;
-    const patch = document.getElementById('patch')! as HTMLInputElement;
+    const bugId = this.querySelector('#bug-id')! as HTMLInputElement;
+    const startCommit = this.querySelector('#start-commit')! as HTMLInputElement;
+    const endCommit = this.querySelector('#end-commit')! as HTMLInputElement;
+    const story = this.querySelector('#story')! as HTMLInputElement;
+    const patch = this.querySelector('#patch')! as HTMLInputElement;
     const req: CreateBisectRequest = {
       comparison_mode: 'performance',
       start_git_hash: startCommit.value,
