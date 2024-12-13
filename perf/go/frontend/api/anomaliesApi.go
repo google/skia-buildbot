@@ -295,7 +295,7 @@ func cleanTestName(testName string) string {
 	parts := strings.Split(testName, "/")
 	// Clean each part individually.
 	for i := range parts {
-		parts[i] = query.ForceValid(map[string]string{"": parts[i]})[""]
+		parts[i] = query.ForceValid(map[string]string{"a": parts[i]})["a"]
 	}
 	// Join the cleaned parts back together.
 	return strings.Join(parts, "/")
