@@ -508,9 +508,6 @@ export class PlotSimpleSk extends ElementSk {
    * a stack of zoom levels. As new zoom ranges are dragged out they are pushed
    * onto detailsZoomRangesStack, and as the mouse wheel is turned we push/pop
    * zoom ranges between detailsZoomRangesStack and inactiveZoomRangesStack.
-   * Scroll up means to zoom in, so we pop a rect off the inactive stack and
-   * push it on the active stack. Scrolling down means to zoom out, so we do the
-   * reverse, pop of the active stack and push it onto the inactive stack.
    *
    * When plotting we only look at the top of the active stack, i.e. the end of
    * detailsZoomRangesStack.
@@ -707,18 +704,6 @@ export class PlotSimpleSk extends ElementSk {
 
   private BAND_COLOR!: string; // CSS color.
 
-  get scrollable(): boolean {
-    return this.hasAttribute('scrollable');
-  }
-
-  set scrollable(val: boolean) {
-    if (val) {
-      this.setAttribute('scrollable', '');
-    } else {
-      this.removeAttribute('scrollable');
-    }
-  }
-
   constructor() {
     super(PlotSimpleSk.template);
 
@@ -828,33 +813,6 @@ export class PlotSimpleSk extends ElementSk {
       }
       this.inZoomDrag = 'no-zoom';
     });
-
-    if (!this.scrollable) {
-      this.addEventListener('wheel', (e: WheelEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        // If the wheel is spun while we are zoomed then move through the stack of
-        // zoom ranges.
-        if (this.detailsZoomRangesStack) {
-          // Scrolling up on the scroll wheel gives e.deltaY a negative value. Up
-          // means to scroll in, which means we want to take a rect from
-          // inactiveDetailsZoomRangesStack and make it active by pushing it on
-          // detailsZoomRangesStack. Down reverses the push/pop direction.
-          if (e.deltaY < 0) {
-            if (this.inactiveDetailsZoomRangesStack.length === 0) {
-              return;
-            }
-            this.detailsZoomRangesStack.push(this.inactiveDetailsZoomRangesStack.pop()!);
-          } else {
-            if (this.detailsZoomRangesStack.length === 0) {
-              return;
-            }
-            this.inactiveDetailsZoomRangesStack.push(this.detailsZoomRangesStack.pop()!);
-          }
-          this._zoomImpl();
-        }
-      });
-    }
 
     this.addEventListener('click', (e) => {
       const pt = this.eventToCanvasPt(e);

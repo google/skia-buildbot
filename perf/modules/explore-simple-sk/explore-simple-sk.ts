@@ -564,8 +564,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private originalTraceSet: TraceSet = TraceSet({});
 
-  private scrollable: boolean = false;
-
   private traceKeyForSummary: string = '';
 
   chartTooltip: ChartTooltipSk | null = null;
@@ -604,9 +602,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private dfRepo = createRef<DataFrameRepository>();
 
-  constructor(scrollable: boolean, useTestPicker?: boolean) {
+  constructor(useTestPicker?: boolean) {
     super(ExploreSimpleSk.template);
-    this.scrollable = scrollable;
     this.traceFormatter = GetTraceFormatter();
     this.useTestPicker = useTestPicker ?? false;
   }
@@ -816,8 +813,7 @@ export class ExploreSimpleSk extends ElementSk {
           @trace_selected=${ele.traceSelected}
           @zoom=${ele.plotZoom}
           @trace_focused=${ele.plotTraceFocused}
-          class="hide_on_pivot_table hide_on_query_only hide_on_spinner"
-          .scrollable=${ele.scrollable}>
+          class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
         </plot-simple-sk>
       <chart-tooltip-sk></chart-tooltip-sk>
       </div>

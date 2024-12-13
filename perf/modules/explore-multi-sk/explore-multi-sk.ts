@@ -457,7 +457,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   private addEmptyGraph(unshift?: boolean): ExploreSimpleSk | null {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(true, this.useTestPicker);
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(this.useTestPicker);
     const graphConfig = new GraphConfig();
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;

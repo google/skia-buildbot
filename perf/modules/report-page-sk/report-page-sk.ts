@@ -145,7 +145,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private addGraph(anomaly: Anomaly) {
-    const explore: ExploreSimpleSk = new ExploreSimpleSk(true, false);
+    const explore: ExploreSimpleSk = new ExploreSimpleSk(false);
     explore.defaults = this.defaults;
     explore.openQueryByDefault = false;
     explore.navOpen = false;
