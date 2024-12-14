@@ -95,7 +95,7 @@ export class AnomaliesTableSk extends ElementSk {
     <h1 id="clear-msg" hidden>All anomalies are triaged!</h1>
   `;
 
-  private openReport() {
+  private async openReport() {
     const idList = [...this.checkedAnomaliesSet].map((a) => a.id);
     const idString = idList.join(',');
     // TODO(wenbinzhang): ideally, we should open the url:
@@ -109,7 +109,7 @@ export class AnomaliesTableSk extends ElementSk {
     // Though, this will cause one extra call to Chromeperf, which
     // will slow down the repsonse time.
     // I will move this to report-page-sk when the page is ready.
-    this.fetchGroupReportApi(idString);
+    await this.fetchGroupReportApi(idString);
 
     const sid: string = this.getGroupReportResponse!.sid || '';
     const url = `/u/?sid=${sid}`;
@@ -466,8 +466,8 @@ export class AnomaliesTableSk extends ElementSk {
     return Array.from(this.checkedAnomaliesSet);
   }
 
-  private fetchGroupReportApi(idString: string) {
-    fetch('/_/anomalies/group_report', {
+  private async fetchGroupReportApi(idString: string) {
+    await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
         anomalyIDs: idString,
@@ -481,8 +481,7 @@ export class AnomaliesTableSk extends ElementSk {
         errorMessage(msg);
       })
       .then((response) => {
-        const json: GetGroupReportResponse = response;
-        this.getGroupReportResponse = json;
+        this.getGroupReportResponse = response;
       });
   }
 
@@ -492,8 +491,8 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   // openMultiGraphLink generates a multi-graph url for the given parameters
-  private openMultiGraphUrl(anomaly: Anomaly): void {
-    this.fetchGroupReportApi(String(anomaly.id));
+  private async openMultiGraphUrl(anomaly: Anomaly) {
+    await this.fetchGroupReportApi(String(anomaly.id));
     const begin = this.getGroupReportResponse?.timerange_map![anomaly.id].begin.toString() || '';
     const end = this.getGroupReportResponse?.timerange_map![anomaly.id].end.toString() || '';
 
@@ -506,7 +505,7 @@ export class AnomaliesTableSk extends ElementSk {
     };
     config.queries = [this.traceFormatter!.formatQuery(anomaly.test_path)];
     graphConfigs.push(config);
-    updateShortcut(graphConfigs)
+    await updateShortcut(graphConfigs)
       .then((shortcut) => {
         if (shortcut === '') {
           this.shortcutUrl = '';
