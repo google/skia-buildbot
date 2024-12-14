@@ -24,8 +24,10 @@ import { mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
   dataframeLoadingContext,
+  dataframeUserIssueContext,
   DataTable,
   dataTableContext,
+  UserIssueMap,
 } from '../dataframe/dataframe_context';
 import { isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
@@ -97,6 +99,25 @@ export class PlotGoogleChartSk extends LitElement {
       }
     }
 
+    .userissue {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+
+      md-icon {
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        pointer-events: none;
+        font-weight: bolder;
+        font-size: 12px;
+        color: var(--primary);
+      }
+      md-icon.issue {
+        background: var(--background);
+        border: white 1px solid;
+      }
+    }
+
     .delta {
       position: absolute;
       border: 1px solid purple;
@@ -139,11 +160,16 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private anomalyMap: AnomalyMap = {};
 
+  @consume({ context: dataframeUserIssueContext, subscribe: true })
+  @property({ attribute: false })
+  private userIssues: UserIssueMap = {};
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
     regression: createRef<HTMLSlotElement>(),
     improvement: createRef<HTMLSlotElement>(),
+    issue: createRef<HTMLSlotElement>(),
   };
 
   // Modes for chart interaction with mouse.
@@ -180,6 +206,9 @@ export class PlotGoogleChartSk extends LitElement {
 
   // The div container for anomaly overlays.
   private anomalyDiv = createRef<HTMLDivElement>();
+
+  // The div container for user issue overlays.
+  private userIssueDiv = createRef<HTMLDivElement>();
 
   // The div container for delta y selection range.
   private deltaRangeBox = createRef<VResizableBoxSk>();
@@ -218,6 +247,7 @@ export class PlotGoogleChartSk extends LitElement {
         </google-chart>
         ${when(this.loading, () => html`<md-linear-progress indeterminate></md-linear-progress>`)}
         <div class="anomaly" ${ref(this.anomalyDiv)}></div>
+        <div class="userissue" ${ref(this.userIssueDiv)}></div>
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
         <div class="side" ?hidden=${isSingleTrace(this.data) ?? true}>
@@ -228,6 +258,7 @@ export class PlotGoogleChartSk extends LitElement {
       <slot name="untriage" ${ref(this.slots.untriage)}></slot>
       <slot name="regression" ${ref(this.slots.regression)}></slot>
       <slot name="improvement" ${ref(this.slots.improvement)}></slot>
+      <slot name="issue" ${ref(this.slots.issue)}></slot>
     `;
   }
 
@@ -235,6 +266,8 @@ export class PlotGoogleChartSk extends LitElement {
     if (changedProperties.has('anomalyMap')) {
       // If the anomalyMap is getting updated,
       // trigger the chart to redraw and plot the anomaly.
+      this.plotElement.value?.redraw();
+    } else if (changedProperties.has('userIssues')) {
       this.plotElement.value?.redraw();
     } else if (changedProperties.has('selectedRange')) {
       // If only the selectedRange is updated, then we only update the viewWindow.
@@ -563,10 +596,101 @@ export class PlotGoogleChartSk extends LitElement {
     anomalyDiv.replaceChildren(...allDivs);
   }
 
+  private drawUserIssues(chart: google.visualization.CoreChartBase) {
+    const layout = chart.getChartLayoutInterface();
+    if (!this.userIssues) {
+      return;
+    }
+
+    const userIssueDiv = this.userIssueDiv.value;
+    if (!userIssueDiv) {
+      return;
+    }
+
+    const data = this.data!;
+
+    const traceKeys = this.selectedTraces ?? Object.keys(this.userIssues);
+    const chartRect = layout.getChartAreaBoundingBox();
+    const left = chartRect.left,
+      top = chartRect.top;
+    const right = left + chartRect.width,
+      bottom = top + chartRect.height;
+    const allDivs: Node[] = [];
+
+    // Clone from the given template icons in the named slots.
+    const slots = this.slots;
+    const cloneSlot = (name: 'issue', traceKey: string, commit: number) => {
+      const assigned = slots[name].value!.assignedElements();
+      if (!assigned || assigned.length === 0) {
+        console.warn(
+          'could not find user issue template for commit',
+          `at ${commit} of ${traceKey} (${name}).`
+        );
+        return null;
+      }
+      if (assigned.length > 1) {
+        console.warn(
+          'multiple children found but only use the first one for commit',
+          `at ${commit} of ${traceKey} (${name}).`
+        );
+      }
+      const cloned = assigned[0].cloneNode(true) as HTMLElement;
+      cloned.className = `userissue ${name}`;
+      return cloned;
+    };
+
+    traceKeys.forEach((key) => {
+      const userIssues = this.userIssues![key];
+      const traceCol = this.data!.getColumnIndex(key)!;
+      for (const [cp, issueDetail] of Object.entries(userIssues)) {
+        const offset = Number(cp);
+        const anomaliesOnTraces = this.anomalyMap![key];
+        if (anomaliesOnTraces !== null && anomaliesOnTraces !== undefined) {
+          const a = anomaliesOnTraces[offset];
+          if (a !== null && a !== undefined) {
+            console.warn('user issue same as anomaly, ignored.');
+            continue;
+          }
+        }
+
+        const rows = data.getFilteredRows([{ column: 0, value: offset }]);
+        if (rows.length < 0) {
+          console.warn('user issue data is out of existing dataframe, ignored.');
+          continue;
+        }
+        if (issueDetail.bugId === 0) {
+          continue;
+        }
+        const xValue =
+          this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
+        const yValue = data.getValue(rows[0], traceCol);
+        const x = layout.getXLocation(xValue);
+        const y = layout.getYLocation(yValue);
+        // We only place the user issue icons if they are within the chart boundary.
+        // p.s. the top and bottom are reversed-coordinated.
+        if (x < left || x > right || y < top || y > bottom) {
+          continue;
+        }
+
+        const cloned: HTMLElement | null = cloneSlot('issue', key, offset);
+
+        if (cloned) {
+          cloned.style.top = `${y}px`;
+          cloned.style.left = `${x}px`;
+          allDivs.push(cloned);
+        }
+      }
+    });
+
+    userIssueDiv.replaceChildren(...allDivs);
+  }
+
   private onChartReady(e: CustomEvent) {
     this.chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
     this.drawAnomaly(this.chart);
+
+    // TODO(viditchitkara@) Draw user issues
 
     const layout = this.chart.getChartLayoutInterface();
     const area = layout.getChartAreaBoundingBox();
