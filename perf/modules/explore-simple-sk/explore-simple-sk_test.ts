@@ -27,6 +27,7 @@ import { generateFullDataFrame } from '../dataframe/test_utils';
 import { PlotGoogleChartSk } from '../plot-google-chart-sk/plot-google-chart-sk';
 import { load } from '@google-web-components/google-chart/loader';
 import { convertFromDataframe } from '../common/plot-builder';
+import { UserIssueMap } from '../dataframe/dataframe_context';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -148,6 +149,77 @@ describe('applyFuncToTraces', () => {
     const body = JSON.parse(fetchMock.lastOptions(startURL)?.body as unknown as string) as any;
     assert.deepEqual(body.formulas, ['iqrr(shortcut("Xfoo"))']);
     fetchMock.restore();
+  });
+});
+
+describe('addGraphCoordinatesToUserIssues', () => {
+  it('adds plot coordinates to user issues', () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [Array.from({ length: 4 }, (_, k) => k)],
+      keys
+    );
+
+    const trace =
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,';
+    const offset = df.header![1]?.offset || -1;
+    const value = df.traceset![trace][1];
+
+    const userIssues: UserIssueMap = {};
+    userIssues[trace] = {};
+    userIssues[trace][offset] = { bugId: 12345, x: -1, y: -1 };
+
+    const updatedIssues = explore['addGraphCoordinatesToUserIssues'](df, userIssues);
+
+    const expected: UserIssueMap = {};
+    expected[trace] = {};
+    expected[trace][offset] = { bugId: 12345, x: 1, y: value };
+
+    assert.deepEqual(updatedIssues, expected);
+  });
+
+  it('does not add plot coordinates to user issues for points not in df', () => {
+    const explore = setUpElementUnderTest<ExploreSimpleSk>('explore-simple-sk')();
+    const keys = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Average,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,',
+    ];
+    const df = generateFullDataFrame(
+      { begin: 90, end: 120 },
+      now,
+      keys.length,
+      [timeSpan],
+      [Array.from({ length: 4 }, (_, k) => k)],
+      keys
+    );
+
+    const trace =
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=ref,subtest=Normal,test=Total,v8_mode=default,';
+    const offset = 56789;
+
+    const userIssues: UserIssueMap = {};
+    userIssues[trace] = {};
+    userIssues[trace][offset] = { bugId: 12345, x: -1, y: -1 };
+
+    const updatedIssues = explore['addGraphCoordinatesToUserIssues'](df, userIssues);
+
+    const expected: UserIssueMap = {};
+    expected[trace] = {};
+    expected[trace][offset] = { bugId: 12345, x: -1, y: -1 };
+
+    assert.deepEqual(updatedIssues, expected);
   });
 });
 

@@ -143,7 +143,7 @@ import {
   PlotSelectionEventDetails,
   PlotShowTooltipEventDetails,
 } from '../plot-google-chart-sk/plot-google-chart-sk';
-import { DataFrameRepository, DataTable } from '../dataframe/dataframe_context';
+import { DataFrameRepository, DataTable, UserIssueMap } from '../dataframe/dataframe_context';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
@@ -595,6 +595,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private tracesRendered = false;
 
+  private userIssueMap: UserIssueMap = {};
+
   // material UI
   private settingsDialog: MdDialog | null = null;
 
@@ -803,6 +805,7 @@ export class ExploreSimpleSk extends ElementSk {
           <md-icon slot="untriage">question_exchange</md-icon>
           <md-icon slot="regression">report</md-icon>
           <md-icon slot="improvement">check</md-icon>
+          <md-icon slot="issue">chat_bubble</md-icon>
         </plot-google-chart-sk>
         <plot-simple-sk
         style="${!ele._state.show_google_plot ? '' : 'display: none'}"
@@ -1293,6 +1296,22 @@ export class ExploreSimpleSk extends ElementSk {
       toastLink.innerText = `${bugId}`;
       this.triageResultToast?.show();
     });
+
+    // Listens to the user-issue-changed event and does appropriate actions
+    // to update the overall userIssue map along with re-rendering the
+    // new set of user issues on the chart
+    this.addEventListener('user-issue-changed', (e) => {
+      const repo = this.dfRepo.value;
+      const traceKey = (e as CustomEvent).detail.trace_key as string;
+      const commitPosition = (e as CustomEvent).detail.commit_position as number;
+      const bugId = (e as CustomEvent).detail.bug_id as number;
+
+      // Update the over user issues map in dataframe_context
+      repo!.updateUserIssue(traceKey, commitPosition, bugId);
+
+      // re-render the plot with the new user issues.
+      this.updateSelectedRangeWithUpdatedDataframe(this.selectedRange!, 'commit');
+    });
   }
 
   render(): void {
@@ -1779,6 +1798,8 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
+    // TODO(viditchitkara@) make api call to fetch user issues
+
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
   }
 
@@ -1834,6 +1855,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (!plot) {
       return;
     }
+
+    // TODO(viditchitkara@): Supply userIssues to plot-simple
 
     if (replot) {
       plot.removeAll();
@@ -1930,6 +1953,7 @@ export class ExploreSimpleSk extends ElementSk {
         }
       : () => {};
 
+    // TODO(viditchitkara@): Pass buganizer id to tooltip
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
       testName,
@@ -2573,6 +2597,9 @@ export class ExploreSimpleSk extends ElementSk {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
     this._renderedTraces();
+
+    // TODO(viditchitkara@): Fetch user issues
+
     if (this._state.plotSummary) {
       const header = dataframe.header!;
       this.plotSummary.value?.Select(header![0]!, header[header.length - 1]!);
@@ -2582,6 +2609,28 @@ export class ExploreSimpleSk extends ElementSk {
         this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
       });
     }
+  }
+
+  // Adds x and y coordinates to the user issue points needed to be displayed
+  private addGraphCoordinatesToUserIssues(df: DataFrame, issues: UserIssueMap): UserIssueMap {
+    const allPoints = df.header?.map((p) => p?.offset) || [];
+    const issuesObj = issues || {};
+    Object.keys(issuesObj).forEach((traceId) => {
+      Object.keys(issuesObj[traceId]).forEach((k, _) => {
+        const commitPos = parseInt(k) as CommitNumber;
+        const bugId = issuesObj[traceId][commitPos].bugId;
+        const pointIndex = allPoints.indexOf(commitPos);
+        if (pointIndex === -1) return;
+
+        const pointValue = df.traceset[traceId][pointIndex];
+        issuesObj[traceId][commitPos] = {
+          bugId: bugId,
+          x: pointIndex,
+          y: pointValue,
+        };
+      });
+    });
+    return issuesObj;
   }
 
   /**
@@ -2883,6 +2932,8 @@ export class ExploreSimpleSk extends ElementSk {
     if (this._state.keys !== '') {
       updatedFormulas.push(`${funcName}(shortcut("${this._state.keys}"))`);
     }
+
+    // TODO(viditchitkara@): Remove the existing user issues from the plot.
 
     // Also apply the func to any existing formulas.
     updatedFormulas = updatedFormulas.concat(this._state.formulas.map((f) => `${funcName}(${f})`));

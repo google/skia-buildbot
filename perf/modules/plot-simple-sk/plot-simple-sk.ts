@@ -100,6 +100,7 @@ import { KDTree, KDPoint } from './kd';
 import { tick } from './ticks';
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { defaultColors } from '../common/plot-builder';
+import { IssueDetail, UserIssueMap } from '../dataframe/dataframe_context';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
 //  traces never receive focus and can't be clicked on.
@@ -460,6 +461,8 @@ export class PlotSimpleSk extends ElementSk {
   private _bands: number[] = [];
 
   private _anomalyDataMap: { [key: string]: AnomalyData[] } = {};
+
+  private _userIssueMap: { [key: string]: { [key: number]: IssueDetail } } = {};
 
   private _showCrosshairLabel: boolean = true;
 
@@ -1630,6 +1633,8 @@ export class PlotSimpleSk extends ElementSk {
       // Draw the anomalies.
       this.drawAnomalies(ctx, this.detailArea);
 
+      // TODO(viditchitkara@): Draw user issues here
+
       if (this.inZoomDrag === 'details') {
         this.drawZoomRect(ctx, this.zoomRect);
       } else if (this.inZoomDrag === 'no-zoom') {
@@ -1772,6 +1777,51 @@ export class PlotSimpleSk extends ElementSk {
         const symbol = anomaly.is_improvement ? improvement_symbol : regression_symbol;
 
         // Draw anomaly icon.
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = this.ANOMALY_FONT;
+        ctx.fillText(symbol, cx, cy);
+      });
+    });
+  }
+
+  // Draw all user issues in the given area.
+  private drawUserIssues(ctx: CanvasRenderingContext2D, area: Area) {
+    if (this.userIssueMap === null || this.userIssueMap === undefined) {
+      return;
+    }
+
+    const keys = Object.keys(this._userIssueMap);
+    keys.forEach((trace_key) => {
+      Object.keys(this._userIssueMap[trace_key]).forEach((commit_position: string) => {
+        const issue = this._userIssueMap[trace_key][parseInt(commit_position)];
+
+        if (issue.bugId === 0) return;
+
+        const anomaliesOnTrace = this._anomalyDataMap[trace_key];
+        if (anomaliesOnTrace !== null && anomaliesOnTrace !== undefined) {
+          anomaliesOnTrace.forEach((a) => {
+            if (a.x === issue.x && a.y === issue.y) {
+              return;
+            }
+          });
+        }
+
+        const cx = area.range.x(issue.x);
+        const cy = area.range.y(issue.y);
+        const path = new Path2D();
+
+        // Draw white circle background of anomaly icon.
+        path.moveTo(cx + this.ANOMALY_RADIUS, cy);
+        path.arc(cx, cy, this.ANOMALY_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = this.ANOMALY_BACKGROUND;
+
+        ctx.fill(path);
+        ctx.fillStyle = this.UNTRIAGED_COLOR;
+
+        const symbol = String.fromCharCode(0xe000);
+
+        // Draw user issue icon.
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = this.ANOMALY_FONT;
@@ -1934,6 +1984,15 @@ export class PlotSimpleSk extends ElementSk {
 
   set anomalyDataMap(anomalyDataMap: { [key: string]: AnomalyData[] }) {
     this._anomalyDataMap = anomalyDataMap;
+    this.drawOverlayCanvas();
+  }
+
+  get userIssueMap(): UserIssueMap {
+    return this._userIssueMap;
+  }
+
+  set userIssueMap(userIssueMap: UserIssueMap) {
+    this._userIssueMap = userIssueMap || {};
     this.drawOverlayCanvas();
   }
 
