@@ -26,6 +26,8 @@ import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+const MAX_PARAMS = 8;
+
 export class GraphTitleSk extends ElementSk {
   private titleEntries: Map<string, string> | null = null;
 
@@ -75,11 +77,11 @@ export class GraphTitleSk extends ElementSk {
 
     const elems: TemplateResult[] = [];
 
-    const showShort = this.showShortTitle && this.titleEntries.size > 3;
+    const showShort = this.showShortTitle && this.titleEntries.size > MAX_PARAMS;
 
     let index = 0;
     this.titleEntries!.forEach((value, key) => {
-      if (showShort && index >= 3) {
+      if (showShort && index >= MAX_PARAMS) {
         return;
       }
       index++;
