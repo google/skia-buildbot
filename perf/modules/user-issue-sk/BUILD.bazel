@@ -1,0 +1,22 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "user-issue-sk",
+    sk_element_deps = [
+        "//perf/modules/anomaly-sk",
+        "//infra-sk/modules/alogin-sk",
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/icons/check-icon-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//perf/modules/errorMessage:index_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "user-issue-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)

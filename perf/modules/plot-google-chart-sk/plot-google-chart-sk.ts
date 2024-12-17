@@ -689,8 +689,7 @@ export class PlotGoogleChartSk extends LitElement {
     this.chart = e.detail.chart as google.visualization.CoreChartBase;
     // Only draw the anomaly when the chart is ready.
     this.drawAnomaly(this.chart);
-
-    // TODO(viditchitkara@) Draw user issues
+    this.drawUserIssues(this.chart);
 
     const layout = this.chart.getChartLayoutInterface();
     const area = layout.getChartAreaBoundingBox();

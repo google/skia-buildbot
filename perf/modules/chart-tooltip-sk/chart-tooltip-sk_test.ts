@@ -46,6 +46,7 @@ describe('chart-tooltip-sk', () => {
     'ChromiumPerf/win-11-perf/webrtc/cpuTimeMetric_duration_std/multiple_peerconnections';
   const y_value = 100;
   const commit_position = CommitNumber(12345);
+  const bugId = 15423;
 
   const dummyAnomaly = (bugId: number): Anomaly => ({
     id: 1,
@@ -79,6 +80,7 @@ describe('chart-tooltip-sk', () => {
         '',
         y_value,
         commit_position,
+        0,
         dummyAnomaly(12345),
         null,
         null,
@@ -89,6 +91,27 @@ describe('chart-tooltip-sk', () => {
       assert.equal(element.test_name, test_name);
       assert.equal(element.y_value, y_value);
       assert.equal(element.commit_position, commit_position);
+      assert.isNotNull(element.anomaly);
+    });
+
+    it('user issue should be set', () => {
+      element.load(
+        test_name,
+        '',
+        y_value,
+        commit_position,
+        bugId,
+        dummyAnomaly(12345),
+        null,
+        null,
+        false,
+        false,
+        () => {}
+      );
+      assert.equal(element.test_name, test_name);
+      assert.equal(element.y_value, y_value);
+      assert.equal(element.commit_position, commit_position);
+      assert.equal(element.bug_id, bugId);
       assert.isNotNull(element.anomaly);
     });
   });

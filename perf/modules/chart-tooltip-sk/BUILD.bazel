@@ -23,7 +23,9 @@ sk_element(
         "//perf/modules/commit-range-sk",
         "//perf/modules/ingest-file-links-sk",
         "//perf/modules/triage-menu-sk",
+        "//perf/modules/user-issue-sk",
         "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/icons/check-icon-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
@@ -51,7 +53,6 @@ sk_page(
     ts_deps = [
         "//perf/modules/json:index_ts_lib",
         "//:node_modules/fetch-mock",
-        "//perf/modules/const:const_ts_lib",
     ],
     ts_entry_point = "chart-tooltip-sk-demo.ts",
 )

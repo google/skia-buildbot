@@ -13,7 +13,7 @@ describe('chart-tooltip-sk', () => {
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('chart-tooltip-sk')).to.have.length(1);
+    expect(await testBed.page.$$('chart-tooltip-sk')).to.have.length(3);
   });
 
   describe('screenshots', () => {

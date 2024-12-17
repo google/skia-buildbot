@@ -338,6 +338,8 @@ export class State {
 
   enable_chart_tooltip: boolean = false;
 
+  enable_buganizer_issues: boolean = false;
+
   show_remove_all: boolean = true;
 
   use_titles: boolean = false;
@@ -1798,9 +1800,21 @@ export class ExploreSimpleSk extends ElementSk {
    * @param e Event object.
    */
   summarySelected({ detail }: CustomEvent<PlotSummarySkSelectionEventDetails>): void {
-    // TODO(viditchitkara@) make api call to fetch user issues
-
     this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+
+    // When summary selection is changed, fetch the comments for the new range
+    // and update the plot.
+    if (this._state.enable_buganizer_issues) {
+      const dfRepo = this.dfRepo.value;
+      const begin = this.selectedRange?.begin;
+      const end = this.selectedRange?.end;
+      const invalidRange = begin === undefined || end === undefined;
+      if (dfRepo !== null && dfRepo !== undefined && !invalidRange) {
+        dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then(() => {
+          this.updateSelectedRangeWithUpdatedDataframe(detail.value, detail.domain);
+        });
+      }
+    }
   }
 
   private extendRange(range: range) {
@@ -1856,7 +1870,15 @@ export class ExploreSimpleSk extends ElementSk {
       return;
     }
 
-    // TODO(viditchitkara@): Supply userIssues to plot-simple
+    // Specific to legacy charts: Add the x and y coordinates
+    // for each user issue to be shown.
+    if (this._state.enable_buganizer_issues) {
+      const issues = this.addGraphCoordinatesToUserIssues(
+        this._dataframe,
+        this.dfRepo.value?.userIssues || {}
+      );
+      plot.userIssueMap = issues;
+    }
 
     if (replot) {
       plot.removeAll();
@@ -1953,12 +1975,24 @@ export class ExploreSimpleSk extends ElementSk {
         }
       : () => {};
 
-    // TODO(viditchitkara@): Pass buganizer id to tooltip
+    let buganizerId = -1;
+    if (this._state.enable_buganizer_issues) {
+      buganizerId = 0;
+      const userIssueMap = this.dfRepo.value?.userIssues;
+      if (userIssueMap && Object.keys(userIssueMap).length > 0) {
+        const buganizerTraces = userIssueMap[testName];
+        if (buganizerTraces !== null && buganizerTraces !== undefined) {
+          buganizerId = buganizerTraces[commitPosition]?.bugId || 0;
+        }
+      }
+    }
+
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
       testName,
       pointDetails.y,
       commitPosition,
+      buganizerId,
       anomaly,
       nudgeList,
       commit,
@@ -1982,6 +2016,7 @@ export class ExploreSimpleSk extends ElementSk {
   disableTooltip(): void {
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
     tooltipElem!.moveTo(null);
+    tooltipElem!.bug_id = 0;
     this._render();
   }
 
@@ -2598,7 +2633,14 @@ export class ExploreSimpleSk extends ElementSk {
     }
     this._renderedTraces();
 
-    // TODO(viditchitkara@): Fetch user issues
+    // Asynchronously fetch the user issues for the rendered traces.
+    if (this._state.enable_buganizer_issues) {
+      this.dfRepo.value
+        ?.getUserIssues(Object.keys(dataframe.traceset), selectedRange.begin, selectedRange.end)
+        .then((_) => {
+          this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
+        });
+    }
 
     if (this._state.plotSummary) {
       const header = dataframe.header!;
@@ -2933,7 +2975,8 @@ export class ExploreSimpleSk extends ElementSk {
       updatedFormulas.push(`${funcName}(shortcut("${this._state.keys}"))`);
     }
 
-    // TODO(viditchitkara@): Remove the existing user issues from the plot.
+    // Remove the existing user issues from the plot.
+    this.plotSimple.value!.userIssueMap = {};
 
     // Also apply the func to any existing formulas.
     updatedFormulas = updatedFormulas.concat(this._state.formulas.map((f) => `${funcName}(${f})`));

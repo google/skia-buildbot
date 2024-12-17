@@ -22,7 +22,10 @@ import '../window/window';
 import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
+import '../user-issue-sk/user-issue-sk';
+import { UserIssueSk } from '../user-issue-sk/user-issue-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
+import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 
 @customElement('commit-info-sk')
@@ -120,7 +123,11 @@ export class ChartTooltipSk extends ElementSk {
   private _nudgeList: NudgeEntry[] | null = null;
 
   // Host bug url, usually from window.perf.bug_host_url.
-  private _bug_host_url: string = window.perf.bug_host_url;
+  private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
+
+  // bug_id = 0 signifies no buganizer issue available in the database for the
+  // data point. bug_id > 0 means we have an existing buganizer issue.
+  private _bug_id: number = 0;
 
   private triageMenu: TriageMenuSk | null = null;
 
@@ -134,6 +141,9 @@ export class ChartTooltipSk extends ElementSk {
 
   // Ingest file links element. Provides links based on cid and
   ingestFileLinks: IngestFileLinksSk | null = null;
+
+  // Shows any buganizer issue associated with a data point.
+  userIssueSk: UserIssueSk | null = null;
 
   // Cached margin to compute once.
   private margin: { left?: number; right?: number; bottom?: number; top?: number } = {};
@@ -173,6 +183,7 @@ export class ChartTooltipSk extends ElementSk {
           <span>${ele.commit_position}</span>
         </li>
       </ul>
+      <user-issue-sk id="tooltip-user-issue-sk"></user-issue-sk>
       <div class="revlink">
         <a href="/v/?revisionId=${ele.commit_position}" target="_blank">
           Regressions at ${ele.commit_position}
@@ -321,13 +332,20 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'commit');
     upgradeProperty(this, 'anomaly');
     upgradeProperty(this, 'bug_host_url');
+    upgradeProperty(this, 'bug_id');
     this._render();
 
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
+    this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
 
     this.addEventListener('anomaly-changed', () => {
+      this._render();
+    });
+
+    this.addEventListener('user-issue-changed', (e) => {
+      this.bug_id = (e as CustomEvent).detail.bug_id;
       this._render();
     });
   }
@@ -355,6 +373,7 @@ export class ChartTooltipSk extends ElementSk {
     trace_name: string,
     y_value: number,
     commit_position: CommitNumber,
+    bug_id: number,
     anomaly: Anomaly | null,
     nudgeList: NudgeEntry[] | null,
     commit: Commit | null,
@@ -366,6 +385,7 @@ export class ChartTooltipSk extends ElementSk {
     this._trace_name = trace_name;
     this._y_value = y_value;
     this._commit_position = commit_position;
+    this._bug_id = bug_id;
     this._anomaly = anomaly;
     this._nudgeList = nudgeList;
     this._tooltip_fixed = tooltipFixed;
@@ -374,6 +394,13 @@ export class ChartTooltipSk extends ElementSk {
 
     if (displayFileLinks && commit_position !== null && test_name !== '') {
       this.ingestFileLinks?.load(commit_position, test_name);
+    }
+
+    if (this.userIssueSk !== null) {
+      this.userIssueSk.bug_id = bug_id;
+      this.userIssueSk.trace_key = this._trace_name;
+      const commitPos = this.commit_position?.toString() || '';
+      this.userIssueSk.commit_position = parseInt(commitPos);
     }
 
     this._render();
@@ -430,6 +457,15 @@ export class ChartTooltipSk extends ElementSk {
 
   set bug_host_url(val: string) {
     this._bug_host_url = val;
+    this._render();
+  }
+
+  get bug_id(): number {
+    return this._bug_id;
+  }
+
+  set bug_id(val: number) {
+    this._bug_id = val;
     this._render();
   }
 }

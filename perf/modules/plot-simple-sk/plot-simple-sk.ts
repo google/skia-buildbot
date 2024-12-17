@@ -1630,10 +1630,10 @@ export class PlotSimpleSk extends ElementSk {
         }
       }
 
+      this.drawUserIssues(ctx, this.detailArea);
+
       // Draw the anomalies.
       this.drawAnomalies(ctx, this.detailArea);
-
-      // TODO(viditchitkara@): Draw user issues here
 
       if (this.inZoomDrag === 'details') {
         this.drawZoomRect(ctx, this.zoomRect);
@@ -1798,15 +1798,23 @@ export class PlotSimpleSk extends ElementSk {
 
         if (issue.bugId === 0) return;
 
+        // If point is an anomaly ignore the user issue
+        // since the point is already highlighted
+        let isAnomaly = false;
         const anomaliesOnTrace = this._anomalyDataMap[trace_key];
         if (anomaliesOnTrace !== null && anomaliesOnTrace !== undefined) {
           anomaliesOnTrace.forEach((a) => {
             if (a.x === issue.x && a.y === issue.y) {
+              isAnomaly = true;
               return;
             }
           });
         }
+        if (isAnomaly) {
+          return;
+        }
 
+        ctx.globalAlpha = 0.5;
         const cx = area.range.x(issue.x);
         const cy = area.range.y(issue.y);
         const path = new Path2D();

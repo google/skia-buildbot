@@ -1,9 +1,8 @@
 import './index';
 import fetchMock from 'fetch-mock';
 
-import { Anomaly, CommitNumber, TimestampSeconds } from '../json';
+import { Anomaly, Commit, CommitNumber } from '../json';
 import { ChartTooltipSk } from './chart-tooltip-sk';
-import { MISSING_DATA_SENTINEL } from '../const/const';
 
 window.perf = {
   commit_range_url: 'http://example.com/range/{begin}/{end}',
@@ -74,36 +73,52 @@ fetchMock.post('/_/cid/', () => ({
     Commit-Queue: Joe Gregorio \u003cjcgregorio@google.com\u003e\n',`,
 }));
 
-window.customElements.whenDefined('chart-tooltip-sk').then(async () => {
-  const tooltip = <ChartTooltipSk>document.querySelector('chart-tooltip-sk');
-  tooltip!.load(
-    'ChromiumPerf/win-11-perf/webrtc/cpuTimeMetric_duration_std/multiple_peerconnections',
-    '',
-    100,
-    CommitNumber(12345),
-    dummyAnomaly(12345),
-    null,
-    null,
-    false,
-    false,
-    () => {}
-  );
-
-  tooltip.commitRangeSk!.trace = [12, MISSING_DATA_SENTINEL, 13];
-  tooltip.commitRangeSk!.commitIndex = 2;
-  tooltip.commitRangeSk!.header = [
-    {
-      offset: CommitNumber(64809),
-      timestamp: TimestampSeconds(0),
-    },
-    {
-      offset: CommitNumber(64810),
-      timestamp: TimestampSeconds(0),
-    },
-    {
-      offset: CommitNumber(64811),
-      timestamp: TimestampSeconds(0),
-    },
-  ];
-  await tooltip.commitRangeSk!.recalcLink();
+fetchMock.get('/_/login/status', {
+  email: 'someone@example.org',
+  roles: ['editor'],
 });
+
+fetchMock.post('/_/details/?results=false', () => ({
+  version: 1,
+  git_hash: '04cfbf7e7ce2139ed3fd58a368e80f72a967d57e',
+  key: {
+    arch: 'x86',
+    config: '8888',
+  },
+  results: null,
+  links: {
+    link1: 'http://google.com',
+  },
+}));
+
+const renderTooltips = () => {
+  document
+    .querySelectorAll<ChartTooltipSk>('.buganizerTooltipContainer > chart-tooltip-sk')
+    .forEach((tooltip) => {
+      tooltip!.moveTo({ x: 0, y: 0 });
+      const c: Commit = {
+        author: 'a@b.com',
+        body: 'Commit body',
+        hash: 'a1b2c3',
+        message: 'Commit message',
+        offset: CommitNumber(12345),
+        ts: 1234566778,
+        url: '',
+      };
+      tooltip!.load(
+        'Tooltip with buganizer Id',
+        ',arch=x86,config=8888,test=encode,units=kb,',
+        100,
+        CommitNumber(12345),
+        88123,
+        dummyAnomaly(12345),
+        null,
+        c,
+        false,
+        true,
+        () => {}
+      );
+    });
+};
+
+renderTooltips();
