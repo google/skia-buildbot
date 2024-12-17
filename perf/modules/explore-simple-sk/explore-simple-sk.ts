@@ -651,7 +651,7 @@ export class ExploreSimpleSk extends ElementSk {
 
         <md-outlined-button
           ?hidden=${!ele.showRemoveAll}
-          @click=${() => ele.removeAll(false)}>
+          @click=${() => ele.closeExplore()}>
           Remove All
         </md-outlined-button>
         <div
@@ -783,7 +783,7 @@ export class ExploreSimpleSk extends ElementSk {
       <button
         class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
         id="removeAll"
-        @click=${() => ele.removeAll(false)}
+        @click=${() => ele.closeExplore()}
         title='Remove all the traces.'>
         <close-icon-sk></close-icon-sk>
       </button>
@@ -1073,6 +1073,13 @@ export class ExploreSimpleSk extends ElementSk {
         </picker-field-sk>
         <label>${this.getPlotSummaryTraceLabel()}</label>
       </div>`;
+  }
+
+  private closeExplore() {
+    this.removeAll(false);
+    // Remove the explore object from the list in `explore-multi-sk.ts`.
+    const detail = { elem: this };
+    this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
   }
 
   // Show full graph title if the graph title exists.
@@ -2904,10 +2911,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.tooltipSelected = false;
     this.disableTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
-    // Remove the explore object from the list in `explore-multi-sk.ts`.
-    const detail = { elem: this };
-    this.dispatchEvent(new CustomEvent('remove-explore', { detail: detail, bubbles: true }));
-
     // force unset autorefresh so that it doesn't re-appear when we remove all the chart.
     // the removeAll button from "remove all" or "X" will call invoke removeAll()
     // with skipHistory = false, so state should be updated.
