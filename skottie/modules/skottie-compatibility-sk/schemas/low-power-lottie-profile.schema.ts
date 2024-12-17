@@ -442,19 +442,6 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
-          "no-stroke": {
-            "feature-code": "shape-stroke",
-            "feature-level": "partial",
-            "feature-details": "If Stroke is animated, may cause framerate issues",
-            "not": {
-              "type": "object",
-              "properties": {
-                "ty": {
-                  "const": "st"
-                }
-              }
-            }
-          },
           "no-gradient-fill-radial-highlight": {
             "feature-code": "shape-fill-gradient-radial-highlight",
             "feature-link": "shape-fill-gradient",
@@ -477,19 +464,6 @@ export const lowPowerLottieProfileSchema =
                       }
                     }
                   }
-                }
-              }
-            }
-          },
-          "no-gradient-stroke": {
-            "feature-code": "shape-stroke-gradient",
-            "feature-level": "partial",
-            "feature-details": "If Stroke is animated, may cause framerate issues",
-            "not": {
-              "type": "object",
-              "properties": {
-                "ty": {
-                  "const": "gs"
                 }
               }
             }
@@ -597,13 +571,7 @@ export const lowPowerLottieProfileSchema =
               "$ref": "#/$defs/features/shapes/types/no-repeater"
             },
             {
-              "$ref": "#/$defs/features/shapes/types/no-stroke"
-            },
-            {
               "$ref": "#/$defs/features/shapes/types/no-gradient-fill-radial-highlight"
-            },
-            {
-              "$ref": "#/$defs/features/shapes/types/no-gradient-stroke"
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-gradient-stroke-radial-highlight"

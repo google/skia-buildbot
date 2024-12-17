@@ -11,3 +11,9 @@ ts_library(
     srcs = ["low-power-lottie-profile.schema.ts"],
     visibility = ["//visibility:public"],
 )
+
+ts_library(
+    name = "lottie-performance-warning.schema_ts_lib",
+    srcs = ["lottie-performance-warning.schema.ts"],
+    visibility = ["//visibility:public"],
+)

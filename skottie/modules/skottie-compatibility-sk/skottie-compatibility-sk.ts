@@ -14,6 +14,7 @@ import { LottieAnimation } from '../types';
 import '../skottie-button-sk';
 import { ProfileValidator, LottieError } from './profile-validator';
 import { lottieSchema } from './schemas/lottie.schema';
+import { lottiePerformanceWarningSchema } from './schemas/lottie-performance-warning.schema';
 import { lowPowerLottieProfileSchema } from './schemas/low-power-lottie-profile.schema';
 
 type SchemaEntry = {
@@ -41,6 +42,11 @@ export class SkottieCompatibilitySk extends ElementSk {
       {
         name: 'Lottie Specfication 1.0 (WIP)',
         validator: new ProfileValidator(lottieSchema),
+      },
+      {
+        name: 'Low Power Performance Warnings (WIP)',
+        validator: new ProfileValidator(lottiePerformanceWarningSchema),
+        featureErrorsOnly: true,
       },
     ];
   }
@@ -153,7 +159,7 @@ export class SkottieCompatibilitySk extends ElementSk {
         <th>Element Name</th>
         <th>JSON Path</th>
       </tr>
-      ${[...featureToErrorList].map(([featureCode, errorList]) =>
+      ${[...featureToErrorList].map(([, errorList]) =>
         errorList.map(
           (error, index) => html`
             <tr>
@@ -162,8 +168,7 @@ export class SkottieCompatibilitySk extends ElementSk {
                     <a href="https://canilottie.com/${error.featureLink ?? error.featureCode}"
                       >${error.featureCode}</a
                     >
-                    ${error.featureLevel === 'partial' ? 'partially supported' : 'not supported'}
-                    ${error.featureDetails ? html` <div>${error.featureDetails}</div> ` : null}
+                    ${error.featureDetails ? error.featureDetails : 'not supported'}
                   </td>`
                 : null}
               <td>${error.nameHierarchy?.join(' > ')}</td>
