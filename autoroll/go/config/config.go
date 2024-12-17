@@ -7,7 +7,6 @@ package config
 //go:generate bazelisk run --config=mayberemote //:protoc -- --twirp_typescript_out=../../modules/config ./config.proto
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -44,7 +43,7 @@ var (
 	}
 
 	// ValidK8sLabel matches valid labels for Kubernetes.
-	ValidK8sLabel = regexp.MustCompile(`^[a-zA-Z\._-]{1,63}$`)
+	ValidK8sLabel = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$`)
 
 	// Gerrit hosts used by Chromium projects.
 	chromiumGerritHosts = []string{
@@ -118,7 +117,10 @@ func (c *Config) Validate() error {
 		return skerr.Fmt("RollerName is required.")
 	}
 	if len(c.RollerName) > MaxRollerNameLength {
-		return fmt.Errorf("RollerName length %d is greater than maximum %d", len(c.RollerName), MaxRollerNameLength)
+		return skerr.Fmt("RollerName length %d is greater than maximum %d", len(c.RollerName), MaxRollerNameLength)
+	}
+	if !ValidK8sLabel.MatchString(c.RollerName) {
+		return skerr.Fmt("RollerName is invalid.")
 	}
 	if c.ChildDisplayName == "" {
 		return skerr.Fmt("ChildDisplayName is required.")

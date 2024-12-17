@@ -144,3 +144,22 @@ func TestValidation_TransitiveDeps(t *testing.T) {
 		require.ErrorContains(t, cfg.Validate(), "top level transitive dependency differs from transitive dependency set on parent")
 	})
 }
+
+func TestValidation_RollerName(t *testing.T) {
+	t.Run("starts with dash", func(t *testing.T) {
+		cfg := makeConfig()
+		cfg.RollerName = "-" + cfg.RollerName
+		require.ErrorContains(t, cfg.Validate(), "RollerName is invalid")
+	})
+	t.Run("ends with dash", func(t *testing.T) {
+		cfg := makeConfig()
+		cfg.RollerName = cfg.RollerName + "-"
+		require.ErrorContains(t, cfg.Validate(), "RollerName is invalid")
+	})
+	t.Run("contains invalid chars", func(t *testing.T) {
+		cfg := makeConfig()
+		cfg.RollerName = "bad.name"
+		require.ErrorContains(t, cfg.Validate(), "RollerName is invalid")
+	})
+
+}
