@@ -1311,8 +1311,11 @@ export class ExploreSimpleSk extends ElementSk {
       // Update the over user issues map in dataframe_context
       repo!.updateUserIssue(traceKey, commitPosition, bugId);
 
-      // re-render the plot with the new user issues.
-      this.updateSelectedRangeWithUpdatedDataframe(this.selectedRange!, 'commit');
+      const issues = this.addGraphCoordinatesToUserIssues(
+        this._dataframe,
+        this.dfRepo.value?.userIssues || {}
+      );
+      this.plotSimple.value!.userIssueMap = issues;
     });
   }
 
@@ -1806,8 +1809,8 @@ export class ExploreSimpleSk extends ElementSk {
     // and update the plot.
     if (this._state.enable_buganizer_issues) {
       const dfRepo = this.dfRepo.value;
-      const begin = this.selectedRange?.begin;
-      const end = this.selectedRange?.end;
+      const begin = Math.floor(detail.value.begin);
+      const end = Math.ceil(detail.value.end);
       const invalidRange = begin === undefined || end === undefined;
       if (dfRepo !== null && dfRepo !== undefined && !invalidRange) {
         dfRepo.getUserIssues(Object.keys(dfRepo.traces), begin, end).then(() => {
