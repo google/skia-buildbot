@@ -1798,6 +1798,10 @@ export class PlotSimpleSk extends ElementSk {
 
         if (issue.bugId === 0) return;
 
+        if (issue.x === -1 || issue.y === -1) {
+          return;
+        }
+
         // If point is an anomaly ignore the user issue
         // since the point is already highlighted
         let isAnomaly = false;
