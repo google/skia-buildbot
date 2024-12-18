@@ -141,6 +141,10 @@ func (api triageApi) FileNewBug(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// EditAnomalies updates data about an anomaly by forwarding the request to Chromeperf's
+// edit_anomalies_skia. The "keys", is a required field. They map to ndb Anomaly keys in
+// Datastore and are used to fetch the Anomaly object and updated with the new details,
+// whether that be the Bug ID due to triage or end revision due to nudging.
 func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
@@ -164,11 +168,19 @@ func (api triageApi) EditAnomalies(w http.ResponseWriter, r *http.Request) {
 	if editAnomaliesRequest.StartRevision < 0 || editAnomaliesRequest.EndRevision < 0 {
 		http.Error(w, "Invalid start or end revision.", http.StatusBadRequest)
 		return
-	} else if editAnomaliesRequest.EndRevision < editAnomaliesRequest.StartRevision {
+	}
+	if editAnomaliesRequest.EndRevision < editAnomaliesRequest.StartRevision {
 		http.Error(w, "End revision cannot be less than start revision.", http.StatusBadRequest)
 		return
-	} else if len(editAnomaliesRequest.Action) == 0 {
+	}
+	if len(editAnomaliesRequest.Action) == 0 {
 		http.Error(w, "Action must be a nonempty string.", http.StatusBadRequest)
+		return
+	}
+	// "keys" is required by Chromeperf API and will return 400 if not present,
+	// but avoid sending request and terminate early if missing.
+	if len(editAnomaliesRequest.Keys) < 1 {
+		http.Error(w, "Missing anomaly keys.", http.StatusBadRequest)
 		return
 	}
 
