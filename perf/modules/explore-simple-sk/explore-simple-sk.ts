@@ -608,6 +608,9 @@ export class ExploreSimpleSk extends ElementSk {
     this.useTestPicker = useTestPicker ?? false;
   }
 
+  // TODO(b/380215495): The current implementation of splitting the chart by
+  // an attribute is buggy and not very intuitive. The split-chart-menu module
+  // has therefore been removed until the bugs are fixed.
   private static template = (ele: ExploreSimpleSk) => html`
   <dataframe-repository-sk ${ref(ele.dfRepo)}>
   <div id=explore class=${ele.displayMode}>
@@ -619,9 +622,6 @@ export class ExploreSimpleSk extends ElementSk {
         Query
       </button>
       <div id=traceButtons class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
-        <split-chart-menu-sk
-          @split-chart-selection=${ele.splitByAttribute}>
-        </split-chart-menu-sk>
         <md-outlined-button
           ?disabled=${!(
             ele.plotSimple.value &&
