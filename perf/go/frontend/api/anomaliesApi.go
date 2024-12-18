@@ -227,8 +227,14 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	} else if groupReportRequest.Sid != "" {
 		err = api.chromeperfClient.SendGetRequest(
 			ctx, "alerts_skia_by_sid", "", url.Values{"sid": {groupReportRequest.Sid}, "host": []string{host}}, groupReportResponse)
+	} else if groupReportRequest.Revison != "" {
+		err = api.chromeperfClient.SendGetRequest(
+			ctx, fmt.Sprintf("alerts/skia/rev/%s", groupReportRequest.Revison), "", url.Values{"host": []string{host}}, groupReportResponse)
+	} else if groupReportRequest.AnomalyGroupID != "" {
+		err = api.chromeperfClient.SendGetRequest(
+			ctx, fmt.Sprintf("alerts/skia/group_id/%s", groupReportRequest.AnomalyGroupID), "", url.Values{"host": []string{host}}, groupReportResponse)
 	} else {
-		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters, or the parameter provided is not yet supported: %s", groupReportRequest), http.StatusBadRequest)
+		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %s", groupReportRequest), http.StatusBadRequest)
 		return
 	}
 
@@ -261,6 +267,8 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// The group report page should only regard one input parameters.
+// If the request has more than one parameters, we consider it invalid.
 func IsGroupReportRequestValid(req GetGroupReportRequest) bool {
 	valid_param_count := 0
 	if req.AnomalyIDs != "" {
@@ -270,6 +278,12 @@ func IsGroupReportRequestValid(req GetGroupReportRequest) bool {
 		valid_param_count += 1
 	}
 	if req.Sid != "" {
+		valid_param_count += 1
+	}
+	if req.Revison != "" {
+		valid_param_count += 1
+	}
+	if req.AnomalyGroupID != "" {
 		valid_param_count += 1
 	}
 	return valid_param_count == 1
