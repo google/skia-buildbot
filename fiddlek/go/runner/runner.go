@@ -33,7 +33,8 @@ import (
 
 const (
 	// cppPrefix is a format string for the code that makes it compilable.
-	cppPrefix = `#include "fiddle_main.h"
+	cppPrefix = `#include "skia.h"
+#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = %s; // Either a string, or 0.
   return DrawOptions(%d, %d, true, true, %v, %v, %v, %v, %v, path, %s, %d, %d, %d, %s);

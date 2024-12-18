@@ -29,7 +29,8 @@ func TestPrepCodeToCompile_OptionsInjectedIntoString(t *testing.T) {
 	}
 
 	test("default source", types.Options{Width: 128, Height: 256},
-		`#include "fiddle_main.h"
+		`#include "skia.h"
+#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, false, false, false, path, skgpu::Mipmapped::kNo, 64, 64, 0, skgpu::Mipmapped::kNo);
@@ -41,7 +42,8 @@ void draw(SkCanvas* canvas) {
 `)
 
 	test("uses png 2 as source", types.Options{Width: 128, Height: 256, Source: 2},
-		`#include "fiddle_main.h"
+		`#include "skia.h"
+#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = "/etc/fiddle/source/2.png"; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, false, false, false, path, skgpu::Mipmapped::kNo, 64, 64, 0, skgpu::Mipmapped::kNo);
@@ -53,7 +55,8 @@ void draw(SkCanvas* canvas) {
 `)
 
 	test("some options set", types.Options{Width: 128, Height: 256, SourceMipMap: true, SRGB: true, TextOnly: true},
-		`#include "fiddle_main.h"
+		`#include "skia.h"
+#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, true, false, true, path, skgpu::Mipmapped::kYes, 64, 64, 0, skgpu::Mipmapped::kNo);
@@ -76,7 +79,8 @@ void draw(SkCanvas* canvas) {
 		OffScreenHeight:      256,
 		OffScreenSampleCount: 2,
 		OffScreenMipMap:      true,
-	}, `#include "fiddle_main.h"
+	}, `#include "skia.h"
+#include "fiddle_main.h"
 DrawOptions GetDrawOptions() {
   static const char *path = 0; // Either a string, or 0.
   return DrawOptions(128, 256, true, true, true, true, true, false, true, path, skgpu::Mipmapped::kYes, 128, 256, 2, skgpu::Mipmapped::kYes);
