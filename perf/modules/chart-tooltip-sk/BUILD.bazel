@@ -37,6 +37,7 @@ sk_element(
         "//perf/modules/json:index_ts_lib",
         "//perf/modules/cid:cid_ts_lib",
         "//perf/modules/window:window_ts_lib",
+        "//perf/modules/paramtools:index_ts_lib",
     ],
     ts_srcs = [
         "chart-tooltip-sk.ts",

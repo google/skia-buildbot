@@ -27,6 +27,7 @@ import { UserIssueSk } from '../user-issue-sk/user-issue-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
+import { removeSpecialFunctions } from '../paramtools';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -398,7 +399,7 @@ export class ChartTooltipSk extends ElementSk {
 
     if (this.userIssueSk !== null) {
       this.userIssueSk.bug_id = bug_id;
-      this.userIssueSk.trace_key = this._trace_name;
+      this.userIssueSk.trace_key = removeSpecialFunctions(this._trace_name);
       const commitPos = this.commit_position?.toString() || '';
       this.userIssueSk.commit_position = parseInt(commitPos);
     }

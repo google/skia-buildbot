@@ -36,6 +36,7 @@ import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
 import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
+import { removeSpecialFunctions } from '../paramtools';
 
 // Holds issue data for a single data point.
 // x and y corresponds to the location of the data point on the chart
@@ -491,8 +492,14 @@ export class DataFrameRepository extends LitElement {
   // Makes an API call to fetch the comments in the given commit position range.
   // Modifies the response to match with the UserIssueMap interface.
   async getUserIssues(traceKeys: string[], begin: number, end: number): Promise<UserIssueMap> {
+    // If trace key has special functions like norm(,a=A,b=B,), remove
+    // those functions from the traceKey. This is done to make sure
+    // the user issue is reflected for the normalized, etc transformations of
+    // the graph.
+    const modifiedTraceKeys = traceKeys.map((k) => removeSpecialFunctions(k));
+
     const req: UserIssuesRequest = {
-      trace_keys: traceKeys,
+      trace_keys: modifiedTraceKeys,
       begin_commit_position: begin,
       end_commit_position: end,
     };
@@ -530,21 +537,27 @@ export class DataFrameRepository extends LitElement {
     let issues = this.userIssues;
     this.userIssues = null;
 
+    // If trace key has special functions like norm(,a=A,b=B,), remove
+    // those functions from the traceKey. This is done to make sure
+    // the user issue is reflected for the normalized, etc transformations of
+    // the graph.
+    const modifiedTraceKey = removeSpecialFunctions(traceKey);
+
     const updatedIssue = { bugId: bugId, x: -1, y: -1 };
     if (issues === null) {
       issues = {};
-      issues[traceKey] = {};
-      issues[traceKey][commitPosition] = updatedIssue;
+      issues[modifiedTraceKey] = {};
+      issues[modifiedTraceKey][commitPosition] = updatedIssue;
       this.userIssues = issues;
       return;
     }
 
-    if (Object.keys(issues).includes(traceKey)) {
-      issues[traceKey][commitPosition] = updatedIssue;
+    if (Object.keys(issues).includes(modifiedTraceKey)) {
+      issues[modifiedTraceKey][commitPosition] = updatedIssue;
       this.userIssues = issues;
     } else {
-      issues[traceKey] = {};
-      issues[traceKey][commitPosition] = updatedIssue;
+      issues[modifiedTraceKey] = {};
+      issues[modifiedTraceKey][commitPosition] = updatedIssue;
       this.userIssues = issues;
     }
   }

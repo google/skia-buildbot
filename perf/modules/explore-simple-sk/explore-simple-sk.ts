@@ -116,7 +116,7 @@ import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk'
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
-import { fromKey, paramsToParamSet } from '../paramtools';
+import { fromKey, paramsToParamSet, removeSpecialFunctions } from '../paramtools';
 import { dataFrameToCSV } from '../csv';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import { MISSING_DATA_SENTINEL } from '../const/const';
@@ -2656,6 +2656,16 @@ export class ExploreSimpleSk extends ElementSk {
   private addGraphCoordinatesToUserIssues(df: DataFrame, issues: UserIssueMap): UserIssueMap {
     const allPoints = df.header?.map((p) => p?.offset) || [];
     const issuesObj = issues || {};
+    // The dataframe contains trace keys in unextracted form like
+    // norm(,a=A,b=B,). However the user issues stores them in extracted form.
+    // We need to maintain this map below is because the trace value
+    // is looked up directly from the dataframe object.
+    const extractedKeyMap: { [key: string]: string } = {};
+    Object.keys(df.traceset).forEach((unextractedTrace) => {
+      const extractedKey = removeSpecialFunctions(unextractedTrace);
+      extractedKeyMap[extractedKey] = unextractedTrace;
+    });
+
     Object.keys(issuesObj).forEach((traceId) => {
       Object.keys(issuesObj[traceId]).forEach((k, _) => {
         const commitPos = parseInt(k) as CommitNumber;
@@ -2663,7 +2673,10 @@ export class ExploreSimpleSk extends ElementSk {
         const pointIndex = allPoints.indexOf(commitPos);
         if (pointIndex === -1) return;
 
-        const pointValue = df.traceset[traceId][pointIndex];
+        // df.traceset has keys in unstructured format like norm(key...).
+        // To get the point value we need to get the key in raw form.
+        const unextractedTraceId = extractedKeyMap[traceId];
+        const pointValue = df.traceset[unextractedTraceId][pointIndex];
         issuesObj[traceId][commitPos] = {
           bugId: bugId,
           x: pointIndex,
