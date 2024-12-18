@@ -97,6 +97,16 @@ export class AnomaliesTableSk extends ElementSk {
 
   private async openReport() {
     const idList = [...this.checkedAnomaliesSet].map((a) => a.id);
+
+    // If only one anomaly is selected, open the report page using
+    // the anomaly id directly.
+    // TODO(b/384952008): offload the handling to backend.
+    if (idList.length === 1) {
+      const key = idList[0];
+      window.open(`/u/?anomalyIDs=${key}`, '_blank');
+      return;
+    }
+
     const idString = idList.join(',');
     // TODO(wenbinzhang): ideally, we should open the url:
     //   /u/?keys=idString.
