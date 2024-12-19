@@ -1972,6 +1972,12 @@ export class ExploreSimpleSk extends ElementSk {
       ? () => {
           this.tooltipSelected = false;
           tooltipElem!.moveTo(null);
+
+          // unselect all selected item on the chart
+          this.googleChartPlot.value?.unselectAll();
+          this.plotSimple.value!.highlight = [];
+          this.plotSimple.value!.xbar = -1;
+          this.plotSummary.value!.selectedTrace = '';
         }
       : () => {};
 

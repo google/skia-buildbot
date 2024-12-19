@@ -761,6 +761,13 @@ export class PlotGoogleChartSk extends LitElement {
     // first two columns of DataTable are commit position and date
     return this.data!.getValue(index.row, index.col + 1);
   }
+
+  /**
+   * Unselect all selections on the chart.
+   */
+  unselectAll(): void {
+    this.chart!.setSelection([]);
+  }
 }
 
 define('plot-google-chart-sk', PlotGoogleChartSk);
