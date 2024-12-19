@@ -89,6 +89,8 @@ type GetGroupReportResponse struct {
 	// It is used in a share-able link for a report with multiple keys.
 	// This is generated on Chromeperf side and returned on POST call to /alerts_skia_by_keys
 	StateId string `json:"sid"`
+	// The list of anomalies which should be checked in report page.
+	SelectedKeys []string `json:"selected_keys"`
 	// Error message if any.
 	Error string `json:"error"`
 	// List of timeranges that will let report page know in what range to render
@@ -248,6 +250,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// b/383913153: mitigation on the anomaly rendering scenario.
 	for i := range groupReportResponse.Anomalies {
 		groupReportResponse.Anomalies[i].TestPath = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
 	}

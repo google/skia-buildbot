@@ -261,6 +261,7 @@ export interface Timerange {
 export interface GetGroupReportResponse {
 	anomaly_list: Anomaly[] | null;
 	sid: string;
+	selected_keys: string[] | null;
 	error: string;
 	timerange_map: { [key: number]: Timerange } | null;
 }
