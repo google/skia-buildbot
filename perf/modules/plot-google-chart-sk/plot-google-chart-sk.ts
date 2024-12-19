@@ -384,21 +384,6 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseDown(e: MouseEvent) {
-    // This interaction is tricky. When the tooltip is selected
-    // when should the tooltip disappear?
-    // One potential user journey is that a user might click on an anomaly
-    // and then try to shift click around it to estimate the size of the anomaly.
-    // While having the tooltip is helpful, other indicators should help users
-    // locate the anomaly they were targeting.
-    // We dispatch this event as if the tooltip were a popover.
-    this.dispatchEvent(
-      new CustomEvent('plot-chart-mousedown', {
-        bubbles: true,
-        composed: true,
-        detail: {},
-      })
-    );
-
     // if user holds down shift-click, enable delta range calculation
     if (e.shiftKey) {
       e.preventDefault(); // disable system events
