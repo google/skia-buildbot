@@ -408,12 +408,12 @@ export class AnomaliesTableSk extends ElementSk {
   populateTable(anomalyList: Anomaly[]) {
     const msg = this.querySelector('#clear-msg') as HTMLHeadingElement;
     const table = this.querySelector('#anomalies-table') as HTMLTableElement;
-
     if (anomalyList.length > 0) {
       msg.hidden = true;
       table.hidden = false;
       this.anomalyList = anomalyList;
       this.groupAnomalies();
+      this.uncheckAllCheckbox();
       this._render();
     } else {
       msg.hidden = false;
@@ -529,6 +529,17 @@ export class AnomaliesTableSk extends ElementSk {
       `${window.location.protocol}//${window.location.host}` +
       `/m/?begin=${begin}&end=${end}&shortcut=${this.shortcutUrl}&totalGraphs=1`;
     window.open(url, '_blank');
+  }
+
+  private uncheckAllCheckbox() {
+    this.headerCheckbox!.checked = false;
+    this.checkedAnomaliesSet.forEach((anomaly) => {
+      const checkbox = this.querySelector(
+        `checkbox-sk[id="anomaly-row-${anomaly.id}"]`
+      ) as CheckOrRadio;
+      checkbox.checked = false;
+      this.checkedAnomaliesSet.delete(anomaly);
+    });
   }
 }
 
