@@ -10,6 +10,8 @@ var spannerTemplates = map[statement]string{
                 '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }}
             )
         {{ end }}
+        ON CONFLICT (trace_id, commit_number) DO UPDATE
+        SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
         `,
 	convertTraceIDs: `
         {{ $tileNumber := .TileNumber }}
@@ -99,8 +101,8 @@ var spannerTemplates = map[statement]string{
                 {{ if $index }},{{end}}
                 ( {{ $element.TileNumber }}, '{{ $element.Key }}={{ $element.Value }}', '{{ $element.MD5HexTraceID }}' )
             {{ end }}
-        ON CONFLICT (tile_number, key_value, trace_id)
-        DO NOTHING`,
+        ON CONFLICT (tile_number, key_value, trace_id) DO UPDATE
+        tile_number=EXCLUDED.tile_number, key_value=EXCLUDED.key_value, trace_id=EXCLUDED.trace_id`,
 	insertIntoParamSets: `
         INSERT INTO
             ParamSets (tile_number, param_key, param_value)

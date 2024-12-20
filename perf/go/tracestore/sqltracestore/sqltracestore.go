@@ -1623,6 +1623,9 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 //
 // The mutex protects 'ret' and 'traceNameMap'.
 func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.CommitNumber, endCommit types.CommitNumber, commits []provider.Commit, chunk []traceIDForSQL, mutex *sync.Mutex, traceNameMap map[traceIDForSQLInBytes]string, ret *types.TraceSet) error {
+	if len(chunk) == 0 {
+		return nil
+	}
 	ctx, span := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Chunk")
 	span.AddAttributes(trace.Int64Attribute("chunk_length", int64(len(chunk))))
 	defer span.End()
