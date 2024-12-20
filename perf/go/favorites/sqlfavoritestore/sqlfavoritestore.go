@@ -67,9 +67,8 @@ var statements = map[statement]string{
 			user_id=$1
 	`,
 	liveness: `
-		EXPLAIN
 		SELECT
-			*
+			COUNT(*)
 		FROM
 			Favorites
 		LIMIT 1;
@@ -156,7 +155,7 @@ func (s *FavoriteStore) List(ctx context.Context, userId string) ([]*favorites.F
 }
 
 func (s *FavoriteStore) Liveness(ctx context.Context) error {
-	var live string
+	var live int
 	if err := s.db.QueryRow(ctx, statements[liveness]).Scan(&live); err != nil {
 		return skerr.Wrapf(err, "cockroachDB connection is lost")
 	}
