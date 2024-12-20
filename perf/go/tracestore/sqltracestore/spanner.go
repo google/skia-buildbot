@@ -19,7 +19,6 @@ var spannerTemplates = map[statement]string{
             key_value, trace_id
         FROM
             Postings
-            {{ .AsOf }}
         WHERE
             tile_number = {{ $tileNumber }}
             AND trace_id IN (
@@ -36,7 +35,6 @@ var spannerTemplates = map[statement]string{
             trace_id
         FROM
             Postings
-            {{ .AsOf }}
         WHERE
             tile_number = {{ .TileNumber }}
             AND key_value IN
@@ -54,7 +52,6 @@ var spannerTemplates = map[statement]string{
 			trace_id
 		FROM
 			Postings
-			{{ .AsOf }}
 		WHERE
 			tile_number = {{ .TileNumber }}
 			AND key_value IN
@@ -72,7 +69,6 @@ var spannerTemplates = map[statement]string{
             val
         FROM
             TraceValues
-            {{ .AsOf }}
         WHERE
             commit_number >= {{ .BeginCommitNumber }}
             AND commit_number <= {{ .EndCommitNumber }}
@@ -102,7 +98,7 @@ var spannerTemplates = map[statement]string{
                 ( {{ $element.TileNumber }}, '{{ $element.Key }}={{ $element.Value }}', '{{ $element.MD5HexTraceID }}' )
             {{ end }}
         ON CONFLICT (tile_number, key_value, trace_id) DO UPDATE
-        tile_number=EXCLUDED.tile_number, key_value=EXCLUDED.key_value, trace_id=EXCLUDED.trace_id`,
+        SET tile_number=EXCLUDED.tile_number, key_value=EXCLUDED.key_value, trace_id=EXCLUDED.trace_id`,
 	insertIntoParamSets: `
         INSERT INTO
             ParamSets (tile_number, param_key, param_value)
@@ -118,7 +114,6 @@ var spannerTemplates = map[statement]string{
            param_key, param_value
         FROM
             ParamSets
-            {{ .AsOf }}
         WHERE
             tile_number = {{ .TileNumber }}`,
 	countMatchingTraces: `
