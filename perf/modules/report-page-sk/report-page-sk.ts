@@ -42,6 +42,9 @@ export class ReportPageSk extends ElementSk {
   // Anomaly list
   private anomalyList: Anomaly[] = [];
 
+  // Anomaly list
+  private selectedKeys: string[] = [];
+
   // Maps anomaly ID to Begin and End ranges.
   private timerangeMap: { [key: number]: Timerange } = {};
 
@@ -106,6 +109,7 @@ export class ReportPageSk extends ElementSk {
       .then((json) => {
         this.anomalyList = json.anomaly_list || [];
         this.timerangeMap = json.timerange_map;
+        this.selectedKeys = json.selected_keys || [];
         this.initializePage();
         this._spinner!.active = false;
         this._render();
@@ -119,14 +123,8 @@ export class ReportPageSk extends ElementSk {
 
   private initializePage() {
     this.anomaliesTable!.populateTable(this.anomalyList);
-    if (this.params.anomalyIDs) {
-      const anomaly = this.initialReportPageCheckedAnomalies(
-        this.params.anomalyIDs,
-        this.anomalyList
-      );
-      if (anomaly) {
-        this.anomaliesTable!.checkAnomaly(anomaly!);
-      }
+    if (this.selectedKeys) {
+      this.initialReportPageCheckedAnomalies(this.selectedKeys, this.anomalyList);
     }
   }
 
@@ -179,18 +177,15 @@ export class ReportPageSk extends ElementSk {
     }
   }
 
-  private initialReportPageCheckedAnomalies(
-    anomalyIds: string,
-    anomalies: Anomaly[]
-  ): Anomaly | null {
-    const firstAnomalyId = anomalyIds.split(',').at(0);
-    for (let i = 0; i < anomalies.length; i++) {
-      const anomaly = anomalies.at(i);
-      if (anomaly !== undefined && String(anomaly.id) === firstAnomalyId) {
-        return anomaly;
+  private initialReportPageCheckedAnomalies(anomalyIds: string[], anomalyList: Anomaly[]) {
+    anomalyIds.forEach((id) => {
+      for (let i = 0; i < anomalyList.length; i++) {
+        const anomaly = anomalyList.at(i);
+        if (anomaly !== undefined && String(anomaly.id) === id) {
+          this.anomaliesTable!.checkAnomaly(anomaly);
+        }
       }
-    }
-    return null;
+    });
   }
 }
 
