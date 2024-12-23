@@ -42,3 +42,23 @@ command to get the necessary access.
 
 All the team members have been given read permissions for the spanner databases. You can run
 the queries in Spanner studio available in the GCP console.
+
+# Run a local instance against Production Database (Readonly)
+
+The spanner instances have been configured to provide readonly access to the developers working
+on perf. If you want to run a local FE instance against the production spanner database, run the
+following command from the `perf` directory.
+
+    ./run_with_spanner.sh p=<gcp project> i=<spanner instance id> d=<database name> config=<path to perf instance config file>
+
+The values for the arguments can be found in the relevant config file under
+`//perf/configs/spanner/*.json`.
+
+You may get authentication errors during server startup. PGAdapter uses the GCP credentials on
+your machine to authenticate with Spanner. Refresh your credentials with the following commands.
+
+    gcloud config set project <gcp project>
+    gcloud auth application-default login
+
+Follow the instructions printed in these commands to refresh the local credentials and then
+run the `./run_with_spanner.sh` command again.
