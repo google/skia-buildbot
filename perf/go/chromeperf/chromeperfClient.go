@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	// Change to "http://localhost:8080" for local testing of skia-bridge.
 	chromePerfBaseUrl       = "https://skia-bridge-dot-chromeperf.appspot.com"
 	chromePerfLegacyBaseUrl = "https://chromeperf.appspot.com"
 )
