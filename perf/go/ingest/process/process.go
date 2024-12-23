@@ -31,7 +31,7 @@ const writeRetries = 10
 
 // defaultDatabaseTimeout is the context timeout used when making a request that
 // involves the database. For more complex requests use config.QueryMaxRuntime.
-const defaultDatabaseTimeout = time.Minute
+const defaultDatabaseTimeout = 15 * time.Minute
 
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
