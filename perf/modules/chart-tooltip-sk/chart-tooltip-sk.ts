@@ -186,7 +186,7 @@ export class ChartTooltipSk extends ElementSk {
       </ul>
       <user-issue-sk id="tooltip-user-issue-sk"></user-issue-sk>
       <div class="revlink">
-        <a href="/v/?revisionId=${ele.commit_position}" target="_blank">
+        <a href="/u/?rev=${ele.commit_position}" target="_blank">
           Regressions at ${ele.commit_position}
         </a>
       </div>
