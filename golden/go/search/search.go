@@ -302,8 +302,8 @@ func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int)
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
 	var tileID int
-	if s.dbType == config.CockroachDB {
-		var lc pgtype.Int4
+	if s.dbType == config.Spanner {
+		var lc pgtype.Int8
 		if err := row.Scan(&lc); err != nil {
 			if err == pgx.ErrNoRows {
 				return 0, nil // not enough commits seen, so start at tile 0.
@@ -315,9 +315,8 @@ LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
 			return 0, nil
 		}
 		tileID = int(lc.Int)
-
 	} else {
-		var lc pgtype.Int8
+		var lc pgtype.Int4
 		if err := row.Scan(&lc); err != nil {
 			if err == pgx.ErrNoRows {
 				return 0, nil // not enough commits seen, so start at tile 0.
