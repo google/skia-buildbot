@@ -28,7 +28,11 @@ func main() {
 		sklog.Fatalf("Could not get working dir")
 	}
 
-	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly, schemaTargetDB, nil)
+	ttlExclude := []string{
+		"Changelists",
+		"Patchsets",
+	}
+	generatedText := exporter.GenerateSQL(schema.Tables{}, *outputPkg, exporter.SchemaOnly, schemaTargetDB, ttlExclude)
 	out := filepath.Join(cwd, *outputFile)
 	err = os.WriteFile(out, []byte(generatedText), 0666)
 	if err != nil {

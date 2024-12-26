@@ -11,7 +11,7 @@ const Schema = `CREATE TABLE IF NOT EXISTS Changelists (
   subject TEXT NOT NULL,
   last_ingested_data TIMESTAMP WITH TIME ZONE NOT NULL,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-) TTL INTERVAL '1095 days' ON createdat;
+);
 CREATE TABLE IF NOT EXISTS CommitsWithData (
   commit_id TEXT PRIMARY KEY,
   tile_id INT8 NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS Patchsets (
   commented_on_cl BOOL NOT NULL,
   created_ts TIMESTAMP WITH TIME ZONE,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-) TTL INTERVAL '1095 days' ON createdat;
+);
 CREATE TABLE IF NOT EXISTS PrimaryBranchDiffCalculationWork (
   grouping_id BYTEA PRIMARY KEY,
   last_calculated_ts TIMESTAMP WITH TIME ZONE NOT NULL,

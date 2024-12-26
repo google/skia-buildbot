@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search/caching"
@@ -208,6 +209,7 @@ type Impl struct {
 
 	materializedViews map[string]bool
 	cacheManager      *caching.SearchCacheManager
+	dbType            config.DatabaseType
 }
 
 // New returns an implementation of API.
@@ -236,6 +238,11 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		reviewSystemMapping:  map[string]string{},
 		cacheManager:         caching.New(cacheClient, sqlDB, cache_corpora, windowLength),
 	}
+}
+
+// SetDatabaseType sets the database type for the current configuration.
+func (s *Impl) SetDatabaseType(dbType config.DatabaseType) {
+	s.dbType = dbType
 }
 
 // SetReviewSystemTemplates sets the URL templates that are used to link to the code review system.
@@ -294,18 +301,36 @@ func (s *Impl) getStartingTile(ctx context.Context, commitsWithDataToSearch int)
 	row := s.db.QueryRow(ctx, `SELECT tile_id FROM CommitsWithData
 ORDER BY commit_id DESC
 LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
-	var lc pgtype.Int4
-	if err := row.Scan(&lc); err != nil {
-		if err == pgx.ErrNoRows {
-			return 0, nil // not enough commits seen, so start at tile 0.
+	var tileID int
+	if s.dbType == config.CockroachDB {
+		var lc pgtype.Int4
+		if err := row.Scan(&lc); err != nil {
+			if err == pgx.ErrNoRows {
+				return 0, nil // not enough commits seen, so start at tile 0.
+			}
+			return 0, skerr.Wrapf(err, "getting latest commit")
 		}
-		return 0, skerr.Wrapf(err, "getting latest commit")
+		if lc.Status == pgtype.Null {
+			// There are no commits with data, so start at tile 0.
+			return 0, nil
+		}
+		tileID = int(lc.Int)
+
+	} else {
+		var lc pgtype.Int8
+		if err := row.Scan(&lc); err != nil {
+			if err == pgx.ErrNoRows {
+				return 0, nil // not enough commits seen, so start at tile 0.
+			}
+			return 0, skerr.Wrapf(err, "getting latest commit")
+		}
+		if lc.Status == pgtype.Null {
+			// There are no commits with data, so start at tile 0.
+			return 0, nil
+		}
+		tileID = int(lc.Int)
 	}
-	if lc.Status == pgtype.Null {
-		// There are no commits with data, so start at tile 0.
-		return 0, nil
-	}
-	return schema.TileID(lc.Int), nil
+	return schema.TileID(tileID), nil
 }
 
 // getDigestsOnPrimary returns a map of all distinct digests on the primary branch.
@@ -4012,7 +4037,7 @@ SELECT corpus, max(num_untriaged) FROM (
     SELECT corpus, num_untriaged FROM AllCorpora
     UNION
     SELECT corpus, num_untriaged FROM CorporaWithAtLeastOneTriaged
-) GROUP BY corpus`
+) AS all_corpora GROUP BY corpus`
 
 	rows, err := s.db.Query(ctx, statement, s.windowLength)
 	if err != nil {

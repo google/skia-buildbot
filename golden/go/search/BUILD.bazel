@@ -12,6 +12,7 @@ go_library(
         "//go/skerr",
         "//go/sklog",
         "//go/util",
+        "//golden/go/config",
         "//golden/go/expectations",
         "//golden/go/publicparams",
         "//golden/go/search/caching",

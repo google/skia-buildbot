@@ -90,7 +90,7 @@ func (s *StoreImpl) List(ctx context.Context) ([]ignore.Rule, error) {
 	ctx, span := trace.StartSpan(ctx, "ignorestore_List", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	var rv []ignore.Rule
-	rows, err := s.db.Query(ctx, `SELECT * FROM IgnoreRules ORDER BY expires ASC`)
+	rows, err := s.db.Query(ctx, `SELECT ignore_rule_id, creator_email, updated_email, expires, note, query FROM IgnoreRules ORDER BY expires ASC`)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

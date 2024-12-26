@@ -178,6 +178,7 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 
 	s2a := search.New(sqlDB, fsc.WindowSize, cacheClient, fsc.CachingCorpora)
 
+	s2a.SetDatabaseType(fsc.SQLDatabaseType)
 	s2a.SetReviewSystemTemplates(templates)
 	sklog.Infof("SQL Search loaded with CRS templates %s", templates)
 	err = s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
