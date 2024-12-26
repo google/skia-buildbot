@@ -74,18 +74,20 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   private static template = (ele: AnomaliesTableSk) => html`
-    <button
-      id="triage-button"
-      @click="${ele.togglePopup}"
-      ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-      Triage
-    </button>
-    <button
-      id="graph-button"
-      @click="${ele.openReport}"
-      ?disabled="${ele.checkedAnomaliesSet.size === 0}">
-      Graph
-    </button>
+    <div class="filter-buttons" ?hidden="${ele.anomalyList.length === 0}">
+      <button
+        id="triage-button"
+        @click="${ele.togglePopup}"
+        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
+        Triage
+      </button>
+      <button
+        id="graph-button"
+        @click="${ele.openReport}"
+        ?disabled="${ele.checkedAnomaliesSet.size === 0}">
+        Graph
+      </button>
+    </div>
     <div class="popup-container" ?hidden="${!ele.showPopup}">
       <div class="popup">
         <triage-menu-sk id="triage-menu"></triage-menu-sk>
