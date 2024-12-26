@@ -97,8 +97,7 @@ var spannerTemplates = map[statement]string{
                 {{ if $index }},{{end}}
                 ( {{ $element.TileNumber }}, '{{ $element.Key }}={{ $element.Value }}', '{{ $element.MD5HexTraceID }}' )
             {{ end }}
-        ON CONFLICT (tile_number, key_value, trace_id) DO UPDATE
-        SET tile_number=EXCLUDED.tile_number, key_value=EXCLUDED.key_value, trace_id=EXCLUDED.trace_id`,
+        ON CONFLICT (tile_number, key_value, trace_id) DO NOTHING`,
 	insertIntoParamSets: `
         INSERT INTO
             ParamSets (tile_number, param_key, param_value)

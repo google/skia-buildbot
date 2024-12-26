@@ -186,7 +186,7 @@ const (
 	// going from 20,000 qps with a batch size of 100 down to 400 qps with a batch
 	// size of 200.
 	writeTracesValuesChunkSize    = 1000
-	writeTracesPostingsChunkSize  = 1000
+	writeTracesPostingsChunkSize  = 100
 	writeTracesParamSetsChunkSize = 100
 
 	// See writeTracesChunkSize.
