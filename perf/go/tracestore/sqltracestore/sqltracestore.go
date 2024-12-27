@@ -682,6 +682,9 @@ type SQLTraceStore struct {
 	// and https://www.cockroachlabs.com/docs/v20.1/follower-reads#run-queries-that-use-follower-reads
 	enableFollowerReads bool
 
+	// This is set to true if the datastore is Spanner.
+	isSpanner bool
+
 	// metrics
 	writeTracesMetric                      metrics2.Float64SummaryMetric
 	writeTracesMetricSQL                   metrics2.Float64SummaryMetric
@@ -737,6 +740,7 @@ func New(db pool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, 
 		cache:                                  cache,
 		orderedParamSetCache:                   paramSetCache,
 		enableFollowerReads:                    datastoreConfig.EnableFollowerReads,
+		isSpanner:                              datastoreConfig.DataStoreType == config.SpannerDataStoreType,
 		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces"),
 		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_write_traces_sql"),
 		buildTracesContextsMetric:              metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_build_traces_context"),
@@ -1837,21 +1841,40 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 	sklog.Infof("About to format %d postings names", len(params))
 
 	if len(postingsTemplateContext) > 0 {
-		err := util.ChunkIter(len(postingsTemplateContext), writeTracesPostingsChunkSize, func(startIdx int, endIdx int) error {
-			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
-			defer span.End()
+		var err error
+		if s.isSpanner {
+			err = util.ChunkIterParallelPool(ctx, len(postingsTemplateContext), writeTracesPostingsChunkSize, writePostingsParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
+				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
+				defer span.End()
 
-			var b bytes.Buffer
-			if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
-				return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
-			}
-			sql := b.String()
+				var b bytes.Buffer
+				if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
+					return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
+				}
+				sql := b.String()
 
-			if _, err := s.db.Exec(ctx, sql); err != nil {
-				return skerr.Wrapf(err, "Executing: %q", b.String())
-			}
-			return nil
-		})
+				if _, err := s.db.Exec(ctx, sql); err != nil {
+					return skerr.Wrapf(err, "Executing: %q", b.String())
+				}
+				return nil
+			})
+		} else {
+			err = util.ChunkIter(len(postingsTemplateContext), writeTracesPostingsChunkSize, func(startIdx int, endIdx int) error {
+				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
+				defer span.End()
+
+				var b bytes.Buffer
+				if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, postingsTemplateContext[startIdx:endIdx]); err != nil {
+					return skerr.Wrapf(err, "failed to expand postings template on slice [%d, %d]", startIdx, endIdx)
+				}
+				sql := b.String()
+
+				if _, err := s.db.Exec(ctx, sql); err != nil {
+					return skerr.Wrapf(err, "Executing: %q", b.String())
+				}
+				return nil
+			})
+		}
 
 		if err != nil {
 			return err
