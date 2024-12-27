@@ -31,7 +31,7 @@ const writeRetries = 10
 
 // defaultDatabaseTimeout is the context timeout used when making a request that
 // involves the database. For more complex requests use config.QueryMaxRuntime.
-const defaultDatabaseTimeout = 15 * time.Minute
+const defaultDatabaseTimeout = 30 * time.Minute
 
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
@@ -196,6 +196,13 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		i++
 		if i > retries {
 			writeFailed = true
+			break
+		}
+
+		if err == context.DeadlineExceeded {
+			// The timeout is already significantly high. If the write traces timed out,
+			// it will likely timeout on a retry. Let's error out early in that case.
+			sklog.Errorf("Timed out while writing traces from %q", f.Name)
 			break
 		}
 	}
