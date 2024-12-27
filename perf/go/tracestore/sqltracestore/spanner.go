@@ -1,7 +1,7 @@
 package sqltracestore
 
 // The number of parallel writes when writing postings data.
-const writePostingsParallelPoolSize = 5
+const writePostingsParallelPoolSize = 20
 
 var spannerTemplates = map[statement]string{
 	insertIntoTraceValues: `INSERT INTO
