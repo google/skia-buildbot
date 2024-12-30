@@ -16,40 +16,91 @@ import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk/anomalies-table-sk';
 
-class ReportPageParams {
-  // A revision number.
-  rev: string = '';
+// Data point for anomalies tracking the actual anomaly object.
+// Inclusive of:
+// * whether it's been checked.
+// * the graph generated for it.
+// * beginning and end time ranges.
+export interface AnomalyDataPoint {
+  // The anomaly object that this tracker is maintaining
+  anomaly: Anomaly;
+  // Boolean field to track whether the given anomaly has been selected
+  checked: boolean;
+  // The anomaly group this anomaly is associated with
+  // group: AnomalyGroup;
+  // The ExploreSimpleSk object this Anomaly has been graphed for
+  graph: ExploreSimpleSk | null;
+  // Begin and end time ranges for the current Anomaly.
+  timerange: Timerange;
+}
 
-  // Comma-separated list of Anomaly keys.
-  anomalyIDs: string = '';
+export class AnomalyTracker {
+  // Internal map for anomalies
+  private tracker: { [key: number]: AnomalyDataPoint };
 
-  // A Buganizer bug number ID.
-  bugID: string = '';
+  constructor() {
+    this.tracker = {};
+  }
 
-  // An Anomaly Group ID
-  anomalyGroupID: string = '';
+  // Load the tracker with the necessary information from the provided anomaly list.
+  // It's assumed that there's a 1:1 mapping between the information in anomalyList
+  // and timerangeMap, but there's nothing that enforces nor checks it. This means
+  // that any missing data will simply be unset.
+  load(
+    anomalyList: Anomaly[],
+    timerangeMap: { [key: number]: Timerange },
+    selectedKeys: string[] = []
+  ): void {
+    anomalyList.forEach((anomaly) => {
+      this.tracker[anomaly.id] = {
+        anomaly: anomaly,
+        checked: anomaly.id in selectedKeys,
+        graph: null,
+        timerange: timerangeMap[anomaly.id],
+      };
+    });
+  }
 
-  // A hash of a group of anomaly keys.
-  sid: string = '';
+  getAnomaly(id: number): AnomalyDataPoint {
+    return this.tracker[id];
+  }
+
+  setGraph(id: number, graph: ExploreSimpleSk): void {
+    this.tracker[id].graph = graph;
+  }
+
+  unsetGraph(id: number): void {
+    this.tracker[id].graph = null;
+  }
+
+  // toAnomalyList returns a list of all anomaly objects being tracked.
+  // This is mostly for backwards compatibility to anomalies-table-sk.
+  toAnomalyList(): Anomaly[] {
+    const ret = [];
+    for (const anomalyId in this.tracker) {
+      ret.push(this.tracker[anomalyId].anomaly);
+    }
+    return ret;
+  }
+
+  getSelectedAnomalies(): Anomaly[] {
+    const ret = [];
+    for (const anomalyId in this.tracker) {
+      if (this.tracker[anomalyId].checked) {
+        ret.push(this.tracker[anomalyId].anomaly);
+      }
+    }
+
+    return ret;
+  }
 }
 
 export class ReportPageSk extends ElementSk {
-  private params: ReportPageParams = new ReportPageParams();
+  // An anomaly tracker for the report page.
+  private anomalyTracker = new AnomalyTracker();
 
-  // Anomalies table
+  // Reference to anomalies table element.
   private anomaliesTable: AnomaliesTableSk | null = null;
-
-  // Anomaly list
-  private anomalyList: Anomaly[] = [];
-
-  // Anomaly list
-  private selectedKeys: string[] = [];
-
-  // Maps anomaly ID to Begin and End ranges.
-  private timerangeMap: { [key: number]: Timerange } = {};
-
-  // Keep track of which anomalies are graphed.
-  private anomalyMap: { [key: number]: ExploreSimpleSk } = {};
 
   private graphDiv: Element | null = null;
 
@@ -72,13 +123,7 @@ export class ReportPageSk extends ElementSk {
     this.anomaliesTable = this.querySelector('#anomaly-table');
     this.graphDiv = this.querySelector('#graph-container');
     await this.initializeDefaults();
-    // Parse the URL Params.
-    const params = new URLSearchParams(window.location.search);
-    this.params.rev = params.get('rev') || '';
-    this.params.anomalyIDs = params.get('anomalyIDs') || '';
-    this.params.bugID = params.get('bugID') || '';
-    this.params.anomalyGroupID = params.get('anomalyGroupID') || '';
-    this.params.sid = params.get('sid') || '';
+
     this.addEventListener('anomalies_checked', (e) => {
       const detail = (e as CustomEvent).detail;
       this.updateGraphs(detail.anomaly, detail.checked);
@@ -98,18 +143,23 @@ export class ReportPageSk extends ElementSk {
     this._spinner!.active = true;
     this._render();
 
+    const urlParams = new URLSearchParams(window.location.search);
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
-      body: JSON.stringify(this.params),
+      body: JSON.stringify({
+        rev: urlParams.get('rev') || '', // A revision number.
+        anomalyIDs: urlParams.get('anomalyIDs') || '', // Comma delimited.
+        bugID: urlParams.get('bugID') || '',
+        anomalyGroupID: urlParams.get('anomalyGroupID') || '',
+        sid: urlParams.get('sid') || '', // A hash of a group of anomaly keys.
+      }),
       headers: {
         'Content-Type': 'application/json',
       },
     })
       .then(jsonOrThrow)
       .then((json) => {
-        this.anomalyList = json.anomaly_list || [];
-        this.timerangeMap = json.timerange_map;
-        this.selectedKeys = json.selected_keys || [];
+        this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
         this.initializePage();
         this._spinner!.active = false;
         this._render();
@@ -122,9 +172,11 @@ export class ReportPageSk extends ElementSk {
   }
 
   private initializePage() {
-    this.anomaliesTable!.populateTable(this.anomalyList);
-    if (this.selectedKeys) {
-      this.initialReportPageCheckedAnomalies(this.selectedKeys, this.anomalyList);
+    this.anomaliesTable!.populateTable(this.anomalyTracker.toAnomalyList());
+
+    const selected = this.anomalyTracker.getSelectedAnomalies();
+    if (selected.length > 0) {
+      this.anomaliesTable!.checkSelectedAnomalies(selected);
     }
   }
 
@@ -152,7 +204,7 @@ export class ReportPageSk extends ElementSk {
 
     const query = this.getQueryFromAnomaly(anomaly);
     const state = new State();
-    const timerange = this.timerangeMap[anomaly.id];
+    const timerange = this.anomalyTracker.getAnomaly(anomaly.id).timerange;
     explore.state = {
       ...state,
       queries: [query],
@@ -166,26 +218,15 @@ export class ReportPageSk extends ElementSk {
   }
 
   private updateGraphs(anomaly: Anomaly, checked: boolean) {
-    const explore = this.anomalyMap[anomaly.id];
-    if (checked && !explore) {
+    const graph = this.anomalyTracker.getAnomaly(anomaly.id).graph;
+    if (checked && !graph) {
       // Add a new graph if checked and it doesn't exist
-      this.anomalyMap[anomaly.id] = this.addGraph(anomaly);
-    } else if (!checked && explore) {
+      this.anomalyTracker.setGraph(anomaly.id, this.addGraph(anomaly));
+    } else if (!checked && graph) {
       // Remove the graph if unchecked and it exists
-      delete this.anomalyMap[anomaly.id];
-      this.graphDiv!.removeChild(explore);
+      this.anomalyTracker.unsetGraph(anomaly.id);
+      this.graphDiv!.removeChild(graph);
     }
-  }
-
-  private initialReportPageCheckedAnomalies(anomalyIds: string[], anomalyList: Anomaly[]) {
-    anomalyIds.forEach((id) => {
-      for (let i = 0; i < anomalyList.length; i++) {
-        const anomaly = anomalyList.at(i);
-        if (anomaly !== undefined && String(anomaly.id) === id) {
-          this.anomaliesTable!.checkAnomaly(anomaly);
-        }
-      }
-    });
   }
 }
 

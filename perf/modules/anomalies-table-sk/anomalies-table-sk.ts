@@ -424,6 +424,28 @@ export class AnomaliesTableSk extends ElementSk {
   }
 
   /**
+   * Set checkboxes to true for list of provided anomalies.
+   * @param anomalyList
+   */
+  checkSelectedAnomalies(anomalyList: Anomaly[]): void {
+    anomalyList.forEach((anomaly) => {
+      this.checkAnomaly(anomaly);
+    });
+
+    this._render();
+  }
+
+  private checkAnomaly(checkedAnomaly: Anomaly) {
+    const checkbox = this.querySelector(
+      `checkbox-sk[id="anomaly-row-${checkedAnomaly.id}"]`
+    ) as CheckOrRadio;
+    if (checkbox !== null) {
+      checkbox.checked = true;
+      this.anomalyChecked(checkbox, checkedAnomaly);
+    }
+  }
+
+  /**
    * Toggles the checked state of all child checkboxes within an anomaly group when the
    * group is collapsed. This allows the user to check/uncheck all children anomalies
    * at once by interacting with the parent checkbox.
@@ -442,17 +464,6 @@ export class AnomaliesTableSk extends ElementSk {
       this.anomalyChecked(checkbox, anomaly);
     });
     this._render();
-  }
-
-  checkAnomaly(checkedAnomaly: Anomaly) {
-    const checkbox = this.querySelector(
-      `checkbox-sk[id="anomaly-row-${checkedAnomaly.id}"]`
-    ) as CheckOrRadio;
-    if (checkbox !== null) {
-      checkbox.checked = true;
-      this.anomalyChecked(checkbox, checkedAnomaly);
-      this._render();
-    }
   }
 
   /**
