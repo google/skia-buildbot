@@ -1,0 +1,66 @@
+{
+  "URL": "https://v8-perf.corp.goog",
+  "landing_page_rel_path": "/m/",
+  "contact": "https://bugs.chromium.org/p/v8/issues/list?q=component%3ATools&can=2",
+  "trace_sample_proportion": 0.01,
+  "fetch_chrome_perf_anomalies": true,
+  "bug_host_url": "https://issues.chromium.org",
+  "feedback_url": "http://go/berf-skia-feedback",
+  "chat_url": "http://go/berf-skia-chat",
+  "notify_config": {
+    "notifications": "none"
+  },
+  "auth_config": {
+    "header_name": "X-WEBAUTH-USER"
+  },
+  "data_store_config": {
+    "datastore_type": "spanner",
+    "connection_string": "postgresql://root@localhost:5432/v8_int?sslmode=disable",
+    "tile_size": 256
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-v8-perf-spanner",
+      "subscription": "perf-ingestion-v8-perf-spanner-prod",
+      "sources": [
+        "gs://v8-perf-prod/ingest"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "provider": "gitiles",
+    "url": "https://chromium.googlesource.com/v8/v8.git",
+    "dir": "/tmp/v8",
+    "debounce_commit_url": false,
+    "file_change_marker": "",
+    "start_commit": "6ddb8445a89409bcbec87bf84e9caade9bf9088a",
+    "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+  },
+  "query_config": {
+    "include_params": [
+      "benchmark",
+      "bot",
+      "test",
+      "subtest_1",
+      "subtest_2",
+      "subtest_3",
+      "subtest_4"
+    ],
+    "default_param_selections": {
+      "stat": ["value"]
+    },
+    "default_url_values": {
+      "plotSummary": "true",
+      "showZero": "false",
+      "useTestPicker": "true",
+      "enable_chart_tooltip": "true",
+      "use_test_picker_query": "true",
+      "use_titles": "true"
+    }
+  },
+  "new_alerts_page": true
+}
