@@ -54,7 +54,9 @@ export class AnomalyTracker {
     anomalyList.forEach((anomaly) => {
       this.tracker[anomaly.id] = {
         anomaly: anomaly,
-        checked: anomaly.id in selectedKeys,
+        // anomaly id is number type, but selectedKey in string and needs type
+        // match to check whether it's in.
+        checked: anomaly.id.toString() in selectedKeys,
         graph: null,
         timerange: timerangeMap[anomaly.id],
       };
