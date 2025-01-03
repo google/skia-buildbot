@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/schema"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql"
 )
 
@@ -55,18 +56,18 @@ var FromNextToLive = `
 
 // This function will check whether there's a new schema checked-in,
 // and if so, migrate the schema in the given CockroachDB instance.
-func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool) error {
-	next, err := Load()
+func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreType config.DataStoreType) error {
+	next, err := Load(datastoreType)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	prev, err := LoadPrev()
+	prev, err := LoadPrev(datastoreType)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	actual, err := schema.GetDescription(ctx, db, sql.Tables{})
+	actual, err := schema.GetDescription(ctx, db, sql.Tables{}, string(datastoreType))
 	if err != nil {
 		return skerr.Wrap(err)
 	}

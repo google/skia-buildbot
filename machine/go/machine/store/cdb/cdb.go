@@ -136,7 +136,7 @@ func New(ctx context.Context, db pool.Pool, pools *pools.Pools) (*Store, error) 
 		return nil, skerr.Wrap(err)
 	}
 
-	actual, err := schema.GetDescription(ctx, db, Tables{})
+	actual, err := schema.GetDescription(ctx, db, Tables{}, schema.CockroachDBType)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

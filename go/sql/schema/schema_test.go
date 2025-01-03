@@ -80,9 +80,9 @@ func setupForTest(t *testing.T) *pgxpool.Pool {
 
 }
 
-func TestGetDescription(t *testing.T) {
+func TestGetDescriptionCDB(t *testing.T) {
 	db := setupForTest(t)
-	desc, err := GetDescription(context.Background(), db, Tables{})
+	desc, err := GetDescription(context.Background(), db, Tables{}, CockroachDBType)
 	require.NoError(t, err)
 
 	expected := Description{

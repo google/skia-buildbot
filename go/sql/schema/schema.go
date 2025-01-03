@@ -13,7 +13,9 @@ import (
 
 const (
 	// Timeout used on Contexts when making SQL requests.
-	sqlTimeout = time.Minute
+	sqlTimeout      = time.Minute
+	SpannerDBType   = "spanner"
+	CockroachDBType = "cockroachdb"
 )
 
 // TableNames takes in a "table type", that is a table whose fields are slices.
@@ -48,6 +50,17 @@ WHERE
     table_name = $1;
 `
 
+const typesQuerySpanner = `
+SELECT
+    column_name,
+    data_type || ' def:' || COALESCE(column_default, '') || ' nullable:' || COALESCE(is_nullable, '')
+FROM
+    information_schema.columns
+WHERE
+    table_name = $1;
+
+`
+
 // Query to return the index names for each table.
 const indexNameQuery = `
 SELECT DISTINCT
@@ -60,16 +73,31 @@ ORDER BY
 	index_name DESC
 `
 
+const spannerIndexNameQuery = `
+SELECT DISTINCT
+	index_name
+FROM
+	information_schema.indexes
+WHERE
+	table_name = $1
+ORDER BY
+	index_name DESC
+`
+
 // GetDescription returns a Description populated for every table listed in
 // `tables`.
-func GetDescription(ctx context.Context, db pool.Pool, tables interface{}) (*Description, error) {
+func GetDescription(ctx context.Context, db pool.Pool, tables interface{}, databaseType string) (*Description, error) {
 	ctx, cancel := context.WithTimeout(ctx, sqlTimeout)
 	defer cancel()
 	colNameAndType := map[string]string{}
 	indexNames := []string{}
 	for _, tableName := range TableNames(tables) {
 		// Fill in colNameAndType.
-		rows, err := db.Query(ctx, typesQuery, tableName)
+		typeQuery := typesQuery
+		if databaseType == SpannerDBType {
+			typeQuery = typesQuerySpanner
+		}
+		rows, err := db.Query(ctx, typeQuery, tableName)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -84,7 +112,11 @@ func GetDescription(ctx context.Context, db pool.Pool, tables interface{}) (*Des
 		}
 
 		// Fill in indexNames.
-		rows, err = db.Query(ctx, indexNameQuery, tableName)
+		indexQuery := indexNameQuery
+		if databaseType == SpannerDBType {
+			indexQuery = spannerIndexNameQuery
+		}
+		rows, err = db.Query(ctx, indexQuery, tableName)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

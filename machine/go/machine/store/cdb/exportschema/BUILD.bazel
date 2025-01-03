@@ -9,6 +9,7 @@ go_library(
         "//go/sklog",
         "//go/sql/schema/exportschema:exportschema_lib",
         "//machine/go/machine/store/cdb",
+        "//machine/go/machine/store/cdb/spanner",
     ],
 )
 

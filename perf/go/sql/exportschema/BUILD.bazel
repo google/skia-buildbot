@@ -9,6 +9,7 @@ go_library(
         "//go/sklog",
         "//go/sql/schema/exportschema:exportschema_lib",
         "//perf/go/sql",
+        "//perf/go/sql/spanner",
     ],
 )
 

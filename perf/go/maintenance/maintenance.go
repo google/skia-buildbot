@@ -54,7 +54,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create CockroachDB instance.")
 	}
-	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db)
+	err = expectedschema.ValidateAndMigrateNewSchema(ctx, db, instanceConfig.DataStoreConfig.DataStoreType)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to migrate schema.")
 	}

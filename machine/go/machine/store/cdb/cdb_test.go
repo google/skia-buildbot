@@ -356,7 +356,7 @@ CREATE TABLE IF NOT EXISTS TaskResult (
 `
 
 func getSchema(t *testing.T, db pool.Pool) *schema.Description {
-	ret, err := schema.GetDescription(context.Background(), db, cdb.Tables{})
+	ret, err := schema.GetDescription(context.Background(), db, cdb.Tables{}, schema.CockroachDBType)
 	require.NoError(t, err)
 	require.NotEmpty(t, ret.ColumnNameAndType)
 	return ret

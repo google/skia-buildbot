@@ -33,6 +33,7 @@ go_test(
         "//go/deepequal/assertdeep",
         "//go/sql/pool",
         "//go/sql/schema",
+        "//perf/go/config",
         "//perf/go/sql/expectedschema",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//require",

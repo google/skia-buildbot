@@ -9,6 +9,10 @@ generate_sql_schema:
 	cd ./go/sql; go run ./tosql
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
 
+generate_sql_schema_spanner:
+	cd ./go/sql; go run ./tosql
+	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json --databaseType spanner
+
 run_cockroachdb_emulators:
 	../scripts/run_emulators/run_emulators start
 
@@ -246,11 +250,22 @@ run_frontend:
 run-demo-instance: run-spanner-emulator initdemo ingest_demo run_frontend
 run-demo-instance-db-persist: initdemo run_frontend
 
+run_maintenance:
+	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver maintenance \
+		--local \
+		--config_filename=./configs/demo_spanner.json \
+		--connection_string=postgresql://root@127.0.0.1:5432/demo?sslmode=disable \
+		--migrate_regressions \
+		--refresh_query_cache \
+		--tiles_for_query_cache=5
+
+run-demo-maintenance: run-spanner-emulator initdemo ingest_demo run_maintenance
+
 # Before running this target you need to have a local single-instance of
 # cockroachdb running, started like this:
 #
 #  cd /tmp cockroach start-single-node --insecure --listen-addr=127.0.0.1
-run-demo-maintenance:
+run-demo-maintenance-cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //perf/...
 	$(BAZEL) run --config=mayberemote -c dbg //perf/go/initdemo:initdemo
 	../_bazel_bin/perf/go/perfserver/perfserver_/perfserver ingest \

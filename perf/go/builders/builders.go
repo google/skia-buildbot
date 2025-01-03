@@ -117,12 +117,12 @@ func NewCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 
 	if checkSchema {
 		// Confirm the database has the right schema.
-		expectedSchema, err := expectedschema.Load()
+		expectedSchema, err := expectedschema.Load(instanceConfig.DataStoreConfig.DataStoreType)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
 
-		actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{})
+		actual, err := schema.GetDescription(ctx, singletonPool, sql.Tables{}, string(instanceConfig.DataStoreConfig.DataStoreType))
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

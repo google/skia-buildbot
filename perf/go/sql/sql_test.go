@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/schema"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/expectedschema"
 	"go.skia.org/infra/perf/go/sql/sqltest"
@@ -159,7 +160,7 @@ CREATE TABLE IF NOT EXISTS Alerts (
   `
 
 func getSchema(t *testing.T, db pool.Pool) *schema.Description {
-	ret, err := schema.GetDescription(context.Background(), db, sql.Tables{})
+	ret, err := schema.GetDescription(context.Background(), db, sql.Tables{}, string(config.CockroachDBDataStoreType))
 	require.NoError(t, err)
 	require.NotEmpty(t, ret.ColumnNameAndType)
 	return ret
