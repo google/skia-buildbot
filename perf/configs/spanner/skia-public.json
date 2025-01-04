@@ -1,5 +1,5 @@
 {
-  "URL": "https://perf-spanner.skia.org",
+  "URL": "https://perf.skia.org",
   "allowed_hosts": [
     "status.skia.org"
   ],
