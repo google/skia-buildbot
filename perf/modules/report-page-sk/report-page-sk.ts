@@ -56,7 +56,8 @@ export class AnomalyTracker {
         anomaly: anomaly,
         // anomaly id is number type, but selectedKey in string and needs type
         // match to check whether it's in.
-        checked: anomaly.id.toString() in selectedKeys,
+        // When selectedKeys is null, includes() returns undefined.
+        checked: Boolean(selectedKeys?.includes(anomaly.id.toString())),
         graph: null,
         timerange: timerangeMap[anomaly.id],
       };
