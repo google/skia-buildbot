@@ -61,6 +61,31 @@ bazelisk build --config=mayberemote //...
 
 # Test everything
 
+## Set up environ variables
+
+This step might be an optional step, but some test requires these enviornment variables.
+
+Runs
+
+```
+./scripts/run_emulators/run_emulators start
+```
+
+The following are example of environment variables.
+
+```
+Emulators started. Set environment variables as follows:
+export DATASTORE_EMULATOR_HOST=localhost:8891
+export BIGTABLE_EMULATOR_HOST=localhost:8892
+export PUBSUB_EMULATOR_HOST=localhost:8893
+export FIRESTORE_EMULATOR_HOST=localhost:8894
+export COCKROACHDB_EMULATOR_HOST=localhost:8895
+```
+
+And stores these environment variables to `~/.bashrc` file.
+
+## Execute tests
+
 ```
 bazelisk test --config=mayberemote //...
 ```
