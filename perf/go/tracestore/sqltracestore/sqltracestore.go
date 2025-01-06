@@ -1745,7 +1745,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces", s.writeTracesMetric).Stop()
 
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Minute)
 	defer cancel()
 
 	tileNumber := s.TileNumber(commitNumber)
