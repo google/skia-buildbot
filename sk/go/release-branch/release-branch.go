@@ -437,7 +437,7 @@ func updateTryjobs(ctx context.Context, g gerrit.GerritInterface, repo *gitiles.
 		return nil, skerr.Wrap(err)
 	}
 	jobsJSONFilePath := filepath.Join(co.Dir(), jobsJSONFile)
-	if err := os.WriteFile(filepath.Join(co.Dir(), jobsJSONFilePath), newJobsContents, os.ModePerm); err != nil {
+	if err := os.WriteFile(jobsJSONFilePath, newJobsContents, os.ModePerm); err != nil {
 		return nil, skerr.Wrapf(err, "failed to write %s", jobsJSONFilePath)
 	}
 
