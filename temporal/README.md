@@ -1,7 +1,7 @@
 # Temporal
 
 [Temporal](https://github.com/temporalio/temporal) is an execution service,
-serving jobs orchestration, [see alternatives](go/qa-alter).
+serving jobs orchestration, [see alternatives](https://goto.google.com/qa-alter).
 
 # Docker Images
 
@@ -13,7 +13,7 @@ individual releases.
 There are three binaries:
 
 - temporal-server: the main server binary
-- temporal-sql-too: the database tool to initialize and upgrade schemas
+- temporal-sql-tool: the database tool to initialize and upgrade schemas
 - tdbg: the debugging utils
 
 ## Temporal CLI [Releases](https://github.com/temporalio/cli/releases)
