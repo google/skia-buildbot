@@ -17,7 +17,6 @@
             "* [Graph on dashboard]({{ .DashboardUrl }})",
             "* [Alert details]({{ .URL }}/g/t/{{ .RegressionCommit.GitHash }})",
             "* [CLs in range]({{ .GetBuildIdUrlDiff }})",
-            "* [CLs in range (legacy)](https://android.googlesource.com/platform/superproject/+log/{{ .PreviousCommit.GitHash }}..{{ .RegressionCommit.GitHash }})",
             "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
             "",
             "Test classes affected:",

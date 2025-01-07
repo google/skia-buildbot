@@ -187,7 +187,6 @@ func TestProvider_Android2Config_Success(t *testing.T) {
 	}
 	notificationData, err := prov.GetNotificationDataRegressionFound(context.Background(), metadata)
 	assert.Contains(t, notificationData.Body, "[CLs in range](https://android-build.corp.google.com/range_search/cls/from_id/12345/to_id/67890/?s=menu&includeTo=0&includeFrom=1)")
-	assert.Contains(t, notificationData.Body, "[CLs in range (legacy)](https://android.googlesource.com/platform/superproject/+log/..)")
 	require.NoError(t, err)
 	require.NotNil(t, notificationData)
 }
