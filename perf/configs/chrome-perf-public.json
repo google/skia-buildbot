@@ -97,5 +97,6 @@
         }
     },
     "trace_format": "chrome",
-    "need_alert_action": true
+    "need_alert_action": true,
+    "new_alerts_page": true
 }
