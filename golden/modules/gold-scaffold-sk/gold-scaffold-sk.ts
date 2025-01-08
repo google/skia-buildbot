@@ -25,6 +25,8 @@ import '../../../infra-sk/modules/alogin-sk';
 
 import '../last-commit-sk';
 
+import '../../../elements-sk/modules/icons/bug-report-icon-sk';
+import '../../../elements-sk/modules/icons/chat-icon-sk';
 import '../../../elements-sk/modules/error-toast-sk';
 import '../../../elements-sk/modules/icons/find-in-page-icon-sk';
 import '../../../elements-sk/modules/icons/folder-icon-sk';
@@ -81,6 +83,12 @@ export class GoldScaffoldSk extends ElementSk {
           </a>
           <a href="/help" tab-index=0>
             <help-icon-sk></help-icon-sk><span>Help</span>
+          </a>
+          <a href="http://go/gold-bug" target="_blank" tab-index=0 >
+            <bug-report-icon-sk></bug-report-icon-sk><span>Report Bug</span>
+          </a>
+          <a href="http://go/berf-skia-chat" target="_blank" tab-index=0 >
+            <chat-icon-sk></chat-icon-sk><span>Ask the team</span>
           </a>
           <a href="https://github.com/google/skia-buildbot/tree/master/golden" tab-index=0>
             <folder-icon-sk></folder-icon-sk><span>Code</span>

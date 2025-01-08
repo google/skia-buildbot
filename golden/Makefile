@@ -56,7 +56,7 @@ run_auth_proxy_before_local_instance:
 		--target_port=http://127.0.0.1:8000 \
 		--local
 
-run_local_frontend:
+run_local_frontend_cdb:
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
 	go run ./go/local
 	../_bazel_bin/golden/cmd/gold_frontend/gold_frontend_/gold_frontend \
