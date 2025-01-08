@@ -35,4 +35,4 @@ bazelisk build --config=mayberemote -c dbg //perf/...
 		--disable_git_update=true \
         --disable_metrics_update=true \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:5432/chrome_pub?sslmode=disable
+		--connection_string=postgresql://root@127.0.0.1:5432/${d}?sslmode=disable
