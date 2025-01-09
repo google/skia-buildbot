@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -252,7 +254,11 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 
 	// b/383913153: mitigation on the anomaly rendering scenario.
 	for i := range groupReportResponse.Anomalies {
-		groupReportResponse.Anomalies[i].TestPath = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
+		groupReportResponse.Anomalies[i].TestPath, err = cleanTestName(groupReportResponse.Anomalies[i].TestPath)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to clean up test name by regex.", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	groupReportResponse.TimerangeMap, err = api.getTimerangeMap(ctx, groupReportResponse.Anomalies)
@@ -315,13 +321,23 @@ func (api anomaliesApi) getTimerangeMap(ctx context.Context, anomalies []chromep
 }
 
 // cleanTestName cleans the given test name using the query.ForceValid function.
-func cleanTestName(testName string) string {
+func cleanTestName(testName string) (string, error) {
+	var invalidParamCharRegex *regexp.Regexp
+	var err error
+	invalidParamCharRegex = query.InvalidChar
+	if config.Config.InvalidParamCharRegex != "" {
+		invalidParamCharRegex, err = regexp.Compile(config.Config.InvalidParamCharRegex)
+		if err != nil {
+			return testName, skerr.Wrap(err)
+		}
+	}
+
 	// Split the test name into parts.
 	parts := strings.Split(testName, "/")
 	// Clean each part individually.
 	for i := range parts {
-		parts[i] = query.ForceValid(map[string]string{"a": parts[i]})["a"]
+		parts[i] = query.ForceValidWithRegex(map[string]string{"a": parts[i]}, invalidParamCharRegex)["a"]
 	}
 	// Join the cleaned parts back together.
-	return strings.Join(parts, "/")
+	return strings.Join(parts, "/"), nil
 }

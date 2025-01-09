@@ -68,6 +68,7 @@ go_test(
     name = "api_test",
     srcs = [
         "alertsApi_test.go",
+        "anomaliesApi_test.go",
         "favoritesApi_test.go",
         "graphApi_test.go",
         "regressionApi_test.go",
