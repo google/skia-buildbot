@@ -2072,7 +2072,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     // Populate the commit-range-sk element.
     this.commitRangeSk!.trace = trace;
-    this.commitRangeSk!.commitIndex = detail.x;
+    this.commitRangeSk!.commitIndex = x;
     this.commitRangeSk!.header = header;
 
     if (prevCommit !== -1) {
