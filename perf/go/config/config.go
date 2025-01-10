@@ -498,7 +498,6 @@ type FrontendFlags struct {
 	HideListOfCommitsOnExplore bool
 	FetchChromePerfAnomalies   bool
 	FeedbackURL                string
-	DisableGitUpdate           bool
 	DisableMetricsUpdate       bool
 }
 
@@ -660,12 +659,6 @@ show up as a query option in the UI for the "test" key.
 			Name:        "feedback_url",
 			Value:       "",
 			Usage:       "Feedback Url to display on the page",
-		},
-		&cli.BoolFlag{
-			Destination: &flags.DisableGitUpdate,
-			Name:        "disable_git_update",
-			Value:       false,
-			Usage:       "Disables updating of the git repository",
 		},
 		&cli.BoolFlag{
 			Destination: &flags.DisableMetricsUpdate,
