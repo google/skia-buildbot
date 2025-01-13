@@ -30,7 +30,7 @@ infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.47
 infra/3pp/tools/cpython3/linux-amd64             version:3@3.11.9.chromium.36
 
 @Subdir task_drivers
-skia/tools/bazel_build_all/${platform}           git_revision:c67b4fc704ca321f710c653de844ec95107439ee
-skia/tools/bazel_test_all/${platform}            git_revision:c67b4fc704ca321f710c653de844ec95107439ee
-skia/tools/command_wrapper/${platform}           git_revision:c67b4fc704ca321f710c653de844ec95107439ee
-skia/tools/presubmit/${platform}                 git_revision:c67b4fc704ca321f710c653de844ec95107439ee
+skia/tools/bazel_build_all/${platform}           git_revision:90fa48bf59cb6af11428e731aed613b5719d9e01
+skia/tools/bazel_test_all/${platform}            git_revision:90fa48bf59cb6af11428e731aed613b5719d9e01
+skia/tools/command_wrapper/${platform}           git_revision:90fa48bf59cb6af11428e731aed613b5719d9e01
+skia/tools/presubmit/${platform}                 git_revision:90fa48bf59cb6af11428e731aed613b5719d9e01
