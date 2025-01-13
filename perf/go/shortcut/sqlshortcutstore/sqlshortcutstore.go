@@ -34,7 +34,7 @@ var statements = map[statement]string{
 			Shortcuts (id, trace_ids)
 		VALUES
 			($1, $2)
-		ON CONFLICT
+		ON CONFLICT (id)
 		DO NOTHING`,
 	getShortcut: `
 		SELECT
