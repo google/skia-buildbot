@@ -400,9 +400,6 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		Number:        1,
 		Created:       now,
 		CreatedString: now.Format(gerrit.TimeFormat),
-		Uploader: gerrit.Person{
-			Email: "fake@chromium.org",
-		},
 	}
 	ci := &gerrit.ChangeInfo{
 		Created:       now,
@@ -561,39 +558,6 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
 	assertdeep.Equal(t, expect, a)
-
-	// A human uploaded their own patch set.
-	newPatchSet := &gerrit.Revision{
-		ID:            "2",
-		Number:        2,
-		Created:       now,
-		CreatedString: now.Format(gerrit.TimeFormat),
-		Uploader: gerrit.Person{
-			Email: "some-other-person@chromium.org",
-		},
-	}
-	ci.Revisions[newPatchSet.ID] = newPatchSet
-	ci.Patchsets = append(ci.Patchsets, newPatchSet)
-	ci.Labels = map[string]*gerrit.LabelEntry{}
-	gerrit.SetLabels(ci, cfg.CqActiveLabels)
-	ci.Committed = false
-	ci.Status = gerrit.ChangeStatusNew
-	expect.Closed = false
-	expect.Committed = false
-	expect.CqFinished = false
-	expect.CqSuccess = false
-	if cfg.HasCq {
-		expect.DryRunSuccess = false
-	} else {
-		expect.DryRunSuccess = true
-	}
-	expect.HumanIntervened = true
-	expect.Patchsets = append(expect.Patchsets, 2)
-	expect.Result = autoroll.ROLL_RESULT_HUMAN_INTERVENED
-	expect.TryResults = nil
-	a.TryResults = nil
-	require.NoError(t, updateIssueFromGerritChangeInfo(a, ci, cfg))
-	assertdeep.Equal(t, expect, a)
 }
 
 func TestUpdateFromGerritChangeInfoAndroid(t *testing.T) {
@@ -632,17 +596,8 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		RollingTo:   "def456",
 	}
 
-	rollerEmail := "fake@chromium.org"
-	commits := []*github_api.RepositoryCommit{
-		{
-			Author: &github_api.User{
-				Email: &rollerEmail,
-			},
-		},
-	}
-
 	// Ensure that we don't overwrite the issue number.
-	require.EqualError(t, updateIssueFromGitHubPullRequest(a, &github_api.PullRequest{}, commits), "Pull request number 0 differs from existing issue number 123!")
+	require.EqualError(t, updateIssueFromGitHubPullRequest(a, &github_api.PullRequest{}), "Pull request number 0 differs from existing issue number 123!")
 
 	// Normal, in-progress CL.
 	waitingLabel := github.AUTOSUBMIT_LABEL
@@ -654,11 +609,8 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		CreatedAt: &now,
 		UpdatedAt: &now,
 		Labels:    []*github_api.Label{{Name: &waitingLabel}},
-		User: &github_api.User{
-			Email: &rollerEmail,
-		},
 	}
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	expect := &autoroll.AutoRollIssue{
 		Created:     now,
 		Issue:       123,
@@ -676,7 +628,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqFinished = true
 	expect.CqSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CQ failed.
@@ -685,7 +637,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqFinished = true
 	expect.CqSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_FAILURE
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CQ succeeded.
@@ -695,7 +647,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.CqFinished = true
 	expect.CqSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_SUCCESS
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CL was abandoned while CQ was running.
@@ -721,7 +673,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_IN_PROGRESS
 	a.IsDryRun = true
 	a.TryResults = expect.TryResults
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// Set Created to now and add try results. Dry run should still be running because
@@ -732,7 +684,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Created = now
 	expect.Modified = now
 	a.TryResults = expect.TryResults
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// Dry run failed.
@@ -747,7 +699,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_FAILURE
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
 	a.TryResults = expect.TryResults
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CL was abandoned while dry run was still running.
@@ -757,7 +709,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Closed = true
 	expect.DryRunFinished = true
 	expect.DryRunSuccess = false
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// CL was landed while dry run was still running.
@@ -767,7 +719,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.DryRunFinished = true
 	expect.DryRunSuccess = true
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
 	// Dry run success.
@@ -781,27 +733,6 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
 	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
-	assertdeep.Equal(t, expect, a)
-
-	// A human added their own commit.
-	pr.Merged = boolPtr(false)
-	pr.State = stringPtr("")
-	expect.Closed = false
-	expect.Committed = false
-	expect.CqFinished = false
-	expect.CqSuccess = false
-	expect.DryRunSuccess = true
-	expect.HumanIntervened = true
-	expect.Result = autoroll.ROLL_RESULT_HUMAN_INTERVENED
-	expect.TryResults[0].Result = autoroll.TRYBOT_RESULT_SUCCESS
-	expect.TryResults[0].Status = autoroll.TRYBOT_STATUS_COMPLETED
-	otherEmail := "some-other-user@chromium.org"
-	commits = append(commits, &github_api.RepositoryCommit{
-		Author: &github_api.User{
-			Email: &otherEmail,
-		},
-	})
-	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 }

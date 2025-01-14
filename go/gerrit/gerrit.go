@@ -431,7 +431,6 @@ type Revision struct {
 	CreatedString string    `json:"created"`
 	Created       time.Time `json:"-"`
 	Kind          string    `json:"kind"`
-	Uploader      Person    `json:"uploader"`
 	Ref           string    `json:"ref"`
 }
 

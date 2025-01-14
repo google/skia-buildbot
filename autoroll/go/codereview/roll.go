@@ -120,12 +120,6 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 	i.Modified = ci.Updated
 	i.Patchsets = ps
 	i.Subject = ci.Subject
-	for _, ps := range ci.Patchsets {
-		if ps.Uploader.Email != ci.Owner.Email {
-			i.HumanIntervened = true
-			break
-		}
-	}
 	i.Result = autoroll.RollResult(i)
 	// TODO(borenet): If this validation fails, it's likely that it will
 	// continue to fail indefinitely, resulting in a stuck roller.
@@ -437,18 +431,7 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 	// Convert checks to try results.
 	a.TryResults = autoroll.TryResultsFromGithubChecks(checks, checksWaitFor)
 
-	// Retrieve all commits for this pull request using exponential backoff.
-	var commits []*github_api.RepositoryCommit
-	getCommitsFunc := func() error {
-		commits, err = g.ListCommits(ctx, *pullRequest.Number)
-		return err
-	}
-	if err := backoff.Retry(getCommitsFunc, GithubBackOffConfig); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get commits for %d", a.Issue)
-	}
-
-	// Update the issue.
-	if err := updateIssueFromGitHubPullRequest(a, pullRequest, commits); err != nil {
+	if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
 		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 
@@ -457,7 +440,7 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 
 // updateIssueFromGitHubPullRequest updates the AutoRollIssue instance based on the
 // given PullRequest.
-func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *github_api.PullRequest, commits []*github_api.RepositoryCommit) error {
+func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *github_api.PullRequest) error {
 	prNum := int64(pullRequest.GetNumber())
 	if i.Issue != prNum {
 		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
@@ -505,14 +488,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	i.Modified = pullRequest.GetUpdatedAt()
 	i.Patchsets = ps
 	i.Subject = pullRequest.GetTitle()
-	for _, commit := range commits {
-		if *commit.Author.Email != *pullRequest.User.Email {
-			i.HumanIntervened = true
-			break
-		}
-	}
 	i.Result = autoroll.RollResult(i)
-
 	// TODO(borenet): If this validation fails, it's likely that it will
 	// continue to fail indefinitely, resulting in a stuck roller.
 	// Additionally, this AutoRollIssue instance persists in the AutoRoller
