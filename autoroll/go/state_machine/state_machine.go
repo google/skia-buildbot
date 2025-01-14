@@ -46,6 +46,7 @@ const (
 	S_STOPPED                      = "stopped"
 	S_CURRENT_ROLL_MISSING         = "current roll missing"
 	S_OFFLINE                      = "offline"
+	S_HUMAN_INTERVENED             = "human intervened"
 
 	// Transition function names.
 	F_NOOP                       = "no-op"
@@ -66,6 +67,7 @@ const (
 	F_NOTIFY_SAFETY_THROTTLE     = "notify safety throttled"
 	F_NOTIFY_TOO_MANY_CLS        = "notify too many CLs"
 	F_ERROR_CURRENT_ROLL_MISSING = "error: current roll missing"
+	F_HUMAN_INTERVENED           = "human intervened"
 
 	// Maximum number of no-op transitions to perform at once. This is an
 	// arbitrary limit just to keep us from performing an unbounded number
@@ -469,6 +471,12 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The commit queue failed on this CL but no new commits have landed in the repo. Will retry the CQ at %s if no new commits land.", until))
 		return nil
 	})
+	f(F_HUMAN_INTERVENED, func(ctx context.Context, roll RollCLImpl) error {
+		if err := roll.AddComment(ctx, "CL was modified by someone other than the roller. The roller will ignore this CL."); err != nil {
+			return err
+		}
+		return nil
+	})
 	b.F(F_NOTIFY_SAFETY_THROTTLE, func(ctx context.Context) error {
 		n.SendSafetyThrottled(ctx, s.a.SafetyThrottle().ThrottledUntil())
 		if err := s.a.RequestCleanup(ctx, "Safety throttled due to CL upload failures"); err != nil {
@@ -513,6 +521,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_ACTIVE, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_NORMAL_ACTIVE, S_OFFLINE, F_CLOSE_STOPPED)
 	b.T(S_NORMAL_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
+	b.T(S_NORMAL_ACTIVE, S_HUMAN_INTERVENED, F_HUMAN_INTERVENED)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_IDLE, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_SUCCESS, S_NORMAL_SUCCESS_THROTTLED, F_WAIT_FOR_LAND)
 	b.T(S_NORMAL_SUCCESS, S_CURRENT_ROLL_MISSING, F_NOOP)
@@ -556,6 +565,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_FAILURE, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_CURRENT_ROLL_MISSING, F_NOOP)
+	b.T(S_DRY_RUN_ACTIVE, S_HUMAN_INTERVENED, F_HUMAN_INTERVENED)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_SUCCESS, S_DRY_RUN_SUCCESS_LEAVING_OPEN, F_NOOP)
 	b.T(S_DRY_RUN_SUCCESS, S_CURRENT_ROLL_MISSING, F_NOOP)
@@ -594,6 +604,12 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_OFFLINE, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_OFFLINE, S_STOPPED, F_NOOP)
 	b.T(S_OFFLINE, S_OFFLINE, F_NOOP)
+
+	// Human intervened.
+	b.T(S_HUMAN_INTERVENED, S_NORMAL_IDLE, F_NOOP)
+	b.T(S_HUMAN_INTERVENED, S_DRY_RUN_IDLE, F_NOOP)
+	b.T(S_HUMAN_INTERVENED, S_STOPPED, F_NOOP)
+	b.T(S_HUMAN_INTERVENED, S_OFFLINE, F_NOOP)
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
@@ -671,6 +687,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	case S_NORMAL_ACTIVE:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
+		}
+		if currentRoll.Result() == autoroll.ROLL_RESULT_HUMAN_INTERVENED {
+			return S_HUMAN_INTERVENED, nil
 		}
 		if currentRoll.IsFinished() {
 			if currentRoll.IsSuccess() {
@@ -808,6 +827,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	case S_DRY_RUN_ACTIVE:
 		if currentRoll == nil {
 			return S_CURRENT_ROLL_MISSING, nil
+		}
+		if currentRoll.Result() == autoroll.ROLL_RESULT_HUMAN_INTERVENED {
+			return S_HUMAN_INTERVENED, nil
 		}
 		if currentRoll.IsClosed() {
 			if currentRoll.IsCommitted() {
@@ -950,6 +972,16 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		} else {
 			return S_OFFLINE, nil
 		}
+	case S_HUMAN_INTERVENED:
+		if desiredMode == modes.ModeRunning {
+			return S_NORMAL_IDLE, nil
+		} else if desiredMode == modes.ModeDryRun {
+			return S_DRY_RUN_IDLE, nil
+		} else if desiredMode == modes.ModeStopped {
+			return S_STOPPED, nil
+		} else {
+			return S_OFFLINE, nil
+		}
 	default:
 		return "", fmt.Errorf("Invalid state %q", state)
 	}
@@ -1037,7 +1069,7 @@ func (s *AutoRollStateMachine) getMaxRollCLsToSameRevision() int {
 }
 
 // reportRollDuration reports the duration of a roll attempt.
-func (s *AutoRollStateMachine) reportRollDuration(ctx context.Context, roll RollCLImpl) {
+func (s *AutoRollStateMachine) reportRollDuration(_ context.Context, roll RollCLImpl) {
 	now := time.Now()
 	m := metrics2.GetFloat64SummaryMetric(
 		"autoroll_roll_attempt_duration",

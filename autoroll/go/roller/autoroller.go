@@ -831,7 +831,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 			LastSuccessfulRollTimestamp: r.recent.LastSuccessfulRollTime(),
 		},
 		ChildName:          r.cfg.ChildDisplayName,
-		CurrentRoll:        r.recent.CurrentRoll(),
+		CurrentRoll:        currentRoll,
 		Error:              lastError,
 		FullHistoryUrl:     r.codereview.GetFullHistoryUrl(),
 		IssueUrlBase:       r.codereview.GetIssueUrlBase(),

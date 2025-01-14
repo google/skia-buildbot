@@ -946,7 +946,7 @@ func TestNilCurrentRoll(t *testing.T) {
 	// Verify that every state in the state machine handles a nil current
 	// roll without crashing.
 	states := sm.s.ListStates()
-	require.Equal(t, 19, len(states))
+	require.Equal(t, 20, len(states))
 	stateFile := "test-roller/state_machine"
 	n, err := notifier.New(ctx, "fake", "fake", "fake", nil, emailclient.New(), nil, nil)
 	require.NoError(t, err)

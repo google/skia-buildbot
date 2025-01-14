@@ -157,7 +157,7 @@ func (r *RecentRolls) currentRoll() *autoroll.AutoRollIssue {
 	if len(r.recent) == 0 {
 		return nil
 	}
-	if r.recent[0].Closed {
+	if r.recent[0].Closed || r.recent[0].HumanIntervened {
 		return nil
 	}
 	return r.recent[0]

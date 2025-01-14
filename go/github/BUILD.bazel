@@ -8,6 +8,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/exec",
+        "//go/skerr",
         "//go/sklog",
         "@com_github_google_go_github_v29//github",
     ],
