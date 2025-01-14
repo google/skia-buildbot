@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/ingest/format"
+	"go.skia.org/infra/perf/go/ingest/splitter"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -28,17 +29,24 @@ var (
 	ErrFileShouldBeSkipped = errors.New("File should be skipped.")
 )
 
+// maxResultsPerfFile is the max number of results in a given file.
+// This is to be used to determine whether to split a large input file
+// into smaller manageable files (if this feature is enabled in config).
+const maxResultsPerFile = 5000
+
 // Parser parses file.Files contents into a form suitable for writing to trace.Store.
 type Parser struct {
 	parseCounter          metrics2.Counter
 	parseFailCounter      metrics2.Counter
 	branchNames           map[string]bool
 	invalidParamCharRegex *regexp.Regexp
+	splitLargeFiles       bool
+	splitter              *splitter.IngestionDataSplitter
 }
 
 // New creates a new instance of Parser for the given branch names
 // and invalid chars of parameter key/value
-func New(instanceConfig *config.InstanceConfig) (parser *Parser, err error) {
+func New(ctx context.Context, instanceConfig *config.InstanceConfig) (parser *Parser, err error) {
 	branches := instanceConfig.IngestionConfig.Branches
 
 	invalidParamCharRegex := query.InvalidChar
@@ -57,6 +65,15 @@ func New(instanceConfig *config.InstanceConfig) (parser *Parser, err error) {
 	}
 	for _, branchName := range branches {
 		ret.branchNames[branchName] = true
+	}
+
+	ret.splitLargeFiles = instanceConfig.IngestionConfig.SplitLargeFiles
+	if ret.splitLargeFiles {
+		splitter, err := splitter.NewIngestionDataSplitter(ctx, maxResultsPerFile, instanceConfig.IngestionConfig.SecondaryGCSPath, nil)
+		if err != nil {
+			return nil, err
+		}
+		ret.splitter = splitter
 	}
 	return ret, nil
 }
@@ -216,7 +233,7 @@ func (p *Parser) checkBranchName(params map[string]string) (string, bool) {
 	return "", true
 }
 
-func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, error) {
+func (p *Parser) extractFromLegacyFile(r io.Reader) ([]paramtools.Params, []float32, string, map[string]string, error) {
 	benchData, err := format.ParseLegacyFormat(r)
 	if err != nil {
 		return nil, nil, "", nil, err
@@ -225,14 +242,26 @@ func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtoo
 	return params, values, benchData.Hash, benchData.Key, nil
 }
 
-func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, error) {
+func (p *Parser) extractFromVersion1File(ctx context.Context, r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, bool, error) {
 	f, err := format.Parse(r)
 	if err != nil {
 		sklog.Warningf("Failed to parse the version one file: %s, got error: %s", filename, err)
-		return nil, nil, "", nil, err
+		return nil, nil, "", nil, true, err
+	}
+
+	if p.splitLargeFiles && len(f.Results) > maxResultsPerFile {
+		err = p.splitter.SplitAndPublishFormattedData(ctx, f, filename)
+		if err != nil {
+			// Error while splitting, so let's log the error and fall back to processing
+			// the large file.
+			sklog.Errorf("Error while splitting and publishing file %s: %v", filename, err)
+		} else {
+			// The split and publish was done successfully. No more action needed.
+			return nil, nil, "", nil, false, nil
+		}
 	}
 	params, values := getParamsAndValuesFromVersion1Format(f, p.invalidParamCharRegex)
-	return params, values, f.GitHash, f.Key, nil
+	return params, values, f.GitHash, f.Key, true, nil
 }
 
 // Parse the given file.File contents.
@@ -264,14 +293,14 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 
 	// Expect the file to be in format.FileFormat.
 	sklog.Info("About to extract")
-	params, values, hash, commonKeys, err := p.extractFromVersion1File(r, file.Name)
+	params, values, hash, commonKeys, proceed, err := p.extractFromVersion1File(ctx, r, file.Name)
 	if err != nil {
 		// Fallback to the legacy format.
 		if _, err := r.Seek(0, io.SeekStart); err != nil {
 			return nil, nil, "", skerr.Wrap(err)
 		}
 		sklog.Info("About to extract from legacy.")
-		params, values, hash, commonKeys, err = p.extractFromLegacyFile(r, file.Name)
+		params, values, hash, commonKeys, err = p.extractFromLegacyFile(r)
 	}
 	if err != nil && err != ErrFileShouldBeSkipped {
 		p.parseFailCounter.Inc(1)
@@ -279,6 +308,10 @@ func (p *Parser) Parse(ctx context.Context, file file.File) ([]paramtools.Params
 	if err != nil {
 		return nil, nil, "", err
 	}
+	if !proceed {
+		return nil, nil, "", nil
+	}
+
 	branch, ok := p.checkBranchName(commonKeys)
 	if !ok {
 		return nil, nil, "", ErrFileShouldBeSkipped

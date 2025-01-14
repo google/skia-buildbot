@@ -252,6 +252,16 @@ func Parse(r io.Reader) (Format, error) {
 	return fileFormat, nil
 }
 
+// Write encodes the Format object into json and writes it
+// into the supplied writer.
+func (f Format) Write(w io.Writer) error {
+	if err := json.NewEncoder(w).Encode(f); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	return nil
+}
+
 // Validate the body of an ingested file against the schema for Format.
 //
 // If there was an error loading the file a list of schema violations may be

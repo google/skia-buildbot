@@ -812,7 +812,7 @@ func (app) IngestValidate(inputFile string, verbose bool) error {
 			},
 			InvalidParamCharRegex: "",
 		}
-		parser, err := parser.New(instanceConfig)
+		parser, err := parser.New(ctx, instanceConfig)
 		if err != nil {
 			return fmt.Errorf("Failed to create parser: %s", skerr.Unwrap(err))
 		}
@@ -860,7 +860,7 @@ func (app) TrybotReference(local bool, store tracestore.TraceStore, instanceConf
 		return skerr.Wrap(err)
 	}
 
-	ingestParser, err := parser.New(instanceConfig)
+	ingestParser, err := parser.New(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrapf(err, "Cannot create ingest parser.")
 	}

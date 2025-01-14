@@ -94,7 +94,7 @@ func parserForTest(t *testing.T, subdir, filename string) (*Parser, file.File) {
 			Branches: []string{goodBranchName},
 		},
 	}
-	ret, err := New(instanceConfig)
+	ret, err := New(context.Background(), instanceConfig)
 	require.NoError(t, err)
 	ret.parseCounter.Reset()
 	ret.parseFailCounter.Reset()
@@ -367,7 +367,7 @@ func TestParseWithInvalidCharRegex_Success(t *testing.T) {
 		},
 		InvalidParamCharRegex: "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
 	}
-	p, err := New(instanceConfig)
+	p, err := New(context.Background(), instanceConfig)
 	require.NoError(t, err)
 	p.parseCounter.Reset()
 	p.parseFailCounter.Reset()
@@ -424,7 +424,7 @@ func TestParseWithConfigFile_InvalidCharRegex_NoEqual_NoComma(t *testing.T) {
 		require.NoError(t, err, filename)
 
 		if len(instanceConfig.InvalidParamCharRegex) > 0 {
-			p, err := New(instanceConfig)
+			p, err := New(context.Background(), instanceConfig)
 			require.NoError(t, err)
 			p.parseCounter.Reset()
 			p.parseFailCounter.Reset()

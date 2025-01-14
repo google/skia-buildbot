@@ -1,6 +1,7 @@
 package gerrit
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ func setupForTest(t *testing.T, filename string) (*parser.Parser, file.File) {
 			Branches: []string{}, // Branches are ignored by ParseTryBot.
 		},
 	}
-	p, err := parser.New(instanceConfig)
+	p, err := parser.New(context.Background(), instanceConfig)
 	require.NoError(t, err)
 
 	return p, file.File{

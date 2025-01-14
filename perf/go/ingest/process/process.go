@@ -141,6 +141,18 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		return nil
 	}
 
+	// This occurs when we have split up a large file into smaller files
+	// and written those files to a secondary GCS path which are processed
+	// separately.
+	if params == nil && values == nil {
+		sklog.Infof("No param or values to process in file %s", f.Name)
+		if f.PubSubMsg != nil {
+			f.PubSubMsg.Ack()
+			sklog.Debugf("Message acked: %v", f.PubSubMsg)
+		}
+		return nil
+	}
+
 	sklog.Info("Lookup CommitNumber")
 
 	// if git_hash is missing from GCS file
@@ -240,7 +252,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g git.Git, store tracestore
 	dlEnabled := config.IsDeadLetterCollectionEnabled(instanceConfig)
 
 	// New Parser.
-	p, err := parser.New(instanceConfig)
+	p, err := parser.New(ctx, instanceConfig)
 	if err != nil {
 		sklog.Errorf("Ingestion worker failed to create parser: %s", err)
 		wg.Done()

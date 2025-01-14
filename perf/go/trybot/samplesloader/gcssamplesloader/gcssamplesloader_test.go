@@ -54,7 +54,7 @@ func ingestParser(t *testing.T) *parser.Parser {
 			Branches: nil,
 		},
 	}
-	p, err := parser.New(instanceConfig)
+	p, err := parser.New(context.Background(), instanceConfig)
 	require.NoError(t, err)
 	return p
 }
