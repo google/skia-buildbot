@@ -382,9 +382,6 @@ export class SkottieSk extends ElementSk {
   }
 
   private compatibilityReportOpen() {
-    if (!this.enableCompatibilityReport) {
-      return null;
-    }
     return html` <skottie-button-sk
       id="view-compatibility-report"
       @select=${this.toggleCompatibilityReport}
@@ -700,8 +697,6 @@ export class SkottieSk extends ElementSk {
 
   private showAudio: boolean = false;
 
-  private enableCompatibilityReport: boolean = false;
-
   private showCompatibilityReport: boolean = false;
 
   private showGifExporter: boolean = false;
@@ -763,7 +758,6 @@ export class SkottieSk extends ElementSk {
         t: this.showTextEditor,
         s: this.showShaderEditor,
         p: this.showPerformanceChart,
-        ec: this.enableCompatibilityReport,
         c: this.showCompatibilityReport,
         i: this.showLibrary,
         a: this.showAudio,
@@ -782,7 +776,6 @@ export class SkottieSk extends ElementSk {
         this.showTextEditor = !!newState.t;
         this.showShaderEditor = !!newState.s;
         this.showPerformanceChart = !!newState.p;
-        this.enableCompatibilityReport = !!newState.ec;
         this.showCompatibilityReport = !!newState.c;
         this.showLibrary = !!newState.i;
         this.showAudio = !!newState.a;
@@ -1400,19 +1393,17 @@ export class SkottieSk extends ElementSk {
       },
     };
 
-    if (this.enableCompatibilityReport) {
-      editorProps.validator = createAjvValidator({
-        // TODO(bwils) include feature schemas as well? More of UX problem
-        schema: lottieSchema,
-        onCreateAjv: () =>
-          // Override ajv instance to support json schema 2020-12
-          new Ajv({
-            allErrors: true,
-            verbose: true,
-            strict: false,
-          }),
-      });
-    }
+    editorProps.validator = createAjvValidator({
+      // TODO(bwils) include feature schemas as well? More of UX problem
+      schema: lottieSchema,
+      onCreateAjv: () =>
+        // Override ajv instance to support json schema 2020-12
+        new Ajv({
+          allErrors: true,
+          verbose: true,
+          strict: false,
+        }),
+    });
 
     const editorOptions = {
       target: editorContainer,
