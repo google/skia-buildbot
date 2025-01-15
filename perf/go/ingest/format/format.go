@@ -254,7 +254,8 @@ func Parse(r io.Reader) (Format, error) {
 
 // Write encodes the Format object into json and writes it
 // into the supplied writer.
-func (f Format) Write(w io.Writer) error {
+func (f Format) Write(w io.WriteCloser) error {
+	defer w.Close()
 	if err := json.NewEncoder(w).Encode(f); err != nil {
 		return skerr.Wrap(err)
 	}

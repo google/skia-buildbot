@@ -88,9 +88,21 @@ func (s IngestionDataSplitter) SplitAndPublishFormattedData(ctx context.Context,
 	}
 
 	fileExtension := filepath.Ext(filename)
-	originalFilenameWithoutExtension := filename[:len(filename)-len(fileExtension)]
+
+	// This would be of the form gs://primaryBucket/dir/2024/..../somefile
+	originalGCSFilePathWithoutExtension := filename[:len(filename)-len(fileExtension)]
+
+	// This now removes the gs://primaryBucket/ and returns the rest in the originalFilePath
+	_, originalFilePath, err := getBucketAndRootDirectory(originalGCSFilePathWithoutExtension)
+	if err != nil {
+		sklog.Errorf("Error extracting file path from full GCS path %s", originalGCSFilePathWithoutExtension)
+		return skerr.Wrap(err)
+	}
+
+	// Now we need to remove the root directory from original file path.
+	_, originalFilePathWithoutRoot, _ := strings.Cut(originalFilePath, "/")
 	for i := 0; i < len(splitData); i++ {
-		splitFilename := fmt.Sprintf("%s/%s_%d%s", s.rootDirectory, originalFilenameWithoutExtension, i, fileExtension)
+		splitFilename := fmt.Sprintf("%s/%s_%d%s", s.rootDirectory, originalFilePathWithoutRoot, i, fileExtension)
 		w := s.gcsClient.FileWriter(ctx, splitFilename, gcs.FileWriteOptions{
 			ContentEncoding: "application/json",
 		})

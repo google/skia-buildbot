@@ -119,7 +119,7 @@ var inputData = format.Format{
 
 func TestSplitLargeFile_EqualParts_Success(t *testing.T) {
 	storageClientMock := mocks.NewGCSClient(t)
-	fileName := "large_file.json"
+	fileName := "gs://primarybucket/dir/large_file.json"
 
 	expectedSplits := []string{"large_file_0.json", "large_file_1.json"}
 
@@ -146,7 +146,7 @@ func TestSplitLargeFile_EqualParts_Success(t *testing.T) {
 
 func TestSplitLargeFile_UnequalParts_Success(t *testing.T) {
 	storageClientMock := mocks.NewGCSClient(t)
-	fileName := "large_file.json"
+	fileName := "gs://primarybucket/dir/large_file.json"
 
 	expectedSplits := []string{"large_file_0.json", "large_file_1.json"}
 
@@ -172,9 +172,34 @@ func TestSplitLargeFile_UnequalParts_Success(t *testing.T) {
 
 func TestSplitLargeFile_Single_Success(t *testing.T) {
 	storageClientMock := mocks.NewGCSClient(t)
-	fileName := "large_file.json"
+	fileName := "gs://primarybucket/dir/large_file.json"
 
 	expectedSplits := []string{"large_file_0.json"}
+
+	writer := newResultWriteCloser()
+	for _, split := range expectedSplits {
+		storageClientMock.On("FileWriter", testutils.AnyContext, fmt.Sprintf("rootDir/%s", split), mock.Anything).Return(writer, nil)
+	}
+
+	ctx := context.Background()
+	splitter, err := NewIngestionDataSplitter(ctx, 10, secondaryGCSPath, storageClientMock)
+	require.NoError(t, err)
+	assert.NotNil(t, splitter)
+
+	err = splitter.SplitAndPublishFormattedData(ctx, inputData, fileName)
+	require.NoError(t, err)
+
+	// Expected to have 2 splits.
+	storageClientMock.AssertNumberOfCalls(t, "FileWriter", 1)
+	assert.Equal(t, 1, len(results))
+	assert.Equal(t, inputData, results[0])
+}
+
+func TestSplitLargeFile_Single_GCSPath_Success(t *testing.T) {
+	storageClientMock := mocks.NewGCSClient(t)
+	fileName := "gs://primarybucket/dir/2024/12/31/00/large_file.json"
+
+	expectedSplits := []string{"2024/12/31/00/large_file_0.json"}
 
 	writer := newResultWriteCloser()
 	for _, split := range expectedSplits {
