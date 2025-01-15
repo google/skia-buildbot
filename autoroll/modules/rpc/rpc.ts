@@ -33,6 +33,7 @@ export enum AutoRollCL_Result {
   DRY_RUN_IN_PROGRESS = "DRY_RUN_IN_PROGRESS",
   DRY_RUN_SUCCESS = "DRY_RUN_SUCCESS",
   DRY_RUN_FAILURE = "DRY_RUN_FAILURE",
+  HUMAN_INTERVENED = "HUMAN_INTERVENED",
 }
 
 export enum ManualRoll_Result {

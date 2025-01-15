@@ -25,6 +25,7 @@ import (
 
 	"github.com/google/go-github/v29/github"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -488,6 +489,29 @@ func (g *GitHub) GetChecks(ref string) ([]*Check, error) {
 	}
 
 	return totalChecks, nil
+}
+
+// ListCommits retrieves commits for a given pull request.
+// See https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-commits-on-a-pull-request
+// for API documentation.
+func (g *GitHub) ListCommits(ctx context.Context, pullRequest int) ([]*github.RepositoryCommit, error) {
+	var commits []*github.RepositoryCommit
+	opts := &github.ListOptions{
+		PerPage: 50,
+	}
+	for {
+		results, resp, err := g.client.PullRequests.ListCommits(ctx, g.RepoOwner, g.RepoName, pullRequest, opts)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		commits = append(commits, results...)
+		if resp.NextPage == 0 {
+			break
+		} else {
+			opts.Page = resp.NextPage
+		}
+	}
+	return commits, nil
 }
 
 // See https://developer.github.com/v3/issues/#get-a-single-issue

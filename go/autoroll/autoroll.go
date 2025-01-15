@@ -32,6 +32,7 @@ const (
 	ROLL_RESULT_IN_PROGRESS         = "in progress"
 	ROLL_RESULT_SUCCESS             = "succeeded"
 	ROLL_RESULT_FAILURE             = "failed"
+	ROLL_RESULT_HUMAN_INTERVENED    = "human intervened"
 
 	TRYBOT_CATEGORY_CQ = "cq"
 
@@ -64,6 +65,7 @@ var (
 	FAILURE_RESULTS = []string{
 		ROLL_RESULT_DRY_RUN_FAILURE,
 		ROLL_RESULT_FAILURE,
+		ROLL_RESULT_HUMAN_INTERVENED,
 	}
 
 	SUCCESS_RESULTS = []string{
@@ -75,26 +77,27 @@ var (
 // AutoRollIssue is a struct containing the information we care about for
 // AutoRoll CLs.
 type AutoRollIssue struct {
-	Attempt        int                `json:"attempts"`
-	AttemptStart   time.Time          `json:"attemptStart"`
-	Closed         bool               `json:"closed"`
-	Comments       []*comment.Comment `json:"comments"`
-	Committed      bool               `json:"committed"`
-	Created        time.Time          `json:"created"`
-	IsDryRun       bool               `json:"isDryRun"`
-	DryRunFinished bool               `json:"dryRunFinished"`
-	DryRunSuccess  bool               `json:"dryRunSuccess"`
-	CqFinished     bool               `json:"cqFinished"`
-	CqSuccess      bool               `json:"cqSuccess"`
-	Issue          int64              `json:"issue"`
-	Manual         bool               `json:"manual"`
-	Modified       time.Time          `json:"modified"`
-	Patchsets      []int64            `json:"patchSets"`
-	Result         string             `json:"result"`
-	RollingFrom    string             `json:"rollingFrom"`
-	RollingTo      string             `json:"rollingTo"`
-	Subject        string             `json:"subject"`
-	TryResults     []*TryResult       `json:"tryResults"`
+	Attempt         int                `json:"attempts"`
+	AttemptStart    time.Time          `json:"attemptStart"`
+	Closed          bool               `json:"closed"`
+	Comments        []*comment.Comment `json:"comments"`
+	Committed       bool               `json:"committed"`
+	Created         time.Time          `json:"created"`
+	IsDryRun        bool               `json:"isDryRun"`
+	DryRunFinished  bool               `json:"dryRunFinished"`
+	DryRunSuccess   bool               `json:"dryRunSuccess"`
+	CqFinished      bool               `json:"cqFinished"`
+	CqSuccess       bool               `json:"cqSuccess"`
+	HumanIntervened bool               `json:"humanIntervened"`
+	Issue           int64              `json:"issue"`
+	Manual          bool               `json:"manual"`
+	Modified        time.Time          `json:"modified"`
+	Patchsets       []int64            `json:"patchSets"`
+	Result          string             `json:"result"`
+	RollingFrom     string             `json:"rollingFrom"`
+	RollingTo       string             `json:"rollingTo"`
+	Subject         string             `json:"subject"`
+	TryResults      []*TryResult       `json:"tryResults"`
 }
 
 // Validate returns an error iff there is some problem with the issue.
@@ -142,31 +145,35 @@ func (i *AutoRollIssue) Copy() *AutoRollIssue {
 		}
 	}
 	return &AutoRollIssue{
-		Attempt:        i.Attempt,
-		AttemptStart:   i.AttemptStart,
-		Closed:         i.Closed,
-		Comments:       commentsCpy,
-		Committed:      i.Committed,
-		Created:        i.Created,
-		CqFinished:     i.CqFinished,
-		CqSuccess:      i.CqSuccess,
-		DryRunFinished: i.DryRunFinished,
-		DryRunSuccess:  i.DryRunSuccess,
-		IsDryRun:       i.IsDryRun,
-		Issue:          i.Issue,
-		Manual:         i.Manual,
-		Modified:       i.Modified,
-		Patchsets:      patchsetsCpy,
-		Result:         i.Result,
-		RollingFrom:    i.RollingFrom,
-		RollingTo:      i.RollingTo,
-		Subject:        i.Subject,
-		TryResults:     tryResultsCpy,
+		Attempt:         i.Attempt,
+		AttemptStart:    i.AttemptStart,
+		Closed:          i.Closed,
+		Comments:        commentsCpy,
+		Committed:       i.Committed,
+		Created:         i.Created,
+		CqFinished:      i.CqFinished,
+		CqSuccess:       i.CqSuccess,
+		DryRunFinished:  i.DryRunFinished,
+		DryRunSuccess:   i.DryRunSuccess,
+		HumanIntervened: i.HumanIntervened,
+		IsDryRun:        i.IsDryRun,
+		Issue:           i.Issue,
+		Manual:          i.Manual,
+		Modified:        i.Modified,
+		Patchsets:       patchsetsCpy,
+		Result:          i.Result,
+		RollingFrom:     i.RollingFrom,
+		RollingTo:       i.RollingTo,
+		Subject:         i.Subject,
+		TryResults:      tryResultsCpy,
 	}
 }
 
 // RollResult derives a result string for the roll.
 func RollResult(roll *AutoRollIssue) string {
+	if roll.HumanIntervened {
+		return ROLL_RESULT_HUMAN_INTERVENED
+	}
 	if roll.IsDryRun {
 		if roll.DryRunFinished {
 			if roll.DryRunSuccess {

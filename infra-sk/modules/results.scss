@@ -43,6 +43,9 @@
 .fg-inprogress {
   color: var(--result-color-lightorange);
 }
+.fg-exception {
+  color: var(--result-color-purple);
+}
 .fg-unknown {
   color: #{'rgb(var(--result-color-gray))'};
 }

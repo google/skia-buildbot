@@ -610,6 +610,8 @@ func convertRollCLResult(res string) (AutoRollCL_Result, error) {
 		return AutoRollCL_DRY_RUN_SUCCESS, nil
 	case autoroll.ROLL_RESULT_DRY_RUN_FAILURE:
 		return AutoRollCL_DRY_RUN_FAILURE, nil
+	case autoroll.ROLL_RESULT_HUMAN_INTERVENED:
+		return AutoRollCL_HUMAN_INTERVENED, nil
 	default:
 		return -1, twirp.InternalError(fmt.Sprintf("invalid roll result %q", res))
 	}

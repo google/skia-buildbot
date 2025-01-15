@@ -120,6 +120,12 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 	i.Modified = ci.Updated
 	i.Patchsets = ps
 	i.Subject = ci.Subject
+	for _, ps := range ci.Patchsets {
+		if ps.Uploader.Email != ci.Owner.Email {
+			i.HumanIntervened = true
+			break
+		}
+	}
 	i.Result = autoroll.RollResult(i)
 	// TODO(borenet): If this validation fails, it's likely that it will
 	// continue to fail indefinitely, resulting in a stuck roller.
@@ -279,6 +285,13 @@ func (r *gerritRoll) SwitchToNormal(ctx context.Context) error {
 	})
 }
 
+// See documentation for state_machine.RollCLImpl interface.
+func (r *gerritRoll) RemoveFromCQ(ctx context.Context) error {
+	return r.withModify(ctx, "remove CQ labels", func() error {
+		return r.g.RemoveFromCQ(ctx, r.ci, "Removing CL from commit queue")
+	})
+}
+
 // maybeRebaseCL determines whether the CL needs to be rebased and does so if
 // necessary.
 func (r *gerritRoll) maybeRebaseCL(ctx context.Context) error {
@@ -431,7 +444,18 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 	// Convert checks to try results.
 	a.TryResults = autoroll.TryResultsFromGithubChecks(checks, checksWaitFor)
 
-	if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
+	// Retrieve all commits for this pull request using exponential backoff.
+	var commits []*github_api.RepositoryCommit
+	getCommitsFunc := func() error {
+		commits, err = g.ListCommits(ctx, *pullRequest.Number)
+		return err
+	}
+	if err := backoff.Retry(getCommitsFunc, GithubBackOffConfig); err != nil {
+		return nil, skerr.Wrapf(err, "Failed to get commits for %d", a.Issue)
+	}
+
+	// Update the issue.
+	if err := updateIssueFromGitHubPullRequest(a, pullRequest, commits); err != nil {
 		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 
@@ -440,7 +464,7 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 
 // updateIssueFromGitHubPullRequest updates the AutoRollIssue instance based on the
 // given PullRequest.
-func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *github_api.PullRequest) error {
+func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *github_api.PullRequest, commits []*github_api.RepositoryCommit) error {
 	prNum := int64(pullRequest.GetNumber())
 	if i.Issue != prNum {
 		return fmt.Errorf("Pull request number %d differs from existing issue number %d!", prNum, i.Issue)
@@ -488,7 +512,14 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	i.Modified = pullRequest.GetUpdatedAt()
 	i.Patchsets = ps
 	i.Subject = pullRequest.GetTitle()
+	for _, commit := range commits {
+		if *commit.Author.Email != *pullRequest.User.Email {
+			i.HumanIntervened = true
+			break
+		}
+	}
 	i.Result = autoroll.RollResult(i)
+
 	// TODO(borenet): If this validation fails, it's likely that it will
 	// continue to fail indefinitely, resulting in a stuck roller.
 	// Additionally, this AutoRollIssue instance persists in the AutoRoller
@@ -650,6 +681,13 @@ func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 		}
 		r.issue.IsDryRun = false
 		return nil
+	})
+}
+
+// See documentation for state_machine.RollCLImpl interface.
+func (r *githubRoll) RemoveFromCQ(ctx context.Context) error {
+	return r.withModify(ctx, "remove CQ labels", func() error {
+		return r.g.RemoveLabel(r.pullRequest.GetNumber(), github.AUTOSUBMIT_LABEL)
 	})
 }
 

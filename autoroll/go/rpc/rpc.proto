@@ -151,6 +151,9 @@ message AutoRollCL {
     // DRY_RUN_FAILURE indicates that the commit queue dry run failed for this
     // AutoRollCL.
     DRY_RUN_FAILURE = 5;
+    // HUMAN_INTERVENED indicates that a human has modified the AutoRollCL and
+    // the roller is no longer able to take action on it.
+    HUMAN_INTERVENED = 6;
   }
 
   // id is the unique identifier for the CL.

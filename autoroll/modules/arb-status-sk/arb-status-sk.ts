@@ -249,7 +249,7 @@ export class ARBStatusSk extends ElementSk {
                                 </a>
                               `
                             : html`
-                                <span class="nowrap" class="${ele.trybotClass(tryResult)}">
+                                <span class="nowrap ${ele.trybotClass(tryResult)}">
                                   ${tryResult.name}
                                 </span>
                               `}
@@ -323,7 +323,7 @@ export class ARBStatusSk extends ElementSk {
           </td>
         </tr>
         <tr>
-          <td class="nowrap">Strategy for choosing next roll revision:</</td>
+          <td class="nowrap">Strategy for choosing next roll revision:</td>
           <td class="nowrap unknown">
             <span class="big">${ele.status.strategy?.strategy
               .toLowerCase()
@@ -913,7 +913,6 @@ export class ARBStatusSk extends ElementSk {
 
     // Pick the next window.
     openTimes.sort((a, b) => a.getTime() - b.getTime());
-    const rollWindowStart = openTimes[0].toString();
     return openTimes[0];
   }
 
@@ -1049,6 +1048,8 @@ export class ARBStatusSk extends ElementSk {
         return 'fg-failure';
       case AutoRollCL_Result.DRY_RUN_IN_PROGRESS:
         return 'fg-unknown';
+      case AutoRollCL_Result.HUMAN_INTERVENED:
+        return 'fg-exception';
       default:
         return 'fg-unknown';
     }
