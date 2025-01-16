@@ -32,7 +32,7 @@ var (
 // maxResultsPerfFile is the max number of results in a given file.
 // This is to be used to determine whether to split a large input file
 // into smaller manageable files (if this feature is enabled in config).
-const maxResultsPerFile = 5000
+const maxResultsPerFile = 2500
 
 // Parser parses file.Files contents into a form suitable for writing to trace.Store.
 type Parser struct {

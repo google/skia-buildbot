@@ -182,7 +182,14 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 		if err != nil {
 			w.badGitHash.Inc(1)
 			sklog.Error("Failed to find commit number %v: %s", f, err)
-			nackMessageIfNecessary(w.dlEnabled, f)
+
+			// This means the commit number in the file is invalid. There is no point
+			// in processing this file again since it will fail similarly,
+			// so let's ack the pubsub message to prevent GCP Pubsub from retrying.
+			if f.PubSubMsg != nil {
+				f.PubSubMsg.Ack()
+			}
+
 			return nil
 		}
 	}
