@@ -120,9 +120,14 @@ func updateIssueFromGerritChangeInfo(i *autoroll.AutoRollIssue, ci *gerrit.Chang
 	i.Modified = ci.Updated
 	i.Patchsets = ps
 	i.Subject = ci.Subject
-	for _, ps := range ci.Patchsets {
+	for idx, ps := range ci.Patchsets {
 		if ps.Uploader.Email != ci.Owner.Email {
-			i.HumanIntervened = true
+			if idx == len(ci.Patchsets)-1 && strings.Contains(ps.Uploader.Email, "gserviceaccount") {
+				// Gerrit CLs are often rebased by the commit queue before submitting. We don't
+				// consider this to be human intervention.
+			} else {
+				i.HumanIntervened = true
+			}
 			break
 		}
 	}
