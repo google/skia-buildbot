@@ -45,6 +45,7 @@ import (
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/search"
 	mock_search "go.skia.org/infra/golden/go/search/mocks"
+	search_providers "go.skia.org/infra/golden/go/search/providers"
 	"go.skia.org/infra/golden/go/sql"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -949,7 +950,7 @@ func TestChangelistSummaryHandler_ValidInput_CorrectJSONReturned(t *testing.T) {
 	ms := &mock_search.API{}
 	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search_providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -994,7 +995,7 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 	// First call should have just one PS.
 	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search_providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -1006,7 +1007,7 @@ func TestChangelistSummaryHandler_CachedValueStaleButUpdatesQuickly_ReturnsFresh
 	// Second call should have two PS and the latest timestamp.
 	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search_providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -1057,7 +1058,7 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 	// First call should have just one PS.
 	ms.On("NewAndUntriagedSummaryForCL", testutils.AnyContext, "my-system_my_cl").Return(search.NewAndUntriagedSummary{
 		ChangelistID: "my_cl",
-		PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []search_providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -1072,7 +1073,7 @@ func TestChangelistSummaryHandler_CachedValueStaleUpdatesSlowly_ReturnsStaleResu
 		time.Sleep(2 * time.Second)
 		return search.NewAndUntriagedSummary{
 			ChangelistID: "my_cl",
-			PatchsetSummaries: []search.PatchsetNewAndUntriagedSummary{{
+			PatchsetSummaries: []search_providers.PatchsetNewAndUntriagedSummary{{
 				NewImages:            1,
 				NewUntriagedImages:   2,
 				TotalUntriagedImages: 3,

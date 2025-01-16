@@ -70,6 +70,7 @@ go_test(
         "//golden/go/mocks",
         "//golden/go/search",
         "//golden/go/search/mocks",
+        "//golden/go/search/providers",
         "//golden/go/sql",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/schema",

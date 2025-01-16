@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/providers"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/databuilder"
@@ -50,7 +51,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchset_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			NewImages: 2, // DigestC07Unt_CL and DigestC06Pos_CL
 			// Only 1 of the two CLs "new images" is untriaged, so that's what we report.
 			NewUntriagedImages: 1,
@@ -79,7 +80,7 @@ func TestNewAndUntriagedSummaryForCL_OnePatchsetWithMultipleDatapointsOnSameTrac
 	require.NoError(t, err)
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDWithMultipleDatapointsPerTrace,
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			// Digests DigestC01Pos, DigestC03Unt and DigestC04Unt were produced on the same trace
 			// at this patchset (i.e. multiple datapoints per trace at the same patchset).
 			NewImages:            3,
@@ -107,7 +108,7 @@ func TestNewAndUntriagedSummaryForCL_TwoPatchsets_Success(t *testing.T) {
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: dks.ChangelistIDThatAddsNewTests,
 		// Should be sorted by PatchsetOrder
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			// One grouping (Text-Seven) produced one image that had not been seen on that grouping
 			// before (DigestBlank). This digest *had* been seen on the primary branch in a
 			// different grouping, but that should not prevent us from letting a developer know.
@@ -179,7 +180,7 @@ func TestNewAndUntriagedSummaryForCL_NoNewDataForPS_Success(t *testing.T) {
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            0,
 			NewUntriagedImages:   0,
 			TotalUntriagedImages: 0,
@@ -284,7 +285,7 @@ func TestNewAndUntriagedSummaryForCL_NewDeviceAdded_DigestsOnPrimaryBranchNotCou
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   1,
 			TotalUntriagedImages: 1,
@@ -374,7 +375,7 @@ func TestNewAndUntriagedSummaryForCL_IgnoreRulesRespected(t *testing.T) {
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            2,
 			NewUntriagedImages:   2,
 			TotalUntriagedImages: 3,
@@ -459,7 +460,7 @@ func TestNewAndUntriagedSummaryForCL_TriageStatusAffectsAllPS(t *testing.T) {
 	assert.Equal(t, NewAndUntriagedSummary{
 		ChangelistID: clID,
 		// Should be sorted by PatchsetOrder
-		PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+		PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 			NewImages:            1,
 			NewUntriagedImages:   0,
 			TotalUntriagedImages: 0,
@@ -503,7 +504,7 @@ func TestNewAndUntriagedSummaryForCL_MultipleThreadsAtOnce_NoRaces(t *testing.T)
 			require.NoError(t, err)
 			assert.Equal(t, NewAndUntriagedSummary{
 				ChangelistID: dks.ChangelistIDThatAttemptsToFixIOS,
-				PatchsetSummaries: []PatchsetNewAndUntriagedSummary{{
+				PatchsetSummaries: []providers.PatchsetNewAndUntriagedSummary{{
 					NewImages: 2, // DigestC07Unt_CL and DigestC06Pos_CL
 					// Only 1 of the two CLs "new images" is untriaged, so that's what we report.
 					NewUntriagedImages: 1,
@@ -6260,9 +6261,9 @@ func fromDrawing(drawing string, groupings map[schema.MD5Hash]paramtools.Params)
 				data = append(data, *currentData)
 			}
 			currentData = &untriagedDigestAtHead{
-				atHead: groupingDigestKey{
-					groupingID: findGroupingKey(parts[1]),
-					digest:     expandDigestToHash(parts[0]),
+				atHead: common.GroupingDigestKey{
+					GroupingID: findGroupingKey(parts[1]),
+					Digest:     expandDigestToHash(parts[0]),
 				},
 			}
 		} else {
@@ -8003,7 +8004,7 @@ func TestGetCommits_StandardGitIDs_Success(t *testing.T) {
 	s := New(db, 100, cache, nil)
 	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
-	fec, err := s.getCommits(ctx)
+	fec, err := s.commitsProvider.GetCommits(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, []frontend.Commit{
@@ -8058,7 +8059,7 @@ func TestGetCommits_NonStandardGitIDs_Success(t *testing.T) {
 	s := New(db, 100, cache, nil)
 	ctx, err = s.addCommitsData(ctx)
 	require.NoError(t, err)
-	fec, err := s.getCommits(ctx)
+	fec, err := s.commitsProvider.GetCommits(ctx)
 	require.NoError(t, err)
 
 	assert.Equal(t, []frontend.Commit{

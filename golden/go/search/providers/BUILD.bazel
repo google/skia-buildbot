@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "providers",
+    srcs = [
+        "changelists.go",
+        "commits.go",
+        "materializedViews.go",
+        "status.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/search/providers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sklog",
+        "//go/util",
+        "//golden/go/search/common",
+        "//golden/go/sql",
+        "//golden/go/sql/schema",
+        "//golden/go/web/frontend",
+        "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
+        "@org_golang_x_sync//errgroup",
+    ],
+)

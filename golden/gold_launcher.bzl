@@ -58,6 +58,7 @@ cat > common_instance_config.json5 <<EOF
   known_hashes_gcs_path: "{known_hashes_gcs_path}",
   window_size: {window_size},
   grouping_param_keys_by_corpus: {grouping_param_keys_by_corpus},
+  cache_type: "local",
 }}
 EOF
 

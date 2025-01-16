@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +30,7 @@ import (
 	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/search/providers"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -102,7 +102,7 @@ type NewAndUntriagedSummary struct {
 	// ChangelistID is the nonqualified id of the CL.
 	ChangelistID string
 	// PatchsetSummaries is a summary for all Patchsets for which we have data.
-	PatchsetSummaries []PatchsetNewAndUntriagedSummary
+	PatchsetSummaries []providers.PatchsetNewAndUntriagedSummary
 	// LastUpdated returns the timestamp of the CL, which corresponds to the last datapoint for
 	// this CL.
 	LastUpdated time.Time
@@ -110,26 +110,6 @@ type NewAndUntriagedSummary struct {
 	// currently being recalculated. We do this to return something quickly to the user (even if
 	// something like the
 	Outdated bool
-}
-
-// PatchsetNewAndUntriagedSummary is the summary for a specific PS. It focuses on the untriaged
-// and new images produced.
-type PatchsetNewAndUntriagedSummary struct {
-	// NewImages is the number of new images (digests) that were produced by this patchset by
-	// non-ignored traces and not seen on the primary branch.
-	NewImages int
-	// NewUntriagedImages is the number of NewImages which are still untriaged. It is less than or
-	// equal to NewImages.
-	NewUntriagedImages int
-	// TotalUntriagedImages is the number of images produced by this patchset by non-ignored traces
-	// that are untriaged. This includes images that are untriaged and observed on the primary
-	// branch (i.e. might not be the fault of this CL/PS). It is greater than or equal to
-	// NewUntriagedImages.
-	TotalUntriagedImages int
-	// PatchsetID is the nonqualified id of the patchset. This is usually a git hash.
-	PatchsetID string
-	// PatchsetOrder is represents the chronological order the patchsets are in. It starts at 1.
-	PatchsetOrder int
 }
 
 type BlameSummaryV1 struct {
@@ -195,29 +175,29 @@ type Impl struct {
 	// mutex protects the caches, e.g. digestsOnPrimary and publiclyVisibleTraces
 	mutex sync.RWMutex
 	// This caches the digests seen per grouping on the primary branch.
-	digestsOnPrimary map[groupingDigestKey]struct{}
+	digestsOnPrimary map[common.GroupingDigestKey]struct{}
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
 	// This caches the corpora names that are publicly visible.
 	publiclyVisibleCorpora map[string]struct{}
 	isPublicView           bool
 
-	commitCache          *lru.Cache
 	optionsGroupingCache *lru.Cache
 	traceCache           *lru.Cache
 	paramsetCache        *ttlcache.Cache
 
-	materializedViews map[string]bool
-	cacheManager      *caching.SearchCacheManager
-	dbType            config.DatabaseType
+	cacheManager *caching.SearchCacheManager
+	dbType       config.DatabaseType
+
+	statusProvider           *providers.StatusProvider
+	changeDataProvider       *providers.ChangelistProvider
+	materializedViewProvider *providers.MaterializedViewProvider
+	commitsProvider          *providers.CommitsProvider
 }
 
 // New returns an implementation of API.
 func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_corpora []string) *Impl {
-	cc, err := lru.New(commitCacheSize)
-	if err != nil {
-		panic(err) // should only happen if commitCacheSize is negative.
-	}
+
 	gc, err := lru.New(optionsGroupingCacheSize)
 	if err != nil {
 		panic(err) // should only happen if optionsGroupingCacheSize is negative.
@@ -228,15 +208,18 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 	}
 	pc := ttlcache.New(time.Minute, 10*time.Minute)
 	return &Impl{
-		db:                   sqlDB,
-		windowLength:         windowLength,
-		digestsOnPrimary:     map[groupingDigestKey]struct{}{},
-		commitCache:          cc,
-		optionsGroupingCache: gc,
-		traceCache:           tc,
-		paramsetCache:        pc,
-		reviewSystemMapping:  map[string]string{},
-		cacheManager:         caching.New(cacheClient, sqlDB, cache_corpora, windowLength),
+		db:                       sqlDB,
+		windowLength:             windowLength,
+		digestsOnPrimary:         map[common.GroupingDigestKey]struct{}{},
+		optionsGroupingCache:     gc,
+		traceCache:               tc,
+		paramsetCache:            pc,
+		reviewSystemMapping:      map[string]string{},
+		cacheManager:             caching.New(cacheClient, sqlDB, cache_corpora, windowLength),
+		statusProvider:           providers.NewStatusProvider(sqlDB, windowLength),
+		changeDataProvider:       providers.NewChangelistProvider(sqlDB),
+		materializedViewProvider: providers.NewMaterializedViewProvider(sqlDB, windowLength),
+		commitsProvider:          providers.NewCommitsProvider(sqlDB, windowLength),
 	}
 }
 
@@ -249,11 +232,6 @@ func (s *Impl) SetDatabaseType(dbType config.DatabaseType) {
 // The Changelist ID will be substituted in using fmt.Sprintf and a %s placeholder.
 func (s *Impl) SetReviewSystemTemplates(m map[string]string) {
 	s.reviewSystemMapping = m
-}
-
-type groupingDigestKey struct {
-	groupingID schema.MD5Hash
-	digest     schema.MD5Hash
 }
 
 // StartCacheProcess loads the caches used for searching and starts a goroutine to keep those
@@ -285,6 +263,7 @@ func (s *Impl) updateCaches(ctx context.Context, commitsWithData int) error {
 	}
 	s.mutex.Lock()
 	s.digestsOnPrimary = onPrimary
+	s.changeDataProvider.SetDigestsOnPrimary(onPrimary)
 	s.mutex.Unlock()
 	sklog.Infof("Digests on Primary cache refreshed with %d entries", len(onPrimary))
 	return nil
@@ -333,7 +312,7 @@ LIMIT 1 OFFSET $1`, commitsWithDataToSearch)
 }
 
 // getDigestsOnPrimary returns a map of all distinct digests on the primary branch.
-func (s *Impl) getDigestsOnPrimary(ctx context.Context, tile schema.TileID) (map[groupingDigestKey]struct{}, error) {
+func (s *Impl) getDigestsOnPrimary(ctx context.Context, tile schema.TileID) (map[common.GroupingDigestKey]struct{}, error) {
 	ctx, span := trace.StartSpan(ctx, "getDigestsOnPrimary")
 	defer span.End()
 	rows, err := s.db.Query(ctx, `
@@ -341,17 +320,17 @@ SELECT DISTINCT grouping_id, digest FROM
 TiledTraceDigests WHERE tile_id >= $1`, tile)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return map[groupingDigestKey]struct{}{}, nil
+			return map[common.GroupingDigestKey]struct{}{}, nil
 		}
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	rv := map[groupingDigestKey]struct{}{}
+	rv := map[common.GroupingDigestKey]struct{}{}
 	var digest schema.DigestBytes
 	var grouping schema.GroupingID
-	var key groupingDigestKey
-	keyGrouping := key.groupingID[:]
-	keyDigest := key.digest[:]
+	var key common.GroupingDigestKey
+	keyGrouping := key.GroupingID[:]
+	keyDigest := key.Digest[:]
 	for rows.Next() {
 		err := rows.Scan(&grouping, &digest)
 		if err != nil {
@@ -364,126 +343,8 @@ TiledTraceDigests WHERE tile_id >= $1`, tile)
 	return rv, nil
 }
 
-const (
-	unignoredRecentTracesView = "traces"
-	byBlameView               = "byblame"
-)
-
-// StartMaterializedViews creates materialized views for non-ignored traces belonging to the
-// given corpora. It starts a goroutine to keep these up to date.
 func (s *Impl) StartMaterializedViews(ctx context.Context, corpora []string, updateInterval time.Duration) error {
-	_, span := trace.StartSpan(ctx, "StartMaterializedViews", trace.WithSampler(trace.AlwaysSample()))
-	defer span.End()
-	if len(corpora) == 0 {
-		sklog.Infof("No materialized views configured")
-		return nil
-	}
-	sklog.Infof("Initializing materialized views")
-	eg, eCtx := errgroup.WithContext(ctx)
-	var mutex sync.Mutex
-	s.materializedViews = map[string]bool{}
-	for _, c := range corpora {
-		corpus := c
-		eg.Go(func() error {
-			mvName, err := s.createUnignoredRecentTracesView(eCtx, corpus)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			mutex.Lock()
-			defer mutex.Unlock()
-			s.materializedViews[mvName] = true
-			return nil
-		})
-		eg.Go(func() error {
-			mvName, err := s.createByBlameView(eCtx, corpus)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			mutex.Lock()
-			defer mutex.Unlock()
-			s.materializedViews[mvName] = true
-			return nil
-		})
-	}
-	if err := eg.Wait(); err != nil {
-		return skerr.Wrapf(err, "initializing materialized views %q", corpora)
-	}
-
-	sklog.Infof("Initialized %d materialized views", len(s.materializedViews))
-	go util.RepeatCtx(ctx, updateInterval, func(ctx context.Context) {
-		eg, eCtx := errgroup.WithContext(ctx)
-		for v := range s.materializedViews {
-			view := v
-			eg.Go(func() error {
-				statement := `REFRESH MATERIALIZED VIEW ` + view
-				_, err := s.db.Exec(eCtx, statement)
-				return skerr.Wrapf(err, "updating %s", view)
-			})
-		}
-		if err := eg.Wait(); err != nil {
-			sklog.Warningf("Could not refresh material views: %s", err)
-		}
-	})
-	return nil
-}
-
-func (s *Impl) createUnignoredRecentTracesView(ctx context.Context, corpus string) (string, error) {
-	mvName := "mv_" + corpus + "_" + unignoredRecentTracesView
-	statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
-	statement += `
-AS WITH
-BeginningOfWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC
-	OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
-)
-SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
-WHERE corpus = '` + corpus + `' AND matches_any_ignore_rule = FALSE
-`
-	_, err := s.db.Exec(ctx, statement)
-	return mvName, skerr.Wrap(err)
-}
-
-func (s *Impl) createByBlameView(ctx context.Context, corpus string) (string, error) {
-	mvName := "mv_" + corpus + "_" + byBlameView
-	statement := "CREATE MATERIALIZED VIEW IF NOT EXISTS " + mvName
-	statement += `
-AS WITH
-BeginningOfWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC
-	OFFSET ` + strconv.Itoa(s.windowLength-1) + ` LIMIT 1
-),
-UntriagedDigests AS (
-	SELECT grouping_id, digest FROM Expectations
-	WHERE label = 'u'
-),
-UnignoredDataAtHead AS (
-	SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-	JOIN BeginningOfWindow ON ValuesAtHead.most_recent_commit_id >= BeginningOfWindow.commit_id
-	WHERE matches_any_ignore_rule = FALSE AND corpus = '` + corpus + `'
-)
-SELECT UnignoredDataAtHead.trace_id, UnignoredDataAtHead.grouping_id, UnignoredDataAtHead.digest FROM
-UntriagedDigests
-JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
-	 UntriagedDigests.digest = UnignoredDataAtHead.digest
-`
-	_, err := s.db.Exec(ctx, statement)
-	return mvName, skerr.Wrap(err)
-}
-
-// getMaterializedView returns the name of the materialized view if it has been created, or empty
-// string if there is not such a view.
-func (s *Impl) getMaterializedView(viewName, corpus string) string {
-	if len(s.materializedViews) == 0 {
-		return ""
-	}
-	mv := "mv_" + corpus + "_" + viewName
-	if s.materializedViews[mv] {
-		return mv
-	}
-	return ""
+	return s.materializedViewProvider.StartMaterializedViews(ctx, corpora, updateInterval)
 }
 
 // StartApplyingPublicParams loads the cached set of traces which are publicly visible and then
@@ -518,7 +379,10 @@ func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicpara
 		s.mutex.Lock()
 		defer s.mutex.Unlock()
 		s.publiclyVisibleTraces = publiclyVisibleTraces
+		s.statusProvider.SetPublicTraces(publiclyVisibleTraces)
+
 		s.publiclyVisibleCorpora = publiclyVisibleCorpora
+		s.statusProvider.SetPublicCorpora(publiclyVisibleCorpora)
 		return nil
 	}
 	if err := cycle(ctx); err != nil {
@@ -541,141 +405,25 @@ func (s *Impl) NewAndUntriagedSummaryForCL(ctx context.Context, qCLID string) (N
 	ctx, span := trace.StartSpan(ctx, "search2_NewAndUntriagedSummaryForCL")
 	defer span.End()
 
-	patchsets, err := s.getPatchsets(ctx, qCLID)
+	patchSummaries, err := s.changeDataProvider.GetNewAndUntriagedSummaryForCL(ctx, qCLID)
 	if err != nil {
-		return NewAndUntriagedSummary{}, skerr.Wrap(err)
-	}
-	if len(patchsets) == 0 {
-		return NewAndUntriagedSummary{}, skerr.Fmt("CL %q not found", qCLID)
-	}
-
-	eg, ctx := errgroup.WithContext(ctx)
-	rv := make([]PatchsetNewAndUntriagedSummary, len(patchsets))
-	for i, p := range patchsets {
-		idx, ps := i, p
-		eg.Go(func() error {
-			sum, err := s.getSummaryForPS(ctx, qCLID, ps.id)
-			if err != nil {
-				return skerr.Wrap(err)
-			}
-			sum.PatchsetID = sql.Unqualify(ps.id)
-			sum.PatchsetOrder = ps.order
-			rv[idx] = sum
-			return nil
-		})
+		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting Patchset summaries for CL %q", qCLID)
 	}
 	var updatedTS time.Time
+	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		var err error
 		updatedTS, err = s.ChangelistLastUpdated(ctx, qCLID)
 		return skerr.Wrap(err)
 	})
 	if err := eg.Wait(); err != nil {
-		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q and %d PS", qCLID, len(patchsets))
+		return NewAndUntriagedSummary{}, skerr.Wrapf(err, "Getting counts for CL %q", qCLID)
 	}
 	return NewAndUntriagedSummary{
 		ChangelistID:      sql.Unqualify(qCLID),
-		PatchsetSummaries: rv,
+		PatchsetSummaries: patchSummaries,
 		LastUpdated:       updatedTS.UTC(),
 	}, nil
-}
-
-type psIDAndOrder struct {
-	id    string
-	order int
-}
-
-// getPatchsets returns the qualified ids and orders of the patchsets sorted by ps_order.
-func (s *Impl) getPatchsets(ctx context.Context, qualifiedID string) ([]psIDAndOrder, error) {
-	ctx, span := trace.StartSpan(ctx, "getPatchsets")
-	defer span.End()
-	rows, err := s.db.Query(ctx, `SELECT patchset_id, ps_order
-FROM Patchsets WHERE changelist_id = $1 ORDER BY ps_order ASC`, qualifiedID)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "getting summary for cl %q", qualifiedID)
-	}
-	defer rows.Close()
-	var rv []psIDAndOrder
-	for rows.Next() {
-		var row psIDAndOrder
-		if err := rows.Scan(&row.id, &row.order); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		rv = append(rv, row)
-	}
-	return rv, nil
-}
-
-// getSummaryForPS looks at all the data produced for a given PS and returns the a summary of the
-// newly produced digests and untriaged digests.
-func (s *Impl) getSummaryForPS(ctx context.Context, clid, psID string) (PatchsetNewAndUntriagedSummary, error) {
-	ctx, span := trace.StartSpan(ctx, "getSummaryForPS")
-	defer span.End()
-	const statement = `WITH
-CLDigests AS (
-	SELECT secondary_branch_trace_id, digest, grouping_id
-	FROM SecondaryBranchValues
-	WHERE branch_name = $1 and version_name = $2
-),
-NonIgnoredCLDigests AS (
-	-- We only want to count a digest once per grouping, no matter how many times it shows up
-	-- because group those together (by trace) in the frontend UI.
-	SELECT DISTINCT digest, CLDigests.grouping_id
-	FROM CLDigests
-	JOIN Traces
-	ON secondary_branch_trace_id = trace_id
-	WHERE Traces.matches_any_ignore_rule = False
-),
-CLExpectations AS (
-	SELECT grouping_id, digest, label
-	FROM SecondaryBranchExpectations
-	WHERE branch_name = $1
-),
-LabeledDigests AS (
-	SELECT NonIgnoredCLDigests.grouping_id, NonIgnoredCLDigests.digest, COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) as label
-	FROM NonIgnoredCLDigests
-	LEFT JOIN Expectations
-	ON NonIgnoredCLDigests.grouping_id = Expectations.grouping_id AND
-		NonIgnoredCLDigests.digest = Expectations.digest
-	LEFT JOIN CLExpectations
-	ON NonIgnoredCLDigests.grouping_id = CLExpectations.grouping_id AND
-		NonIgnoredCLDigests.digest = CLExpectations.digest
-)
-SELECT * FROM LabeledDigests;`
-
-	rows, err := s.db.Query(ctx, statement, clid, psID)
-	if err != nil {
-		return PatchsetNewAndUntriagedSummary{}, skerr.Wrapf(err, "getting summary for ps %q in cl %q", psID, clid)
-	}
-	defer rows.Close()
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	var digest schema.DigestBytes
-	var grouping schema.GroupingID
-	var label schema.ExpectationLabel
-	var key groupingDigestKey
-	keyGrouping := key.groupingID[:]
-	keyDigest := key.digest[:]
-	var rv PatchsetNewAndUntriagedSummary
-
-	for rows.Next() {
-		if err := rows.Scan(&grouping, &digest, &label); err != nil {
-			return PatchsetNewAndUntriagedSummary{}, skerr.Wrap(err)
-		}
-		copy(keyGrouping, grouping)
-		copy(keyDigest, digest)
-		_, isExisting := s.digestsOnPrimary[key]
-		if !isExisting {
-			rv.NewImages++
-		}
-		if label == schema.LabelUntriaged {
-			rv.TotalUntriagedImages++
-			if !isExisting {
-				rv.NewUntriagedImages++
-			}
-		}
-	}
-	return rv, nil
 }
 
 // ChangelistLastUpdated implements the API interface.
@@ -724,7 +472,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		return s.searchCLData(ctx)
 	}
 
-	commits, err := s.getCommits(ctx)
+	commits, err := s.commitsProvider.GetCommits(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -908,7 +656,7 @@ func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID str
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	commits, err := s.getCommits(ctx)
+	commits, err := s.commitsProvider.GetCommits(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -960,7 +708,7 @@ func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface
 		ignoreStatuses = append(ignoreStatuses, true)
 	}
 	corpus := sql.Sanitize(q.TraceValues[types.CorpusField][0])
-	materializedView := s.getMaterializedView(unignoredRecentTracesView, corpus)
+	materializedView := s.materializedViewProvider.GetMaterializedView(providers.UnignoredRecentTracesView, corpus)
 	if q.OnlyIncludeDigestsProducedAtHead {
 		if len(keyFilters) == 0 {
 			if materializedView != "" && !q.IncludeIgnoredTraces {
@@ -1115,14 +863,14 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndG
 	byGrouping := map[schema.MD5Hash][]digestWithTraceAndGrouping{}
 	// Even if two groupings draw the same digest, we want those as two different results because
 	// they could be triaged differently.
-	byDigestAndGrouping := map[groupingDigestKey]digestAndClosestDiffs{}
+	byDigestAndGrouping := map[common.GroupingDigestKey]digestAndClosestDiffs{}
 	var mutex sync.Mutex
 	for _, input := range inputs {
 		gID := sql.AsMD5Hash(input.groupingID)
 		byGrouping[gID] = append(byGrouping[gID], input)
-		key := groupingDigestKey{
-			digest:     sql.AsMD5Hash(input.digest),
-			groupingID: sql.AsMD5Hash(input.groupingID),
+		key := common.GroupingDigestKey{
+			Digest:     sql.AsMD5Hash(input.digest),
+			GroupingID: sql.AsMD5Hash(input.groupingID),
 		}
 		bd := byDigestAndGrouping[key]
 		bd.leftDigest = input.digest
@@ -1277,7 +1025,7 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndG
 
 // getDiffsForGrouping returns the closest positive and negative diffs for the provided digests
 // in the given grouping.
-func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, leftDigests []schema.DigestBytes) (map[groupingDigestKey][]*frontend.SRDiffDigest, error) {
+func (s *Impl) getDiffsForGrouping(ctx context.Context, groupingID schema.MD5Hash, leftDigests []schema.DigestBytes) (map[common.GroupingDigestKey][]*frontend.SRDiffDigest, error) {
 	ctx, span := trace.StartSpan(ctx, "getDiffsForGrouping")
 	defer span.End()
 	rtv := common.GetQuery(ctx).RightTraceValues
@@ -1311,7 +1059,7 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	results := map[groupingDigestKey][]*frontend.SRDiffDigest{}
+	results := map[common.GroupingDigestKey][]*frontend.SRDiffDigest{}
 	var label schema.ExpectationLabel
 	var row schema.DiffMetricRow
 	for rows.Next() {
@@ -1331,9 +1079,9 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 			PixelDiffPercent: row.PercentPixelsDiff,
 			QueryMetric:      row.CombinedMetric,
 		}
-		key := groupingDigestKey{
-			digest:     sql.AsMD5Hash(row.LeftDigest),
-			groupingID: groupingID,
+		key := common.GroupingDigestKey{
+			Digest:     sql.AsMD5Hash(row.LeftDigest),
+			GroupingID: groupingID,
 		}
 		results[key] = append(results[key], srdd)
 	}
@@ -1923,8 +1671,8 @@ func makeGroupingAndDigestWhereClause(triageDeltaInfos []extendedBulkTriageDelta
 
 // findPrimaryBranchLabels returns the primary branch labels for the digests corresponding to the
 // passed in extendedBulkTriageDeltaInfo structs.
-func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
-	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[common.GroupingDigestKey]schema.ExpectationLabel, error) {
+	labels := map[common.GroupingDigestKey]schema.ExpectationLabel{}
 	if len(triageDeltaInfos) == 0 {
 		return labels, nil
 	}
@@ -1943,9 +1691,9 @@ func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []e
 		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		labels[groupingDigestKey{
-			groupingID: sql.AsMD5Hash(groupingID),
-			digest:     sql.AsMD5Hash(digest),
+		labels[common.GroupingDigestKey{
+			GroupingID: sql.AsMD5Hash(groupingID),
+			Digest:     sql.AsMD5Hash(digest),
 		}] = label
 	}
 	return labels, nil
@@ -1953,8 +1701,8 @@ func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []e
 
 // findSecondaryBranchLabels returns the primary branch labels for the digests corresponding to the
 // passed in extendedBulkTriageDeltaInfo structs.
-func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[groupingDigestKey]schema.ExpectationLabel, error) {
-	labels := map[groupingDigestKey]schema.ExpectationLabel{}
+func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[common.GroupingDigestKey]schema.ExpectationLabel, error) {
+	labels := map[common.GroupingDigestKey]schema.ExpectationLabel{}
 	if len(triageDeltaInfos) == 0 {
 		return labels, nil
 	}
@@ -1977,9 +1725,9 @@ func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos [
 		if err := rows.Scan(&groupingID, &digest, &label); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		labels[groupingDigestKey{
-			groupingID: sql.AsMD5Hash(groupingID),
-			digest:     sql.AsMD5Hash(digest),
+		labels[common.GroupingDigestKey{
+			GroupingID: sql.AsMD5Hash(groupingID),
+			Digest:     sql.AsMD5Hash(digest),
 		}] = label
 	}
 	return labels, nil
@@ -1998,11 +1746,11 @@ func (s *Impl) populateLabelBefore(ctx context.Context, triageDeltaInfos []exten
 	}
 
 	// Place extendedBulkTriageDeltaInfos in a map for faster querying.
-	byKey := map[groupingDigestKey]*extendedBulkTriageDeltaInfo{}
+	byKey := map[common.GroupingDigestKey]*extendedBulkTriageDeltaInfo{}
 	for i := range triageDeltaInfos {
-		byKey[groupingDigestKey{
-			groupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
-			digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
+		byKey[common.GroupingDigestKey{
+			GroupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
+			Digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
 		}] = &triageDeltaInfos[i]
 	}
 
@@ -2036,11 +1784,11 @@ func (s *Impl) populateLabelBeforeForCL(ctx context.Context, triageDeltaInfos []
 	}
 
 	// Place extendedBulkTriageDeltaInfos in a map for faster querying.
-	byKey := map[groupingDigestKey]*extendedBulkTriageDeltaInfo{}
+	byKey := map[common.GroupingDigestKey]*extendedBulkTriageDeltaInfo{}
 	for i := range triageDeltaInfos {
-		byKey[groupingDigestKey{
-			groupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
-			digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
+		byKey[common.GroupingDigestKey{
+			GroupingID: sql.AsMD5Hash(triageDeltaInfos[i].groupingID),
+			Digest:     sql.AsMD5Hash(triageDeltaInfos[i].digest),
 		}] = &triageDeltaInfos[i]
 	}
 
@@ -2147,53 +1895,6 @@ func (s *Impl) expandGrouping(ctx context.Context, groupingID schema.MD5Hash) (p
 	return groupingKeys, nil
 }
 
-// getCommits returns the front-end friendly version of the commits within the searched window.
-func (s *Impl) getCommits(ctx context.Context) ([]frontend.Commit, error) {
-	ctx, span := trace.StartSpan(ctx, "getCommits")
-	defer span.End()
-	rv := make([]frontend.Commit, common.GetActualWindowLength(ctx))
-	commitIDs := common.GetCommitToIdxMap(ctx)
-	for commitID, idx := range commitIDs {
-		var commit frontend.Commit
-		if c, ok := s.commitCache.Get(commitID); ok {
-			commit = c.(frontend.Commit)
-		} else {
-			if isStandardGitCommitID(commitID) {
-				const statement = `SELECT git_hash, commit_time, author_email, subject
-FROM GitCommits WHERE commit_id = $1`
-				row := s.db.QueryRow(ctx, statement, commitID)
-				var dbRow schema.GitCommitRow
-				if err := row.Scan(&dbRow.GitHash, &dbRow.CommitTime, &dbRow.AuthorEmail, &dbRow.Subject); err != nil {
-					return nil, skerr.Wrap(err)
-				}
-				commit = frontend.Commit{
-					CommitTime: dbRow.CommitTime.UTC().Unix(),
-					ID:         string(commitID),
-					Hash:       dbRow.GitHash,
-					Author:     dbRow.AuthorEmail,
-					Subject:    dbRow.Subject,
-				}
-				s.commitCache.Add(commitID, commit)
-			} else {
-				commit = frontend.Commit{
-					ID: string(commitID),
-				}
-				s.commitCache.Add(commitID, commit)
-			}
-		}
-		rv[idx] = commit
-	}
-	return rv, nil
-}
-
-// isStandardGitCommitID detects our standard commit ids for git repos (monotonically increasing
-// integers). It returns false if that is not being used (e.g. for instances that don't use that
-// as their ID)
-func isStandardGitCommitID(id schema.CommitID) bool {
-	_, err := strconv.ParseInt(string(id), 10, 64)
-	return err == nil
-}
-
 // searchCLData returns the search response for the given CL's data (or an error if no such data
 // exists). It reuses much of the same pipeline structure as the normal search, with a few key
 // differences. It prepends the data to all traces, pretending as if the CL were to land and the
@@ -2207,7 +1908,7 @@ func (s *Impl) searchCLData(ctx context.Context) (*frontend.SearchResponse, erro
 		return nil, skerr.Wrap(err)
 	}
 
-	commits, err := s.getCommits(ctx)
+	commits, err := s.commitsProvider.GetCommits(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -2379,9 +2080,9 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	var traceKey schema.MD5Hash
-	var key groupingDigestKey
-	keyGrouping := key.groupingID[:]
-	keyDigest := key.digest[:]
+	var key common.GroupingDigestKey
+	keyGrouping := key.GroupingID[:]
+	keyDigest := key.Digest[:]
 	for rows.Next() {
 		var row digestWithTraceAndGrouping
 		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest, &row.optionsID); err != nil {
@@ -2737,7 +2438,7 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 	if err != nil {
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
-	commits, err := s.getCommits(ctx)
+	commits, err := s.commitsProvider.GetCommits(ctx)
 	if err != nil {
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
@@ -2755,7 +2456,7 @@ type traceData []types.Digest
 // within the current window and returns all traces responsible for that behavior, clustered by the
 // digest+grouping at head. This clustering allows us to better identify the commit(s) that caused
 // the change, even with sparse data.
-func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[groupingDigestKey][]schema.TraceID, error) {
+func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[common.GroupingDigestKey][]schema.TraceID, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
 	defer span.End()
 
@@ -2766,10 +2467,10 @@ func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus s
 	}
 
 	sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
-	rv := map[groupingDigestKey][]schema.TraceID{}
-	var key groupingDigestKey
-	groupingKey := key.groupingID[:]
-	digestKey := key.digest[:]
+	rv := map[common.GroupingDigestKey][]schema.TraceID{}
+	var key common.GroupingDigestKey
+	groupingKey := key.GroupingID[:]
+	digestKey := key.Digest[:]
 	for _, data := range byBlameData {
 		copy(groupingKey, data.GroupingID)
 		copy(digestKey, data.Digest)
@@ -2780,10 +2481,10 @@ func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus s
 }
 
 // applyPublicFilter filters the traces according to the publicly visible traces map.
-func (s *Impl) applyPublicFilter(ctx context.Context, data map[groupingDigestKey][]schema.TraceID) map[groupingDigestKey][]schema.TraceID {
+func (s *Impl) applyPublicFilter(ctx context.Context, data map[common.GroupingDigestKey][]schema.TraceID) map[common.GroupingDigestKey][]schema.TraceID {
 	ctx, span := trace.StartSpan(ctx, "applyPublicFilter")
 	defer span.End()
-	filtered := make(map[groupingDigestKey][]schema.TraceID, len(data))
+	filtered := make(map[common.GroupingDigestKey][]schema.TraceID, len(data))
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	var traceKey schema.MD5Hash
@@ -2802,7 +2503,7 @@ func (s *Impl) applyPublicFilter(ctx context.Context, data map[groupingDigestKey
 // untriagedDigestAtHead represents a single untriaged digest in a particular grouping observed
 // at head. It includes the histories of all traces that are
 type untriagedDigestAtHead struct {
-	atHead groupingDigestKey
+	atHead common.GroupingDigestKey
 	traces []traceIDAndData
 }
 
@@ -2815,10 +2516,10 @@ type traceIDAndData struct {
 // traces in the provided map. It returns them associated with the digest+grouping that was
 // produced at head, as well as a map corresponding to all unique digests seen in these histories
 // (to look up expectations).
-func (s *Impl) getHistoriesForTraces(ctx context.Context, traces map[groupingDigestKey][]schema.TraceID) ([]untriagedDigestAtHead, map[groupingDigestKey]bool, error) {
+func (s *Impl) getHistoriesForTraces(ctx context.Context, traces map[common.GroupingDigestKey][]schema.TraceID) ([]untriagedDigestAtHead, map[common.GroupingDigestKey]bool, error) {
 	ctx, span := trace.StartSpan(ctx, "getHistoriesForTraces")
 	defer span.End()
-	tracesToDigest := map[schema.MD5Hash]groupingDigestKey{}
+	tracesToDigest := map[schema.MD5Hash]common.GroupingDigestKey{}
 	var tracesToLookup []schema.TraceID
 	for gdk, traceIDs := range traces {
 		for _, traceID := range traceIDs {
@@ -2837,8 +2538,8 @@ ORDER BY trace_id`
 	defer rows.Close()
 	traceLength := common.GetActualWindowLength(ctx)
 	commitIdxMap := common.GetCommitToIdxMap(ctx)
-	tracesByDigest := make(map[groupingDigestKey][]traceIDAndData, len(traces))
-	uniqueDigestsByGrouping := map[groupingDigestKey]bool{}
+	tracesByDigest := make(map[common.GroupingDigestKey][]traceIDAndData, len(traces))
+	uniqueDigestsByGrouping := map[common.GroupingDigestKey]bool{}
 	var currentTraceID schema.TraceID
 	var currentTraceData traceData
 	var key schema.MD5Hash
@@ -2852,9 +2553,9 @@ ORDER BY trace_id`
 		copy(key[:], traceID)
 		gdk := tracesToDigest[key]
 		// Note that we've seen this digest on this grouping so we can look up the expectations.
-		uniqueDigestsByGrouping[groupingDigestKey{
-			groupingID: gdk.groupingID,
-			digest:     sql.AsMD5Hash(digest),
+		uniqueDigestsByGrouping[common.GroupingDigestKey{
+			GroupingID: gdk.GroupingID,
+			Digest:     sql.AsMD5Hash(digest),
 		}] = true
 		if !bytes.Equal(traceID, currentTraceID) || currentTraceData == nil {
 			currentTraceID = traceID
@@ -2881,7 +2582,7 @@ ORDER BY trace_id`
 		})
 	}
 	sort.Slice(rv, func(i, j int) bool {
-		return bytes.Compare(rv[i].atHead.digest[:], rv[j].atHead.digest[:]) <= 0
+		return bytes.Compare(rv[i].atHead.Digest[:], rv[j].atHead.Digest[:]) <= 0
 	})
 	return rv, uniqueDigestsByGrouping, nil
 }
@@ -2894,12 +2595,12 @@ type expectationKey struct {
 }
 
 // getExpectations looks up the expectations for the given pairs of digests+grouping.
-func (s *Impl) getExpectations(ctx context.Context, digests map[groupingDigestKey]bool) (map[expectationKey]expectations.Label, error) {
+func (s *Impl) getExpectations(ctx context.Context, digests map[common.GroupingDigestKey]bool) (map[expectationKey]expectations.Label, error) {
 	ctx, span := trace.StartSpan(ctx, "getExpectations")
 	defer span.End()
 	byGrouping := map[schema.MD5Hash][]schema.DigestBytes{}
 	for gdk := range digests {
-		byGrouping[gdk.groupingID] = append(byGrouping[gdk.groupingID], sql.FromMD5Hash(gdk.digest))
+		byGrouping[gdk.GroupingID] = append(byGrouping[gdk.GroupingID], sql.FromMD5Hash(gdk.Digest))
 	}
 
 	exp := map[expectationKey]expectations.Label{}
@@ -2938,20 +2639,20 @@ WHERE grouping_id = $1 and digest = ANY($2)`
 }
 
 // expandGroupings returns a map of schema.GroupingIDs (as md5 hashes) to their related params.
-func (s *Impl) expandGroupings(ctx context.Context, groupings map[groupingDigestKey][]schema.TraceID) (map[schema.MD5Hash]paramtools.Params, error) {
+func (s *Impl) expandGroupings(ctx context.Context, groupings map[common.GroupingDigestKey][]schema.TraceID) (map[schema.MD5Hash]paramtools.Params, error) {
 	ctx, span := trace.StartSpan(ctx, "getHistoriesForTraces")
 	defer span.End()
 
 	rv := map[schema.MD5Hash]paramtools.Params{}
 	for gdk := range groupings {
-		if _, ok := rv[gdk.groupingID]; ok {
+		if _, ok := rv[gdk.GroupingID]; ok {
 			continue
 		}
-		grouping, err := s.expandGrouping(ctx, gdk.groupingID)
+		grouping, err := s.expandGrouping(ctx, gdk.GroupingID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		rv[gdk.groupingID] = grouping
+		rv[gdk.GroupingID] = grouping
 	}
 	return rv, nil
 }
@@ -2974,7 +2675,7 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		// The digest in key represents an untriaged digest seen at head.
 		// traces represents all the traces that are drawing that untriaged digest at head.
 		// We would like to identify the narrowest range that this change could have happened.
-		latestUntriagedDigest := types.Digest(hex.EncodeToString(sql.FromMD5Hash(key.digest)))
+		latestUntriagedDigest := types.Digest(hex.EncodeToString(sql.FromMD5Hash(key.Digest)))
 		// Last commit before the untriaged digest at head was first produced.
 		blameStartIdx := -1
 		// First commit to produce the untriaged digest at head.
@@ -2985,7 +2686,7 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		for _, tr := range data.traces {
 			traceIDsAndDigests = append(traceIDsAndDigests, traceIDAndDigest{
 				id:     tr.id,
-				digest: key.digest[:],
+				digest: key.Digest[:],
 			})
 
 			// Identify the range at which the latest untriaged digest first occurred. For example,
@@ -3067,7 +2768,7 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		// Find the grouping associated with this digest if it already is in the list.
 		found := false
 		for _, ag := range entry.AffectedGroupings {
-			if ag.groupingID == key.groupingID {
+			if ag.groupingID == key.GroupingID {
 				found = true
 				ag.UntriagedDigests++
 				ag.traceIDsAndDigests = append(ag.traceIDsAndDigests, traceIDsAndDigests...)
@@ -3076,10 +2777,10 @@ func combineIntoRanges(ctx context.Context, digests []untriagedDigestAtHead, gro
 		}
 		if !found {
 			entry.AffectedGroupings = append(entry.AffectedGroupings, &AffectedGrouping{
-				Grouping:           groupings[key.groupingID],
+				Grouping:           groupings[key.GroupingID],
 				UntriagedDigests:   1,
-				SampleDigest:       types.Digest(hex.EncodeToString(key.digest[:])),
-				groupingID:         key.groupingID,
+				SampleDigest:       types.Digest(hex.EncodeToString(key.Digest[:])),
+				groupingID:         key.GroupingID,
 				traceIDsAndDigests: traceIDsAndDigests,
 			})
 		}
@@ -3413,33 +3114,7 @@ func (s *Impl) getParamsetsForCluster(ctx context.Context, digests map[schema.MD
 func (s *Impl) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error) {
 	ctx, span := trace.StartSpan(ctx, "addCommitsData")
 	defer span.End()
-	// TODO(kjlubick) will need to handle non-git repos as well.
-	const statement = `WITH
-RecentCommits AS (
-	SELECT commit_id FROM CommitsWithData
-	AS OF SYSTEM TIME '-0.1s'
-	ORDER BY commit_id DESC LIMIT $1
-)
-SELECT git_hash, GitCommits.commit_id, commit_time, author_email, subject FROM GitCommits
-JOIN RecentCommits ON GitCommits.commit_id = RecentCommits.commit_id
-AS OF SYSTEM TIME '-0.1s'
-ORDER BY commit_id ASC`
-	rows, err := s.db.Query(ctx, statement, s.windowLength)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-	var rv []frontend.Commit
-	for rows.Next() {
-		var ts time.Time
-		var commit frontend.Commit
-		if err := rows.Scan(&commit.Hash, &commit.ID, &ts, &commit.Author, &commit.Subject); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		commit.CommitTime = ts.UTC().Unix()
-		rv = append(rv, commit)
-	}
-	return rv, nil
+	return s.commitsProvider.GetCommitsInWindow(ctx)
 }
 
 // GetDigestsForGrouping implements the API interface.
@@ -3487,7 +3162,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
-	commits, err := s.getCommits(ctx)
+	commits, err := s.commitsProvider.GetCommits(ctx)
 	if err != nil {
 		return frontend.DigestDetails{}, skerr.Wrap(err)
 	}
@@ -3969,160 +3644,14 @@ func (s *Impl) ComputeGUIStatus(ctx context.Context) (frontend.GUIStatus, error)
 	ctx, span := trace.StartSpan(ctx, "search2_ComputeGUIStatus")
 	defer span.End()
 
-	var gs frontend.GUIStatus
-	row := s.db.QueryRow(ctx, `SELECT commit_id FROM CommitsWithData
-ORDER BY CommitsWithData.commit_id DESC LIMIT 1`)
-	if err := row.Scan(&gs.LastCommit.ID); err != nil {
-		return frontend.GUIStatus{}, skerr.Wrap(err)
-	}
-
-	row = s.db.QueryRow(ctx, `SELECT git_hash, commit_time, author_email, subject
-FROM GitCommits WHERE GitCommits.commit_id = $1`, gs.LastCommit.ID)
-	var ts time.Time
-	if err := row.Scan(&gs.LastCommit.Hash, &ts, &gs.LastCommit.Author, &gs.LastCommit.Subject); err != nil {
-		// TODO(kjlubick) make this work for MetadataCommits
-		sklog.Infof("Error getting git info for commit_id %s - %s", gs.LastCommit.ID, err)
-	} else {
-		gs.LastCommit.CommitTime = ts.UTC().Unix()
-	}
-
-	if s.isPublicView {
-		xcs, err := s.getPublicViewCorporaStatuses(ctx)
-		if err != nil {
-			return frontend.GUIStatus{}, skerr.Wrap(err)
-		}
-		gs.CorpStatus = xcs
-		return gs, nil
-	}
-	xcs, err := s.getCorporaStatuses(ctx)
+	commit, xcs, err := s.statusProvider.GetStatusForAllCorpora(ctx, s.isPublicView)
 	if err != nil {
-		return frontend.GUIStatus{}, skerr.Wrap(err)
+		return frontend.GUIStatus{}, err
 	}
-	gs.CorpStatus = xcs
-	return gs, nil
-}
-
-// getCorporaStatuses counts the untriaged digests for all corpora.
-func (s *Impl) getCorporaStatuses(ctx context.Context) ([]frontend.GUICorpusStatus, error) {
-	ctx, span := trace.StartSpan(ctx, "getCorporaStatuses")
-	defer span.End()
-	const statement = `WITH
-CommitsInWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC LIMIT $1
-),
-OldestCommitInWindow AS (
-	SELECT commit_id FROM CommitsInWindow
-	ORDER BY commit_id ASC LIMIT 1
-),
-DistinctNotIgnoredDigests AS (
-	SELECT DISTINCT corpus, digest, grouping_id FROM ValuesAtHead
-	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
-	WHERE matches_any_ignore_rule = FALSE
-),
-CorporaWithAtLeastOneTriaged AS (
-    SELECT corpus, COUNT(DistinctNotIgnoredDigests.digest) AS num_untriaged FROM DistinctNotIgnoredDigests
-    JOIN Expectations ON DistinctNotIgnoredDigests.grouping_id = Expectations.grouping_id AND
-        DistinctNotIgnoredDigests.digest = Expectations.digest AND label = 'u'
-    GROUP BY corpus
-),
-AllCorpora AS (
-    -- Corpora with no untriaged digests will not show up in CorporaWithAtLeastOneTriaged.
-    -- We still want to include them in our status, so we do a separate query and union it in.
-    SELECT DISTINCT corpus, 0 AS num_untriaged FROM ValuesAtHead
-    JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
-)
-SELECT corpus, max(num_untriaged) FROM (
-    SELECT corpus, num_untriaged FROM AllCorpora
-    UNION
-    SELECT corpus, num_untriaged FROM CorporaWithAtLeastOneTriaged
-) AS all_corpora GROUP BY corpus`
-
-	rows, err := s.db.Query(ctx, statement, s.windowLength)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-	var rv []frontend.GUICorpusStatus
-	for rows.Next() {
-		var cs frontend.GUICorpusStatus
-		if err := rows.Scan(&cs.Name, &cs.UntriagedCount); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		rv = append(rv, cs)
-	}
-
-	sort.Slice(rv, func(i, j int) bool {
-		return rv[i].Name < rv[j].Name
-	})
-	return rv, nil
-}
-
-// getPublicViewCorporaStatuses counts the untriaged digests belonging to only those traces which
-// match the public view matcher. It filters the traces using the cached publiclyVisibleTraces.
-func (s *Impl) getPublicViewCorporaStatuses(ctx context.Context) ([]frontend.GUICorpusStatus, error) {
-	ctx, span := trace.StartSpan(ctx, "getCorporaStatuses")
-	defer span.End()
-	const statement = `WITH
-CommitsInWindow AS (
-	SELECT commit_id FROM CommitsWithData
-	ORDER BY commit_id DESC LIMIT $1
-),
-OldestCommitInWindow AS (
-	SELECT commit_id FROM CommitsInWindow
-	ORDER BY commit_id ASC LIMIT 1
-),
-NotIgnoredDigests AS (
-	SELECT trace_id, corpus, digest, grouping_id FROM ValuesAtHead
-	JOIN OldestCommitInWindow ON ValuesAtHead.most_recent_commit_id >= OldestCommitInWindow.commit_id
-	WHERE matches_any_ignore_rule = FALSE AND corpus = ANY($2)
-)
-SELECT trace_id, corpus FROM NotIgnoredDigests
-JOIN Expectations ON NotIgnoredDigests.grouping_id = Expectations.grouping_id AND
-	NotIgnoredDigests.digest = Expectations.digest AND label = 'u'
-`
-
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	corpusCount := map[string]int{}
-	var corporaArgs []string
-	for corpus := range s.publiclyVisibleCorpora {
-		corpusCount[corpus] = 0 // make sure we include all corpora, even those with 0 untriaged.
-		corporaArgs = append(corporaArgs, corpus)
-	}
-
-	rows, err := s.db.Query(ctx, statement, s.windowLength, corporaArgs)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-
-	var traceKey schema.MD5Hash
-	for rows.Next() {
-		var tr schema.TraceID
-		var corpus string
-		if err := rows.Scan(&tr, &corpus); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		copy(traceKey[:], tr)
-		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
-			corpusCount[corpus]++
-		}
-	}
-
-	var rv []frontend.GUICorpusStatus
-	for corpus, count := range corpusCount {
-		rv = append(rv, frontend.GUICorpusStatus{
-			Name:           corpus,
-			UntriagedCount: count,
-		})
-	}
-
-	sort.Slice(rv, func(i, j int) bool {
-		return rv[i].Name < rv[j].Name
-	})
-
-	return rv, nil
+	return frontend.GUIStatus{
+		LastCommit: commit,
+		CorpStatus: xcs,
+	}, nil
 }
 
 type digestCountAndLastSeen struct {
