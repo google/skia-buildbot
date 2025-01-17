@@ -1844,7 +1844,7 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 		var err error
 		if s.isSpanner {
 			err = util.ChunkIterParallelPool(ctx, len(postingsTemplateContext), writeTracesPostingsChunkSize, writePostingsParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
-				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunk")
+				ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writePostingsChunkParallel")
 				defer span.End()
 
 				var b bytes.Buffer
@@ -1887,21 +1887,39 @@ func (s *SQLTraceStore) WriteTraces(ctx context.Context, commitNumber types.Comm
 
 	sklog.Infof("About to format %d trace values", len(valuesTemplateContext))
 
-	err = util.ChunkIter(len(valuesTemplateContext), writeTracesValuesChunkSize, func(startIdx int, endIdx int) error {
-		ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunk")
-		defer span.End()
+	if s.isSpanner {
+		err = util.ChunkIterParallelPool(ctx, len(valuesTemplateContext), writeTracesValuesChunkSize, writeTracesParallelPoolSize, func(ctx context.Context, startIdx int, endIdx int) error {
+			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunkParallel")
+			defer span.End()
 
-		var b bytes.Buffer
-		if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
-			return skerr.Wrapf(err, "failed to expand trace values template")
-		}
+			var b bytes.Buffer
+			if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
+				return skerr.Wrapf(err, "failed to expand trace values template")
+			}
 
-		sql := b.String()
-		if _, err := s.db.Exec(ctx, sql); err != nil {
-			return skerr.Wrapf(err, "Executing: %q", sql)
-		}
-		return nil
-	})
+			sql := b.String()
+			if _, err := s.db.Exec(ctx, sql); err != nil {
+				return skerr.Wrapf(err, "Executing: %q", sql)
+			}
+			return nil
+		})
+	} else {
+		err = util.ChunkIter(len(valuesTemplateContext), writeTracesValuesChunkSize, func(startIdx int, endIdx int) error {
+			ctx, span := trace.StartSpan(ctx, "sqltracestore.WriteTraces.writeTraceValuesChunk")
+			defer span.End()
+
+			var b bytes.Buffer
+			if err := s.unpreparedStatements[insertIntoTraceValues].Execute(&b, valuesTemplateContext[startIdx:endIdx]); err != nil {
+				return skerr.Wrapf(err, "failed to expand trace values template")
+			}
+
+			sql := b.String()
+			if _, err := s.db.Exec(ctx, sql); err != nil {
+				return skerr.Wrapf(err, "Executing: %q", sql)
+			}
+			return nil
+		})
+	}
 
 	if err != nil {
 		return err
