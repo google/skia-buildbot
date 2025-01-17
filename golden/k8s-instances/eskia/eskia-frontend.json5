@@ -8,6 +8,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "eskia",
     title: "eSkia Gold",
+    ga_measurement_id: "G-RQZEE7F2HX",
   },
   prom_port: ":20000",
   ready_port: ":7000",

@@ -12,6 +12,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "gm",
     title: "Skia Public Gold",
+    ga_measurement_id: "G-6BDEE2CSZ0",
   },
   materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   prom_port: ":20000",

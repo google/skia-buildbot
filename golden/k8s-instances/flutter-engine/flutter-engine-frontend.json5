@@ -17,6 +17,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "flutter-engine",
     title: "Flutter Engine Gold",
+    ga_measurement_id: "G-0R4RK29Q3Q",
   },
   prom_port: ":20000",
   ready_port: ":7000",

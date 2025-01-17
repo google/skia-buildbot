@@ -7,6 +7,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "lottie",
     title: "Lottie Gold",
+    ga_measurement_id: "G-Y82QGPVHLL",
   },
   prom_port: ":20000",
   ready_port: ":7000",

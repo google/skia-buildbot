@@ -9,6 +9,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "crostini",
     title: "Gold for Chromiumos Tast Tests",
+    ga_measurement_id: "G-K6J6R0VXSM",
   },
   prom_port: ":20000",
   ready_port: ":7000",

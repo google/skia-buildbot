@@ -7,6 +7,7 @@
     baseRepoURL: "<inherited from git_repo_url>",
     defaultCorpus: "infra",
     title: "Skia Infra Gold",
+    ga_measurement_id: "G-PC8QFZDCFN",
   },
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
