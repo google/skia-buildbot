@@ -632,11 +632,11 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		RollingTo:   "def456",
 	}
 
-	rollerEmail := "fake@chromium.org"
+	rollerLogin := "fake"
 	commits := []*github_api.RepositoryCommit{
 		{
 			Author: &github_api.User{
-				Email: &rollerEmail,
+				Login: &rollerLogin,
 			},
 		},
 	}
@@ -655,7 +655,7 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 		UpdatedAt: &now,
 		Labels:    []*github_api.Label{{Name: &waitingLabel}},
 		User: &github_api.User{
-			Email: &rollerEmail,
+			Login: &rollerLogin,
 		},
 	}
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr, commits))

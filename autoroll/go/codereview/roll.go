@@ -517,12 +517,12 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	i.Modified = pullRequest.GetUpdatedAt()
 	i.Patchsets = ps
 	i.Subject = pullRequest.GetTitle()
-	prAuthor := pullRequest.GetUser().GetEmail()
+	prAuthor := pullRequest.GetUser().GetLogin()
 	if prAuthor == "" {
 		sklog.Warningf("Pull request has no author: %+v", pullRequest)
 	}
 	for _, commit := range commits {
-		commitAuthor := commit.GetAuthor().GetEmail()
+		commitAuthor := commit.GetAuthor().GetLogin()
 		if commitAuthor == "" {
 			sklog.Warningf("Commit has no author: %+v", commit)
 		}
