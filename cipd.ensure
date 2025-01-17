@@ -5,23 +5,23 @@
 $ServiceURL https://chrome-infra-packages.appspot.com
 
 # This is the CIPD client itself.
-infra/tools/cipd/${os}-${arch} git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
+infra/tools/cipd/${os}-${arch} git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
 
 @Subdir
-infra/tools/luci/kitchen/${platform}             git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
+infra/tools/luci/kitchen/${platform}             git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
 
 @Subdir cipd_bin_packages
 infra/3pp/tools/git/linux-amd64                  version:3@2.47.1.chromium.11
-infra/tools/git/${platform}                      git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci-auth/${platform}                git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci/git-credential-luci/${platform} git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci/isolate/${platform}             git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci/lucicfg/${platform}             git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci/swarming/${platform}            git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
-infra/tools/luci/vpython3/${platform}            git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
+infra/tools/git/${platform}                      git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci-auth/${platform}                git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci/git-credential-luci/${platform} git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci/isolate/${platform}             git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci/lucicfg/${platform}             git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci/swarming/${platform}            git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
+infra/tools/luci/vpython3/${platform}            git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
 skia/bots/gsutil                                 version:6
 skia/bots/patch_linux_amd64                      version:0
-skia/tools/goldctl/${platform}                   git_revision:8f71acfa82c2f21a644bd0ecf62a08a704c17fab
+skia/tools/goldctl/${platform}                   git_revision:dee05038468c604f90b6659955a2dbeade6a23ef
 
 @Subdir cipd_bin_packages/cpython
 infra/3pp/tools/cpython/linux-amd64              version:2@2.7.18.chromium.47
