@@ -262,6 +262,11 @@ func main() {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 		sklog.Infof("Successfully initiated git authenticator")
+
+		// Global git configuration.
+		if _, err := exec.RunSimple(ctx, fmt.Sprintf("git config --global --add safe.directory %s", *workdir)); err != nil {
+			sklog.Fatal("Failed to set global git config")
+		}
 	}
 
 	if cfg.GetGerrit() != nil {
