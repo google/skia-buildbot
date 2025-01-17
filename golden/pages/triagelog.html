@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    {{- template "googleanalytics" . -}}
     <title>{{.Title}} Triage Log</title>
     <link rel="shortcut icon" href="/dist/favicon.ico" />
     <script>
@@ -12,4 +13,5 @@
       <triagelog-page-sk></triagelog-page-sk>
     </gold-scaffold-sk>
   </body>
+  {{- template "cookieconsent" . -}}
 </html>

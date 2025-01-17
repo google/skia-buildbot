@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    {{- template "googleanalytics" . -}}
     <title>{{.Title}} Cluster Page</title>
     <link rel="shortcut icon" href="/dist/favicon.ico" />
     <script>
@@ -12,4 +13,5 @@
       <cluster-page-sk></cluster-page-sk>
     </gold-scaffold-sk>
   </body>
+  {{- template "cookieconsent" . -}}
 </html>

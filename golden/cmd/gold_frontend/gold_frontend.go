@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/unrolled/secure"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	gstorage "google.golang.org/api/storage/v1"
@@ -55,6 +57,19 @@ const (
 	maxSQLConnections = 32
 )
 
+var (
+	// googleAnalyticsSnippet is rendered into page html templates for configs
+	// that specfy a value for [fsc.FrontendConfig.GoogleAnalyticsMeasurementID], aka
+	// 'ga_measurement_id' in the frontend config's json file.
+	//go:embed googleanalytics.html
+	googleAnalyticsSnippet string
+
+	// cookieConsentSnippet adds a cookie consent banner that gets rendered at the bottom
+	// of the body element.
+	//go:embed cookieconsent.html
+	cookieConsentSnippet string
+)
+
 type frontendServerConfig struct {
 	config.Common
 
@@ -85,11 +100,12 @@ func (fsc *frontendServerConfig) IsAuthoritative() bool {
 }
 
 type frontendConfig struct {
-	BaseRepoURL                 string `json:"baseRepoURL"`
-	DefaultCorpus               string `json:"defaultCorpus"`
-	Title                       string `json:"title"`
-	CustomTriagingDisallowedMsg string `json:"customTriagingDisallowedMsg,omitempty" optional:"true"`
-	IsPublic                    bool   `json:"isPublic"`
+	BaseRepoURL                  string `json:"baseRepoURL"`
+	DefaultCorpus                string `json:"defaultCorpus"`
+	Title                        string `json:"title"`
+	CustomTriagingDisallowedMsg  string `json:"customTriagingDisallowedMsg,omitempty" optional:"true"`
+	IsPublic                     bool   `json:"isPublic"`
+	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id" optional:"true"`
 }
 
 func main() {
@@ -425,6 +441,15 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 
 	loadTemplates := func() {
 		templates = template.Must(template.New("").ParseGlob(filepath.Join(fsc.ResourcesPath, "*.html")))
+
+		// Add the googleanalytics templates.
+		for name, snippet := range map[string]string{"googleanalytics": googleAnalyticsSnippet, "cookieconsent": cookieConsentSnippet} {
+			var err error
+			templates, err = templates.New(name).Parse(snippet)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+		}
 	}
 
 	loadTemplates()
@@ -451,11 +476,15 @@ func addUIRoutes(router chi.Router, fsc *frontendServerConfig, handlers *web.Han
 			}
 
 			templateData := struct {
-				Title        string
-				GoldSettings template.JS
+				Title                        string
+				GoldSettings                 template.JS
+				GoogleAnalyticsMeasurementID string
+				Nonce                        string
 			}{
-				Title:        fsc.FrontendConfig.Title,
-				GoldSettings: template.JS(frontendConfigBytes),
+				Title:                        fsc.FrontendConfig.Title,
+				GoldSettings:                 template.JS(frontendConfigBytes),
+				GoogleAnalyticsMeasurementID: fsc.FrontendConfig.GoogleAnalyticsMeasurementID,
+				Nonce:                        secure.CSPNonce(r.Context()),
 			}
 			if err := templates.ExecuteTemplate(w, name, templateData); err != nil {
 				sklog.Errorf("Failed to expand template %s : %s", name, err)

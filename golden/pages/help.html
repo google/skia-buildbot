@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    {{- template "googleanalytics" . -}}
     <title>{{.Title}} Help</title>
     <link rel="shortcut icon" href="/dist/favicon.ico" />
     <script>
@@ -106,4 +107,5 @@
       <!-- TODO(kjlubick) more about the other pages -->
     </gold-scaffold-sk>
   </body>
+  {{- template "cookieconsent" . -}}
 </html>

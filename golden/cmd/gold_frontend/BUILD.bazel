@@ -4,6 +4,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "gold_frontend_lib",
     srcs = ["gold_frontend.go"],
+    embedsrcs = [
+        "googleanalytics.html",
+        "cookieconsent.html",
+    ],
     importpath = "go.skia.org/infra/golden/cmd/gold_frontend",
     visibility = ["//visibility:private"],
     deps = [
@@ -33,6 +37,7 @@ go_library(
         "@com_github_go_chi_chi_v5//:chi",
         "@com_github_jackc_pgx_v4//:pgx",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_unrolled_secure//:secure",
         "@org_golang_google_api//storage/v1:storage",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_x_oauth2//:oauth2",
