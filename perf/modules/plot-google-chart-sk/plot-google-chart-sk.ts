@@ -97,6 +97,10 @@ export class PlotGoogleChartSk extends LitElement {
         background-color: violet;
         border: orange 1px solid;
       }
+      md-icon.ignored {
+        background-color: grey;
+        border: white 1px solid;
+      }
     }
 
     .userissue {
@@ -169,6 +173,7 @@ export class PlotGoogleChartSk extends LitElement {
     untriage: createRef<HTMLSlotElement>(),
     regression: createRef<HTMLSlotElement>(),
     improvement: createRef<HTMLSlotElement>(),
+    ignored: createRef<HTMLSlotElement>(),
     issue: createRef<HTMLSlotElement>(),
   };
 
@@ -258,6 +263,7 @@ export class PlotGoogleChartSk extends LitElement {
       <slot name="untriage" ${ref(this.slots.untriage)}></slot>
       <slot name="regression" ${ref(this.slots.regression)}></slot>
       <slot name="improvement" ${ref(this.slots.improvement)}></slot>
+      <slot name="ignored" ${ref(this.slots.ignored)}></slot>
       <slot name="issue" ${ref(this.slots.issue)}></slot>
     `;
   }
@@ -511,7 +517,7 @@ export class PlotGoogleChartSk extends LitElement {
     // anomaly container.
     const slots = this.slots;
     const cloneSlot = (
-      name: 'untriage' | 'improvement' | 'regression',
+      name: 'untriage' | 'improvement' | 'regression' | 'ignored',
       traceKey: string,
       commit: number
     ) => {
@@ -558,11 +564,13 @@ export class PlotGoogleChartSk extends LitElement {
         const anomaly = anomalies[offset];
         let cloned: HTMLElement | null;
         // TODO(b/377751454): add separate anomaly icon for "ignored"
-        if (anomaly.bug_id <= 0) {
+        if (anomaly.is_improvement) {
+          cloned = cloneSlot('improvement', key, offset);
+        } else if (anomaly.bug_id === 0) {
           // no bug assigned, untriaged anomaly
           cloned = cloneSlot('untriage', key, offset);
-        } else if (anomaly.is_improvement) {
-          cloned = cloneSlot('improvement', key, offset);
+        } else if (anomaly.bug_id < 0) {
+          cloned = cloneSlot('ignored', key, offset);
         } else {
           cloned = cloneSlot('regression', key, offset);
         }

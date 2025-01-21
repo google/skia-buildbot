@@ -801,7 +801,8 @@ export class ExploreSimpleSk extends ElementSk {
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">question_exchange</md-icon>
           <md-icon slot="regression">report</md-icon>
-          <md-icon slot="improvement">check</md-icon>
+          <md-icon slot="improvement">check_circle</md-icon>
+          <md-icon slot="ignored">report_off</md-icon>
           <md-icon slot="issue">chat_bubble</md-icon>
         </plot-google-chart-sk>
         <plot-simple-sk
