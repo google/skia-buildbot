@@ -38,10 +38,10 @@ func TestFlutterLicenseScripts(t *testing.T) {
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		dartBinary := "testing/flutter/third_party/dart/tools/sdks/dart-sdk/bin/dart"
+		dartBinary := "testing/engine/src/flutter/third_party/dart/tools/sdks/dart-sdk/bin/dart"
 		pubDartCmd := "pub get"
-		mainDartCmd := "--interpret_irregexp lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
-		releaseDartCmd := "--interpret_irregexp lib/main.dart --release --src ../../.. --quiet --out testing/out/licenses"
+		mainDartCmd := "--interpret_irregexp lib/main.dart --src ../../.. --out testing/engine/src/out/licenses --golden testing/engine/src/flutter/ci/licenses_golden"
+		releaseDartCmd := "--interpret_irregexp lib/main.dart --release --src ../../.. --quiet --out testing/engine/src/out/licenses"
 		cmdArgs := strings.Join(cmd.Args, " ")
 		if cmd.Name == dartBinary && cmdArgs == pubDartCmd {
 			return pubErr
@@ -59,23 +59,23 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
 	// No errors should be throw.
-	err := FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
+	err := FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
 	assert.NoError(t, err)
 
 	// Now test for errors.
 	pubErr = errors.New("pub error")
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running pub get: pub error; Stdout+Stderr:\n", err.Error())
 
 	pubErr = error(nil)
 	mainDartErr = errors.New("dart error")
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running dart license script: dart error", err.Error())
 
 	pubErr = error(nil)
 	mainDartErr = error(nil)
-	err = FlutterLicenseScripts(ctx, nil, nil, "testing/dir", nil, nil)
+	err = FlutterLicenseScripts(ctx, nil, nil, "testing", nil, nil)
 	assert.NoError(t, err)
 }

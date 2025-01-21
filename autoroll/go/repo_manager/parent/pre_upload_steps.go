@@ -163,7 +163,7 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 
 // FlutterLicenseScripts runs the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
-// https://github.com/flutter/engine/blob/master/tools/licenses/README.md
+// https://github.com/flutter/flutter/blob/master/engine/src/flutter/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	return flutterLicenseScripts(ctx, parentRepoDir, "licenses_skia")
 }
@@ -185,10 +185,10 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 	}()
 
 	sklog.Info("Running flutter license scripts.")
-	binariesPath := filepath.Join(parentRepoDir, "..", "flutter", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
+	binariesPath := filepath.Join(parentRepoDir, "engine", "src", "flutter", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
-	licenseToolsDir := filepath.Join(parentRepoDir, "tools", "licenses")
+	licenseToolsDir := filepath.Join(parentRepoDir, "engine", "src", "flutter", "tools", "licenses")
 	dartBinary := filepath.Join(binariesPath, "dart")
 	sklog.Info("Running dart pub get.")
 	if _, err := exec.RunCwd(ctx, licenseToolsDir, dartBinary, "pub", "get"); err != nil {
@@ -196,13 +196,13 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 	}
 
 	// Step2: Clean out out/licenses. Things fail without this step.
-	licensesOutDir := filepath.Join(parentRepoDir, "..", "out", "licenses")
+	licensesOutDir := filepath.Join(parentRepoDir, "engine", "src", "out", "licenses")
 	if err := os.RemoveAll(licensesOutDir); err != nil {
 		return fmt.Errorf("Error when cleaning out/licenses: %s", err)
 	}
 
 	// Step3: Run dart license script to create new licenses.
-	licensesGoldenDir := filepath.Join(parentRepoDir, "ci", "licenses_golden")
+	licensesGoldenDir := filepath.Join(parentRepoDir, "engine", "src", "flutter", "ci", "licenses_golden")
 	licenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
 	sklog.Infof("Running %s", licenseCmd)
 	if err := exec.Run(ctx, &exec.Command{
@@ -243,7 +243,7 @@ func flutterLicenseScripts(ctx context.Context, parentRepoDir string, licenseFil
 	// according to https://github.com/flutter/engine/pull/4959#issuecomment-380222322
 	updateLicenseCmd := []string{dartBinary, "--interpret_irregexp", "lib/main.dart", "--release", "--src", "../../..", "--quiet", "--out", licensesOutDir}
 	sklog.Infof("Running %s", updateLicenseCmd)
-	releasesLicenseDirPath := filepath.Join(parentRepoDir, "sky", "packages", "sky_engine")
+	releasesLicenseDirPath := filepath.Join(parentRepoDir, "engine", "src", "flutter", "sky", "packages", "sky_engine")
 	if err := os.MkdirAll(releasesLicenseDirPath, os.ModePerm); err != nil {
 		return fmt.Errorf("Could not create %s: %s", releasesLicenseDirPath, err)
 	}
