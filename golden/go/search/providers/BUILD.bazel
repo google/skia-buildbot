@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "providers",
@@ -11,6 +12,7 @@ go_library(
     importpath = "go.skia.org/infra/golden/go/search/providers",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/cache",
         "//go/skerr",
         "//go/sklog",
         "//go/util",
@@ -22,5 +24,25 @@ go_library(
         "@com_github_jackc_pgx_v4//pgxpool",
         "@io_opencensus_go//trace",
         "@org_golang_x_sync//errgroup",
+    ],
+)
+
+go_test(
+    name = "providers_test",
+    srcs = ["commits_test.go"],
+    embed = [":providers"],
+    deps = [
+        "//go/cache/mock",
+        "//go/skerr",
+        "//go/testutils",
+        "//golden/go/search/common",
+        "//golden/go/sql/datakitchensink",
+        "//golden/go/sql/schema",
+        "//golden/go/sql/sqltest",
+        "//golden/go/web/frontend",
+        "@com_github_jackc_pgx_v4//pgxpool",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
+        "@com_github_stretchr_testify//require",
     ],
 )

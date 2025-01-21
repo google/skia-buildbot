@@ -77,9 +77,9 @@ run_local_frontend_spanner:
 
 run_local_frontend: run-spanner-emulator run_local_frontend_spanner
 
-run_local_periodictasks:
+run_local_periodictasks: run-spanner-emulator
 	$(BAZEL) build --config=mayberemote -c dbg //golden/...
-	go run ./go/local
+	go run ./go/local --database_url="postgresql://localhost:5432/gold?sslmode=disable" --spanner
 	../_bazel_bin/golden/cmd/periodictasks/periodictasks_/periodictasks \
 		--common_instance_config=./k8s-instances/local/local.json5 \
 		--config=./k8s-instances/local/local-periodictasks.json5 \

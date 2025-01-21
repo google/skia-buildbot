@@ -219,7 +219,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		statusProvider:           providers.NewStatusProvider(sqlDB, windowLength),
 		changeDataProvider:       providers.NewChangelistProvider(sqlDB),
 		materializedViewProvider: providers.NewMaterializedViewProvider(sqlDB, windowLength),
-		commitsProvider:          providers.NewCommitsProvider(sqlDB, windowLength),
+		commitsProvider:          providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
 	}
 }
 
@@ -3112,7 +3112,7 @@ func (s *Impl) getParamsetsForCluster(ctx context.Context, digests map[schema.MD
 
 // GetCommitsInWindow implements the API interface
 func (s *Impl) GetCommitsInWindow(ctx context.Context) ([]frontend.Commit, error) {
-	ctx, span := trace.StartSpan(ctx, "addCommitsData")
+	ctx, span := trace.StartSpan(ctx, "getCommitsInWindow")
 	defer span.End()
 	return s.commitsProvider.GetCommitsInWindow(ctx)
 }

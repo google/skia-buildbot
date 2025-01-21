@@ -11,6 +11,7 @@ import (
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/search/common"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
@@ -96,7 +97,7 @@ func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, 
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
 
-	cacheClient.On("GetValue", ctx, cacheKey).Return(toJSON(cacheData))
+	cacheClient.On("GetValue", ctx, cacheKey).Return(common.ToJSON(cacheData))
 
 	searchCacheManager := New(cacheClient, db, []string{corpus}, 5)
 	var data []SearchCacheData

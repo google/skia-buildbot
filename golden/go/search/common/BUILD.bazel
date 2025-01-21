@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "commits.go",
         "types.go",
+        "util.go",
     ],
     importpath = "go.skia.org/infra/golden/go/search/common",
     visibility = ["//visibility:public"],

@@ -3,7 +3,7 @@
   primary_branch_diff_period: "5m",
   tracing_proportion: 0.1,
   update_traces_ignore_period: "20m",
-  prom_port: ":20000",
+  prom_port: ":20001",
   ready_port: ":7000",
 
   K8S_CPU: "300m",

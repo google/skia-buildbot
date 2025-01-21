@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/search/common"
 )
 
 // cacheDataProvider provides a struct for reading data for caching purposes.
@@ -57,7 +58,7 @@ func (prov cacheDataProvider) GetCacheData(ctx context.Context, firstCommitId st
 		}
 		if len(cacheData) > 0 {
 			key := prov.cacheKeyFunc(corpus)
-			cacheDataStr, err := toJSON(cacheData)
+			cacheDataStr, err := common.ToJSON(cacheData)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}

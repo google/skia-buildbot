@@ -27,6 +27,7 @@ go_library(
         "//golden/go/config",
         "//golden/go/ignore/sqlignorestore",
         "//golden/go/search/caching",
+        "//golden/go/search/providers",
         "//golden/go/sql",
         "//golden/go/sql/schema",
         "//golden/go/storage",

@@ -4,7 +4,6 @@ load("//bazel/go:go_test.bzl", "go_test")
 go_library(
     name = "caching",
     srcs = [
-        "common.go",
         "dataprovider.go",
         "keys.go",
         "queries.go",
@@ -29,6 +28,7 @@ go_test(
         "//go/cache/mock",
         "//go/deepequal/assertdeep",
         "//go/testutils",
+        "//golden/go/search/common",
         "//golden/go/sql/datakitchensink",
         "//golden/go/sql/sqltest",
         "@com_github_jackc_pgx_v4//pgxpool",

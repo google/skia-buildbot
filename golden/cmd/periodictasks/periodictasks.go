@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/ignore/sqlignorestore"
 	searchCache "go.skia.org/infra/golden/go/search/caching"
+	"go.skia.org/infra/golden/go/search/providers"
 	"go.skia.org/infra/golden/go/sql"
 	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/storage"
@@ -1193,6 +1194,15 @@ func runCachingTasks(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.P
 		populateSearchCache(ctx, ptc, db, cache)
 		liveness.Reset()
 	})
+
+	commitliveness := metrics2.NewLiveness("periodic_tasks", map[string]string{
+		"task": "populateCommitCache",
+	})
+
+	go util.RepeatCtx(ctx, time.Minute*time.Duration(ptc.CachingFrequencyMinutes), func(ctx context.Context) {
+		populateCommitsCache(ctx, ptc, db, cache)
+		commitliveness.Reset()
+	})
 }
 
 // Runs the caching tasks related to the search functionality.
@@ -1200,7 +1210,16 @@ func populateSearchCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpo
 	searchCacheManager := searchCache.New(cache, db, ptc.CachingCorpora, ptc.WindowSize)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	if err != nil {
-		sklog.Fatalf("Error running cache population: %v", err)
+		sklog.Fatalf("Error running search cache population: %v", err)
+	}
+}
+
+// populateCommitsCache runs the caching tasks to populate commit information.
+func populateCommitsCache(ctx context.Context, ptc periodicTasksConfig, db *pgxpool.Pool, cache cache.Cache) {
+	commitsProvider := providers.NewCommitsProvider(db, cache, ptc.WindowSize)
+	err := commitsProvider.PopulateCommitCache(ctx)
+	if err != nil {
+		sklog.Fatalf("Error running commits cache population: %v", err)
 	}
 }
 

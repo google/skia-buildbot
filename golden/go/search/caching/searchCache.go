@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 type SearchCacheType int
@@ -18,6 +19,13 @@ const (
 	// Unignored_Corpus denotes the cache type for traces without ignore rules.
 	Unignored_Corpus
 )
+
+// SearchCacheData provides a struct to hold data for the entry in by blame cache.
+type SearchCacheData struct {
+	TraceID    schema.TraceID     `json:"traceID"`
+	GroupingID schema.GroupingID  `json:"groupingID"`
+	Digest     schema.DigestBytes `json:"digest"`
+}
 
 // SearchCacheManager provides a struct to handle the cache operations for gold search.
 type SearchCacheManager struct {
