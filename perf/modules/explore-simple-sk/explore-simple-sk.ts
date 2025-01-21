@@ -84,6 +84,8 @@ import {
   Commit,
   Trace,
   ReadOnlyParamSet,
+  CommitNumberAnomalyMap,
+  AnomalyMap,
 } from '../json';
 import {
   AnomalyData,
@@ -1285,20 +1287,39 @@ export class ExploreSimpleSk extends ElementSk {
         this.triageResultToast?.hide();
         return;
       }
-      const bugId = (e as CustomEvent).detail.bugId;
-      const newBug = (e as CustomEvent).detail.newBug;
-      const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
-      const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
-      if (newBug === true) {
-        toastText.textContent = `New bug created: `;
+      if (detail.traceNames) {
+        // Check if event passed along traceNames for nudging.
+        const anomalies: AnomalyMap = {};
+        for (let i = 0; i < detail.traceNames.length; i++) {
+          const commitMap: CommitNumberAnomalyMap = {};
+          commitMap[detail.anomaly.start_revision] = detail.anomaly;
+          anomalies[detail.traceNames[i]] = commitMap;
+        }
+
+        if (anomalies) {
+          // If anomaly was nudged, then update and re-render frame.
+          this.dfRepo.value?.updateAnomalies(anomalies, detail.originalRevisions);
+          this._stateHasChanged();
+          this._render();
+          this.disableTooltip();
+        }
       } else {
-        toastText.textContent = `Anomalies associated with: `;
+        // Update pop-up with new bug details from anomaly change.
+        const bugId = detail.bugId;
+        const newBug = detail.newBug;
+        const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
+        const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
+        if (newBug === true) {
+          toastText.textContent = `New bug created: `;
+        } else {
+          toastText.textContent = `Anomalies associated with: `;
+        }
+        const link = `https://issues.chromium.org/issues/${bugId}`;
+        toastLink.setAttribute('href', `${link}`);
+        toastLink.setAttribute('target', '_blank');
+        toastLink.innerText = `${bugId}`;
+        this.triageResultToast?.show();
       }
-      const link = `https://issues.chromium.org/issues/${bugId}`;
-      toastLink.setAttribute('href', `${link}`);
-      toastLink.setAttribute('target', '_blank');
-      toastLink.innerText = `${bugId}`;
-      this.triageResultToast?.show();
     });
 
     // Listens to the user-issue-changed event and does appropriate actions

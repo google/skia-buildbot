@@ -30,7 +30,7 @@ import { createContext, provide } from '@lit/context';
 import { LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { mergeAnomaly, range } from './index';
+import { mergeAnomaly, removeAnomaly, range } from './index';
 import { fromParamSet } from '../../../infra-sk/modules/query';
 import { AnomalyMap, ColumnHeader, ShiftRequest, ShiftResponse } from '../json';
 import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamSet } from '../json';
@@ -344,6 +344,17 @@ export class DataFrameRepository extends LitElement {
 
     const traceAnomalies = this.anomaly[trace];
     return (traceAnomalies && traceAnomalies![commit]) ?? null;
+  }
+
+  /**
+   * Update anomaly map.
+   *
+   * @param anomalies The list of anomaly to be merged.
+   * @param revision List of original revisions to be compared against.
+   */
+  updateAnomalies(anomalies: AnomalyMap, originalRevisions: number[]) {
+    this.anomaly = removeAnomaly(this.anomaly, originalRevisions);
+    this.anomaly = mergeAnomaly(this.anomaly, anomalies);
   }
 
   /**

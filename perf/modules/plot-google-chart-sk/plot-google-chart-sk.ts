@@ -19,7 +19,7 @@ import { ref, Ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
-import { Anomaly, AnomalyMap } from '../json';
+import { AnomalyMap } from '../json';
 import { mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
@@ -33,13 +33,6 @@ import { isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelSk } from './side-panel-sk';
-
-export interface AnomalyData {
-  x: number;
-  y: number;
-  anomaly: Anomaly;
-  highlight: boolean;
-}
 
 export interface PlotSelectionEventDetails {
   value: range;
@@ -162,7 +155,7 @@ export class PlotGoogleChartSk extends LitElement {
 
   @consume({ context: dataframeAnomalyContext, subscribe: true })
   @property({ attribute: false })
-  private anomalyMap: AnomalyMap = {};
+  anomalyMap: AnomalyMap = {};
 
   @consume({ context: dataframeUserIssueContext, subscribe: true })
   @property({ attribute: false })
