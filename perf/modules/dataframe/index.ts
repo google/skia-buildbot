@@ -126,24 +126,22 @@ export const mergeAnomaly = (anomaly1: AnomalyMap, ...anomalies: AnomalyMap[]) =
 
 /**
  * Removes reference to existing anomalies that have been moved/nudged.
+ *  First remove the existing anomaly that was moved, then merge the new
+ *  location into the anomaly map. This should match what is on the backend.
  *
  * @param anomalies The list of anomaly to check against.
- * @param revisions Revision number to filter out.
+ * @param id Anomaly ID number to filter out.
  * @returns The new AnomalyMap.
  */
-export const removeAnomaly = (anomalies: AnomalyMap, originalRevisions: number[]): AnomalyMap => {
+export const removeAnomaly = (anomalies: AnomalyMap, id: number): AnomalyMap => {
   const anomaly: AnomalyMap = {};
-  // Some anomalies use ranges, remove only the first found.
-  let removed: boolean = false;
   for (const trace in anomalies) {
     const commitAnomaly: CommitNumberAnomalyMap = {};
     const traceAnomaly = anomalies![trace];
     for (const commit in traceAnomaly) {
       const commitNum = Number(commit);
       // Check that the nudged commit number is found, then skip adding back in.
-      if (originalRevisions.includes(commitNum) && !removed) {
-        removed = true;
-      } else {
+      if (traceAnomaly[commitNum].id !== id) {
         commitAnomaly[commitNum] = traceAnomaly[commitNum];
       }
     }

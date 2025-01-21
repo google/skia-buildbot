@@ -1287,39 +1287,51 @@ export class ExploreSimpleSk extends ElementSk {
         this.triageResultToast?.hide();
         return;
       }
+      const commits: number[] = [];
       if (detail.traceNames) {
         // Check if event passed along traceNames for nudging.
         const anomalies: AnomalyMap = {};
-        for (let i = 0; i < detail.traceNames.length; i++) {
-          const commitMap: CommitNumberAnomalyMap = {};
-          commitMap[detail.anomaly.start_revision] = detail.anomaly;
-          anomalies[detail.traceNames[i]] = commitMap;
+        const commitMap: CommitNumberAnomalyMap = {};
+        // Load all commits available on the plot.
+        const data: (ColumnHeader | null)[] | null = this.dfRepo.value!.dataframe.header;
+        if (data) {
+          // Create array of all commits for easy lookup.
+          data.forEach((data) => commits.push(data!.offset));
         }
-
-        if (anomalies) {
+        // Check for start or end commit and return first found.
+        const anomalyCommit: number | undefined = commits.find((commit) => {
+          if (commit === detail.anomaly.start_revision || commit === detail.anomaly.end_revision) {
+            return commit;
+          }
+        });
+        if (anomalyCommit) {
+          commitMap[anomalyCommit] = detail.anomaly;
+          anomalies[detail.traceNames[0]] = commitMap;
           // If anomaly was nudged, then update and re-render frame.
-          this.dfRepo.value?.updateAnomalies(anomalies, detail.originalRevisions);
+          this.dfRepo.value?.updateAnomalies(anomalies, detail.anomaly.id);
           this._stateHasChanged();
           this._render();
           this.disableTooltip();
+          return;
         }
-      } else {
-        // Update pop-up with new bug details from anomaly change.
-        const bugId = detail.bugId;
-        const newBug = detail.newBug;
-        const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
-        const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
-        if (newBug === true) {
-          toastText.textContent = `New bug created: `;
-        } else {
-          toastText.textContent = `Anomalies associated with: `;
-        }
-        const link = `https://issues.chromium.org/issues/${bugId}`;
-        toastLink.setAttribute('href', `${link}`);
-        toastLink.setAttribute('target', '_blank');
-        toastLink.innerText = `${bugId}`;
-        this.triageResultToast?.show();
       }
+      // Update pop-up with new bug details from anomaly change.
+      const bugId = detail.bugId;
+      const newBug = detail.newBug;
+      const toastText = document.getElementById('triage-result-text')! as HTMLSpanElement;
+      const toastLink = document.getElementById('triage-result-link')! as HTMLAnchorElement;
+      if (newBug === true) {
+        toastText.textContent = `New bug created: `;
+      } else if (commits) {
+        toastText.textContent = `Anomaly Nudge Failed: `;
+      } else {
+        toastText.textContent = `Anomalies associated with: `;
+      }
+      const link = `https://issues.chromium.org/issues/${bugId}`;
+      toastLink.setAttribute('href', `${link}`);
+      toastLink.setAttribute('target', '_blank');
+      toastLink.innerText = `${bugId}`;
+      this.triageResultToast?.show();
     });
 
     // Listens to the user-issue-changed event and does appropriate actions

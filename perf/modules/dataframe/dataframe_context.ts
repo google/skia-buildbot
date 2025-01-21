@@ -350,10 +350,10 @@ export class DataFrameRepository extends LitElement {
    * Update anomaly map.
    *
    * @param anomalies The list of anomaly to be merged.
-   * @param revision List of original revisions to be compared against.
+   * @param id List of original revisions to be compared against.
    */
-  updateAnomalies(anomalies: AnomalyMap, originalRevisions: number[]) {
-    this.anomaly = removeAnomaly(this.anomaly, originalRevisions);
+  updateAnomalies(anomalies: AnomalyMap, id: number) {
+    this.anomaly = removeAnomaly(this.anomaly, id);
     this.anomaly = mergeAnomaly(this.anomaly, anomalies);
   }
 

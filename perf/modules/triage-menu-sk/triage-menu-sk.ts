@@ -213,10 +213,7 @@ export class TriageMenuSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((_) => {
-        const originalRevisions: number[] = [];
         for (let i = 0; i < anomalies.length; i++) {
-          originalRevisions.push(anomalies[i].start_revision);
-          originalRevisions.push(anomalies[i].end_revision);
           anomalies[i].start_revision = entry.start_revision;
           anomalies[i].end_revision = entry.end_revision;
         }
@@ -235,7 +232,6 @@ export class TriageMenuSk extends ElementSk {
             composed: true,
             detail: {
               traceNames: traceNames,
-              originalRevisions: originalRevisions,
               anomaly: entry.anomaly_data?.anomaly,
             },
           })
