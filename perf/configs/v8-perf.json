@@ -59,7 +59,8 @@
       "useTestPicker": "true",
       "enable_chart_tooltip": "true",
       "use_test_picker_query": "true",
-      "use_titles": "true"
+      "use_titles": "true",
+      "show_google_plot": "true"
     }
   },
   "new_alerts_page": true
