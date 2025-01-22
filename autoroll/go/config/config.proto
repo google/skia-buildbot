@@ -482,6 +482,10 @@ message DEPSLocalParentConfig {
     bool run_hooks = 7;
     // pre_upload describes command(s) to run before uploading roll CLs.
     PreUploadConfig pre_upload_commands = 8;
+    // parent_subdir is the subdirectory of the workdir in which the parent repo
+    // should be checked out. In most cases this should be empty, but if the
+    // gclient spec uses `"name": "."` it may be required.
+    string parent_subdir = 9;
 }
 
 // GitCheckoutParentConfig provides configuration for a Parent which uses a

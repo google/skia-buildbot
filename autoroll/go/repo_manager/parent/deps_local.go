@@ -69,6 +69,10 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 			}
 		}
 	}
+	parentCheckoutDir := workdir
+	if c.ParentSubdir != "" {
+		parentCheckoutDir = filepath.Join(workdir, c.ParentSubdir)
+	}
 	gclientCmd := []string{filepath.Join(depotTools, GClient)}
 	// gclient requires the use of vpython3 to bring in needed dependencies.
 	vpythonBinary := "vpython3"
@@ -76,7 +80,7 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 		args := append(gclientCmd, cmd...)
 		sklog.Infof("Running: %s %s", vpythonBinary, strings.Join(args, " "))
 		_, err := exec.RunCommand(ctx, &exec.Command{
-			Dir:        workdir,
+			Dir:        parentCheckoutDir,
 			Env:        depotToolsEnv,
 			Name:       vpythonBinary,
 			Args:       args,
@@ -193,17 +197,17 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	}
 
 	// Find the checkout within the workdir.
-	checkoutPath, err := GetDEPSCheckoutPath(c, workdir)
+	checkoutPath, err := GetDEPSCheckoutPath(c, parentCheckoutDir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	co := git.CheckoutDir(checkoutPath)
-	return NewGitCheckout(ctx, c.GitCheckout, reg, workdir, cr, co, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckout, reg, checkoutPath, cr, co, createRoll, uploadRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
 // using the given DEPSLocalConfig.
-func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (string, error) {
+func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, parentCheckoutDir string) (string, error) {
 	var repoRelPath string
 	if c.CheckoutPath == "" {
 		normUrl, err := git.NormalizeURL(c.GitCheckout.GitCheckout.RepoUrl)
@@ -214,7 +218,7 @@ func GetDEPSCheckoutPath(c *config.DEPSLocalParentConfig, workdir string) (strin
 	} else {
 		repoRelPath = c.CheckoutPath
 	}
-	return filepath.Join(workdir, repoRelPath), nil
+	return filepath.Join(parentCheckoutDir, repoRelPath), nil
 }
 
 // NewDEPSLocalGitHub returns a DEPSLocal parent which creates GitHub pull

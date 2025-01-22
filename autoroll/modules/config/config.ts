@@ -499,6 +499,7 @@ export interface DEPSLocalParentConfig {
   preUploadSteps?: PreUploadStep[];
   runHooks: boolean;
   preUploadCommands?: PreUploadConfig;
+  parentSubdir: string;
 }
 
 interface DEPSLocalParentConfigJSON {
@@ -510,6 +511,7 @@ interface DEPSLocalParentConfigJSON {
   pre_upload_steps?: string[];
   run_hooks?: boolean;
   pre_upload_commands?: PreUploadConfigJSON;
+  parent_subdir?: string;
 }
 
 export interface GitCheckoutParentConfig {
