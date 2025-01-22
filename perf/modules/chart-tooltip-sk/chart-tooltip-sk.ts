@@ -279,6 +279,11 @@ export class ChartTooltipSk extends ElementSk {
       return html``;
     }
 
+    // Nullify nudgelist to ensure nudging is not available.
+    if (this.anomaly.is_improvement) {
+      this._nudgeList = null;
+    }
+
     if (this.anomaly.bug_id === 0) {
       this.triageMenu!.setAnomalies([this.anomaly!], [this._trace_name], this._nudgeList);
     }
