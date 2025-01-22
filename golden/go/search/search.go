@@ -1672,6 +1672,9 @@ func makeGroupingAndDigestWhereClause(triageDeltaInfos []extendedBulkTriageDelta
 // findPrimaryBranchLabels returns the primary branch labels for the digests corresponding to the
 // passed in extendedBulkTriageDeltaInfo structs.
 func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[common.GroupingDigestKey]schema.ExpectationLabel, error) {
+	ctx, span := trace.StartSpan(ctx, "findPrimaryBranchLabels")
+	defer span.End()
+
 	labels := map[common.GroupingDigestKey]schema.ExpectationLabel{}
 	if len(triageDeltaInfos) == 0 {
 		return labels, nil
@@ -1702,6 +1705,9 @@ func (s *Impl) findPrimaryBranchLabels(ctx context.Context, triageDeltaInfos []e
 // findSecondaryBranchLabels returns the primary branch labels for the digests corresponding to the
 // passed in extendedBulkTriageDeltaInfo structs.
 func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) (map[common.GroupingDigestKey]schema.ExpectationLabel, error) {
+	ctx, span := trace.StartSpan(ctx, "findSecondaryBranchLabels")
+	defer span.End()
+
 	labels := map[common.GroupingDigestKey]schema.ExpectationLabel{}
 	if len(triageDeltaInfos) == 0 {
 		return labels, nil
@@ -1739,6 +1745,9 @@ func (s *Impl) findSecondaryBranchLabels(ctx context.Context, triageDeltaInfos [
 // It mirrors the verifyPrimaryBranchLabelBefore function in web.go
 // (https://skia.googlesource.com/buildbot/+/refs/heads/main/golden/go/web/web.go#1178).
 func (s *Impl) populateLabelBefore(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	ctx, span := trace.StartSpan(ctx, "populateLabelBefore")
+	defer span.End()
+
 	// Gather the relevant labels from the Expectations table.
 	primaryBranchLabels, err := s.findPrimaryBranchLabels(ctx, triageDeltaInfos)
 	if err != nil {
@@ -1771,6 +1780,9 @@ func (s *Impl) populateLabelBefore(ctx context.Context, triageDeltaInfos []exten
 // It mirrors the verifySecondaryBranchLabelBefore function in web.go
 // (https://skia.googlesource.com/buildbot/+/refs/heads/main/golden/go/web/web.go#1231).
 func (s *Impl) populateLabelBeforeForCL(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	ctx, span := trace.StartSpan(ctx, "populateLabelBeforeCL")
+	defer span.End()
+
 	// Gather the relevant labels from the Expectations table.
 	primaryBranchLabels, err := s.findPrimaryBranchLabels(ctx, triageDeltaInfos)
 	if err != nil {
@@ -1814,6 +1826,9 @@ type traceDigestKey struct {
 // populateExtendedBulkTriageDeltaInfosOptionsIDs populates the optionsIDs field of the given
 // extendedBulkTriageDeltaInfos.
 func (s *Impl) populateExtendedBulkTriageDeltaInfosOptionsIDs(ctx context.Context, triageDeltaInfos []extendedBulkTriageDeltaInfo) error {
+	ctx, span := trace.StartSpan(ctx, "populateExtendedBulkTriageDeltaInforsOptionsIDs")
+	defer span.End()
+
 	// Map triageDeltaInfos by trace ID and digest for faster querying, and gather all trace IDs.
 	var allTraceIDs []schema.TraceID
 	triageDeltaInfosByTraceAndDigest := map[traceDigestKey]*extendedBulkTriageDeltaInfo{}
@@ -1857,6 +1872,9 @@ func (s *Impl) populateExtendedBulkTriageDeltaInfosOptionsIDs(ctx context.Contex
 // prepareExtendedBulkTriageDeltaInfosForFrontend turns extendedBulkTriageDeltaInfo structs into
 // frontend.BulkTriageDeltaInfo structs, and filters out those with disallow_triaging=true.
 func (s *Impl) prepareExtendedBulkTriageDeltaInfosForFrontend(ctx context.Context, extendedBulkTriageDeltaInfos []extendedBulkTriageDeltaInfo) ([]frontend.BulkTriageDeltaInfo, error) {
+	ctx, span := trace.StartSpan(ctx, "prepareExtendedBulkTriageDeltaInfosForFrontend")
+	defer span.End()
+
 	// The frontend expects a non-null array.
 	bulkTriageDeltaInfos := []frontend.BulkTriageDeltaInfo{}
 	for _, triageDeltaInfo := range extendedBulkTriageDeltaInfos {
@@ -1881,6 +1899,9 @@ func (s *Impl) prepareExtendedBulkTriageDeltaInfosForFrontend(ctx context.Contex
 // expandGrouping returns the params associated with the grouping id. It will use the cache - if
 // there is a cache miss, it will look it up, add it to the cache and return it.
 func (s *Impl) expandGrouping(ctx context.Context, groupingID schema.MD5Hash) (paramtools.Params, error) {
+	ctx, span := trace.StartSpan(ctx, "expandGrouping")
+	defer span.End()
+
 	var groupingKeys paramtools.Params
 	if gk, ok := s.optionsGroupingCache.Get(groupingID); ok {
 		return gk.(paramtools.Params), nil
