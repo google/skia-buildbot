@@ -69,10 +69,16 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 			}
 		}
 	}
+
+	// Create the checkout dir.
 	parentCheckoutDir := workdir
 	if c.ParentSubdir != "" {
 		parentCheckoutDir = filepath.Join(workdir, c.ParentSubdir)
 	}
+	if err := os.MkdirAll(parentCheckoutDir, os.ModePerm); err != nil {
+		return nil, skerr.Wrapf(err, "failed to create parent checkout dir %q", parentCheckoutDir)
+	}
+
 	gclientCmd := []string{filepath.Join(depotTools, GClient)}
 	// gclient requires the use of vpython3 to bring in needed dependencies.
 	vpythonBinary := "vpython3"
@@ -200,9 +206,6 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	checkoutPath, err := GetDEPSCheckoutPath(c, parentCheckoutDir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	if err := os.MkdirAll(parentCheckoutDir, os.ModePerm); err != nil {
-		return nil, skerr.Wrapf(err, "failed to create parent checkout dir %q", parentCheckoutDir)
 	}
 	co := git.CheckoutDir(checkoutPath)
 	return NewGitCheckout(ctx, c.GitCheckout, reg, checkoutPath, cr, co, createRoll, uploadRoll)
