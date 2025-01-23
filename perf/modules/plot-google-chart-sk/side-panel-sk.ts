@@ -44,6 +44,11 @@ export interface SidePanelToggleEventDetails {
   open: boolean;
 }
 
+export interface SidePanelCheckboxClickDetails {
+  readonly selected: boolean;
+  readonly values: string[];
+}
+
 @customElement('side-panel-sk')
 export class SidePanelSk extends LitElement {
   static styles = css`
@@ -69,6 +74,11 @@ export class SidePanelSk extends LitElement {
     .info.closed {
       display: none;
     }
+    .select-all-checkbox {
+      color: #274878; /* Hex blue, which aligns with the graph title's color */
+      display: flex;
+      padding-left: 5px;
+    }
     ul {
       list-style: none; /* Remove default bullet points */
       padding-left: 5px;
@@ -79,9 +89,16 @@ export class SidePanelSk extends LitElement {
   @property({ reflect: true, type: Boolean })
   opened = true;
 
+  @property({ reflect: true, type: Set })
+  private checkedColList = new Set<string>();
+
   @consume({ context: dataTableContext, subscribe: true })
   @property({ attribute: false })
   private data?: DataTable;
+
+  constructor() {
+    super();
+  }
 
   render() {
     return html`
@@ -92,15 +109,73 @@ export class SidePanelSk extends LitElement {
         <md-icon>${this.opened ? chevronRight : chevronLeft}</md-icon>
       </div>
       <div class="info ${classMap({ closed: !this.opened })}">
-        <ul>
-          ${this.getLegend().map(
-            (item, index) => html`
-              <li style="color: ${defaultColors[index % defaultColors.length]}">${item}</li>
-            `
-          )}
-        </ul>
+        <div class="select-all-checkbox">
+          <label>
+            <input type="checkbox" id="header-checkbox"
+            .defaultChecked=${true} .checked=${true}
+            @click=${this.toggleAllCheckboxes}>Select all</input>
+          </label>
+        </div>
+        <div id="rows">
+          <ul>
+          ${this.getLegend().map((item, index) => {
+            this.checkedColList.add(item);
+            const handleCheck = (e: MouseEvent) => {
+              const checkEvent = e.target! as HTMLInputElement;
+              if (checkEvent) {
+                const headerCheckbox = this.renderRoot.querySelector(
+                  `#header-checkbox`
+                ) as HTMLInputElement;
+                if (checkEvent.checked) {
+                  this.checkedColList.add(item);
+                  if (this.checkedColList.size === this.getLegend().length) {
+                    headerCheckbox.checked = true;
+                  }
+                } else {
+                  this.checkedColList.delete(item);
+                  if (this.checkedColList.size === 0) {
+                    headerCheckbox.checked = false;
+                  }
+                }
+                this.checkboxDispatchHandler(checkEvent.checked, [item]);
+              }
+            };
+            return html`
+              <li style="color: ${defaultColors[index % defaultColors.length]}">
+                <label>
+                  <input
+                    type="checkbox"
+                    id="id-${index % item.length}"
+                    .defaultChecked=${true}
+                    .checked=${true}
+                    @click=${handleCheck}
+                    title="Select/Unselect this value from the graph" />
+                  ${item}</label
+                >
+              </li>
+            `;
+          })}
+          </ul>
+        </div>
       </div>
     `;
+  }
+
+  // TODO(jiaxindong b/391669433) uncheck select all is not
+  // compatible with google chart's default behavior,
+  // create a follow-up cl to make a workaround
+  private toggleAllCheckboxes() {
+    const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
+    const checked = headerCheckbox.checked;
+    this.getLegend().map((item, index) => {
+      const checkbox = this.renderRoot.querySelector(
+        `#id-${index % item.length}`
+      ) as HTMLInputElement;
+      if (checkbox) {
+        checkbox.checked = checked;
+      }
+    });
+    this.checkboxDispatchHandler(checked, this.getLegend());
   }
 
   private toggleSidePanel() {
@@ -123,10 +198,24 @@ export class SidePanelSk extends LitElement {
     }
     return [];
   }
+
+  checkboxDispatchHandler(isSelected: boolean, itemList: string[]): void {
+    const detail: SidePanelCheckboxClickDetails = {
+      selected: isSelected,
+      values: itemList,
+    };
+    this.dispatchEvent(
+      new CustomEvent('side-panel-selected-trace-change', {
+        detail,
+        bubbles: true,
+      })
+    );
+  }
 }
 
 declare global {
   interface GlobalEventHandlersEventMap {
     'side-panel-toggle': CustomEvent<SidePanelToggleEventDetails>;
+    'side-panel-selected-trace-change': CustomEvent<SidePanelCheckboxClickDetails>;
   }
 }

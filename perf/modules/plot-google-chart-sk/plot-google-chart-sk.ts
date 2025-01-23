@@ -29,10 +29,10 @@ import {
   dataTableContext,
   UserIssueMap,
 } from '../dataframe/dataframe_context';
-import { isSingleTrace } from '../dataframe/traceset';
+import { isSingleTrace, updateTraceByLegend } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
-import { SidePanelSk } from './side-panel-sk';
+import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
 
 export interface PlotSelectionEventDetails {
   value: range;
@@ -189,6 +189,9 @@ export class PlotGoogleChartSk extends LitElement {
   // cache the googleChart object within the module
   private chart: google.visualization.CoreChartBase | null = null;
 
+  // cache the labels which were removed, so that they can be easily re-added
+  private removedLabelsCache: string[] = [];
+
   constructor() {
     super();
 
@@ -245,7 +248,10 @@ export class PlotGoogleChartSk extends LitElement {
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
         <div class="side" ?hidden=${isSingleTrace(this.data) ?? true}>
-          <side-panel-sk ${ref(this.sidePanel)} @side-panel-toggle=${this.onSidePanelToggle}>
+          <side-panel-sk
+            ${ref(this.sidePanel)}
+            @side-panel-toggle=${this.onSidePanelToggle}
+            @side-panel-selected-trace-change=${this.sidePanelCheckboxUpdate}>
           </side-panel-sk>
         </div>
       </div>
@@ -290,11 +296,19 @@ export class PlotGoogleChartSk extends LitElement {
 
     // The first two columns are the commit position and the date.
     const cols = [this.domain === 'commit' ? 0 : 1];
+    const hiddenColumns = [];
     for (let index = 2; index < ncols; index++) {
       cols.push(index);
+      if (this.removedLabelsCache.includes(view.getColumnLabel(index))) {
+        hiddenColumns.push(index);
+      }
+    }
+    view.setColumns(cols);
+
+    if (this.removedLabelsCache.length > 0) {
+      view.hideColumns(hiddenColumns);
     }
 
-    view.setColumns(cols);
     plot.view = view;
     this.updateOptions();
   }
@@ -376,6 +390,31 @@ export class PlotGoogleChartSk extends LitElement {
 
   private onSidePanelToggle() {
     this.plotElement.value?.redraw();
+  }
+
+  /**
+   * Handler for the event when the side panel checkbox is clicked.
+   * @param e Checkbox click event with details containing the selected
+   * state of the checkbox and the metric subtest values.
+   */
+  private sidePanelCheckboxUpdate(e: CustomEvent<SidePanelCheckboxClickDetails>) {
+    const isCheckedboxSelected = e.detail.selected;
+    const metricSubtestValue = e.detail.values;
+    metricSubtestValue.forEach((legend) => {
+      const lastSubtestValue = updateTraceByLegend(this.data, legend, isCheckedboxSelected);
+      if (lastSubtestValue === null) {
+        console.warn('Could not find trace for ', legend);
+        return;
+      }
+      if (isCheckedboxSelected) {
+        this.removedLabelsCache = this.removedLabelsCache.filter(
+          (label) => label !== lastSubtestValue
+        );
+      } else {
+        this.removedLabelsCache.push(lastSubtestValue);
+      }
+    });
+    this.updateDataView(this.data);
   }
 
   private onChartMouseDown(e: MouseEvent) {

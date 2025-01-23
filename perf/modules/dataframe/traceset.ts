@@ -4,6 +4,18 @@ import { DataFrame } from '../json';
 import { DataTable } from './dataframe_context';
 import { removeSpecialFunctions } from '../paramtools';
 
+export const labelKeys = [
+  'master',
+  'bot',
+  'benchmark',
+  'improvement_direction',
+  'stat',
+  'unit',
+  'test',
+  'subtest_1',
+  'subtest_2',
+  'subtest_3',
+];
 /**
  * getAttributes extracts the attributes from the traceKeys
  * The attributes are the keys to the trace.
@@ -194,4 +206,65 @@ export function isSingleTrace(dt: DataTable | undefined): boolean | null {
   }
   // first two cols are domains (commit position / date)
   return dt!.getNumberOfColumns() === 3;
+}
+
+/**
+ * updateTraceByLegend function identifies the trace's last value
+ * and sets the visibility of the specified property
+ * based on the checkbox's checked state
+ * @param dt: DataTable or undefined dataframe
+ * @param attributeValue: legend value from side panel
+ * @param isChecked: checkbox checked state
+ */
+export function updateTraceByLegend(
+  dt: DataTable | undefined,
+  attributeValue: string,
+  isChecked: boolean
+): string | null {
+  if (!dt) {
+    return null;
+  }
+  const numCols = dt!.getNumberOfColumns();
+  // skip the first two columns since they are domains (commit position / date)
+  for (let i = 2; i < numCols; i++) {
+    const label = dt!.getColumnLabel(i);
+    const lastSubsetValue = getlastLabel(label);
+
+    if (attributeValue.split('/').pop() === lastSubsetValue) {
+      dt!.setColumnProperty(i, 'visible', isChecked);
+      return label;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find the last subtest value from an object label from Google chart
+ * @param a special function key like norm(,a=A,b=B,c=C,)
+ * @example
+ * Input: google chart label e.g ",benchmark=JetStream2,story=Total,test=avg,subtest_1=test1,"
+ * Output: "test1"
+ * @returns the last subtest value. Return subtest_3 if exists, else if return subtest_2 if exists,
+ * else return subtest_1 if exists.
+ */
+export function getlastLabel(label: string): string {
+  const temp = removeSpecialFunctions(label).split(',');
+  const trimmed = temp.filter((val) => val.trim().length > 0);
+  let lastKeyValue = '';
+  trimmed.forEach((pair) => {
+    if (pair.startsWith('subtest')) {
+      const keyValue = pair.split('=');
+      // if the key name is subtest_3
+      if (keyValue[0] === labelKeys.at(labelKeys.length - 1)) {
+        lastKeyValue = keyValue[1];
+        // if the key name is subtest_2
+      } else if (keyValue[0] === labelKeys.at(labelKeys.length - 2)) {
+        lastKeyValue = keyValue[1];
+        // if the key name is subtest_1
+      } else if (keyValue[0] === labelKeys.at(labelKeys.length - 3)) {
+        lastKeyValue = keyValue[1];
+      }
+    }
+  });
+  return lastKeyValue;
 }
