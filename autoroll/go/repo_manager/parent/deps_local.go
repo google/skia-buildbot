@@ -201,6 +201,9 @@ func NewDEPSLocal(ctx context.Context, c *config.DEPSLocalParentConfig, reg *con
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if err := os.MkdirAll(parentCheckoutDir, os.ModePerm); err != nil {
+		return nil, skerr.Wrapf(err, "failed to create parent checkout dir %q", parentCheckoutDir)
+	}
 	co := git.CheckoutDir(checkoutPath)
 	return NewGitCheckout(ctx, c.GitCheckout, reg, checkoutPath, cr, co, createRoll, uploadRoll)
 }
