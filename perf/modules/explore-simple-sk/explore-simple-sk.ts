@@ -1116,17 +1116,56 @@ export class ExploreSimpleSk extends ElementSk {
   private onChartSelect(e: CustomEvent) {
     const chart = this.googleChartPlot!.value!;
     const selection = e.detail.chart.getSelection()[0];
-    // TODO(b/370804498): Clicking on the same data point to show tooltip
+    // Clicking on the same data point to show tooltip
     // and then clicking on it again to close it will create errors because
     // selection.row will be empty. Handle this use case.
+    if (selection === undefined) {
+      return;
+    }
+
     const index = {
       row: selection.row,
       col: selection.column,
     };
 
+    const commitPos = chart.getCommitPosition(index.row);
+
+    fetch('/_/cid/', {
+      method: 'POST',
+      body: JSON.stringify([commitPos]),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json: CIDHandlerResponse) => {
+        const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+
+        // TODO(b/355726640) - The purpose of this dict is to ensure that we're not
+        // needing to re-fetch the information, but it's not WAI.
+        this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
+        const position = chart.getPositionByIndex(index);
+
+        this.enableTooltip(
+          {
+            x: index.row - (this.selectedRange?.begin || 0),
+            y: chart.getYValue(index),
+            xPos: position.x,
+            yPos: position.y,
+            name: chart.getTraceName(index.col),
+          },
+          json.commitSlice![0],
+          false,
+          true
+        );
+
+        this.tooltipSelected = true;
+      })
+      .catch(errorMessage);
+
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
-    if (this.summaryOptionsField.value) {
+    if (this.summaryOptionsField.value && this.traceIdSummaryOptionMap.size > 1) {
       const traceName = chart.getTraceName(index.col);
       const option = this.traceIdSummaryOptionMap.get(traceName) || '';
       if (option !== '') {
@@ -1135,26 +1174,6 @@ export class ExploreSimpleSk extends ElementSk {
         errorMessage(`Summary bar not properly set for this trace. Trace Name: ${traceName}`);
       }
     }
-
-    const commitPos = chart.getCommitPosition(index.row);
-    const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
-    const commit = this.pointToCommitDetailMap.get(key) || null;
-
-    this.enableTooltip(
-      {
-        x: index.row - (this.selectedRange?.begin || 0),
-        y: chart.getYValue(index),
-        xPos: position.x,
-        yPos: position.y,
-        name: chart.getTraceName(index.col),
-      },
-      commit,
-      false,
-      true
-    );
-
-    this.tooltipSelected = true;
   }
 
   // if the tooltip is opened and the user is not shift-clicking,
