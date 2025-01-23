@@ -3587,8 +3587,15 @@ OldestCommitInWindow AS (
 	                     AND DigestsOfInterest.digest = Expectations.digest
 	JOIN Groupings ON DigestsOfInterest.grouping_id = Groupings.grouping_id
 )
-SELECT encode(grouping_id, 'hex'), grouping, label, COUNT(digest) FROM DigestsWithLabels
+`
+	selectStmt := `SELECT encode(grouping_id, 'hex'), grouping, label, COUNT(digest) FROM DigestsWithLabels
 GROUP BY grouping_id, grouping, label ORDER BY grouping->>'name'`
+	if s.dbType == config.Spanner {
+		// Spanner does not support grouping based on JSONB fields. Hence we select all the
+		// data first and then do the grouping later in memory.
+		selectStmt = `SELECT grouping_id, grouping, label, digest FROM DigestsWithLabels`
+	}
+	statement += selectStmt
 
 	arguments := []interface{}{s.windowLength}
 	arguments = append(arguments, digestsArgs...)
@@ -3600,28 +3607,36 @@ GROUP BY grouping_id, grouping, label ORDER BY grouping->>'name'`
 		return frontend.ListTestsResponse{}, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var currentSummary *frontend.TestSummary
-	var currentSummaryGroupingID string
 	var summaries []*frontend.TestSummary
-	for rows.Next() {
-		var groupingID string
-		var grouping paramtools.Params
-		var label schema.ExpectationLabel
-		var count int
-		if err := rows.Scan(&groupingID, &grouping, &label, &count); err != nil {
-			return frontend.ListTestsResponse{}, skerr.Wrap(err)
+	if s.dbType == config.Spanner {
+		summaries, err = s.getTestSummariesFromSpanner(rows)
+		if err != nil {
+			sklog.Errorf("Error retrieving test summaries from Spanner: %v", err)
+			return frontend.ListTestsResponse{}, err
 		}
-		if currentSummary == nil || currentSummaryGroupingID != groupingID {
-			currentSummary = &frontend.TestSummary{Grouping: grouping}
-			currentSummaryGroupingID = groupingID
-			summaries = append(summaries, currentSummary)
-		}
-		if label == schema.LabelNegative {
-			currentSummary.NegativeDigests = count
-		} else if label == schema.LabelPositive {
-			currentSummary.PositiveDigests = count
-		} else {
-			currentSummary.UntriagedDigests = count
+	} else {
+		var currentSummary *frontend.TestSummary
+		var currentSummaryGroupingID string
+		for rows.Next() {
+			var groupingID string
+			var grouping paramtools.Params
+			var label schema.ExpectationLabel
+			var count int
+			if err := rows.Scan(&groupingID, &grouping, &label, &count); err != nil {
+				return frontend.ListTestsResponse{}, skerr.Wrap(err)
+			}
+			if currentSummary == nil || currentSummaryGroupingID != groupingID {
+				currentSummary = &frontend.TestSummary{Grouping: grouping}
+				currentSummaryGroupingID = groupingID
+				summaries = append(summaries, currentSummary)
+			}
+			if label == schema.LabelNegative {
+				currentSummary.NegativeDigests = count
+			} else if label == schema.LabelPositive {
+				currentSummary.PositiveDigests = count
+			} else {
+				currentSummary.UntriagedDigests = count
+			}
 		}
 	}
 
@@ -3631,6 +3646,49 @@ GROUP BY grouping_id, grouping, label ORDER BY grouping->>'name'`
 		withTotals = append(withTotals, *s)
 	}
 	return frontend.ListTestsResponse{Tests: withTotals}, nil
+}
+
+// getTestSummariesFromSpanner returns a list of test summaries from the rows returned from
+// querying against the spanner database.
+func (s *Impl) getTestSummariesFromSpanner(rows pgx.Rows) ([]*frontend.TestSummary, error) {
+	// We need to get the number of digests per label (untriaged, positive, negative) for
+	// each grouping. We do this by creating a map that uses the groupingID as the key and
+	// the corresponding summary as the value. The query returns a separate row for each label
+	// so we use this map to ensure that the same summary object is updated for the grouping
+	// for each label that's corresponding to the groupingID.
+	summaryMap := map[string]*frontend.TestSummary{}
+	for rows.Next() {
+		var grouping paramtools.Params
+		var label schema.ExpectationLabel
+		var groupingIdBytes []byte
+		var digest []byte
+		if err := rows.Scan(&groupingIdBytes, &grouping, &label, &digest); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		groupingID := hex.EncodeToString(groupingIdBytes)
+
+		if _, ok := summaryMap[groupingID]; !ok {
+			// If an existing summary is not present, let's create a new one.
+			summaryMap[groupingID] = &frontend.TestSummary{Grouping: grouping}
+		}
+
+		if label == schema.LabelNegative {
+			summaryMap[groupingID].NegativeDigests++
+		} else if label == schema.LabelPositive {
+			summaryMap[groupingID].PositiveDigests++
+		} else {
+			summaryMap[groupingID].UntriagedDigests++
+		}
+	}
+
+	// Now let's extract all the summary objects from the map and return
+	// the resulting array.
+	summaries := []*frontend.TestSummary{}
+	for _, summary := range summaryMap {
+		summaries = append(summaries, summary)
+	}
+
+	return summaries, nil
 }
 
 // digestCountTracesStatement returns a statement and arguments that will return all tests,
