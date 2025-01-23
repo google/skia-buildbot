@@ -801,7 +801,7 @@ export class ExploreSimpleSk extends ElementSk {
           @plot-chart-mousedown=${ele.onChartMouseDown}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
-          <md-icon slot="untriage">question_exchange</md-icon>
+          <md-icon slot="untriage">help</md-icon>
           <md-icon slot="regression">report</md-icon>
           <md-icon slot="improvement">check_circle</md-icon>
           <md-icon slot="ignored">report_off</md-icon>

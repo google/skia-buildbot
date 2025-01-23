@@ -76,23 +76,19 @@ export class PlotGoogleChartSk extends LitElement {
         font-weight: bolder;
         font-size: 24px;
         color: darkblue;
+        border: darkblue 1px solid;
       }
       md-icon.improvement {
-        background-color: rgba(3, 151, 3, 1);
-        font-weight: bolder;
-        border: black 1px solid;
+        background-color: rgba(0, 155, 0, 0.8); /* green */
       }
       md-icon.untriage {
-        background-color: yellow;
-        border: magenta 1px solid;
+        background-color: rgba(255, 255, 0, 1); /* yellow */
       }
       md-icon.regression {
-        background-color: violet;
-        border: orange 1px solid;
+        background-color: rgba(155, 0, 255, 1); /* purple */
       }
       md-icon.ignored {
-        background-color: grey;
-        border: white 1px solid;
+        background-color: rgba(100, 100, 100, 0.8); /* grey */
       }
     }
 
