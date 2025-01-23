@@ -85,7 +85,7 @@ export class PlotGoogleChartSk extends LitElement {
         background-color: rgba(255, 255, 0, 1); /* yellow */
       }
       md-icon.regression {
-        background-color: rgba(155, 0, 255, 1); /* purple */
+        background-color: rgba(255, 0, 0, 1); /* red */
       }
       md-icon.ignored {
         background-color: rgba(100, 100, 100, 0.8); /* grey */
@@ -591,7 +591,6 @@ export class PlotGoogleChartSk extends LitElement {
 
         const anomaly = anomalies[offset];
         let cloned: HTMLElement | null;
-        // TODO(b/377751454): add separate anomaly icon for "ignored"
         if (anomaly.is_improvement) {
           cloned = cloneSlot('improvement', key, offset);
         } else if (anomaly.bug_id === 0) {

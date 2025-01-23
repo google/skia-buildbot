@@ -163,7 +163,7 @@ export class TriageMenuSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((_) => {
-        let bug_id = null;
+        let bug_id: number | null = null;
         if (editAction === 'RESET') {
           bug_id = 0;
         } else if (editAction === 'IGNORE') {
@@ -178,6 +178,11 @@ export class TriageMenuSk extends ElementSk {
           new CustomEvent('anomaly-changed', {
             bubbles: true,
             composed: true,
+            detail: {
+              traceNames: traceNames,
+              editAction: editAction,
+              anomalies: anomalies,
+            },
           })
         );
       })
@@ -232,7 +237,8 @@ export class TriageMenuSk extends ElementSk {
             composed: true,
             detail: {
               traceNames: traceNames,
-              anomaly: entry.anomaly_data?.anomaly,
+              anomalies: [entry.anomaly_data?.anomaly],
+              displayIndex: entry.display_index,
             },
           })
         );
