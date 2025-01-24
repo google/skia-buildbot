@@ -1053,7 +1053,7 @@ export class ExploreSimpleSk extends ElementSk {
     Pinpoint bisection started: <a href=${ele.jobUrl} target=_blank>${ele.jobId}</a>.
     <button id="hide-pinpoint-toast" class="action">Close</button>
   </toast-sk>
-  <toast-sk id="triage-result-toast" duration=0>
+  <toast-sk id="triage-result-toast" duration=5000>
     <span id="triage-result-text"></span><a id="triage-result-link"></a>
     <button id="hide-triage-toast" class="action">Close</button>
   </toast-sk>
