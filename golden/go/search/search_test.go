@@ -2411,8 +2411,8 @@ func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
 
 func TestJoinedTracesStatement_Success(t *testing.T) {
 
-	statement := joinedTracesStatement([]filterSets{
-		{key: "key1", values: []string{"alpha", "beta"}},
+	statement := providers.JoinedTracesStatement([]common.FilterSets{
+		{Key: "key1", Values: []string{"alpha", "beta"}},
 	}, "my_corpus")
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
@@ -2427,10 +2427,10 @@ JoinedTraces AS (
 `
 	assert.Equal(t, expectedCondition, statement)
 
-	statement = joinedTracesStatement([]filterSets{
-		{key: "key1", values: []string{"alpha", "beta"}},
-		{key: "key2", values: []string{"gamma"}},
-		{key: "key3", values: []string{"delta", "epsilon", "zeta"}},
+	statement = providers.JoinedTracesStatement([]common.FilterSets{
+		{Key: "key1", Values: []string{"alpha", "beta"}},
+		{Key: "key2", Values: []string{"gamma"}},
+		{Key: "key3", Values: []string{"delta", "epsilon", "zeta"}},
 	}, "other_corpus")
 	expectedCondition = `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
@@ -2462,9 +2462,9 @@ JoinedTraces AS (
 
 func TestJoinedTracesStatement_RemovesBadSQLCharacters(t *testing.T) {
 
-	statement := joinedTracesStatement([]filterSets{
-		{key: "key1", values: []string{"alpha", `beta"' OR 1=1`}},
-		{key: `key2'='""' OR 1=1`, values: []string{"1"}}, // invalid keys are removed entirely.
+	statement := providers.JoinedTracesStatement([]common.FilterSets{
+		{Key: "key1", Values: []string{"alpha", `beta"' OR 1=1`}},
+		{Key: `key2'='""' OR 1=1`, Values: []string{"1"}}, // invalid keys are removed entirely.
 	}, "some thing")
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
@@ -3050,7 +3050,6 @@ func TestObservedDigestStatement_ValidInputs_Success(t *testing.T) {
 	statement, err := observedDigestsStatement(nil)
 	require.NoError(t, err)
 	assert.Equal(t, `SELECT trace_id FROM Traces
-AS OF SYSTEM TIME '-0.1s'
 WHERE grouping_id = $1`, statement)
 
 	statement, err = observedDigestsStatement(paramtools.ParamSet{

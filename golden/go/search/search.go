@@ -186,13 +186,13 @@ type Impl struct {
 	traceCache           *lru.Cache
 	paramsetCache        *ttlcache.Cache
 
-	cacheManager *caching.SearchCacheManager
-	dbType       config.DatabaseType
+	dbType config.DatabaseType
 
 	statusProvider           *providers.StatusProvider
 	changeDataProvider       *providers.ChangelistProvider
 	materializedViewProvider *providers.MaterializedViewProvider
 	commitsProvider          *providers.CommitsProvider
+	traceDigestsProvider     *providers.TraceDigestsProvider
 }
 
 // New returns an implementation of API.
@@ -207,6 +207,8 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		panic(err) // should only happen if traceCacheSize is negative.
 	}
 	pc := ttlcache.New(time.Minute, 10*time.Minute)
+	materializedViewProvider := providers.NewMaterializedViewProvider(sqlDB, windowLength)
+	cacheManager := caching.New(cacheClient, sqlDB, cache_corpora, windowLength)
 	return &Impl{
 		db:                       sqlDB,
 		windowLength:             windowLength,
@@ -215,11 +217,11 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		traceCache:               tc,
 		paramsetCache:            pc,
 		reviewSystemMapping:      map[string]string{},
-		cacheManager:             caching.New(cacheClient, sqlDB, cache_corpora, windowLength),
 		statusProvider:           providers.NewStatusProvider(sqlDB, windowLength),
 		changeDataProvider:       providers.NewChangelistProvider(sqlDB),
-		materializedViewProvider: providers.NewMaterializedViewProvider(sqlDB, windowLength),
+		materializedViewProvider: materializedViewProvider,
 		commitsProvider:          providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
+		traceDigestsProvider:     providers.NewTraceDigestsProvider(sqlDB, windowLength, materializedViewProvider, cacheManager),
 	}
 }
 
@@ -380,6 +382,7 @@ func (s *Impl) StartApplyingPublicParams(ctx context.Context, matcher publicpara
 		defer s.mutex.Unlock()
 		s.publiclyVisibleTraces = publiclyVisibleTraces
 		s.statusProvider.SetPublicTraces(publiclyVisibleTraces)
+		s.traceDigestsProvider.SetPublicTraces(publiclyVisibleTraces)
 
 		s.publiclyVisibleCorpora = publiclyVisibleCorpora
 		s.statusProvider.SetPublicCorpora(publiclyVisibleCorpora)
@@ -479,9 +482,21 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 
 	// Find all digests and traces that match the given search criteria.
 	// This will be filtered according to the publiclyAllowedParams as well.
-	traceDigests, err := s.getMatchingDigestsAndTraces(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	var traceDigests []common.DigestWithTraceAndGrouping
+	if q.BlameGroupID != "" {
+		corpus := q.TraceValues[types.CorpusField][0]
+		if corpus == "" {
+			return nil, skerr.Fmt("must specify corpus in search of left side.")
+		}
+		traceDigests, err = s.getTracesForBlame(ctx, corpus, q.BlameGroupID)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "searching for blame %q in corpus %q", q.BlameGroupID, corpus)
+		}
+	} else {
+		traceDigests, err = s.traceDigestsProvider.GetMatchingDigestsAndTraces(ctx, q.IncludeUntriagedDigests, q.IncludeNegativeDigests, q.IncludePositiveDigests)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 	if len(traceDigests) == 0 {
 		return &frontend.SearchResponse{
@@ -553,81 +568,13 @@ type digestWithTraceAndGrouping struct {
 	optionsID schema.OptionsID
 }
 
-// getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
-// The order of the result is arbitrary.
-func (s *Impl) getMatchingDigestsAndTraces(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
-	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
-	defer span.End()
-	q := common.GetQuery(ctx)
-	corpus := q.TraceValues[types.CorpusField][0]
-	if corpus == "" {
-		return nil, skerr.Fmt("must specify corpus in search of left side.")
-	}
-	if q.BlameGroupID != "" {
-		results, err := s.getTracesForBlame(ctx, corpus, q.BlameGroupID)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "searching for blame %q in corpus %q", q.BlameGroupID, corpus)
-		}
-		return results, nil
-	}
-	statement := `WITH
-MatchingDigests AS (
-	SELECT grouping_id, digest FROM Expectations
-	WHERE label = ANY($1)
-),`
-	tracesBlock, args := s.matchingTracesStatement(ctx)
-	statement += tracesBlock
-	statement += `
-SELECT trace_id, MatchingDigests.grouping_id, MatchingTraces.digest FROM
-MatchingDigests
-JOIN
-MatchingTraces ON MatchingDigests.grouping_id = MatchingTraces.grouping_id AND
-  MatchingDigests.digest = MatchingTraces.digest`
-
-	var triageStatuses []schema.ExpectationLabel
-	if q.IncludeUntriagedDigests {
-		triageStatuses = append(triageStatuses, schema.LabelUntriaged)
-	}
-	if q.IncludeNegativeDigests {
-		triageStatuses = append(triageStatuses, schema.LabelNegative)
-	}
-	if q.IncludePositiveDigests {
-		triageStatuses = append(triageStatuses, schema.LabelPositive)
-	}
-	arguments := append([]interface{}{triageStatuses}, args...)
-
-	rows, err := s.db.Query(ctx, statement, arguments...)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "searching for query %v with args %v", q, arguments)
-	}
-	defer rows.Close()
-	var rv []digestWithTraceAndGrouping
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	var traceKey schema.MD5Hash
-	for rows.Next() {
-		var row digestWithTraceAndGrouping
-		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		if s.publiclyVisibleTraces != nil {
-			copy(traceKey[:], row.traceID)
-			if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
-				continue
-			}
-		}
-		rv = append(rv, row)
-	}
-	return rv, nil
-}
-
 // getTracesForBlame returns the traces that match the given blameID. It mirrors the behavior of
 // method GetBlamesForUntriagedDigests. See function combineIntoRanges for details.
-func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]digestWithTraceAndGrouping, error) {
+func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID string) ([]common.DigestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getTracesForBlame")
 	defer span.End()
 	// Find untriaged digests at head and the traces that produced them.
-	tracesByDigest, err := s.getTracesWithUntriagedDigestsAtHead(ctx, corpus)
+	tracesByDigest, err := s.traceDigestsProvider.GetTracesWithUntriagedDigestsAtHead(ctx, corpus)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -664,169 +611,21 @@ func (s *Impl) getTracesForBlame(ctx context.Context, corpus string, blameID str
 	// triaged digests to untriaged digests.
 	ranges := combineIntoRanges(ctx, histories, groupings, commits)
 
-	var rv []digestWithTraceAndGrouping
+	var rv []common.DigestWithTraceAndGrouping
 	for _, r := range ranges {
 		if r.CommitRange == blameID {
 			for _, ag := range r.AffectedGroupings {
 				for _, traceIDAndDigest := range ag.traceIDsAndDigests {
-					rv = append(rv, digestWithTraceAndGrouping{
-						traceID:    traceIDAndDigest.id,
-						groupingID: ag.groupingID[:],
-						digest:     traceIDAndDigest.digest,
+					rv = append(rv, common.DigestWithTraceAndGrouping{
+						TraceID:    traceIDAndDigest.id,
+						GroupingID: ag.groupingID[:],
+						Digest:     traceIDAndDigest.digest,
 					})
 				}
 			}
 		}
 	}
 	return rv, nil
-}
-
-type filterSets struct {
-	key    string
-	values []string
-}
-
-// matchingTracesStatement returns a SQL snippet that includes a WITH table called MatchingTraces.
-// This table will have rows containing trace_id, grouping_id, and digest of traces that match
-// the given search criteria. The second parameter is the arguments that need to be included
-// in the query. This code knows to start using numbered parameters at 2.
-func (s *Impl) matchingTracesStatement(ctx context.Context) (string, []interface{}) {
-	var keyFilters []filterSets
-	q := common.GetQuery(ctx)
-	for key, values := range q.TraceValues {
-		if key == types.CorpusField {
-			continue
-		}
-		if key != sql.Sanitize(key) {
-			sklog.Infof("key %q did not pass sanitization", key)
-			continue
-		}
-		keyFilters = append(keyFilters, filterSets{key: key, values: values})
-	}
-	ignoreStatuses := []bool{false}
-	if q.IncludeIgnoredTraces {
-		ignoreStatuses = append(ignoreStatuses, true)
-	}
-	corpus := sql.Sanitize(q.TraceValues[types.CorpusField][0])
-	materializedView := s.materializedViewProvider.GetMaterializedView(providers.UnignoredRecentTracesView, corpus)
-	if q.OnlyIncludeDigestsProducedAtHead {
-		if len(keyFilters) == 0 {
-			if materializedView != "" && !q.IncludeIgnoredTraces {
-				return "MatchingTraces AS (SELECT * FROM " + materializedView + ")", nil
-			}
-			// Corpus is being used as a string
-			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus}
-			return `
-MatchingTraces AS (
-	SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-	WHERE most_recent_commit_id >= $2 AND
-		matches_any_ignore_rule = ANY($3) AND
-		corpus = $4
-)`, args
-		}
-		if materializedView != "" && !q.IncludeIgnoredTraces {
-			return joinedTracesStatement(keyFilters, corpus) + `
-MatchingTraces AS (
-	SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
-	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
-)`, nil
-		}
-		// Corpus is being used as a JSONB value here
-		args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses}
-		return joinedTracesStatement(keyFilters, corpus) + `
-MatchingTraces AS (
-	SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
-	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
-	WHERE most_recent_commit_id >= $2 AND
-		matches_any_ignore_rule = ANY($3)
-)`, args
-	} else {
-		if len(keyFilters) == 0 {
-			if materializedView != "" && !q.IncludeIgnoredTraces {
-				args := []interface{}{common.GetFirstTileID(ctx)}
-				return `MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TiledTraceDigests.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN ` + materializedView + ` ON ` + materializedView + `.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $2
-)`, args
-			}
-			// Corpus is being used as a string
-			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus, common.GetFirstTileID(ctx)}
-			return `
-TracesOfInterest AS (
-	SELECT trace_id, grouping_id FROM ValuesAtHead
-	WHERE matches_any_ignore_rule = ANY($3) AND
-		most_recent_commit_id >= $2 AND
-		corpus = $4
-),
-MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN TracesOfInterest ON TracesOfInterest.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $5
-)
-`, args
-		}
-		if materializedView != "" && !q.IncludeIgnoredTraces {
-			args := []interface{}{common.GetFirstTileID(ctx)}
-			return joinedTracesStatement(keyFilters, corpus) + `
-TracesOfInterest AS (
-	SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
-	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
-),
-MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $2
-)`, args
-		}
-		// Corpus is being used as a JSONB value here
-		args := []interface{}{common.GetFirstTileID(ctx), ignoreStatuses}
-		return joinedTracesStatement(keyFilters, corpus) + `
-TracesOfInterest AS (
-	SELECT Traces.trace_id, grouping_id FROM Traces
-	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
-	WHERE matches_any_ignore_rule = ANY($3)
-),
-MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $2
-)`, args
-	}
-}
-
-// joinedTracesStatement returns a SQL snippet that includes a WITH table called JoinedTraces.
-// This table contains just the trace_ids that match the given filters. filters is expected to
-// have keys which passed sanitization (it will sanitize the values). The snippet will include
-// other tables that will be unioned and intersected to create the appropriate rows. This is
-// similar to the technique we use for ignore rules, chosen to maximize consistent performance
-// by using the inverted key index. The keys and values are hardcoded into the string instead
-// of being passed in as arguments because kjlubick@ was not able to use the placeholder values
-// to compare JSONB types removed from a JSONB object to a string while still using the indexes.
-func joinedTracesStatement(filters []filterSets, corpus string) string {
-	statement := ""
-	for i, filter := range filters {
-		statement += fmt.Sprintf("U%d AS (\n", i)
-		for j, value := range filter.values {
-			if j != 0 {
-				statement += "\tUNION\n"
-			}
-			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", filter.key, sql.Sanitize(value))
-		}
-		statement += "),\n"
-	}
-	statement += "JoinedTraces AS (\n"
-	for i := range filters {
-		statement += fmt.Sprintf("\tSELECT trace_id FROM U%d\n\tINTERSECT\n", i)
-	}
-	// Include a final intersect for the corpus. The calling logic will make sure a JSONB value
-	// (i.e. a quoted string) is in the arguments slice.
-	statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = '\"" + corpus + "\"'\n),\n"
-	return statement
 }
 
 type digestAndClosestDiffs struct {
@@ -857,27 +656,27 @@ type extendedBulkTriageDeltaInfo struct {
 // information to bulk-triage all of the inputs. Note that this function does not populate the
 // LabelBefore fields of the returned extendedBulkTriageDeltaInfo structs; these need to be
 // populated by the caller.
-func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndGrouping) ([]digestAndClosestDiffs, []extendedBulkTriageDeltaInfo, error) {
+func (s *Impl) getClosestDiffs(ctx context.Context, inputs []common.DigestWithTraceAndGrouping) ([]digestAndClosestDiffs, []extendedBulkTriageDeltaInfo, error) {
 	ctx, span := trace.StartSpan(ctx, "getClosestDiffs")
 	defer span.End()
-	byGrouping := map[schema.MD5Hash][]digestWithTraceAndGrouping{}
+	byGrouping := map[schema.MD5Hash][]common.DigestWithTraceAndGrouping{}
 	// Even if two groupings draw the same digest, we want those as two different results because
 	// they could be triaged differently.
 	byDigestAndGrouping := map[common.GroupingDigestKey]digestAndClosestDiffs{}
 	var mutex sync.Mutex
 	for _, input := range inputs {
-		gID := sql.AsMD5Hash(input.groupingID)
+		gID := sql.AsMD5Hash(input.GroupingID)
 		byGrouping[gID] = append(byGrouping[gID], input)
 		key := common.GroupingDigestKey{
-			Digest:     sql.AsMD5Hash(input.digest),
-			GroupingID: sql.AsMD5Hash(input.groupingID),
+			Digest:     sql.AsMD5Hash(input.Digest),
+			GroupingID: sql.AsMD5Hash(input.GroupingID),
 		}
 		bd := byDigestAndGrouping[key]
-		bd.leftDigest = input.digest
-		bd.groupingID = input.groupingID
-		bd.traceIDs = append(bd.traceIDs, input.traceID)
-		if input.optionsID != nil {
-			bd.optionsIDs = append(bd.optionsIDs, input.optionsID)
+		bd.leftDigest = input.Digest
+		bd.groupingID = input.GroupingID
+		bd.traceIDs = append(bd.traceIDs, input.TraceID)
+		if input.OptionsID != nil {
+			bd.optionsIDs = append(bd.optionsIDs, input.OptionsID)
 		}
 		byDigestAndGrouping[key] = bd
 	}
@@ -893,12 +692,12 @@ func (s *Impl) getClosestDiffs(ctx context.Context, inputs []digestWithTraceAndG
 			duplicates := map[schema.MD5Hash]bool{}
 			var key schema.MD5Hash
 			for _, input := range inputs {
-				copy(key[:], input.digest)
+				copy(key[:], input.Digest)
 				if duplicates[key] {
 					continue
 				}
 				duplicates[key] = true
-				digests = append(digests, input.digest)
+				digests = append(digests, input.Digest)
 			}
 			resultsByDigest, err := s.getDiffsForGrouping(eCtx, groupingID, digests)
 			if err != nil {
@@ -1107,7 +906,6 @@ func (s *Impl) getDigestsForGrouping(ctx context.Context, groupingID schema.Grou
 	// See diff/worker for explanation of this faster query.
 	const statement = `
 SELECT DISTINCT digest FROM TiledTraceDigests
-AS OF SYSTEM TIME '-0.1s'
 WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
 
 	rows, err := s.db.Query(ctx, statement, tilesInRange, tracesForGroup)
@@ -1162,7 +960,6 @@ func (s *Impl) getTracesForGroup(ctx context.Context, groupingID schema.Grouping
 func observedDigestsStatement(ps paramtools.ParamSet) (string, error) {
 	if len(ps) == 0 {
 		return `SELECT trace_id FROM Traces
-AS OF SYSTEM TIME '-0.1s'
 WHERE grouping_id = $1`, nil
 	}
 	statement := "WITH\n"
@@ -2044,7 +1841,7 @@ WHERE changelist_id = $1`
 // branch is the fact that the "AtHead" option is meaningless. Another is that we can filter out
 // data seen on the primary branch. We have this as an in-memory cache because it is much much
 // faster than querying it live (even with good indexing).
-func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]digestWithTraceAndGrouping, error) {
+func (s *Impl) getMatchingDigestsAndTracesForCL(ctx context.Context) ([]common.DigestWithTraceAndGrouping, error) {
 	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTracesForCL")
 	defer span.End()
 	q := common.GetQuery(ctx)
@@ -2097,7 +1894,7 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 		return nil, skerr.Wrap(err)
 	}
 	defer rows.Close()
-	var rv []digestWithTraceAndGrouping
+	var rv []common.DigestWithTraceAndGrouping
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	var traceKey schema.MD5Hash
@@ -2105,19 +1902,19 @@ WHERE COALESCE(CLExpectations.label, COALESCE(Expectations.label, 'u')) = ANY($3
 	keyGrouping := key.GroupingID[:]
 	keyDigest := key.Digest[:]
 	for rows.Next() {
-		var row digestWithTraceAndGrouping
-		if err := rows.Scan(&row.traceID, &row.groupingID, &row.digest, &row.optionsID); err != nil {
+		var row common.DigestWithTraceAndGrouping
+		if err := rows.Scan(&row.TraceID, &row.GroupingID, &row.Digest, &row.OptionsID); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		if s.publiclyVisibleTraces != nil {
-			copy(traceKey[:], row.traceID)
+			copy(traceKey[:], row.TraceID)
 			if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
 				continue
 			}
 		}
 		if !q.IncludeDigestsProducedOnMaster {
-			copy(keyGrouping, row.groupingID)
-			copy(keyDigest, row.digest)
+			copy(keyGrouping, row.GroupingID)
+			copy(keyDigest, row.Digest)
 			if _, existsOnPrimary := s.digestsOnPrimary[key]; existsOnPrimary {
 				continue
 			}
@@ -2438,7 +2235,7 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
 	// Find untriaged digests at head and the traces that produced them.
-	tracesByDigest, err := s.getTracesWithUntriagedDigestsAtHead(ctx, corpus)
+	tracesByDigest, err := s.traceDigestsProvider.GetTracesWithUntriagedDigestsAtHead(ctx, corpus)
 	if err != nil {
 		return BlameSummaryV1{}, skerr.Wrap(err)
 	}
@@ -2472,34 +2269,6 @@ func (s *Impl) GetBlamesForUntriagedDigests(ctx context.Context, corpus string) 
 }
 
 type traceData []types.Digest
-
-// getTracesWithUntriagedDigestsAtHead identifies all untriaged digests being produced at head
-// within the current window and returns all traces responsible for that behavior, clustered by the
-// digest+grouping at head. This clustering allows us to better identify the commit(s) that caused
-// the change, even with sparse data.
-func (s *Impl) getTracesWithUntriagedDigestsAtHead(ctx context.Context, corpus string) (map[common.GroupingDigestKey][]schema.TraceID, error) {
-	ctx, span := trace.StartSpan(ctx, "getTracesWithUntriagedDigestsAtHead")
-	defer span.End()
-
-	byBlameData, err := s.cacheManager.GetByBlameData(ctx, string(common.GetFirstCommitID(ctx)), corpus)
-	if err != nil {
-		sklog.Errorf("Error encountered when retrieving ByBlame data from cache: %v", err)
-		return nil, err
-	}
-
-	sklog.Debugf("Retrieved %d items from search cache for corpus %s", len(byBlameData), corpus)
-	rv := map[common.GroupingDigestKey][]schema.TraceID{}
-	var key common.GroupingDigestKey
-	groupingKey := key.GroupingID[:]
-	digestKey := key.Digest[:]
-	for _, data := range byBlameData {
-		copy(groupingKey, data.GroupingID)
-		copy(digestKey, data.Digest)
-		rv[key] = append(rv[key], data.TraceID)
-	}
-
-	return rv, nil
-}
 
 // applyPublicFilter filters the traces according to the publicly visible traces map.
 func (s *Impl) applyPublicFilter(ctx context.Context, data map[common.GroupingDigestKey][]schema.TraceID) map[common.GroupingDigestKey][]schema.TraceID {
@@ -3193,9 +2962,9 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 		Offset: 0, Limit: 1, RGBAMaxFilter: 255,
 	})
 
-	var digestWithTraceAndGrouping []digestWithTraceAndGrouping
+	var digestWithTraceAndGrouping []common.DigestWithTraceAndGrouping
 	if clID == "" {
-		digestWithTraceAndGrouping, err = s.getTracesForGroupingAndDigest(ctx, grouping, digest)
+		digestWithTraceAndGrouping, err = s.traceDigestsProvider.GetTracesForGroupingAndDigest(ctx, grouping, digest)
 		if err != nil {
 			return frontend.DigestDetails{}, skerr.Wrap(err)
 		}
@@ -3204,7 +2973,7 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 			return frontend.DigestDetails{}, skerr.Fmt("Code Review System (crs) must be specified")
 		}
 		ctx = context.WithValue(ctx, common.QualifiedCLIDKey, sql.Qualify(crs, clID))
-		digestWithTraceAndGrouping, err = s.getTracesFromCLThatProduced(ctx, grouping, digest)
+		digestWithTraceAndGrouping, err = s.traceDigestsProvider.GetTracesFromCLThatProduced(ctx, grouping, digest)
 		if err != nil {
 			return frontend.DigestDetails{}, skerr.Wrap(err)
 		}
@@ -3258,106 +3027,18 @@ func (s *Impl) GetDigestDetails(ctx context.Context, grouping paramtools.Params,
 
 // applyPublicFilterToDigestWithTraceAndGrouping filters out any digestWithTraceAndGrouping for
 // traces that are not publicly visible.
-func (s *Impl) applyPublicFilterToDigestWithTraceAndGrouping(results []digestWithTraceAndGrouping) []digestWithTraceAndGrouping {
+func (s *Impl) applyPublicFilterToDigestWithTraceAndGrouping(results []common.DigestWithTraceAndGrouping) []common.DigestWithTraceAndGrouping {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	filteredResults := make([]digestWithTraceAndGrouping, 0, len(results))
+	filteredResults := make([]common.DigestWithTraceAndGrouping, 0, len(results))
 	var traceKey schema.MD5Hash
 	for _, result := range results {
-		copy(traceKey[:], result.traceID)
+		copy(traceKey[:], result.TraceID)
 		if _, ok := s.publiclyVisibleTraces[traceKey]; ok {
 			filteredResults = append(filteredResults, result)
 		}
 	}
 	return filteredResults
-}
-
-// getTracesForGroupingAndDigest finds the traces on the primary branch which produced the given
-// digest in the provided grouping. If no such trace exists (recently), a single result will be
-// added with no trace, to all the UI to at least show the image and possible diff data.
-func (s *Impl) getTracesForGroupingAndDigest(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]digestWithTraceAndGrouping, error) {
-	ctx, span := trace.StartSpan(ctx, "getTracesForGroupingAndDigest")
-	defer span.End()
-
-	_, groupingID := sql.SerializeMap(grouping)
-	digestBytes, err := sql.DigestToBytes(digest)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	const statement = `SELECT trace_id FROM TiledTraceDigests@grouping_digest_idx
-WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
-`
-	rows, err := s.db.Query(ctx, statement, common.GetFirstTileID(ctx), groupingID, digestBytes)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-	var results []digestWithTraceAndGrouping
-	for rows.Next() {
-		var traceID schema.TraceID
-		if err := rows.Scan(&traceID); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		results = append(results, digestWithTraceAndGrouping{
-			traceID:    traceID,
-			groupingID: groupingID,
-			digest:     digestBytes,
-		})
-	}
-	if len(results) == 0 {
-		// Add in a result that has at least the digest and groupingID. This can be helpful for
-		// when an image was produced a long time ago, but not in recent traces. It allows the UI
-		// to at least show the image and some diff information.
-		results = append(results, digestWithTraceAndGrouping{
-			groupingID: groupingID,
-			digest:     digestBytes,
-		})
-	}
-	return results, nil
-}
-
-// getTracesFromCLThatProduced returns a digestWithTraceAndGrouping for all traces that produced
-// the provided digest in the given grouping on the most recent PS for the given CL.
-func (s *Impl) getTracesFromCLThatProduced(ctx context.Context, grouping paramtools.Params, digest types.Digest) ([]digestWithTraceAndGrouping, error) {
-	ctx, span := trace.StartSpan(ctx, "getTracesFromCLThatProduced")
-	defer span.End()
-
-	_, groupingID := sql.SerializeMap(grouping)
-	digestBytes, err := sql.DigestToBytes(digest)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	const statement = `WITH
-MostRecentPS AS (
-	SELECT patchset_id FROM Patchsets WHERE changelist_id = $1
-	ORDER BY created_ts DESC, ps_order DESC
-	LIMIT 1
-)
-SELECT secondary_branch_trace_id, options_id FROM SecondaryBranchValues
-JOIN MostRecentPS ON SecondaryBranchValues.version_name = MostRecentPS.patchset_id
-WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
-	rows, err := s.db.Query(ctx, statement, common.GetQualifiedCL(ctx), groupingID, digestBytes)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	defer rows.Close()
-	var results []digestWithTraceAndGrouping
-	for rows.Next() {
-		var traceID schema.TraceID
-		var optionsID schema.OptionsID
-		if err := rows.Scan(&traceID, &optionsID); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		results = append(results, digestWithTraceAndGrouping{
-			traceID:    traceID,
-			groupingID: groupingID,
-			digest:     digestBytes,
-			optionsID:  optionsID,
-		})
-	}
-	return results, nil
 }
 
 // GetDigestsDiff implements the API interface.
