@@ -1155,7 +1155,6 @@ export class ExploreSimpleSk extends ElementSk {
             name: chart.getTraceName(index.col),
           },
           json.commitSlice![0],
-          false,
           true
         );
 
@@ -1208,7 +1207,6 @@ export class ExploreSimpleSk extends ElementSk {
         name: chart.getTraceName(index.col),
       },
       commit,
-      false,
       true
     );
   }
@@ -1853,7 +1851,7 @@ export class ExploreSimpleSk extends ElementSk {
         c = this.pointToCommitDetailMap.get(key) || null;
       }
 
-      this.enableTooltip(detail, c, false, false);
+      this.enableTooltip(detail, c, false);
     }
   }
 
@@ -1976,7 +1974,6 @@ export class ExploreSimpleSk extends ElementSk {
   enableTooltip(
     pointDetails: PlotSimpleSkTraceEventDetails,
     commit: Commit | null,
-    displayFileLinks: boolean,
     fixTooltip: boolean
   ): void {
     // explore-simple-sk is used multiple times on the multi-graph view. To
@@ -2077,7 +2074,6 @@ export class ExploreSimpleSk extends ElementSk {
       anomaly,
       nudgeList,
       commit,
-      displayFileLinks,
       fixTooltip,
       closeBtnAction
     );
@@ -2264,7 +2260,7 @@ export class ExploreSimpleSk extends ElementSk {
         if (tooltipEnabled && hasValidTooltipPos) {
           this.tooltipSelected = true;
 
-          this.enableTooltip(detail, json.commitSlice![0], true, true);
+          this.enableTooltip(detail, json.commitSlice![0], true);
         }
       })
       .catch(errorMessage);

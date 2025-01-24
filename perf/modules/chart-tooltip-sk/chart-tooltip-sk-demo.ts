@@ -114,7 +114,6 @@ const renderTooltips = () => {
         dummyAnomaly(12345),
         null,
         c,
-        false,
         true,
         () => {}
       );

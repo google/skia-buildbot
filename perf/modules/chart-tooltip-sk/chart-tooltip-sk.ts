@@ -19,7 +19,6 @@ import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 import { lookupCids } from '../cid/cid';
 import { CommitRangeSk } from '../commit-range-sk/commit-range-sk';
 import '../window/window';
-import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../user-issue-sk/user-issue-sk';
@@ -140,9 +139,6 @@ export class ChartTooltipSk extends ElementSk {
   // is selected.
   commitRangeSk: CommitRangeSk | null = null;
 
-  // Ingest file links element. Provides links based on cid and
-  ingestFileLinks: IngestFileLinksSk | null = null;
-
   // Shows any buganizer issue associated with a data point.
   userIssueSk: UserIssueSk | null = null;
 
@@ -192,7 +188,7 @@ export class ChartTooltipSk extends ElementSk {
       </div>
       <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
-      <ingest-file-links-sk id="tooltip-ingest-file-links"></ingest-file-links-sk>
+      <point-links-sk id="point-links"></point-links-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
@@ -342,7 +338,6 @@ export class ChartTooltipSk extends ElementSk {
     this._render();
 
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
-    this.ingestFileLinks = this.querySelector('#tooltip-ingest-file-links');
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
 
@@ -383,7 +378,6 @@ export class ChartTooltipSk extends ElementSk {
     anomaly: Anomaly | null,
     nudgeList: NudgeEntry[] | null,
     commit: Commit | null,
-    displayFileLinks: boolean,
     tooltipFixed: boolean,
     closeButtonAction: () => void
   ): void {
@@ -397,10 +391,6 @@ export class ChartTooltipSk extends ElementSk {
     this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
     this.commitInfo = commit;
-
-    if (displayFileLinks && commit_position !== null && test_name !== '') {
-      this.ingestFileLinks?.load(commit_position, test_name);
-    }
 
     if (this.userIssueSk !== null) {
       this.userIssueSk.bug_id = bug_id;
@@ -451,9 +441,6 @@ export class ChartTooltipSk extends ElementSk {
 
   set commit_position(val: CommitNumber | null) {
     this._commit_position = val;
-    if (val && this.test_name !== '') {
-      this.ingestFileLinks?.load(val, this.test_name);
-    }
     this._render();
   }
 
