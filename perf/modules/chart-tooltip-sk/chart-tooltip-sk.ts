@@ -27,6 +27,7 @@ import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
+import { PointLinksSk } from '../point-links-sk/point-links-sk';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -147,6 +148,11 @@ export class ChartTooltipSk extends ElementSk {
 
   private containerDiv = createRef<HTMLDivElement>();
 
+  // Point links display commit ranges for points (ie/ V8, WebRTC) if configured
+  // for the instance. See "data_point_config" in chrome-perf-non-public.json
+  // for an example of the configuration.
+  private pointLinks: PointLinksSk | null = null;
+
   // The overall html template for outlining the contents needed in
   // chart-tooltip.
   //
@@ -180,6 +186,7 @@ export class ChartTooltipSk extends ElementSk {
           <span>${ele.commit_position}</span>
         </li>
       </ul>
+      <point-links-sk id="tooltip-point-links"></point-links-sk>
       <user-issue-sk id="tooltip-user-issue-sk"></user-issue-sk>
       <div class="revlink">
         <a href="/u/?rev=${ele.commit_position}" target="_blank">
@@ -188,7 +195,6 @@ export class ChartTooltipSk extends ElementSk {
       </div>
       <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
       <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
-      <point-links-sk id="point-links"></point-links-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
@@ -340,6 +346,7 @@ export class ChartTooltipSk extends ElementSk {
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
+    this.pointLinks = this.querySelector('#tooltip-point-links');
 
     this.addEventListener('anomaly-changed', () => {
       this._render();
@@ -400,6 +407,18 @@ export class ChartTooltipSk extends ElementSk {
     }
 
     this._render();
+  }
+
+  loadPointLinks(
+    commit_position: CommitNumber | null,
+    prev_commit_position: CommitNumber | null,
+    trace_id: string,
+    keysForCommitRange: string[]
+  ) {
+    if (commit_position === null || prev_commit_position === null) {
+      return;
+    }
+    this.pointLinks!.load(commit_position, prev_commit_position, trace_id, keysForCommitRange);
   }
 
   private unassociateBug() {

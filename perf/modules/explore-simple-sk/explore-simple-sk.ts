@@ -1158,6 +1158,14 @@ export class ExploreSimpleSk extends ElementSk {
           true
         );
 
+        const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+        tooltipElem!.loadPointLinks(
+          commitPos,
+          chart.getCommitPosition(index.row - 1),
+          chart.getTraceName(index.col),
+          window.perf.keys_for_commit_range!
+        );
+
         this.tooltipSelected = true;
       })
       .catch(errorMessage);
@@ -2261,6 +2269,13 @@ export class ExploreSimpleSk extends ElementSk {
           this.tooltipSelected = true;
 
           this.enableTooltip(detail, json.commitSlice![0], true);
+          const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+          tooltipElem!.loadPointLinks(
+            commit,
+            prevCommit,
+            detail.name,
+            window.perf.keys_for_commit_range!
+          );
         }
       })
       .catch(errorMessage);

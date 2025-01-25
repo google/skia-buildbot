@@ -25,6 +25,7 @@ sk_element(
         "//perf/modules/user-issue-sk",
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/icons/check-icon-sk",
+        "//perf/modules/point-links-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",
