@@ -18,7 +18,16 @@
  *
  * Since both the commit links are different, this module will generate a new link like below.
  *
- * <a href='https://chromium.googlesource.com/v8/v8/+log/f052b8c4..47f420e>V8 Git Hash Range</a>
+ * V8 Git Hash Range: <a href='https://chromium.googlesource.com/v8/v8/+log/f052b8c4..47f420e>f052b8c4 - 47f420e</a>
+ *
+ * @example
+ * Link in ingestion file (commit n): {'V8 Git Hash': 'https://chromium.googlesource.com/v8/v8/+/47f420e89ec1b33dacc048d93e0317ab7fec43dd'}
+ * Link in ingestion file (commit n-1): {'V8 Git Hash': 'https://chromium.googlesource.com/v8/v8/+/47f420e89ec1b33dacc048d93e0317ab7fec43dd'}
+ *
+ * Since both the commit links are the same, this module will use the link that points to the commit.
+ * It will not provide a link to the list view since it'll just be empty.
+ *
+ * V8 Git Hash Range: <a href='https://chromium.googlesource.com/v8/v8/+/47f420e89ec1b33dacc048d93e0317ab7fec43dd>47f420e - 47f420e</a>
  */
 import { TemplateResult, html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
@@ -83,18 +92,22 @@ export class PointLinksSk extends ElementSk {
           const prevCommitUrl = prevLinks[key];
           const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 7);
           const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 7);
+
+          const displayKey = `${key} Range`;
+          this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
+            prevCommitId,
+            currentCommitId
+          );
+
+          // The links should be different depending on whether the
+          // commits are the same. If the commits are the same, simply point to
+          // the commit. If they're not, point to the log list.
           if (currentCommitId === prevCommitId) {
-            this.displayUrls[key] = currentCommitUrl;
-            this.displayTexts[key] = currentCommitId;
+            this.displayUrls[displayKey] = currentCommitUrl;
           } else {
             const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
             const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
-            const displayKey = `${key} Range`;
             this.displayUrls[displayKey] = commitRangeUrl;
-            this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
-              prevCommitId,
-              currentCommitId
-            );
           }
         }
       });

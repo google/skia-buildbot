@@ -29,18 +29,22 @@ describe('point-links-sk', () => {
 
     it('With all eligible links but no range.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
-      const expectedLinks = {
+      const returnLinks = {
         key1: 'https://commit/link1',
         key2: 'https://commit/link2',
       };
       fetchMock.post('/_/details/?results=false', {
         version: 1,
-        links: expectedLinks,
+        links: returnLinks,
       });
 
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
+      const expectedLinks = {
+        'key1 Range': 'https://commit/link1',
+        'key2 Range': 'https://commit/link2',
+      };
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
@@ -113,7 +117,7 @@ describe('point-links-sk', () => {
 
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
-        key1: 'https://repoHost/repo1/+/curLink',
+        'key1 Range': 'https://repoHost/repo1/+/curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);

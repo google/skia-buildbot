@@ -13,7 +13,7 @@ describe('point-links-sk', () => {
   });
 
   it('should render the demo page (smoke test)', async () => {
-    expect(await testBed.page.$$('point-links-sk')).to.have.length(1);
+    expect(await testBed.page.$$('point-links-sk')).to.have.length(2);
   });
 
   describe('screenshots', () => {

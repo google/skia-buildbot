@@ -22,14 +22,22 @@ fetchMock.post('/_/details/?results=false', (_url, request) => {
             'https://chromium.googlesource.com/v8/v8/+/f052b8c4db1f08d1f8275351c047854e6ff1805f',
         },
       };
+    case 10:
+      return {
+        version: 1,
+        links: {
+          'V8 Git Hash':
+            'https://chromium.googlesource.com/v8/v8/+/f052b8c4db1f08d1f8275351c047854e6ff1805f',
+        },
+      };
     default:
       return {};
   }
 });
 
 window.customElements.whenDefined('point-links-sk').then(() => {
-  const sources = document.querySelectorAll<PointLinksSk>('point-links-sk')!;
-  sources.forEach((source) => {
-    source.load(CommitNumber(12), CommitNumber(11), 'foo', ['V8 Git Hash']);
-  });
+  const links1 = document.getElementById('different-commits') as PointLinksSk;
+  const links2 = document.getElementById('same-commits') as PointLinksSk;
+  links1.load(CommitNumber(12), CommitNumber(11), 'foo', ['V8 Git Hash']);
+  links2.load(CommitNumber(10), CommitNumber(11), 'foo', ['V8 Git Hash']);
 });
