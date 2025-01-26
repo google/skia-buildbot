@@ -145,7 +145,7 @@ export class SidePanelSk extends LitElement {
                 <label>
                   <input
                     type="checkbox"
-                    id="id-${index % item.length}"
+                    id="id-${index}"
                     .defaultChecked=${true}
                     .checked=${true}
                     @click=${handleCheck}
@@ -167,14 +167,12 @@ export class SidePanelSk extends LitElement {
   private toggleAllCheckboxes() {
     const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
     const checked = headerCheckbox.checked;
-    this.getLegend().map((item, index) => {
-      const checkbox = this.renderRoot.querySelector(
-        `#id-${index % item.length}`
-      ) as HTMLInputElement;
+    for (let index = 0; index < this.getLegend().length; index++) {
+      const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
       if (checkbox) {
         checkbox.checked = checked;
       }
-    });
+    }
     this.checkboxDispatchHandler(checked, this.getLegend());
   }
 

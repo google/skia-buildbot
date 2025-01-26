@@ -15,6 +15,9 @@ export const labelKeys = [
   'subtest_1',
   'subtest_2',
   'subtest_3',
+  'subtest_4',
+  'subtest_5',
+  'subtest_6',
 ];
 /**
  * getAttributes extracts the attributes from the traceKeys
@@ -131,7 +134,7 @@ export const getLegend = (dt: DataTable): object[] => {
   // Get all unique keys from the objects in the array
   const allKeys = new Set(uniqKVP.flatMap(Object.keys));
 
-  // Fill in missing or blank keys with "-"
+  // Fill in missing or blank keys in the map with empty string
   const legend = uniqKVP.map((obj) => {
     const newObj: { [key: string]: string } = {};
     Array.from(allKeys)
@@ -238,14 +241,15 @@ export function updateTraceByLegend(
   return null;
 }
 
+// TODO(b/392185167) refactor the method to be more flexible
 /**
  * Find the last subtest value from an object label from Google chart
  * @param a special function key like norm(,a=A,b=B,c=C,)
  * @example
  * Input: google chart label e.g ",benchmark=JetStream2,story=Total,test=avg,subtest_1=test1,"
  * Output: "test1"
- * @returns the last subtest value. Return subtest_3 if exists, else if return subtest_2 if exists,
- * else return subtest_1 if exists.
+ * @returns the last subtest value. Return subtest_6 if exists, else if return subtest_5 if exists,
+ * else return subtest_4 if exists, until we found the last subtest and return the value.
  */
 export function getlastLabel(label: string): string {
   const temp = removeSpecialFunctions(label).split(',');
@@ -254,15 +258,11 @@ export function getlastLabel(label: string): string {
   trimmed.forEach((pair) => {
     if (pair.startsWith('subtest')) {
       const keyValue = pair.split('=');
-      // if the key name is subtest_3
-      if (keyValue[0] === labelKeys.at(labelKeys.length - 1)) {
-        lastKeyValue = keyValue[1];
-        // if the key name is subtest_2
-      } else if (keyValue[0] === labelKeys.at(labelKeys.length - 2)) {
-        lastKeyValue = keyValue[1];
-        // if the key name is subtest_1
-      } else if (keyValue[0] === labelKeys.at(labelKeys.length - 3)) {
-        lastKeyValue = keyValue[1];
+      for (let i = labelKeys.length - 1; i >= 0; i--) {
+        if (keyValue[0] === labelKeys.at(i)) {
+          lastKeyValue = keyValue[1];
+          break;
+        }
       }
     }
   });
