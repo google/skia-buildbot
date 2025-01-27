@@ -13,7 +13,7 @@ be created in the respective projects mentioned below.
 
 This is the bucket where Skia formatted JSONs are to be uploaded to trigger their ingestion.
 These buckets live in the skia-public project. To create a new bucket, update [this
-terraform file](go/skia-perf-buckets)
+terraform file](http://go/skia-perf-buckets)
 
 Determine which service account will be writing the input files into this bucket and provide
 that account with `objectAdmins` permission.
