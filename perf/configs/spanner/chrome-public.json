@@ -93,6 +93,18 @@
             "showZero": "false",
             "enable_chart_tooltip": "true",
             "use_titles": "true"
+        },
+        "cache_config": {
+            "type": "redis",
+            "level1_cache_key": "benchmark",
+            "level2_cache_key": "bot",
+            "enabled": true
+        },
+        "redis_config": {
+            "project": "skia-infra-public",
+            "zone": "us-central1",
+            "instance": "chrome-public",
+            "cache_expiration_minutes": 300
         }
     },
     "trace_format": "chrome",
