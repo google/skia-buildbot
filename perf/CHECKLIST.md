@@ -24,15 +24,52 @@ Once created, it's recommended to create a folder specifically for ingestion e.g
 ## 2. Create new database.
 
 This needs to be done from a machine on corp and also requires
-[breakglass](https://grants.corp.google.com/#/grants) to the `skia-infra-breakglass-policy` group.
-Note that there is a different connect script for each cluster.
+[breakglass](https://grants.corp.google.com/#/grants) to the `skia-infra-breakglass-policy` group,
 
-Note: if you're creating a Googler-only instance, use `skia-infra-corp` instead
-of `skia-infra-public`.
+or
+
+```
+grants add --wait_for_twosync --reason="b/377530262 -- <Reason for elevating>" \
+skia-infra-breakglass-policy:2h
+```
+
+Note that there is a different connect script for each cluster.
 
 **Spanner**
 
+Note:
+
+The gcp project to use in skia perf are listed below.
+
+- For a Googler-only instance, use `skia-infra-corp`.
+- For a public instance, use `skia-infra-public`.
+
+Also, the instruction in spanner documentation asks to run script to breakglass
+again, you could ignore that step.
+
 Navigate to the Spanner instance in the GCP project chosen above and follow the instructions in [the spanner documentation](./Spanner.md) to create the database.
+
+Apply the schema to the database. The schema is located
+at `//perf/go/sql/spanner/schema_spanner.go.`
+
+## 3. Create the PubSub topic and subscription for ingestion.
+
+This creates the topic and subscription. Executes it from //perf folder.
+
+Note
+
+- If you just create a new database, you may need a new json file such as
+  `chrome-internal-experiment.json`.
+
+```
+go run ./go/perf-tool config create-pubsub-topics-and-subscriptions \
+  --config_filename=./configs/spanner/chrome-internal-experiment.json
+```
+
+## 4. Check in the new config file.
+
+Create a cl to check in the config json file from step #3. Note that
+`start_commit` field is used to define the starting point of k8s workflow.
 
 **CockroachDB Only**
 
@@ -81,16 +118,27 @@ Run the below cmd from the **perf** directory.
 
 ## 5. Create the PubSub topic and subscription for ingestion.
 
-This creates the topic and subscription.
+This creates the topic and subscription. Execute it from //perf folder.
+
+Note
+
+- If you just create a new database, you may need a new json file.
+- perf-tool exists at //perf/go/perf-tool.
 
 ```
-perf-tool config create-pubsub-topics-and-subscriptions --config_filename=./configs/angle.json
+go run ./go/perf-tool config create-pubsub-topics-and-subscriptions \
+  --config_filename=./configs/angle.json
 ```
+
+**Spanner and CockroachDB**
 
 ## 6. Configure GCS to emit PubSub Events:
 
 This configures the GCS bucket/directory to send PubSub events to that topic
-when new files arrive. Update the variable values based on the output of the above step:
+when new files arrive. Update the variable values based on the content of the json file.
+
+For DIRECTORY, it should match with the name specified in the json file as part of the
+`gs://<bucket name>/<DIRECTORY>`.
 
 ```
 #/bin/bash
@@ -104,7 +152,7 @@ TOPIC=perf-ingestion-flutter-flutter2
 DIRECTORY=flutter-flutter
 BUCKET=gs://flutter-skia-perf-prod
 
-gsutil notification create -f json -e OBJECT_FINALIZE -t projects/${PROJECT_ID}/topics/${TOPIC}
+gsutil notification create -f json -e OBJECT_FINALIZE -t projects/${PROJECT_ID}/topics/${TOPIC} \
 -p ${DIRECTORY} ${BUCKET}
 ```
 
@@ -128,7 +176,8 @@ auth-proxy roster so that it can access secrets in the GCP project. Create a CL 
 
 ## 8. Bind the GCP service account to a Kubernetes service account in the cluster
 
-In `k8s-config` repo, create a CL with a `*-sa.yaml` file which points to the service account created in step 7:
+In [`k8s-config`](https://skia.googlesource.com/k8s-config/+/refs/heads/main/) repo, create a CL
+with a `*-sa.yaml` file which points to the service account created in step 7:
 
 ```
 apiVersion: v1
