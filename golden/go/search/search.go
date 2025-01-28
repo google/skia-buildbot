@@ -228,6 +228,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 // SetDatabaseType sets the database type for the current configuration.
 func (s *Impl) SetDatabaseType(dbType config.DatabaseType) {
 	s.dbType = dbType
+	s.traceDigestsProvider.SetDatabaseType(dbType)
 }
 
 // SetReviewSystemTemplates sets the URL templates that are used to link to the code review system.
@@ -842,6 +843,20 @@ ComparisonBetweenUntriagedAndObserved AS (
 	SELECT DiffMetrics.* FROM DiffMetrics
 	WHERE left_digest = ANY($2) AND right_digest = ANY($3)
 )
+`
+	if s.dbType == config.Spanner {
+		statement += `
+		-- This will return the right_digest with the smallest combined_metric for each left_digest + label
+		SELECT label, left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
+  combined_metric, dimensions_differ
+FROM
+  ComparisonBetweenUntriagedAndObserved
+JOIN PositiveOrNegativeDigests
+  ON ComparisonBetweenUntriagedAndObserved.right_digest = PositiveOrNegativeDigests.digest
+ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
+		`
+	} else {
+		statement += `
 -- This will return the right_digest with the smallest combined_metric for each left_digest + label
 SELECT DISTINCT ON (left_digest, label)
   label, left_digest, right_digest, num_pixels_diff, percent_pixels_diff, max_rgba_diffs,
@@ -852,6 +867,7 @@ JOIN PositiveOrNegativeDigests
   ON ComparisonBetweenUntriagedAndObserved.right_digest = PositiveOrNegativeDigests.digest
 ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_digest ASC
 `
+	}
 
 	rows, err := s.db.Query(ctx, statement, groupingID[:], leftDigests, digestsInGrouping)
 	if err != nil {
@@ -1035,10 +1051,16 @@ func (s *Impl) addRightTraces(ctx context.Context, inputs []digestAndClosestDiff
 		rightDigests := input.rightDigests
 		totalDigests += len(input.rightDigests)
 		eg.Go(func() error {
-			const statement = `SELECT DISTINCT encode(digest, 'hex') AS digest, trace_id
+			statement := `SELECT DISTINCT encode(digest, 'hex') AS digest, trace_id
 FROM TiledTraceDigests@grouping_digest_idx
 WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
 `
+			if s.dbType == config.Spanner {
+				statement = `SELECT DISTINCT digest, trace_id
+FROM TiledTraceDigests
+WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
+`
+			}
 			rows, err := s.db.Query(eCtx, statement, rightDigests, groupingID, common.GetFirstTileID(ctx))
 			if err != nil {
 				return skerr.Wrap(err)
@@ -1052,9 +1074,18 @@ WHERE digest = ANY($1) AND grouping_id = $2 AND tile_id >= $3
 			for rows.Next() {
 				var digest types.Digest
 				var traceID schema.TraceID
-				if err := rows.Scan(&digest, &traceID); err != nil {
-					return skerr.Wrap(err)
+				if s.dbType == config.Spanner {
+					var digestBytes []byte
+					if err := rows.Scan(&digestBytes, &traceID); err != nil {
+						return skerr.Wrap(err)
+					}
+					digest = types.Digest(hex.EncodeToString(digestBytes))
+				} else {
+					if err := rows.Scan(&digest, &traceID); err != nil {
+						return skerr.Wrap(err)
+					}
 				}
+
 				if s.publiclyVisibleTraces != nil {
 					copy(traceKey[:], traceID)
 					if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
@@ -1308,9 +1339,14 @@ func (s *Impl) traceGroupForTraces(ctx context.Context, traceIDs []schema.TraceI
 			traceData[key] = append(traceData[key], traceDigestCommit{optionsID: latestOptions[i]})
 		}
 	}
-	const statement = `SELECT trace_id, commit_id, encode(digest, 'hex'), options_id
+	statement := `SELECT trace_id, commit_id, encode(digest, 'hex'), options_id
 FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
 ORDER BY trace_id, commit_id`
+	if s.dbType == config.Spanner {
+		statement = `SELECT trace_id, commit_id, digest, options_id
+FROM TraceValues WHERE trace_id = ANY($1) AND commit_id >= $2
+ORDER BY trace_id, commit_id`
+	}
 	rows, err := s.db.Query(ctx, statement, traceIDs, common.GetFirstCommitID(ctx))
 	if err != nil {
 		return frontend.TraceGroup{}, skerr.Wrap(err)
@@ -1320,8 +1356,16 @@ ORDER BY trace_id, commit_id`
 	var traceID schema.TraceID
 	for rows.Next() {
 		var row traceDigestCommit
-		if err := rows.Scan(&traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
-			return frontend.TraceGroup{}, skerr.Wrap(err)
+		if s.dbType == config.Spanner {
+			var digest []byte
+			if err := rows.Scan(&traceID, &row.commitID, &digest, &row.optionsID); err != nil {
+				return frontend.TraceGroup{}, skerr.Wrap(err)
+			}
+			row.digest = types.Digest(hex.EncodeToString(digest))
+		} else {
+			if err := rows.Scan(&traceID, &row.commitID, &row.digest, &row.optionsID); err != nil {
+				return frontend.TraceGroup{}, skerr.Wrap(err)
+			}
 		}
 		copy(key[:], traceID)
 		traceData[key] = append(traceData[key], row)
@@ -1347,6 +1391,11 @@ func (s *Impl) fillInExpectations(ctx context.Context, tg *frontend.TraceGroup, 
 	statement := `
 SELECT encode(digest, 'hex'), label FROM Expectations
 WHERE grouping_id = $1 and digest = ANY($2)`
+	if s.dbType == config.Spanner {
+		statement = `
+SELECT digest, label FROM Expectations
+WHERE grouping_id = $1 and digest = ANY($2)`
+	}
 	if qCLID := common.GetQualifiedCL(ctx); qCLID != "" {
 		// We use a full outer join to make sure we have the triage status from both tables
 		// (with the CL expectations winning if triaged in both places)
@@ -1359,11 +1408,19 @@ CLExpectations AS (
 PrimaryExpectations AS (
 	SELECT digest, label FROM Expectations
 	WHERE grouping_id = $1 AND digest = ANY($2)
-)
-SELECT encode(COALESCE(CLExpectations.digest, PrimaryExpectations.digest), 'hex'),
+)`
+		if s.dbType == config.Spanner {
+			statement += `SELECT COALESCE(CLExpectations.digest, PrimaryExpectations.digest),
+			COALESCE(CLExpectations.label, COALESCE(PrimaryExpectations.label, 'u')) FROM
+		CLExpectations FULL OUTER JOIN PrimaryExpectations ON
+			CLExpectations.digest = PrimaryExpectations.digest`
+		} else {
+			statement += `SELECT encode(COALESCE(CLExpectations.digest, PrimaryExpectations.digest), 'hex'),
 	COALESCE(CLExpectations.label, COALESCE(PrimaryExpectations.label, 'u')) FROM
 CLExpectations FULL OUTER JOIN PrimaryExpectations ON
 	CLExpectations.digest = PrimaryExpectations.digest`
+		}
+
 		arguments = append(arguments, qCLID)
 	}
 	rows, err := s.db.Query(ctx, statement, arguments...)
@@ -1374,9 +1431,18 @@ CLExpectations FULL OUTER JOIN PrimaryExpectations ON
 	for rows.Next() {
 		var digest types.Digest
 		var label schema.ExpectationLabel
-		if err := rows.Scan(&digest, &label); err != nil {
-			return skerr.Wrap(err)
+		if s.dbType == config.Spanner {
+			var digestBytes []byte
+			if err := rows.Scan(&digestBytes, &label); err != nil {
+				return skerr.Wrap(err)
+			}
+			digest = types.Digest(hex.EncodeToString(digestBytes))
+		} else {
+			if err := rows.Scan(&digest, &label); err != nil {
+				return skerr.Wrap(err)
+			}
 		}
+
 		for i, ds := range tg.Digests {
 			if ds.Digest == digest {
 				tg.Digests[i].Status = label.ToExpectation()

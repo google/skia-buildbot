@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/search/caching"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/sql"
@@ -24,6 +25,7 @@ type TraceDigestsProvider struct {
 	materializedViewProvider *MaterializedViewProvider
 	cacheManager             *caching.SearchCacheManager
 	mutex                    sync.RWMutex
+	dbType                   config.DatabaseType
 
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
@@ -38,6 +40,11 @@ func NewTraceDigestsProvider(db *pgxpool.Pool, windowLength int, materializedVie
 		materializedViewProvider: materializedViewProvider,
 		cacheManager:             cacheManager,
 	}
+}
+
+// SetDatabaseType sets the database type for the current configuration.
+func (s *TraceDigestsProvider) SetDatabaseType(dbType config.DatabaseType) {
+	s.dbType = dbType
 }
 
 // SetPublicTraces sets the given traces as the publicly visible ones.
@@ -144,9 +151,13 @@ func (s *TraceDigestsProvider) GetTracesForGroupingAndDigest(ctx context.Context
 		return nil, skerr.Wrap(err)
 	}
 
-	const statement = `SELECT trace_id FROM TiledTraceDigests@grouping_digest_idx
+	tableName := "TiledTraceDigests@grouping_digest_idx"
+	if s.dbType == config.Spanner {
+		tableName = "TiledTraceDigests"
+	}
+	statement := fmt.Sprintf(`SELECT trace_id FROM %s
 WHERE tile_id >= $1 AND grouping_id = $2 AND digest = $3
-`
+`, tableName)
 	rows, err := s.db.Query(ctx, statement, common.GetFirstTileID(ctx), groupingID, digestBytes)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -226,6 +237,7 @@ WHERE branch_name = $1 AND grouping_id = $2 AND digest = $3`
 func (s *TraceDigestsProvider) matchingTracesStatement(ctx context.Context) (string, []interface{}) {
 	var keyFilters []common.FilterSets
 	q := common.GetQuery(ctx)
+	isSpanner := s.dbType == config.Spanner
 	for key, values := range q.TraceValues {
 		if key == types.CorpusField {
 			continue
@@ -258,7 +270,7 @@ MatchingTraces AS (
 )`, args
 		}
 		if materializedView != "" && !q.IncludeIgnoredTraces {
-			return JoinedTracesStatement(keyFilters, corpus) + `
+			return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
 MatchingTraces AS (
 	SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
 	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
@@ -266,7 +278,7 @@ MatchingTraces AS (
 		}
 		// Corpus is being used as a JSONB value here
 		args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses}
-		return JoinedTracesStatement(keyFilters, corpus) + `
+		return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
 MatchingTraces AS (
 	SELECT ValuesAtHead.trace_id, grouping_id, digest FROM ValuesAtHead
 	JOIN JoinedTraces ON ValuesAtHead.trace_id = JoinedTraces.trace_id
@@ -303,7 +315,7 @@ MatchingTraces AS (
 		}
 		if materializedView != "" && !q.IncludeIgnoredTraces {
 			args := []interface{}{common.GetFirstTileID(ctx)}
-			return JoinedTracesStatement(keyFilters, corpus) + `
+			return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
 TracesOfInterest AS (
 	SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
 	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
@@ -317,7 +329,7 @@ MatchingTraces AS (
 		}
 		// Corpus is being used as a JSONB value here
 		args := []interface{}{common.GetFirstTileID(ctx), ignoreStatuses}
-		return JoinedTracesStatement(keyFilters, corpus) + `
+		return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
 TracesOfInterest AS (
 	SELECT Traces.trace_id, grouping_id FROM Traces
 	JOIN JoinedTraces ON Traces.trace_id = JoinedTraces.trace_id
@@ -340,7 +352,7 @@ MatchingTraces AS (
 // by using the inverted key index. The keys and values are hardcoded into the string instead
 // of being passed in as arguments because kjlubick@ was not able to use the placeholder values
 // to compare JSONB types removed from a JSONB object to a string while still using the indexes.
-func JoinedTracesStatement(filters []common.FilterSets, corpus string) string {
+func JoinedTracesStatement(filters []common.FilterSets, corpus string, isSpanner bool) string {
 	statement := ""
 	for i, filter := range filters {
 		statement += fmt.Sprintf("U%d AS (\n", i)
@@ -348,7 +360,12 @@ func JoinedTracesStatement(filters []common.FilterSets, corpus string) string {
 			if j != 0 {
 				statement += "\tUNION\n"
 			}
-			statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", filter.Key, sql.Sanitize(value))
+			if isSpanner {
+				statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys ->> '%s' = '%s'\n", filter.Key, sql.Sanitize(value))
+			} else {
+				statement += fmt.Sprintf("\tSELECT trace_id FROM Traces WHERE keys -> '%s' = '%q'\n", filter.Key, sql.Sanitize(value))
+			}
+
 		}
 		statement += "),\n"
 	}
@@ -358,6 +375,11 @@ func JoinedTracesStatement(filters []common.FilterSets, corpus string) string {
 	}
 	// Include a final intersect for the corpus. The calling logic will make sure a JSONB value
 	// (i.e. a quoted string) is in the arguments slice.
-	statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = '\"" + corpus + "\"'\n),\n"
+	if isSpanner {
+		statement += "\tSELECT trace_id FROM Traces where keys ->> 'source_type' = '" + corpus + "'\n),\n"
+	} else {
+		statement += "\tSELECT trace_id FROM Traces where keys -> 'source_type' = '\"" + corpus + "\"'\n),\n"
+	}
+
 	return statement
 }

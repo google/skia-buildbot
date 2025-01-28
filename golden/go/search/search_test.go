@@ -2413,7 +2413,7 @@ func TestJoinedTracesStatement_Success(t *testing.T) {
 
 	statement := providers.JoinedTracesStatement([]common.FilterSets{
 		{Key: "key1", Values: []string{"alpha", "beta"}},
-	}, "my_corpus")
+	}, "my_corpus", false)
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
@@ -2431,7 +2431,7 @@ JoinedTraces AS (
 		{Key: "key1", Values: []string{"alpha", "beta"}},
 		{Key: "key2", Values: []string{"gamma"}},
 		{Key: "key3", Values: []string{"delta", "epsilon", "zeta"}},
-	}, "other_corpus")
+	}, "other_corpus", false)
 	expectedCondition = `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
@@ -2465,7 +2465,7 @@ func TestJoinedTracesStatement_RemovesBadSQLCharacters(t *testing.T) {
 	statement := providers.JoinedTracesStatement([]common.FilterSets{
 		{Key: "key1", Values: []string{"alpha", `beta"' OR 1=1`}},
 		{Key: `key2'='""' OR 1=1`, Values: []string{"1"}}, // invalid keys are removed entirely.
-	}, "some thing")
+	}, "some thing", false)
 	expectedCondition := `U0 AS (
 	SELECT trace_id FROM Traces WHERE keys -> 'key1' = '"alpha"'
 	UNION
