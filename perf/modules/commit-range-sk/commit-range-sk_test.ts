@@ -57,17 +57,14 @@ describe('commit-range-sk', () => {
       // eslint-disable-next-line dot-notation
       element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
         assert.deepEqual(cids, [64809, 64811]);
-        return [
-          '1111111111111111111111111111111111111111',
-          '3333333333333333333333333333333333333333',
-        ];
+        return ['11111111111111111111111111111', '33333333333333333333333333333'];
       };
       // The MISSING_DATA_SENTINEL should be skipped.
       element.trace = [12, MISSING_DATA_SENTINEL, 13];
       await element.recalcLink();
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
-        'http://example.com/range/1111111111111111111111111111111111111111/3333333333333333333333333333333333333333'
+        'http://example.com/range/11111111111111111111111111111%5E1/33333333333333333333333333333'
       );
     });
   });
@@ -77,16 +74,13 @@ describe('commit-range-sk', () => {
       // There were no commits to skip, so return the two consecutive hashes.
       assert.deepEqual(cids, [64810, 64811]);
 
-      return [
-        '1111111111111111111111111111111111111111',
-        '2222222222222222222222222222222222222222',
-      ];
+      return ['11111111111111111111111111111', '22222222222222222222222222222'];
     };
     element.trace = [11, 12, 13];
     await element.recalcLink();
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
-      'http://example.com/range/1111111111111111111111111111111111111111/2222222222222222222222222222222222222222'
+      'http://example.com/range/11111111111111111111111111111%5E1/22222222222222222222222222222'
     );
   });
 });

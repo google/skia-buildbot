@@ -94,7 +94,7 @@ export class CommitRangeSk extends ElementSk {
       const hashes = await this.commitNumberToHashes(cids);
       // Create the URL.
       let url = window.perf.commit_range_url;
-      url = url.replace('{begin}', hashes[0]);
+      url = url.replace('{begin}', hashes[0] + '^1');
       url = url.replace('{end}', hashes[1]);
 
       // Now populate link, including text and url.
@@ -108,21 +108,41 @@ export class CommitRangeSk extends ElementSk {
   }
 
   /** A single trace. */
+  get trace(): number[] {
+    return this._trace;
+  }
+
   set trace(val: number[]) {
     this._trace = val;
     this.recalcLink();
   }
 
   /** An index into trace, the location of the commit being referenced. */
+  get commitIndex(): number {
+    return this._commitIndex;
+  }
+
   set commitIndex(val: number) {
     this._commitIndex = val;
     this.recalcLink();
   }
 
   /** The ColumnHeader of the DataFrame that contains the trace. */
+  get header(): (ColumnHeader | null)[] | null {
+    return this._header;
+  }
+
   set header(val: (ColumnHeader | null)[] | null) {
     this._header = val;
     this.recalcLink();
+  }
+
+  get url(): string {
+    return this._url;
+  }
+
+  get text(): string {
+    return this._text;
   }
 }
 

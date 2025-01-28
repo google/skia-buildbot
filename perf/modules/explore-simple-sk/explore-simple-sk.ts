@@ -987,8 +987,8 @@ export class ExploreSimpleSk extends ElementSk {
 
     <div>
       <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
-      <commit-range-sk id="commit-range-link"></commit-range-sk>
-      <point-links-sk id="point-links"></point-links-sk>
+      <commit-range-sk id="commit-range-link" hidden="true"></commit-range-sk>
+      <point-links-sk id="point-links" hidden="true"></point-links-sk>
       <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
     </div>
 
@@ -1215,7 +1215,7 @@ export class ExploreSimpleSk extends ElementSk {
         name: chart.getTraceName(index.col),
       },
       commit,
-      true
+      false
     );
   }
 
@@ -2083,6 +2083,7 @@ export class ExploreSimpleSk extends ElementSk {
       nudgeList,
       commit,
       fixTooltip,
+      fixTooltip ? this.commitRangeSk : null,
       closeBtnAction
     );
   }

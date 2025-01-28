@@ -186,15 +186,18 @@ export class ChartTooltipSk extends ElementSk {
           <span>${ele.commit_position}</span>
         </li>
       </ul>
-      <point-links-sk id="tooltip-point-links"></point-links-sk>
-      <user-issue-sk id="tooltip-user-issue-sk"></user-issue-sk>
+
+      <commit-range-sk
+        id="tooltip-commit-range-link"
+        ?hidden=${!ele._tooltip_fixed}></commit-range-sk>
+      <point-links-sk id="tooltip-point-links" ?hidden=${!ele._tooltip_fixed}></point-links-sk>
+      <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${!ele._tooltip_fixed}></user-issue-sk>
       <div class="revlink">
         <a href="/u/?rev=${ele.commit_position}" target="_blank">
           Regressions at ${ele.commit_position}
         </a>
       </div>
       <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
-      <commit-range-sk id="tooltip-commit-range-sk"></commit-range-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
@@ -343,7 +346,7 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'bug_id');
     this._render();
 
-    this.commitRangeSk = this.querySelector('#tooltip-commit-range-sk');
+    this.commitRangeSk = this.querySelector('#tooltip-commit-range-link');
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
     this.pointLinks = this.querySelector('#tooltip-point-links');
@@ -386,6 +389,7 @@ export class ChartTooltipSk extends ElementSk {
     nudgeList: NudgeEntry[] | null,
     commit: Commit | null,
     tooltipFixed: boolean,
+    commitRange: CommitRangeSk | null,
     closeButtonAction: () => void
   ): void {
     this._test_name = test_name;
@@ -398,6 +402,12 @@ export class ChartTooltipSk extends ElementSk {
     this._tooltip_fixed = tooltipFixed;
     this._close_button_action = closeButtonAction;
     this.commitInfo = commit;
+
+    if (commitRange && this.commitRangeSk) {
+      this.commitRangeSk.header = commitRange.header;
+      this.commitRangeSk.trace = commitRange.trace;
+      this.commitRangeSk.commitIndex = commitRange.commitIndex;
+    }
 
     if (this.userIssueSk !== null) {
       this.userIssueSk.bug_id = bug_id;

@@ -85,6 +85,7 @@ describe('chart-tooltip-sk', () => {
         null,
         null,
         false,
+        null,
         () => {}
       );
       assert.equal(element.test_name, test_name);
@@ -104,6 +105,7 @@ describe('chart-tooltip-sk', () => {
         null,
         null,
         false,
+        null,
         () => {}
       );
       assert.equal(element.test_name, test_name);
