@@ -14,6 +14,8 @@ sk_element(
         "//skottie/modules/skottie-compatibility-sk/schemas:lottie.schema_ts_lib",
         "//skottie/modules/skottie-compatibility-sk/schemas:low-power-lottie-profile.schema_ts_lib",
         ":profile-validator_ts_lib",
+        "//:node_modules/ajv",
+        "//:node_modules/@lottie-animation-community/lottie-specs",
     ],
     ts_srcs = [
         "index.ts",
