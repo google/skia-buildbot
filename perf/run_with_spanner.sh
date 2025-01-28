@@ -14,6 +14,11 @@ do
     export "$argKey"="$val"
 done
 
+
+# Potentially incorporate into args if using different instances.
+domain="chromium.googlesource.com"
+repo="chromium/src"
+
 echo "Using the following params: -p=$p -i=$i -d=$d -config=$config"
 
 # Now let's run pgadapter connected to the supplied spanner database.
@@ -34,4 +39,5 @@ bazelisk build --config=mayberemote -c dbg //perf/...
 		--display_group_by=false \
         --disable_metrics_update=true \
 		--resources_dir=../_bazel_bin/perf/pages/development/ \
-		--connection_string=postgresql://root@127.0.0.1:5432/${d}?sslmode=disable
+		--connection_string=postgresql://root@127.0.0.1:5432/${d}?sslmode=disable \
+		--commit_range_url=https://${domain}/${repo}/+log/{begin}..{end}
