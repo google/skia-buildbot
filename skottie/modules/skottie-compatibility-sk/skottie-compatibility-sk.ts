@@ -6,6 +6,10 @@
  *   A skottie compatibility report. Reports the input lottie with various
  * JSON schemas.
  * </p>
+ *
+ *  * @evt updateAnimation - This event is generated when the user updates
+ *         a slot value.
+ *         The updated json is available in the event detail.
  */
 import Ajv from 'ajv/dist/2020';
 import { html, TemplateResult } from 'lit/html.js';
@@ -21,6 +25,7 @@ import {
   LottieValidator,
   LottieValidatorError,
 } from '@lottie-animation-community/lottie-specs/src/validator';
+import { sanitizeLottie } from './sanitize';
 
 type SchemaEntry = {
   name: string;
@@ -174,6 +179,18 @@ export class SkottieCompatibilitySk extends ElementSk {
         official Lottie specification. Exporter tools and playback libraries may still support these
         without any issues.
       </div>
+      <div>
+        <skottie-button-sk
+          id="sanitize"
+          @select=${() => ele.onSanitize(ele)}
+          type="filled"
+          .content=${'Sanitize Lottie'}>
+        </skottie-button-sk>
+        <div>
+          (Sanitization removes common exporter fields that are not yet specificied and shouldn't
+          affect playback.)
+        </div>
+      </div>
       ${SkottieCompatibilitySk.specReport(ele, typeSelector)}
     `;
   }
@@ -227,6 +244,23 @@ export class SkottieCompatibilitySk extends ElementSk {
       )}
     </table>`;
   };
+
+  private onSanitize(ele: SkottieCompatibilitySk): void {
+    // Shallow clone to trigger re-render
+    const lottie = { ...ele._animation } as LottieAnimation;
+    sanitizeLottie(lottie);
+
+    if (!lottie) {
+      return;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent<LottieAnimation>('updateAnimation', {
+        detail: lottie,
+      })
+    );
+    this._render();
+  }
 
   set animation(val: LottieAnimation) {
     if (this._animation !== val) {

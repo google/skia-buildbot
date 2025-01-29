@@ -398,7 +398,10 @@ export class SkottieSk extends ElementSk {
           <span>Compatibility Report</span>
           <button @click=${this.toggleCompatibilityReport}>Close</button>
         </div>
-        <skottie-compatibility-sk .animation=${this.state.lottie}> </skottie-compatibility-sk>
+        <skottie-compatibility-sk
+          .animation=${this.state.lottie}
+          @updateAnimation=${this.updateAnimation}>
+        </skottie-compatibility-sk>
       </dialog>
     `;
   }
