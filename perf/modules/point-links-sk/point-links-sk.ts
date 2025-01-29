@@ -64,7 +64,7 @@ export class PointLinksSk extends ElementSk {
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
       const linkText = this.displayTexts[key];
-      return html`<li>${key}: <a href="${link}"> ${linkText}</a></li>`;
+      return html`<li>${key}: <a href="${link}" target="_blank"> ${linkText}</a></li>`;
     };
     return keys.map(getHtml);
   }
@@ -106,7 +106,7 @@ export class PointLinksSk extends ElementSk {
             this.displayUrls[displayKey] = currentCommitUrl;
           } else {
             const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
-            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
+            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}~..${currentCommitId}`;
             this.displayUrls[displayKey] = commitRangeUrl;
           }
         }

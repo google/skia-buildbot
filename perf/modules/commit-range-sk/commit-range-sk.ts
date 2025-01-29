@@ -94,7 +94,7 @@ export class CommitRangeSk extends ElementSk {
       const hashes = await this.commitNumberToHashes(cids);
       // Create the URL.
       let url = window.perf.commit_range_url;
-      url = url.replace('{begin}', hashes[0] + '^1');
+      url = url.replace('{begin}', hashes[0] + '~');
       url = url.replace('{end}', hashes[1]);
 
       // Now populate link, including text and url.
