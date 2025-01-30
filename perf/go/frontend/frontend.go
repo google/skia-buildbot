@@ -895,6 +895,8 @@ func (f *Frontend) GetHandler(allowedHosts []string) http.Handler {
 	// Sheriff Config based alerts will route to regressions.html.
 	if config.Config.NewAlertsPage {
 		router.HandleFunc("/a/", f.templateHandler("regressions.html"))
+		// (b/391716594) Need an entry to set up test alerts for migration purposes.
+		router.HandleFunc("/admin/alerts/", f.templateHandler("alerts.html"))
 	} else {
 		router.HandleFunc("/a/", f.templateHandler("alerts.html"))
 		router.Get("/r2/", f.templateHandler("regressions.html"))
