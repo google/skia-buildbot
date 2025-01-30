@@ -91,6 +91,7 @@ func TestExampleSendWithHTMLFormatter_HappyPath(t *testing.T) {
 	tr := mocks.NewTransport(t)
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newHTMLMessage, newHTMLSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingHTMLMessage, missingHTMLSubject).Return(nil)
+	tr.On("UpdateRegressionNotification", testutils.AnyContext, alertForTest, newHTMLMessage, mockThreadingID).Return(nil)
 
 	ndp := mocks.NewNotificationDataProvider(t)
 	ndp.On("GetNotificationDataRegressionFound", testutils.AnyContext, mock.Anything).Return(&common.NotificationData{
@@ -111,6 +112,7 @@ func TestExampleSendWithMarkdownFormatter_HappyPath(t *testing.T) {
 	tr := mocks.NewTransport(t)
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newMarkdownMessage, newMarkdownSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingMarkdownMessage, missingMarkdownSubject).Return(nil)
+	tr.On("UpdateRegressionNotification", testutils.AnyContext, alertForTest, newMarkdownMessage, mockThreadingID).Return(nil)
 
 	f, err := NewMarkdownFormatter("", &config.NotifyConfig{})
 	require.NoError(t, err)
@@ -134,6 +136,7 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplate_HappyPath(t 
 	tr := mocks.NewTransport(t)
 	tr.On("SendNewRegression", testutils.AnyContext, alertForTest, newMarkdownMessageWithCommitRangeURLTemplate, newMarkdownSubject).Return(mockThreadingID, nil)
 	tr.On("SendRegressionMissing", testutils.AnyContext, mockThreadingID, alertForTest, missingMarkdownMessage, missingMarkdownSubject).Return(nil)
+	tr.On("UpdateRegressionNotification", testutils.AnyContext, alertForTest, newMarkdownMessageWithCommitRangeURLTemplate, mockThreadingID).Return(nil)
 
 	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{})
 	require.NoError(t, err)
@@ -172,6 +175,13 @@ func TestExampleSendWithMarkdownFormatterWithCommitRangeURLTemplateAndCustomized
 		alertForTest,
 		missingMessage,
 		missingSubject,
+	).Return(nil)
+	tr.On(
+		"UpdateRegressionNotification",
+		testutils.AnyContext,
+		alertForTest,
+		newMessage,
+		mockThreadingID,
 	).Return(nil)
 
 	f, err := NewMarkdownFormatter("https://example.com/{begin}/{end}/", &config.NotifyConfig{

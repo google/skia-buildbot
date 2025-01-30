@@ -202,15 +202,23 @@ func (n *defaultNotifier) ExampleSend(ctx context.Context, alert *alerts.Alert) 
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	err = n.UpdateNotification(ctx, commit, previousCommit, alert, cl, frame, threadingReference)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	return nil
 }
 
 func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previousCommit provider.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary, frame *frame.FrameResponse, notificationId string) error {
-	body, _, err := n.formatter.FormatNewRegression(ctx, commit, previousCommit, alert, cl, n.url, frame)
+	metadata, err := n.getRegressionMetadata(ctx, commit, previousCommit, alert, cl, n.url, frame)
 	if err != nil {
 		return err
 	}
-	return n.transport.UpdateRegressionNotification(ctx, alert, body, notificationId)
+	notificationData, err := n.notificationDataProvider.GetNotificationDataRegressionFound(ctx, *metadata)
+	if err != nil {
+		return err
+	}
+	return n.transport.UpdateRegressionNotification(ctx, alert, notificationData.Body, notificationId)
 }
 
 // New returns a Notifier of the selected type.
