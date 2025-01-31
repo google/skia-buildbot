@@ -17,7 +17,7 @@ var spannerTemplates = map[statement]string{
             )
         {{ end }}
         ON CONFLICT (trace_id, commit_number) DO UPDATE
-        SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
+        SET val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
         `,
 	convertTraceIDs: `
         {{ $tileNumber := .TileNumber }}

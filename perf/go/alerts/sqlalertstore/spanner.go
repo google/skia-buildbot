@@ -16,7 +16,7 @@ var spannerStatements = map[statement]string{
 		VALUES
 			($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (id) DO UPDATE
-		SET id=EXCLUDED.id, alert=EXCLUDED.alert, config_state=EXCLUDED.config_state,
+		SET alert=EXCLUDED.alert, config_state=EXCLUDED.config_state,
 			last_modified=EXCLUDED.last_modified, sub_name=EXCLUDED.sub_name,
 			sub_revision=EXCLUDED.sub_revision
 		`,

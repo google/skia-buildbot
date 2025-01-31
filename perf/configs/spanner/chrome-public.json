@@ -107,6 +107,9 @@
             "cache_expiration_minutes": 300
         }
     },
+    "data_point_config": {
+        "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"]
+    },
     "trace_format": "chrome",
     "need_alert_action": true
 }
