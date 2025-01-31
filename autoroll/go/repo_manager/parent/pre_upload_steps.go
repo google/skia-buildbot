@@ -142,7 +142,7 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client, parentRepoDir string, from *revision.Revision, to *revision.Revision) error {
 	sklog.Info("Running create_updated_flutter_deps.py and then \"gclient sync\"")
 
-	scriptDir := filepath.Join(parentRepoDir, "..", "tools", "dart")
+	scriptDir := filepath.Join(parentRepoDir, "engine", "src", "tools", "dart")
 	scriptName := "create_updated_flutter_deps.py"
 	if _, err := exec.RunCwd(ctx, scriptDir, "vpython3", scriptName); err != nil {
 		return fmt.Errorf("Error when running vpython3 %s: %s", scriptName, err)
@@ -153,7 +153,7 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 		Dir:  parentRepoDir,
 		Env:  env,
 		Name: "vpython3",
-		Args: []string{filepath.Join(parentRepoDir, "..", "..", "depot_tools", GClient), "sync", "--delete_unversioned_trees", "--force", "-v"},
+		Args: []string{filepath.Join(parentRepoDir, "..", "depot_tools", GClient), "sync", "--delete_unversioned_trees", "--force", "-v"},
 	}); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}
