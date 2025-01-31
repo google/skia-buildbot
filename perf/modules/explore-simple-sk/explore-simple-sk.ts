@@ -796,7 +796,7 @@ export class ExploreSimpleSk extends ElementSk {
         <plot-google-chart-sk
           style="${ele._state.show_google_plot ? '' : 'display: none'}"
           ${ref(ele.googleChartPlot)}
-          @google-chart-select=${ele.onChartSelect}
+          @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
           @plot-chart-mousedown=${ele.onChartMouseDown}
           @selection-changing=${ele.OnSelectionRange}
@@ -1115,20 +1115,9 @@ export class ExploreSimpleSk extends ElementSk {
   // point and the tooltip will lock in place until it is closed.
   private onChartSelect(e: CustomEvent) {
     const chart = this.googleChartPlot!.value!;
-    const selection = e.detail.chart.getSelection()[0];
-    // Clicking on the same data point to show tooltip
-    // and then clicking on it again to close it will create errors because
-    // selection.row will be empty. Handle this use case.
-    if (selection === undefined) {
-      return;
-    }
+    const index = e.detail;
 
-    const index = {
-      row: selection.row,
-      col: selection.column,
-    };
-
-    const commitPos = chart.getCommitPosition(index.row);
+    const commitPos = chart.getCommitPosition(index.tableRow);
 
     fetch('/_/cid/', {
       method: 'POST',
@@ -1139,7 +1128,7 @@ export class ExploreSimpleSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json: CIDHandlerResponse) => {
-        const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+        const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
 
         // TODO(b/355726640) - The purpose of this dict is to ensure that we're not
         // needing to re-fetch the information, but it's not WAI.
@@ -1148,11 +1137,11 @@ export class ExploreSimpleSk extends ElementSk {
 
         this.enableTooltip(
           {
-            x: index.row - (this.selectedRange?.begin || 0),
+            x: index.tableRow - (this.selectedRange?.begin || 0),
             y: chart.getYValue(index),
             xPos: position.x,
             yPos: position.y,
-            name: chart.getTraceName(index.col),
+            name: chart.getTraceName(index.tableCol),
           },
           json.commitSlice![0],
           true
@@ -1161,8 +1150,8 @@ export class ExploreSimpleSk extends ElementSk {
         const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
         tooltipElem!.loadPointLinks(
           commitPos,
-          chart.getCommitPosition(index.row - 1),
-          chart.getTraceName(index.col),
+          chart.getCommitPosition(index.tableRow - 1),
+          chart.getTraceName(index.tableCol),
           window.perf.keys_for_commit_range!
         );
 
@@ -1173,7 +1162,7 @@ export class ExploreSimpleSk extends ElementSk {
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
     if (this.summaryOptionsField.value && this.traceIdSummaryOptionMap.size > 1) {
-      const traceName = chart.getTraceName(index.col);
+      const traceName = chart.getTraceName(index.tableCol);
       const option = this.traceIdSummaryOptionMap.get(traceName) || '';
       if (option !== '') {
         this.summaryOptionsField.value!.setValue(option);
@@ -1201,18 +1190,18 @@ export class ExploreSimpleSk extends ElementSk {
     }
     const chart = this.googleChartPlot!.value!;
     const index = detail;
-    const commitPos = chart.getCommitPosition(index.row);
+    const commitPos = chart.getCommitPosition(index.tableRow);
     const position = chart.getPositionByIndex(index);
-    const key = JSON.stringify([chart.getTraceName(index.col), commitPos]);
+    const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
     const commit = this.pointToCommitDetailMap.get(key) || null;
 
     this.enableTooltip(
       {
-        x: index.row - (this.selectedRange?.begin || 0),
+        x: index.tableRow - (this.selectedRange?.begin || 0),
         y: chart.getYValue(index),
         xPos: position.x,
         yPos: position.y,
-        name: chart.getTraceName(index.col),
+        name: chart.getTraceName(index.tableCol),
       },
       commit,
       false

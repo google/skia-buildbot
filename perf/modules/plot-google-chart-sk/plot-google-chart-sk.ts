@@ -20,7 +20,7 @@ import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 import { define } from '../../../elements-sk/modules/define';
 import { AnomalyMap } from '../json';
-import { mainChartOptions } from '../common/plot-builder';
+import { defaultColors, mainChartOptions } from '../common/plot-builder';
 import {
   dataframeAnomalyContext,
   dataframeLoadingContext,
@@ -40,8 +40,8 @@ export interface PlotSelectionEventDetails {
 }
 
 export interface PlotShowTooltipEventDetails {
-  row: number;
-  col: number;
+  tableRow: number;
+  tableCol: number;
 }
 
 export class PlotGoogleChartSk extends LitElement {
@@ -177,6 +177,9 @@ export class PlotGoogleChartSk extends LitElement {
 
   private lastMouse = { x: 0, y: 0 };
 
+  // Maps a trace to a color.
+  private traceColorMap = new Map<string, string>();
+
   // The value distance when moving by 1px on the screen.
   // Commits and dates operate on different scales, so adjust accordingly.
   private valueDelta = { commit: 1, date: 1000 };
@@ -238,6 +241,7 @@ export class PlotGoogleChartSk extends LitElement {
           .events=${['onmouseover', 'onmouseout']}
           @mousedown=${this.onChartMouseDown}
           @mouseup=${this.onChartMouseUp}
+          @google-chart-select=${this.onChartSelect}
           @google-chart-onmouseover=${this.onChartMouseOver}
           @google-chart-onmouseout=${this.onChartMouseOut}
           @google-chart-ready=${this.onChartReady}>
@@ -298,7 +302,15 @@ export class PlotGoogleChartSk extends LitElement {
     const cols = [this.domain === 'commit' ? 0 : 1];
     const hiddenColumns = [];
     for (let index = 2; index < ncols; index++) {
+      const label = view.getColumnLabel(index);
       cols.push(index);
+
+      // Assign a specific color to all labels.
+      if (!this.traceColorMap.has(label)) {
+        const colorIndex = Object.keys(this.traceColorMap).length;
+        this.traceColorMap.set(label, defaultColors[colorIndex % defaultColors.length]);
+      }
+
       if (this.removedLabelsCache.includes(view.getColumnLabel(index))) {
         hiddenColumns.push(index);
       }
@@ -362,6 +374,20 @@ export class PlotGoogleChartSk extends LitElement {
       min: commitScale ? begin : (new Date(begin! * 1000) as any),
       max: commitScale ? end : (new Date(end! * 1000) as any),
     };
+
+    options.colors = [];
+    // Get internal indices of visible columns.
+    const visibleColumns = plot.view!.getViewColumns();
+
+    for (const colIndex of visibleColumns) {
+      // skip first two indices as these are reserved.
+      if (colIndex > 1) {
+        // Translate those internal indices to indices of visible columns.
+        const tableIndex = plot.view!.getViewColumnIndex(colIndex);
+        const label = plot.view!.getColumnLabel(tableIndex);
+        options.colors.push(this.traceColorMap.get(label)!);
+      }
+    }
 
     plot.options = options;
   }
@@ -436,18 +462,58 @@ export class PlotGoogleChartSk extends LitElement {
     this.lastMouse = { x: e.x, y: e.y };
   }
 
+  // When a point is hovered/selected, return row and column values from
+  // underlying data table.
   private onChartMouseOver(e: CustomEvent) {
     if (this.navigationMode === 'deltaY') {
       return;
     }
     this.chartInteracting = true;
+
+    // The detail will contain the row and column values for the View, that
+    // is the indices of the visible traces. If some traces are hidden, we need
+    // to translate the visible indices to the actual table indices.
+    // These are the indices that should be used when using the methods in this.data.
+    const plot = this.plotElement.value;
+    const tableRowIndex = plot!.view!.getTableRowIndex(e.detail.data.row);
+    const tableColumnIndex = plot!.view!.getTableColumnIndex(e.detail.data.column);
+
     this.dispatchEvent(
       new CustomEvent<PlotShowTooltipEventDetails>('plot-data-mouseover', {
         bubbles: true,
         composed: true,
         detail: {
-          row: e.detail.data.row,
-          col: e.detail.data.column,
+          tableRow: tableRowIndex,
+          tableCol: tableColumnIndex,
+        },
+      })
+    );
+  }
+
+  // When a point is hovered, return row and column values from
+  // underlying data table.
+  private onChartSelect(e: CustomEvent) {
+    if (this.navigationMode === 'deltaY') {
+      return;
+    }
+    this.chartInteracting = true;
+
+    const selection = e.detail.chart.getSelection()[0];
+    if (selection === undefined) {
+      return;
+    }
+
+    const plot = this.plotElement.value;
+    const tableRowIndex = plot!.view!.getTableRowIndex(selection.row);
+    const tableColumnIndex = plot!.view!.getTableColumnIndex(selection.column);
+
+    this.dispatchEvent(
+      new CustomEvent<PlotShowTooltipEventDetails>('plot-data-select', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          tableRow: tableRowIndex,
+          tableCol: tableColumnIndex,
         },
       })
     );
@@ -730,14 +796,14 @@ export class PlotGoogleChartSk extends LitElement {
    * of the dataframe.
    * @param index An index containing the row and column indexes.
    */
-  getPositionByIndex(index: { row: number; col: number }): { x: number; y: number } {
+  getPositionByIndex(index: { tableRow: number; tableCol: number }): { x: number; y: number } {
     if (!this.chart) {
       return { x: 0, y: 0 };
     }
     const domainColumn = this.domain === 'commit' ? 0 : 1;
     const layout = (this.chart as google.visualization.LineChart).getChartLayoutInterface();
-    const xValue = this.data!.getValue(index.row, domainColumn);
-    const yValue = this.data!.getValue(index.row, index.col + 1);
+    const xValue = this.data!.getValue(index.tableRow, domainColumn);
+    const yValue = this.data!.getValue(index.tableRow, index.tableCol);
     return {
       x: layout.getXLocation(xValue),
       y: layout.getYLocation(yValue),
@@ -767,7 +833,7 @@ export class PlotGoogleChartSk extends LitElement {
     // ,arch=x86,config=8888,test=decode,units=kb, becomes
     // x86/8888/decode/kb.
     // first two columns of DataTable are commit position and date
-    return this.data!.getColumnLabel(col + 1);
+    return this.data!.getColumnLabel(col);
   }
 
   /**
@@ -775,9 +841,9 @@ export class PlotGoogleChartSk extends LitElement {
    * of the dataframe.
    * @param index An index containing the row and column indexes.
    */
-  getYValue(index: { row: number; col: number }): number {
+  getYValue(index: { tableRow: number; tableCol: number }): number {
     // first two columns of DataTable are commit position and date
-    return this.data!.getValue(index.row, index.col + 1);
+    return this.data!.getValue(index.tableRow, index.tableCol);
   }
 
   /**
@@ -799,6 +865,7 @@ declare global {
     'selection-changing': CustomEvent<PlotSelectionEventDetails>;
     'selection-changed': CustomEvent<PlotSelectionEventDetails>;
     'plot-data-mouseover': CustomEvent<PlotShowTooltipEventDetails>;
+    'plot-data-select': CustomEvent<PlotShowTooltipEventDetails>;
     'plot-chart-mousedown': CustomEvent;
   }
 }
