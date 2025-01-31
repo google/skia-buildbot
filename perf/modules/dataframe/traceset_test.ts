@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { getlastLabel, getLegend, getTitle } from './traceset';
+import { findTraceByLabel, getLegend, getLegendKeysTitle, getTitle } from './traceset';
 import { generateFullDataFrame } from './test_utils';
 import { convertFromDataframe } from '../common/plot-builder';
 import { load } from '@google-web-components/google-chart/loader';
@@ -353,32 +353,39 @@ describe('getLegend', () => {
   });
 });
 
-describe('getLastSubtestValueFromLabel', () => {
+describe('getLegendKeysTitle', () => {
   it('found and return subtest_1 value', async () => {
-    const label =
-      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Average,test=Total,v8_mode=pgo,';
+    const labels = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Sum,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Min,test=Total,v8_mode=pgo,',
+    ];
 
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },
       now,
-      label.length,
+      labels.length,
       [timeSpan],
       [null],
-      [label]
+      labels
     );
     // Load Google Chart API for DataTable.
     setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
     await load();
-    google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
-    const actualValue = getlastLabel(label);
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    const legend = getLegend(dt);
+    const actualValue = getLegendKeysTitle(legend[0]);
 
-    assert.deepEqual(actualValue, 'Average');
+    assert.deepEqual(actualValue, 'subtest_1');
   });
+});
 
-  it('found and return subtest_6 value', async () => {
+describe('find and return matched label from Google chart', () => {
+  it('found and return matched label value', async () => {
     const label = [
-      ',benchmark=JetStream2,bot=M1,ref_mode=head,subtest_1=Sum1,subtest_2=Sum2,' +
-        'subtest_3=Sum3,subtest_4=Sum4,subtest_5=Sum5,subtest_6=Sum6,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Sum,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Min,test=Total,v8_mode=pgo,',
     ];
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },
@@ -391,15 +398,19 @@ describe('getLastSubtestValueFromLabel', () => {
     // Load Google Chart API for DataTable.
     setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
     await load();
-    google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
 
-    const actualValue = getlastLabel(label[0]);
+    const actualValue = findTraceByLabel(dt, label[0]);
     console.log(actualValue);
-    assert.deepEqual(actualValue, 'Sum6');
+    assert.deepEqual(actualValue, label[0]);
   });
 
-  it('return empty string if there is no subtest key ', async () => {
-    const label = [',benchmark=JetStream2,bot=MacM1,ref_mode=head,test=Total,v8_mode=pgo,'];
+  it('return null if there is no matched label ', async () => {
+    const label = [
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Average,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Max,test=Total,v8_mode=pgo,',
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=Min,test=Total,v8_mode=pgo,',
+    ];
     const df = generateFullDataFrame(
       { begin: 90, end: 120 },
       now,
@@ -411,10 +422,13 @@ describe('getLastSubtestValueFromLabel', () => {
     // Load Google Chart API for DataTable.
     setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
     await load();
-    google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+    const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
 
-    const actualValue = getlastLabel(label[0]);
+    const actualValue = findTraceByLabel(
+      dt,
+      ',benchmark=JetStream2,bot=MacM1,ref_mode=head,subtest_1=fencedframe,test=Total,v8_mode=pgo,'
+    );
     console.log(actualValue);
-    assert.deepEqual(actualValue, '');
+    assert.deepEqual(actualValue, null);
   });
 });

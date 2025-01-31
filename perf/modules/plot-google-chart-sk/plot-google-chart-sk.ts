@@ -29,7 +29,7 @@ import {
   dataTableContext,
   UserIssueMap,
 } from '../dataframe/dataframe_context';
-import { isSingleTrace, updateTraceByLegend } from '../dataframe/traceset';
+import { findTraceByLabel, isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
@@ -399,19 +399,17 @@ export class PlotGoogleChartSk extends LitElement {
    */
   private sidePanelCheckboxUpdate(e: CustomEvent<SidePanelCheckboxClickDetails>) {
     const isCheckedboxSelected = e.detail.selected;
-    const metricSubtestValue = e.detail.values;
-    metricSubtestValue.forEach((legend) => {
-      const lastSubtestValue = updateTraceByLegend(this.data, legend, isCheckedboxSelected);
-      if (lastSubtestValue === null) {
-        console.warn('Could not find trace for ', legend);
+    const labelsList = e.detail.labels;
+    labelsList.forEach((label) => {
+      const trace = findTraceByLabel(this.data, label);
+      if (trace === null) {
+        console.warn('Could not find trace for ', label);
         return;
       }
       if (isCheckedboxSelected) {
-        this.removedLabelsCache = this.removedLabelsCache.filter(
-          (label) => label !== lastSubtestValue
-        );
+        this.removedLabelsCache = this.removedLabelsCache.filter((label) => label !== trace);
       } else {
-        this.removedLabelsCache.push(lastSubtestValue);
+        this.removedLabelsCache.push(trace);
       }
     });
     this.updateDataView(this.data);

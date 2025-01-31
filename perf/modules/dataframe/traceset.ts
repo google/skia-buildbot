@@ -199,6 +199,21 @@ export function legendFormatter(legend: object[]): string[] {
 }
 
 /**
+ * getLegendKeysTitle converts a label from Google chart into a string that combines all legends key
+ * @returns Title with extra keys omitted
+ *
+ * @example
+ * legend = {
+ *  "subtest_1": "fencedframe",
+ *  "subtest_2": "PageLoad.Clients",
+ * }
+ * returns "subtest_1/subtest_2"
+ */
+export function getLegendKeysTitle(label: object): string {
+  return Object.keys(label).join('/');
+}
+
+/**
  * isSingleTrace identifies if there is only one trace in the Dataframe
  * @param df: Dataframe or undefined dataframe
  * @returns: null if undefined dataframe. Otherwise true/false.
@@ -216,14 +231,10 @@ export function isSingleTrace(dt: DataTable | undefined): boolean | null {
  * and sets the visibility of the specified property
  * based on the checkbox's checked state
  * @param dt: DataTable or undefined dataframe
- * @param attributeValue: legend value from side panel
+ * @param legendTraceId: legend value from side panel
  * @param isChecked: checkbox checked state
  */
-export function updateTraceByLegend(
-  dt: DataTable | undefined,
-  attributeValue: string,
-  isChecked: boolean
-): string | null {
+export function findTraceByLabel(dt: DataTable | undefined, legendTraceId: string): string | null {
   if (!dt) {
     return null;
   }
@@ -231,40 +242,9 @@ export function updateTraceByLegend(
   // skip the first two columns since they are domains (commit position / date)
   for (let i = 2; i < numCols; i++) {
     const label = dt!.getColumnLabel(i);
-    const lastSubsetValue = getlastLabel(label);
-
-    if (attributeValue.split('/').pop() === lastSubsetValue) {
-      dt!.setColumnProperty(i, 'visible', isChecked);
+    if (legendTraceId === label) {
       return label;
     }
   }
   return null;
-}
-
-// TODO(b/392185167) refactor the method to be more flexible
-/**
- * Find the last subtest value from an object label from Google chart
- * @param a special function key like norm(,a=A,b=B,c=C,)
- * @example
- * Input: google chart label e.g ",benchmark=JetStream2,story=Total,test=avg,subtest_1=test1,"
- * Output: "test1"
- * @returns the last subtest value. Return subtest_6 if exists, else if return subtest_5 if exists,
- * else return subtest_4 if exists, until we found the last subtest and return the value.
- */
-export function getlastLabel(label: string): string {
-  const temp = removeSpecialFunctions(label).split(',');
-  const trimmed = temp.filter((val) => val.trim().length > 0);
-  let lastKeyValue = '';
-  trimmed.forEach((pair) => {
-    if (pair.startsWith('subtest')) {
-      const keyValue = pair.split('=');
-      for (let i = labelKeys.length - 1; i >= 0; i--) {
-        if (keyValue[0] === labelKeys.at(i)) {
-          lastKeyValue = keyValue[1];
-          break;
-        }
-      }
-    }
-  });
-  return lastKeyValue;
 }

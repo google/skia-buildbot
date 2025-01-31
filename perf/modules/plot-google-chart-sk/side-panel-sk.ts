@@ -19,7 +19,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { consume } from '@lit/context';
 
 import { dataTableContext, DataTable } from '../dataframe/dataframe_context';
-import { legendFormatter, getLegend } from '../dataframe/traceset';
+import { legendFormatter, getLegend, getLegendKeysTitle } from '../dataframe/traceset';
 import { defaultColors } from '../common/plot-builder';
 
 import '@material/web/button/outlined-button.js';
@@ -46,7 +46,7 @@ export interface SidePanelToggleEventDetails {
 
 export interface SidePanelCheckboxClickDetails {
   readonly selected: boolean;
-  readonly values: string[];
+  readonly labels: string[];
 }
 
 @customElement('side-panel-sk')
@@ -70,6 +70,12 @@ export class SidePanelSk extends LitElement {
     }
     .show-hide-bar:hover {
       background-color: gray;
+    }
+    .label-key-title {
+      color: #274878; /* Hex blue, which aligns with the graph title's color */
+      padding-left: 5px;
+      padding-bottom: 5px;
+      position: relative;
     }
     .info.closed {
       display: none;
@@ -96,6 +102,17 @@ export class SidePanelSk extends LitElement {
   @property({ attribute: false })
   private data?: DataTable;
 
+  /**
+   * A map that maps legend to label.
+   * The legend is the legend of the trace,
+   * the label is the label of the column in the dataframe.
+   */
+  @property({ attribute: false, reflect: true })
+  private legendToLabelMap: { [key: string]: string } = {};
+
+  @property({ attribute: false, reflect: true })
+  private legendKeysFormat = '';
+
   constructor() {
     super();
   }
@@ -109,6 +126,9 @@ export class SidePanelSk extends LitElement {
         <md-icon>${this.opened ? chevronRight : chevronLeft}</md-icon>
       </div>
       <div class="info ${classMap({ closed: !this.opened })}">
+        <div class="label-key-title">
+          <span>Label Key: ${this.legendKeysFormat}</span>
+        </div>
         <div class="select-all-checkbox">
           <label>
             <input type="checkbox" id="header-checkbox"
@@ -191,16 +211,29 @@ export class SidePanelSk extends LitElement {
 
   private getLegend() {
     if (this.data) {
-      const legend = legendFormatter(getLegend(this.data));
-      return legend;
+      const getLegendData = getLegend(this.data);
+      const legendList = legendFormatter(getLegendData);
+      this.legendKeysFormat = getLegendKeysTitle(getLegendData[0]);
+      const numCols = this.data!.getNumberOfColumns();
+      // The first two columns of the data table for the commit number/ timestamp x axis- options.
+      // It converted n-2 labels to legend format and stored in the legend list.
+      for (let i = 2; i < numCols; i++) {
+        const k = this.data!.getColumnLabel(i);
+        this.legendToLabelMap[legendList[i - 2]] = k;
+      }
+      return legendList;
     }
     return [];
   }
 
-  checkboxDispatchHandler(isSelected: boolean, itemList: string[]): void {
+  checkboxDispatchHandler(isSelected: boolean, legendList: string[]): void {
+    const labels: string[] = [];
+    legendList.forEach((legend) => {
+      labels.push(this.legendToLabelMap[legend] ? this.legendToLabelMap[legend] : '');
+    });
     const detail: SidePanelCheckboxClickDetails = {
       selected: isSelected,
-      values: itemList,
+      labels: labels,
     };
     this.dispatchEvent(
       new CustomEvent('side-panel-selected-trace-change', {
