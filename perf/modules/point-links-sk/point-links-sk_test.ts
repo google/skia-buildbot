@@ -42,8 +42,8 @@ describe('point-links-sk', () => {
       const prevCommitId = CommitNumber(3);
 
       const expectedLinks = {
-        'key1 Range': 'https://commit/link1',
-        'key2 Range': 'https://commit/link2',
+        'key1 Commit': 'https://commit/link1',
+        'key2 Commit': 'https://commit/link2',
       };
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       assert.deepEqual(expectedLinks, element.displayUrls);
@@ -117,7 +117,7 @@ describe('point-links-sk', () => {
 
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
-        'key1 Range': 'https://repoHost/repo1/+/curLink',
+        'key1 Commit': 'https://repoHost/repo1/+/curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink~..curLink',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);

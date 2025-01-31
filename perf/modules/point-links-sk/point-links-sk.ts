@@ -93,18 +93,20 @@ export class PointLinksSk extends ElementSk {
           const currentCommitId = this.getCommitIdFromCommitUrl(currentCommitUrl).substring(0, 7);
           const prevCommitId = this.getCommitIdFromCommitUrl(prevCommitUrl).substring(0, 7);
 
-          const displayKey = `${key} Range`;
-          this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
-            prevCommitId,
-            currentCommitId
-          );
-
           // The links should be different depending on whether the
           // commits are the same. If the commits are the same, simply point to
           // the commit. If they're not, point to the log list.
           if (currentCommitId === prevCommitId) {
+            const displayKey = `${key} Commit`;
+            this.displayTexts[displayKey] = `${currentCommitId} (Same as prev)`;
             this.displayUrls[displayKey] = currentCommitUrl;
           } else {
+            const displayKey = `${key} Range`;
+            this.displayTexts[displayKey] = this.getFormattedCommitRangeText(
+              prevCommitId,
+              currentCommitId
+            );
+
             const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
             const commitRangeUrl = `${repoUrl}+log/${prevCommitId}~..${currentCommitId}`;
             this.displayUrls[displayKey] = commitRangeUrl;
