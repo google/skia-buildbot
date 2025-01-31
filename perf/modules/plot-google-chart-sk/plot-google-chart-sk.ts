@@ -180,6 +180,9 @@ export class PlotGoogleChartSk extends LitElement {
   // Maps a trace to a color.
   private traceColorMap = new Map<string, string>();
 
+  // Index to keep track of which colors we've used so far.
+  private colorIndex = 0;
+
   // The value distance when moving by 1px on the screen.
   // Commits and dates operate on different scales, so adjust accordingly.
   private valueDelta = { commit: 1, date: 1000 };
@@ -307,8 +310,8 @@ export class PlotGoogleChartSk extends LitElement {
 
       // Assign a specific color to all labels.
       if (!this.traceColorMap.has(label)) {
-        const colorIndex = Object.keys(this.traceColorMap).length;
-        this.traceColorMap.set(label, defaultColors[colorIndex % defaultColors.length]);
+        this.traceColorMap.set(label, defaultColors[this.colorIndex % defaultColors.length]);
+        this.colorIndex++;
       }
 
       if (this.removedLabelsCache.includes(view.getColumnLabel(index))) {
