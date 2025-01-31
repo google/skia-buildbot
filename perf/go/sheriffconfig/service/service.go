@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/luciconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	pb "go.skia.org/infra/perf/go/sheriffconfig/proto/v1"
 	"go.skia.org/infra/perf/go/sheriffconfig/validate"
@@ -74,6 +75,7 @@ func ValidateContent(content string) error {
 }
 
 type sheriffconfigService struct {
+	db                  pool.Pool
 	subscriptionStore   subscription.Store
 	alertStore          alerts.Store
 	luciconfigApiClient luciconfig.ApiClient
@@ -81,6 +83,7 @@ type sheriffconfigService struct {
 
 // Create new SheriffConfig service.
 func New(ctx context.Context,
+	db pool.Pool,
 	subscriptionStore subscription.Store,
 	alertStore alerts.Store,
 	luciconfigApiClient luciconfig.ApiClient) (*sheriffconfigService, error) {
@@ -94,6 +97,7 @@ func New(ctx context.Context,
 	}
 
 	return &sheriffconfigService{
+		db:                  db,
 		subscriptionStore:   subscriptionStore,
 		alertStore:          alertStore,
 		luciconfigApiClient: luciconfigApiClient,
@@ -115,6 +119,7 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 
 	saveRequests := []*alerts.SaveRequest{}
 	subscriptions := []*subscription_pb.Subscription{}
+
 	for _, config := range configs {
 		ss, srs, err := s.processConfig(ctx, config)
 		if err != nil {
@@ -125,15 +130,33 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 
 	}
 
+	// Insert subscriptions and alerts in 1 transaction.
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	if len(subscriptions) != 0 {
-		if err := s.subscriptionStore.InsertSubscriptions(ctx, subscriptions); err != nil {
-			return skerr.Wrap(err)
+		if err := s.subscriptionStore.InsertSubscriptions(ctx, subscriptions, tx); err != nil {
+			if err := tx.Rollback(ctx); err != nil {
+				sklog.Errorf("Failed on rollback: %s", err)
+			}
+			return err
 		}
 	}
+
 	if len(saveRequests) != 0 {
-		if err := s.alertStore.ReplaceAll(ctx, saveRequests); err != nil {
-			return skerr.Wrap(err)
+		if err := s.alertStore.ReplaceAll(ctx, saveRequests, tx); err != nil {
+			if err := tx.Rollback(ctx); err != nil {
+				sklog.Errorf("Failed on rollback: %s", err)
+			}
+			return err
 		}
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 
 	return nil

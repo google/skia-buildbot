@@ -14,16 +14,19 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
 	alert_mocks "go.skia.org/infra/perf/go/alerts/mock"
+	"go.skia.org/infra/perf/go/sql/sqltest"
 	subscription_mocks "go.skia.org/infra/perf/go/subscription/mocks"
 	subscription_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func setUp(ctx context.Context, t *testing.T) (*sheriffconfigService, *subscription_mocks.Store, *alert_mocks.Store, *luciconfig_mocks.ApiClient) {
+	db := sqltest.NewCockroachDBForTests(t, "substore")
+
 	subscriptionStore := new(subscription_mocks.Store)
 	alertStore := new(alert_mocks.Store)
 	luciconfigApiClient := new(luciconfig_mocks.ApiClient)
-	service, err := New(ctx, subscriptionStore, alertStore, luciconfigApiClient)
+	service, err := New(ctx, db, subscriptionStore, alertStore, luciconfigApiClient)
 	require.NoError(t, err)
 
 	return service, subscriptionStore, alertStore, luciconfigApiClient
@@ -129,17 +132,16 @@ func TestImportSheriffConfig_OneSubOneAlert(t *testing.T) {
 			},
 		},
 	}
-
 	subscriptionStore.On("GetSubscription", testutils.AnyContext, "a", "abcd").Return(nil, nil)
 	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
-	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
 			t.Errorf("Subscription protos are no equal:\n%s", diff)
 		}
 	}).Return(nil)
 
-	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedAlerts := args.Get(1).([]*alerts.SaveRequest)
 		if diff := cmp.Diff(expectedAlerts, passedAlerts); diff != "" {
 			t.Errorf("Alert objects are no equal:\n%s", diff)
@@ -252,14 +254,14 @@ func TestImportSheriffConfig_MultipleAlerts(t *testing.T) {
 
 	subscriptionStore.On("GetSubscription", testutils.AnyContext, "a", "abcd").Return(nil, nil)
 	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
-	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
 			t.Errorf("Subscription protos are no equal:\n%s", diff)
 		}
 	}).Return(nil)
 
-	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedAlerts := args.Get(1).([]*alerts.SaveRequest)
 		if diff := cmp.Diff(expectedAlerts, passedAlerts); diff != "" {
 			t.Errorf("Alert objects are no equal:\n%s", diff)
@@ -412,14 +414,14 @@ func TestImportSheriffConfig_MultipleSubs(t *testing.T) {
 	subscriptionStore.On("GetSubscription", testutils.AnyContext, "a", "abcd").Return(nil, nil)
 	subscriptionStore.On("GetSubscription", testutils.AnyContext, "b", "abcd").Return(nil, nil)
 	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
-	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
 			t.Errorf("Subscription protos are no equal:\n%s", diff)
 		}
 	}).Return(nil)
 
-	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedAlerts := args.Get(1).([]*alerts.SaveRequest)
 		if diff := cmp.Diff(expectedAlerts, passedAlerts); diff != "" {
 			t.Errorf("Alert objects are no equal:\n%s", diff)
@@ -520,14 +522,14 @@ func TestImportSheriffConfig_MultipleSubsOneExists(t *testing.T) {
 	subscriptionStore.On("GetSubscription", testutils.AnyContext, "b", "abcd").Return(&subscription_pb.Subscription{Name: "b"}, nil)
 	apiClient.On("GetProjectConfigs", testutils.AnyContext, "dummy.path").Return(mockReturn, nil)
 
-	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	subscriptionStore.On("InsertSubscriptions", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedSubscriptions := args.Get(1).([]*subscription_pb.Subscription)
 		if diff := cmp.Diff(expectedSubscriptions, passedSubscriptions, protocmp.Transform()); diff != "" {
 			t.Errorf("Subscription protos are no equal:\n%s", diff)
 		}
 	}).Return(nil)
 
-	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything).Run(func(args mock.Arguments) {
+	alertStore.On("ReplaceAll", testutils.AnyContext, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		passedAlerts := args.Get(1).([]*alerts.SaveRequest)
 		if diff := cmp.Diff(expectedAlerts, passedAlerts); diff != "" {
 			t.Errorf("Alert objects are no equal:\n%s", diff)

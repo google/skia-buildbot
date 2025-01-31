@@ -157,6 +157,14 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	PRIMARY KEY (trace_id, commit_number),
 	INDEX by_source_file_id (source_file_id, trace_id)
   );
+  CREATE TABLE IF NOT EXISTS UserIssues (
+	user_id TEXT NOT NULL,
+	trace_key TEXT NOT NULL,
+	commit_position INT NOT NULL,
+	issue_id INT NOT NULL,
+	last_modified TIMESTAMPTZ DEFAULT now(),
+	PRIMARY KEY(trace_key, commit_position)
+  );
   `
 
 func getSchema(t *testing.T, db pool.Pool) *schema.Description {

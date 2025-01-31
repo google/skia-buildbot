@@ -10,8 +10,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/config"
@@ -140,17 +140,10 @@ func (s *SQLAlertStore) Save(ctx context.Context, req *alerts.SaveRequest) error
 
 // ReplaceAll implements the alerts.Store interface.
 // TODO(eduardoyap): Modify to execute one Insert statement, instead of multiple.
-func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveRequest) error {
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
-		return skerr.Wrap(err)
-	}
+func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveRequest, tx pgx.Tx) error {
 
 	now := time.Now().Unix()
 	if _, err := tx.Exec(ctx, s.statements[deleteAllAlerts], now); err != nil {
-		if err := tx.Rollback(ctx); err != nil {
-			sklog.Errorf("Failed on rollback: %s", err)
-		}
 		return skerr.Wrap(err)
 	}
 
@@ -158,20 +151,15 @@ func (s *SQLAlertStore) ReplaceAll(ctx context.Context, reqs []*alerts.SaveReque
 		cfg := req.Cfg
 		b, err := json.Marshal(cfg)
 		if err != nil {
-			if err := tx.Rollback(ctx); err != nil {
-				sklog.Errorf("Failed on rollback: %s", err)
-			}
 			return skerr.Wrap(err)
 		}
 
 		if _, err := tx.Exec(ctx, s.statements[insertAlert], string(b), now, req.SubKey.SubName, req.SubKey.SubRevision); err != nil {
-			if err := tx.Rollback(ctx); err != nil {
-				sklog.Errorf("Failed on rollback: %s", err)
-			}
 			return skerr.Wrap(err)
 		}
 	}
-	return tx.Commit(ctx)
+
+	return nil
 }
 
 // Delete implements the alerts.Store interface.

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +17,7 @@ type MockStore struct {
 	mutex     sync.Mutex
 }
 
-func (store *MockStore) ReplaceAll(ctx context.Context, req []*SaveRequest) error {
+func (store *MockStore) ReplaceAll(ctx context.Context, req []*SaveRequest, tx pgx.Tx) error {
 	return nil
 }
 

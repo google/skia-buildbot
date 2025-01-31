@@ -1,6 +1,10 @@
 package alerts
 
-import "context"
+import (
+	"context"
+
+	"github.com/jackc/pgx/v4"
+)
 
 type SubKey struct {
 	SubName     string
@@ -20,7 +24,7 @@ type Store interface {
 
 	// ReplaceAll will remove all existing Alerts, then it'll insert the
 	// new input alerts and mark them as active.
-	ReplaceAll(ctx context.Context, req []*SaveRequest) error
+	ReplaceAll(ctx context.Context, reqs []*SaveRequest, tx pgx.Tx) error
 
 	// Delete removes the Alert with the given id.
 	Delete(ctx context.Context, id int) error

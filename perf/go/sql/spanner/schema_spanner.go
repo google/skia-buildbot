@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS Subscriptions (
   bug_severity INT,
   bug_cc_emails TEXT ARRAY,
   contact_email TEXT,
+  is_active BOOL,
   PRIMARY KEY(name, revision),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -270,6 +271,7 @@ var Subscriptions = []string{
 	"bug_severity",
 	"bug_cc_emails",
 	"contact_email",
+	"is_active",
 }
 
 var TraceValues = []string{

@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
@@ -19,7 +18,9 @@ const (
 	// The identifiers for all the SQL statements used.
 	insertSubscription statement = iota
 	getSubscription
+	deactivateAllSubscriptions
 	getAllSubscriptions
+	getAllActiveSubscriptions
 )
 
 // statements holds all the raw SQL statemens.
@@ -44,15 +45,47 @@ var statements = map[statement]string{
 		`,
 	insertSubscription: `
 		INSERT INTO
-			Subscriptions (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email)
+			Subscriptions (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email, is_active)
 		VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	`,
+	deactivateAllSubscriptions: `
+		UPDATE
+			Subscriptions
+		SET
+			is_active=false
+		WHERE
+			is_active=true
 	`,
 	getAllSubscriptions: `
-		Select
-			*
+		SELECT
+			name,
+			revision,
+			bug_labels,
+			hotlists,
+			bug_component,
+			bug_priority,
+			bug_severity,
+			bug_cc_emails,
+			contact_email
 		FROM
 			Subscriptions
+	`,
+	getAllActiveSubscriptions: `
+		SELECT
+			name,
+			revision,
+			bug_labels,
+			hotlists,
+			bug_component,
+			bug_priority,
+			bug_severity,
+			bug_cc_emails,
+			contact_email
+		FROM
+			Subscriptions
+		WHERE
+			is_active=true
 	`,
 }
 
@@ -92,22 +125,21 @@ func (s *SubscriptionStore) GetSubscription(ctx context.Context, name string, re
 }
 
 // InsertSubscriptions implements the subscription.Store interface.
-func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.Subscription) error {
-	tx, err := s.db.Begin(ctx)
-	if err != nil {
+func (s *SubscriptionStore) InsertSubscriptions(ctx context.Context, subs []*pb.Subscription, tx pgx.Tx) error {
+
+	// Set all existing subscriptions to inactive
+	if _, err := tx.Exec(ctx, statements[deactivateAllSubscriptions]); err != nil {
 		return skerr.Wrap(err)
 	}
 
+	// Insert new subscriptions as active.
 	for _, sub := range subs {
-		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugPriority, sub.BugSeverity, sub.BugCcEmails, sub.ContactEmail); err != nil {
-			if err := tx.Rollback(ctx); err != nil {
-				sklog.Errorf("Failed on rollback: %s", err)
-			}
+		if _, err := tx.Exec(ctx, statements[insertSubscription], sub.Name, sub.Revision, sub.BugLabels, sub.Hotlists, sub.BugComponent, sub.BugPriority, sub.BugSeverity, sub.BugCcEmails, sub.ContactEmail, true); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
 
-	return tx.Commit(ctx)
+	return nil
 }
 
 // GetAllSubscriptions implements the subscription.Store interface.
@@ -134,6 +166,38 @@ func (s *SubscriptionStore) GetAllSubscriptions(ctx context.Context) ([]*pb.Subs
 			&sub.ContactEmail,
 		); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to parse subscriptions.")
+		} else {
+			subscriptions = append(subscriptions, sub)
+		}
+	}
+
+	return subscriptions, nil
+}
+
+// GetAllActiveSubscriptions retrieves all active subscriptions from the database.
+func (s *SubscriptionStore) GetAllActiveSubscriptions(ctx context.Context) ([]*pb.Subscription, error) {
+
+	rows, err := s.db.Query(ctx, statements[getAllActiveSubscriptions])
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to load active subscriptions")
+	}
+	defer rows.Close()
+
+	subscriptions := []*pb.Subscription{}
+	for rows.Next() {
+		sub := &pb.Subscription{}
+		if err = rows.Scan(
+			&sub.Name,
+			&sub.Revision,
+			&sub.BugLabels,
+			&sub.Hotlists,
+			&sub.BugComponent,
+			&sub.BugPriority,
+			&sub.BugSeverity,
+			&sub.BugCcEmails,
+			&sub.ContactEmail,
+		); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to parse subscription")
 		} else {
 			subscriptions = append(subscriptions, sub)
 		}

@@ -55,8 +55,13 @@ func TestInsert_ValidSubscriptions(t *testing.T) {
 			ContactEmail: "test@owner.com",
 		},
 	}
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
 
-	err := store.InsertSubscriptions(ctx, s)
+	err = store.InsertSubscriptions(ctx, s, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
 	require.NoError(t, err)
 
 	actual := getSubscriptionsFromDb(t, ctx, db)
@@ -101,8 +106,14 @@ func TestInsert_DuplicateSubscriptionKeys(t *testing.T) {
 		},
 	}
 
-	err := store.InsertSubscriptions(ctx, s)
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.InsertSubscriptions(ctx, s, tx)
 	require.Error(t, err)
+
+	err = tx.Rollback(ctx)
+	require.NoError(t, err)
 
 	actual := getSubscriptionsFromDb(t, ctx, db)
 	assert.Empty(t, actual)
@@ -114,7 +125,13 @@ func TestInsert_EmptyList(t *testing.T) {
 
 	s := []*pb.Subscription{}
 
-	err := store.InsertSubscriptions(ctx, s)
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.InsertSubscriptions(ctx, s, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
 	require.NoError(t, err)
 
 	actual := getSubscriptionsFromDb(t, ctx, db)
@@ -140,7 +157,7 @@ func TestGet_ValidSubscription(t *testing.T) {
 		ContactEmail: "test@owner.com",
 	}
 
-	insertSubscriptionToDb(t, ctx, db, s)
+	insertSubscriptionToDb(t, ctx, db, s, true)
 	actual, err := store.GetSubscription(ctx, "Test Subscription 1", "abcd")
 	require.NoError(t, err)
 
@@ -181,8 +198,8 @@ func TestGet_AllSubscriptionsUniqByName(t *testing.T) {
 		ContactEmail: "test@owner.com",
 	}
 
-	insertSubscriptionToDb(t, ctx, db, s)
-	insertSubscriptionToDb(t, ctx, db, s1)
+	insertSubscriptionToDb(t, ctx, db, s, true)
+	insertSubscriptionToDb(t, ctx, db, s1, false)
 
 	actual, err := store.GetAllSubscriptions(ctx)
 	require.NoError(t, err)
@@ -201,11 +218,57 @@ func TestGet_NonExistent(t *testing.T) {
 	assert.Nil(t, sub)
 }
 
-func insertSubscriptionToDb(t *testing.T, ctx context.Context, db pool.Pool, subscription *pb.Subscription) {
+// Tests that we only retrieve latest subscriptions according to
+// version.
+func TestGet_AllActiveSubscriptions(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	s := &pb.Subscription{
+		Name:         "Test Subscription 1",
+		Revision:     "abcd",
+		BugLabels:    []string{"A", "B"},
+		Hotlists:     []string{"C", "D"},
+		BugComponent: "Component1>Subcomponent1",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+
+	s1 := &pb.Subscription{
+		Name:         "Test Subscription 2",
+		Revision:     "bcde",
+		BugLabels:    []string{"A", "B"},
+		Hotlists:     []string{"C", "D"},
+		BugComponent: "Component1>Subcomponent1",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+
+	insertSubscriptionToDb(t, ctx, db, s, true)
+	insertSubscriptionToDb(t, ctx, db, s1, false)
+
+	actual, err := store.GetAllActiveSubscriptions(ctx)
+	require.NoError(t, err)
+
+	expected := []*pb.Subscription{s}
+	assert.Equal(t, actual, expected)
+}
+
+func insertSubscriptionToDb(t *testing.T, ctx context.Context, db pool.Pool, subscription *pb.Subscription, is_active bool) {
 	const query = `INSERT INTO Subscriptions
-        (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`
-	if _, err := db.Exec(ctx, query, subscription.Name, subscription.Revision, subscription.BugLabels, subscription.Hotlists, subscription.BugComponent, subscription.BugPriority, subscription.BugSeverity, subscription.BugCcEmails, subscription.ContactEmail); err != nil {
+        (name, revision, bug_labels, hotlists, bug_component, bug_priority, bug_severity, bug_cc_emails, contact_email, is_active)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`
+	if _, err := db.Exec(ctx, query, subscription.Name, subscription.Revision, subscription.BugLabels, subscription.Hotlists, subscription.BugComponent, subscription.BugPriority, subscription.BugSeverity, subscription.BugCcEmails, subscription.ContactEmail, is_active); err != nil {
 		require.NoError(t, err)
 	}
 }

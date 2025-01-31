@@ -28,6 +28,9 @@ type SubscriptionSchema struct {
 	// Owner of subscription. Used for contact purposes.
 	ContactEmail string `sql:"contact_email STRING"`
 
+	// Whether subscription is active or de-activated.
+	IsActive bool `sql:"is_active BOOL"`
+
 	// Name and revision are used to key a subscription.
 	PrimaryKey struct{} `sql:"PRIMARY KEY(name, revision)"`
 }

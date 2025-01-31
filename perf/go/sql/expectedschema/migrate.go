@@ -38,20 +38,15 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS UserIssues (
-		user_id TEXT NOT NULL,
-		trace_key TEXT NOT NULL,
-		commit_position INT NOT NULL,
-		issue_id INT NOT NULL,
-		last_modified TIMESTAMPTZ DEFAULT now(),
-		PRIMARY KEY(trace_key, commit_position)
-	);
+	ALTER TABLE Subscriptions
+	ADD COLUMN is_active BOOL;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	DROP TABLE IF EXISTS UserIssues;
+	ALTER TABLE Subscriptions
+	DROP COLUMN is_active;
 `
 
 // This function will check whether there's a new schema checked-in,

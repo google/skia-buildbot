@@ -92,7 +92,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			// TODO(eduardoyap): Move this out of the else block. For now it's just to prevent the
 			// service from crashing if we're unable to connect.
 		} else {
-			sheriffConfig, err := sheriffconfig.New(ctx, subscriptionStore, alertStore, luciConfig)
+			sheriffConfig, err := sheriffconfig.New(ctx, db, subscriptionStore, alertStore, luciConfig)
 			if err != nil {
 				return skerr.Wrapf(err, "Error starting sheriff config service.")
 			}

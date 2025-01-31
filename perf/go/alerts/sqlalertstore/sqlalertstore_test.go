@@ -258,7 +258,13 @@ func TestStoreReplaceAll_EmptyAlerts(t *testing.T) {
 
 	newAlerts := []*alerts.SaveRequest{}
 
-	err := store.ReplaceAll(ctx, newAlerts)
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.ReplaceAll(ctx, newAlerts, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
 	require.NoError(t, err)
 
 	// Now check that old alert is inactive and new alerts are active
@@ -311,7 +317,13 @@ func TestStoreReplaceAll_ValidAlerts(t *testing.T) {
 		},
 	}
 
-	err := store.ReplaceAll(ctx, newAlerts)
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.ReplaceAll(ctx, newAlerts, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
 	require.NoError(t, err)
 
 	// Now check that old alert is inactive and new alerts are active
@@ -367,7 +379,13 @@ func TestStoreReplaceAll_DuplicateAlerts(t *testing.T) {
 		},
 	}
 
-	err := store.ReplaceAll(ctx, newAlerts)
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.ReplaceAll(ctx, newAlerts, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
 	require.NoError(t, err)
 
 	// Now check that old alert is inactive and new alerts are active
