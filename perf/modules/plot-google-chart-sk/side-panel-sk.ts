@@ -55,6 +55,7 @@ export class SidePanelSk extends LitElement {
     :host {
       display: flex;
       height: 100%;
+      width: 200px;
       border-radius: 8px;
       overflow: scroll; /* legend entries can be very long */
       box-shadow:
@@ -73,6 +74,7 @@ export class SidePanelSk extends LitElement {
     }
     .label-key-title {
       color: #274878; /* Hex blue, which aligns with the graph title's color */
+      padding-top: 10px;
       padding-left: 5px;
       padding-bottom: 5px;
       position: relative;
@@ -88,7 +90,8 @@ export class SidePanelSk extends LitElement {
     ul {
       list-style: none; /* Remove default bullet points */
       padding-left: 5px;
-      font-size: 18px;
+      font-size: 15px;
+      margin-block-start: 3px;
     }
   `;
 
