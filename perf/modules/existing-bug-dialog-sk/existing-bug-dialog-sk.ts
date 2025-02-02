@@ -32,6 +32,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
+import { AnomalySk } from '../anomaly-sk/anomaly-sk';
 
 export class ExistingBugDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
@@ -54,6 +55,11 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private bug_id: number | undefined;
 
+  private _associatedBugIds: number[] = [];
+
+  // Host bug url, usually from window.perf.bug_host_url.
+  private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
+
   private static allProjectIds = (ele: ExistingBugDialogSk) =>
     ele.allProjectIdOptions.map(
       (p) => html`
@@ -70,7 +76,7 @@ export class ExistingBugDialogSk extends ElementSk {
     <dialog id="existing-bug-dialog">
       <h2>Existing Bug</h2>
       <header id="add-to-existing-bug">
-        <button id="closeIcon" @click=${ele.closeDialog}>
+        <button id="closeIcon" @click=${ele.closeDialog} type="close">
           <close-icon-sk></close-icon-sk>
         </button>
         <form id="existing-bug-form">
@@ -82,13 +88,13 @@ export class ExistingBugDialogSk extends ElementSk {
             placeholder="Bug ID"
             pattern="[0-9]{5,9}"
             title="Bug ID must be a number, between 5 and 9 digits."
-            required autocomplete="off">
-          <br><br>
-          </div>
+            required autocomplete="off"></input>
+          ${ele.associatedBugListTemplate()}
+          <br></br>
           <div class="footer">
             <spinner-sk id="dialog-spinner"></spinner-sk>
             <button id="file-button" type="submit">Submit</button>
-            <button id="close-button" @click=${ele.closeDialog} type="button">Close</button>
+            <button id="close-button" @click=${ele.closeDialog} type="close">Close</button>
           </div>
         </form>
       </header>
@@ -99,11 +105,14 @@ export class ExistingBugDialogSk extends ElementSk {
     super(ExistingBugDialogSk.template);
     this._projectId = 'chromium';
     this.allProjectIdOptions.push('chromium');
+    this._associatedBugIds = [];
   }
 
   connectedCallback() {
     super.connectedCallback();
     upgradeProperty(this, '_anomalies');
+    upgradeProperty(this, '_associatedBugIds');
+    upgradeProperty(this, '_bug_host_url');
     this._render();
 
     this._dialog = this.querySelector('#existing-bug-dialog');
@@ -112,6 +121,10 @@ export class ExistingBugDialogSk extends ElementSk {
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
       this.addAnomalyWithExistingBug();
+    });
+    this._form!.addEventListener('close', (e) => {
+      e.preventDefault();
+      this._associatedBugIds = [];
     });
   }
 
@@ -189,6 +202,71 @@ export class ExistingBugDialogSk extends ElementSk {
         errorMessage(msg);
         this._render();
       });
+  }
+
+  private async fetch_associated_bugs() {
+    await fetch('/_/anomalies/group_report', {
+      method: 'POST',
+      body: JSON.stringify({
+        anomalyIDs: String(this._anomalies.map((a) => a.id)),
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        if (json.sid !== null && !json.anomaly_list) {
+          // if the sid is not null, it will have to another call with sid to get anomalies
+          const sid: string = json.sid;
+          this.fetch_associated_bugs_withSid(sid);
+        } else {
+          const anomalies: Anomaly[] = json.anomaly_list || [];
+          this.getAssociatedBugList(anomalies);
+        }
+      });
+  }
+
+  private async fetch_associated_bugs_withSid(sid: string) {
+    await fetch('/_/anomalies/group_report', {
+      method: 'POST',
+      body: JSON.stringify({
+        StateId: sid,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        const anomalies: Anomaly[] = json.anomaly_list || [];
+        this.getAssociatedBugList(anomalies);
+      });
+  }
+
+  private getAssociatedBugList(anomalies: Anomaly[]) {
+    this._associatedBugIds = [];
+    anomalies.forEach((anomaly) => {
+      this._associatedBugIds.push(anomaly.bug_id);
+    });
+  }
+
+  private associatedBugListTemplate() {
+    if (this._anomalies) {
+      this.fetch_associated_bugs();
+      if (this._associatedBugIds.length === 0) {
+        return html``;
+      }
+      return html`
+        <h4>Associated bugs in the same Anomaly group</h4>
+        <ul style="max-height: 150px;" id="associated-bugs-table">
+          ${this._associatedBugIds.map((bugId) => {
+            return html` <li>${AnomalySk.formatBug(this._bug_host_url, bugId)}</li>`;
+          })}
+        </ul>
+      `;
+    }
+    return html``;
   }
 
   setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {

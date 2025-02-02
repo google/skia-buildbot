@@ -41,6 +41,13 @@ existing-bug-dialog-sk {
       box-sizing: content-box;
       padding-left: 8px;
     }
+
+    #associated-bugs-table {
+      margin-top: 5px;
+      margin-bottom: 5px;
+      overflow-y: scroll;
+      cursor: pointer;
+    }
   }
 
   .iron-selected {

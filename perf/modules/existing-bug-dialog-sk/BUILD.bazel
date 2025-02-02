@@ -11,6 +11,7 @@ sk_element(
         "//elements-sk/modules/icons/close-icon-sk",
         "//elements-sk/modules/spinner-sk",
         "//elements-sk/modules/select-sk",
+        "//perf/modules/anomaly-sk",
     ],
     ts_deps = [
         "//elements-sk/modules:define_ts_lib",
