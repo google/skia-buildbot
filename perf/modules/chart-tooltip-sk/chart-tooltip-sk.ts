@@ -28,7 +28,6 @@ import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
-import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -124,8 +123,6 @@ export class ChartTooltipSk extends ElementSk {
 
   private _nudgeList: NudgeEntry[] | null = null;
 
-  private _associatedBugIds: number[] = [];
-
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
 
@@ -201,7 +198,7 @@ export class ChartTooltipSk extends ElementSk {
         </a>
       </div>
       <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
-      ${ele.seeMoreText()} ${ele.anomalyTemplate()} ${ele.associatedBugListTemplate()}
+      ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
@@ -338,27 +335,7 @@ export class ChartTooltipSk extends ElementSk {
     `;
   }
 
-  private associatedBugListTemplate() {
-    if (this.anomaly && this._tooltip_fixed) {
-      if (this._associatedBugIds.length === 0) {
-        return html``;
-      }
-
-      return html`
-        <h4>Associated bugs in the same Anomaly group</h4>
-        <ul class="associated-bugs-table">
-          ${this._associatedBugIds.map((bugId) => {
-            return html` <li>
-              <span> ${AnomalySk.formatBug(this.bug_host_url, bugId)} </span>
-            </li>`;
-          })}
-        </ul>
-      `;
-    }
-    return html``;
-  }
-
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'test_name');
     upgradeProperty(this, 'y_value');
@@ -373,7 +350,6 @@ export class ChartTooltipSk extends ElementSk {
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
     this.pointLinks = this.querySelector('#tooltip-point-links');
-    this.fetch_associated_bugs();
 
     this.addEventListener('anomaly-changed', () => {
       this._render();
@@ -399,29 +375,6 @@ export class ChartTooltipSk extends ElementSk {
 
     // Setter will re-render component.
     this.commitInfo = details;
-  };
-
-  // fetch_associated_anomalies triggers a POST call anomalies/group_report to
-  // retrieve a list of anomalies that are in the same group with current untriaged Anomaly.
-  fetch_associated_bugs = async (): Promise<void> => {
-    if (this.anomaly === null) return;
-    await fetch('/_/anomalies/group_report', {
-      method: 'POST',
-      body: JSON.stringify({
-        anomalyIDs: String(this.anomaly.bug_id),
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        const anomalies: Anomaly[] = json.anomaly_list || [];
-        anomalies.forEach((anomaly) => {
-          this._associatedBugIds.push(anomaly.bug_id);
-        });
-        this._render();
-      });
   };
 
   // load function sets the value of the fields minimally required to display
