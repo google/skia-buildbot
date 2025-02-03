@@ -55,7 +55,7 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private bug_id: number | undefined;
 
-  private _associatedBugIds: number[] = [];
+  private _associatedBugIds = new Set<number>();
 
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
@@ -105,7 +105,7 @@ export class ExistingBugDialogSk extends ElementSk {
     super(ExistingBugDialogSk.template);
     this._projectId = 'chromium';
     this.allProjectIdOptions.push('chromium');
-    this._associatedBugIds = [];
+    this._associatedBugIds = new Set<number>();
   }
 
   connectedCallback() {
@@ -124,7 +124,7 @@ export class ExistingBugDialogSk extends ElementSk {
     });
     this._form!.addEventListener('close', (e) => {
       e.preventDefault();
-      this._associatedBugIds = [];
+      this._associatedBugIds.clear();
     });
   }
 
@@ -245,22 +245,23 @@ export class ExistingBugDialogSk extends ElementSk {
   }
 
   private getAssociatedBugList(anomalies: Anomaly[]) {
-    this._associatedBugIds = [];
+    this._associatedBugIds.clear();
     anomalies.forEach((anomaly) => {
-      this._associatedBugIds.push(anomaly.bug_id);
+      this._associatedBugIds.add(anomaly.bug_id);
     });
   }
 
   private associatedBugListTemplate() {
     if (this._anomalies) {
       this.fetch_associated_bugs();
-      if (this._associatedBugIds.length === 0) {
+      if (this._associatedBugIds.size === 0) {
         return html``;
       }
+
       return html`
         <h4>Associated bugs in the same Anomaly group</h4>
         <ul style="max-height: 150px;" id="associated-bugs-table">
-          ${this._associatedBugIds.map((bugId) => {
+          ${Array.from(this._associatedBugIds).map((bugId) => {
             return html` <li>${AnomalySk.formatBug(this._bug_host_url, bugId)}</li>`;
           })}
         </ul>
