@@ -387,10 +387,14 @@ rbe_exec_properties(
 # when running apps (e.g. skottie.skia.org) locally. All our apps (except debugger) use the stock
 # version of CanvasKit, so they can share this. If there is an update to CanvasKit APIs and we want
 # to test them out locally, we should update this to a newer version. See the k8s-config repo
-# for a recent commit to use.
+# for a recent commit to use. You can also get the latest sha256 by either:
+# 1. Running `docker pull gcr.io/skia-public/jsfiddle-final:latest` and looking for the sha256
+# in the log. This requires docker to be installed and authenticated through gcloud.
+# 2. Going to https://skia.googlesource.com/k8s-config/+/refs/heads/main/skia-infra-public/jsfiddle.yaml
+# and looking for sha256 on the jsfiddle-final image.
 container_pull(
     name = "pinned_jsfiddle",
-    digest = "sha256:162d406e7f6fa551115a9d2335a5d472d065ffb0fd5ffb66a38cbbc171b529bf",
+    digest = "sha256:8fd59abd7bd08096b7590e618976be3fda05df675e3155cee0c439757e6f0a80",
     registry = "gcr.io",
     repository = "skia-public/jsfiddle-final",
 )

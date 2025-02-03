@@ -36,8 +36,7 @@ When the changes finish building you can now reload the page to see them.
 ## Which version of CanvasKit is being used?
 
 When running tests (`bazel test ...`) or a local instance (`make run-local-instance`), the rules
-are set up to get the latest built version of CanvasKit by looking at
-`gcr.io/skia-public/skia-wasm-release:prod`. See ./wasm_libs/BUILD.bazel for more.
+are set up to use a pinned version of CanvasKit. For more information, look in `../WORKSPACE`.
 
 To run skottie locally with a custom build of CanvasKit, copy the files to
 //skottie/wasm_libs/local_build and run:
