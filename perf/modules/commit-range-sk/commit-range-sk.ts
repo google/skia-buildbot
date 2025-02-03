@@ -56,6 +56,12 @@ export class CommitRangeSk extends ElementSk {
     this._render();
   }
 
+  reset(): void {
+    this._commitIndex = -1;
+    this._trace = [];
+    this._header = null;
+  }
+
   clear(): void {
     this._url = '';
     this._text = '';

@@ -186,16 +186,16 @@ export class ChartTooltipSk extends ElementSk {
           <span>${ele.commit_position}</span>
         </li>
       </ul>
-
-      <commit-range-sk
-        id="tooltip-commit-range-link"
-        ?hidden=${!ele._tooltip_fixed}></commit-range-sk>
       <point-links-sk id="tooltip-point-links" ?hidden=${!ele._tooltip_fixed}></point-links-sk>
       <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${!ele._tooltip_fixed}></user-issue-sk>
       <div class="revlink">
         <a href="/u/?rev=${ele.commit_position}" target="_blank">
           Regressions at ${ele.commit_position}
         </a>
+        <br />
+        <commit-range-sk
+          id="tooltip-commit-range-link"
+          ?hidden=${!ele._tooltip_fixed}></commit-range-sk>
       </div>
       <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
@@ -404,9 +404,10 @@ export class ChartTooltipSk extends ElementSk {
     this.commitInfo = commit;
 
     if (commitRange && this.commitRangeSk) {
-      this.commitRangeSk.header = commitRange.header;
+      this.commitRangeSk.reset();
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
+      this.commitRangeSk.header = commitRange.header;
     }
 
     if (this.userIssueSk !== null) {

@@ -1981,8 +1981,15 @@ export class ExploreSimpleSk extends ElementSk {
 
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
     const testName = pointDetails.name;
+    const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
     const anomaly = this.dfRepo.value?.getAnomaly(testName, commitPosition) || null;
+    const trace = this.dfRepo.value?.dataframe.traceset[testName] || [];
+
+    // Populate the commit-range-sk element.
+    this.commitRangeSk!.trace = trace;
+    this.commitRangeSk!.commitIndex = x;
+    this.commitRangeSk!.header = header;
 
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
