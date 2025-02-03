@@ -16,7 +16,7 @@ const (
 func Init(local bool, cfg *config.InstanceConfig) error {
 	f := cfg.TraceSampleProportion
 	if local {
-		f = 1.0
+		return nil
 	}
 
 	return tracing.Initialize(float64(f), autoDetectProjectID, map[string]interface{}{
