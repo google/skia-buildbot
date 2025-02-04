@@ -57,6 +57,8 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private _associatedBugIds = new Set<number>();
 
+  private anomaliesLoadingSpinner = false;
+
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
 
@@ -75,7 +77,7 @@ export class ExistingBugDialogSk extends ElementSk {
   private static template = (ele: ExistingBugDialogSk) => html`
     <dialog id="existing-bug-dialog">
       <h2>Existing Bug</h2>
-      <header id="add-to-existing-bug">
+      <div id="add-to-existing-bug">
         <button id="closeIcon" @click=${ele.closeDialog} type="close">
           <close-icon-sk></close-icon-sk>
         </button>
@@ -89,15 +91,17 @@ export class ExistingBugDialogSk extends ElementSk {
             pattern="[0-9]{5,9}"
             title="Bug ID must be a number, between 5 and 9 digits."
             required autocomplete="off"></input>
-          ${ele.associatedBugListTemplate()}
           <br></br>
+          <div>
+            <spinner-sk id="loading-spinner" ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
+          </div>
+          <div class="bug-list">${ele.associatedBugListTemplate()}<div>
           <div class="footer">
-            <spinner-sk id="dialog-spinner"></spinner-sk>
             <button id="file-button" type="submit">Submit</button>
             <button id="close-button" @click=${ele.closeDialog} type="close">Close</button>
           </div>
         </form>
-      </header>
+      </div>
     </dialog>
   `;
 
@@ -105,7 +109,6 @@ export class ExistingBugDialogSk extends ElementSk {
     super(ExistingBugDialogSk.template);
     this._projectId = 'chromium';
     this.allProjectIdOptions.push('chromium');
-    this._associatedBugIds = new Set<number>();
   }
 
   connectedCallback() {
@@ -115,8 +118,8 @@ export class ExistingBugDialogSk extends ElementSk {
     upgradeProperty(this, '_bug_host_url');
     this._render();
 
+    this._spinner = this.querySelector('#loading-spinner');
     this._dialog = this.querySelector('#existing-bug-dialog');
-    this._spinner = this.querySelector('#dialog-spinner');
     this._form = this.querySelector('#existing-bug-form');
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -140,7 +143,7 @@ export class ExistingBugDialogSk extends ElementSk {
    * Upon failure, we keep the dialog open and show an error toast.
    */
   addAnomalyWithExistingBug(): void {
-    this._spinner!.active = true;
+    this.anomaliesLoadingSpinner = true;
     // Disable submit and close button
     this.querySelector('#file-button')!.setAttribute('disabled', 'true');
     this.querySelector('#close-button')!.setAttribute('disabled', 'true');
@@ -167,7 +170,7 @@ export class ExistingBugDialogSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then(() => {
-        this._spinner!.active = false;
+        this.anomaliesLoadingSpinner = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
         this.closeDialog();
@@ -196,7 +199,7 @@ export class ExistingBugDialogSk extends ElementSk {
         );
       })
       .catch((msg: any) => {
-        this._spinner!.active = false;
+        this.anomaliesLoadingSpinner = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
         errorMessage(msg);
@@ -204,7 +207,9 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  private async fetch_associated_bugs() {
+  async fetch_associated_bugs() {
+    this.anomaliesLoadingSpinner = true;
+
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
       body: JSON.stringify({
@@ -225,6 +230,8 @@ export class ExistingBugDialogSk extends ElementSk {
           this.getAssociatedBugList(anomalies);
         }
       });
+    this.anomaliesLoadingSpinner = false;
+    this._render();
   }
 
   private async fetch_associated_bugs_withSid(sid: string) {
@@ -247,13 +254,14 @@ export class ExistingBugDialogSk extends ElementSk {
   private getAssociatedBugList(anomalies: Anomaly[]) {
     this._associatedBugIds.clear();
     anomalies.forEach((anomaly) => {
-      this._associatedBugIds.add(anomaly.bug_id);
+      if (anomaly.bug_id && anomaly.bug_id !== 0) {
+        this._associatedBugIds.add(anomaly.bug_id);
+      }
     });
   }
 
   private associatedBugListTemplate() {
     if (this._anomalies) {
-      this.fetch_associated_bugs();
       if (this._associatedBugIds.size === 0) {
         return html``;
       }

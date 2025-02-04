@@ -19,7 +19,7 @@ existing-bug-dialog-sk {
       right: 0;
       top: 0;
       margin: 0;
-      margin-top: 10px;
+      margin-top: 5px;
       margin-right: 11px;
       border: none;
       padding: 5px;
@@ -47,6 +47,10 @@ existing-bug-dialog-sk {
       margin-bottom: 5px;
       overflow-y: scroll;
       cursor: pointer;
+    }
+    .loading-spinner {
+      display: flex;
+      justify-content: right;
     }
   }
 
