@@ -636,43 +636,45 @@ export class PlotGoogleChartSk extends LitElement {
     };
 
     traceKeys.forEach((key) => {
-      const anomalies = this.anomalyMap![key];
-      const traceCol = this.data!.getColumnIndex(key)!;
-      for (const cp in anomalies) {
-        const offset = Number(cp);
-        const rows = data.getFilteredRows([{ column: 0, value: offset }]);
-        if (rows.length < 0) {
-          console.warn('anomaly data is out of existing dataframe, ignored.');
-          continue;
-        }
-        const xValue =
-          this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
-        const yValue = data.getValue(rows[0], traceCol);
-        const x = layout.getXLocation(xValue);
-        const y = layout.getYLocation(yValue);
-        // We only place the anomaly icons if they are within the chart boundary.
-        // p.s. the top and bottom are reversed-coordinated.
-        if (x < left || x > right || y < top || y > bottom) {
-          continue;
-        }
+      if (!this.removedLabelsCache.includes(key)) {
+        const anomalies = this.anomalyMap![key];
+        const traceCol = this.data!.getColumnIndex(key)!;
+        for (const cp in anomalies) {
+          const offset = Number(cp);
+          const rows = data.getFilteredRows([{ column: 0, value: offset }]);
+          if (rows.length < 0) {
+            console.warn('anomaly data is out of existing dataframe, ignored.');
+            continue;
+          }
+          const xValue =
+            this.domain === 'commit' ? data.getValue(rows[0], 0) : data.getValue(rows[0], 1);
+          const yValue = data.getValue(rows[0], traceCol);
+          const x = layout.getXLocation(xValue);
+          const y = layout.getYLocation(yValue);
+          // We only place the anomaly icons if they are within the chart boundary.
+          // p.s. the top and bottom are reversed-coordinated.
+          if (x < left || x > right || y < top || y > bottom) {
+            continue;
+          }
 
-        const anomaly = anomalies[offset];
-        let cloned: HTMLElement | null;
-        if (anomaly.is_improvement) {
-          cloned = cloneSlot('improvement', key, offset);
-        } else if (anomaly.bug_id === 0) {
-          // no bug assigned, untriaged anomaly
-          cloned = cloneSlot('untriage', key, offset);
-        } else if (anomaly.bug_id < 0) {
-          cloned = cloneSlot('ignored', key, offset);
-        } else {
-          cloned = cloneSlot('regression', key, offset);
-        }
+          const anomaly = anomalies[offset];
+          let cloned: HTMLElement | null;
+          if (anomaly.is_improvement) {
+            cloned = cloneSlot('improvement', key, offset);
+          } else if (anomaly.bug_id === 0) {
+            // no bug assigned, untriaged anomaly
+            cloned = cloneSlot('untriage', key, offset);
+          } else if (anomaly.bug_id < 0) {
+            cloned = cloneSlot('ignored', key, offset);
+          } else {
+            cloned = cloneSlot('regression', key, offset);
+          }
 
-        if (cloned) {
-          cloned.style.top = `${y}px`;
-          cloned.style.left = `${x}px`;
-          allDivs.push(cloned);
+          if (cloned) {
+            cloned.style.top = `${y}px`;
+            cloned.style.left = `${x}px`;
+            allDivs.push(cloned);
+          }
         }
       }
     });
