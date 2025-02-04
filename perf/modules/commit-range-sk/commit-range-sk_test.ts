@@ -64,7 +64,7 @@ describe('commit-range-sk', () => {
       await element.recalcLink();
       assert.equal(
         element.querySelector<HTMLAnchorElement>('a')!.href,
-        'http://example.com/range/11111111111111111111111111111~/33333333333333333333333333333'
+        'http://example.com/range/11111111111111111111111111111/33333333333333333333333333333'
       );
     });
   });
@@ -80,7 +80,7 @@ describe('commit-range-sk', () => {
     await element.recalcLink();
     assert.equal(
       element.querySelector<HTMLAnchorElement>('a')!.href,
-      'http://example.com/range/11111111111111111111111111111~/22222222222222222222222222222'
+      'http://example.com/range/11111111111111111111111111111/22222222222222222222222222222'
     );
   });
 });

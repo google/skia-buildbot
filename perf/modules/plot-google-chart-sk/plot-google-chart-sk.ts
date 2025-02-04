@@ -823,7 +823,7 @@ export class PlotGoogleChartSk extends LitElement {
    * @param row The row index
    */
   getCommitPosition(row: number) {
-    return this.data!.getValue(row + 1, 0);
+    return this.data!.getValue(row, 0);
   }
 
   /**

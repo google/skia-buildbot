@@ -69,9 +69,10 @@ export class CommitRangeSk extends ElementSk {
   }
 
   async recalcLink(): Promise<void> {
+    const commitIndex = this._commitIndex;
     if (
       window.perf.commit_range_url === '' ||
-      this._commitIndex === -1 ||
+      commitIndex === -1 ||
       this._trace.length === 0 ||
       this._header === null
     ) {
@@ -79,7 +80,7 @@ export class CommitRangeSk extends ElementSk {
       return;
     }
     // First the previous commit that has data.
-    let prevCommit = this._commitIndex - 1;
+    let prevCommit = commitIndex - 1;
 
     while (prevCommit > 0 && this._trace[prevCommit] === MISSING_DATA_SENTINEL) {
       prevCommit -= 1;
@@ -90,17 +91,22 @@ export class CommitRangeSk extends ElementSk {
       this.clear();
       return;
     }
-    const cids: CommitNumber[] = [
-      this._header![prevCommit]!.offset,
-      this._header![this._commitIndex]!.offset,
-    ];
+
+    const startOffset = this._header[prevCommit]?.offset ?? null;
+    const endOffset = this._header[commitIndex]?.offset ?? null;
+    if (startOffset === null || endOffset === null) {
+      this.clear();
+      return;
+    }
+
+    const cids: CommitNumber[] = [startOffset, endOffset];
 
     try {
       // Run the commit numbers through cid lookup to get the hashes.
       const hashes = await this.commitNumberToHashes(cids);
       // Create the URL.
       let url = window.perf.commit_range_url;
-      url = url.replace('{begin}', hashes[0] + '~');
+      url = url.replace('{begin}', hashes[0]);
       url = url.replace('{end}', hashes[1]);
 
       // Now populate link, including text and url.
