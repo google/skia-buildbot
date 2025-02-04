@@ -57,8 +57,6 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private _associatedBugIds = new Set<number>();
 
-  private anomaliesLoadingSpinner = false;
-
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
 
@@ -93,7 +91,7 @@ export class ExistingBugDialogSk extends ElementSk {
             required autocomplete="off"></input>
           <br></br>
           <div>
-            <spinner-sk id="loading-spinner" ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
+            <spinner-sk id="loading-spinner"></spinner-sk>
           </div>
           <div class="bug-list">${ele.associatedBugListTemplate()}<div>
           <div class="footer">
@@ -143,7 +141,7 @@ export class ExistingBugDialogSk extends ElementSk {
    * Upon failure, we keep the dialog open and show an error toast.
    */
   addAnomalyWithExistingBug(): void {
-    this.anomaliesLoadingSpinner = true;
+    this._spinner!.active = true;
     // Disable submit and close button
     this.querySelector('#file-button')!.setAttribute('disabled', 'true');
     this.querySelector('#close-button')!.setAttribute('disabled', 'true');
@@ -170,7 +168,7 @@ export class ExistingBugDialogSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then(() => {
-        this.anomaliesLoadingSpinner = false;
+        this._spinner!.active = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
         this.closeDialog();
@@ -199,7 +197,7 @@ export class ExistingBugDialogSk extends ElementSk {
         );
       })
       .catch((msg: any) => {
-        this.anomaliesLoadingSpinner = false;
+        this._spinner!.active = false;
         this.querySelector('#file-button')!.removeAttribute('disabled');
         this.querySelector('#close-button')!.removeAttribute('disabled');
         errorMessage(msg);
@@ -208,7 +206,7 @@ export class ExistingBugDialogSk extends ElementSk {
   }
 
   async fetch_associated_bugs() {
-    this.anomaliesLoadingSpinner = true;
+    this._spinner!.active = true;
 
     await fetch('/_/anomalies/group_report', {
       method: 'POST',
@@ -230,7 +228,7 @@ export class ExistingBugDialogSk extends ElementSk {
           this.getAssociatedBugList(anomalies);
         }
       });
-    this.anomaliesLoadingSpinner = false;
+    this._spinner!.active = false;
     this._render();
   }
 
