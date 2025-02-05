@@ -7,6 +7,15 @@ const SANITIZE_KEYS_IF_VAL_IS_ZERO = ['ddd', 'bm', 'ao'];
 
 const PRECOMP_LAYER_TY = 0;
 
+export const COMMON_EXPORTER_FIELDS = [
+  ...SANITIZE_KEYS,
+  ...SANITIZE_KEYS_IF_ASSET,
+  ...SANITIZE_KEYS_IF_NOT_LAYER,
+  ...SANITIZE_KEYS_IF_NOT_PRECOMP,
+  ...SANITIZE_KEYS_IF_ROOT,
+  ...SANITIZE_KEYS_IF_VAL_IS_ZERO,
+];
+
 /**
  * Sanitize lottie removes fields that are not part of the spec but
  * are added by common exporters. This function will mutate the lottie,

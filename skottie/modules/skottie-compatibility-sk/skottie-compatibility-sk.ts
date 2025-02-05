@@ -25,7 +25,7 @@ import {
   LottieValidator,
   LottieValidatorError,
 } from '@lottie-animation-community/lottie-specs/src/validator';
-import { sanitizeLottie } from './sanitize';
+import { sanitizeLottie, COMMON_EXPORTER_FIELDS } from './sanitize';
 
 type SchemaEntry = {
   name: string;
@@ -40,6 +40,8 @@ export class SkottieCompatibilitySk extends ElementSk {
   private schemas: SchemaEntry[] = [];
 
   tabIndex = 0;
+
+  ignoreExporterFields = false;
 
   private specValidator: LottieValidator;
 
@@ -59,13 +61,13 @@ export class SkottieCompatibilitySk extends ElementSk {
     this.schemas = [
       {
         name: 'Specification 1.0 Errors',
-        getContent: (ele) => SkottieCompatibilitySk.specReport(ele, 'error'),
-        getErrorCount: (ele) => SkottieCompatibilitySk.specErrorCount(ele, 'error'),
+        getContent: (ele) => SkottieCompatibilitySk.specReport(ele),
+        getErrorCount: (ele) => SkottieCompatibilitySk.specErrorCount(ele),
       },
       {
         name: 'Specification 1.0 Warnings',
-        getContent: (ele) => SkottieCompatibilitySk.strictSpecReport(ele, 'warning'),
-        getErrorCount: (ele) => SkottieCompatibilitySk.specErrorCount(ele, 'warning'),
+        getContent: (ele) => SkottieCompatibilitySk.strictSpecReport(ele),
+        getErrorCount: (ele) => SkottieCompatibilitySk.strictSpecErrorCount(ele),
       },
       {
         name: 'Low Power Profile Errors (WIP)',
@@ -132,22 +134,35 @@ export class SkottieCompatibilitySk extends ElementSk {
     return schema.getContent(ele);
   };
 
-  private static specErrorCount(ele: SkottieCompatibilitySk, typeSelector?: string) {
-    const filteredErrors = typeSelector
-      ? ele.specErrors.filter((error) => error.type === typeSelector)
-      : ele.specErrors;
+  private static specErrorCount(ele: SkottieCompatibilitySk) {
+    const filteredErrors = ele.specErrors.filter((error) => error.type === 'error');
     return filteredErrors.length;
   }
 
-  private static specReport(ele: SkottieCompatibilitySk, typeSelector?: string) {
-    const filteredErrors = typeSelector
-      ? ele.specErrors.filter((error) => error.type === typeSelector)
-      : ele.specErrors;
+  private static filterStrictErrors(errors: LottieValidatorError[], ignoreExporterFields = false) {
+    let filteredErrors = errors.filter((error) => error.type === 'warning');
 
-    if (filteredErrors.length === 0) {
-      return html`<div>Pass</div>`;
+    if (ignoreExporterFields) {
+      filteredErrors = filteredErrors.filter((error) => {
+        if (error.warning === 'type') {
+          return true;
+        }
+
+        const pathParts = error.path.split('/');
+        const propName = pathParts[pathParts.length - 1];
+        return !COMMON_EXPORTER_FIELDS.includes(propName);
+      });
     }
 
+    return filteredErrors;
+  }
+
+  private static strictSpecErrorCount(ele: SkottieCompatibilitySk) {
+    return SkottieCompatibilitySk.filterStrictErrors(ele.specErrors, ele.ignoreExporterFields)
+      .length;
+  }
+
+  private static specErrorTable(errors: LottieValidatorError[]) {
     return html`
       <table>
         <tr>
@@ -155,7 +170,7 @@ export class SkottieCompatibilitySk extends ElementSk {
           <th>JSON Path</th>
           <th>Error</th>
         </tr>
-        ${filteredErrors.map(
+        ${errors.map(
           (error) =>
             html`<tr>
               <td>${`${error.path_names?.join(' > ')}`}</td>
@@ -167,34 +182,52 @@ export class SkottieCompatibilitySk extends ElementSk {
     `;
   }
 
-  private static strictSpecReport(ele: SkottieCompatibilitySk, typeSelector?: string) {
-    const filteredErrors = typeSelector
-      ? ele.specErrors.filter((error) => error.type === typeSelector)
-      : ele.specErrors;
+  private static specReport(ele: SkottieCompatibilitySk) {
+    const filteredErrors = ele.specErrors.filter((error) => error.type === 'error');
 
     if (filteredErrors.length === 0) {
       return html`<div>Pass</div>`;
     }
 
+    return SkottieCompatibilitySk.specErrorTable(filteredErrors);
+  }
+
+  private static strictSpecReport(ele: SkottieCompatibilitySk) {
+    const filteredErrors = SkottieCompatibilitySk.filterStrictErrors(
+      ele.specErrors,
+      ele.ignoreExporterFields
+    );
+
     return html`
-      <div class="strict-info">
+      <div class="report-content">
         Specification warnings are for properties and types that have not been documented in the
         official Lottie specification. Exporter tools and playback libraries may still support these
         without any issues.
       </div>
-      <div>
+      <div class="report-content">
+        <input
+          type="checkbox"
+          id="ignore-exporter-fields"
+          .checked="${ele.ignoreExporterFields}"
+          @click="${() => ele.onignoreExporterFields(ele)}" />
+        <label for="ignore-exporter-fields">
+          Ignore Common Exporter Properties. The current values in these properties will not affect
+          playback.</label
+        >
+      </div>
+      <div class="report-content">
         <skottie-button-sk
           id="sanitize"
           @select=${() => ele.onSanitize(ele)}
           type="filled"
           .content=${'Sanitize Lottie'}>
         </skottie-button-sk>
-        <div>
+        <span>
           (Sanitization removes common exporter fields that are not yet specificied and shouldn't
           affect playback.)
-        </div>
+        </span>
       </div>
-      ${SkottieCompatibilitySk.specReport(ele, typeSelector)}
+      ${SkottieCompatibilitySk.specErrorTable(filteredErrors)}
     `;
   }
 
@@ -247,6 +280,12 @@ export class SkottieCompatibilitySk extends ElementSk {
       )}
     </table>`;
   };
+
+  private onignoreExporterFields(ele: SkottieCompatibilitySk): void {
+    ele.ignoreExporterFields = !ele.ignoreExporterFields;
+    console.log(ele.ignoreExporterFields);
+    this._render();
+  }
 
   private onSanitize(ele: SkottieCompatibilitySk): void {
     // Shallow clone to trigger re-render
