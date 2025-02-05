@@ -431,10 +431,9 @@ func TestReportRegressions_OneNewStepDownRegressionFound_OneHighRegressionFoundA
 	allMocks.regressionStore.On("SetLow", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[0].Frame, resp[0].Summary.Clusters[0]).Return(true, "", nil).Twice()
 	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
-	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return(notificationID, nil).Once()
+	allMocks.regressionStore.On("GetNotificationId", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString).Return("", nil).Once()
 	allMocks.regressionStore.On("SetHigh", testutils.AnyContext, regressionCommitNumber, cfg.IDAsString, resp[1].Frame, resp[1].Summary.Clusters[0]).Return(false, "", nil)
-
-	allMocks.notifier.On("UpdateNotification", testutils.AnyContext, mock.Anything, mock.Anything, cfg, resp[1].Summary.Clusters[0], resp[1].Frame, notificationID).Return(nil)
+	allMocks.notifier.On("RegressionFound", ctx, commitAtStep, previousCommit, cfg, resp[0].Summary.Clusters[0], resp[0].Frame, mock.Anything).Return(notificationID, nil)
 
 	c.reportRegressions(ctx, req, resp, cfg)
 
