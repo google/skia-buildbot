@@ -29,11 +29,10 @@ func TestPopulateCache_WithData(t *testing.T) {
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
 	cacheClient.On("SetValue", testutils.AnyContext, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
-	cacheClient.On("SetValue", testutils.AnyContext, UnignoredKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)
-	cacheClient.AssertNumberOfCalls(t, "SetValue", 2)
+	cacheClient.AssertNumberOfCalls(t, "SetValue", 1)
 }
 
 func TestPopulateCache_NoData(t *testing.T) {
@@ -69,28 +68,6 @@ func TestReadFromCache_ByBlame_CacheMiss_Success(t *testing.T) {
 	validateCacheMiss(t, corpus, ByBlameKey(corpus), ByBlame_Corpus)
 }
 
-func TestReadFromCache_Unignored_CacheHit_Success(t *testing.T) {
-	corpus := dks.RoundCorpus
-	cacheResults := []SearchCacheData{
-		{
-			TraceID:    []byte("trace1"),
-			GroupingID: []byte("group1"),
-			Digest:     []byte("d1"),
-		},
-		{
-			TraceID:    []byte("trace2"),
-			GroupingID: []byte("group2"),
-			Digest:     []byte("d2"),
-		},
-	}
-	validateCacheHit(t, cacheResults, corpus, UnignoredKey(corpus), Unignored_Corpus)
-}
-
-func TestReadFromCache_Unignored_CacheMiss_Success(t *testing.T) {
-	corpus := dks.RoundCorpus
-	validateCacheMiss(t, corpus, UnignoredKey(corpus), Unignored_Corpus)
-}
-
 func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, cacheKey string, searchCacheType SearchCacheType) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -105,8 +82,6 @@ func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, 
 	switch searchCacheType {
 	case ByBlame_Corpus:
 		data, err = searchCacheManager.GetByBlameData(ctx, "0", corpus)
-	case Unignored_Corpus:
-		data, err = searchCacheManager.GetUnignoredTracesData(ctx, "0", corpus)
 	default:
 		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
 	}
@@ -130,8 +105,6 @@ func validateCacheMiss(t *testing.T, corpus string, cacheKey string, searchCache
 	switch searchCacheType {
 	case ByBlame_Corpus:
 		data, err = searchCacheManager.GetByBlameData(ctx, "0", corpus)
-	case Unignored_Corpus:
-		data, err = searchCacheManager.GetUnignoredTracesData(ctx, "0", corpus)
 	default:
 		assert.Fail(t, "Invalid search cache type: %v", searchCacheType)
 	}

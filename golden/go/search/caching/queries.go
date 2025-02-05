@@ -17,9 +17,4 @@ SELECT UnignoredDataAtHead.trace_id, UnignoredDataAtHead.grouping_id, UnignoredD
 UntriagedDigests
 JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.grouping_id AND
 	 UntriagedDigests.digest = UnignoredDataAtHead.digest`
-
-	// This query returns all traces for the given corpus which do not have any corresponding ignore rule.
-	UnignoredQuery = `
-SELECT trace_id, grouping_id, digest FROM ValuesAtHead
-WHERE most_recent_commit_id >= $1 AND corpus = $2 AND matches_any_ignore_rule = FALSE`
 )

@@ -16,8 +16,6 @@ type SearchCacheType int
 const (
 	// ByBlame_Corpus denotes the cache type for untriaged images by commits for a given corpus.
 	ByBlame_Corpus SearchCacheType = iota
-	// Unignored_Corpus denotes the cache type for traces without ignore rules.
-	Unignored_Corpus
 )
 
 // SearchCacheData provides a struct to hold data for the entry in by blame cache.
@@ -44,8 +42,7 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 		corpora:      corpora,
 		commitWindow: commitWindow,
 		dataProviders: map[SearchCacheType]cacheDataProvider{
-			ByBlame_Corpus:   NewCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
-			Unignored_Corpus: NewCacheDataProvider(db, corpora, commitWindow, UnignoredQuery, UnignoredKey),
+			ByBlame_Corpus: NewByBlameCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
 		},
 	}
 }
@@ -76,18 +73,12 @@ func (s SearchCacheManager) RunCachePopulation(ctx context.Context) error {
 // GetByBlameData returns the by blame data for the given corpus from cache.
 func (s SearchCacheManager) GetByBlameData(ctx context.Context, firstCommitId string, corpus string) ([]SearchCacheData, error) {
 	cacheKey := ByBlameKey(corpus)
-	return s.getDataFromCache(ctx, firstCommitId, corpus, cacheKey, ByBlame_Corpus)
+	return s.getByBlameDataFromCache(ctx, firstCommitId, corpus, cacheKey)
 }
 
-// GetUnignoredTracesData returns the unignored traces data for the given corpus from cache.
-func (s SearchCacheManager) GetUnignoredTracesData(ctx context.Context, firstCommitId string, corpus string) ([]SearchCacheData, error) {
-	cacheKey := UnignoredKey(corpus)
-	return s.getDataFromCache(ctx, firstCommitId, corpus, cacheKey, Unignored_Corpus)
-}
-
-// getDataFromCache returns cached data for the given parameters from the configured cache. If there is a cache miss,
+// getByBlameDataFromCache returns cached data for the given parameters from the configured cache. If there is a cache miss,
 // it will return the data from the database instead.
-func (s SearchCacheManager) getDataFromCache(ctx context.Context, firstCommitId, corpus string, cacheKey string, cacheType SearchCacheType) ([]SearchCacheData, error) {
+func (s SearchCacheManager) getByBlameDataFromCache(ctx context.Context, firstCommitId, corpus string, cacheKey string) ([]SearchCacheData, error) {
 	data := []SearchCacheData{}
 	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
 	if err != nil {
@@ -96,10 +87,10 @@ func (s SearchCacheManager) getDataFromCache(ctx context.Context, firstCommitId,
 
 	// This is the case when there is a cache miss.
 	if jsonStr == "" {
-		var provider cacheDataProvider
+		var provider byBlameCacheDataProvider
 		var ok bool
-		if provider, ok = s.dataProviders[cacheType]; !ok {
-			return nil, skerr.Fmt("Invalid cache type %d specified.", cacheType)
+		if provider, ok = s.dataProviders[ByBlame_Corpus].(byBlameCacheDataProvider); !ok {
+			return nil, skerr.Fmt("ByBlame cache data provider is not initialized.")
 		}
 		return provider.GetDataForCorpus(ctx, firstCommitId, corpus)
 	}
