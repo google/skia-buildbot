@@ -102,7 +102,7 @@ export const getTitle = (dt: DataTable): object => {
  *   "test":"std",
  *  }, {
  *   "story":"Air",
- *   "test":"-",
+ *   "test":"untitled_key",
  *  }]
  */
 export const getLegend = (dt: DataTable): object[] => {
@@ -140,7 +140,7 @@ export const getLegend = (dt: DataTable): object[] => {
     Array.from(allKeys)
       .sort() // Sort the keys alphabetically
       .forEach((key) => {
-        newObj[key] = obj[key] ? obj[key] : '-';
+        newObj[key] = obj[key] ? obj[key] : 'untitled_key';
       });
     return newObj;
   });
@@ -195,7 +195,11 @@ export function titleFormatter(title: object): string {
  * returns ["Total/avg", "Air/std"]
  */
 export function legendFormatter(legend: object[]): string[] {
-  return legend.map((entry) => Object.values(entry).join('/'));
+  return legend.map((entry) =>
+    Object.values(entry)
+      .filter((value) => value)
+      .join('/')
+  );
 }
 
 /**

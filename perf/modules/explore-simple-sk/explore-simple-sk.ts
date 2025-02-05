@@ -2417,7 +2417,7 @@ export class ExploreSimpleSk extends ElementSk {
     // Since it is an object we convert it to the standard key format a=A,b=B,
     // so that it could be fed to the traceFormatter.
     //
-    // Also note that some values in the legend object has "-" as value which is
+    // Also note that some values in the legend object has "untitled_key" as value which is
     // used to signify a trace not having any values for a particular param.
     // We ignore this.
     const shortTraceIds: string[] = [];
@@ -2425,7 +2425,7 @@ export class ExploreSimpleSk extends ElementSk {
       let shortTraceId = '';
       Object.keys(traceObject).forEach((k) => {
         const v = String(traceObject[k]);
-        shortTraceId += v !== '-' ? `${k}=${v},` : '';
+        shortTraceId += v !== 'untitled_key' ? `${k}=${v},` : '';
       });
 
       // Add an extra comma at the beginning to make sure

@@ -1,5 +1,11 @@
 import { assert } from 'chai';
-import { findTraceByLabel, getLegend, getLegendKeysTitle, getTitle } from './traceset';
+import {
+  findTraceByLabel,
+  getLegend,
+  getLegendKeysTitle,
+  getTitle,
+  titleFormatter,
+} from './traceset';
 import { generateFullDataFrame } from './test_utils';
 import { convertFromDataframe } from '../common/plot-builder';
 import { load } from '@google-web-components/google-chart/loader';
@@ -267,15 +273,15 @@ describe('getLegend', () => {
       {
         bot: 'MacM1',
         ref_mode: 'ref',
-        subtest: '-',
+        subtest: 'untitled_key',
       },
       {
-        bot: '-',
+        bot: 'untitled_key',
         ref_mode: 'ref',
-        subtest: '-',
+        subtest: 'untitled_key',
       },
       {
-        bot: '-',
+        bot: 'untitled_key',
         ref_mode: 'avg',
         subtest: 'jetstream2',
       },
@@ -305,7 +311,7 @@ describe('getLegend', () => {
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
       {
-        bot: '-',
+        bot: 'untitled_key',
         ref_mode: 'ref',
       },
       {
@@ -314,7 +320,7 @@ describe('getLegend', () => {
       },
       {
         bot: 'win-10-perf',
-        ref_mode: '-',
+        ref_mode: 'untitled_key',
       },
     ]);
   });
@@ -338,8 +344,8 @@ describe('getLegend', () => {
     assert.equal(legend.length, keys.length);
     assert.deepEqual(legend, [
       {
-        benchmark: '-',
-        ref_mode: '-',
+        benchmark: 'untitled_key',
+        ref_mode: 'untitled_key',
       },
       {
         benchmark: 'JetStream2',
@@ -351,6 +357,40 @@ describe('getLegend', () => {
       },
     ]);
   });
+});
+
+describe('get titleFormatter', () => {
+  it(
+    'Empty legend values and empty trace titles return a string that ' +
+      'combined untitled_key with a slash',
+    async () => {
+      const keys = ['', ',benchmark=JetStream2,ref_mode=ref,', ',benchmark=,ref_mode='];
+      const df = generateFullDataFrame(
+        { begin: 90, end: 120 },
+        now,
+        keys.length,
+        [timeSpan],
+        [null],
+        keys
+      );
+      // Load Google Chart API for DataTable.
+      setUpElementUnderTest<PlotGoogleChartSk>('plot-google-chart-sk');
+      await load();
+      const dt = google.visualization.arrayToDataTable(convertFromDataframe(df, 'both')!);
+
+      const legend = getLegend(dt);
+      const formattedTitles: string[] = [];
+      legend.forEach((entry) => {
+        formattedTitles.push(titleFormatter(entry));
+      });
+      assert.equal(legend.length, keys.length);
+      assert.deepEqual(formattedTitles, [
+        'untitled_key/untitled_key',
+        'JetStream2/ref',
+        'untitled_key/untitled_key',
+      ]);
+    }
+  );
 });
 
 describe('getLegendKeysTitle', () => {
