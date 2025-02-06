@@ -1116,8 +1116,15 @@ export class ExploreSimpleSk extends ElementSk {
   private onChartSelect(e: CustomEvent) {
     const chart = this.googleChartPlot!.value!;
     const index = e.detail;
-
-    const commitPos = chart.getCommitPosition(index.tableRow);
+    const commitPos: CommitNumber = chart.getCommitPosition(index.tableRow);
+    const traceName = chart.getTraceName(index.tableCol);
+    const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
+    // First the previous commit that has data.
+    let prevIndex: number = index.tableRow - 1;
+    while (prevIndex > 0 && trace[prevIndex] === MISSING_DATA_SENTINEL) {
+      prevIndex = prevIndex - 1;
+    }
+    const prevCommitPos = this.dfRepo.value?.header[prevIndex]?.offset || null;
 
     fetch('/_/cid/', {
       method: 'POST',
@@ -1128,10 +1135,10 @@ export class ExploreSimpleSk extends ElementSk {
     })
       .then(jsonOrThrow)
       .then((json: CIDHandlerResponse) => {
-        const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
+        const key = JSON.stringify([traceName, commitPos]);
 
-        // TODO(b/355726640) - The purpose of this dict is to ensure that we're not
-        // needing to re-fetch the information, but it's not WAI.
+        // The purpose of this dict is to ensure that
+        // we're not needing to re-fetch the information.
         this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
         const position = chart.getPositionByIndex(index);
 
@@ -1141,7 +1148,7 @@ export class ExploreSimpleSk extends ElementSk {
             y: chart.getYValue(index),
             xPos: position.x,
             yPos: position.y,
-            name: chart.getTraceName(index.tableCol),
+            name: traceName,
           },
           json.commitSlice![0],
           true
@@ -1150,8 +1157,8 @@ export class ExploreSimpleSk extends ElementSk {
         const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
         tooltipElem!.loadPointLinks(
           commitPos,
-          chart.getCommitPosition(index.tableRow - 1),
-          chart.getTraceName(index.tableCol),
+          prevCommitPos,
+          traceName,
           window.perf.keys_for_commit_range!
         );
 
@@ -1162,7 +1169,6 @@ export class ExploreSimpleSk extends ElementSk {
     // If traces are rendered and summary bar is enabled, show
     // summary for the trace clicked on the graph.
     if (this.summaryOptionsField.value && this.traceIdSummaryOptionMap.size > 1) {
-      const traceName = chart.getTraceName(index.tableCol);
       const option = this.traceIdSummaryOptionMap.get(traceName) || '';
       if (option !== '') {
         this.summaryOptionsField.value!.setValue(option);
