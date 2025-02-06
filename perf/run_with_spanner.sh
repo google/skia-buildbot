@@ -1,5 +1,8 @@
 #!/bin/bash
 # Runs a perf instance against the given spanner database.
+# Prerequisite:
+# gcloud auth application-default login
+
 # First delete any existing docker containers to start clean.
 sudo docker ps -q | xargs -r sudo docker rm -vf
 # Now let's get all the arguments passed in.

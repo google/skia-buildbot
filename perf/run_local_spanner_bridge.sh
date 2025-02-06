@@ -1,6 +1,11 @@
 #!/bin/bash
 # Runs a perf instance against the given spanner database.
 
+# Prerequisite:
+# - gcloud auth application-default login
+# In Skia Bridge terminal:
+# - gcloud config set project chromeperf
+
 # If wanting to edit anomalies, it is important to run breakglass command:
 # grants add --wait_for_twosync \
 # --reason="b/377751454 -- resolve nudging issue" \
