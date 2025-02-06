@@ -247,7 +247,21 @@ export interface CountHandlerResponse {
 	paramset: ReadOnlyParamSet;
 }
 
+export interface Subscription {
+	name?: string;
+	revision?: string;
+	bug_labels?: string[] | null;
+	hotlists?: string[] | null;
+	bug_component?: string;
+	bug_priority?: number;
+	bug_severity?: number;
+	bug_cc_emails?: string[] | null;
+	contact_email?: string;
+}
+
 export interface GetAnomaliesResponse {
+	subscription: Subscription | null;
+	alerts: Alert[] | null;
 	anomaly_list: Anomaly[] | null;
 	anomaly_cursor: string;
 	error: string;
@@ -442,18 +456,6 @@ export interface TryBotResponse {
 	header: (ColumnHeader | null)[] | null;
 	results: TryBotResult[] | null;
 	paramset: ReadOnlyParamSet;
-}
-
-export interface Subscription {
-	name?: string;
-	revision?: string;
-	bug_labels?: string[] | null;
-	hotlists?: string[] | null;
-	bug_component?: string;
-	bug_priority?: number;
-	bug_severity?: number;
-	bug_cc_emails?: string[] | null;
-	contact_email?: string;
 }
 
 export namespace progress {

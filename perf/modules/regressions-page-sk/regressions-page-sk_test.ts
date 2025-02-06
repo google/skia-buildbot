@@ -82,6 +82,8 @@ describe('regressions-page-sk', () => {
     ],
     anomaly_cursor: '',
     error: '',
+    alerts: [],
+    subscription: null,
   };
 
   const anomalyListResponseWithAnomalyCursor: GetAnomaliesResponse = {
@@ -113,6 +115,8 @@ describe('regressions-page-sk', () => {
     ],
     anomaly_cursor: 'query_cursor',
     error: '',
+    alerts: [],
+    subscription: null,
   };
 
   fetchMock.get(

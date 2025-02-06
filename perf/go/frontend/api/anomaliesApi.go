@@ -17,9 +17,12 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/subscription"
+	pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -31,6 +34,8 @@ type anomaliesApi struct {
 	chromeperfClient chromeperf.ChromePerfClient
 	loginProvider    alogin.Login
 	perfGit          perfgit.Git
+	subStore         subscription.Store
+	alertStore       alerts.Store
 }
 
 // Response object for the request from sheriff list UI.
@@ -50,6 +55,9 @@ type GetAnomaliesRequest struct {
 
 // Response object for the request from the anomaly table UI.
 type GetAnomaliesResponse struct {
+	Subscription *pb.Subscription `json:"subscription"`
+	// List of alerts to display.
+	Alerts []alerts.Alert `json:"alerts"`
 	// The list of anomalies.
 	Anomalies []chromeperf.Anomaly `json:"anomaly_list"`
 	// The cursor of the current query. It will be used to 'Load More' for the next query.
@@ -101,20 +109,27 @@ type GetGroupReportResponse struct {
 }
 
 func (api anomaliesApi) RegisterHandlers(router *chi.Mux) {
-	router.Get("/_/anomalies/sheriff_list", api.GetSheriffList)
-	router.Get("/_/anomalies/anomaly_list", api.GetAnomalyList)
-	router.Post("/_/anomalies/group_report", api.GetGroupReport)
+	// Endpoints for using Chromeperf data.
+	router.Get("/_/anomalies/sheriff_list", api.GetSheriffListLegacy)
+	router.Get("/_/anomalies/anomaly_list", api.GetAnomalyListLegacy)
+	router.Post("/_/anomalies/group_report", api.GetGroupReportLegacy)
+
+	// Endpoints for using data from the instance database.
+	router.Get("/_/anomalies/sheriff_list_skia", api.GetSheriffList)
+	router.Get("/_/anomalies/anomaly_list_skia", api.GetAnomalyList)
 }
 
-func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git) anomaliesApi {
+func NewAnomaliesApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, perfGit perfgit.Git, subStore subscription.Store, alertStore alerts.Store) anomaliesApi {
 	return anomaliesApi{
 		loginProvider:    loginProvider,
 		chromeperfClient: chromeperfClient,
 		perfGit:          perfGit,
+		subStore:         subStore,
+		alertStore:       alertStore,
 	}
 }
 
-func (api anomaliesApi) GetSheriffList(w http.ResponseWriter, r *http.Request) {
+func (api anomaliesApi) GetSheriffListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
 		return
@@ -143,19 +158,19 @@ func (api anomaliesApi) GetSheriffList(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to write sheriff list to UI response.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %s", getSheriffListResponse.SheriffList)
+	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
 
 	return
 }
 
-func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
+func (api anomaliesApi) GetAnomalyListLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
 		return
 	}
 
 	query_values := r.URL.Query()
-	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %s", query_values)
+	sklog.Debugf("[SkiaTriage] Get anomalies request received from frontend: %v", query_values)
 	if query_values.Get("host") == "" {
 		query_values["host"] = []string{config.Config.URL}
 	}
@@ -188,7 +203,7 @@ func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
 
 // This function is to redirect the report page request to the group_report
 // endpoint in Chromeperf.
-func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
+func (api anomaliesApi) GetGroupReportLegacy(w http.ResponseWriter, r *http.Request) {
 	if api.loginProvider.LoggedInAs(r) == "" {
 		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
 		return
@@ -200,7 +215,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON on anomaly group report request.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] Anomaly group report request received from frontend: %s", groupReportRequest)
+	sklog.Debugf("[SkiaTriage] Anomaly group report request received from frontend: %v", groupReportRequest)
 
 	if !IsGroupReportRequestValid(groupReportRequest) {
 		httputils.ReportError(w, err, "Group report request is invalid.", http.StatusInternalServerError)
@@ -238,7 +253,7 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		err = api.chromeperfClient.SendGetRequest(
 			ctx, fmt.Sprintf("alerts/skia/group_id/%s", groupReportRequest.AnomalyGroupID), "", url.Values{"host": []string{host}}, groupReportResponse)
 	} else {
-		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %s", groupReportRequest), http.StatusBadRequest)
+		httputils.ReportError(w, errors.New("Invalid Request"), fmt.Sprintf("Group report request does not have valid parameters: %v", groupReportRequest), http.StatusBadRequest)
 		return
 	}
 
@@ -272,6 +287,95 @@ func (api anomaliesApi) GetGroupReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sklog.Debugf("[SkiaTriage] %d anomalies are received from anomaly report group.", len(groupReportResponse.Anomalies))
+
+	return
+}
+
+// GetSheriffListSkia handles requests to retrieve the list of sheriffs from the Skia internal store.
+func (api anomaliesApi) GetSheriffList(w http.ResponseWriter, r *http.Request) {
+	if api.loginProvider.LoggedInAs(r) == "" {
+		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		return
+	}
+
+	sklog.Debug("[SkiaTriage] Get sheriff config list from Skia request received from frontend.")
+
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultAnomaliesRequestTimeout)
+	defer cancel()
+
+	getSheriffListResponse := &GetSheriffListResponse{}
+
+	subscriptions, err := api.subStore.GetAllActiveSubscriptions(ctx)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get all active subscriptions.", http.StatusInternalServerError)
+		return
+	}
+
+	for _, sub := range subscriptions {
+		getSheriffListResponse.SheriffList = append(getSheriffListResponse.SheriffList, sub.Name)
+	}
+
+	if err := json.NewEncoder(w).Encode(getSheriffListResponse); err != nil {
+		httputils.ReportError(w, err, "Failed to write sheriff list to UI response.", http.StatusInternalServerError)
+		return
+	}
+
+	sklog.Debugf("[SkiaTriage] sheriff config list is loaded: %v", getSheriffListResponse.SheriffList)
+
+	return
+}
+
+// GetAnomalyListSkia handles requests to retrieve the list of anomalies from the Skia internal store as
+// well as Subscription and Alert information.
+func (api anomaliesApi) GetAnomalyList(w http.ResponseWriter, r *http.Request) {
+	if api.loginProvider.LoggedInAs(r) == "" {
+		httputils.ReportError(w, errors.New("Not logged in"), fmt.Sprintf("You must be logged in to complete this action."), http.StatusUnauthorized)
+		return
+	}
+
+	query_values := r.URL.Query()
+	w.Header().Set("Content-Type", "application/json")
+
+	subName := query_values.Get("sheriff")
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultAnomaliesRequestTimeout)
+	defer cancel()
+
+	getAnomaliesResponse := &GetAnomaliesResponse{}
+	sub, err := api.subStore.GetActiveSubscription(ctx, subName)
+	if sub == nil {
+		httputils.ReportError(w, err, "No matching subscription found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get subscription", http.StatusInternalServerError)
+		return
+	}
+
+	getAnomaliesResponse.Subscription = sub
+
+	alertsPtr, err := api.alertStore.ListForSubscription(ctx, subName)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get list of alerts", http.StatusInternalServerError)
+		return
+	}
+	alerts := make([]alerts.Alert, len(alertsPtr))
+
+	for i, alertPtr := range alertsPtr {
+		alerts[i] = *alertPtr
+	}
+
+	getAnomaliesResponse.Alerts = alerts
+
+	// TODO(eduardoyap): Add logic to return anomalies from subscription.
+
+	if err := json.NewEncoder(w).Encode(getAnomaliesResponse); err != nil {
+		httputils.ReportError(w, err, "Failed to write get anoamlies response.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] %d anomalies are received.", len(getAnomaliesResponse.Anomalies))
 
 	return
 }

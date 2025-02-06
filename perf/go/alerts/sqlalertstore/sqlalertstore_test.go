@@ -420,6 +420,86 @@ func insertAlertToDb(t *testing.T, ctx context.Context, db pool.Pool, cfg *alert
 	}
 }
 
+func TestStore_ListForSubscription_Empty(t *testing.T) {
+	ctx := context.Background()
+	store, _ := setUp(t)
+
+	cfgs, err := store.ListForSubscription(ctx, "test-subscription")
+	require.NoError(t, err)
+	assert.Len(t, cfgs, 0)
+}
+
+func TestStore_ListForSubscription_SingleMatch(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	cfg1 := alerts.NewConfig()
+	cfg1.SetIDFromInt64(1)
+	cfg1.Query = "source_type=svg"
+	cfg1.DisplayName = "bar"
+	subKey1 := &alerts.SubKey{SubName: "test-subscription", SubRevision: "rev1"}
+	insertAlertToDb(t, ctx, db, cfg1, subKey1)
+
+	cfgs, err := store.ListForSubscription(ctx, "test-subscription")
+	require.NoError(t, err)
+	assert.Len(t, cfgs, 1)
+	assert.Equal(t, "bar", cfgs[0].DisplayName)
+	assert.Equal(t, "source_type=svg", cfgs[0].Query)
+	assert.Equal(t, int64(1), cfgs[0].IDAsStringToInt())
+}
+
+func TestStore_ListForSubscription_MultipleMatches(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	cfg1 := alerts.NewConfig()
+	cfg1.SetIDFromInt64(1)
+	cfg1.Query = "source_type=svg"
+	cfg1.DisplayName = "bar"
+	subKey1 := &alerts.SubKey{SubName: "test-subscription", SubRevision: "rev1"}
+	insertAlertToDb(t, ctx, db, cfg1, subKey1)
+
+	cfg2 := alerts.NewConfig()
+	cfg2.SetIDFromInt64(2)
+	cfg2.Query = "source_type=skp"
+	cfg2.DisplayName = "foo"
+	subKey2 := &alerts.SubKey{SubName: "test-subscription", SubRevision: "rev2"}
+	insertAlertToDb(t, ctx, db, cfg2, subKey2)
+
+	cfg3 := alerts.NewConfig()
+	cfg3.SetIDFromInt64(3)
+	cfg3.Query = "source_type=other"
+	cfg3.DisplayName = "baz"
+	subKey3 := &alerts.SubKey{SubName: "other-subscription", SubRevision: "rev3"}
+	insertAlertToDb(t, ctx, db, cfg3, subKey3)
+
+	cfgs, err := store.ListForSubscription(ctx, "test-subscription")
+	require.NoError(t, err)
+	assert.Len(t, cfgs, 2)
+	assert.Equal(t, "bar", cfgs[0].DisplayName)
+	assert.Equal(t, "foo", cfgs[1].DisplayName)
+	assert.Equal(t, "source_type=svg", cfgs[0].Query)
+	assert.Equal(t, "source_type=skp", cfgs[1].Query)
+	assert.Equal(t, int64(1), cfgs[0].IDAsStringToInt())
+	assert.Equal(t, int64(2), cfgs[1].IDAsStringToInt())
+}
+
+func TestStore_ListForSubscription_NoMatch(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	cfg1 := alerts.NewConfig()
+	cfg1.SetIDFromInt64(1)
+	cfg1.Query = "source_type=svg"
+	cfg1.DisplayName = "bar"
+	subKey1 := &alerts.SubKey{SubName: "other-subscription", SubRevision: "rev1"}
+	insertAlertToDb(t, ctx, db, cfg1, subKey1)
+
+	cfgs, err := store.ListForSubscription(ctx, "test-subscription")
+	require.NoError(t, err)
+	assert.Len(t, cfgs, 0)
+}
+
 func getAlertFromDb(t *testing.T, ctx context.Context, db pool.Pool, id int64) (*alerts.Alert, *alerts.SubKey, int) {
 	alert := &alerts.Alert{}
 	var serializedAlert string

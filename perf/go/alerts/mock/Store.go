@@ -65,6 +65,36 @@ func (_m *Store) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert
 	return r0, r1
 }
 
+// ListForSubscription provides a mock function with given fields: ctx, subName
+func (_m *Store) ListForSubscription(ctx context.Context, subName string) ([]*alerts.Alert, error) {
+	ret := _m.Called(ctx, subName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListForSubscription")
+	}
+
+	var r0 []*alerts.Alert
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*alerts.Alert, error)); ok {
+		return rf(ctx, subName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*alerts.Alert); ok {
+		r0 = rf(ctx, subName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*alerts.Alert)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, subName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ReplaceAll provides a mock function with given fields: ctx, reqs, tx
 func (_m *Store) ReplaceAll(ctx context.Context, reqs []*alerts.SaveRequest, tx pgx.Tx) error {
 	ret := _m.Called(ctx, reqs, tx)

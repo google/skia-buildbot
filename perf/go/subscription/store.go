@@ -14,6 +14,9 @@ type Store interface {
 	// GetSubscription retrieves parsed graph configs for the given id.
 	GetSubscription(ctx context.Context, name string, revision string) (*pb.Subscription, error)
 
+	// GetActiveSubscription retrieves an active subscription with given name.
+	GetActiveSubscription(ctx context.Context, name string) (*pb.Subscription, error)
+
 	// InsertSubscriptions inserts multiple subscription.
 	InsertSubscriptions(ctx context.Context, subscription []*pb.Subscription, tx pgx.Tx) error
 

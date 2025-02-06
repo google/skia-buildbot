@@ -28,6 +28,7 @@ const (
 	deleteAllAlerts
 	listActiveAlerts
 	listAllAlerts
+	listForSub
 )
 
 // statements holds all the raw SQL statements used.
@@ -77,6 +78,15 @@ var statements = map[statement]string{
 			id, alert
 		FROM
 			ALERTS
+		`,
+	listForSub: `
+		SELECT
+			id, alert
+		FROM
+			ALERTS
+		WHERE
+			config_state=0
+			AND sub_name=$1
 		`,
 }
 
@@ -189,6 +199,30 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 		stmt = listAllAlerts
 	}
 	rows, err := s.db.Query(ctx, s.statements[stmt])
+	if err != nil {
+		return nil, err
+	}
+	ret := []*alerts.Alert{}
+	for rows.Next() {
+		var id int64
+		var serializedAlert string
+		if err := rows.Scan(&id, &serializedAlert); err != nil {
+			return nil, err
+		}
+		a := &alerts.Alert{}
+		if err := json.Unmarshal([]byte(serializedAlert), a); err != nil {
+			return nil, skerr.Wrapf(err, "Failed to deserialize JSON Alert.")
+		}
+		a.SetIDFromInt64(id)
+		ret = append(ret, a)
+	}
+	sort.Sort(sortableAlertSlice(ret))
+	return ret, nil
+}
+
+// ListForSubscription implements the alerts.Store interface.
+func (s *SQLAlertStore) ListForSubscription(ctx context.Context, subName string) ([]*alerts.Alert, error) {
+	rows, err := s.db.Query(ctx, s.statements[listForSub], subName)
 	if err != nil {
 		return nil, err
 	}

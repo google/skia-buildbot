@@ -34,4 +34,7 @@ type Store interface {
 	// If includeDeleted is true then deleted Alerts are also included in the
 	// response.
 	List(ctx context.Context, includeDeleted bool) ([]*Alert, error)
+
+	// List all alerts under a given subscription.
+	ListForSubscription(ctx context.Context, subName string) ([]*Alert, error)
 }

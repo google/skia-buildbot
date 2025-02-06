@@ -36,6 +36,10 @@ func (store *MockStore) List(ctx context.Context, includeDeleted bool) ([]*Alert
 	return store.alerts, nil
 }
 
+func (store *MockStore) ListForSubscription(ctx context.Context, subName string) ([]*Alert, error) {
+	return store.alerts, nil
+}
+
 func (store *MockStore) GetListCount() int {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
