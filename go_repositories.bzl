@@ -859,12 +859,24 @@ def go_repositories():
         sum = "h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=",
         version = "v4.0.0+incompatible",
     )
+    go_repository(
+        name = "com_github_gogo_googleapis",
+        importpath = "github.com/gogo/googleapis",
+        sum = "h1:1Yx4Myt7BxzvUr5ldGSbwYiZG6t9wGBZ+8/fX3Wvtq0=",
+        version = "v1.4.1",
+    )
 
     go_repository(
         name = "com_github_gogo_protobuf",
         importpath = "github.com/gogo/protobuf",
         sum = "h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=",
         version = "v1.3.2",
+    )
+    go_repository(
+        name = "com_github_gogo_status",
+        importpath = "github.com/gogo/status",
+        sum = "h1:+eIkrewn5q6b30y+g/BJINVVdi2xH7je5MPJ3ZPK3JA=",
+        version = "v1.1.0",
     )
 
     go_repository(
@@ -2031,8 +2043,8 @@ def go_repositories():
     go_repository(
         name = "com_github_opentracing_opentracing_go",
         importpath = "github.com/opentracing/opentracing-go",
-        sum = "h1:pWlfV3Bxv7k65HYwkikxat0+s3pV4bsqf19k25Ur8rU=",
-        version = "v1.1.0",
+        sum = "h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=",
+        version = "v1.2.0",
     )
 
     go_repository(
@@ -3921,6 +3933,12 @@ def go_repositories():
         patches = ["//temporal:sdk-go.diff"],
         sum = "h1:Cqyujbnt831agvkiFrJwZHVWT52kAUy4m2XyUsQpjZE=",
         version = "v1.25.2-0.20240108215803-6244097c5aca",
+    )
+    go_repository(
+        name = "io_temporal_go_sdk_contrib_opentracing",
+        importpath = "go.temporal.io/sdk/contrib/opentracing",
+        sum = "h1:cREEjlvg+dJX+tgiSr1NvnE8QADSX6zWQqXKfb9oh2w=",
+        version = "v0.2.0",
     )
 
     go_repository(
