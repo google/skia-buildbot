@@ -7,6 +7,7 @@ go_library(
         "byBlame.go",
         "dataprovider.go",
         "keys.go",
+        "matchingTraces.go",
         "queries.go",
         "searchCache.go",
     ],
@@ -14,10 +15,16 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/cache",
+        "//go/paramtools",
         "//go/skerr",
+        "//go/sklog",
+        "//golden/go/config",
         "//golden/go/search/common",
+        "//golden/go/sql",
         "//golden/go/sql/schema",
+        "//golden/go/types",
         "@com_github_jackc_pgx_v4//pgxpool",
+        "@io_opencensus_go//trace",
     ],
 )
 

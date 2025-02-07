@@ -16,6 +16,8 @@ type SearchCacheType int
 const (
 	// ByBlame_Corpus denotes the cache type for untriaged images by commits for a given corpus.
 	ByBlame_Corpus SearchCacheType = iota
+	// MatchingTraces denotes the cache type for search results.
+	MatchingTraces
 )
 
 // SearchCacheData provides a struct to hold data for the entry in by blame cache.
@@ -43,6 +45,7 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 		commitWindow: commitWindow,
 		dataProviders: map[SearchCacheType]cacheDataProvider{
 			ByBlame_Corpus: NewByBlameCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
+			MatchingTraces: NewMatchingTracesCacheDataProvider(db, corpora, commitWindow),
 		},
 	}
 }

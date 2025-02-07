@@ -380,8 +380,7 @@ func (g *diffWorkGatherer) getGroupingsBeingProcessed(ctx context.Context) ([]sc
 	ctx, span := trace.StartSpan(ctx, "getGroupingsBeingProcessed")
 	defer span.End()
 
-	const statement = `SELECT DISTINCT grouping_id FROM PrimaryBranchDiffCalculationWork
-AS OF SYSTEM TIME '-0.1s'`
+	const statement = "SELECT DISTINCT grouping_id FROM PrimaryBranchDiffCalculationWork"
 
 	rows, err := g.db.Query(ctx, statement)
 	if err != nil {
@@ -790,16 +789,13 @@ func getAllRecentDigests(ctx context.Context, db *pgxpool.Pool, numCommits int) 
 WITH
 RecentCommits AS (
 	SELECT tile_id, commit_id FROM CommitsWithData
-	AS OF SYSTEM TIME '-0.1s'
 	ORDER BY commit_id DESC LIMIT $1
 ),
 OldestTileInWindow AS (
 	SELECT MIN(tile_id) as tile_id FROM RecentCommits
-	AS OF SYSTEM TIME '-0.1s'
 )
 SELECT DISTINCT encode(digest, 'hex') FROM TiledTraceDigests
 JOIN OldestTileInWindow ON TiledTraceDigests.tile_id >= OldestTileInWindow.tile_id
-AS OF SYSTEM TIME '-0.1s'
 ORDER BY 1
 `
 

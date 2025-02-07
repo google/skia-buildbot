@@ -29,10 +29,16 @@ func TestPopulateCache_WithData(t *testing.T) {
 	db := useKitchenSinkData(ctx, t)
 	cacheClient := mockCache.NewCache(t)
 	cacheClient.On("SetValue", testutils.AnyContext, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
+	expectedQueryContext := MatchingTracesQueryContext{
+		IncludeUntriaged:                 true,
+		OnlyIncludeDigestsProducedAtHead: true,
+		Corpus:                           dks.RoundCorpus,
+	}
+	cacheClient.On("SetValue", testutils.AnyContext, MatchingTracesKey(expectedQueryContext), mock.AnythingOfType("string")).Return(nil)
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)
-	cacheClient.AssertNumberOfCalls(t, "SetValue", 1)
+	cacheClient.AssertNumberOfCalls(t, "SetValue", 2)
 }
 
 func TestPopulateCache_NoData(t *testing.T) {
