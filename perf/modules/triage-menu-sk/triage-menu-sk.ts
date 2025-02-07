@@ -84,8 +84,11 @@ export class TriageMenuSk extends ElementSk {
     this.newBugDialog = this.querySelector('new-bug-dialog-sk');
 
     this.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.existingBugDialog!.fetch_associated_bugs();
+      const existingBugButton = this.querySelector('#existing-bug');
+      if (e.target === existingBugButton) {
+        e.preventDefault();
+        this.existingBugDialog!.fetch_associated_bugs();
+      }
     });
   }
 
