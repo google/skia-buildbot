@@ -1121,7 +1121,7 @@ export class ExploreSimpleSk extends ElementSk {
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
     // First the previous commit that has data.
     let prevIndex: number = index.tableRow - 1;
-    while (prevIndex > 0 && trace[prevIndex] === MISSING_DATA_SENTINEL) {
+    while (prevIndex > -1 && trace[prevIndex] === MISSING_DATA_SENTINEL) {
       prevIndex = prevIndex - 1;
     }
     const prevCommitPos = this.dfRepo.value?.header[prevIndex]?.offset || null;
