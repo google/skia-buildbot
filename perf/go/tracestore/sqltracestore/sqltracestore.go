@@ -1336,7 +1336,9 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 			}
 		}
 		sql := b.String()
-		rows, err := s.db.Query(ctx, sql)
+		queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.ExecuteSQLQuery")
+		rows, err := s.db.Query(queryCtx, sql)
+		querySpan.End()
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -1443,7 +1445,9 @@ func (s *SQLTraceStore) convertHexTraceIdsToParams(ctx context.Context, currentB
 		return skerr.Wrapf(err, "failed to expand convertTraceIDs template")
 	}
 	sql := b.String()
-	rows, err := s.db.Query(ctx, sql)
+	queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.QueryTracesIDOnly.convertHexTraceIdsToParams.ExecuteSQLQuery")
+	rows, err := s.db.Query(queryCtx, sql)
+	querySpan.End()
 	if err != nil {
 		return skerr.Wrapf(err, "SQL: %q", sql)
 	}
@@ -1652,7 +1656,9 @@ func (s *SQLTraceStore) readTracesChunk(ctx context.Context, beginCommit types.C
 
 	sql := b.String()
 	// Execute the query.
-	rows, err := s.db.Query(ctx, sql)
+	queryCtx, querySpan := trace.StartSpan(ctx, "sqltracestore.ReadTraces.Chunk.ExecuteSQLQuery")
+	rows, err := s.db.Query(queryCtx, sql)
+	querySpan.End()
 	if err != nil {
 		return skerr.Wrapf(err, "SQL: %q", sql)
 	}
