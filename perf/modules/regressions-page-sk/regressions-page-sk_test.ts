@@ -146,8 +146,8 @@ describe('regressions-page-sk', () => {
     const dropdown = document.getElementById('filter') as HTMLSelectElement;
 
     it('Loads associated regressions when subscription selected', async () => {
-      // 3 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 4);
+      // 4 loaded configs and the default options
+      assert.equal(dropdown?.options.length, 5);
       // /anomaly_list is not called without a sheriff selected.
       assert.equal(fetchMock.lastCall()![0], '/_/anomalies/sheriff_list');
 
@@ -179,8 +179,8 @@ describe('regressions-page-sk', () => {
     const dropdown = document.getElementById('filter') as HTMLSelectElement;
 
     it('Loads anomaly_cursor when the anomaly_cursor is returned in the response', async () => {
-      // 3 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 4);
+      // 4 loaded configs and the default options
+      assert.equal(dropdown?.options.length, 5);
 
       await element.filterChange('Sheriff Config 2');
       fetchMock.getOnce(
@@ -217,7 +217,7 @@ describe('regressions-page-sk', () => {
 
     it('Sheriff List is displayed in an rescending way', async () => {
       // 4 loaded configs and the default options
-      assert.equal(dropdown?.options.length, 4);
+      assert.equal(dropdown?.options.length, 5);
       element.subscriptionList.every((sheriff, index) => {
         assert.equal(sheriff, sheriffListResponseSorted.at(index));
       });

@@ -1,0 +1,42 @@
+@import '../../../elements-sk/modules/styles/select';
+@import '../../../elements-sk/modules/styles/buttons';
+@import '../themes/themes.scss';
+
+subscription-table-sk {
+  .subscription-details {
+    padding: 10px;
+    border: 1px solid var(--on-surface);
+    border-radius: 5px;
+    margin: 20px;
+  }
+
+  .subscription-details h2 {
+    margin-bottom: 10px;
+  }
+
+  .subscription-details p {
+    margin: 2px;
+  }
+
+  #alerts-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: small;
+    width: 100%;
+    margin: 20px;
+    th,
+    td {
+      text-align: center;
+    }
+    #interesting,
+    #minimum-num,
+    #k,
+    #radius {
+      width: 50px;
+    }
+  }
+
+  #btn-toggle-alerts {
+    margin-left: 20px;
+  }
+}

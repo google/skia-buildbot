@@ -9,10 +9,13 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../elements-sk/modules/spinner-sk';
+import '../anomalies-table-sk';
+import '../subscription-table-sk';
 import { stateReflector } from '../../../infra-sk/modules/stateReflector';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { Regression, GetSheriffListResponse, Anomaly, GetAnomaliesResponse } from '../json';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
+import { SubscriptionTableSk } from '../subscription-table-sk/subscription-table-sk';
 import '@material/web/button/outlined-button.js';
 import { HintableObject } from '../../../infra-sk/modules/hintable';
 import { errorMessage } from '../errorMessage';
@@ -22,17 +25,26 @@ interface State {
   selectedSubscription: string;
   showTriaged: boolean;
   showImprovements: boolean;
+  useSkia: boolean;
 }
 
-const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list';
-const ANOMALY_LIST_ENDPOINT = '/_/anomalies/anomaly_list';
+const SHERIFF_LIST_ENDPOINT_LEGACY = '/_/anomalies/sheriff_list';
+const ANOMALY_LIST_ENDPOINT_LEGACY = '/_/anomalies/anomaly_list';
+
+const SHERIFF_LIST_ENDPOINT = '/_/anomalies/sheriff_list_skia';
+const ANOMALY_LIST_ENDPOINT = '/_/anomalies/anomaly_list_skia';
 
 /**
  * RegressionsPageSk is a component that displays a list of regressions
  * for a given subscription.
  */
 export class RegressionsPageSk extends ElementSk {
-  state: State;
+  state: State = {
+    selectedSubscription: '',
+    showTriaged: false,
+    showImprovements: false,
+    useSkia: false,
+  };
 
   subscriptionList: string[] = [];
 
@@ -46,6 +58,8 @@ export class RegressionsPageSk extends ElementSk {
 
   // Anomalies table
   anomaliesTable: AnomaliesTableSk | null = null;
+
+  subscriptionTable: SubscriptionTableSk | null = null;
 
   btnTriaged: HTMLButtonElement | null = null;
 
@@ -61,13 +75,6 @@ export class RegressionsPageSk extends ElementSk {
 
   constructor() {
     super(RegressionsPageSk.template);
-    this.state = {
-      selectedSubscription: '',
-      showTriaged: false,
-      showImprovements: false,
-    };
-    this.anomaliesTable = new AnomaliesTableSk();
-    this.init();
   }
 
   connectedCallback(): void {
@@ -85,6 +92,7 @@ export class RegressionsPageSk extends ElementSk {
       /* getState */ () => this.state as unknown as HintableObject,
       /* setState */ async (newState) => {
         this.state = newState as unknown as State;
+        await this.init();
         if (this.state.selectedSubscription !== '') {
           this.btnTriaged!.disabled = false;
           this.btnImprovement!.disabled = false;
@@ -94,8 +102,10 @@ export class RegressionsPageSk extends ElementSk {
         }
       }
     );
-    this.anomaliesTable = document.getElementById('anomaly-table') as AnomaliesTableSk;
-    const showMoreClick = document.getElementById('showMoreAnomalies');
+    this.anomaliesTable = this.querySelector('#anomaly-table') as AnomaliesTableSk;
+    this.subscriptionTable = this.querySelector('#subscription-table') as SubscriptionTableSk;
+
+    const showMoreClick = this.querySelector('#showMoreAnomalies') as HTMLElement;
     showMoreClick!.onclick = () => {
       this.anomaliesLoadingSpinner = false;
       this.showMoreLoadingSpinner = true;
@@ -127,7 +137,12 @@ export class RegressionsPageSk extends ElementSk {
       queryStr = '?' + queryPairs.join('&');
     }
 
-    const url = ANOMALY_LIST_ENDPOINT + queryStr;
+    let url = '';
+    if (this.state.useSkia) {
+      url = ANOMALY_LIST_ENDPOINT + queryStr;
+    } else {
+      url = ANOMALY_LIST_ENDPOINT_LEGACY + queryStr;
+    }
 
     this.anomaliesLoadingSpinner = true;
     this._render();
@@ -138,14 +153,11 @@ export class RegressionsPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .catch((msg) => {
-        errorMessage(msg);
-        this.anomaliesLoadingSpinner = false;
-        this.showMoreLoadingSpinner = false;
-        this._render();
-      })
       .then((response) => {
         const json: GetAnomaliesResponse = response;
+        if (json.subscription) {
+          this.subscriptionTable!.load(json.subscription, json.alerts!);
+        }
         const regs: Anomaly[] = json.anomaly_list || [];
         if (json.anomaly_cursor) {
           this.showMoreAnomalies = true;
@@ -155,6 +167,12 @@ export class RegressionsPageSk extends ElementSk {
         this.cpAnomalies = this.cpAnomalies.concat([...regs]);
         this.anomalyCursor = json.anomaly_cursor;
         this.anomaliesTable!.populateTable(this.cpAnomalies);
+      })
+      .catch((msg) => {
+        errorMessage(msg);
+        this.anomaliesLoadingSpinner = false;
+        this.showMoreLoadingSpinner = false;
+        this._render();
       });
     this.anomaliesLoadingSpinner = false;
     this.showMoreLoadingSpinner = false;
@@ -162,12 +180,14 @@ export class RegressionsPageSk extends ElementSk {
   }
 
   private async init() {
-    const response = await fetch(SHERIFF_LIST_ENDPOINT, {
+    const url = this.state.useSkia ? SHERIFF_LIST_ENDPOINT : SHERIFF_LIST_ENDPOINT_LEGACY;
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
+
     const json: GetSheriffListResponse = await jsonOrThrow(response);
     const subscriptions: string[] = json.sheriff_list || [];
     const sortedSubscriptions: string[] = subscriptions.sort((a, b) =>
@@ -194,6 +214,7 @@ export class RegressionsPageSk extends ElementSk {
     <spinner-sk id="upper-spin" ?active=${ele.anomaliesLoadingSpinner}></spinner-sk>
     <button id="btnTriaged" @click=${() => ele.triagedChange()}>Show Triaged</button>
     <button id="btnImprovements" @click=${() => ele.improvementChange()}>Show Improvements</button>
+    <subscription-table-sk id="subscription-table"></subscription-table-sk>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
     <div id="showmore" ?hidden=${!ele.showMoreAnomalies}>
       <button id="showMoreAnomalies" @click=${() => ele.fetchRegressions()}>

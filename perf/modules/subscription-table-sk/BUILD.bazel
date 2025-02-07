@@ -1,0 +1,46 @@
+load("//infra-sk:index.bzl", "sk_demo_page_server", "sk_element", "sk_page")
+
+sk_demo_page_server(
+    name = "demo_page_server",
+    sk_page = ":subscription-table-sk-demo",
+)
+
+sk_element(
+    name = "subscription-table-sk",
+    sass_deps = [
+        "//perf/modules/themes:themes_sass_lib",
+        "//elements-sk/modules/styles:buttons_sass_lib",
+        "//elements-sk/modules/styles:select_sass_lib",
+    ],
+    sass_srcs = ["subscription-table-sk.scss"],
+    sk_element_deps = [
+        "//infra-sk/modules/paramset-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/lit",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//elements-sk/modules:define_ts_lib",
+        "//infra-sk/modules:query_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "subscription-table-sk.ts",
+        "index.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sk_page(
+    name = "subscription-table-sk-demo",
+    html_file = "subscription-table-sk-demo.html",
+    scss_entry_point = "subscription-table-sk-demo.scss",
+    sk_element_deps = [
+        ":subscription-table-sk",
+        "//elements-sk/modules/error-toast-sk",
+    ],
+    ts_deps = [
+        "//perf/modules/json:index_ts_lib",
+        "//infra-sk/modules:dom_ts_lib",
+    ],
+    ts_entry_point = "subscription-table-sk-demo.ts",
+)

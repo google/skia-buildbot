@@ -17,6 +17,7 @@ sk_element(
     sass_srcs = ["regressions-page-sk.scss"],
     sk_element_deps = [
         "//perf/modules/anomalies-table-sk",
+        "//perf/modules/subscription-table-sk",
         "//elements-sk/modules/spinner-sk",
     ],
     ts_deps = [
