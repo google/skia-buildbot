@@ -636,7 +636,7 @@ third_party {
 	}
 
 	// Use the second account to auto-approve the CL from the first account.
-	if r.autoApproverGerrit != nil {
+	if r.autoApproverGerrit != nil && !dryRun {
 		if err := r.autoApproverGerrit.SetReview(ctx, change, "Auto-approving AutoRoll CL", r.g.Config().SelfApproveLabels, nil, "", nil, "", 0, nil); err != nil {
 			return 0, skerr.Wrap(err)
 		}
