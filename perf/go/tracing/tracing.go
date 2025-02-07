@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"go.skia.org/infra/go/tracing"
+	"go.skia.org/infra/go/tracing/loggingtracer"
 	"go.skia.org/infra/perf/go/config"
 )
 
@@ -16,6 +17,7 @@ const (
 func Init(local bool, cfg *config.InstanceConfig) error {
 	f := cfg.TraceSampleProportion
 	if local {
+		loggingtracer.Initialize()
 		return nil
 	}
 
