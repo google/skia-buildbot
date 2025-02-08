@@ -32,6 +32,7 @@ import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
 
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/spinner-sk';
+import '../window/window';
 
 export class ExistingBugDialogSk extends ElementSk {
   private _dialog: HTMLDialogElement | null = null;
@@ -56,7 +57,8 @@ export class ExistingBugDialogSk extends ElementSk {
 
   private _associatedBugIds = new Set<number>();
 
-  private _bugHostUrl: string = 'https://bugs.chromium.org';
+  // Host bug url, usually from window.perf.bug_host_url.
+  private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
 
   private static allProjectIds = (ele: ExistingBugDialogSk) =>
     ele.allProjectIdOptions.map(
@@ -267,7 +269,7 @@ export class ExistingBugDialogSk extends ElementSk {
         <ul style="max-height: 150px;" id="associated-bugs-table">
           ${Array.from(this._associatedBugIds).map((bugId) => {
             return html` <li>
-              <a href="${`${this._bugHostUrl}/${bugId}`}" target="_blank">${bugId}</a>
+              <a href="${`${this._bug_host_url}/${bugId}`}" target="_blank">${bugId}</a>
             </li>`;
           })}
         </ul>
