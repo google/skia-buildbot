@@ -270,12 +270,25 @@ export class ExistingBugDialogSk extends ElementSk {
           ${Array.from(this._associatedBugIds).map((bugId) => {
             return html` <li>
               <a href="${`${this._bug_host_url}/${bugId}`}" target="_blank">${bugId}</a>
+              <button
+                id="paste-bug"
+                @click=${() => {
+                  this.pasteBugId(bugId);
+                }}>
+                Paste
+              </button>
             </li>`;
           })}
         </ul>
       `;
     }
     return html``;
+  }
+
+  private pasteBugId(bugId: number) {
+    const inputBug = this.querySelector('#bug_id')! as HTMLInputElement;
+    inputBug.value = String(bugId);
+    this._render();
   }
 
   setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
