@@ -85,7 +85,7 @@ func TestSkiaOrgDNSConfiguration(t *testing.T) {
 
 	testSkiaOrgZoneEntry(t, dns.TypeCAA, "skia.org.", "pki.goog")
 
-	testSkiaOrgZoneEntry(t, dns.TypeCNAME, "_validate_domain.skia.org.", "_validate_domain.pki.goog.")
+	testSkiaOrgZoneEntry(t, dns.TypeCNAME, "_validate_domain.skia.org.", "nonce.domainvalidation.dvs.goog.")
 
 	testSkiaOrgZoneEntry(t, dns.TypeA, "androidx2-perf.skia.org.", "34.110.212.89")
 	testSkiaOrgZoneEntry(t, dns.TypeA, "autoroll.skia.org.", "34.110.212.89")
@@ -116,7 +116,7 @@ func TestLuciAppDNSConfiguration(t *testing.T) {
 	// tested.
 
 	testLuciAppZoneEntry(t, dns.TypeCAA, "luci.app.", "pki.goog")
-	testLuciAppZoneEntry(t, dns.TypeCNAME, "_validate_domain.luci.app.", "_validate_domain.pki.goog.")
+	testLuciAppZoneEntry(t, dns.TypeCNAME, "_validate_domain.luci.app.", "nonce.domainvalidation.dvs.goog.")
 	testLuciAppZoneEntry(t, dns.TypeA, "luci.app.", "34.110.212.89")
 	testLuciAppZoneEntry(t, dns.TypeCNAME, "some-random-sub-domain.luci.app.", "luci.app.")
 }
