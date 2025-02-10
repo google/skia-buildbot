@@ -48,7 +48,10 @@ export class SkottieCompatibilitySk extends ElementSk {
   constructor() {
     super(SkottieCompatibilitySk.template);
 
-    this.specValidator = new LottieValidator(Ajv, lottieSchema, { name_paths: true });
+    // TODO(bwils) LottieValidator mutates the schema and then fails
+    // to process the mutated schema if this is called again.
+    const clonedSchema = JSON.parse(JSON.stringify(lottieSchema));
+    this.specValidator = new LottieValidator(Ajv, clonedSchema, { name_paths: true });
 
     const lowPowerProfile = new ProfileValidator(lowPowerLottieProfileSchema);
     const lowPowerWarningProfile = new ProfileValidator(lottiePerformanceWarningSchema);
