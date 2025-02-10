@@ -5,7 +5,9 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/sql/schema"
 )
 
 // byBlameCacheDataProvider provides a struct for reading byBlame data for caching purposes.
@@ -26,6 +28,16 @@ func NewByBlameCacheDataProvider(db *pgxpool.Pool, corpora []string, commitWindo
 		query:        sqlQuery,
 		cacheKeyFunc: cacheKeyFunc,
 	}
+}
+
+// SetDatabaseType sets the database type for the current configuration.
+func (s byBlameCacheDataProvider) SetDatabaseType(dbType config.DatabaseType) {
+	// No op.
+}
+
+// SetPublicTraces sets the given traces as the publicly visible ones.
+func (s byBlameCacheDataProvider) SetPublicTraces(traces map[schema.MD5Hash]struct{}) {
+	// No op.
 }
 
 // GetDataForCorpus returns the byblame data for the given corpus.

@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/sql/schema"
 )
@@ -47,6 +48,20 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 			ByBlame_Corpus: NewByBlameCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
 			MatchingTraces: NewMatchingTracesCacheDataProvider(db, corpora, commitWindow),
 		},
+	}
+}
+
+// SetDatabaseType sets the database type for the current configuration.
+func (s SearchCacheManager) SetDatabaseType(dbType config.DatabaseType) {
+	for _, prov := range s.dataProviders {
+		prov.SetDatabaseType(dbType)
+	}
+}
+
+// SetPublicTraces sets the given traces as the publicly visible ones.
+func (s *SearchCacheManager) SetPublicTraces(traces map[schema.MD5Hash]struct{}) {
+	for _, prov := range s.dataProviders {
+		prov.SetPublicTraces(traces)
 	}
 }
 
@@ -100,4 +115,25 @@ func (s SearchCacheManager) getByBlameDataFromCache(ctx context.Context, firstCo
 
 	err = json.Unmarshal([]byte(jsonStr), &data)
 	return data, err
+}
+
+// GetMatchingDigestsAndTraces returns the digests and traces for the given search query from the cache.
+//
+// Note: On a cache miss it returns nil object.
+func (s SearchCacheManager) GetMatchingDigestsAndTraces(ctx context.Context, searchQueryContext MatchingTracesQueryContext) ([]common.DigestWithTraceAndGrouping, error) {
+	cacheKey := MatchingTracesKey(searchQueryContext)
+	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error retrieving data from cache for key %s queryContext %v", cacheKey, searchQueryContext)
+	}
+	// This is the case when there is a cache miss.
+	if jsonStr == "" {
+		// We return nil result denoting that this was a cache miss so that the
+		// caller can fall back to the database search.
+		return nil, nil
+	}
+
+	var matchingTracesAndDigests []common.DigestWithTraceAndGrouping
+	err = json.Unmarshal([]byte(jsonStr), &matchingTracesAndDigests)
+	return matchingTracesAndDigests, err
 }

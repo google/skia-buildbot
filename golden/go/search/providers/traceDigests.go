@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -30,6 +31,11 @@ type TraceDigestsProvider struct {
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
 	isPublicView          bool
+
+	// Metrics
+	search_cache_enabled_counter metrics2.Counter
+	search_cache_hit_counter     metrics2.Counter
+	search_cache_miss_counter    metrics2.Counter
 }
 
 // NewTraceDigestsProvider returns a new instance of TraceDigestsProvider.
@@ -39,24 +45,81 @@ func NewTraceDigestsProvider(db *pgxpool.Pool, windowLength int, materializedVie
 		windowLength:             windowLength,
 		materializedViewProvider: materializedViewProvider,
 		cacheManager:             cacheManager,
+
+		search_cache_enabled_counter: metrics2.GetCounter("gold_search_cache_enabled"),
+		search_cache_hit_counter:     metrics2.GetCounter("gold_search_cache_hit"),
+		search_cache_miss_counter:    metrics2.GetCounter("gold_search_cache_miss"),
 	}
 }
 
 // SetDatabaseType sets the database type for the current configuration.
 func (s *TraceDigestsProvider) SetDatabaseType(dbType config.DatabaseType) {
 	s.dbType = dbType
+	s.cacheManager.SetDatabaseType(dbType)
 }
 
 // SetPublicTraces sets the given traces as the publicly visible ones.
 func (s *TraceDigestsProvider) SetPublicTraces(traces map[schema.MD5Hash]struct{}) {
 	s.isPublicView = true
 	s.publiclyVisibleTraces = traces
+	s.cacheManager.SetPublicTraces(traces)
+}
+
+// GetMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
+// The order of the result is arbitrary.
+func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests bool) ([]common.DigestWithTraceAndGrouping, error) {
+	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
+	defer span.End()
+
+	q := common.GetQuery(ctx)
+	searchQueryContext := caching.MatchingTracesQueryContext{
+		IncludeUntriaged:                 includeUntriagedDigests,
+		IncludeNegative:                  includeNegativeDigests,
+		IncludePositive:                  includePositiveDigests,
+		OnlyIncludeDigestsProducedAtHead: q.OnlyIncludeDigestsProducedAtHead,
+		TraceValues:                      q.TraceValues,
+	}
+	if !areQueryResultsCached(searchQueryContext) {
+		sklog.Infof("The current query %v is not supported by cache. Fall back to database search.", searchQueryContext)
+		return s.getMatchingDigestsAndTracesFromDB(ctx, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests)
+	}
+
+	s.search_cache_enabled_counter.Inc(1)
+
+	sklog.Infof("Retrieving matching digests from cache for query context: %v", searchQueryContext)
+	results, err := s.cacheManager.GetMatchingDigestsAndTraces(ctx, searchQueryContext)
+	if err != nil {
+		sklog.Errorf("Error retrieving search data from cache: %v", err)
+	}
+	if results == nil {
+		// This is either an error during retrieving data from cache or
+		// a cache miss. Let's fall back to the database search.
+		sklog.Info("No data returned from cache or there was an error. Falling back to databases search.")
+		s.search_cache_miss_counter.Inc(1)
+		return s.getMatchingDigestsAndTracesFromDB(ctx, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests)
+	}
+
+	s.search_cache_hit_counter.Inc(1)
+	return results, err
+}
+
+// areQueryResultsCached returns true if we are caching the results for the
+// given query.
+// Currently only the default settings from the UI are supported.
+// - IncludeUntriaged = true
+// - IncludeHead = true
+// - IncludeNegative = false
+// - IncludePositive = false
+// - IncludeIgnored = false
+func areQueryResultsCached(queryContext caching.MatchingTracesQueryContext) bool {
+	return queryContext.IncludeUntriaged && queryContext.OnlyIncludeDigestsProducedAtHead &&
+		!queryContext.IncludeNegative && !queryContext.IncludePositive && !queryContext.IncludeIgnored
 }
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
 // The order of the result is arbitrary.
-func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests bool) ([]common.DigestWithTraceAndGrouping, error) {
-	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
+func (s *TraceDigestsProvider) getMatchingDigestsAndTracesFromDB(ctx context.Context, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests bool) ([]common.DigestWithTraceAndGrouping, error) {
+	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTracesFromDB")
 	defer span.End()
 
 	statement := `WITH
