@@ -6,7 +6,7 @@
   "contact": "https://bugs.skia.org",
   "trace_sample_proportion": 0.01,
   "notify_config": {
-    "notifications": "html_email"
+    "notifications": "none"
   },
   "auth_config": {
     "header_name": "X-WEBAUTH-USER"
