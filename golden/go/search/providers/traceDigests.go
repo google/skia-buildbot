@@ -78,6 +78,7 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 		IncludePositive:                  includePositiveDigests,
 		OnlyIncludeDigestsProducedAtHead: q.OnlyIncludeDigestsProducedAtHead,
 		TraceValues:                      q.TraceValues,
+		Corpus:                           sql.Sanitize(q.TraceValues[types.CorpusField][0]),
 	}
 	if !areQueryResultsCached(searchQueryContext) {
 		sklog.Infof("The current query %v is not supported by cache. Fall back to database search.", searchQueryContext)
