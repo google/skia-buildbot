@@ -80,6 +80,9 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "skip_commit_detail_display": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

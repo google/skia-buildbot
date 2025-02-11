@@ -837,6 +837,9 @@ type TemporalConfig struct {
 type DataPointConfig struct {
 	// The link keys to use for commit range urls.
 	KeysForCommitRange []string `json:"keys_for_commit_range,omitempty"`
+
+	// If set to true, do not display commit detail in the pop-up for the data point.
+	SkipCommitDetailDisplay bool `json:"skip_commit_detail_display,omitempty"`
 }
 
 // QueryConfig contains query customization info for the instance.

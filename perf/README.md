@@ -39,6 +39,9 @@ To run a local instance of Perf against a fake dataset:
 
         make run-demo-instance-db-persist
 
+After the local server has started, navigate to http://localhost:8002 in a
+browser.
+
 If you are interested in reading more about the local database, refer to [this doc](Spanner.md)
 
 You can also view demo/test pages of a web components by running

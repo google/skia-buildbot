@@ -108,7 +108,8 @@
         }
     },
     "data_point_config": {
-        "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"]
+        "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"],
+        "skip_commit_detail_display": true
     },
     "trace_format": "chrome",
     "need_alert_action": true

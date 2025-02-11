@@ -140,6 +140,11 @@ export class ChartTooltipSk extends ElementSk {
   // is selected.
   commitRangeSk: CommitRangeSk | null = null;
 
+  // Whether to skip display of commit detail.
+  private _skip_commit_detail_display: boolean = window.perf
+    ? window.perf.skip_commit_detail_display
+    : false;
+
   // Shows any buganizer issue associated with a data point.
   userIssueSk: UserIssueSk | null = null;
 
@@ -197,7 +202,9 @@ export class ChartTooltipSk extends ElementSk {
           id="tooltip-commit-range-link"
           ?hidden=${!ele._tooltip_fixed}></commit-range-sk>
       </div>
-      <commit-info-sk .commitInfo=${ele.commitInfo}></commit-info-sk>
+      <commit-info-sk
+        .commitInfo=${ele.commitInfo}
+        ?hidden=${ele._skip_commit_detail_display}></commit-info-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
