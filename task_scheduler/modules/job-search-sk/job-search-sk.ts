@@ -340,7 +340,10 @@ export class JobSearchSk extends ElementSk {
 
   private cancelAll() {
     this.results.forEach((job: Job) => {
-      if (job.status === JobStatus.JOB_STATUS_IN_PROGRESS) {
+      if (
+        job.status === JobStatus.JOB_STATUS_IN_PROGRESS ||
+        job.status === JobStatus.JOB_STATUS_REQUESTED
+      ) {
         this.cancel(job);
       }
     });
