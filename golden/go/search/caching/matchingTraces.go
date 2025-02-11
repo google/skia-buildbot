@@ -66,27 +66,67 @@ func (prov *matchingTracesCacheDataProvider) GetCacheData(ctx context.Context, f
 	cacheMap := map[string]string{}
 	for _, corpus := range prov.corpora {
 		sklog.Infof("Getting data for corpus: %s", corpus)
-		queryContext := MatchingTracesQueryContext{
-			OnlyIncludeDigestsProducedAtHead: true,
-			IncludeUntriaged:                 true,
-			Corpus:                           corpus,
-			TraceValues: paramtools.ParamSet{
-				"source_type": []string{corpus},
+		// Create query contexts for the data to be cached. Note that we are only caching
+		// data on HEAD branch and just one flag set at a time. This is intentional to
+		// avoid storing too many combinations of the data in the cache. If there are
+		// combinations requested, we can retrieve the data for each flag from the cache
+		// and perform the union in memory. For example, if the request is for
+		// Untriaged + Negative digests, we retrieve those separately and return the
+		// combined set. We can take advantage of the fact that these are mutually exclusive.
+		queryContexts := map[string]MatchingTracesQueryContext{
+			// Untriaged digests.
+			MatchingUntriagedTracesKey(corpus): {
+				OnlyIncludeDigestsProducedAtHead: true,
+				IncludeUntriaged:                 true,
+				Corpus:                           corpus,
+				TraceValues: paramtools.ParamSet{
+					"source_type": []string{corpus},
+				},
+			},
+			// Negative digests.
+			MatchingNegativeTracesKey(corpus): {
+				OnlyIncludeDigestsProducedAtHead: true,
+				IncludeNegative:                  true,
+				Corpus:                           corpus,
+				TraceValues: paramtools.ParamSet{
+					"source_type": []string{corpus},
+				},
+			},
+			// Positive digests.
+			MatchingPositiveTracesKey(corpus): {
+				OnlyIncludeDigestsProducedAtHead: true,
+				IncludePositive:                  true,
+				Corpus:                           corpus,
+				TraceValues: paramtools.ParamSet{
+					"source_type": []string{corpus},
+				},
+			},
+			// Ignored digests.
+			MatchingIgnoredTracesKey(corpus): {
+				OnlyIncludeDigestsProducedAtHead: true,
+				IncludeIgnored:                   true,
+				Corpus:                           corpus,
+				TraceValues: paramtools.ParamSet{
+					"source_type": []string{corpus},
+				},
 			},
 		}
-		untriagedDigests, err := prov.getMatchingDigestsAndTracesFromDB(ctx, queryContext)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Error getting untriaged digests.")
-		}
 
-		if len(untriagedDigests) > 0 {
-			sklog.Infof("Got %d matching untriaged digests.", len(untriagedDigests))
-			jsonStr, err := common.ToJSON(untriagedDigests)
+		for cacheKey, queryContext := range queryContexts {
+			sklog.Infof("Getting data for context: %v", queryContext)
+			digests, err := prov.getMatchingDigestsAndTracesFromDB(ctx, queryContext)
 			if err != nil {
-				return nil, skerr.Wrapf(err, "Error converting digests into json.")
+				return nil, skerr.Wrapf(err, "Error getting untriaged digests.")
 			}
 
-			cacheMap[MatchingTracesKey(queryContext)] = jsonStr
+			if len(digests) > 0 {
+				jsonStr, err := common.ToJSON(digests)
+				if err != nil {
+					return nil, skerr.Wrapf(err, "Error converting digests into json.")
+				}
+				sklog.Infof("Adding %d matching digests to cache key: %s.", len(digests), cacheKey)
+				cacheMap[cacheKey] = jsonStr
+			}
 		}
 	}
 
@@ -95,7 +135,7 @@ func (prov *matchingTracesCacheDataProvider) GetCacheData(ctx context.Context, f
 
 // getMatchingDigestsAndTracesFromDB returns matching digests and traces from the database.
 func (s *matchingTracesCacheDataProvider) getMatchingDigestsAndTracesFromDB(ctx context.Context, queryContext MatchingTracesQueryContext) ([]common.DigestWithTraceAndGrouping, error) {
-	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTraces")
+	ctx, span := trace.StartSpan(ctx, "getMatchingDigestsAndTracesFromDB_cacheManager")
 	defer span.End()
 
 	statement := `WITH

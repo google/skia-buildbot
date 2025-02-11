@@ -121,19 +121,43 @@ func (s SearchCacheManager) getByBlameDataFromCache(ctx context.Context, firstCo
 //
 // Note: On a cache miss it returns nil object.
 func (s SearchCacheManager) GetMatchingDigestsAndTraces(ctx context.Context, searchQueryContext MatchingTracesQueryContext) ([]common.DigestWithTraceAndGrouping, error) {
-	cacheKey := MatchingTracesKey(searchQueryContext)
-	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Error retrieving data from cache for key %s queryContext %v", cacheKey, searchQueryContext)
+	cacheKeys := []string{}
+	if searchQueryContext.IncludeUntriaged {
+		cacheKeys = append(cacheKeys, MatchingUntriagedTracesKey(searchQueryContext.Corpus))
 	}
-	// This is the case when there is a cache miss.
-	if jsonStr == "" {
-		// We return nil result denoting that this was a cache miss so that the
-		// caller can fall back to the database search.
-		return nil, nil
+	if searchQueryContext.IncludePositive {
+		cacheKeys = append(cacheKeys, MatchingPositiveTracesKey(searchQueryContext.Corpus))
+	}
+	if searchQueryContext.IncludeNegative {
+		cacheKeys = append(cacheKeys, MatchingNegativeTracesKey(searchQueryContext.Corpus))
+	}
+	if searchQueryContext.IncludeIgnored {
+		cacheKeys = append(cacheKeys, MatchingIgnoredTracesKey(searchQueryContext.Corpus))
 	}
 
+	// We have one cache key per selected option. Let's get the cache data per key and then
+	// combine the result.
 	var matchingTracesAndDigests []common.DigestWithTraceAndGrouping
-	err = json.Unmarshal([]byte(jsonStr), &matchingTracesAndDigests)
-	return matchingTracesAndDigests, err
+	for _, cacheKey := range cacheKeys {
+		jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Error retrieving data from cache for key %s queryContext %v", cacheKey, searchQueryContext)
+		}
+		// This is the case when there is a cache miss.
+		if jsonStr == "" {
+			// We return nil result denoting that this was a cache miss so that the
+			// caller can fall back to the database search.
+			return nil, nil
+		}
+
+		var digests []common.DigestWithTraceAndGrouping
+		err = json.Unmarshal([]byte(jsonStr), &digests)
+		if err != nil {
+			return nil, err
+		}
+
+		matchingTracesAndDigests = append(matchingTracesAndDigests, digests...)
+	}
+
+	return matchingTracesAndDigests, nil
 }

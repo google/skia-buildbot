@@ -76,6 +76,7 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 		IncludeUntriaged:                 includeUntriagedDigests,
 		IncludeNegative:                  includeNegativeDigests,
 		IncludePositive:                  includePositiveDigests,
+		IncludeIgnored:                   q.IncludeIgnoredTraces,
 		OnlyIncludeDigestsProducedAtHead: q.OnlyIncludeDigestsProducedAtHead,
 		TraceValues:                      q.TraceValues,
 		Corpus:                           sql.Sanitize(q.TraceValues[types.CorpusField][0]),
@@ -106,15 +107,9 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 
 // areQueryResultsCached returns true if we are caching the results for the
 // given query.
-// Currently only the default settings from the UI are supported.
-// - IncludeUntriaged = true
-// - IncludeHead = true
-// - IncludeNegative = false
-// - IncludePositive = false
-// - IncludeIgnored = false
+// Currently only the digests produced on HEAD are supported.
 func areQueryResultsCached(queryContext caching.MatchingTracesQueryContext) bool {
-	return queryContext.IncludeUntriaged && queryContext.OnlyIncludeDigestsProducedAtHead &&
-		!queryContext.IncludeNegative && !queryContext.IncludePositive && !queryContext.IncludeIgnored
+	return queryContext.OnlyIncludeDigestsProducedAtHead
 }
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.

@@ -6,17 +6,22 @@ func ByBlameKey(corpus string) string {
 	return corpus + "_byblame"
 }
 
-// MatchingTracesKey returns a key to be used to cache the data based on the query context.
-func MatchingTracesKey(queryContext MatchingTracesQueryContext) string {
-	var digestType string
-	if queryContext.IncludeUntriaged {
-		digestType = "untriaged"
-	} else if queryContext.IncludeNegative {
-		digestType = "negative"
-	} else if queryContext.IncludePositive {
-		digestType = "positive"
-	} else if queryContext.IncludeIgnored {
-		digestType = "ignored"
-	}
-	return fmt.Sprintf("matchingTraces_%s_%s", queryContext.Corpus, digestType)
+// MatchingUntriagedTracesKey returns a key to be used to cache the data for untriaged traces.
+func MatchingUntriagedTracesKey(corpus string) string {
+	return fmt.Sprintf("matchingTraces_%s_untriaged", corpus)
+}
+
+// MatchingPositiveTracesKey returns a key to be used to cache the data for positive traces.
+func MatchingPositiveTracesKey(corpus string) string {
+	return fmt.Sprintf("matchingTraces_%s_positive", corpus)
+}
+
+// MatchingNegativeTracesKey returns a key to be used to cache the data for negative traces.
+func MatchingNegativeTracesKey(corpus string) string {
+	return fmt.Sprintf("matchingTraces_%s_negative", corpus)
+}
+
+// MatchingIgnoredTracesKey returns a key to be used to cache the data for ignored traces.
+func MatchingIgnoredTracesKey(corpus string) string {
+	return fmt.Sprintf("matchingTraces_%s_ignored", corpus)
 }
