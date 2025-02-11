@@ -60,6 +60,10 @@ type graphApi struct {
 	numParamSetsForQueries int
 
 	frameStartHandlerTimer metrics2.Float64SummaryMetric
+	// Individual values of duration/num commits will be whole numbers but there's
+	// no Int64SummaryMetric
+	frameRequestDurationSeconds metrics2.Float64SummaryMetric
+	frameRequestNumCommits      metrics2.Float64SummaryMetric
 }
 
 // RegisterHandlers registers the api handlers for their respective routes.
@@ -74,16 +78,18 @@ func (api graphApi) RegisterHandlers(router *chi.Mux) {
 // NewGraphApi returns a new instance of the graphApi struct.
 func NewGraphApi(numParamSetsForQueries int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
 	return graphApi{
-		numParamSetsForQueries: numParamSetsForQueries,
-		loginProvider:          loginProvider,
-		dfBuilder:              dfBuilder,
-		perfGit:                perfGit,
-		traceStore:             traceStore,
-		shortcutStore:          shortcutStore,
-		anomalyStore:           anomalyStore,
-		progressTracker:        progressTracker,
-		ingestedFS:             ingestedFS,
-		frameStartHandlerTimer: metrics2.GetFloat64SummaryMetric("perfserver_graphApi_frameStartHandler"),
+		numParamSetsForQueries:      numParamSetsForQueries,
+		loginProvider:               loginProvider,
+		dfBuilder:                   dfBuilder,
+		perfGit:                     perfGit,
+		traceStore:                  traceStore,
+		shortcutStore:               shortcutStore,
+		anomalyStore:                anomalyStore,
+		progressTracker:             progressTracker,
+		ingestedFS:                  ingestedFS,
+		frameStartHandlerTimer:      metrics2.GetFloat64SummaryMetric("perfserver_graphApi_frameStartHandler"),
+		frameRequestDurationSeconds: metrics2.GetFloat64SummaryMetric("perfserver_graphApi_frameRequestDurationSeconds"),
+		frameRequestNumCommits:      metrics2.GetFloat64SummaryMetric("perfserver_graphApi_frameRequestNumCommits"),
 	}
 }
 
@@ -133,6 +139,11 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		// the request finishes
 		ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
 		defer timer.NewWithSummary("perfserver_graphapi_frameProcess", api.frameStartHandlerTimer).Stop()
+		if fr.RequestType == frame.REQUEST_COMPACT {
+			api.frameRequestNumCommits.Observe(float64(fr.NumCommits))
+		} else {
+			api.frameRequestDurationSeconds.Observe(float64(fr.End) - float64(fr.Begin))
+		}
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
