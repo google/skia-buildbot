@@ -9,13 +9,16 @@ go_library(
     deps = [
         "//go/common",
         "//go/sklog",
+        "//go/tracing",
         "//pinpoint/go/workflows",
         "//pinpoint/go/workflows/catapult",
         "//pinpoint/go/workflows/internal",
         "//temporal/go/metrics",
         "@io_temporal_go_sdk//client",
+        "@io_temporal_go_sdk//interceptor",
         "@io_temporal_go_sdk//worker",
         "@io_temporal_go_sdk//workflow",
+        "@io_temporal_go_sdk_contrib_opentelemetry//:opentelemetry",
     ],
 )
 

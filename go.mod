@@ -15,6 +15,7 @@ require (
 	cloud.google.com/go/secretmanager v1.11.5
 	cloud.google.com/go/storage v1.38.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.4
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.19.1
 	github.com/Jeffail/gabs/v2 v2.6.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -87,6 +88,9 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/luci v0.0.0-20240206071351-fb32c458db6e
 	go.opencensus.io v0.24.0
+	go.opentelemetry.io/otel v1.34.0
+	go.opentelemetry.io/otel/bridge/opencensus v1.34.0
+	go.opentelemetry.io/otel/sdk v1.34.0
 	go.temporal.io/api v1.34.0
 	go.temporal.io/sdk v1.26.1
 	golang.org/x/exp v0.0.0-20231127185646-65229373498e
@@ -120,6 +124,7 @@ require (
 	cloud.google.com/go/container v1.31.0 // indirect
 	cloud.google.com/go/longrunning v0.5.5 // indirect
 	cloud.google.com/go/trace v1.10.5 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.43.1 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/apache/arrow/go/v12 v12.0.0 // indirect
@@ -235,11 +240,8 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.46.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
-	go.opentelemetry.io/otel v1.34.0 // indirect
-	go.opentelemetry.io/otel/bridge/opencensus v1.34.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.34.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.temporal.io/sdk/contrib/opentelemetry v0.6.0 // indirect

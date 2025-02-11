@@ -2,12 +2,19 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "tracing",
-    srcs = ["tracing.go"],
+    srcs = [
+        "otel_tracing.go",
+        "tracing.go",
+    ],
     importpath = "go.skia.org/infra/go/tracing",
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "@com_github_googlecloudplatform_opentelemetry_operations_go_exporter_trace//:trace",
         "@io_opencensus_go//trace",
         "@io_opencensus_go_contrib_exporter_stackdriver//:stackdriver",
+        "@io_opentelemetry_go_otel//:otel",
+        "@io_opentelemetry_go_otel_bridge_opencensus//:opencensus",
+        "@io_opentelemetry_go_otel_sdk//trace",
     ],
 )
