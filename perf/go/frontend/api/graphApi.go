@@ -14,8 +14,10 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/config"
@@ -56,6 +58,8 @@ type graphApi struct {
 	// numParamSetsForQueries to be at least 7, otherwise "foo" will never show
 	// up as a query option in the UI for the "test" key.
 	numParamSetsForQueries int
+
+	frameStartHandlerTimer metrics2.Float64SummaryMetric
 }
 
 // RegisterHandlers registers the api handlers for their respective routes.
@@ -79,6 +83,7 @@ func NewGraphApi(numParamSetsForQueries int, loginProvider alogin.Login, dfBuild
 		anomalyStore:           anomalyStore,
 		progressTracker:        progressTracker,
 		ingestedFS:             ingestedFS,
+		frameStartHandlerTimer: metrics2.GetFloat64SummaryMetric("perfserver_graphApi_frameStartHandler"),
 	}
 }
 
@@ -127,6 +132,7 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		// Intentionally using a background context here because the calculation will go on in the background after
 		// the request finishes
 		ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
+		defer timer.NewWithSummary("perfserver_graphapi_frameProcess", api.frameStartHandlerTimer).Stop()
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
