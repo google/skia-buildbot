@@ -51,6 +51,7 @@ const anomaly_table = [
     bug_component: 'Component A',
     bug_labels: [],
     bug_cc_emails: [],
+    bisect_ids: [],
   },
   {
     id: 2,
@@ -75,6 +76,7 @@ const anomaly_table = [
     bug_component: 'Component B',
     bug_labels: [],
     bug_cc_emails: [],
+    bisect_ids: [],
   },
   {
     id: 3,
@@ -99,6 +101,7 @@ const anomaly_table = [
     bug_component: 'Component B',
     bug_labels: [],
     bug_cc_emails: [],
+    bisect_ids: [],
   },
   {
     id: 4,
@@ -123,6 +126,7 @@ const anomaly_table = [
     bug_component: 'Component C',
     bug_labels: [],
     bug_cc_emails: [],
+    bisect_ids: [],
   },
 ];
 

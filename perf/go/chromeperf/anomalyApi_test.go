@@ -157,6 +157,7 @@ func TestGetAnomaly_Success(t *testing.T) {
 	assert.Equal(t, bug_component, anomalyResp.BugComponent)
 	assert.Equal(t, 3, len(anomalyResp.BugLabels))
 	assert.Equal(t, 0, len(anomalyResp.BugCcEmails))
+	assert.Equal(t, 0, len(anomalyResp.BisectIDs))
 }
 
 func TestGetAnomaly_InvalidChar_Success(t *testing.T) {

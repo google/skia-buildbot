@@ -31,6 +31,7 @@ const dummyAnomaly = (): Anomaly => ({
   bug_component: '',
   bug_labels: null,
   bug_cc_emails: null,
+  bisect_ids: [],
 });
 
 window.customElements.whenDefined('plot-google-chart-sk').then(() => {

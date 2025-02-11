@@ -51,6 +51,7 @@ const dummyAnomaly = (bugId: number): Anomaly => ({
   bug_component: '',
   bug_labels: [],
   bug_cc_emails: [],
+  bisect_ids: [],
 });
 
 // The response to a POST of [64809, 64811] to /_/cid/.

@@ -48,6 +48,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
       bug_component: 'ComponentA>SubComponentA',
       bug_labels: ['Label1', 'Label2'],
       bug_cc_emails: ['abcd@google.com'],
+      bisect_ids: [],
     },
     {
       id: 2,
@@ -72,6 +73,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
       bug_component: 'ComponentB>SubComponentB>SubcomponentC',
       bug_labels: ['Label1', 'Label2'],
       bug_cc_emails: ['abcd@google.com'],
+      bisect_ids: [],
     },
     {
       id: 3,
@@ -96,6 +98,7 @@ window.customElements.whenDefined('new-bug-dialog-sk').then(() => {
       bug_component: 'ComponentB>SubComponentB>SubcomponentC',
       bug_labels: ['Label1', 'Label3'],
       bug_cc_emails: ['abcd@google.com'],
+      bisect_ids: [],
     },
   ];
 

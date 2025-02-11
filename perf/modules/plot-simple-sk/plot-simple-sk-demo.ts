@@ -43,6 +43,7 @@ const dummyAnomaly = (isImprovement: boolean, bug_id: number): Anomaly => ({
   bug_component: '',
   bug_labels: [],
   bug_cc_emails: [],
+  bisect_ids: [],
 });
 
 window.customElements.whenDefined('plot-simple-sk').then(() => {

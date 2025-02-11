@@ -39,6 +39,7 @@ const dummyAnomaly = (): Anomaly => ({
   bug_component: '',
   bug_labels: [],
   bug_cc_emails: [],
+  bisect_ids: [],
 });
 
 describe('getAnomalyDataMap', () => {
