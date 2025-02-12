@@ -36,7 +36,7 @@ export interface SkottieFileState {
 export type SkottieFilesEventDetail = SkottieFileState;
 
 const allowZips =
-  window.location.hostname === 'skottie-internal.skia.org' ||
+  window.location.hostname === 'skottie-internal.corp.goog' ||
   window.location.hostname === 'localhost';
 
 const defaultState: SkottieFileState = {
