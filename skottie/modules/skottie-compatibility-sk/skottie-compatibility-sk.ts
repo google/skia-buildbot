@@ -283,7 +283,6 @@ export class SkottieCompatibilitySk extends ElementSk {
 
   private onignoreExporterFields(ele: SkottieCompatibilitySk): void {
     ele.ignoreExporterFields = !ele.ignoreExporterFields;
-    console.log(ele.ignoreExporterFields);
     this._render();
   }
 

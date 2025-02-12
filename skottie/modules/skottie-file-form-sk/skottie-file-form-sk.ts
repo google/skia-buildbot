@@ -71,10 +71,9 @@ export class SkottieFileFormSk extends ElementSk {
             class="upload-file--input"
             @change=${this.onFileChange} />
         </label>
-        <label class="upload-file--label">
+        <label class="upload-file--label" ?hidden=${!allowZips}>
           ${this._state.assetsFilename || '+ Optional Asset Folder (.zip)'}
           <input
-            ?hidden=${!allowZips}
             type="file"
             name="file"
             id="upload-assets"
