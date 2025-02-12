@@ -43,10 +43,6 @@ const (
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 
 	doNotOverrideQuery = ""
-
-	// Max no of matching traces allowed to configure filtered querying when
-	// processing an alert config running in Individual mode.
-	maxTraceIdCountForIndividualQuery = 10000
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -455,34 +451,29 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 	// from the file that was just ingested and notification received over pubsub.
 	for traceConfigMap := range c.buildTraceConfigsMapChannelEventDriven(ctx) {
 		for config, traces := range traceConfigMap {
-			c.ProcessAlertConfigForTraces(ctx, config, traces)
+			sklog.Infof("Clustering over %d traces for config %s", len(traces), config.IDAsString)
+			// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
+			// we need to only query the paramset of the incoming data point instead of
+			// the entire query in the alert.
+			if config.Algo == types.StepFitGrouping {
+				c.ProcessAlertConfigForTraces(ctx, config, traces)
+			} else {
+				c.ProcessAlertConfig(ctx, &config, doNotOverrideQuery)
+			}
+			sklog.Infof("Done with clustering over %d traces for config %s", len(traces), config.IDAsString)
 		}
 	}
 }
 
 // ProcessAlertConfigForTrace runs the alert config on a specific trace id
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
-	sklog.Infof("Clustering over %d traces for config %s", len(traceIds), config.IDAsString)
-
-	queryOverride := doNotOverrideQuery
-	// If the alert specifies StepFitGrouping (i.e Individual instead of KMeans)
-	// we need to only query the paramset of the incoming data point instead of
-	// the entire query in the alert.
-	if config.Algo == types.StepFitGrouping {
-		// If the no of traceids for this alert config is above the limit,
-		// we will simply run the entire query in the alert config
-		if len(traceIds) <= maxTraceIdCountForIndividualQuery {
-			paramset := paramtools.NewParamSet()
-
-			// Merge all the traceIds into a paramset
-			for _, traceId := range traceIds {
-				paramset.AddParamsFromKey(traceId)
-			}
-			queryOverride = c.urlProvider.GetQueryStringFromParameters(paramset)
-		}
+	// Convert each traceId into a query for regression detection.
+	for _, traceId := range traceIds {
+		paramset := paramtools.NewParamSet()
+		paramset.AddParamsFromKey(traceId)
+		queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
+		c.ProcessAlertConfig(ctx, &config, queryOverride)
 	}
-
-	c.ProcessAlertConfig(ctx, &config, queryOverride)
 }
 
 // RunContinuousClustering runs the regression detection on a continuous basis.
