@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/cache"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/sql/schema"
@@ -35,6 +36,9 @@ type SearchCacheManager struct {
 	corpora       []string
 	commitWindow  int
 	dataProviders map[SearchCacheType]cacheDataProvider
+
+	publiclyVisibleTraces map[schema.MD5Hash]struct{}
+	isPublicView          bool
 }
 
 // New returns a new instance of the SearchCacheManager.
@@ -60,6 +64,8 @@ func (s SearchCacheManager) SetDatabaseType(dbType config.DatabaseType) {
 
 // SetPublicTraces sets the given traces as the publicly visible ones.
 func (s *SearchCacheManager) SetPublicTraces(traces map[schema.MD5Hash]struct{}) {
+	s.publiclyVisibleTraces = traces
+	s.isPublicView = true
 	for _, prov := range s.dataProviders {
 		prov.SetPublicTraces(traces)
 	}
@@ -119,45 +125,75 @@ func (s SearchCacheManager) getByBlameDataFromCache(ctx context.Context, firstCo
 
 // GetMatchingDigestsAndTraces returns the digests and traces for the given search query from the cache.
 //
-// Note: On a cache miss it returns nil object.
+// Note: On a cache miss it attempts to perform a database search.
 func (s SearchCacheManager) GetMatchingDigestsAndTraces(ctx context.Context, searchQueryContext MatchingTracesQueryContext) ([]common.DigestWithTraceAndGrouping, error) {
 	cacheKeys := []string{}
+	contextMap := map[string]MatchingTracesQueryContext{}
 	if searchQueryContext.IncludeUntriaged {
-		cacheKeys = append(cacheKeys, MatchingUntriagedTracesKey(searchQueryContext.Corpus))
+		key := MatchingUntriagedTracesKey(searchQueryContext.Corpus)
+		cacheKeys = append(cacheKeys, key)
+		contextMap[key] = MatchingTracesQueryContext{
+			IncludeUntriaged:                 true,
+			OnlyIncludeDigestsProducedAtHead: searchQueryContext.OnlyIncludeDigestsProducedAtHead,
+			TraceValues:                      searchQueryContext.TraceValues,
+			Corpus:                           searchQueryContext.Corpus,
+		}
 	}
 	if searchQueryContext.IncludePositive {
-		cacheKeys = append(cacheKeys, MatchingPositiveTracesKey(searchQueryContext.Corpus))
+		key := MatchingPositiveTracesKey(searchQueryContext.Corpus)
+		cacheKeys = append(cacheKeys, key)
+		contextMap[key] = MatchingTracesQueryContext{
+			IncludePositive:                  true,
+			OnlyIncludeDigestsProducedAtHead: searchQueryContext.OnlyIncludeDigestsProducedAtHead,
+			TraceValues:                      searchQueryContext.TraceValues,
+			Corpus:                           searchQueryContext.Corpus,
+		}
 	}
 	if searchQueryContext.IncludeNegative {
-		cacheKeys = append(cacheKeys, MatchingNegativeTracesKey(searchQueryContext.Corpus))
-	}
-	if searchQueryContext.IncludeIgnored {
-		cacheKeys = append(cacheKeys, MatchingIgnoredTracesKey(searchQueryContext.Corpus))
+		key := MatchingNegativeTracesKey(searchQueryContext.Corpus)
+		cacheKeys = append(cacheKeys, key)
+		contextMap[key] = MatchingTracesQueryContext{
+			IncludeNegative:                  true,
+			OnlyIncludeDigestsProducedAtHead: searchQueryContext.OnlyIncludeDigestsProducedAtHead,
+			TraceValues:                      searchQueryContext.TraceValues,
+			Corpus:                           searchQueryContext.Corpus,
+		}
 	}
 
 	// We have one cache key per selected option. Let's get the cache data per key and then
 	// combine the result.
-	var matchingTracesAndDigests []common.DigestWithTraceAndGrouping
+	matchingTracesAndDigestsMap := map[string][]common.DigestWithTraceAndGrouping{}
 	for _, cacheKey := range cacheKeys {
 		jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Error retrieving data from cache for key %s queryContext %v", cacheKey, searchQueryContext)
 		}
-		// This is the case when there is a cache miss.
-		if jsonStr == "" {
-			// We return nil result denoting that this was a cache miss so that the
-			// caller can fall back to the database search.
-			return nil, nil
-		}
 
 		var digests []common.DigestWithTraceAndGrouping
-		err = json.Unmarshal([]byte(jsonStr), &digests)
+		// This is the case when there is a cache miss.
+		if jsonStr == "" {
+			sklog.Infof("No data found in cache for key %s. Attempting db search.", cacheKey)
+			prov := NewMatchingTracesCacheDataProvider(s.db, s.corpora, s.commitWindow)
+			if s.isPublicView {
+				prov.SetPublicTraces(s.publiclyVisibleTraces)
+			}
+			digests, err = prov.getMatchingDigestsAndTracesFromDB(ctx, contextMap[cacheKey])
+		} else {
+			err = json.Unmarshal([]byte(jsonStr), &digests)
+		}
+
 		if err != nil {
+			sklog.Errorf("Error during retrieving data from cache: %v", err)
 			return nil, err
 		}
 
-		matchingTracesAndDigests = append(matchingTracesAndDigests, digests...)
+		matchingTracesAndDigestsMap[cacheKey] = digests
 	}
 
+	var matchingTracesAndDigests []common.DigestWithTraceAndGrouping
+	for _, digests := range matchingTracesAndDigestsMap {
+		matchingTracesAndDigests = append(matchingTracesAndDigests, digests...)
+	}
+	sklog.Infof("Returning %d digests.", len(matchingTracesAndDigests))
 	return matchingTracesAndDigests, nil
 }

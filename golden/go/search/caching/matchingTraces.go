@@ -101,15 +101,6 @@ func (prov *matchingTracesCacheDataProvider) GetCacheData(ctx context.Context, f
 					"source_type": []string{corpus},
 				},
 			},
-			// Ignored digests.
-			MatchingIgnoredTracesKey(corpus): {
-				OnlyIncludeDigestsProducedAtHead: true,
-				IncludeIgnored:                   true,
-				Corpus:                           corpus,
-				TraceValues: paramtools.ParamSet{
-					"source_type": []string{corpus},
-				},
-			},
 		}
 
 		for cacheKey, queryContext := range queryContexts {

@@ -464,6 +464,7 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 	ctx, span := trace.StartSpan(ctx, "search2_Search")
 	defer span.End()
 
+	sklog.Infof("Searching with query: %v", q)
 	ctx = context.WithValue(ctx, common.QueryKey, *q)
 	ctx, err := s.addCommitsData(ctx)
 	if err != nil {

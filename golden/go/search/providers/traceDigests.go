@@ -109,7 +109,7 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 // given query.
 // Currently only the digests produced on HEAD are supported.
 func areQueryResultsCached(queryContext caching.MatchingTracesQueryContext) bool {
-	return queryContext.OnlyIncludeDigestsProducedAtHead
+	return queryContext.OnlyIncludeDigestsProducedAtHead && !queryContext.IncludeIgnored
 }
 
 // getMatchingDigestsAndTraces returns the tuples of digest+traceID that match the given query.
