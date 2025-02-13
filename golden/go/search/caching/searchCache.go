@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/cache"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/config"
@@ -196,4 +197,44 @@ func (s SearchCacheManager) GetMatchingDigestsAndTraces(ctx context.Context, sea
 	}
 	sklog.Infof("Returning %d digests.", len(matchingTracesAndDigests))
 	return matchingTracesAndDigests, nil
+}
+
+// GetDigestsForGrouping retrieves the digests for a given grouping and traceKey set from the cache.
+func (s SearchCacheManager) GetDigestsForGrouping(ctx context.Context, groupingID schema.GroupingID, traceKeys paramtools.ParamSet) ([]schema.DigestBytes, error) {
+	traces, err := traceKeys.Freeze().ToString()
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	cacheKey := DigestsForGroupingKey(groupingID, traces)
+	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error retrieving digest for group from cache for key %s", cacheKey)
+	}
+
+	// This is the case when there is a cache miss.
+	if jsonStr == "" {
+		return nil, nil
+	}
+
+	var digests []schema.DigestBytes
+	err = json.Unmarshal([]byte(jsonStr), &digests)
+
+	return digests, skerr.Wrap(err)
+}
+
+// SetDigestsForGrouping sets the digests for a given grouping and traceKey set into the cache.
+func (s SearchCacheManager) SetDigestsForGrouping(ctx context.Context, groupingID schema.GroupingID, traceKeys paramtools.ParamSet, digests []schema.DigestBytes) error {
+	traces, err := traceKeys.Freeze().ToString()
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	cacheKey := DigestsForGroupingKey(groupingID, traces)
+	jsonStr, err := common.ToJSON(digests)
+	if err != nil {
+		return skerr.Wrapf(err, "Error converting digests into a json string.")
+	}
+
+	return s.cacheClient.SetValue(ctx, cacheKey, jsonStr)
 }

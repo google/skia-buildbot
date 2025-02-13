@@ -8,11 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/cache/local"
 	mockCache "go.skia.org/infra/go/cache/mock"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/search/common"
 	dks "go.skia.org/infra/golden/go/sql/datakitchensink"
+	"go.skia.org/infra/golden/go/sql/schema"
 	"go.skia.org/infra/golden/go/sql/sqltest"
 )
 
@@ -69,6 +72,51 @@ func TestReadFromCache_ByBlame_CacheHit_Success(t *testing.T) {
 func TestReadFromCache_ByBlame_CacheMiss_Success(t *testing.T) {
 	corpus := dks.RoundCorpus
 	validateCacheMiss(t, corpus, ByBlameKey(corpus), ByBlame_Corpus)
+}
+
+func TestDigestsForGrouping_Success(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+	cacheClient, err := local.New(10)
+	require.NoError(t, err)
+	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
+	groupingID := schema.GroupingID([]byte("testGroupingID"))
+	paramSet := map[string][]string{
+		"corpus": {dks.RoundCorpus},
+		"key1":   {"value1"},
+	}
+	traceKeys := paramtools.NewParamSet()
+	traceKeys.AddParamSet(paramSet)
+	digestBytes := []schema.DigestBytes{
+		schema.DigestBytes([]byte("digestBytes")),
+	}
+	err = searchCacheManager.SetDigestsForGrouping(ctx, groupingID, traceKeys, digestBytes)
+	require.NoError(t, err)
+
+	digestBytesFromCache, err := searchCacheManager.GetDigestsForGrouping(ctx, groupingID, traceKeys)
+	require.NoError(t, err)
+	assert.Equal(t, digestBytes, digestBytesFromCache)
+}
+
+func TestDigestsForGrouping_CacheMiss(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	db := useKitchenSinkData(ctx, t)
+	cacheClient, err := local.New(10)
+	require.NoError(t, err)
+	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
+	groupingID := schema.GroupingID([]byte("testGroupingID"))
+	paramSet := map[string][]string{
+		"corpus": {dks.RoundCorpus},
+		"key1":   {"value1"},
+	}
+	traceKeys := paramtools.NewParamSet()
+	traceKeys.AddParamSet(paramSet)
+
+	digestBytesFromCache, err := searchCacheManager.GetDigestsForGrouping(ctx, groupingID, traceKeys)
+	require.NoError(t, err)
+	assert.Nil(t, digestBytesFromCache)
 }
 
 func validateCacheHit(t *testing.T, cacheData []SearchCacheData, corpus string, cacheKey string, searchCacheType SearchCacheType) {

@@ -1,6 +1,10 @@
 package caching
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.skia.org/infra/golden/go/sql/schema"
+)
 
 func ByBlameKey(corpus string) string {
 	return corpus + "_byblame"
@@ -24,4 +28,9 @@ func MatchingNegativeTracesKey(corpus string) string {
 // MatchingIgnoredTracesKey returns a key to be used to cache the data for ignored traces.
 func MatchingIgnoredTracesKey(corpus string) string {
 	return fmt.Sprintf("matchingTraces_%s_ignored", corpus)
+}
+
+// DigestsForGroupingKey returns a key to be used to cache the digests for grouping data.
+func DigestsForGroupingKey(groupingID schema.GroupingID, traces string) string {
+	return fmt.Sprintf("digestsForGroup_%s_%s", groupingID, traces)
 }

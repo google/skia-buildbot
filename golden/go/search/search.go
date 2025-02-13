@@ -193,6 +193,7 @@ type Impl struct {
 	materializedViewProvider *providers.MaterializedViewProvider
 	commitsProvider          *providers.CommitsProvider
 	traceDigestsProvider     *providers.TraceDigestsProvider
+	cacheManager             *caching.SearchCacheManager
 }
 
 // New returns an implementation of API.
@@ -222,6 +223,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		materializedViewProvider: materializedViewProvider,
 		commitsProvider:          providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
 		traceDigestsProvider:     providers.NewTraceDigestsProvider(sqlDB, windowLength, materializedViewProvider, cacheManager),
+		cacheManager:             cacheManager,
 	}
 }
 
@@ -911,34 +913,51 @@ ORDER BY left_digest, label, combined_metric ASC, max_channel_diff ASC, right_di
 func (s *Impl) getDigestsForGrouping(ctx context.Context, groupingID schema.GroupingID, traceKeys paramtools.ParamSet) ([]schema.DigestBytes, error) {
 	ctx, span := trace.StartSpan(ctx, "getDigestsForGrouping")
 	defer span.End()
-	tracesForGroup, err := s.getTracesForGroup(ctx, groupingID, traceKeys)
+	// First let's try to get it from the cache.
+	digestsFromCache, err := s.cacheManager.GetDigestsForGrouping(ctx, groupingID, traceKeys)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		sklog.Errorf("Error while retrieving digests for grouping from the cache: %v", err)
 	}
-	beginTile, endTile := common.GetFirstTileID(ctx), common.GetLastTileID(ctx)
-	tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
-	for i := beginTile; i <= endTile; i++ {
-		tilesInRange = append(tilesInRange, i)
-	}
-	// See diff/worker for explanation of this faster query.
-	const statement = `
-SELECT DISTINCT digest FROM TiledTraceDigests
-WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
 
-	rows, err := s.db.Query(ctx, statement, tilesInRange, tracesForGroup)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "fetching digests")
-	}
-	defer rows.Close()
-	var rv []schema.DigestBytes
-	for rows.Next() {
-		var d schema.DigestBytes
-		if err := rows.Scan(&d); err != nil {
+	// Either encountered error from cache or no data was found in cache.
+	if digestsFromCache == nil || err != nil {
+		tracesForGroup, err := s.getTracesForGroup(ctx, groupingID, traceKeys)
+		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		rv = append(rv, d)
+		beginTile, endTile := common.GetFirstTileID(ctx), common.GetLastTileID(ctx)
+		tilesInRange := make([]schema.TileID, 0, endTile-beginTile+1)
+		for i := beginTile; i <= endTile; i++ {
+			tilesInRange = append(tilesInRange, i)
+		}
+		// See diff/worker for explanation of this faster query.
+		const statement = `
+	SELECT DISTINCT digest FROM TiledTraceDigests
+	WHERE tile_id = ANY($1) AND trace_id = ANY($2)`
+
+		rows, err := s.db.Query(ctx, statement, tilesInRange, tracesForGroup)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "fetching digests")
+		}
+		defer rows.Close()
+		var rv []schema.DigestBytes
+		for rows.Next() {
+			var d schema.DigestBytes
+			if err := rows.Scan(&d); err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			rv = append(rv, d)
+		}
+
+		// Now that we have the data, let's add it to the cache.
+		err = s.cacheManager.SetDigestsForGrouping(ctx, groupingID, traceKeys, rv)
+		if err != nil {
+			sklog.Errorf("Error encountered when trying to set the digest for grouping data into cache: %v", err)
+		}
+		return rv, nil
+	} else {
+		return digestsFromCache, nil
 	}
-	return rv, nil
 }
 
 // getTracesForGroup returns all traces that match the given groupingID and the provided key/values
