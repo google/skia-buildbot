@@ -283,6 +283,42 @@ func local_request_Pinpoint_ScheduleCulpritFinder_0(ctx context.Context, marshal
 
 }
 
+var (
+	filter_Pinpoint_ScheduleCulpritFinder_1 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Pinpoint_ScheduleCulpritFinder_1(ctx context.Context, marshaler runtime.Marshaler, client PinpointClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ScheduleCulpritFinderRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Pinpoint_ScheduleCulpritFinder_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ScheduleCulpritFinder(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Pinpoint_ScheduleCulpritFinder_1(ctx context.Context, marshaler runtime.Marshaler, server PinpointServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ScheduleCulpritFinderRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Pinpoint_ScheduleCulpritFinder_1); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ScheduleCulpritFinder(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterPinpointHandlerServer registers the http handlers for service Pinpoint to "mux".
 // UnaryRPC     :call PinpointServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -447,7 +483,7 @@ func RegisterPinpointHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit-finder"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit_finder"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -461,6 +497,31 @@ func RegisterPinpointHandlerServer(ctx context.Context, mux *runtime.ServeMux, s
 		}
 
 		forward_Pinpoint_ScheduleCulpritFinder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Pinpoint_ScheduleCulpritFinder_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit-finder"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Pinpoint_ScheduleCulpritFinder_1(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Pinpoint_ScheduleCulpritFinder_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -643,7 +704,7 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit-finder"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit_finder"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -656,6 +717,28 @@ func RegisterPinpointHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 		}
 
 		forward_Pinpoint_ScheduleCulpritFinder_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Pinpoint_ScheduleCulpritFinder_1, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pinpoint.v1.Pinpoint/ScheduleCulpritFinder", runtime.WithHTTPPathPattern("/pinpoint/v1/culprit-finder"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Pinpoint_ScheduleCulpritFinder_1(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Pinpoint_ScheduleCulpritFinder_1(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -675,7 +758,9 @@ var (
 
 	pattern_Pinpoint_SchedulePairwise_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "pairwise"}, ""))
 
-	pattern_Pinpoint_ScheduleCulpritFinder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "culprit-finder"}, ""))
+	pattern_Pinpoint_ScheduleCulpritFinder_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "culprit_finder"}, ""))
+
+	pattern_Pinpoint_ScheduleCulpritFinder_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"pinpoint", "v1", "culprit-finder"}, ""))
 )
 
 var (
@@ -692,4 +777,6 @@ var (
 	forward_Pinpoint_SchedulePairwise_0 = runtime.ForwardResponseMessage
 
 	forward_Pinpoint_ScheduleCulpritFinder_0 = runtime.ForwardResponseMessage
+
+	forward_Pinpoint_ScheduleCulpritFinder_1 = runtime.ForwardResponseMessage
 )

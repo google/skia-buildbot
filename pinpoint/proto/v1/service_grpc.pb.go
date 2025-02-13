@@ -40,6 +40,7 @@ type PinpointClient interface {
 	QueryBisection(ctx context.Context, in *QueryBisectRequest, opts ...grpc.CallOption) (*BisectExecution, error)
 	LegacyJobQuery(ctx context.Context, in *LegacyJobRequest, opts ...grpc.CallOption) (*LegacyJobResponse, error)
 	SchedulePairwise(ctx context.Context, in *SchedulePairwiseRequest, opts ...grpc.CallOption) (*PairwiseExecution, error)
+	// culprit-finder (a.k.a) sandwich verification
 	ScheduleCulpritFinder(ctx context.Context, in *ScheduleCulpritFinderRequest, opts ...grpc.CallOption) (*CulpritFinderExecution, error)
 }
 
@@ -114,6 +115,7 @@ type PinpointServer interface {
 	QueryBisection(context.Context, *QueryBisectRequest) (*BisectExecution, error)
 	LegacyJobQuery(context.Context, *LegacyJobRequest) (*LegacyJobResponse, error)
 	SchedulePairwise(context.Context, *SchedulePairwiseRequest) (*PairwiseExecution, error)
+	// culprit-finder (a.k.a) sandwich verification
 	ScheduleCulpritFinder(context.Context, *ScheduleCulpritFinderRequest) (*CulpritFinderExecution, error)
 	mustEmbedUnimplementedPinpointServer()
 }

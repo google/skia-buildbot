@@ -384,9 +384,13 @@ service Pinpoint {
 		};
 	}
 
+	// culprit-finder (a.k.a) sandwich verification
 	rpc ScheduleCulpritFinder(ScheduleCulpritFinderRequest) returns (CulpritFinderExecution) {
 		option (google.api.http) = {
-			post: "/pinpoint/v1/culprit-finder"
+			post: "/pinpoint/v1/culprit_finder"
+			additional_bindings {
+					post: "/pinpoint/v1/culprit-finder" // legacy
+				}
 		};
 	}
 }
