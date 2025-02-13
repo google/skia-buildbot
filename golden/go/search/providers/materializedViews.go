@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -24,6 +25,10 @@ type MaterializedViewProvider struct {
 	db                *pgxpool.Pool
 	materializedViews map[string]bool
 	windowLength      int
+
+	// Metrics
+	byBlameViewCounter     metrics2.Counter
+	unignoredTracesCounter metrics2.Counter
 }
 
 // NewMaterializedViewProvider returns a new instance of the MaterializedViewProvider.
@@ -31,6 +36,9 @@ func NewMaterializedViewProvider(db *pgxpool.Pool, windowLength int) *Materializ
 	return &MaterializedViewProvider{
 		db:           db,
 		windowLength: windowLength,
+
+		byBlameViewCounter:     metrics2.GetCounter("gold_mv_byblame_read"),
+		unignoredTracesCounter: metrics2.GetCounter("gold_mv_unignored_read"),
 	}
 }
 
@@ -141,6 +149,12 @@ JOIN UnignoredDataAtHead ON UntriagedDigests.grouping_id = UnignoredDataAtHead.g
 // GetMaterializedView returns the name of the materialized view if it has been created, or empty
 // string if there is not such a view.
 func (s *MaterializedViewProvider) GetMaterializedView(viewName, corpus string) string {
+	if viewName == ByBlameView {
+		s.byBlameViewCounter.Inc(1)
+	}
+	if viewName == UnignoredRecentTracesView {
+		s.unignoredTracesCounter.Inc(1)
+	}
 	if len(s.materializedViews) == 0 {
 		return ""
 	}
