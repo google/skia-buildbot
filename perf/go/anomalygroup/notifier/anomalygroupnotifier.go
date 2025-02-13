@@ -46,7 +46,9 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 
 	sklog.Infof("[AG] %d traces in regression found information for alert %s", len(frame.DataFrame.TraceSet), alert.DisplayName)
 
-	// Debug logs on b/357628141: why the same anomaly id is added to the group multiple times?
+	// If the the trace is on a summary level, e.g., browse_media without specific story, we may
+	// have multiple trace returned by the query. We will ignore those summary level data in anomaly
+	// grouping.
 	if len(frame.DataFrame.TraceSet) > 1 {
 		traceset_keys := make([]string, len(frame.DataFrame.TraceSet))
 		i := 0
@@ -54,7 +56,8 @@ func (n *AnomalyGroupNotifier) RegressionFound(
 			traceset_keys[i] = traceset_key
 			i++
 		}
-		sklog.Debugf("[AG] More than one keys found in anomaly's traceset. Anomaly: %s. Keys: %s", regressionID, traceset_keys)
+		sklog.Debugf("[AG] Ignore regression on summary level. Anomaly: %s. Keys: %s", regressionID, traceset_keys)
+		return "", nil
 	}
 
 	for key := range frame.DataFrame.TraceSet {

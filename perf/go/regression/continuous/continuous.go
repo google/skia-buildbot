@@ -469,6 +469,7 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
 	// Convert each traceId into a query for regression detection.
 	for _, traceId := range traceIds {
+		sklog.Debugf("[AG] Processing trace id: %s", traceId)
 		paramset := paramtools.NewParamSet()
 		paramset.AddParamsFromKey(traceId)
 		queryOverride := c.urlProvider.GetQueryStringFromParameters(paramset)
