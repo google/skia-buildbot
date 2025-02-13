@@ -112,5 +112,6 @@
         "skip_commit_detail_display": true
     },
     "trace_format": "chrome",
-    "need_alert_action": true
+    "need_alert_action": true,
+    "optimize_sqltracestore": true
 }

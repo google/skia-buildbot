@@ -340,6 +340,9 @@
         },
         "new_alerts_page": {
           "type": "boolean"
+        },
+        "optimize_sqltracestore": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

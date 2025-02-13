@@ -968,6 +968,9 @@ type InstanceConfig struct {
 	// The routing between the two differ, and we use instance config to control
 	// which one it routes to. Default is /a/, alternative is /r2/
 	NewAlertsPage bool `json:"new_alerts_page,omitempty"`
+
+	// Whether or not to use experimental sqltracestore concurrency optimization.
+	OptimizeSQLTraceStore bool `json:"optimize_sqltracestore,omitempty"`
 }
 
 // Config is the currently running config.

@@ -1284,6 +1284,8 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 		return outParams, nil
 	}
 
+	optimizeSQLTraceStore := config.Config != nil && config.Config.OptimizeSQLTraceStore
+
 	// This query is done in two parts because the CDB query planner seems to
 	// pick a really bad plan a large percentage of the time.
 
@@ -1343,6 +1345,9 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 			return nil, skerr.Wrap(err)
 		}
 		ch := make(chan traceIDForSQL)
+		if optimizeSQLTraceStore {
+			ch = make(chan traceIDForSQL, queryTracesIDOnlyByIndexChannelSize)
+		}
 		unionChannels = append(unionChannels, ch)
 
 		go func(ch chan traceIDForSQL, rows pgx.Rows) {
@@ -1377,6 +1382,9 @@ func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.
 	// And then convert the results of the AND into Params, which we sent out
 	// the channel we'll return from this function.
 	chunkChannel := make(chan []traceIDForSQL)
+	if optimizeSQLTraceStore {
+		chunkChannel = make(chan []traceIDForSQL, poolSize)
+	}
 	go func() {
 		defer close(outParams)
 
