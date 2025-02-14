@@ -7,7 +7,7 @@ import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { State, ExploreSimpleSk } from '../explore-simple-sk/explore-simple-sk';
-import { Anomaly, QueryConfig, Timerange } from '../json';
+import { Anomaly, Commit, CommitNumber, QueryConfig, Timerange } from '../json';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
 import { ChromeTraceFormatter } from '../trace-details-formatter/traceformatter';
 import { SpinnerSk } from '../../../elements-sk/modules/spinner-sk/spinner-sk';
@@ -15,6 +15,8 @@ import { errorMessage } from '../errorMessage';
 import { AnomaliesTableSk } from '../anomalies-table-sk/anomalies-table-sk';
 import '../../../elements-sk/modules/spinner-sk';
 import '../anomalies-table-sk/anomalies-table-sk';
+import { lookupCids } from '../cid/cid';
+import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
 
 // Data point for anomalies tracking the actual anomaly object.
 // Inclusive of:
@@ -113,6 +115,12 @@ export class ReportPageSk extends ElementSk {
 
   private defaults: QueryConfig | null = null;
 
+  private commitList: Commit[] = [];
+
+  private allCommitsDialog: HTMLDialogElement | null = null;
+
+  private hideCommitsButton = false;
+
   constructor() {
     super(ReportPageSk.template);
     this.traceFormatter = new ChromeTraceFormatter();
@@ -120,11 +128,13 @@ export class ReportPageSk extends ElementSk {
 
   async connectedCallback() {
     super.connectedCallback();
+    upgradeProperty(this, 'commitList');
     this._render();
 
     this._spinner = this.querySelector('#loading-spinner');
     this.anomaliesTable = this.querySelector('#anomaly-table');
     this.graphDiv = this.querySelector('#graph-container');
+    this.allCommitsDialog = this.querySelector('#commits-dialog');
     await this.initializeDefaults();
 
     this.addEventListener('anomalies_checked', (e) => {
@@ -132,14 +142,29 @@ export class ReportPageSk extends ElementSk {
       this.updateGraphs(detail.anomaly, detail.checked);
     });
     await this.fetchAnomalies();
+    await this.listAllCommits(this.anomalyTracker.toAnomalyList());
   }
 
-  private static template = () => html`
+  private static template = (ele: ReportPageSk) => html`
     <div>
       <spinner-sk id="loading-spinner"></spinner-sk>
     </div>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
+    <div class="common-commits" ?hidden=${!ele.hideCommitsButton}>
+      <md-outlined-button id="common-commits" @click=${ele.openCommitsDialog}
+        >Show Common Commits</md-outlined-button
+      >
+    </div>
     <div id="graph-container"></div>
+    <dialog id="commits-dialog">
+      ${ele.showAllCommitsTemplate()}
+      <button id="closeIcon" @click=${ele.closeCommitsDialog}>
+        <close-icon-sk></close-icon-sk>
+      </button>
+      <div class="footer">
+        <button @click=${ele.closeCommitsDialog}>Close</button>
+      </div>
+    </dialog>
   `;
 
   async fetchAnomalies() {
@@ -165,6 +190,7 @@ export class ReportPageSk extends ElementSk {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
         this.initializePage();
         this._spinner!.active = false;
+        this.hideCommitsButton = true;
         this._render();
       })
       .catch((msg: any) => {
@@ -191,6 +217,36 @@ export class ReportPageSk extends ElementSk {
       .then((json) => {
         this.defaults = json;
       });
+  }
+
+  private async listAllCommits(anomalies: Anomaly[] | undefined) {
+    if (anomalies !== undefined) {
+      const commits: CommitNumber[] = [];
+      let start = anomalies.at(0)!.start_revision;
+      let end = anomalies.at(0)!.end_revision;
+      anomalies.forEach((anomaly) => {
+        if (anomaly.start_revision > start) {
+          start = anomaly.start_revision;
+        }
+        if (anomaly.end_revision < end) {
+          end = anomaly.end_revision;
+        }
+      });
+
+      for (let c = end; c > start; c--) {
+        commits.push(c as CommitNumber);
+      }
+
+      const json = await lookupCids(commits);
+      const response: Commit[] = json.commitSlice!;
+      const commitUrlSet = new Set<string>();
+      response.forEach((commit) => {
+        if (!commitUrlSet.has(commit.url)) {
+          this.commitList!.push(commit);
+        }
+        commitUrlSet.add(commit.url);
+      });
+    }
   }
 
   private getQueryFromAnomaly(anomaly: Anomaly) {
@@ -229,6 +285,32 @@ export class ReportPageSk extends ElementSk {
       // Remove the graph if unchecked and it exists
       this.anomalyTracker.unsetGraph(anomaly.id);
       this.graphDiv!.removeChild(graph);
+    }
+  }
+
+  private openCommitsDialog() {
+    this._render();
+    this.allCommitsDialog!.showModal();
+  }
+
+  private closeCommitsDialog(): void {
+    this.allCommitsDialog!.close();
+  }
+
+  private showAllCommitsTemplate() {
+    if (this.commitList) {
+      return html`
+        <ul id="all-commits">
+          ${Array.from(this.commitList).map((commit) => {
+            return html` <li>
+              <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
+              <span id="commit-message">${commit.message}</span>
+            </li>`;
+          })}
+        </ul>
+      `;
+    } else {
+      return html`<h2>Empty Common Commits</h2>`;
     }
   }
 }
