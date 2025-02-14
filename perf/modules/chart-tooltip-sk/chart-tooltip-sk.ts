@@ -192,6 +192,7 @@ export class ChartTooltipSk extends ElementSk {
         </li>
       </ul>
       <point-links-sk id="tooltip-point-links" ?hidden=${!ele._tooltip_fixed}></point-links-sk>
+      ${ele.pinpointJobLinks()}
       <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${!ele._tooltip_fixed}></user-issue-sk>
       <div class="revlink">
         <a href="/u/?rev=${ele.commit_position}" target="_blank">
@@ -368,6 +369,26 @@ export class ChartTooltipSk extends ElementSk {
     });
   }
 
+  private pinpointJobLinks() {
+    if (!this.anomaly) {
+      return html``;
+    }
+    if (!this.anomaly.bisect_ids || this.anomaly.bisect_ids.length === 0) {
+      return html`<div>Pinpoint Jobs: N/A</div>`;
+    }
+    const links = this.anomaly.bisect_ids.map(
+      (id) =>
+        html`<a href="https://pinpoint-dot-chromeperf.appspot.com/job/${id}" target="_blank"
+          >${id}</a
+        >`
+    );
+
+    return html`<div>
+      Pinpoint Jobs:
+      ${links.map((link, index) => html`${link}${index < links.length - 1 ? ', ' : ''}`)}
+    </div>`;
+  }
+
   // fetch_details triggers an event that executes the POST /_/cid call to
   // retrieve commit details and anomaly information.
   //
@@ -436,7 +457,7 @@ export class ChartTooltipSk extends ElementSk {
     if (commit_position === null || prev_commit_position === null) {
       return;
     }
-    this.pointLinks!.load(commit_position, prev_commit_position, trace_id, keysForCommitRange);
+    this.pointLinks!.load(commit_position, prev_commit_position, trace_id, keysForCommitRange!);
   }
 
   private unassociateBug() {
