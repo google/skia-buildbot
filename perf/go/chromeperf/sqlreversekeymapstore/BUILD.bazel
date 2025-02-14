@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("//bazel/go:go_test.bzl", "go_test")
+
+go_library(
+    name = "sqlreversekeymapstore",
+    srcs = ["sqlreversekeymapstore.go"],
+    importpath = "go.skia.org/infra/perf/go/chromeperf/sqlreversekeymapstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr",
+        "//go/sql/pool",
+        "@com_github_jackc_pgx_v4//:pgx",
+    ],
+)
+
+go_test(
+    name = "sqlreversekeymapstore_test",
+    srcs = ["sqlreversekeymapstore_test.go"],
+    # data = ["//perf/migrations:cockroachdb"],
+    embed = [":sqlreversekeymapstore"],
+    deps = [
+        "//go/sql/pool",
+        "//perf/go/chromeperf",
+        "//perf/go/sql/sqltest",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+    ],
+)
