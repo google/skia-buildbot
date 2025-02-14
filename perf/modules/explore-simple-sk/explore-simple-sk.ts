@@ -597,6 +597,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private userIssueMap: UserIssueMap = {};
 
+  private selectedAnomaly: Anomaly | null = null;
+
   // material UI
   private settingsDialog: MdDialog | null = null;
 
@@ -1118,6 +1120,8 @@ export class ExploreSimpleSk extends ElementSk {
     const index = e.detail;
     const commitPos: CommitNumber = chart.getCommitPosition(index.tableRow);
     const traceName = chart.getTraceName(index.tableCol);
+    const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
+    this.selectedAnomaly = anomaly;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
     // First the previous commit that has data.
     let prevIndex: number = index.tableRow - 1;
@@ -1136,7 +1140,34 @@ export class ExploreSimpleSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json: CIDHandlerResponse) => {
         const key = JSON.stringify([traceName, commitPos]);
+        // Extract story (subtest) information.
+        const params: { [key: string]: string } = fromKey(traceName);
+        this.story = this.getLastSubtest(params);
 
+        // Construct the testPath, similar to how it's done in traceSelected.
+        const parts = [];
+        if (params.master) {
+          parts.push(params.master);
+        }
+        if (params.bot) {
+          parts.push(params.bot);
+        }
+        if (params.benchmark) {
+          parts.push(params.benchmark);
+        }
+        if (params.test) {
+          parts.push(params.test);
+        }
+        parts.push(this.story);
+        this.testPath = parts.join('/');
+
+        if (anomaly !== null && anomaly.bug_id > 0) {
+          this.bugId = anomaly.bug_id.toString();
+        } else {
+          this.bugId = '';
+        }
+        this.startCommit = prevCommitPos?.toString() || '';
+        this.endCommit = commitPos.toString();
         // The purpose of this dict is to ensure that
         // we're not needing to re-fetch the information.
         this.pointToCommitDetailMap.set(key, json.commitSlice![0]);
@@ -1472,12 +1503,19 @@ export class ExploreSimpleSk extends ElementSk {
 
   private postBisect(): void {
     this.bisectButton!.disabled = true;
-    const parts: string[] = this.simpleParamset!.paramsets[0]!.test[0].split('_');
-    const tail: string = parts.pop()!;
-    const chart = STATISTIC_VALUES.includes(tail)
-      ? parts.join('_')
-      : this.simpleParamset!.paramsets[0]!.test[0];
-    const statistic = STATISTIC_VALUES.includes(tail) ? tail : '';
+
+    const parts = this.testPath.split('/');
+    const test_parts = parts[3].split('_');
+    let chart = parts[3];
+    let statistic = '';
+
+    // Check if the last part of the chart is a known statistic.
+    const tail = test_parts.pop()!;
+    if (STATISTIC_VALUES.includes(tail)) {
+      statistic = tail;
+      chart = test_parts.join('_');
+    }
+
     const bugId = this.querySelector('#bug-id')! as HTMLInputElement;
     const startCommit = this.querySelector('#start-commit')! as HTMLInputElement;
     const endCommit = this.querySelector('#end-commit')! as HTMLInputElement;
@@ -1487,8 +1525,8 @@ export class ExploreSimpleSk extends ElementSk {
       comparison_mode: 'performance',
       start_git_hash: startCommit.value,
       end_git_hash: endCommit.value,
-      configuration: this.testPath.split('/')[1],
-      benchmark: this.testPath.split('/')[2],
+      configuration: parts[1],
+      benchmark: parts[2],
       story: story.value,
       chart: chart,
       statistic: statistic,
@@ -1497,6 +1535,7 @@ export class ExploreSimpleSk extends ElementSk {
       project: 'chromium',
       bug_id: bugId.value,
       user: this.user,
+      alert_ids: JSON.stringify(this.selectedAnomaly ? [this.selectedAnomaly.id] : []),
     };
     fetch('/_/bisect/create', {
       method: 'POST',
@@ -1873,7 +1912,7 @@ export class ExploreSimpleSk extends ElementSk {
       d.subtest_3 ||
       d.subtest_2 ||
       d.subtest_1;
-    return tmp ? tmp[0] : '';
+    return tmp ? tmp : '';
   }
 
   private selectedRange?: range;
@@ -2178,6 +2217,7 @@ export class ExploreSimpleSk extends ElementSk {
         }
       }
     }
+    this.selectedAnomaly = selected_anomaly;
 
     const paramset = ParamSet({});
     this.simpleParamset!.paramsets = [];
@@ -2214,7 +2254,7 @@ export class ExploreSimpleSk extends ElementSk {
         const cid = commits[0]!;
         const traceid = detail.name;
         const parts = [];
-        this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!);
+        this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!)[0];
         if (
           this.simpleParamset!.paramsets[0]!.master &&
           this.simpleParamset!.paramsets[0]!.master.length > 0

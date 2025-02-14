@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	pinpointURL = "https://pinpoint-dot-chromeperf.appspot.com/api/new"
+	pinpointURL = "https://chromeperf.appspot.com/pinpoint/new/bisect"
 	contentType = "application/json"
 )
 
@@ -36,6 +36,7 @@ type CreateBisectRequest struct {
 	Project             string `json:"project"`
 	BugId               string `json:"bug_id"`
 	User                string `json:"user"`
+	AlertIDs            string `json:"alert_ids"`
 }
 
 type CreateBisectResponse struct {
@@ -140,6 +141,9 @@ func buildPinpointRequestURL(createBisectRequest CreateBisectRequest) string {
 	}
 	if createBisectRequest.User != "" {
 		params.Set("user", createBisectRequest.User)
+	}
+	if createBisectRequest.User != "" {
+		params.Set("alert_ids", createBisectRequest.AlertIDs)
 	}
 
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")

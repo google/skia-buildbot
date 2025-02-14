@@ -400,6 +400,7 @@ export interface CreateBisectRequest {
 	project: string;
 	bug_id: string;
 	user: string;
+	alert_ids: string;
 }
 
 export interface CreateBisectResponse {
