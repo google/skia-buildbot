@@ -400,17 +400,39 @@ type Commit struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	GitHash        string                 `protobuf:"bytes,1,opt,name=git_hash,json=gitHash,proto3" json:"git_hash,omitempty"`
-	Repository     string                 `protobuf:"bytes,2,opt,name=repository,proto3" json:"repository,omitempty"`
-	Url            string                 `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
-	Author         string                 `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
-	Created        *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created,proto3" json:"created,omitempty"`
-	Subject        string                 `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`
-	Message        string                 `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
-	CommitBranch   string                 `protobuf:"bytes,8,opt,name=commit_branch,json=commitBranch,proto3" json:"commit_branch,omitempty"`
-	CommitPosition int32                  `protobuf:"varint,9,opt,name=commit_position,json=commitPosition,proto3" json:"commit_position,omitempty"`
-	ReviewUrl      string                 `protobuf:"bytes,10,opt,name=review_url,json=reviewUrl,proto3" json:"review_url,omitempty"`
-	ChangeId       string                 `protobuf:"bytes,11,opt,name=change_id,json=changeId,proto3" json:"change_id,omitempty"`
+	// Git hash associated with the commit.
+	// For example, 78c32b04089226c7c0ca1edf6013cf10cc54f8eb.
+	GitHash string `protobuf:"bytes,1,opt,name=git_hash,json=gitHash,proto3" json:"git_hash,omitempty"`
+	// Formerly repository_url, the URL of the repository. Used as part of
+	// configuring a Git client for that repository.
+	// For example, https://chromium.googlesource.com/chromium/src.git
+	Repository string `protobuf:"bytes,2,opt,name=repository,proto3" json:"repository,omitempty"`
+	// The full URL to the commit, in the format of a Gitiles API
+	// ({repository}/+/{git_hash}).
+	// For example, https://chromium.googlesource.com/chromium/src.git+/
+	// 78c32b04089226c7c0ca1edf6013cf10cc54f8eb.
+	Url string `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	// The author of the commit, as an email. Usually parsed from Git.
+	// For example, chrome@chromium.org.
+	Author string `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`
+	// Timestamp of the commit.
+	Created *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created,proto3" json:"created,omitempty"`
+	// Title of the commit message.
+	Subject string `protobuf:"bytes,6,opt,name=subject,proto3" json:"subject,omitempty"`
+	// The body of the commit message.
+	Message string `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
+	// Branch that the commit is being made to. For example, refs/heads/main.
+	CommitBranch string `protobuf:"bytes,8,opt,name=commit_branch,json=commitBranch,proto3" json:"commit_branch,omitempty"`
+	// Commit position of the commit, usually parsed from the commit message.
+	// For example, if "Cr-Commit-Position: refs/heads/main@{#1418755}",
+	// position would be 1418755
+	CommitPosition int32 `protobuf:"varint,9,opt,name=commit_position,json=commitPosition,proto3" json:"commit_position,omitempty"`
+	// URL of the code review.
+	ReviewUrl string `protobuf:"bytes,10,opt,name=review_url,json=reviewUrl,proto3" json:"review_url,omitempty"`
+	// Change ID of the commit, usually parsed from the commit footer.
+	// For example, if "Change-Id: Ia1a8e2a86828267c9434d4e6dd776fc78086aef4",
+	// change_id = Ia1a8e2a86828267c9434d4e6dd776fc78086aef4.
+	ChangeId string `protobuf:"bytes,11,opt,name=change_id,json=changeId,proto3" json:"change_id,omitempty"`
 }
 
 func (x *Commit) Reset() {

@@ -86,16 +86,48 @@ message CancelJobResponse {
 }
 
 message Commit {
+	// Git hash associated with the commit.
+	// For example, 78c32b04089226c7c0ca1edf6013cf10cc54f8eb.
 	string git_hash = 1;
+
+	// Formerly repository_url, the URL of the repository. Used as part of
+	// configuring a Git client for that repository.
+	// For example, https://chromium.googlesource.com/chromium/src.git
 	string repository = 2;
+
+	// The full URL to the commit, in the format of a Gitiles API
+	// ({repository}/+/{git_hash}).
+	// For example, https://chromium.googlesource.com/chromium/src.git+/
+	// 78c32b04089226c7c0ca1edf6013cf10cc54f8eb.
 	string url = 3;
+
+	// The author of the commit, as an email. Usually parsed from Git.
+	// For example, chrome@chromium.org.
 	string author = 4;
+
+	// Timestamp of the commit.
 	google.protobuf.Timestamp created = 5;
+
+	// Title of the commit message.
 	string subject = 6;
+
+	// The body of the commit message.
 	string message = 7;
+
+	// Branch that the commit is being made to. For example, refs/heads/main.
 	string commit_branch = 8;
+
+	// Commit position of the commit, usually parsed from the commit message.
+	// For example, if "Cr-Commit-Position: refs/heads/main@{#1418755}",
+	// position would be 1418755
 	int32 commit_position = 9;
+
+	// URL of the code review.
 	string review_url = 10;
+
+	// Change ID of the commit, usually parsed from the commit footer.
+	// For example, if "Change-Id: Ia1a8e2a86828267c9434d4e6dd776fc78086aef4",
+	// change_id = Ia1a8e2a86828267c9434d4e6dd776fc78086aef4.
 	string change_id = 11;
 }
 
@@ -115,6 +147,7 @@ message Culprit {
 
 message BisectExecution {
 	string job_id = 1;
+
 	// TODO(b/322203189): replace this with detailed_culprit. This field is used by the
 	// catapult bisect UI write.
 	repeated CombinedCommit culprits = 2;
