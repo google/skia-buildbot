@@ -88,7 +88,6 @@
     "subscriptions.contact_email": "character varying def: nullable:YES",
     "subscriptions.createdat": "timestamp with time zone def:CURRENT_TIMESTAMP nullable:YES",
     "subscriptions.hotlists": "ARRAY def: nullable:YES",
-    "subscriptions.is_active": "boolean def: nullable:YES",
     "subscriptions.name": "character varying def: nullable:NO",
     "subscriptions.revision": "character varying def: nullable:NO",
     "tracevalues.commit_number": "bigint def: nullable:NO",

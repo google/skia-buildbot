@@ -6,7 +6,6 @@ package sql
 import (
 	alertschema "go.skia.org/infra/perf/go/alerts/sqlalertstore/schema"
 	anomalygroupschema "go.skia.org/infra/perf/go/anomalygroup/sqlanomalygroupstore/schema"
-	reversekeymapschema "go.skia.org/infra/perf/go/chromeperf/sqlreversekeymapstore/schema"
 	culpritschema "go.skia.org/infra/perf/go/culprit/sqlculpritstore/schema"
 	favoriteschema "go.skia.org/infra/perf/go/favorites/sqlfavoritestore/schema"
 	gitschema "go.skia.org/infra/perf/go/git/schema"
@@ -31,7 +30,6 @@ type Tables struct {
 	Postings        []traceschema.PostingsSchema
 	Regressions     []regressionschema.RegressionSchema
 	Regressions2    []regression2schema.Regression2Schema
-	ReverseKeyMap   []reversekeymapschema.ReverseKeyMapSchema
 	Shortcuts       []shortcutschema.ShortcutSchema
 	SourceFiles     []traceschema.SourceFilesSchema
 	Subscriptions   []subscriptionschema.SubscriptionSchema
