@@ -3,7 +3,10 @@ load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "service",
-    srcs = ["service_impl.go"],
+    srcs = [
+        "service_impl.go",
+        "validation.go",
+    ],
     importpath = "go.skia.org/infra/pinpoint/go/service",
     visibility = ["//visibility:public"],
     deps = [
@@ -25,9 +28,14 @@ go_library(
 
 go_test(
     name = "service_test",
-    srcs = ["service_impl_test.go"],
+    srcs = [
+        "service_impl_test.go",
+        "validation_test.go",
+    ],
     embed = [":service"],
     deps = [
+        "//go/skerr",
+        "//pinpoint/go/common",
         "//pinpoint/go/workflows",
         "//pinpoint/proto/v1:proto",
         "//temporal/go/client/mocks",

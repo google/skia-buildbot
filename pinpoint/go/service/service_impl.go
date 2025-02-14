@@ -15,7 +15,6 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/pinpoint/go/read_values"
 	"go.skia.org/infra/pinpoint/go/workflows"
 	pb "go.skia.org/infra/pinpoint/proto/v1"
 	tpr_client "go.skia.org/infra/temporal/go/client"
@@ -40,8 +39,9 @@ const (
 	// arbitrary timeouts to ensure workflows will not run forever. Note that it is possible
 	// for a job to naturally timeout due to long running time. Consider updating these
 	// if too many jobs time out.
-	bisectionTimeout     = 12 * time.Hour
-	culpritFinderTimeout = 16 * time.Hour
+	pairwiseTimeoutDuration = 2 * time.Hour
+	bisectionTimeout        = 12 * time.Hour
+	culpritFinderTimeout    = 16 * time.Hour
 )
 
 func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
@@ -58,69 +58,57 @@ func New(t tpr_client.TemporalProvider, l *rate.Limiter) *server {
 	}
 }
 
-// updateFieldsForCatapult converts specific catapult Pinpoint arguments
-// to their skia Pinpoint counterparts
-func updateFieldsForCatapult(req *pb.ScheduleBisectRequest) *pb.ScheduleBisectRequest {
-	switch {
-	case req.Statistic == "avg":
-		req.AggregationMethod = "mean"
-	case req.Statistic != "":
-		req.AggregationMethod = req.Statistic
-	}
-	return req
-}
-
-func validate(req *pb.ScheduleBisectRequest) error {
-	switch {
-	case req.StartGitHash == "" || req.EndGitHash == "":
-		return skerr.Fmt("git hash is empty")
-	case !read_values.IsSupportedAggregation(req.AggregationMethod):
-		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
-	default:
-		return nil
-	}
-}
-
-// updateCulpritFinderFieldsForCatapult converts specific catapult Pinpoint arguments
-// to their skia Pinpoint counterparts
-func updateCulpritFinderFieldsForCatapult(req *pb.ScheduleCulpritFinderRequest) *pb.ScheduleCulpritFinderRequest {
-	switch {
-	case req.Statistic == "avg":
-		req.AggregationMethod = "mean"
-	case req.Statistic != "":
-		req.AggregationMethod = req.Statistic
-	case req.AggregationMethod == "avg":
-		req.AggregationMethod = "mean"
-	}
-	return req
-}
-
-func validateCulpritFinder(req *pb.ScheduleCulpritFinderRequest) error {
-	switch {
-	case req.StartGitHash == "" || req.EndGitHash == "":
-		return skerr.Fmt("git hash is empty")
-	case req.Benchmark == "":
-		return skerr.Fmt("benchmark is empty")
-	case req.Story == "":
-		return skerr.Fmt("story is empty")
-	case req.Chart == "":
-		return skerr.Fmt("chart is empty")
-	case req.Configuration == "":
-		return skerr.Fmt("configuration (aka the device name) is empty")
-	case req.Configuration == "android-pixel-fold-perf" || req.Configuration == "mac-m1-pro-perf":
-		return skerr.Fmt("bot (%s) is currently unsupported due to low resources", req.Configuration)
-	case !read_values.IsSupportedAggregation(req.AggregationMethod):
-		return skerr.Fmt("aggregation method (%s) is not available", req.AggregationMethod)
-	}
-	return nil
-}
-
 func NewJSONHandler(ctx context.Context, srv pb.PinpointServer) (http.Handler, error) {
 	m := runtime.NewServeMux()
 	if err := pb.RegisterPinpointHandlerServer(ctx, m, srv); err != nil {
 		return nil, skerr.Wrapf(err, "unable to register pinpoint handler")
 	}
 	return m, nil
+}
+
+func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.CancelJobResponse, error) {
+	sklog.Infof("Receiving cancel job request: %v", req)
+	if req.JobId == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing JobId")
+	}
+
+	if req.Reason == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
+	}
+
+	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to connect to Temporal (%v).", err)
+	}
+
+	defer cleanUp()
+
+	err = c.CancelWorkflow(ctx, req.JobId, "")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Unable to cancel workflow (%v).", err)
+	}
+	return &pb.CancelJobResponse{JobId: req.JobId, State: "Cancelled"}, nil
+}
+
+func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (*pb.LegacyJobResponse, error) {
+	qresp, err := s.QueryBisection(ctx, &pb.QueryBisectRequest{
+		JobId: req.GetJobId(),
+	})
+	if err != nil {
+		// We don't skerr.Wrap here because we expect to populate err with status.code back to
+		// the client, this is automatic conversion to REST API status code when this is exposed
+		// via grpc-gateway.
+		// Note this API is only intermediate and will be gone, this is not considered to be
+		// best practise.
+		return nil, err
+	}
+
+	// TODO(b/318864009): convert BisectExecution to LegacyJobResponse
+	// This should be just a copy.
+	resp := &pb.LegacyJobResponse{
+		JobId: qresp.GetJobId(),
+	}
+	return resp, nil
 }
 
 func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
@@ -134,7 +122,7 @@ func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRe
 	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
 	req = updateFieldsForCatapult(req)
 
-	if err := validate(req); err != nil {
+	if err := validateBisectRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -176,7 +164,7 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
 	req = updateCulpritFinderFieldsForCatapult(req)
 
-	if err := validateCulpritFinder(req); err != nil {
+	if err := validateCulpritFinderRequest(req); err != nil {
 		sklog.Warningf("the request failed validation due to %v", err.Error())
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -211,40 +199,18 @@ func (s *server) ScheduleCulpritFinder(ctx context.Context, req *pb.ScheduleCulp
 	return &pb.CulpritFinderExecution{JobId: wf.GetID()}, nil
 }
 
-// TODO(b/322047067)
-//	embbed pb.UnimplementedPinpointServer will throw errors if those are not implemented.
-// func (s *server) QueryBisection(ctx context.Context, in *pb.QueryBisectRequest) (*pb.BisectExecution, error) {
-// }
+func (s *server) SchedulePairwise(ctx context.Context, req *pb.SchedulePairwiseRequest) (*pb.PairwiseExecution, error) {
+	// TODO(b/391717876) - remove log once migration complete, as these logs can
+	// get noisy.
+	sklog.Infof("Pairwise (try) request received: %v", req)
 
-func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (*pb.LegacyJobResponse, error) {
-	qresp, err := s.QueryBisection(ctx, &pb.QueryBisectRequest{
-		JobId: req.GetJobId(),
-	})
-	if err != nil {
-		// We don't skerr.Wrap here because we expect to populate err with status.code back to
-		// the client, this is automatic conversion to REST API status code when this is exposed
-		// via grpc-gateway.
-		// Note this API is only intermediate and will be gone, this is not considered to be
-		// best practise.
-		return nil, err
+	if !s.limiter.Allow() {
+		sklog.Infof("The request is dropped due to rate limiting.")
+		return nil, status.Errorf(codes.ResourceExhausted, "unable to fulfill the request due to rate limiting, dropping")
 	}
 
-	// TODO(b/318864009): convert BisectExecution to LegacyJobResponse
-	// This should be just a copy.
-	resp := &pb.LegacyJobResponse{
-		JobId: qresp.GetJobId(),
-	}
-	return resp, nil
-}
-
-func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.CancelJobResponse, error) {
-	sklog.Infof("Receiving cancel job request: %v", req)
-	if req.JobId == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing JobId")
-	}
-
-	if req.Reason == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "bad request: missing Reason")
+	if err := validatePairwiseRequest(req); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request")
 	}
 
 	c, cleanUp, err := s.temporal.NewClient(hostPort, namespace)
@@ -254,9 +220,24 @@ func (s *server) CancelJob(ctx context.Context, req *pb.CancelJobRequest) (*pb.C
 
 	defer cleanUp()
 
-	err = c.CancelWorkflow(ctx, req.JobId, "")
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Unable to cancel workflow (%v).", err)
+	workflowOptions := client.StartWorkflowOptions{
+		ID:        uuid.New().String(),
+		TaskQueue: taskQueue,
+		// A pairwise try job SLO is to complete sub 2 hours.
+		WorkflowExecutionTimeout: pairwiseTimeoutDuration,
+		RetryPolicy: &temporal.RetryPolicy{
+			// We will only attempt to run the workflow exactly once as we expect any failure will be
+			// not retry-recoverable failure.
+			MaximumAttempts: 1,
+		},
 	}
-	return &pb.CancelJobResponse{JobId: req.JobId, State: "Cancelled"}, nil
+
+	workflowRun, err := c.ExecuteWorkflow(ctx, workflowOptions, workflows.PairwiseWorkflow, &workflows.PairwiseParams{
+		Request:       req,
+		CulpritVerify: false,
+	})
+
+	return &pb.PairwiseExecution{
+		JobId: workflowRun.GetID(),
+	}, nil
 }
