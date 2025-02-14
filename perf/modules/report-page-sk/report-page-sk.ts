@@ -233,7 +233,7 @@ export class ReportPageSk extends ElementSk {
         }
       });
 
-      for (let c = end; c > start; c--) {
+      for (let c = end; c >= start; c--) {
         commits.push(c as CommitNumber);
       }
 
