@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "AnomalyApiClient.go",
         "ChromePerfClient.go",
+        "ReverseKeyMapStore.go",
     ],
     importpath = "go.skia.org/infra/perf/go/chromeperf/mock",
     visibility = ["//visibility:public"],

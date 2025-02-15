@@ -97,6 +97,12 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   INDEX by_alert_id (alert_id),
   INDEX by_commit_alert (commit_number, alert_id)
 );
+CREATE TABLE IF NOT EXISTS ReverseKeyMap (
+  modified_value TEXT,
+  param_key TEXT,
+  original_value TEXT,
+  PRIMARY KEY(modified_value, param_key)
+);
 CREATE TABLE IF NOT EXISTS Shortcuts (
   id TEXT UNIQUE NOT NULL PRIMARY KEY,
   trace_ids TEXT
@@ -230,6 +236,12 @@ var Regressions2 = []string{
 	"frame",
 	"triage_status",
 	"triage_message",
+}
+
+var ReverseKeyMap = []string{
+	"modified_value",
+	"param_key",
+	"original_value",
 }
 
 var Shortcuts = []string{
