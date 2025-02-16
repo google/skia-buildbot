@@ -9,7 +9,7 @@ import (
 
 func TestGetIsolateTarget_WithConfigDefinedBot_ReturnsTarget(t *testing.T) {
 	target, err := GetIsolateTarget("android-pixel4-perf", "benchmark")
-	assert.Equal(t, target, "performance_test_suite_android_clank_trichrome_chrome_google_64_32_bundle")
+	assert.Equal(t, target, "performance_test_suite_android_trichrome_chrome_google_64_32_bundle")
 	assert.NoError(t, err)
 }
 
