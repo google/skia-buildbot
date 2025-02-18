@@ -143,7 +143,7 @@ func TestGoModGerritCreateNewRoll(t *testing.T) {
 	g.MockGetIssueProperties(ci)
 	g.MockSetCQ(ci, "", emails)
 
-	issue, err := p.CreateNewRoll(ctx, from, to, rolling, emails, false, "roll")
+	issue, err := p.CreateNewRoll(ctx, from, to, rolling, emails, false, false, "roll")
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
 	rolledRev, err := p.getPinnedRevision()

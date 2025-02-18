@@ -164,8 +164,8 @@ func (p *goModParent) Update(ctx context.Context) (string, error) {
 }
 
 // See documentation for Parent interface.
-func (p *goModParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
-	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, commitMsg, p.createRoll, p.uploadRoll)
+func (p *goModParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string) (int64, error) {
+	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, canary, commitMsg, p.createRoll, p.uploadRoll)
 }
 
 var _ Parent = &goModParent{}

@@ -72,8 +72,8 @@ func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
 }
 
 // CreateNewRoll implements Parent.
-func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
-	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, commitMsg, p.createRoll, p.uploadRoll)
+func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string) (int64, error) {
+	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, canary, commitMsg, p.createRoll, p.uploadRoll)
 }
 
 // gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses

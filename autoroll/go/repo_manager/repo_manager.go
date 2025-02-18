@@ -15,7 +15,7 @@ import (
 // to manage checkouts.
 type RepoManager interface {
 	// Create a new roll attempt.
-	CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun bool, commitMsg string) (int64, error)
+	CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun, canary bool, commitMsg string) (int64, error)
 
 	// Update the RepoManager's view of the world. Depending on the
 	// implementation, this may sync repos and may take some time. Returns
