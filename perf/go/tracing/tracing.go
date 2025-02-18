@@ -21,8 +21,14 @@ func Init(local bool, cfg *config.InstanceConfig) error {
 		return nil
 	}
 
+	instance := ""
+	if cfg != nil {
+		instance = cfg.InstanceName
+	}
+
 	return tracing.Initialize(float64(f), autoDetectProjectID, map[string]interface{}{
 		// This environment variable should be set in the k8s templates.
-		"podName": os.Getenv("MY_POD_NAME"),
+		"podName":  os.Getenv("MY_POD_NAME"),
+		"instance": instance,
 	})
 }

@@ -904,6 +904,9 @@ type InstanceConfig struct {
 	// Other domain names that are allowed to make cross-site requests to this instance.
 	AllowedHosts []string `json:"allowed_hosts,omitempty"`
 
+	// Name this instance calls itself (eg. in tracing)
+	InstanceName string `json:"instance_name,omitempty"`
+
 	// Contact is the best way to contact the team for this instance.
 	Contact string `json:"contact"`
 

@@ -263,6 +263,9 @@
           },
           "type": "array"
         },
+        "instance_name": {
+          "type": "string"
+        },
         "contact": {
           "type": "string"
         },
