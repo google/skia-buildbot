@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -82,6 +83,9 @@ func (client *chromePerfClientImpl) SendGetRequest(ctx context.Context, apiName 
 
 // SendPostRequest sends a POST request to chromeperf api with the specified parameters.
 func (client *chromePerfClientImpl) SendPostRequest(ctx context.Context, apiName string, functionName string, requestObj interface{}, responseObj interface{}, acceptedStatusCodes []int) error {
+	ctx, span := trace.StartSpan(ctx, "chromeperf.chromePerfClientImpl.SendPostRequest")
+	defer span.End()
+
 	targetUrl := generateTargetUrl(client.urlOverride, client.directCallLegacy, apiName, functionName)
 
 	requestBodyJSONStr, err := json.Marshal(requestObj)

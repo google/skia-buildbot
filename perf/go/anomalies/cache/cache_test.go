@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/perf/go/chromeperf"
 	anomalies_chrome_mock "go.skia.org/infra/perf/go/chromeperf/mock"
@@ -109,7 +110,7 @@ var ctx = context.Background()
 
 func TestGetAnomalies_FromChromePerf_Success(t *testing.T) {
 	mockChromePerf := anomalies_chrome_mock.NewAnomalyApiClient(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", mock.Anything, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := chromeperf.AnomalyMap{
@@ -126,7 +127,7 @@ func TestGetAnomalies_FromChromePerf_Success(t *testing.T) {
 
 func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 	mockChromePerf := anomalies_chrome_mock.NewAnomalyApiClient(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomalies", mock.Anything, traceNames, startCommitPosition, endCommitPosition).Return(chromePerfAnomalyMap, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap1 := chromeperf.AnomalyMap{
@@ -170,7 +171,7 @@ func TestGetAnomalies_FromChromePerfAndCache_Success(t *testing.T) {
 
 func TestGetAnomalies_GetErrorFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 	mockChromePerf := anomalies_chrome_mock.NewAnomalyApiClient(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
+	mockChromePerf.On("GetAnomalies", mock.Anything, traceNames, startCommitPosition, endCommitPosition).Return(nil, errMock)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := chromeperf.AnomalyMap{}
@@ -184,7 +185,7 @@ func TestGetAnomalies_GetErrorFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 
 func TestGetAnomalies_GetEmptyResultFromChromePerf_EmptyAnomalyMap(t *testing.T) {
 	mockChromePerf := anomalies_chrome_mock.NewAnomalyApiClient(t)
-	mockChromePerf.On("GetAnomalies", ctx, traceNames, startCommitPosition, endCommitPosition).Return(nil, nil)
+	mockChromePerf.On("GetAnomalies", mock.Anything, traceNames, startCommitPosition, endCommitPosition).Return(nil, nil)
 	anomayStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := chromeperf.AnomalyMap{}
@@ -216,7 +217,7 @@ func TestGetTracesAroundRevision_FromChromePerf_Success(t *testing.T) {
 		},
 	}
 
-	mockChromePerf.On("GetAnomaliesAroundRevision", ctx, revisionNum).Return(anomaliesExpected, nil)
+	mockChromePerf.On("GetAnomaliesAroundRevision", mock.Anything, revisionNum).Return(anomaliesExpected, nil)
 
 	anomalyStore := getAnomalyStore(t, mockChromePerf)
 	params, err := anomalyStore.GetAnomaliesAroundRevision(ctx, revisionNum)
@@ -232,7 +233,7 @@ func TestGetAnomaliesTimeBased_FromChromePerf_Success(t *testing.T) {
 	startTime := time.Now().Add(time.Duration(-1) * time.Hour)
 	endTime := time.Now()
 
-	mockChromePerf.On("GetAnomaliesTimeBased", ctx, traceNames, startTime, endTime).Return(chromePerfAnomalyMap, nil)
+	mockChromePerf.On("GetAnomaliesTimeBased", mock.Anything, traceNames, startTime, endTime).Return(chromePerfAnomalyMap, nil)
 	anomalyStore := getAnomalyStore(t, mockChromePerf)
 
 	expectedAnomalyMap := chromeperf.AnomalyMap{

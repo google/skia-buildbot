@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -323,6 +324,8 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 }
 
 func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error) {
+	ctx, span := trace.StartSpan(ctx, "chromeperf.anomalyApiClientImpl.GetAnomaliesTimeBased")
+	defer span.End()
 	testPaths := make([]string, 0)
 	testPathTraceNameMap := make(map[string]string)
 	for _, traceName := range traceNames {
@@ -357,6 +360,9 @@ func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, trace
 
 // GetAnomaliesAroundRevision implements AnomalyApiClient, returns anomalies around the given revision.
 func (cp *anomalyApiClientImpl) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]AnomalyForRevision, error) {
+	ctx, span := trace.StartSpan(ctx, "chromeperf.anomalyApiClientImpl.GetAnomaliesAroundRevision")
+	defer span.End()
+
 	request := &GetAnomaliesRequest{
 		Revision: revision,
 	}

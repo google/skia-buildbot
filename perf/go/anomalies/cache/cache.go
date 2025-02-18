@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/perf/go/chromeperf"
 
@@ -173,6 +174,8 @@ func (as *store) GetAnomalies(ctx context.Context, traceNames []string, startCom
 // GetAnomaliesTimeBased implements anomalies.Store
 // Retrieves anomalies for each trace within the begin and end times.
 func (as *store) GetAnomaliesInTimeRange(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (chromeperf.AnomalyMap, error) {
+	ctx, span := trace.StartSpan(ctx, "anomalies.store.GetAnomaliesInTimeRange")
+	defer span.End()
 	result := chromeperf.AnomalyMap{}
 	if len(traceNames) == 0 {
 		return result, nil
@@ -195,6 +198,8 @@ func (as *store) GetAnomaliesInTimeRange(ctx context.Context, traceNames []strin
 // GetAnomaliesAroundRevision implements anomalies.Store
 // It fetches anomalies that occured around the specified revision number.
 func (as *store) GetAnomaliesAroundRevision(ctx context.Context, revision int) ([]chromeperf.AnomalyForRevision, error) {
+	ctx, span := trace.StartSpan(ctx, "anomalies.store.GetAnomaliesAroundRevision")
+	defer span.End()
 	iAnomalies, ok := as.revisionCache.Get(revision)
 	if ok {
 		return iAnomalies.([]chromeperf.AnomalyForRevision), nil

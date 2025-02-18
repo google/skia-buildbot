@@ -19,6 +19,7 @@ go_library(
         "//go/util",
         "//perf/go/git",
         "//perf/go/types",
+        "@io_opencensus_go//trace",
         "@org_golang_x_exp//slices",
         "@org_golang_x_oauth2//google",
     ],

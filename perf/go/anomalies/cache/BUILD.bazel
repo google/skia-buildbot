@@ -12,6 +12,7 @@ go_library(
         "//go/sklog",
         "//perf/go/chromeperf",
         "@com_github_hashicorp_golang_lru//:golang-lru",
+        "@io_opencensus_go//trace",
     ],
 )
 
@@ -25,6 +26,7 @@ go_test(
         "//perf/go/dataframe",
         "//perf/go/types",
         "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//mock",
         "@com_github_stretchr_testify//require",
     ],
 )

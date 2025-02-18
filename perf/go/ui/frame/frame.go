@@ -321,7 +321,7 @@ func ResponseFromDataFrame(ctx context.Context, pivotRequest *pivot.Request, df 
 }
 
 func addTimeBasedAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store, perfGit perfgit.Git) {
-	ctx, span := trace.StartSpan(ctx, "addAnomaliesToResponse")
+	ctx, span := trace.StartSpan(ctx, "addTimeBasedAnomaliesToResponse")
 	defer span.End()
 	df := response.DataFrame
 	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
@@ -361,7 +361,7 @@ func addTimeBasedAnomaliesToResponse(ctx context.Context, response *FrameRespons
 
 // addRevisionBasedAnomaliesToResponse fetch Chrome Perf anomalies and attach them to the response.
 func addRevisionBasedAnomaliesToResponse(ctx context.Context, response *FrameResponse, anomalyStore anomalies.Store, perfGit perfgit.Git) {
-	ctx, span := trace.StartSpan(ctx, "addAnomaliesToResponse")
+	ctx, span := trace.StartSpan(ctx, "addRevisionBasedAnomaliesToResponse")
 	defer span.End()
 	df := response.DataFrame
 	if anomalyStore != nil && df != nil && len(df.TraceSet) > 0 {
