@@ -5,7 +5,7 @@ groups:
         expr: up == 0
         for: 1m
         labels:
-          category: infra
+          category: skia
           severity: critical
         annotations:
           abbr:
@@ -19,7 +19,7 @@ groups:
         expr: go_goroutines > 3000
         for: 2m
         labels:
-          category: infra
+          category: skia
           severity: warning
         annotations:
           abbr: '{{ $labels.job }} - {{ $externalLabels.cluster }}'
@@ -30,7 +30,7 @@ groups:
       - alert: TooManyOpenFDs
         expr: process_open_fds > 5000
         labels:
-          category: infra
+          category: skia
           severity: warning
         annotations:
           abbr: '{{ $labels.job }} - {{ $externalLabels.cluster }}'
