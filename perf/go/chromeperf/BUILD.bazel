@@ -7,7 +7,6 @@ go_library(
         "alertGroupApi.go",
         "anomalyApi.go",
         "chromeperfClient.go",
-        "store.go",
     ],
     importpath = "go.skia.org/infra/perf/go/chromeperf",
     visibility = ["//visibility:public"],

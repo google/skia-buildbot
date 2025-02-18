@@ -322,7 +322,6 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 	return AnomalyMap{}, nil
 }
 
-// TODO(b/383913153): add reverse mapping before loading anomalies
 func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error) {
 	testPaths := make([]string, 0)
 	testPathTraceNameMap := make(map[string]string)

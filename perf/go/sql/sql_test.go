@@ -25,7 +25,6 @@ const DropTables = `
 	DROP TABLE IF EXISTS Postings;
 	DROP TABLE IF EXISTS Regressions;
 	DROP TABLE IF EXISTS Regressions2;
-	DROP TABLE IF EXISTS ReverseKeyMap;
 	DROP TABLE IF EXISTS Shortcuts;
 	DROP TABLE IF EXISTS SourceFiles;
 	DROP TABLE IF EXISTS Subscriptions;
@@ -148,7 +147,6 @@ CREATE TABLE IF NOT EXISTS Alerts (
 	bug_severity INT,
 	bug_cc_emails STRING ARRAY,
 	contact_email STRING,
-	is_active BOOL,
 	PRIMARY KEY(name, revision)
   );
   CREATE TABLE IF NOT EXISTS TraceValues (

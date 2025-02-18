@@ -12,7 +12,6 @@ go_library(
     deps = [
         "//perf/go/alerts/sqlalertstore/schema",
         "//perf/go/anomalygroup/sqlanomalygroupstore/schema",
-        "//perf/go/chromeperf/sqlreversekeymapstore/schema",
         "//perf/go/culprit/sqlculpritstore/schema",
         "//perf/go/favorites/sqlfavoritestore/schema",
         "//perf/go/git/schema",

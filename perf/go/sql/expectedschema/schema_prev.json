@@ -75,7 +75,6 @@
     "subscriptions.bug_severity": "bigint def: nullable:YES",
     "subscriptions.contact_email": "text def: nullable:YES",
     "subscriptions.hotlists": "ARRAY def: nullable:YES",
-    "subscriptions.is_active": "boolean def: nullable:YES",
     "subscriptions.name": "text def: nullable:NO",
     "subscriptions.revision": "text def: nullable:NO",
     "tracevalues.commit_number": "bigint def: nullable:NO",

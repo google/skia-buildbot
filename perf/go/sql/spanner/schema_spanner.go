@@ -103,13 +103,6 @@ CREATE TABLE IF NOT EXISTS Regressions2 (
   triage_message TEXT,
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
-CREATE TABLE IF NOT EXISTS ReverseKeyMap (
-  modified_value TEXT,
-  param_key TEXT,
-  original_value TEXT,
-  PRIMARY KEY(modified_value, param_key),
-  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Shortcuts (
   id TEXT  NOT NULL PRIMARY KEY,
   trace_ids TEXT,
@@ -256,12 +249,6 @@ var Regressions2 = []string{
 	"frame",
 	"triage_status",
 	"triage_message",
-}
-
-var ReverseKeyMap = []string{
-	"modified_value",
-	"param_key",
-	"original_value",
 }
 
 var Shortcuts = []string{

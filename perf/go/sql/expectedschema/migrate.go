@@ -38,18 +38,15 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS ReverseKeyMap (
-		modified_value TEXT,
-		param_key TEXT,
-		original_value TEXT,
-		PRIMARY KEY(modified_value, param_key)
-	);
+	ALTER TABLE Subscriptions
+	ADD COLUMN is_active BOOL;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	DROP TABLE IF EXISTS ReverseKeyMap;
+	ALTER TABLE Subscriptions
+	DROP COLUMN is_active;
 `
 
 // This function will check whether there's a new schema checked-in,
