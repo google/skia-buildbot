@@ -301,7 +301,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 		urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
 	}
 	// Upload the CL.
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, int64(123), issue)
 }

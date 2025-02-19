@@ -127,14 +127,7 @@ func TestRequestValidation(t *testing.T) {
 	check(r, "")
 	r.Id = "abc123"
 	check(r, "Request has an ID but has a zero DbModified timestamp.")
-	r.DbModified = time.Now().UTC().Truncate(time.Microsecond)
-
-	// Canary implies DryRun.
-	r.Canary = true
-	r.DryRun = false
-	check(r, "Canary implies DryRun.")
-	r.DryRun = true
-	check(r, "")
+	r.DbModified = time.Now()
 }
 
 func testDB(t *testing.T, db DB) {

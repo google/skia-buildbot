@@ -20,5 +20,5 @@ type Parent interface {
 
 	// CreateNewRoll uploads a CL which updates the pinned version of the
 	// dependency to the given Revision.
-	CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun, canary bool, commitMsg string) (int64, error)
+	CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error)
 }

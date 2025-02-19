@@ -264,7 +264,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/test-project~123/revisions/ps2/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, false, fakeCommitMsg)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
 }
