@@ -42,6 +42,14 @@ var FromLiveToNext = `
 	ADD COLUMN is_active BOOL;
 `
 
+// Same as above, but will be used when doing schema migration for spanner databases.
+// Some statements can be different for CDB v/s Spanner, hence splitting into
+// separate variables.
+var FromLiveToNextSpanner = `
+	ALTER TABLE Subscriptions
+	ADD COLUMN is_active BOOL;
+`
+
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
@@ -71,7 +79,11 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 	diffNextActual := assertdeep.Diff(next, *actual)
 
 	if diffNextActual != "" && diffPrevActual == "" {
-		_, err = db.Exec(ctx, FromLiveToNext)
+		fromLiveToNextStmt := FromLiveToNext
+		if datastoreType == config.SpannerDataStoreType {
+			fromLiveToNextStmt = FromLiveToNextSpanner
+		}
+		_, err = db.Exec(ctx, fromLiveToNextStmt)
 		if err != nil {
 			sklog.Errorf("Failed to migrate Schema from prev to next. Prev: %s, Next: %s.", prev, next)
 			return skerr.Wrapf(err, "Failed to migrate Schema")
