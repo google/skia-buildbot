@@ -161,12 +161,12 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/go": {
 		Path:    "go",
 		Name:    "skia/bots/go",
-		Version: "version:17",
+		Version: "version:18",
 	},
 	"skia/bots/go_win": {
 		Path:    "go_win",
 		Name:    "skia/bots/go_win",
-		Version: "version:4",
+		Version: "version:5",
 	},
 	"skia/bots/gsutil": {
 		Path:    "cipd_bin_packages",
