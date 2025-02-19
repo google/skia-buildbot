@@ -222,7 +222,7 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		changeDataProvider:       providers.NewChangelistProvider(sqlDB),
 		materializedViewProvider: materializedViewProvider,
 		commitsProvider:          providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
-		traceDigestsProvider:     providers.NewTraceDigestsProvider(sqlDB, windowLength, materializedViewProvider, cacheManager),
+		traceDigestsProvider:     providers.NewTraceDigestsProvider(sqlDB, windowLength, cacheManager),
 		cacheManager:             cacheManager,
 	}
 }

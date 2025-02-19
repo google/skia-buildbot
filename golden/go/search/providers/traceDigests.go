@@ -21,12 +21,11 @@ import (
 
 // TraceDigestsProvider provides a struct to retrieve trace and digests information for search.
 type TraceDigestsProvider struct {
-	db                       *pgxpool.Pool
-	windowLength             int
-	materializedViewProvider *MaterializedViewProvider
-	cacheManager             *caching.SearchCacheManager
-	mutex                    sync.RWMutex
-	dbType                   config.DatabaseType
+	db           *pgxpool.Pool
+	windowLength int
+	cacheManager *caching.SearchCacheManager
+	mutex        sync.RWMutex
+	dbType       config.DatabaseType
 
 	// This caches the trace ids that are publicly visible.
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
@@ -39,12 +38,11 @@ type TraceDigestsProvider struct {
 }
 
 // NewTraceDigestsProvider returns a new instance of TraceDigestsProvider.
-func NewTraceDigestsProvider(db *pgxpool.Pool, windowLength int, materializedViewProvider *MaterializedViewProvider, cacheManager *caching.SearchCacheManager) *TraceDigestsProvider {
+func NewTraceDigestsProvider(db *pgxpool.Pool, windowLength int, cacheManager *caching.SearchCacheManager) *TraceDigestsProvider {
 	return &TraceDigestsProvider{
-		db:                       db,
-		windowLength:             windowLength,
-		materializedViewProvider: materializedViewProvider,
-		cacheManager:             cacheManager,
+		db:           db,
+		windowLength: windowLength,
+		cacheManager: cacheManager,
 
 		search_cache_enabled_counter: metrics2.GetCounter("gold_search_cache_enabled"),
 		search_cache_hit_counter:     metrics2.GetCounter("gold_search_cache_hit"),
@@ -92,15 +90,13 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 	results, err := s.cacheManager.GetMatchingDigestsAndTraces(ctx, searchQueryContext)
 	if err != nil {
 		sklog.Errorf("Error retrieving search data from cache: %v", err)
-	}
-	if results == nil {
-		// This is either an error during retrieving data from cache or
-		// a cache miss. Let's fall back to the database search.
-		sklog.Info("No data returned from cache or there was an error. Falling back to databases search.")
 		s.search_cache_miss_counter.Inc(1)
-		return s.getMatchingDigestsAndTracesFromDB(ctx, includeUntriagedDigests, includeNegativeDigests, includePositiveDigests)
+		return nil, err
 	}
 
+	// The cache manager handles looking up from the db when there is a cache miss.
+	// So if there are no results at this points, it means there are no qualifying
+	// results in the database as well.
 	s.search_cache_hit_counter.Inc(1)
 	return results, err
 }
@@ -312,12 +308,8 @@ func (s *TraceDigestsProvider) matchingTracesStatement(ctx context.Context) (str
 		ignoreStatuses = append(ignoreStatuses, true)
 	}
 	corpus := sql.Sanitize(q.TraceValues[types.CorpusField][0])
-	materializedView := s.materializedViewProvider.GetMaterializedView(UnignoredRecentTracesView, corpus)
 	if q.OnlyIncludeDigestsProducedAtHead {
 		if len(keyFilters) == 0 {
-			if materializedView != "" && !q.IncludeIgnoredTraces {
-				return "MatchingTraces AS (SELECT * FROM " + materializedView + ")", nil
-			}
 			// Corpus is being used as a string
 			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus}
 			return `
@@ -328,13 +320,7 @@ MatchingTraces AS (
 		corpus = $4
 )`, args
 		}
-		if materializedView != "" && !q.IncludeIgnoredTraces {
-			return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
-MatchingTraces AS (
-	SELECT JoinedTraces.trace_id, grouping_id, digest FROM ` + materializedView + `
-	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
-)`, nil
-		}
+
 		// Corpus is being used as a JSONB value here
 		args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses}
 		return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
@@ -346,15 +332,6 @@ MatchingTraces AS (
 )`, args
 	} else {
 		if len(keyFilters) == 0 {
-			if materializedView != "" && !q.IncludeIgnoredTraces {
-				args := []interface{}{common.GetFirstTileID(ctx)}
-				return `MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TiledTraceDigests.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN ` + materializedView + ` ON ` + materializedView + `.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $2
-)`, args
-			}
 			// Corpus is being used as a string
 			args := []interface{}{common.GetFirstCommitID(ctx), ignoreStatuses, corpus, common.GetFirstTileID(ctx)}
 			return `
@@ -372,20 +349,7 @@ MatchingTraces AS (
 )
 `, args
 		}
-		if materializedView != "" && !q.IncludeIgnoredTraces {
-			args := []interface{}{common.GetFirstTileID(ctx)}
-			return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
-TracesOfInterest AS (
-	SELECT JoinedTraces.trace_id, grouping_id FROM ` + materializedView + `
-	JOIN JoinedTraces ON JoinedTraces.trace_id = ` + materializedView + `.trace_id
-),
-MatchingTraces AS (
-	SELECT DISTINCT TiledTraceDigests.trace_id, TracesOfInterest.grouping_id, TiledTraceDigests.digest
-	FROM TiledTraceDigests
-	JOIN TracesOfInterest on TracesOfInterest.trace_id = TiledTraceDigests.trace_id
-	WHERE tile_id >= $2
-)`, args
-		}
+
 		// Corpus is being used as a JSONB value here
 		args := []interface{}{common.GetFirstTileID(ctx), ignoreStatuses}
 		return JoinedTracesStatement(keyFilters, corpus, isSpanner) + `
