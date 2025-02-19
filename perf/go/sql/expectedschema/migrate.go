@@ -38,28 +38,37 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	ALTER TABLE Subscriptions
-	ADD COLUMN is_active BOOL;
+	CREATE TABLE IF NOT EXISTS ReverseKeyMap (
+		modified_value TEXT,
+		param_key TEXT,
+		original_value TEXT,
+		PRIMARY KEY(modified_value, param_key)
+	);
 `
 
 // Same as above, but will be used when doing schema migration for spanner databases.
 // Some statements can be different for CDB v/s Spanner, hence splitting into
 // separate variables.
 var FromLiveToNextSpanner = `
-	ALTER TABLE Subscriptions
-	ADD COLUMN is_active BOOL;
+	CREATE TABLE IF NOT EXISTS ReverseKeyMap (
+		modified_value TEXT,
+		param_key TEXT,
+		original_value TEXT,
+		PRIMARY KEY(modified_value, param_key),
+		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+	) TTL INTERVAL '1095 days' ON createdat;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	ALTER TABLE Subscriptions
-	DROP COLUMN is_active;
+	DROP TABLE IF EXISTS ReverseKeyMap;
 `
 
 // This function will check whether there's a new schema checked-in,
 // and if so, migrate the schema in the given CockroachDB instance.
 func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreType config.DataStoreType) error {
+	sklog.Debugf("Starting validate and migrate. DatastoreType: %s", datastoreType)
 	next, err := Load(datastoreType)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -79,6 +88,7 @@ func ValidateAndMigrateNewSchema(ctx context.Context, db pool.Pool, datastoreTyp
 	diffNextActual := assertdeep.Diff(next, *actual)
 
 	if diffNextActual != "" && diffPrevActual == "" {
+		sklog.Debugf("Next is different from live schema. Will migrate. diffNextActual: %s", diffNextActual)
 		fromLiveToNextStmt := FromLiveToNext
 		if datastoreType == config.SpannerDataStoreType {
 			fromLiveToNextStmt = FromLiveToNextSpanner

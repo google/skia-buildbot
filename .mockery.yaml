@@ -279,6 +279,7 @@ packages:
     interfaces:
       ChromePerfClient:
       AnomalyApiClient:
+      ReverseKeyMapStore:
   go.skia.org/infra/perf/go/culprit:
     config:
       dir: "{{.InterfaceDir}}/mocks"

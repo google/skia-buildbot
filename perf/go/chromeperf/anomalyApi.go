@@ -323,6 +323,7 @@ func (cp *anomalyApiClientImpl) GetAnomalies(ctx context.Context, traceNames []s
 	return AnomalyMap{}, nil
 }
 
+// TODO(b/383913153): add reverse mapping before loading anomalies
 func (cp *anomalyApiClientImpl) GetAnomaliesTimeBased(ctx context.Context, traceNames []string, startTime time.Time, endTime time.Time) (AnomalyMap, error) {
 	ctx, span := trace.StartSpan(ctx, "chromeperf.anomalyApiClientImpl.GetAnomaliesTimeBased")
 	defer span.End()
