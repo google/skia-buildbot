@@ -298,7 +298,7 @@ export class ReportPageSk extends ElementSk {
   }
 
   private showAllCommitsTemplate() {
-    if (this.commitList) {
+    if (this.commitList.length !== 0) {
       return html`
         <ul id="all-commits">
           ${Array.from(this.commitList).map((commit) => {
