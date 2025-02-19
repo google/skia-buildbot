@@ -8,6 +8,7 @@ proto_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//cabe/proto/v1:spec_proto",
         "@com_google_protobuf//:timestamp_proto",
         "@googleapis//google/api:annotations_proto",
     ],
@@ -24,6 +25,7 @@ go_library(
     importpath = "go.skia.org/infra/pinpoint/proto/v1",
     visibility = ["//visibility:public"],
     deps = [
+        "//cabe/go/proto:go_proto_lib",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//runtime",
         "@com_github_grpc_ecosystem_grpc_gateway_v2//utilities",
         "@org_golang_google_genproto_googleapis_api//annotations",

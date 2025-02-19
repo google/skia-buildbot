@@ -7,6 +7,7 @@ option go_package = "go.skia.org/infra/pinpoint/proto/v1;pinpointpb";
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "cabe/proto/v1/spec.proto";
 
 // The direct mirror of the existing bisect request in catapult.
 // https://chromium.googlesource.com/catapult.git/+/09398d/
@@ -131,9 +132,18 @@ message Commit {
 	string change_id = 11;
 }
 
+// A commit definition used by Pinpoint that allows flexibility for modification
+// on DEPS or patches.
 message CombinedCommit {
+	// The base commit to build off of, usually a Chromium commit.
 	Commit main = 1;
+
+	// Any modifications to Git-based dependencies within a DEPS file.
 	repeated Commit modified_deps = 2;
+
+	// A gerrit patch applied on to the main commit. This information is also
+	// used to add the results of a Pinpoint job as a comment.
+	cabe.v1.GerritChange patch = 3;
 }
 
 // Culprit contains the culprit commit and also the commit prior to the culprit.
