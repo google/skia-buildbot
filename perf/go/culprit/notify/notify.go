@@ -70,6 +70,9 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 // Creates a bug in Buganizer about the detected anomalies.
 func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error) {
 	// TODO(wenbinzhang): implement the NotifyAnomaliesFound after the notifier is updated to support multiple purposes.
+	if subscription == nil || anomalies == nil {
+		return "nil", nil
+	}
 	sklog.Debugf("NotifyAnomaliesFound not yet implemented: %s", subscription.Name)
 	return "nil", nil
 }
