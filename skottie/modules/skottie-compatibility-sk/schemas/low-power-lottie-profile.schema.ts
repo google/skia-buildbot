@@ -442,6 +442,17 @@ export const lowPowerLottieProfileSchema =
               }
             }
           },
+          "no-merge-path": {
+            "feature-code": "shape-merge-path",
+            "not": {
+              "type": "object",
+              "properties": {
+                "ty": {
+                  "const": "mm"
+                }
+              }
+            }
+          },
           "no-gradient-fill-radial-highlight": {
             "feature-code": "shape-fill-gradient-radial-highlight",
             "feature-link": "shape-fill-gradient",
@@ -566,6 +577,9 @@ export const lowPowerLottieProfileSchema =
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-polystar"
+            },
+            {
+              "$ref": "#/$defs/features/shapes/types/no-merge-path"
             },
             {
               "$ref": "#/$defs/features/shapes/types/no-repeater"
