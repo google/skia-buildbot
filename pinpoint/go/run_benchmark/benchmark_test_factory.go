@@ -1,7 +1,6 @@
 package run_benchmark
 
 import (
-	"slices"
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
@@ -26,13 +25,9 @@ func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags st
 		return nil, skerr.Wrapf(err, "Failed to get isolate target to create the benchmark test")
 	}
 
-	switch {
-	// The following targets are specific to lacros telemetry test
-	case slices.Contains([]string{"performance_test_suite_eve", "performance_test_suite_octopus"}, target):
-		return NewLacrosTest(target, benchmark, config.Browser, commit, story, storyTags), nil
 	// Few targets could have suffixes, especially for Android.
 	// For example, 'performance_test_suite_android_clank_monochrome_64_32_bundle'
-	case strings.Contains(target, "performance_test_suite") || strings.Contains(target, "telemetry_perf_tests") || target == "performance_webview_test_suite":
+	if strings.Contains(target, "performance_test_suite") || strings.Contains(target, "telemetry_perf_tests") || target == "performance_webview_test_suite" {
 		return &telemetryTest{
 			benchmark: benchmark,
 			browser:   config.Browser,
@@ -40,7 +35,6 @@ func NewBenchmarkTest(commit, botConfig, browser, benchmark, story, storyTags st
 			story:     story,
 			storyTags: storyTags,
 		}, nil
-	default:
-		return nil, skerr.Fmt("Unsupported test target %s", target)
 	}
+	return nil, skerr.Fmt("Unsupported test target %s", target)
 }

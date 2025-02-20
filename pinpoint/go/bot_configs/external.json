@@ -356,48 +356,6 @@
     "repository": "chromium",
     "swarming_server": "https://chrome-swarming.appspot.com"
   },
-  "lacros-eve-perf": {
-    "browser": "lacros-chrome",
-    "bucket": "luci.chrome.try",
-    "builder": "Chromeos Amd64 Generic Lacros Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "eve"
-      },
-      {
-        "key": "device_status",
-        "value": "available"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
-  "lacros-x86-perf": {
-    "browser": "lacros-chrome",
-    "bucket": "luci.chrome.try",
-    "builder": "Chromeos Amd64 Generic Lacros Builder Perf",
-    "dimensions": [
-      {
-        "key": "pool",
-        "value": "chrome.tests.pinpoint"
-      },
-      {
-        "key": "device_type",
-        "value": "octopus"
-      },
-      {
-        "key": "device_status",
-        "value": "available"
-      }
-    ],
-    "repository": "chromium",
-    "swarming_server": "https://chrome-swarming.appspot.com"
-  },
   "linux-perf": {
     "browser": "release",
     "bucket": "luci.chrome.try",

@@ -10,12 +10,9 @@ BotExactTargets:
   android-pixel-fold-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel-tangor-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel4-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
-  android-pixel4a_power-perf: performance_test_suite_android_trichrome_chrome_google_bundle
   android-pixel6-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-pixel6-pro-perf: performance_test_suite_android_trichrome_chrome_google_64_32_bundle
   android-samsung-foldable-perf: performance_test_suite_android_trichrome_chrome_google_bundle
-  # TODO(b/396995228): remove lacros
-  lacros-x86-perf: performance_test_suite_octopus
 BotRegexTargets:
   # This is a special-case for webview
   webview: performance_webview_test_suite
