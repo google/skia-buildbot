@@ -266,8 +266,10 @@ func (orig *Task) UpdateFromTaskResult(res *TaskResult) (bool, error) {
 	// CreatedTs should always be present.
 	if util.TimeIsZero(copy.Created) {
 		copy.Created = res.Created
-	} else if !copy.Created.Equal(res.Created) {
+	} else if copy.Created.Sub(res.Created).Abs() > time.Millisecond {
 		return false, fmt.Errorf("Creation time has changed for task %s. Was %s, now %s. %v", orig.Id, orig.Created, res.Created, orig)
+	} else if !copy.Created.Equal(res.Created) {
+		sklog.Warningf("Creation time has changed for task %s. Was %s, now %s. %v; ignoring due to small change", orig.Id, orig.Created, res.Created, orig)
 	}
 
 	// Status.
