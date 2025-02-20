@@ -34,5 +34,6 @@
         "dir": "/tmp/flutter-engine",
         "debounce_commit_url": false,
         "commit_url": "%s/commit/%s"
-    }
+    },
+    "optimize_sqltracestore": true
 }

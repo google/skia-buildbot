@@ -34,5 +34,6 @@
     "url": "https://chromium.googlesource.com/emscripten-releases",
     "dir": "/tmp/emscripten",
     "debounce_commit_url": false
-  }
+  },
+  "optimize_sqltracestore": true
 }

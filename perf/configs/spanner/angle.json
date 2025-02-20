@@ -32,5 +32,6 @@
     "url": "https://chromium.googlesource.com/angle/angle",
     "dir": "/tmp/angle",
     "debounce_commit_url": false
-  }
+  },
+  "optimize_sqltracestore": true
 }

@@ -66,5 +66,6 @@
   "data_point_config": {
     "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"]
   },
-  "new_alerts_page": true
+  "new_alerts_page": true,
+  "optimize_sqltracestore": true
 }

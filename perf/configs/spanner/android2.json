@@ -90,5 +90,6 @@
             "showZero": "true",
             "enable_chart_tooltip": "true"
         }
-    }
+    },
+    "optimize_sqltracestore": true
 }

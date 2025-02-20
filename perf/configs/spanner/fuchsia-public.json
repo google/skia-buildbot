@@ -57,5 +57,6 @@
         "enable_chart_tooltip": "true",
         "use_titles": "true"
       }
-    }
+    },
+    "optimize_sqltracestore": true
   }

@@ -45,5 +45,6 @@
         "dir": "/tmp/checkout",
         "debounce_commit_url": false,
         "start_commit": "ad24d3f177fc0a99fa60a192438ae4fe489bc0ed"
-    }
+    },
+    "optimize_sqltracestore": true
 }

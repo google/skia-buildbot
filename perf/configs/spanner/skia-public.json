@@ -39,5 +39,6 @@
     "dir": "/tmp/skiaperf",
     "debounce_commit_url": false,
     "file_change_marker": "infra/bots/assets/skp/VERSION"
-  }
+  },
+  "optimize_sqltracestore": true
 }

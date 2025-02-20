@@ -43,5 +43,6 @@
       "show_google_plot": "true"
     }
   },
-  "new_alerts_page": true
+  "new_alerts_page": true,
+  "optimize_sqltracestore": true
 }
