@@ -26,7 +26,6 @@ cat > config.json5 <<EOF
     title: "{title}",
     customTriagingDisallowedMsg: "{custom_triaging_disallowed_msg}",
   }},
-  materialized_view_corpora: {materialized_view_corpora},
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",
@@ -106,7 +105,6 @@ def gold_launcher(
         is_public_view = False,
         publicly_allowed_params = None,
         grouping_param_keys_by_corpus = None,
-        materialized_view_corpora = None,
         custom_triaging_disallowed_msg = ""):
     """Launches a local gold_frontend instance that talks to a production database.
 
@@ -131,8 +129,6 @@ def gold_launcher(
         is_public_view: Whether this is a public mirror of a private instance.
         publicly_allowed_params: A dictionary from corpora to a dictionary from key names to an
             array of allowed values.
-        materialized_view_corpora: Array with the materialized view corpora, e.g.
-            ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"]. Optional.
         grouping_param_keys_by_corpus: A dictionary where the keys are corpus names and the values
             are a list of param keys, e.g. {"foo": ["a", "b"], "bar": ["c", "d"]}. Optional.
         custom_triaging_disallowed_msg: Custom triaging disallowed message. Optional.
@@ -144,8 +140,6 @@ def gold_launcher(
         custom_triaging_disallowed_msg = custom_triaging_disallowed_msg.replace("\n", r"\n").replace('"', r'\"'),
         grouping_param_keys_by_corpus =
             grouping_param_keys_by_corpus if grouping_param_keys_by_corpus else "null",
-        materialized_view_corpora =
-            materialized_view_corpora if materialized_view_corpora else "null",
         gcs_bucket = gcs_bucket,
         code_review_systems = json.encode(code_review_systems),
         git_repo_url = git_repo_url,

@@ -573,33 +573,6 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	assertUntriagedDigestsAtHead(t, res)
 }
 
-func TestSearch_UntriagedDigestsAtHead_WithMaterializedViews(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-	res, err := s.Search(ctx, &query.Search{
-		OnlyIncludeDigestsProducedAtHead: true,
-		IncludePositiveDigests:           false,
-		IncludeNegativeDigests:           false,
-		IncludeUntriagedDigests:          true,
-		Sort:                             query.SortDescending,
-		IncludeIgnoredTraces:             false,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{dks.RoundCorpus},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	assertUntriagedDigestsAtHead(t, res)
-}
-
 func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 	assert.Equal(t, &frontend.SearchResponse{
 		Results: []*frontend.SearchResult{{
@@ -819,41 +792,6 @@ func assertUntriagedDigestsAtHead(t *testing.T, res *frontend.SearchResponse) {
 			},
 		},
 	}, res)
-}
-
-func TestStartMaterializedViews_ViewsAreNonEmpty(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil)
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-
-	assertNumRows(t, db, "mv_corners_traces", 21)
-	assertNumRows(t, db, "mv_round_traces", 10)
-}
-
-func TestStartMaterializedViews_ViewsGetUpdated(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := sqltest.NewCockroachDBForTestsWithProductionSchema(ctx, t)
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil)
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Second))
-	// no data yet
-	assertNumRows(t, db, "mv_corners_traces", 0)
-	assertNumRows(t, db, "mv_round_traces", 0)
-
-	require.NoError(t, sqltest.BulkInsertDataTables(ctx, db, dks.Build()))
-	time.Sleep(3 * time.Second) // wait for refresh to happen
-
-	assertNumRows(t, db, "mv_corners_traces", 21)
-	assertNumRows(t, db, "mv_round_traces", 10)
 }
 
 func assertNumRows(t *testing.T, db *pgxpool.Pool, tableName string, rowCount int) {
@@ -1546,35 +1484,6 @@ func TestSearch_FilterLeftSideByKeys_Success(t *testing.T) {
 	assertFilterLeftSideByKeys(t, res)
 }
 
-func TestSearch_FilterLeftSideByKeys_WithMaterializedViews(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-	res, err := s.Search(ctx, &query.Search{
-		OnlyIncludeDigestsProducedAtHead: true,
-		IncludePositiveDigests:           true,
-		IncludeNegativeDigests:           false,
-		IncludeUntriagedDigests:          false,
-		Sort:                             query.SortDescending,
-		IncludeIgnoredTraces:             false,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField:     []string{dks.CornersCorpus},
-			types.PrimaryKeyField: []string{dks.TriangleTest},
-			dks.DeviceKey:         []string{dks.WalleyeDevice, dks.QuadroDevice},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	assertFilterLeftSideByKeys(t, res)
-}
-
 func assertFilterLeftSideByKeys(t *testing.T, res *frontend.SearchResponse) {
 	assert.Equal(t, &frontend.SearchResponse{
 		Results: []*frontend.SearchResult{{
@@ -1928,33 +1837,6 @@ func TestSearch_FilteredAcrossAllHistory_Success(t *testing.T) {
 	cache, err := local.New(100)
 	require.NoError(t, err)
 	s := New(db, 100, cache, nil)
-	res, err := s.Search(ctx, &query.Search{
-		OnlyIncludeDigestsProducedAtHead: false,
-		IncludePositiveDigests:           false,
-		IncludeNegativeDigests:           true,
-		IncludeUntriagedDigests:          true,
-		Sort:                             query.SortDescending,
-		IncludeIgnoredTraces:             false,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{dks.CornersCorpus},
-			dks.OSKey:         []string{dks.IOS},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	assertFilteredAcrossAllHistory(t, res)
-}
-
-func TestSearch_FilteredAcrossAllHistory_WithMaterializedView(t *testing.T) {
-
-	ctx := context.Background()
-	db := useKitchenSinkData(ctx, t)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: false,
 		IncludePositiveDigests:           false,
@@ -2379,36 +2261,6 @@ func TestSearch_AcrossAllHistory_Success(t *testing.T) {
 	assert.Equal(t, dks.DigestC04Unt, res.Results[2].Digest)
 }
 
-func TestSearch_AcrossAllHistory_WithMaterializedViews(t *testing.T) {
-
-	ctx := context.Background()
-	db := useKitchenSinkData(ctx, t)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-	res, err := s.Search(ctx, &query.Search{
-		OnlyIncludeDigestsProducedAtHead: false,
-		IncludePositiveDigests:           false,
-		IncludeNegativeDigests:           false,
-		IncludeUntriagedDigests:          true,
-		Sort:                             query.SortDescending,
-		IncludeIgnoredTraces:             false,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{dks.RoundCorpus},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	require.Len(t, res.Results, 3)
-	// Spot check this data
-	assert.Equal(t, dks.DigestC05Unt, res.Results[0].Digest)
-	assert.Equal(t, dks.DigestC03Unt, res.Results[1].Digest)
-	assert.Equal(t, dks.DigestC04Unt, res.Results[2].Digest)
-}
-
 func TestJoinedTracesStatement_Success(t *testing.T) {
 
 	statement := providers.JoinedTracesStatement([]common.FilterSets{
@@ -2695,41 +2547,6 @@ func TestSearch_RespectsPublicParams_Success(t *testing.T) {
 	require.NoError(t, err)
 	s := New(db, 100, cache, nil)
 	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
-	res, err := s.Search(ctx, &query.Search{
-		OnlyIncludeDigestsProducedAtHead: true,
-		IncludePositiveDigests:           false,
-		IncludeNegativeDigests:           false,
-		IncludeUntriagedDigests:          true,
-		Sort:                             query.SortDescending,
-		IncludeIgnoredTraces:             false,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{dks.RoundCorpus},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	assertPublicUntriagedDigestsAtHead(t, res)
-}
-
-func TestSearch_RespectsPublicParams_WithMaterializedViews(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-
-	matcher, err := publicparams.MatcherFromRules(publicparams.MatchingRules{
-		dks.RoundCorpus: {
-			dks.DeviceKey: {dks.QuadroDevice},
-		},
-	})
-	require.NoError(t, err)
-
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil) // Otherwise there's no commit for the materialized views
-	require.NoError(t, s.StartApplyingPublicParams(ctx, matcher, time.Minute))
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
 	res, err := s.Search(ctx, &query.Search{
 		OnlyIncludeDigestsProducedAtHead: true,
 		IncludePositiveDigests:           false,
@@ -4531,21 +4348,6 @@ func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_Success(t *
 	assertByBlameResponse(t, blames)
 }
 
-func TestGetBlamesForUntriagedDigests_UntriagedDigestsAtHeadInCorpus_WithMaterializedViews(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 9, cache, nil)
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-
-	blames, err := s.GetBlamesForUntriagedDigests(ctx, dks.RoundCorpus)
-	require.NoError(t, err)
-	assertByBlameResponse(t, blames)
-}
-
 func assertByBlameResponse(t *testing.T, blames BlameSummaryV1) {
 	// Leave unexported fields out of the assertion.
 	for _, r := range blames.Ranges {
@@ -4614,14 +4416,9 @@ func TestSearch_IncludesBlameCommit_Success(t *testing.T) {
 
 // When a user searches by blame (for example by opening the "By Blame" page and clicking a blame),
 // triages an untriaged digest and refreshes the page, we want the triage action to be reflected
-// immediately. As reported in b/40045432, triage actions under this flow used to take several
-// minutes to take effect on the Skia Gold instance. This is because said instance uses a
-// materialized view which is updated every 5 minutes. This was fixed by joining the materialized
-// view against the Expectations table to filter out any digests that have been triaged since the
-// last materialized view refresh. This test ensures triage actions are immediate, both with and
-// without materialized views.
+// immediately. This test ensures triage actions are immediate.
 func TestSearchByBlameThenTriageAndSearchAgain_Success(t *testing.T) {
-	test := func(name string, withMaterializedView bool) {
+	test := func(name string) {
 		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
 			db := useKitchenSinkData(ctx, t)
@@ -4629,12 +4426,6 @@ func TestSearchByBlameThenTriageAndSearchAgain_Success(t *testing.T) {
 			cache, err := local.New(100)
 			require.NoError(t, err)
 			s := New(db, 10, cache, nil)
-
-			if withMaterializedView {
-				// Ensure the materialized view does not get updated for the duration of this test.
-				updateInterval := 24 * time.Hour
-				require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, updateInterval))
-			}
 
 			q := &query.Search{
 				BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
@@ -4739,8 +4530,7 @@ func TestSearchByBlameThenTriageAndSearchAgain_Success(t *testing.T) {
 		})
 	}
 
-	test("without materialized view", false)
-	test("with materialized view", true)
+	test("without materialized view")
 }
 
 func triageDigestOnPrimaryBranch(t *testing.T, ctx context.Context, db *pgxpool.Pool, grouping paramtools.Params, digest types.Digest, labelBefore, labelAfter schema.ExpectationLabel, user, timestamp string) {
@@ -4766,29 +4556,6 @@ func triageDigestOnPrimaryBranch(t *testing.T, ctx context.Context, db *pgxpool.
 		`
 	_, err = db.Exec(ctx, insertExpectationStatement, groupingID, digestBytes, labelAfter, expectationRecordID.String())
 	require.NoError(t, err)
-}
-
-func TestSearch_IncludesBlameCommit_WithMaterializedViews(t *testing.T) {
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	db := useKitchenSinkData(ctx, t)
-	cache, err := local.New(100)
-	require.NoError(t, err)
-	s := New(db, 10, cache, nil)
-	require.NoError(t, s.StartMaterializedViews(ctx, []string{dks.CornersCorpus, dks.RoundCorpus}, time.Minute))
-
-	res, err := s.Search(ctx, &query.Search{
-		BlameGroupID: string(dks.WindowsDriverUpdateCommitID),
-		Sort:         query.SortDescending,
-		TraceValues: paramtools.ParamSet{
-			types.CorpusField: []string{dks.RoundCorpus},
-		},
-		RGBAMinFilter: 0,
-		RGBAMaxFilter: 255,
-	})
-	require.NoError(t, err)
-	assertSearchBlameCommitResponse(t, res)
 }
 
 func assertSearchBlameCommitResponse(t *testing.T, res *frontend.SearchResponse) {

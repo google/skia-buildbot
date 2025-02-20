@@ -188,12 +188,11 @@ type Impl struct {
 
 	dbType config.DatabaseType
 
-	statusProvider           *providers.StatusProvider
-	changeDataProvider       *providers.ChangelistProvider
-	materializedViewProvider *providers.MaterializedViewProvider
-	commitsProvider          *providers.CommitsProvider
-	traceDigestsProvider     *providers.TraceDigestsProvider
-	cacheManager             *caching.SearchCacheManager
+	statusProvider       *providers.StatusProvider
+	changeDataProvider   *providers.ChangelistProvider
+	commitsProvider      *providers.CommitsProvider
+	traceDigestsProvider *providers.TraceDigestsProvider
+	cacheManager         *caching.SearchCacheManager
 }
 
 // New returns an implementation of API.
@@ -208,22 +207,20 @@ func New(sqlDB *pgxpool.Pool, windowLength int, cacheClient cache.Cache, cache_c
 		panic(err) // should only happen if traceCacheSize is negative.
 	}
 	pc := ttlcache.New(time.Minute, 10*time.Minute)
-	materializedViewProvider := providers.NewMaterializedViewProvider(sqlDB, windowLength)
 	cacheManager := caching.New(cacheClient, sqlDB, cache_corpora, windowLength)
 	return &Impl{
-		db:                       sqlDB,
-		windowLength:             windowLength,
-		digestsOnPrimary:         map[common.GroupingDigestKey]struct{}{},
-		optionsGroupingCache:     gc,
-		traceCache:               tc,
-		paramsetCache:            pc,
-		reviewSystemMapping:      map[string]string{},
-		statusProvider:           providers.NewStatusProvider(sqlDB, windowLength),
-		changeDataProvider:       providers.NewChangelistProvider(sqlDB),
-		materializedViewProvider: materializedViewProvider,
-		commitsProvider:          providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
-		traceDigestsProvider:     providers.NewTraceDigestsProvider(sqlDB, windowLength, cacheManager),
-		cacheManager:             cacheManager,
+		db:                   sqlDB,
+		windowLength:         windowLength,
+		digestsOnPrimary:     map[common.GroupingDigestKey]struct{}{},
+		optionsGroupingCache: gc,
+		traceCache:           tc,
+		paramsetCache:        pc,
+		reviewSystemMapping:  map[string]string{},
+		statusProvider:       providers.NewStatusProvider(sqlDB, windowLength),
+		changeDataProvider:   providers.NewChangelistProvider(sqlDB),
+		commitsProvider:      providers.NewCommitsProvider(sqlDB, cacheClient, windowLength),
+		traceDigestsProvider: providers.NewTraceDigestsProvider(sqlDB, windowLength, cacheManager),
+		cacheManager:         cacheManager,
 	}
 }
 
@@ -346,10 +343,6 @@ TiledTraceDigests WHERE tile_id >= $1`, tile)
 		rv[key] = struct{}{}
 	}
 	return rv, nil
-}
-
-func (s *Impl) StartMaterializedViews(ctx context.Context, corpora []string, updateInterval time.Duration) error {
-	return s.materializedViewProvider.StartMaterializedViews(ctx, corpora, updateInterval)
 }
 
 // StartApplyingPublicParams loads the cached set of traces which are publicly visible and then

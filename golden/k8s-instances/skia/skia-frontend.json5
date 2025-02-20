@@ -10,7 +10,6 @@
     title: "Skia Gold",
     ga_measurement_id: "G-JX5J5XZS4S",
   },
-  materialized_view_corpora: ["canvaskit", "colorImage", "gm", "image", "pathkit", "skp", "svg"],
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",

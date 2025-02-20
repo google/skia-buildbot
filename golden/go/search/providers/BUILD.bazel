@@ -6,7 +6,6 @@ go_library(
     srcs = [
         "changelists.go",
         "commits.go",
-        "materializedViews.go",
         "status.go",
         "traceDigests.go",
     ],
@@ -18,7 +17,6 @@ go_library(
         "//go/paramtools",
         "//go/skerr",
         "//go/sklog",
-        "//go/util",
         "//golden/go/config",
         "//golden/go/search/caching",
         "//golden/go/search/common",

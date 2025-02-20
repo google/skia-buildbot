@@ -9,7 +9,6 @@
     defaultCorpus: "round",
     title: "Skia Gold",
   },
-  materialized_view_corpora: ["round", "corners"],
   negatives_max_age: "4320h", // 180 days
   positives_max_age: "720h", // 30 days
   prom_port: ":20000",

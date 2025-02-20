@@ -82,10 +82,6 @@ type frontendServerConfig struct {
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
 
-	// MaterializedViewCorpora is the optional list of corpora that should have a materialized
-	// view created and refreshed to speed up search results.
-	MaterializedViewCorpora []string `json:"materialized_view_corpora" optional:"true"`
-
 	// If non empty, this map of rules will be applied to traces to see if they can be showed on
 	// this instance.
 	PubliclyAllowableParams publicparams.MatchingRules `json:"publicly_allowed_params" optional:"true"`
@@ -200,11 +196,6 @@ func mustLoadSearchAPI(ctx context.Context, fsc *frontendServerConfig, sqlDB *pg
 	err = s2a.StartCacheProcess(ctx, 5*time.Minute, fsc.WindowSize)
 	if err != nil {
 		sklog.Fatalf("Cannot load caches for search2 backend: %s", err)
-	}
-	if fsc.SQLDatabaseType != config.Spanner {
-		if err := s2a.StartMaterializedViews(ctx, fsc.MaterializedViewCorpora, 5*time.Minute); err != nil {
-			sklog.Fatalf("Cannot create materialized views %s: %s", fsc.MaterializedViewCorpora, err)
-		}
 	}
 	if fsc.IsPublicView {
 		if err := s2a.StartApplyingPublicParams(ctx, publiclyViewableParams, 5*time.Minute); err != nil {
