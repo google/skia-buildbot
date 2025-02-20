@@ -40,7 +40,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -60,7 +60,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:13127b173076f4f12a0c41fee30c0281cc71e58d",
         "--cipd",
-        "task_drivers:skia/tools/presubmit/${platform}@git_revision:b559eb9921a732e6df802f991f756e7d2d12c932",
+        "task_drivers:skia/tools/presubmit/${platform}@git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -115,7 +115,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -161,7 +161,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -207,7 +207,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -253,7 +253,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -273,7 +273,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/git-credential-luci/${platform}@git_revision:13127b173076f4f12a0c41fee30c0281cc71e58d",
         "--cipd",
-        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:b559eb9921a732e6df802f991f756e7d2d12c932",
+        "task_drivers:skia/tools/bazel_build_all/${platform}@git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
@@ -327,7 +327,7 @@
         {
           "name": "skia/tools/command_wrapper/${platform}",
           "path": "task_drivers",
-          "version": "git_revision:b559eb9921a732e6df802f991f756e7d2d12c932"
+          "version": "git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a"
         }
       ],
       "command": [
@@ -349,7 +349,7 @@
         "--cipd",
         "cipd_bin_packages:infra/tools/luci/isolate/${platform}@git_revision:13127b173076f4f12a0c41fee30c0281cc71e58d",
         "--cipd",
-        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:b559eb9921a732e6df802f991f756e7d2d12c932",
+        "task_drivers:skia/tools/bazel_test_all/${platform}@git_revision:dd753d8252ac993ebf2fa23bfecc2c1f0064446a",
         "--cipd",
         "bazelisk:skia/bots/bazelisk@version:0",
         "--command-is-task-driver",
