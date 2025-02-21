@@ -2121,6 +2121,7 @@ export class ExploreSimpleSk extends ElementSk {
       endCommit: this.endCommit,
       bugId: this.bugId,
       anomalyId: this.selectedAnomaly ? String(this.selectedAnomaly.id) : '',
+      story: this.story ? this.story : '',
     };
 
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
