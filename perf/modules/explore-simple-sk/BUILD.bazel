@@ -41,6 +41,7 @@ sk_element(
         "//perf/modules/plot-google-chart-sk",
         "//perf/modules/existing-bug-dialog-sk",
         "//perf/modules/split-chart-menu-sk",
+        "//perf/modules/bisect-dialog-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

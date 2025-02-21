@@ -22,12 +22,14 @@ import '../window/window';
 import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../user-issue-sk/user-issue-sk';
+import '../bisect-dialog-sk/bisect-dialog-sk';
 import { UserIssueSk } from '../user-issue-sk/user-issue-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
 import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
+import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -132,6 +134,8 @@ export class ChartTooltipSk extends ElementSk {
 
   private triageMenu: TriageMenuSk | null = null;
 
+  private preloadBisectInputs: BisectPreloadParams | null = null;
+
   _tooltip_fixed: boolean = false;
 
   _close_button_action: () => void = () => {};
@@ -157,6 +161,9 @@ export class ChartTooltipSk extends ElementSk {
   // for the instance. See "data_point_config" in chrome-perf-non-public.json
   // for an example of the configuration.
   private pointLinks: PointLinksSk | null = null;
+
+  // Bisect Dialog.
+  bisectDialog: BisectDialogSk | null = null;
 
   // The overall html template for outlining the contents needed in
   // chart-tooltip.
@@ -211,6 +218,10 @@ export class ChartTooltipSk extends ElementSk {
         id="triage-menu"
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
+      <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
+      <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
+        Bisect
+      </button>
       <button
         class="action"
         id="close"
@@ -352,12 +363,14 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'anomaly');
     upgradeProperty(this, 'bug_host_url');
     upgradeProperty(this, 'bug_id');
+    upgradeProperty(this, 'preloadBisectInputs');
     this._render();
 
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-link');
     this.userIssueSk = this.querySelector('#tooltip-user-issue-sk');
     this.triageMenu = this.querySelector('#triage-menu');
     this.pointLinks = this.querySelector('#tooltip-point-links');
+    this.bisectDialog = this.querySelector('#bisect-dialog-sk');
 
     this.addEventListener('anomaly-changed', () => {
       this._render();
@@ -444,7 +457,6 @@ export class ChartTooltipSk extends ElementSk {
       const commitPos = this.commit_position?.toString() || '';
       this.userIssueSk.commit_position = parseInt(commitPos);
     }
-
     this._render();
   }
 
@@ -462,6 +474,16 @@ export class ChartTooltipSk extends ElementSk {
 
   private unassociateBug() {
     this.triageMenu!.makeEditAnomalyRequest([this._anomaly!], [this._trace_name], 'RESET');
+  }
+
+  private openBisectDialog() {
+    this.bisectDialog!.open();
+  }
+
+  setBisectInputParams(preloadInputs: BisectPreloadParams): void {
+    this.preloadBisectInputs = preloadInputs;
+    this.bisectDialog!.setBisectInputParams(this.preloadBisectInputs);
+    this._render();
   }
 
   get test_name(): string {

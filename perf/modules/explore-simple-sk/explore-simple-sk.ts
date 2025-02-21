@@ -150,6 +150,7 @@ import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dial
 import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 import { getLegend, getTitle, isSingleTrace } from '../dataframe/traceset';
+import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -2114,6 +2115,15 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
+    const preloadBisectInputs: BisectPreloadParams = {
+      testPath: this.testPath,
+      startCommit: this.startCommit,
+      endCommit: this.endCommit,
+      bugId: this.bugId,
+      anomalyId: this.selectedAnomaly ? String(this.selectedAnomaly.id) : '',
+    };
+
+    tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.load(
       this.traceFormatter!.formatTrace(fromKey(testName)),
       testName,
