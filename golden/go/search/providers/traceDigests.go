@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -365,6 +366,29 @@ MatchingTraces AS (
 	WHERE tile_id >= $2
 )`, args
 	}
+}
+
+// GetTraceIDsForKeyFilters returns the trace IDs for traces matching the given key filters.
+func (s *TraceDigestsProvider) GetTraceIDsForKeyFilters(ctx context.Context, keyFilters []common.FilterSets, corpus string) ([]schema.TraceID, error) {
+	var traceIds []schema.TraceID
+	isSpanner := s.dbType == config.Spanner
+	// Trim the trailing comma and newline on the JoinedTraces statement
+	// since we will be using a SELECT immediately after on it.
+	statement := "WITH " + strings.TrimSuffix(JoinedTracesStatement(keyFilters, corpus, isSpanner), ",\n")
+	statement += "\n SELECT * FROM JoinedTraces;"
+	rows, err := s.db.Query(ctx, statement)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Error retrieving TraceIDs with keyFilters %v", keyFilters)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var traceID schema.TraceID
+		if err := rows.Scan(&traceID); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		traceIds = append(traceIds, traceID)
+	}
+	return traceIds, nil
 }
 
 // JoinedTracesStatement returns a SQL snippet that includes a WITH table called JoinedTraces.

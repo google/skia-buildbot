@@ -500,6 +500,14 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 			Commits: commits,
 		}, nil
 	}
+	// Since the data has likely come from the cache, let's apply any filters if necessary.
+	filteredDigests, err := s.filterTraceDigestsOnQueryKeys(ctx, q, traceDigests)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	sklog.Infof("Filtered %d traces out of %d traces.", len(filteredDigests), len(traceDigests))
+	traceDigests = filteredDigests
 	// Lookup the closest diffs to the given digests. This returns a subset according to the
 	// limit and offset in the query.
 	closestDiffs, extendedBulkTriageDeltaInfos, err := s.getClosestDiffs(ctx, traceDigests)
@@ -548,6 +556,48 @@ func (s *Impl) Search(ctx context.Context, q *query.Search) (*frontend.SearchRes
 		BulkTriageDeltaInfos: bulkTriageDeltaInfos,
 		Commits:              commits,
 	}, nil
+}
+
+// filterTraceDigestsOnQueryKeys returns a slice of traceDigests which is a filtered version
+// of the provided traceDigests matching the traces provided in the query if any.
+func (s *Impl) filterTraceDigestsOnQueryKeys(ctx context.Context, q *query.Search, traceDigests []common.DigestWithTraceAndGrouping) ([]common.DigestWithTraceAndGrouping, error) {
+	var keyFilters []common.FilterSets
+	for key, values := range q.TraceValues {
+		if key == types.CorpusField {
+			continue
+		}
+		if key != sql.Sanitize(key) {
+			sklog.Infof("key %q did not pass sanitization", key)
+			continue
+		}
+		keyFilters = append(keyFilters, common.FilterSets{Key: key, Values: values})
+	}
+
+	if len(keyFilters) > 0 {
+		var filteredDigests []common.DigestWithTraceAndGrouping
+		corpus := q.TraceValues[types.CorpusField][0]
+		traceIds, err := s.traceDigestsProvider.GetTraceIDsForKeyFilters(ctx, keyFilters, corpus)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if len(traceIds) > 0 {
+			// This means we need to filter out the results that do not match the traceids.
+			traceIdMap := map[string]bool{}
+			for _, traceId := range traceIds {
+				traceIdMap[hex.EncodeToString(traceId)] = true
+			}
+
+			for _, traceDigest := range traceDigests {
+				if _, ok := traceIdMap[hex.EncodeToString(traceDigest.TraceID)]; ok {
+					filteredDigests = append(filteredDigests, traceDigest)
+				}
+			}
+			return filteredDigests, nil
+		}
+	}
+
+	// No filters, so let's just return the original traceDigests.
+	return traceDigests, nil
 }
 
 // addCommitsData finds the current sliding window of data (The last N commits) and adds the

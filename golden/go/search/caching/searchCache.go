@@ -40,6 +40,7 @@ type SearchCacheManager struct {
 
 	publiclyVisibleTraces map[schema.MD5Hash]struct{}
 	isPublicView          bool
+	dbType                config.DatabaseType
 }
 
 // New returns a new instance of the SearchCacheManager.
@@ -57,7 +58,8 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 }
 
 // SetDatabaseType sets the database type for the current configuration.
-func (s SearchCacheManager) SetDatabaseType(dbType config.DatabaseType) {
+func (s *SearchCacheManager) SetDatabaseType(dbType config.DatabaseType) {
+	s.dbType = dbType
 	for _, prov := range s.dataProviders {
 		prov.SetDatabaseType(dbType)
 	}
@@ -178,6 +180,7 @@ func (s SearchCacheManager) GetMatchingDigestsAndTraces(ctx context.Context, sea
 			if s.isPublicView {
 				prov.SetPublicTraces(s.publiclyVisibleTraces)
 			}
+			prov.SetDatabaseType(s.dbType)
 			digests, err = prov.getMatchingDigestsAndTracesFromDB(ctx, contextMap[cacheKey])
 		} else {
 			err = json.Unmarshal([]byte(jsonStr), &digests)
