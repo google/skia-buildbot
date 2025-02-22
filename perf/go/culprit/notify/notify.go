@@ -2,6 +2,7 @@ package notify
 
 import (
 	"context"
+	"fmt"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -56,11 +57,16 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 
 // Creates a bug in Buganizer about the detected culprit.
 func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, error) {
+	if subscription == nil || culprit == nil {
+		sklog.Debugf("No subscription or no culprit.")
+		return "nil", nil
+	}
+	sklog.Debugf("Culprit found for [%s]: %s", subscription.Name, culprit.Commit.Revision)
 	subject, body, err := n.formatter.GetSubjectAndBody(ctx, culprit, subscription)
 	if err != nil {
 		return "", err
 	}
-	bugId, err := n.transport.SendNewCulprit(ctx, subscription, subject, body)
+	bugId, err := n.transport.SendNewNotification(ctx, subscription, subject, body)
 	if err != nil {
 		return "", skerr.Wrapf(err, "sending new culprit message")
 	}
@@ -69,10 +75,16 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 
 // Creates a bug in Buganizer about the detected anomalies.
 func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error) {
-	// TODO(wenbinzhang): implement the NotifyAnomaliesFound after the notifier is updated to support multiple purposes.
 	if subscription == nil || anomalies == nil {
 		return "nil", nil
 	}
-	sklog.Debugf("NotifyAnomaliesFound not yet implemented: %s", subscription.Name)
-	return "nil", nil
+	sklog.Debugf("Anomalies found for [%s]: %s", subscription.Name, anomalies)
+	// TODO(wenbinzhang): Generate subject and body from template.
+	body := fmt.Sprintf("Mocked reporting anomalies: %s", anomalies)
+	subject := fmt.Sprintf("Mocked Bug Title for [%s]", subscription.Name)
+	bugId, err := n.transport.SendNewNotification(ctx, subscription, subject, body)
+	if err != nil {
+		return "", skerr.Wrapf(err, "sending new anomaly group message")
+	}
+	return bugId, nil
 }

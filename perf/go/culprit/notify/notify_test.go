@@ -28,7 +28,7 @@ func TestNotifyCulpritFound_HappyPath(t *testing.T) {
 	formatter.On("GetSubjectAndBody", mock.Anything, culprit, subscription).Return("subject", "body", nil)
 	transport := tr_mocks.NewTransport(t)
 	expectedBugId := "bug123"
-	transport.On("SendNewCulprit", mock.Anything, mock.Anything, "subject", "body").Return(expectedBugId, nil)
+	transport.On("SendNewNotification", mock.Anything, mock.Anything, "subject", "body").Return(expectedBugId, nil)
 
 	n := &DefaultCulpritNotifier{
 		formatter: formatter,

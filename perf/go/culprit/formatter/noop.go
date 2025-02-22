@@ -16,7 +16,7 @@ func NewNoopFormatter() *NoopFormatter {
 	return &NoopFormatter{}
 }
 
-// SendNewCulprit implements Formatter.
+// GetSubjectAndBody implements Formatter.
 func (f *NoopFormatter) GetSubjectAndBody(ctx context.Context, culprit *pb.Culprit,
 	subscription *sub_pb.Subscription) (string, string, error) {
 	return "", "", nil

@@ -15,12 +15,12 @@ type Transport struct {
 	mock.Mock
 }
 
-// SendNewCulprit provides a mock function with given fields: ctx, subscription, subject, body
-func (_m *Transport) SendNewCulprit(ctx context.Context, subscription *v1.Subscription, subject string, body string) (string, error) {
+// SendNewNotification provides a mock function with given fields: ctx, subscription, subject, body
+func (_m *Transport) SendNewNotification(ctx context.Context, subscription *v1.Subscription, subject string, body string) (string, error) {
 	ret := _m.Called(ctx, subscription, subject, body)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SendNewCulprit")
+		panic("no return value specified for SendNewNotification")
 	}
 
 	var r0 string

@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalygroup"
 	"go.skia.org/infra/perf/go/backend/shared"
 	"go.skia.org/infra/perf/go/culprit"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	"go.skia.org/infra/perf/go/subscription"
+	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 	"google.golang.org/grpc"
 )
 
@@ -104,6 +106,8 @@ func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.Notify
 
 // File a bug to report a list of anomalies.
 func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.NotifyUserOfAnomalyRequest) (*pb.NotifyUserOfAnomalyResponse, error) {
+	sklog.Debug("Notifying user of anomaly group: %s.", req.AnomalyGroupId)
+
 	var err error
 	anomalygroup, err := s.anomalygroupStore.LoadById(ctx, req.AnomalyGroupId)
 	if err != nil {
@@ -112,6 +116,21 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 	subscription, err := s.subscriptionStore.GetSubscription(ctx, anomalygroup.SubsciptionName, anomalygroup.SubscriptionRevision)
 	if err != nil {
 		return nil, err
+	}
+	// mock subscription before real data is populated.
+	if subscription == nil {
+		sklog.Debugf("Cannot load subscription. Using mock. Name: %s, Revision: %s", anomalygroup.SubsciptionName, anomalygroup.SubscriptionRevision)
+		subscription = &sub_pb.Subscription{
+			Name:         "Mocked Sub For Anomaly - Report",
+			Revision:     "Mocked Revision - Report",
+			BugLabels:    []string{"Mocked Sub Label"},
+			Hotlists:     []string{},
+			BugComponent: "1325852",
+			BugPriority:  2,
+			BugSeverity:  3,
+			BugCcEmails:  []string{"wenbinzhang@google.com"},
+			ContactEmail: "wenbinzhang@google.com",
+		}
 	}
 	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
 	return &pb.NotifyUserOfAnomalyResponse{IssueId: issueId}, nil

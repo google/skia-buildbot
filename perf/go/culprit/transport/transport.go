@@ -21,14 +21,14 @@ const (
 
 // Transport has implementations for issuetracker.
 type Transport interface {
-	SendNewCulprit(ctx context.Context, subscription *sub_pb.Subscription, subject string, body string) (threadingReference string, err error)
+	SendNewNotification(ctx context.Context, subscription *sub_pb.Subscription, subject string, body string) (threadingReference string, err error)
 }
 
 // IssueTrackerTransport implements Transport using the issue tracker API.
 type IssueTrackerTransport struct {
-	client             *issuetracker.Service
-	sendNewCulprit     metrics2.Counter
-	sendNewCulpritFail metrics2.Counter
+	client                     *issuetracker.Service
+	SendNewNotificationSuccess metrics2.Counter
+	SendNewNotificationFail    metrics2.Counter
 }
 
 // NewIssueTrackerTransport returns a new IssueTrackerTransport.
@@ -53,14 +53,14 @@ func NewIssueTrackerTransport(ctx context.Context, cfg *config.CulpritNotifyConf
 	c.BasePath = BASE_PATH
 
 	return &IssueTrackerTransport{
-		client:             c,
-		sendNewCulprit:     metrics2.GetCounter("perf_issue_tracker_sent_new_culprit"),
-		sendNewCulpritFail: metrics2.GetCounter("perf_issue_tracker_sent_new_culprit_fail"),
+		client:                     c,
+		SendNewNotificationSuccess: metrics2.GetCounter("perf_issue_tracker_sent_new_culprit"),
+		SendNewNotificationFail:    metrics2.GetCounter("perf_issue_tracker_sent_new_culprit_fail"),
 	}, nil
 }
 
-// SendNewCulprit implements Transport.
-func (t *IssueTrackerTransport) SendNewCulprit(ctx context.Context,
+// SendNewNotification implements Transport.
+func (t *IssueTrackerTransport) SendNewNotification(ctx context.Context,
 	subscription *sub_pb.Subscription, subject string, body string) (string, error) {
 	if subscription.BugComponent == "" {
 		return "", fmt.Errorf("no bug component set for subscription %s~%s", subscription.Name, subscription.Revision)
@@ -91,8 +91,8 @@ func (t *IssueTrackerTransport) SendNewCulprit(ctx context.Context,
 		},
 		IssueState: &issuetracker.IssueState{
 			ComponentId: int64(componentId),
-			Priority:    "P2",
-			Severity:    "S2",
+			Priority:    fmt.Sprintf("P%d", subscription.BugPriority),
+			Severity:    fmt.Sprintf("S%d", subscription.BugSeverity),
 			Reporter: &issuetracker.User{
 				EmailAddress: subscription.ContactEmail,
 			},
@@ -106,9 +106,9 @@ func (t *IssueTrackerTransport) SendNewCulprit(ctx context.Context,
 	}
 	resp, err := t.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
-		t.sendNewCulpritFail.Inc(1)
+		t.SendNewNotificationFail.Inc(1)
 		return "", skerr.Wrapf(err, "creating issue")
 	}
-	t.sendNewCulprit.Inc(1)
+	t.SendNewNotificationSuccess.Inc(1)
 	return strconv.Itoa(int(resp.IssueId)), nil
 }

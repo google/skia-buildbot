@@ -15,7 +15,7 @@ func NewNoopTransport() *NoopTransport {
 	return &NoopTransport{}
 }
 
-// SendNewCulprit implements Transport.
-func (t *NoopTransport) SendNewCulprit(ctx context.Context, subscription *sub_pb.Subscription, subject string, body string) (string, error) {
+// SendNewNotification implements Transport.
+func (t *NoopTransport) SendNewNotification(ctx context.Context, subscription *sub_pb.Subscription, subject string, body string) (string, error) {
 	return "", nil
 }

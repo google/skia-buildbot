@@ -7,12 +7,14 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/culprit/service",
     visibility = ["//visibility:public"],
     deps = [
+        "//go/sklog",
         "//perf/go/anomalygroup:store",
         "//perf/go/backend/shared",
         "//perf/go/culprit:store",
         "//perf/go/culprit/notify",
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription:store",
+        "//perf/go/subscription/proto/v1",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
