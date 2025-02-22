@@ -37,6 +37,7 @@ import { DataFrame, FrameRequest, FrameResponse, Trace, TraceSet, ReadOnlyParamS
 import { startRequest, messageByName } from '../progress/progress';
 import { convertFromDataframe } from '../common/plot-builder';
 import { removeSpecialFunctions } from '../paramtools';
+import { MISSING_DATA_SENTINEL } from '../const/const';
 
 // Holds issue data for a single data point.
 // x and y corresponds to the location of the data point on the chart
@@ -466,9 +467,21 @@ export class DataFrameRepository extends LitElement {
     const traceset = TraceSet({});
     Object.keys(this.traces).forEach((key) => {
       traceset[key] = (traceset[key] || []).concat(
-        ...sortedResponses.map((resp) => resp.dataframe!.traceset[key])
+        ...sortedResponses.map((resp) => {
+          if (resp.dataframe && resp.dataframe.traceset[key]) {
+            return resp.dataframe.traceset[key];
+          } else {
+            // If one of the traces we're trying to expand is not in the response,
+            // this will cause the traceset to not have the same length as the
+            // header, shifting all datapoints. Instead, we need to pad the trace
+            // with MISSING values so that they're in sync with the header.
+            const numNulls = resp.dataframe?.header?.length ?? 0;
+            return Array(numNulls).fill(MISSING_DATA_SENTINEL);
+          }
+        })
       ) as Trace;
     });
+
     this.addTraceset(header, traceset);
 
     const anomaly = sortedResponses.reduce((pre, cur) => mergeAnomaly(pre, cur.anomalymap), {});
