@@ -95,8 +95,21 @@ export class SidePanelSk extends LitElement {
     }
   `;
 
+  // Manages the state of the side panel as collapsed or open.
   @property({ reflect: true, type: Boolean })
   opened = true;
+
+  // Track state if the legend has been populated initially.
+  @property({ reflect: true, type: Boolean })
+  private legendLoaded = false;
+
+  // Use property to manage state of checkbox during render.
+  @property({ reflect: true, type: Boolean })
+  private checked = true;
+
+  // Boolean to enable disabling the checkboxes.
+  @property({ attribute: 'disabled', type: Boolean })
+  private disabled: boolean = false;
 
   @property({ reflect: true, type: Set })
   private checkedColList = new Set<string>();
@@ -142,25 +155,30 @@ export class SidePanelSk extends LitElement {
         <div id="rows">
           <ul>
           ${this.getLegend().map((item, index) => {
-            this.checkedColList.add(item);
+            if (this.legendLoaded) {
+              if (this.checkedColList.size === 1 && this.checkedColList.has(item)) {
+                this.disabled = true;
+              } else {
+                this.disabled = false;
+              }
+            } else {
+              if (!this.checkedColList.has(item)) {
+                this.checkedColList.add(item);
+              }
+            }
             const handleCheck = (e: MouseEvent) => {
               const checkEvent = e.target! as HTMLInputElement;
               if (checkEvent) {
-                const headerCheckbox = this.renderRoot.querySelector(
-                  `#header-checkbox`
-                ) as HTMLInputElement;
-                if (checkEvent.checked) {
-                  this.checkedColList.add(item);
-                  if (this.checkedColList.size === this.getLegend().length) {
-                    headerCheckbox.checked = true;
-                  }
-                } else {
-                  this.checkedColList.delete(item);
-                  if (this.checkedColList.size === 0) {
-                    headerCheckbox.checked = false;
-                  }
-                }
-                this.checkboxDispatchHandler(checkEvent.checked, [item]);
+                this.setCheckbox(checkEvent.checked, index);
+              }
+              // Set the header box as checked based on all boxes being checked.
+              const headerCheckbox = this.renderRoot.querySelector(
+                `#header-checkbox`
+              ) as HTMLInputElement;
+              if (this.getLegend().length === this.checkedColList.size) {
+                headerCheckbox.checked = true;
+              } else {
+                headerCheckbox.checked = false;
               }
             };
             return html`
@@ -168,9 +186,9 @@ export class SidePanelSk extends LitElement {
                 <label>
                   <input
                     type="checkbox"
+                    checked=${this.checked}
                     id="id-${index}"
-                    .defaultChecked=${true}
-                    .checked=${true}
+                    ?disabled=${this.disabled === true}
                     @click=${handleCheck}
                     title="Select/Unselect this value from the graph" />
                   ${item}</label
@@ -184,19 +202,33 @@ export class SidePanelSk extends LitElement {
     `;
   }
 
-  // TODO(jiaxindong b/391669433) uncheck select all is not
-  // compatible with google chart's default behavior,
-  // create a follow-up cl to make a workaround
-  private toggleAllCheckboxes() {
-    const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
-    const checked = headerCheckbox.checked;
-    for (let index = 0; index < this.getLegend().length; index++) {
-      const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
-      if (checkbox) {
-        checkbox.checked = checked;
+  /**
+   * Sets the checkbox and tracks checked items in a list.
+   */
+  private setCheckbox(checked: boolean, index: number) {
+    const item = this.getLegend()[index];
+    if (checked) {
+      if (!this.checkedColList.has(item)) {
+        this.checkedColList.add(item);
+        this.checkboxDispatchHandler(checked, [item]);
+      }
+    } else {
+      if (this.checkedColList.has(item) && this.checkedColList.size > 1) {
+        this.checkedColList.delete(item);
+        this.checkboxDispatchHandler(checked, [item]);
+      } else {
+        checked = true;
       }
     }
-    this.checkboxDispatchHandler(checked, this.getLegend());
+    this.checked = checked;
+    this.render();
+  }
+
+  private toggleAllCheckboxes() {
+    const headerCheckbox = this.renderRoot.querySelector(`#header-checkbox`) as HTMLInputElement;
+    for (let index = 0; index < this.getLegend().length; index++) {
+      this.setCheckbox(headerCheckbox.checked, index);
+    }
   }
 
   private toggleSidePanel() {
@@ -231,6 +263,7 @@ export class SidePanelSk extends LitElement {
 
   checkboxDispatchHandler(isSelected: boolean, legendList: string[]): void {
     const labels: string[] = [];
+    this.legendLoaded = true;
     legendList.forEach((legend) => {
       labels.push(this.legendToLabelMap[legend] ? this.legendToLabelMap[legend] : '');
     });
