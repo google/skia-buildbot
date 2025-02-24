@@ -2124,9 +2124,19 @@ export class ExploreSimpleSk extends ElementSk {
       story: this.story ? this.story : '',
     };
 
+    let traceName: string = '';
+    const dt = this.dfRepo.value?.data;
+    const shortTraceIds: string[] = dt ? this.getTraceIds(dt) : [];
+
+    shortTraceIds.forEach((traceId) => {
+      if (testName.includes(traceId)) {
+        traceName = traceId;
+      }
+    });
+    const formattedTrace = `Trace ID: ${traceName || `untitled_key`}`;
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.load(
-      this.traceFormatter!.formatTrace(fromKey(testName)),
+      formattedTrace,
       testName,
       pointDetails.y,
       commitPosition,
@@ -2444,32 +2454,17 @@ export class ExploreSimpleSk extends ElementSk {
     return '';
   }
 
-  /**
-   * Adds the option list for the plot summary selection.
-   * @param df The dataframe object from dataframe context.
-   * @param df The dataTable object from dataframe context.
-   */
-  private addPlotSummaryOptions(df: DataFrame, dt: DataTable) {
-    if (!this.summaryOptionsField.value) {
-      return;
-    }
+  private getTraceIds(dt: DataTable): string[] {
+    const shortTraceIds: string[] = [];
+    getLegend(dt).forEach((traceObject: { [key: string]: any }) => {
+      Object.keys(traceObject).forEach((k) => {
+        shortTraceIds.push(String(traceObject[k]));
+      });
+    });
+    return shortTraceIds;
+  }
 
-    if (isSingleTrace(dt)) {
-      this.summaryOptionsField.value!.style.display = 'none';
-      return;
-    }
-
-    const titleObj = getTitle(dt);
-    let commonTitle = '';
-    for (const [key, value] of Object.entries(titleObj)) {
-      commonTitle += `${key}=${value},`;
-    }
-    // Add an extra comma at the beginning to make sure
-    // the key is in standard ,a=1,b=2,c=3, format
-    if (commonTitle !== '') {
-      commonTitle = `,${commonTitle}`;
-    }
-
+  private getTraces(dt: DataTable): string[] {
     // getLegend returns trace Ids which are not common in all the graphs.
     // Since it is an object we convert it to the standard key format a=A,b=B,
     // so that it could be fed to the traceFormatter.
@@ -2501,7 +2496,36 @@ export class ExploreSimpleSk extends ElementSk {
       formattedShortTrace = formattedShortTrace.replace('Trace ID: ', '');
       shortTraceIds.push(formattedShortTrace);
     });
+    return shortTraceIds;
+  }
 
+  /**
+   * Adds the option list for the plot summary selection.
+   * @param df The dataframe object from dataframe context.
+   * @param df The dataTable object from dataframe context.
+   */
+  private addPlotSummaryOptions(df: DataFrame, dt: DataTable) {
+    if (!this.summaryOptionsField.value) {
+      return;
+    }
+
+    if (isSingleTrace(dt)) {
+      this.summaryOptionsField.value!.style.display = 'none';
+      return;
+    }
+
+    const titleObj = getTitle(dt);
+    let commonTitle = '';
+    for (const [key, value] of Object.entries(titleObj)) {
+      commonTitle += `${key}=${value},`;
+    }
+    // Add an extra comma at the beginning to make sure
+    // the key is in standard ,a=1,b=2,c=3, format
+    if (commonTitle !== '') {
+      commonTitle = `,${commonTitle}`;
+    }
+
+    const shortTraceIds: string[] = this.getTraces(dt);
     const displayOptions: string[] = [];
     const traceIds = Object.keys(df.traceset);
     shortTraceIds.forEach((shortTraceId, i) => {

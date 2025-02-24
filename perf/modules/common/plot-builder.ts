@@ -177,6 +177,16 @@ export function mainChartOptions(
     },
     backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     series: {},
+    crosshair: {
+      trigger: 'both',
+      orientation: 'vertical',
+      focused: {
+        opacity: 0.25,
+      },
+      selected: {
+        opacity: 1.0,
+      },
+    },
   };
 }
 

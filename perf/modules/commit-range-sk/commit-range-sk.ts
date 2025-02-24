@@ -111,7 +111,7 @@ export class CommitRangeSk extends ElementSk {
 
       // Now populate link, including text and url.
       this._url = url;
-      this._text = `Commits At Step (${cids[0]} - ${cids[1]})`;
+      this._text = `Revision ID Range: ${cids[0]} - ${cids[1]}`;
       this._render();
     } catch (error) {
       console.log(error);
