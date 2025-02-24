@@ -80,8 +80,8 @@ describe('point-links-sk', () => {
 
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
-        'key1 Range': 'https://repoHost/repo1/+log/preLink~..curLink',
-        'key2 Range': 'https://repoHost/repo2/+log/preLink~..curLink',
+        'key1 Range': 'https://repoHost/repo1/+log/preLink..curLink',
+        'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
@@ -118,7 +118,7 @@ describe('point-links-sk', () => {
       await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
       const expectedLinks = {
         'key1 Commit': 'https://repoHost/repo1/+/curLink',
-        'key2 Range': 'https://repoHost/repo2/+log/preLink~..curLink',
+        'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });

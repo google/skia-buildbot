@@ -108,7 +108,7 @@ export class PointLinksSk extends ElementSk {
             );
 
             const repoUrl = this.getRepoUrlFromCommitUrl(currentCommitUrl);
-            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}~..${currentCommitId}`;
+            const commitRangeUrl = `${repoUrl}+log/${prevCommitId}..${currentCommitId}`;
             this.displayUrls[displayKey] = commitRangeUrl;
           }
         }
