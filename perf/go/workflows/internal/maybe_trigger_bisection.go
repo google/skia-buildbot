@@ -147,7 +147,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 			}
 		}
 		// Step 4. Notify the user of the top anomalies
-		var notifyUserOfAnomalyResponse *ag_pb.UpdateAnomalyGroupResponse
+		var notifyUserOfAnomalyResponse *c_pb.NotifyUserOfAnomalyResponse
 		if err = workflow.ExecuteActivity(ctx, csa.NotifyUserOfAnomaly, input.CulpritServiceUrl, &c_pb.NotifyUserOfAnomalyRequest{
 			AnomalyGroupId: input.AnomalyGroupId,
 			Anomaly:        topAnomalies,
