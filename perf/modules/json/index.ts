@@ -376,6 +376,178 @@ export interface TryBugResponse {
 	url: string;
 }
 
+export interface SourceIssues {
+	sourceIssueIds?: Int64s;
+}
+
+export interface AttachmentDataRef {
+	resourceName?: string;
+}
+
+export interface Attachment {
+	attachmentDataRef?: AttachmentDataRef | null;
+	attachmentId?: string;
+	contentType?: string;
+	etag?: string;
+	filename?: string;
+	length?: string;
+}
+
+export interface Date {
+	day?: number;
+	month?: number;
+	year?: number;
+}
+
+export interface RepeatedDate {
+	values?: (Date | null)[] | null;
+}
+
+export interface RepeatedString {
+	values?: string[] | null;
+}
+
+export interface RepeatedDouble {
+	values?: number[] | null;
+}
+
+export interface CustomFieldValue {
+	customFieldId?: string;
+	dateValue?: Date | null;
+	displayString?: string;
+	enumValue?: string;
+	numericValue?: number;
+	repeatedDateValue?: RepeatedDate | null;
+	repeatedEnumValue?: RepeatedString | null;
+	repeatedNumericValue?: RepeatedDouble | null;
+	repeatedTextValue?: RepeatedString | null;
+	textValue?: string;
+}
+
+export interface CustomField {
+	componentId?: string;
+	customFieldId?: string;
+	description?: string;
+	enumValues?: string[] | null;
+	name?: string;
+	required?: boolean;
+	shared?: boolean;
+	type?: string;
+	typedDefaultValue?: CustomFieldValue | null;
+}
+
+export interface User {
+	emailAddress?: string;
+	obfuscatedEmailAddress?: string;
+}
+
+export interface IssueComment {
+	comment?: string;
+	commentNumber?: number;
+	formattingMode?: string;
+	issueId?: string;
+	lastEditor?: User | null;
+	modifiedTime?: string;
+	version?: number;
+	HTTPStatusCode: number;
+	Header: Header;
+}
+
+export interface IssueAccessLimit {
+	accessLevel?: string;
+}
+
+export interface IssueState {
+	accessLimit?: IssueAccessLimit | null;
+	assignee?: User | null;
+	blockedByIssueIds?: Int64s;
+	blockingIssueIds?: Int64s;
+	canonicalIssueId?: string;
+	ccs?: (User | null)[] | null;
+	componentId?: string;
+	customFields?: (CustomFieldValue | null)[] | null;
+	duplicateIssueIds?: Int64s;
+	foundInVersions?: string[] | null;
+	hotlistIds?: Int64s;
+	inProd?: boolean;
+	isArchived?: boolean;
+	priority?: string;
+	reporter?: User | null;
+	severity?: string;
+	status?: string;
+	targetedToVersions?: string[] | null;
+	title?: string;
+	type?: string;
+	verifiedInVersions?: string[] | null;
+	verifier?: User | null;
+}
+
+export interface Hyperlink {
+	href?: string;
+}
+
+export interface IssueReference {
+	commentNumber?: number;
+	issueId?: string;
+}
+
+export interface RelatedLink {
+	hyperlink?: Hyperlink | null;
+	issueReference?: IssueReference | null;
+	sourceCommentNumber?: number;
+}
+
+export interface StatusUpdate {
+	formattingMode?: string;
+	issueId?: string;
+	updateText?: string;
+}
+
+export interface IssueUserData {
+	editableCommentNumbers?: number[] | null;
+	hasStarred?: boolean;
+	hasUpvoted?: boolean;
+}
+
+export interface FieldId {
+	customFieldId?: string;
+	standardField?: string;
+}
+
+export interface Issue {
+	ancestors?: { [key: string]: SourceIssues } | null;
+	attachments?: (Attachment | null)[] | null;
+	childIssueCount?: number;
+	createdTime?: string;
+	customFields?: (CustomField | null)[] | null;
+	description?: IssueComment | null;
+	etag?: string;
+	isArchived?: boolean;
+	issueComment?: IssueComment | null;
+	issueId?: string;
+	issueState?: IssueState | null;
+	lastModifier?: User | null;
+	majorModifiedTime?: string;
+	minorModifiedTime?: string;
+	modifiedTime?: string;
+	parentIssueIds?: Int64s;
+	relatedLinks?: (RelatedLink | null)[] | null;
+	resolvedTime?: string;
+	statusUpdate?: StatusUpdate | null;
+	trackerId?: string;
+	userData?: IssueUserData | null;
+	verifiedTime?: string;
+	version?: number;
+	visibleFields?: (FieldId | null)[] | null;
+	voteCount?: string;
+	HTTPStatusCode: number;
+	Header: Header;
+}
+
+export interface ListIssuesResponse {
+	issues?: Issue[] | null;
+}
+
 export interface GraphConfig {
 	queries: string[] | null;
 	formulas: string[] | null;
@@ -660,6 +832,10 @@ export type Subset = 'all' | 'regressions' | 'untriaged';
 export type NotifierTypes = 'html_email' | 'markdown_issuetracker' | 'none';
 
 export type TraceFormat = 'chrome' | '';
+
+export type Int64s = number[] | null;
+
+export type Header = { [key: string]: string[] | null } | null;
 
 export type TryBotRequestKind = 'trybot' | 'commit';
 

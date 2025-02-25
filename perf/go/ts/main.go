@@ -92,6 +92,7 @@ func main() {
 		frontendApi.TriageResponse{},
 		frontendApi.TryBugRequest{},
 		frontendApi.TryBugResponse{},
+		frontendApi.ListIssuesResponse{},
 		graphsshortcut.GraphsShortcut{},
 		pinpoint.CreateBisectRequest{},
 		pinpoint.CreateBisectResponse{},
