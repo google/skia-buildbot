@@ -92,7 +92,11 @@ var statementFormats = map[statementFormat]string{
 		VALUES
 			{{ .ValuesPlaceholders }}
 		ON CONFLICT (id) DO UPDATE
-        SET median_before=EXCLUDED.median_before, median_after=EXCLUDED.median_after, frame=EXCLUDED.frame, triage_status=EXCLUDED.triage_status, triage_message=EXCLUDED.triage_message
+        SET median_before=EXCLUDED.median_before, median_after=EXCLUDED.median_after, frame=EXCLUDED.frame,
+		triage_status=EXCLUDED.triage_status, triage_message=EXCLUDED.triage_message, alert_id=EXCLUDED.alert_id,
+		cluster_summary=EXCLUDED.cluster_summary, cluster_type=EXCLUDED.cluster_type,
+		commit_number=EXCLUDED.commit_number, creation_time=EXCLUDED.creation_time, id=EXCLUDED.id,
+		is_improvement=EXCLUDED.is_improvement, prev_commit_number=EXCLUDED.prev_commit_number
 		`,
 	readByIDs: `
 		SELECT
