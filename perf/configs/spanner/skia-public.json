@@ -31,7 +31,7 @@
       ]
     },
     "branches": [],
-    "file_ingestion_pubsub_topic_name": "perf-cluster-skia-public"
+    "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
     "provider": "gitiles",
