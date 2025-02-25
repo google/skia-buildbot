@@ -1609,7 +1609,7 @@ func (s *SQLTraceStore) readTracesByChannelForCommitRange(ctx context.Context, t
 
 		trID := traceIDForSQLFromTraceName(key)
 		currentChunk = append(currentChunk, trID)
-		if len(currentChunk) > queryTraceIDsChunkSize {
+		if len(currentChunk) >= queryTraceIDsChunkSize {
 			chunkChannel <- currentChunk
 			currentChunk = []traceIDForSQL{}
 		}
