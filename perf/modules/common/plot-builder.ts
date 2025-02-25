@@ -179,12 +179,12 @@ export function mainChartOptions(
     series: {},
     crosshair: {
       trigger: 'both',
-      orientation: 'vertical',
       focused: {
         opacity: 0.25,
       },
       selected: {
         opacity: 1.0,
+        color: 'white',
       },
     },
   };

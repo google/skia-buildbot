@@ -35,31 +35,26 @@ import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-
 export class CommitInfoSk extends LitElement {
   static styles = css`
     ul.table {
+      display: table;
       list-style: none;
       padding: 0;
       margin: 0;
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 16px;
-
       li {
         display: table-row;
-
-        span {
-          &:first-child {
-            font-weight: bold;
-          }
-
+        text-align: right;
+        b {
           display: table-cell;
-          padding: 1px 6px;
+          text-align: left;
+          padding-right: 1em;
         }
       }
-
       a {
         color: var(--primary);
       }
     }
-
     ul.table#anomaly-details {
       margin-bottom: 5px;
     }
@@ -78,20 +73,18 @@ export class CommitInfoSk extends LitElement {
     return html`
       <ul class="table">
         <li>
-          <span>Commit:</span>
-          <span>
-            <a href="${this.commitInfo.url}" target="_blank">
-              ${this.commitInfo.hash.substring(0, 7)}
-            </a>
-          </span>
+          <b>Commit:</b>
+          <a href="${this.commitInfo.url}" target="_blank">
+            ${this.commitInfo.hash.substring(0, 7)}
+          </a>
         </li>
         <li>
-          <span>Date:</span>
-          <span>${new Date(this.commitInfo.ts * 1000).toDateString()}</span>
+          <b>Author:</b>
+          ${this.commitInfo.author.split('(')[0]}
         </li>
         <li>
-          <span>Author:</span>
-          <span>${this.commitInfo.author}</span>
+          <b>Message:</b>
+          ${this.commitInfo.message}
         </li>
       </ul>
     `;
@@ -109,8 +102,14 @@ export class ChartTooltipSk extends ElementSk {
   // Trace Name to pass to NewBugDialog.
   private _trace_name: string = '';
 
+  // Unit of measurement for trace.
+  private _unit_type: string = '';
+
   // The y value of the selected point on the chart.
   private _y_value: number = -1;
+
+  // The timestamp converted to Date of the selected point on the chart.
+  private _date_value: Date = new Date();
 
   // Commit position of the selected point on the chart,
   // usually curated through explore-simple-sk._dataframe.header[x].
@@ -190,29 +189,27 @@ export class ChartTooltipSk extends ElementSk {
       <h3>${ele.test_name}</h3>
       <ul class="table">
         <li>
-          <span>Value:</span>
-          <span>${ele.y_value}</span>
+          <b>Date:</b>
+          ${ele.date_value.toDateString()}
         </li>
         <li>
-          <span>Commit Number:</span>
-          <span>${ele.commit_position}</span>
+          <b>Value:</b>
+          ${ele.y_value} ${ele.unit_type}
+        </li>
+        <li>
+          <b>Change:</b>
+          <commit-range-sk
+            .showLinks=${ele._tooltip_fixed}
+            id="tooltip-commit-range-link"></commit-range-sk>
         </li>
       </ul>
-      <point-links-sk id="tooltip-point-links" ?hidden=${!ele._tooltip_fixed}></point-links-sk>
+      <commit-info-sk .commitInfo=${ele.commitInfo} ?hidden=${!ele._tooltip_fixed}></commit-info-sk>
+      <point-links-sk
+        id="tooltip-point-links"
+        .commitPosition=${ele.commit_position}
+        ?hidden=${!ele._tooltip_fixed}></point-links-sk>
       ${ele.pinpointJobLinks()}
       <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${!ele._tooltip_fixed}></user-issue-sk>
-      <div class="revlink">
-        <a href="/u/?rev=${ele.commit_position}" target="_blank">
-          Regressions at ${ele.commit_position}
-        </a>
-        <br />
-        <commit-range-sk
-          id="tooltip-commit-range-link"
-          ?hidden=${!ele._tooltip_fixed}></commit-range-sk>
-      </div>
-      <commit-info-sk
-        .commitInfo=${ele.commitInfo}
-        ?hidden=${ele._skip_commit_detail_display}></commit-info-sk>
       ${ele.seeMoreText()} ${ele.anomalyTemplate()}
       <triage-menu-sk
         id="triage-menu"
@@ -357,6 +354,7 @@ export class ChartTooltipSk extends ElementSk {
   connectedCallback(): void {
     super.connectedCallback();
     upgradeProperty(this, 'test_name');
+    upgradeProperty(this, 'unit_value');
     upgradeProperty(this, 'y_value');
     upgradeProperty(this, 'commit_position');
     upgradeProperty(this, 'commit');
@@ -423,7 +421,9 @@ export class ChartTooltipSk extends ElementSk {
   load(
     test_name: string,
     trace_name: string,
+    unit_type: string,
     y_value: number,
+    date_value: Date,
     commit_position: CommitNumber,
     bug_id: number,
     anomaly: Anomaly | null,
@@ -435,7 +435,9 @@ export class ChartTooltipSk extends ElementSk {
   ): void {
     this._test_name = test_name;
     this._trace_name = trace_name;
+    this._unit_type = unit_type;
     this._y_value = y_value;
+    this._date_value = date_value;
     this._commit_position = commit_position;
     this._bug_id = bug_id;
     this._anomaly = anomaly;
@@ -445,7 +447,6 @@ export class ChartTooltipSk extends ElementSk {
     this.commitInfo = commit;
 
     if (commitRange && this.commitRangeSk) {
-      this.commitRangeSk.reset();
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
       this.commitRangeSk.header = commitRange.header;
@@ -472,6 +473,13 @@ export class ChartTooltipSk extends ElementSk {
     this.pointLinks!.load(commit_position, prev_commit_position, trace_id, keysForCommitRange!);
   }
 
+  /** Clear Point Links */
+  reset(): void {
+    this.commitRangeSk?.reset();
+    this.pointLinks?.reset();
+    this._render();
+  }
+
   private unassociateBug() {
     this.triageMenu!.makeEditAnomalyRequest([this._anomaly!], [this._trace_name], 'RESET');
   }
@@ -495,12 +503,30 @@ export class ChartTooltipSk extends ElementSk {
     this._render();
   }
 
+  get unit_type(): string {
+    return this._unit_type;
+  }
+
+  set unit_type(val: string) {
+    this._unit_type = val;
+    this._render();
+  }
+
   get y_value(): number {
     return this._y_value;
   }
 
   set y_value(val: number) {
     this._y_value = val;
+    this._render();
+  }
+
+  get date_value(): Date {
+    return this._date_value;
+  }
+
+  set date_value(val: Date) {
+    this._date_value = val;
     this._render();
   }
 

@@ -55,6 +55,7 @@ describe('commit-range-sk', () => {
 
   describe('converts commit ids to hashes', () => {
     it('ignores MISSING_DATA_SENTINEL', async () => {
+      element.showLinks = true;
       // eslint-disable-next-line dot-notation
       element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
         assert.deepEqual(cids, [64809, 64811]);
@@ -70,11 +71,11 @@ describe('commit-range-sk', () => {
     });
   });
   it('returns the previous hash if there are no missing commits', async () => {
+    element.showLinks = true;
     // eslint-disable-next-line dot-notation
     element['commitNumberToHashes'] = async (cids: CommitNumber[]) => {
       // There were no commits to skip, so return the two consecutive hashes.
       assert.deepEqual(cids, [64810, 64811]);
-
       return ['11111111111111111111111111111', '22222222222222222222222222222'];
     };
     element.trace = [11, 12, 13];

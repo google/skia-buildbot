@@ -110,7 +110,9 @@ const renderTooltips = () => {
       tooltip!.load(
         'Tooltip with buganizer Id',
         ',arch=x86,config=8888,test=encode,units=kb,',
+        'ms',
         100,
+        new Date(),
         CommitNumber(12345),
         88123,
         dummyAnomaly(12345),

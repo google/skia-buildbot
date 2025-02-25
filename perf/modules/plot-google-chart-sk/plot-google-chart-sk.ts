@@ -468,6 +468,12 @@ export class PlotGoogleChartSk extends LitElement {
     // This disable system events like selecting texts.
     e.preventDefault();
     this.lastMouse = { x: e.x, y: e.y };
+    this.dispatchEvent(
+      new CustomEvent('plot-chart-mousedown', {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   // When a point is hovered/selected, return row and column values from
@@ -543,6 +549,12 @@ export class PlotGoogleChartSk extends LitElement {
   private onChartMouseOut() {
     this.chartInteracting = false;
     this.navigationMode = this.navigationMode === 'deltaY' ? 'deltaY' : null;
+    this.dispatchEvent(
+      new CustomEvent('plot-chart-mouseout', {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   private onWindowMouseMove(e: MouseEvent) {
@@ -834,12 +846,21 @@ export class PlotGoogleChartSk extends LitElement {
   /**
    * Get the commit position of a trace given the row index
    * of the DataTable. The row index represents the x-position
-   * of the data. The commit position is always in the first
-   * in the first column.
+   * of the data. The commit position is always in the first column.
    * @param row The row index
    */
   getCommitPosition(row: number) {
     return this.data!.getValue(row, 0);
+  }
+
+  /**
+   * Get the commit date of a trace given the row index
+   * of the DataTable. The row index represents the x-position
+   * of the data. The commit date is always in the second column.
+   * @param row The row index
+   */
+  getCommitDate(row: number) {
+    return this.data!.getValue(row, 1);
   }
 
   /**
@@ -888,5 +909,6 @@ declare global {
     'plot-data-mouseover': CustomEvent<PlotShowTooltipEventDetails>;
     'plot-data-select': CustomEvent<PlotShowTooltipEventDetails>;
     'plot-chart-mousedown': CustomEvent;
+    'plot-chart-mouseout': CustomEvent;
   }
 }

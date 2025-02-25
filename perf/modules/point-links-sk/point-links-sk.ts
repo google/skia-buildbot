@@ -41,6 +41,8 @@ export class PointLinksSk extends ElementSk {
     super(PointLinksSk.template);
   }
 
+  commitPosition: CommitNumber | null = null;
+
   // Contains the urls to be displayed.
   displayUrls: { [key: string]: string } = {};
 
@@ -48,9 +50,13 @@ export class PointLinksSk extends ElementSk {
   displayTexts: { [key: string]: string } = {};
 
   private static template = (ele: PointLinksSk) =>
-    html` <div ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
-      <ul>
+    html`<div ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
+      <ul class="table">
         ${ele.renderLinks()}
+        <li>
+          <b>Regressions:</b>
+          <a href="/u/?rev=${ele.commitPosition}" target="_blank">${ele.commitPosition}</a>
+        </li>
       </ul>
     </div>`;
 
@@ -64,7 +70,10 @@ export class PointLinksSk extends ElementSk {
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
       const linkText = this.displayTexts[key];
-      return html`<li>${key}: <a href="${link}" target="_blank"> ${linkText}</a></li>`;
+      return html`<li>
+        <b>${key}:</b>
+        <a href="${link}" target="_blank">${linkText}</a>
+      </li>`;
     };
     return keys.map(getHtml);
   }
@@ -115,6 +124,13 @@ export class PointLinksSk extends ElementSk {
       });
       this._render();
     }
+  }
+
+  /** Clear Point Links */
+  reset(): void {
+    this.displayUrls = {};
+    this.displayTexts = {};
+    this._render();
   }
 
   /**

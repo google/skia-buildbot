@@ -80,7 +80,9 @@ describe('chart-tooltip-sk', () => {
       element.load(
         test_name,
         '',
+        'ms',
         y_value,
+        new Date(),
         commit_position,
         0,
         dummyAnomaly(12345),
@@ -100,7 +102,9 @@ describe('chart-tooltip-sk', () => {
       element.load(
         test_name,
         '',
+        'ms',
         y_value,
+        new Date(),
         commit_position,
         bugId,
         dummyAnomaly(12345),

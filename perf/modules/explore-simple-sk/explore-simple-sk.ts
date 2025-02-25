@@ -802,6 +802,7 @@ export class ExploreSimpleSk extends ElementSk {
           @plot-data-select=${ele.onChartSelect}
           @plot-data-mouseover=${ele.onChartOver}
           @plot-chart-mousedown=${ele.onChartMouseDown}
+          @plot-chart-mouseout=${ele.onChartMouseOut}
           @selection-changing=${ele.OnSelectionRange}
           @selection-changed=${ele.OnSelectionRange}>
           <md-icon slot="untriage">help</md-icon>
@@ -1219,9 +1220,17 @@ export class ExploreSimpleSk extends ElementSk {
     tooltipElem?.moveTo(null);
   }
 
+  // Close the tooltip when moving away while hovering.
+  private onChartMouseOut(): void {
+    const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
+    if (!this.tooltipSelected) {
+      tooltipElem?.moveTo(null);
+    }
+  }
+
   // onChartOver shows the tooltip whenever a user hovers their mouse
   // over a data point in the google chart
-  private onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): void {
+  private async onChartOver({ detail }: CustomEvent<PlotShowTooltipEventDetails>): Promise<void> {
     // do not show tooltip if tooltip is selected
     if (this.tooltipSelected) {
       return;
@@ -1232,7 +1241,6 @@ export class ExploreSimpleSk extends ElementSk {
     const position = chart.getPositionByIndex(index);
     const key = JSON.stringify([chart.getTraceName(index.tableCol), commitPos]);
     const commit = this.pointToCommitDetailMap.get(key) || null;
-
     this.enableTooltip(
       {
         x: index.tableRow - (this.selectedRange?.begin || 0),
@@ -2024,8 +2032,17 @@ export class ExploreSimpleSk extends ElementSk {
     // start the search from the explore-simple-sk that the user is hovering/
     // clicking on
     const tooltipElem = $$<ChartTooltipSk>('chart-tooltip-sk', this);
-
+    tooltipElem?.reset();
     const x = (this.selectedRange?.begin || 0) + pointDetails.x;
+
+    let commitDate = new Date();
+    if (commit === null) {
+      const chart = this.googleChartPlot!.value!;
+      commitDate = chart.getCommitDate(x);
+    } else {
+      commitDate = new Date(commit.ts * 1000);
+    }
+
     const testName = pointDetails.name;
     const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
@@ -2090,9 +2107,6 @@ export class ExploreSimpleSk extends ElementSk {
         });
       }
     }
-
-    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
-
     const closeBtnAction = fixTooltip
       ? () => {
           this.tooltipSelected = false;
@@ -2124,9 +2138,16 @@ export class ExploreSimpleSk extends ElementSk {
       story: this.story ? this.story : '',
     };
 
+    let unitValue: string = '';
     let traceName: string = '';
     const dt = this.dfRepo.value?.data;
     const shortTraceIds: string[] = dt ? this.getTraceIds(dt) : [];
+
+    testName.split(',').forEach((test) => {
+      if (test.startsWith('unit')) {
+        unitValue = test.split('=')[1];
+      }
+    });
 
     shortTraceIds.forEach((traceId) => {
       if (testName.includes(traceId)) {
@@ -2138,16 +2159,19 @@ export class ExploreSimpleSk extends ElementSk {
     tooltipElem!.load(
       formattedTrace,
       testName,
+      unitValue,
       pointDetails.y,
+      commitDate,
       commitPosition,
       buganizerId,
       anomaly,
       nudgeList,
       commit,
       fixTooltip,
-      fixTooltip ? this.commitRangeSk : null,
+      this.commitRangeSk,
       closeBtnAction
     );
+    tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
   }
 
   // if the user's cursor leaves the graph, close the tooltip

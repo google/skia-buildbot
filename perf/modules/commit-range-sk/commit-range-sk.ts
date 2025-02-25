@@ -38,6 +38,11 @@ export class CommitRangeSk extends ElementSk {
   /** The link text to display. */
   private _text: string = '';
 
+  private _htmlTemplate = html``;
+
+  /** Determines if text contains links. */
+  showLinks: boolean = false;
+
   // commitNumberToHashes can be replaced to make testing easier.
   private commitNumberToHashes: commitNumberToHashes = defaultcommitNumberToHashes;
 
@@ -45,8 +50,7 @@ export class CommitRangeSk extends ElementSk {
     super(CommitRangeSk.template);
   }
 
-  private static template = (ele: CommitRangeSk) =>
-    html`<a href="${ele._url}" target="_blank">${ele._text}</a>`;
+  private static template = (ele: CommitRangeSk) => html`${ele.htmlTemplate}`;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -60,6 +64,8 @@ export class CommitRangeSk extends ElementSk {
     this._commitIndex = -1;
     this._trace = [];
     this._header = null;
+    this._htmlTemplate = html``;
+    this._render();
   }
 
   clear(): void {
@@ -98,7 +104,6 @@ export class CommitRangeSk extends ElementSk {
       this.clear();
       return;
     }
-
     const cids: CommitNumber[] = [startOffset, endOffset];
 
     try {
@@ -111,7 +116,18 @@ export class CommitRangeSk extends ElementSk {
 
       // Now populate link, including text and url.
       this._url = url;
-      this._text = `Revision ID Range: ${cids[0]} - ${cids[1]}`;
+
+      // Add +1 to the previous commit to only show commits after previous.
+      this._text = `${startOffset + 1} - ${endOffset}`;
+      // Check if there are no points between start and end.
+      if (startOffset + 1 === endOffset) {
+        this._text = `${endOffset}`;
+      }
+      // Show only text of commit if hover, else show full text with links.
+      this._htmlTemplate = html`${this._text}`;
+      if (this.showLinks) {
+        this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
+      }
       this._render();
     } catch (error) {
       console.log(error);
@@ -155,6 +171,10 @@ export class CommitRangeSk extends ElementSk {
 
   get text(): string {
     return this._text;
+  }
+
+  get htmlTemplate() {
+    return this._htmlTemplate;
   }
 }
 

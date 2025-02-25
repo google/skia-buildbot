@@ -163,9 +163,7 @@ export class UserIssueSk extends LitElement {
     }
 
     return html`
-      <button class="new-issue-label" @click=${this.activateTextInput}>
-        Start a user thread (buganizer issue)
-      </button>
+      <button class="new-issue-label" @click=${this.activateTextInput}>Create Bug</button>
     `;
   }
 

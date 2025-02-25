@@ -6,9 +6,10 @@ chart-tooltip-sk {
 
   > div.container {
     display: none;
+    opacity: 90%;
     position: absolute;
     z-index: 1;
-    width: 420px;
+    width: 300px;
     margin: 10px;
     padding: 20px;
     border: 1px solid black;
@@ -44,7 +45,27 @@ chart-tooltip-sk {
       margin-bottom: 0 !important;
       text-decoration: underline;
     }
-
+    ul.table {
+      display: table;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      li {
+        display: table-row;
+        text-align: right;
+        b {
+          display: table-cell;
+          text-align: left;
+          padding-right: 1em;
+        }
+      }
+      a {
+        color: var(--primary);
+      }
+    }
     .revlink {
       margin-bottom: 26px;
     }
