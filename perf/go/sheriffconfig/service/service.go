@@ -79,6 +79,7 @@ type sheriffconfigService struct {
 	subscriptionStore   subscription.Store
 	alertStore          alerts.Store
 	luciconfigApiClient luciconfig.ApiClient
+	instance            string
 }
 
 // Create new SheriffConfig service.
@@ -86,7 +87,8 @@ func New(ctx context.Context,
 	db pool.Pool,
 	subscriptionStore subscription.Store,
 	alertStore alerts.Store,
-	luciconfigApiClient luciconfig.ApiClient) (*sheriffconfigService, error) {
+	luciconfigApiClient luciconfig.ApiClient,
+	instance string) (*sheriffconfigService, error) {
 
 	if luciconfigApiClient == nil {
 		var err error
@@ -101,6 +103,7 @@ func New(ctx context.Context,
 		subscriptionStore:   subscriptionStore,
 		alertStore:          alertStore,
 		luciconfigApiClient: luciconfigApiClient,
+		instance:            instance,
 	}, nil
 }
 
@@ -179,6 +182,10 @@ func (s *sheriffconfigService) processConfig(ctx context.Context, config *lucico
 
 	// Prepare subscription and alert data
 	for _, subscription := range sheriffconfig.Subscriptions {
+		if subscription.Instance != s.instance {
+			continue
+		}
+
 		subscriptionEntity := makeSubscriptionEntity(subscription, config.Revision)
 
 		// We check if the entity already exists in the DB. If it is, there's no need to re-insert it.

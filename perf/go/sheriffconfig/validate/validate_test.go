@@ -28,6 +28,7 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 						},
 					},
 				},
+				Instance: "chrome-internal",
 			},
 			{
 				Name:         "Sub B",
@@ -42,6 +43,7 @@ func TestValidateConfig_ValidConfig(t *testing.T) {
 						},
 					},
 				},
+				Instance: "chrome-internal",
 			},
 		},
 	}
@@ -99,6 +101,22 @@ func TestValidateConfig_NoBugComponent(t *testing.T) {
 	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Subscription 'Sub Test' is missing bug_component.")
 }
 
+func TestValidateConfig_MissingInstance(t *testing.T) {
+	config := &pb.SheriffConfig{
+		Subscriptions: []*pb.Subscription{
+			{
+				Name:         "Sub Test",
+				ContactEmail: "test1@google.com",
+				BugComponent: "A>B",
+			},
+		},
+	}
+
+	err := ValidateConfig(config)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Error for Subscription at index 0: Subscription 'Sub Test' is missing instance.")
+}
+
 func TestValidateConfig_NoAnomalyConfigs(t *testing.T) {
 	config := &pb.SheriffConfig{
 		Subscriptions: []*pb.Subscription{
@@ -106,6 +124,7 @@ func TestValidateConfig_NoAnomalyConfigs(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test1@google.com",
 				BugComponent: "A>B",
+				Instance:     "chrome-internal",
 			},
 		},
 	}
@@ -127,6 +146,7 @@ func TestValidateConfig_NoMatchPatterns(t *testing.T) {
 						Rules: &pb.Rules{},
 					},
 				},
+				Instance: "chrome-internal",
 			},
 		},
 	}
@@ -143,6 +163,7 @@ func TestValidateConfig_PatternWithAllEmptyFields(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test1@google.com",
 				BugComponent: "A>B",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
@@ -168,6 +189,7 @@ func TestValidateConfig_PatternWithExplicitEmptyFields(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test1@google.com",
 				BugComponent: "A>B",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
@@ -193,6 +215,7 @@ func TestValidateConfig_PatternWithInvalidRegex(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test1@google.com",
 				BugComponent: "A>B",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
@@ -218,6 +241,7 @@ func TestValidateConfig_InvalidExcludePattern(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test1@google.com",
 				BugComponent: "A>B",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
@@ -246,6 +270,7 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test2@google.com",
 				BugComponent: "A>B>c",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{
@@ -260,6 +285,7 @@ func TestValidateConfig_NoDuplicateNames(t *testing.T) {
 				Name:         "Sub Test",
 				ContactEmail: "test2@google.com",
 				BugComponent: "A>B>c",
+				Instance:     "chrome-internal",
 				AnomalyConfigs: []*pb.AnomalyConfig{
 					{
 						Rules: &pb.Rules{

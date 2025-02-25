@@ -203,6 +203,10 @@ message Subscription {
   // Anomaly configs in the same subscription should not have
   // overlapping metrics.
   repeated AnomalyConfig anomaly_configs = 8;
+
+  // Specifies which instance this subscription should be imported to.
+  // e.g. "chrome-internal".
+  string instance = 11;
 }
 
 // A SheriffConfig lists the subscriptions for a Skia Perf instance.

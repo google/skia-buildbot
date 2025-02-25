@@ -77,7 +77,8 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 		migrator.RunPeriodicMigration(regressionMigratePeriod, regressionMigrationBatchSize)
 	}
 
-	if instanceConfig.EnableSheriffConfig {
+	if instanceConfig.EnableSheriffConfig && instanceConfig.InstanceName != "" {
+
 		alertStore, err := builders.NewAlertStoreFromConfig(ctx, flags.Local, instanceConfig)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to build AlertStore.")
@@ -92,7 +93,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			// TODO(eduardoyap): Move this out of the else block. For now it's just to prevent the
 			// service from crashing if we're unable to connect.
 		} else {
-			sheriffConfig, err := sheriffconfig.New(ctx, db, subscriptionStore, alertStore, luciConfig)
+			sheriffConfig, err := sheriffconfig.New(ctx, db, subscriptionStore, alertStore, luciConfig, instanceConfig.InstanceName)
 			if err != nil {
 				return skerr.Wrapf(err, "Error starting sheriff config service.")
 			}

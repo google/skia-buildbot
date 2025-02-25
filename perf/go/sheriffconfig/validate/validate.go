@@ -95,6 +95,10 @@ func validateSubscription(sub *sheriff_configpb.Subscription) error {
 		return skerr.Fmt("Subscription '%s' is missing bug_component.", sub.Name)
 	}
 
+	if sub.Instance == "" {
+		return skerr.Fmt("Subscription '%s' is missing instance.", sub.Name)
+	}
+
 	if len(sub.AnomalyConfigs) == 0 {
 		return skerr.Fmt("Subscription '%s' must have at least one Anomaly Config.", sub.Name)
 	}
