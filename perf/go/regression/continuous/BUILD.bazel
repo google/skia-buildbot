@@ -26,6 +26,7 @@ go_library(
         "//perf/go/types",
         "//perf/go/urlprovider",
         "@com_google_cloud_go_pubsub//:pubsub",
+        "@io_opencensus_go//trace",
     ],
 )
 

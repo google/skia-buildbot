@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/ctxutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -97,6 +98,9 @@ func New(
 }
 
 func (c *Continuous) reportRegressions(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, cfg *alerts.Alert) {
+	ctx, span := trace.StartSpan(ctx, "regression.continuous.reportRegressions")
+	defer span.End()
+
 	key := cfg.IDAsString
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -446,6 +450,9 @@ func (c *Continuous) Run(ctx context.Context) {
 // RunEventDrivenClustering executes the regression detection based on events
 // received from data ingestion.
 func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "regression.continuous.RunEventDrivenClustering")
+	defer span.End()
+
 	// Range over a channel that returns a map containing the traceId as the key
 	// and a list of matching alert configs as the value. These are processed
 	// from the file that was just ingested and notification received over pubsub.
@@ -467,6 +474,9 @@ func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
 
 // ProcessAlertConfigForTrace runs the alert config on a specific trace id
 func (c *Continuous) ProcessAlertConfigForTraces(ctx context.Context, config alerts.Alert, traceIds []string) {
+	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfigForTraces")
+	defer span.End()
+
 	// Convert each traceId into a query for regression detection.
 	for _, traceId := range traceIds {
 		sklog.Debugf("[AG] Processing trace id: %s", traceId)
@@ -501,6 +511,9 @@ func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 
 // ProcessAlertConfig processes the supplied alert config to detect regressions
 func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string) {
+	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfig")
+	defer span.End()
+
 	c.setCurrentConfig(cfg)
 	alertConfigLatencyTimer := metrics2.NewTimer(
 		"perf_alertconfig_clustering_latency",
