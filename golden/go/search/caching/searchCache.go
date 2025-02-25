@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/sql/schema"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 type SearchCacheType int
@@ -21,6 +22,7 @@ const (
 	ByBlame_Corpus SearchCacheType = iota
 	// MatchingTraces denotes the cache type for search results.
 	MatchingTraces
+	DigestsByTests
 )
 
 // SearchCacheData provides a struct to hold data for the entry in by blame cache.
@@ -53,6 +55,7 @@ func New(cacheClient cache.Cache, db *pgxpool.Pool, corpora []string, commitWind
 		dataProviders: map[SearchCacheType]cacheDataProvider{
 			ByBlame_Corpus: NewByBlameCacheDataProvider(db, corpora, commitWindow, ByBlameQuery, ByBlameKey),
 			MatchingTraces: NewMatchingTracesCacheDataProvider(db, corpora, commitWindow),
+			DigestsByTests: NewTestDigestsProvider(db, corpora, commitWindow),
 		},
 	}
 }
@@ -240,4 +243,28 @@ func (s SearchCacheManager) SetDigestsForGrouping(ctx context.Context, groupingI
 	}
 
 	return s.cacheClient.SetValue(ctx, cacheKey, jsonStr)
+}
+
+// GetDigestsByTests returns a list of summaries of digests by tests for the given corpus.
+func (s SearchCacheManager) GetDigestsByTests(ctx context.Context, corpus string) ([]frontend.TestSummary, error) {
+	cacheKey := DigestsByTestKey(corpus)
+	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// Cache miss.
+	if jsonStr == "" {
+		testDigestsProvider := NewTestDigestsProvider(s.db, s.corpora, s.commitWindow)
+		summaries, err := testDigestsProvider.GetDataForCorpus(ctx, corpus)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		return summaries, nil
+	}
+
+	var summaries []frontend.TestSummary
+	err = json.Unmarshal([]byte(jsonStr), &summaries)
+	return summaries, err
 }

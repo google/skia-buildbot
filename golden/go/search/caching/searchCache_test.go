@@ -34,11 +34,12 @@ func TestPopulateCache_WithData(t *testing.T) {
 	cacheClient.On("SetValue", testutils.AnyContext, ByBlameKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	cacheClient.On("SetValue", testutils.AnyContext, MatchingUntriagedTracesKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	cacheClient.On("SetValue", testutils.AnyContext, MatchingPositiveTracesKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
+	cacheClient.On("SetValue", testutils.AnyContext, DigestsByTestKey(dks.RoundCorpus), mock.AnythingOfType("string")).Return(nil)
 	// The negative and ignored traces do not have any values in this data set, so no SetValue calls expected for those.
 	searchCacheManager := New(cacheClient, db, []string{dks.RoundCorpus}, 5)
 	err := searchCacheManager.RunCachePopulation(ctx)
 	assert.Nil(t, err)
-	cacheClient.AssertNumberOfCalls(t, "SetValue", 3)
+	cacheClient.AssertNumberOfCalls(t, "SetValue", 4)
 }
 
 func TestPopulateCache_NoData(t *testing.T) {

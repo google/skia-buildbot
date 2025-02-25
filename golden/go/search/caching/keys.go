@@ -34,3 +34,8 @@ func MatchingIgnoredTracesKey(corpus string) string {
 func DigestsForGroupingKey(groupingID schema.GroupingID, traces string) string {
 	return fmt.Sprintf("digestsForGroup_%s_%s", groupingID, traces)
 }
+
+// DigestsByTestKey returns a key to be used to cache the digest summaries by tests.
+func DigestsByTestKey(corpus string) string {
+	return fmt.Sprintf("digestsByTests_%s", corpus)
+}
