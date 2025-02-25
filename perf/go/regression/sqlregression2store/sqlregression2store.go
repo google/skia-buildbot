@@ -87,10 +87,12 @@ var statementFormats = map[statementFormat]string{
 			AND commit_number <= $2
 		`,
 	write: `
-		UPSERT INTO
+		INSERT INTO
 			Regressions2 ({{ .Columns }})
 		VALUES
 			{{ .ValuesPlaceholders }}
+		ON CONFLICT (id) DO UPDATE
+        SET median_before=EXCLUDED.median_before, median_after=EXCLUDED.median_after, frame=EXCLUDED.frame, triage_status=EXCLUDED.triage_status, triage_message=EXCLUDED.triage_message
 		`,
 	readByIDs: `
 		SELECT
