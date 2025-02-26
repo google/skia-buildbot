@@ -23,7 +23,7 @@ import '../../../elements-sk/modules/select-sk';
 import { html } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { jsonOrThrow } from '../../../infra-sk/modules/jsonOrThrow';
-import { Anomaly, Issue } from '../json';
+import { Anomaly } from '../json';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { ProjectId } from '../json';
 import { upgradeProperty } from '../../../elements-sk/modules/upgradeProperty';
@@ -56,9 +56,6 @@ export class ExistingBugDialogSk extends ElementSk {
   private bug_id: number | undefined;
 
   private _associatedBugIds = new Set<number>();
-
-  // maintain a map which maps each bug id associates with its title
-  private bugIdTitleMap: { [key: number]: string } = {};
 
   // Host bug url, usually from window.perf.bug_host_url.
   private _bug_host_url: string = window.perf ? window.perf.bug_host_url : '';
@@ -117,7 +114,6 @@ export class ExistingBugDialogSk extends ElementSk {
     upgradeProperty(this, '_anomalies');
     upgradeProperty(this, '_associatedBugIds');
     upgradeProperty(this, '_bug_host_url');
-    upgradeProperty(this, 'bugIdTitleMap');
     this._render();
 
     this._spinner = this.querySelector('#loading-spinner');
@@ -231,9 +227,6 @@ export class ExistingBugDialogSk extends ElementSk {
           const anomalies: Anomaly[] = json.anomaly_list || [];
           this.getAssociatedBugList(anomalies);
         }
-        if (this._associatedBugIds.size !== 0) {
-          this.fetch_bug_titles();
-        }
       });
     this._spinner!.active = false;
     this._render();
@@ -253,34 +246,6 @@ export class ExistingBugDialogSk extends ElementSk {
       .then((json) => {
         const anomalies: Anomaly[] = json.anomaly_list || [];
         this.getAssociatedBugList(anomalies);
-      });
-  }
-
-  private async fetch_bug_titles() {
-    let query = 'id: ';
-    this._associatedBugIds.forEach((id) => {
-      query += id + ' |';
-    });
-
-    await fetch('/_/triage/list_issues', {
-      method: 'POST',
-      body: JSON.stringify({
-        Query: query,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        const issueList: Issue[] = json.issues;
-        this.bugIdTitleMap = {};
-        issueList.forEach((issue) => {
-          const issueid = issue.issueId ? Number(issue.issueId) : 0;
-          if (this._associatedBugIds.has(issueid)) {
-            this.bugIdTitleMap[issueid] = issue.issueState?.title ? issue.issueState!.title : '';
-          }
-        });
       });
   }
 

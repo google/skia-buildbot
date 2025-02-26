@@ -48,7 +48,6 @@ import (
 	"go.skia.org/infra/perf/go/frontend/api"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/graphsshortcut"
-	"go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/pinpoint"
@@ -177,8 +176,6 @@ type Frontend struct {
 	chromeperfClient chromeperf.ChromePerfClient
 
 	urlProvider *urlprovider.URLProvider
-
-	issuetracker issuetracker.IssueTracker
 }
 
 // New returns a new Frontend instance.
@@ -488,11 +485,6 @@ func (f *Frontend) initialize() {
 		f.chromeperfClient, err = chromeperf.NewChromePerfClient(ctx, "", true)
 		if err != nil {
 			sklog.Fatal("Failed to build chromeperf client: %s", err)
-		}
-
-		f.issuetracker, err = issuetracker.NewIssueTracker(ctx, &cfg.NotifyConfig)
-		if err != nil {
-			sklog.Fatal("Failed to build issuetracker client: %s", err)
 		}
 	}
 
@@ -955,7 +947,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
-		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),
+		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore),
 	}
 }
