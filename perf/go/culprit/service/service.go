@@ -133,5 +133,8 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 		}
 	}
 	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
+	if err != nil {
+		return nil, err
+	}
 	return &pb.NotifyUserOfAnomalyResponse{IssueId: issueId}, nil
 }
