@@ -3391,6 +3391,9 @@ func (s *Impl) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery
 		if end > len(testSummaries) {
 			end = len(testSummaries)
 		}
+		sort.Slice(testSummaries, func(i, j int) bool {
+			return strings.ToLower(testSummaries[i].Grouping["name"]) < strings.ToLower(testSummaries[j].Grouping["name"])
+		})
 		testSummaries = testSummaries[q.Offset:end]
 	}
 	return frontend.ListTestsResponse{Tests: testSummaries, Total: total}, nil

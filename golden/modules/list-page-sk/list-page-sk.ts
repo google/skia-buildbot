@@ -271,6 +271,7 @@ export class ListPageSk extends ElementSk {
   private currentCorpusChanged(e: CustomEvent<string>) {
     e.stopPropagation();
     this.currentCorpus = e.detail;
+    this.offset = 0;
     this.stateChanged();
     this._render();
     this.fetch();
@@ -279,6 +280,7 @@ export class ListPageSk extends ElementSk {
   private currentQueryChanged(e: CustomEvent<string>) {
     e.stopPropagation();
     this.currentQuery = e.detail;
+    this.offset = 0;
     this.stateChanged();
     this._render();
     this.fetch();
