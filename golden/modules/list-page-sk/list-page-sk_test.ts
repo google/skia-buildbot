@@ -1,7 +1,7 @@
 import './index';
 
 import fetchMock from 'fetch-mock';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { $, $$ } from '../../../infra-sk/modules/dom';
 import {
   eventPromise,
@@ -33,7 +33,7 @@ describe('list-page-sk', () => {
     });
 
     // These will get called on page load.
-    fetchMock.get('/json/v2/list?corpus=gm', sampleByTestList);
+    fetchMock.get('/json/v2/list?corpus=gm&page_size=50', sampleByTestList);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams = {
@@ -56,8 +56,7 @@ describe('list-page-sk', () => {
   });
 
   afterEach(() => {
-    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
-
+    assert.isTrue(fetchMock.done());
     // Completely remove the mocking which allows each test
     // to be able to mess with the mocked routes w/o impacting other tests.
     fetchMock.reset();
@@ -76,7 +75,7 @@ describe('list-page-sk', () => {
 
     it('does not have source_type (corpus) in the params', () => {
       // Field "paramset" is private, thus the cast to any. Is this test really necessary?
-      expect((listPageSk as any).paramset.source_type).to.be.undefined;
+      assert.equal((listPageSk as any).paramset.source_type, undefined);
     });
 
     const expectedSearchPageHref = (opts: {
@@ -179,7 +178,10 @@ describe('list-page-sk', () => {
     });
 
     it('updates the links based on toggle positions', async () => {
-      fetchMock.get('/json/v2/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
+      fetchMock.get(
+        '/json/v2/list?corpus=gm&include_ignored_traces=true&page_size=50',
+        sampleByTestList
+      );
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
 
@@ -265,14 +267,17 @@ describe('list-page-sk', () => {
 
   describe('RPC calls', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
-      fetchMock.get('/json/v2/list?corpus=gm&include_ignored_traces=true', sampleByTestList);
+      fetchMock.get(
+        '/json/v2/list?corpus=gm&include_ignored_traces=true&page_size=50',
+        sampleByTestList
+      );
 
       await clickDisregardIgnoreRulesCheckbox(listPageSk);
       expectQueryStringToEqual('?corpus=gm&disregard_ignores=true');
     });
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
-      fetchMock.get('/json/v2/list?corpus=corpus%20with%20spaces', sampleByTestList);
+      fetchMock.get('/json/v2/list?corpus=corpus%20with%20spaces&page_size=50', sampleByTestList);
 
       const event = eventPromise('end-task');
       await corpusSelectorSkPO.clickCorpus('corpus with spaces');
@@ -283,7 +288,9 @@ describe('list-page-sk', () => {
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
-        '/json/v2/list?' + 'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+        '/json/v2/list?' +
+          'corpus=gm&trace_values=alpha_type%3DOpaque%26arch%3Darm64' +
+          '&page_size=50',
         sampleByTestList
       );
 

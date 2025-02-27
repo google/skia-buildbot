@@ -6,6 +6,7 @@ package frontend
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"go.skia.org/infra/golden/go/validation"
@@ -307,6 +308,10 @@ type ListTestsQuery struct {
 	Corpus      string
 	TraceValues paramtools.ParamSet
 	IgnoreState types.IgnoreState
+
+	// Fields to support pagination on the List Tests page.
+	PageSize int
+	Offset   int
 }
 
 // ParseListTestsQuery returns a ListTestsQuery by parsing the given request or error if the
@@ -326,6 +331,26 @@ func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
 		ltq.IgnoreState = types.IncludeIgnoredTraces
 	} else {
 		ltq.IgnoreState = types.ExcludeIgnoredTraces
+	}
+
+	if r.FormValue("page_size") == "" {
+		ltq.PageSize = 50
+	} else {
+		pageSize, err := strconv.Atoi(r.FormValue("page_size"))
+		if err != nil {
+			return ListTestsQuery{}, err
+		}
+		ltq.PageSize = pageSize
+	}
+
+	if r.FormValue("offset") == "" {
+		ltq.Offset = 0
+	} else {
+		offset, err := strconv.Atoi(r.FormValue("offset"))
+		if err != nil {
+			return ListTestsQuery{}, err
+		}
+		ltq.Offset = offset
 	}
 
 	validate := validation.Validation{}
@@ -349,6 +374,7 @@ type TestSummary struct {
 // ListTestsResponse is the response for /json/v1/list.
 type ListTestsResponse struct {
 	Tests []TestSummary `json:"tests"`
+	Total int           `json:"total"`
 }
 
 // SearchResponse is the structure returned by the Search(...) function of SearchAPI and intended

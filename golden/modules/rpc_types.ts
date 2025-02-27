@@ -219,6 +219,7 @@ export interface TestSummary {
 
 export interface ListTestsResponse {
 	tests: TestSummary[] | null;
+	total: number;
 }
 
 export interface LeftDiffInfo {

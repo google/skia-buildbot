@@ -7461,6 +7461,7 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 				TotalDigests:     2,
 			},
 		},
+		Total: 2,
 	}, resp)
 
 	resp, err = s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -7480,6 +7481,7 @@ func TestCountDigestsByTest_AllAtHead_Success(t *testing.T) {
 				TotalDigests:     5,
 			},
 		},
+		Total: 1,
 	}, resp)
 }
 
@@ -7519,6 +7521,7 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 				TotalDigests:     2,
 			},
 		},
+		Total: 2,
 	}, resp)
 
 	resp, err = s.CountDigestsByTest(ctx, frontend.ListTestsQuery{
@@ -7541,6 +7544,7 @@ func TestCountDigestsByTest_WithIgnored_Success(t *testing.T) {
 				TotalDigests:     5,
 			},
 		},
+		Total: 1,
 	}, resp)
 }
 
@@ -7583,6 +7587,7 @@ func TestCountDigestsByTest_FilteredByParams_Success(t *testing.T) {
 				TotalDigests:     2,
 			},
 		},
+		Total: 2,
 	}, resp)
 }
 

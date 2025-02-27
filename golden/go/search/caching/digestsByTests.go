@@ -45,8 +45,8 @@ func (prov testDigestsProvider) SetPublicTraces(traces map[schema.MD5Hash]struct
 }
 
 // GetDataForCorpus returns the testDigests data for the given corpus.
-func (prov testDigestsProvider) GetDataForCorpus(ctx context.Context, corpus string) ([]frontend.TestSummary, error) {
-	summaries, err := prov.getDigestsByTestsFromDB(ctx, corpus, true)
+func (prov testDigestsProvider) GetDataForCorpus(ctx context.Context, corpus string, excludeIgnoredTraces bool, filterParamset paramtools.ParamSet) ([]frontend.TestSummary, error) {
+	summaries, err := prov.getDigestsByTestsFromDB(ctx, corpus, excludeIgnoredTraces, filterParamset)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (prov testDigestsProvider) GetCacheData(ctx context.Context, firstCommitId 
 
 	// For each of the corpora, execute the sql query and add the results to the map.
 	for _, corpus := range prov.corpora {
-		summaryForCorpus, err := prov.GetDataForCorpus(ctx, corpus)
+		summaryForCorpus, err := prov.GetDataForCorpus(ctx, corpus, true, nil)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -83,7 +83,7 @@ func (prov testDigestsProvider) GetCacheData(ctx context.Context, firstCommitId 
 }
 
 // getDigestsByTestsFromDB returns the testDigests data from the database.
-func (prov testDigestsProvider) getDigestsByTestsFromDB(ctx context.Context, corpus string, excludeIgnoredTraces bool) ([]*frontend.TestSummary, error) {
+func (prov testDigestsProvider) getDigestsByTestsFromDB(ctx context.Context, corpus string, excludeIgnoredTraces bool, filterParamset paramtools.ParamSet) ([]*frontend.TestSummary, error) {
 	ctx, span := trace.StartSpan(ctx, "getDigestsByTestsDB")
 	defer span.End()
 
@@ -96,7 +96,7 @@ OldestCommitInWindow AS (
 	SELECT commit_id, tile_id FROM CommitsInWindow
 	ORDER BY commit_id ASC LIMIT 1
 ),`
-	digestsStatement, digestsArgs, err := digestCountTracesStatement(corpus, excludeIgnoredTraces)
+	digestsStatement, digestsArgs, err := digestCountTracesStatement(corpus, excludeIgnoredTraces, filterParamset)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -208,7 +208,7 @@ func getTestSummariesFromSpanner(rows pgx.Rows) ([]*frontend.TestSummary, error)
 
 // digestCountTracesStatementForBatch returns a statement and arguments that will return all tests,
 // digests and their grouping ids. The results will be in a table called DigestsWithLabels.
-func digestCountTracesStatement(corpus string, excludeIgnoredTraces bool) (string, []interface{}, error) {
+func digestCountTracesStatement(corpus string, excludeIgnoredTraces bool, filterParamset paramtools.ParamSet) (string, []interface{}, error) {
 	arguments := []interface{}{corpus}
 	statement := `DigestsOfInterest AS (
 	SELECT DISTINCT keys->>'name' AS test_name, digest, grouping_id FROM ValuesAtHead
@@ -217,7 +217,17 @@ func digestCountTracesStatement(corpus string, excludeIgnoredTraces bool) (strin
 	if excludeIgnoredTraces {
 		statement += ` AND matches_any_ignore_rule = FALSE`
 	}
-
+	if len(filterParamset) > 0 {
+		jObj := map[string]string{}
+		for key, values := range filterParamset {
+			if len(values) != 1 {
+				return "", nil, skerr.Fmt("not implemented: we only support one value per key")
+			}
+			jObj[key] = values[0]
+		}
+		statement += ` AND keys @> $3`
+		arguments = append(arguments, jObj)
+	}
 	statement += "),"
 	return statement, arguments, nil
 }

@@ -3376,6 +3376,31 @@ func (s *Impl) CountDigestsByTest(ctx context.Context, q frontend.ListTestsQuery
 	ctx, span := trace.StartSpan(ctx, "countDigestsByTest")
 	defer span.End()
 
+	testSummaries, err := s.cacheManager.GetDigestsByTests(ctx, q.Corpus, q.IgnoreState == types.ExcludeIgnoredTraces, q.TraceValues)
+	if err != nil {
+		sklog.Errorf("Error retrieving digests by tests from cache: %v", err)
+		// Fall back to the non-cache version.
+		return s.countDigestsByTestDB(ctx, q)
+	}
+
+	total := len(testSummaries)
+	// Apply the pagination.
+	if q.PageSize > 0 && len(testSummaries) > q.PageSize {
+		end := q.Offset + q.PageSize
+		// Make sure we don't go beyond the end of the slice.
+		if end > len(testSummaries) {
+			end = len(testSummaries)
+		}
+		testSummaries = testSummaries[q.Offset:end]
+	}
+	return frontend.ListTestsResponse{Tests: testSummaries, Total: total}, nil
+}
+
+// countDigestsByTestDB returns the digests count by tests by performing a search on the database.
+func (s *Impl) countDigestsByTestDB(ctx context.Context, q frontend.ListTestsQuery) (frontend.ListTestsResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "countDigestsByTestDB")
+	defer span.End()
+
 	statement := `WITH
 CommitsInWindow AS (
 	SELECT commit_id, tile_id FROM CommitsWithData

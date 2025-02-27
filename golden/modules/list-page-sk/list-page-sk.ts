@@ -19,6 +19,7 @@ import { clusterPageHref, sendBeginTask, sendEndTask, sendFetchError } from '../
 import { defaultCorpus } from '../settings';
 
 import '../corpus-selector-sk';
+import '../pagination-sk';
 import '../query-dialog-sk';
 import '../sort-toggle-sk';
 import '../../../elements-sk/modules/checkbox-sk';
@@ -29,6 +30,7 @@ import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
 import { SortToggleSk } from '../sort-toggle-sk/sort-toggle-sk';
 import { SearchCriteria } from '../search-controls-sk/search-controls-sk';
 import { ListTestsResponse, ParamSet, TestSummary } from '../rpc_types';
+import { PaginationSkPageChangedEventDetail } from '../pagination-sk/pagination-sk';
 
 const searchQuery = (corpus: string, query: string): string => {
   if (!query) {
@@ -43,6 +45,18 @@ interface TestSummaryWithTestName extends TestSummary {
 }
 
 export class ListPageSk extends ElementSk {
+  private static paginationTemplate = (el: ListPageSk, cssClass: string) => {
+    return html`
+      <pagination-sk
+        class="${cssClass}"
+        offset="${el.offset || 0}"
+        page_size="${el.pageSize || 50}"
+        total="${el.totalResults}"
+        @page-changed=${el.onPageChange}>
+      </pagination-sk>
+    `;
+  };
+
   private static template = (ele: ListPageSk) => html`
     <div>
       <corpus-selector-sk
@@ -64,6 +78,7 @@ export class ListPageSk extends ElementSk {
       </div>
     </div>
 
+    ${ListPageSk.paginationTemplate(ele, 'top')}
     <!-- lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.-->
     <sort-toggle-sk id="sort_table" .data=${ele.byTestCounts} @sort-changed=${ele._render}>
       <table>
@@ -85,7 +100,7 @@ export class ListPageSk extends ElementSk {
         </tbody>
       </table>
     </sort-toggle-sk>
-
+    ${ListPageSk.paginationTemplate(ele, 'bottom')}
     <query-dialog-sk @edit=${ele.currentQueryChanged}></query-dialog-sk>
   `;
 
@@ -207,6 +222,12 @@ export class ListPageSk extends ElementSk {
 
   private disregardIgnoreRules = false;
 
+  private pageSize = 50;
+
+  private offset = 0;
+
+  private totalResults = 0;
+
   private byTestCounts: TestSummaryWithTestName[] = [];
 
   private readonly stateChanged: () => void;
@@ -223,6 +244,8 @@ export class ListPageSk extends ElementSk {
         disregard_ignores: this.disregardIgnoreRules,
         corpus: this.currentCorpus,
         query: this.currentQuery,
+        pageSize: this.pageSize,
+        offset: this.offset,
       }),
       /* setState */ (newState) => {
         if (!this._connected) {
@@ -232,6 +255,8 @@ export class ListPageSk extends ElementSk {
         this.disregardIgnoreRules = (newState.disregard_ignores as boolean) || false;
         this.currentCorpus = (newState.corpus as string) || defaultCorpus();
         this.currentQuery = (newState.query as string) || '';
+        this.pageSize = (newState.pageSize as number) || 50;
+        this.offset = (newState.offset as number) || 0;
         this.fetch();
         this._render();
       }
@@ -259,6 +284,13 @@ export class ListPageSk extends ElementSk {
     this.fetch();
   }
 
+  private onPageChange(e: CustomEvent<PaginationSkPageChangedEventDetail>) {
+    this.offset = Math.max(0, this.offset + e.detail.delta * this.pageSize);
+    this.stateChanged!();
+    this.fetch();
+    this._render();
+  }
+
   private fetch() {
     if (this.fetchController) {
       // Kill any outstanding requests
@@ -283,6 +315,13 @@ export class ListPageSk extends ElementSk {
     if (this.currentQuery) {
       url += `&trace_values=${encodeURIComponent(this.currentQuery)}`;
     }
+
+    if (this.pageSize > 0) {
+      url += `&page_size=${this.pageSize}`;
+    }
+    if (this.offset > 0) {
+      url += `&offset=${this.offset}`;
+    }
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((response: ListTestsResponse) => {
@@ -292,6 +331,8 @@ export class ListPageSk extends ElementSk {
               name: test.grouping.name,
             }))
           : [];
+        this.totalResults = response.total;
+        this.stateChanged();
         this._render();
         // By default, sort the data by name in ascending order (to match the direction set
         // above).

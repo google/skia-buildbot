@@ -246,7 +246,21 @@ func (s SearchCacheManager) SetDigestsForGrouping(ctx context.Context, groupingI
 }
 
 // GetDigestsByTests returns a list of summaries of digests by tests for the given corpus.
-func (s SearchCacheManager) GetDigestsByTests(ctx context.Context, corpus string) ([]frontend.TestSummary, error) {
+func (s SearchCacheManager) GetDigestsByTests(ctx context.Context, corpus string, excludeIgnoredTraces bool, filterParamset paramtools.ParamSet) ([]frontend.TestSummary, error) {
+	getSummariesFromDatabase := func() ([]frontend.TestSummary, error) {
+		testDigestsProvider := NewTestDigestsProvider(s.db, s.corpora, s.commitWindow)
+		testDigestsProvider.SetDatabaseType(s.dbType)
+		summaries, err := testDigestsProvider.GetDataForCorpus(ctx, corpus, excludeIgnoredTraces, filterParamset)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
+		return summaries, nil
+	}
+	if !excludeIgnoredTraces || len(filterParamset) > 0 {
+		// We do not cache ignored traces or filters, so let's get it from the db instead.
+		return getSummariesFromDatabase()
+	}
 	cacheKey := DigestsByTestKey(corpus)
 	jsonStr, err := s.cacheClient.GetValue(ctx, cacheKey)
 	if err != nil {
@@ -255,13 +269,8 @@ func (s SearchCacheManager) GetDigestsByTests(ctx context.Context, corpus string
 
 	// Cache miss.
 	if jsonStr == "" {
-		testDigestsProvider := NewTestDigestsProvider(s.db, s.corpora, s.commitWindow)
-		summaries, err := testDigestsProvider.GetDataForCorpus(ctx, corpus)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		return summaries, nil
+		sklog.Infof("No test digests for corpus %s found in cache. Using database search.", corpus)
+		return getSummariesFromDatabase()
 	}
 
 	var summaries []frontend.TestSummary

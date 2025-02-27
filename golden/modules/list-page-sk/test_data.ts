@@ -23,4 +23,5 @@ export const sampleByTestList: ListTestsResponse = {
       total_digests: 130,
     },
   ],
+  total: 2,
 };

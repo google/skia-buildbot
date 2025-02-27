@@ -17,6 +17,7 @@ sk_element(
         "//elements-sk/modules/checkbox-sk",
         "//elements-sk/modules/icons/group-work-icon-sk",
         "//elements-sk/modules/icons/tune-icon-sk",
+        "//golden/modules/pagination-sk",
     ],
     ts_deps = [
         "//golden/modules:common_ts_lib",
