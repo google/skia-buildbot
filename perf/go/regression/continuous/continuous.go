@@ -61,8 +61,9 @@ type Continuous struct {
 	instanceConfig *config.InstanceConfig
 	flags          *config.FrontendFlags
 
-	mutex   sync.Mutex // Protects current.
-	current *alerts.Alert
+	mutex             sync.Mutex // Protects current.
+	current           *alerts.Alert
+	regressionCounter metrics2.Counter
 }
 
 // New creates a new *Continuous.
@@ -82,18 +83,19 @@ func New(
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
 	return &Continuous{
-		perfGit:        perfGit,
-		store:          store,
-		provider:       provider,
-		notifier:       notifier,
-		shortcutStore:  shortcutStore,
-		current:        &alerts.Alert{},
-		paramsProvider: paramsProvider,
-		urlProvider:    urlProvider,
-		dfBuilder:      dfBuilder,
-		pollingDelay:   pollingClusteringDelay,
-		instanceConfig: instanceConfig,
-		flags:          flags,
+		perfGit:           perfGit,
+		store:             store,
+		provider:          provider,
+		notifier:          notifier,
+		shortcutStore:     shortcutStore,
+		current:           &alerts.Alert{},
+		paramsProvider:    paramsProvider,
+		urlProvider:       urlProvider,
+		dfBuilder:         dfBuilder,
+		pollingDelay:      pollingClusteringDelay,
+		instanceConfig:    instanceConfig,
+		flags:             flags,
+		regressionCounter: metrics2.GetCounter("continuous_regression_found"),
 	}
 }
 
@@ -161,6 +163,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						sklog.Infof("Regression is detected by SetLow: %s. IsNew: %s", regressionID, isNew)
 						isNewRegression = isNew
 						if isNew {
+							c.regressionCounter.Inc(1)
 							notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
 							if err != nil {
 								sklog.Errorf("Failed to send notification: %s", err)
@@ -192,6 +195,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *regression.Regr
 						sklog.Infof("Regression is detected by SetHigh: %s. IsNew: %s", regressionID, isNew)
 						isNewRegression = isNew
 						if isNew {
+							c.regressionCounter.Inc(1)
 							notificationID, err = c.notifier.RegressionFound(ctx, details, previousCommitDetails, cfg, cl, resp.Frame, regressionID)
 							if err != nil {
 								sklog.Errorf("Failed to send notification: %s", err)

@@ -3,6 +3,7 @@ package internal
 import (
 	"strings"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	culprit_proto "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -20,6 +21,7 @@ func ProcessCulpritWorkflow(ctx workflow.Context, input *workflows.ProcessCulpri
 	var err error
 	var csa CulpritServiceActivity
 
+	metrics2.GetCounter("anomalygroup_culprit_found").Inc(1)
 	commits, err := convertPinpointCommits(input.Commits)
 	if err != nil {
 		return nil, err

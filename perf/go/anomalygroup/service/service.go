@@ -8,6 +8,7 @@ import (
 
 	tpr_client "go.temporal.io/sdk/client"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -25,6 +26,7 @@ type anomalygroupService struct {
 	anomalygroupStore anomalygroup.Store
 	regressionStore   reg.Store
 	temporalClient    tpr_client.Client
+	newGroupCounter   metrics2.Counter
 }
 
 // New returns a new instance of anomalygroupService.
@@ -33,6 +35,7 @@ func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store, tempor
 		anomalygroupStore: anomalygroupStore,
 		regressionStore:   regressionStore,
 		temporalClient:    temporalClient,
+		newGroupCounter:   metrics2.GetCounter("anomalygroup_created"),
 	}
 }
 
@@ -71,6 +74,7 @@ func (s *anomalygroupService) CreateNewAnomalyGroup(
 		return nil, fmt.Errorf(
 			"error when calling CreateNewAnomalyGroup. Params: %s", req)
 	}
+	s.newGroupCounter.Inc(1)
 	return &ag.CreateNewAnomalyGroupResponse{
 		AnomalyGroupId: new_group_id,
 	}, nil

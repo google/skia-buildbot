@@ -35,6 +35,7 @@ go_test(
     srcs = ["continuous_test.go"],
     embed = [":continuous"],
     deps = [
+        "//go/metrics2",
         "//go/paramtools",
         "//go/testutils",
         "//perf/go/alerts",

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/alerts"
@@ -190,17 +191,18 @@ func createArgsForReportRegressions(t *testing.T) (*Continuous, *regression.Regr
 	cfg := &alerts.Alert{}
 
 	c := &Continuous{
-		perfGit:        pg,
-		shortcutStore:  ss,
-		store:          rs,
-		provider:       cp,
-		notifier:       n,
-		paramsProvider: pp,
-		dfBuilder:      dfb,
-		pollingDelay:   time.Microsecond,
-		instanceConfig: i,
-		flags:          f,
-		current:        &alerts.Alert{},
+		perfGit:           pg,
+		shortcutStore:     ss,
+		store:             rs,
+		provider:          cp,
+		notifier:          n,
+		paramsProvider:    pp,
+		dfBuilder:         dfb,
+		pollingDelay:      time.Microsecond,
+		instanceConfig:    i,
+		flags:             f,
+		current:           &alerts.Alert{},
+		regressionCounter: metrics2.GetCounter("continuous_regression_found"),
 	}
 
 	allMocks := allMocks{

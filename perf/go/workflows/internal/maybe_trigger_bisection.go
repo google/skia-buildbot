@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	ag_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	c_pb "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -120,6 +121,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}).Get(ctx, &updateAnomalyGroupResponse); err != nil {
 			return nil, skerr.Wrap(err)
 		}
+		metrics2.GetCounter("anomalygroup_bisected").Inc(1)
 		return &workflows.MaybeTriggerBisectionResult{
 			JobId: child_wf_id,
 		}, nil
@@ -154,6 +156,7 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 		}).Get(ctx, &notifyUserOfAnomalyResponse); err != nil {
 			return nil, err
 		}
+		metrics2.GetCounter("anomalygroup_reported").Inc(1)
 		return &workflows.MaybeTriggerBisectionResult{}, nil
 	}
 
