@@ -12,6 +12,21 @@ type TraceValuesSchema struct {
 	bySourceFileIndex struct{} `sql:"INDEX by_source_file_id (source_file_id, trace_id)"`
 }
 
+type TraceValues2Schema struct {
+	TraceID           []byte   `sql:"trace_id BYTES"`
+	CommitNumber      int64    `sql:"commit_number INT"`
+	Value             float32  `sql:"val REAL"`
+	SourceFileID      int64    `sql:"source_file_id INT"`
+	Benchmark         string   `sql:"benchmark STRING"`
+	Bot               string   `sql:"bot STRING"`
+	Test              string   `sql:"test STRING"`
+	Subtest_1         string   `sql:"subtest_1 STRING"`
+	Subtest_2         string   `sql:"subtest_2 STRING"`
+	Subtest_3         string   `sql:"subtest_3 STRING"`
+	primaryKey        struct{} `sql:"PRIMARY KEY (trace_id, commit_number)"`
+	bySourceFileIndex struct{} `sql:"INDEX by_trace_id_tv2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)"`
+}
+
 type SourceFilesSchema struct {
 	ID         int64    `sql:"source_file_id INT PRIMARY KEY DEFAULT unique_rowid()"`
 	SourceFile string   `sql:"source_file STRING UNIQUE NOT NULL"`

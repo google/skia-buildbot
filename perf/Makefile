@@ -10,7 +10,7 @@ generate_sql_schema:
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema.json
 
 generate_sql_schema_spanner:
-	cd ./go/sql; go run ./tosql
+	cd ./go/sql; go run ./tosql --schemaTarget spanner
 	go run ./go/sql/exportschema --out ./go/sql/expectedschema/schema_spanner.json --databaseType spanner
 
 run_cockroachdb_emulators:

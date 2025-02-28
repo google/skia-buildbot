@@ -133,6 +133,20 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   PRIMARY KEY (trace_id, commit_number),
   INDEX by_source_file_id (source_file_id, trace_id)
 );
+CREATE TABLE IF NOT EXISTS TraceValues2 (
+  trace_id BYTES,
+  commit_number INT,
+  val REAL,
+  source_file_id INT,
+  benchmark STRING,
+  bot STRING,
+  test STRING,
+  subtest_1 STRING,
+  subtest_2 STRING,
+  subtest_3 STRING,
+  PRIMARY KEY (trace_id, commit_number),
+  INDEX by_trace_id_tv2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)
+);
 CREATE TABLE IF NOT EXISTS UserIssues (
   user_id TEXT NOT NULL,
   trace_key TEXT NOT NULL,
@@ -272,6 +286,19 @@ var TraceValues = []string{
 	"commit_number",
 	"val",
 	"source_file_id",
+}
+
+var TraceValues2 = []string{
+	"trace_id",
+	"commit_number",
+	"val",
+	"source_file_id",
+	"benchmark",
+	"bot",
+	"test",
+	"subtest_1",
+	"subtest_2",
+	"subtest_3",
 }
 
 var UserIssues = []string{

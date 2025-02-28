@@ -36,5 +36,6 @@ type Tables struct {
 	SourceFiles     []traceschema.SourceFilesSchema
 	Subscriptions   []subscriptionschema.SubscriptionSchema
 	TraceValues     []traceschema.TraceValuesSchema
+	TraceValues2    []traceschema.TraceValues2Schema
 	UserIssues      []userissuesschema.UserIssueSchema
 }

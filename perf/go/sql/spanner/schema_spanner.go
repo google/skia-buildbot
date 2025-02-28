@@ -143,6 +143,20 @@ CREATE TABLE IF NOT EXISTS TraceValues (
   PRIMARY KEY (trace_id, commit_number),
   createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 ) TTL INTERVAL '1095 days' ON createdat;
+CREATE TABLE IF NOT EXISTS TraceValues2 (
+  trace_id BYTEA,
+  commit_number INT,
+  val REAL,
+  source_file_id INT,
+  benchmark TEXT,
+  bot TEXT,
+  test TEXT,
+  subtest_1 TEXT,
+  subtest_2 TEXT,
+  subtest_3 TEXT,
+  PRIMARY KEY (trace_id, commit_number),
+  createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS UserIssues (
   user_id TEXT NOT NULL,
   trace_key TEXT NOT NULL,
@@ -161,6 +175,7 @@ CREATE INDEX IF NOT EXISTS by_alert_id on Regressions2 (alert_id);
 CREATE INDEX IF NOT EXISTS by_commit_alert on Regressions2 (commit_number, alert_id);
 CREATE INDEX IF NOT EXISTS by_source_file on SourceFiles (source_file, source_file_id);
 CREATE INDEX IF NOT EXISTS by_source_file_id on TraceValues (source_file_id, trace_id);
+CREATE INDEX IF NOT EXISTS by_trace_id_tv2 on TraceValues2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3);
 `
 
 var Alerts = []string{
@@ -292,6 +307,19 @@ var TraceValues = []string{
 	"commit_number",
 	"val",
 	"source_file_id",
+}
+
+var TraceValues2 = []string{
+	"trace_id",
+	"commit_number",
+	"val",
+	"source_file_id",
+	"benchmark",
+	"bot",
+	"test",
+	"subtest_1",
+	"subtest_2",
+	"subtest_3",
 }
 
 var UserIssues = []string{
