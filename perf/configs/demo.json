@@ -15,7 +15,7 @@
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
-    "culprit_notify_config": {
+    "issue_tracker_config": {
         "notification_type": "none"
     },
     "data_store_config": {

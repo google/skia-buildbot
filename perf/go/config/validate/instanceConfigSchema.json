@@ -46,33 +46,6 @@
         "namespace"
       ]
     },
-    "CulpritNotifyConfig": {
-      "properties": {
-        "notification_type": {
-          "type": "string"
-        },
-        "issue_tracker_api_key_secret_project": {
-          "type": "string"
-        },
-        "issue_tracker_api_key_secret_name": {
-          "type": "string"
-        },
-        "culprit_subject": {
-          "type": "string"
-        },
-        "culprit_body": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "notification_type"
-      ]
-    },
     "DataPointConfig": {
       "properties": {
         "keys_for_commit_range": {
@@ -320,8 +293,8 @@
         "notify_config": {
           "$ref": "#/$defs/NotifyConfig"
         },
-        "culprit_notify_config": {
-          "$ref": "#/$defs/CulpritNotifyConfig"
+        "issue_tracker_config": {
+          "$ref": "#/$defs/IssueTrackerConfig"
         },
         "anomaly_config": {
           "$ref": "#/$defs/AnomalyConfig"
@@ -357,6 +330,33 @@
         "ingestion_config",
         "git_repo_config",
         "notify_config"
+      ]
+    },
+    "IssueTrackerConfig": {
+      "properties": {
+        "notification_type": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_project": {
+          "type": "string"
+        },
+        "issue_tracker_api_key_secret_name": {
+          "type": "string"
+        },
+        "culprit_subject": {
+          "type": "string"
+        },
+        "culprit_body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "notification_type"
       ]
     },
     "NotifyConfig": {

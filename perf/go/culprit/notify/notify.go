@@ -31,18 +31,18 @@ type DefaultCulpritNotifier struct {
 
 // newNotifier returns a newNotifier Notifier.
 func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitURLTemplate string) (CulpritNotifier, error) {
-	switch cfg.CulpritNotifyConfig.NotificationType {
+	switch cfg.IssueTrackerConfig.NotificationType {
 	case types.NoneNotify:
 		return &DefaultCulpritNotifier{
 			formatter: formatter.NewNoopFormatter(),
 			transport: transport.NewNoopTransport(),
 		}, nil
 	case types.IssueNotify:
-		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.CulpritNotifyConfig)
+		transport, err := transport.NewIssueTrackerTransport(ctx, &cfg.IssueTrackerConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, &cfg.CulpritNotifyConfig)
+		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, &cfg.IssueTrackerConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -51,7 +51,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 			transport: transport,
 		}, nil
 	default:
-		return nil, skerr.Fmt("Unsupported Notifier type: %s", cfg.CulpritNotifyConfig.NotificationType)
+		return nil, skerr.Fmt("Unsupported Notifier type: %s", cfg.IssueTrackerConfig.NotificationType)
 	}
 }
 

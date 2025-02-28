@@ -77,18 +77,18 @@ func TestInstanceConfigValidate_MarkdownIssueTrackerButAPIKeySecretNameNotSet_Re
 	require.Contains(t, Validate(i).Error(), "issue_tracker_api_key_secret_name must be supplied")
 }
 
-func TestInstanceConfigValidate_CulpritNotify_MarkdownIssueTrackerButAPIKeySecretProjectNotSet_ReturnsError(t *testing.T) {
+func TestInstanceConfigValidate_IssueTrackerConfig_MarkdownIssueTrackerButAPIKeySecretProjectNotSet_ReturnsError(t *testing.T) {
 	i := config.InstanceConfig{
-		CulpritNotifyConfig: config.CulpritNotifyConfig{
+		IssueTrackerConfig: config.IssueTrackerConfig{
 			NotificationType: types.IssueNotify,
 		},
 	}
 	require.Contains(t, Validate(i).Error(), "issue_tracker_api_key_secret_project must be supplied")
 }
 
-func TestInstanceConfigValidate_CulpritNotify_MarkdownIssueTrackerButAPIKeySecretNameNotSet_ReturnsError(t *testing.T) {
+func TestInstanceConfigValidate_IssueTrackerConfig_MarkdownIssueTrackerButAPIKeySecretNameNotSet_ReturnsError(t *testing.T) {
 	i := config.InstanceConfig{
-		CulpritNotifyConfig: config.CulpritNotifyConfig{
+		IssueTrackerConfig: config.IssueTrackerConfig{
 			NotificationType:                types.IssueNotify,
 			IssueTrackerAPIKeySecretProject: "skia-public",
 		},

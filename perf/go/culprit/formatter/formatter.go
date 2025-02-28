@@ -49,7 +49,7 @@ func buildCommitURL(url, commit string) string {
 }
 
 // NewMarkdownFormatter return a new MarkdownFormatter.
-func NewMarkdownFormatter(commitURLTemplate string, notifyConfig *config.CulpritNotifyConfig) (*MarkdownFormatter, error) {
+func NewMarkdownFormatter(commitURLTemplate string, notifyConfig *config.IssueTrackerConfig) (*MarkdownFormatter, error) {
 	culpritSubject := notifyConfig.CulpritSubject
 	if culpritSubject == "" {
 		culpritSubject = defaultNewCulpritSubject

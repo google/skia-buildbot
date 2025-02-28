@@ -28,7 +28,7 @@
     "notify_config": {
         "notifications": "html_email"
     },
-    "culprit_notify_config": {
+    "issue_tracker_config": {
         "notification_type": "none"
     },
     "git_repo_config": {

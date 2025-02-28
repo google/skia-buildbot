@@ -14,7 +14,7 @@
             "This in not a valid template reference: {{ .FOO }}"
         ]
     },
-    "culprit_notify_config": {
+    "issue_tracker_config": {
         "notification_type": "none"
     },
     "auth_config": {

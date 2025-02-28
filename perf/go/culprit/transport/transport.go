@@ -32,7 +32,7 @@ type IssueTrackerTransport struct {
 }
 
 // NewIssueTrackerTransport returns a new IssueTrackerTransport.
-func NewIssueTrackerTransport(ctx context.Context, cfg *config.CulpritNotifyConfig) (*IssueTrackerTransport, error) {
+func NewIssueTrackerTransport(ctx context.Context, cfg *config.IssueTrackerConfig) (*IssueTrackerTransport, error) {
 	secretClient, err := secret.NewClient(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating secret client")

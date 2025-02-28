@@ -92,7 +92,7 @@ type NotifyConfig struct {
 }
 
 // NotifyConfig controls how notifications are sent, and their format.
-type CulpritNotifyConfig struct {
+type IssueTrackerConfig struct {
 	// NotificationType chooses how notifications are sent when a regression is found.
 	NotificationType types.AnomalyDetectionNotifyType `json:"notification_type"`
 
@@ -949,16 +949,16 @@ type InstanceConfig struct {
 
 	UseRegression2 bool `json:"use_regression2_schema,omitempty"`
 
-	AuthConfig          AuthConfig          `json:"auth_config,omitempty"`
-	DataStoreConfig     DataStoreConfig     `json:"data_store_config"`
-	IngestionConfig     IngestionConfig     `json:"ingestion_config"`
-	GitRepoConfig       GitRepoConfig       `json:"git_repo_config"`
-	NotifyConfig        NotifyConfig        `json:"notify_config"`
-	CulpritNotifyConfig CulpritNotifyConfig `json:"culprit_notify_config,omitempty"`
-	AnomalyConfig       AnomalyConfig       `json:"anomaly_config,omitempty"`
-	QueryConfig         QueryConfig         `json:"query_config,omitempty"`
-	TemporalConfig      TemporalConfig      `json:"temporal_config,omitempty"`
-	DataPointConfig     DataPointConfig     `json:"data_point_config,omitempty"`
+	AuthConfig         AuthConfig         `json:"auth_config,omitempty"`
+	DataStoreConfig    DataStoreConfig    `json:"data_store_config"`
+	IngestionConfig    IngestionConfig    `json:"ingestion_config"`
+	GitRepoConfig      GitRepoConfig      `json:"git_repo_config"`
+	NotifyConfig       NotifyConfig       `json:"notify_config"`
+	IssueTrackerConfig IssueTrackerConfig `json:"issue_tracker_config,omitempty"`
+	AnomalyConfig      AnomalyConfig      `json:"anomaly_config,omitempty"`
+	QueryConfig        QueryConfig        `json:"query_config,omitempty"`
+	TemporalConfig     TemporalConfig     `json:"temporal_config,omitempty"`
+	DataPointConfig    DataPointConfig    `json:"data_point_config,omitempty"`
 
 	EnableSheriffConfig bool `json:"enable_sheriff_config,omitempty"`
 
