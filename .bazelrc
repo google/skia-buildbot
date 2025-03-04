@@ -35,11 +35,15 @@ build --test_env=COCKROACHDB_EMULATOR_HOST
 build --test_env=DATASTORE_EMULATOR_HOST
 build --test_env=FIRESTORE_EMULATOR_HOST
 build --test_env=PUBSUB_EMULATOR_HOST
+build --test_env=SPANNER_EMULATOR_HOST
+build --test_env=PGADAPTER_HOST
 build:remote --test_env=BIGTABLE_EMULATOR_HOST=
 build:remote --test_env=COCKROACHDB_EMULATOR_HOST=
 build:remote --test_env=DATASTORE_EMULATOR_HOST=
 build:remote --test_env=FIRESTORE_EMULATOR_HOST=
 build:remote --test_env=PUBSUB_EMULATOR_HOST=
+build:remote --test_env=SPANNER_EMULATOR_HOST=
+build:remote --test_env=PGADAPTER_HOST=
 
 # Pipe through GOOGLE_APPLICATION_CREDENTIALS for local tests. This breaks test hermeticity, so use
 # judiciously. Most tests that depend on this variable should probably tagged with "no-remote".

@@ -607,6 +607,22 @@ filegroup(
     ),
 )
 
+##################################################
+# PGAdaptor #
+##################################################
+http_archive(
+    name = "pgadapter",
+    build_file_content = """
+filegroup(
+    name = "all_files",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"]
+)
+""",
+    sha256 = "415326bb52f31c206540becb9f694df7db34533c2f94797ddca8f69507c092d4",
+    urls = ["https://storage.googleapis.com/pgadapter-jar-releases/pgadapter.tar.gz"],
+)
+
 #################################################################################
 # Google Chrome and Fonts (needed for Karma and Puppeteer tests, respectively). #
 #################################################################################

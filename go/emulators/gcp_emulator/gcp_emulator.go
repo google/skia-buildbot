@@ -31,6 +31,10 @@ func RequirePubSub(t sktest.TestingT) {
 	emulators.RequireEmulator(t, emulators.PubSub, startPubSubEmulatorIfNotRunning)
 }
 
+func RequireSpanner(t sktest.TestingT) {
+	emulators.RequireEmulator(t, emulators.Spanner, startSpannerEmulatorIfNotRunning)
+}
+
 var (
 	isRunning      = map[string]bool{}
 	isRunningMutex sync.Mutex
@@ -103,6 +107,24 @@ func startPubSubEmulatorIfNotRunning() (bool, error) {
 	return true, nil
 }
 
+// startSpannerEmulatorIfNotRunning starts the spanner emulator if not running.
+func startSpannerEmulatorIfNotRunning() (bool, error) {
+	const emulator = "spanner"
+	isRunningMutex.Lock()
+	defer isRunningMutex.Unlock()
+	if isRunning[emulator] {
+		return false, nil
+	}
+	err := runGCloudCmd("emulators", emulator, "start",
+		fmt.Sprintf("--host-port=localhost:%d", emulators.SpannerPort),
+		"--project=test-project")
+	if err != nil {
+		return false, skerr.Wrapf(err, "Starting spanner emulator")
+	}
+	isRunning[emulator] = true
+	return true, nil
+}
+
 func runGCloudCmd(args ...string) error {
 	gcloud, err := google_cloud_sdk.FindGcloud()
 	if err != nil {
@@ -145,6 +167,9 @@ func StartAllIfNotRunning() error {
 		return skerr.Wrap(err)
 	}
 	if _, err := startPubSubEmulatorIfNotRunning(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, err := startSpannerEmulatorIfNotRunning(); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil

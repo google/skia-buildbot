@@ -15,12 +15,12 @@ def _google_cloud_sdk_impl(repository_ctx):
     hash = ""
     if repository_ctx.os.name.lower().startswith("linux"):
         if arch == "amd64":
-            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-linux-x86_64.tar.gz"
-            hash = "afadfe261e8df24fda780db6fd9be6929df25cf99fd718384eaa7128206349a0"
+            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-512.0.0-linux-x86_64.tar.gz"
+            hash = "59dab282f72e00b05d8ae47232fdf46765ad6e699cfc70c0a87596e7524dbe68"
     elif repository_ctx.os.name == "mac os x":
         if arch in ("amd64", "x86_64", "aarch64"):
-            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-386.0.0-darwin-x86_64.tar.gz"
-            hash = "253c315a7d16a91692d24d365791d20b8264c055b5478300ce6a6ff237ef2ef8"
+            url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-512.0.0-darwin-x86_64.tar.gz"
+            hash = "ddf294b7190954803179a5e492a068b50384a4387ddb4f47acd2bc81e0bbf04d"
 
     if not url:
         # Support for other platforms can be added as needed.
@@ -59,6 +59,10 @@ filegroup(
             "**/.backup/**",
             "**/*.pyc",
             "**/*__pycache__",
+            "**/platform/gsutil/**",
+            "**/surface/ai/**",
+            "**/surface/compute/**",
+            "**/surface/container/**"
         ],
     ),
     visibility = ["//visibility:public"],
@@ -77,6 +81,7 @@ filegroup(
             "bigtable",
             "cloud-datastore-emulator",
             "pubsub-emulator",
+            "cloud-spanner-emulator",
         ],
         quiet = repository_ctx.attr.quiet,
     )

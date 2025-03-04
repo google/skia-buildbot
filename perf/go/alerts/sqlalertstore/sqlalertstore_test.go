@@ -16,8 +16,8 @@ import (
 )
 
 func setUp(t *testing.T) (alerts.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "alertstore")
-	store, err := New(db, config.CockroachDBDataStoreType)
+	db := sqltest.NewSpannerDBForTests(t, "alertstore")
+	store, err := New(db, config.SpannerDataStoreType)
 	require.NoError(t, err)
 
 	return store, db
@@ -412,7 +412,7 @@ func insertAlertToDb(t *testing.T, ctx context.Context, db pool.Pool, cfg *alert
 		revisionOrNull.String = subKey.SubRevision
 		revisionOrNull.Valid = true
 	}
-	const query = `UPSERT INTO Alerts
+	const query = `INSERT INTO Alerts
         (id, alert, config_state, last_modified, sub_name, sub_revision)
         VALUES ($1,$2,$3,$4,$5,$6)`
 	if _, err := db.Exec(ctx, query, cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), time.Now().Unix(), nameOrNull, revisionOrNull); err != nil {

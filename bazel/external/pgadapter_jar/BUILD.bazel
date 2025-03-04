@@ -1,0 +1,10 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "pgadapter_jar",
+    srcs = ["pgadapter.go"],
+    data = ["@pgadapter//:all_files"],
+    importpath = "go.skia.org/infra/bazel/external/pgadapter_jar",
+    visibility = ["//visibility:public"],
+    deps = ["//bazel/go/bazel"],
+)

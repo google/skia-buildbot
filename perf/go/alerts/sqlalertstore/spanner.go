@@ -52,4 +52,13 @@ var spannerStatements = map[statement]string{
 		FROM
 			ALERTS
 		`,
+	listForSub: `
+			SELECT
+				id, alert
+			FROM
+				ALERTS
+			WHERE
+				config_state=0
+				AND sub_name=$1
+			`,
 }

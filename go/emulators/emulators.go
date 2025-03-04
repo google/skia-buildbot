@@ -50,9 +50,17 @@ const (
 	PubSub       = Emulator("PubSub")
 	PubSubEnvVar = "PUBSUB_EMULATOR_HOST"
 	PubSubPort   = 8893
+
+	Spanner       = Emulator("Spanner")
+	SpannerEnvVar = "SPANNER_EMULATOR_HOST"
+	SpannerPort   = 8896
+
+	PGAdapter       = Emulator("PGAdapter")
+	PGAdapterEnvVar = "PGADAPTER_HOST"
+	PGAdapterPort   = 8897
 )
 
-var AllEmulators = []Emulator{BigTable, CockroachDB, Datastore, Firestore, PubSub}
+var AllEmulators = []Emulator{BigTable, CockroachDB, Datastore, Firestore, PubSub, Spanner, PGAdapter}
 
 // GetEmulatorHostEnvVar returns the contents of the *_EMULATOR_HOST environment variable
 // corresponding to the given emulator, or the empty string if the environment variable is unset.
@@ -74,6 +82,10 @@ func GetEmulatorHostEnvVarName(emulator Emulator) string {
 		return FirestoreEnvVar
 	case PubSub:
 		return PubSubEnvVar
+	case Spanner:
+		return SpannerEnvVar
+	case PGAdapter:
+		return PGAdapterEnvVar
 	default:
 		panic("Unknown emulator " + emulator)
 	}
@@ -93,6 +105,10 @@ func setEmulatorHostEnvVar(emulator Emulator) error {
 		port = FirestorePort
 	case PubSub:
 		port = PubSubPort
+	case Spanner:
+		port = SpannerPort
+	case PGAdapter:
+		port = PGAdapterPort
 	default:
 		panic("Unknown emulator " + emulator)
 	}
