@@ -209,6 +209,9 @@
         },
         "secondary_gcs_path": {
           "type": "string"
+        },
+        "tracevalues_table_inline_params": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,

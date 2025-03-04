@@ -281,6 +281,10 @@ type IngestionConfig struct {
 	// A secondary ingestion service needs to be set up to ingest data from this
 	// bucket as we don't want to add load to the main ingestion service.
 	SecondaryGCSPath string `json:"secondary_gcs_path,omitempty"`
+
+	// Should param values be inlined into the TraceValues table, on column per param?
+	// Turning this on is experimental, leave off by default.
+	TraceValuesTableInlineParams bool `json:"tracevalues_table_inline_params,omitempty"`
 }
 
 // GitAuthType is the type of authentication Git should use, if any.

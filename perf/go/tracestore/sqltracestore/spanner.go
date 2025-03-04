@@ -19,6 +19,21 @@ var spannerTemplates = map[statement]string{
         ON CONFLICT (trace_id, commit_number) DO UPDATE
         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id
         `,
+	insertIntoTraceValues2: `INSERT INTO
+            TraceValues2 (trace_id, commit_number, val, source_file_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)
+        VALUES
+        {{ range $index, $element :=  . -}}
+            {{ if $index }},{{end}}
+            (
+                '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }},
+				'{{ $element.Benchmark }}', '{{ $element.Bot }}', '{{ $element.Test }}', '{{ $element.Subtest_1 }}',
+				'{{ $element.Subtest_2 }}', '{{ $element.Subtest_3 }}'
+            )
+        {{ end }}
+         ON CONFLICT (trace_id, commit_number) DO UPDATE
+         SET trace_id=EXCLUDED.trace_id, commit_number=EXCLUDED.commit_number, val=EXCLUDED.val, source_file_id=EXCLUDED.source_file_id,
+            benchmark=EXCLUDED.benchmark, bot=EXCLUDED.bot, test=EXCLUDED.test, subtest_1=EXCLUDED.subtest_1, subtest_2=EXCLUDED.subtest_2, subtest_3=EXCLUDED.subtest_3
+        `,
 	convertTraceIDs: `
         {{ $tileNumber := .TileNumber }}
         SELECT
