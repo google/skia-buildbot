@@ -311,6 +311,12 @@
         "enable_sheriff_config": {
           "type": "boolean"
         },
+        "sheriff_configs_to_notify": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "ga_measurement_id": {
           "type": "string"
         },

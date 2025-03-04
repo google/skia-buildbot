@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	anomalygroup_mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	a_pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	"go.skia.org/infra/perf/go/config"
 	culprit_mocks "go.skia.org/infra/perf/go/culprit/mocks"
 	notify_mocks "go.skia.org/infra/perf/go/culprit/notify/mocks"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -15,17 +16,17 @@ import (
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
 )
 
-func setUp(_ *testing.T) (*culpritService, *anomalygroup_mocks.Store, *culprit_mocks.Store, *subscription_mocks.Store, *notify_mocks.CulpritNotifier) {
+func setUp(_ *testing.T, testConfig *config.InstanceConfig) (*culpritService, *anomalygroup_mocks.Store, *culprit_mocks.Store, *subscription_mocks.Store, *notify_mocks.CulpritNotifier) {
 	anomalygroupStore := new(anomalygroup_mocks.Store)
 	culpritStore := new(culprit_mocks.Store)
 	subscriptionStore := new(subscription_mocks.Store)
 	notifier := new(notify_mocks.CulpritNotifier)
-	service := New(anomalygroupStore, culpritStore, subscriptionStore, notifier)
+	service := New(anomalygroupStore, culpritStore, subscriptionStore, notifier, testConfig)
 	return service, anomalygroupStore, culpritStore, subscriptionStore, notifier
 }
 
 func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
-	c, _, culpritStore, _, _ := setUp(t)
+	c, _, culpritStore, _, _ := setUp(t, nil)
 	ctx := context.Background()
 	req := &pb.GetCulpritRequest{
 		CulpritIds: []string{"cid"},
@@ -40,7 +41,7 @@ func TestGetCulprit_ValidInput_ShouldInvokeStoreGet(t *testing.T) {
 }
 
 func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
-	c, anomalygroupStore, culpritStore, _, _ := setUp(t)
+	c, anomalygroupStore, culpritStore, _, _ := setUp(t, nil)
 	ctx := context.Background()
 	commits := []*pb.Commit{{
 		Host:     "chromium.googlesource.com",
@@ -70,7 +71,7 @@ func TestPersistCulprit_ValidInput_ShouldInvokeStoreUpsert(t *testing.T) {
 }
 
 func TestNotifyUserOfCulprit_ValidInput_ShouldInvokeNotifier(t *testing.T) {
-	c, anomalygroup, culpritStore, subscriptionStore, notifier := setUp(t)
+	c, anomalygroup, culpritStore, subscriptionStore, notifier := setUp(t, nil)
 	ctx := context.Background()
 	cids := []string{"culprit_id1"}
 	stored_culprits := []*pb.Culprit{{
@@ -104,4 +105,168 @@ func TestNotifyUserOfCulprit_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, resp, &pb.NotifyUserOfCulpritResponse{IssueIds: []string{"issue_id1"}})
+}
+
+func TestNotifyUserOfAnomaly_ValidInput_ShouldInvokeNotifier(t *testing.T) {
+	c, anomalygroup, _, subscriptionStore, notifier := setUp(t, nil)
+	ctx := context.Background()
+
+	subscriptionName := "s_name"
+	subscriptionRevision := "s_version"
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
+		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	subscription := &sub_pb.Subscription{BugComponent: "123"}
+	subscriptionStore.On("GetSubscription", mock.Anything,
+		subscriptionName, subscriptionRevision).Return(subscription, nil)
+	issueId := "issue_id1"
+	anomalies := []*pb.Anomaly{
+		{
+			StartCommit: 123,
+			EndCommit:   678,
+			Paramset: map[string]string{
+				"benchmark": "b",
+			},
+		},
+	}
+	notifier.On("NotifyAnomaliesFound", mock.Anything,
+		anomalies, subscription).Return(issueId, nil)
+	req := &pb.NotifyUserOfAnomalyRequest{
+		AnomalyGroupId: "aid1",
+		Anomaly:        anomalies,
+	}
+	resp, err := c.NotifyUserOfAnomaly(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp, &pb.NotifyUserOfAnomalyResponse{IssueId: "issue_id1"})
+}
+
+func TestNotifyUserOfAnomaly_WithConfig_ValidInput_NotifyByConfig(t *testing.T) {
+	cfg := &config.InstanceConfig{
+		SheriffConfigsToNotify: []string{"s_name"},
+	}
+	c, anomalygroup, _, subscriptionStore, notifier := setUp(t, cfg)
+	ctx := context.Background()
+
+	subscriptionName := "s_name"
+	subscriptionRevision := "s_version"
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
+		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	subscription := &sub_pb.Subscription{BugComponent: "123"}
+	subscriptionStore.On("GetSubscription", mock.Anything,
+		subscriptionName, subscriptionRevision).Return(subscription, nil)
+	issueId := "issue_id1"
+	anomalies := []*pb.Anomaly{
+		{
+			StartCommit: 123,
+			EndCommit:   678,
+			Paramset: map[string]string{
+				"benchmark": "b",
+			},
+		},
+	}
+	notifier.On("NotifyAnomaliesFound", mock.Anything,
+		anomalies, subscription).Return(issueId, nil)
+	req := &pb.NotifyUserOfAnomalyRequest{
+		AnomalyGroupId: "aid1",
+		Anomaly:        anomalies,
+	}
+	resp, err := c.NotifyUserOfAnomaly(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp, &pb.NotifyUserOfAnomalyResponse{IssueId: "issue_id1"})
+}
+
+func TestNotifyUserOfAnomaly_WithConfig_NoSub_NotNotify(t *testing.T) {
+	cfg := &config.InstanceConfig{
+		SheriffConfigsToNotify: []string{"s_name"},
+	}
+	c, anomalygroup, _, subscriptionStore, notifier := setUp(t, cfg)
+	ctx := context.Background()
+
+	subscriptionName := "s_name"
+	subscriptionRevision := "s_version"
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
+		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	fakeSubscription := &sub_pb.Subscription{
+		Name:         "Mocked Sub For Anomaly - Report",
+		Revision:     "Mocked Revision - Report",
+		BugLabels:    []string{"Mocked Sub Label"},
+		Hotlists:     []string{"5141966"},
+		BugComponent: "1325852",
+		BugPriority:  2,
+		BugSeverity:  3,
+		BugCcEmails:  []string{"wenbinzhang@google.com"},
+		ContactEmail: "wenbinzhang@google.com",
+	}
+	subscriptionStore.On("GetSubscription", mock.Anything,
+		subscriptionName, subscriptionRevision).Return(nil, nil)
+	issueId := "issue_id1"
+	anomalies := []*pb.Anomaly{
+		{
+			StartCommit: 123,
+			EndCommit:   678,
+			Paramset: map[string]string{
+				"benchmark": "b",
+			},
+		},
+	}
+	notifier.On("NotifyAnomaliesFound", mock.Anything,
+		anomalies, fakeSubscription).Return(issueId, nil)
+	req := &pb.NotifyUserOfAnomalyRequest{
+		AnomalyGroupId: "aid1",
+		Anomaly:        anomalies,
+	}
+	resp, err := c.NotifyUserOfAnomaly(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp, &pb.NotifyUserOfAnomalyResponse{IssueId: "issue_id1"})
+}
+
+func TestNotifyUserOfAnomaly_WithConfig_NotAllowedSub_NotNotify(t *testing.T) {
+	cfg := &config.InstanceConfig{
+		SheriffConfigsToNotify: []string{"s_name_x"},
+	}
+	c, anomalygroup, _, subscriptionStore, notifier := setUp(t, cfg)
+	ctx := context.Background()
+
+	subscriptionName := "s_name"
+	subscriptionRevision := "s_version"
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
+		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	subscription := &sub_pb.Subscription{
+		Name:         "Original Sub For Anomaly - Report", // Used
+		Revision:     "Original Revision - Report",        //Used
+		BugComponent: "123",                               //Not used
+	}
+	fakeSubscription := &sub_pb.Subscription{
+		Name:         "Original Sub For Anomaly - Report",
+		Revision:     "Original Revision - Report",
+		BugLabels:    []string{"Mocked Sub Label - overwrite"},
+		Hotlists:     []string{"5141966"},
+		BugComponent: "1325852",
+		BugCcEmails:  []string{"wenbinzhang@google.com"},
+		ContactEmail: "wenbinzhang@google.com",
+	}
+	subscriptionStore.On("GetSubscription", mock.Anything,
+		subscriptionName, subscriptionRevision).Return(subscription, nil)
+	issueId := "issue_id1"
+	anomalies := []*pb.Anomaly{
+		{
+			StartCommit: 123,
+			EndCommit:   678,
+			Paramset: map[string]string{
+				"benchmark": "b",
+			},
+		},
+	}
+	notifier.On("NotifyAnomaliesFound", mock.Anything,
+		anomalies, fakeSubscription).Return(issueId, nil)
+	req := &pb.NotifyUserOfAnomalyRequest{
+		AnomalyGroupId: "aid1",
+		Anomaly:        anomalies,
+	}
+	resp, err := c.NotifyUserOfAnomaly(ctx, req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp, &pb.NotifyUserOfAnomalyResponse{IssueId: "issue_id1"})
 }

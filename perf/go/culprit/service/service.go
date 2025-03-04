@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"slices"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalygroup"
+	v1 "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/backend/shared"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit"
 	"go.skia.org/infra/perf/go/culprit/notify"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -21,16 +24,18 @@ type culpritService struct {
 	culpritStore      culprit.Store
 	subscriptionStore subscription.Store
 	notifier          notify.CulpritNotifier
+	config            *config.InstanceConfig
 }
 
 // New returns a new instance of culpritService.
 func New(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store, subscriptionStore subscription.Store,
-	notifier notify.CulpritNotifier) *culpritService {
+	notifier notify.CulpritNotifier, cfg *config.InstanceConfig) *culpritService {
 	return &culpritService{
 		anomalygroupStore: anomalygroupStore,
 		culpritStore:      culpritStore,
 		subscriptionStore: subscriptionStore,
 		notifier:          notifier,
+		config:            cfg,
 	}
 }
 
@@ -117,24 +122,42 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 	if err != nil {
 		return nil, err
 	}
-	// mock subscription before real data is populated.
-	if subscription == nil {
-		sklog.Debugf("Cannot load subscription. Using mock. Name: %s, Revision: %s", anomalygroup.SubsciptionName, anomalygroup.SubscriptionRevision)
-		subscription = &sub_pb.Subscription{
+	// mock subscription before the sheriff config is ready for production.
+	subscription = PrepareSubscription(subscription, anomalygroup, s.config)
+
+	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.NotifyUserOfAnomalyResponse{IssueId: issueId}, nil
+}
+
+// Temporary helper to make up a subscription or certain fields for testing purposes.
+func PrepareSubscription(sub *sub_pb.Subscription, ag *v1.AnomalyGroup, config *config.InstanceConfig) *sub_pb.Subscription {
+	if sub == nil {
+		// If no subscription is loaded, use a fake subscirption.
+		sklog.Debugf("Cannot load subscription. Using mock. Name: %s, Revision: %s", ag.SubsciptionName, ag.SubscriptionRevision)
+		sub = &sub_pb.Subscription{
 			Name:         "Mocked Sub For Anomaly - Report",
 			Revision:     "Mocked Revision - Report",
 			BugLabels:    []string{"Mocked Sub Label"},
-			Hotlists:     []string{},
+			Hotlists:     []string{"5141966"},
 			BugComponent: "1325852",
 			BugPriority:  2,
 			BugSeverity:  3,
 			BugCcEmails:  []string{"wenbinzhang@google.com"},
 			ContactEmail: "wenbinzhang@google.com",
 		}
+	} else if config != nil && !slices.Contains(config.SheriffConfigsToNotify, sub.Name) {
+		// If a subscription is loaded, but it is not in the allowlist, update the fields to avoid notifing end users.
+		sklog.Debugf("Loaded subscription. Overwriting it. Name: %s, Revision: %s", sub.Name, sub.Revision)
+		sub.BugLabels = []string{"Mocked Sub Label - overwrite"}
+		sub.Hotlists = []string{"5141966"}
+		sub.BugComponent = "1325852"
+		sub.BugCcEmails = []string{"wenbinzhang@google.com"}
+		sub.ContactEmail = "wenbinzhang@google.com"
+
 	}
-	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.NotifyUserOfAnomalyResponse{IssueId: issueId}, nil
+
+	return sub
 }

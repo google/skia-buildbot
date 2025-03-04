@@ -960,7 +960,8 @@ type InstanceConfig struct {
 	TemporalConfig     TemporalConfig     `json:"temporal_config,omitempty"`
 	DataPointConfig    DataPointConfig    `json:"data_point_config,omitempty"`
 
-	EnableSheriffConfig bool `json:"enable_sheriff_config,omitempty"`
+	EnableSheriffConfig    bool     `json:"enable_sheriff_config,omitempty"`
+	SheriffConfigsToNotify []string `json:"sheriff_configs_to_notify,omitempty"`
 
 	// Measurement ID to use when tracking user metrics with Google Analytics.
 	GoogleAnalyticsMeasurementID string `json:"ga_measurement_id,omitempty"`

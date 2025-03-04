@@ -9,7 +9,9 @@ go_library(
     deps = [
         "//go/sklog",
         "//perf/go/anomalygroup:store",
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/backend/shared",
+        "//perf/go/config",
         "//perf/go/culprit:store",
         "//perf/go/culprit/notify",
         "//perf/go/culprit/proto/v1",
@@ -26,6 +28,7 @@ go_test(
     deps = [
         "//perf/go/anomalygroup/mocks",
         "//perf/go/anomalygroup/proto/v1",
+        "//perf/go/config",
         "//perf/go/culprit/mocks",
         "//perf/go/culprit/notify/mocks",
         "//perf/go/culprit/proto/v1",

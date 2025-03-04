@@ -154,7 +154,7 @@ func (b *Backend) initialize(
 	services := []BackendService{
 		NewPinpointService(nil, nil),
 		ag_service.New(anomalygroupStore, regressionStore, temporalClient),
-		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier),
+		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier, config.Config),
 	}
 	err = b.configureServices(services)
 	if err != nil {
