@@ -44,6 +44,8 @@ const (
 	checkIfRegressionIsDoneDuration = 100 * time.Millisecond
 
 	doNotOverrideQuery = ""
+
+	timeoutForProcessAlertConfigPerTrace time.Duration = time.Minute
 )
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -454,9 +456,6 @@ func (c *Continuous) Run(ctx context.Context) {
 // RunEventDrivenClustering executes the regression detection based on events
 // received from data ingestion.
 func (c *Continuous) RunEventDrivenClustering(ctx context.Context) {
-	ctx, span := trace.StartSpan(ctx, "regression.continuous.RunEventDrivenClustering")
-	defer span.End()
-
 	// Range over a channel that returns a map containing the traceId as the key
 	// and a list of matching alert configs as the value. These are processed
 	// from the file that was just ingested and notification received over pubsub.
@@ -515,6 +514,9 @@ func (c *Continuous) RunContinuousClustering(ctx context.Context) {
 
 // ProcessAlertConfig processes the supplied alert config to detect regressions
 func (c *Continuous) ProcessAlertConfig(ctx context.Context, cfg *alerts.Alert, queryOverride string) {
+	ctx, cancel := context.WithTimeout(ctx, timeoutForProcessAlertConfigPerTrace)
+	defer cancel()
+
 	ctx, span := trace.StartSpan(ctx, "regression.continuous.ProcessAlertConfig")
 	defer span.End()
 
