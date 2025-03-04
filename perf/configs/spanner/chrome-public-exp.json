@@ -1,0 +1,119 @@
+{
+    "URL": "https://perf-exp.luci.app",
+    "landing_page_rel_path": "/m/",
+    "ga_measurement_id": "G-ZR01MG8PGX",
+    "allowed_hosts": [],
+    "instance_name": "chrome-public-exp",
+    "trace_sample_proportion": 0.2,
+    "contact": "browser-perf-engprod@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "fetch_chrome_perf_anomalies": true,
+    "use_regression2_schema": true,
+    "bug_host_url": "https://issues.chromium.org",
+    "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
+    "filter_parent_traces": true,
+    "notify_config": {
+        "notifications": "none"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "spanner",
+        "connection_string": "postgresql://root@localhost:5432/chrome_pub?sslmode=disable",
+        "tile_size": 8192
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-chrome-public-exp",
+            "subscription": "perf-ingestion-chrome-public-exp-prod",
+            "dl_topic": "perf-ingestion-chrome-public-dl",
+            "dl_subscription": "perf-ingestion-chrome-public-dl-prod",
+            "sources": [
+                "gs://chrome-perf-public/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": "",
+        "tracevalues_table_inline_params": true
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://chromium.googlesource.com/chromium/src",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "file_change_marker": "",
+        "start_commit": "b7fa4587f55a066e97f79b4c97ed785dc217064b",
+        "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
+    },
+    "favorites": {
+        "sections":[
+            {
+                "name": "Press Benchmarks",
+                "links": [
+                    {
+                        "text": "Speedometer2",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Dspeedometer2%26stat%3Dvalue%26subtest_1%3DSpeedometer2%26test%3DTotal",
+                        "description": "Performance data for the Speedometer2 benchmark"
+                    },
+                    {
+                        "text": "JetStream2",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Djetstream2%26stat%3Dvalue%26subtest_1%3DJetStream2%26test%3DScore",
+                        "description": "Performance data for the JetStream2 benchmark"
+                    },
+                    {
+                        "text": "MotionMark",
+                        "href": "https://perf.luci.app/e/?queries=benchmark%3Drendering.desktop%26master%3DChromiumPerf%26stat%3Dvalue%26test%3Dmotionmark",
+                        "description": "Performance data for the MotionMark benchmark"
+                    }
+                ]
+            }
+        ]
+    },
+    "query_config": {
+        "include_params": [
+            "benchmark",
+            "bot",
+            "test",
+            "subtest_1",
+            "subtest_2",
+            "subtest_3"
+        ],
+        "default_param_selections": {
+            "stat": ["value"]
+        },
+        "default_url_values": {
+            "plotSummary": "true",
+            "useTestPicker": "true",
+            "showZero": "false",
+            "enable_chart_tooltip": "true",
+            "use_titles": "true"
+        },
+        "cache_config": {
+            "type": "redis",
+            "level1_cache_key": "benchmark",
+            "level2_cache_key": "bot",
+            "enabled": true
+        },
+        "redis_config": {
+            "project": "skia-infra-public",
+            "zone": "us-central1",
+            "instance": "chrome-public",
+            "cache_expiration_minutes": 300
+        }
+    },
+    "data_point_config": {
+        "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"],
+        "skip_commit_detail_display": true
+    },
+    "trace_format": "chrome",
+    "need_alert_action": true,
+    "optimize_sqltracestore": true
+}
