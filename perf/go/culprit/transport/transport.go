@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -107,7 +108,12 @@ func (t *IssueTrackerTransport) SendNewNotification(ctx context.Context,
 	resp, err := t.client.Issues.Create(newIssue).TemplateOptionsApplyTemplate(true).Do()
 	if err != nil {
 		t.SendNewNotificationFail.Inc(1)
-		return "", skerr.Wrapf(err, "creating issue")
+		errmsg := ""
+		issueData, encodeErr := json.Marshal(newIssue)
+		if encodeErr == nil {
+			errmsg = string(issueData)
+		}
+		return "", skerr.Wrapf(err, "creating issue: %s", errmsg)
 	}
 	t.SendNewNotificationSuccess.Inc(1)
 	return strconv.Itoa(int(resp.IssueId)), nil
