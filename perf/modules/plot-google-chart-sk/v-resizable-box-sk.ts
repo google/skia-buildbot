@@ -4,6 +4,7 @@
  * and/or down and this module will estimate the difference between the
  * values based on the start and end cursor positions.
  */
+
 import { css, html, LitElement } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
@@ -11,6 +12,11 @@ const fontPosition = {
   upper: -35,
   lower: -10,
 };
+
+export interface DeltaRange {
+  raw: string;
+  percent: string;
+}
 
 @customElement('v-resizable-box-sk')
 export class VResizableBoxSk extends LitElement {
@@ -51,7 +57,9 @@ export class VResizableBoxSk extends LitElement {
 
   protected render() {
     return html`
-      <p class=${this.lowerFont ? 'lower' : 'upper'}>${this.delta.raw} or ${this.delta.percent}%</p>
+      <p class=${this.lowerFont ? 'lower' : 'upper'}>
+        ${this.delta!.raw} or ${this.delta!.percent}%
+      </p>
       <md-elevation></md-elevation>
     `;
   }
@@ -70,10 +78,7 @@ export class VResizableBoxSk extends LitElement {
   // stores the selection range delta in units of the traces as a string
   // rounded to 4 significant digits (for readability)
   @property()
-  private delta = {
-    raw: '',
-    percent: '',
-  };
+  private delta: DeltaRange | null = null;
 
   // if the selection is too tall, then the delta font will break out
   // of the google chart and conflict with other visual elements
@@ -150,5 +155,9 @@ export class VResizableBoxSk extends LitElement {
       // show NaN if start value is exactly 0
       percent: a === 0 ? 'NaN' : (((b - a) / a) * 100).toPrecision(4),
     };
+  }
+
+  getDelta() {
+    return this.delta;
   }
 }

@@ -79,6 +79,13 @@ export class SidePanelSk extends LitElement {
       padding-bottom: 5px;
       position: relative;
     }
+    .delta-range {
+      color: #274878; /* Hex blue, which aligns with the graph title's color */
+      padding-top: 10px;
+      padding-left: 5px;
+      padding-bottom: 5px;
+      position: relative;
+    }
     .info.closed {
       display: none;
     }
@@ -118,6 +125,17 @@ export class SidePanelSk extends LitElement {
   @property({ attribute: false })
   private data?: DataTable;
 
+  @property({ reflect: true })
+  deltaRaw: number | null = null;
+
+  @property({ reflect: true })
+  deltaPercentage: number | null = null;
+
+  // Display delta-range if the value is true, vice versa.
+  // Default is false, which means hide delta-range information
+  @property({ reflect: true })
+  showDelta = false;
+
   /**
    * A map that maps legend to label.
    * The legend is the legend of the trace,
@@ -142,6 +160,8 @@ export class SidePanelSk extends LitElement {
         <md-icon>${this.opened ? chevronRight : chevronLeft}</md-icon>
       </div>
       <div class="info ${classMap({ closed: !this.opened })}">
+        <div class="delta-range" ?hidden=${!this.showDelta}> Delta: ${this.deltaRaw}<br/>
+        Percentage: ${this.deltaPercentage}</div>
         <div class="label-key-title">
           <span>Label Key: ${this.legendKeysFormat}</span>
         </div>

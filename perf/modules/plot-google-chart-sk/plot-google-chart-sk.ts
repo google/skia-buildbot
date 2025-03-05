@@ -157,6 +157,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private userIssues: UserIssueMap = {};
 
+  @property({ attribute: false })
+  private deltaRangeOn = false;
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -173,7 +176,7 @@ export class PlotGoogleChartSk extends LitElement {
   // - deltaY (enabled with shift-click) calculates the delta on the
   // y-axis between the start and end cursor.
   @property({ attribute: false })
-  private navigationMode: 'pan' | 'deltaY' | null = null;
+  private navigationMode: 'pan' | 'deltaY' | 'dragToZoom' | null = null;
 
   private lastMouse = { x: 0, y: 0 };
 
@@ -448,6 +451,7 @@ export class PlotGoogleChartSk extends LitElement {
     // if user holds down shift-click, enable delta range calculation
     if (e.shiftKey) {
       e.preventDefault(); // disable system events
+      this.deltaRangeOn = !this.deltaRangeOn;
       this.navigationMode = 'deltaY';
       const layout = this.chart!.getChartLayoutInterface();
       const area = layout.getChartAreaBoundingBox();
@@ -457,11 +461,12 @@ export class PlotGoogleChartSk extends LitElement {
         { coord: e.offsetY, value: layout.getVAxisValue(e.offsetY) }
       );
       return;
+    } else if (this.navigationMode === 'deltaY') {
+      this.deltaRangeOn = !this.deltaRangeOn;
     }
-
+    this.navigationMode = 'pan';
     // This disable system events like selecting texts.
     e.preventDefault();
-    this.navigationMode = 'pan';
     this.lastMouse = { x: e.x, y: e.y };
   }
 
@@ -523,9 +528,16 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseUp() {
+    this.sidePanel.value!.showDelta = this.deltaRangeOn;
+    this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
+    this.sidePanel.value!.deltaPercentage = Number(this.deltaRangeBox.value!.getDelta()!.percent);
+
     this.chartInteracting = false;
     this.navigationMode = null;
-    this.deltaRangeBox.value?.hide();
+
+    if (!this.deltaRangeOn) {
+      this.deltaRangeBox.value?.hide();
+    }
   }
 
   private onChartMouseOut() {
@@ -542,6 +554,10 @@ export class PlotGoogleChartSk extends LitElement {
         coord: e.offsetY,
         value: layout.getVAxisValue(e.offsetY),
       });
+
+      this.sidePanel.value!.showDelta = false;
+      this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
+      this.sidePanel.value!.deltaPercentage = Number(this.deltaRangeBox.value!.getDelta()!.percent);
       return;
     }
 
