@@ -161,7 +161,7 @@ func (s *sheriffconfigService) ImportSheriffConfig(ctx context.Context, path str
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-
+	sklog.Infof("Imported %d subscriptions and %d alerts.", len(subscriptions), len(saveRequests))
 	return nil
 }
 
