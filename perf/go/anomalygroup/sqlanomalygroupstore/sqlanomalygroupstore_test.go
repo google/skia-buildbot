@@ -74,6 +74,7 @@ func TestLoadByID(t *testing.T) {
 	assert.Equal(t, "REPORT", group.GroupAction.String())
 	assert.Equal(t, "sub", group.SubsciptionName)
 	assert.Equal(t, "rev-abc", group.SubscriptionRevision)
+	assert.Equal(t, "benchmark-a", group.BenchmarkName)
 }
 
 func TestLoadByID_BadID(t *testing.T) {

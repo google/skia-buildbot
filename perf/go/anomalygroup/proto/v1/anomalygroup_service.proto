@@ -146,10 +146,12 @@ message AnomalyGroup {
     repeated string culprit_ids = 4;
     // The reported issue associated to this group.
     int64 reported_issue_id = 5;
-    // The subscription name this anomaly group belongs to
+    // The subscription name this anomaly group belongs to. (from group metadata)
     string subsciption_name = 6;
-    // The subscription revision this anomaly group belongs to
+    // The subscription revision this anomaly group belongs to. (from group metadata)
     string subscription_revision = 7;
+    // The name of the benchmark this anomaly group is based on. (from group metadata)
+    string benchmark_name = 8;
 }
 
 // Regression object in a format used for anomaly group actions,
