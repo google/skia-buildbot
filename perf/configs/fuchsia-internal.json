@@ -31,6 +31,11 @@
       "branches": [],
       "file_ingestion_pubsub_topic_name": ""
     },
+    "issue_tracker_config": {
+      "notification_type": "issuetracker",
+      "issue_tracker_api_key_secret_project": "skia-infra-public",
+      "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
     "git_repo_config": {
       "provider": "gitiles",
       "url": "https://turquoise-internal.googlesource.com/integration/",

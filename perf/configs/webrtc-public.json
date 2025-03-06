@@ -51,5 +51,10 @@
             "useTestPicker": "true",
             "enable_chart_tooltip": "true"
         }
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     }
 }

@@ -11,9 +11,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/issuetracker/v1"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/chromeperf"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 )
 
 const (
@@ -27,6 +30,7 @@ type triageApi struct {
 	chromeperfClient chromeperf.ChromePerfClient
 	loginProvider    alogin.Login
 	anomalyStore     anomalies.Store
+	issueTracker     perf_issuetracker.IssueTracker
 }
 
 // Request object for the request from new bug UI.
@@ -81,6 +85,12 @@ type EditAnomaliesRequest struct {
 	TraceNames    []string `json:"trace_names"`
 }
 
+// ListIssuesResponse defines the response object for ListIssues.
+type ListIssuesResponse struct {
+	// Issues: The current page of issues.
+	Issues []*issuetracker.Issue `json:"issues,omitempty"`
+}
+
 // Response object from the chromeperf edit anomaly request.
 type EditAnomaliesResponse struct {
 	Error string `json:"error"`
@@ -90,13 +100,15 @@ func (api triageApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/triage/file_bug", api.FileNewBug)
 	router.Post("/_/triage/edit_anomalies", api.EditAnomalies)
 	router.Post("/_/triage/associate_alerts", api.AssociateAlerts)
+	router.Post("/_/triage/list_issues", api.ListIssues)
 }
 
-func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, anomalyStore anomalies.Store) triageApi {
+func NewTriageApi(loginProvider alogin.Login, chromeperfClient chromeperf.ChromePerfClient, anomalyStore anomalies.Store, issueTracker perf_issuetracker.IssueTracker) triageApi {
 	return triageApi{
 		loginProvider:    loginProvider,
 		chromeperfClient: chromeperfClient,
 		anomalyStore:     anomalyStore,
+		issueTracker:     issueTracker,
 	}
 }
 
@@ -260,6 +272,48 @@ func (api triageApi) AssociateAlerts(w http.ResponseWriter, r *http.Request) {
 	sklog.Debugf("[SkiaTriage] Alerts are associated with existing bug.")
 
 	api.markTracesForCacheInvalidation(ctx, associateBugRequest.TraceNames)
+}
+
+func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {
+	if api.issueTracker == nil {
+		httputils.ReportError(w, skerr.Fmt("IssueTracker client is not available on this instance"), "IssueTracker client is not available on this instance.", http.StatusForbidden)
+	}
+
+	if api.loginProvider.LoggedInAs(r) == "" {
+		httputils.ReportError(w, errors.New("not logged in"), fmt.Sprint("You must be logged in to complete this action."), http.StatusUnauthorized)
+		return
+	}
+
+	var ListIssuesRequest perf_issuetracker.ListIssuesRequest
+	if err := json.NewDecoder(r.Body).Decode(&ListIssuesRequest); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON on bug title request.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] ListIssues request received from frontend: %s", ListIssuesRequest)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), defaultRequestProcessTimeout)
+	defer cancel()
+
+	sklog.Debugf("[SkiaTriage] Start sending list issues request to issuetracker.")
+
+	resp, err := api.issueTracker.ListIssues(ctx, ListIssuesRequest)
+
+	if err != nil {
+		httputils.ReportError(
+			w,
+			err,
+			"ListIssues request failed due to an internal server error. Please try again.",
+			http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(ListIssuesResponse{Issues: resp}); err != nil {
+		httputils.ReportError(w, err, "Failed to write bug id to ListIssuesResponse.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("[SkiaTriage] Fetched and returned ListIssuesResponse.")
 }
 
 // For each trace name, mark it as invalidated in the anomalystore's tests cache.

@@ -37,6 +37,7 @@ go_library(
         "//perf/go/frontend/api",
         "//perf/go/git",
         "//perf/go/graphsshortcut",
+        "//perf/go/issuetracker",
         "//perf/go/notify",
         "//perf/go/notifytypes",
         "//perf/go/pinpoint",

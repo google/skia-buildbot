@@ -43,5 +43,10 @@
         "debounce_commit_url": false,
         "start_commit": "0c7f0fcede27d2256f067be3b50ca9cbc368a8aa"
     },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
     "optimize_sqltracestore": true
 }

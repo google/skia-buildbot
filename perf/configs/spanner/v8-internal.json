@@ -40,6 +40,11 @@
     "start_commit": "6ddb8445a89409bcbec87bf84e9caade9bf9088a",
     "commit_number_regex": "Cr-Commit-Position: refs/heads/(main|master)@\\{#(.*)\\}"
   },
+  "issue_tracker_config": {
+    "notification_type": "issuetracker",
+    "issue_tracker_api_key_secret_project": "skia-infra-public",
+    "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+  },
   "query_config": {
     "include_params": [
       "benchmark",
