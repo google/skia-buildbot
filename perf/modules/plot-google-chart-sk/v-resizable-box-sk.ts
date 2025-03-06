@@ -33,6 +33,7 @@ export class VResizableBoxSk extends LitElement {
       this.style.height: 0px;
       --md-elevation-level: 1;
       cursor: row-resize;
+      pointer-events: none; /* allows pointer events to occur underneath */
     }
 
     p {

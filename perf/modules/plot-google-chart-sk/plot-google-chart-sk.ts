@@ -464,9 +464,10 @@ export class PlotGoogleChartSk extends LitElement {
     } else if (this.navigationMode === 'deltaY') {
       this.deltaRangeOn = !this.deltaRangeOn;
     }
-    this.navigationMode = 'pan';
     // This disable system events like selecting texts.
     e.preventDefault();
+    this.deltaRangeBox.value?.hide();
+    this.navigationMode = 'pan';
     this.lastMouse = { x: e.x, y: e.y };
     this.dispatchEvent(
       new CustomEvent('plot-chart-mousedown', {
@@ -540,10 +541,6 @@ export class PlotGoogleChartSk extends LitElement {
 
     this.chartInteracting = false;
     this.navigationMode = null;
-
-    if (!this.deltaRangeOn) {
-      this.deltaRangeBox.value?.hide();
-    }
   }
 
   private onChartMouseOut() {
