@@ -3,28 +3,28 @@
 import { MISSING_DATA_SENTINEL } from '../const/const';
 import { Anomaly, ColumnHeader, TraceSet } from '../json';
 
-// Google chart's default color palette
+// Google chart's default color palette, two shades down
 export const defaultColors = [
-  '#3366CC',
-  '#DC3912',
-  '#FF9900',
-  '#109618',
-  '#990099',
-  '#3B3EAC',
-  '#0099C6',
-  '#DD4477',
-  '#66AA00',
-  '#B82E2E',
-  '#316395',
-  '#994499',
-  '#22AA99',
-  '#AAAA11',
-  '#6633CC',
-  '#E67300',
-  '#8B0707',
-  '#329262',
-  '#5574A6',
-  '#3B3EAC',
+  '#5b84d6', // rgb(91, 132, 214)
+  '#e36041', // rgb(227, 96, 65)
+  '#ffad32', // rgb(255, 173, 50)
+  '#3fab46', // rgb(63, 171, 70)
+  '#ad32ad', // rgb(173, 50, 173)
+  '#6264bc', // rgb(98, 100, 188)
+  '#32add1', // rgb(50, 173, 209)
+  '#e36992', // rgb(227, 105, 146)
+  '#84bb32', // rgb(132, 187, 50)
+  '#c65757', // rgb(184, 46, 46)
+  '#5a82aa', // rgb(90, 130, 170)
+  '#ad69ad', // rgb(173, 105, 173)
+  '#4ebbad', // rgb(78, 87, 173)
+  '#bbbb40', // rgb(187, 187, 64)
+  '#845bd6', // rgb(132, 91, 214)
+  '#eb8f32', // rgb(235, 143, 50)
+  '#a23838', // rgb(162, 56, 56)
+  '#5aa781', // rgb(90, 167, 129)
+  '#5574A6', // rgb(85, 116, 166)
+  '#3B3EAC', // rgb(59, 62, 172)
 ];
 
 export interface DataPoint {
@@ -149,13 +149,17 @@ export function mainChartOptions(
     // one tooltip per seelction
     aggregationTarget: 'none',
     tooltip: { trigger: 'none' },
-    pointSize: 4,
+    pointSize: 3,
+    dataOpacity: 0.7,
     titleTextStyle: { color: style.color },
     hAxis: {
+      title: domain === 'commit' ? 'Commit Position' : 'Date',
       textPosition: 'out',
-      textStyle: { color: style.color },
+      textStyle: {
+        color: style.color,
+      },
       gridlines: {
-        color: 'transparent',
+        color: '#2222221a', // same as chromeperf, rgba(34, 34, 34, 0.1)
       },
       format: format,
     },
@@ -163,7 +167,7 @@ export function mainChartOptions(
       textPosition: 'out',
       textStyle: { color: style.color },
       gridlines: {
-        color: 'transparent',
+        color: '#2222221a', // same as chromeperf, rgba(34, 34, 34, 0.1)
       },
       viewWindowMode: 'maximized',
     },
@@ -180,7 +184,7 @@ export function mainChartOptions(
     crosshair: {
       trigger: 'both',
       focused: {
-        opacity: 0.25,
+        opacity: 0.35,
       },
       selected: {
         opacity: 1.0,
