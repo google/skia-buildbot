@@ -3,6 +3,7 @@ package sqluserissuestore
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ import (
 )
 
 func setUp(t *testing.T) (userissue.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "userissuestore")
+	db := sqltest.NewSpannerDBForTests(t, "userissuestore")
 	store := New(db)
 	return store, db
 }
@@ -157,5 +158,11 @@ func TestGet_UserIssues_Success(t *testing.T) {
 	resp, err := store.GetUserIssuesForTraceKeys(ctx, traceKeys, int64(beginCommitPosition), int64(endCommitPosition))
 	require.NoError(t, err)
 	expectedUserIssues := []userissue.UserIssue{*ui12, *ui2, *ui22, *ui3, *ui32, *ui33}
+	sort.Slice(resp, func(i, j int) bool {
+		if resp[i].UserId == resp[j].UserId {
+			return resp[i].IssueId < resp[j].IssueId
+		}
+		return resp[i].UserId < resp[j].UserId
+	})
 	require.EqualValues(t, expectedUserIssues, resp)
 }

@@ -2,6 +2,7 @@ package sqlsubscriptionstore
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 )
 
 func setUp(t *testing.T) (subscription.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "subscriptionstore")
+	db := sqltest.NewSpannerDBForTests(t, "subscriptionstore")
 	store, err := New(db)
 	require.NoError(t, err)
 
@@ -203,8 +204,10 @@ func TestGet_AllSubscriptionsUniqByName(t *testing.T) {
 
 	actual, err := store.GetAllSubscriptions(ctx)
 	require.NoError(t, err)
-
 	expected := []*pb.Subscription{s, s1}
+	sort.Slice(actual, func(i int, j int) bool {
+		return actual[i].Name < actual[j].Name
+	})
 	assert.Equal(t, actual, expected)
 }
 

@@ -21,7 +21,7 @@ import (
 const alertId int64 = 1111
 
 func setupStore(t *testing.T, alertsProvider alerts.ConfigProvider) *SQLRegression2Store {
-	db := sqltest.NewCockroachDBForTests(t, "regstore")
+	db := sqltest.NewSpannerDBForTests(t, "regstore")
 	store, _ := New(db, alertsProvider)
 	return store
 }

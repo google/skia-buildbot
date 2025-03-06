@@ -21,7 +21,7 @@ import (
 )
 
 func setUp(ctx context.Context, t *testing.T) (*sheriffconfigService, *subscription_mocks.Store, *alert_mocks.Store, *luciconfig_mocks.ApiClient) {
-	db := sqltest.NewCockroachDBForTests(t, "substore")
+	db := sqltest.NewSpannerDBForTests(t, "substore")
 
 	subscriptionStore := new(subscription_mocks.Store)
 	alertStore := new(alert_mocks.Store)

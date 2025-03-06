@@ -365,7 +365,7 @@ func convertRowToRegression(rows pgx.Row) (*regression.Regression, error) {
 // If the tx is specified, the write occurs within the transaction.
 func (s *SQLRegression2Store) writeSingleRegression(ctx context.Context, r *regression.Regression, tx pgx.Tx) error {
 	clusterType, clusterSummary, triage := r.GetClusterTypeAndSummaryAndTriageStatus()
-
+	r.CreationTime = time.Now()
 	var err error
 	if tx == nil {
 		_, err = s.db.Exec(ctx, s.statements[write], r.Id, r.CommitNumber, r.PrevCommitNumber, r.AlertId, r.CreationTime, r.MedianBefore, r.MedianAfter, r.IsImprovement, clusterType, clusterSummary, r.Frame, triage.Status, triage.Message)

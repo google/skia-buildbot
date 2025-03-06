@@ -37,6 +37,31 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 	}
 }
 
+func TestSQLRegressionStore_Spanner(t *testing.T) {
+
+	// Common regressiontest tests.
+	for name, subTest := range regressiontest.SubTests {
+		t.Run(name, func(t *testing.T) {
+			db := sqltest.NewSpannerDBForTests(t, "regstore")
+
+			store, err := New(db, config.SpannerDataStoreType)
+			require.NoError(t, err)
+			subTest(t, store)
+		})
+	}
+
+	// SQLRegressionStore specific tests.
+	for name, subTest := range subTests {
+		t.Run(name, func(t *testing.T) {
+			db := sqltest.NewSpannerDBForTests(t, "regstore")
+
+			store, err := New(db, config.SpannerDataStoreType)
+			require.NoError(t, err)
+			subTest(t, store)
+		})
+	}
+}
+
 const (
 	expectedCommitNumber = 2
 	expectedAlertID      = "1"
