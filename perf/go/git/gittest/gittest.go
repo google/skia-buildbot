@@ -70,7 +70,7 @@ func NewForTest(t *testing.T) (context.Context, pool.Pool, *testutils.GitBuilder
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(23*time.Minute)))
 
 	// Init our sql database.
-	db := sqltest.NewCockroachDBForTests(t, "dbgit")
+	db := sqltest.NewSpannerDBForTests(t, "dbgit")
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := os.MkdirTemp("", "git_repo")
@@ -88,6 +88,9 @@ func NewForTest(t *testing.T) (context.Context, pool.Pool, *testutils.GitBuilder
 		GitRepoConfig: config.GitRepoConfig{
 			URL: gb.Dir(),
 			Dir: filepath.Join(tmpDir, "checkout"),
+		},
+		DataStoreConfig: config.DataStoreConfig{
+			DataStoreType: config.SpannerDataStoreType,
 		},
 	}
 	gp, err := git_checkout.New(ctx, instanceConfig)

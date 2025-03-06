@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
+	"go.skia.org/infra/perf/go/config"
 )
 
 type statement int
@@ -35,14 +36,40 @@ var statements = map[statement]string{
 	`,
 }
 
+var spannerStatements = map[statement]string{
+	getOriginalValue: `
+		SELECT
+			original_value
+		FROM
+			ReverseKeyMap
+		WHERE
+			modified_value =$1 AND param_key=$2
+	`,
+	createKeyMap: `
+		INSERT INTO
+			ReverseKeyMap (modified_value, param_key, original_value)
+		VALUES
+			($1, $2, $3)
+		ON CONFLICT (modified_value, param_key) DO NOTHING
+		RETURNING
+			original_value
+	`,
+}
+
 type ReverseKeyMapStoreImpl struct {
-	db pool.Pool
+	db         pool.Pool
+	statements map[statement]string
 }
 
 // New returns a new *ReverseKeyMapStoreImpl.
-func New(db pool.Pool) *ReverseKeyMapStoreImpl {
+func New(db pool.Pool, dbType config.DataStoreType) *ReverseKeyMapStoreImpl {
+	stmts := statements
+	if dbType == config.SpannerDataStoreType {
+		stmts = spannerStatements
+	}
 	return &ReverseKeyMapStoreImpl{
-		db: db,
+		db:         db,
+		statements: stmts,
 	}
 }
 
@@ -53,7 +80,7 @@ func (s *ReverseKeyMapStoreImpl) Get(ctx context.Context, modifiedValue string, 
 	}
 
 	var originalValue string
-	if err := s.db.QueryRow(ctx, statements[getOriginalValue], modifiedValue, key).Scan(&originalValue); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[getOriginalValue], modifiedValue, key).Scan(&originalValue); err != nil {
 		if err == pgx.ErrNoRows {
 			// no old value is found.
 			return "", nil
@@ -69,7 +96,7 @@ func (s *ReverseKeyMapStoreImpl) Create(ctx context.Context, modifiedValue strin
 		return "", skerr.Fmt("Value, key and old value are all required for reverse key mapping. Value: %s. Key: %s. Old value: %s", modifiedValue, key, originalValue)
 	}
 	returnedValue := ""
-	if err := s.db.QueryRow(ctx, statements[createKeyMap], modifiedValue, key, originalValue).Scan(&returnedValue); err != nil {
+	if err := s.db.QueryRow(ctx, s.statements[createKeyMap], modifiedValue, key, originalValue).Scan(&returnedValue); err != nil {
 		if err == pgx.ErrNoRows {
 			// No row is created. Collision.
 			return "", nil

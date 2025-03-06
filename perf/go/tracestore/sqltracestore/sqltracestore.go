@@ -1763,12 +1763,24 @@ func (s *SQLTraceStore) updateSourceFile(ctx context.Context, filename string) (
 	defer span.End()
 
 	ret := badSourceFileIDFromSQL
-	_, err := s.db.Exec(ctx, s.statements[insertIntoSourceFiles], filename)
-	if err != nil {
-		return ret, skerr.Wrap(err)
-	}
-	err = s.db.QueryRow(ctx, s.statements[getSourceFileID], filename).Scan(&ret)
-	if err != nil {
+	// We want to ensure that there is only one entry per source file.
+	// We do that by checking for existence of a row first and do the insert
+	// only if there are no rows.
+	err := s.db.QueryRow(ctx, s.statements[getSourceFileID], filename).Scan(&ret)
+	if err == pgx.ErrNoRows {
+		_, err = s.db.Exec(ctx, s.statements[insertIntoSourceFiles], filename)
+
+		if err != nil {
+			return ret, skerr.Wrap(err)
+		}
+
+		// We can potentially get rid of this read by returning the id in the
+		// insert statement above.
+		err = s.db.QueryRow(ctx, s.statements[getSourceFileID], filename).Scan(&ret)
+		if err != nil {
+			return ret, skerr.Wrap(err)
+		}
+	} else if err != nil {
 		return ret, skerr.Wrap(err)
 	}
 

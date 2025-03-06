@@ -8,11 +8,11 @@ import (
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
-func TestShortcutStore_CockroachDB(t *testing.T) {
+func TestShortcutStore(t *testing.T) {
 
 	for name, subTest := range graphsshortcuttest.SubTests {
 		t.Run(name, func(t *testing.T) {
-			db := sqltest.NewCockroachDBForTests(t, "graphsShortcutstore")
+			db := sqltest.NewSpannerDBForTests(t, "graphsshortcutstore")
 			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)

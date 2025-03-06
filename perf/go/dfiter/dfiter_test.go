@@ -50,7 +50,8 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, perf
 	require.NoError(t, err)
 
 	cfg := config.DataStoreConfig{
-		TileSize: testTileSize,
+		TileSize:      testTileSize,
+		DataStoreType: config.SpannerDataStoreType,
 	}
 
 	store, err := sqltracestore.New(db, cfg)

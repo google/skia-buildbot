@@ -11,7 +11,7 @@ import (
 )
 
 func setUp(t *testing.T) (favorites.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "favoritestore")
+	db := sqltest.NewSpannerDBForTests(t, "favoritestore")
 	store := New(db)
 
 	return store, db

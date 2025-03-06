@@ -3,8 +3,6 @@ package sqltracestore
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"math/rand"
 	"testing"
 	"text/template"
 	"time"
@@ -33,7 +31,8 @@ const (
 )
 
 var cfg = config.DataStoreConfig{
-	TileSize: testTileSize,
+	TileSize:      testTileSize,
+	DataStoreType: config.SpannerDataStoreType,
 }
 
 var (
@@ -45,7 +44,7 @@ var (
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore) {
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
+	db := sqltest.NewSpannerDBForTests(t, "tracestore")
 
 	store, err := New(db, cfg)
 	require.NoError(t, err)

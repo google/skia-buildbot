@@ -215,7 +215,7 @@ var spannerStatements = map[statement]string{
             Postings.key_value, Postings.trace_id
         FROM
             SourceFiles
-            INNE JOIN
+            INNER JOIN
                 TraceValues
             ON
                 TraceValues.source_file_id = SourceFiles.source_file_id

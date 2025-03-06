@@ -75,6 +75,9 @@ func NewSpannerDBForTests(t *testing.T, databaseNamePrefix string) pool.Pool {
 
 	databaseName := fmt.Sprintf("%s_%d", databaseNamePrefix, rand.Int())
 
+	if len(databaseName) > 30 {
+		databaseName = databaseName[:30]
+	}
 	host := emulators.GetEmulatorHostEnvVar(emulators.PGAdapter)
 	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", host, databaseName)
 

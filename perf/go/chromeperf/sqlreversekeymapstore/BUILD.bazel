@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//go/skerr",
         "//go/sql/pool",
+        "//perf/go/config",
         "@com_github_jackc_pgx_v4//:pgx",
     ],
 )
@@ -21,6 +22,7 @@ go_test(
     deps = [
         "//go/sql/pool",
         "//perf/go/chromeperf",
+        "//perf/go/config",
         "//perf/go/sql/sqltest",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",

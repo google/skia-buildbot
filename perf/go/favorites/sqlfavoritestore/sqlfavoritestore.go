@@ -28,7 +28,7 @@ const (
 var statements = map[statement]string{
 	getFavorite: `
 		SELECT
-			*
+			id, user_id, name, url, description, last_modified
 		FROM
 			Favorites
 		WHERE
@@ -116,8 +116,12 @@ func (s *FavoriteStore) Create(ctx context.Context, req *favorites.SaveRequest) 
 // Create implements the favorites.Store interface.
 func (s *FavoriteStore) Update(ctx context.Context, req *favorites.SaveRequest, id string) error {
 	now := time.Now().Unix()
-	if _, err := s.db.Exec(ctx, statements[updateFavorite], req.Name, req.Url, req.Description, now, id); err != nil {
+	cmdRes, err := s.db.Exec(ctx, statements[updateFavorite], req.Name, req.Url, req.Description, now, id)
+	if err != nil {
 		return skerr.Wrapf(err, "Failed to update favorite with id=%s", id)
+	}
+	if cmdRes.RowsAffected() == 0 {
+		return skerr.Fmt("Favorite with id %s does not exist.", id)
 	}
 	return nil
 }

@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/chromeperf"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
 func setUp(t *testing.T) (chromeperf.ReverseKeyMapStore, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "reversekeymap")
-	store := New(db)
+	db := sqltest.NewSpannerDBForTests(t, "reversekeymap")
+	store := New(db, config.SpannerDataStoreType)
 	return store, db
 }
 
