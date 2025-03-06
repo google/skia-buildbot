@@ -449,6 +449,7 @@ export class ExploreMultiSk extends ElementSk {
       useTestPicker: this.state.useTestPicker,
       use_test_picker_query: false,
       show_google_plot: this.state.show_google_plot,
+      enable_favorites: this.canAddFav(),
     };
     explore.state = newState;
   }

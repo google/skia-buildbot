@@ -20,8 +20,6 @@ import '../explore-simple-sk';
 import '../favorites-dialog-sk';
 import '../test-picker-sk';
 
-import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
-import { $$ } from '../../../infra-sk/modules/dom';
 import { LoggedIn } from '../../../infra-sk/modules/alogin-sk/alogin-sk';
 import { Status as LoginStatus } from '../../../infra-sk/modules/json';
 import { errorMessage } from '../errorMessage';
@@ -85,30 +83,18 @@ export class ExploreSk extends ElementSk {
     LoggedIn()
       .then((status: LoginStatus) => {
         this.userEmail = status.email;
+        this.exploreSimpleSk!.state.enable_favorites = status.email !== null && status.email !== '';
       })
       .catch(errorMessage);
   }
 
-  private openAddFavoriteDialog = async () => {
-    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
-    await d!.open();
-  };
-
   private static template = (ele: ExploreSk) => html`
     <div class="explore-padding" ?hidden=${!ele.showMultiViewButton}>
-      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <md-outlined-button
         @click=${() => {
           ele.exploreSimpleSk?.viewMultiGraph();
         }}>
         View in multi-graph
-      </md-outlined-button>
-      <md-outlined-button
-        ?disabled=${!ele.userEmail || ele.userEmail === ''}
-        @click=${() => {
-          ele.openAddFavoriteDialog();
-        }}>
-        Add to Favorites
       </md-outlined-button>
       <md-outlined-button
         @click=${() => {

@@ -25,10 +25,6 @@ explore-simple-sk {
     }
   }
 
-  #settings-button {
-    font-family: 'Material Icons';
-  }
-
   #paramset {
     display: inline-block;
     margin: 0.5em;
@@ -183,6 +179,23 @@ explore-simple-sk {
     }
   }
 
+  #chartHeader {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    padding: 0;
+
+    md-icon-button,
+    md-ripple {
+      height: 24px;
+      width: 24px;
+    }
+
+    #icon {
+      font-family: 'Material Icons';
+    }
+  }
+
   #buttons,
   #traceButtons,
   #calcButtons {
@@ -224,13 +237,10 @@ explore-simple-sk {
   }
 
   button#removeAll {
-    padding: 5px;
     border: none;
     cursor: pointer;
     float: right;
-    margin-left: 10px;
-    margin-bottom: 30px;
-    margin-right: 30px;
+    margin: 0px;
   }
 
   #traceButtons {

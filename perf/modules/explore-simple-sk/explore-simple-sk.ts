@@ -151,6 +151,7 @@ import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 import { getLegend, getTitle, isSingleTrace } from '../dataframe/traceset';
 import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
+import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 
 /** The type of trace we are adding to a plot. */
 type addPlotType = 'query' | 'formula' | 'pivot';
@@ -350,6 +351,10 @@ export class State {
   use_test_picker_query: boolean = false;
 
   show_google_plot = false;
+
+  // boolean indicate for enabling favorites action. set by explore-sk.
+  // requires user to be logged in so that the favorites can be saved for the user.
+  enable_favorites: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -617,7 +622,7 @@ export class ExploreSimpleSk extends ElementSk {
   private static template = (ele: ExploreSimpleSk) => html`
   <dataframe-repository-sk ${ref(ele.dfRepo)}>
   <div id=explore class=${ele.displayMode}>
-    <div id=buttons>
+    <div id=buttons style="${ele._state.show_google_plot ? 'display: none' : ''}">
       <button
         id=open_query_dialog
         ?hidden=${ele.useTestPicker}
@@ -715,11 +720,28 @@ export class ExploreSimpleSk extends ElementSk {
           </div>
         </div>
       </div>
-      <md-outlined-icon-button
-        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
+    </div>
+
+    <div id=chartHeader class="hide_on_query_only hide_on_pivot_table hide_on_spinner">
+      <graph-title-sk id=graphTitle style="flex-grow:  1;"></graph-title-sk>
+      <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
+      <md-icon-button
+        ?disabled=${!ele._state!.enable_favorites}
+        @click=${() => {
+          ele.openAddFavoriteDialog();
+        }}>
+        <md-icon id="icon">favorite</md-icon>
+      </md-icon-button>
+      <md-icon-button
         @click=${ele.showSettingsDialog}>
-          <md-icon id="settings-button">settings</md-icon>
-      </md-outlined-icon-button>
+          <md-icon id="icon">settings</md-icon>
+      </md-icon-button>
+      <button
+        id="removeAll"
+        @click=${() => ele.closeExplore()}
+        title='Remove all the traces.'>
+        <close-icon-sk></close-icon-sk>
+      </button>
       <md-dialog
         aria-label='Settings dialog'
         id='settings-dialog'>
@@ -732,12 +754,12 @@ export class ExploreSimpleSk extends ElementSk {
                 <md-switch
                   form="form"
                   id="commit-switch"
-                  ?selected=${ele._state.labelMode === LabelMode.CommitPosition}
+                  ?selected="${ele._state!.labelMode === LabelMode.CommitPosition}"
                   @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
                 X-Axis as Commit Positions
               </label>
             <li>
-            <li>
+            <li ?hidden=${ele._state.show_google_plot}>
               <label>
                 <md-switch
                   form="form"
@@ -747,7 +769,7 @@ export class ExploreSimpleSk extends ElementSk {
                 Dots on graph
               </label>
             </li>
-            <li>
+            <li ?hidden=${ele._state.show_google_plot}>
               <label>
                 <md-switch
                   form="form"
@@ -758,7 +780,7 @@ export class ExploreSimpleSk extends ElementSk {
                 Draw against "zero" line
               </label>
             </li>
-            <li>
+            <li ?hidden=${ele._state.show_google_plot}>
               <label>
                 <md-switch
                   form="form"
@@ -783,16 +805,7 @@ export class ExploreSimpleSk extends ElementSk {
           </ul>
         </div>
       </md-dialog>
-      <button
-        class="hide_on_query_only hide_on_pivot_table hide_on_spinner"
-        id="removeAll"
-        @click=${() => ele.closeExplore()}
-        title='Remove all the traces.'>
-        <close-icon-sk></close-icon-sk>
-      </button>
     </div>
-
-    <graph-title-sk id=graphTitle></graph-title-sk>
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
     <div class="chart-container">
@@ -1079,6 +1092,11 @@ export class ExploreSimpleSk extends ElementSk {
         <label>${this.getPlotSummaryTraceLabel()}</label>
       </div>`;
   }
+
+  private openAddFavoriteDialog = async () => {
+    const d = $$<FavoritesDialogSk>('#fav-dialog', this) as FavoritesDialogSk;
+    await d!.open();
+  };
 
   private closeExplore() {
     this.removeAll(false);
