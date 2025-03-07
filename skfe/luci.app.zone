@@ -120,8 +120,10 @@ staging.notify.api         300  IN AAAA 2600:1901:0:afd7::10
 
 ;;; LUCI ResultDB.
 ;;; Staging hosted in GCP Project luci-resultdb-dev.
+results.api                300  IN A 34.117.213.209
 staging.results.api        300  IN A 34.144.198.239
 *.staging.results.api      300  IN A 34.144.198.239
+results.api                300  IN AAAA 2600:1901:0:42b0::10
 staging.results.api        300  IN AAAA 2600:1901:0:dea2::10
 *.staging.results.api      300  IN AAAA 2600:1901:0:dea2::10
 
@@ -185,6 +187,8 @@ _acme-challenge.staging.notify.api       3600  IN CNAME (
     c282b0fc-121a-4250-8559-7f83664d1d4a.16.authorize.certificatemanager.goog. )
 
 ;;; LUCI ResultDB.
+_acme-challenge.results.api              3600  IN CNAME (
+    30d5a60c-83e3-4319-9b15-8f805158213b.4.authorize.certificatemanager.goog. )
 _acme-challenge.staging.results.api      3600  IN CNAME (
     28907c17-f310-4a2c-bf28-bd09c673e305.5.authorize.certificatemanager.goog. )
 
