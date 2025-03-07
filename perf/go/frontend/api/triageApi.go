@@ -309,11 +309,12 @@ func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sklog.Debugf("[SkiaTriage] Fetched and returned ListIssuesResponse: %s", resp)
+
 	if err := json.NewEncoder(w).Encode(ListIssuesResponse{Issues: resp}); err != nil {
 		httputils.ReportError(w, err, "Failed to write bug id to ListIssuesResponse.", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("[SkiaTriage] Fetched and returned ListIssuesResponse.")
 }
 
 // For each trace name, mark it as invalidated in the anomalystore's tests cache.

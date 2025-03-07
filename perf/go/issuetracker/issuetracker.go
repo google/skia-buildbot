@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/go/secret"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 
 	issuetracker "go.skia.org/infra/go/issuetracker/v1"
 )
@@ -70,6 +71,8 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 
 	query := strings.Join(slice, " | ")
 	query = "id: " + query
+
+	sklog.Debugf("[Perf_issuetracker] Start sending list issues request to v1 issuetracker with query: %s", query)
 	requestBodyStr, err := json.Marshal(query)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf request.")
@@ -78,6 +81,8 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find issue with request. ")
 	}
+
+	sklog.Debugf("[Perf_issuetracker] list issues response received from v1 issuetracker: %s", resp.Issues)
 
 	return resp.Issues, nil
 }

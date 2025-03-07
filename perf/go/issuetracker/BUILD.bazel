@@ -9,6 +9,7 @@ go_library(
         "//go/issuetracker/v1:issuetracker",
         "//go/secret",
         "//go/skerr",
+        "//go/sklog",
         "//perf/go/config",
         "@org_golang_google_api//option",
         "@org_golang_x_oauth2//google",

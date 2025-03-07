@@ -272,8 +272,11 @@ export class ExistingBugDialogSk extends ElementSk {
       .then((json) => {
         const issueList: Issue[] = json.issues;
         this.bugIdTitleMap = {};
+        console.info('Issue list length ' + issueList.length);
         issueList.forEach((issue) => {
           const issueid = issue.issueId ? Number(issue.issueId) : 0;
+          console.info('Issue id: ' + issueid);
+          console.log('issue title: ' + issue.issueState?.title);
           if (this._associatedBugIds.has(issueid)) {
             this.bugIdTitleMap[issueid] = issue.issueState?.title ? issue.issueState!.title : '';
           }
