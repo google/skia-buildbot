@@ -1,0 +1,48 @@
+{
+    "URL": "https://eskia-perf.corp.goog",
+    "landing_page_rel_path": "/m/",
+    "allowed_hosts": [],
+    "trace_sample_proportion": 1.0,
+    "contact": "eskia-team@google.com",
+    "invalid_param_char_regex": "([^a-zA-Z0-9!~@#$%^&*()+ :\\._\\-])",
+    "feedback_url": "http://go/berf-skia-feedback",
+    "chat_url": "http://go/berf-skia-chat",
+    "notify_config": {
+        "notifications": "none"
+    },
+    "auth_config": {
+        "header_name": "X-WEBAUTH-USER"
+    },
+    "data_store_config": {
+        "datastore_type": "spanner",
+        "connection_string": "postgresql://root@localhost:5432/eskia?sslmode=disable",
+        "tile_size": 256,
+        "enable_follower_reads": true
+    },
+    "ingestion_config": {
+        "source_config": {
+            "source_type": "gcs",
+            "project": "skia-public",
+            "topic": "perf-ingestion-eskia",
+            "subscription": "perf-ingestion-eskia-prod",
+            "sources": [
+                "gs://eskia-perf/ingest"
+            ]
+        },
+        "branches": [],
+        "file_ingestion_pubsub_topic_name": ""
+    },
+    "git_repo_config": {
+        "provider": "gitiles",
+        "url": "https://skia.googlesource.com/eskia",
+        "dir": "/tmp/checkout",
+        "debounce_commit_url": false,
+        "start_commit": "1a753890e24ae62fc93fb1f97c16cab2c2c711d0"
+    },
+    "issue_tracker_config": {
+        "notification_type": "issuetracker",
+        "issue_tracker_api_key_secret_project": "skia-infra-public",
+        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
+    },
+    "optimize_sqltracestore": true
+}
