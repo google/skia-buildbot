@@ -360,6 +360,15 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "anomaly_report_subject": {
+          "type": "string"
+        },
+        "anomaly_report_body": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,

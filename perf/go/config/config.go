@@ -117,6 +117,14 @@ type IssueTrackerConfig struct {
 	// CulpritBody is a template for the body of the notfication sent when
 	// a culprit is detected.
 	CulpritBody []string `json:"culprit_body,omitempty"`
+
+	// AnomalyReportSubject is a template for the subject of the notfication sent when
+	// an anomaly group is reported.
+	AnomalyReportSubject string `json:"anomaly_report_subject,omitempty"`
+
+	// AnomalyReportBody is a template for the body of the notfication sent when
+	// an anomaly group is reported.
+	AnomalyReportBody []string `json:"anomaly_report_body,omitempty"`
 }
 
 // DataStoreType determines what type of datastore to build. Applies to

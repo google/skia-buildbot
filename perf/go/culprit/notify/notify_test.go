@@ -25,7 +25,7 @@ func TestNotifyCulpritFound_HappyPath(t *testing.T) {
 		Name: "test subscription",
 	}
 	formatter := ft_mocks.NewFormatter(t)
-	formatter.On("GetSubjectAndBody", mock.Anything, culprit, subscription).Return("subject", "body", nil)
+	formatter.On("GetCulpritSubjectAndBody", mock.Anything, culprit, subscription).Return("subject", "body", nil)
 	transport := tr_mocks.NewTransport(t)
 	expectedBugId := "bug123"
 	transport.On("SendNewNotification", mock.Anything, mock.Anything, "subject", "body").Return(expectedBugId, nil)

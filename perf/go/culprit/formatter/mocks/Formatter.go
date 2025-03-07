@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	anomalygroupprotov1 "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+
 	mock "github.com/stretchr/testify/mock"
 
 	protov1 "go.skia.org/infra/perf/go/subscription/proto/v1"
@@ -17,12 +19,12 @@ type Formatter struct {
 	mock.Mock
 }
 
-// GetSubjectAndBody provides a mock function with given fields: ctx, culprit, subscription
-func (_m *Formatter) GetSubjectAndBody(ctx context.Context, culprit *v1.Culprit, subscription *protov1.Subscription) (string, string, error) {
+// GetCulpritSubjectAndBody provides a mock function with given fields: ctx, culprit, subscription
+func (_m *Formatter) GetCulpritSubjectAndBody(ctx context.Context, culprit *v1.Culprit, subscription *protov1.Subscription) (string, string, error) {
 	ret := _m.Called(ctx, culprit, subscription)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSubjectAndBody")
+		panic("no return value specified for GetCulpritSubjectAndBody")
 	}
 
 	var r0 string
@@ -45,6 +47,41 @@ func (_m *Formatter) GetSubjectAndBody(ctx context.Context, culprit *v1.Culprit,
 
 	if rf, ok := ret.Get(2).(func(context.Context, *v1.Culprit, *protov1.Subscription) error); ok {
 		r2 = rf(ctx, culprit, subscription)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// GetReportSubjectAndBody provides a mock function with given fields: ctx, anomalyGroup, subscription, anomalyList
+func (_m *Formatter) GetReportSubjectAndBody(ctx context.Context, anomalyGroup *anomalygroupprotov1.AnomalyGroup, subscription *protov1.Subscription, anomalyList []*v1.Anomaly) (string, string, error) {
+	ret := _m.Called(ctx, anomalyGroup, subscription, anomalyList)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetReportSubjectAndBody")
+	}
+
+	var r0 string
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, *anomalygroupprotov1.AnomalyGroup, *protov1.Subscription, []*v1.Anomaly) (string, string, error)); ok {
+		return rf(ctx, anomalyGroup, subscription, anomalyList)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *anomalygroupprotov1.AnomalyGroup, *protov1.Subscription, []*v1.Anomaly) string); ok {
+		r0 = rf(ctx, anomalyGroup, subscription, anomalyList)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *anomalygroupprotov1.AnomalyGroup, *protov1.Subscription, []*v1.Anomaly) string); ok {
+		r1 = rf(ctx, anomalyGroup, subscription, anomalyList)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context, *anomalygroupprotov1.AnomalyGroup, *protov1.Subscription, []*v1.Anomaly) error); ok {
+		r2 = rf(ctx, anomalyGroup, subscription, anomalyList)
 	} else {
 		r2 = ret.Error(2)
 	}

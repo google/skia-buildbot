@@ -113,8 +113,8 @@ func TestNotifyUserOfAnomaly_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 
 	subscriptionName := "s_name"
 	subscriptionRevision := "s_version"
-	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
-		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	group := &a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(group, nil)
 	subscription := &sub_pb.Subscription{BugComponent: "123"}
 	subscriptionStore.On("GetSubscription", mock.Anything,
 		subscriptionName, subscriptionRevision).Return(subscription, nil)
@@ -129,7 +129,7 @@ func TestNotifyUserOfAnomaly_ValidInput_ShouldInvokeNotifier(t *testing.T) {
 		},
 	}
 	notifier.On("NotifyAnomaliesFound", mock.Anything,
-		anomalies, subscription).Return(issueId, nil)
+		group, subscription, anomalies).Return(issueId, nil)
 	req := &pb.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: "aid1",
 		Anomaly:        anomalies,
@@ -149,8 +149,8 @@ func TestNotifyUserOfAnomaly_WithConfig_ValidInput_NotifyByConfig(t *testing.T) 
 
 	subscriptionName := "s_name"
 	subscriptionRevision := "s_version"
-	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
-		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	group := &a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(group, nil)
 	subscription := &sub_pb.Subscription{BugComponent: "123"}
 	subscriptionStore.On("GetSubscription", mock.Anything,
 		subscriptionName, subscriptionRevision).Return(subscription, nil)
@@ -165,7 +165,7 @@ func TestNotifyUserOfAnomaly_WithConfig_ValidInput_NotifyByConfig(t *testing.T) 
 		},
 	}
 	notifier.On("NotifyAnomaliesFound", mock.Anything,
-		anomalies, subscription).Return(issueId, nil)
+		group, subscription, anomalies).Return(issueId, nil)
 	req := &pb.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: "aid1",
 		Anomaly:        anomalies,
@@ -185,8 +185,8 @@ func TestNotifyUserOfAnomaly_WithConfig_NoSub_NotNotify(t *testing.T) {
 
 	subscriptionName := "s_name"
 	subscriptionRevision := "s_version"
-	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
-		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	group := &a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(group, nil)
 	fakeSubscription := &sub_pb.Subscription{
 		Name:         "Mocked Sub For Anomaly - Report",
 		Revision:     "Mocked Revision - Report",
@@ -211,7 +211,7 @@ func TestNotifyUserOfAnomaly_WithConfig_NoSub_NotNotify(t *testing.T) {
 		},
 	}
 	notifier.On("NotifyAnomaliesFound", mock.Anything,
-		anomalies, fakeSubscription).Return(issueId, nil)
+		group, fakeSubscription, anomalies).Return(issueId, nil)
 	req := &pb.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: "aid1",
 		Anomaly:        anomalies,
@@ -231,8 +231,8 @@ func TestNotifyUserOfAnomaly_WithConfig_NotAllowedSub_NotNotify(t *testing.T) {
 
 	subscriptionName := "s_name"
 	subscriptionRevision := "s_version"
-	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(
-		&a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}, nil)
+	group := &a_pb.AnomalyGroup{SubsciptionName: subscriptionName, SubscriptionRevision: subscriptionRevision}
+	anomalygroup.On("LoadById", mock.Anything, "aid1").Return(group, nil)
 	subscription := &sub_pb.Subscription{
 		Name:         "Original Sub For Anomaly - Report", // Used
 		Revision:     "Original Revision - Report",        //Used
@@ -260,7 +260,7 @@ func TestNotifyUserOfAnomaly_WithConfig_NotAllowedSub_NotNotify(t *testing.T) {
 		},
 	}
 	notifier.On("NotifyAnomaliesFound", mock.Anything,
-		anomalies, fakeSubscription).Return(issueId, nil)
+		group, fakeSubscription, anomalies).Return(issueId, nil)
 	req := &pb.NotifyUserOfAnomalyRequest{
 		AnomalyGroupId: "aid1",
 		Anomaly:        anomalies,

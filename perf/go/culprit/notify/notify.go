@@ -6,6 +6,7 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/culprit/formatter"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
@@ -20,7 +21,7 @@ type CulpritNotifier interface {
 	NotifyCulpritFound(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, error)
 
 	// Sends out notification to users about the detected anomalies.
-	NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error)
+	NotifyAnomaliesFound(ctx context.Context, anomalyGroup *ag.AnomalyGroup, subscription *sub_pb.Subscription, anomalyList []*pb.Anomaly) (string, error)
 }
 
 // DefaultCulpritNotifier sends notifications.
@@ -62,7 +63,7 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 		return "nil", nil
 	}
 	sklog.Debugf("Culprit found for [%s]: %s", subscription.Name, culprit.Commit.Revision)
-	subject, body, err := n.formatter.GetSubjectAndBody(ctx, culprit, subscription)
+	subject, body, err := n.formatter.GetCulpritSubjectAndBody(ctx, culprit, subscription)
 	if err != nil {
 		return "", err
 	}
@@ -74,14 +75,16 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 }
 
 // Creates a bug in Buganizer about the detected anomalies.
-func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalies []*pb.Anomaly, subscription *sub_pb.Subscription) (string, error) {
-	if subscription == nil || anomalies == nil {
+func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalyGroup *ag.AnomalyGroup, subscription *sub_pb.Subscription, anomalyList []*pb.Anomaly) (string, error) {
+	if subscription == nil || anomalyGroup == nil {
 		return "nil", nil
 	}
-	sklog.Debugf("Anomalies found for [%s]: %s", subscription.Name, anomalies)
+	sklog.Debugf("Anomalies found for [%s]: %s", subscription.Name, anomalyGroup.AnomalyIds)
+
 	// TODO(wenbinzhang): Generate subject and body from template.
-	body := fmt.Sprintf("Mocked reporting anomalies: %s", anomalies)
+	body := fmt.Sprintf("Mocked reporting anomalies: %s", anomalyGroup.AnomalyIds)
 	subject := fmt.Sprintf("Mocked Bug Title for [%s]", subscription.Name)
+
 	bugId, err := n.transport.SendNewNotification(ctx, subscription, subject, body)
 	if err != nil {
 		return "", skerr.Wrapf(err, "sending new anomaly group message")

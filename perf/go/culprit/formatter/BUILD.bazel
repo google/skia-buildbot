@@ -11,6 +11,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//go/skerr",
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription/proto/v1",
@@ -22,6 +23,7 @@ go_test(
     srcs = ["formatter_test.go"],
     embed = [":formatter"],
     deps = [
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription/proto/v1",

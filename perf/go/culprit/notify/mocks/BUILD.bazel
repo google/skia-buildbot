@@ -6,6 +6,7 @@ go_library(
     importpath = "go.skia.org/infra/perf/go/culprit/notify/mocks",
     visibility = ["//visibility:public"],
     deps = [
+        "//perf/go/anomalygroup/proto/v1",
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription/proto/v1",
         "@com_github_stretchr_testify//mock",

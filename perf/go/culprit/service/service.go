@@ -125,7 +125,7 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 	// mock subscription before the sheriff config is ready for production.
 	subscription = PrepareSubscription(subscription, anomalygroup, s.config)
 
-	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, req.Anomaly, subscription)
+	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, anomalygroup, subscription, req.Anomaly)
 	if err != nil {
 		return nil, err
 	}

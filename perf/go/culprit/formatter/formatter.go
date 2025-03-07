@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"go.skia.org/infra/go/skerr"
+	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/config"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
@@ -16,19 +17,33 @@ import (
 const (
 	defaultNewCulpritSubject = `{{ .Subscription.Name }} - Regression Detected & Culprit Found`
 	defaultNewCulpritBody    = `Culprit commit: {{ buildCommitURL .CommitUrl .Commit.Revision}}`
+	defaultNewReportSubject  = `[{{ .Subscription.Name }}]: [{{ len .AnomalyGroup.AnomalyIds }}] regressions in {{ .AnomalyGroup.BenchmarkName }}`
+	defaultNewReportBody     = `
+	Dashboard URLs:
+		TO ADD WITH GROUP ID
+	Top {{ len .TopAnomalies }} anomalies in this group:
+	{{ range .TopAnomalies }}
+	 - {{ . }}
+	{{end}}
+	`
 )
 
 // Formatter controls how the notification looks like
 type Formatter interface {
-	// Return body and subject.
-	GetSubjectAndBody(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, string, error)
+	// Return body and subject of a bug for new found culprit.
+	GetCulpritSubjectAndBody(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, string, error)
+
+	// Return body and subject of a bug for reporting a new anomaly group.
+	GetReportSubjectAndBody(ctx context.Context, anomalyGroup *ag.AnomalyGroup, subscription *sub_pb.Subscription, anomalyList []*pb.Anomaly) (string, string, error)
 }
 
 // MarkdownFormatter implement Formatter.
 type MarkdownFormatter struct {
 	commitURLTemplate         string
-	newCulpritBodyTemplate    *template.Template
 	newCulpritSubjectTemplate *template.Template
+	newCulpritBodyTemplate    *template.Template
+	newReportSubjectTempalte  *template.Template
+	newReportBodyTemplate     *template.Template
 }
 
 // TemplateContext is used in expanding the message templates.
@@ -42,6 +57,17 @@ type TemplateContext struct {
 
 	// Subscription is the configuration which tells where/how to file the bug
 	Subscription *sub_pb.Subscription
+}
+
+type ReportTemplateContext struct {
+	// The anomaly group newly found.
+	AnomalyGroup *ag.AnomalyGroup
+
+	// The subcsription based on which the anomaly group is created.
+	Subscription *sub_pb.Subscription
+
+	// The anomalies with the most significant performance change.
+	TopAnomalies []*pb.Anomaly
 }
 
 func buildCommitURL(url, commit string) string {
@@ -69,15 +95,35 @@ func NewMarkdownFormatter(commitURLTemplate string, notifyConfig *config.IssueTr
 	if err != nil {
 		return nil, skerr.Wrapf(err, "compiling newCulpritBodyTemplate")
 	}
+
+	reportSubject := notifyConfig.AnomalyReportSubject
+	if reportSubject == "" {
+		reportSubject = defaultNewReportSubject
+	}
+	reportBody := strings.Join(notifyConfig.AnomalyReportBody, "\n")
+	if reportBody == "" {
+		reportBody = defaultNewReportBody
+	}
+	newReportSubjectTemplate, err := template.New("newReportSubjectMarkdown").Parse(reportSubject)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "compiling newReportSubjectTemplate")
+	}
+	newReportBodyTemplate, err := template.New("newReporBodytMarkdown").Parse(reportBody)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "compiling newReportBodyTemplate")
+	}
+
 	return &MarkdownFormatter{
 		commitURLTemplate:         commitURLTemplate,
 		newCulpritSubjectTemplate: newCulpritSubjectTemplate,
 		newCulpritBodyTemplate:    newCulpritBodyTemplate,
+		newReportSubjectTempalte:  newReportSubjectTemplate,
+		newReportBodyTemplate:     newReportBodyTemplate,
 	}, nil
 }
 
 // FormatNewCulprit implements Formatter.
-func (f MarkdownFormatter) GetSubjectAndBody(ctx context.Context, culprit *pb.Culprit,
+func (f MarkdownFormatter) GetCulpritSubjectAndBody(ctx context.Context, culprit *pb.Culprit,
 	subscription *sub_pb.Subscription) (string, string, error) {
 	templateContext := &TemplateContext{
 		CommitUrl:    f.commitURLTemplate,
@@ -91,6 +137,25 @@ func (f MarkdownFormatter) GetSubjectAndBody(ctx context.Context, culprit *pb.Cu
 	var subjectb bytes.Buffer
 	if err := f.newCulpritSubjectTemplate.Execute(&subjectb, templateContext); err != nil {
 		return "", "", skerr.Wrapf(err, "format Markdown subject for a new culprit")
+	}
+	return string(subjectb.String()), string(bodyb.String()), nil
+}
+
+// FormatNewReportSubjectAndBody implements Formatter
+func (f MarkdownFormatter) GetReportSubjectAndBody(ctx context.Context, anomalyGroup *ag.AnomalyGroup,
+	subscription *sub_pb.Subscription, anomalyList []*pb.Anomaly) (string, string, error) {
+	templateContext := &ReportTemplateContext{
+		AnomalyGroup: anomalyGroup,
+		Subscription: subscription,
+		TopAnomalies: anomalyList,
+	}
+	var subjectb bytes.Buffer
+	if err := f.newReportSubjectTempalte.Execute(&subjectb, templateContext); err != nil {
+		return "", "", skerr.Wrapf(err, "format Markdown subject for a new anomaly group report")
+	}
+	var bodyb bytes.Buffer
+	if err := f.newReportBodyTemplate.Execute(&bodyb, templateContext); err != nil {
+		return "", "", skerr.Wrapf(err, "format Markdown body for a new anomaly group report")
 	}
 	return string(subjectb.String()), string(bodyb.String()), nil
 }
