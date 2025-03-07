@@ -154,12 +154,15 @@ export function mainChartOptions(
     titleTextStyle: { color: style.color },
     hAxis: {
       title: domain === 'commit' ? 'Commit Position' : 'Date',
+      titleTextStyle: {
+        color: style.getPropertyValue('--plot-axes-title-color'),
+      },
       textPosition: 'out',
       textStyle: {
         color: style.color,
       },
       gridlines: {
-        color: '#2222221a', // same as chromeperf, rgba(34, 34, 34, 0.1)
+        color: style.getPropertyValue('--plot-gridline-color'),
       },
       format: format,
     },
@@ -167,7 +170,7 @@ export function mainChartOptions(
       textPosition: 'out',
       textStyle: { color: style.color },
       gridlines: {
-        color: '#2222221a', // same as chromeperf, rgba(34, 34, 34, 0.1)
+        color: style.getPropertyValue('--plot-gridline-color'),
       },
       viewWindowMode: 'maximized',
     },

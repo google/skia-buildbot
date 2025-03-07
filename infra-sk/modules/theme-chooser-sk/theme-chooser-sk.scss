@@ -50,6 +50,8 @@
   --md-sys-color-on-error: #ffffff;
   --md-sys-color-error-container: #ffdad6;
   --md-sys-color-on-error-container: #410002;
+  --plot-gridline-color: #cccccc;
+  --plot-axes-title-color: #191c20;
 
   &.darkmode,
   & .darkmode {
@@ -90,5 +92,7 @@
     --md-sys-color-on-error: #690005;
     --md-sys-color-error-container: #93000a;
     --md-sys-color-on-error-container: #ffdad6;
+    --plot-gridline-color: #636363;
+    --plot-axes-title-color: #cccccc;
   }
 }
