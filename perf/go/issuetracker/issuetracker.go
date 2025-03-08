@@ -70,7 +70,7 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	}
 
 	query := strings.Join(slice, " | ")
-	query = "id: " + query
+	query = "id:" + query
 
 	sklog.Debugf("[Perf_issuetracker] Start sending list issues request to v1 issuetracker with query: %s", query)
 	requestBodyStr, err := json.Marshal(query)
