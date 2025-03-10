@@ -14,11 +14,6 @@
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
-    "issue_tracker_config": {
-        "notification_type": "issuetracker",
-        "issue_tracker_api_key_secret_project": "skia-infra-public",
-        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
-    },
     "data_store_config": {
         "datastore_type": "spanner",
         "connection_string": "postgresql://root@localhost:5432/demo?sslmode=disable",
