@@ -185,6 +185,10 @@ type DataStoreConfig struct {
 	// used to respond to queries, which is faster, but is not appropriate if
 	// data recency is imperative. The age of the data should only be 5s older.
 	EnableFollowerReads bool `json:"enable_follower_reads,omitempty"`
+
+	// MinimumConnectionsInDBPool defines the minimum number of database
+	// connections to be maintained in the connection pool.
+	MinimumConnectionsInDBPool int32 `json:"min_db_connections,omitempty"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.

@@ -86,11 +86,11 @@ var singletonPool pool.Pool
 // used in NewCockroachDBFromConfig
 var singletonPoolMutex sync.Mutex
 
-// NewCockroachDBFromConfig opens an existing CockroachDB database.
+// NewDBPoolFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
 // 'migrate' command line application. See COCKROACHDB.md for more details.
-func NewCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, checkSchema bool) (pool.Pool, error) {
+func NewDBPoolFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig, checkSchema bool) (pool.Pool, error) {
 	singletonPoolMutex.Lock()
 	defer singletonPoolMutex.Unlock()
 
@@ -106,6 +106,12 @@ func NewCockroachDBFromConfig(ctx context.Context, instanceConfig *config.Instan
 	sklog.Infof("%#v", *cfg)
 	cfg.MaxConns = maxPoolConnections
 	cfg.ConnConfig.Logger = pgxLogAdaptor{}
+	if instanceConfig.DataStoreConfig.MinimumConnectionsInDBPool == 0 {
+		// Default to at least 2 connections.
+		instanceConfig.DataStoreConfig.MinimumConnectionsInDBPool = 2
+	}
+	cfg.MinConns = instanceConfig.DataStoreConfig.MinimumConnectionsInDBPool
+	sklog.Infof("Specified min db connections: %d", cfg.MinConns)
 	rawPool, err := pgxpool.ConnectConfig(ctx, cfg)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -327,14 +333,8 @@ func GetCacheFromConfig(ctx context.Context, instanceConfig config.InstanceConfi
 // getDBPool returns a pool.Pool object based on the target database configured.
 func getDBPool(ctx context.Context, instanceConfig *config.InstanceConfig) (pool.Pool, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.CockroachDBDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, true)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return db, nil
-	case config.SpannerDataStoreType:
-		db, err := NewCockroachDBFromConfig(ctx, instanceConfig, false)
+	case config.CockroachDBDataStoreType, config.SpannerDataStoreType:
+		db, err := NewDBPoolFromConfig(ctx, instanceConfig, true)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

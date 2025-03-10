@@ -16,7 +16,8 @@
   "data_store_config": {
     "datastore_type": "spanner",
     "connection_string": "postgresql://root@localhost:5432/v8_int?sslmode=disable",
-    "tile_size": 256
+    "tile_size": 256,
+    "min_db_connections": 5
   },
   "ingestion_config": {
     "source_config": {
