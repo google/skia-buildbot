@@ -850,6 +850,9 @@ type DataPointConfig struct {
 	// The link keys to use for commit range urls.
 	KeysForCommitRange []string `json:"keys_for_commit_range,omitempty"`
 
+	// The link keys to use for useful links i.e. Build Page, tracing
+	KeysForUsefulLinks []string `json:"keys_for_useful_links,omitempty"`
+
 	// If set to true, do not display commit detail in the pop-up for the data point.
 	SkipCommitDetailDisplay bool `json:"skip_commit_detail_display,omitempty"`
 }

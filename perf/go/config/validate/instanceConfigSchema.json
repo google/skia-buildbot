@@ -54,6 +54,12 @@
           },
           "type": "array"
         },
+        "keys_for_useful_links": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "skip_commit_detail_display": {
           "type": "boolean"
         }

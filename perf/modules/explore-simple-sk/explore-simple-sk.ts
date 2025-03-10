@@ -1210,7 +1210,8 @@ export class ExploreSimpleSk extends ElementSk {
           commitPos,
           prevCommitPos,
           traceName,
-          window.perf.keys_for_commit_range!
+          window.perf.keys_for_commit_range!,
+          window.perf.keys_for_useful_links!
         );
 
         this.tooltipSelected = true;
@@ -2360,7 +2361,8 @@ export class ExploreSimpleSk extends ElementSk {
             commit,
             prevCommit,
             detail.name,
-            window.perf.keys_for_commit_range!
+            window.perf.keys_for_commit_range!,
+            window.perf.keys_for_useful_links!
           );
         }
 
@@ -2380,7 +2382,8 @@ export class ExploreSimpleSk extends ElementSk {
             commit,
             prevCommit,
             detail.name,
-            window.perf.keys_for_commit_range!
+            window.perf.keys_for_commit_range!,
+            window.perf.keys_for_useful_links!
           );
         }
       })

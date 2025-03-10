@@ -464,12 +464,19 @@ export class ChartTooltipSk extends ElementSk {
     commit_position: CommitNumber | null,
     prev_commit_position: CommitNumber | null,
     trace_id: string,
-    keysForCommitRange: string[]
+    keysForCommitRange: string[],
+    keysForUsefulLinks: string[]
   ) {
     if (commit_position === null || prev_commit_position === null) {
       return;
     }
-    this.pointLinks!.load(commit_position, prev_commit_position, trace_id, keysForCommitRange!);
+    this.pointLinks!.load(
+      commit_position,
+      prev_commit_position,
+      trace_id,
+      keysForCommitRange!,
+      keysForUsefulLinks!
+    );
   }
 
   /** Clear Point Links */

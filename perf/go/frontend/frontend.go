@@ -273,6 +273,7 @@ type SkPerfConfig struct {
 	BugHostURL                 string             `json:"bug_host_url"`                    // The URL for the bug host for the instance.
 	GitRepoUrl                 string             `json:"git_repo_url"`                    // The URL for the associated git repo.
 	KeysForCommitRange         []string           `json:"keys_for_commit_range"`           // The link keys for commit range url display of individual points.
+	KeysForUsefulLinks         []string           `json:"keys_for_useful_links"`           // The link keys for useful information of individual points i.e. build page, tracing.
 	SkipCommitDetailDisplay    bool               `json:"skip_commit_detail_display"`      // Do not display commit detail
 	ImageTag                   string             `json:"image_tag"`                       // The image tag that the running instance is built from, typically a git commit hash.
 }
@@ -303,6 +304,7 @@ func (f *Frontend) getPageContext() (template.JS, error) {
 		BugHostURL:                 config.Config.BugHostUrl,
 		GitRepoUrl:                 config.Config.GitRepoConfig.URL,
 		KeysForCommitRange:         config.Config.DataPointConfig.KeysForCommitRange,
+		KeysForUsefulLinks:         config.Config.DataPointConfig.KeysForUsefulLinks,
 		SkipCommitDetailDisplay:    config.Config.DataPointConfig.SkipCommitDetailDisplay,
 		ImageTag:                   os.Getenv("IMAGE_TAG"),
 	}

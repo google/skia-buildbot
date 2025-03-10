@@ -188,6 +188,7 @@ describe('formatRevisionRange', () => {
       bug_host_url: '',
       git_repo_url: '',
       keys_for_commit_range: [],
+      keys_for_useful_links: [],
       skip_commit_detail_display: false,
       image_tag: 'fake-tag',
     };

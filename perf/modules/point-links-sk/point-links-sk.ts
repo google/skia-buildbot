@@ -83,7 +83,8 @@ export class PointLinksSk extends ElementSk {
     cid: CommitNumber,
     prev_cid: CommitNumber,
     traceid: string,
-    keysForCommitRange: string[]
+    keysForCommitRange: string[],
+    keysForUsefulLinks: string[]
   ): Promise<void> {
     // Clear any existing links first.
     this.displayUrls = {};
@@ -122,8 +123,14 @@ export class PointLinksSk extends ElementSk {
           }
         }
       });
-      this._render();
+      for (const key in currentLinks) {
+        if (keysForUsefulLinks.includes(key)) {
+          this.displayTexts[key] = 'Link';
+          this.displayUrls[key] = currentLinks[key];
+        }
+      }
     }
+    this._render();
   }
 
   /** Clear Point Links */

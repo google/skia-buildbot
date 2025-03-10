@@ -353,6 +353,7 @@ export interface SkPerfConfig {
 	bug_host_url: string;
 	git_repo_url: string;
 	keys_for_commit_range: string[] | null;
+	keys_for_useful_links: string[] | null;
 	skip_commit_detail_display: boolean;
 	image_tag: string;
 }

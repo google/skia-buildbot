@@ -22,13 +22,21 @@ describe('point-links-sk', () => {
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
       const keysForCommitRange: string[] = [];
-      element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
+      const keysForUsefulLinks: string[] = [];
+      element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks
+      );
       assert.isEmpty(element.displayUrls, 'No display urls expected.');
       assert.isEmpty(element.displayTexts, 'No display texts expected.');
     });
 
     it('With all eligible links but no range.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
+      const keysForUsefulLinks = [''];
       const returnLinks = {
         key1: 'https://commit/link1',
         key2: 'https://commit/link2',
@@ -45,12 +53,19 @@ describe('point-links-sk', () => {
         'key1 Commit': 'https://commit/link1',
         'key2 Commit': 'https://commit/link2',
       };
-      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks
+      );
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
 
     it('With all eligible links and only ranges.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
+      const keysForUsefulLinks = [''];
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
@@ -78,7 +93,13 @@ describe('point-links-sk', () => {
         }
       });
 
-      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks
+      );
       const expectedLinks = {
         'key1 Range': 'https://repoHost/repo1/+log/preLink..curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
@@ -88,6 +109,7 @@ describe('point-links-sk', () => {
 
     it('With all eligible links and mixed links and ranges.', async () => {
       const keysForCommitRange = ['key1', 'key2'];
+      const keysForUsefulLinks = ['buildKey', 'traceKey'];
       const currentCommitId = CommitNumber(4);
       const prevCommitId = CommitNumber(3);
 
@@ -100,6 +122,9 @@ describe('point-links-sk', () => {
               links: {
                 key1: 'https://repoHost/repo1/+/curLink',
                 key2: 'https://repoHost/repo2/+/curLink',
+                buildKey: 'https://luci/builder/build1',
+                traceKey: 'https://traceViewer/trace',
+                extraKey: 'https://randomSite',
               },
             };
           case prevCommitId:
@@ -115,10 +140,18 @@ describe('point-links-sk', () => {
         }
       });
 
-      await element.load(currentCommitId, prevCommitId, 'my trace', keysForCommitRange);
+      await element.load(
+        currentCommitId,
+        prevCommitId,
+        'my trace',
+        keysForCommitRange,
+        keysForUsefulLinks
+      );
       const expectedLinks = {
         'key1 Commit': 'https://repoHost/repo1/+/curLink',
         'key2 Range': 'https://repoHost/repo2/+log/preLink..curLink',
+        buildKey: 'https://luci/builder/build1',
+        traceKey: 'https://traceViewer/trace',
       };
       assert.deepEqual(expectedLinks, element.displayUrls);
     });
