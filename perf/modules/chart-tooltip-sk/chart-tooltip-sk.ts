@@ -198,9 +198,7 @@ export class ChartTooltipSk extends ElementSk {
         </li>
         <li>
           <b>Change:</b>
-          <commit-range-sk
-            .showLinks=${ele._tooltip_fixed}
-            id="tooltip-commit-range-link"></commit-range-sk>
+          <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
       </ul>
       <commit-info-sk .commitInfo=${ele.commitInfo} ?hidden=${!ele._tooltip_fixed}></commit-info-sk>
@@ -447,6 +445,7 @@ export class ChartTooltipSk extends ElementSk {
     this.commitInfo = commit;
 
     if (commitRange && this.commitRangeSk) {
+      this.commitRangeSk.showLinks = tooltipFixed;
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
       this.commitRangeSk.header = commitRange.header;

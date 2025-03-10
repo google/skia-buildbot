@@ -107,25 +107,23 @@ export class CommitRangeSk extends ElementSk {
     const cids: CommitNumber[] = [startOffset, endOffset];
 
     try {
-      // Run the commit numbers through cid lookup to get the hashes.
-      const hashes = await this.commitNumberToHashes(cids);
-      // Create the URL.
-      let url = window.perf.commit_range_url;
-      url = url.replace('{begin}', hashes[0]);
-      url = url.replace('{end}', hashes[1]);
-
-      // Now populate link, including text and url.
-      this._url = url;
-
       // Add +1 to the previous commit to only show commits after previous.
       this._text = `${startOffset + 1} - ${endOffset}`;
       // Check if there are no points between start and end.
       if (startOffset + 1 === endOffset) {
         this._text = `${endOffset}`;
       }
-      // Show only text of commit if hover, else show full text with links.
       this._htmlTemplate = html`${this._text}`;
+      // Show only text of commit if hover, else show full text with links.
       if (this.showLinks) {
+        let url = window.perf.commit_range_url;
+        // Run the commit numbers through cid lookup to get the hashes.
+        const hashes = await this.commitNumberToHashes(cids);
+        // Create the URL.
+        url = url.replace('{begin}', hashes[0]);
+        url = url.replace('{end}', hashes[1]);
+        // Now populate link, including text and url.
+        this._url = url;
         this._htmlTemplate = html`<a href="${this._url}" target="_blank">${this._text}</a>`;
       }
       this._render();
