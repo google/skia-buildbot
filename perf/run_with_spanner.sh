@@ -3,6 +3,10 @@
 # Prerequisite:
 # gcloud auth application-default login
 
+# Example Command:
+# ./run_with_spanner.sh p=skia-infra-corp i=tfgen-spanid-20241205020733610
+# d=v8_int config=configs/spanner/v8-internal.json repo=v8/v8
+
 # First delete any existing docker containers to start clean.
 sudo docker ps -q | xargs -r sudo docker rm -vf
 # Now let's get all the arguments passed in.
@@ -14,12 +18,16 @@ do
     export "$argKey"="$val"
 done
 
+# Check if domain or repo are set via params, if not set them to default values.
+if [[ -z "${domain}" ]]; then
+  domain="chromium.googlesource.com"
+fi
 
-# Potentially incorporate into args if using different instances.
-domain="chromium.googlesource.com"
-repo="chromium/src"
+if [[ -z "${repo}" ]]; then
+  repo="chromium/src"
+fi
 
-echo "Using the following params: -p=$p -i=$i -d=$d -config=$config"
+echo "Using the following params: -p=$p -i=$i -d=$d -config=$config -domain=$domain -repo=$repo"
 # Now let's run pgadapter connected to the supplied spanner database.
 sudo docker run -d -p 127.0.0.1:5432:5432 \
 	-v $HOME/.config/gcloud/application_default_credentials.json:/acct_credentials.json \
