@@ -619,7 +619,7 @@ filegroup(
     visibility = ["//visibility:public"]
 )
 """,
-    sha256 = "415326bb52f31c206540becb9f694df7db34533c2f94797ddca8f69507c092d4",
+    sha256 = "b59876c3361a8a24e44a1fec0abdfbb36f05145254f3eb030604410c1c5075ff",
     urls = ["https://storage.googleapis.com/pgadapter-jar-releases/pgadapter.tar.gz"],
 )
 
