@@ -21,9 +21,9 @@ import (
 
 func setup(t *testing.T) (context.Context, *RegressionMigrator, *sqlregressionstore.SQLRegressionStore, *sqlregression2store.SQLRegression2Store) {
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(t, "regstore")
-	migrator, _ := New(ctx, db, config.CockroachDBDataStoreType)
-	legacyStore, _ := sqlregressionstore.New(db, config.CockroachDBDataStoreType)
+	db := sqltest.NewSpannerDBForTests(t, "regstore")
+	migrator, _ := New(ctx, db, config.SpannerDataStoreType)
+	legacyStore, _ := sqlregressionstore.New(db, config.SpannerDataStoreType)
 	newStore, _ := sqlregression2store.New(db, nil)
 	return ctx, migrator, legacyStore, newStore
 }
@@ -141,8 +141,7 @@ func TestMigrate_Partial_Success(t *testing.T) {
 
 	legacyRegressionsMap, _ := legacyStore.Range(ctx, 1, 10)
 	assert.Equal(t, 10, len(legacyRegressionsMap))
-	for i := 1; i <= migrationCount; i++ {
-		commitNumber := types.CommitNumber(i)
+	for commitNumber := range regressionsMap {
 		newRegression := regressionsMap[commitNumber].ByAlertID[alertID]
 		oldRegression := legacyRegressionsMap[commitNumber].ByAlertID[alertID]
 		assertRegressions(t, oldRegression, newRegression)
@@ -179,8 +178,7 @@ func TestMigrate_MultipleBatches_Success(t *testing.T) {
 
 	legacyRegressionsMap, _ := legacyStore.Range(ctx, 1, 10)
 	assert.Equal(t, 10, len(legacyRegressionsMap))
-	for i := 1; i <= migrationCount; i++ {
-		commitNumber := types.CommitNumber(i)
+	for commitNumber := range regressionsMap {
 		newRegression := regressionsMap[commitNumber].ByAlertID[alertID]
 		oldRegression := legacyRegressionsMap[commitNumber].ByAlertID[alertID]
 		assertRegressions(t, oldRegression, newRegression)

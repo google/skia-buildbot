@@ -119,21 +119,14 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 	return_ids := make([]string, 0)
 	// Update existing culprits into Culprit table
 	if len(existing_culprits) > 0 {
-		statement = "UPSERT INTO Culprits (id, anomaly_group_ids, last_modified) VALUES"
-		const colsPerRow = 3 // should match number of columns in `statement`
-		statement += sqlutil.ValuesPlaceholders(colsPerRow, len(existing_culprits))
-		arguments = make([]interface{}, 0, colsPerRow*len(existing_culprits))
-		ids := make([]string, 0)
+		statement = "UPDATE Culprits SET anomaly_group_ids=$2, last_modified=$3 WHERE id=$1"
 		for _, culprit := range existing_culprits {
-			arguments = append(arguments, culprit.Id, culprit.AnomalyGroupIDs,
-				current_time)
-			ids = append(ids, culprit.Id)
-		}
-		_, err := s.db.Exec(ctx, statement, arguments...)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to upsert culprit")
-		} else {
-			return_ids = append(return_ids, ids...)
+			_, err := s.db.Exec(ctx, statement, culprit.Id, culprit.AnomalyGroupIDs, current_time)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "Failed to update culprit with id %s", culprit.Id)
+			} else {
+				return_ids = append(return_ids, culprit.Id)
+			}
 		}
 	}
 

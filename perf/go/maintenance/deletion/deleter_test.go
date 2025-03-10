@@ -21,9 +21,9 @@ import (
 
 func setup(t *testing.T) (context.Context, *Deleter, *sqlregressionstore.SQLRegressionStore, *sqlshortcutstore.SQLShortcutStore) {
 	ctx := context.Background()
-	db := sqltest.NewCockroachDBForTests(t, "delStore")
-	deleter, _ := New(db, config.CockroachDBDataStoreType)
-	regressionStore, _ := sqlregressionstore.New(db, config.CockroachDBDataStoreType)
+	db := sqltest.NewSpannerDBForTests(t, "delstore")
+	deleter, _ := New(db, config.SpannerDataStoreType)
+	regressionStore, _ := sqlregressionstore.New(db, config.SpannerDataStoreType)
 	shortcutStore, _ := sqlshortcutstore.New(db)
 
 	return ctx, deleter, regressionStore, shortcutStore

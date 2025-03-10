@@ -24,14 +24,15 @@ import (
 var (
 	cfg = &config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
-			TileSize: 256,
+			TileSize:      256,
+			DataStoreType: config.SpannerDataStoreType,
 		},
 	}
 )
 
 func TestBuildTraceMapper(t *testing.T) {
 
-	db := sqltest.NewCockroachDBForTests(t, "dfbuilder")
+	db := sqltest.NewSpannerDBForTests(t, "dfbuilder")
 
 	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
 	require.NoError(t, err)

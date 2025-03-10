@@ -33,11 +33,18 @@ const (
 	batchReadMigration
 	markMigrated
 	deleteByCommit
+	updateRegression
 )
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statements = map[statement]string{
 	write: `
+		UPSERT INTO
+			Regressions (commit_number, alert_id, regression, migrated)
+		VALUES
+			($1, $2, $3, false)
+		`,
+	updateRegression: `
 		UPSERT INTO
 			Regressions (commit_number, alert_id, regression, migrated)
 		VALUES
@@ -318,7 +325,11 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 		}
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := tx.Exec(ctx, s.statements[write], commitNumber, alertID, string(b)); err != nil {
+	writeStatement := s.statements[write]
+	if mustExist {
+		writeStatement = s.statements[updateRegression]
+	}
+	if _, err := tx.Exec(ctx, writeStatement, commitNumber, alertID, string(b)); err != nil {
 		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}

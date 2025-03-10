@@ -23,9 +23,9 @@ import (
 
 func setupTestApp(t *testing.T) *Backend {
 	db := sqltest.NewSpannerDBForTests(t, "backend")
-	alertStore, _ := alert_store.New(db, config.CockroachDBDataStoreType)
+	alertStore, _ := alert_store.New(db, config.SpannerDataStoreType)
 	configProvider, _ := alerts.NewConfigProvider(context.Background(), alertStore, 600)
-	anomalygroupStore, _ := ag_store.New(db)
+	anomalygroupStore, _ := ag_store.New(db, config.SpannerDataStoreType)
 	culpritStore, _ := culprit_store.New(db)
 	subscriptionStore, _ := subscription_store.New(db)
 	regressionStore, _ := sqlregression2store.New(db, configProvider)

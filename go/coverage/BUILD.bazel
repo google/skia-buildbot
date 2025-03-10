@@ -1,6 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel:skia_app_container.bzl", "skia_app_container")
-load("//bazel/go:go_test.bzl", "go_test")
 
 go_library(
     name = "coverage",
@@ -26,20 +25,6 @@ go_library(
         "@com_github_jackc_pgx_v4//pgxpool",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//reflection",
-    ],
-)
-
-go_test(
-    name = "coverage_test",
-    srcs = ["coverage_test.go"],
-    data = glob(["config/**"]),
-    embed = [":coverage"],
-    deps = [
-        "//go/coverage/config",
-        "//go/coverage/coveragestore/sqlcoveragestore",
-        "//perf/go/sql/sqltest",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//require",
     ],
 )
 

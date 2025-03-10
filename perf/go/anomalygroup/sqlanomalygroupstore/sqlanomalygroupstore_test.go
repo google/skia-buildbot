@@ -9,12 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/perf/go/anomalygroup"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
 func setUp(t *testing.T) (anomalygroup.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "anomalygroups")
-	store, err := New(db)
+	db := sqltest.NewSpannerDBForTests(t, "anomalygroups")
+	store, err := New(db, config.SpannerDataStoreType)
 	require.NoError(t, err)
 	return store, db
 }

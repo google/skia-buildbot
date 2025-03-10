@@ -26,7 +26,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-const CockroachDatabaseName = "ingest"
+const databaseName = "ingest"
 
 func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 	gcp_emulator.RequirePubSub(t)
@@ -60,9 +60,9 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 	return pubsubClient, instanceConfig
 }
 
-func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
+func TestStart_IngestDemoRepoWithSpannerTraceStore_Success(t *testing.T) {
 
-	_ = sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
+	_ = sqltest.NewSpannerDBForTests(t, databaseName)
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := os.MkdirTemp("", "ingest-process")
@@ -71,9 +71,9 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 
 	instanceConfig := config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
-			DataStoreType:    config.CockroachDBDataStoreType,
+			DataStoreType:    config.SpannerDataStoreType,
 			TileSize:         256,
-			ConnectionString: fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.CockroachDB), CockroachDatabaseName),
+			ConnectionString: fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", emulators.GetEmulatorHostEnvVar(emulators.PGAdapter), databaseName),
 		},
 		IngestionConfig: config.IngestionConfig{
 			SourceConfig: config.SourceConfig{

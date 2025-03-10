@@ -16,7 +16,7 @@ import (
 )
 
 func setUp(t *testing.T) (culprit.Store, pool.Pool) {
-	db := sqltest.NewCockroachDBForTests(t, "culprits")
+	db := sqltest.NewSpannerDBForTests(t, "culprits")
 	store, err := New(db)
 	require.NoError(t, err)
 	return store, db

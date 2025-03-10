@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/sql/pool"
 
 	pb "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	"go.skia.org/infra/perf/go/config"
 )
 
 // statement is an SQL statement identifier.
@@ -38,12 +39,14 @@ var statements = map[statement]string{
 
 type AnomalyGroupStore struct {
 	//
-	db pool.Pool
+	db     pool.Pool
+	dbType config.DataStoreType
 }
 
-func New(db pool.Pool) (*AnomalyGroupStore, error) {
+func New(db pool.Pool, dbType config.DataStoreType) (*AnomalyGroupStore, error) {
 	return &AnomalyGroupStore{
-		db: db,
+		db:     db,
+		dbType: dbType,
 	}, nil
 }
 
@@ -199,6 +202,17 @@ func (s *AnomalyGroupStore) AddAnomalyID(ctx context.Context, group_id string, a
 		WHERE
 			id=$2
 	`
+	if s.dbType == config.SpannerDataStoreType {
+		statement = `
+			UPDATE
+				AnomalyGroups
+			SET
+				anomaly_ids=COALESCE(anomaly_ids, ARRAY[]::text[]) || ARRAY[$1]
+			WHERE
+				id=$2
+		`
+	}
+
 	if _, err := s.db.Exec(ctx, statement, anomaly_id, group_id); err != nil {
 		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
 	}
@@ -220,6 +234,16 @@ func (s *AnomalyGroupStore) AddCulpritIDs(ctx context.Context, group_id string, 
 		WHERE
 			id=$2
 	`
+	if s.dbType == config.SpannerDataStoreType {
+		statement = `
+			UPDATE
+				AnomalyGroups
+			SET
+				culprit_ids=COALESCE(culprit_ids, ARRAY[]::text[]) || $1
+			WHERE
+				id=$2
+		`
+	}
 	if _, err := s.db.Exec(ctx, statement, culprit_ids, group_id); err != nil {
 		return fmt.Errorf("error updating anomaly group table: %s. %s", err, group_id)
 	}
@@ -251,10 +275,10 @@ func (s *AnomalyGroupStore) FindExistingGroup(
 			AnomalyGroups
 		WHERE
 			action=$1
-			AND JSON_EXTRACT_PATH_TEXT(group_meta_data, 'subscription_name')=$2
-			AND JSON_EXTRACT_PATH_TEXT(group_meta_data, 'subscription_revision')=$3
-			AND JSON_EXTRACT_PATH_TEXT(group_meta_data, 'domain_name')=$4
-			AND JSON_EXTRACT_PATH_TEXT(group_meta_data, 'benchmark_name')=$5
+			AND group_meta_data ->> 'subscription_name'=$2
+			AND group_meta_data ->> 'subscription_revision'=$3
+			AND group_meta_data ->> 'domain_name'=$4
+			AND group_meta_data ->> 'benchmark_name'=$5
 			AND common_rev_start<=$6
 			AND common_rev_end>=$7
 	`

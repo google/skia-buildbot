@@ -11,6 +11,12 @@ var spannerStatements = map[statement]string{
 		SET commit_number=EXCLUDED.commit_number, alert_id=EXCLUDED.alert_id,
 		regression=EXCLUDED.regression, migrated=EXCLUDED.migrated
 		`,
+	updateRegression: `
+		UPDATE Regressions
+			SET regression=$3, migrated=false
+		WHERE
+			commit_number=$1 AND alert_id=$2
+		`,
 	read: `
 		SELECT
 			regression
