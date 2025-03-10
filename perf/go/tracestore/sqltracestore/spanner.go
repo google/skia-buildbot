@@ -1,7 +1,7 @@
 package sqltracestore
 
 // The number of parallel writes when writing postings data.
-const writePostingsParallelPoolSize = 10
+const writePostingsParallelPoolSize = 5
 
 // The number of parallel writes when writing traces data.
 const writeTracesParallelPoolSize = 5
