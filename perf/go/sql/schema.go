@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
   INDEX by_source_file (source_file, source_file_id)
 );
 CREATE TABLE IF NOT EXISTS Subscriptions (
-  name STRING UNIQUE NOT NULL,
+  name STRING NOT NULL,
   revision STRING NOT NULL,
   bug_labels STRING ARRAY,
   hotlists STRING ARRAY,

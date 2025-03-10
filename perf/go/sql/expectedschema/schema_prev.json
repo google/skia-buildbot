@@ -85,6 +85,16 @@
     "tracevalues.source_file_id": "bigint def: nullable:YES",
     "tracevalues.trace_id": "bytea def: nullable:NO",
     "tracevalues.val": "real def: nullable:YES",
+    "tracevalues2.benchmark": "text def: nullable:YES",
+    "tracevalues2.bot": "text def: nullable:YES",
+    "tracevalues2.commit_number": "bigint def: nullable:NO",
+    "tracevalues2.source_file_id": "bigint def: nullable:YES",
+    "tracevalues2.subtest_1": "text def: nullable:YES",
+    "tracevalues2.subtest_2": "text def: nullable:YES",
+    "tracevalues2.subtest_3": "text def: nullable:YES",
+    "tracevalues2.test": "text def: nullable:YES",
+    "tracevalues2.trace_id": "bytea def: nullable:NO",
+    "tracevalues2.val": "real def: nullable:YES",
     "userissues.commit_position": "bigint def: nullable:NO",
     "userissues.issue_id": "bigint def: nullable:NO",
     "userissues.last_modified": "timestamp with time zone def:now():::TIMESTAMPTZ nullable:YES",
@@ -103,6 +113,7 @@
     "sourcefiles.sourcefiles_source_file_key",
     "sourcefiles.by_source_file",
     "subscriptions.subscriptions_name_key",
-    "tracevalues.by_source_file_id"
+    "tracevalues.by_source_file_id",
+    "tracevalues2.by_trace_id_tv2"
   ]
 }

@@ -112,7 +112,6 @@
     "regressions2.by_alert_id",
     "sourcefiles.sourcefiles_source_file_key",
     "sourcefiles.by_source_file",
-    "subscriptions.subscriptions_name_key",
     "tracevalues.by_source_file_id",
     "tracevalues2.by_trace_id_tv2"
   ]

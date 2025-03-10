@@ -120,6 +120,54 @@ func TestInsert_DuplicateSubscriptionKeys(t *testing.T) {
 	assert.Empty(t, actual)
 }
 
+// Test inserting two subscriptions with the same name but different revisions.
+// The transaction should succeed.
+func TestInsert_SameNameDifferentRevision(t *testing.T) {
+	ctx := context.Background()
+	store, db := setUp(t)
+
+	s1 := &pb.Subscription{
+		Name:         "Test Subscription",
+		Revision:     "abcd",
+		BugLabels:    []string{"A", "B"},
+		Hotlists:     []string{"C", "D"},
+		BugComponent: "Component1>Subcomponent1",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+	s2 := &pb.Subscription{
+		Name:         "Test Subscription",
+		Revision:     "efgh",
+		BugLabels:    []string{"1", "2"},
+		Hotlists:     []string{"3", "4"},
+		BugComponent: "Component2>Subcomponent2",
+		BugPriority:  1,
+		BugSeverity:  2,
+		BugCcEmails: []string{
+			"abcd@efg.com",
+			"1234@567.com",
+		},
+		ContactEmail: "test@owner.com",
+	}
+
+	tx, err := db.Begin(ctx)
+	require.NoError(t, err)
+
+	err = store.InsertSubscriptions(ctx, []*pb.Subscription{s1, s2}, tx)
+	require.NoError(t, err)
+
+	err = tx.Commit(ctx)
+	require.NoError(t, err)
+
+	actual := getSubscriptionsFromDb(t, ctx, db)
+	assert.ElementsMatch(t, actual, []*pb.Subscription{s1, s2})
+}
+
 func TestInsert_EmptyList(t *testing.T) {
 	ctx := context.Background()
 	store, db := setUp(t)

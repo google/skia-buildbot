@@ -52,7 +52,7 @@ func Test_MigrationNeeded_Spanner(t *testing.T) {
 	prev, err := expectedschema.LoadPrev(config.SpannerDataStoreType)
 	require.NoError(t, err)
 
-	_, err = db.Exec(ctx, expectedschema.FromNextToLive)
+	_, err = db.Exec(ctx, expectedschema.FromNextToLiveSpanner)
 	require.NoError(t, err)
 
 	actual, err := schema.GetDescription(ctx, db, sql.Tables{}, string(config.SpannerDataStoreType))

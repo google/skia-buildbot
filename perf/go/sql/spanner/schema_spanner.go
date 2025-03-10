@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
   PRIMARY KEY (source_file_id)
 ) TTL INTERVAL '1095 days' ON createdat;
 CREATE TABLE IF NOT EXISTS Subscriptions (
-  name TEXT  NOT NULL,
+  name TEXT NOT NULL,
   revision TEXT NOT NULL,
   bug_labels TEXT ARRAY,
   hotlists TEXT ARRAY,

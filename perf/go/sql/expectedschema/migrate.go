@@ -38,48 +38,24 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-	CREATE TABLE IF NOT EXISTS TraceValues2 (
-		trace_id BYTES,
-		commit_number INT,
-		val REAL,
-		source_file_id INT,
-		benchmark STRING,
-		bot STRING,
-		test STRING,
-		subtest_1 STRING,
-		subtest_2 STRING,
-		subtest_3 STRING,
-		PRIMARY KEY (trace_id, commit_number),
-		INDEX by_trace_id_tv2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3)
-  	);
+    DROP INDEX IF EXISTS subscriptions_name_key CASCADE;
 `
 
 // Same as above, but will be used when doing schema migration for spanner databases.
 // Some statements can be different for CDB v/s Spanner, hence splitting into
 // separate variables.
 var FromLiveToNextSpanner = `
-	CREATE TABLE IF NOT EXISTS TraceValues2 (
-		trace_id BYTEA,
-		commit_number INT,
-		val REAL,
-		source_file_id INT,
-		benchmark TEXT,
-		bot TEXT,
-		test TEXT,
-		subtest_1 TEXT,
-		subtest_2 TEXT,
-		subtest_3 TEXT,
-		PRIMARY KEY (trace_id, commit_number),
-		createdat TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-	) TTL INTERVAL '1095 days' ON createdat;
-	CREATE INDEX IF NOT EXISTS by_trace_id_tv2 on TraceValues2 (trace_id, benchmark, bot, test, subtest_1, subtest_2, subtest_3);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-	DROP INDEX IF EXISTS by_trace_id_tv2;
-	DROP TABLE IF EXISTS TraceValues2;
+    ALTER TABLE Subscriptions ADD CONSTRAINT subscriptions_name_key UNIQUE (name);
+`
+
+// ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
+// FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
+var FromNextToLiveSpanner = `
 `
 
 // This function will check whether there's a new schema checked-in,

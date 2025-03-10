@@ -2,7 +2,7 @@ package schema
 
 type SubscriptionSchema struct {
 	// Unique name identifying subscription.
-	Name string `sql:"name STRING UNIQUE NOT NULL"`
+	Name string `sql:"name STRING NOT NULL"`
 
 	// infra_internal Git hash on which a subscription is based on.
 	Revision string `sql:"revision STRING NOT NULL"`
