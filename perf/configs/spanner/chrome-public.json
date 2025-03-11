@@ -26,8 +26,7 @@
     "data_store_config": {
         "datastore_type": "spanner",
         "connection_string": "postgresql://root@localhost:5432/chrome_pub?sslmode=disable",
-        "tile_size": 8192,
-        "min_db_connections": 5
+        "tile_size": 8192
     },
     "ingestion_config": {
         "source_config": {

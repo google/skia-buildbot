@@ -50,7 +50,7 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 	}
 
 	// Migrate schema if needed.
-	db, err := builders.NewDBPoolFromConfig(ctx, instanceConfig, false)
+	db, err := builders.NewCockroachDBFromConfig(ctx, instanceConfig, false)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create CockroachDB instance.")
 	}
