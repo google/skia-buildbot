@@ -83,6 +83,9 @@
         },
         "enable_follower_reads": {
           "type": "boolean"
+        },
+        "min_db_connections": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

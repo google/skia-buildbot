@@ -15,7 +15,8 @@
     "datastore_type": "spanner",
     "connection_string": "postgresql://root@localhost:5432/skia?sslmode=disable",
     "tile_size": 256,
-    "enable_follower_reads": true
+    "enable_follower_reads": true,
+    "min_db_connections": 5
   },
   "ingestion_config": {
     "source_config": {
