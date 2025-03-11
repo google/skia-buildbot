@@ -89,8 +89,8 @@ export class PointLinksSk extends ElementSk {
     // Clear any existing links first.
     this.displayUrls = {};
     this.displayTexts = {};
+    const currentLinks = await this.getLinksForPoint(cid, traceid);
     if (keysForCommitRange !== null) {
-      const currentLinks = await this.getLinksForPoint(cid, traceid);
       const prevLinks = await this.getLinksForPoint(prev_cid, traceid);
       keysForCommitRange.forEach((key) => {
         const currentCommitUrl = currentLinks[key];
@@ -123,6 +123,8 @@ export class PointLinksSk extends ElementSk {
           }
         }
       });
+    }
+    if (keysForUsefulLinks !== null) {
       for (const key in currentLinks) {
         if (keysForUsefulLinks.includes(key)) {
           this.displayTexts[key] = 'Link';
