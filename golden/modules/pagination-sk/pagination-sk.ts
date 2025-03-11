@@ -12,13 +12,13 @@
  * @attr page_size {int} the number of items we go forward/backward on a single page.
  *
  * @attr total {int} the total number of items that can be paged through or MANY if the
- *      server doesn't know.
+ * server doesn't know.
  *
  * @evt page-changed - Sent when user pages forward or backward. Check
- *       e.detail.delta for how many pages changed and which direction.
+ * e.detail.delta for how many pages changed and which direction.
  */
 
-import { html } from 'lit/html.js';
+import { html, TemplateResult } from 'lit/html.js';
 import { define } from '../../../elements-sk/modules/define';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -32,30 +32,37 @@ export interface PaginationSkPageChangedEventDetail {
 }
 
 export class PaginationSk extends ElementSk {
-  private static _template = (ele: PaginationSk) => html`
-    <button
-      ?disabled=${ele._currPage() <= 1}
-      title="Go to previous page of results."
-      @click=${() => ele._page(-1)}
-      class="prev">
-      Prev
-    </button>
-    <div class="counter">page ${ele._currPage()}</div>
-    <button
-      ?disabled=${!ele._canGoNext(ele.offset + ele.page_size)}
-      title="Go to next page of results."
-      @click=${() => ele._page(1)}
-      class="next">
-      Next
-    </button>
-    <button
-      ?disabled=${!ele._canGoNext(ele.offset + 5 * ele.page_size)}
-      title="Skip forward 5 pages of results."
-      @click=${() => ele._page(5)}
-      class="skip">
-      +5
-    </button>
-  `;
+  private static _template = (ele: PaginationSk): TemplateResult => {
+    if (ele.page_size >= ele.total && ele.total !== MANY) {
+      // Hide buttons if only one page is needed.
+      return html``;
+    }
+
+    return html`
+      <button
+        ?disabled=${ele._currPage() <= 1}
+        title="Go to previous page of results."
+        @click=${() => ele._page(-1)}
+        class="prev">
+        Prev
+      </button>
+      <div class="counter">page ${ele._currPage()}</div>
+      <button
+        ?disabled=${!ele._canGoNext(ele.offset + ele.page_size)}
+        title="Go to next page of results."
+        @click=${() => ele._page(1)}
+        class="next">
+        Next
+      </button>
+      <button
+        ?disabled=${!ele._canGoNext(ele.offset + 5 * ele.page_size)}
+        title="Skip forward 5 pages of results."
+        @click=${() => ele._page(5)}
+        class="skip">
+        +5
+      </button>
+    `;
+  };
 
   constructor() {
     super(PaginationSk._template);
