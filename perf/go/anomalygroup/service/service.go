@@ -230,6 +230,8 @@ func (s *anomalygroupService) FindTopAnomalies(
 			EndCommit:            int64(anomaly.CommitNumber),
 			Paramset:             paramset_map,
 			ImprovementDirection: paramset["improvement_direction"][0],
+			MedianBefore:         anomaly.MedianBefore,
+			MedianAfter:          anomaly.MedianAfter,
 		})
 	}
 

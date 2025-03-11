@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	pb "go.skia.org/infra/perf/go/culprit/proto/v1"
 	sub_pb "go.skia.org/infra/perf/go/subscription/proto/v1"
+	"go.skia.org/infra/perf/go/urlprovider"
 )
 
 const (
@@ -20,12 +21,10 @@ const (
 	defaultNewReportSubject  = `[{{ .Subscription.Name }}]: [{{ len .AnomalyGroup.AnomalyIds }}] regressions in {{ .AnomalyGroup.BenchmarkName }}`
 	defaultNewReportBody     = `
 	Dashboard URLs:
-		TO ADD WITH GROUP ID
-	Top {{ len .TopAnomalies }} anomalies in this group:
-	{{ range .TopAnomalies }}
-	 - {{ . }}
-	{{end}}
-	`
+	 {{ buildGroupUrl .HostUrl .AnomalyGroup.GroupId }}
+	Top {{ len .TopAnomalies }} anomalies in this group:{{ range .TopAnomalies }}
+	 - {{ buildAnomalyDetails . }}
+	{{end}}`
 )
 
 // Formatter controls how the notification looks like
@@ -40,6 +39,7 @@ type Formatter interface {
 // MarkdownFormatter implement Formatter.
 type MarkdownFormatter struct {
 	commitURLTemplate         string
+	instanceUrl               string
 	newCulpritSubjectTemplate *template.Template
 	newCulpritBodyTemplate    *template.Template
 	newReportSubjectTempalte  *template.Template
@@ -68,19 +68,33 @@ type ReportTemplateContext struct {
 
 	// The anomalies with the most significant performance change.
 	TopAnomalies []*pb.Anomaly
+
+	// The url of the current instance
+	HostUrl string
 }
 
 func buildCommitURL(url, commit string) string {
 	return fmt.Sprintf(url, commit)
 }
 
+func buildAnomalyGroupUrl(url, groupId string) string {
+	return fmt.Sprintf("%s%s", url, urlprovider.GroupReport("anomalyGroupID", groupId))
+}
+
+func buildAnomalyDetails(anomaly *pb.Anomaly) string {
+	return fmt.Sprintf(`Bot: %s, Benchmark: %s, Measurement: %s, Story: %s,
+	   Change: %.4f -> %.4f (%.2f%%)`,
+		anomaly.Paramset["bot"], anomaly.Paramset["benchmark"], anomaly.Paramset["measurement"], anomaly.Paramset["story"],
+		anomaly.MedianBefore, anomaly.MedianAfter, 100*(anomaly.MedianAfter-anomaly.MedianBefore)/anomaly.MedianBefore)
+}
+
 // NewMarkdownFormatter return a new MarkdownFormatter.
-func NewMarkdownFormatter(commitURLTemplate string, notifyConfig *config.IssueTrackerConfig) (*MarkdownFormatter, error) {
-	culpritSubject := notifyConfig.CulpritSubject
+func NewMarkdownFormatter(commitURLTemplate string, instanceConfig *config.InstanceConfig) (*MarkdownFormatter, error) {
+	culpritSubject := instanceConfig.IssueTrackerConfig.CulpritSubject
 	if culpritSubject == "" {
 		culpritSubject = defaultNewCulpritSubject
 	}
-	culpritBody := strings.Join(notifyConfig.CulpritBody, "\n")
+	culpritBody := strings.Join(instanceConfig.IssueTrackerConfig.CulpritBody, "\n")
 	if culpritBody == "" {
 		culpritBody = defaultNewCulpritBody
 	}
@@ -88,33 +102,38 @@ func NewMarkdownFormatter(commitURLTemplate string, notifyConfig *config.IssueTr
 	if err != nil {
 		return nil, skerr.Wrapf(err, "compiling newCulpritSubjectTemplate")
 	}
-	funcMap := template.FuncMap{
+	culpritFuncMap := template.FuncMap{
 		"buildCommitURL": buildCommitURL,
 	}
-	newCulpritBodyTemplate, err := template.New("newCulpritMarkdown").Funcs(funcMap).Parse(culpritBody)
+	newCulpritBodyTemplate, err := template.New("newCulpritMarkdown").Funcs(culpritFuncMap).Parse(culpritBody)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "compiling newCulpritBodyTemplate")
 	}
 
-	reportSubject := notifyConfig.AnomalyReportSubject
+	reportSubject := instanceConfig.IssueTrackerConfig.AnomalyReportSubject
 	if reportSubject == "" {
 		reportSubject = defaultNewReportSubject
 	}
-	reportBody := strings.Join(notifyConfig.AnomalyReportBody, "\n")
+	reportBody := strings.Join(instanceConfig.IssueTrackerConfig.AnomalyReportBody, "\n")
 	if reportBody == "" {
 		reportBody = defaultNewReportBody
+	}
+	anomalyReportFuncMap := template.FuncMap{
+		"buildGroupUrl":       buildAnomalyGroupUrl,
+		"buildAnomalyDetails": buildAnomalyDetails,
 	}
 	newReportSubjectTemplate, err := template.New("newReportSubjectMarkdown").Parse(reportSubject)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "compiling newReportSubjectTemplate")
 	}
-	newReportBodyTemplate, err := template.New("newReporBodytMarkdown").Parse(reportBody)
+	newReportBodyTemplate, err := template.New("newReporBodytMarkdown").Funcs(anomalyReportFuncMap).Parse(reportBody)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "compiling newReportBodyTemplate")
 	}
 
 	return &MarkdownFormatter{
 		commitURLTemplate:         commitURLTemplate,
+		instanceUrl:               instanceConfig.URL,
 		newCulpritSubjectTemplate: newCulpritSubjectTemplate,
 		newCulpritBodyTemplate:    newCulpritBodyTemplate,
 		newReportSubjectTempalte:  newReportSubjectTemplate,
@@ -148,6 +167,7 @@ func (f MarkdownFormatter) GetReportSubjectAndBody(ctx context.Context, anomalyG
 		AnomalyGroup: anomalyGroup,
 		Subscription: subscription,
 		TopAnomalies: anomalyList,
+		HostUrl:      f.instanceUrl,
 	}
 	var subjectb bytes.Buffer
 	if err := f.newReportSubjectTempalte.Execute(&subjectb, templateContext); err != nil {

@@ -146,6 +146,8 @@ func MaybeTriggerBisectionWorkflow(ctx workflow.Context, input *workflows.MaybeT
 				EndCommit:            anomaly.EndCommit,
 				Paramset:             anomaly.Paramset,
 				ImprovementDirection: anomaly.ImprovementDirection,
+				MedianBefore:         anomaly.MedianBefore,
+				MedianAfter:          anomaly.MedianAfter,
 			}
 		}
 		// Step 4. Notify the user of the top anomalies

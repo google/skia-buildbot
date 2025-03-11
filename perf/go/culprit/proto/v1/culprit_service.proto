@@ -103,6 +103,10 @@ message Anomaly {
   // considered as regression.
   // The possible values are: UP, DOWN or UNKNOWN
   string improvement_direction = 4;
+  // the median from the previous data point
+  float median_before = 5;
+  // the median from the current data point
+  float median_after = 6;
 }
 
 

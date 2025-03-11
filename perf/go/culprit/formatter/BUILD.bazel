@@ -15,6 +15,7 @@ go_library(
         "//perf/go/config",
         "//perf/go/culprit/proto/v1",
         "//perf/go/subscription/proto/v1",
+        "//perf/go/urlprovider",
     ],
 )
 

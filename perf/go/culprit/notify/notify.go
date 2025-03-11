@@ -2,7 +2,6 @@ package notify
 
 import (
 	"context"
-	"fmt"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -43,7 +42,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, &cfg.IssueTrackerConfig)
+		formatter, err := formatter.NewMarkdownFormatter(commitURLTemplate, cfg)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -81,9 +80,10 @@ func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anoma
 	}
 	sklog.Debugf("Anomalies found for [%s]: %s", subscription.Name, anomalyGroup.AnomalyIds)
 
-	// TODO(wenbinzhang): Generate subject and body from template.
-	body := fmt.Sprintf("Mocked reporting anomalies: %s", anomalyGroup.AnomalyIds)
-	subject := fmt.Sprintf("Mocked Bug Title for [%s]", subscription.Name)
+	subject, body, err := n.formatter.GetReportSubjectAndBody(ctx, anomalyGroup, subscription, anomalyList)
+	if err != nil {
+		return "", err
+	}
 
 	bugId, err := n.transport.SendNewNotification(ctx, subscription, subject, body)
 	if err != nil {

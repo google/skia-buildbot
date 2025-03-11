@@ -104,6 +104,16 @@ func TestProvider_MultiGraph(t *testing.T) {
 	assert.True(t, disableParentArgIndex >= 0)
 }
 
+func TestProvider_GroupReport(t *testing.T) {
+	queryurl := GroupReport("anomalyGroupID", "123")
+	assert.Equal(t, queryurl, "/u/?anomalyGroupID=123", queryurl)
+}
+
+func TestProvider_GroupReport_InvalidParam(t *testing.T) {
+	queryurl := GroupReport("groupID", "123")
+	assert.Equal(t, queryurl, "", queryurl)
+}
+
 func getPerfGit(t *testing.T) perfgit.Git {
 	ctx, db, _, _, _, instanceConfig := gittest.NewForTest(t)
 	git, err := perfgit.New(ctx, true, db, instanceConfig)

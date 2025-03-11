@@ -3,6 +3,7 @@ package urlprovider
 import (
 	"context"
 	"net/url"
+	"slices"
 	"strconv"
 	"time"
 
@@ -30,6 +31,19 @@ func (prov *URLProvider) MultiGraph(ctx context.Context, startCommitNumber int, 
 
 	queryUrl["shortcut"] = []string{shortcutId}
 	return "/m/?" + queryUrl.Encode()
+}
+
+// GroupReport generates a url to the group report page for the given parameter.
+// It does not need to access Git and we will use is as a static funciton.
+func GroupReport(param string, value string) string {
+	validQueryParem := []string{"anomalyGroupID", "anomalyIDs", "bugID", "rev", "sid"}
+	if !slices.Contains(validQueryParem, param) {
+		return ""
+	}
+	queryUrl := url.Values{
+		param: []string{value},
+	}
+	return "/u/?" + queryUrl.Encode()
 }
 
 // New creates a new instance of the UrlProvider struct
