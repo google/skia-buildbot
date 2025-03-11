@@ -11,9 +11,7 @@ chart-tooltip-sk {
     z-index: 1;
     width: 300px;
     margin: 10px;
-    padding: 20px;
-    border: 1px solid black;
-    border-radius: 16px;
+    padding: 4px;
     word-wrap: break-word;
     background: var(--surface-2dp);
     --md-elevation-level: 3;
@@ -23,8 +21,8 @@ chart-tooltip-sk {
 
     button#closeIcon {
       position: absolute;
-      right: 5px;
-      top: 5px;
+      right: 4px;
+      top: 4px;
       border: none;
       cursor: pointer;
       padding: 4px;
@@ -36,8 +34,7 @@ chart-tooltip-sk {
     }
 
     h3 {
-      margin: 0;
-      margin-bottom: 16px;
+      margin-bottom: 4px;
     }
 
     h4 {
@@ -52,7 +49,7 @@ chart-tooltip-sk {
       margin: 0;
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 16px;
+      margin-bottom: 4px;
       li {
         display: table-row;
         text-align: right;
@@ -67,7 +64,7 @@ chart-tooltip-sk {
       }
     }
     .revlink {
-      margin-bottom: 26px;
+      margin-bottom: 4px;
     }
 
     button[hidden] {
