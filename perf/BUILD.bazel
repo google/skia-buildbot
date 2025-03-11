@@ -71,40 +71,6 @@ skia_app_container(
 )
 
 skia_app_container(
-    name = "perf-cockroachdb-backup",
-    base_image = "@cloudsdk//image",
-    default_user = "root",
-    dirs = {
-        "/usr/local/bin": [
-            [
-                "//perf/go/perf-tool:perf-tool",
-                "0755",
-            ],
-        ],
-        "/": [
-            [
-                "//perf/backup:backup.sh",
-                "0755",
-            ],
-        ],
-        "/usr/local/share/skiaperf/configs": [
-            [
-                ":configs",
-                "0644",
-            ],
-        ],
-        "/usr/local/share/skiaperf/configs/spanner": [
-            [
-                ":configs_spanner",
-                "0644",
-            ],
-        ],
-    },
-    entrypoint = "/backup.sh",
-    repository = "skia-public/perf-cockroachdb-backup",
-)
-
-skia_app_container(
     name = "backendserver",
     base_image = "@base-cipd//image",
     dirs = {

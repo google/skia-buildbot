@@ -29,14 +29,6 @@ release:
 push:
 	$(BAZEL) run --config=mayberemote //perf:pushk_perfserver
 
-.PHONY: release_backup
-release_backup:
-	$(BAZEL) run --config=mayberemote //perf:push_perf-cockroachdb-backup
-
-.PHONY: push_backup
-push_backup: release_backup
-	$(BAZEL) run --config=mayberemote //perf:pushk_perf-cockroachdb-backup
-
 # Run a spanner emulator locally.
 run-spanner-emulator:
 	sudo docker ps -q | xargs -r sudo docker rm -vf
