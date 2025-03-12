@@ -284,6 +284,7 @@ export class ExploreMultiSk extends ElementSk {
         max="50"
         title="The number of charts per page." />
     </label>
+    <button @click=${ele.loadAllCharts}>Load All Charts</button>
     <div id="graphContainer"></div>
     <pagination-sk
       offset=${ele.state.pageOffset}
@@ -708,6 +709,19 @@ export class ExploreMultiSk extends ElementSk {
       );
     } else {
       // Re-render the page
+      this.addGraphsToCurrentPage();
+    }
+  }
+
+  private loadAllCharts() {
+    if (
+      window.confirm(
+        'Loading all charts at once may cause performance issues or page crashes. Proceed?'
+      )
+    ) {
+      this.state.pageSize = this.state.totalGraphs;
+      this.state.pageOffset = 0;
+      this.stateHasChanged!();
       this.addGraphsToCurrentPage();
     }
   }
