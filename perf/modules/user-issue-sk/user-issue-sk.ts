@@ -77,6 +77,35 @@ export class UserIssueSk extends LitElement {
         }
       }
     }
+
+    .new-bug {
+      align-items: center;
+      background: transparent;
+      border-radius: 4px;
+      border: solid 1px var(--outline);
+      box-shadow: none;
+      color: var(--primary);
+      display: inline-flex;
+      fill: var(--primary);
+      font-size: 14px;
+      height: 24px;
+      justify-content: center;
+      margin: 4px 2px;
+      min-width: auto;
+      padding: 0 4px;
+      text-align: center;
+      text-transform: none;
+
+      .icon-sk {
+        font-size: 20px;
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
   `;
 
   // Email of the logged in user. Empty string otherwise
@@ -114,12 +143,7 @@ export class UserIssueSk extends LitElement {
     if (this.bug_id === -1) {
       return html``;
     }
-
-    return html`
-      <div style="margin-bottom: 12px;">
-        ${this.bug_id === 0 ? this.addIssueTemplate() : this.showLinkTemplate()}
-      </div>
-    `;
+    return html`${this.bug_id === 0 ? this.addIssueTemplate() : this.showLinkTemplate()}`;
   }
 
   /* Template manipulation functions */
@@ -163,7 +187,9 @@ export class UserIssueSk extends LitElement {
     }
 
     return html`
-      <button class="new-issue-label" @click=${this.activateTextInput}>Create Bug</button>
+      <div>
+        <button class="new-bug" @click=${this.activateTextInput}>Add Bug#</button>
+      </div>
     `;
   }
 

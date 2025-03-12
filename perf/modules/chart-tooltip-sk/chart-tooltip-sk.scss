@@ -46,7 +46,6 @@ chart-tooltip-sk {
       display: table;
       list-style: none;
       padding: 0;
-      margin: 0;
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 4px;
@@ -57,6 +56,12 @@ chart-tooltip-sk {
           display: table-cell;
           text-align: left;
           padding-right: 1em;
+        }
+        .regression {
+          color: #e36041;
+        }
+        .improvement {
+          color: #3fab46;
         }
       }
       a {

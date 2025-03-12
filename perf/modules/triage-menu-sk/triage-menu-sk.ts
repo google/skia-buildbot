@@ -18,6 +18,7 @@ import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { Anomaly } from '../json';
 import { AnomalyData } from '../plot-simple-sk/plot-simple-sk';
+
 import '../new-bug-dialog-sk/new-bug-dialog-sk';
 import '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 
@@ -72,8 +73,10 @@ export class TriageMenuSk extends ElementSk {
       <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
       <existing-bug-dialog-sk></existing-bug-dialog-sk>
       <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
-      <button id="ignore" @click=${ele.ignoreAnomaly}>Ignore</button>
-      ${ele.generateNudgeButtons()}
+      <button id="ignore" ?hidden=${ele._anomalies.length === 0} @click=${ele.ignoreAnomaly}>
+        Ignore
+      </button>
+      ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
     </div>`;
 
   connectedCallback(): void {
@@ -114,6 +117,7 @@ export class TriageMenuSk extends ElementSk {
       const b = this.querySelector(btn) as HTMLButtonElement;
       b.disabled = !enable;
     });
+    this._render();
   }
 
   generateNudgeButtons(): TemplateResult {
@@ -126,7 +130,7 @@ export class TriageMenuSk extends ElementSk {
 
     return html`
       <div id="nudge-container">
-        Nudge:
+        <b>Nudge:</b>
         ${this._nudgeList!.map(
           (entry) => html`
             <button

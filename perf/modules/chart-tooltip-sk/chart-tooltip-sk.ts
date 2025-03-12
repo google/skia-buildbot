@@ -56,9 +56,6 @@ export class CommitInfoSk extends LitElement {
         color: var(--primary);
       }
     }
-    ul.table#anomaly-details {
-      margin-bottom: 5px;
-    }
   `;
 
   @property({ attribute: false })
@@ -73,12 +70,6 @@ export class CommitInfoSk extends LitElement {
 
     return html`
       <ul class="table">
-        <li>
-          <b>Commit:</b>
-          <a href="${this.commitInfo.url}" target="_blank">
-            ${this.commitInfo.hash.substring(0, 7)}
-          </a>
-        </li>
         <li>
           <b>Author:</b>
           ${this.commitInfo.author.split('(')[0]}
@@ -214,9 +205,7 @@ export class ChartTooltipSk extends ElementSk {
         id="tooltip-point-links"
         .commitPosition=${ele.commit_position}
         ?hidden=${!ele._tooltip_fixed}></point-links-sk>
-      ${ele.pinpointJobLinks()}
-      <user-issue-sk id="tooltip-user-issue-sk" ?hidden=${!ele._tooltip_fixed}></user-issue-sk>
-      ${ele.seeMoreText()} ${ele.anomalyTemplate()}
+      ${ele._tooltip_fixed ? ele.anomalyTemplate() : ele.seeMoreText()}
       <triage-menu-sk
         id="triage-menu"
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
@@ -225,13 +214,9 @@ export class ChartTooltipSk extends ElementSk {
       <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
         Bisect
       </button>
-      <button
-        class="action"
-        id="close"
-        @click=${ele._close_button_action}
-        ?hidden=${!ele._tooltip_fixed}>
-        Close
-      </button>
+      <user-issue-sk
+        id="tooltip-user-issue-sk"
+        ?hidden=${!ele._tooltip_fixed || ele.anomaly}></user-issue-sk>
     </div>
   `;
 
@@ -295,7 +280,7 @@ export class ChartTooltipSk extends ElementSk {
       return;
     }
 
-    return html`<span class="see-more-text">*Click on the point to see more details</span>`;
+    return html`<span class="see-more-text">Click for more details</span>`;
   }
 
   // HTML template for Anomaly information, only shown when the data
@@ -303,6 +288,7 @@ export class ChartTooltipSk extends ElementSk {
   // correlated against anomaly map.
   private anomalyTemplate() {
     if (this.anomaly === null) {
+      this.triageMenu!.toggleButtons(true);
       return html``;
     }
 
@@ -317,42 +303,34 @@ export class ChartTooltipSk extends ElementSk {
 
     // TOOD(jeffyoon@) - add revision range formatting
     return html`
-      <h4>Anomaly Details</h4>
       <ul class="table" id="anomaly-details">
         <li>
-          <span>Score:</span>
-          <span> ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)} </span>
+          <b>Anomaly</b>
+          ${this.anomalyType()}
         </li>
         <li>
-          <span>Prior Score:</span>
-          <span> ${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)} </span>
+          <b>Median Value:</b>
+          ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)} ${this.unit_type}
         </li>
         <li>
-          <span>Percentage Change:</span>
-          <span>
-            ${AnomalySk.formatPercentage(
-              AnomalySk.getPercentChange(
-                this.anomaly!.median_before_anomaly,
-                this.anomaly!.median_after_anomaly
-              )
-            )}%
-          </span>
+          <b>Prior Median:</b>
+          <span
+            >${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
+            [${this.anomalyChange()}%]</span
+          >
         </li>
-        <li>
-          <span>Improvement:</span>
-          <span>${this.anomaly!.is_improvement}</span>
-        </li>
-        <li>
-          <span>Bug Id:</span>
-          <span>
-            ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
-            <close-icon-sk
-              id="unassociate-bug-button"
-              @click=${this.unassociateBug}
-              ?hidden=${this.anomaly!.bug_id === 0}>
-            </close-icon-sk>
-          </span>
-        </li>
+        ${this.anomaly!.bug_id
+          ? html` <li>
+              <b>Bug Id:</b>
+              ${AnomalySk.formatBug(this.bug_host_url, this.anomaly!.bug_id)}
+              <close-icon-sk
+                id="unassociate-bug-button"
+                @click=${this.unassociateBug}
+                ?hidden=${this.anomaly!.bug_id === 0}>
+              </close-icon-sk>
+            </li>`
+          : ''}
+        <li>${this.pinpointJobLinks()}</li>
       </ul>
     `;
   }
@@ -386,12 +364,30 @@ export class ChartTooltipSk extends ElementSk {
     });
   }
 
-  private pinpointJobLinks() {
-    if (!this.anomaly) {
-      return html``;
+  private anomalyType() {
+    if (this.anomaly!.is_improvement) {
+      return html`<span class="improvement">Improvement</span>`;
     }
-    if (!this.anomaly.bisect_ids || this.anomaly.bisect_ids.length === 0) {
-      return html`<div>Pinpoint Jobs: N/A</div>`;
+    return html`<span class="regression">Regression</span>`;
+  }
+
+  private anomalyChange() {
+    let divClass: string = 'regression';
+    const change = AnomalySk.formatPercentage(
+      AnomalySk.getPercentChange(
+        this.anomaly!.median_before_anomaly,
+        this.anomaly!.median_after_anomaly
+      )
+    );
+    if (this.anomaly!.is_improvement) {
+      divClass = 'improvement';
+    }
+    return html`<span class="${divClass}">${change}</span>`;
+  }
+
+  private pinpointJobLinks() {
+    if (!this.anomaly || !this.anomaly.bisect_ids || this.anomaly.bisect_ids.length === 0) {
+      return html``;
     }
     const links = this.anomaly.bisect_ids.map(
       (id) =>
@@ -401,7 +397,7 @@ export class ChartTooltipSk extends ElementSk {
     );
 
     return html`<div>
-      Pinpoint Jobs:
+      <b>Pinpoint Jobs:</b>
       ${links.map((link, index) => html`${link}${index < links.length - 1 ? ', ' : ''}`)}
     </div>`;
   }
