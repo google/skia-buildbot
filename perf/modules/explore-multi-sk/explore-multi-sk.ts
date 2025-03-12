@@ -254,30 +254,32 @@ export class ExploreMultiSk extends ElementSk {
     </div>
     <hr />
 
-    <pagination-sk
-      offset=${ele.state.pageOffset}
-      page_size=${ele.state.pageSize}
-      total=${ele.state.totalGraphs}
-      @page-changed=${ele.pageChanged}>
-    </pagination-sk>
-    <label>
-      <span class="prefix">Charts per page</span>
-      <input
-        @change=${ele.pageSizeChanged}
-        type="number"
-        .value="${ele.state.pageSize.toString()}"
-        min="1"
-        max="50"
-        title="The number of charts per page." />
-    </label>
-    <button @click=${ele.loadAllCharts}>Load All Charts</button>
-    <div id="graphContainer"></div>
-    <pagination-sk
-      offset=${ele.state.pageOffset}
-      page_size=${ele.state.pageSize}
-      total=${ele.state.totalGraphs}
-      @page-changed=${ele.pageChanged}>
-    </pagination-sk>
+    <div id="pagination">
+      <pagination-sk
+        offset=${ele.state.pageOffset}
+        page_size=${ele.state.pageSize}
+        total=${ele.state.totalGraphs}
+        @page-changed=${ele.pageChanged}>
+      </pagination-sk>
+      <label>
+        <span class="prefix">Charts per page</span>
+        <input
+          @change=${ele.pageSizeChanged}
+          type="number"
+          .value="${ele.state.pageSize.toString()}"
+          min="1"
+          max="50"
+          title="The number of charts per page." />
+      </label>
+      <button @click=${ele.loadAllCharts}>Load All Charts</button>
+      <div id="graphContainer"></div>
+      <pagination-sk
+        offset=${ele.state.pageOffset}
+        page_size=${ele.state.pageSize}
+        total=${ele.state.totalGraphs}
+        @page-changed=${ele.pageChanged}>
+      </pagination-sk>
+    </div>
   `;
 
   /**
