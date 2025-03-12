@@ -47,4 +47,23 @@ report-page-sk {
   #commit-message {
     background-color: #d9d9db; //(--header-background-color);
   }
+
+  .common-commits {
+    h3 {
+      margin-bottom: 10px;
+    }
+    .scroll-commits {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+
+    #all-commits-scroll {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+  }
 }

@@ -119,8 +119,6 @@ export class ReportPageSk extends ElementSk {
 
   private allCommitsDialog: HTMLDialogElement | null = null;
 
-  private hideCommitsButton = false;
-
   constructor() {
     super(ReportPageSk.template);
     this.traceFormatter = new ChromeTraceFormatter();
@@ -134,7 +132,6 @@ export class ReportPageSk extends ElementSk {
     this._spinner = this.querySelector('#loading-spinner');
     this.anomaliesTable = this.querySelector('#anomaly-table');
     this.graphDiv = this.querySelector('#graph-container');
-    this.allCommitsDialog = this.querySelector('#commits-dialog');
     await this.initializeDefaults();
 
     this.addEventListener('anomalies_checked', (e) => {
@@ -150,21 +147,8 @@ export class ReportPageSk extends ElementSk {
       <spinner-sk id="loading-spinner"></spinner-sk>
     </div>
     <anomalies-table-sk id="anomaly-table"></anomalies-table-sk>
-    <div class="common-commits" ?hidden=${!ele.hideCommitsButton}>
-      <md-outlined-button id="common-commits" @click=${ele.openCommitsDialog}
-        >Show Common Commits</md-outlined-button
-      >
-    </div>
+    ${ele.showAllCommitsTemplate()}
     <div id="graph-container"></div>
-    <dialog id="commits-dialog">
-      ${ele.showAllCommitsTemplate()}
-      <button id="closeIcon" @click=${ele.closeCommitsDialog}>
-        <close-icon-sk></close-icon-sk>
-      </button>
-      <div class="footer">
-        <button @click=${ele.closeCommitsDialog}>Close</button>
-      </div>
-    </dialog>
   `;
 
   async fetchAnomalies() {
@@ -190,7 +174,6 @@ export class ReportPageSk extends ElementSk {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
         this.initializePage();
         this._spinner!.active = false;
-        this.hideCommitsButton = true;
         this._render();
       })
       .catch((msg: any) => {
@@ -300,17 +283,36 @@ export class ReportPageSk extends ElementSk {
   private showAllCommitsTemplate() {
     if (this.commitList.length !== 0) {
       return html`
-        <ul id="all-commits">
-          ${Array.from(this.commitList).map((commit) => {
-            return html` <li>
-              <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
-              <span id="commit-message">${commit.message}</span>
-            </li>`;
-          })}
-        </ul>
+        <div class="common-commits">
+          <h3>Common Commits</h3>
+          <ul id="all-commits">
+            ${Array.from(this.commitList)
+              .slice(0, 10)
+              .map((commit) => {
+                return html` <li>
+                  <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
+                  <span id="commit-message">${commit.message}</span>
+                </li>`;
+              })}
+          </ul>
+          ${this.commitList.length > 10
+            ? html`<div class="scroll-commits">
+                <ul id="all-commits-scroll">
+                  ${Array.from(this.commitList)
+                    .slice(10)
+                    .map((commit) => {
+                      return html` <li>
+                        <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
+                        <span id="commit-message">${commit.message}</span>
+                      </li>`;
+                    })}
+                </ul>
+              </div>`
+            : ''}
+        </div>
       `;
     } else {
-      return html`<h2>Empty Common Commits</h2>`;
+      return html`<div class="common-commits"><h3>Empty Common Commits</h3></div>`;
     }
   }
 }
