@@ -57,6 +57,9 @@ export class VResizableBoxSk extends LitElement {
   `;
 
   protected render() {
+    if (!this.delta) {
+      return html``;
+    }
     return html`
       <p class=${this.lowerFont ? 'lower' : 'upper'}>
         ${this.delta!.raw} or ${this.delta!.percent}%

@@ -632,9 +632,12 @@ export class PlotGoogleChartSk extends LitElement {
 
   private onChartMouseUp() {
     this.sidePanel.value!.showDelta = this.deltaRangeOn;
-    this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
-    this.sidePanel.value!.deltaPercentage = Number(this.deltaRangeBox.value!.getDelta()!.percent);
-
+    if (Number(this.deltaRangeBox.value!.getDelta())) {
+      this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
+      this.sidePanel.value!.deltaPercentage = Number(this.deltaRangeBox.value!.getDelta()!.percent);
+    } else {
+      console.warn('delta range is not valid, ignored.');
+    }
     this.chartInteracting = false;
     this.navigationMode = null;
   }
