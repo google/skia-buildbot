@@ -57,7 +57,8 @@
             "showZero": "false",
             "enable_chart_tooltip": "true",
             "use_test_picker_query": "false",
-            "use_titles": "true"
+            "use_titles": "true",
+            "show_google_plot": "true"
         }
     },
     "favorites": {

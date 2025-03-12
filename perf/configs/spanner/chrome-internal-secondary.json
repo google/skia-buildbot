@@ -55,6 +55,11 @@
     "data_point_config": {
         "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"]
     },
+    "query_config": {
+        "default_url_values": {
+            "show_google_plot": "true"
+        }
+    },
     "trace_format": "chrome",
     "need_alert_action": true,
     "optimize_sqltracestore": true

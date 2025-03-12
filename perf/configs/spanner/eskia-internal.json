@@ -44,5 +44,10 @@
         "issue_tracker_api_key_secret_project": "skia-infra-public",
         "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey"
     },
+    "query_config": {
+        "default_url_values": {
+            "show_google_plot": "true"
+        }
+    },
     "optimize_sqltracestore": true
 }

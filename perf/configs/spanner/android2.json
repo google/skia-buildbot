@@ -4,93 +4,93 @@
     "feedback_url": "https://issuetracker.google.com/issues/new?component=1547614&template=1970127",
     "trace_sample_proportion": 0.2,
     "notify_config": {
-        "notifications": "none",
-        "data_provider": "android",
-        "issue_tracker_api_key_secret_project": "skia-infra-public",
-        "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
-        "subject": "{{ .Alert.DisplayName }} - Regression between {{ .PreviousCommit.Subject }} and {{ .RegressionCommit.Subject }}",
-        "body": [
-            "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
-            "",
-            "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
-            "",
-            "* [Graph on dashboard]({{ .DashboardUrl }})",
-            "* [Alert details]({{ .URL }}/g/t/{{ .RegressionCommit.GitHash }})",
-            "* [CLs in range]({{ .GetBuildIdUrlDiff }})",
-            "* [CLs in range (legacy)](https://android.googlesource.com/platform/superproject/+log/{{ .PreviousCommit.GitHash }}..{{ .RegressionCommit.GitHash }})",
-            "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
-            "",
-            "Test classes affected:",
-            "```",
-            "{{ range index .ParamSet \"test_class\" }} {{ . }}",
-            "{{end}}```",
-            "",
-            "Test methods affected:",
-            "```",
-            "{{ range index .ParamSet \"test_method\" }} {{ . }}",
-            "{{end}}```",
-            "",
-            "Devices affected:",
-            "```",
-            "{{ range index .ParamSet \"device_name\" }} {{ . }}",
-            "{{end}}```",
-            "API Level:",
-            "```",
-            "{{ range index .ParamSet \"os_version\" }} {{ . }}",
-            "{{end}}```",
-            ""
-        ]
+      "notifications": "none",
+      "data_provider": "android",
+      "issue_tracker_api_key_secret_project": "skia-infra-public",
+      "issue_tracker_api_key_secret_name": "perf-issue-tracker-apikey",
+      "subject": "{{ .Alert.DisplayName }} - Regression between {{ .PreviousCommit.Subject }} and {{ .RegressionCommit.Subject }}",
+      "body": [
+        "Perf Regression ({{ .Cluster.StepFit.Status }}) found, matching {{ .Cluster.Num }} tracked metrics from benchmarks.",
+        "",
+        "To triage this regression, see the guide at [go/androidx-bench-triage](http://go/androidx-bench-triage).",
+        "",
+        "* [Graph on dashboard]({{ .DashboardUrl }})",
+        "* [Alert details]({{ .URL }}/g/t/{{ .RegressionCommit.GitHash }})",
+        "* [CLs in range]({{ .GetBuildIdUrlDiff }})",
+        "* [CLs in range (legacy)](https://android.googlesource.com/platform/superproject/+log/{{ .PreviousCommit.GitHash }}..{{ .RegressionCommit.GitHash }})",
+        "* [{{ .Alert.DisplayName }} alert config]({{ .URL }}/a/?{{ .Alert.IDAsString }})",
+        "",
+        "Test classes affected:",
+        "```",
+        "{{ range index .ParamSet \"test_class\" }} {{ . }}",
+        "{{end}}```",
+        "",
+        "Test methods affected:",
+        "```",
+        "{{ range index .ParamSet \"test_method\" }} {{ . }}",
+        "{{end}}```",
+        "",
+        "Devices affected:",
+        "```",
+        "{{ range index .ParamSet \"device_name\" }} {{ . }}",
+        "{{end}}```",
+        "API Level:",
+        "```",
+        "{{ range index .ParamSet \"os_version\" }} {{ . }}",
+        "{{end}}```",
+        ""
+      ]
     },
     "auth_config": {
-        "header_name": "X-WEBAUTH-USER"
+      "header_name": "X-WEBAUTH-USER"
     },
     "data_store_config": {
-        "datastore_type": "spanner",
-        "connection_string": "postgresql://root@localhost:5432/androidx?sslmode=disable",
-        "tile_size": 512,
-        "min_db_connections": 5
+      "datastore_type": "spanner",
+      "connection_string": "postgresql://root@localhost:5432/androidx?sslmode=disable",
+      "tile_size": 512,
+      "min_db_connections": 5
     },
     "ingestion_config": {
-        "source_config": {
-            "source_type": "gcs",
-            "project": "skia-public",
-            "topic": "perf-ingestion-android2-spanner-production",
-            "subscription": "perf-ingestion-android2-spanner-production-prod",
-            "sources": [
-                "gs://android-perf-2/android2"
-            ]
-        },
-        "branches": [],
-        "file_ingestion_pubsub_topic_name": ""
+      "source_config": {
+        "source_type": "gcs",
+        "project": "skia-public",
+        "topic": "perf-ingestion-android2-spanner-production",
+        "subscription": "perf-ingestion-android2-spanner-production-prod",
+        "sources": [
+          "gs://android-perf-2/android2"
+        ]
+      },
+      "branches": [],
+      "file_ingestion_pubsub_topic_name": ""
     },
     "git_repo_config": {
-        "provider": "gitiles",
-        "url": "https://android.googlesource.com/platform/superproject",
-        "dir": "/tmp/androidx",
-        "debounce_commit_url": false,
-        "branch": "androidx-main",
-        "start_commit": "5f8b9aa0feafff7548336998a17723cb792cdb53"
+      "provider": "gitiles",
+      "url": "https://android.googlesource.com/platform/superproject",
+      "dir": "/tmp/androidx",
+      "debounce_commit_url": false,
+      "branch": "androidx-main",
+      "start_commit": "5f8b9aa0feafff7548336998a17723cb792cdb53"
     },
     "anomaly_config": {
-        "settling_time": "5h"
+      "settling_time": "5h"
     },
     "query_config": {
-        "include_params": [
-            "test_class",
-            "test_method",
-            "metric",
-            "stat",
-            "device_name",
-            "os_version"
-        ],
-        "default_param_selections": {
-        },
-        "default_url_values": {
-            "plotSummary": "true",
-            "useTestPicker": "true",
-            "showZero": "true",
-            "enable_chart_tooltip": "true"
-        }
+      "include_params": [
+        "test_class",
+        "test_method",
+        "metric",
+        "stat",
+        "device_name",
+        "os_version"
+      ],
+      "default_param_selections": {},
+      "default_url_values": {
+        "plotSummary": "true",
+        "useTestPicker": "true",
+        "showZero": "true",
+        "enable_chart_tooltip": "true",
+        "show_google_plot": "true"
+      }
     },
     "optimize_sqltracestore": true
 }

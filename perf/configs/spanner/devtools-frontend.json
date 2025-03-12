@@ -48,5 +48,10 @@
         "debounce_commit_url": false,
         "start_commit": "2ade89ddd0362e74d52f9928f448e448c625937e"
     },
+    "query_config": {
+        "default_url_values": {
+            "show_google_plot": "true"
+        }
+    },
     "optimize_sqltracestore": true
 }

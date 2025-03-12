@@ -61,7 +61,8 @@
         "useTestPicker": "true",
         "showZero": "false",
         "enable_chart_tooltip": "true",
-        "use_titles": "true"
+        "use_titles": "true",
+        "show_google_plot": "true"
       }
     },
     "optimize_sqltracestore": true

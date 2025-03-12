@@ -35,5 +35,10 @@
         "debounce_commit_url": false,
         "commit_url": "%s/commit/%s"
     },
+    "query_config": {
+        "default_url_values": {
+            "show_google_plot": "true"
+        }
+    },
     "optimize_sqltracestore": true
 }

@@ -41,5 +41,10 @@
     "debounce_commit_url": false,
     "file_change_marker": "infra/bots/assets/skp/VERSION"
   },
+  "query_config": {
+      "default_url_values": {
+          "show_google_plot": "true"
+      }
+  },
   "optimize_sqltracestore": true
 }

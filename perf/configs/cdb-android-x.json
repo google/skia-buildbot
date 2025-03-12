@@ -69,5 +69,10 @@
   },
   "anomaly_config": {
     "settling_time": "5h"
+  },
+  "query_config": {
+      "default_url_values": {
+          "show_google_plot": "true"
+      }
   }
 }

@@ -87,7 +87,8 @@
             "plotSummary": "true",
             "useTestPicker": "true",
             "showZero": "true",
-            "enable_chart_tooltip": "true"
+            "enable_chart_tooltip": "true",
+            "show_google_plot": "true"
         }
     }
 }

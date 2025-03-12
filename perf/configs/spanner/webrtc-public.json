@@ -53,7 +53,8 @@
             "plotSummary": "true",
             "showZero": "false",
             "useTestPicker": "true",
-            "enable_chart_tooltip": "true"
+            "enable_chart_tooltip": "true",
+            "show_google_plot": "true"
         }
     },
     "optimize_sqltracestore": true

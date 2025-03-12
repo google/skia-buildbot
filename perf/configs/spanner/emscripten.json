@@ -35,5 +35,10 @@
     "dir": "/tmp/emscripten",
     "debounce_commit_url": false
   },
+  "query_config": {
+      "default_url_values": {
+          "show_google_plot": "true"
+      }
+  },
   "optimize_sqltracestore": true
 }
