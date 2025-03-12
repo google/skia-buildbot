@@ -69,6 +69,7 @@ karma_test(
         ":plot-google-chart-sk",
         "//:node_modules/@types/chai",
         "//:node_modules/chai",
+        "//infra-sk/modules:test_util_ts_lib",
     ],
 )
 

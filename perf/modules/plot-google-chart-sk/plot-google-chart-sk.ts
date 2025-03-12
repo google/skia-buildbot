@@ -201,12 +201,6 @@ export class PlotGoogleChartSk extends LitElement {
   // cache the labels which were removed, so that they can be easily re-added
   private removedLabelsCache: string[] = [];
 
-  constructor() {
-    super();
-
-    this.addEventListeners();
-  }
-
   // The div element that will host the plot on the summary.
   private plotElement: Ref<GoogleChart> = createRef();
 
@@ -221,6 +215,12 @@ export class PlotGoogleChartSk extends LitElement {
 
   // The div container for the legend
   private sidePanel = createRef<SidePanelSk>();
+
+  constructor() {
+    super();
+
+    this.addEventListeners();
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -329,6 +329,10 @@ export class PlotGoogleChartSk extends LitElement {
 
     plot.view = view;
     this.updateOptions();
+
+    // update the y axis in isolation to the updateOptions() call so that it can
+    // reuse the returned value of mainChartOptions.
+    this.setYAxisTitle(this.getAllTraces());
   }
 
   // if new domain is commit, convert from date to commit and vice-versa
@@ -396,6 +400,98 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     plot.options = options;
+  }
+
+  /**
+   * setYAxisTitle sets the Y axis title on the chart.
+   */
+  setYAxisTitle(traceNames: string[]) {
+    const plot = this.plotElement.value;
+    if (!plot || !plot.options) {
+      return;
+    }
+
+    const opts = plot.options as google.visualization.LineChartOptions;
+    if (!opts.vAxis) {
+      return;
+    }
+
+    opts.vAxis.title = this.determineYAxisTitle(traceNames);
+    plot.options = opts;
+  }
+
+  /**
+   * determineYAxisTitle determines the Y axis title based on the traceNames.
+   *
+   * There are two properties that we aim to display on the Y axis: unit, and
+   * improvement direction.
+   *
+   * 1. All traces have the same unit, and same improvement direction
+   * 2. Same unit, different improvement direction
+   * 3. Different unit, same improvement direction
+   * 4. Different unit, different improvement direction
+   *
+   * This function will only display fields that align. For this function to
+   * display unit and improvement direction, they must be set as part of the
+   * trace name.
+   *
+   * There are a few assumptions made as part of this function. For starters,
+   * the keys "unit" and "improvement_direction" (literal, case sensitive) must
+   * be a part of the trace name for this function to display them.
+   * Additionally, this function requires a comma delimited k/v pairs in the
+   * format of k=v. For example, in Chromium, ",unit=score,".
+   */
+  determineYAxisTitle(traceNames: string[]): string {
+    if (traceNames.length < 1) {
+      return '';
+    }
+
+    // traceParams is a list of k/v pairs, in format {k}={v}. returns val.
+    function parseVal(key: string, traceParams: string[]): string {
+      for (const kv of traceParams) {
+        if (kv.startsWith(key)) {
+          const pieces = kv.split('=', 2);
+          return pieces[1];
+        }
+      }
+
+      return '';
+    }
+
+    let idx = 0;
+    let params = traceNames[idx].split(',');
+    let unit = parseVal('unit', params);
+    let improvement_dir = parseVal('improvement_dir', params);
+
+    for (idx = 1; idx < traceNames.length; idx++) {
+      params = traceNames[idx].split(',');
+      // unset if values are not the same across all traces
+      if (unit !== parseVal('unit', params)) {
+        unit = '';
+      }
+      if (improvement_dir !== parseVal('improvement_dir', params)) {
+        improvement_dir = '';
+      }
+
+      // early termination
+      if (unit === '' && improvement_dir === '') {
+        return '';
+      }
+    }
+
+    let title = '';
+    if (unit !== '') {
+      title += `${unit}`;
+    }
+    if (improvement_dir !== '') {
+      if (unit !== '') {
+        // if unit is not the same and improvement direction is, only display
+        // we don't want to append this hyphen
+        title += ' - ';
+      }
+      title += `${improvement_dir}`;
+    }
+    return title;
   }
 
   // Add all the event listeners.
@@ -873,6 +969,19 @@ export class PlotGoogleChartSk extends LitElement {
     // x86/8888/decode/kb.
     // first two columns of DataTable are commit position and date
     return this.data!.getColumnLabel(col);
+  }
+
+  /**
+   *
+   * @returns All traces in string format
+   */
+  getAllTraces(): string[] {
+    const allCols: string[] = [];
+    // first two columns are always reserved for 'Commit Position' and 'Date'
+    for (let idx = 2; idx < this.data!.getNumberOfColumns(); idx++) {
+      allCols.push(this.data!.getColumnLabel(idx));
+    }
+    return allCols;
   }
 
   /**

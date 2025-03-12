@@ -1129,6 +1129,8 @@ export class ExploreSimpleSk extends ElementSk {
 
     const plot = this.plotSummary.value;
     if (plot) {
+      // we don't update the y axis label here because selecting the summary picker
+      // only targets the summary bar. The viz on main chart remains the same.
       plot.selectedTrace = this.traceKeyForSummary;
     }
   }
@@ -1140,6 +1142,7 @@ export class ExploreSimpleSk extends ElementSk {
     const index = e.detail;
     const commitPos: CommitNumber = chart.getCommitPosition(index.tableRow);
     const traceName = chart.getTraceName(index.tableCol);
+    chart.setYAxisTitle([traceName]);
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPos) || null;
     this.selectedAnomaly = anomaly;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
@@ -2136,6 +2139,9 @@ export class ExploreSimpleSk extends ElementSk {
           this.plotSimple.value!.highlight = [];
           this.plotSimple.value!.xbar = -1;
           this.plotSummary.value!.selectedTrace = '';
+
+          // unset the y axis on tooltip close
+          this.googleChartPlot.value?.setYAxisTitle([]);
         }
       : () => {};
 
