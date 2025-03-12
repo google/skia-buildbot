@@ -109,6 +109,7 @@ const renderTooltips = () => {
         url: '',
       };
       tooltip!.load(
+        1,
         'Tooltip with buganizer Id',
         ',arch=x86,config=8888,test=encode,units=kb,',
         'ms',

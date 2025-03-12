@@ -79,10 +79,20 @@ chart-tooltip-sk {
       text-decoration: underline;
       font-style: italic;
     }
-  }
 
-  #bisect {
-    float: left;
-    position: relative;
+    .buttons {
+      display: flex;
+      align-items: baseline;
+      width: 100%;
+      align-content: center;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: space-around;
+    }
+
+    #bisect {
+      float: left;
+      position: relative;
+    }
   }
 }

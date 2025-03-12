@@ -79,6 +79,7 @@ describe('chart-tooltip-sk', () => {
   describe('set fields', () => {
     it('anomalies should be set', () => {
       element.load(
+        1,
         test_name,
         '',
         'ms',
@@ -101,6 +102,7 @@ describe('chart-tooltip-sk', () => {
 
     it('user issue should be set', () => {
       element.load(
+        1,
         test_name,
         '',
         'ms',

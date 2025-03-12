@@ -149,7 +149,7 @@ import { DataFrameRepository, DataTable, UserIssueMap } from '../dataframe/dataf
 import { ExistingBugDialogSk } from '../existing-bug-dialog-sk/existing-bug-dialog-sk';
 import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
-import { getLegend, getTitle, isSingleTrace } from '../dataframe/traceset';
+import { getLegend, getTitle, isSingleTrace, legendFormatter } from '../dataframe/traceset';
 import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 
@@ -2077,11 +2077,11 @@ export class ExploreSimpleSk extends ElementSk {
       commitDate = new Date(commit.ts * 1000);
     }
 
-    const testName = pointDetails.name;
+    const traceName = pointDetails.name;
     const header = this.dfRepo.value?.header || null;
     const commitPosition = this.dfRepo.value!.dataframe.header![x]!.offset;
-    const anomaly = this.dfRepo.value?.getAnomaly(testName, commitPosition) || null;
-    const trace = this.dfRepo.value?.dataframe.traceset[testName] || [];
+    const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPosition) || null;
+    const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
 
     // Populate the commit-range-sk element.
     this.commitRangeSk!.trace = trace;
@@ -2096,7 +2096,7 @@ export class ExploreSimpleSk extends ElementSk {
     const anomalyDataMap = this.plotSimple.value?.anomalyDataMap;
     let anomalyDataInPlot: AnomalyData | null = null;
     if (anomalyDataMap) {
-      const traceAnomalies = anomalyDataMap[testName];
+      const traceAnomalies = anomalyDataMap[traceName];
       if (traceAnomalies) {
         for (let i = 0; i < traceAnomalies.length; i++) {
           if (pointDetails.x === traceAnomalies[i].x) {
@@ -2129,7 +2129,7 @@ export class ExploreSimpleSk extends ElementSk {
         }
         const start_revision = this.dfRepo.value!.dataframe.header![x + i - 1]!.offset + 1;
         const end_revision = this.dfRepo.value!.dataframe.header![x + i]!.offset;
-        const y = this.dfRepo.value!.dataframe.traceset![testName][x + i];
+        const y = this.dfRepo.value!.dataframe.traceset![traceName][x + i];
         nudgeList.push({
           display_index: i,
           anomaly_data: anomalyData,
@@ -2160,7 +2160,7 @@ export class ExploreSimpleSk extends ElementSk {
     let buganizerId = 0;
     const userIssueMap = this.dfRepo.value?.userIssues;
     if (userIssueMap && Object.keys(userIssueMap).length > 0) {
-      const buganizerTraces = userIssueMap[testName];
+      const buganizerTraces = userIssueMap[traceName];
       if (buganizerTraces !== null && buganizerTraces !== undefined) {
         buganizerId = buganizerTraces[commitPosition]?.bugId || 0;
       }
@@ -2176,26 +2176,27 @@ export class ExploreSimpleSk extends ElementSk {
     };
 
     let unitValue: string = '';
-    let traceName: string = '';
-    const dt = this.dfRepo.value?.data;
-    const shortTraceIds: string[] = dt ? this.getTraceIds(dt) : [];
-
-    testName.split(',').forEach((test) => {
+    traceName.split(',').forEach((test) => {
       if (test.startsWith('unit')) {
         unitValue = test.split('=')[1];
       }
     });
 
-    shortTraceIds.forEach((traceId) => {
-      if (testName.includes(traceId)) {
-        traceName = traceId;
-      }
-    });
-    const formattedTrace = `Trace ID: ${traceName || `untitled_key`}`;
+    // Get the legend index for the test name, subtract 2 to skip date/number.
+    const legendIndex =
+      this.dfRepo.value && this.dfRepo.value.data
+        ? this.dfRepo.value.data.getColumnIndex(traceName) - 2
+        : -1;
+    const getLegendData = getLegend(this.dfRepo.value!.data);
+
+    // Get index of legend and remove unit to display in tooltip.
+    const testName = legendFormatter(getLegendData)[legendIndex].replace('/' + unitValue, '');
+
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.load(
-      formattedTrace,
+      legendIndex,
       testName,
+      traceName,
       unitValue,
       pointDetails.y,
       commitDate,
@@ -2515,16 +2516,6 @@ export class ExploreSimpleSk extends ElementSk {
     }
 
     return '';
-  }
-
-  private getTraceIds(dt: DataTable): string[] {
-    const shortTraceIds: string[] = [];
-    getLegend(dt).forEach((traceObject: { [key: string]: any }) => {
-      Object.keys(traceObject).forEach((k) => {
-        shortTraceIds.push(String(traceObject[k]));
-      });
-    });
-    return shortTraceIds;
   }
 
   private getTraces(dt: DataTable): string[] {

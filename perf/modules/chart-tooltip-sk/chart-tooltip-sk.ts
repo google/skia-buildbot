@@ -30,6 +30,7 @@ import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
+import { defaultColors } from '../common/plot-builder';
 
 @customElement('commit-info-sk')
 export class CommitInfoSk extends LitElement {
@@ -95,6 +96,9 @@ export class ChartTooltipSk extends ElementSk {
   constructor() {
     super(ChartTooltipSk.template);
   }
+
+  // Index of the trace in the dataframe.
+  private _index: number = -1;
 
   // Full name (id) of the point in question (e.detail.name)
   private _test_name: string = '';
@@ -186,7 +190,11 @@ export class ChartTooltipSk extends ElementSk {
       <button id="closeIcon" @click=${ele._close_button_action} ?hidden=${!ele._tooltip_fixed}>
         <close-icon-sk></close-icon-sk>
       </button>
-      <h3>${ele.test_name}</h3>
+      <h3>
+        <span style="color:${defaultColors[ele.index % defaultColors.length]}"
+          >${ele.test_name || `untitled_key`}</span
+        >
+      </h3>
       <ul class="table">
         <li>
           <b>Date:</b>
@@ -417,6 +425,7 @@ export class ChartTooltipSk extends ElementSk {
   // load function sets the value of the fields minimally required to display
   // this chart on hover.
   load(
+    index: number,
     test_name: string,
     trace_name: string,
     unit_type: string,
@@ -431,6 +440,7 @@ export class ChartTooltipSk extends ElementSk {
     commitRange: CommitRangeSk | null,
     closeButtonAction: () => void
   ): void {
+    this._index = index;
     this._test_name = test_name;
     this._trace_name = trace_name;
     this._unit_type = unit_type;
@@ -497,6 +507,15 @@ export class ChartTooltipSk extends ElementSk {
   setBisectInputParams(preloadInputs: BisectPreloadParams): void {
     this.preloadBisectInputs = preloadInputs;
     this.bisectDialog!.setBisectInputParams(this.preloadBisectInputs);
+    this._render();
+  }
+
+  get index(): number {
+    return this._index;
+  }
+
+  set index(val: number) {
+    this._index = val;
     this._render();
   }
 

@@ -53,10 +53,7 @@ export class PointLinksSk extends ElementSk {
     html`<div ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
         ${ele.renderLinks()}
-        <li>
-          <b>Regressions:</b>
-          <a href="/u/?rev=${ele.commitPosition}" target="_blank">${ele.commitPosition}</a>
-        </li>
+        <a href="/u/?rev=${ele.commitPosition}" target="_blank">Regressions</a>
       </ul>
     </div>`;
 
@@ -69,11 +66,7 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      const linkText = this.displayTexts[key];
-      return html`<li>
-        <b>${key}:</b>
-        <a href="${link}" target="_blank">${linkText}</a>
-      </li>`;
+      return html` <a href="${link}" target="_blank">${key}</a>`;
     };
     return keys.map(getHtml);
   }
