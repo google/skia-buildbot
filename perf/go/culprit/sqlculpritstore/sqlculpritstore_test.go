@@ -214,6 +214,32 @@ func TestAddIssueId_NoIssueId_UpdateDbAndReturnNil(t *testing.T) {
 	assert.Equal(t, actual[0].GroupIssueMap["111"], "bugid")
 }
 
+// This reproduce the error when the group issue map is NULL in db.
+// Calling rows.Scan(... &group_issue_map_in_jsonb) will fail when group_issue_map_in_jsonb is a string.
+// The error message:
+//
+//	Failed to read Culprit results: can't scan into dest[7]: cannot scan null into *string.
+func TestGet_UpsertWithNoGroupIssueMap(t *testing.T) {
+	store, db := setUp(t)
+	ctx := context.Background()
+
+	// We will have group issue map as NULL in the new culprit
+	const query = `INSERT INTO Culprits
+		(id, host, project, ref, revision, anomaly_group_ids)
+		VALUES ($1,$2,$3,$4,$5,$6)`
+	culpritId := uuid.NewString()
+	if _, err := db.Exec(ctx, query, culpritId, "host", "project", "ref", "rev", []string{"gid1", "gid2"}); err != nil {
+		require.NoError(t, err)
+	}
+
+	// Getting NULL vallue should not break.
+	actual, err := store.Get(ctx, []string{culpritId})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(actual), "wrong result size")
+	assert.Equal(t, "host", actual[0].Commit.Host, "wrong host")
+	assert.Equal(t, map[string]string(nil), actual[0].GroupIssueMap, "wrong group issue map")
+}
+
 func TestAddIssueId_UnexpectedGroup_ReturnErr(t *testing.T) {
 	store, db := setUp(t)
 	ctx := context.Background()

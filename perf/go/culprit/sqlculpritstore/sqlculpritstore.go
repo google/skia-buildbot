@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgtype"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/sqlutil"
@@ -50,14 +51,16 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 		var revision string
 		var anomaly_group_ids []string
 		var issue_ids []string
-		var group_issue_map_in_jsonb string
+		var group_issue_map_in_jsonb pgtype.Text
 		if err := rows.Scan(&id, &host, &project, &ref, &revision, &anomaly_group_ids, &issue_ids, &group_issue_map_in_jsonb); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to read Culprit results")
 		}
 		var group_issue_map map[string]string
-		err = json.Unmarshal([]byte(group_issue_map_in_jsonb), &group_issue_map)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to unmarshal the group issue map string %s", group_issue_map_in_jsonb)
+		if group_issue_map_in_jsonb.String != "" {
+			err = json.Unmarshal([]byte(group_issue_map_in_jsonb.String), &group_issue_map)
+			if err != nil {
+				return nil, skerr.Wrapf(err, "Failed to unmarshal the group issue map string %s", group_issue_map_in_jsonb.String)
+			}
 		}
 		resp = append(resp, &pb.Culprit{
 			Commit:          &pb.Commit{Host: host, Project: project, Ref: ref, Revision: revision},
