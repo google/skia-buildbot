@@ -249,20 +249,6 @@ export class ExploreMultiSk extends ElementSk {
         }}>
         Add to Favorites
       </button>
-      <button
-        ?disabled=${!ele.canActivateTitles()}
-        @click=${() => {
-          ele.displayFullTitles = !ele.displayFullTitles;
-          ele.exploreElements.forEach((exp) => {
-            if (ele.displayFullTitles) {
-              exp.showFullTitle();
-            } else {
-              exp.showShortTitle();
-            }
-          });
-        }}>
-        Toggle Titles
-      </button>
       <favorites-dialog-sk id="fav-dialog"></favorites-dialog-sk>
       <test-picker-sk id="test-picker" class="hidden"></test-picker-sk>
     </div>
