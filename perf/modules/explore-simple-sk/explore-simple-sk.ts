@@ -355,6 +355,9 @@ export class State {
   // boolean indicate for enabling favorites action. set by explore-sk.
   // requires user to be logged in so that the favorites can be saved for the user.
   enable_favorites: boolean = false;
+
+  // boolean indicating if param set details shown be shown below a chart
+  hide_paramset?: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -1009,61 +1012,70 @@ export class ExploreSimpleSk extends ElementSk {
       <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
     </div>
 
-    <div id=tabs class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
-      <button class="collapser" id="collapseButton" @click=${(_e: Event) => ele.toggleDetails()}>
-      ${
-        ele.navOpen
-          ? html`<expand-less-icon-sk></expand-less-icon-sk>`
-          : html`<expand-more-icon-sk></expand-more-icon-sk>`
-      }
-      </button>
-      <collapse-sk id=collapseDetails .closed=${!ele.navOpen}>
-        <tabs-sk id=detailTab>
-          <button>Params</button>
-          <button id=commitsTab disabled>Details</button>
-        </tabs-sk>
-        <tabs-panel-sk>
-          <div>
-            <p>
-              <b>Time</b>: <span title='Commit Time' id=commit_time></span>
-            </p>
+    ${
+      ele.state.hide_paramset
+        ? ''
+        : html`
+            <div id="tabs" class="hide_on_query_only hide_on_spinner hide_on_pivot_table">
+              <button
+                class="collapser"
+                id="collapseButton"
+                @click=${(_e: Event) => ele.toggleDetails()}>
+                ${ele.navOpen
+                  ? html`<expand-less-icon-sk></expand-less-icon-sk>`
+                  : html`<expand-more-icon-sk></expand-more-icon-sk>`}
+              </button>
+              <collapse-sk id="collapseDetails" .closed=${!ele.navOpen}>
+                <tabs-sk id="detailTab">
+                  <button>Params</button>
+                  <button id="commitsTab" disabled>Details</button>
+                </tabs-sk>
+                <tabs-panel-sk>
+                  <div>
+                    <p><b>Time</b>: <span title="Commit Time" id="commit_time"></span></p>
 
-            <paramset-sk
-              id=paramset
-              clickable_values
-              checkbox_values
-              @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
-                ele.paramsetKeyValueClick(e);
-              }}
-              @paramset-checkbox-click=${ele.paramsetCheckboxClick}
-            >
-            </paramset-sk>
-          </div>
-          <div id=details>
-            <div id=params_and_logentry>
-              <paramset-sk
-                id=simple_paramset
-                clickable_plus
-                clickable_values
-                copy_content
-                @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
-                  ele.paramsetKeyValueClick(e);
-                }}
-                @plus-click=${ele.plusClick}
-                >
-              </paramset-sk>
-              <code ?hidden=${ele._state.enable_chart_tooltip}><pre id=logEntry></pre></code>
-              <anomaly-sk id=anomaly></anomaly-sk>
+                    <paramset-sk
+                      id="paramset"
+                      clickable_values
+                      checkbox_values
+                      @paramset-key-value-click=${(e: CustomEvent<ParamSetSkClickEventDetail>) => {
+                        ele.paramsetKeyValueClick(e);
+                      }}
+                      @paramset-checkbox-click=${ele.paramsetCheckboxClick}>
+                    </paramset-sk>
+                  </div>
+                  <div id="details">
+                    <div id="params_and_logentry">
+                      <paramset-sk
+                        id="simple_paramset"
+                        clickable_plus
+                        clickable_values
+                        copy_content
+                        @paramset-key-value-click=${(
+                          e: CustomEvent<ParamSetSkClickEventDetail>
+                        ) => {
+                          ele.paramsetKeyValueClick(e);
+                        }}
+                        @plus-click=${ele.plusClick}>
+                      </paramset-sk>
+                      <code ?hidden=${ele._state.enable_chart_tooltip}>
+                        <pre id="logEntry"></pre>
+                      </code>
+                      <anomaly-sk id="anomaly"></anomaly-sk>
+                    </div>
+                    <div>
+                      <commit-detail-panel-sk
+                        id="commits"
+                        selectable
+                        .hide=${window.perf.hide_list_of_commits_on_explore ||
+                        ele._state.enable_chart_tooltip}></commit-detail-panel-sk>
+                    </div>
+                  </div>
+                </tabs-panel-sk>
+              </collapse-sk>
             </div>
-            <div>
-              <commit-detail-panel-sk id=commits selectable .hide=${
-                window.perf.hide_list_of_commits_on_explore || ele._state.enable_chart_tooltip
-              }></commit-detail-panel-sk>
-            </div>
-          </div>
-        </tabs-panel-sk>
-      </collapse-sk>
-    </div>
+          `
+    }
   </div>
   </dataframe-repository-sk>
   <toast-sk id="pinpoint-job-toast" duration=10000>
