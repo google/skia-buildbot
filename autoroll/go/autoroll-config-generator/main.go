@@ -148,10 +148,10 @@ func generate(ctx context.Context, tmplVarsFile, dir string) error {
 		}
 		for path, cfgBytes := range generatedConfigs {
 			dir := filepath.Dir(path)
-			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			if err := os.MkdirAll(dir, 0755); err != nil {
 				return skerr.Wrapf(err, "failed to create dir %s", dir)
 			}
-			if err := os.WriteFile(path, cfgBytes, os.ModePerm); err != nil {
+			if err := os.WriteFile(path, cfgBytes, 0644); err != nil {
 				return skerr.Wrapf(err, "failed to write %s", path)
 			}
 		}
