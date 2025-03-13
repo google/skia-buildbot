@@ -35,7 +35,6 @@ go_library(
         "//perf/go/alertfilter",
         "//perf/go/alerts",
         "//perf/go/anomalies",
-        "//perf/go/backend/client",
         "//perf/go/bug",
         "//perf/go/chromeperf",
         "//perf/go/config",

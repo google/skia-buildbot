@@ -112,13 +112,6 @@ func (s *server) LegacyJobQuery(ctx context.Context, req *pb.LegacyJobRequest) (
 }
 
 func (s *server) ScheduleBisection(ctx context.Context, req *pb.ScheduleBisectRequest) (*pb.BisectExecution, error) {
-	// Those logs are used to test traffic from existing services in catapult, shall be removed.
-	sklog.Infof("Receiving bisection request: %v", req)
-	if !s.limiter.Allow() {
-		sklog.Infof("The request is dropped due to rate limiting.")
-		return nil, status.Errorf(codes.ResourceExhausted, "unable to fulfill the request due to rate limiting, dropping")
-	}
-
 	// TODO(b/318864009): Remove this function once Pinpoint migration is completed.
 	req = updateFieldsForCatapult(req)
 

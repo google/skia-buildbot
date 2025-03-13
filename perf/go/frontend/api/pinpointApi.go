@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,23 +11,25 @@ import (
 	"go.skia.org/infra/go/alogin"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/roles"
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	backendClient "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/pinpoint"
 	pinpoint_pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
+const pinpointUrlTemplate = "https://pinpoint-dot-chromeperf.appspot.com/job/%s"
+
 // pinpointApi provides a struct for handling Pinpoint requests.
 type pinpointApi struct {
 	loginProvider  alogin.Login
-	pinpointClient *pinpoint.Client
+	legacyPinpoint *pinpoint.Client
+	pinpointClient pinpoint_pb.PinpointClient
 }
 
 // NewPinpointApi returns a new instance of the pinpointApi struct.
-func NewPinpointApi(loginProvider alogin.Login, pinpointClient *pinpoint.Client) pinpointApi {
+func NewPinpointApi(loginProvider alogin.Login, legacyPinpoint *pinpoint.Client, pinpointClient pinpoint_pb.PinpointClient) pinpointApi {
 	return pinpointApi{
 		loginProvider:  loginProvider,
+		legacyPinpoint: legacyPinpoint,
 		pinpointClient: pinpointClient,
 	}
 }
@@ -44,32 +47,46 @@ func (api pinpointApi) createBisectHandler(w http.ResponseWriter, r *http.Reques
 	defer cancel()
 	w.Header().Set("Content-Type", "application/json")
 
+	defer r.Body.Close()
+
 	if !api.loginProvider.HasRole(r, roles.Bisecter) {
 		http.Error(w, "User is not logged in or is not authorized to start bisect.", http.StatusForbidden)
 		return
 	}
 
-	if api.pinpointClient == nil {
-		err := skerr.Fmt("Pinpoint client has not been initialized.")
-		httputils.ReportError(w, err, "Create bisect is not enabled for this instance, please check configuration file.", http.StatusInternalServerError)
-		return
-	}
-
-	var cbr pinpoint.CreateBisectRequest
+	// Most of the fields from the Chromeperf bisect request are compatible with
+	// the Skia Pinpoint request.
+	var cbr pinpoint_pb.ScheduleBisectRequest
 	if err := json.NewDecoder(r.Body).Decode(&cbr); err != nil {
-		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to decode JSON", http.StatusInternalServerError)
 		return
 	}
-	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
 
-	resp, err := api.pinpointClient.CreateBisect(ctx, cbr)
+	// AlertIDs aren't supported in Skia Pinpoint request.
+	// Statistic is updated to AggregationMethod, see updateFieldsForCatapult()
+	// at //pinpoint/go/service/validation.go.
+	switch {
+	case cbr.Statistic == "avg":
+		cbr.AggregationMethod = "mean"
+	case cbr.Statistic != "":
+		cbr.AggregationMethod = cbr.Statistic
+	}
+
+	exec, err := api.pinpointClient.ScheduleBisection(ctx, &cbr)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to create bisect job.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Error scheduling bisection.", http.StatusInternalServerError)
 		return
 	}
 
+	// Because we use the same job id as part of the Pinpoint URL, we can format
+	// it and return it to be backwards compatible, but it'll be a 404 until
+	// the job is actually complete and the writeback succeeds.
+	resp := map[string]string{
+		"jobId":  exec.GetJobId(),
+		"jobUrl": fmt.Sprintf(pinpointUrlTemplate, exec.GetJobId()),
+	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		sklog.Errorf("Failed to parse the response of creating bisect job: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -80,13 +97,8 @@ func (api pinpointApi) pinpointBisectionHandler(w http.ResponseWriter, r *http.R
 	ctx, span := trace.StartSpan(ctx, "schedulePinpointBisectionRequest")
 	defer span.End()
 
-	pinpointClient, err := backendClient.NewPinpointClient("")
-	if err != nil {
-		httputils.ReportError(w, err, "Error scheduling bisection.", 500)
-	}
-
 	// TODO(ashwinpv) Get the request data from incoming request.
-	resp, err := pinpointClient.QueryBisection(ctx, &pinpoint_pb.QueryBisectRequest{})
+	resp, err := api.pinpointClient.QueryBisection(ctx, &pinpoint_pb.QueryBisectRequest{})
 	if err != nil {
 		httputils.ReportError(w, err, "Error scheduling bisection.", 500)
 	}

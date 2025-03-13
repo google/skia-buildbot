@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/anomalies"
 	"go.skia.org/infra/perf/go/anomalies/cache"
+	backendClient "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/chromeperf"
 	"go.skia.org/infra/perf/go/config"
@@ -66,6 +67,7 @@ import (
 	"go.skia.org/infra/perf/go/urlprovider"
 	"go.skia.org/infra/perf/go/userissue"
 	pp_service "go.skia.org/infra/pinpoint/go/service"
+	pinpoint_pb "go.skia.org/infra/pinpoint/proto/v1"
 )
 
 const (
@@ -168,7 +170,9 @@ type Frontend struct {
 
 	anomalyStore anomalies.Store
 
-	pinpoint *pinpoint.Client
+	legacyPinpoint *pinpoint.Client
+
+	pinpointClient pinpoint_pb.PinpointClient
 
 	alertGroupClient chromeperf.AlertGroupApiClient
 
@@ -467,6 +471,7 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
+	// this config is used as an identifier for chrome instances
 	if config.Config.FetchChromePerfAnomalies {
 		f.anomalyApiClient, err = chromeperf.NewAnomalyApiClient(ctx, f.perfGit)
 		if err != nil {
@@ -477,7 +482,12 @@ func (f *Frontend) initialize() {
 			sklog.Fatal("Failed to build anomalies.Store: %s", err)
 		}
 
-		f.pinpoint, err = pinpoint.New(ctx)
+		f.legacyPinpoint, err = pinpoint.New(ctx)
+		if err != nil {
+			sklog.Fatal("Failed to build legacy pinpoint.Client: %s", err)
+		}
+
+		f.pinpointClient, err = backendClient.NewPinpointClient("")
 		if err != nil {
 			sklog.Fatal("Failed to build pinpoint.Client: %s", err)
 		}
@@ -957,7 +967,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
 		api.NewGraphApi(f.flags.NumParamSetsForQueries, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
-		api.NewPinpointApi(f.loginProvider, f.pinpoint),
+		api.NewPinpointApi(f.loginProvider, f.legacyPinpoint, f.pinpointClient),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),
 		api.NewUserIssueApi(f.loginProvider, f.userIssueStore),
