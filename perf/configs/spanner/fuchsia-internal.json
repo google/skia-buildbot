@@ -1,5 +1,5 @@
 {
-    "URL": "https://fuchsia-perf.corp.goog",
+    "URL": "https://fuchsia-spanner-perf.corp.goog",
     "landing_page_rel_path": "/m/",
     "allowed_hosts": [],
     "contact": "browser-perf-engprod@google.com",
