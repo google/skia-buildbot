@@ -7,6 +7,7 @@
   "bug_host_url": "https://issues.chromium.org",
   "feedback_url": "http://go/berf-skia-feedback",
   "chat_url": "http://go/berf-skia-chat",
+  "instance_name": "v8-internal",
   "notify_config": {
     "notifications": "none"
   },
@@ -72,5 +73,6 @@
     "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"],
     "keys_for_useful_links": ["Build Page"]
   },
-  "new_alerts_page": true
+  "new_alerts_page": true,
+  "enable_sheriff_config": true
 }
