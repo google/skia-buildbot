@@ -43,6 +43,7 @@ func TestGet_HappyPath_ReturnsCulprits(t *testing.T) {
 
 	require.NoError(t, err)
 	expected := []*pb.Culprit{{
+		Id: id,
 		Commit: &pb.Commit{
 			Host:     "chromium.googlesource.com",
 			Project:  "chromium/src",

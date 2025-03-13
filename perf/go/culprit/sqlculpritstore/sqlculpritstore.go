@@ -64,6 +64,7 @@ func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, er
 			}
 		}
 		resp = append(resp, &pb.Culprit{
+			Id:              id,
 			Commit:          &pb.Commit{Host: host, Project: project, Ref: ref, Revision: revision},
 			AnomalyGroupIds: anomaly_group_ids,
 			IssueIds:        issue_ids,
