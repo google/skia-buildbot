@@ -56,6 +56,7 @@
         "include_params": [
             "benchmark",
             "bot",
+            "stat",
             "test",
             "subtest_1",
             "subtest_2",
