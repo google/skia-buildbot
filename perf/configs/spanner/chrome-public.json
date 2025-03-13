@@ -3,6 +3,7 @@
     "landing_page_rel_path": "/m/",
     "ga_measurement_id": "G-ZR01MG8PGX",
     "allowed_hosts": [],
+    "backend_host_url": "perf-be-chrome-public.perf.svc.cluster.local:8000",
     "instance_name": "chrome-public-spanner",
     "trace_sample_proportion": 0.2,
     "contact": "browser-perf-engprod@google.com",
