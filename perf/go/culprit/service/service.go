@@ -83,6 +83,7 @@ func (s *culpritService) GetCulprit(context context.Context, req *pb.GetCulpritR
 func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.NotifyUserOfCulpritRequest) (*pb.NotifyUserOfCulpritResponse, error) {
 	var err error
 	culprits, err := s.culpritStore.Get(ctx, req.CulpritIds)
+	sklog.Debugf("[CP] %d culprits loaded by %s.", len(culprits), req.CulpritIds)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +97,7 @@ func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.Notify
 	}
 	issueIds := make([]string, 0)
 	for _, culprit := range culprits {
+		sklog.Debugf("[CP] Processing culprit %s.", culprit.Id)
 		issueId, err := s.notifier.NotifyCulpritFound(ctx, culprit, subscription)
 		if err != nil {
 			return nil, err

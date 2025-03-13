@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sql/pool"
 	"go.skia.org/infra/go/sql/sqlutil"
 
@@ -37,7 +38,7 @@ func New(db pool.Pool) (*CulpritStore, error) {
 func (s *CulpritStore) Get(ctx context.Context, ids []string) ([]*pb.Culprit, error) {
 	statement := "SELECT id, host, project, ref, revision, anomaly_group_ids, issue_ids, group_issue_map FROM Culprits where id IN (%s)"
 	query := fmt.Sprintf(statement, quotedSlice(ids))
-	fmt.Println(query)
+	sklog.Debugf("[CP] Get query: %s", query)
 	rows, err := s.db.Query(ctx, query)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query Culprit")
@@ -160,6 +161,7 @@ func (s *CulpritStore) Upsert(ctx context.Context, anomaly_group_id string, ip_c
 // Adds issue id to a Culprit row.
 func (s *CulpritStore) AddIssueId(ctx context.Context, id string, issue_id string, group_id string) error {
 	// Fetch existing anomaly_group_ids
+	sklog.Debugf("[CP] AddIssueId. Culprit: %s, Issue: %s, Group: %s.", id, issue_id, group_id)
 	culprits, err := s.Get(ctx, []string{id})
 	if err != nil {
 		return skerr.Wrapf(err, "Error fetching Culprit id")
