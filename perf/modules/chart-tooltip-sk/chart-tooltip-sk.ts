@@ -182,9 +182,10 @@ export class ChartTooltipSk extends ElementSk {
         <close-icon-sk></close-icon-sk>
       </button>
       <h3>
-        <span style="color:${defaultColors[ele.index % defaultColors.length]}"
-          >${ele.test_name || `untitled_key`}</span
-        >
+        <span style="color:${defaultColors[ele.index % defaultColors.length]}">
+          ${ele.test_name || `untitled_key`}
+          <span ?hidden=${!ele.anomaly}> [Anomaly] </span>
+        </span>
       </h3>
       <ul class="table">
         <li>
@@ -201,22 +202,24 @@ export class ChartTooltipSk extends ElementSk {
         </li>
       </ul>
       <commit-info-sk .commitInfo=${ele.commitInfo} ?hidden=${!ele._tooltip_fixed}></commit-info-sk>
-      <point-links-sk
-        id="tooltip-point-links"
-        .commitPosition=${ele.commit_position}
-        ?hidden=${!ele._tooltip_fixed}></point-links-sk>
       ${ele._tooltip_fixed ? ele.anomalyTemplate() : ele.seeMoreText()}
       <triage-menu-sk
         id="triage-menu"
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
+      <div class="buttons">
+        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
+          Bisect
+        </button>
+        <user-issue-sk
+          id="tooltip-user-issue-sk"
+          ?hidden=${!ele._tooltip_fixed || ele.anomaly}></user-issue-sk>
+      </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
-      <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
-        Bisect
-      </button>
-      <user-issue-sk
-        id="tooltip-user-issue-sk"
-        ?hidden=${!ele._tooltip_fixed || ele.anomaly}></user-issue-sk>
+      <point-links-sk
+        id="tooltip-point-links"
+        .commitPosition=${ele.commit_position}
+        ?hidden=${!ele._tooltip_fixed}></point-links-sk>
     </div>
   `;
 
@@ -310,7 +313,8 @@ export class ChartTooltipSk extends ElementSk {
         </li>
         <li>
           <b>Median Value:</b>
-          ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)} ${this.unit_type}
+          ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
+          ${this.unit_type.split(' ')[0]}
         </li>
         <li>
           <b>Prior Median:</b>

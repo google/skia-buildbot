@@ -12,6 +12,7 @@ chart-tooltip-sk {
     width: 300px;
     margin: 10px;
     padding: 4px;
+    overflow: hidden;
     word-wrap: break-word;
     background: var(--surface-2dp);
     --md-elevation-level: 3;
@@ -83,6 +84,8 @@ chart-tooltip-sk {
     .see-more-text {
       text-decoration: underline;
       font-style: italic;
+      display: flex;
+      justify-content: center;
     }
 
     .buttons {
@@ -92,7 +95,7 @@ chart-tooltip-sk {
       align-content: center;
       flex-direction: row;
       flex-wrap: nowrap;
-      justify-content: space-around;
+      justify-content: space-evenly;
     }
 
     #bisect {

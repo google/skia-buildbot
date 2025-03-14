@@ -1,6 +1,11 @@
 point-links-sk {
-  ul.table {
-    display: flex;
-    justify-content: space-evenly;
+  div.point-links {
+    ul.table {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: nowrap;
+      justify-content: space-evenly;
+    }
   }
 }

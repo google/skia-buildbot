@@ -76,7 +76,7 @@ export class ExploreSk extends ElementSk {
     });
 
     this.exploreSimpleSk!.addEventListener('rendered_traces', () => {
-      this.showMultiViewButton = true;
+      this.showMultiViewButton = false;
       this._render();
     });
 

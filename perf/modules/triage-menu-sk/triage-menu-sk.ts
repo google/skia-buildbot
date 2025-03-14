@@ -70,12 +70,14 @@ export class TriageMenuSk extends ElementSk {
   private static template = (ele: TriageMenuSk) =>
     html`<div>
       <new-bug-dialog-sk></new-bug-dialog-sk>
-      <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
       <existing-bug-dialog-sk></existing-bug-dialog-sk>
-      <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
-      <button id="ignore" ?hidden=${ele._anomalies.length === 0} @click=${ele.ignoreAnomaly}>
-        Ignore
-      </button>
+      <div class="buttons">
+        <button id="new-bug" @click=${ele.openNewBugDialog}>New Bug</button>
+        <button id="existing-bug" @click=${ele.openExistingBugDialog}>Existing Bug</button>
+        <button id="ignore" ?hidden=${ele._anomalies.length === 0} @click=${ele.ignoreAnomaly}>
+          Ignore
+        </button>
+      </div>
       ${ele._anomalies.length === 0 ? '' : ele.generateNudgeButtons()}
     </div>`;
 
@@ -129,7 +131,7 @@ export class TriageMenuSk extends ElementSk {
     }
 
     return html`
-      <div id="nudge-container">
+      <div class="buttons">
         <b>Nudge:</b>
         ${this._nudgeList!.map(
           (entry) => html`

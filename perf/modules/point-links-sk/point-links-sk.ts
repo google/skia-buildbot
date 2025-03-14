@@ -50,7 +50,7 @@ export class PointLinksSk extends ElementSk {
   displayTexts: { [key: string]: string } = {};
 
   private static template = (ele: PointLinksSk) =>
-    html`<div ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
+    html`<div class="point-links" ?hidden=${Object.keys(ele.displayUrls || {}).length === 0}>
       <ul class="table">
         ${ele.renderLinks()}
         <a href="/u/?rev=${ele.commitPosition}" target="_blank">Regressions</a>
@@ -66,7 +66,9 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      return html` <a href="${link}" target="_blank">${key}</a>`;
+      // Temporary workaround until Keys are changed from ingest.
+      const text = key.split(' ')[0];
+      return html` <a href="${link}" target="_blank">${text}</a>`;
     };
     return keys.map(getHtml);
   }
@@ -101,7 +103,7 @@ export class PointLinksSk extends ElementSk {
           // the commit. If they're not, point to the log list.
           if (currentCommitId === prevCommitId) {
             const displayKey = `${key} Commit`;
-            this.displayTexts[displayKey] = `${currentCommitId} (Same as prev)`;
+            this.displayTexts[displayKey] = `${currentCommitId} (No Change)`;
             this.displayUrls[displayKey] = currentCommitUrl;
           } else {
             const displayKey = `${key} Range`;
