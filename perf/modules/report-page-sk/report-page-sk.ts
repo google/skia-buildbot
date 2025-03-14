@@ -271,30 +271,11 @@ export class ReportPageSk extends ElementSk {
     }
   }
 
-  private openCommitsDialog() {
-    this._render();
-    this.allCommitsDialog!.showModal();
-  }
-
-  private closeCommitsDialog(): void {
-    this.allCommitsDialog!.close();
-  }
-
   private showAllCommitsTemplate() {
     if (this.commitList.length !== 0) {
       return html`
         <div class="common-commits">
           <h3>Common Commits</h3>
-          <ul id="all-commits">
-            ${Array.from(this.commitList)
-              .slice(0, 10)
-              .map((commit) => {
-                return html` <li>
-                  <a href="${commit.url}" target="_blank">${commit.hash.substring(0, 7)}</a>
-                  <span id="commit-message">${commit.message}</span>
-                </li>`;
-              })}
-          </ul>
           ${this.commitList.length > 10
             ? html`<div class="scroll-commits">
                 <ul id="all-commits-scroll">
