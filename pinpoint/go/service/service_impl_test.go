@@ -54,6 +54,20 @@ func TestScheduleBisection_ValidRequest_ReturnJobID(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestScheduleBisection_RateLimitedRequests_ReturnError(t *testing.T) {
+	tpm, _ := newTemporalMock(t)
+	ctx := context.Background()
+	svc := New(tpm, rate.NewLimiter(rate.Every(rateLimit), 1))
+
+	_, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
+	// invalid request should be rate limited.
+	assert.ErrorContains(t, err, "git hash is empty")
+
+	resp, err := svc.ScheduleBisection(ctx, &pb.ScheduleBisectRequest{})
+	assert.Nil(t, resp)
+	assert.ErrorContains(t, err, "unable to fulfill")
+}
+
 func TestScheduleBisection_InvalidRequests_ShouldError(t *testing.T) {
 	tpm, _ := newTemporalMock(t)
 
