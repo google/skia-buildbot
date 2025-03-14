@@ -120,6 +120,12 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fr.Queries = q
 
+	// On chrome internal builders, when the "stat=value" present, filter out those _avg traces.
+	filterOutAvg := false
+	if len(fr.Queries) > 0 && strings.Contains(fr.Queries[0], "stat=value") && config.Config.FetchChromePerfAnomalies {
+		filterOutAvg = true
+	}
+
 	if len(fr.Formulas) == 0 && len(fr.Queries) == 0 && fr.Keys == "" {
 		httputils.ReportError(w, fmt.Errorf("Invalid query."), "Empty queries are not allowed.", http.StatusInternalServerError)
 		return
@@ -147,7 +153,7 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		timeoutCtx, cancel := context.WithTimeout(ctx, config.QueryMaxRunTime)
 		defer cancel()
 		defer span.End()
-		err := frame.ProcessFrameRequest(timeoutCtx, fr, api.perfGit, dfBuilder, api.shortcutStore, api.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "")
+		err := frame.ProcessFrameRequest(timeoutCtx, fr, api.perfGit, dfBuilder, api.shortcutStore, api.anomalyStore, config.Config.GitRepoConfig.CommitNumberRegex == "", filterOutAvg)
 		if err != nil {
 			fr.Progress.Error(err.Error())
 		} else {
