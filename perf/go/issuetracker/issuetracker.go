@@ -71,18 +71,25 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 
 	query := strings.Join(slice, " | ")
 	query = "id:" + query
-
+	if len(requestObj.IssueIds) == 0 {
+		return nil, skerr.Wrapf(nil, "No issue IDs provided")
+	}
+	getIssueId := requestObj.IssueIds[0]
 	sklog.Debugf("[Perf_issuetracker] Start sending list issues request to v1 issuetracker with query: %s", query)
 	requestBodyStr, err := json.Marshal(query)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create chrome perf request.")
 	}
 	resp, err := s.client.Issues.List().Query(string(requestBodyStr)).Do()
+	resp1, err := s.client.Issues.Get(int64(getIssueId)).Do()
+	sklog.Debugf("[Perf_issuetracker] Start sending get issue request to v1 issuetracker with issueId: %s", getIssueId)
+
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find issue with request. ")
 	}
 
 	sklog.Debugf("[Perf_issuetracker] list issues response received from v1 issuetracker: %s", resp.Issues)
+	sklog.Debugf("[Perf_issuetracker] get issue response received from v1 issuetracker: %s", resp1)
 
 	return resp.Issues, nil
 }
