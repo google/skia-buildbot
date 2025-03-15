@@ -292,8 +292,6 @@ export class ReportPageSk extends ElementSk {
             : ''}
         </div>
       `;
-    } else {
-      return html`<div class="common-commits"><h3>Empty Common Commits</h3></div>`;
     }
   }
 }

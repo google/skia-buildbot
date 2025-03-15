@@ -188,7 +188,7 @@ export class UserIssueSk extends LitElement {
 
     return html`
       <div>
-        <button class="new-bug" @click=${this.activateTextInput}>Add Bug#</button>
+        <button class="new-bug" @click=${this.activateTextInput}>Add Bug</button>
       </div>
     `;
   }
@@ -199,7 +199,7 @@ export class UserIssueSk extends LitElement {
     if (this._user_id === '') {
       return html`
         <div class="showLinkContainer">
-          <span class="label"> User Thread: </span>
+          <span class="label">Bug:</span>
           <span class="linkContainer">
             ${AnomalySk.formatBug(window.perf.bug_host_url, this.bug_id)}
           </span>
@@ -209,7 +209,7 @@ export class UserIssueSk extends LitElement {
 
     return html`
       <div class="showLinkContainer">
-        <span class="label"> User Thread: </span>
+        <span class="label">Bug:</span>
         <span class="linkContainer">
           ${AnomalySk.formatBug(window.perf.bug_host_url, this.bug_id)}
           <close-icon-sk @click=${this.removeIssue} ?hidden=${this.bug_id === 0}> </close-icon-sk>

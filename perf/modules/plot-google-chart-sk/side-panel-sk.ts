@@ -55,7 +55,6 @@ export class SidePanelSk extends LitElement {
     :host {
       display: flex;
       height: 100%;
-      width: 200px;
       border-radius: 8px;
       overflow: scroll; /* legend entries can be very long */
       box-shadow:
@@ -110,14 +109,6 @@ export class SidePanelSk extends LitElement {
   @property({ reflect: true, type: Boolean })
   private legendLoaded = false;
 
-  // Use property to manage state of checkbox during render.
-  @property({ reflect: true, type: Boolean })
-  private checked = true;
-
-  // Boolean to enable disabling the checkboxes.
-  @property({ attribute: 'disabled', type: Boolean })
-  private disabled: boolean = false;
-
   @property({ reflect: true, type: Set })
   private checkedColList = new Set<string>();
 
@@ -163,23 +154,25 @@ export class SidePanelSk extends LitElement {
         <div class="delta-range" ?hidden=${!this.showDelta}> Delta: ${this.deltaRaw}<br/>
         Percentage: ${this.deltaPercentage}</div>
         <div class="label-key-title">
-          <span>Label Key: ${this.legendKeysFormat}</span>
+          <span>${this.legendKeysFormat}</span>
         </div>
         <div class="select-all-checkbox">
           <label>
             <input type="checkbox" id="header-checkbox"
             .defaultChecked=${true} .checked=${true}
-            @click=${this.toggleAllCheckboxes}>Select all</input>
+            @click=${this.toggleAllCheckboxes}> Select all</input>
           </label>
         </div>
         <div id="rows">
           <ul>
           ${this.getLegend().map((item, index) => {
             if (this.legendLoaded) {
+              const checkbox = this.renderRoot.querySelector(`#id-${index}`) as HTMLInputElement;
+              checkbox.checked = this.checkedColList.has(item);
               if (this.checkedColList.size === 1 && this.checkedColList.has(item)) {
-                this.disabled = true;
+                checkbox.disabled = true;
               } else {
-                this.disabled = false;
+                checkbox.disabled = false;
               }
             } else {
               if (!this.checkedColList.has(item)) {
@@ -206,10 +199,9 @@ export class SidePanelSk extends LitElement {
                 <label>
                   <input
                     type="checkbox"
-                    checked=${this.checked}
                     id="id-${index}"
-                    ?disabled=${this.disabled === true}
                     @click=${handleCheck}
+                    ?checked=${this.checkedColList.has(item)}
                     title="Select/Unselect this value from the graph" />
                   ${item}</label
                 >
@@ -236,11 +228,8 @@ export class SidePanelSk extends LitElement {
       if (this.checkedColList.has(item) && this.checkedColList.size > 1) {
         this.checkedColList.delete(item);
         this.checkboxDispatchHandler(checked, [item]);
-      } else {
-        checked = true;
       }
     }
-    this.checked = checked;
     this.render();
   }
 
