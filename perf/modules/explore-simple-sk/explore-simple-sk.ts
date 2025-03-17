@@ -358,6 +358,9 @@ export class State {
 
   // boolean indicating if param set details shown be shown below a chart
   hide_paramset?: boolean = false;
+
+  // boolean indicating if zoom should be horizontal or vertical
+  horizontal_zoom: boolean = false;
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -761,7 +764,17 @@ export class ExploreSimpleSk extends ElementSk {
                   @change=${(e: InputEvent) => ele.switchXAxis(e.target as MdSwitch)}></md-switch>
                 X-Axis as Commit Positions
               </label>
+            </li>
             <li>
+              <label>
+                <md-switch
+                  form="form"
+                  id="zoom-direction-switch"
+                  ?selected="${ele._state!.horizontal_zoom === true}"
+                  @change=${(e: InputEvent) => ele.switchZoom(e.target as MdSwitch)}></md-switch>
+                Switch Zoom Direction
+              </label>
+            </li>
             <li ?hidden=${ele._state.show_google_plot}>
               <label>
                 <md-switch
@@ -1533,6 +1546,18 @@ export class ExploreSimpleSk extends ElementSk {
   private _renderedTraces = () => {
     this.dispatchEvent(new CustomEvent('rendered_traces', {}));
   };
+
+  private switchZoom(target: MdSwitch | null) {
+    if (target!.selected) {
+      this.state.horizontal_zoom = true;
+    } else {
+      this.state.horizontal_zoom = false;
+    }
+    const detail = {
+      key: this.state.horizontal_zoom,
+    };
+    this.dispatchEvent(new CustomEvent('switch-zoom', { detail: detail, bubbles: true }));
+  }
 
   private closeQueryDialog(): void {
     this.queryDialog!.close();
@@ -2813,6 +2838,7 @@ export class ExploreSimpleSk extends ElementSk {
 
     const header = dataframe.header;
     const selectedRange = range(header![0]!.offset, header![header!.length - 1]!.offset);
+
     this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit');
 
     // Normalize bands to be just offsets.
@@ -2822,7 +2848,6 @@ export class ExploreSimpleSk extends ElementSk {
         bands.push(i);
       }
     });
-
     const plot = this.plotSimple.value;
     if (plot) {
       plot.bands = bands;

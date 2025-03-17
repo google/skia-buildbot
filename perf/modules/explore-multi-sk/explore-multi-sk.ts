@@ -427,6 +427,7 @@ export class ExploreMultiSk extends ElementSk {
       pivotRequest: explore.state.pivotRequest,
       sort: explore.state.sort,
       selected: explore.state.selected,
+      horizontal_zoom: explore.state.horizontal_zoom,
       _incremental: false,
       labelMode: LabelMode.Date,
       disable_filter_parent_traces: explore.state.disable_filter_parent_traces,

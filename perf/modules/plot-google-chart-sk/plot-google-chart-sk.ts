@@ -33,6 +33,7 @@ import { findTraceByLabel, isSingleTrace } from '../dataframe/traceset';
 import { range } from '../dataframe/index';
 import { VResizableBoxSk } from './v-resizable-box-sk';
 import { SidePanelCheckboxClickDetails, SidePanelSk } from './side-panel-sk';
+import { DragToZoomBox } from './drag-to-zoom-box-sk';
 
 export interface PlotSelectionEventDetails {
   value: range;
@@ -124,6 +125,9 @@ export class PlotGoogleChartSk extends LitElement {
       }
     }
 
+    .closeIcon {
+    }
+
     md-linear-progress {
       position: absolute;
       width: 100%;
@@ -160,6 +164,9 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private deltaRangeOn = false;
 
+  @property({ attribute: false })
+  private showResetButton = false;
+
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -170,13 +177,18 @@ export class PlotGoogleChartSk extends LitElement {
   };
 
   // Modes for chart interaction with mouse.
-  // We only have panning and deltaY for now.
+  // We have panning, deltaY and dragToZoom for now.
   // Default behavior is null.
-  // - panning (enabled by dragging) pans the chart to the left or right
+  // - panning (enabled by left click dragging) pans the chart to the left or right
   // - deltaY (enabled with shift-click) calculates the delta on the
   // y-axis between the start and end cursor.
+  // - dragToZoom enable to vertical and horizontal zoom, by ctrl click to drag the area
   @property({ attribute: false })
   private navigationMode: 'pan' | 'deltaY' | 'dragToZoom' | null = null;
+
+  // Vertical zoom by default
+  @property({ attribute: false })
+  isHorizontalZoom = false;
 
   private lastMouse = { x: 0, y: 0 };
 
@@ -213,12 +225,14 @@ export class PlotGoogleChartSk extends LitElement {
   // The div container for delta y selection range.
   private deltaRangeBox = createRef<VResizableBoxSk>();
 
+  // The div container for zoom selection range.
+  private zoomRangeBox = createRef<DragToZoomBox>();
+
   // The div container for the legend
   private sidePanel = createRef<SidePanelSk>();
 
   constructor() {
     super();
-
     this.addEventListeners();
   }
 
@@ -257,6 +271,11 @@ export class PlotGoogleChartSk extends LitElement {
         <div class="userissue" ${ref(this.userIssueDiv)}></div>
         <v-resizable-box-sk ${ref(this.deltaRangeBox)}} @mouseup=${this.onChartMouseUp}>
         </v-resizable-box-sk>
+        <drag-to-zoom-box-sk ${ref(this.zoomRangeBox)}} @mouseup=${this.onChartMouseUp}>
+        </drag-to-zoom-box-sk>
+        <div id="reset-view" ?hidden=${!this.showResetButton}>
+          <button id="closeIcon" @click=${this.resetView}>Reset to original view</button>
+        </div>
         <div class="side" ?hidden=${isSingleTrace(this.data) ?? true}>
           <side-panel-sk
             ${ref(this.sidePanel)}
@@ -388,7 +407,6 @@ export class PlotGoogleChartSk extends LitElement {
     options.colors = [];
     // Get internal indices of visible columns.
     const visibleColumns = plot.view!.getViewColumns();
-
     for (const colIndex of visibleColumns) {
       // skip first two indices as these are reserved.
       if (colIndex > 1) {
@@ -514,6 +532,13 @@ export class PlotGoogleChartSk extends LitElement {
     window.addEventListener('mouseup', () => {
       this.onWindowMouseUp();
     });
+
+    // Event listener for when the "Switch zoom direction" button is selected.
+    // It will switch the zoomin feature between horizontal and vertical
+    document.addEventListener('switch-zoom', (e) => {
+      this.isHorizontalZoom = (e as CustomEvent).detail.key;
+      this.requestUpdate();
+    });
   }
 
   private onSidePanelToggle() {
@@ -544,13 +569,13 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onChartMouseDown(e: MouseEvent) {
+    const layout = this.chart!.getChartLayoutInterface();
+    const area = layout.getChartAreaBoundingBox();
     // if user holds down shift-click, enable delta range calculation
     if (e.shiftKey) {
       e.preventDefault(); // disable system events
       this.deltaRangeOn = !this.deltaRangeOn;
       this.navigationMode = 'deltaY';
-      const layout = this.chart!.getChartLayoutInterface();
-      const area = layout.getChartAreaBoundingBox();
       const deltaRangeBox = this.deltaRangeBox.value!;
       deltaRangeBox.show(
         { top: area.top, left: area.left, width: area.width },
@@ -559,10 +584,22 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     } else if (this.navigationMode === 'deltaY') {
       this.deltaRangeOn = !this.deltaRangeOn;
+    } else if (e.ctrlKey) {
+      e.preventDefault(); // disable system events
+      this.navigationMode = 'dragToZoom';
+      const zoomRangeBox = this.zoomRangeBox.value!;
+
+      zoomRangeBox.initializeShow(
+        { top: area.top, left: area.left, width: area.width, height: area.height },
+        { xOffset: e.offsetX, yOffset: e.offsetY }
+      );
+      this.lastMouse = { x: e.offsetX, y: e.offsetY };
+      return;
     }
     // This disable system events like selecting texts.
     e.preventDefault();
     this.deltaRangeBox.value?.hide();
+    this.zoomRangeBox.value?.hide();
     this.navigationMode = 'pan';
     this.lastMouse = { x: e.x, y: e.y };
     this.dispatchEvent(
@@ -576,11 +613,10 @@ export class PlotGoogleChartSk extends LitElement {
   // When a point is hovered/selected, return row and column values from
   // underlying data table.
   private onChartMouseOver(e: CustomEvent) {
-    if (this.navigationMode === 'deltaY') {
+    if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
       return;
     }
     this.chartInteracting = true;
-
     // The detail will contain the row and column values for the View, that
     // is the indices of the visible traces. If some traces are hidden, we need
     // to translate the visible indices to the actual table indices.
@@ -604,7 +640,7 @@ export class PlotGoogleChartSk extends LitElement {
   // When a point is hovered, return row and column values from
   // underlying data table.
   private onChartSelect(e: CustomEvent) {
-    if (this.navigationMode === 'deltaY') {
+    if (this.navigationMode === 'deltaY' || this.navigationMode === 'dragToZoom') {
       return;
     }
     this.chartInteracting = true;
@@ -630,14 +666,48 @@ export class PlotGoogleChartSk extends LitElement {
     );
   }
 
-  private onChartMouseUp() {
+  private onChartMouseUp(e: MouseEvent) {
+    const layout = this.chart!.getChartLayoutInterface();
     this.sidePanel.value!.showDelta = this.deltaRangeOn;
-    if (Number(this.deltaRangeBox.value!.getDelta())) {
-      this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
-      this.sidePanel.value!.deltaPercentage = Number(this.deltaRangeBox.value!.getDelta()!.percent);
-    } else {
-      console.warn('delta range is not valid, ignored.');
+    if (this.navigationMode === 'deltaY') {
+      if (Number(this.deltaRangeBox.value!.getDelta())) {
+        this.sidePanel.value!.deltaRaw = Number(this.deltaRangeBox.value!.getDelta()!.raw!);
+        this.sidePanel.value!.deltaPercentage = Number(
+          this.deltaRangeBox.value!.getDelta()!.percent
+        );
+      } else {
+        console.warn('delta range is not valid, ignored.');
+        return;
+      }
     }
+    if (this.navigationMode === 'dragToZoom') {
+      let zoominRange = { begin: 0, end: 0 };
+      // calculates the offset of a mouse click relative to the left edge of a specific element
+      let calculatedOffset = 0;
+      if (this.isHorizontalZoom) {
+        calculatedOffset = e.clientX - this.plotElement.value!.getBoundingClientRect().left;
+        const endXAxis = layout.getHAxisValue(calculatedOffset);
+        const start = Math.floor(layout.getHAxisValue(this.lastMouse.x));
+        const end = Math.floor(endXAxis);
+        zoominRange = {
+          begin: start,
+          end: end,
+        };
+      } else {
+        calculatedOffset = e.clientY - this.plotElement.value!.getBoundingClientRect().top;
+        const endXAxis = layout.getVAxisValue(calculatedOffset);
+        const start = Math.floor(layout.getVAxisValue(this.lastMouse.y));
+        const end = Math.floor(endXAxis);
+        zoominRange = {
+          begin: start,
+          end: end,
+        };
+      }
+      this.zoomRangeBox.value?.hide();
+      this.showResetButton = true;
+      this.updateBounds(zoominRange);
+    }
+    this.deltaRangeOn = false;
     this.chartInteracting = false;
     this.navigationMode = null;
   }
@@ -654,9 +724,9 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onWindowMouseMove(e: MouseEvent) {
+    const layout = this.chart!.getChartLayoutInterface();
     if (this.navigationMode === 'deltaY') {
       e.preventDefault(); // disable system events
-      const layout = this.chart!.getChartLayoutInterface();
       const deltaRangeBox = this.deltaRangeBox.value!;
       deltaRangeBox.updateSelection({
         coord: e.offsetY,
@@ -669,28 +739,52 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
 
-    if (this.navigationMode !== 'pan') {
-      return;
+    if (this.navigationMode === 'dragToZoom') {
+      e.preventDefault(); // disable system events
+      const zoomRangeBox = this.zoomRangeBox.value!;
+
+      if (this.isHorizontalZoom === null) {
+        if (e.x - this.lastMouse.x > 0) {
+          this.isHorizontalZoom = true;
+        } else {
+          this.isHorizontalZoom = false;
+        }
+      }
+      if (this.isHorizontalZoom) {
+        zoomRangeBox.handleDrag({
+          offset: e.offsetX,
+          isHorizontal: true,
+        });
+        return;
+      } else if (!this.isHorizontalZoom) {
+        zoomRangeBox.handleDrag({
+          offset: e.offsetY,
+          isHorizontal: false,
+        });
+        return;
+      }
     }
 
-    const valueDelta = this.domain === 'commit' ? this.valueDelta.commit : this.valueDelta.date;
-    const deltaX = (this.lastMouse.x - e.x) * valueDelta;
-    this.lastMouse.x = e.x;
+    if (this.navigationMode === 'pan') {
+      const valueDelta = this.domain === 'commit' ? this.valueDelta.commit : this.valueDelta.date;
+      const deltaX = (this.lastMouse.x - e.x) * valueDelta;
+      this.lastMouse.x = e.x;
 
-    this.selectedRange!.begin += deltaX;
-    this.selectedRange!.end += deltaX;
-    this.updateOptions();
+      this.selectedRange!.begin += deltaX;
+      this.selectedRange!.end += deltaX;
+      this.updateOptions();
 
-    this.dispatchEvent(
-      new CustomEvent<PlotSelectionEventDetails>('selection-changing', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          value: this.selectedRange!,
-          domain: this.domain,
-        },
-      })
-    );
+      this.dispatchEvent(
+        new CustomEvent<PlotSelectionEventDetails>('selection-changing', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: this.selectedRange!,
+            domain: this.domain,
+          },
+        })
+      );
+    }
   }
 
   private onWindowMouseUp() {
@@ -705,6 +799,11 @@ export class PlotGoogleChartSk extends LitElement {
           },
         })
       );
+    }
+    if (this.navigationMode === 'dragToZoom') {
+      this.showResetButton = true;
+      this.zoomRangeBox.value?.hide();
+      return;
     }
     this.navigationMode = null;
     this.chartInteracting = false;
@@ -915,6 +1014,48 @@ export class PlotGoogleChartSk extends LitElement {
     ) {
       this.cachedChartArea = area;
     }
+  }
+
+  /**
+   * When the zoomin drag ends, update bounds in the plot-google-chart by
+   * calculating the x and y coordinates of the chart's next frame.
+   */
+  updateBounds(zoominRange: { begin: number; end: number }) {
+    const zoomRangeBox = this.zoomRangeBox.value!;
+    if (zoomRangeBox?.startPosition) {
+      const options = mainChartOptions(getComputedStyle(this), this.domain);
+      const newScale = this.domain === 'commit';
+      const plot = this.plotElement.value;
+      const isBeginGreaterThanEnd = zoominRange!.begin > zoominRange!.end;
+      const min = isBeginGreaterThanEnd ? zoominRange!.end : zoominRange!.begin;
+      const max = isBeginGreaterThanEnd ? zoominRange!.begin : zoominRange!.end;
+      if (this.isHorizontalZoom) {
+        options.hAxis!.viewWindow = {
+          min: newScale ? min : (min as any).getTime() / 1000,
+          max: newScale ? max : (max as any).getTime() / 1000,
+        };
+      } else if (!this.isHorizontalZoom) {
+        options.vAxis!.viewWindow = {
+          min: newScale ? min : (min as any).getTime() / 1000,
+          max: newScale ? max : (max as any).getTime() / 1000,
+        };
+      }
+      if (plot) {
+        plot.options = options;
+      }
+    }
+  }
+
+  // Reset to original view
+  private resetView() {
+    const plot = this.plotElement.value;
+    const options = mainChartOptions(getComputedStyle(this), this.domain);
+    delete options.vAxis?.viewWindow;
+    if (plot) {
+      plot!.options = options;
+      plot!.redraw();
+    }
+    this.showResetButton = false;
   }
 
   // TODO(b/362831653): deprecate this, no longer needed

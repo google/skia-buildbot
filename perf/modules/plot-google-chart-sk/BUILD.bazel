@@ -17,6 +17,7 @@ sk_element(
     sk_element_deps = [
         ":v-resizable-box-sk_ts_lib",
         ":side-panel-sk_ts_lib",
+        ":drag-to-zoom-box-sk_ts_lib",
     ],
     ts_deps = [
         "//:node_modules/lit-html",  # keep
@@ -77,6 +78,13 @@ sk_element(
     name = "v-resizable-box-sk_ts_lib",
     ts_deps = ["//:node_modules/lit"],
     ts_srcs = ["v-resizable-box-sk.ts"],
+    visibility = ["//visibility:public"],
+)
+
+sk_element(
+    name = "drag-to-zoom-box-sk_ts_lib",
+    ts_deps = ["//:node_modules/lit"],
+    ts_srcs = ["drag-to-zoom-box-sk.ts"],
     visibility = ["//visibility:public"],
 )
 
