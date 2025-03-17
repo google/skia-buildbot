@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"go.skia.org/infra/go/sklog"
@@ -95,6 +96,10 @@ func (s *culpritService) NotifyUserOfCulprit(ctx context.Context, req *pb.Notify
 	if err != nil {
 		return nil, err
 	}
+	// TODO(wenbinzhang): clean up mocks
+	//  mock subscription before the sheriff config is ready for production.
+	subscription = PrepareSubscription(subscription, anomalygroup, s.config, "Culprit")
+
 	issueIds := make([]string, 0)
 	for _, culprit := range culprits {
 		sklog.Debugf("[CP] Processing culprit %s.", culprit.Id)
@@ -124,8 +129,9 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 	if err != nil {
 		return nil, err
 	}
-	// mock subscription before the sheriff config is ready for production.
-	subscription = PrepareSubscription(subscription, anomalygroup, s.config)
+	// TODO(wenbinzhang): clean up mocks
+	//  mock subscription before the sheriff config is ready for production.
+	subscription = PrepareSubscription(subscription, anomalygroup, s.config, "Report")
 
 	issueId, err := s.notifier.NotifyAnomaliesFound(ctx, anomalygroup, subscription, req.Anomaly)
 	if err != nil {
@@ -135,13 +141,13 @@ func (s *culpritService) NotifyUserOfAnomaly(ctx context.Context, req *pb.Notify
 }
 
 // Temporary helper to make up a subscription or certain fields for testing purposes.
-func PrepareSubscription(sub *sub_pb.Subscription, ag *v1.AnomalyGroup, config *config.InstanceConfig) *sub_pb.Subscription {
+func PrepareSubscription(sub *sub_pb.Subscription, ag *v1.AnomalyGroup, config *config.InstanceConfig, suffix string) *sub_pb.Subscription {
 	if sub == nil {
 		// If no subscription is loaded, use a fake subscirption.
 		sklog.Debugf("Cannot load subscription. Using mock. Name: %s, Revision: %s", ag.SubsciptionName, ag.SubscriptionRevision)
 		sub = &sub_pb.Subscription{
-			Name:         "Mocked Sub For Anomaly - Report",
-			Revision:     "Mocked Revision - Report",
+			Name:         fmt.Sprintf("Mocked Sub For Anomaly - %s", suffix),
+			Revision:     fmt.Sprintf("Mocked Revision - %s", suffix),
 			BugLabels:    []string{"Mocked Sub Label"},
 			Hotlists:     []string{"5141966"},
 			BugComponent: "1325852",

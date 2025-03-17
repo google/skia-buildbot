@@ -59,7 +59,7 @@ func GetDefaultNotifier(ctx context.Context, cfg *config.InstanceConfig, commitU
 func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit *pb.Culprit, subscription *sub_pb.Subscription) (string, error) {
 	if subscription == nil || culprit == nil {
 		sklog.Debugf("No subscription or no culprit.")
-		return "nil", nil
+		return "nil", skerr.Fmt("No subscription or no culprit when calling NotifyCulpritFound")
 	}
 	sklog.Debugf("Culprit found for [%s]: %s", subscription.Name, culprit.Commit.Revision)
 	subject, body, err := n.formatter.GetCulpritSubjectAndBody(ctx, culprit, subscription)
@@ -76,7 +76,7 @@ func (n *DefaultCulpritNotifier) NotifyCulpritFound(ctx context.Context, culprit
 // Creates a bug in Buganizer about the detected anomalies.
 func (n *DefaultCulpritNotifier) NotifyAnomaliesFound(ctx context.Context, anomalyGroup *ag.AnomalyGroup, subscription *sub_pb.Subscription, anomalyList []*pb.Anomaly) (string, error) {
 	if subscription == nil || anomalyGroup == nil {
-		return "nil", nil
+		return "nil", skerr.Fmt("No subscription or no anomalyGroup when calling NotifyAnomaliesFound")
 	}
 	sklog.Debugf("Anomalies found for [%s]: %s", subscription.Name, anomalyGroup.AnomalyIds)
 
