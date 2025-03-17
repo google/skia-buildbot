@@ -236,12 +236,6 @@ export class ExploreMultiSk extends ElementSk {
         Merge Graphs
       </button>
       <button
-        @click=${() => {
-          ele.toggleChartStyle();
-        }}>
-        Toggle Chart Style
-      </button>
-      <button
         id="favBtn"
         ?disabled=${!ele.canAddFav()}
         @click=${() => {
