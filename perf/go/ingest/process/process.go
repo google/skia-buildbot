@@ -132,11 +132,15 @@ func (w *workerInfo) processSingleFile(f file.File) error {
 	if err != nil {
 		if err == parser.ErrFileShouldBeSkipped {
 			sklog.Debugf("File should be skipped %v: %s", f, err)
+			if f.PubSubMsg != nil {
+				f.PubSubMsg.Ack()
+				sklog.Debugf("Message acked: %v", f.PubSubMsg)
+			}
 			w.skipped.Inc(1)
-		} else {
-			sklog.Errorf("Failed to parse %v: %s", f, err)
-			w.failedToParse.Inc(1)
+			return nil
 		}
+		sklog.Errorf("Failed to parse %v: %s", f, err)
+		w.failedToParse.Inc(1)
 		nackMessageIfNecessary(w.dlEnabled, f)
 		return nil
 	}
