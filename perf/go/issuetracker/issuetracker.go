@@ -73,29 +73,15 @@ func (s *issueTrackerImpl) ListIssues(ctx context.Context, requestObj ListIssues
 	if len(requestObj.IssueIds) == 0 {
 		return nil, skerr.Wrapf(nil, "No issue IDs provided")
 	}
-	getIssueId := requestObj.IssueIds[0]
+
 	sklog.Debugf("[Perf_issuetracker] Start sending list issues request to v1 issuetracker with query: %s", query)
 	resp, err := s.client.Issues.List().Query(query).Do()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find issue with request. ")
 	}
-	sklog.Debugf("[Perf_issuetracker] list issues response received from v1 issuetracker: %s", resp.Issues)
-	// ===== debuging calls to verify issue tracker client =====
-	sklog.Debugf("[Perf_issuetracker] Start sending get issue request to v1 issuetracker with issueId: %s", getIssueId)
-	resp1, err := s.client.Issues.Get(int64(getIssueId)).Do()
-	if err != nil {
-		sklog.Debugf("[Perf_issuetracker] error on Get Issue debug call")
+	if len(resp.Issues) > 0 {
+		sklog.Debugf("[Perf_issuetracker] Received list issues response from v1: IssueID=%s, State=%s", resp.Issues[0].IssueId, resp.Issues[0].IssueState.Title)
 	}
-	sklog.Debugf("[Perf_issuetracker] get issue response received from v1 issuetracker: %s", resp1.IssueId)
-
-	q := "status:open"
-	sklog.Debugf("[Perf_issuetracker] Start sending list request on open issues to v1 issuetracker with: %s", q)
-	resp2, err := s.client.Issues.List().PageSize(10).Query(q).Do()
-	if err != nil {
-		sklog.Debugf("[Perf_issuetracker] error on List Issues debug call")
-	}
-	sklog.Debugf("[Perf_issuetracker] Start sending list request on open issues to v1 issuetracker with issueId: %s", len(resp2.Issues))
-	// ===== end of debuging =====
 
 	return resp.Issues, nil
 }

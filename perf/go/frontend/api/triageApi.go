@@ -309,7 +309,9 @@ func (api triageApi) ListIssues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sklog.Debugf("[SkiaTriage] Fetched and returned ListIssuesResponse: %s", resp)
+	if len(resp) > 0 {
+		sklog.Debugf("[SkiaTriage] Fetched and returned ListIssue IssueId: %s and IssueState.Title %s", resp[0].IssueId, resp[0].IssueState.Title)
+	}
 
 	if err := json.NewEncoder(w).Encode(ListIssuesResponse{Issues: resp}); err != nil {
 		httputils.ReportError(w, err, "Failed to write bug id to ListIssuesResponse.", http.StatusInternalServerError)
