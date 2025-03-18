@@ -83,9 +83,10 @@ func buildAnomalyGroupUrl(url, groupId string) string {
 
 func buildAnomalyDetails(anomaly *pb.Anomaly) string {
 	return fmt.Sprintf(`Bot: %s, Benchmark: %s, Measurement: %s, Story: %s,
-	   Change: %.4f -> %.4f (%.2f%%)`,
+	   Change: %.4f -> %.4f (%.2f%%); Commit range: %d -> %d`,
 		anomaly.Paramset["bot"], anomaly.Paramset["benchmark"], anomaly.Paramset["measurement"], anomaly.Paramset["story"],
-		anomaly.MedianBefore, anomaly.MedianAfter, 100*(anomaly.MedianAfter-anomaly.MedianBefore)/anomaly.MedianBefore)
+		anomaly.MedianBefore, anomaly.MedianAfter, 100*(anomaly.MedianAfter-anomaly.MedianBefore)/anomaly.MedianBefore,
+		anomaly.StartCommit, anomaly.EndCommit)
 }
 
 // NewMarkdownFormatter return a new MarkdownFormatter.

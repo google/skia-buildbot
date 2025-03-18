@@ -90,7 +90,8 @@ func TestFormatting_Report_NoConfig(t *testing.T) {
 	assert.Equal(t, subject, "[Subscription_Test]: [3] regressions in Benchmark_Test", subject)
 	assert.True(t, strings.Contains(string(body), "Top 2 anomalies in this group:"), body)
 	assert.True(t, strings.Contains(string(body), "Bot: b, Benchmark: bc, Measurement: m, Story: s,"), body)
-	assert.True(t, strings.Contains(string(body), "-25.00%"), body) // 0.4444 -> 0.3333
+	assert.True(t, strings.Contains(string(body), "-25.00%"), body)                    // 0.4444 -> 0.3333
+	assert.True(t, strings.Contains(string(body), "Commit range: 1234 -> 2345"), body) // start / end commits
 }
 
 func TestFormatting_Report_WithConfig(t *testing.T) {
