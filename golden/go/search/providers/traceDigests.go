@@ -95,6 +95,23 @@ func (s *TraceDigestsProvider) GetMatchingDigestsAndTraces(ctx context.Context, 
 		return nil, err
 	}
 
+	// If this is a public instance, the cached results can potentially
+	// contain non public traces since the cache is shared. Apply the
+	// public trace filter and only keep the traces that are public.
+	var traceKey schema.MD5Hash
+	if s.publiclyVisibleTraces != nil {
+		filteredResults := []common.DigestWithTraceAndGrouping{}
+		for _, result := range results {
+			copy(traceKey[:], result.TraceID)
+			if _, ok := s.publiclyVisibleTraces[traceKey]; !ok {
+				continue
+			}
+			filteredResults = append(filteredResults, result)
+		}
+
+		results = filteredResults
+	}
+
 	// The cache manager handles looking up from the db when there is a cache miss.
 	// So if there are no results at this points, it means there are no qualifying
 	// results in the database as well.
