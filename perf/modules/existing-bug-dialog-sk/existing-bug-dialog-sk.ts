@@ -259,10 +259,10 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  private async fetch_bug_titles() {
+  private fetch_bug_titles() {
     const bugIds = Array.from(this._associatedBugIds);
 
-    await fetch('/_/triage/list_issues', {
+    fetch('/_/triage/list_issues', {
       method: 'POST',
       body: JSON.stringify({
         IssueIds: bugIds,

@@ -42,6 +42,11 @@ existing-bug-dialog-sk {
       padding-left: 8px;
     }
 
+    #bug-list {
+      max-width: 100px;
+      overflow-x: scroll; /* bug title can be very long */
+    }
+
     #associated-bugs-table {
       margin-top: 5px;
       margin-bottom: 5px;
