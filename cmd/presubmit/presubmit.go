@@ -553,6 +553,8 @@ func checkBannedGoAPIs(ctx context.Context, files []fileWithChanges) bool {
 				regexp.MustCompile(`perf/go/config/.*\.go`),
 				// Just using the word "git" as a directory name.
 				regexp.MustCompile(`perf/go/git/providers/git_checkout/.*\.go`),
+				// Not necessary on developer machines.
+				regexp.MustCompile(`sk/go/try/try\.go`),
 			},
 		},
 	}

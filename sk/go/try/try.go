@@ -2,7 +2,9 @@ package try
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -15,8 +17,6 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/skerr"
@@ -34,6 +34,26 @@ var (
 
 	// tryjobs is an instance of tryJobReader which may be replaced for testing.
 	tryjobs tryJobReader = &tryJobReaderImpl{}
+
+	// gerritProjectToBucket indicates which Gerrit projects are associated with
+	// which Buildbucket bucket.
+	gerritProjectToBucket = map[string]string{
+		// Public projects.
+		"buildbot":     bbBucketPublic,
+		"common":       bbBucketPublic,
+		"libgifcodec":  bbBucketPublic,
+		"lottie-ci":    bbBucketPublic,
+		"skcms":        bbBucketPublic,
+		"skia":         bbBucketPublic,
+		"skiabot-test": bbBucketPublic,
+		// Private projects.
+		"skia-autoroll-internal-config": bbBucketPrivate,
+		"skia_internal":                 bbBucketPrivate,
+		"eskia":                         bbBucketPrivate,
+		"infra-internal":                bbBucketPrivate,
+		"internal_test":                 bbBucketPrivate,
+		"k8s-config":                    bbBucketPrivate,
+	}
 )
 
 // Command returns a cli.Command instance which represents the "try" command.
@@ -235,20 +255,25 @@ func (r *tryJobReaderImpl) getTryJobs(ctx context.Context) (map[string][]string,
 		jobs = append(jobs, name)
 	}
 
-	// Attempt to determine whether this is a public or private repo by hitting
-	// the Gitiles URL with an unauthenticated request and seeing if we get a
-	// response.
-	remotes, err := git.CheckoutDir(".").GetRemotes(ctx)
+	// Attempt to determine which Buildbucket bucket to use by obtaining
+	// information about the active CL.
+	out, err := exec.RunCwd(ctx, ".", "git", "cl", "issue", "--json=-")
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	bbBucket := bbBucketPrivate
-	for _, url := range remotes {
-		repo := gitiles.NewRepo(url, httputils.DefaultClientConfig().Client())
-		if _, err := repo.Branches(ctx); err == nil {
-			bbBucket = bbBucketPublic
-			break
-		}
+	// Strip the first line of non-JSON output.
+	out = strings.Join(strings.Split(out, "\n")[1:], "\n")
+	// Parse the JSON.
+	type issueProperties struct {
+		GerritProject string `json:"gerrit_project"`
+	}
+	var props issueProperties
+	if err := json.NewDecoder(bytes.NewReader([]byte(out))).Decode(&props); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	bbBucket, ok := gerritProjectToBucket[props.GerritProject]
+	if !ok {
+		return nil, skerr.Fmt("Unknown Gerrit project %q", props.GerritProject)
 	}
 	return map[string][]string{
 		bbBucket: jobs,
