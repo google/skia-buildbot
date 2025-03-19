@@ -34,7 +34,45 @@ func NewPinpointApi(loginProvider alogin.Login, pinpointClient *pinpoint.Client)
 // RegisterHandlers registers the api handlers for their respective routes.
 func (api pinpointApi) RegisterHandlers(router *chi.Mux) {
 	router.Post("/_/bisect/create", api.createBisectHandler)
+	router.Post("/_/try/", api.createTryJobHandler)
 	router.HandleFunc("/p/", api.pinpointBisectionHandler)
+}
+
+// createTryJobHandler takes the POST'd to create a Pinpoint try job request
+// then it calls legacy Pinpoint Service to create the job and returns the job id and job url.
+func (api pinpointApi) createTryJobHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), defaultDatabaseTimeout)
+	defer cancel()
+	w.Header().Set("Content-Type", "application/json")
+
+	// TODO(b/404880786): Create a PinpointUser role and deprecate Bisecter.
+	if !api.loginProvider.HasRole(r, roles.Bisecter) {
+		http.Error(w, "User is not logged in or is not authorized to start try job.", http.StatusForbidden)
+		return
+	}
+
+	if api.pinpointClient == nil {
+		err := skerr.Fmt("Pinpoint client has not been initialized.")
+		httputils.ReportError(w, err, "Create try job is not enabled for this instance, please check configuration file.", http.StatusInternalServerError)
+		return
+	}
+
+	var cbr pinpoint.CreateLegacyTryRequest
+	if err := json.NewDecoder(r.Body).Decode(&cbr); err != nil {
+		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
+		return
+	}
+	sklog.Debugf("Got request of creating bisect job: %+v", cbr)
+
+	resp, err := api.pinpointClient.CreateTryJob(ctx, cbr)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to create try job.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		sklog.Errorf("Failed to parse the response of creating A/B job: %s", err)
+	}
 }
 
 // createBisectHandler takes the POST'd create bisect request

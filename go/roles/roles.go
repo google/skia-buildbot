@@ -21,6 +21,7 @@ const (
 	Admin Role = "admin"
 
 	// Bisecter can request a bisection.
+	// TODO(b/404880786): Create a PinpointUser role and deprecate Bisecter.
 	Bisecter Role = "bisecter"
 
 	// Buildbucket represents the Buildbucket service.
