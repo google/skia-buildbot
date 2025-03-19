@@ -95,7 +95,7 @@ func main() {
 		frontendApi.ListIssuesResponse{},
 		graphsshortcut.GraphsShortcut{},
 		pinpoint.CreateBisectRequest{},
-		pinpoint.CreateBisectResponse{},
+		pinpoint.CreatePinpointResponse{},
 		provider.Commit{},
 		regression.Regression{},
 		regression.FullSummary{},

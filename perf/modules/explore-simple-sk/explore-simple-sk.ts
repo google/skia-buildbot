@@ -65,7 +65,7 @@ import '../window/window';
 import {
   CommitNumber,
   CreateBisectRequest,
-  CreateBisectResponse,
+  CreatePinpointResponse,
   Anomaly,
   DataFrame,
   RequestType,
@@ -1613,7 +1613,7 @@ export class ExploreSimpleSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json: CreateBisectResponse) => {
+      .then((json: CreatePinpointResponse) => {
         this.jobUrl = json.jobUrl;
         this.jobId = json.jobId;
         this._render();

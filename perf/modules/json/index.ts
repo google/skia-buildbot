@@ -576,7 +576,7 @@ export interface CreateBisectRequest {
 	alert_ids: string;
 }
 
-export interface CreateBisectResponse {
+export interface CreatePinpointResponse {
 	jobId: string;
 	jobUrl: string;
 }
