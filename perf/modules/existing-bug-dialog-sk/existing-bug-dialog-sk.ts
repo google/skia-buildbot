@@ -225,17 +225,17 @@ export class ExistingBugDialogSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then(async (json) => {
+        // Make the .then callback async
         if (json.sid !== null && !json.anomaly_list) {
-          // if the sid is not null, it will have to another call with sid to get anomalies
           const sid: string = json.sid;
-          this.fetch_associated_bugs_withSid(sid);
+          await this.fetch_associated_bugs_withSid(sid);
         } else {
           const anomalies: Anomaly[] = json.anomaly_list || [];
           this.getAssociatedBugList(anomalies);
         }
         if (this._associatedBugIds.size !== 0) {
-          this.fetch_bug_titles();
+          await this.fetch_bug_titles(); // Await the fetch_bug_titles() call
         }
       });
     this._spinner!.active = false;
@@ -259,10 +259,10 @@ export class ExistingBugDialogSk extends ElementSk {
       });
   }
 
-  private fetch_bug_titles() {
+  private async fetch_bug_titles() {
     const bugIds = Array.from(this._associatedBugIds);
 
-    fetch('/_/triage/list_issues', {
+    await fetch('/_/triage/list_issues', {
       method: 'POST',
       body: JSON.stringify({
         IssueIds: bugIds,
