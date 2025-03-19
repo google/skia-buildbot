@@ -1,0 +1,41 @@
+@import '../themes/themes.scss';
+
+ab-job-dialog-sk {
+  #ab-job-dialog {
+    input {
+      margin-bottom: 10px;
+      width: 500px;
+      padding: 6px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-top: 2px;
+      margin-bottom: 4px;
+    }
+  }
+
+  #icon {
+    font-family: 'Material Icons';
+  }
+
+  #ab-job-dialog-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 0;
+    margin-top: 10px;
+    margin-right: 11px;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+  }
+
+  md-icon-button {
+    height: 24px;
+    width: 24px;
+  }
+}

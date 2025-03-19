@@ -1,0 +1,30 @@
+load("//infra-sk:index.bzl", "sk_element")
+
+sk_element(
+    name = "pinpoint-try-job-dialog-sk",
+    sass_deps = ["//perf/modules/themes:themes_sass_lib"],
+    sass_srcs = ["pinpoint-try-job-dialog-sk.scss"],
+    sk_element_deps = [
+        "//elements-sk/modules/icons/close-icon-sk",
+        "//elements-sk/modules/select-sk",
+        "//elements-sk/modules/spinner-sk",
+        "//infra-sk/modules/alogin-sk",
+    ],
+    ts_deps = [
+        "//:node_modules/@material/web",
+        "//:node_modules/lit",
+        "//:node_modules/lit-html",  # keep
+        "//elements-sk/modules:define_ts_lib",
+        "//elements-sk/modules:errormessage_ts_lib",
+        "//elements-sk/modules:upgradeproperty_ts_lib",
+        "//infra-sk/modules/ElementSk:index_ts_lib",
+        "//infra-sk/modules/json:index_ts_lib",
+        "//infra-sk/modules:jsonorthrow_ts_lib",
+        "//perf/modules/json:index_ts_lib",
+    ],
+    ts_srcs = [
+        "index.ts",
+        "pinpoint-try-job-dialog-sk.ts",
+    ],
+    visibility = ["//visibility:public"],
+)
