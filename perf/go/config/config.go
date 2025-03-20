@@ -880,6 +880,11 @@ type QueryConfig struct {
 
 	// RedisConfig defines the Redis properties used to find the Redis instance.
 	RedisConfig redis.RedisConfig `json:"redis_config,omitempty"`
+
+	// CommitChunkSize defines the commit size to use for the search window.
+	// Ideally this is greater than the tile size and we search for traces
+	// for each tile within this window in parallel.
+	CommitChunkSize int `json:"query_commit_chunk_size,omitempty"`
 }
 
 type CacheType string

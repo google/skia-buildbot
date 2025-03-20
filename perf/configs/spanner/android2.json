@@ -90,7 +90,8 @@
         "showZero": "true",
         "enable_chart_tooltip": "true",
         "show_google_plot": "true"
-      }
+      },
+      "query_commit_chunk_size": 7000
     },
     "optimize_sqltracestore": true
 }

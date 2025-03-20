@@ -193,6 +193,10 @@ func Validate(i config.InstanceConfig) error {
 		}
 	}
 
+	if i.QueryConfig.CommitChunkSize > 0 && i.QueryConfig.CommitChunkSize <= int(i.DataStoreConfig.TileSize) {
+		return skerr.Fmt("Commit Chunk Size needs to be greater than the tile size in the config.")
+	}
+
 	return nil
 }
 

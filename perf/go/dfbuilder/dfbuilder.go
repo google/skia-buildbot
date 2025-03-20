@@ -54,12 +54,13 @@ const (
 
 // builder implements DataFrameBuilder using TraceStore.
 type builder struct {
-	git                perfgit.Git
-	store              tracestore.TraceStore
-	tileSize           int32
-	numPreflightTiles  int
-	filterParentTraces Filtering
-	mux                *sync.Mutex
+	git                  perfgit.Git
+	store                tracestore.TraceStore
+	tileSize             int32
+	numPreflightTiles    int
+	filterParentTraces   Filtering
+	QueryCommitChunkSize int
+	mux                  *sync.Mutex
 
 	newTimer                      metrics2.Float64SummaryMetric
 	newByTileTimer                metrics2.Float64SummaryMetric
@@ -72,13 +73,14 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int) dataframe.DataFrameBuilder {
 	return &builder{
 		git:                           git,
 		store:                         store,
 		numPreflightTiles:             numPreflightTiles,
 		tileSize:                      store.TileSize(),
 		filterParentTraces:            filterParentTraces,
+		QueryCommitChunkSize:          queryCommitChunkSize,
 		mux:                           &sync.Mutex{},
 		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
@@ -334,6 +336,17 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	// headers from begin to end *inclusive*.
 	beginIndex := b.store.CommitNumberOfTileStart(endIndex)
 
+	if b.QueryCommitChunkSize > 0 {
+		beginIndex = endIndex - types.CommitNumber(b.QueryCommitChunkSize)
+	}
+
+	// Note on the significance of the beginIndex and endIndex values.
+	// The b.new() call below looks at this range of indices, figures out what
+	// tiles are present in that range and then runs queries on those tiles in
+	// parallel. Having this range be greater than the tile size increases the
+	// parallelism on that call and can lead to faster response times. You can
+	// consider adjusting the QueryCommitChunkSize value in case instances are
+	// showing slower response times and have a smaller tile size.
 	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
 		// Query for traces.
@@ -406,6 +419,9 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			break
 		}
 		beginIndex = b.store.CommitNumberOfTileStart(endIndex)
+		if b.QueryCommitChunkSize > 0 {
+			beginIndex = endIndex - types.CommitNumber(b.QueryCommitChunkSize)
+		}
 		if beginIndex < 0 {
 			beginIndex = 0
 		}

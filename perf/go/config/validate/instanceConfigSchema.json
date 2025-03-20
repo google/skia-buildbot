@@ -490,6 +490,9 @@
         },
         "redis_config": {
           "$ref": "#/$defs/RedisConfig"
+        },
+        "query_commit_chunk_size": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

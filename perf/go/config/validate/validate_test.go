@@ -15,8 +15,11 @@ import (
 
 func TestInstanceConfigBytes_AllExistingConfigs_ShouldBeValid(t *testing.T) {
 	allExistingConfigs, err := filepath.Glob(filepath.Join("..", "..", "..", "configs", "*.json"))
-	require.Greater(t, len(allExistingConfigs), 0)
 	require.NoError(t, err)
+	spannerConfigs, err := filepath.Glob(filepath.Join("..", "..", "..", "configs", "spanner", "*.json"))
+	require.NoError(t, err)
+	allExistingConfigs = append(allExistingConfigs, spannerConfigs...)
+	require.Greater(t, len(allExistingConfigs), 0)
 	for _, filename := range allExistingConfigs {
 		instanceConfig, schemaErrors, err := InstanceConfigFromFile(filename)
 		require.Empty(t, schemaErrors, filename)

@@ -67,7 +67,8 @@
       "use_test_picker_query": "true",
       "use_titles": "true",
       "show_google_plot": "true"
-    }
+    },
+    "query_commit_chunk_size": 10000
   },
   "data_point_config": {
     "keys_for_commit_range": ["V8 Git Hash", "WebRTC Git Hash"],

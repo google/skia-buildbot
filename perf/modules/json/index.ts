@@ -124,6 +124,7 @@ export interface QueryConfig {
 	default_url_values?: { [key: string]: string } | null;
 	cache_config?: QueryCacheConfig;
 	redis_config?: RedisConfig;
+	query_commit_chunk_size?: number;
 }
 
 export interface Commit {

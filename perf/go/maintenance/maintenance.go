@@ -113,7 +113,8 @@ func Start(ctx context.Context, flags config.MaintenanceFlags, instanceConfig *c
 			g,
 			traceStore,
 			2,
-			dfbuilder.Filtering(instanceConfig.FilterParentTraces))
+			dfbuilder.Filtering(instanceConfig.FilterParentTraces),
+			instanceConfig.QueryConfig.CommitChunkSize)
 		psRefresher := psrefresh.NewDefaultParamSetRefresher(traceStore, 2, dfBuilder, instanceConfig.QueryConfig)
 		err = psRefresher.Start(time.Hour)
 		if err != nil {
