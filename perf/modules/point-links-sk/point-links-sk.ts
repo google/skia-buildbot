@@ -66,9 +66,7 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      // Temporary workaround until Keys are changed from ingest.
-      const text = key.split(' ')[0];
-      return html` <a href="${link}" target="_blank">${text}</a>`;
+      return html` <a href="${link}" target="_blank">${key}</a>`;
     };
     return keys.map(getHtml);
   }
