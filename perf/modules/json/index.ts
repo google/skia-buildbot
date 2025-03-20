@@ -580,7 +580,7 @@ export interface CreateBisectRequest {
 export interface CreateLegacyTryRequest {
 	name: string;
 	base_git_hash: string;
-	experiment_git_hash: string;
+	end_git_hash: string;
 	base_patch: string;
 	experiment_patch: string;
 	configuration: string;

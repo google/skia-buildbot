@@ -27,18 +27,21 @@ const (
 )
 
 type CreateLegacyTryRequest struct {
-	Name              string `json:"name"`
-	BaseGitHash       string `json:"base_git_hash"`
-	ExperimentGitHash string `json:"experiment_git_hash"`
-	BasePatch         string `json:"base_patch"`
-	ExperimentPatch   string `json:"experiment_patch"`
-	Configuration     string `json:"configuration"`
-	Benchmark         string `json:"benchmark"`
-	Story             string `json:"story"`
-	ExtraTestArgs     string `json:"extra_test_args"`
-	Repository        string `json:"repository"`
-	BugId             string `json:"bug_id"`
-	User              string `json:"user"`
+	Name        string `json:"name"`
+	BaseGitHash string `json:"base_git_hash"`
+	// although "experiment" makes more sense in this context, the legacy Pinpoint API
+	// explicitly defines the experiment commit as "end_git_hash" and defines
+	// the experiment patch as "experiment_patch"
+	EndGitHash      string `json:"end_git_hash"`
+	BasePatch       string `json:"base_patch"`
+	ExperimentPatch string `json:"experiment_patch"`
+	Configuration   string `json:"configuration"`
+	Benchmark       string `json:"benchmark"`
+	Story           string `json:"story"`
+	ExtraTestArgs   string `json:"extra_test_args"`
+	Repository      string `json:"repository"`
+	BugId           string `json:"bug_id"`
+	User            string `json:"user"`
 }
 
 type CreateBisectRequest struct {
@@ -149,8 +152,8 @@ func buildTryJobRequestURL(req CreateLegacyTryRequest) (string, error) {
 	if req.BaseGitHash != "" {
 		params.Set("base_git_hash", req.BaseGitHash)
 	}
-	if req.ExperimentGitHash != "" {
-		params.Set("experiment_git_hash", req.ExperimentGitHash)
+	if req.EndGitHash != "" {
+		params.Set("end_git_hash", req.EndGitHash)
 	}
 	if req.BasePatch != "" {
 		params.Set("base_patch", req.BasePatch)

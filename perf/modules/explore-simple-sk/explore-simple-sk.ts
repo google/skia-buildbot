@@ -151,6 +151,7 @@ import { generateSubDataframe } from '../dataframe/index';
 import { SplitChartSelectionEventDetails } from '../split-chart-menu-sk/split-chart-menu-sk';
 import { getLegend, getTitle, isSingleTrace, legendFormatter } from '../dataframe/traceset';
 import { BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
+import { TryJobPreloadParams } from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { FavoritesDialogSk } from '../favorites-dialog-sk/favorites-dialog-sk';
 
 /** The type of trace we are adding to a plot. */
@@ -2200,6 +2201,13 @@ export class ExploreSimpleSk extends ElementSk {
       story: this.story ? this.story : '',
     };
 
+    const preloadTryJobInputs: TryJobPreloadParams = {
+      testPath: this.testPath,
+      baseCommit: this.startCommit,
+      endCommit: this.endCommit,
+      story: this.story ? this.story : '',
+    };
+
     let unitValue: string = '';
     traceName.split(',').forEach((test) => {
       if (test.startsWith('unit')) {
@@ -2218,6 +2226,7 @@ export class ExploreSimpleSk extends ElementSk {
     const testName = legendFormatter(getLegendData)[legendIndex].replace('/' + unitValue, '');
 
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
+    tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
     tooltipElem!.load(
       legendIndex,
       testName,

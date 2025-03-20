@@ -1,6 +1,6 @@
 /**
  * @module modules/pinpoint-try-job-dialog-sk
- * @description <h2><code>ab-job-dialog-sk</code></h2>
+ * @description <h2><code>pinpoint-try-job-dialog-sk</code></h2>
  *
  * pinpoint-try-job-dialog-sk allows a user to trigger a Pinpoint A/B Try job.
  * While try jobs support more use cases, the use case for this dialog in perf
@@ -74,12 +74,12 @@ export class PinpointTryJobDialogSk extends ElementSk {
   private submitButton: HTMLButtonElement | null = null;
 
   private static template = (ele: PinpointTryJobDialogSk) => html`
-    <dialog id='ab-job-dialog'>
+    <dialog id='pinpoint-try-job-dialog'>
       <h2>Debug Trace</h2>
-      <button id="ab-job-dialog-close" @click=${ele.closeDialog}>
+      <button id="pinpoint-try-job-dialog-close" @click=${ele.closeDialog}>
         <close-icon-sk></close-icon-sk>
       </button>
-      <form id="ab-job-form">
+      <form id="pinpoint-try-job-form">
       <h3>Base Commit</h3>
       <input id="base-commit" type="text" value=${ele.baseCommit}></input>
       <h3>Experiment Commit</h3>
@@ -92,7 +92,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
       <p>
       <input id="trace-args" type="text" value=${ele.traceArgs}></input>
       <div class=footer>
-        <button id="ab-job-dialog-submit" type="Submit">Send to Pinpoint</button>
+        <button id="pinpoint-try-job-dialog-submit" type="Submit">Send to Pinpoint</button>
         <spinner-sk id="dialog-spinner"></spinner-sk>
         ${
           ele.jobUrl
@@ -121,10 +121,10 @@ export class PinpointTryJobDialogSk extends ElementSk {
 
     this._render();
 
-    this._dialog = this.querySelector('#ab-job-dialog');
+    this._dialog = this.querySelector('#pinpoint-try-job-dialog');
     this._spinner = this.querySelector('#dialog-spinner');
-    this.submitButton = this.querySelector('#ab-job-dialog-submit');
-    this._form = this.querySelector('#ab-job-form');
+    this.submitButton = this.querySelector('#pinpoint-try-job-dialog-submit');
+    this._form = this.querySelector('#pinpoint-try-job-form');
     this._form!.addEventListener('submit', (e) => {
       e.preventDefault();
       this.postTryJob();
@@ -184,7 +184,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
     const req: CreateLegacyTryRequest = {
       name: 'Tracing Debug',
       base_git_hash: baseCommit.value,
-      experiment_git_hash: endCommit.value,
+      end_git_hash: endCommit.value,
       base_patch: '',
       experiment_patch: '',
       configuration: this.testPath.split('/')[1],
@@ -197,7 +197,7 @@ export class PinpointTryJobDialogSk extends ElementSk {
     };
     req.name = `${req.name} on ${req.configuration}/${req.benchmark}/${req.story}`;
     console.log('here is the request', req);
-    fetch('/_/try/create', {
+    fetch('/_/try/', {
       method: 'POST',
       body: JSON.stringify(req),
       headers: {

@@ -27,6 +27,7 @@ sk_element(
         "//elements-sk/modules/icons/check-icon-sk",
         "//perf/modules/point-links-sk",
         "//perf/modules/bisect-dialog-sk",
+        "//perf/modules/pinpoint-try-job-dialog-sk",
     ],
     ts_deps = [
         "//:node_modules/lit",

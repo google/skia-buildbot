@@ -43,6 +43,7 @@ sk_element(
         "//perf/modules/split-chart-menu-sk",
         "//perf/modules/bisect-dialog-sk",
         "//perf/modules/favorites-dialog-sk",
+        "//perf/modules/pinpoint-try-job-dialog-sk",
     ],
     ts_deps = [
         "//infra-sk/modules/ElementSk:index_ts_lib",

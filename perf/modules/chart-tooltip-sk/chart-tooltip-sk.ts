@@ -23,6 +23,7 @@ import { TriageMenuSk, NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import '../triage-menu-sk/triage-menu-sk';
 import '../user-issue-sk/user-issue-sk';
 import '../bisect-dialog-sk/bisect-dialog-sk';
+import '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { UserIssueSk } from '../user-issue-sk/user-issue-sk';
 import '../../../elements-sk/modules/icons/close-icon-sk';
 import '../../../elements-sk/modules/icons/check-icon-sk';
@@ -30,6 +31,10 @@ import '@material/web/elevation/elevation.js';
 import { removeSpecialFunctions } from '../paramtools';
 import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { BisectDialogSk, BisectPreloadParams } from '../bisect-dialog-sk/bisect-dialog-sk';
+import {
+  PinpointTryJobDialogSk,
+  TryJobPreloadParams,
+} from '../pinpoint-try-job-dialog-sk/pinpoint-try-job-dialog-sk';
 import { defaultColors } from '../common/plot-builder';
 
 @customElement('commit-info-sk')
@@ -130,6 +135,8 @@ export class ChartTooltipSk extends ElementSk {
 
   private preloadBisectInputs: BisectPreloadParams | null = null;
 
+  private preloadTryJobInputs: TryJobPreloadParams | null = null;
+
   _tooltip_fixed: boolean = false;
 
   _close_button_action: () => void = () => {};
@@ -158,6 +165,10 @@ export class ChartTooltipSk extends ElementSk {
 
   // Bisect Dialog.
   bisectDialog: BisectDialogSk | null = null;
+
+  // Request debug trace dialog. This dialog creates a try job on legacy Pinpoint
+  // TODO(b/391784563): hide request debug trace when no tracing links have surfaced
+  tryJobDialog: PinpointTryJobDialogSk | null = null;
 
   // The overall html template for outlining the contents needed in
   // chart-tooltip.
@@ -211,11 +222,15 @@ export class ChartTooltipSk extends ElementSk {
         <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
           Bisect
         </button>
+        <button id="try-job" @click=${ele.openTryJobDialog} ?hidden=${!ele._tooltip_fixed}>
+          Debug Trace
+        </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
           ?hidden=${!ele._tooltip_fixed || ele.anomaly}></user-issue-sk>
       </div>
       <bisect-dialog-sk id="bisect-dialog-sk"></bisect-dialog-sk>
+      <pinpoint-try-job-dialog-sk id="pinpoint-try-job-dialog-sk"></pinpoint-try-job-dialog-sk>
       <point-links-sk
         id="tooltip-point-links"
         .commitPosition=${ele.commit_position}
@@ -350,6 +365,7 @@ export class ChartTooltipSk extends ElementSk {
     upgradeProperty(this, 'bug_host_url');
     upgradeProperty(this, 'bug_id');
     upgradeProperty(this, 'preloadBisectInputs');
+    upgradeProperty(this, 'preloadTryJobInputs');
     this._render();
 
     this.commitRangeSk = this.querySelector('#tooltip-commit-range-link');
@@ -357,6 +373,7 @@ export class ChartTooltipSk extends ElementSk {
     this.triageMenu = this.querySelector('#triage-menu');
     this.pointLinks = this.querySelector('#tooltip-point-links');
     this.bisectDialog = this.querySelector('#bisect-dialog-sk');
+    this.tryJobDialog = this.querySelector('#pinpoint-try-job-dialog-sk');
 
     this.addEventListener('anomaly-changed', () => {
       this._render();
@@ -504,9 +521,19 @@ export class ChartTooltipSk extends ElementSk {
     this.bisectDialog!.open();
   }
 
+  private openTryJobDialog() {
+    this.tryJobDialog!.open();
+  }
+
   setBisectInputParams(preloadInputs: BisectPreloadParams): void {
     this.preloadBisectInputs = preloadInputs;
     this.bisectDialog!.setBisectInputParams(this.preloadBisectInputs);
+    this._render();
+  }
+
+  setTryJobInputParams(preloadInputs: TryJobPreloadParams): void {
+    this.preloadTryJobInputs = preloadInputs;
+    this.tryJobDialog!.setTryJobInputParams(this.preloadTryJobInputs);
     this._render();
   }
 
