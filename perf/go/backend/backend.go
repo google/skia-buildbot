@@ -153,7 +153,7 @@ func (b *Backend) initialize(
 	// Add all the services that will be hosted here.
 	services := []BackendService{
 		NewPinpointService(nil, nil),
-		ag_service.New(anomalygroupStore, regressionStore, temporalClient),
+		ag_service.New(anomalygroupStore, culpritStore, regressionStore, temporalClient),
 		culprit_service.New(anomalygroupStore, culpritStore, subscriptionStore, notifier, config.Config),
 	}
 	err = b.configureServices(services)

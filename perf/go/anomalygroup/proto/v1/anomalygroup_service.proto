@@ -31,6 +31,10 @@ service AnomalyGroupService {
     rpc FindTopAnomalies(
         FindTopAnomaliesRequest) returns (FindTopAnomaliesResponse) {
     }
+
+    rpc FindIssuesFromCulprits(
+        FindIssuesFromCulpritsRequest) returns (FindIssuesFromCulpritsResponse) {
+    }
 }
 
 // Request object for CreateNewAnomalyGroup
@@ -124,9 +128,21 @@ message FindTopAnomaliesRequest {
     int64 limit = 2;
 }
 
-// // Response object for FindTopAnomaliesResponse
+// Response object for FindTopAnomaliesResponse
 message FindTopAnomaliesResponse {
     repeated Anomaly anomalies = 1;
+}
+
+// Request object for FindIssuesFromCulpritsRequest
+message FindIssuesFromCulpritsRequest {
+    // The ID of the anomaly group
+    string anomaly_group_id = 1;
+}
+
+// Response object for FindIssuesFromCulpritsResponse
+message FindIssuesFromCulpritsResponse {
+    // The issue IDs from the culprit IDs of the anomaly group
+    repeated string issue_ids = 1;
 }
 
 // Simplified format for an anomaly group, which should be sufficient

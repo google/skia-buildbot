@@ -23,6 +23,9 @@ type IssueTracker interface {
 	// ListIssues sends a GET request to issuetracker api with the specified query parameter.
 	// The response from the api is unmarshalled into the provided response object.
 	ListIssues(ctx context.Context, requestObj ListIssuesRequest) ([]*issuetracker.Issue, error)
+
+	// CreateComment adds a new comment to a existing bug given the bug id and the comment body.
+	CreateComment(ctx context.Context, req *CreateCommentRequest) (*CreateCommentResponse, error)
 }
 
 // / IssueTrackerImpl implements IssueTracker using the issue tracker API
@@ -35,8 +38,20 @@ type ListIssuesRequest struct {
 	IssueIds []int `json:"issueIds"`
 }
 
+// CreateCommentRequest is the request object for CreateComment
+type CreateCommentRequest struct {
+	IssueId int64  `json:"issue_id"`
+	Comment string `json:"comment"`
+}
+
+// CreateCommentResponse is the response object for CreateComment
+type CreateCommentResponse struct {
+	IssueId       int64 `json:"issud_id"`
+	CommentNumber int64 `json:"comment_number"`
+}
+
 // NewIssueTracker returns a new issueTracker object.
-func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig) (*issueTrackerImpl, error) {
+func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig) (IssueTracker, error) {
 	secretClient, err := secret.NewClient(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating secret client")
@@ -58,6 +73,30 @@ func NewIssueTracker(ctx context.Context, cfg config.IssueTrackerConfig) (*issue
 
 	return &issueTrackerImpl{
 		client: c,
+	}, nil
+}
+
+func (s *issueTrackerImpl) CreateComment(ctx context.Context, req *CreateCommentRequest) (*CreateCommentResponse, error) {
+	if req == nil {
+		return nil, skerr.Fmt("Create comment request is null.")
+	}
+	if req.IssueId <= 0 || req.Comment == "" {
+		return nil, skerr.Fmt("Invalid CreateCommentRequest properties. Issue Id: %d, Comment: %s", req.IssueId, req.Comment)
+	}
+
+	sklog.Debugf("[Perf_issuetracker] Received CreateCommentRequest. Issue Id: %d, Comment: %s", req.IssueId, req.Comment)
+	// FormattingMode is default to PLAIN
+	issueComment := &issuetracker.IssueComment{
+		Comment: req.Comment,
+	}
+	resp, err := s.client.Issues.Comments.Create(int64(req.IssueId), issueComment).Do()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create a new comment for bug id: %d. Comment: %s", req.IssueId, req.Comment)
+	}
+	sklog.Debugf("[Perf_issuetracker] CreateCommentResponse. Issue Id: %d, comment Id: %d", resp.IssueId, resp.CommentNumber)
+	return &CreateCommentResponse{
+		IssueId:       int64(resp.IssueId),
+		CommentNumber: int64(resp.CommentNumber),
 	}, nil
 }
 

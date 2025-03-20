@@ -15,32 +15,8 @@ go_library(
         "//perf/go/anomalygroup/utils",
         "//perf/go/clustering2",
         "//perf/go/git/provider",
+        "//perf/go/issuetracker",
         "//perf/go/ui/frame",
-    ],
-)
-
-go_test(
-    name = "notify_test",
-    srcs = ["anomalygroupnotifier_test.go"],
-    embed = [":notifier"],
-    deps = [
-        "//go/query",
-        "//go/testutils",
-        "//perf/go/alerts",
-        "//perf/go/anomalygroup/utils/mocks",
-        "//perf/go/chromeperf",
-        "//perf/go/chromeperf/mock",
-        "//perf/go/clustering2",
-        "//perf/go/config",
-        "//perf/go/dataframe",
-        "//perf/go/git/provider",
-        "//perf/go/notify/mocks",
-        "//perf/go/stepfit",
-        "//perf/go/types",
-        "//perf/go/ui/frame",
-        "@com_github_stretchr_testify//assert",
-        "@com_github_stretchr_testify//mock",
-        "@com_github_stretchr_testify//require",
     ],
 )
 
@@ -55,6 +31,7 @@ go_test(
         "//perf/go/clustering2",
         "//perf/go/dataframe",
         "//perf/go/git/provider",
+        "//perf/go/issuetracker/mocks",
         "//perf/go/stepfit",
         "//perf/go/types",
         "//perf/go/ui/frame",

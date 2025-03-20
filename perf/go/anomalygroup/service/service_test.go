@@ -11,6 +11,7 @@ import (
 
 	mocks "go.skia.org/infra/perf/go/anomalygroup/mocks"
 	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
+	c_mock "go.skia.org/infra/perf/go/culprit/mocks"
 	"go.skia.org/infra/perf/go/dataframe"
 	reg "go.skia.org/infra/perf/go/regression"
 	reg_mocks "go.skia.org/infra/perf/go/regression/mocks"
@@ -19,9 +20,10 @@ import (
 
 func setUp(_ *testing.T) (*anomalygroupService, *mocks.Store, *reg_mocks.Store) {
 	mockAnomalyGroupstore := new(mocks.Store)
+	mockCulpritstore := new(c_mock.Store)
 	mockRegressionStore := new(reg_mocks.Store)
 	mockTemporalClient := temporal_mocks.Client{}
-	service := New(mockAnomalyGroupstore, mockRegressionStore, &mockTemporalClient)
+	service := New(mockAnomalyGroupstore, mockCulpritstore, mockRegressionStore, &mockTemporalClient)
 	return service, mockAnomalyGroupstore, mockRegressionStore
 }
 

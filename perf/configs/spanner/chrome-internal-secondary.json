@@ -14,7 +14,7 @@
     "chat_url": "http://go/berf-skia-chat",
     "filter_parent_traces": true,
     "notify_config": {
-        "notifications": "anomalygroup"
+        "notifications": "none"
     },
     "auth_config": {
         "header_name": "X-WEBAUTH-USER"

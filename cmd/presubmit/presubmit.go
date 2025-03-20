@@ -67,7 +67,7 @@ func main() {
 	untrackedFiles := findUntrackedFiles(ctx)
 	for _, uf := range untrackedFiles {
 		if filepath.Base(uf) == "BUILD.bazel" {
-			logf(ctx, "Found uncommitted BUILD.bazel files. Please delete these or check them in. Aborting.\n")
+			logf(ctx, "Found uncommitted BUILD.bazel files: %s. Please delete these or check them in. Aborting.\n", uf)
 			os.Exit(1)
 		}
 	}

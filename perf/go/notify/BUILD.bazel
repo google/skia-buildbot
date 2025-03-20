@@ -37,6 +37,7 @@ go_library(
         "//perf/go/dataframe",
         "//perf/go/git/provider",
         "//perf/go/ingest/format",
+        "//perf/go/issuetracker",
         "//perf/go/notify/common",
         "//perf/go/notifytypes",
         "//perf/go/stepfit",

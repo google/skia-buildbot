@@ -2,6 +2,8 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +16,7 @@ import (
 	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	backend "go.skia.org/infra/perf/go/backend/client"
 	"go.skia.org/infra/perf/go/config"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/workflows"
 	tpr_client "go.skia.org/infra/temporal/go/client"
 	"go.temporal.io/sdk/temporal"
@@ -27,12 +30,20 @@ type AnomalyGrouper interface {
 	ProcessRegressionInGroup(ctx context.Context, alert *alerts.Alert, anomalyID string, startCommit int64, endCommit int64, testPath string, paramSet map[string]string) (string, error) //
 }
 
-type AnomalyGrouperImpl struct{}
+type AnomalyGrouperImpl struct {
+	issuetracker perf_issuetracker.IssueTracker
+}
+
+func New(issuetracker perf_issuetracker.IssueTracker) *AnomalyGrouperImpl {
+	return &AnomalyGrouperImpl{
+		issuetracker: issuetracker,
+	}
+}
 
 // implementation of ProcessRegressionInGroup for the AnomalyGrouper interface.
 func (a *AnomalyGrouperImpl) ProcessRegressionInGroup(
 	ctx context.Context, alert *alerts.Alert, anomalyID string, startCommit int64, endCommit int64, testPath string, paramSet map[string]string) (string, error) {
-	return ProcessRegression(ctx, alert, anomalyID, startCommit, endCommit, testPath, paramSet)
+	return ProcessRegression(ctx, alert, anomalyID, startCommit, endCommit, testPath, paramSet, a.issuetracker)
 }
 
 // Process the regression with the following steps:
@@ -45,7 +56,8 @@ func ProcessRegression(
 	startCommit int64,
 	endCommit int64,
 	testPath string,
-	paramSet map[string]string) (string, error) {
+	paramSet map[string]string,
+	issuetracker perf_issuetracker.IssueTracker) (string, error) {
 	// TODO(wenbinzhang): We need to process one regression at a time to avoid
 	// race on creating new groups. However, multiple containers are created to
 	// process regressions in parallel. We need to update the mutex usage here.
@@ -141,8 +153,8 @@ func ProcessRegression(
 	} else {
 		sklog.Infof("Found %d existing anomaly groups for anomaly %s", len(resp.AnomalyGroups), anomalyID)
 		// found matching groups for the new anomaly
-		for _, alertGroup := range resp.AnomalyGroups {
-			groupID := alertGroup.GroupId
+		for _, anomalyGroup := range resp.AnomalyGroups {
+			groupID := anomalyGroup.GroupId
 			groupIDs = append(groupIDs, groupID)
 			_, err = ag_client.UpdateAnomalyGroup(
 				ctx,
@@ -152,9 +164,60 @@ func ProcessRegression(
 			if err != nil {
 				return "", skerr.Wrapf(err, "error updating group with new anomaly")
 			}
+			issuesToUpdate, err := FindIssuesToUpdate(ctx, anomalyGroup, ag_client)
+			if err != nil {
+				return "", skerr.Wrapf(err, "finding issues to update for group: %s", anomalyGroup.GroupId)
+			}
+			// For each of the issue, add the new anomaly info as a new comment.
+			for _, issueId := range issuesToUpdate {
+				sklog.Debugf("[AG] Adding new comment for anomaly %s on issue %d.", anomalyID, issueId)
+				req := &perf_issuetracker.CreateCommentRequest{
+					IssueId: issueId,
+					// TODO(wenbinzhang): improve formatting. Need to access regressions2 store for more details.
+					Comment: fmt.Sprintf("new anomaly %s is being added...", anomalyID),
+				}
+				resp, err := issuetracker.CreateComment(ctx, req)
+				if err != nil {
+					return "", skerr.Wrapf(err, "adding comment to issue: %d", issueId)
+				}
+				sklog.Debugf("[AG] Issue %d comment #%d is updated.", resp.IssueId, resp.CommentNumber)
+			}
 		}
-		// TODO(wenbinzhang:b/329900854): take actions based on alertGroup.GroupAction
 	}
 
 	return strings.Join(groupIDs, ","), nil
+}
+
+// Find issues to update for the current group if there is any.
+func FindIssuesToUpdate(ctx context.Context, anomalyGroup *ag.AnomalyGroup, ag_client ag.AnomalyGroupServiceClient) ([]int64, error) {
+	groupID := anomalyGroup.GroupId
+	issuesToUpdate := []int64{}
+	if anomalyGroup.GroupAction == ag.GroupActionType_REPORT {
+		if anomalyGroup.ReportedIssueId != 0 {
+			// An issue id here means the group has been reported. New anomaly should be added
+			// as a new comment.
+			// On the other hand, if there is no issue id, the group should be waiting for more
+			// anomalies before reporting them all together.
+			issuesToUpdate = append(issuesToUpdate, anomalyGroup.ReportedIssueId)
+			sklog.Debugf("[AG] Found issue %d as reported by group %s.", anomalyGroup.ReportedIssueId, groupID)
+		}
+	} else if anomalyGroup.GroupAction == ag.GroupActionType_BISECT {
+		req := &ag.FindIssuesFromCulpritsRequest{
+			AnomalyGroupId: groupID,
+		}
+		// Find the issues by the culprits associated with the current group.
+		resp, err := ag_client.FindIssuesFromCulprits(ctx, req)
+		if err != nil {
+			return []int64{}, skerr.Wrapf(err, "finding issues from culprits for group id: %s", groupID)
+		}
+		for _, issueIdStr := range resp.IssueIds {
+			issueId, err := strconv.Atoi(issueIdStr)
+			if err != nil {
+				return []int64{}, skerr.Wrapf(err, "converting string issue id: %s", issueIdStr)
+			}
+			issuesToUpdate = append(issuesToUpdate, int64(issueId))
+		}
+		sklog.Debugf("[AG] Found issues %d from culprits in group %s.", issuesToUpdate, groupID)
+	}
+	return issuesToUpdate, nil
 }

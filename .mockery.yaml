@@ -316,6 +316,11 @@ packages:
   go.skia.org/infra/perf/go/graphsshortcut:
     interfaces:
       Store:
+  go.skia.org/infra/perf/go/issuetracker:
+    config:
+      dir: "{{.InterfaceDir}}/mocks"
+    interfaces:
+      IssueTracker:
   go.skia.org/infra/perf/go/notify:
     interfaces:
       NotificationDataProvider:

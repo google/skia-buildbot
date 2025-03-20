@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/git/provider"
 	"go.skia.org/infra/perf/go/ingest/format"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/notify/common"
 	"go.skia.org/infra/perf/go/notifytypes"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -222,7 +223,7 @@ func (n *defaultNotifier) UpdateNotification(ctx context.Context, commit, previo
 }
 
 // New returns a Notifier of the selected type.
-func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS) (Notifier, error) {
+func New(ctx context.Context, cfg *config.NotifyConfig, itCfg *config.IssueTrackerConfig, URL, commitRangeURITemplate string, traceStore tracestore.TraceStore, fs fs.FS) (Notifier, error) {
 	formatter, err := getFormatter(cfg, commitRangeURITemplate)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -252,7 +253,14 @@ func New(ctx context.Context, cfg *config.NotifyConfig, URL, commitRangeURITempl
 	case notifytypes.ChromeperfAlerting:
 		return NewChromePerfNotifier(ctx, nil)
 	case notifytypes.AnomalyGrouper:
-		return ag.NewAnomalyGroupNotifier(ctx, nil), nil
+		if itCfg == nil || itCfg.IssueTrackerAPIKeySecretProject == "" || itCfg.IssueTrackerAPIKeySecretName == "" {
+			return nil, skerr.Fmt("Invalid issue tracker configs. It is required by anomalygroup notifier type.")
+		}
+		perfIssueTracker, err := perf_issuetracker.NewIssueTracker(ctx, *itCfg)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		return ag.NewAnomalyGroupNotifier(ctx, nil, perfIssueTracker), nil
 	default:
 		return nil, skerr.Fmt("invalid Notifier type: %s, must be one of: %v", cfg.Notifications, notifytypes.AllNotifierTypes)
 	}

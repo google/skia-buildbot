@@ -12,6 +12,7 @@ import (
 	ag "go.skia.org/infra/perf/go/anomalygroup/utils"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/git/provider"
+	perf_issuetracker "go.skia.org/infra/perf/go/issuetracker"
 	"go.skia.org/infra/perf/go/ui/frame"
 )
 
@@ -21,9 +22,9 @@ type AnomalyGroupNotifier struct {
 }
 
 // NewAnomalyGroupNotifier returns a new AnomalyGroupNotifier instance.
-func NewAnomalyGroupNotifier(ctx context.Context, anomalygrouper ag.AnomalyGrouper) *AnomalyGroupNotifier {
+func NewAnomalyGroupNotifier(ctx context.Context, anomalygrouper ag.AnomalyGrouper, issuetracker perf_issuetracker.IssueTracker) *AnomalyGroupNotifier {
 	if anomalygrouper == nil {
-		anomalygrouper = &ag.AnomalyGrouperImpl{}
+		anomalygrouper = ag.New(issuetracker)
 	}
 
 	sklog.Info("Creating a new anomaly group notifier")

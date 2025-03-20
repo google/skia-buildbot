@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/perf/go/anomalygroup"
 	ag "go.skia.org/infra/perf/go/anomalygroup/proto/v1"
 	"go.skia.org/infra/perf/go/backend/shared"
+	"go.skia.org/infra/perf/go/culprit"
 	reg "go.skia.org/infra/perf/go/regression"
 	"google.golang.org/grpc"
 )
@@ -24,15 +25,17 @@ import (
 type anomalygroupService struct {
 	ag.UnimplementedAnomalyGroupServiceServer
 	anomalygroupStore anomalygroup.Store
+	culpritStore      culprit.Store
 	regressionStore   reg.Store
 	temporalClient    tpr_client.Client
 	newGroupCounter   metrics2.Counter
 }
 
 // New returns a new instance of anomalygroupService.
-func New(anomalygroupStore anomalygroup.Store, regressionStore reg.Store, temporalClient tpr_client.Client) *anomalygroupService {
+func New(anomalygroupStore anomalygroup.Store, culpritStore culprit.Store, regressionStore reg.Store, temporalClient tpr_client.Client) *anomalygroupService {
 	return &anomalygroupService{
 		anomalygroupStore: anomalygroupStore,
+		culpritStore:      culpritStore,
 		regressionStore:   regressionStore,
 		temporalClient:    temporalClient,
 		newGroupCounter:   metrics2.GetCounter("anomalygroup_created"),
@@ -237,6 +240,35 @@ func (s *anomalygroupService) FindTopAnomalies(
 
 	return &ag.FindTopAnomaliesResponse{
 		Anomalies: top_regressions,
+	}, nil
+}
+
+// Given the group id, return the issues correlated to the group via the detected culprits.
+func (s *anomalygroupService) FindIssuesFromCulprits(ctx context.Context, req *ag.FindIssuesFromCulpritsRequest) (*ag.FindIssuesFromCulpritsResponse, error) {
+	groupId := req.AnomalyGroupId
+	issueIds := []string{}
+	sklog.Debugf("[AG] FindIssuesFromCulprits called for group: %s", groupId)
+
+	anomalyGroup, err := s.anomalygroupStore.LoadById(ctx, groupId)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "loading group by id: %s", groupId)
+	}
+	culpritIds := anomalyGroup.CulpritIds
+	sklog.Debugf("[AG] FindIssuesFromCulprits loads culpritIds: %s from group: %s", culpritIds, groupId)
+
+	culprits, err := s.culpritStore.Get(ctx, culpritIds)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting culprit by ids: %s", culpritIds)
+	}
+	for _, culprit := range culprits {
+		issueId, ok := culprit.GroupIssueMap[groupId]
+		if ok {
+			issueIds = append(issueIds, issueId)
+		}
+	}
+
+	return &ag.FindIssuesFromCulpritsResponse{
+		IssueIds: issueIds,
 	}, nil
 }
 
