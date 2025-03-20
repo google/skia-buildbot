@@ -808,17 +808,6 @@ export class ExploreSimpleSk extends ElementSk {
                 Auto refresh data
               </label>
             </li>
-            <li ?hidden=${ele._state.plotSummary}>
-              <label>
-                <md-switch
-                  form="form"
-                  id="summary-bar-switch"
-                  ?selected=${ele._state.summary}
-                  @change=${(e: InputEvent) =>
-                    ele.summaryChangeHandler(e.target as MdSwitch)}></md-switch>
-                Summary Bar at Top of Plot
-              </label>
-            </li>
           </ul>
         </div>
       </md-dialog>
@@ -1520,13 +1509,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.AddPlotLines(this._dataframe.traceset, this.getLabels(this._dataframe.header!));
     plot.anomalyDataMap = anomalyMap;
     this._stateHasChanged();
-  }
-
-  private summaryChangeHandler(target: MdSwitch | null) {
-    this._state.summary = target!.selected;
-    this._userSpecifiedCustomizationParams.add('summary');
-    this._stateHasChanged();
-    this._render();
   }
 
   // Call this anytime something in private state is changed. Will be replaced
