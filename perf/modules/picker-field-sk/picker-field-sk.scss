@@ -11,9 +11,25 @@ picker-field-sk {
     --vaadin-combo-box-overlay-max-height: 200px;
     --lumo-text-field-size: var(--lumo-size-xs);
     padding: 0;
+    margin-top: 20px;
+    margin-left: auto;
   }
   input {
     border: none;
+  }
+
+  vaadin-combo-box::part(items) {
+    width: 200px;
+    margin-left: 350px;
+  }
+  vaadin-combo-box::part(helper-text) {
+    width: 900px;
+    right: 0;
+    display: inline-block;
+  }
+  vaadin-combo-box::part(input-field) {
+    width: 200px;
+    right: 0;
   }
 }
 

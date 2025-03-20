@@ -43,18 +43,15 @@ export class PickerFieldSk extends ElementSk {
   }
 
   private static template = (ele: PickerFieldSk) => html`
-    <div>
-      <vaadin-combo-box
-        label="${ele.label}"
-        helper-text="${ele.helperText}"
-        placeholder="${ele.label}"
-        .items=${ele.options}
-        theme="small helper-above-field"
-        clear-button-visible
-        @value-changed=${ele.onValueChanged}
-        autoselect>
-      </vaadin-combo-box>
-    </div>
+    <vaadin-combo-box
+      helper-text="${ele.helperText}"
+      placeholder="Legend"
+      .items=${ele.options}
+      theme="small helper-above-field"
+      clear-button-visible
+      @value-changed=${ele.onValueChanged}
+      autoselect>
+    </vaadin-combo-box>
   `;
 
   private onValueChanged(e: Event) {

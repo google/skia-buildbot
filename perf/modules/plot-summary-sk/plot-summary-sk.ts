@@ -20,7 +20,7 @@ import { ref, createRef } from 'lit/directives/ref.js';
 import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
-import { SummaryChartOptions } from '../common/plot-builder';
+import { defaultColors, SummaryChartOptions } from '../common/plot-builder';
 import { ColumnHeader } from '../json';
 import {
   dataframeLoadingContext,
@@ -73,6 +73,12 @@ export class PlotSummarySk extends LitElement {
   @property({ type: Boolean })
   hasControl: boolean = false;
 
+  // Maps a trace to a color.
+  private traceColorMap = new Map<string, string>();
+
+  // Index to keep track of which colors we've used so far.
+  private colorIndex = 0;
+
   constructor() {
     super();
     this.addEventListeners();
@@ -110,11 +116,33 @@ export class PlotSummarySk extends LitElement {
       if (!trace || trace === traceKey) {
         cols.push(index);
       }
+      // Assign a specific color to all labels.
+      if (!this.traceColorMap.has(traceKey)) {
+        this.traceColorMap.set(traceKey, defaultColors[this.colorIndex % defaultColors.length]);
+        this.colorIndex++;
+      }
     }
 
     view.setColumns(cols);
     plot.view = view;
-    plot.options = SummaryChartOptions(getComputedStyle(this), this.domain);
+    const options = SummaryChartOptions(getComputedStyle(this), this.domain);
+
+    options.colors = [];
+    // Get internal indices of visible columns.
+    const visibleColumns = plot.view!.getViewColumns();
+    for (const colIndex of visibleColumns) {
+      // skip first two indices as these are reserved.
+      if (colIndex > 1) {
+        // Translate those internal indices to indices of visible columns.
+        const tableIndex = plot.view!.getViewColumnIndex(colIndex);
+        const label = plot.view!.getColumnLabel(tableIndex);
+        options.colors.push(this.traceColorMap.get(label)!);
+      }
+    }
+    const summaryPlot = this.plotElement.value;
+    if (summaryPlot) {
+      summaryPlot.options = options;
+    }
   }
 
   // The div element that will host the plot on the summary.
