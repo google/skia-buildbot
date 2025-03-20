@@ -76,10 +76,8 @@ func ProcessRegression(
 	resp, err := ag_client.FindExistingGroups(
 		ctx,
 		&ag.FindExistingGroupsRequest{
-			// Subscription info will be loaded from alerts.Alert in the future.
-			// Using hard coded values for now. Subscription name will diff from day to day.
-			SubscriptionName:     "Test-Sub-Name", // hardcoded name before alert.SubscriptionName is ready,
-			SubscriptionRevision: "Test-Sub-Rev",  // // hardcoded name before alert.SubscriptionRevision is ready,
+			SubscriptionName:     alert.SubscriptionName,
+			SubscriptionRevision: alert.SubscriptionRevision,
 			Action:               ag.GroupActionType(ag.GroupActionType_value[groupAction]),
 			StartCommit:          startCommit,
 			EndCommit:            endCommit,
@@ -94,8 +92,8 @@ func ProcessRegression(
 		newGroupID, err := ag_client.CreateNewAnomalyGroup(
 			ctx,
 			&ag.CreateNewAnomalyGroupRequest{
-				SubscriptionName:     "Test-Sub-Name", // hardcoded name before alert.SubscriptionName is ready,
-				SubscriptionRevision: "Test-Sub-Rev",  // // hardcoded name before alert.SubscriptionRevision is ready,
+				SubscriptionName:     alert.SubscriptionName,
+				SubscriptionRevision: alert.SubscriptionRevision,
 				Domain:               paramSet["master"],
 				Benchmark:            paramSet["benchmark"],
 				StartCommit:          startCommit,
