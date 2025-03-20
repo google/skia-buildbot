@@ -46,14 +46,16 @@
     },
     "git_repo_config": {
         "provider": "gitiles",
-        "url": "https://chrome-internal.googlesource.com/cdm/src/",
+        "url": "https://chrome-internal.googlesource.com/cdm/src",
         "dir": "/tmp/checkout",
         "debounce_commit_url": false,
         "start_commit": "ad24d3f177fc0a99fa60a192438ae4fe489bc0ed"
     },
     "query_config": {
         "default_url_values": {
-            "show_google_plot": "true"
+            "show_google_plot": "true",
+            "plotSummary": "true",
+            "use_titles": "true"
         }
     },
     "optimize_sqltracestore": true
