@@ -139,7 +139,7 @@ export class ReportPageSk extends ElementSk {
       this.updateGraphs(detail.anomaly, detail.checked);
     });
     await this.fetchAnomalies();
-    await this.listAllCommits(this.anomalyTracker.toAnomalyList());
+    await Promise.resolve().then(() => this.listAllCommits(this.anomalyTracker.toAnomalyList()));
   }
 
   private static template = (ele: ReportPageSk) => html`
