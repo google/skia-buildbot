@@ -42,9 +42,12 @@ existing-bug-dialog-sk {
       padding-left: 8px;
     }
 
-    #bug-list {
-      max-width: 100px;
-      overflow-x: scroll; /* bug title can be very long */
+    ul.scrollable-list {
+      max-height: 50px;
+      max-width: 125px;
+      overflow-y: auto;
+      overflow-x: auto;
+      cursor: pointer;
     }
 
     #associated-bugs-table {
