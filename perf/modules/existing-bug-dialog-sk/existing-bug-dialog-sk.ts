@@ -304,30 +304,17 @@ export class ExistingBugDialogSk extends ElementSk {
 
       return html`
         <h4>Associated bugs in the same Anomaly group</h4>
-        <ul style="max-height: 150px;" id="associated-bugs-table">
+        <ul id="associated-bugs-table">
           ${Array.from(this._associatedBugIds).map((bugId) => {
             return html` <li>
               <a href="${`${this._bug_host_url}/${bugId}`}" target="_blank">${bugId}</a>
               <span id="bug-title">${this.bugIdTitleMap[bugId]}</span>
-              <button
-                id="paste-bug"
-                @click=${() => {
-                  this.pasteBugId(bugId);
-                }}>
-                Paste
-              </button>
             </li>`;
           })}
         </ul>
       `;
     }
     return html``;
-  }
-
-  private pasteBugId(bugId: number) {
-    const inputBug = this.querySelector('#bug_id')! as HTMLInputElement;
-    inputBug.value = String(bugId);
-    this._render();
   }
 
   setAnomalies(anomalies: Anomaly[], traceNames: string[]): void {
