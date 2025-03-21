@@ -131,6 +131,10 @@ export class ChartTooltipSk extends ElementSk {
   // data point. bug_id > 0 means we have an existing buganizer issue.
   private _bug_id: number = 0;
 
+  private _show_pinpoint_buttons = window.perf.git_repo_url.includes(
+    'https://chromium.googlesource.com/chromium/src'
+  );
+
   private triageMenu: TriageMenuSk | null = null;
 
   private preloadBisectInputs: BisectPreloadParams | null = null;
@@ -219,10 +223,16 @@ export class ChartTooltipSk extends ElementSk {
         ?hidden=${!(ele._tooltip_fixed && ele.anomaly && ele.anomaly!.bug_id === 0)}>
       </triage-menu-sk>
       <div class="buttons">
-        <button id="bisect" @click=${ele.openBisectDialog} ?hidden=${!ele._tooltip_fixed}>
+        <button
+          id="bisect"
+          @click=${ele.openBisectDialog}
+          ?hidden=${!ele._tooltip_fixed || !ele._show_pinpoint_buttons}>
           Bisect
         </button>
-        <button id="try-job" @click=${ele.openTryJobDialog} ?hidden=${!ele._tooltip_fixed}>
+        <button
+          id="try-job"
+          @click=${ele.openTryJobDialog}
+          ?hidden=${!ele._tooltip_fixed || !ele._show_pinpoint_buttons}>
           Debug Trace
         </button>
         <user-issue-sk
