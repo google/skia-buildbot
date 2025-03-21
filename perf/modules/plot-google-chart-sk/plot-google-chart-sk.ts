@@ -686,21 +686,16 @@ export class PlotGoogleChartSk extends LitElement {
       let calculatedOffset = 0;
       if (this.isHorizontalZoom) {
         calculatedOffset = e.clientX - this.plotElement.value!.getBoundingClientRect().left;
-        const endXAxis = layout.getHAxisValue(calculatedOffset);
-        const start = Math.floor(layout.getHAxisValue(this.lastMouse.x));
-        const end = Math.floor(endXAxis);
+        // floor the x-axis since we cannot have fractional commits
         zoominRange = {
-          begin: start,
-          end: end,
+          begin: Math.floor(layout.getHAxisValue(this.lastMouse.x)),
+          end: Math.floor(layout.getHAxisValue(calculatedOffset)),
         };
       } else {
         calculatedOffset = e.clientY - this.plotElement.value!.getBoundingClientRect().top;
-        const endXAxis = layout.getVAxisValue(calculatedOffset);
-        const start = Math.floor(layout.getVAxisValue(this.lastMouse.y));
-        const end = Math.floor(endXAxis);
         zoominRange = {
-          begin: start,
-          end: end,
+          begin: layout.getVAxisValue(this.lastMouse.y),
+          end: layout.getVAxisValue(calculatedOffset),
         };
       }
       this.zoomRangeBox.value?.hide();
@@ -1008,6 +1003,8 @@ export class PlotGoogleChartSk extends LitElement {
   /**
    * When the zoomin drag ends, update bounds in the plot-google-chart by
    * calculating the x and y coordinates of the chart's next frame.
+   * begin and end refer to the x-axis or y-axis values of where the cursor
+   * started and stopped. They can be in any order.
    */
   updateBounds(zoominRange: { begin: number; end: number }) {
     const zoomRangeBox = this.zoomRangeBox.value!;
@@ -1015,18 +1012,17 @@ export class PlotGoogleChartSk extends LitElement {
       const options = mainChartOptions(getComputedStyle(this), this.domain);
       const newScale = this.domain === 'commit';
       const plot = this.plotElement.value;
-      const isBeginGreaterThanEnd = zoominRange!.begin > zoominRange!.end;
-      const min = isBeginGreaterThanEnd ? zoominRange!.end : zoominRange!.begin;
-      const max = isBeginGreaterThanEnd ? zoominRange!.begin : zoominRange!.end;
+      const min = Math.min(zoominRange!.begin, zoominRange!.end);
+      const max = Math.max(zoominRange!.begin, zoominRange!.end);
       if (this.isHorizontalZoom) {
         options.hAxis!.viewWindow = {
-          min: newScale ? min : (min as any).getTime() / 1000,
-          max: newScale ? max : (max as any).getTime() / 1000,
+          min: newScale ? min : (new Date(min!) as any),
+          max: newScale ? max : (new Date(max!) as any),
         };
       } else if (!this.isHorizontalZoom) {
         options.vAxis!.viewWindow = {
-          min: newScale ? min : (min as any).getTime() / 1000,
-          max: newScale ? max : (max as any).getTime() / 1000,
+          min: min,
+          max: max,
         };
       }
       if (plot) {
