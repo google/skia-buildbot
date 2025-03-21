@@ -712,9 +712,14 @@ export class PlotGoogleChartSk extends LitElement {
     this.navigationMode = null;
   }
 
+  // this interaction triggers when mousing off of a data point
+  // this event listener is to turn off the tooltip after hovering away
+  // from a data point
+  // this interaction can mess with continuous mousing journeys
+  // like deltaRange and zoom so need to ensure they will continue
+  // to work even past data points
   private onChartMouseOut() {
-    this.chartInteracting = false;
-    this.navigationMode = this.navigationMode === 'deltaY' ? 'deltaY' : null;
+    this.chartInteracting = this.navigationMode !== null;
     this.dispatchEvent(
       new CustomEvent('plot-chart-mouseout', {
         bubbles: true,
@@ -742,27 +747,11 @@ export class PlotGoogleChartSk extends LitElement {
     if (this.navigationMode === 'dragToZoom') {
       e.preventDefault(); // disable system events
       const zoomRangeBox = this.zoomRangeBox.value!;
-
-      if (this.isHorizontalZoom === null) {
-        if (e.x - this.lastMouse.x > 0) {
-          this.isHorizontalZoom = true;
-        } else {
-          this.isHorizontalZoom = false;
-        }
-      }
-      if (this.isHorizontalZoom) {
-        zoomRangeBox.handleDrag({
-          offset: e.offsetX,
-          isHorizontal: true,
-        });
-        return;
-      } else if (!this.isHorizontalZoom) {
-        zoomRangeBox.handleDrag({
-          offset: e.offsetY,
-          isHorizontal: false,
-        });
-        return;
-      }
+      zoomRangeBox.handleDrag({
+        offset: this.isHorizontalZoom ? e.offsetX : e.offsetY,
+        isHorizontal: this.isHorizontalZoom,
+      });
+      return;
     }
 
     if (this.navigationMode === 'pan') {
@@ -788,6 +777,11 @@ export class PlotGoogleChartSk extends LitElement {
   }
 
   private onWindowMouseUp() {
+    if (this.navigationMode === 'dragToZoom') {
+      this.showResetButton = true;
+      this.zoomRangeBox.value?.hide();
+      return;
+    }
     if (this.navigationMode === 'pan') {
       this.dispatchEvent(
         new CustomEvent<PlotSelectionEventDetails>('selection-changed', {
@@ -799,11 +793,6 @@ export class PlotGoogleChartSk extends LitElement {
           },
         })
       );
-    }
-    if (this.navigationMode === 'dragToZoom') {
-      this.showResetButton = true;
-      this.zoomRangeBox.value?.hide();
-      return;
     }
     this.navigationMode = null;
     this.chartInteracting = false;
