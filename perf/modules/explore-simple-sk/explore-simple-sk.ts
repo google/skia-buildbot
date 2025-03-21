@@ -2905,6 +2905,9 @@ export class ExploreSimpleSk extends ElementSk {
         // Already plotted, just need to update the data.
         this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
       });
+      this.dfRepo.value?.extendRange(3 * monthInSec).then(() => {
+        this.updateSelectedRangeWithUpdatedDataframe(selectedRange, 'commit', false);
+      });
     }
   }
 
