@@ -289,7 +289,7 @@ func (n *defaultNotifier) getRegressionMetadata(ctx context.Context, commit, pre
 		InstanceUrl:      url,
 	}
 
-	if alert.Algo == types.StepFitGrouping {
+	if alert.Algo == types.StepFitGrouping && cl.Keys != nil && len(cl.Keys) > 0 {
 		// TODO(ashwinpv): If the alert config had Individual grouping, and multiple traces in the config
 		// returned regressions, each of these trace will have a key in the cl.Keys array. We need to get
 		// separate clusterSummaries for each regression when grouping is individual instead of treating them
