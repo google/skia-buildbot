@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS Postings (
   trace_id BYTES,
   PRIMARY KEY (tile_number, key_value, trace_id),
   INDEX by_trace_id (tile_number, trace_id, key_value),
+  INDEX by_trace_id2 (tile_number, trace_id),
   INDEX by_key_value (tile_number, key_value)
 );
 CREATE TABLE IF NOT EXISTS Regressions (

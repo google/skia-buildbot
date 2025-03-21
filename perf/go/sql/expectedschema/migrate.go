@@ -38,24 +38,26 @@ import (
 // DO NOT DROP TABLES IN VAR BELOW.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromLiveToNext = `
-    DROP INDEX IF EXISTS subscriptions_name_key CASCADE;
+    CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
 `
 
 // Same as above, but will be used when doing schema migration for spanner databases.
 // Some statements can be different for CDB v/s Spanner, hence splitting into
 // separate variables.
 var FromLiveToNextSpanner = `
+	CREATE INDEX IF NOT EXISTS by_trace_id2 on Postings (tile_number, trace_id);
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLive = `
-    ALTER TABLE Subscriptions ADD CONSTRAINT subscriptions_name_key UNIQUE (name);
+    DROP INDEX IF EXISTS by_trace_id2 CASCADE;
 `
 
 // ONLY DROP TABLE IF YOU JUST CREATED A NEW TABLE.
 // FOR MODIFYING COLUMNS USE ADD/DROP COLUMN INSTEAD.
 var FromNextToLiveSpanner = `
+	DROP INDEX IF EXISTS by_trace_id2;
 `
 
 // This function will check whether there's a new schema checked-in,

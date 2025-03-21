@@ -39,6 +39,7 @@ const DropSpannerIndices = `
   DROP INDEX IF EXISTS by_user_id;
   DROP INDEX IF EXISTS by_tile_number;
   DROP INDEX IF EXISTS by_trace_id;
+  DROP INDEX IF EXISTS by_trace_id2;
   DROP INDEX IF EXISTS by_key_value;
   DROP INDEX IF EXISTS by_alert_id;
   DROP INDEX IF EXISTS by_commit_alert;
@@ -159,7 +160,7 @@ CREATE TABLE IF NOT EXISTS SourceFiles (
   INDEX by_source_file (source_file, source_file_id)
 );
 CREATE TABLE IF NOT EXISTS Subscriptions (
-  name STRING UNIQUE NOT NULL,
+  name STRING NOT NULL,
   revision STRING NOT NULL,
   bug_labels STRING ARRAY,
   hotlists STRING ARRAY,

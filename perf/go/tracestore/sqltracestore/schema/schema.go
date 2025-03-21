@@ -47,5 +47,6 @@ type PostingsSchema struct {
 	TraceID         []byte           `sql:"trace_id BYTES"`
 	primaryKey      struct{}         `sql:"PRIMARY KEY (tile_number, key_value, trace_id)"`
 	byTraceIDIndex  struct{}         `sql:"INDEX by_trace_id (tile_number, trace_id, key_value)"`
+	byTraceIDIndex2 struct{}         `sql:"INDEX by_trace_id2 (tile_number, trace_id)"`
 	byKeyValueIndex struct{}         `sql:"INDEX by_key_value (tile_number, key_value)"`
 }
