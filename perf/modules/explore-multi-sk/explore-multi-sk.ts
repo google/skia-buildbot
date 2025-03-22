@@ -139,15 +139,6 @@ export class ExploreMultiSk extends ElementSk {
           this.initializeTestPicker();
         }
 
-        if (this.hasMultipleExploreGraphs()) {
-          this.exploreElements.forEach((e) => {
-            const graphElement = e.querySelector('#chart-container') as HTMLElement;
-            if (graphElement) {
-              graphElement.style.height = '200px';
-            }
-          });
-        }
-
         let graphConfigs: GraphConfig[] | undefined = [];
         if (state.shortcut !== '') {
           graphConfigs = await this.getConfigsFromShortcut(state.shortcut);
@@ -198,7 +189,7 @@ export class ExploreMultiSk extends ElementSk {
   }
 
   // Checks if the multi graph page has at least one explore-simple-sk element.
-  private hasMultipleExploreGraphs(): boolean {
+  private canActivateTitles(): boolean {
     const hasExploreElems = !(this.exploreElements === null || this.exploreElements === undefined);
     return hasExploreElems && this.exploreElements.length > 0;
   }

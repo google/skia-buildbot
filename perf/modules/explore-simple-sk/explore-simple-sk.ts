@@ -825,7 +825,7 @@ export class ExploreSimpleSk extends ElementSk {
     </div>
 
     <div id=spin-overlay @mouseleave=${ele.mouseLeave}>
-    <div id="chart-container">
+    <div class="chart-container">
         <plot-google-chart-sk
           style="${ele._state.show_google_plot ? '' : 'display: none'}"
           ${ref(ele.googleChartPlot)}
