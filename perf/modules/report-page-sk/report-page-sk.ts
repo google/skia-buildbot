@@ -139,7 +139,6 @@ export class ReportPageSk extends ElementSk {
       this.updateGraphs(detail.anomaly, detail.checked);
     });
     await this.fetchAnomalies();
-    await Promise.resolve().then(() => this.listAllCommits(this.anomalyTracker.toAnomalyList()));
   }
 
   private static template = (ele: ReportPageSk) => html`
@@ -170,9 +169,10 @@ export class ReportPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((json) => {
+      .then(async (json) => {
         this.anomalyTracker.load(json.anomaly_list, json.timerange_map, json.selected_keys);
         this.initializePage();
+        await this.listAllCommits(this.anomalyTracker.toAnomalyList());
         this._spinner!.active = false;
         this._render();
       })
