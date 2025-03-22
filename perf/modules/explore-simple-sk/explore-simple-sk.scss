@@ -277,18 +277,6 @@ explore-simple-sk {
     background: var(--surface-1dp);
   }
 
-  #trace-details-container {
-    display: flex;
-    margin-bottom: 60px;
-    height: 40px;
-
-    div.icon-sk {
-      margin-right: 5px;
-      cursor: pointer;
-      display: none;
-    }
-  }
-
   #trace_id {
     display: inline-block;
   }

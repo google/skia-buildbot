@@ -93,7 +93,6 @@ import {
   PlotSimpleSkTraceEventDetails,
 } from '../plot-simple-sk/plot-simple-sk';
 import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
-import { JSONSourceSk } from '../json-source-sk/json-source-sk';
 import {
   ParamSetSk,
   ParamSetSkCheckboxClickEventDetail,
@@ -114,7 +113,6 @@ import {
   messagesToPreString,
   startRequest,
 } from '../progress/progress';
-import { IngestFileLinksSk } from '../ingest-file-links-sk/ingest-file-links-sk';
 import { validatePivotRequest } from '../pivotutil';
 import { PivotQueryChangedEventDetail, PivotQuerySk } from '../pivot-query-sk/pivot-query-sk';
 import { PivotTableSk, PivotTableSkChangeEventDetail } from '../pivot-table-sk/pivot-table-sk';
@@ -137,7 +135,6 @@ import '../dataframe/dataframe_context';
 import { ChartTooltipSk } from '../chart-tooltip-sk/chart-tooltip-sk';
 import { NudgeEntry } from '../triage-menu-sk/triage-menu-sk';
 import { $$ } from '../../../infra-sk/modules/dom';
-import { PointLinksSk } from '../point-links-sk/point-links-sk';
 import { GraphTitleSk } from '../graph-title-sk/graph-title-sk';
 import { NewBugDialogSk } from '../new-bug-dialog-sk/new-bug-dialog-sk';
 import {
@@ -502,12 +499,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private formula: HTMLTextAreaElement | null = null;
 
-  private jsonsource: JSONSourceSk | null = null;
-
-  private ingestFileLinks: IngestFileLinksSk | null = null;
-
-  private pointLinks: PointLinksSk | null = null;
-
   private logEntry: HTMLPreElement | null = null;
 
   private paramset: ParamSetSk | null = null;
@@ -554,8 +545,6 @@ export class ExploreSimpleSk extends ElementSk {
 
   private helpDialog: HTMLDialogElement | null = null;
 
-  private commitRangeSk: CommitRangeSk | null = null;
-
   // TODO(b/372694234): consolidate the pinpoint and triage toasts.
   private pinpointJobToast: ToastSk | null = null;
 
@@ -568,10 +557,6 @@ export class ExploreSimpleSk extends ElementSk {
   private bisectButton: HTMLButtonElement | null = null;
 
   private collapseButton: HTMLButtonElement | null = null;
-
-  private traceDetails: HTMLSpanElement | null = null;
-
-  private traceDetailsCopy: HTMLDivElement | null = null;
 
   private traceFormatter: TraceFormatter | null = null;
 
@@ -846,10 +831,6 @@ export class ExploreSimpleSk extends ElementSk {
         <spinner-sk id=spinner active></spinner-sk>
         <pre id=percent></pre>
       </div>
-      <div id="trace-details-container">
-        <div id="traceDetailsCopy" class="icon-sk copy-content">content_copy</div>
-        <span id=traceDetails></span>
-      </div>
   </div>
 
     <pivot-table-sk
@@ -1007,13 +988,6 @@ export class ExploreSimpleSk extends ElementSk {
         <button class=action @click=${ele.closeHelp}>Close</button>
       </div>
     </dialog>
-
-    <div>
-      <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
-      <commit-range-sk id="commit-range-link" hidden="true"></commit-range-sk>
-      <point-links-sk id="point-links" hidden="true"></point-links-sk>
-      <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
-    </div>
 
     ${
       ele.state.hide_paramset
@@ -1303,9 +1277,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.commitsTab = this.querySelector('#commitsTab');
     this.detailTab = this.querySelector('#detailTab');
     this.formula = this.querySelector('#formula');
-    this.jsonsource = this.querySelector('#jsonsource');
-    this.ingestFileLinks = this.querySelector('#ingest-file-links');
-    this.pointLinks = this.querySelector<PointLinksSk>('#point-links');
     this.logEntry = this.querySelector('#logEntry');
     this.paramset = this.querySelector('#paramset');
     this.percent = this.querySelector('#percent');
@@ -1326,15 +1297,12 @@ export class ExploreSimpleSk extends ElementSk {
     this.bisectDialog = this.querySelector('#bisect-dialog');
     this.fromParamsQueryDialog = this.querySelector('#from-params-query-dialog');
     this.helpDialog = this.querySelector('#help');
-    this.commitRangeSk = this.querySelector('#commit-range-link');
     this.pinpointJobToast = this.querySelector('#pinpoint-job-toast');
     this.closePinpointToastButton = this.querySelector('#hide-pinpoint-toast');
     this.triageResultToast = this.querySelector('#triage-result-toast');
     this.closeTriageToastButton = this.querySelector('#hide-triage-toast');
     this.bisectButton = this.querySelector('#bisect-button');
     this.collapseButton = this.querySelector('#collapseButton');
-    this.traceDetails = this.querySelector('#traceDetails');
-    this.traceDetailsCopy = this.querySelector('#traceDetailsCopy');
     this.graphTitle = this.querySelector<GraphTitleSk>('#graphTitle');
 
     // material UI stuff
@@ -1926,12 +1894,6 @@ export class ExploreSimpleSk extends ElementSk {
     const selected = header![(this.selectedRange?.begin || 0) + detail.x]!;
     this.paramset!.highlight = fromKey(detail.name);
     this.commitTime!.textContent = new Date(selected.timestamp * 1000).toLocaleString();
-    const formattedTrace = this.traceFormatter!.formatTrace(fromKey(detail.name));
-    this.traceDetails!.textContent = formattedTrace;
-    this.traceDetailsCopy!.onclick = () => {
-      navigator.clipboard.writeText(formattedTrace);
-    };
-    this.traceDetailsCopy!.style.display = 'block';
 
     if (this._state.enable_chart_tooltip && !this.tooltipSelected) {
       // if the commit details for a point is already loaded then
@@ -2090,11 +2052,6 @@ export class ExploreSimpleSk extends ElementSk {
     const anomaly = this.dfRepo.value?.getAnomaly(traceName, commitPosition) || null;
     const trace = this.dfRepo.value?.dataframe.traceset[traceName] || [];
 
-    // Populate the commit-range-sk element.
-    this.commitRangeSk!.trace = trace;
-    this.commitRangeSk!.commitIndex = x;
-    this.commitRangeSk!.header = header;
-
     // TODO(b/370804498): To be refactored into google plot / dataframe.
     // The anomaly data is indirectly referenced from simple-plot, and the anomaly data gets
     // updated in place in triage popup. This may cause the data inconsistency to manipulate
@@ -2206,6 +2163,13 @@ export class ExploreSimpleSk extends ElementSk {
     // Get index of legend and remove unit to display in tooltip.
     const testName = legendFormatter(getLegendData)[legendIndex].replace('/' + unitValue, '');
 
+    // Populate the commit-range-sk element.
+    // Backwards compatibility to tooltip load() function.
+    const commitRangeSk = new CommitRangeSk();
+    commitRangeSk!.trace = trace;
+    commitRangeSk!.commitIndex = x;
+    commitRangeSk!.header = header;
+
     tooltipElem!.setBisectInputParams(preloadBisectInputs);
     tooltipElem!.setTryJobInputParams(preloadTryJobInputs);
     tooltipElem!.load(
@@ -2221,7 +2185,7 @@ export class ExploreSimpleSk extends ElementSk {
       nudgeList,
       commit,
       fixTooltip,
-      this.commitRangeSk,
+      commitRangeSk,
       closeBtnAction
     );
     tooltipElem!.moveTo({ x: pointDetails.xPos!, y: pointDetails.yPos! });
@@ -2292,11 +2256,6 @@ export class ExploreSimpleSk extends ElementSk {
       }
     }
 
-    // Populate the commit-range-sk element.
-    this.commitRangeSk!.trace = trace;
-    this.commitRangeSk!.commitIndex = x;
-    this.commitRangeSk!.header = header;
-
     if (prevCommit !== -1) {
       for (let c = commit - 1; c > prevCommit; c--) {
         commits.push(c as CommitNumber);
@@ -2350,7 +2309,6 @@ export class ExploreSimpleSk extends ElementSk {
         this.anomalyTable!.bugHostUrl = window.perf.bug_host_url;
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         const cid = commits[0]!;
-        const traceid = detail.name;
         const parts = [];
         this.story = this.getLastSubtest(this.simpleParamset!.paramsets[0]!)[0];
         if (
@@ -2385,19 +2343,6 @@ export class ExploreSimpleSk extends ElementSk {
           this.bugId = selected_anomaly.bug_id.toString();
         } else {
           this.bugId = '';
-        }
-        if (this.displayMode === 'display_plot') {
-          this.jsonsource!.cid = cid;
-          this.jsonsource!.traceid = traceid;
-          this.ingestFileLinks!.load(cid, traceid);
-          // Populate the point links element.
-          this.pointLinks!.load(
-            commit,
-            prevCommit,
-            detail.name,
-            window.perf.keys_for_commit_range!,
-            window.perf.keys_for_useful_links!
-          );
         }
 
         // when the commit details are loaded, add those info to
@@ -3140,8 +3085,6 @@ export class ExploreSimpleSk extends ElementSk {
     this.displayMode = 'display_query_only';
     this.tracesRendered = false;
     this.graphTitle!.set(null, 0);
-    this.traceDetailsCopy!.style.display = 'none';
-    this.traceDetails!.textContent = '';
     this.tooltipSelected = false;
     this.disableTooltip();
     this.dispatchEvent(new CustomEvent('remove-all', { bubbles: true }));
