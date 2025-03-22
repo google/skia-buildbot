@@ -502,25 +502,11 @@ export class ExploreSimpleSk extends ElementSk {
 
   private formula: HTMLTextAreaElement | null = null;
 
-  // TODO(b/405442441) - Delete this as part of clean up when plot-simple-sk
-  // is deleted. The element itself has been removed from the html template,
-  // because the information is populated in the tooltip.
   private jsonsource: JSONSourceSk | null = null;
 
-  // TODO(b/405442441) - Delete this as part of clean up when plot-simple-sk
-  // is deleted. The element itself has been removed from the html template,
-  // because the information is populated in the tooltip.
   private ingestFileLinks: IngestFileLinksSk | null = null;
 
-  // TODO(b/405442441) - Delete this as part of clean up when plot-simple-sk
-  // is deleted. The element itself has been removed from the html template,
-  // because the information is populated in the tooltip.
   private pointLinks: PointLinksSk | null = null;
-
-  // TODO(b/405442441) - Delete this as part of clean up when plot-simple-sk
-  // is deleted. The element itself has been removed from the html template,
-  // because the information is populated in the tooltip.
-  private commitRangeSk: CommitRangeSk | null = null;
 
   private logEntry: HTMLPreElement | null = null;
 
@@ -567,6 +553,8 @@ export class ExploreSimpleSk extends ElementSk {
   private fromParamsQueryDialog: HTMLDialogElement | null = null;
 
   private helpDialog: HTMLDialogElement | null = null;
+
+  private commitRangeSk: CommitRangeSk | null = null;
 
   // TODO(b/372694234): consolidate the pinpoint and triage toasts.
   private pinpointJobToast: ToastSk | null = null;
@@ -1030,6 +1018,13 @@ export class ExploreSimpleSk extends ElementSk {
         <button class=action @click=${ele.closeHelp}>Close</button>
       </div>
     </dialog>
+
+    <div>
+      <ingest-file-links-sk id=ingest-file-links></ingest-file-links-sk>
+      <commit-range-sk id="commit-range-link" hidden="true"></commit-range-sk>
+      <point-links-sk id="point-links" hidden="true"></point-links-sk>
+      <json-source-sk class="hide_on_pivot_plot" id=jsonsource></json-source-sk>
+    </div>
 
     ${
       ele.state.hide_paramset
