@@ -67,7 +67,7 @@ func (c *CachedParamSetRefresher) populateChildLevel(ctx context.Context, parent
 	for _, value := range childLevelValues {
 		if slices.Contains(availableValues, value) {
 			qValues := url.Values{parentKey: []string{parentValue}, childLevelKey: []string{value}}
-			// Due to go/trace-name-schema-changes, DefaultParamSelections is no longer used.
+			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
 			lv2Query, err := query.New(qValues)
 			if err != nil {
 				sklog.Errorf("Can not parse child query values")
@@ -118,7 +118,7 @@ func (c *CachedParamSetRefresher) populateLevels(ctx context.Context, levelKey s
 		// If the provided value is actually available in the paramset.
 		if slices.Contains(availableValues, value) {
 			qValues := url.Values{levelKey: []string{value}}
-			// Due to go/trace-name-schema-changes, DefaultParamSelections is no longer used.
+			c.psRefresher.UpdateQueryValueWithDefaults(qValues)
 			query, err := query.New(qValues)
 			if err != nil {
 				sklog.Errorf("Can not parse query values: %v", err)
@@ -191,7 +191,10 @@ func (c *CachedParamSetRefresher) GetParamSetForQuery(ctx context.Context, query
 func (c *CachedParamSetRefresher) getParamSetForQueryInternal(ctx context.Context, query *query.Query, q url.Values) (int64, paramtools.ParamSet, error) {
 	sklog.Debugf("GetParamSetForQuery on values: %s", q)
 	qlen := len(q)
-	// Due to go/trace-name-schema-changes, DefaultParamSelections is no longer used.
+	if len(c.psRefresher.qConfig.DefaultParamSelections) > 0 {
+		sklog.Debugf("Found default params: %s: ", c.psRefresher.qConfig.DefaultParamSelections)
+		qlen -= len(c.psRefresher.qConfig.DefaultParamSelections)
+	}
 	key := ""
 	ok := false
 	switch qlen {
