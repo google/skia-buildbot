@@ -233,7 +233,7 @@ export class ChartTooltipSk extends ElementSk {
           id="try-job"
           @click=${ele.openTryJobDialog}
           ?hidden=${!ele._tooltip_fixed || !ele._show_pinpoint_buttons}>
-          Debug Trace
+          Request Debug Trace
         </button>
         <user-issue-sk
           id="tooltip-user-issue-sk"
