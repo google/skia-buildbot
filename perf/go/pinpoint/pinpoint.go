@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
@@ -265,11 +266,30 @@ func buildBisectRequestURL(createBisectRequest CreateBisectRequest) string {
 	if createBisectRequest.User != "" {
 		params.Set("user", createBisectRequest.User)
 	}
-	if createBisectRequest.User != "" {
+	if createBisectRequest.AlertIDs != "" {
 		params.Set("alert_ids", createBisectRequest.AlertIDs)
 	}
 
 	params.Set("tags", "{\"origin\":\"skia_perf\"}")
+
+	// test_path is needed by the API, which is a legacy key from
+	// Chromeperf. The format is
+	// {master}/{bot}/{benchmark}/{chart}/{story}
+	// and will cut off at the lowest available piece.
+	test_path_parts := []string{"ChromiumPerf"}
+	required_pieces := []string{
+		createBisectRequest.Configuration,
+		createBisectRequest.Benchmark,
+		createBisectRequest.Chart,
+		createBisectRequest.Story,
+	}
+	for _, val := range required_pieces {
+		if val == "" {
+			break
+		}
+		test_path_parts = append(test_path_parts, val)
+	}
+	params.Set("test_path", strings.Join(test_path_parts, "/"))
 
 	return fmt.Sprintf("%s?%s", pinpointURL, params.Encode())
 }
