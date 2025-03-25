@@ -1024,6 +1024,10 @@ export class PlotGoogleChartSk extends LitElement {
           min: min,
           max: max,
         };
+        options.hAxis!.viewWindow = {
+          min: this.selectedRange?.begin,
+          max: this.selectedRange?.end,
+        };
       }
       if (plot) {
         plot.options = options;
@@ -1035,7 +1039,10 @@ export class PlotGoogleChartSk extends LitElement {
   private resetView() {
     const plot = this.plotElement.value;
     const options = mainChartOptions(getComputedStyle(this), this.domain);
-    delete options.vAxis?.viewWindow;
+    options.hAxis!.viewWindow = {
+      min: this.selectedRange?.begin,
+      max: this.selectedRange?.end,
+    };
     if (plot) {
       plot!.options = options;
       plot!.redraw();
