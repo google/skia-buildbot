@@ -125,6 +125,7 @@ export interface QueryConfig {
 	cache_config?: QueryCacheConfig;
 	redis_config?: RedisConfig;
 	query_commit_chunk_size?: number;
+	max_empty_tiles?: number;
 }
 
 export interface Commit {

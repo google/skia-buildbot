@@ -99,6 +99,7 @@
             "use_titles": "true",
             "show_google_plot": "true"
         },
+        "max_empty_tiles": 5,
         "cache_config": {
             "type": "redis",
             "level1_cache_key": "benchmark",

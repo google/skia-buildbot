@@ -885,6 +885,10 @@ type QueryConfig struct {
 	// Ideally this is greater than the tile size and we search for traces
 	// for each tile within this window in parallel.
 	CommitChunkSize int `json:"query_commit_chunk_size,omitempty"`
+
+	// MaxEmptyTilesForQuery defines the max number of tiles with empty results
+	// to look at before we stop querying further back.
+	MaxEmptyTilesForQuery int `json:"max_empty_tiles,omitempty"`
 }
 
 type CacheType string

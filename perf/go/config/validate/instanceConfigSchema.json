@@ -493,6 +493,9 @@
         },
         "query_commit_chunk_size": {
           "type": "integer"
+        },
+        "max_empty_tiles": {
+          "type": "integer"
         }
       },
       "additionalProperties": false,

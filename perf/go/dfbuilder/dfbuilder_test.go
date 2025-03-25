@@ -75,7 +75,7 @@ func TestBuildNew(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first and second tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -253,7 +253,7 @@ func TestPreflightQuery_EmptyQuery_ReturnsError(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -280,7 +280,7 @@ func TestPreflightQuery_NonEmptyQuery_Success(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -323,7 +323,7 @@ func TestPreflightQuery_TilesContainDifferentNumberOfMatches_ReturnedParamSetRef
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -372,7 +372,7 @@ func TestNumMatches_EmptyQuery_ReturnsError(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 	q, err := query.NewFromString("")
 	require.NoError(t, err)
 	_, err = builder.NumMatches(ctx, q)
@@ -389,7 +389,7 @@ func TestNumMatches_NonEmptyQuery_Success(t *testing.T) {
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the first tile.
 	err = addValuesAtIndex(store, 0, map[string]float32{
@@ -418,7 +418,7 @@ func TestNumMatches_TilesContainDifferentNumberOfMatches_TheLargerOfTheTwoCounts
 	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
-	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize)
+	builder := NewDataFrameBuilderFromTraceStore(g, store, 2, doNotFilterParentTraces, instanceConfig.QueryConfig.CommitChunkSize, instanceConfig.QueryConfig.MaxEmptyTilesForQuery)
 
 	// Add some points to the latest tile.
 	err = addValuesAtIndex(store, types.CommitNumber(instanceConfig.DataStoreConfig.TileSize+1), map[string]float32{

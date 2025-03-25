@@ -60,6 +60,7 @@ type builder struct {
 	numPreflightTiles    int
 	filterParentTraces   Filtering
 	QueryCommitChunkSize int
+	maxEmptyTiles        int
 	mux                  *sync.Mutex
 
 	newTimer                      metrics2.Float64SummaryMetric
@@ -73,7 +74,10 @@ type builder struct {
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceStore, numPreflightTiles int, filterParentTraces Filtering, queryCommitChunkSize int, maxEmptyTiles int) dataframe.DataFrameBuilder {
+	if maxEmptyTiles <= 0 {
+		maxEmptyTiles = newNMaxSearch
+	}
 	return &builder{
 		git:                           git,
 		store:                         store,
@@ -81,6 +85,7 @@ func NewDataFrameBuilderFromTraceStore(git perfgit.Git, store tracestore.TraceSt
 		tileSize:                      store.TileSize(),
 		filterParentTraces:            filterParentTraces,
 		QueryCommitChunkSize:          queryCommitChunkSize,
+		maxEmptyTiles:                 maxEmptyTiles,
 		mux:                           &sync.Mutex{},
 		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
 		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
@@ -375,7 +380,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if nonMissing == 0 {
 			numStepsNoData += 1
 		}
-		if numStepsNoData > newNMaxSearch {
+		if numStepsNoData > b.maxEmptyTiles {
 			sklog.Infof("Failed querying: %s", q)
 			break
 		}

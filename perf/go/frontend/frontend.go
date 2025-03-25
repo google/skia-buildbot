@@ -449,7 +449,8 @@ func (f *Frontend) initialize() {
 		f.traceStore,
 		f.flags.NumParamSetsForQueries,
 		dfbuilder.Filtering(config.Config.FilterParentTraces),
-		config.Config.QueryConfig.CommitChunkSize)
+		config.Config.QueryConfig.CommitChunkSize,
+		config.Config.QueryConfig.MaxEmptyTilesForQuery)
 
 	sklog.Info("About to build paramset refresher.")
 
@@ -957,7 +958,7 @@ func (f *Frontend) getFrontendApis() []api.FrontendApi {
 		api.NewRegressionsApi(f.loginProvider, f.configProvider, f.alertStore, f.regStore, f.perfGit, f.anomalyApiClient, f.urlProvider, f.graphsShortcutStore, f.alertGroupClient, f.progressTracker, f.shortcutStore, f.dfBuilder, f.paramsetRefresher),
 		api.NewQueryApi(f.paramsetRefresher),
 		api.NewShortCutsApi(f.shortcutStore, f.graphsShortcutStore),
-		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
+		api.NewGraphApi(f.flags.NumParamSetsForQueries, config.Config.QueryConfig.CommitChunkSize, config.Config.QueryConfig.MaxEmptyTilesForQuery, f.loginProvider, f.dfBuilder, f.perfGit, f.traceStore, f.shortcutStore, f.anomalyStore, f.progressTracker, f.ingestedFS),
 		api.NewPinpointApi(f.loginProvider, f.pinpoint),
 		api.NewSheriffConfigApi(f.loginProvider),
 		api.NewTriageApi(f.loginProvider, f.chromeperfClient, f.anomalyStore, f.issuetracker),

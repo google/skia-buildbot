@@ -62,6 +62,8 @@ type graphApi struct {
 	// The length of the commit window to use when searching for data.
 	queryCommitChunkSize int
 
+	maxEmptyTiles int
+
 	frameStartHandlerTimer metrics2.Float64SummaryMetric
 	// Individual values of duration/num commits will be whole numbers but there's
 	// no Int64SummaryMetric
@@ -79,10 +81,11 @@ func (api graphApi) RegisterHandlers(router *chi.Mux) {
 }
 
 // NewGraphApi returns a new instance of the graphApi struct.
-func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
+func NewGraphApi(numParamSetsForQueries int, queryCommitChunkSize int, maxEmptyTiles int, loginProvider alogin.Login, dfBuilder dataframe.DataFrameBuilder, perfGit perfgit.Git, traceStore tracestore.TraceStore, shortcutStore shortcut.Store, anomalyStore anomalies.Store, progressTracker progress.Tracker, ingestedFS fs.FS) graphApi {
 	return graphApi{
 		numParamSetsForQueries:      numParamSetsForQueries,
 		queryCommitChunkSize:        queryCommitChunkSize,
+		maxEmptyTiles:               maxEmptyTiles,
 		loginProvider:               loginProvider,
 		dfBuilder:                   dfBuilder,
 		perfGit:                     perfGit,
@@ -142,7 +145,8 @@ func (api graphApi) frameStartHandler(w http.ResponseWriter, r *http.Request) {
 			api.traceStore,
 			api.numParamSetsForQueries,
 			dfbuilder.Filtering(false),
-			api.queryCommitChunkSize)
+			api.queryCommitChunkSize,
+			api.maxEmptyTiles)
 	}
 	api.progressTracker.Add(fr.Progress)
 	go func() {
