@@ -7,7 +7,6 @@
   "bug_host_url": "https://issues.chromium.org",
   "feedback_url": "http://go/berf-skia-feedback",
   "chat_url": "http://go/berf-skia-chat",
-  "instance_name": "v8-internal",
   "notify_config": {
     "notifications": "none"
   },
@@ -76,6 +75,5 @@
     "keys_for_useful_links": ["Build Page"]
   },
   "new_alerts_page": true,
-  "optimize_sqltracestore": true,
-  "enable_sheriff_config": true
+  "optimize_sqltracestore": true
 }
