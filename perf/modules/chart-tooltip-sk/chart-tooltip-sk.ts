@@ -142,6 +142,8 @@ export class ChartTooltipSk extends ElementSk {
 
   _tooltip_fixed: boolean = false;
 
+  _is_range: boolean = false;
+
   _close_button_action: () => void = () => {};
 
   // Commit range element. Values usually set by explore-simple-sk when a point
@@ -214,8 +216,17 @@ export class ChartTooltipSk extends ElementSk {
           <b>Change:</b>
           <commit-range-sk id="tooltip-commit-range-link"></commit-range-sk>
         </li>
+        ${ele._tooltip_fixed && !ele._is_range
+          ? html` <li>
+                <b>Author:</b>
+                ${ele.commitInfo?.author.split('(')[0]}
+              </li>
+              <li>
+                <b>Message:</b>
+                ${ele.commitInfo?.message}
+              </li>`
+          : html``}
       </ul>
-      <commit-info-sk .commitInfo=${ele.commitInfo} ?hidden=${!ele._tooltip_fixed}></commit-info-sk>
       ${ele._tooltip_fixed ? ele.anomalyTemplate() : ele.seeMoreText()}
       <triage-menu-sk
         id="triage-menu"
@@ -485,6 +496,7 @@ export class ChartTooltipSk extends ElementSk {
       this.commitRangeSk.trace = commitRange.trace;
       this.commitRangeSk.commitIndex = commitRange.commitIndex;
       this.commitRangeSk.header = commitRange.header;
+      this._is_range = this.commitRangeSk.isRange();
     }
 
     if (this.userIssueSk !== null) {
