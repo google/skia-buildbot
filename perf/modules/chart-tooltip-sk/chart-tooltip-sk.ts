@@ -50,7 +50,6 @@ export class CommitInfoSk extends LitElement {
       margin-bottom: 16px;
       li {
         display: table-row;
-        text-align: right;
         b {
           display: table-cell;
           text-align: left;
@@ -333,16 +332,16 @@ export class ChartTooltipSk extends ElementSk {
     return html`
       <ul class="table" id="anomaly-details">
         <li>
-          <b>Anomaly</b>
+          <b>Anomaly:</b>
           ${this.anomalyType()}
         </li>
         <li>
-          <b>Median Value:</b>
+          <b>Median:</b>
           ${AnomalySk.formatNumber(this.anomaly!.median_after_anomaly)}
           ${this.unit_type.split(' ')[0]}
         </li>
         <li>
-          <b>Prior Median:</b>
+          <b>Previous:</b>
           <span
             >${AnomalySk.formatNumber(this.anomaly!.median_before_anomaly)}
             [${this.anomalyChange()}%]</span
