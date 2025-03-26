@@ -66,7 +66,9 @@ export class PointLinksSk extends ElementSk {
     const keys = Object.keys(this.displayUrls);
     const getHtml = (key: string): TemplateResult => {
       const link = this.displayUrls![key];
-      return html` <a href="${link}" target="_blank">${key}</a>`;
+      // TODO(b/398878559): Strip after 'Git' string until json keys are ready.
+      const linkText: string = key.split(' Git')[0];
+      return html` <a href="${link}" target="_blank">${linkText}</a>`;
     };
     return keys.map(getHtml);
   }
