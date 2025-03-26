@@ -564,6 +564,8 @@ export class ExploreSimpleSk extends ElementSk {
 
   private traceKeyForSummary: string = '';
 
+  private showPickerBox: boolean = false;
+
   chartTooltip: ChartTooltipSk | null = null;
 
   useTestPicker: boolean = false;
@@ -1066,19 +1068,13 @@ export class ExploreSimpleSk extends ElementSk {
   `;
 
   private plotSummaryTemplate() {
-    return html` <div id="summaryPicker">
-        <picker-field-sk
-          ${ref(this.summaryOptionsField)}
-          @value-changed=${this.onSummaryPickerChanged}>
-        </picker-field-sk>
-      </div>
-      <plot-summary-sk
-        ${ref(this.plotSummary)}
-        @summary_selected=${this.summarySelected}
-        selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
-        ?hasControl=${!this._state.disableMaterial}
-        class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
-      </plot-summary-sk>`;
+    return html` <plot-summary-sk
+      ${ref(this.plotSummary)}
+      @summary_selected=${this.summarySelected}
+      selectionType=${!this._state.disableMaterial ? 'material' : 'canvas'}
+      ?hasControl=${!this._state.disableMaterial}
+      class="hide_on_pivot_table hide_on_query_only hide_on_spinner">
+    </plot-summary-sk>`;
   }
 
   private openAddFavoriteDialog = async () => {
