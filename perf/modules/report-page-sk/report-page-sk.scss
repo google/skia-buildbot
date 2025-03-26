@@ -33,7 +33,8 @@ report-page-sk {
   }
 
   #commit-message {
-    background-color: #d9d9db; //(--header-background-color);
+    background-color: #d9d9db;
+    color: black; // (Set to work in light and dark themes with background)
   }
 
   .common-commits {
