@@ -205,7 +205,7 @@ export class ChartTooltipSk extends ElementSk {
       <ul class="table">
         <li>
           <b>Date:</b>
-          ${ele.date_value.toDateString()}
+          ${ele.date_value.toDateString()} ${ele.date_value.toTimeString()}
         </li>
         <li>
           <b>Value:</b>
