@@ -1151,7 +1151,7 @@ export class ExploreSimpleSk extends ElementSk {
         this.story = this.getLastSubtest(params);
 
         // Construct the testPath, similar to how it's done in traceSelected.
-        const parts = [];
+        const parts: string[] = [];
         if (params.master) {
           parts.push(params.master);
         }

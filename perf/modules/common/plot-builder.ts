@@ -130,7 +130,8 @@ export function ConvertData(chartData: ChartData) {
 
 export function mainChartOptions(
   style: CSSStyleDeclaration,
-  domain: string
+  domain: string,
+  yAxis: string | undefined
 ): google.visualization.LineChartOptions {
   // The X axis can support either commit, or dates. Change the format
   // based on the current chart's format.
@@ -162,15 +163,19 @@ export function mainChartOptions(
         color: style.color,
       },
       gridlines: {
-        color: style.getPropertyValue('--plot-gridline-color'),
+        color: style.getPropertyValue('--md-sys-color-primary-container'),
       },
       format: format,
     },
     vAxis: {
+      title: yAxis,
+      titleTextStyle: {
+        color: style.getPropertyValue('--plot-axes-title-color'),
+      },
       textPosition: 'out',
       textStyle: { color: style.color },
       gridlines: {
-        color: style.getPropertyValue('--plot-gridline-color'),
+        color: style.getPropertyValue('--md-sys-color-primary-container'),
       },
       viewWindowMode: 'maximized',
     },
@@ -185,10 +190,9 @@ export function mainChartOptions(
     backgroundColor: style.getPropertyValue('--plot-background-color-sk'),
     series: {},
     crosshair: {
-      // TODO(sunxiaodi@): crosshair works on selection
-      trigger: 'focus',
+      trigger: 'both',
       focused: {
-        opacity: 0.35,
+        opacity: 0.5,
       },
     },
   };

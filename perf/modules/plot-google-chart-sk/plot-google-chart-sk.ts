@@ -167,9 +167,6 @@ export class PlotGoogleChartSk extends LitElement {
   @property({ attribute: false })
   private showResetButton = false;
 
-  @property({ attribute: false })
-  private yAxisTitle = '';
-
   // The slots to place in the templated icons for anomalies.
   private slots = {
     untriage: createRef<HTMLSlotElement>(),
@@ -306,8 +303,6 @@ export class PlotGoogleChartSk extends LitElement {
       this.updateDataView(this.data);
     } else if (changedProperties.has('data')) {
       this.updateDataView(this.data);
-    } else if (changedProperties.has('yAxisTitle')) {
-      this.updateOptions();
     }
   }
 
@@ -348,8 +343,6 @@ export class PlotGoogleChartSk extends LitElement {
     }
 
     plot.view = view;
-
-    this.setYAxisTitle(this.getAllTraces());
     this.updateOptions();
   }
 
@@ -393,7 +386,11 @@ export class PlotGoogleChartSk extends LitElement {
     if (!plot) {
       return;
     }
-    const options = mainChartOptions(getComputedStyle(this), this.domain);
+    const options = mainChartOptions(
+      getComputedStyle(this),
+      this.domain,
+      this.determineYAxisTitle(this.getAllTraces())
+    );
     const begin = this.selectedRange?.begin;
     const end = this.selectedRange?.end;
     const commitScale = this.domain === 'commit';
@@ -401,8 +398,6 @@ export class PlotGoogleChartSk extends LitElement {
       min: commitScale ? begin : (new Date(begin! * 1000) as any),
       max: commitScale ? end : (new Date(end! * 1000) as any),
     };
-
-    options.vAxis!.title = this.yAxisTitle;
 
     options.colors = [];
     // Get internal indices of visible columns.
@@ -416,15 +411,7 @@ export class PlotGoogleChartSk extends LitElement {
         options.colors.push(this.traceColorMap.get(label)!);
       }
     }
-
     plot.options = options;
-  }
-
-  /**
-   * setYAxisTitle sets the Y axis title on the chart.
-   */
-  setYAxisTitle(traceNames: string[]) {
-    this.yAxisTitle = this.determineYAxisTitle(traceNames);
   }
 
   /**
@@ -507,7 +494,11 @@ export class PlotGoogleChartSk extends LitElement {
     document.addEventListener('theme-chooser-toggle', () => {
       // Update the options to trigger the redraw.
       if (this.plotElement.value) {
-        this.plotElement.value!.options = mainChartOptions(getComputedStyle(this), this.domain);
+        this.plotElement.value!.options = mainChartOptions(
+          getComputedStyle(this),
+          this.domain,
+          this.determineYAxisTitle(this.getAllTraces())
+        );
       }
       this.requestUpdate();
     });
@@ -642,10 +633,6 @@ export class PlotGoogleChartSk extends LitElement {
     const plot = this.plotElement.value;
     const tableRowIndex = plot!.view!.getTableRowIndex(selection.row);
     const tableColumnIndex = plot!.view!.getTableColumnIndex(selection.column);
-
-    // dynamically update the y-axis upon data selection
-    const traceName = this.getTraceName(tableColumnIndex);
-    this.setYAxisTitle([traceName]);
 
     this.dispatchEvent(
       new CustomEvent<PlotShowTooltipEventDetails>('plot-data-select', {
@@ -1007,7 +994,11 @@ export class PlotGoogleChartSk extends LitElement {
   updateBounds(zoominRange: { begin: number; end: number }) {
     const zoomRangeBox = this.zoomRangeBox.value!;
     if (zoomRangeBox?.startPosition) {
-      const options = mainChartOptions(getComputedStyle(this), this.domain);
+      const options = mainChartOptions(
+        getComputedStyle(this),
+        this.domain,
+        this.determineYAxisTitle(this.getAllTraces())
+      );
       const newScale = this.domain === 'commit';
       const plot = this.plotElement.value;
       const min = Math.min(zoominRange!.begin, zoominRange!.end);
@@ -1036,7 +1027,11 @@ export class PlotGoogleChartSk extends LitElement {
   // Reset to original view
   private resetView() {
     const plot = this.plotElement.value;
-    const options = mainChartOptions(getComputedStyle(this), this.domain);
+    const options = mainChartOptions(
+      getComputedStyle(this),
+      this.domain,
+      this.determineYAxisTitle(this.getAllTraces())
+    );
     options.hAxis!.viewWindow = {
       min: this.selectedRange?.begin,
       max: this.selectedRange?.end,
@@ -1136,8 +1131,6 @@ export class PlotGoogleChartSk extends LitElement {
       return;
     }
     this.chart.setSelection([]);
-    // reset the y-axis title
-    this.setYAxisTitle(this.getAllTraces());
   }
 }
 
