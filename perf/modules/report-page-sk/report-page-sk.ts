@@ -208,10 +208,10 @@ export class ReportPageSk extends ElementSk {
       let start = anomalies.at(0)!.start_revision;
       let end = anomalies.at(0)!.end_revision;
       anomalies.forEach((anomaly) => {
-        if (anomaly.start_revision > start) {
+        if (anomaly.start_revision > start && anomaly.start_revision < end) {
           start = anomaly.start_revision;
         }
-        if (anomaly.end_revision < end) {
+        if (anomaly.end_revision < end && anomaly.end_revision > start) {
           end = anomaly.end_revision;
         }
       });
